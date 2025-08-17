@@ -105,8 +105,7 @@ public static class ServiceConfiguration
         // Contextual conversation system
         // Removed - using existing ConversationChoiceGenerator instead
         
-        // Confrontation Service for emotional confrontation scenes
-        services.AddSingleton<Wayfarer.Game.ConversationSystem.ConfrontationService>();
+        // Card-based conversation system - no confrontation service needed
         
         // Environmental Storytelling Systems
         services.AddSingleton<Wayfarer.GameState.WorldMemorySystem>();

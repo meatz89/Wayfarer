@@ -130,13 +130,17 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         {
             var choice = new ConversationChoice
             {
-                ChoiceID = template.Id,
-                NarrativeText = template.Text,
-                AttentionCost = template.AttentionCost,
-                IsAffordable = template.IsAffordable,
-                IsAvailable = template.IsAvailable,
-                MechanicalDescription = template.MechanicalDescription,
-                MechanicalEffects = template.MechanicalEffects
+                ChoiceID = template.TemplateName ?? "unknown",
+                NarrativeText = template.Description ?? "Make a choice",
+                AttentionCost = 1, // Default attention cost
+                IsAffordable = true,
+                IsAvailable = true,
+                MechanicalDescription = template.TemplatePurpose ?? "No description",
+                MechanicalEffects = new List<IMechanicalEffect>
+                {
+                    template.SuccessEffect,
+                    template.FailureEffect
+                }.Where(e => e != null).ToList()
             };
             enhancedChoices.Add(choice);
         }

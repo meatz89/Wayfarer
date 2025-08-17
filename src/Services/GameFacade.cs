@@ -2223,66 +2223,10 @@ public class GameFacade : ILetterQueueOperations
 
     // ========== CONVERSATIONS ==========
 
-    private async Task<ConversationViewModel> StartConfrontationAsync(string npcId)
-    {
-        // Generate the confrontation scene
-        var confrontationData = _confrontationService.GenerateConfrontation(npcId);
-        
-        // Create a special conversation view model for confrontations
-        var viewModel = new ConversationViewModel
-        {
-            NpcName = confrontationData.NPC.Name,
-            NpcId = confrontationData.NPC.ID,
-            CharacterName = confrontationData.NPC.Name,
-            CharacterState = confrontationData.EmotionalState.ToString(),
-            
-            // Forced opening - NPC speaks first, no player choice
-            CurrentText = confrontationData.OpeningDialogue,
-            BodyLanguageDescription = confrontationData.BodyLanguage,
-            
-            // Convert confrontation choices to conversation choices
-            Choices = confrontationData.Choices.Select(c => new ConversationChoiceViewModel
-            {
-                Id = c.Id,
-                Text = c.Text,
-                AttentionCost = 0, // Confrontations are free
-                AttentionDisplay = "Free",
-                IsAvailable = true, // All confrontation choices are available
-                IsLocked = false,
-                EmotionalTone = "Confrontation",
-                Mechanics = new List<MechanicEffectViewModel>
-                {
-                    new MechanicEffectViewModel 
-                    { 
-                        Description = c.Description ?? "Confrontation Response",
-                        Type = MechanicEffectType.Neutral
-                    }
-                }
-            }).ToList(),
-            
-            // Confrontations don't use attention (they're free)
-            CurrentAttention = 3, // Show full to indicate it's free
-            MaxAttention = 3,
-            AttentionNarrative = "They demand this conversation.",
-            
-            // Additional confrontation context
-            DeadlinePressure = $"Leverage: {confrontationData.Leverage}",
-            InternalMonologue = "You can't avoid this reckoning."
-        };
-        
-        // Store confrontation data for processing responses
-        _conversationStateManager.SetConfrontationData(confrontationData);
-        
-        return viewModel;
-    }
 
     public async Task<ConversationViewModel> StartConversationAsync(string npcId)
     {
-        // Check if a confrontation should trigger first
-        if (_confrontationService != null && _confrontationService.ShouldTriggerConfrontation(npcId))
-        {
-            return await StartConfrontationAsync(npcId);
-        }
+        // Card-based conversation system handles all conversation types
 
         // Get NPC and create context
         NPC npc = _npcRepository.GetById(npcId);
@@ -2318,11 +2262,7 @@ public class GameFacade : ILetterQueueOperations
 
     public async Task<ConversationViewModel> ContinueConversationAsync(string choiceId)
     {
-        // Check if this is a confrontation response
-        if (_conversationStateManager.HasPendingConfrontation())
-        {
-            return ProcessConfrontationResponse(choiceId);
-        }
+        // Card-based conversation system handles all response types
 
         ConversationManager currentConversation = _conversationStateManager.PendingConversationManager;
         if (currentConversation == null || !_conversationStateManager.ConversationPending) return null;
@@ -2347,51 +2287,6 @@ public class GameFacade : ILetterQueueOperations
         return CreateConversationViewModel(currentConversation);
     }
 
-    private ConversationViewModel ProcessConfrontationResponse(string choiceId)
-    {
-        var confrontation = _conversationStateManager.GetConfrontationData();
-        if (confrontation == null) return null;
-
-        // Find the selected choice
-        var selectedChoice = confrontation.Choices.FirstOrDefault(c => c.Id == choiceId);
-        if (selectedChoice == null) return null;
-
-        // Process the confrontation choice
-        var result = _confrontationService.ProcessConfrontationChoice(confrontation, selectedChoice);
-
-        // Create response view model
-        var viewModel = new ConversationViewModel
-        {
-            NpcName = confrontation.NPC.Name,
-            NpcId = confrontation.NPC.ID,
-            CharacterName = confrontation.NPC.Name,
-            
-            // Show NPC's response to player's choice
-            CurrentText = result.NPCResponse,
-            BodyLanguageDescription = "Their expression shifts slightly",
-            
-            // Confrontation is complete after one exchange
-            IsComplete = result.IsComplete,
-            
-            // Show redemption progress if any
-            DeadlinePressure = result.RedemptionGained > 0 
-                ? $"Redemption Progress: +{result.RedemptionGained}" 
-                : "No progress toward redemption",
-            
-            // Empty choices list to indicate conversation is ending
-            Choices = new List<ConversationChoiceViewModel>(),
-            
-            // Attention remains free
-            CurrentAttention = 3,
-            MaxAttention = 3,
-            AttentionNarrative = "The confrontation concludes."
-        };
-
-        // Clear confrontation state
-        _conversationStateManager.ClearConfrontation();
-
-        return viewModel;
-    }
 
     public ConversationViewModel GetCurrentConversation()
     {

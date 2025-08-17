@@ -20,8 +20,7 @@ public static class LiteraryUIConfiguration
         // Register NPC State Resolver
         services.AddSingleton<NPCStateResolver>();
         
-        // Register Verb Contextualizer for hidden mechanics
-        services.AddSingleton<VerbContextualizer>();
+        // Card-based conversation system - no verb contextualizer needed
         
         // Register Environmental Systems
         services.AddSingleton<EnvironmentalHintSystem>();
