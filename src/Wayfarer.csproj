@@ -51,9 +51,6 @@
 		<Content Update="Content\Templates\location_Spots.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="Content\Templates\locationProperties.json">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
 		<Content Update="wwwroot\images\characters\female_Merchant.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>

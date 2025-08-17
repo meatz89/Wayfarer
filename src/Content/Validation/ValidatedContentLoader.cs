@@ -68,27 +68,6 @@ public class ValidatedContentLoader
     }
 
     /// <summary>
-    /// Load and validate content, returning null if file doesn't exist.
-    /// </summary>
-    public T LoadValidatedContentOrDefault<T>(string filePath) where T : class
-    {
-        if (!File.Exists(filePath))
-        {
-            return null;
-        }
-
-        return LoadValidatedContent<T>(filePath);
-    }
-
-    /// <summary>
-    /// Validate all content in a directory.
-    /// </summary>
-    public ValidationResult ValidateContentDirectory(string directoryPath)
-    {
-        return _pipeline.ValidateContentDirectory(directoryPath);
-    }
-
-    /// <summary>
     /// Load content with a custom deserializer for complex types.
     /// </summary>
     public T LoadValidatedContentWithParser<T>(string filePath, Func<string, T> parser)

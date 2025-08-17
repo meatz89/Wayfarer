@@ -1,4 +1,5 @@
 using System.Text.Json;
+
 public static class LetterTemplateParser
 {
     public static LetterTemplate ParseLetterTemplate(string json)

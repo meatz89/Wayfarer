@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Wayfarer.ViewModels;
 using Wayfarer.GameState.Interactions;
-using Wayfarer.Models;
 using Wayfarer.GameState;
 
 public class ConversationScreenBase : ComponentBase

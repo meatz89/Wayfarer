@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 public class LetterTemplateRepository
 {
     private readonly GameWorld _gameWorld;
