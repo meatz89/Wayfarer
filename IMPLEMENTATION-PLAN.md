@@ -1,11 +1,39 @@
 # Wayfarer: Complete Implementation Plan
 *Generated from comprehensive specialized agent analysis*
 
+## 🚨 URGENT UPDATE: CONVERSATION UI INTEGRATION REQUIRED
+
+**Date**: 2025-08-18
+**Status**: BACKEND MECHANICS FIXED - UI INTEGRATION NEEDED
+**Priority**: HIGH - Core mechanics work but UI doesn't reflect changes
+
+### ✅ COMPLETED: Backend Conversation Mechanics  
+1. **ConversationOutcomeCalculator**: ✅ Success/Neutral/Failure system working
+2. **Choice processing**: ✅ Patience reduction, comfort gain, token effects implemented
+3. **Natural endings**: ✅ Conversations end when patience=0 or no choices available
+4. **Exit functionality**: ✅ Players can properly exit conversations
+
+### 🚧 REMAINING: UI Integration Issues
+1. **Choice removal not working**: UI still shows selected choices in next round
+2. **Patience display not updating**: Shows (10/10) but should decrease
+3. **No success probabilities**: Need to show "75% Success" on each choice
+4. **No outcome feedback**: Players don't see if choices succeeded/failed
+5. **Wrong terminology**: Shows "Connection" instead of "Comfort"
+
+### Immediate Action Required  
+**PHASE UI: CONVERSATION DISPLAY INTEGRATION** (1-2 hours)
+- Debug why choice removal isn't working in UI
+- Fix patience/comfort display to show real values
+- Add success probability display on all choices
+- Implement visual feedback for choice outcomes
+
+---
+
 ## Executive Summary
 
 This document provides the complete implementation roadmap for Wayfarer's dual-layer medieval letter carrier simulation. Based on analysis from specialized agents (Game Design, Systems Architecture, UI/UX, and Narrative Design), this plan addresses 88 user stories across 15 epics while preserving the human heart of relationship-driven storytelling.
 
-**Critical Finding**: Current implementation has sophisticated backend mechanics but suffers from "spreadsheet simulator" syndrome. The plan prioritizes narrative-first integration where mechanics serve story, not the reverse.
+**Critical Finding**: Conversation system is fundamentally broken and must be fixed before any other development continues.
 
 ## Current State Assessment
 

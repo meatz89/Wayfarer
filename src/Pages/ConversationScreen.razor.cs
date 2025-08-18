@@ -91,8 +91,20 @@ public class ConversationScreenBase : ComponentBase
 
     protected async Task GenerateChoicesAsync()
     {
-        // Use card-based choices exclusively - no fallbacks
-        Choices = await GenerateCardBasedChoicesAsync();
+        // Get choices from the current conversation state (filtered by previous selections)
+        ConversationManager? currentConversation = GameFacade.GetCurrentConversationManager();
+        if (currentConversation?.Choices != null && currentConversation.Choices.Any())
+        {
+            // Use the filtered choices from conversation state
+            Choices = currentConversation.Choices.Where(c => c.IsAvailable).ToList();
+            Console.WriteLine($"[ConversationScreen] Using {Choices.Count} filtered choices from conversation state");
+        }
+        else
+        {
+            // Fall back to generating fresh choices if conversation state has none
+            Choices = await GenerateCardBasedChoicesAsync();
+            Console.WriteLine($"[ConversationScreen] Generated {Choices.Count} fresh choices from deck");
+        }
     }
 
     protected async Task HandleChoice(ConversationChoice choice)
@@ -147,6 +159,46 @@ public class ConversationScreenBase : ComponentBase
             MechanicalDescription = "→ Maintains current state",
             MechanicalEffects = new List<IMechanicalEffect>()
         };
+    }
+
+    /// <summary>
+    /// Get success probability display for a choice
+    /// </summary>
+    protected string GetSuccessProbabilityDisplay(ConversationChoice choice)
+    {
+        try
+        {
+            // Use the same calculator as the backend
+            var outcomeCalculator = new Wayfarer.Game.ConversationSystem.ConversationOutcomeCalculator();
+            
+            // Get current conversation state
+            ConversationManager? currentConversation = GameFacade.GetCurrentConversationManager();
+            if (currentConversation?.Context?.TargetNPC == null)
+                return ""; // No probability display if no conversation
+                
+            NPC npc = currentConversation.Context.TargetNPC;
+            Player player = GameFacade.GetPlayer();
+            int currentPatience = CurrentPatience;
+
+            // Calculate probabilities
+            var probabilities = outcomeCalculator.CalculateProbabilities(choice, npc, player, currentPatience);
+            
+            // Format success chance display
+            if (probabilities.SuccessChance >= 90)
+                return "Very likely success";
+            else if (probabilities.SuccessChance >= 70)
+                return "Likely success";
+            else if (probabilities.SuccessChance >= 50)
+                return "Moderate success chance";
+            else if (probabilities.SuccessChance >= 30)
+                return "Difficult approach";
+            else
+                return "High difficulty";
+        }
+        catch (Exception)
+        {
+            return "Unknown difficulty";
+        }
     }
 
     protected async Task HandleExitConversation()

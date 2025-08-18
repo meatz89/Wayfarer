@@ -2348,45 +2348,60 @@ public class GameFacade : ILetterQueueOperations
             return await ProcessDeclineLetterOffer(currentConversation, selectedChoice);
         }
 
-        // Track time before processing to handle any ConversationTimeEffects
-        int hoursBefore = _timeManager.GetCurrentTimeHours();
-        int minutesBefore = _timeManager.GetCurrentMinutes();
-        int dayBefore = _timeManager.GetCurrentDay();
+        // NEW: Use ConversationOutcomeCalculator for Success/Neutral/Failure determination
+        var outcomeCalculator = new Wayfarer.Game.ConversationSystem.ConversationOutcomeCalculator();
+        NPC npc = currentConversation.Context.TargetNPC; // Get NPC from context
+        Player player = _gameWorld.GetPlayer();
+        int currentPatience = currentConversation.State.FocusPoints;
 
-        // Process the choice and get the outcome
-        ConversationBeatOutcome outcome = await currentConversation.ProcessPlayerChoice(selectedChoice);
+        // Calculate outcome probabilities and determine actual outcome
+        var probabilities = outcomeCalculator.CalculateProbabilities(selectedChoice, npc, player, currentPatience);
+        var actualOutcome = outcomeCalculator.DetermineOutcome(probabilities);
+        var choiceResult = outcomeCalculator.CalculateResult(selectedChoice, actualOutcome, npc, player);
 
-        // Check if time advanced during choice processing (from ConversationTimeEffect)
-        int hoursAfter = _timeManager.GetCurrentTimeHours();
-        int minutesAfter = _timeManager.GetCurrentMinutes();
-        int dayAfter = _timeManager.GetCurrentDay();
+        Console.WriteLine($"[GameFacade.ProcessConversationChoice] Outcome: {actualOutcome}, ComfortGain: {choiceResult.ComfortGain}, PatienceCost: {choiceResult.PatienceCost}");
 
-        // Calculate time difference and process letter deadlines if time advanced
-        int totalMinutesAdvanced = 0;
-        if (dayAfter > dayBefore)
+        // Apply choice result to conversation state
+        currentConversation.State.FocusPoints -= choiceResult.PatienceCost; // Reduce patience directly
+        currentConversation.State.AddComfort(choiceResult.ComfortGain); // Add comfort using existing method
+        
+        // Apply token changes
+        foreach (var tokenChange in choiceResult.TokenChanges)
         {
-            // Crossed day boundary
-            totalMinutesAdvanced = ((dayAfter - dayBefore) * 24 * 60) + ((hoursAfter - hoursBefore) * 60) + (minutesAfter - minutesBefore);
-        }
-        else
-        {
-            totalMinutesAdvanced = ((hoursAfter - hoursBefore) * 60) + (minutesAfter - minutesBefore);
-        }
-
-        if (totalMinutesAdvanced > 0)
-        {
-            // ConversationTimeEffect advanced time - process letter deadlines
-            int hoursAdvanced = totalMinutesAdvanced / 60;
-            if (hoursAdvanced > 0)
+            if (tokenChange.Value > 0)
             {
-                _letterQueueManager.ProcessHourlyDeadlines(hoursAdvanced);
+                _connectionTokenManager.AddTokensToNPC(tokenChange.Key, tokenChange.Value, npc.ID);
+            }
+            else if (tokenChange.Value < 0)
+            {
+                // Use SpendTokensWithNPC for negative changes
+                _connectionTokenManager.SpendTokensWithNPC(tokenChange.Key, Math.Abs(tokenChange.Value), npc.ID);
             }
         }
 
-        Console.WriteLine($"[GameFacade.ProcessConversationChoice] Choice processed. Conversation complete: {outcome.IsConversationComplete}");
+        // Remove the selected choice from available choices (single-use)
+        if (currentConversation.Choices != null)
+        {
+            currentConversation.Choices.Remove(selectedChoice);
+        }
 
-        // If conversation is complete, check comfort thresholds and generate letters
-        if (outcome.IsConversationComplete)
+        // Check for natural conversation ending conditions
+        bool shouldEndConversation = false;
+        
+        // End if patience reaches 0
+        if (currentConversation.State.FocusPoints <= 0)
+        {
+            Console.WriteLine($"[GameFacade.ProcessConversationChoice] Conversation ended - NPC patience exhausted");
+            shouldEndConversation = true;
+        }
+        // End if no more choices available
+        else if (currentConversation.Choices == null || !currentConversation.Choices.Any(c => c.IsAvailable))
+        {
+            Console.WriteLine($"[GameFacade.ProcessConversationChoice] Conversation ended - no more available choices");
+            shouldEndConversation = true;
+        }
+
+        if (shouldEndConversation)
         {
             await ProcessConversationCompletion(currentConversation);
             _conversationStateManager.ClearPendingConversation();
@@ -2394,7 +2409,12 @@ public class GameFacade : ILetterQueueOperations
             return null;
         }
 
-        // Generate new choices for the next beat
+        // Track time for any time effects (keep existing logic)
+        int hoursBefore = _timeManager.GetCurrentTimeHours();
+        int minutesBefore = _timeManager.GetCurrentMinutes();
+        int dayBefore = _timeManager.GetCurrentDay();
+
+        // Generate new choices if conversation continues (reduce available options)
         await currentConversation.ProcessNextBeat();
 
         // Return updated view model

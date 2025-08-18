@@ -81,7 +81,7 @@
                     </div>
                     
                     <div class="comfort-display">
-                        <span class="comfort-label">Connection:</span>
+                        <span class="comfort-label">Comfort:</span>
                         <div class="comfort-indicator @GetComfortClass()">
                             @GetComfortDescription()
                         </div>
@@ -154,10 +154,19 @@
                                     "@choice.NarrativeText"
                                 </div>
                                 
-                                <!-- Mechanical previews -->
-                                @if (!string.IsNullOrEmpty(choice.MechanicalDescription))
-                                {
-                                    <div class="choice-mechanics">
+                                <!-- Success probability and mechanical previews -->
+                                <div class="choice-mechanics">
+                                    <!-- Success probability display -->
+                                    <div class="mechanic-item success-probability">
+                                        <span class="success-icon">🎯</span>
+                                        <span class="mechanic-text">
+                                            @GetSuccessProbabilityDisplay(choice)
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Existing mechanical description -->
+                                    @if (!string.IsNullOrEmpty(choice.MechanicalDescription))
+                                    {
                                         @foreach (var part in ParseMechanicalDescription(choice.MechanicalDescription))
                                         {
                                             <div class="mechanic-item @GetMechanicClass(part)">
@@ -167,8 +176,8 @@
                                                 </span>
                                             </div>
                                         }
-                                    </div>
-                                }
+                                    }
+                                </div>
                                 
                                 <!-- Lock reason if unavailable -->
                                 @if (!choice.IsAvailable && !string.IsNullOrEmpty(choice.MechanicalDescription))
