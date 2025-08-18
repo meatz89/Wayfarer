@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Elena Conversation (Refined)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: #0a0806;
+            color: #2c2416;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fefdfb;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Peripheral Awareness */
+        .peripheral-layer {
+            position: fixed;
+            width: 100%;
+            max-width: 600px;
+            z-index: 10;
+        }
+
+        .deadline-whisper {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(139, 0, 0, 0.9);
+            color: white;
+            padding: 6px 10px;
+            font-size: 11px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0.9;
+        }
+
+        .deadline-whisper:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .satchel-weight {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(44, 36, 22, 0.8);
+            color: #f4f1e8;
+            padding: 8px 12px;
+            font-size: 11px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-style: italic;
+        }
+
+        .satchel-weight:hover {
+            background: #2c2416;
+            transform: translateY(-2px);
+        }
+
+        /* Enhanced Conversation Mechanics */
+        .conversation-vitals {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .patience-indicator {
+            font-size: 12px;
+            color: #2c2416;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .comfort-display {
+            font-size: 12px;
+            color: #2c2416;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .comfort-progress {
+            width: 120px;
+            height: 8px;
+            background: #e8dfd0;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .comfort-fill {
+            height: 100%;
+            background: linear-gradient(to right, #d4c5a0, #b8a584);
+            width: 15%;
+            transition: width 0.3s;
+        }
+
+        .comfort-threshold {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 1px;
+            background: #2c2416;
+        }
+
+        .threshold-maintain { left: 50%; }
+        .threshold-letter { left: 75%; opacity: 0.7; }
+        .threshold-perfect { left: 100%; opacity: 0.5; }
+
+        .comfort-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #8b7355;
+            margin-top: 2px;
+        }
+
+        /* Location Context */
+        .location-context {
+            padding: 16px 20px;
+            background: #f9f7f3;
+            border-bottom: 1px solid #e8dfd0;
+            text-align: center;
+        }
+
+        .location-path {
+            font-size: 11px;
+            color: #8b7355;
+            margin-bottom: 4px;
+        }
+
+        .location-moment {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .location-atmosphere {
+            font-style: italic;
+            color: #6b5d4f;
+            font-size: 12px;
+        }
+
+        /* Sharp Focus - Conversation */
+        .sharp-focus {
+            padding: 20px;
+            min-height: calc(100vh - 100px);
+            transition: all 0.5s;
+        }
+
+        .sharp-focus.blurred {
+            filter: blur(4px);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Character Presence */
+        .character-presence {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .character-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .character-state {
+            font-style: italic;
+            color: #6b5d4f;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .relationship-bonds {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .bond {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .bond-strength {
+            display: flex;
+            gap: 1px;
+        }
+
+        .bond-dot {
+            width: 4px;
+            height: 4px;
+            background: #d4c5a0;
+            border-radius: 50%;
+        }
+
+        .bond-dot.filled { background: #2c2416; }
+        .bond-dot.debt { background: #d32f2f; }
+
+        /* Dialogue Moment */
+        .dialogue-moment {
+            background: white;
+            border: 1px solid #d4c5a0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .spoken-words {
+            font-size: 15px;
+            color: #2c2416;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .physical-detail {
+            font-style: italic;
+            color: #8b7355;
+            font-size: 13px;
+            margin: 12px 0;
+            text-align: center;
+        }
+
+        /* Enhanced Conversation Cards */
+        .conversation-responses {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .response-card {
+            background: #f9f7f3;
+            border: 1px solid #e8dfd0;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .response-card:hover {
+            background: white;
+            border-color: #b8a584;
+            transform: translateX(4px);
+        }
+
+        .response-card.unplayable {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .response-thought {
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+
+        .card-mechanics {
+            font-size: 11px;
+            color: #8b7355;
+        }
+
+        .card-cost-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .patience-cost {
+            background: #e8dfd0;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .success-probability {
+            font-size: 10px;
+            color: #6b5d4f;
+        }
+
+        .outcome-tiers {
+            font-size: 10px;
+            line-height: 1.4;
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px solid #e8dfd0;
+        }
+
+        .outcome-tier {
+            margin: 2px 0;
+        }
+
+        .tier-success { color: #2d5016; }
+        .tier-neutral { color: #6b5d4f; }
+        .tier-failure { color: #8b0000; }
+
+        /* Environmental Observations */
+        .peripheral-awareness {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e8dfd0;
+        }
+
+        .awareness-hint {
+            text-align: center;
+            font-size: 12px;
+            color: #8b7355;
+            font-style: italic;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .awareness-hint:hover {
+            color: #2c2416;
+            transform: scale(1.02);
+        }
+
+        /* Bottom Actions */
+        .scene-actions {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .scene-action {
+            color: #8b7355;
+            cursor: pointer;
+            padding: 4px 8px;
+            margin: 0 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-style: italic;
+        }
+
+        .scene-action:hover {
+            background: #f4f1e8;
+            color: #2c2416;
+        }
+
+        /* Environment Overlay */
+        .environment-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            display: none;
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        .environment-overlay.active {
+            display: block;
+        }
+
+        .environment-frame {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fefdfb;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .environment-header {
+            font-style: italic;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #6b5d4f;
+        }
+
+        .observed-element {
+            background: white;
+            border: 1px solid #e8dfd0;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .observed-element:hover {
+            border-color: #b8a584;
+            transform: translateX(4px);
+        }
+
+        .observation-detail {
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .observation-note {
+            font-size: 11px;
+            color: #8b7355;
+            font-style: italic;
+        }
+
+        .return-focus {
+            text-align: center;
+            margin-top: 20px;
+            color: #8b7355;
+            cursor: pointer;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        .return-focus:hover {
+            color: #2c2416;
+        }
+
+        /* Satchel Overlay */
+        .satchel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 100;
+            display: none;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .satchel-overlay.active {
+            display: block;
+        }
+
+        .satchel-contents {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #2c2416;
+            border-radius: 8px;
+            padding: 20px;
+            color: #f4f1e8;
+        }
+
+        .satchel-description {
+            font-style: italic;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .letter-entry {
+            background: #f4f1e8;
+            color: #2c2416;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border-left: 4px solid #d4c5a0;
+        }
+
+        .letter-entry.urgent {
+            border-left-color: #d32f2f;
+            background: #ffebee;
+        }
+
+        .letter-position {
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .letter-details {
+            font-size: 12px;
+        }
+
+        .displacement-warning {
+            background: rgba(255,100,100,0.1);
+            padding: 12px;
+            margin-top: 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        /* Enhanced deck indicator */
+        .deck-whisper {
+            text-align: center;
+            font-size: 10px;
+            color: #8b7355;
+            margin-top: 12px;
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        /* Turn indicator */
+        .conversation-turn {
+            position: absolute;
+            top: 75px;
+            left: 12px;
+            font-size: 10px;
+            color: #8b7355;
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        /* Letter opportunity indicator */
+        .letter-opportunity {
+            background: #fff3cd;
+            border: 1px solid #d4c5a0;
+            padding: 8px;
+            margin: 12px 0;
+            border-radius: 4px;
+            font-size: 11px;
+            text-align: center;
+            color: #856404;
+            display: none;
+        }
+
+        .letter-opportunity.near { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Peripheral Awareness -->
+        <div class="peripheral-layer">
+            <div class="deadline-whisper" onclick="openSatchel()">
+                ⚡ Lord B. in 2h 15m...
+            </div>
+            
+            <div class="satchel-weight" onclick="openSatchel()">
+                Heavy (3 letters)
+            </div>
+            
+            <div class="conversation-vitals">
+                <div class="patience-indicator">Elena's Patience: 7/10</div>
+                <div class="comfort-display">Comfort: 3/20</div>
+                <div class="comfort-progress">
+                    <div class="comfort-fill"></div>
+                    <div class="comfort-threshold threshold-maintain"></div>
+                    <div class="comfort-threshold threshold-letter"></div>
+                </div>
+                <div class="comfort-labels">
+                    <span>0</span>
+                    <span>10↑</span>
+                    <span>15↑</span>
+                    <span>20</span>
+                </div>
+            </div>
+            
+            <div class="conversation-turn">Turn 1 of 3</div>
+        </div>
+
+        <!-- Location Context -->
+        <div class="location-context">
+            <div class="location-path">Market Square → The Copper Kettle → Corner Table</div>
+            <div class="location-moment">A Quiet Conversation</div>
+            <div class="location-atmosphere">Afternoon light through amber glass, the tavern's warmth a cocoon</div>
+        </div>
+
+        <!-- Sharp Focus - Conversation -->
+        <div class="sharp-focus" id="main-focus">
+            <!-- Character Presence -->
+            <div class="character-presence">
+                <div class="character-name">Elena</div>
+                <div class="character-state">anxious, leaning close, fingers worrying her shawl</div>
+                
+                <div class="relationship-bonds">
+                    <div class="bond">
+                        <span>Trust</span>
+                        <div class="bond-strength">
+                            <div class="bond-dot filled"></div>
+                            <div class="bond-dot filled"></div>
+                            <div class="bond-dot filled"></div>
+                            <div class="bond-dot filled"></div>
+                            <div class="bond-dot filled"></div>
+                        </div>
+                    </div>
+                    <div class="bond">
+                        <span>Commerce</span>
+                        <div class="bond-strength">
+                            <div class="bond-dot debt"></div>
+                            <div class="bond-dot"></div>
+                            <div class="bond-dot"></div>
+                            <div class="bond-dot"></div>
+                            <div class="bond-dot"></div>
+                        </div>
+                    </div>
+                    <div class="bond">
+                        <span>Status</span>
+                        <div class="bond-strength">
+                            <div class="bond-dot filled"></div>
+                            <div class="bond-dot filled"></div>
+                            <div class="bond-dot filled"></div>
+                            <div class="bond-dot"></div>
+                            <div class="bond-dot"></div>
+                        </div>
+                    </div>
+                    <div class="bond">
+                        <span>Shadow</span>
+                        <div class="bond-strength">
+                            <div class="bond-dot filled"></div>
+                            <div class="bond-dot filled"></div>
+                            <div class="bond-dot"></div>
+                            <div class="bond-dot"></div>
+                            <div class="bond-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dialogue Moment -->
+            <div class="dialogue-moment">
+                <div class="spoken-words">
+                    "I know I shouldn't worry, but..." Her voice drops to barely above a whisper. "That letter to my cousin? It's a refusal. A marriage refusal."
+                </div>
+                
+                <div class="physical-detail">
+                    She pulls her shawl tighter, though the tavern is warm
+                </div>
+                
+                <div class="spoken-words">
+                    "If certain people learn about this before she does, my standing at court..." She doesn't finish. She doesn't need to.
+                </div>
+            </div>
+
+            <!-- Letter Opportunity Indicator -->
+            <div class="letter-opportunity" id="letter-indicator">
+                You're building toward Elena's trust... (12 more comfort needed for letter opportunity)
+            </div>
+
+            <!-- Enhanced Conversation Cards -->
+            <div class="conversation-responses">
+                <div class="response-card" onclick="playCard(this, 1, 'Listen')">
+                    <div class="response-thought">Lean forward, voice gentle: "Tell me everything. I'm listening."</div>
+                    <div class="card-mechanics">
+                        <div class="card-cost-line">
+                            <span class="patience-cost">1 patience</span>
+                            <span class="success-probability">Listen (84% success)</span>
+                        </div>
+                        <div class="outcome-tiers">
+                            <div class="outcome-tier tier-success">6+ patience → +3 comfort</div>
+                            <div class="outcome-tier tier-neutral">3-5 patience → +1 comfort</div>
+                            <div class="outcome-tier tier-failure">&lt;3 patience → no effect</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="response-card" onclick="playCard(this, 3, 'Promise')">
+                    <div class="response-thought">Take her hand firmly: "I'll make sure your letter goes first. I promise."</div>
+                    <div class="card-mechanics">
+                        <div class="card-cost-line">
+                            <span class="patience-cost">3 patience</span>
+                            <span class="success-probability">Promise Priority (60% success)</span>
+                        </div>
+                        <div class="outcome-tiers">
+                            <div class="outcome-tier tier-success">8+ patience → +5 comfort, creates Trust obligation</div>
+                            <div class="outcome-tier tier-neutral">5-7 patience → +2 comfort</div>
+                            <div class="outcome-tier tier-failure">&lt;5 patience → -1 comfort, adds "Broken Promise"</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="response-card" onclick="playCard(this, 2, 'Validate')">
+                    <div class="response-thought">Nod slowly: "Your concerns are valid. This is serious."</div>
+                    <div class="card-mechanics">
+                        <div class="card-cost-line">
+                            <span class="patience-cost">2 patience</span>
+                            <span class="success-probability">Validate Concerns (72% success)</span>
+                        </div>
+                        <div class="outcome-tiers">
+                            <div class="outcome-tier tier-success">7+ patience → +4 comfort</div>
+                            <div class="outcome-tier tier-neutral">4-6 patience → +2 comfort</div>
+                            <div class="outcome-tier tier-failure">&lt;4 patience → +1 comfort</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="response-card" onclick="playCard(this, 0, 'Touch')">
+                    <div class="response-thought">Rest your hand over hers in silent support</div>
+                    <div class="card-mechanics">
+                        <div class="card-cost-line">
+                            <span class="patience-cost">0 patience</span>
+                            <span class="success-probability">Small Comfort (auto)</span>
+                        </div>
+                        <div class="outcome-tiers">
+                            <div class="outcome-tier tier-success">Always → +1 comfort</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="response-card unplayable">
+                    <div class="response-thought">Share the secret that would solve everything...</div>
+                    <div class="card-mechanics">
+                        <div class="card-cost-line">
+                            <span class="patience-cost">5 patience</span>
+                            <span class="success-probability">Deep Trust (would be 48%)</span>
+                        </div>
+                        <div class="outcome-tiers">
+                            <div class="outcome-tier tier-success">10+ patience → +8 comfort, unlock special path</div>
+                            <div class="outcome-tier tier-neutral">7-9 patience → +4 comfort</div>
+                            <div class="outcome-tier tier-failure">&lt;7 patience → -2 comfort, damages trust</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="deck-whisper">
+                Your Elena Deck: 5 cards in hand, 12 cards remaining in your conversation strategies with her
+            </div>
+
+            <!-- Peripheral Awareness -->
+            <div class="peripheral-awareness">
+                <div class="awareness-hint" onclick="openEnvironment()">
+                    Something shifts in your peripheral vision... the guards, perhaps?
+                </div>
+            </div>
+
+            <!-- Scene Actions -->
+            <div class="scene-actions">
+                <span class="scene-action" onclick="openEnvironment()">Let your gaze drift</span>
+                •
+                <span class="scene-action" onclick="standToLeave()">Push back from the table</span>
+            </div>
+        </div>
+
+        <!-- Environment Overlay -->
+        <div class="environment-overlay" id="environment-view">
+            <div class="environment-frame">
+                <div class="environment-header">
+                    Your attention shifts from Elena, taking in the tavern's afternoon rhythm...
+                </div>
+                
+                <div class="observed-element">
+                    <div class="observation-detail">
+                        <strong>Marcus at a far table:</strong> Arguing with his son, harsh whispers and red faces
+                    </div>
+                    <div class="observation-note">Shifting focus would require ending this conversation</div>
+                </div>
+                
+                <div class="observed-element">
+                    <div class="observation-detail">
+                        <strong>Two guards by the door:</strong> Dice forgotten, watching your table with professional interest
+                    </div>
+                    <div class="observation-note">You could investigate after this conversation</div>
+                </div>
+                
+                <div class="observed-element">
+                    <div class="observation-detail">
+                        <strong>Hooded figure in corner:</strong> Too still to be truly relaxed, too aware to be drunk
+                    </div>
+                    <div class="observation-note">Peripheral awareness noted for later</div>
+                </div>
+                
+                <div class="observed-element">
+                    <div class="observation-detail">
+                        <strong>The back door:</strong> Slightly ajar, cool air and alley sounds drift through
+                    </div>
+                    <div class="observation-note">Quick exit available if needed</div>
+                </div>
+                
+                <div class="return-focus" onclick="closeEnvironment()">
+                    Return your attention to Elena, who waits with diminishing patience...
+                </div>
+            </div>
+        </div>
+
+        <!-- Satchel Overlay -->
+        <div class="satchel-overlay" id="satchel-view">
+            <div class="satchel-contents">
+                <div class="satchel-description">
+                    You lower your satchel carefully, leather worn smooth by countless deliveries...
+                </div>
+                
+                <div class="letter-entry urgent">
+                    <div class="letter-position">Position 1 - Must Deliver Next</div>
+                    <div class="letter-details">
+                        Lord Blackwood • Status Letter<br>
+                        <small>Due 6PM today (2h 15m remaining)</small>
+                    </div>
+                </div>
+                
+                <div class="letter-entry">
+                    <div class="letter-position">Position 2</div>
+                    <div class="letter-details">
+                        Elena's Cousin • Trust Letter<br>
+                        <small>Due tomorrow 2PM</small>
+                    </div>
+                </div>
+                
+                <div class="letter-entry">
+                    <div class="letter-position">Position 3</div>
+                    <div class="letter-details">
+                        Harbor Master • Commerce Letter<br>
+                        <small>Due in 3 days</small>
+                    </div>
+                </div>
+                
+                <div class="displacement-warning">
+                    To move Elena's letter to position 1, you must burn 1 Status token with Lord Blackwood.
+                    Your Commerce debt to Elena creates leverage - her letters want to jump forward.
+                </div>
+                
+                <div class="return-focus" onclick="closeSatchel()">
+                    Close the satchel, return to the conversation
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPatience = 7;
+        let currentComfort = 3;
+        let turnNumber = 1;
+        
+        function openSatchel() {
+            document.getElementById('main-focus').classList.add('blurred');
+            document.getElementById('satchel-view').classList.add('active');
+        }
+        
+        function closeSatchel() {
+            document.getElementById('main-focus').classList.remove('blurred');
+            document.getElementById('satchel-view').classList.remove('active');
+        }
+        
+        function openEnvironment() {
+            document.getElementById('main-focus').classList.add('blurred');
+            document.getElementById('environment-view').classList.add('active');
+        }
+        
+        function closeEnvironment() {
+            document.getElementById('main-focus').classList.remove('blurred');
+            document.getElementById('environment-view').classList.remove('active');
+        }
+        
+        function standToLeave() {
+            console.log('Transitioning to leave scene...');
+        }
+        
+        function updateLetterIndicator() {
+            const indicator = document.getElementById('letter-indicator');
+            if (currentComfort >= 12 && currentComfort < 15) {
+                indicator.textContent = `So close to Elena trusting you with a letter... (${15 - currentComfort} more comfort needed)`;
+                indicator.classList.add('near');
+            } else if (currentComfort >= 15) {
+                indicator.textContent = "Elena is ready to entrust you with her letter!";
+                indicator.classList.add('near');
+                indicator.style.background = '#d4f1d4';
+                indicator.style.borderColor = '#28a745';
+            } else if (currentComfort >= 10) {
+                indicator.textContent = `Relationship maintained. (${15 - currentComfort} more comfort for letter opportunity)`;
+                indicator.classList.add('near');
+            } else {
+                indicator.classList.remove('near');
+            }
+        }
+        
+        function playCard(cardElement, cost, cardName) {
+            if (cardElement.classList.contains('unplayable')) return;
+            
+            // Calculate success based on formula
+            const difficulty = cost + 2; // Approximate difficulty
+            const successChance = (currentPatience - difficulty + 5) * 12;
+            const roll = Math.random() * 100;
+            
+            // Determine outcome tier
+            let comfortGain = 0;
+            let outcomeText = '';
+            
+            if (currentPatience >= cost + 3) {
+                // Success tier
+                comfortGain = cost === 0 ? 1 : cost + 2;
+                outcomeText = 'Success!';
+            } else if (currentPatience >= cost) {
+                // Neutral tier
+                comfortGain = Math.max(1, cost);
+                outcomeText = 'Partial success.';
+            } else {
+                // Failure tier
+                comfortGain = 0;
+                outcomeText = 'No effect...';
+            }
+            
+            // Apply effects
+            currentPatience = Math.max(0, currentPatience - cost);
+            currentComfort = Math.min(20, currentComfort + comfortGain);
+            
+            // Update displays
+            document.querySelector('.patience-indicator').textContent = `Elena's Patience: ${currentPatience}/10`;
+            document.querySelector('.comfort-display').textContent = `Comfort: ${currentComfort}/20`;
+            document.querySelector('.comfort-fill').style.width = `${(currentComfort / 20) * 100}%`;
+            
+            // Update letter indicator
+            updateLetterIndicator();
+            
+            // Update card playability
+            document.querySelectorAll('.response-card').forEach(card => {
+                const costText = card.querySelector('.patience-cost').textContent;
+                const cardCost = parseInt(costText);
+                if (cardCost > currentPatience) {
+                    card.classList.add('unplayable');
+                } else {
+                    card.classList.remove('unplayable');
+                }
+            });
+            
+            // Log the action
+            console.log(`Played ${cardName}: ${outcomeText} (+${comfortGain} comfort)`);
+        }
+        
+        // Initialize letter indicator
+        updateLetterIndicator();
+        
+        // Subtle peripheral animations
+        setInterval(() => {
+            const deadline = document.querySelector('.deadline-whisper');
+            deadline.style.opacity = '0.7';
+            setTimeout(() => {
+                deadline.style.opacity = '0.9';
+            }, 1000);
+        }, 8000);
+    </script>
+</body>
+</html>

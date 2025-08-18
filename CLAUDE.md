@@ -32,6 +32,15 @@ No exceptions. Even "small" changes must be reviewed by all specialized personas
 - ALWAYS check if a file exist before creating it
 - **ALWAYS understand the full context before writing ANY code**
 
+**🚨🚨🚨 CRITICAL: NEVER ASSUME - ASK QUESTIONS FIRST 🚨🚨🚨**
+- BEFORE implementing any feature, ASK: "What are the ACTUAL values of the data I'm working with?"
+- BEFORE assuming properties are set correctly, ASK: "Where are these values actually assigned?"
+- BEFORE implementing UI changes, ASK: "What is the ACTUAL data flow from backend to frontend?"
+- BEFORE claiming something works, ASK: "Have I actually VERIFIED this with real data?"
+- STOP GOING IN CIRCLES: If something doesn't work as expected, INVESTIGATE THE ACTUAL DATA
+- LOOK AT THE FULL PICTURE: Examine the complete system, not just the piece you're working on
+- THINK FIRST: Before writing code, understand WHY the current approach isn't working
+
 **🚨 CRITICAL RULE: NEVER MARK ANYTHING AS COMPLETE WITHOUT TESTING 🚨**
 - You MUST build and run tests before claiming completion
 - You MUST verify the code works before saying "done" or "complete"
@@ -103,6 +112,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **SINGLE SOURCE OF TRUTH FOR STATE** - Never duplicate state tracking across multiple objects. When you find duplicate state (e.g., location tracked in both Player and WorldState), identify which is used more frequently and make that the single source of truth. Other objects should delegate to it, not maintain their own copies.
 - **never rename classes that already exist unless specifically ordered to (i.e. ConversationManager -> DeterministicConversationManager). Before creating classes, always check if classes with similar or overlapping functionality already exist**
 - **NEVER use class inheritance/extensions** - Add helper methods to existing classes instead of creating subclasses
+- **NEVER use interfaces, abstracts, or extensions** - Keep the code simple and direct. Use concrete classes only. No abstraction layers, no polymorphism, no fancy OOP patterns. Just direct, straightforward code.
 - **UNDERSTAND BEFORE REMOVING** - Always understand the purpose of code before removing it. Determine if it's safe to remove or needs refactoring. Never assume code is redundant without understanding its context and dependencies.
 - **READ ALL RELEVANT FILES BEFORE MODIFYING** - NEVER modify code without first reading ALL related files (models, repositories, managers, UI components). You MUST understand the complete data flow, types, and dependencies before making any changes. This prevents type mismatches and broken implementations.
 - Do not leave comments in code that are not TODOs or SERIOUSLY IMPORTANT

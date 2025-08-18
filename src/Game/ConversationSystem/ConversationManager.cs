@@ -173,6 +173,16 @@ public class ConversationChoice
     public int ComfortGain { get; set; }
     public bool RequiresSkillCheck { get; internal set; }
 
+    // Properties from ConversationCard for deck mechanics
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public int Difficulty { get; set; }
+    public Dictionary<ConnectionType, int> Requirements { get; set; } = new Dictionary<ConnectionType, int>();
+    public RelationshipCardCategory Category { get; set; }
+    public string SuccessOutcome { get; set; }
+    public string NeutralOutcome { get; set; }
+    public string FailureOutcome { get; set; }
+
     // Category-based properties for letter offers
     public ConnectionType? OfferTokenType { get; set; }
     public LetterCategory? OfferCategory { get; set; }
@@ -202,6 +212,53 @@ public class ConversationChoice
 
     // Multiple system effects - choices should touch 2-3 systems minimum
     public string BodyLanguageHint { get; set; } // "Relief floods their features"
+
+    // Methods from ConversationCard
+    public int CalculateSuccessProbability(int currentPatience)
+    {
+        return (currentPatience - Difficulty + 5) * 12;
+    }
+
+    public bool CanPlay(Dictionary<ConnectionType, int> currentTokens, int currentComfort = 0)
+    {
+        foreach (KeyValuePair<ConnectionType, int> requirement in Requirements)
+        {
+            if (!currentTokens.ContainsKey(requirement.Key) ||
+                currentTokens[requirement.Key] < requirement.Value)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public bool IsAvailableInState(NPCEmotionalState emotionalState)
+    {
+        return Category switch
+        {
+            RelationshipCardCategory.Crisis =>
+                emotionalState == NPCEmotionalState.DESPERATE ||
+                emotionalState == NPCEmotionalState.ANXIOUS,
+            RelationshipCardCategory.Betrayal =>
+                emotionalState == NPCEmotionalState.HOSTILE, // Only when hostile
+            RelationshipCardCategory.Basic =>
+                emotionalState != NPCEmotionalState.HOSTILE,
+            RelationshipCardCategory.Personal =>
+                emotionalState != NPCEmotionalState.HOSTILE,
+            RelationshipCardCategory.Special =>
+                emotionalState != NPCEmotionalState.HOSTILE,
+            _ => true
+        };
+    }
+}
+
+public enum RelationshipCardCategory
+{
+    Basic,      // Always available
+    Personal,   // Requires relationship progress
+    Crisis,     // Only when NPC is desperate/anxious
+    Betrayal,   // Only when relationship is severely damaged (-3+ tokens)
+    Special     // Unlocked through specific letter deliveries
 }
 
 /// <summary>

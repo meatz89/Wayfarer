@@ -10,7 +10,7 @@ using Wayfarer.GameState;
 public class NPCDeck
 {
     public string NpcId { get; set; }
-    public List<ConversationCard> Cards { get; set; } = new List<ConversationCard>();
+    public List<ConversationChoice> Cards { get; set; } = new List<ConversationChoice>();
 
     // Maximum deck size to prevent bloat
     public const int MaxDeckSize = 20;
@@ -34,136 +34,160 @@ public class NPCDeck
         // Universal starting cards (from docs)
         Cards.AddRange(new[]
         {
-            new ConversationCard
+            new ConversationChoice
             {
-                Id = "small_talk",
+                ChoiceID = "small_talk",
                 Name = "Small Talk",
                 Description = "Simple social courtesy",
+                NarrativeText = "Simple social courtesy",
                 Difficulty = 2,
                 PatienceCost = 1,
                 ComfortGain = 2,
-                Category = RelationshipCardCategory.Basic
+                Category = RelationshipCardCategory.Basic,
+                ChoiceType = ConversationChoiceType.Introduction
             },
-            new ConversationCard
+            new ConversationChoice
             {
-                Id = "listen",
+                ChoiceID = "listen",
                 Name = "Listen",
                 Description = "Give them your full attention",
+                NarrativeText = "Give them your full attention",
                 Difficulty = 3,
                 PatienceCost = 1,
                 ComfortGain = 3,
-                Category = RelationshipCardCategory.Basic
+                Category = RelationshipCardCategory.Basic,
+                ChoiceType = ConversationChoiceType.Introduction
             },
-            new ConversationCard
+            new ConversationChoice
             {
-                Id = "how_are_things",
+                ChoiceID = "how_are_things",
                 Name = "How Are Things?",
                 Description = "Check on their current situation",
+                NarrativeText = "Check on their current situation",
                 Difficulty = 2,
                 PatienceCost = 1,
                 ComfortGain = 1,
-                Category = RelationshipCardCategory.Basic
+                Category = RelationshipCardCategory.Basic,
+                ChoiceType = ConversationChoiceType.Introduction
             },
-            new ConversationCard
+            new ConversationChoice
             {
-                Id = "offer_help",
+                ChoiceID = "offer_help",
                 Name = "Offer Help",
                 Description = "Show willingness to assist",
+                NarrativeText = "Show willingness to assist",
                 Difficulty = 4,
                 PatienceCost = 2,
                 ComfortGain = 4,
-                Category = RelationshipCardCategory.Basic
+                Category = RelationshipCardCategory.Basic,
+                ChoiceType = ConversationChoiceType.Introduction
             },
-            new ConversationCard
+            new ConversationChoice
             {
-                Id = "quick_exit",
+                ChoiceID = "quick_exit",
                 Name = "Quick Exit",
                 Description = "Politely end the conversation",
+                NarrativeText = "Politely end the conversation",
                 Difficulty = 0,
                 PatienceCost = 0,
                 ComfortGain = 0,
-                Category = RelationshipCardCategory.Basic
+                Category = RelationshipCardCategory.Basic,
+                ChoiceType = ConversationChoiceType.Default
             },
             // Negative cards (deck pollution)
-            new ConversationCard
+            new ConversationChoice
             {
-                Id = "awkward_silence",
+                ChoiceID = "awkward_silence",
                 Name = "Awkward Silence",
                 Description = "Uncomfortable pause in conversation",
+                NarrativeText = "Uncomfortable pause in conversation",
                 Difficulty = 8,
                 PatienceCost = 0,
                 ComfortGain = -2,
-                Category = RelationshipCardCategory.Basic
+                Category = RelationshipCardCategory.Basic,
+                ChoiceType = ConversationChoiceType.DeclineLetterOffer  // NEGATIVE card
             },
-            new ConversationCard
+            new ConversationChoice
             {
-                Id = "bad_memory",
+                ChoiceID = "bad_memory",
                 Name = "Bad Memory",
                 Description = "Brings up an unfortunate past event",
+                NarrativeText = "Brings up an unfortunate past event",
                 Difficulty = 6,
                 PatienceCost = 1,
                 ComfortGain = -1,
-                Category = RelationshipCardCategory.Basic
+                Category = RelationshipCardCategory.Basic,
+                ChoiceType = ConversationChoiceType.DeclineLetterOffer  // NEGATIVE card
             },
             // Crisis cards - only available during DESPERATE/ANXIOUS states
-            new ConversationCard
+            new ConversationChoice
             {
-                Id = "promise_personal_help",
+                ChoiceID = "promise_personal_help",
                 Name = "Promise Personal Help",
                 Description = "Swear to prioritize their needs above all others",
+                NarrativeText = "Swear to prioritize their needs above all others",
                 Difficulty = 3,
                 PatienceCost = 3,
                 ComfortGain = 6,
                 Category = RelationshipCardCategory.Crisis,
+                ChoiceType = ConversationChoiceType.AcceptLetterOffer,  // POSITIVE crisis card
                 MechanicalEffects = GetPromisePersonalHelpEffects(NpcId)
             },
-            new ConversationCard
+            new ConversationChoice
             {
-                Id = "emergency_arrangement",
+                ChoiceID = "emergency_arrangement",
                 Name = "Emergency Arrangement",
                 Description = "Offer immediate assistance for their urgent situation",
+                NarrativeText = "Offer immediate assistance for their urgent situation",
                 Difficulty = 4,
                 PatienceCost = 2,
                 ComfortGain = 5,
                 Category = RelationshipCardCategory.Crisis,
+                ChoiceType = ConversationChoiceType.AcceptLetterOffer,  // POSITIVE crisis card
                 MechanicalEffects = GetEmergencyArrangementEffects(NpcId)
             }
         });
 
         // Add betrayal cards - only available during HOSTILE states
-        Cards.AddRange(new List<ConversationCard>
+        Cards.AddRange(new List<ConversationChoice>
         {
-            new ConversationCard
+            new ConversationChoice
             {
-                Id = "desperate_apology",
+                ChoiceID = "desperate_apology",
                 Name = "Desperate Apology",
                 Description = "Acknowledge your failures and beg for forgiveness",
+                NarrativeText = "Acknowledge your failures and beg for forgiveness",
                 Difficulty = 8,
                 PatienceCost = 2,
                 ComfortGain = 3,
                 Category = RelationshipCardCategory.Betrayal,
+                ChoiceType = ConversationChoiceType.AcceptLetterOffer,  // Positive betrayal recovery
                 MechanicalEffects = GetDesperateApologyEffects(NpcId)
             },
-            new ConversationCard
+            new ConversationChoice
             {
-                Id = "compensation_offer",
+                ChoiceID = "compensation_offer",
                 Name = "Offer Compensation",
                 Description = "Promise payment or services to make amends",
+                NarrativeText = "Promise payment or services to make amends",
                 Difficulty = 6,
                 PatienceCost = 1,
                 ComfortGain = 2,
                 Category = RelationshipCardCategory.Betrayal,
+                ChoiceType = ConversationChoiceType.AcceptLetterOffer,  // Positive betrayal recovery
                 MechanicalEffects = GetCompensationOfferEffects(NpcId)
             },
-            new ConversationCard
+            new ConversationChoice
             {
-                Id = "blame_circumstances",
+                ChoiceID = "blame_circumstances",
                 Name = "Blame Circumstances",
                 Description = "Deflect responsibility to external factors",
+                NarrativeText = "Deflect responsibility to external factors",
                 Difficulty = 5,
                 PatienceCost = 1,
                 ComfortGain = -1,
                 Category = RelationshipCardCategory.Betrayal,
+                ChoiceType = ConversationChoiceType.PurgeLetter,  // NEGATIVE - makes things worse
                 MechanicalEffects = GetBlameCircumstancesEffects(NpcId)
             }
         });
@@ -176,200 +200,234 @@ public class NPCDeck
     /// Create personality-specific conversation cards that reflect authentic human interaction patterns.
     /// These cards emerge from the NPC's natural way of communicating, not mechanical abilities.
     /// </summary>
-    private List<ConversationCard> GetPersonalityCards(PersonalityType personalityType)
+    private List<ConversationChoice> GetPersonalityCards(PersonalityType personalityType)
     {
         return personalityType switch
         {
-            PersonalityType.DEVOTED => new List<ConversationCard>
+            PersonalityType.DEVOTED => new List<ConversationChoice>
             {
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "offer_comfort",
+                    ChoiceID = "offer_comfort",
                     Name = "Offer Comfort",
                     Description = "Show genuine care for their emotional wellbeing",
                     Difficulty = 3,
                     PatienceCost = 2,
                     ComfortGain = 4,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Show genuine care for their emotional wellbeing",
+                    ChoiceType = ConversationChoiceType.Introduction
                 },
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "listen_deeply",
+                    ChoiceID = "listen_deeply",
                     Name = "Listen Deeply",
                     Description = "Give your complete, patient attention to their concerns",
                     Difficulty = 4,
                     PatienceCost = 2,
                     ComfortGain = 3,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Give your complete, patient attention to their concerns",
+                    ChoiceType = ConversationChoiceType.Introduction
                 },
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "share_personal_story",
+                    ChoiceID = "share_personal_story",
                     Name = "Share Personal Story",
                     Description = "Open up about your own experiences to build connection",
                     Difficulty = 5,
                     PatienceCost = 3,
                     ComfortGain = 5,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Open up about your own experiences to build connection",
+                    ChoiceType = ConversationChoiceType.Introduction
                 }
             },
 
-            PersonalityType.MERCANTILE => new List<ConversationCard>
+            PersonalityType.MERCANTILE => new List<ConversationChoice>
             {
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "discuss_business",
+                    ChoiceID = "discuss_business",
                     Name = "Discuss Business",
                     Description = "Talk about practical matters and mutual opportunities",
                     Difficulty = 3,
                     PatienceCost = 1,
                     ComfortGain = 3,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Talk about practical matters and mutual opportunities",
+                    ChoiceType = ConversationChoiceType.Introduction
                 },
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "negotiate_terms",
+                    ChoiceID = "negotiate_terms",
                     Name = "Negotiate Terms",
                     Description = "Work out the details of a mutually beneficial arrangement",
                     Difficulty = 4,
                     PatienceCost = 2,
                     ComfortGain = 4,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Work out the details of a mutually beneficial arrangement",
+                    ChoiceType = ConversationChoiceType.Introduction
                 },
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "assess_worth",
+                    ChoiceID = "assess_worth",
                     Name = "Assess Worth",
                     Description = "Evaluate the value of goods, services, or opportunities",
                     Difficulty = 2,
                     PatienceCost = 1,
                     ComfortGain = 2,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Evaluate the value of goods, services, or opportunities",
+                    ChoiceType = ConversationChoiceType.Introduction
                 }
             },
 
-            PersonalityType.PROUD => new List<ConversationCard>
+            PersonalityType.PROUD => new List<ConversationChoice>
             {
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "show_respect",
+                    ChoiceID = "show_respect",
                     Name = "Show Respect",
                     Description = "Acknowledge their position and importance with proper deference",
                     Difficulty = 2,
                     PatienceCost = 1,
                     ComfortGain = 3,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Acknowledge their position and importance with proper deference",
+                    ChoiceType = ConversationChoiceType.Introduction
                 },
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "acknowledge_status",
+                    ChoiceID = "acknowledge_status",
                     Name = "Acknowledge Status",
                     Description = "Recognize their social standing and the authority it brings",
                     Difficulty = 3,
                     PatienceCost = 2,
                     ComfortGain = 4,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Recognize their social standing and the authority it brings",
+                    ChoiceType = ConversationChoiceType.Introduction
                 },
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "formal_address",
+                    ChoiceID = "formal_address",
                     Name = "Formal Address",
                     Description = "Use proper titles and courteous language befitting their rank",
                     Difficulty = 2,
                     PatienceCost = 1,
                     ComfortGain = 2,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Use proper titles and courteous language befitting their rank",
+                    ChoiceType = ConversationChoiceType.Introduction
                 }
             },
 
-            PersonalityType.CUNNING => new List<ConversationCard>
+            PersonalityType.CUNNING => new List<ConversationChoice>
             {
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "read_between_lines",
+                    ChoiceID = "read_between_lines",
                     Name = "Read Between Lines",
                     Description = "Pick up on subtle hints and unspoken meanings",
                     Difficulty = 5,
                     PatienceCost = 2,
                     ComfortGain = 4,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Pick up on subtle hints and unspoken meanings",
+                    ChoiceType = ConversationChoiceType.Introduction
                 },
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "share_information",
+                    ChoiceID = "share_information",
                     Name = "Share Information",
                     Description = "Offer a useful piece of knowledge or gossip",
                     Difficulty = 4,
                     PatienceCost = 2,
                     ComfortGain = 3,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Offer a useful piece of knowledge or gossip",
+                    ChoiceType = ConversationChoiceType.Introduction
                 },
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "test_loyalty",
+                    ChoiceID = "test_loyalty",
                     Name = "Test Loyalty",
                     Description = "Carefully probe to see where their true allegiances lie",
                     Difficulty = 6,
                     PatienceCost = 3,
                     ComfortGain = 5,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Carefully probe to see where their true allegiances lie",
+                    ChoiceType = ConversationChoiceType.Introduction
                 }
             },
 
-            PersonalityType.STEADFAST => new List<ConversationCard>
+            PersonalityType.STEADFAST => new List<ConversationChoice>
             {
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "show_honor",
+                    ChoiceID = "show_honor",
                     Name = "Show Honor",
                     Description = "Demonstrate your commitment to doing what's right",
                     Difficulty = 3,
                     PatienceCost = 2,
                     ComfortGain = 4,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Demonstrate your commitment to doing what's right",
+                    ChoiceType = ConversationChoiceType.Introduction
                 },
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "speak_plainly",
+                    ChoiceID = "speak_plainly",
                     Name = "Speak Plainly",
                     Description = "Be direct and honest without fancy words or deception",
                     Difficulty = 2,
                     PatienceCost = 1,
                     ComfortGain = 3,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Be direct and honest without fancy words or deception",
+                    ChoiceType = ConversationChoiceType.Introduction
                 },
-                new ConversationCard
+                new ConversationChoice
                 {
-                    Id = "respect_duty",
+                    ChoiceID = "respect_duty",
                     Name = "Respect Duty",
                     Description = "Acknowledge the importance of their responsibilities",
                     Difficulty = 2,
                     PatienceCost = 1,
                     ComfortGain = 2,
-                    Category = RelationshipCardCategory.Basic
+                    Category = RelationshipCardCategory.Basic,
+                    NarrativeText = "Acknowledge the importance of their responsibilities",
+                    ChoiceType = ConversationChoiceType.Introduction
                 }
             },
 
-            _ => new List<ConversationCard>() // Fallback to no personality cards
+            _ => new List<ConversationChoice>() // Fallback to no personality cards
         };
     }
 
     /// <summary>
     /// Draw 5 cards from deck for this conversation round
     /// </summary>
-    public List<ConversationCard> DrawCards(Dictionary<ConnectionType, int> currentTokens, int currentComfort = 0, NPCEmotionalState emotionalState = NPCEmotionalState.CALCULATING)
+    public List<ConversationChoice> DrawCards(Dictionary<ConnectionType, int> currentTokens, int currentComfort = 0, NPCEmotionalState emotionalState = NPCEmotionalState.CALCULATING)
     {
-        List<ConversationCard> availableCards = Cards
+        Console.WriteLine($"[NPCDeck] DrawCards called for {NpcId}: Total cards={Cards.Count}, EmotionalState={emotionalState}");
+        
+        List<ConversationChoice> availableCards = Cards
             .Where(card => card.CanPlay(currentTokens, currentComfort) && card.IsAvailableInState(emotionalState))
             .ToList();
+            
+        Console.WriteLine($"[NPCDeck] Available cards after filtering: {availableCards.Count}");
 
         // Shuffle available cards
         Random random = new Random();
         availableCards = availableCards.OrderBy(x => random.Next()).ToList();
 
         // Draw up to 5 cards, always include Quick Exit if available
-        List<ConversationCard> drawnCards = new List<ConversationCard>();
-        ConversationCard? exitCard = availableCards.FirstOrDefault(c => c.Id == "quick_exit");
+        List<ConversationChoice> drawnCards = new List<ConversationChoice>();
+        ConversationChoice? exitCard = availableCards.FirstOrDefault(c => c.ChoiceID == "quick_exit");
         if (exitCard != null)
         {
             drawnCards.Add(exitCard);
@@ -379,18 +437,24 @@ public class NPCDeck
         // Fill remaining slots with other cards
         drawnCards.AddRange(availableCards.Take(4));
 
+        Console.WriteLine($"[NPCDeck] DrawCards returning {drawnCards.Count} choices for {NpcId}");
+        foreach (var choice in drawnCards)
+        {
+            Console.WriteLine($"[NPCDeck]   - {choice.ChoiceID}: {choice.ChoiceType}");
+        }
+        
         return drawnCards;
     }
 
     /// <summary>
     /// Add a card to the deck (from letter delivery rewards)
     /// </summary>
-    public void AddCard(ConversationCard card)
+    public void AddCard(ConversationChoice card)
     {
         if (Cards.Count >= MaxDeckSize) return;
 
         // Don't add duplicates
-        if (Cards.Any(c => c.Id == card.Id)) return;
+        if (Cards.Any(c => c.ChoiceID == card.ChoiceID)) return;
 
         Cards.Add(card);
     }
@@ -400,7 +464,7 @@ public class NPCDeck
     /// </summary>
     public void RemoveCard(string cardId)
     {
-        Cards.RemoveAll(c => c.Id == cardId);
+        Cards.RemoveAll(c => c.ChoiceID == cardId);
     }
 
     /// <summary>

@@ -324,7 +324,7 @@
     padding: 20px;
 }
 
-.choice-option,
+/* choice-option styles DELETED - using conversation.css instead */
 .unified-choice {
     background: #f9f7f3;
     border: 1px solid #e8dfd0;
@@ -335,14 +335,12 @@
     position: relative;
 }
 
-.choice-option:hover,
 .unified-choice:hover {
     background: white;
     border-color: var(--leather);
     transform: translateX(4px);
 }
 
-.choice-option.locked,
 .unified-choice.locked {
     opacity: 0.6;
     cursor: not-allowed;

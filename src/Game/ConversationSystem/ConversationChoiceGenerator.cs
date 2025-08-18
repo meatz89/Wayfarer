@@ -63,24 +63,15 @@ public class ConversationChoiceGenerator
         // Store emotional state context for conversation flow
         context.CurrentTokens = tokenDict;
 
-        // Draw 5 cards from NPC's deck filtered by emotional state
-        List<ConversationCard> drawnCards = context.TargetNPC.ConversationDeck.DrawCards(tokenDict, 0, emotionalState);
-
-        // Convert cards to ConversationChoice objects
-        List<ConversationChoice> choices = new List<ConversationChoice>();
-        foreach (ConversationCard card in drawnCards)
+        // Draw 5 cards from NPC's deck filtered by emotional state - already ConversationChoice objects
+        List<ConversationChoice> choices = context.TargetNPC.ConversationDeck.DrawCards(tokenDict, 0, emotionalState);
+        
+        // Update mechanical descriptions for the drawn choices
+        foreach (ConversationChoice choice in choices)
         {
-            choices.Add(new ConversationChoice
-            {
-                ChoiceID = card.Id,
-                NarrativeText = card.Description,
-                PatienceCost = card.PatienceCost,  // FIXED: Use PatienceCost not AttentionCost
-                ComfortGain = card.ComfortGain,    // Pass comfort gain from card
-                IsAffordable = true, // Will be set based on patience in conversation
-                IsAvailable = card.CanPlay(tokenDict, 0),
-                MechanicalDescription = GetRichMechanicalDescription(card, context.TargetNPC),
-                MechanicalEffects = card.MechanicalEffects ?? new List<IMechanicalEffect>()
-            });
+            choice.MechanicalDescription = GetRichMechanicalDescription(choice, context.TargetNPC);
+            choice.IsAffordable = true; // Will be set based on patience in conversation
+            // choice.IsAvailable and choice.ChoiceType are already set correctly by the deck
         }
 
         // LETTER OFFER INTEGRATION: Add letter offer choices when comfort threshold reached
@@ -225,40 +216,40 @@ public class ConversationChoiceGenerator
     /// <summary>
     /// Generate rich mechanical descriptions by reading from actual mechanical effects
     /// </summary>
-    private string GetRichMechanicalDescription(ConversationCard card, NPC npc)
+    private string GetRichMechanicalDescription(ConversationChoice choice, NPC npc)
     {
         List<string> parts = new List<string>();
 
-        // Add comfort gain/loss (this is a card property, not hardcoded)
-        if (card.ComfortGain > 0)
+        // Add comfort gain/loss (this is a choice property, not hardcoded)
+        if (choice.ComfortGain > 0)
         {
-            parts.Add($"+{card.ComfortGain} comfort");
+            parts.Add($"+{choice.ComfortGain} comfort");
         }
-        else if (card.ComfortGain < 0)
+        else if (choice.ComfortGain < 0)
         {
-            parts.Add($"{card.ComfortGain} comfort");
+            parts.Add($"{choice.ComfortGain} comfort");
         }
 
-        // Add difficulty indication (derived from card property)
-        if (card.Difficulty > 6)
+        // Add difficulty indication (derived from choice property)
+        if (choice.Difficulty > 6)
         {
             parts.Add("High difficulty");
         }
-        else if (card.Difficulty < 3)
+        else if (choice.Difficulty < 3)
         {
             parts.Add("Easy approach");
         }
 
-        // Add special effects based on card type (categorical)
-        if (card.Category == RelationshipCardCategory.Crisis)
+        // Add special effects based on choice category (categorical)
+        if (choice.Category == RelationshipCardCategory.Crisis)
         {
             parts.Add("Emergency option");
         }
 
         // Read from actual mechanical effects
-        if (card.MechanicalEffects != null && card.MechanicalEffects.Any())
+        if (choice.MechanicalEffects != null && choice.MechanicalEffects.Any())
         {
-            foreach (IMechanicalEffect effect in card.MechanicalEffects)
+            foreach (IMechanicalEffect effect in choice.MechanicalEffects)
             {
                 List<MechanicalEffectDescription> descriptions = effect.GetDescriptionsForPlayer();
                 foreach (MechanicalEffectDescription desc in descriptions)

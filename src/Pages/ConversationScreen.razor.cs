@@ -91,20 +91,25 @@ public class ConversationScreenBase : ComponentBase
 
     protected async Task GenerateChoicesAsync()
     {
+        // TEMPORARY: Force fresh choice generation from NPCDeck for testing categorical card coloring
+        Choices = await GenerateCardBasedChoicesAsync();
+        Console.WriteLine($"[ConversationScreen] TESTING: Generated {Choices.Count} fresh choices from deck");
+        
+        // OLD CODE (commented for testing):
         // Get choices from the current conversation state (filtered by previous selections)
-        ConversationManager? currentConversation = GameFacade.GetCurrentConversationManager();
-        if (currentConversation?.Choices != null && currentConversation.Choices.Any())
-        {
-            // Use the filtered choices from conversation state
-            Choices = currentConversation.Choices.Where(c => c.IsAvailable).ToList();
-            Console.WriteLine($"[ConversationScreen] Using {Choices.Count} filtered choices from conversation state");
-        }
-        else
-        {
-            // Fall back to generating fresh choices if conversation state has none
-            Choices = await GenerateCardBasedChoicesAsync();
-            Console.WriteLine($"[ConversationScreen] Generated {Choices.Count} fresh choices from deck");
-        }
+        // ConversationManager? currentConversation = GameFacade.GetCurrentConversationManager();
+        // if (currentConversation?.Choices != null && currentConversation.Choices.Any())
+        // {
+        //     // Use the filtered choices from conversation state
+        //     Choices = currentConversation.Choices.Where(c => c.IsAvailable).ToList();
+        //     Console.WriteLine($"[ConversationScreen] Using {Choices.Count} filtered choices from conversation state");
+        // }
+        // else
+        // {
+        //     // Fall back to generating fresh choices if conversation state has none
+        //     Choices = await GenerateCardBasedChoicesAsync();
+        //     Console.WriteLine($"[ConversationScreen] Generated {Choices.Count} fresh choices from deck");
+        // }
     }
 
     protected async Task HandleChoice(ConversationChoice choice)
@@ -183,21 +188,136 @@ public class ConversationScreenBase : ComponentBase
             // Calculate probabilities
             var probabilities = outcomeCalculator.CalculateProbabilities(choice, npc, player, currentPatience);
             
-            // Format success chance display
-            if (probabilities.SuccessChance >= 90)
-                return "Very likely success";
-            else if (probabilities.SuccessChance >= 70)
-                return "Likely success";
-            else if (probabilities.SuccessChance >= 50)
-                return "Moderate success chance";
-            else if (probabilities.SuccessChance >= 30)
-                return "Difficult approach";
-            else
-                return "High difficulty";
+            // Return exact percentage for transparent mechanics
+            return $"{probabilities.SuccessChance}% Success";
         }
         catch (Exception)
         {
             return "Unknown difficulty";
+        }
+    }
+
+    /// <summary>
+    /// Get outcome preview for Success/Neutral/Failure with individual effect coloring
+    /// </summary>
+    protected string GetOutcomePreview(ConversationChoice choice, Wayfarer.Game.ConversationSystem.ConversationOutcome outcome)
+    {
+        try
+        {
+            var outcomeCalculator = new Wayfarer.Game.ConversationSystem.ConversationOutcomeCalculator();
+            ConversationManager? currentConversation = GameFacade.GetCurrentConversationManager();
+            
+            if (currentConversation?.Context?.TargetNPC == null)
+                return "";
+                
+            NPC npc = currentConversation.Context.TargetNPC;
+            Player player = GameFacade.GetPlayer();
+            
+            // Calculate what would happen with this outcome
+            var result = outcomeCalculator.CalculateResult(choice, outcome, npc, player);
+            
+            List<string> effects = new List<string>();
+            
+            // Comfort effects with individual coloring
+            if (result.ComfortGain > 0)
+                effects.Add($"<span class=\"effect-positive\">+{result.ComfortGain} comfort</span>");
+            else if (result.ComfortGain < 0)
+                effects.Add($"<span class=\"effect-negative\">{result.ComfortGain} comfort</span>");
+            
+            // Token effects with individual coloring
+            if (result.TokenChanges?.Any() == true)
+            {
+                foreach (var tokenChange in result.TokenChanges)
+                {
+                    string tokenName = tokenChange.Key.ToString();
+                    string changeStr = tokenChange.Value > 0 ? $"+{tokenChange.Value}" : tokenChange.Value.ToString();
+                    string effectClass = tokenChange.Value > 0 ? "effect-positive" : "effect-negative";
+                    effects.Add($"<span class=\"{effectClass}\">{changeStr} {tokenName}</span>");
+                }
+            }
+            
+            if (effects.Any())
+                return string.Join(" • ", effects);
+            else
+                return "<span class=\"effect-neutral\">No change</span>";
+        }
+        catch (Exception)
+        {
+            return "<span class=\"effect-neutral\">Unknown effect</span>";
+        }
+    }
+
+    /// <summary>
+    /// Get token relationship bonds display
+    /// </summary>
+    protected string GetTokenBondsDisplay()
+    {
+        if (NpcTokens?.Any() != true) return "";
+        
+        List<string> bonds = new List<string>();
+        
+        foreach (var tokenType in Enum.GetValues<ConnectionType>())
+        {
+            if (NpcTokens.TryGetValue(tokenType, out int value) && value != 0)
+            {
+                string icon = GetTokenIcon(tokenType);
+                string dots = GetTokenDots(value);
+                bonds.Add($"{icon} {dots}");
+            }
+        }
+        
+        return string.Join(" ", bonds);
+    }
+    
+    protected string GetTokenIcon(ConnectionType tokenType)
+    {
+        return tokenType switch
+        {
+            ConnectionType.Trust => "💝",
+            ConnectionType.Commerce => "🤝", 
+            ConnectionType.Status => "👑",
+            ConnectionType.Shadow => "🌑",
+            _ => "❓"
+        };
+    }
+    
+    protected string GetTokenDots(int value)
+    {
+        int absValue = Math.Abs(value);
+        int maxDots = 5; // Show up to 5 dots
+        string dot = value >= 0 ? "●" : "●"; // Use same dot, color with CSS
+        string emptyDot = "○";
+        
+        string dots = "";
+        for (int i = 0; i < Math.Min(absValue, maxDots); i++)
+        {
+            dots += dot;
+        }
+        for (int i = absValue; i < maxDots; i++)
+        {
+            dots += emptyDot;
+        }
+        
+        return dots;
+    }
+    
+    /// <summary>
+    /// Handle peripheral environmental investigation - costs attention
+    /// </summary>
+    protected async Task InvestigateEnvironment(string hint)
+    {
+        try
+        {
+            // This would spend attention to investigate environmental details
+            // For now, just log that we're investigating
+            Console.WriteLine($"[ConversationScreen] Investigating environmental hint: {hint}");
+            
+            // TODO: Implement attention spending and reveal environmental details
+            // This might reveal new conversation options, location actions, or story information
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error investigating environment: {ex.Message}");
         }
     }
 
@@ -635,5 +755,47 @@ public class ConversationScreenBase : ComponentBase
             "perfect" => state.HasReachedPerfectThreshold() ? "reached" : "",
             _ => ""
         };
+    }
+
+    /// <summary>
+    /// CATEGORICAL card coloring based on ConversationChoiceType
+    /// Each card type gets its appropriate color based on its categorical nature
+    /// </summary>
+    protected string GetChoiceColorClass(ConversationChoice choice)
+    {
+        // DEBUG: Log the actual ChoiceType values to understand what's happening
+        Console.WriteLine($"[ConversationScreen] Choice '{choice.NarrativeText}' has ChoiceType: {choice.ChoiceType}");
+        
+        string colorClass = choice.ChoiceType switch
+        {
+            // Negative/destructive choice types - RED
+            ConversationChoiceType.DeclineLetterOffer => "negative-card",
+            ConversationChoiceType.PurgeLetter => "negative-card",
+            ConversationChoiceType.TravelForceThrough => "negative-card",
+            
+            // Positive/beneficial choice types - GREEN
+            ConversationChoiceType.AcceptLetterOffer => "positive-card",
+            ConversationChoiceType.KeepLetter => "positive-card",
+            ConversationChoiceType.Introduction => "positive-card",
+            ConversationChoiceType.TravelCautious => "positive-card",
+            
+            // Risky/uncertain choice types - YELLOW
+            ConversationChoiceType.SkipAndDeliver => "risky-card",
+            ConversationChoiceType.TravelUseEquipment => "risky-card",
+            ConversationChoiceType.TravelTradeHelp => "risky-card",
+            ConversationChoiceType.TravelExchangeInfo => "risky-card",
+            
+            // Discovery/neutral choice types - BLUE
+            ConversationChoiceType.DiscoverRoute => "discovery-card",
+            ConversationChoiceType.RespectQueueOrder => "neutral-card",
+            ConversationChoiceType.TravelSlowProgress => "neutral-card",
+            
+            // Default - no coloring
+            ConversationChoiceType.Default => "",
+            _ => ""
+        };
+        
+        Console.WriteLine($"[ConversationScreen] Returning color class: '{colorClass}' for ChoiceType: {choice.ChoiceType}");
+        return colorClass;
     }
 }

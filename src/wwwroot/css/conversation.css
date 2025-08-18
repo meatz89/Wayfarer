@@ -317,8 +317,9 @@ body {
 }
 
 .comfort-neutral {
-    background: var(--state-neutral);
-    box-shadow: 0 2px 4px rgba(107, 93, 79, 0.3);
+    background: linear-gradient(135deg, #8b7355, #6b5d4f);
+    box-shadow: 0 2px 4px rgba(107, 93, 79, 0.4);
+    border: 1px solid #d4c5a0;
 }
 
 .comfort-declining {
@@ -744,39 +745,117 @@ body {
     position: relative;
     font-family: Georgia, serif;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    padding-bottom: 50px;
 }
 
-/* Peripheral Elements */
+/* EXACT MOCKUP STYLING - BEAUTIFUL UI */
+
+/* Peripheral Awareness */
 .peripheral-layer {
     position: fixed;
     width: 100%;
-    max-width: 640px;
+    max-width: 600px;
     z-index: 10;
 }
 
-.deadline-pressure {
+.deadline-whisper {
     position: absolute;
-    top: 50px;
-    right: 10px;
+    top: 12px;
+    right: 12px;
     background: rgba(139, 0, 0, 0.9);
     color: white;
     padding: 6px 10px;
     font-size: 11px;
     border-radius: 4px;
     cursor: pointer;
+    transition: all 0.3s;
+    opacity: 0.9;
 }
 
-.environmental-hints {
+.deadline-whisper:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.satchel-weight {
     position: absolute;
     bottom: 20px;
-    right: 10px;
+    left: 20px;
     background: rgba(44, 36, 22, 0.8);
-    color: var(--parchment);
+    color: #f4f1e8;
     padding: 8px 12px;
-    font-size: 12px;
+    font-size: 11px;
     border-radius: 4px;
-    font-style: italic;
     cursor: pointer;
+    transition: all 0.3s;
+    font-style: italic;
+}
+
+.satchel-weight:hover {
+    background: #2c2416;
+    transform: translateY(-2px);
+}
+
+/* Enhanced Conversation Mechanics */
+.conversation-vitals {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.patience-indicator {
+    font-size: 12px;
+    color: #2c2416;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.comfort-display {
+    font-size: 12px;
+    color: #2c2416;
+    margin-bottom: 4px;
+    font-weight: bold;
+}
+
+.comfort-progress {
+    width: 120px;
+    height: 8px;
+    background: #e8dfd0;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.comfort-fill {
+    height: 100%;
+    background: linear-gradient(to right, #d4c5a0, #b8a584);
+    width: 15%;
+    transition: width 0.3s;
+}
+
+.comfort-threshold {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 1px;
+    background: #2c2416;
+}
+
+.threshold-maintain { left: 50%; }
+.threshold-letter { left: 75%; opacity: 0.7; }
+.threshold-perfect { left: 100%; opacity: 0.5; }
+
+.comfort-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: #8b7355;
+    margin-top: 2px;
 }
 
 /* Location Context */
@@ -861,7 +940,187 @@ body {
     margin: 12px 0;
 }
 
-/* Choice System */
+/* SHARP FOCUS: Central conversation area */
+.sharp-focus {
+    padding: 20px;
+    min-height: calc(100vh - 100px);
+    transition: all 0.5s;
+    margin-top: 100px; /* Space for peripheral elements */
+}
+
+.sharp-focus.blurred {
+    filter: blur(4px);
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* Token Relationship Display */
+.relationship-bonds {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    opacity: 0.9;
+    padding: 12px;
+    background: var(--parchment-dark);
+    border-radius: 6px;
+    border: 1px solid var(--border-subtle);
+}
+
+.relationship-bonds .token-positive {
+    color: var(--effect-positive);
+}
+
+.relationship-bonds .token-negative {
+    color: var(--effect-negative);
+}
+
+/* Enhanced Conversation Cards - EXACT MOCKUP STYLING */
+.conversation-responses {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.response-card {
+    background: #f9f7f3;
+    border: 1px solid #e8dfd0;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 6px;
+    position: relative;
+}
+
+/* CATEGORICAL card colors based on ConversationChoiceType */
+
+/* Negative/destructive cards - RED */
+.response-card.negative-card {
+    background: linear-gradient(135deg, #ffeaea 0%, #ffe0e0 100%);
+    border-color: #ffb3b3;
+    box-shadow: 0 2px 4px rgba(255, 0, 0, 0.1);
+}
+
+/* Positive/beneficial cards - GREEN */
+.response-card.positive-card {
+    background: linear-gradient(135deg, #eafff0 0%, #e0ffe8 100%);
+    border-color: #b3ffb3;
+    box-shadow: 0 2px 4px rgba(0, 255, 0, 0.1);
+}
+
+/* Risky/uncertain cards - YELLOW */
+.response-card.risky-card {
+    background: linear-gradient(135deg, #fffacd 0%, #fff8dc 100%);
+    border-color: #ffd700;
+    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.1);
+}
+
+/* Discovery/information cards - BLUE */
+.response-card.discovery-card {
+    background: linear-gradient(135deg, #e6f3ff 0%, #cce7ff 100%);
+    border-color: #66b3ff;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+}
+
+/* Neutral/standard cards - GRAY */
+.response-card.neutral-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 100%);
+    border-color: #dee2e6;
+    box-shadow: 0 2px 4px rgba(108, 117, 125, 0.1);
+}
+
+.response-card:hover {
+    background: white;
+    border-color: #b8a584;
+    transform: translateX(4px);
+}
+
+.response-card.unplayable {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.response-thought {
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-style: italic;
+}
+
+.card-mechanics {
+    font-size: 11px;
+    color: #8b7355;
+}
+
+.card-cost-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.patience-cost {
+    background: #e8dfd0;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+.success-probability {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--effect-positive);
+    margin-bottom: 8px;
+}
+
+.outcome-tiers {
+    font-size: 12px;
+    line-height: 1.4;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e8dfd0;
+}
+
+.outcome-tier {
+    margin: 4px 0;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* Individual effect coloring within outcome text */
+.outcome-tier .effect-positive {
+    color: var(--effect-positive);
+    font-weight: 600;
+}
+
+.outcome-tier .effect-negative {
+    color: var(--effect-negative);
+    font-weight: 600;
+}
+
+.outcome-tier .effect-neutral {
+    color: #6b5d4f;
+    font-weight: 500;
+}
+
+.tier-success { 
+    color: #2d5016; 
+    background: rgba(45, 80, 22, 0.1);
+    border-left: 3px solid var(--effect-positive);
+}
+.tier-neutral { 
+    color: #6b5d4f; 
+    background: rgba(107, 93, 79, 0.1);
+    border-left: 3px solid #6b5d4f;
+}
+.tier-failure { 
+    color: #8b0000; 
+    background: rgba(139, 0, 0, 0.1);
+    border-left: 3px solid var(--effect-negative);
+}
+
+/* Legacy Choice System */
 .choice-container {
     display: flex;
     flex-direction: column;

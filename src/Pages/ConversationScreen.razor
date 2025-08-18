@@ -2,10 +2,10 @@
 @using Wayfarer.ViewModels
 @using Wayfarer.Pages.Components
 @using Wayfarer.GameState
+@using Microsoft.AspNetCore.Components
 @inherits ConversationScreenBase
 
 <div class="container">
-    
     
     @* Exit button for manual conversation exit *@
     <div class="conversation-exit-controls">
@@ -17,24 +17,39 @@
     @if (Model != null)
     {
 
-        <!-- Peripheral Awareness - SUBTLE HINTS -->
+        <!-- Peripheral Awareness - COGNITIVE EDGES -->
         <div class="peripheral-layer">
+            <!-- Deadline Pressure - Top Right Edge -->
             @if (!string.IsNullOrEmpty(Model.DeadlinePressure))
             {
-                <div class="deadline-pressure">
-                    <span class="icon icon-deadline-critical"></span> @Model.DeadlinePressure
+                <div class="deadline-whisper" title="Urgent deadline pressure">
+                    ⚡ @Model.DeadlinePressure
                 </div>
             }
             
+            <!-- Environmental Hints - Peripheral Awareness -->
             @if (Model.EnvironmentalHints?.Any() == true)
             {
                 @foreach (var hint in Model.EnvironmentalHints)
                 {
-                    <div class="environmental-hints">
+                    <div class="environmental-hints clickable-peripheral" @onclick="() => InvestigateEnvironment(hint)" title="Spend attention to investigate">
                         @hint
                     </div>
                 }
             }
+            
+            <!-- Queue Weight - Bottom Left -->
+            <div class="satchel-weight" title="Letter queue burden">
+                Heavy (Queue weight indicator)
+            </div>
+            
+            <!-- Conversation Vitals - Top Left -->
+            <div class="conversation-vitals">
+                <div class="patience-indicator">@(Model?.NpcName ?? "NPC")'s patience: @CurrentPatience</div>
+                <div class="comfort-progress">
+                    <div class="comfort-fill" style="width: @GetComfortProgressPercentage()%"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Location Header - SETS ATMOSPHERE -->
@@ -127,69 +142,73 @@
                 }
             </div>
 
-            <!-- Choice Options - Card-based conversation system -->
-            <div class="choice-container">
-                @if (Choices?.Any() == true)
+            <!-- SHARP FOCUS: Elena and Conversation Choices -->
+            <div class="sharp-focus" id="main-focus">
+                
+                <!-- Token Relationship Display -->
+                @if (!string.IsNullOrEmpty(GetTokenBondsDisplay()))
                 {
-                    @foreach (var choice in Choices)
+                    <div class="relationship-bonds">
+                        @GetTokenBondsDisplay()
+                    </div>
+                }
+                
+                <!-- Choice Cards - Beautiful Conversation Options -->
+                <div class="conversation-responses">
+                    @if (Choices?.Any() == true)
                     {
-                        <div class="@GetChoiceClass(choice)" @onclick="() => HandleChoice(choice)">
-                            <!-- Patience cost badge -->
-                            @if (choice.PatienceCost > 0)
-                            {
-                                <div class="patience-cost">
-                                    @GetCostDisplay(choice.PatienceCost)
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="patience-cost free">
-                                    FREE
-                                </div>
-                            }
-                            
-                            <!-- Main choice text -->
-                            <div class="choice-content">
-                                <div class="choice-text">
-                                    "@choice.NarrativeText"
-                                </div>
+                        @foreach (var choice in Choices)
+                        {
+                            <div class="response-card @(choice.IsAvailable ? "" : "unplayable") @GetChoiceColorClass(choice)" @onclick="() => HandleChoice(choice)">
                                 
-                                <!-- Success probability and mechanical previews -->
-                                <div class="choice-mechanics">
-                                    <!-- Success probability display -->
-                                    <div class="mechanic-item success-probability">
-                                        <span class="success-icon">🎯</span>
-                                        <span class="mechanic-text">
-                                            @GetSuccessProbabilityDisplay(choice)
-                                        </span>
-                                    </div>
-                                    
-                                    <!-- Existing mechanical description -->
-                                    @if (!string.IsNullOrEmpty(choice.MechanicalDescription))
+                                <!-- Patience Cost Badge -->
+                                <div class="patience-cost @(choice.PatienceCost == 0 ? "free" : "")">
+                                    @if (choice.PatienceCost == 0)
                                     {
-                                        @foreach (var part in ParseMechanicalDescription(choice.MechanicalDescription))
-                                        {
-                                            <div class="mechanic-item @GetMechanicClass(part)">
-                                                <span class="@GetEffectIcon(part)"></span>
-                                                <span class="mechanic-text">
-                                                    @((MarkupString)part)
-                                                </span>
-                                            </div>
-                                        }
+                                        <span>FREE</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@choice.PatienceCost</span>
                                     }
                                 </div>
                                 
-                                <!-- Lock reason if unavailable -->
-                                @if (!choice.IsAvailable && !string.IsNullOrEmpty(choice.MechanicalDescription))
-                                {
-                                    <div class="lock-reason">
-                                        @choice.MechanicalDescription
+                                <!-- Main Choice Content -->
+                                <div class="choice-content">
+                                    <div class="response-thought">
+                                        "@choice.NarrativeText"
                                     </div>
-                                }
+                                    
+                                    <!-- Success Probability and Outcome Tiers -->
+                                    <div class="card-cost-line">
+                                        <div class="success-probability">
+                                            @GetSuccessProbabilityDisplay(choice)
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Beautiful Outcome Tiers -->
+                                    <div class="outcome-tiers">
+                                        <div class="outcome-tier tier-success">
+                                            ✓ Success: @((MarkupString)GetOutcomePreview(choice, Wayfarer.Game.ConversationSystem.ConversationOutcome.Success))
+                                        </div>
+                                        <div class="outcome-tier tier-neutral">
+                                            ⚬ Neutral: @((MarkupString)GetOutcomePreview(choice, Wayfarer.Game.ConversationSystem.ConversationOutcome.Neutral))
+                                        </div>
+                                        <div class="outcome-tier tier-failure">
+                                            ✗ Failure: @((MarkupString)GetOutcomePreview(choice, Wayfarer.Game.ConversationSystem.ConversationOutcome.Failure))
+                                        </div>
+                                    </div>
+                                    
+                                    @if (!choice.IsAvailable)
+                                    {
+                                        <div class="lock-reason">
+                                            @choice.MechanicalDescription
+                                        </div>
+                                    }
+                                </div>
                             </div>
-                        </div>
+                        }
                     }
-                }
                 else
                 {
                     <div class="choice-option" @onclick="() => HandleChoice(DefaultChoice)">
@@ -207,6 +226,7 @@
                 }
             </div>
         </div>
+        </div> @* Close scene-content *@
     }
     else
     {
