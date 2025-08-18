@@ -65,6 +65,7 @@ app.Use(async (context, next) =>
 
 app.UseStaticFiles();
 app.UseRouting();
+app.MapRazorPages(); // Add Razor Pages mapping
 app.MapControllers(); // Map controller endpoints
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

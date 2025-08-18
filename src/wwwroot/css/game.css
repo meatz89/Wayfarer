@@ -10,11 +10,16 @@ body {
     background: #2c2416;
     color: #2c2416;
     min-height: 100vh;
+    /* CRITICAL: Enable vertical scrolling on ALL screens */
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .game-container {
     width: 100%;
     min-height: 100vh;
+    /* Ensure scrolling works in main container */
+    overflow-y: auto;
 }
 
 
@@ -260,7 +265,6 @@ body {
     line-height: 1.5;
     background-image: url("/images/subtle-parchment.png");
     background-repeat: repeat;
-    overflow: hidden;
 }
 
 .game-status-bar {

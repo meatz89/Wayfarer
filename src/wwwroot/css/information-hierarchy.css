@@ -5,7 +5,8 @@
     background: var(--parchment);
     border: 2px solid var(--ink-black);
     border-radius: 8px;
-    overflow: hidden;
+    overflow-y: auto;
+    max-height: 80vh;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -274,7 +275,8 @@
 .info-layer.collapsed .layer-content {
     max-height: 0;
     padding: 0;
-    overflow: hidden;
+    overflow-y: auto;
+    max-height: 80vh;
 }
 
 /* Mobile Responsive */
