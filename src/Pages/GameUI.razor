@@ -1,10 +1,12 @@
 @page "/"
 
 @inherits GameUIBase
+@using Wayfarer.Pages.Components
 
 @namespace Wayfarer.Pages
 
 <MainGameplayView CurrentView="@CurrentView" OnNavigate="@NavigateTo" />
+<BottomStatusBar OnNavigate="@NavigateTo" />
 
 @if (LoadingStateService != null)
 {

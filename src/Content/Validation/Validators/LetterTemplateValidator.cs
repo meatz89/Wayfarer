@@ -9,7 +9,7 @@ public class LetterTemplateValidator : IContentValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
-            "id", "description", "tokenType", "minDeadline", "maxDeadline",
+            "id", "description", "tokenType", "minDeadlineInHours", "maxDeadlineInHours",
             "minPayment", "maxPayment", "possibleSenders", "possibleRecipients"
         };
 
@@ -167,7 +167,7 @@ public class LetterTemplateValidator : IContentValidator
         }
 
         // Validate numeric ranges
-        ValidateNumericRange(template, templateId, fileName, errors, "minDeadline", "maxDeadline", 1, 30);
+        ValidateNumericRange(template, templateId, fileName, errors, "minDeadlineInHours", "maxDeadlineInHours", 1, 720);
         ValidateNumericRange(template, templateId, fileName, errors, "minPayment", "maxPayment", 0, 10000);
     }
 

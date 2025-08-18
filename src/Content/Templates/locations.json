@@ -1,8 +1,8 @@
 [
 	{
-		"id": "your_room",
-		"name": "Your Room",
-		"description": "A small room above the courier office. Your bed, a worn desk, and letters waiting to be sorted.",
+		"id": "courier_office",
+		"name": "Courier Office",
+		"description": "Your small quarters above the courier office. This is your base of operations as a letter carrier.",
 		"environmentalProperties": {
 			"morning": [ "WELL-LIT", "QUIET", "PRIVATE" ],
 			"afternoon": [ "WELL-LIT", "QUIET", "PRIVATE" ],
@@ -10,7 +10,7 @@
 			"night": [ "DARK", "QUIET", "PRIVATE" ]
 		},
 		"domainTags": [ "HOME", "REST", "PRIVATE" ],
-		"locationSpots": [ "desk", "bed", "window" ],
+		"locationSpots": [ "your_room", "office_desk", "window_view" ],
 		"connectedTo": [ "market_square" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Private",
@@ -25,7 +25,7 @@
 	{
 		"id": "market_square",
 		"name": "Market Square",
-		"description": "Bustling crowds. Merchant calls. Sun on cobblestones. Fountain spray catches the light.",
+		"description": "The bustling heart of the city. Cobblestones worn smooth by countless feet.",
 		"environmentalProperties": {
 			"morning": [ "WELL-LIT", "BUSY", "URBAN" ],
 			"afternoon": [ "WELL-LIT", "CROWDED", "URBAN" ],
@@ -33,14 +33,37 @@
 			"night": [ "DARK", "QUIET", "URBAN" ]
 		},
 		"domainTags": [ "COMMERCE", "SOCIAL", "PUBLIC" ],
-		"locationSpots": [ "central_fountain", "copper_kettle", "merchant_stall", "north_road" ],
-		"connectedTo": [ "your_room", "noble_district", "merchant_row", "riverside", "city_gates" ],
+		"locationSpots": [ "central_fountain", "marcus_stall", "north_entrance" ],
+		"connectedTo": [ "courier_office", "copper_kettle_tavern", "noble_district", "merchant_row", "city_gates" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",
 		"requiredSocialClasses": [],
 		"availableProfessionsByTime": {
 			"Morning": [],
-			"Afternoon": ["Merchant", "Innkeeper"],
+			"Afternoon": ["Merchant"],
+			"Evening": [],
+			"Night": []
+		}
+	},
+	{
+		"id": "copper_kettle_tavern",
+		"name": "Copper Kettle Tavern",
+		"description": "A warm, inviting tavern. The copper kettle hangs over the hearth, giving the place its name.",
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "QUIET", "COZY" ],
+			"afternoon": [ "WELL-LIT", "SOCIAL", "COZY" ],
+			"evening": [ "WARM", "SOCIAL", "BUSY" ],
+			"night": [ "DIM", "QUIET", "COZY" ]
+		},
+		"domainTags": [ "SOCIAL", "COMMERCE", "REST" ],
+		"locationSpots": [ "main_hall", "bar_counter", "corner_table", "upstairs_room" ],
+		"connectedTo": [ "market_square" ],
+		"socialExpectation": "Any",
+		"accessLevel": "Public",
+		"requiredSocialClasses": [],
+		"availableProfessionsByTime": {
+			"Morning": ["Innkeeper"],
+			"Afternoon": ["Innkeeper"],
 			"Evening": ["Innkeeper"],
 			"Night": []
 		}
@@ -115,9 +138,9 @@
 		}
 	},
 	{
-		"id": "riverside",
-		"name": "Riverside",
-		"description": "The sound of flowing water. Willow trees bend over the path.",
+		"id": "riverside_path",
+		"name": "Riverside Path",
+		"description": "A peaceful path along the river. Willow trees bend over the water.",
 		"environmentalProperties": {
 			"morning": [ "WELL-LIT", "PEACEFUL", "NATURAL" ],
 			"afternoon": [ "WELL-LIT", "PEACEFUL", "NATURAL" ],
@@ -125,8 +148,8 @@
 			"night": [ "DARK", "DANGEROUS", "NATURAL" ]
 		},
 		"domainTags": [ "TRAVEL", "NATURE", "ISOLATED" ],
-		"locationSpots": [ "willow_bend" ],
-		"connectedTo": [ "market_square", "city_gates" ],
+		"locationSpots": [ "willow_bend", "river_crossing", "path_junction" ],
+		"connectedTo": [ "market_square", "harbor_office", "city_gates" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",
 		"requiredSocialClasses": [],
@@ -134,6 +157,29 @@
 			"Morning": [],
 			"Afternoon": [],
 			"Evening": [],
+			"Night": []
+		}
+	},
+	{
+		"id": "harbor_office",
+		"name": "Harbor Master's Office",
+		"description": "A sturdy building overlooking the river docks. This is where river transport is organized.",
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "BUSY", "OFFICIAL" ],
+			"afternoon": [ "WELL-LIT", "BUSY", "OFFICIAL" ],
+			"evening": [ "DIM", "QUIET", "OFFICIAL" ],
+			"night": [ "DARK", "CLOSED", "OFFICIAL" ]
+		},
+		"domainTags": [ "TRANSPORT", "OFFICIAL", "COMMERCE" ],
+		"locationSpots": [ "main_desk", "waiting_area", "charts_room", "dock_view" ],
+		"connectedTo": [ "riverside_path" ],
+		"socialExpectation": "Any",
+		"accessLevel": "Public",
+		"requiredSocialClasses": [],
+		"availableProfessionsByTime": {
+			"Morning": ["Harbor_Master"],
+			"Afternoon": ["Harbor_Master"],
+			"Evening": ["Harbor_Master"],
 			"Night": []
 		}
 	}

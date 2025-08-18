@@ -83,7 +83,115 @@ public class ConversationChoiceGenerator
             });
         }
 
+        // LETTER OFFER INTEGRATION: Add letter offer choices when comfort threshold reached
+        if (state.HasReachedLetterThreshold())
+        {
+            List<ConversationChoice> letterOfferChoices = GenerateLetterOfferChoices(context.TargetNPC, state);
+            choices.AddRange(letterOfferChoices);
+        }
+
         return choices;
+    }
+
+    /// <summary>
+    /// Generate letter offer choices when comfort threshold is reached
+    /// Prevents automatic letter generation - requires explicit player choice
+    /// </summary>
+    private List<ConversationChoice> GenerateLetterOfferChoices(NPC npc, ConversationState state)
+    {
+        List<ConversationChoice> offerChoices = new List<ConversationChoice>();
+
+        // Get current relationship tokens to determine offer type
+        Dictionary<ConnectionType, int> tokenDict = _tokenManager.GetTokensWithNPC(npc.ID);
+        
+        // Determine primary relationship type for letter offer
+        ConnectionType offerType = GetHighestRelationshipType(tokenDict);
+        
+        // Generate letter offer text based on relationship type and NPC
+        string offerNarrative = GetLetterOfferNarrative(npc, offerType, state.HasReachedPerfectThreshold());
+        string declineNarrative = GetDeclineOfferNarrative(npc);
+        
+        // Accept letter offer choice
+        offerChoices.Add(new ConversationChoice
+        {
+            ChoiceID = $"accept_offer_{offerType}",
+            NarrativeText = offerNarrative,
+            PatienceCost = 1, // Meaningful action costs patience
+            ComfortGain = 1, // Accepting strengthens relationship
+            IsAffordable = true,
+            IsAvailable = true,
+            ChoiceType = ConversationChoiceType.AcceptLetterOffer,
+            OfferTokenType = offerType,
+            OfferCategory = state.HasReachedPerfectThreshold() ? LetterCategory.Premium : LetterCategory.Quality,
+            MechanicalDescription = GetLetterOfferMechanicalDescription(offerType, state.HasReachedPerfectThreshold()),
+            MechanicalEffects = new List<IMechanicalEffect>() // Will be handled by GameFacade
+        });
+
+        // Decline letter offer choice
+        offerChoices.Add(new ConversationChoice
+        {
+            ChoiceID = $"decline_offer_{offerType}",
+            NarrativeText = declineNarrative,
+            PatienceCost = 0, // Polite decline costs no patience
+            ComfortGain = 0, // No relationship change
+            IsAffordable = true,
+            IsAvailable = true,
+            ChoiceType = ConversationChoiceType.DeclineLetterOffer,
+            OfferTokenType = offerType, // Store token type for decline processing too
+            MechanicalDescription = "Politely decline • No letter offered • Relationship maintained",
+            MechanicalEffects = new List<IMechanicalEffect>()
+        });
+
+        return offerChoices;
+    }
+
+    /// <summary>
+    /// Determine the highest relationship type with an NPC for letter offers
+    /// </summary>
+    private ConnectionType GetHighestRelationshipType(Dictionary<ConnectionType, int> tokens)
+    {
+        if (!tokens.Any() || tokens.Values.All(v => v == 0))
+        {
+            return ConnectionType.Trust; // Default to Trust for new relationships
+        }
+
+        return tokens.OrderByDescending(kvp => kvp.Value).First().Key;
+    }
+
+    /// <summary>
+    /// Generate contextual narrative for letter offers based on relationship and NPC
+    /// </summary>
+    private string GetLetterOfferNarrative(NPC npc, ConnectionType offerType, bool isPerfectConversation)
+    {
+        string intensifier = isPerfectConversation ? "You're exactly the person I need for this. " : "";
+        
+        return offerType switch
+        {
+            ConnectionType.Trust => $"{intensifier}I have a personal letter that needs someone I can truly depend on.",
+            ConnectionType.Commerce => $"{intensifier}I have a business matter that requires a reliable courier.",
+            ConnectionType.Status => $"{intensifier}There's a formal correspondence that needs proper handling.",
+            ConnectionType.Shadow => $"{intensifier}I have... sensitive correspondence that requires discretion.",
+            _ => $"{intensifier}I have a letter that could use your particular skills."
+        };
+    }
+
+    /// <summary>
+    /// Generate polite decline narrative
+    /// </summary>
+    private string GetDeclineOfferNarrative(NPC npc)
+    {
+        return "I appreciate the trust, but I'm quite overwhelmed with current commitments.";
+    }
+
+    /// <summary>
+    /// Generate mechanical description for letter offers
+    /// </summary>
+    private string GetLetterOfferMechanicalDescription(ConnectionType offerType, bool isPerfectConversation)
+    {
+        string letterQuality = isPerfectConversation ? "Premium" : "Quality";
+        string bonus = isPerfectConversation ? " • Generous deadline • Possible bonus letter" : " • Good payment";
+        
+        return $"+ {letterQuality} {offerType} letter{bonus} • Queue position based on relationship strength";
     }
 
     private List<ConversationChoice> GetHostileChoices(NPC npc)

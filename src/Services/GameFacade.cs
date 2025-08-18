@@ -33,6 +33,7 @@ public class GameFacade : ILetterQueueOperations
     private readonly ConversationFactory _conversationFactory;
     private readonly NPCRepository _npcRepository;
     private readonly LocationRepository _locationRepository;
+    private readonly LocationSpotRepository _locationSpotRepository;
     private readonly RouteRepository _routeRepository;
     private readonly FlagService _flagService;
     private readonly ItemRepository _itemRepository;
@@ -75,6 +76,7 @@ public class GameFacade : ILetterQueueOperations
         ConversationFactory conversationFactory,
         NPCRepository npcRepository,
         LocationRepository locationRepository,
+        LocationSpotRepository locationSpotRepository,
         RouteRepository routeRepository,
         FlagService flagService,
         ItemRepository itemRepository,
@@ -119,6 +121,7 @@ public class GameFacade : ILetterQueueOperations
         _conversationFactory = conversationFactory;
         _npcRepository = npcRepository;
         _locationRepository = locationRepository;
+        _locationSpotRepository = locationSpotRepository;
         _routeRepository = routeRepository;
         _flagService = flagService;
         _itemRepository = itemRepository;
@@ -2335,6 +2338,16 @@ public class GameFacade : ILetterQueueOperations
 
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Found choice: {selectedChoice.NarrativeText}, PatienceCost: {selectedChoice.PatienceCost}");
 
+        // LETTER OFFER HANDLING: Use categorical choice types instead of string matching
+        if (selectedChoice.ChoiceType == ConversationChoiceType.AcceptLetterOffer)
+        {
+            return await ProcessAcceptLetterOffer(currentConversation, selectedChoice);
+        }
+        else if (selectedChoice.ChoiceType == ConversationChoiceType.DeclineLetterOffer)
+        {
+            return await ProcessDeclineLetterOffer(currentConversation, selectedChoice);
+        }
+
         // Track time before processing to handle any ConversationTimeEffects
         int hoursBefore = _timeManager.GetCurrentTimeHours();
         int minutesBefore = _timeManager.GetCurrentMinutes();
@@ -2540,6 +2553,107 @@ public class GameFacade : ILetterQueueOperations
             // Binding obligations (promises and debts)
             BindingObligations = _bindingObligationSystem?.GetActiveObligations() ?? new List<BindingObligationViewModel>()
         };
+    }
+
+    /// <summary>
+    /// Process player accepting letter offer - creates letter and adds to queue
+    /// </summary>
+    private async Task<ConversationViewModel> ProcessAcceptLetterOffer(ConversationManager conversation, ConversationChoice choice)
+    {
+        NPC npc = conversation.Context.TargetNPC;
+        ConnectionType offerType = choice.OfferTokenType ?? ConnectionType.Trust;
+        LetterCategory offerCategory = choice.OfferCategory ?? LetterCategory.Quality;
+
+        Console.WriteLine($"[GameFacade] Processing accept letter offer: {offerType} {offerCategory} from {npc.Name}");
+
+        // Apply choice comfort gain and patience cost first
+        ConversationBeatOutcome outcome = await conversation.ProcessPlayerChoice(choice);
+
+        // Generate the actual letter using existing NPCLetterOfferService
+        var generatedLetters = _letterOfferService.GenerateFromConversation(npc.ID, 
+            conversation.State.TotalComfort, conversation.State.StartingPatience);
+
+        if (generatedLetters?.Any() == true)
+        {
+            foreach (Letter letter in generatedLetters)
+            {
+                // Add letters to queue using existing positioning logic
+                int position = _letterQueueManager.AddLetterWithObligationEffects(letter);
+                Console.WriteLine($"[GameFacade] Letter added to queue at position: {position}");
+
+                string perfectBonus = conversation.State.HasReachedPerfectThreshold() ? " (Perfect Conversation!)" : "";
+                _messageSystem.AddSystemMessage(
+                    $"✉️ {npc.Name} trusts you with a {letter.TokenType} letter{perfectBonus}",
+                    SystemMessageTypes.Success
+                );
+                _messageSystem.AddSystemMessage(
+                    $"💰 {letter.Payment} coins • ⏰ {letter.DeadlineInHours / 24} days deadline",
+                    SystemMessageTypes.Info
+                );
+            }
+
+            // Show queue impact
+            Letter[] queueSnapshot = GetQueueSnapshot();
+            int filledSlots = queueSnapshot.Count(letter => letter != null);
+            int totalWeight = queueSnapshot.Where(letter => letter != null).Sum(letter => letter.Weight);
+            
+            _messageSystem.AddSystemMessage(
+                $"📋 Queue: {filledSlots}/8 slots • {totalWeight}/12 weight",
+                SystemMessageTypes.Info
+            );
+        }
+
+        // Strengthen relationship for accepting offer
+        _connectionTokenManager.AddTokensToNPC(offerType, 1, npc.ID);
+        _messageSystem.AddSystemMessage(
+            $"🤝 {offerType} relationship with {npc.Name} strengthened",
+            SystemMessageTypes.Success
+        );
+
+        // Continue conversation or end if complete
+        if (outcome.IsConversationComplete)
+        {
+            _conversationStateManager.ClearPendingConversation();
+            return null;
+        }
+
+        // Generate new choices for next beat
+        await conversation.ProcessNextBeat();
+        return CreateConversationViewModel(conversation);
+    }
+
+    /// <summary>
+    /// Process player declining letter offer - maintains relationship without consequences
+    /// </summary>
+    private async Task<ConversationViewModel> ProcessDeclineLetterOffer(ConversationManager conversation, ConversationChoice choice)
+    {
+        NPC npc = conversation.Context.TargetNPC;
+        ConnectionType offerType = choice.OfferTokenType ?? ConnectionType.Trust;
+
+        Console.WriteLine($"[GameFacade] Processing decline letter offer: {offerType} from {npc.Name}");
+
+        // Apply choice effects (no comfort gain, no patience cost)
+        ConversationBeatOutcome outcome = await conversation.ProcessPlayerChoice(choice);
+
+        _messageSystem.AddSystemMessage(
+            $"💬 {npc.Name} understands your current commitments",
+            SystemMessageTypes.Info
+        );
+        _messageSystem.AddSystemMessage(
+            $"🤝 Relationship with {npc.Name} maintained",
+            SystemMessageTypes.Success
+        );
+
+        // Continue conversation or end if complete
+        if (outcome.IsConversationComplete)
+        {
+            _conversationStateManager.ClearPendingConversation();
+            return null;
+        }
+
+        // Generate new choices for next beat
+        await conversation.ProcessNextBeat();
+        return CreateConversationViewModel(conversation);
     }
 
     private string GenerateCharacterAction(
@@ -3303,73 +3417,12 @@ public class GameFacade : ILetterQueueOperations
             }
         }
 
-        // Check for letter generation threshold
+        // REMOVED: Automatic letter generation - now handled through explicit player choices
+        // Letters are offered as conversation choices when threshold is reached
+        // This preserves the "NO SILENT BACKEND ACTIONS" architectural principle
         if (state.HasReachedLetterThreshold())
         {
-            Console.WriteLine($"[GameFacade] Letter threshold reached! Generating letters from conversation");
-
-            try
-            {
-                List<Letter>? generatedLetters = _letterOfferService.GenerateFromConversation(npc.ID, totalComfort, startingPatience);
-
-                Console.WriteLine($"[GameFacade] Generated {generatedLetters.Count} letters from conversation");
-                Console.WriteLine($"[GameFacade] generatedLetters.Any(): {generatedLetters.Any()}");
-                Console.WriteLine($"[GameFacade] generatedLetters is null: {generatedLetters == null}");
-                if (generatedLetters != null && generatedLetters.Count > 0)
-                {
-                    for (int i = 0; i < generatedLetters.Count; i++)
-                    {
-                        Letter letter = generatedLetters[i];
-                        Console.WriteLine($"[GameFacade] Letter {i}: {(letter == null ? "NULL" : $"Valid - {letter.Id}")}");
-                    }
-                }
-
-                if (generatedLetters.Count > 0)
-                {
-                    Console.WriteLine($"[GameFacade] Entering foreach loop for {generatedLetters.Count} letters");
-                    foreach (Letter letter in generatedLetters)
-                    {
-                        if (letter == null)
-                        {
-                            Console.WriteLine($"[GameFacade] Skipping null letter in collection");
-                            continue;
-                        }
-
-                        Console.WriteLine($"[GameFacade] Processing letter: {letter.Id} - {letter.SenderName} to {letter.RecipientName}");
-                        // Add letters to queue using existing positioning logic
-                        int position = _letterQueueManager.AddLetterWithObligationEffects(letter);
-                        Console.WriteLine($"[GameFacade] Letter added to queue at position: {position}");
-
-                        string perfectBonus = state.HasReachedPerfectThreshold() ? " (Perfect Conversation!)" : "";
-                        _messageSystem.AddSystemMessage(
-                            $"✉️ {npc.Name} trusts you with a {letter.TokenType} letter{perfectBonus}",
-                            SystemMessageTypes.Success
-                        );
-                        _messageSystem.AddSystemMessage(
-                            $"💰 {letter.Payment} coins • ⏰ {letter.DeadlineInHours / 24} days deadline",
-                            SystemMessageTypes.Info
-                        );
-                    }
-
-                    // Show queue impact
-                    Letter[] queueSnapshot = GetQueueSnapshot();
-                    int filledSlots = queueSnapshot.Count(letter => letter != null);
-                    _messageSystem.AddSystemMessage(
-                        $"📋 Queue: {filledSlots}/{queueSnapshot.Length} slots",
-                        SystemMessageTypes.Info
-                    );
-                }
-                else
-                {
-                    Console.WriteLine($"[GameFacade] Letter threshold reached but no letters generated");
-                    _messageSystem.AddSystemMessage($"{npc.Name} considered offering a letter but has none available right now", SystemMessageTypes.Info);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[GameFacade] Error generating letters from conversation: {ex.Message}");
-                _messageSystem.AddSystemMessage("Something went wrong with letter generation", SystemMessageTypes.Danger);
-            }
+            Console.WriteLine($"[GameFacade] Letter threshold reached - offers were available during conversation");
         }
         else
         {
@@ -5915,65 +5968,44 @@ public class GameFacade : ILetterQueueOperations
             Detail = "Go to another location"
         });
 
-        // Add route options from current location
-        // CRITICAL FIX: Use the actual location ID, not the spot ID
-        // Copper Kettle is a spot within Market Square
-        string currentLocationId = location?.Id ?? "market_square"; // Default to market_square
-        List<Location> allLocations = _locationRepository.GetAllLocations();
+        // Add intra-location spot options for narrative perspective shifting
+        // Phase 2: Bottom routes now show spots within current location (free movement)
+        // Use the spot's LocationId to find other spots in the same location
+        string currentLocationId = spot?.LocationId ?? location?.Id ?? "market_square";
+        
+        Console.WriteLine($"[GameFacade] Getting spots for location: {currentLocationId}");
+        
+        // Get all spots in current location
+        List<LocationSpot> spotsInLocation = _locationSpotRepository.GetSpotsForLocation(currentLocationId);
+        
+        Console.WriteLine($"[GameFacade] Total spots in {currentLocationId}: {spotsInLocation.Count}");
 
-        Console.WriteLine($"[GameFacade] Getting routes from location: {currentLocationId}");
-        List<RouteOption> availableRoutes = new List<RouteOption>();
-
-        // Get ALL routes (available and locked) to show tier requirements
-        // player is already declared at the top of this method
-        List<RouteOption> allRoutesFromLocation = _routeRepository.GetRoutesFromLocation(currentLocationId)
-            .Where(r => r.IsDiscovered) // Only show discovered routes
-            .ToList();
-
-        Console.WriteLine($"[GameFacade] Total discovered routes from {currentLocationId}: {allRoutesFromLocation.Count}");
-
-        // Group routes by destination and create view models
-        IEnumerable<IGrouping<string, RouteOption>> destinations = allRoutesFromLocation
-            .GroupBy(r => r.Destination)
-            .Take(5); // Show up to 5 destinations
-
-        foreach (IGrouping<string, RouteOption>? destGroup in destinations)
+        foreach (LocationSpot spotOption in spotsInLocation)
         {
-            RouteOption cheapestRoute = destGroup.OrderBy(r => r.BaseStaminaCost).First();
-            Location destination = _locationRepository.GetLocation(cheapestRoute.Destination);
+            // Skip current spot to avoid redundant "move to where you are"
+            if (spot?.SpotID == spotOption.SpotID)
+                continue;
 
-            // Check if route is accessible
-            bool isLocked = false;
+            // Check if spot is accessible (not closed, meets requirements)
+            bool isLocked = spotOption.IsClosed;
             string lockReason = "";
-
-            // Check tier requirement
-            if (cheapestRoute.TierRequired > player.CurrentTier && !cheapestRoute.HasPermitUnlock)
+            
+            if (spotOption.IsClosed)
             {
-                isLocked = true;
-                lockReason = cheapestRoute.TierRequired switch
-                {
-                    TierLevel.T2 => "Requires T2 (Associate)",
-                    TierLevel.T3 => "Requires T3 (Confidant)",
-                    _ => "Tier requirement not met"
-                };
+                lockReason = "Currently closed";
             }
-            // Check access requirements
-            else if (cheapestRoute.AccessRequirement != null && !cheapestRoute.AccessRequirement.HasReceivedPermit)
-            {
-                isLocked = true;
-                lockReason = "Needs Transport Permit";
-            }
+            // Add other access requirement checks here as needed
 
             viewModel.Routes.Add(new RouteOptionViewModel
             {
-                RouteId = cheapestRoute.Id,
-                Destination = destination?.Name ?? cheapestRoute.Destination,
-                TravelTime = $"{cheapestRoute.TravelTimeHours * 60} min",
-                Detail = cheapestRoute.Description ?? "",
+                RouteId = spotOption.SpotID, // Use SpotID as the route identifier for movement
+                Destination = spotOption.Name,
+                TravelTime = "Free", // Intra-location movement is free and instant
+                Detail = spotOption.Description ?? "Move your attention here",
                 IsLocked = isLocked,
                 LockReason = lockReason,
-                RequiredTier = cheapestRoute.TierRequired,
-                CanUnlockWithPermit = cheapestRoute.TierRequired > player.CurrentTier
+                RequiredTier = TierLevel.T1, // No tier requirements for intra-location movement
+                CanUnlockWithPermit = false
             });
         }
 

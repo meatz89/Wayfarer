@@ -140,6 +140,9 @@ public class Phase3_NPCDependents : IInitializationPhase
     private void LoadLetterTemplates(InitializationContext context)
     {
         string templatesPath = Path.Combine(context.ContentPath, "letter_templates.json");
+        Console.WriteLine($"[LoadLetterTemplates] Looking for templates at: {templatesPath}");
+        Console.WriteLine($"[LoadLetterTemplates] ContentPath: {context.ContentPath}");
+        Console.WriteLine($"[LoadLetterTemplates] File exists: {File.Exists(templatesPath)}");
 
         if (!File.Exists(templatesPath))
         {
@@ -169,7 +172,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                     if (!Enum.TryParse<ConnectionType>(dto.TokenType, true, out ConnectionType tokenType))
                     {
                         tokenType = ConnectionType.Trust;
-                        context.Warnings.Add($"Invalid token type '{dto.TokenType}' for template {dto.Id}, defaulting to Common");
+                        context.Warnings.Add($"Invalid token type '{dto.TokenType}' for template {dto.Id}, defaulting to Trust");
                     }
 
                     // Parse letter size
@@ -282,7 +285,6 @@ public class Phase3_NPCDependents : IInitializationPhase
         {
             ConnectionType.Trust,
             ConnectionType.Commerce,
-            ConnectionType.Trust,
             ConnectionType.Status,
             ConnectionType.Shadow
         };

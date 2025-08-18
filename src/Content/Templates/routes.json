@@ -199,5 +199,49 @@
 		"maxItemCapacity": 5,
 		"description": "Follow the river to reach the city gates.",
 		"tierRequired": "T3"
+	},
+	{
+		"id": "riverside_ferry",
+		"name": "River Ferry Service",
+		"origin": "riverside",
+		"destination": "merchant_row",
+		"method": "Boat",
+		"baseCoinCost": 3,
+		"baseStaminaCost": 1,
+		"travelTimeHours": 1,
+		"departureTime": "Morning",
+		"isDiscovered": false,
+		"terrainCategories": ["Requires_Water_Transport"],
+		"maxItemCapacity": 8,
+		"description": "Captain Thorne's river ferry connecting riverside to merchant quarter via water route.",
+		"tierRequired": "T2",
+		"accessRequirement": {
+			"name": "Harbor Master Permit",
+			"alternativeLetterUnlock": "AccessPermit",
+			"blockedMessage": "Captain Thorne checks his ledger. 'Harbor Master's permit required,' he says firmly.",
+			"hintMessage": "Deliver a travel permit to Captain Thorne to gain access to river routes."
+		}
+	},
+	{
+		"id": "gates_ferry_crossing",
+		"name": "Ferry Crossing",
+		"origin": "city_gates",
+		"destination": "noble_district",
+		"method": "Boat",
+		"baseCoinCost": 5,
+		"baseStaminaCost": 1,
+		"travelTimeHours": 1,
+		"departureTime": "Afternoon",
+		"isDiscovered": false,
+		"terrainCategories": ["Requires_Water_Transport"],
+		"maxItemCapacity": 6,
+		"description": "Frans's ferry service providing direct access to noble district via river crossing.",
+		"tierRequired": "T2",
+		"accessRequirement": {
+			"name": "Ferry Permit",
+			"alternativeLetterUnlock": "AccessPermit",
+			"blockedMessage": "Frans examines your credentials. 'Ferry permit needed for the noble crossing,' he explains.",
+			"hintMessage": "Deliver a travel permit to Frans the Ferryman to unlock noble district ferry access."
+		}
 	}
 ]

@@ -537,13 +537,40 @@ Make AI narrative generation feel authentic and connected to mechanical state.
 - **Session 2**: [Date] - TBD
 - **Session 3**: [Date] - TBD
 
-## Current Status: PLANNING COMPLETE
-**Next Session Goal**: P1.1 - Critical UI Integration (Queue visibility, token display, attention integration)
+## Current Status: LOCATION/SPOT HIERARCHY PHASE 2 COMPLETE
+**Phase 1-4 Status**: ✅ Foundation, Emotional States, Standing Obligations, and Travel System fully integrated
+**Phase 2 Status**: ✅ Location/Spot Navigation System - Free intra-location movement with costly inter-location travel
+**Core Experience**: Medieval letter carrier fantasy with sustainable "more letters than time" pressure FUNCTIONAL
 
-## Dependencies and Blockers
-- **Critical Path**: Queue visibility blocks all conversation testing
-- **Narrative Integration**: Translation layer blocks UI authenticity
-- **System Integration**: Token effects block relationship progression
+## ✅ PHASE 2 COMPLETE: Location/Spot Navigation System (2025-08-18)
+
+### Implementation Results:
+1. **✅ Free Spot Movement**: Bottom navigation shows spots within current location (free movement)
+2. **✅ Travel Action Preserved**: "Travel" button opens SimpleTravelUI for inter-location routes (costs time/stamina)
+3. **✅ Narrative Perspective Shifting**: Moving from Marcus's Stall to Central Fountain is free and instant
+4. **✅ Different Context per Spot**: Different NPCs, actions, and atmosphere at each spot
+5. **✅ Cost Structure Clear**: Intra-location = free, inter-location = costly
+
+### Architecture Quality:
+- **✅ HIGHLANDER PRINCIPLE**: Single navigation system, no duplicate movement mechanics
+- **✅ Categorical Design**: Spots = narrative focus, Travel = strategic movement
+- **✅ User Requirements Met**: Action overload reduced, transport NPCs accessible via travel
+
+### Testing Verified:
+- **✅ Spot Movement**: Successfully moved from Marcus's Stall to Central Fountain (free)
+- **✅ Context Change**: Different NPCs present at different spots
+- **✅ Travel Interface**: Travel button opens proper inter-location route selection
+- **✅ Cost Display**: Routes show time/stamina costs correctly
+
+### Remaining Work (Phase 3):
+- **Route Network Completion**: Some location connections missing (Market Square ↔ Riverside Path)
+- **Transport NPC Full Accessibility**: Harbor Office reachable but requires route through Riverside Path
+
+## Completed Systems Integration
+- **✅ Queue Visibility**: Seamless navigation between conversations and queue management
+- **✅ Narrative Integration**: All mechanical systems feel authentically medieval
+- **✅ Core Game Loop**: Conversation→Comfort→Token→Letter→Queue creates sustainable pressure
+- **✅ Location/Spot Navigation**: Free narrative perspective shifts with costly strategic travel
 
 ---
 

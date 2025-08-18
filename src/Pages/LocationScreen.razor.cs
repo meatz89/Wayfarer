@@ -83,26 +83,27 @@ public partial class LocationScreen : ComponentBase
 
     private async Task TravelTo(RouteOptionViewModel route)
     {
-        // Execute travel using the route ID
+        // Phase 2: Routes now represent spots within current location, not inter-location travel
         if (string.IsNullOrEmpty(route.RouteId))
         {
-            Console.WriteLine($"[LocationScreen] Route ID missing for travel to {route.Destination}");
+            Console.WriteLine($"[LocationScreen] Route ID missing for movement to {route.Destination}");
             return;
         }
 
-        // Create travel intent and execute through GameFacade
-        TravelIntent travelIntent = new TravelIntent(route.RouteId);
-        bool success = await GameFacade.ExecuteIntent(travelIntent);
+        // Route.RouteId now contains SpotID for intra-location movement
+        // Create move intent and execute through GameFacade (free movement)
+        MoveIntent moveIntent = new MoveIntent(route.RouteId);
+        bool success = await GameFacade.ExecuteIntent(moveIntent);
 
         if (success)
         {
-            Console.WriteLine($"[LocationScreen] Successfully traveled to {route.Destination}");
-            // Reload location to show new location
+            Console.WriteLine($"[LocationScreen] Successfully moved to {route.Destination}");
+            // Reload location to show new spot perspective
             await LoadLocation();
         }
         else
         {
-            Console.WriteLine($"[LocationScreen] Failed to travel to {route.Destination}");
+            Console.WriteLine($"[LocationScreen] Failed to move to {route.Destination}");
         }
 
         await HandleActionExecuted();

@@ -1,66 +1,93 @@
 [
 	{
-		"id": "desk",
-		"name": "Your Desk",
-		"description": "A worn wooden desk covered in letters, sealing wax, and delivery schedules.",
-		"initialState": "Papers scattered across the surface. An inkwell and quill rest nearby. The morning's letters await sorting.",
-		"locationId": "your_room",
+		"id": "your_room",
+		"name": "Your Room",
+		"description": "Your small private room above the courier office. A bed, desk, and everything you need.",
+		"initialState": "Unmade bed, papers scattered on desk. The morning's letters await your attention.",
+		"locationId": "courier_office",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "WORK", "ORGANIZATION", "PRIVATE" ]
+		"domainTags": [ "REST", "PRIVATE", "HOME" ]
 	},
 	{
-		"id": "bed",
-		"name": "Your Bed",
-		"description": "A simple bed with worn sheets. Your only respite from the endless deliveries.",
-		"initialState": "Unmade from this morning's early rise. A place to rest when exhaustion takes hold.",
-		"locationId": "your_room",
+		"id": "office_desk",
+		"name": "Office Desk",
+		"description": "A worn wooden desk in the main courier office. Where the real work happens.",
+		"initialState": "Letters sorted into piles. Sealing wax and quill at the ready. Official courier business.",
+		"locationId": "courier_office",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "REST", "RECOVERY", "PRIVATE" ]
+		"domainTags": [ "WORK", "ORGANIZATION", "OFFICIAL" ]
 	},
 	{
-		"id": "window",
-		"name": "Window Overlooking Market Square",
-		"description": "A small window with a view of the market below. You can see the fountain from here.",
+		"id": "window_view",
+		"name": "Window View",
+		"description": "A window overlooking the market square. Perfect for observing the day's activities.",
 		"initialState": "Morning light streams through. The sounds of the waking market drift up from below.",
-		"locationId": "your_room",
+		"locationId": "courier_office",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "OBSERVATION", "PRIVATE" ]
+		"domainTags": [ "OBSERVATION", "VANTAGE" ]
 	},
 	{
-		"id": "copper_kettle",
-		"name": "Copper Kettle Tavern",
-		"description": "Warm firelight. Clinking mugs. Low conversations blend with lute music. Smell of roasted meat.",
-		"initialState": "A cozy tavern with a large copper kettle hanging over the hearth. Tables scattered throughout.",
-		"locationId": "market_square",
+		"id": "main_hall",
+		"name": "Main Hall",
+		"description": "The heart of the tavern. Tables and chairs around the great copper kettle hearth.",
+		"initialState": "Warm firelight flickers. The copper kettle hangs over glowing embers. Conversations drift from various tables.",
+		"locationId": "copper_kettle_tavern",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "SOCIAL", "COMMERCE", "REST" ]
+		"domainTags": [ "SOCIAL", "GATHERING", "WARM" ]
+	},
+	{
+		"id": "bar_counter",
+		"name": "Bar Counter",
+		"description": "The polished wooden bar where Bertram serves drinks and meals to travelers.",
+		"initialState": "Bertram polishes glasses behind the counter. Bottles and mugs line the shelves.",
+		"locationId": "copper_kettle_tavern",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "COMMERCE", "SERVICE", "SOCIAL" ]
+	},
+	{
+		"id": "corner_table",
+		"name": "Corner Table",
+		"description": "A quiet table in the corner, perfect for private conversations and intimate gatherings.",
+		"initialState": "A small wooden table with two chairs. Dimly lit and away from the main crowd.",
+		"locationId": "copper_kettle_tavern",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "PRIVATE", "QUIET", "INTIMATE" ]
+	},
+	{
+		"id": "upstairs_room",
+		"name": "Upstairs Room",
+		"description": "A small rented room above the tavern. Simple but clean accommodations for travelers.",
+		"initialState": "A narrow bed with clean sheets. A washbasin and small table complete the modest furnishings.",
+		"locationId": "copper_kettle_tavern",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "REST", "PRIVATE", "LODGING" ]
 	},
 	{
 		"id": "central_fountain",
 		"name": "Central Fountain",
-		"description": "The heart of Market Square, where water sparkles in the sunlight and people gather.",
-		"initialState": "An ornate fountain with clear water. Benches around the edges where people rest.",
+		"description": "The ornate fountain at the heart of Market Square. A gathering place for all.",
+		"initialState": "Clear water sparkles in the light. Citizens gather on benches around the fountain's edge.",
 		"locationId": "market_square",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "SOCIAL", "PUBLIC", "REST" ]
+		"domainTags": [ "SOCIAL", "PUBLIC", "CENTRAL" ]
 	},
 	{
-		"id": "merchant_stall",
+		"id": "marcus_stall",
 		"name": "Marcus's Stall",
-		"description": "A well-organized merchant stall displaying various goods and wares.",
-		"initialState": "Neat rows of merchandise. Marcus arranging his display with practiced efficiency.",
+		"description": "A well-organized merchant stall with goods from across the region.",
+		"initialState": "Neat rows of merchandise. Marcus arranges his wares with practiced efficiency.",
 		"locationId": "market_square",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-		"domainTags": [ "COMMERCE", "TRADE" ]
+		"domainTags": [ "COMMERCE", "TRADE", "GOODS" ]
 	},
 	{
-		"id": "north_road",
-		"name": "North Road Entrance",
-		"description": "The guarded entrance to the north road, currently blocked by city guards.",
-		"initialState": "Guards in uniform stand watch, checking papers and questioning travelers.",
+		"id": "north_entrance",
+		"name": "North Entrance",
+		"description": "The guarded entrance to the north road. Papers are checked here.",
+		"initialState": "Guards in uniform stand watch. Travelers queue to have their documents inspected.",
 		"locationId": "market_square",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "TRAVEL", "GUARDED" ]
+		"domainTags": [ "TRAVEL", "GUARDED", "CHECKPOINT" ]
 	},
 	{
 		"id": "aldwin_manor",
@@ -92,11 +119,29 @@
 	{
 		"id": "willow_bend",
 		"name": "Willow Bend",
-		"description": "A peaceful bend in the river road, shaded by ancient willow trees.",
-		"initialState": "Dappled sunlight through willow branches. The river flows quietly nearby.",
-		"locationId": "riverside",
+		"description": "A peaceful bend in the river path, shaded by ancient willow trees.",
+		"initialState": "Dappled sunlight filters through hanging willow branches. The river flows quietly nearby.",
+		"locationId": "riverside_path",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-		"domainTags": [ "NATURE", "TRAVEL", "PEACEFUL" ]
+		"domainTags": [ "NATURE", "PEACEFUL", "SCENIC" ]
+	},
+	{
+		"id": "river_crossing",
+		"name": "River Crossing",
+		"description": "A shallow ford where the path crosses the river. Stepping stones mark the way.",
+		"initialState": "Clear water flows over smooth stones. The crossing looks manageable on foot.",
+		"locationId": "riverside_path",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "CROSSING", "WATER", "PASSAGE" ]
+	},
+	{
+		"id": "path_junction",
+		"name": "Path Junction",
+		"description": "Where the riverside path splits toward different destinations.",
+		"initialState": "Wooden signs point in different directions. Well-worn paths diverge from this point.",
+		"locationId": "riverside_path",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "JUNCTION", "NAVIGATION", "CHOICE" ]
 	},
 	{
 		"id": "gate_entrance",
@@ -115,5 +160,50 @@
 		"locationId": "city_gates",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
 		"domainTags": [ "TRAVEL", "REST", "TRANSITION" ]
+	},
+	{
+		"id": "main_desk",
+		"name": "Main Desk",
+		"description": "The harbor master's working desk where all river transport business is conducted.",
+		"initialState": "Charts and schedules cover the desk surface. Captain Thorne reviews manifests and coordinates river traffic.",
+		"locationId": "harbor_office",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "TRANSPORT", "OFFICIAL", "BUSINESS" ]
+	},
+	{
+		"id": "waiting_area",
+		"name": "Waiting Area",
+		"description": "Simple benches where visitors wait to conduct business with the harbor master.",
+		"initialState": "Wooden benches line the wall. A few travelers sit patiently, documents in hand.",
+		"locationId": "harbor_office",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "WAITING", "PUBLIC", "FUNCTIONAL" ]
+	},
+	{
+		"id": "charts_room",
+		"name": "Charts Room",
+		"description": "A back room filled with river maps, shipping schedules, and navigation charts.",
+		"initialState": "Detailed maps cover every wall. Navigation instruments and route schedules fill the shelves.",
+		"locationId": "harbor_office",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "NAVIGATION", "REFERENCE", "RESTRICTED" ]
+	},
+	{
+		"id": "dock_view",
+		"name": "Dock View Window",
+		"description": "A large window overlooking the river docks and boat traffic.",
+		"initialState": "Through the window, boats bob at their moorings. River traffic flows past in both directions.",
+		"locationId": "harbor_office",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "OBSERVATION", "OVERSIGHT", "VANTAGE" ]
+	},
+	{
+		"id": "ferry_dock",
+		"name": "Ferry Dock",
+		"description": "A wooden dock where the city ferry operates, connecting to routes across the water.",
+		"initialState": "The ferry bobs at the dock. Passengers wait with their belongings while the ferryman prepares.",
+		"locationId": "city_gates",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "TRANSPORT", "WATER", "CROSSING" ]
 	}
 ]
