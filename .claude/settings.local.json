@@ -159,7 +159,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5100\" timeout 30 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5102\" timeout 15 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5104\" dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5105\" dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5105\" dotnet run --no-build)",
+      "Bash(pgrep:*)"
     ],
     "deny": []
   }

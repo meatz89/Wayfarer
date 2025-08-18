@@ -3280,6 +3280,27 @@ public class GameFacade : ILetterQueueOperations
         else
         {
             _messageSystem.AddSystemMessage($"Good conversation with {npc.Name}", SystemMessageTypes.Success);
+            
+            // CRITICAL: Grant tokens when comfort thresholds are reached
+            // This is what enables NPCLetterOfferService to find templates
+            if (npc.LetterTokenTypes != null && npc.LetterTokenTypes.Any())
+            {
+                // Grant 1 token of the NPC's primary type for reaching maintain threshold
+                ConnectionType tokenType = npc.LetterTokenTypes.First();
+                _connectionTokenManager.AddTokensToNPC(tokenType, 1, npc.ID);
+                Console.WriteLine($"[GameFacade] Granted 1 {tokenType} token to player for reaching maintain threshold with {npc.Name}");
+                
+                // Grant bonus token for reaching perfect threshold
+                if (state.HasReachedPerfectThreshold())
+                {
+                    _connectionTokenManager.AddTokensToNPC(tokenType, 1, npc.ID);
+                    Console.WriteLine($"[GameFacade] Granted bonus {tokenType} token for perfect conversation with {npc.Name}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"[GameFacade] NPC {npc.Name} has no letter token types - no tokens granted");
+            }
         }
 
         // Check for letter generation threshold
@@ -5112,37 +5133,8 @@ public class GameFacade : ILetterQueueOperations
         if (letter == null || IsLetterQueueFull())
             return -1;
 
-        // Add letter to player's queue
-        Player player = _gameWorld.GetPlayer();
-        player.CarriedLetters.Add(letter);
-
-        // Calculate position with obligation effects
-        if (_standingObligationManager != null)
-        {
-            int basePosition = player.CarriedLetters.Count;
-            int positionModifier = 0;
-            if (letter.TokenType == ConnectionType.Status)
-            {
-                List<StandingObligation> obligations = _standingObligationManager.GetActiveObligations();
-                foreach (StandingObligation obligation in obligations)
-                {
-                    if (obligation.HasEffect(ObligationEffect.StatusPriority))
-                        positionModifier = -2; // Move up to position 3
-                }
-            }
-            int finalPosition = Math.Max(1, Math.Min(basePosition + positionModifier, 8));
-
-            // Reorder queue if needed
-            if (finalPosition != basePosition)
-            {
-                player.CarriedLetters.Remove(letter);
-                player.CarriedLetters.Insert(finalPosition - 1, letter);
-            }
-
-            return finalPosition;
-        }
-
-        return player.CarriedLetters.Count;
+        // Delegate to LetterQueueManager for proper queue management
+        return _letterQueueManager.AddLetterWithObligationEffects(letter);
     }
 
     public bool IsActionForbidden(string actionType, Letter letter, out string reason)
