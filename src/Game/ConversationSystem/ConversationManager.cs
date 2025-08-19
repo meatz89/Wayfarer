@@ -112,6 +112,14 @@ public class ConversationManager
             }
         }
 
+        // CARD GAME MECHANICS: Play the selected card to discard pile
+        // Card goes from hand to discard pile, preventing reuse this conversation
+        if (!string.IsNullOrEmpty(selectedChoice.ChoiceID))
+        {
+            _state.PlayCard(selectedChoice.ChoiceID);
+            Console.WriteLine($"[ConversationManager] Played card '{selectedChoice.ChoiceID}' to discard pile");
+        }
+
         // Process the player's dialogue choice
         bool success = true; // TODO: Determine success based on skill check
 
@@ -163,6 +171,7 @@ public class ConversationChoice
     public string NarrativeText { get; set; }
     public int PatienceCost { get; set; }  // FIXED: Choices cost NPC patience, not attention
     public bool IsAffordable { get; set; }
+    public bool IsAvailable { get; set; } = true;  // UI compatibility - determines if choice is greyed out
     public string TemplatePurpose { get; set; }
     public ConversationChoiceType ChoiceType { get; set; } = ConversationChoiceType.Default;
     public string SuccessNarrative { get; internal set; }
@@ -205,7 +214,6 @@ public class ConversationChoice
 
     // Mechanical description for UI display
     public string MechanicalDescription { get; set; }
-    public bool IsAvailable { get; set; }
 
     // Mechanical effects to apply when choice is selected
     public List<IMechanicalEffect> MechanicalEffects { get; set; }

@@ -409,14 +409,17 @@ public class NPCDeck
     }
 
     /// <summary>
-    /// Draw 5 cards from deck for this conversation round
+    /// Draw 5 cards from deck for this conversation round, excluding cards already played
     /// </summary>
-    public List<ConversationChoice> DrawCards(Dictionary<ConnectionType, int> currentTokens, int currentComfort = 0, NPCEmotionalState emotionalState = NPCEmotionalState.CALCULATING)
+    public List<ConversationChoice> DrawCards(Dictionary<ConnectionType, int> currentTokens, int currentComfort = 0, NPCEmotionalState emotionalState = NPCEmotionalState.CALCULATING, ConversationState conversationState = null)
     {
         Console.WriteLine($"[NPCDeck] DrawCards called for {NpcId}: Total cards={Cards.Count}, EmotionalState={emotionalState}");
         
+        // CARD GAME MECHANICS: Filter out cards already played this conversation
         List<ConversationChoice> availableCards = Cards
-            .Where(card => card.CanPlay(currentTokens, currentComfort) && card.IsAvailableInState(emotionalState))
+            .Where(card => card.CanPlay(currentTokens, currentComfort) && 
+                          card.IsAvailableInState(emotionalState) &&
+                          (conversationState == null || !conversationState.IsCardPlayed(card.ChoiceID))) // Exclude played cards
             .ToList();
             
         Console.WriteLine($"[NPCDeck] Available cards after filtering: {availableCards.Count}");

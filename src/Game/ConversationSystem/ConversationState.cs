@@ -25,6 +25,9 @@ public class ConversationState
     // UI state flags
     public bool IsQueueInterfaceOpen { get; set; }
 
+    // Card game mechanics - minimal state tracking for this conversation only
+    public HashSet<string> PlayedCardIds { get; private set; } = new HashSet<string>(); // Cards played this conversation
+    
     // Conversation seed for deterministic generation
     public int ConversationSeed { get; }
 
@@ -83,5 +86,31 @@ public class ConversationState
     public bool HasReachedMaintainThreshold()
     {
         return TotalComfort >= (StartingPatience / 2);
+    }
+
+    // Card game mechanics - single responsibility: track played cards
+    
+    /// <summary>
+    /// Mark a card as played this conversation
+    /// </summary>
+    public void PlayCard(string cardId)
+    {
+        PlayedCardIds.Add(cardId);
+    }
+
+    /// <summary>
+    /// Check if a card has been played this conversation
+    /// </summary>
+    public bool IsCardPlayed(string cardId)
+    {
+        return PlayedCardIds.Contains(cardId);
+    }
+
+    /// <summary>
+    /// Reset for new conversation (shuffle discarded cards back into deck)
+    /// </summary>
+    public void ResetForNewConversation()
+    {
+        PlayedCardIds.Clear();
     }
 }

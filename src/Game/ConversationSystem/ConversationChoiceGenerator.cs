@@ -63,8 +63,8 @@ public class ConversationChoiceGenerator
         // Store emotional state context for conversation flow
         context.CurrentTokens = tokenDict;
 
-        // Draw 5 cards from NPC's deck filtered by emotional state - already ConversationChoice objects
-        List<ConversationChoice> choices = context.TargetNPC.ConversationDeck.DrawCards(tokenDict, 0, emotionalState);
+        // Draw 5 cards from NPC's deck filtered by emotional state and played cards - already ConversationChoice objects
+        List<ConversationChoice> choices = context.TargetNPC.ConversationDeck.DrawCards(tokenDict, 0, emotionalState, state);
         
         // Update mechanical descriptions for the drawn choices
         foreach (ConversationChoice choice in choices)
