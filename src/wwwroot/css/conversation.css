@@ -187,22 +187,7 @@ body {
     font-family: Georgia, serif;
 }
 
-.attention-point {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--attention-gold);
-    border: 2px solid var(--parchment);
-    transition: all 0.3s;
-    box-shadow: 0 0 6px rgba(255, 215, 0, 0.5);
-}
-
-.attention-point.spent {
-    background: #3d3226;
-    border: 2px solid #5a4a3a;
-    opacity: 0.4;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
-}
+/* attention-point styles MOVED to literary-ui.css (HIGHLANDER PRINCIPLE) */
 
 /* ==================== NPC Conversation State Display ==================== */
 

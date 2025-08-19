@@ -2,8 +2,8 @@
 
 /* CRITICAL FIX: Add padding to account for fixed position elements */
 main {
-    /* Account for UnifiedAttentionBar at top (approx 80px) */
-    padding-top: 90px;
+    /* More padding to ensure attention orbs are fully visible */
+    padding-top: 80px;
     /* Small padding on sides for mobile */
     padding-left: 10px;
     padding-right: 10px;
@@ -13,12 +13,14 @@ main {
     min-height: 100vh;
     /* Enable scrolling */
     overflow-y: auto;
+    /* Fix the terrible brown background */
+    background: linear-gradient(135deg, #fefdfb 0%, #f9f7f3 100%);
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
     main {
-        padding-top: 100px; /* More space on mobile for wrapped attention bar */
+        padding-top: 50px; /* Same padding since attention bar is now relative */
         padding-bottom: 80px; /* More space for mobile status bar */
     }
 }

@@ -29,20 +29,21 @@
     padding-bottom: 15px;
 }
 
-/* Attention Bar - Fixed at Top Like Mockup */
+/* Attention Bar - Relative positioning to avoid cutoff */
 .attention-bar,
 .unified-attention-bar {
-    position: fixed;
-    top: 10px;
+    position: relative;
+    margin: 20px auto 10px auto; /* More top margin to ensure orbs aren't cut off */
     left: 50%;
     transform: translateX(-50%);
     background: rgba(44, 36, 22, 0.95);
-    padding: 8px 16px;
+    padding: 12px 16px; /* More padding for orbs */
     border-radius: 20px;
     z-index: 100;
     display: flex;
     gap: 8px;
     align-items: center;
+    width: fit-content;
 }
 
 .attention-label {
@@ -70,17 +71,7 @@
 }
 
 /* Unified Attention Bar Components */
-.focus-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.focus-orbs {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-}
+/* focus-container and focus-orbs MOVED to mockup.css (HIGHLANDER PRINCIPLE) */
 
 .focus-orb {
     width: 20px;
@@ -324,27 +315,7 @@
     padding: 20px;
 }
 
-/* choice-option styles DELETED - using conversation.css instead */
-.unified-choice {
-    background: #f9f7f3;
-    border: 1px solid #e8dfd0;
-    padding: 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-}
-
-.unified-choice:hover {
-    background: white;
-    border-color: var(--leather);
-    transform: translateX(4px);
-}
-
-.unified-choice.locked {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
+/* unified-choice styles MOVED to mockup.css (HIGHLANDER PRINCIPLE) */
 
 .conversation-choice:hover:not(:disabled) {
     background: var(--parchment);

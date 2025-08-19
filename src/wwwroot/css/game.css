@@ -7,7 +7,7 @@
 
 body {
     font-family: Georgia, serif;
-    background: #2c2416;
+    background: linear-gradient(135deg, #fefdfb 0%, #f9f7f3 100%);
     color: #2c2416;
     min-height: 100vh;
     /* CRITICAL: Enable vertical scrolling on ALL screens */

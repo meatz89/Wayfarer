@@ -17,6 +17,7 @@
             min-height: 100vh;
             background: #fefdfb;
             box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            padding-top: 40px; /* Ensure attention bar isn't cut off */
         }
 
         /* Header */
@@ -460,17 +461,7 @@
 
 /* Conversation styles DELETED - using conversation.css instead */
 
-/* Unified Attention Bar - Narrative-focused, not gamey */
-
-.unified-attention-bar {
-    position: fixed;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    transition: all 0.3s ease;
-    pointer-events: none; /* Don't block interactions */
-}
+/* Unified Attention Bar - MOVED to literary-ui.css (HIGHLANDER PRINCIPLE) */
 
 .focus-container {
     background: rgba(44, 36, 22, 0.9);
