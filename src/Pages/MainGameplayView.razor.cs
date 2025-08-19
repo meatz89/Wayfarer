@@ -56,9 +56,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public LetterOfferViewModel CurrentLetterOffer = null;
     public string CurrentNPCOfferId = null;
 
-    // Morning Activities State
-    public bool ShowMorningSummary = false;
-    public MorningActivityResult MorningActivityResult = null;
+    // Daily Activities State
+    public bool ShowDailySummary = false;
+    public DailyActivityResult DailyActivityResult = null;
     public TimeBlocks? LastTimeBlock = null;
 
     // Debug State
@@ -155,12 +155,12 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         // Pull system messages
         SystemMessages = GameFacade.GetSystemMessages().Where(m => !m.IsExpired).ToList();
 
-        // Check for morning activities
-        MorningActivityResult morningActivities = GameFacade.GetMorningActivities();
-        if (morningActivities != null && morningActivities.HasEvents && !ShowMorningSummary)
+        // Check for daily activities
+        DailyActivityResult dailyActivities = GameFacade.GetDailyActivities();
+        if (dailyActivities != null && dailyActivities.HasEvents && !ShowDailySummary)
         {
-            Console.WriteLine("MainGameplayView - Morning activities pending - processing");
-            ProcessMorningActivities();
+            Console.WriteLine("MainGameplayView - Daily activities pending - processing");
+            ProcessDailyActivities();
         }
 
         // Check for pending conversation
@@ -225,13 +225,13 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         }
     }
 
-    private void ProcessMorningActivities()
+    private void ProcessDailyActivities()
     {
-        MorningActivityResult = GameFacade.GetMorningActivities();
+        DailyActivityResult = GameFacade.GetDailyActivities();
 
-        if (MorningActivityResult != null && MorningActivityResult.HasEvents)
+        if (DailyActivityResult != null && DailyActivityResult.HasEvents)
         {
-            ShowMorningSummary = true;
+            ShowDailySummary = true;
             StateHasChanged();
         }
     }
@@ -591,11 +591,11 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     }
 
     /// <summary>
-    /// Handle morning summary continuation
+    /// Handle daily summary continuation
     /// </summary>
-    public void HandleMorningSummaryContinue()
+    public void HandleDailySummaryContinue()
     {
-        ShowMorningSummary = false;
+        ShowDailySummary = false;
 
         // If letter board is available, switch to it
         if (CurrentTimeBlock == TimeBlocks.Dawn)

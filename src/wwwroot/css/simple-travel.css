@@ -1,11 +1,17 @@
 /* Simple Travel UI - Focused and minimal */
 
 .simple-travel-container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #f9f7f3;
-    font-family: 'Georgia', serif;
+    max-width: 800px;
+    margin: 20px auto; /* Add margin to prevent cutoff */
+    padding: 30px;
+    background: linear-gradient(135deg, rgba(42, 32, 25, 0.95) 0%, rgba(52, 39, 31, 0.95) 100%);
+    font-family: 'Crimson Text', 'Georgia', serif;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    /* Ensure container is positioned properly */
+    position: relative;
+    /* Prevent cutoff at top */
+    margin-top: 20px;
 }
 
 /* Header */
@@ -75,74 +81,128 @@
 .destination-list {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
 }
 
 .destination-item {
-    background-color: white;
-    border: 1px solid #e8dfd0;
-    border-radius: 4px;
-    padding: 15px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #8b6c42;
+    border-radius: 6px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .destination-header {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #d4c5a0;
 }
 
 .destination-name {
-    font-size: 1rem;
+    font-size: 1.2rem;
     color: #2c2416;
     margin: 0;
-    font-weight: normal;
+    font-weight: 600;
 }
 
 /* Route options - styled like conversation choices */
 .route-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
 .route-option {
-    background-color: #f9f7f3;
-    border: 1px solid #e8dfd0;
-    border-radius: 4px;
-    padding: 10px 12px;
+    background: linear-gradient(135deg, #f9f7f3 0%, #faf8f4 100%);
+    border: 2px solid #d4c5a0;
+    border-radius: 8px;
+    padding: 18px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: 'Georgia', serif;
+    transition: all 0.3s ease;
+    font-family: 'Crimson Text', 'Georgia', serif;
     width: 100%;
     text-align: left;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .route-option:hover:not(.disabled) {
-    background-color: white;
-    border-color: #b8a584;
+    background: linear-gradient(135deg, #ffffff 0%, #f9f7f3 100%);
+    border-color: #8b6c42;
     transform: translateX(4px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
 }
 
 .route-option.disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    background: #e8e4dc;
 }
 
-.route-main {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.route-header {
+    margin-bottom: 12px;
+}
+
+.route-name {
+    font-size: 1.1rem;
+    font-weight: 600;
     color: #2c2416;
+    margin-bottom: 4px;
+}
+
+.route-type {
     font-size: 0.9rem;
+    color: #8b6c42;
+    font-style: italic;
+    line-height: 1.3;
+    margin-bottom: 8px;
+}
+
+.route-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    color: #2c2416;
+    font-size: 0.95rem;
+}
+
+.route-costs {
+    display: flex;
+    gap: 12px;
+    align-items: center;
 }
 
 .route-method {
-    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.route-icon {
+    font-size: 1.2rem;
+}
+
+.route-label {
+    color: #2c2416;
+    font-size: 0.9rem;
 }
 
 .route-time,
 .route-stamina,
 .route-cost {
     color: #5a4a3a;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+    background: rgba(139, 108, 66, 0.1);
+    border: 1px solid rgba(139, 108, 66, 0.2);
+    border-radius: 16px;
+    font-weight: 500;
 }
 
 .route-blocker {

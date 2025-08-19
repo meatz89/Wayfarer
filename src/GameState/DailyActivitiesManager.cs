@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-public partial class MorningActivitiesManager
+public partial class DailyActivitiesManager
 {
     private readonly GameWorld _gameWorld;
     private readonly LetterQueueManager _letterQueueManager;
@@ -10,13 +10,13 @@ public partial class MorningActivitiesManager
     private readonly PatronLetterService _patronLetterService;
     private readonly ITimeManager _timeManager;
 
-    // Track morning events for display
-    public List<MorningEvent> MorningEvents { get; private set; } = new List<MorningEvent>();
+    // Track daily events for display
+    public List<DailyEvent> DailyEvents { get; private set; } = new List<DailyEvent>();
 
     // Store last activity result
-    private MorningActivityResult _lastActivityResult;
+    private DailyActivityResult _lastActivityResult;
 
-    public MorningActivitiesManager(
+    public DailyActivitiesManager(
         GameWorld gameWorld,
         LetterQueueManager letterQueueManager,
         StandingObligationManager obligationManager,
@@ -32,15 +32,15 @@ public partial class MorningActivitiesManager
         _patronLetterService = patronLetterService;
     }
 
-    // Process all morning activities and collect events
-    public MorningActivityResult ProcessMorningActivities()
+    // Process all daily activities and collect events
+    public DailyActivityResult ProcessDailyActivities()
     {
-        MorningEvents.Clear();
-        MorningActivityResult result = new MorningActivityResult();
+        DailyEvents.Clear();
+        DailyActivityResult result = new DailyActivityResult();
 
-        // Announce morning arrival
+        // Announce daily activities processing
         _messageSystem.AddSystemMessage(
-            "🌅 Morning arrives with new opportunities and obligations:",
+            "📜 Processing daily obligations and activities:",
             SystemMessageTypes.Info
         );
 
@@ -48,9 +48,9 @@ public partial class MorningActivitiesManager
         Letter[] expiringLetters = GetLettersAboutToExpire();
         foreach (Letter letter in expiringLetters)
         {
-            MorningEvents.Add(new MorningEvent
+            DailyEvents.Add(new DailyEvent
             {
-                Type = MorningEventType.LetterExpired,
+                Type = DailyEventType.LetterExpired,
                 Description = GetExpiredLetterNarrative(letter),
                 TokenLoss = 2,
                 TokenType = letter.TokenType,
@@ -70,9 +70,9 @@ public partial class MorningActivitiesManager
             int position = _letterQueueManager.AddLetterWithObligationEffects(letter);
             if (position > 0)
             {
-                MorningEvents.Add(new MorningEvent
+                DailyEvents.Add(new DailyEvent
                 {
-                    Type = MorningEventType.ForcedLetterAdded,
+                    Type = DailyEventType.ForcedLetterAdded,
                     Description = GetObligationLetterNarrative(letter, position),
                     LetterPosition = position,
                     SenderName = letter.SenderName
@@ -95,9 +95,9 @@ public partial class MorningActivitiesManager
 
                 if (position > 0)
                 {
-                    MorningEvents.Add(new MorningEvent
+                    DailyEvents.Add(new DailyEvent
                     {
-                        Type = MorningEventType.PatronLetterAdded,
+                        Type = DailyEventType.PatronLetterAdded,
                         Description = GetPatronLetterNarrative(patronLetter, position),
                         LetterPosition = position,
                         SenderName = "Your Patron"
@@ -111,9 +111,9 @@ public partial class MorningActivitiesManager
         int newLetterCount = _letterQueueManager.GenerateDailyLetters();
         if (newLetterCount > 0)
         {
-            MorningEvents.Add(new MorningEvent
+            DailyEvents.Add(new DailyEvent
             {
-                Type = MorningEventType.NewLettersAvailable,
+                Type = DailyEventType.NewLettersAvailable,
                 Description = GetNewLettersNarrative(newLetterCount)
             });
             result.NewLetterCount = newLetterCount;
@@ -123,17 +123,17 @@ public partial class MorningActivitiesManager
         Letter[] urgentLetters = _letterQueueManager.GetExpiringLetters(2);
         foreach (Letter letter in urgentLetters)
         {
-            MorningEvents.Add(new MorningEvent
+            DailyEvents.Add(new DailyEvent
             {
-                Type = MorningEventType.UrgentLetterWarning,
+                Type = DailyEventType.UrgentLetterWarning,
                 Description = GetUrgentLetterNarrative(letter),
                 LetterPosition = letter.QueuePosition
             });
             result.UrgentLetterCount++;
         }
 
-        // Display morning summary
-        DisplayMorningSummary(result);
+        // Display daily summary
+        DisplayDailySummary(result);
 
         // Store result for later retrieval
         _lastActivityResult = result;
@@ -149,20 +149,20 @@ public partial class MorningActivitiesManager
             .ToArray();
     }
 
-    // Check if it's morning (dawn)
-    public bool IsMorningTime()
+    // Check if it's time for daily activities
+    public bool IsDailyActivityTime()
     {
         return _timeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
     }
 
-    // Clear morning events after display
-    public void ClearMorningEvents()
+    // Clear daily events after display
+    public void ClearDailyEvents()
     {
-        MorningEvents.Clear();
+        DailyEvents.Clear();
     }
 
-    // Display morning summary
-    private void DisplayMorningSummary(MorningActivityResult result)
+    // Display daily summary
+    private void DisplayDailySummary(DailyActivityResult result)
     {
         if (result.ExpiredLetterCount > 0)
         {
@@ -294,8 +294,8 @@ public partial class MorningActivitiesManager
     }
 }
 
-// Event types for morning activities
-public enum MorningEventType
+// Event types for daily activities
+public enum DailyEventType
 {
     LetterExpired,
     ForcedLetterAdded,
@@ -304,10 +304,10 @@ public enum MorningEventType
     PatronLetterAdded
 }
 
-// Individual morning event
-public class MorningEvent
+// Individual daily event
+public class DailyEvent
 {
-    public MorningEventType Type { get; set; }
+    public DailyEventType Type { get; set; }
     public string Description { get; set; }
     public int? TokenLoss { get; set; }
     public ConnectionType? TokenType { get; set; }
@@ -315,8 +315,8 @@ public class MorningEvent
     public int? LetterPosition { get; set; }
 }
 
-// Result of morning processing
-public class MorningActivityResult
+// Result of daily processing
+public class DailyActivityResult
 {
     public int ExpiredLetterCount { get; set; }
     public int ForcedLetterCount { get; set; }
@@ -329,11 +329,11 @@ public class MorningActivityResult
 }
 
 // Extension to MorningActivitiesManager
-public partial class MorningActivitiesManager
+public partial class DailyActivitiesManager
 {
-    // Get the result of the last morning activities processing
-    public MorningActivityResult GetLastActivityResult()
+    // Get the result of the last daily activities processing
+    public DailyActivityResult GetLastActivityResult()
     {
-        return _lastActivityResult ?? new MorningActivityResult();
+        return _lastActivityResult ?? new DailyActivityResult();
     }
 }

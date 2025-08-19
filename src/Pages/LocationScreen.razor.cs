@@ -55,6 +55,12 @@ public partial class LocationScreen : ComponentBase
             await NavigateToTravel();
             return; // Don't reload location since we're navigating away
         }
+        else if (action.ActionType == "rest")
+        {
+            // Execute rest action - this should handle payment and stamina recovery
+            // For now, use the basic 1-hour rest (will be extended for inn rooms later)
+            await GameFacade.ExecuteRestAction(action.ActionType, action.Cost);
+        }
         else
         {
             // Execute normal action through GameFacade

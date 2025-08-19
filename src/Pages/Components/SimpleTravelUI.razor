@@ -60,14 +60,23 @@
                             <button class="route-option @(!route.CanTravel ? "disabled" : "")"
                                     @onclick="() => HandleSelectRoute(route)"
                                     disabled="@(!route.CanTravel)">
-                                <div class="route-main">
-                                    <span class="route-method">@GetTransportIcon(route.TransportMethod)</span>
-                                    <span class="route-time">@route.TimeCost hr</span>
-                                    <span class="route-stamina">⚡@route.TotalStaminaCost</span>
-                                    @if (route.CoinCost > 0)
-                                    {
-                                        <span class="route-cost">💰@route.CoinCost</span>
-                                    }
+                                <div class="route-header">
+                                    <div class="route-name">@(route.RouteName ?? "Standard Route")</div>
+                                    <div class="route-type">@(route.Description ?? "")</div>
+                                </div>
+                                <div class="route-details">
+                                    <div class="route-method">
+                                        <span class="route-icon">@GetTransportIcon(route.TransportMethod)</span>
+                                        <span class="route-label">@GetTransportLabel(route.TransportMethod)</span>
+                                    </div>
+                                    <div class="route-costs">
+                                        <span class="route-time">🕐 @route.TimeCost hr</span>
+                                        <span class="route-stamina">⚡ @route.TotalStaminaCost</span>
+                                        @if (route.CoinCost > 0)
+                                        {
+                                            <span class="route-cost">💰 @route.CoinCost</span>
+                                        }
+                                    </div>
                                 </div>
                                 @if (!route.CanTravel)
                                 {
@@ -128,6 +137,19 @@
             TravelMethods.Carriage => "🚌",
             TravelMethods.Boat => "⛵",
             _ => "❓"
+        };
+    }
+    
+    private string GetTransportLabel(TravelMethods method)
+    {
+        return method switch
+        {
+            TravelMethods.Walking => "Walking",
+            TravelMethods.Horseback => "Horseback",
+            TravelMethods.Cart => "Cart",
+            TravelMethods.Carriage => "Carriage",
+            TravelMethods.Boat => "Boat",
+            _ => "Unknown"
         };
     }
 }

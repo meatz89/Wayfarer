@@ -139,6 +139,18 @@ p, span, div {
     max-width: 100%;
 }
 
+/* CRITICAL FIX: Content area positioning to prevent cutoff */
+.main-content,
+.screen-content,
+.modal-content-area {
+    /* Ensure content starts below fixed elements */
+    position: relative;
+    /* Full width available */
+    width: 100%;
+    /* Allow scrolling if needed */
+    overflow-y: auto;
+}
+
 /* Responsive design for better readability */
 @media (max-width: 1600px) {
     html {

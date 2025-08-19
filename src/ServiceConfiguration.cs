@@ -129,7 +129,7 @@ public static class ServiceConfiguration
         services.AddSingleton<NPCLetterOfferService>();
         services.AddSingleton<PatronLetterService>();
         services.AddSingleton<NetworkReferralService>();
-        services.AddSingleton<MorningActivitiesManager>();
+        services.AddSingleton<DailyActivitiesManager>();
         services.AddSingleton<NoticeBoardService>();
 
         // Conversation system components

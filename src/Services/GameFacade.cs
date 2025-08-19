@@ -48,7 +48,7 @@ public class GameFacade : ILetterQueueOperations
     private readonly MarketManager _marketManager;
     private readonly LetterCategoryService _letterCategoryService;
     private readonly SpecialLetterGenerationService _specialLetterService;
-    private readonly MorningActivitiesManager _morningActivitiesManager;
+    private readonly DailyActivitiesManager _dailyActivitiesManager;
     private readonly DeliveryConversationService _deliveryConversationService;
     private readonly EndorsementManager _endorsementManager;
     private readonly NoticeBoardService _noticeBoardService;
@@ -93,7 +93,7 @@ public class GameFacade : ILetterQueueOperations
         IGameRuleEngine ruleEngine,
         LetterCategoryService letterCategoryService,
         SpecialLetterGenerationService specialLetterService,
-        MorningActivitiesManager morningActivitiesManager,
+        DailyActivitiesManager dailyActivitiesManager,
         DeliveryConversationService deliveryConversationService,
         EndorsementManager endorsementManager,
         NoticeBoardService noticeBoardService,
@@ -138,7 +138,7 @@ public class GameFacade : ILetterQueueOperations
         _ruleEngine = ruleEngine;
         _letterCategoryService = letterCategoryService;
         _specialLetterService = specialLetterService;
-        _morningActivitiesManager = morningActivitiesManager;
+        _dailyActivitiesManager = dailyActivitiesManager;
         _deliveryConversationService = deliveryConversationService;
         _endorsementManager = endorsementManager;
         _noticeBoardService = noticeBoardService;
@@ -1771,6 +1771,39 @@ public class GameFacade : ILetterQueueOperations
     {
         // Create and execute a wait intent
         WaitIntent intent = new WaitIntent();
+        return await ExecuteIntent(intent);
+    }
+
+    public async Task<bool> ExecuteRestAction(string actionType, string cost)
+    {
+        // Parse cost to determine payment required (e.g., "2c" = 2 coins, "FREE" = 0)
+        int coinCost = 0;
+        if (!string.IsNullOrEmpty(cost) && cost != "FREE")
+        {
+            string numericPart = System.Text.RegularExpressions.Regex.Match(cost, @"\d+").Value;
+            if (int.TryParse(numericPart, out int parsed))
+            {
+                coinCost = parsed;
+            }
+        }
+
+        // Check if player can afford it
+        Player player = _gameWorld.GetPlayer();
+        if (coinCost > 0 && player.Coins < coinCost)
+        {
+            _messageSystem.AddSystemMessage($"Not enough coins (need {coinCost})", SystemMessageTypes.Warning);
+            return false;
+        }
+
+        // Deduct cost
+        if (coinCost > 0)
+        {
+            player.ModifyCoins(-coinCost);
+            _messageSystem.AddSystemMessage($"Paid {coinCost} coins for rest", SystemMessageTypes.Info);
+        }
+
+        // For now, basic rest is 1 hour (will be extended for inn rooms)
+        RestIntent intent = new RestIntent(1);
         return await ExecuteIntent(intent);
     }
 
@@ -3808,28 +3841,28 @@ public class GameFacade : ILetterQueueOperations
         // Game already started during initialization
     }
 
-    public async Task<MorningActivityResult> AdvanceToNextDayAsync()
+    public async Task<DailyActivityResult> AdvanceToNextDayAsync()
     {
         // Advance time to next day
         _gameWorld.AdvanceToNextDay();
 
         // Run morning activities
-        if (_morningActivitiesManager != null)
+        if (_dailyActivitiesManager != null)
         {
-            return _morningActivitiesManager.ProcessMorningActivities();
+            return _dailyActivitiesManager.ProcessDailyActivities();
         }
 
-        return new MorningActivityResult();
+        return new DailyActivityResult();
     }
 
-    public MorningActivityResult GetMorningActivities()
+    public DailyActivityResult GetDailyActivities()
     {
-        if (_morningActivitiesManager != null)
+        if (_dailyActivitiesManager != null)
         {
-            return _morningActivitiesManager.GetLastActivityResult();
+            return _dailyActivitiesManager.GetLastActivityResult();
         }
 
-        return new MorningActivityResult();
+        return new DailyActivityResult();
     }
 
     // ========== SYSTEM MESSAGES ==========
