@@ -395,16 +395,6 @@
     color: var(--thought-gray);
 }
 
-/* Responsive Design */
-@media (max-width: 480px) {
-    .action-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .location-tags {
-        flex-wrap: wrap;
-    }
-}
 /* Main Container - From Mockup */
 .main-container {
     max-width: 680px;

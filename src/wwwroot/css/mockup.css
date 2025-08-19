@@ -342,11 +342,6 @@
     gap: 12px;
 }
 
-@media (max-width: 600px) {
-    .letter-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
 
 .letter-slot {
     background: #fefdfb;
@@ -464,3 +459,334 @@
 /* Choice System - DELETED to avoid conflicts with conversation.css */
 
 /* Conversation styles DELETED - using conversation.css instead */
+
+/* Unified Attention Bar - Narrative-focused, not gamey */
+
+.unified-attention-bar {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    pointer-events: none; /* Don't block interactions */
+}
+
+.focus-container {
+    background: rgba(44, 36, 22, 0.9);
+    border-radius: 20px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Focus orbs - golden when available, dim when spent */
+.focus-orbs {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.focus-orb {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    transition: all 0.3s ease;
+}
+
+.orb-icon {
+    font-size: 18px;
+    display: block;
+    line-height: 1;
+}
+
+.focus-orb.available .orb-icon {
+    color: #ffd700;
+    text-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
+    animation: gentle-pulse 3s ease-in-out infinite;
+}
+
+.focus-orb.spent .orb-icon {
+    color: #3d3226;
+    opacity: 0.5;
+}
+
+/* Accessibility pattern overlay */
+.orb-pattern {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.3);
+    display: none; /* Hidden by default, shown for screen readers */
+}
+
+/* Narrative text */
+.focus-narrative {
+    color: #f4f1e8;
+    font-size: 12px;
+    font-style: italic;
+    font-family: 'Georgia', serif;
+    max-width: 200px;
+}
+
+.refresh-hint {
+    color: #a09070;
+    font-size: 11px;
+    font-style: italic;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* State-based styling */
+.unified-attention-bar.exhausted .focus-container {
+    background: rgba(64, 48, 32, 0.95);
+}
+
+.unified-attention-bar.exhausted .refresh-hint {
+    opacity: 1;
+}
+
+.unified-attention-bar.weary .focus-narrative {
+    color: #d4c1a8;
+}
+
+.unified-attention-bar.clear .focus-orbs {
+    filter: brightness(1.1);
+}
+
+/* Subtle animation for available orbs */
+@keyframes gentle-pulse {
+    0%, 100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+        filter: brightness(1.2);
+    }
+}
+
+/* Dark mode / Evening adjustments */
+.evening .unified-attention-bar,
+.night .unified-attention-bar {
+    filter: brightness(0.8);
+}
+
+/* Unified Choice Component - Narrative-focused interaction */
+
+.unified-choice {
+    background: #f9f7f3;
+    border: 1px solid #e8dfd0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    gap: 12px;
+}
+
+    .unified-choice:hover:not(.locked) {
+        background: white;
+        border-color: #b8a584;
+        transform: translateX(4px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+/* Attention cost indicator */
+.attention-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+
+    .attention-indicator.free-action {
+        background: #4caf50;
+        color: white;
+        padding: 2px 6px;
+        font-size: 9px;
+    }
+
+        .attention-indicator.free-action::after {
+            content: "Free";
+        }
+
+.attention-cost-1 {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.attention-cost-2 {
+    background: #ffe0b2;
+    color: #e65100;
+}
+
+.attention-cost-3 {
+    background: #ffccbc;
+    color: #bf360c;
+}
+
+.attention-cost-4,
+.attention-cost-5 {
+    background: #ffab91;
+    color: #870000;
+    font-weight: 900;
+}
+
+/* Choice content */
+.choice-content {
+    flex: 1;
+    padding-right: 40px; /* Space for cost indicator */
+}
+
+.choice-text {
+    font-size: 14px;
+    line-height: 1.5;
+    font-style: italic;
+    color: #2c2416;
+}
+
+/* Mechanical effects preview */
+.choice-effects {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.effect-preview {
+    font-size: 12px;
+    color: #6b5d4f;
+}
+
+    .effect-preview.positive {
+        color: #4caf50;
+    }
+
+    .effect-preview.negative {
+        color: #d32f2f;
+    }
+
+    .effect-preview.informational {
+        color: #2196f3;
+    }
+
+/* Lock states */
+.unified-choice.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f0ebe5;
+}
+
+    .unified-choice.locked:hover {
+        transform: none;
+        border-color: #e8dfd0;
+    }
+
+.lock-reason {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #8b7355;
+    font-style: italic;
+}
+
+/* Exhaustion-specific lock */
+.unified-choice.locked-exhausted {
+    border-left: 3px solid #ff9800;
+}
+
+    .unified-choice.locked-exhausted .choice-text {
+        color: #8b7355;
+    }
+
+/* Trust-based lock */
+.unified-choice.locked-trust {
+    border-left: 3px solid #9c27b0;
+}
+
+/* Time-based lock */
+.unified-choice.locked-time {
+    border-left: 3px solid #f44336;
+}
+
+/* Processing state */
+.unified-choice.processing {
+    animation: pulse 0.5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Choice type variations */
+.choice-type-observeenvironment,
+.choice-type-observenpc,
+.choice-type-observedetail {
+    background: #fafaf8;
+    border-style: dashed;
+    opacity: 0.85;
+}
+
+    .choice-type-observeenvironment:hover:not(.locked),
+    .choice-type-observenpc:hover:not(.locked),
+    .choice-type-observedetail:hover:not(.locked) {
+        opacity: 1;
+        background: #fffff8;
+    }
+
+.choice-type-conversationfree {
+    border-color: #4caf50;
+}
+
+.choice-type-conversationnegotiate {
+    border-color: #ff9800;
+}
+
+.choice-type-conversationinvestigate {
+    border-color: #2196f3;
+}
+
+/* Style hints */
+.style-urgent {
+    border-color: #f44336;
+    background: #ffebee;
+}
+
+.style-beneficial {
+    border-color: #4caf50;
+    background: #e8f5e9;
+}
+
+.style-mysterious {
+    border-color: #9c27b0;
+    background: #f3e5f5;
+}
+
+/* Attention weight visual hierarchy */
+.attention-weight-0 {
+    font-weight: normal;
+}
+
+.attention-weight-1 {
+    font-weight: 500;
+}
+
+.attention-weight-2 {
+    font-weight: 600;
+    font-size: 14.5px;
+}
+
+.attention-weight-3 {
+    font-weight: 700;
+    font-size: 15px;
+}

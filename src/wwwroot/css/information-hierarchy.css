@@ -278,11 +278,3 @@
     overflow-y: auto;
     max-height: 80vh;
 }
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
-    .information-hierarchy {
-        width: 100%;
-        max-width: 320px;
-    }
-}

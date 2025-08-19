@@ -1193,23 +1193,6 @@
     }
 }
 
-/* Responsive adjustments */
-@media (min-width: 768px) {
-    .letter-queue {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-@media (min-width: 1200px) {
-    .letter-queue {
-        grid-template-columns: repeat(8, 1fr);
-    }
-    
-    .queue-slot {
-        min-height: 140px;
-    }
-}
-
 /* Literary UI Additions for New Letter Queue Screen */
 .letter-queue-screen .location-header {
     background: #f9f7f3;
@@ -1352,3 +1335,271 @@
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+/* MINIMAL ASCII-STYLE LETTER QUEUE - Following UI mockup */
+.visual-queue {
+    font-family: 'Courier New', Consolas, Monaco, monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    padding: 16px 0;
+}
+
+.queue-slot {
+    display: flex;
+    gap: 16px;
+    padding: 4px 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+    .queue-slot:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .queue-slot.expanded {
+        background: rgba(0, 0, 0, 0.1);
+        font-weight: bold;
+    }
+
+.slot-display {
+    font-family: monospace;
+    letter-spacing: -1px;
+}
+
+.weight-blocks {
+    letter-spacing: -2px;
+}
+
+/* Deadline Display Wrapper */
+.deadline-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 8px;
+}
+
+.deadline-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.deadline {
+    font-size: 12px;
+    font-weight: 500;
+    min-width: 80px;
+}
+
+/* Deadline urgency levels */
+.deadline-expired {
+    color: #b71c1c;
+    font-weight: bold;
+    text-decoration: line-through;
+    animation: blink 2s infinite;
+}
+
+.deadline-critical {
+    color: #d32f2f;
+    font-weight: bold;
+    text-transform: uppercase;
+    animation: pulse-urgent 1s infinite;
+}
+
+.deadline-urgent {
+    color: #f57c00;
+    font-weight: 600;
+}
+
+.deadline-today {
+    color: #fbc02d;
+    font-weight: 500;
+}
+
+.deadline-tomorrow {
+    color: #8bc34a;
+}
+
+.deadline-normal {
+    color: #666;
+}
+
+.deadline.empty {
+    color: #ccc;
+}
+
+/* Animations for critical deadlines */
+@keyframes pulse-urgent {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.85;
+        transform: scale(1.02);
+    }
+}
+
+@keyframes blink {
+    0%, 50%, 100% {
+        opacity: 1;
+    }
+
+    25%, 75% {
+        opacity: 0.5;
+    }
+}
+
+/* Critical deadline alert banner */
+.critical-deadline-alert {
+    background: linear-gradient(90deg, #d32f2f, #f44336);
+    color: white;
+    padding: 8px 16px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    animation: alert-flash 2s ease-in-out infinite;
+    margin-top: 4px;
+}
+
+@keyframes alert-flash {
+    0%, 100% {
+        background: linear-gradient(90deg, #d32f2f, #f44336);
+    }
+
+    50% {
+        background: linear-gradient(90deg, #b71c1c, #d32f2f);
+    }
+}
+
+.letter-details {
+    margin-top: 16px;
+    padding: 16px;
+    background: #f5f5f5;
+    border-left: 3px solid #333;
+}
+
+.detail-route {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.detail-desc {
+    margin-bottom: 8px;
+    color: #666;
+}
+
+.detail-meta {
+    font-size: 12px;
+    color: #888;
+}
+
+.delivery-action {
+    margin-top: 16px;
+}
+
+.actions-section {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid #ddd;
+}
+
+.action-list {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+button {
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #333;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+    button:hover {
+        background: #f5f5f5;
+    }
+
+    button.primary-action {
+        background: #333;
+        color: #fff;
+    }
+
+        button.primary-action:hover {
+            background: #555;
+        }
+
+/* Human Context and Emotional Weight */
+.route-preview {
+    font-size: 11px;
+    color: #666;
+    margin-left: 4px;
+    opacity: 0.8;
+}
+
+.human-context {
+    font-size: 11px;
+    font-style: italic;
+    color: #444;
+    margin-left: 8px;
+    opacity: 0.9;
+}
+
+.emotional-indicator {
+    margin-left: 4px;
+    font-size: 14px;
+}
+
+.human-context-full {
+    font-size: 14px;
+    font-style: italic;
+    color: #222;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.detail-consequences {
+    margin: 12px 0;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+}
+
+.consequence-success {
+    color: #2e7d32;
+    margin-bottom: 4px;
+    font-size: 13px;
+}
+
+.consequence-failure {
+    color: #c62828;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Queue slot states for reordering */
+.queue-slot.selected-for-reorder {
+    background: rgba(33, 150, 243, 0.2);
+    border: 1px dashed #2196f3;
+    animation: pulse 1s infinite;
+}
+
+.queue-slot.reorder-target:hover {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px dashed #4caf50;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
