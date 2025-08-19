@@ -32,9 +32,7 @@ public class ConversationScreenBase : ComponentBase
     protected override async Task OnInitializedAsync()
     {
         await LoadConversation();
-        RefreshConversationState();
-        LoadTokenData();
-        LoadEmotionalStateData();
+        RefreshAllState(); // Use single state refresh pattern
     }
 
     protected async Task LoadConversation()
@@ -72,6 +70,10 @@ public class ConversationScreenBase : ComponentBase
         // Get NPC patience and comfort for conversation UI display from GameFacade
         ConversationManager conversationManager = GameFacade.GetCurrentConversationManager();
         ConversationState? conversationState = conversationManager?.State;
+        
+        Console.WriteLine($"[ConversationScreen.RefreshConversationState] ConversationManager exists: {conversationManager != null}");
+        Console.WriteLine($"[ConversationScreen.RefreshConversationState] ConversationState exists: {conversationState != null}");
+        
         if (conversationState != null)
         {
             // Map FocusPoints to Patience for UI display (these represent NPC patience in conversation)
@@ -79,6 +81,9 @@ public class ConversationScreenBase : ComponentBase
             MaxPatience = conversationState.MaxFocusPoints;
             // Use actual comfort tracking from conversation state
             CurrentComfort = conversationState.TotalComfort;
+            
+            Console.WriteLine($"[ConversationScreen.RefreshConversationState] UPDATED UI STATE - Patience: {CurrentPatience}/{MaxPatience}, Comfort: {CurrentComfort}");
+            Console.WriteLine($"[ConversationScreen.RefreshConversationState] Source values - FocusPoints: {conversationState.FocusPoints}, MaxFocusPoints: {conversationState.MaxFocusPoints}, TotalComfort: {conversationState.TotalComfort}");
         }
         else
         {
@@ -86,6 +91,7 @@ public class ConversationScreenBase : ComponentBase
             CurrentPatience = 3;
             MaxPatience = 3;
             CurrentComfort = 0;
+            Console.WriteLine($"[ConversationScreen.RefreshConversationState] WARNING: No conversation state found, using defaults - Patience: {CurrentPatience}/{MaxPatience}, Comfort: {CurrentComfort}");
         }
     }
 
@@ -115,11 +121,7 @@ public class ConversationScreenBase : ComponentBase
     protected async Task HandleChoice(ConversationChoice choice)
     {
         await SelectChoice(choice.ChoiceID);
-        // SelectChoice already updates the Model and calls StateHasChanged
-        // Now load the fresh token data AFTER the choice has been fully processed
-        LoadTokenData(); // Load fresh token data after effects applied
-        RefreshConversationState(); // Update patience and comfort state
-        StateHasChanged(); // Ensure UI refreshes with new data
+        // SelectChoice handles ALL state updates - no redundant calls needed
     }
 
     protected async Task SelectChoice(string choiceId)
@@ -135,9 +137,8 @@ public class ConversationScreenBase : ComponentBase
             {
                 Model = updatedModel;
                 await GenerateChoicesAsync();
-                LoadTokenData(); // Reload tokens after processing choice
-                RefreshConversationState(); // Update conversation state 
-                StateHasChanged();
+                RefreshAllState(); // Single atomic state refresh
+                StateHasChanged(); // Single UI update
                 Console.WriteLine($"[ConversationScreen] Conversation updated after choice");
             }
             else
@@ -173,26 +174,37 @@ public class ConversationScreenBase : ComponentBase
     {
         try
         {
+            Console.WriteLine($"[ConversationScreen.GetSuccessProbabilityDisplay] Called for choice: {choice.NarrativeText}, PatienceCost: {choice.PatienceCost}");
+            Console.WriteLine($"[ConversationScreen.GetSuccessProbabilityDisplay] CurrentPatience: {CurrentPatience}");
+            
             // Use the same calculator as the backend
             var outcomeCalculator = new Wayfarer.Game.ConversationSystem.ConversationOutcomeCalculator();
             
             // Get current conversation state
             ConversationManager? currentConversation = GameFacade.GetCurrentConversationManager();
             if (currentConversation?.Context?.TargetNPC == null)
+            {
+                Console.WriteLine($"[ConversationScreen.GetSuccessProbabilityDisplay] No conversation context - returning empty");
                 return ""; // No probability display if no conversation
+            }
                 
             NPC npc = currentConversation.Context.TargetNPC;
             Player player = GameFacade.GetPlayer();
             int currentPatience = CurrentPatience;
 
+            Console.WriteLine($"[ConversationScreen.GetSuccessProbabilityDisplay] About to call CalculateProbabilities with patience: {currentPatience}");
+
             // Calculate probabilities
             var probabilities = outcomeCalculator.CalculateProbabilities(choice, npc, player, currentPatience);
+            
+            Console.WriteLine($"[ConversationScreen.GetSuccessProbabilityDisplay] Got result: {probabilities.SuccessChance}% Success");
             
             // Return exact percentage for transparent mechanics
             return $"{probabilities.SuccessChance}% Success";
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine($"[ConversationScreen.GetSuccessProbabilityDisplay] Exception: {ex.Message}");
             return "Unknown difficulty";
         }
     }
@@ -426,6 +438,18 @@ public class ConversationScreenBase : ComponentBase
         return null; // Unknown role
     }
 
+
+    /// <summary>
+    /// SINGLE POINT state refresh - eliminates race conditions
+    /// All state updates happen atomically in correct order
+    /// </summary>
+    protected void RefreshAllState()
+    {
+        LoadTokenData();
+        RefreshConversationState();
+        LoadEmotionalStateData();
+        Console.WriteLine($"[ConversationScreen] State refreshed - Patience: {CurrentPatience}/{MaxPatience}, Comfort: {CurrentComfort}");
+    }
 
     protected void LoadEmotionalStateData()
     {

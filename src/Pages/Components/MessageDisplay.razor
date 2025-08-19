@@ -1,0 +1,13 @@
+@inherits MessageDisplayBase
+
+<div class="message-display">
+    @if (HasMessages)
+    {
+        @foreach (var message in Messages)
+        {
+            <div class="message @GetMessageClass(message.Type)">
+                @message.Message
+            </div>
+        }
+    }
+</div>

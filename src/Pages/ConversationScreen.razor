@@ -7,6 +7,9 @@
 
 <div class="container">
     
+    @* System messages display for conversation feedback *@
+    <MessageDisplay />
+    
     @* Exit button for manual conversation exit *@
     <div class="conversation-exit-controls">
         <button class="exit-conversation-btn" @onclick="HandleExitConversation">
@@ -19,13 +22,6 @@
 
         <!-- Peripheral Awareness - COGNITIVE EDGES -->
         <div class="peripheral-layer">
-            <!-- Deadline Pressure - Top Right Edge -->
-            @if (!string.IsNullOrEmpty(Model.DeadlinePressure))
-            {
-                <div class="deadline-whisper" title="Urgent deadline pressure">
-                    ⚡ @Model.DeadlinePressure
-                </div>
-            }
             
             <!-- Environmental Hints - Peripheral Awareness -->
             @if (Model.EnvironmentalHints?.Any() == true)
@@ -43,13 +39,6 @@
                 Heavy (Queue weight indicator)
             </div>
             
-            <!-- Conversation Vitals - Top Left -->
-            <div class="conversation-vitals">
-                <div class="patience-indicator">@(Model?.NpcName ?? "NPC")'s patience: @CurrentPatience</div>
-                <div class="comfort-progress">
-                    <div class="comfort-fill" style="width: @GetComfortProgressPercentage()%"></div>
-                </div>
-            </div>
         </div>
 
         <!-- Location Header - SETS ATMOSPHERE -->
@@ -60,73 +49,39 @@
 
         <!-- Main Scene Content -->
         <div class="scene-content">
-            <!-- Character Focus - TRANSPARENT EMOTIONAL STATE -->
+            <!-- Character Name Only -->
             <div class="character-focus">
-                @if (CurrentEmotionalState != null)
-                {
-                    <EmotionalStateDisplay 
-                        NpcName="@Model.NpcName"
-                        CurrentState="@CurrentEmotionalState.Value"
-                        Stakes="@CurrentStakes"
-                        StakesDescription="@GetStakesDescription()"
-                        TimeRemaining="@GetTimeRemaining()"
-                        ShowFormula="true"
-                        ShowMechanicalEffects="true" />
-                }
-                else
-                {
-                    <div class="character-name">@Model.NpcName</div>
-                    <div class="character-state">@(Model.CharacterState ?? "leaning forward, fingers worrying her shawl")</div>
-                }
+                <div class="character-name">@Model.NpcName</div>
+            </div>
                 
-                @* NPC Patience and Comfort Display - Core conversation mechanics *@
-                <div class="npc-conversation-state">
-                    <div class="patience-display">
-                        <span class="patience-label">@Model.NpcName's Patience:</span>
-                        <div class="patience-orbs">
-                            @* Debug: Show patience values *@
-                            <span style="font-size: 0.8em; color: #888;">(@CurrentPatience/@MaxPatience)</span>
-                            @for (int i = 0; i < MaxPatience; i++)
-                            {
-                                <div class="patience-orb @(i < CurrentPatience ? "active" : "spent")" 
-                                     aria-label="@GetPatienceOrbLabel(i)">
-                                </div>
-                            }
-                        </div>
-                    </div>
-                    
-                    <div class="comfort-display">
-                        <span class="comfort-label">Comfort:</span>
-                        <div class="comfort-indicator @GetComfortClass()">
-                            @GetComfortDescription()
-                        </div>
-                        <div class="comfort-progress-bar">
-                            <div class="comfort-progress-fill" style="width: @GetComfortProgressPercentage()%"></div>
-                            <div class="comfort-thresholds">
-                                <div class="threshold maintain @(GetComfortThresholdClass("maintain"))"></div>
-                                <div class="threshold letter @(GetComfortThresholdClass("letter"))"></div>
-                                <div class="threshold perfect @(GetComfortThresholdClass("perfect"))"></div>
-                            </div>
-                        </div>
-                        @if (!string.IsNullOrEmpty(GetComfortProgressHint()))
+            @* NPC Patience and Comfort Display - Core conversation mechanics *@
+            <div class="npc-conversation-state">
+                <div class="patience-display">
+                    <span class="patience-label">@Model.NpcName's Patience:</span>
+                    <div class="patience-orbs">
+                        @for (int i = 0; i < MaxPatience; i++)
                         {
-                            <div class="comfort-progress-hint">
-                                @GetComfortProgressHint()
+                            <div class="patience-orb @(i < CurrentPatience ? "active" : "spent")" 
+                                 aria-label="@GetPatienceOrbLabel(i)">
                             </div>
                         }
                     </div>
                 </div>
                 
-                @if (Model.RelationshipStatus?.Any() == true)
-                {
-                    <div class="relationship-status">
-                        @foreach (var status in Model.RelationshipStatus)
-                        {
-                            <span>@status.Value</span>
-                        }
-                    </div>
-                }
+                <div class="comfort-display">
+                    <span class="comfort-label">Comfort: @GetComfortDescription()</span>
+                </div>
             </div>
+                
+            @if (Model.RelationshipStatus?.Any() == true)
+            {
+                <div class="relationship-status">
+                    @foreach (var status in Model.RelationshipStatus)
+                    {
+                        <span>@status.Value</span>
+                    }
+                </div>
+            }
 
             <!-- Current Dialogue - NARRATIVE FOCUS -->
             <div class="dialogue-container">
@@ -173,29 +128,25 @@
                                     }
                                 </div>
                                 
-                                <!-- Main Choice Content -->
+                                <!-- Choice Content -->
                                 <div class="choice-content">
                                     <div class="response-thought">
                                         "@choice.NarrativeText"
                                     </div>
-                                    
-                                    <!-- Success Probability and Outcome Tiers -->
-                                    <div class="card-cost-line">
-                                        <div class="success-probability">
-                                            @GetSuccessProbabilityDisplay(choice)
-                                        </div>
+                                    <div class="success-probability">
+                                        @GetSuccessProbabilityDisplay(choice)
                                     </div>
                                     
-                                    <!-- Beautiful Outcome Tiers -->
+                                    <!-- Compact Outcome Tiers -->
                                     <div class="outcome-tiers">
                                         <div class="outcome-tier tier-success">
-                                            ✓ Success: @((MarkupString)GetOutcomePreview(choice, Wayfarer.Game.ConversationSystem.ConversationOutcome.Success))
+                                            ✓ @((MarkupString)GetOutcomePreview(choice, Wayfarer.Game.ConversationSystem.ConversationOutcome.Success))
                                         </div>
                                         <div class="outcome-tier tier-neutral">
-                                            ⚬ Neutral: @((MarkupString)GetOutcomePreview(choice, Wayfarer.Game.ConversationSystem.ConversationOutcome.Neutral))
+                                            ⚬ @((MarkupString)GetOutcomePreview(choice, Wayfarer.Game.ConversationSystem.ConversationOutcome.Neutral))
                                         </div>
                                         <div class="outcome-tier tier-failure">
-                                            ✗ Failure: @((MarkupString)GetOutcomePreview(choice, Wayfarer.Game.ConversationSystem.ConversationOutcome.Failure))
+                                            ✗ @((MarkupString)GetOutcomePreview(choice, Wayfarer.Game.ConversationSystem.ConversationOutcome.Failure))
                                         </div>
                                     </div>
                                     

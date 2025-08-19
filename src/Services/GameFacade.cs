@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Wayfarer.Game.ConversationSystem;
 using Wayfarer.GameState;
 using Wayfarer.GameState.Constants;
 using Wayfarer.Services;
@@ -2336,7 +2337,7 @@ public class GameFacade : ILetterQueueOperations
             return GetCurrentConversation();
         }
 
-        Console.WriteLine($"[GameFacade.ProcessConversationChoice] Found choice: {selectedChoice.NarrativeText}, PatienceCost: {selectedChoice.PatienceCost}");
+        Console.WriteLine($"[GameFacade.ProcessConversationChoice] Found choice: {selectedChoice.NarrativeText}, PatienceCost: {selectedChoice.PatienceCost}, ChoiceType: {selectedChoice.ChoiceType}");
 
         // LETTER OFFER HANDLING: Use categorical choice types instead of string matching
         if (selectedChoice.ChoiceType == ConversationChoiceType.AcceptLetterOffer)
@@ -2360,6 +2361,26 @@ public class GameFacade : ILetterQueueOperations
         var choiceResult = outcomeCalculator.CalculateResult(selectedChoice, actualOutcome, npc, player);
 
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Outcome: {actualOutcome}, ComfortGain: {choiceResult.ComfortGain}, PatienceCost: {choiceResult.PatienceCost}");
+
+        // CRITICAL: Provide clear feedback to player about conversation outcome
+        // NO SILENT BACKEND ACTIONS - player must see result of their choice
+        string outcomeMessage = actualOutcome switch
+        {
+            ConversationOutcome.Success => $"✓ {npc.Name} responds positively (+{choiceResult.ComfortGain} comfort)",
+            ConversationOutcome.Neutral => $"⚬ {npc.Name} gives a measured response (+{choiceResult.ComfortGain} comfort)", 
+            ConversationOutcome.Failure => $"✗ {npc.Name} seems unimpressed (no comfort gained)",
+            _ => $"⚬ {npc.Name} responds"
+        };
+
+        SystemMessageTypes messageType = actualOutcome switch
+        {
+            ConversationOutcome.Success => SystemMessageTypes.Success,
+            ConversationOutcome.Neutral => SystemMessageTypes.Info,
+            ConversationOutcome.Failure => SystemMessageTypes.Warning,
+            _ => SystemMessageTypes.Info
+        };
+
+        _messageSystem.AddSystemMessage(outcomeMessage, messageType);
 
         // Apply choice result to conversation state
         currentConversation.State.FocusPoints -= choiceResult.PatienceCost; // Reduce patience directly

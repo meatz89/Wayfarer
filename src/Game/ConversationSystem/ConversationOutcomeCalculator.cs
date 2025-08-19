@@ -22,7 +22,13 @@ namespace Wayfarer.Game.ConversationSystem
             int effectiveDifficulty = Math.Max(1, difficulty - statusModifier);
             
             // Base success chance formula from strategic-tactical-layer.md
-            int successChance = Math.Max(0, Math.Min(95, (currentPatience - effectiveDifficulty + 5) * 12));
+            // REBALANCED: Reduced multiplier from 12 to 6 to create meaningful probability variations
+            // Target: FREE=90%, 1-cost=84%, 2-cost=78%, 3-cost=72% at patience 10
+            int calculation = (currentPatience - effectiveDifficulty + 5) * 6;
+            int successChance = Math.Max(0, Math.Min(95, calculation));
+            
+            // DEBUG: Log the actual calculation values
+            Console.WriteLine($"[OutcomeCalculator] Patience:{currentPatience}, Difficulty:{difficulty}, EffectiveDiff:{effectiveDifficulty}, Calc:{calculation}, Success:{successChance}%");
             
             // Distribute remaining probability between neutral and failure
             int remainingChance = 100 - successChance;
