@@ -2339,8 +2339,16 @@ public class GameFacade : ILetterQueueOperations
 
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Found choice: {selectedChoice.NarrativeText}, PatienceCost: {selectedChoice.PatienceCost}, ChoiceType: {selectedChoice.ChoiceType}");
 
-        // LETTER OFFER HANDLING: Use categorical choice types instead of string matching
-        if (selectedChoice.ChoiceType == ConversationChoiceType.AcceptLetterOffer)
+        // LETTER REQUEST CARD HANDLING: Process letter request cards with success/failure mechanics
+        if (selectedChoice.ChoiceType == ConversationChoiceType.RequestTrustLetter ||
+            selectedChoice.ChoiceType == ConversationChoiceType.RequestCommerceLetter ||
+            selectedChoice.ChoiceType == ConversationChoiceType.RequestStatusLetter ||
+            selectedChoice.ChoiceType == ConversationChoiceType.RequestShadowLetter)
+        {
+            return await ProcessLetterRequestCard(currentConversation, selectedChoice);
+        }
+        // LEGACY: Keep old instant offer handling for backward compatibility (will be removed)
+        else if (selectedChoice.ChoiceType == ConversationChoiceType.AcceptLetterOffer)
         {
             return await ProcessAcceptLetterOffer(currentConversation, selectedChoice);
         }
@@ -2594,6 +2602,86 @@ public class GameFacade : ILetterQueueOperations
             // Binding obligations (promises and debts)
             BindingObligations = _bindingObligationSystem?.GetActiveObligations() ?? new List<BindingObligationViewModel>()
         };
+    }
+
+    /// <summary>
+    /// Process letter request card with success/failure mechanics
+    /// This replaces instant letter offers with risk-based card play
+    /// </summary>
+    private async Task<ConversationViewModel> ProcessLetterRequestCard(ConversationManager conversation, ConversationChoice choice)
+    {
+        NPC npc = conversation.Context.TargetNPC;
+        Player player = _gameWorld.GetPlayer();
+        int currentPatience = conversation.State.FocusPoints;
+        
+        // Determine letter type from choice type
+        ConnectionType letterType = choice.ChoiceType switch
+        {
+            ConversationChoiceType.RequestTrustLetter => ConnectionType.Trust,
+            ConversationChoiceType.RequestCommerceLetter => ConnectionType.Commerce,
+            ConversationChoiceType.RequestStatusLetter => ConnectionType.Status,
+            ConversationChoiceType.RequestShadowLetter => ConnectionType.Shadow,
+            _ => ConnectionType.Trust
+        };
+
+        // Calculate success using existing outcome calculator
+        var outcomeCalculator = new Wayfarer.Game.ConversationSystem.ConversationOutcomeCalculator();
+        var probabilities = outcomeCalculator.CalculateProbabilities(choice, npc, player, currentPatience);
+        var actualOutcome = outcomeCalculator.DetermineOutcome(probabilities);
+        
+        // Apply patience cost regardless of outcome
+        conversation.State.FocusPoints -= choice.PatienceCost;
+        conversation.State.PlayCard(choice.ChoiceID); // Mark card as played this conversation
+        
+        // Handle success: Generate letter and remove card from deck
+        if (actualOutcome == ConversationOutcome.Success)
+        {
+            // Generate letter using existing service
+            var generatedLetters = _letterOfferService.GenerateFromConversation(npc.ID, 
+                conversation.State.TotalComfort, conversation.State.StartingPatience);
+                
+            if (generatedLetters?.Any() == true)
+            {
+                Letter letter = generatedLetters.First();
+                letter.TokenType = letterType; // Override with requested type
+                
+                // Add to queue
+                int position = _letterQueueManager.AddLetterWithObligationEffects(letter);
+                
+                // Remove successful letter card from deck (one-time use on success)
+                npc.ConversationDeck?.RemoveCard(choice.ChoiceID);
+                
+                // Provide feedback
+                _messageSystem.AddSystemMessage(
+                    $"✓ {npc.Name} agrees to your request! They entrust you with a {letterType} letter.",
+                    SystemMessageTypes.Success
+                );
+                _messageSystem.AddSystemMessage(
+                    $"💰 {letter.Payment} coins • ⏰ {letter.DeadlineInHours / 24} days • Position {position}",
+                    SystemMessageTypes.Info
+                );
+            }
+        }
+        // Handle failure: Card remains in deck for future attempts
+        else
+        {
+            string failureMessage = actualOutcome == ConversationOutcome.Neutral
+                ? $"⚬ {npc.Name} considers your request but isn't ready to trust you with a letter yet."
+                : $"✗ {npc.Name} politely declines. Perhaps when your relationship is stronger...";
+                
+            SystemMessageTypes messageType = actualOutcome == ConversationOutcome.Neutral 
+                ? SystemMessageTypes.Info 
+                : SystemMessageTypes.Warning;
+                
+            _messageSystem.AddSystemMessage(failureMessage, messageType);
+            
+            // Card stays in deck for retry in future conversations
+        }
+        
+        // Process standard choice effects
+        ConversationBeatOutcome beatOutcome = await conversation.ProcessPlayerChoice(choice);
+        
+        return CreateConversationViewModel(conversation);
     }
 
     /// <summary>

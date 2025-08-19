@@ -77,6 +77,7 @@ public static class ServiceConfiguration
         services.AddSingleton<NPCStateResolver>();
 
         // Managers that depend on TimeManager
+        services.AddSingleton<TravelEventManager>();
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();

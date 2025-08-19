@@ -1,0 +1,157 @@
+@using Wayfarer.ViewModels
+@inject GameFacade GameFacade
+@inject StandingObligationManager ObligationManager
+
+@if (ActiveObligations.Any())
+{
+    <div class="obligations-panel">
+        <div class="obligations-header">
+            <span class="icon icon-obligation"></span>
+            <span class="header-text">Active Obligations (@ActiveObligations.Count)</span>
+        </div>
+        
+        <div class="obligations-list">
+            @foreach (var obligation in ActiveObligations)
+            {
+                <div class="obligation-card @GetObligationSeverityClass(obligation)">
+                    <div class="obligation-name">@obligation.Name</div>
+                    <div class="obligation-source">from @obligation.Source</div>
+                    
+                    <div class="obligation-effects">
+                        @foreach (var benefit in GetBenefitDescriptions(obligation))
+                        {
+                            <div class="effect benefit">
+                                <span class="effect-icon">✓</span>
+                                <span class="effect-text">@benefit</span>
+                            </div>
+                        }
+                        
+                        @foreach (var constraint in GetConstraintDescriptions(obligation))
+                        {
+                            <div class="effect constraint">
+                                <span class="effect-icon">!</span>
+                                <span class="effect-text">@constraint</span>
+                            </div>
+                        }
+                    </div>
+                    
+                    @if (obligation.IsThresholdBased)
+                    {
+                        <div class="obligation-threshold">
+                            @if (obligation.ActivatesAboveThreshold)
+                            {
+                                <span>Active while tokens ≥ @obligation.ActivationThreshold</span>
+                            }
+                            else
+                            {
+                                <span>Active while tokens ≤ @obligation.ActivationThreshold</span>
+                            }
+                        </div>
+                    }
+                    
+                    <div class="obligation-duration">
+                        Active for @obligation.DaysSinceAccepted days
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private List<StandingObligation> ActiveObligations = new List<StandingObligation>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadObligations();
+    }
+    
+    private async Task LoadObligations()
+    {
+        ActiveObligations = ObligationManager.GetActiveObligations();
+        StateHasChanged();
+    }
+    
+    private string GetObligationSeverityClass(StandingObligation obligation)
+    {
+        // High tier obligations are more serious
+        if (obligation.Tier >= 4) return "obligation-critical";
+        if (obligation.Tier >= 3) return "obligation-serious";
+        if (obligation.Tier >= 2) return "obligation-moderate";
+        return "obligation-minor";
+    }
+    
+    private List<string> GetBenefitDescriptions(StandingObligation obligation)
+    {
+        var descriptions = new List<string>();
+        
+        foreach (var effect in obligation.BenefitEffects)
+        {
+            string desc = GetEffectDescription(effect, obligation);
+            if (!string.IsNullOrEmpty(desc))
+                descriptions.Add(desc);
+        }
+        
+        return descriptions;
+    }
+    
+    private List<string> GetConstraintDescriptions(StandingObligation obligation)
+    {
+        var descriptions = new List<string>();
+        
+        foreach (var effect in obligation.ConstraintEffects)
+        {
+            string desc = GetEffectDescription(effect, obligation);
+            if (!string.IsNullOrEmpty(desc))
+                descriptions.Add(desc);
+        }
+        
+        return descriptions;
+    }
+    
+    private string GetEffectDescription(ObligationEffect effect, StandingObligation obligation)
+    {
+        // Convert categorical effects to human-readable descriptions
+        return effect switch
+        {
+            // Position effects
+            ObligationEffect.StatusPriority => "Status letters enter at position 3",
+            ObligationEffect.CommercePriority => "Commerce letters enter at position 5",
+            ObligationEffect.TrustPriority => "Trust letters enter at position 7",
+            ObligationEffect.PatronLettersPosition1 => "Patron letters always position 1",
+            ObligationEffect.PatronLettersPosition3 => "Patron letters enter at position 3",
+            
+            // Payment bonuses
+            ObligationEffect.CommerceBonus => "Commerce letters +10 coins",
+            ObligationEffect.CommerceBonusPlus3 => "Commerce letters +3 coins",
+            ObligationEffect.ShadowTriplePay => "Shadow letters pay triple",
+            
+            // Deadline effects
+            ObligationEffect.TrustFreeExtend => "Can extend Trust letter deadlines freely",
+            ObligationEffect.DeadlinePlus2Days => "All letters +2 days deadline",
+            
+            // Restrictions
+            ObligationEffect.NoStatusRefusal => "Cannot refuse Status letters",
+            ObligationEffect.NoCommercePurge => "Cannot purge Commerce letters",
+            ObligationEffect.TrustSkipDoubleCost => "Skipping Trust letters costs double",
+            ObligationEffect.CannotRefuseLetters => "Cannot refuse any letters",
+            
+            // Forced generation
+            ObligationEffect.ShadowForced => "Forced Shadow letter every 3 days",
+            ObligationEffect.PatronMonthly => "Monthly patron resource package",
+            
+            // Leverage modifiers
+            ObligationEffect.ShadowEqualsStatus => "Shadow letters use Status priority",
+            ObligationEffect.MerchantRespect => "Commerce letters with 5+ tokens get +1 position",
+            ObligationEffect.PatronAbsolute => "Patron letters push everything down",
+            ObligationEffect.DebtSpiral => "Negative tokens get additional -1 position",
+            
+            _ => ""
+        };
+    }
+    
+    public async Task RefreshObligations()
+    {
+        await LoadObligations();
+    }
+}

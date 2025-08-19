@@ -74,66 +74,86 @@ public class ConversationChoiceGenerator
             // choice.IsAvailable and choice.ChoiceType are already set correctly by the deck
         }
 
-        // LETTER OFFER INTEGRATION: Add letter offer choices when comfort threshold reached
-        if (state.HasReachedLetterThreshold())
+        // LETTER DELIVERY: Check if player has a letter for this NPC in position 1
+        Letter letterInPosition1 = _queueManager.GetLetterAt(1);
+        if (letterInPosition1 != null && 
+            letterInPosition1.RecipientName.Equals(context.TargetNPC.Name, StringComparison.OrdinalIgnoreCase))
         {
-            List<ConversationChoice> letterOfferChoices = GenerateLetterOfferChoices(context.TargetNPC, state);
-            choices.AddRange(letterOfferChoices);
+            // Add delivery choice at the beginning of the list
+            ConversationChoice deliveryChoice = CreateDeliveryChoice(letterInPosition1, context.TargetNPC);
+            choices.Insert(0, deliveryChoice);
+        }
+
+        // LETTER CARD INTEGRATION: Add letter request cards to deck when comfort threshold reached
+        // This replaces the instant letter offer system with persistent deck cards
+        if (state.HasReachedLetterThreshold() && !state.LetterCardAddedThisConversation)
+        {
+            AddLetterRequestCardToDeck(context.TargetNPC, state);
+            state.LetterCardAddedThisConversation = true; // Track to avoid multiple additions per conversation
         }
 
         return choices;
     }
 
     /// <summary>
-    /// Generate letter offer choices when comfort threshold is reached
-    /// Prevents automatic letter generation - requires explicit player choice
+    /// Create a delivery choice for a letter in position 1
     /// </summary>
-    private List<ConversationChoice> GenerateLetterOfferChoices(NPC npc, ConversationState state)
+    private ConversationChoice CreateDeliveryChoice(Letter letter, NPC recipient)
     {
-        List<ConversationChoice> offerChoices = new List<ConversationChoice>();
+        // Calculate trust reward based on letter urgency
+        int trustReward = 3; // Base trust for keeping your word
+        if (letter.DeadlineInHours < 24) trustReward = 4;
+        if (letter.DeadlineInHours < 12) trustReward = 5;
 
-        // Get current relationship tokens to determine offer type
+        var deliveryEffect = new DeliverLetterEffect(
+            letter.Id,
+            letter,
+            _queueManager,
+            _timeManager,
+            _tokenManager
+        );
+
+        return new ConversationChoice
+        {
+            ChoiceID = "deliver_letter",
+            NarrativeText = $"\"I have a letter for you from {letter.SenderName}.\"",
+            PatienceCost = 0, // Delivering a letter doesn't cost patience
+            IsAffordable = true,
+            IsAvailable = true,
+            MechanicalDescription = $"Deliver letter | +{letter.Payment} coins | +{trustReward} Trust (kept promise)",
+            ComfortGain = 2, // Delivering a letter builds some comfort
+            Difficulty = 1, // Easy action
+            ChoiceType = ConversationChoiceType.Deliver,
+            Category = RelationshipCardCategory.Basic, // Delivery is a basic action
+            MechanicalEffects = new List<IMechanicalEffect> { deliveryEffect }
+        };
+    }
+
+    /// <summary>
+    /// Add letter request card to NPC's deck when comfort threshold is reached
+    /// Card persists in deck until successfully played
+    /// </summary>
+    private void AddLetterRequestCardToDeck(NPC npc, ConversationState state)
+    {
+        // Get current relationship tokens to determine which letter type to offer
         Dictionary<ConnectionType, int> tokenDict = _tokenManager.GetTokensWithNPC(npc.ID);
         
-        // Determine primary relationship type for letter offer
+        // Determine primary relationship type for letter request card
         ConnectionType offerType = GetHighestRelationshipType(tokenDict);
+        int relationshipLevel = tokenDict.ContainsKey(offerType) ? tokenDict[offerType] : 0;
         
-        // Generate letter offer text based on relationship type and NPC
-        string offerNarrative = GetLetterOfferNarrative(npc, offerType, state.HasReachedPerfectThreshold());
-        string declineNarrative = GetDeclineOfferNarrative(npc);
-        
-        // Accept letter offer choice
-        offerChoices.Add(new ConversationChoice
+        // Add letter request card to NPC's deck if not already present
+        // This card will persist in their deck until successfully played
+        if (npc.ConversationDeck != null && !npc.ConversationDeck.HasLetterRequestCard(offerType))
         {
-            ChoiceID = $"accept_offer_{offerType}",
-            NarrativeText = offerNarrative,
-            PatienceCost = 1, // Meaningful action costs patience
-            ComfortGain = 1, // Accepting strengthens relationship
-            IsAffordable = true,
-            IsAvailable = true,
-            ChoiceType = ConversationChoiceType.AcceptLetterOffer,
-            OfferTokenType = offerType,
-            OfferCategory = state.HasReachedPerfectThreshold() ? LetterCategory.Premium : LetterCategory.Quality,
-            MechanicalDescription = GetLetterOfferMechanicalDescription(offerType, state.HasReachedPerfectThreshold()),
-            MechanicalEffects = new List<IMechanicalEffect>() // Will be handled by GameFacade
-        });
-
-        // Decline letter offer choice
-        offerChoices.Add(new ConversationChoice
-        {
-            ChoiceID = $"decline_offer_{offerType}",
-            NarrativeText = declineNarrative,
-            PatienceCost = 0, // Polite decline costs no patience
-            ComfortGain = 0, // No relationship change
-            IsAffordable = true,
-            IsAvailable = true,
-            ChoiceType = ConversationChoiceType.DeclineLetterOffer,
-            OfferTokenType = offerType, // Store token type for decline processing too
-            MechanicalDescription = "Politely decline • No letter offered • Relationship maintained",
-            MechanicalEffects = new List<IMechanicalEffect>()
-        });
-
-        return offerChoices;
+            npc.ConversationDeck.AddLetterRequestCard(offerType, relationshipLevel);
+            
+            // Add narrative feedback that letter opportunity has emerged
+            _gameWorld.SystemMessages.Add(new SystemMessage(
+                $"Your growing relationship with {npc.Name} opens new possibilities...",
+                SystemMessageTypes.Success
+            ));
+        }
     }
 
     /// <summary>
@@ -149,41 +169,6 @@ public class ConversationChoiceGenerator
         return tokens.OrderByDescending(kvp => kvp.Value).First().Key;
     }
 
-    /// <summary>
-    /// Generate contextual narrative for letter offers based on relationship and NPC
-    /// </summary>
-    private string GetLetterOfferNarrative(NPC npc, ConnectionType offerType, bool isPerfectConversation)
-    {
-        string intensifier = isPerfectConversation ? "You're exactly the person I need for this. " : "";
-        
-        return offerType switch
-        {
-            ConnectionType.Trust => $"{intensifier}I have a personal letter that needs someone I can truly depend on.",
-            ConnectionType.Commerce => $"{intensifier}I have a business matter that requires a reliable courier.",
-            ConnectionType.Status => $"{intensifier}There's a formal correspondence that needs proper handling.",
-            ConnectionType.Shadow => $"{intensifier}I have... sensitive correspondence that requires discretion.",
-            _ => $"{intensifier}I have a letter that could use your particular skills."
-        };
-    }
-
-    /// <summary>
-    /// Generate polite decline narrative
-    /// </summary>
-    private string GetDeclineOfferNarrative(NPC npc)
-    {
-        return "I appreciate the trust, but I'm quite overwhelmed with current commitments.";
-    }
-
-    /// <summary>
-    /// Generate mechanical description for letter offers
-    /// </summary>
-    private string GetLetterOfferMechanicalDescription(ConnectionType offerType, bool isPerfectConversation)
-    {
-        string letterQuality = isPerfectConversation ? "Premium" : "Quality";
-        string bonus = isPerfectConversation ? " • Generous deadline • Possible bonus letter" : " • Good payment";
-        
-        return $"+ {letterQuality} {offerType} letter{bonus} • Queue position based on relationship strength";
-    }
 
     private List<ConversationChoice> GetHostileChoices(NPC npc)
     {

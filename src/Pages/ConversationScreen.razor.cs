@@ -809,6 +809,12 @@ public class ConversationScreenBase : ComponentBase
             ConversationChoiceType.TravelTradeHelp => "risky-card",
             ConversationChoiceType.TravelExchangeInfo => "risky-card",
             
+            // Letter request cards - YELLOW (risky with potential reward)
+            ConversationChoiceType.RequestTrustLetter => "risky-card",
+            ConversationChoiceType.RequestCommerceLetter => "risky-card",
+            ConversationChoiceType.RequestStatusLetter => "risky-card",
+            ConversationChoiceType.RequestShadowLetter => "risky-card",
+            
             // Discovery/neutral choice types - BLUE
             ConversationChoiceType.DiscoverRoute => "discovery-card",
             ConversationChoiceType.RespectQueueOrder => "neutral-card",

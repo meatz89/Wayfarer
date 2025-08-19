@@ -5,17 +5,26 @@ using Wayfarer.Pages;
 namespace Wayfarer.Services
 {
     /// <summary>
-    /// Simple navigation coordinator that ensures valid screen transitions
-    /// without over-engineering. Focuses on the 5 core screens actually used.
+    /// Four-modal focus system coordinator to manage cognitive load
+    /// Enforces clear transitions between Map, Conversation, Queue, and Route Planning modes
     /// </summary>
     public class NavigationCoordinator
     {
         private readonly GameFacade _gameFacade;
         private readonly ITimeManager _timeManager;
 
-        private CurrentViews _currentView = CurrentViews.LocationScreen;
+        private CurrentViews _currentView = CurrentViews.LocationScreen; // Default to Map Mode
         private CurrentViews _previousView = CurrentViews.LocationScreen;
         private bool _isTransitioning = false;
+
+        // Modal state tracking
+        public enum ModalState
+        {
+            MapMode,           // LocationScreen - city overview with NPCs
+            ConversationMode,  // ConversationScreen - NPC interactions
+            QueueMode,         // LetterQueueScreen - letter management
+            RoutePlanningMode  // TravelScreen - travel decisions
+        }
 
         // Context for certain screens
         private string _currentNpcId = null;
@@ -23,6 +32,8 @@ namespace Wayfarer.Services
 
         public CurrentViews CurrentView => _currentView;
         public bool IsTransitioning => _isTransitioning;
+        
+        public ModalState CurrentModalState => GetModalState(_currentView);
 
         public NavigationCoordinator(GameFacade gameFacade, ITimeManager timeManager)
         {
@@ -192,6 +203,33 @@ namespace Wayfarer.Services
         public async Task<bool> OpenTravelSelectionAsync(string targetLocationId = null)
         {
             return await NavigateToAsync(CurrentViews.TravelScreen, targetLocationId);
+        }
+        
+        /// <summary>
+        /// Convert CurrentViews to modal state for cognitive load management
+        /// </summary>
+        private ModalState GetModalState(CurrentViews view)
+        {
+            return view switch
+            {
+                CurrentViews.LocationScreen => ModalState.MapMode,
+                CurrentViews.ConversationScreen => ModalState.ConversationMode,
+                CurrentViews.LetterQueueScreen => ModalState.QueueMode,
+                CurrentViews.TravelScreen => ModalState.RoutePlanningMode,
+                // All other screens default to map mode
+                _ => ModalState.MapMode
+            };
+        }
+        
+        /// <summary>
+        /// Check if we're in one of the four core modal states
+        /// </summary>
+        public bool IsInCoreModalState()
+        {
+            return _currentView == CurrentViews.LocationScreen ||
+                   _currentView == CurrentViews.ConversationScreen ||
+                   _currentView == CurrentViews.LetterQueueScreen ||
+                   _currentView == CurrentViews.TravelScreen;
         }
     }
 }

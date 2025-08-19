@@ -6,8 +6,13 @@ public enum ConversationChoiceType
     // Letter-related choices
     AcceptLetterOffer,
     DeclineLetterOffer,
+    RequestTrustLetter,
+    RequestCommerceLetter,
+    RequestStatusLetter,
+    RequestShadowLetter,
     PurgeLetter,
     KeepLetter,
+    Deliver,  // Deliver a letter from position 1 to the recipient
 
     // Queue manipulation choices
     SkipAndDeliver,

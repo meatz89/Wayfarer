@@ -95,6 +95,7 @@ public class TravelManager
     private readonly RouteRepository _routeRepository;
     private readonly AccessRequirementChecker _accessChecker;
     private readonly FlagService _flagService;
+    private readonly TravelEventManager _travelEventManager;
     public LocationSystem LocationSystem { get; }
     public LocationRepository LocationRepository { get; }
     public ItemRepository ItemRepository { get; }
@@ -108,7 +109,8 @@ public class TravelManager
         RouteRepository routeRepository,
         AccessRequirementChecker accessChecker,
         ITimeManager timeManager,
-        FlagService flagService
+        FlagService flagService,
+        TravelEventManager travelEventManager
         )
     {
         _gameWorld = gameWorld;
@@ -117,6 +119,7 @@ public class TravelManager
         _routeRepository = routeRepository;
         _accessChecker = accessChecker;
         _flagService = flagService;
+        _travelEventManager = travelEventManager;
         this.LocationSystem = locationSystem;
         this.LocationRepository = locationRepository;
         ItemRepository = itemRepository;
@@ -369,6 +372,23 @@ public class TravelManager
         return _accessChecker.CheckRouteAccess(route);
     }
 
+    /// <summary>
+    /// Get travel events for a route based on player familiarity and transport
+    /// </summary>
+    public TravelEventResult GetTravelEvents(RouteOption route, TravelMethods method)
+    {
+        // Convert TravelMethods to TransportType
+        TransportType transport = method switch
+        {
+            TravelMethods.Walking => TransportType.Walking,
+            TravelMethods.Cart => TransportType.Cart,
+            TravelMethods.Carriage => TransportType.Carriage,
+            _ => TransportType.Walking
+        };
+        
+        return _travelEventManager.DrawTravelEvents(route, transport);
+    }
+    
     /// <summary>
     /// Check if boat schedule is available based on weather conditions and river state
     /// </summary>

@@ -471,6 +471,78 @@ public class NPCDeck
     }
 
     /// <summary>
+    /// Check if deck has a letter request card of specified type
+    /// </summary>
+    public bool HasLetterRequestCard(ConnectionType tokenType)
+    {
+        string cardId = GetLetterRequestCardId(tokenType);
+        return Cards.Any(c => c.ChoiceID == cardId);
+    }
+
+    /// <summary>
+    /// Add letter request card when comfort threshold is reached
+    /// Cards persist in deck until successfully played or removed
+    /// </summary>
+    public void AddLetterRequestCard(ConnectionType tokenType, int currentRelationshipLevel)
+    {
+        // Don't add duplicates
+        if (HasLetterRequestCard(tokenType)) return;
+        
+        // Create letter request card based on relationship type
+        ConversationChoice letterCard = CreateLetterRequestCard(tokenType, currentRelationshipLevel);
+        AddCard(letterCard);
+    }
+
+    /// <summary>
+    /// Create a letter request card for the specified token type
+    /// </summary>
+    private ConversationChoice CreateLetterRequestCard(ConnectionType tokenType, int relationshipLevel)
+    {
+        ConversationChoiceType choiceType = tokenType switch
+        {
+            ConnectionType.Trust => ConversationChoiceType.RequestTrustLetter,
+            ConnectionType.Commerce => ConversationChoiceType.RequestCommerceLetter,
+            ConnectionType.Status => ConversationChoiceType.RequestStatusLetter,
+            ConnectionType.Shadow => ConversationChoiceType.RequestShadowLetter,
+            _ => ConversationChoiceType.RequestTrustLetter
+        };
+
+        string narrative = tokenType switch
+        {
+            ConnectionType.Trust => "Ask if they have any personal letters that need delivering",
+            ConnectionType.Commerce => "Inquire about business correspondence requiring a courier",
+            ConnectionType.Status => "Offer to carry formal correspondence to proper recipients",
+            ConnectionType.Shadow => "Hint that you can be trusted with sensitive matters",
+            _ => "Ask if they have any letters that need delivering"
+        };
+
+        // Higher relationship levels make letter requests easier
+        int difficulty = Math.Max(2, 6 - relationshipLevel / 2);
+        
+        return new ConversationChoice
+        {
+            ChoiceID = GetLetterRequestCardId(tokenType),
+            Name = $"Request {tokenType} Letter",
+            Description = $"Ask for a {tokenType.ToString().ToLower()} letter to deliver",
+            NarrativeText = narrative,
+            Category = RelationshipCardCategory.LetterRequest,
+            ChoiceType = choiceType,
+            Difficulty = difficulty,
+            PatienceCost = 2,
+            ComfortGain = 0, // No comfort gain from asking
+            Requirements = new Dictionary<ConnectionType, int> { { tokenType, 2 } }, // Need some relationship to ask
+            SuccessOutcome = "They consider your request carefully",
+            NeutralOutcome = "They seem uncertain about entrusting you",
+            FailureOutcome = "They politely decline your offer"
+        };
+    }
+
+    private string GetLetterRequestCardId(ConnectionType tokenType)
+    {
+        return $"letter_request_{tokenType.ToString().ToLower()}";
+    }
+
+    /// <summary>
     /// Calculate starting patience for conversations
     /// Negative cards reduce starting patience by 0.5 each
     /// </summary>

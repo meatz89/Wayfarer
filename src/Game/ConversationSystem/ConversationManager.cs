@@ -255,6 +255,8 @@ public class ConversationChoice
                 emotionalState != NPCEmotionalState.HOSTILE,
             RelationshipCardCategory.Special =>
                 emotionalState != NPCEmotionalState.HOSTILE,
+            RelationshipCardCategory.LetterRequest =>
+                emotionalState != NPCEmotionalState.HOSTILE, // Can't request letters from hostile NPCs
             _ => true
         };
     }
@@ -266,7 +268,8 @@ public enum RelationshipCardCategory
     Personal,   // Requires relationship progress
     Crisis,     // Only when NPC is desperate/anxious
     Betrayal,   // Only when relationship is severely damaged (-3+ tokens)
-    Special     // Unlocked through specific letter deliveries
+    Special,    // Unlocked through specific letter deliveries
+    LetterRequest // Added to deck when comfort threshold reached
 }
 
 /// <summary>

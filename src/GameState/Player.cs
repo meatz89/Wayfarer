@@ -119,6 +119,10 @@ public class Player
     public int TotalLettersDelivered { get; set; } = 0;
     public int TotalLettersExpired { get; set; } = 0;
     public int TotalTokensSpent { get; set; } = 0;
+    
+    // Route Familiarity System (0-5 scale per route)
+    // Key is route ID, value is familiarity level (0=Unknown, 5=Mastered)
+    public Dictionary<string, int> RouteFamiliarity { get; set; } = new Dictionary<string, int>();
 
     public void AddGoal(Goal goal)
     {
@@ -173,6 +177,31 @@ public class Player
         {
             KnownContracts.Add(contractId);
         }
+    }
+    
+    /// <summary>
+    /// Get familiarity level for a route (0-5 scale)
+    /// </summary>
+    public int GetRouteFamiliarity(string routeId)
+    {
+        return RouteFamiliarity.TryGetValue(routeId, out int familiarity) ? familiarity : 0;
+    }
+    
+    /// <summary>
+    /// Increase route familiarity after successful travel (max 5)
+    /// </summary>
+    public void IncreaseRouteFamiliarity(string routeId, int amount = 1)
+    {
+        int current = GetRouteFamiliarity(routeId);
+        RouteFamiliarity[routeId] = Math.Min(5, current + amount);
+    }
+    
+    /// <summary>
+    /// Check if route is mastered (familiarity = 5)
+    /// </summary>
+    public bool IsRouteMastered(string routeId)
+    {
+        return GetRouteFamiliarity(routeId) >= 5;
     }
 
     public void AddMemory(string key, string description, int currentDay, int importance, int expirationDays = -1)

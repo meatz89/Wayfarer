@@ -1,0 +1,123 @@
+.obligations-panel {
+    background: rgba(42, 32, 25, 0.95);
+    border: 2px solid rgba(139, 69, 19, 0.8);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 10px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.obligations-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(139, 69, 19, 0.4);
+}
+
+.header-text {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #d4af37;
+}
+
+.obligations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.obligation-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(139, 69, 19, 0.5);
+    border-radius: 6px;
+    padding: 10px;
+    transition: all 0.2s ease;
+}
+
+.obligation-card:hover {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(218, 165, 32, 0.6);
+}
+
+.obligation-minor {
+    border-left: 3px solid #6b8e23;
+}
+
+.obligation-moderate {
+    border-left: 3px solid #daa520;
+}
+
+.obligation-serious {
+    border-left: 3px solid #ff8c00;
+}
+
+.obligation-critical {
+    border-left: 3px solid #dc143c;
+}
+
+.obligation-name {
+    font-weight: bold;
+    color: #f0e68c;
+    margin-bottom: 4px;
+}
+
+.obligation-source {
+    font-size: 0.9em;
+    color: #b8860b;
+    font-style: italic;
+    margin-bottom: 8px;
+}
+
+.obligation-effects {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 8px 0;
+}
+
+.effect {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9em;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.effect.benefit {
+    background: rgba(0, 128, 0, 0.1);
+    color: #90ee90;
+}
+
+.effect.constraint {
+    background: rgba(220, 20, 60, 0.1);
+    color: #ffa07a;
+}
+
+.effect-icon {
+    font-weight: bold;
+}
+
+.obligation-threshold {
+    font-size: 0.85em;
+    color: #daa520;
+    margin-top: 6px;
+    padding: 4px 6px;
+    background: rgba(218, 165, 32, 0.1);
+    border-radius: 3px;
+}
+
+.obligation-duration {
+    font-size: 0.85em;
+    color: #8b7355;
+    margin-top: 6px;
+    text-align: right;
+}
+
+/* Icon for obligations */
+.icon-obligation::before {
+    content: "⚖";
+    color: #d4af37;
+}
