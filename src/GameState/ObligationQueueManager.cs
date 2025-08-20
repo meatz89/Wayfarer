@@ -1202,97 +1202,6 @@ public class ObligationQueueManager
         }
     }
 
-    // Create conversation context for skip delivery action
-    public QueueManagementContext CreateSkipDeliverContext(int position)
-    {
-        if (position <= 1 || position > _config.LetterQueue.MaxQueueSize) return null;
-
-        DeliveryObligation letter = GetLetterAt(position);
-        if (letter == null) return null;
-
-        // Check if position 1 is occupied
-        if (GetLetterAt(1) != null) return null;
-
-        // Calculate token cost and get skipped letters
-        int tokenCost = position - 1;
-        Dictionary<int, DeliveryObligation> skippedLetters = new Dictionary<int, DeliveryObligation>();
-
-        for (int i = 2; i < position; i++)
-        {
-            DeliveryObligation skippedObligation = GetLetterAt(i);
-            if (skippedObligation != null)
-            {
-                skippedLetters[i] = skippedObligation;
-            }
-        }
-
-        return new QueueManagementContext
-        {
-            TargetDeliveryObligation = letter,
-            ManagementAction = "SkipDeliver",
-            TokenCost = tokenCost,
-            SkippedLetters = skippedLetters,
-            GameWorld = _gameWorld,
-            Player = _gameWorld.GetPlayer()
-        };
-    }
-
-    // Trigger conversation for skip delivery
-    public bool PrepareSkipAction(int position)
-    {
-        QueueManagementContext context = CreateSkipDeliverContext(position);
-        if (context == null)
-        {
-            _messageSystem.AddSystemMessage("Cannot skip this letter.", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Store the skip position for later processing
-        _gameWorld.PendingQueueState.PendingSkipPosition = position;
-        _gameWorld.PendingQueueState.PendingAction = QueueActionType.Skip;
-
-        return true;
-    }
-
-    // Create conversation context for purge action
-    public QueueManagementContext CreatePurgeContext()
-    {
-        DeliveryObligation letter = GetLetterAt(_config.LetterQueue.MaxQueueSize);
-        if (letter == null) return null;
-
-        // Check if purging is forbidden
-        if (_obligationManager.IsActionForbidden("purge", letter, out string reason))
-        {
-            return null;
-        }
-
-        return new QueueManagementContext
-        {
-            TargetDeliveryObligation = letter,
-            ManagementAction = "Purge",
-            TokenCost = _config.LetterQueue.PurgeCostTokens,
-            GameWorld = _gameWorld,
-            Player = _gameWorld.GetPlayer()
-        };
-    }
-
-    // Trigger conversation for purge action
-    public bool PreparePurgeAction()
-    {
-        QueueManagementContext context = CreatePurgeContext();
-        if (context == null)
-        {
-            _messageSystem.AddSystemMessage($"Cannot purge - no letter in position {_config.LetterQueue.MaxQueueSize} or action forbidden.", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Store purge flag for later processing
-        _gameWorld.PendingQueueState.PendingPurgePosition = _config.LetterQueue.MaxQueueSize;
-        _gameWorld.PendingQueueState.PendingAction = QueueActionType.Purge;
-
-        return true;
-    }
-
     // Skip letter delivery by spending tokens
     public bool TrySkipDeliver(int position)
     {
@@ -1943,4 +1852,255 @@ public class ObligationQueueManager
 
         return true;
     }
+
+    #region Obligation Manipulation Through Conversation
+
+    /// <summary>
+    /// Manipulate an obligation through conversation
+    /// </summary>
+    public bool ManipulateObligation(string obligationId, ObligationManipulationType manipulation, string npcId)
+    {
+        var obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
+        if (obligation == null) return false;
+
+        switch (manipulation)
+        {
+            case ObligationManipulationType.Prioritize:
+                return PrioritizeObligation(obligation);
+            
+            case ObligationManipulationType.BurnToClear:
+                return BurnTokensToClearPath(obligation, npcId);
+            
+            case ObligationManipulationType.Purge:
+                return PurgeObligation(obligation, npcId);
+            
+            case ObligationManipulationType.ExtendDeadline:
+                return ExtendObligationDeadline(obligation, npcId);
+            
+            case ObligationManipulationType.Transfer:
+                return TransferObligation(obligation, npcId);
+            
+            case ObligationManipulationType.Cancel:
+                return CancelObligation(obligation, npcId);
+            
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Move an obligation to position 1 (prioritize)
+    /// </summary>
+    private bool PrioritizeObligation(DeliveryObligation obligation)
+    {
+        var currentPos = GetQueuePosition(obligation);
+        if (currentPos == 1) return true; // Already at position 1
+        
+        // Check if position 1 is empty
+        var queue = GetPlayerQueue();
+        if (queue[0] != null)
+        {
+            _messageSystem.AddSystemMessage(
+                "Cannot prioritize - position 1 is occupied!",
+                SystemMessageTypes.Warning
+            );
+            return false;
+        }
+        
+        MoveObligationToPosition(obligation, 1);
+        _messageSystem.AddSystemMessage(
+            $"📌 Moved {obligation.SenderName}'s letter to position 1",
+            SystemMessageTypes.Success
+        );
+        return true;
+    }
+
+    /// <summary>
+    /// Burn tokens to clear queue slots above an obligation
+    /// </summary>
+    private bool BurnTokensToClearPath(DeliveryObligation obligation, string npcId)
+    {
+        var currentPos = GetQueuePosition(obligation);
+        if (currentPos == 1) return true; // Already at top
+        
+        var queue = GetPlayerQueue();
+        var tokenCost = 0;
+        
+        // Calculate cost - 2 tokens per letter to purge
+        for (int i = 0; i < currentPos - 1; i++)
+        {
+            if (queue[i] != null)
+            {
+                tokenCost += 2;
+            }
+        }
+        
+        if (tokenCost == 0) return true; // Path already clear
+        
+        // Check if player has enough tokens
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        var totalTokens = tokens.Values.Sum();
+        
+        if (totalTokens < tokenCost)
+        {
+            _messageSystem.AddSystemMessage(
+                $"Need {tokenCost} tokens to clear path, but only have {totalTokens}",
+                SystemMessageTypes.Warning
+            );
+            return false;
+        }
+        
+        // Spend tokens and clear path
+        _connectionTokenManager.SpendTokens(obligation.TokenType, tokenCost, npcId);
+        
+        // Remove all letters above
+        for (int i = 0; i < currentPos - 1; i++)
+        {
+            if (queue[i] != null)
+            {
+                RemoveObligationFromQueue(i + 1);
+            }
+        }
+        
+        // Move obligation to position 1
+        MoveObligationToPosition(obligation, 1);
+        
+        _messageSystem.AddSystemMessage(
+            $"🔥 Burned {tokenCost} tokens to clear path for {obligation.SenderName}'s letter",
+            SystemMessageTypes.Success
+        );
+        return true;
+    }
+
+    /// <summary>
+    /// Purge an obligation using tokens
+    /// </summary>
+    private bool PurgeObligation(DeliveryObligation obligation, string npcId)
+    {
+        var purgeTokenCost = 3; // Cost to purge
+        
+        // Check if player has enough tokens
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        var availableTokens = tokens.GetValueOrDefault(obligation.TokenType, 0);
+        
+        if (availableTokens < purgeTokenCost)
+        {
+            _messageSystem.AddSystemMessage(
+                $"Need {purgeTokenCost} {obligation.TokenType} tokens to purge, but only have {availableTokens}",
+                SystemMessageTypes.Warning
+            );
+            return false;
+        }
+        
+        // Spend tokens and remove obligation
+        _connectionTokenManager.SpendTokens(obligation.TokenType, purgeTokenCost, npcId);
+        RemoveObligationFromQueue(GetQueuePosition(obligation));
+        
+        _messageSystem.AddSystemMessage(
+            $"💨 Purged {obligation.SenderName}'s letter using {purgeTokenCost} {obligation.TokenType} tokens",
+            SystemMessageTypes.Success
+        );
+        return true;
+    }
+
+    /// <summary>
+    /// Extend the deadline of an obligation
+    /// </summary>
+    private bool ExtendObligationDeadline(DeliveryObligation obligation, string npcId)
+    {
+        var extensionCost = 2; // Tokens to extend deadline
+        var extensionMinutes = 1440; // 1 day extension
+        
+        // Check if player has enough tokens
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        var availableTokens = tokens.GetValueOrDefault(obligation.TokenType, 0);
+        
+        if (availableTokens < extensionCost)
+        {
+            _messageSystem.AddSystemMessage(
+                $"Need {extensionCost} {obligation.TokenType} tokens to extend deadline",
+                SystemMessageTypes.Warning
+            );
+            return false;
+        }
+        
+        // Spend tokens and extend deadline
+        _connectionTokenManager.SpendTokens(obligation.TokenType, extensionCost, npcId);
+        obligation.DeadlineInMinutes += extensionMinutes;
+        
+        _messageSystem.AddSystemMessage(
+            $"⏰ Extended deadline for {obligation.SenderName}'s letter by 1 day",
+            SystemMessageTypes.Success
+        );
+        return true;
+    }
+
+    /// <summary>
+    /// Transfer an obligation to another NPC
+    /// </summary>
+    private bool TransferObligation(DeliveryObligation obligation, string newRecipientId)
+    {
+        var transferCost = 4; // High cost to transfer
+        
+        // Check if player has enough tokens with original sender
+        var tokens = _connectionTokenManager.GetTokensWithNPC(obligation.SenderId);
+        var availableTokens = tokens.GetValueOrDefault(obligation.TokenType, 0);
+        
+        if (availableTokens < transferCost)
+        {
+            _messageSystem.AddSystemMessage(
+                $"Need {transferCost} {obligation.TokenType} tokens with {obligation.SenderName} to transfer",
+                SystemMessageTypes.Warning
+            );
+            return false;
+        }
+        
+        // Get new recipient
+        var newRecipient = _npcRepository.GetById(newRecipientId);
+        if (newRecipient == null) return false;
+        
+        // Spend tokens and transfer
+        _connectionTokenManager.SpendTokens(obligation.TokenType, transferCost, obligation.SenderId);
+        obligation.RecipientId = newRecipientId;
+        obligation.RecipientName = newRecipient.Name;
+        
+        _messageSystem.AddSystemMessage(
+            $"📤 Transferred letter from {obligation.SenderName} to {newRecipient.Name}",
+            SystemMessageTypes.Success
+        );
+        return true;
+    }
+
+    /// <summary>
+    /// Cancel an obligation (requires high relationship)
+    /// </summary>
+    private bool CancelObligation(DeliveryObligation obligation, string npcId)
+    {
+        var cancelTokenRequirement = 10; // Need high relationship to cancel
+        
+        // Check relationship level
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        var totalTokens = tokens.Values.Sum();
+        
+        if (totalTokens < cancelTokenRequirement)
+        {
+            _messageSystem.AddSystemMessage(
+                $"Need {cancelTokenRequirement} total tokens with {obligation.SenderName} to cancel (have {totalTokens})",
+                SystemMessageTypes.Warning
+            );
+            return false;
+        }
+        
+        // Don't spend tokens, just require the relationship
+        RemoveObligationFromQueue(GetQueuePosition(obligation));
+        
+        _messageSystem.AddSystemMessage(
+            $"❌ {obligation.SenderName} agrees to cancel the letter delivery",
+            SystemMessageTypes.Success
+        );
+        return true;
+    }
+
+    #endregion
+
 }

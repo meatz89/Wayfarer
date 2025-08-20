@@ -1,5 +1,3 @@
-namespace Wayfarer.GameState.Constants;
-
 /// <summary>
 /// Central location for all game constants that aren't part of the configurable GameConfiguration.
 /// These are core game mechanics that shouldn't change between games.

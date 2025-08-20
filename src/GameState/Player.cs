@@ -1,6 +1,4 @@
-﻿using Wayfarer.GameState.Constants;
-
-public class Player
+﻿public class Player
 {
     // Core identity
     public string Name { get; set; }
@@ -50,12 +48,8 @@ public class Player
     // Network tracking
     public List<string> UnlockedNPCIds { get; set; } = new List<string>();
 
-
-
     public bool IsInitialized { get; set; } = false;
 
-    public List<string> KnownLocations { get; private set; } = new List<string>();
-    public List<string> KnownLocationSpots { get; private set; } = new List<string>();
     public PlayerSkills Skills { get; private set; } = new();
 
     public LocationSpot CurrentLocationSpot { get; set; }
@@ -72,13 +66,6 @@ public class Player
 
     public Dictionary<string, List<RouteOption>> KnownRoutes { get; private set; } = new Dictionary<string, List<RouteOption>>();
 
-    public List<string> KnownContracts { get; private set; } = new List<string>();
-
-    public List<Goal> ActiveGoals { get; private set; } = new List<Goal>();
-    public List<Goal> CompletedGoals { get; private set; } = new List<Goal>();
-    public List<Goal> FailedGoals { get; private set; } = new List<Goal>();
-
-    // DeliveryObligation Queue System
     public DeliveryObligation[] ObligationQueue { get; private set; } = new DeliveryObligation[8];
     public Dictionary<ConnectionType, int> ConnectionTokens { get; private set; } = new Dictionary<ConnectionType, int>();
     public Dictionary<string, Dictionary<ConnectionType, int>> NPCTokens { get; private set; } = new Dictionary<string, Dictionary<ConnectionType, int>>();
@@ -105,9 +92,6 @@ public class Player
     public List<string> UnlockedServices { get; set; } = new List<string>();
 
 
-    // Collapse callback - set by GameWorldManager
-    public Action OnStaminaExhausted { get; set; }
-
     // Scenario tracking
     public List<DeliveryObligation> DeliveredLetters { get; set; } = new List<DeliveryObligation>();
     public int TotalLettersDelivered { get; set; } = 0;
@@ -117,36 +101,6 @@ public class Player
     // Route Familiarity System (0-5 scale per route)
     // Key is route ID, value is familiarity level (0=Unknown, 5=Mastered)
     public Dictionary<string, int> RouteFamiliarity { get; set; } = new Dictionary<string, int>();
-
-    public void AddGoal(Goal goal)
-    {
-        ActiveGoals.Add(goal);
-    }
-
-    public void UpdateGoals(int currentDay)
-    {
-        for (int i = ActiveGoals.Count - 1; i >= 0; i--)
-        {
-            Goal goal = ActiveGoals[i];
-
-            if (goal.IsCompleted)
-            {
-                ActiveGoals.RemoveAt(i);
-                CompletedGoals.Add(goal);
-            }
-            else if (goal.CheckFailure(currentDay))
-            {
-                ActiveGoals.RemoveAt(i);
-                FailedGoals.Add(goal);
-            }
-        }
-    }
-
-    public List<Goal> GetGoalsByType(GoalType type)
-    {
-        return ActiveGoals.Where(g => g.Type == type).ToList();
-    }
-
 
     public void AddKnownRoute(RouteOption route)
     {
@@ -164,14 +118,6 @@ public class Player
         }
     }
 
-
-    public void DiscoverContract(string contractId)
-    {
-        if (!KnownContracts.Contains(contractId))
-        {
-            KnownContracts.Add(contractId);
-        }
-    }
     
     /// <summary>
     /// Get familiarity level for a route (0-5 scale)
@@ -379,16 +325,6 @@ public class Player
     }
 
 
-    public void AddKnownLocation(string location)
-    {
-        KnownLocations.Add(location);
-    }
-
-    public void AddKnownLocationSpot(string locationSpot)
-    {
-        KnownLocationSpots.Add(locationSpot);
-    }
-
     public int GetRelationshipLevel(string character)
     {
         return 1;
@@ -403,15 +339,7 @@ public class Player
     {
         this.Stamina = Math.Clamp(newStamina, 0, MaxStamina);
 
-        // Trigger collapse check if stamina reaches 0
-        if (Stamina == 0 && OnStaminaExhausted != null)
-        {
-            OnStaminaExhausted();
-        }
     }
-
-    // ModifyStamina moved to categorical stamina system section below
-
 
     public int GetSkillLevel(SkillTypes skill)
     {
@@ -419,13 +347,11 @@ public class Player
         return level;
     }
 
-
     public void AddSilver(int silverReward)
     {
         // Silver is now represented as Coins
         this.Coins += silverReward;
     }
-
 
     public void AddInsightPoints(int insightPointReward)
     {
@@ -475,9 +401,6 @@ public class Player
 
         // Deep copy of location knowledge
         clone.DiscoveredLocationIds = [.. this.DiscoveredLocationIds];
-        clone.KnownLocations = [.. this.KnownLocations];
-        clone.KnownLocationSpots = [.. this.KnownLocationSpots];
-        clone.KnownContracts = [.. this.KnownContracts];
 
         // Deep copy of travel methods
         clone.UnlockedTravelMethods = [.. this.UnlockedTravelMethods];
@@ -507,47 +430,12 @@ public class Player
         }
     }
 
-    public void AddKnowledge(object knowledgeItem)
-    {
-        // Knowledge now handled through InformationDiscoveryManager
-        // This method kept for compatibility but does nothing
-    }
-
-    public void ModifyCurrency(object amount)
-    {
-        // Currency handled through ModifyCoins
-        if (amount is int coins)
-        {
-            ModifyCoins(coins);
-        }
-    }
-
-
-    public int GetRelationship(object iD)
-    {
-        // Relationships now handled through TokenMechanicsManager
-        return 0;
-    }
-
-
-
-
-    public bool HasItem(string equipment)
-    {
-        return Inventory.HasItem(equipment);
-    }
-
     public bool SpendStamina(int amount)
     {
         if (Stamina < amount) return false;
 
         Stamina -= amount;
 
-        // Trigger collapse check if stamina reaches 0
-        if (Stamina == 0 && OnStaminaExhausted != null)
-        {
-            OnStaminaExhausted();
-        }
 
         return true;
     }
@@ -583,18 +471,10 @@ public class Player
         {
             Stamina = newStamina;
 
-            // Trigger collapse check if stamina reaches 0
-            if (Stamina == 0 && OnStaminaExhausted != null)
-            {
-                OnStaminaExhausted();
-            }
-
             return true;
         }
         return false;
     }
-
-
 
     /// <summary>
     /// Checks if player can perform dangerous route travel (requires 4+ stamina)

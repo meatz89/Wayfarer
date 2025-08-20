@@ -10,4 +10,3 @@ global using Microsoft.JSInterop;
 
 // Include all game types globally to resolve references
 global using Wayfarer.Pages;
-global using Wayfarer.Pages.Helpers;

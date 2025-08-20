@@ -306,14 +306,3 @@ public class DailyActivityResult
     public bool HasEvents => ExpiredLetterCount > 0 || ForcedLetterCount > 0 ||
                             NewLetterCount > 0 || UrgentLetterCount > 0 || PatronLetterCount > 0;
 }
-
-// Extension to MorningActivitiesManager
-public partial class DailyActivitiesManager
-{
-    // Get the result of the last daily activities processing
-    public DailyActivityResult GetLastActivityResult()
-    {
-        return _lastActivityResult ?? new DailyActivityResult();
-    }
-}
-}

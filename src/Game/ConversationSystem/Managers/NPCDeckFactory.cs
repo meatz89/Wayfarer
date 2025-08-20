@@ -35,7 +35,7 @@ public class NPCDeckFactory
         {
             Id = Guid.NewGuid().ToString(),
             Text = "How can I help you?",
-            Type = CardType.Practical,
+            Type = CardType.Trust,
             Persistence = PersistenceType.Persistent,
             Weight = 1,
             BaseComfort = 2
@@ -198,5 +198,36 @@ public class NPCDeckFactory
         // This would check if the NPC has urgent obligations
         // For now, return false
         return false;
+    }
+    
+    private List<ConversationCard> CreateObligationManipulationCards()
+    {
+        var cards = new List<ConversationCard>();
+        
+        // Card to negotiate obligations
+        cards.Add(new ConversationCard
+        {
+            Id = Guid.NewGuid().ToString(),
+            Text = "About that letter you gave me...",
+            Type = CardType.Trust,
+            Persistence = PersistenceType.Persistent,
+            Weight = 2,
+            BaseComfort = 1,
+            ManipulatesObligations = true
+        });
+        
+        // Card to deliver letter personally
+        cards.Add(new ConversationCard
+        {
+            Id = Guid.NewGuid().ToString(),
+            Text = "I have your letter right here.",
+            Type = CardType.Trust,
+            Persistence = PersistenceType.OneShot,
+            Weight = 1,
+            BaseComfort = 5,
+            CanDeliverLetter = true
+        });
+        
+        return cards;
     }
 }

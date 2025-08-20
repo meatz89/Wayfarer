@@ -1,7 +1,5 @@
 using System.Text.RegularExpressions;
 
-namespace Wayfarer.GameState.Interactions;
-
 /// <summary>
 /// Generates interaction content from templates to avoid content explosion
 /// This is the KEY to making the system work without 400+ hours of content

@@ -1,7 +1,5 @@
 using System.Text.Json;
 
-namespace Wayfarer.Content;
-
 public static class RouteOptionParser
 {
     public static RouteOption ParseRouteOption(string json)

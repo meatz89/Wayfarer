@@ -38,13 +38,13 @@ HOSTILE      - Cannot converse
 - Deleted conversation services and content
 - Clean slate achieved
 
-### Phase 2: Build New System ✅ CORE COMPLETE
+### Phase 2: Build New System ✅ COMPLETE
 Created from scratch:
 ```
 /src/Game/ConversationSystem/
 ├── Core/
 │   ├── EmotionalState.cs ✅
-│   ├── ConversationCard.cs ✅
+│   ├── ConversationCard.cs ✅ (with letter delivery & obligation manipulation)
 │   ├── CardDeck.cs ✅
 │   └── ConversationRules.cs ✅ (merged into EmotionalState.cs)
 ├── Managers/
@@ -114,6 +114,29 @@ Emotional bandwidth represented by weight limits:
 Base 70% - (Weight × 10%) + (Status tokens × 3%)
 Min 10%, Max 95%
 ```
+
+## Letter Delivery & Obligation Manipulation ✅ COMPLETE
+
+### Letter Delivery Through Conversation
+- ConversationCard.CanDeliverLetter property enables personal delivery
+- ConversationManager.DeliverLetterThroughConversation() handles delivery
+- NPCDeckFactory generates "I have your letter right here" cards
+- Delivers letter at position 1 to current NPC
+
+### Obligation Manipulation Types
+Created ObligationManipulationType enum with 6 types:
+1. **Prioritize** - Move to position 1
+2. **BurnToClear** - Spend tokens to clear path 
+3. **Purge** - Remove using tokens
+4. **ExtendDeadline** - Pay for more time
+5. **Transfer** - Change recipient
+6. **Cancel** - High relationship requirement
+
+### Implementation
+- ObligationQueueManager.ManipulateObligation() handles all types
+- Token costs vary by manipulation type (2-4 tokens)
+- Cancel requires 10+ total tokens (relationship gate)
+- ConversationManager.ExecuteObligationManipulation() connects to UI
 
 ## Technical Decisions
 

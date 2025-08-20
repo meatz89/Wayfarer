@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Wayfarer.GameState;
-
 /// <summary>
 /// Plans and previews queue displacement effects before committing changes
 /// </summary>

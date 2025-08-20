@@ -1,5 +1,3 @@
-namespace Wayfarer.GameState;
-
 /// <summary>
 /// Manages attention persistence across time blocks instead of per-conversation
 /// This is the KEY CHANGE that fixes the infinite conversation exploit

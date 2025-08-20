@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Wayfarer.GameState;
-
 /// <summary>
 /// Central rule engine that implements all game mechanics calculations.
 /// All game rules are driven by configuration, not hard-coded values.

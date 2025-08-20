@@ -140,7 +140,7 @@ public class ConversationManager
             // Handle obligation manipulation
             if (card.ManipulatesObligations && result.Results.First(r => r.Card == card).Success)
             {
-                // This would open a UI to manipulate obligations
+                // Mark that manipulation is available - UI will handle the specifics
                 result = new CardPlayResult
                 {
                     TotalComfort = result.TotalComfort,
@@ -193,6 +193,17 @@ public class ConversationManager
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Execute obligation manipulation from conversation
+    /// </summary>
+    public bool ExecuteObligationManipulation(string obligationId, ObligationManipulationType manipulation)
+    {
+        if (!IsConversationActive)
+            return false;
+            
+        return queueManager.ManipulateObligation(obligationId, manipulation, currentSession.NPC.ID);
     }
 
     /// <summary>

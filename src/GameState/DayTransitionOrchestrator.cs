@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Wayfarer.GameState;
-
 /// <summary>
 /// Orchestrates all day transition activities in a deterministic, ordered manner.
 /// Ensures all systems are properly notified and updated when a new day begins.

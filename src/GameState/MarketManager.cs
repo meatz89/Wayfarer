@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Wayfarer.GameState;
-
 /// <summary>
 /// Manages location-specific item pricing and trading operations.
 /// Implements dynamic pricing system that creates arbitrage opportunities

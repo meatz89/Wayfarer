@@ -1,7 +1,5 @@
 using System;
 
-namespace Wayfarer.GameState;
-
 /// <summary>
 /// Represents a system message for the event log and activity feed.
 /// </summary>

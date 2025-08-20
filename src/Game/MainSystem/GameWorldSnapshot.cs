@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Wayfarer.Game.MainSystem;
-
 public class GameWorldSnapshot
 {
     public bool HasActiveEncounter { get; private set; }

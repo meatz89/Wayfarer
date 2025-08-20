@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
 
-namespace Wayfarer.GameState.Operations;
-
 /// <summary>
 /// Handles all location state operations in an immutable, validated manner.
 /// All location state changes must go through this class.

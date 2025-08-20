@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 
-namespace Wayfarer.Core.Repositories;
-
 /// <summary>
 /// Repository interface for Location entities
 /// </summary>

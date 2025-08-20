@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Wayfarer.GameState;
-
 /// <summary>
 /// Represents a transaction containing multiple game operations that execute atomically
 /// </summary>

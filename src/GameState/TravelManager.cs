@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Wayfarer.GameState;
-
 public static class TravelTimeMatrix
 {
     // Travel times in minutes between locations

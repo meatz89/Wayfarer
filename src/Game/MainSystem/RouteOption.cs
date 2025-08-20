@@ -1,6 +1,4 @@
 
-namespace Wayfarer.Game.MainSystem;
-
 public enum WeatherCondition
 {
     Clear,

@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Wayfarer.GameState.StateContainers;
-
 /// <summary>
 /// Immutable state container for location data.
 /// All modifications must go through operations/commands.

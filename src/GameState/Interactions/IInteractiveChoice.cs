@@ -1,5 +1,3 @@
-namespace Wayfarer.GameState.Interactions;
-
 /// <summary>
 /// Unified interface for ALL player interactions - conversations, observations, location actions
 /// This allows us to use the same UI component and attention system for everything

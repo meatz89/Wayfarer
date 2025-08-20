@@ -31,9 +31,9 @@ public ActionGenerator(
 /// <summary>
 /// Generate actions for a location based on its data and current time
 /// </summary>
-public List<Wayfarer.ViewModels.LocationActionViewModel> GenerateActionsForLocation(Location location, LocationSpot spot)
+public List<LocationActionViewModel> GenerateActionsForLocation(Location location, LocationSpot spot)
 {
-    List<Wayfarer.ViewModels.LocationActionViewModel> actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+    List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
     TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
     // Check attention state to determine if wait/rest is needed
@@ -43,7 +43,7 @@ public List<Wayfarer.ViewModels.LocationActionViewModel> GenerateActionsForLocat
 
     // ALWAYS show Wait action for testing purposes
     // Previously only showed when exhausted, but need it visible for testing time block transitions
-    actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
+    actions.Add(new LocationActionViewModel
     {
         Icon = "⏳",
         Title = "Wait",
@@ -76,7 +76,7 @@ public List<Wayfarer.ViewModels.LocationActionViewModel> GenerateActionsForLocat
     // Add optional Wait action when low on attention but not exhausted
     if (!isExhausted && isLowAttention && actions.Count < 5)
     {
-        actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
+        actions.Add(new LocationActionViewModel
         {
             Icon = "🕐",
             Title = "Rest a While",
@@ -90,9 +90,9 @@ public List<Wayfarer.ViewModels.LocationActionViewModel> GenerateActionsForLocat
     return actions.Take(5).ToList();
 }
 
-private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateServiceActions(ServiceTypes service, Location location, TimeBlocks currentTime)
+private List<LocationActionViewModel> GenerateServiceActions(ServiceTypes service, Location location, TimeBlocks currentTime)
 {
-    List<Wayfarer.ViewModels.LocationActionViewModel> actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+    List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
     TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
 
     switch (service)
@@ -144,16 +144,16 @@ private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateServiceActions
     return actions;
 }
 
-private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateSpotActions(LocationSpot spot, TimeBlocks currentTime)
+private List<LocationActionViewModel> GenerateSpotActions(LocationSpot spot, TimeBlocks currentTime)
 {
-    List<Wayfarer.ViewModels.LocationActionViewModel> actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+    List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
     // Generate actions based on spot's domain tags
     if (spot.DomainTags != null)
     {
         foreach (string tag in spot.DomainTags)
         {
-            Wayfarer.ViewModels.LocationActionViewModel action = GenerateTagAction(tag, spot);
+            LocationActionViewModel action = GenerateTagAction(tag, spot);
             if (action != null)
                 actions.Add(action);
         }
@@ -162,7 +162,7 @@ private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateSpotActions(Lo
     return actions;
 }
 
-private Wayfarer.ViewModels.LocationActionViewModel GenerateTagAction(string tag, LocationSpot spot)
+private LocationActionViewModel GenerateTagAction(string tag, LocationSpot spot)
 {
     TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
 
@@ -195,7 +195,7 @@ private Wayfarer.ViewModels.LocationActionViewModel GenerateTagAction(string tag
 /// <summary>
 /// Creates an action with tier checking and appropriate lock messages.
 /// </summary>
-private Wayfarer.ViewModels.LocationActionViewModel CreateActionWithTierCheck(
+private LocationActionViewModel CreateActionWithTierCheck(
     string icon, string title, string detail, string cost,
     TierLevel requiredTier, TierLevel playerTier, string actionType)
 {
@@ -212,7 +212,7 @@ private Wayfarer.ViewModels.LocationActionViewModel CreateActionWithTierCheck(
         };
     }
 
-    return new Wayfarer.ViewModels.LocationActionViewModel
+    return new LocationActionViewModel
     {
         Icon = isAvailable ? icon : "🔒",
         Title = title,
@@ -225,9 +225,9 @@ private Wayfarer.ViewModels.LocationActionViewModel CreateActionWithTierCheck(
     };
 }
 
-private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateTimeBasedActions(Location location, TimeBlocks currentTime)
+private List<LocationActionViewModel> GenerateTimeBasedActions(Location location, TimeBlocks currentTime)
 {
-    List<Wayfarer.ViewModels.LocationActionViewModel> actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+    List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
     TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
 
     switch (currentTime)
@@ -273,9 +273,9 @@ private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateTimeBasedActio
     return actions;
 }
 
-private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateAtmosphereActions(Location location)
+private List<LocationActionViewModel> GenerateAtmosphereActions(Location location)
 {
-    List<Wayfarer.ViewModels.LocationActionViewModel> actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+    List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
     TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
 
     // Generate actions based on atmosphere

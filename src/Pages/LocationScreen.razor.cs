@@ -40,7 +40,7 @@ public partial class LocationScreen : ComponentBase
         StateHasChanged();
     }
 
-    private async Task ExecuteAction(Wayfarer.ViewModels.LocationActionViewModel action)
+    private async Task ExecuteAction(LocationActionViewModel action)
     {
         // Handle special action types
         if (action.ActionType == "wait")
