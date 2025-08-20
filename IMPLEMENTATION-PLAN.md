@@ -1,80 +1,105 @@
-# Wayfarer Conversation System - Implementation Plan
+# Wayfarer Complete UI Implementation - Implementation Plan
 
-## Current Status: 90% COMPLETE - BUILD SUCCESSFUL - CONVERSATION SYSTEM WORKING
+## Current Status: PLANNING PHASE - UI MOCKUP IMPLEMENTATION
 Started: 2025-08-20
-Last Updated: 2025-08-20 (Session 3)
+Last Updated: 2025-08-20 (Session 4)
 
 ## Overview
-Complete rewrite of the conversation system as an elegant card-drafting game inspired by Jaipur's strategic mechanics but maintaining emotional authenticity.
+Implementation of EXACT UI screens from HTML mockups with systematically generated content from game mechanics. NO hardcoded text - all narrative emerges from categorical data.
 
 ## Core Design Principles
 
-### The Key Innovation: Emotional States as Complete Rulesets
-Each of the 9 emotional states defines THREE things:
-1. **LISTEN effect** - How many cards drawn (1-3)
-2. **SPEAK constraint** - Maximum weight allowed (1-4)
-3. **LISTEN transition** - State change when listening
+### Categorical Data Generation Architecture
+**Backend generates categorical data → Frontend renders narrative text**
 
-This creates Jaipur-like strategic tension through changing game rules rather than literal markets.
+Key principle: Backend services NEVER generate text. They produce:
+- Emotional state enums (DESPERATE, ANXIOUS, etc.)
+- Card template types (SimpleGreeting, OfferHelp, etc.)
+- Context objects (personality, urgency, relationship)
+- Observation types and categories
 
-### The 9 Emotional States
-```
-NEUTRAL      - Draw 2, Weight 3, Listen→Neutral
-GUARDED      - Draw 1, Weight 2, Listen→Neutral  
-OPEN         - Draw 3, Weight 3, Listen→Open
-CONNECTED    - Draw 3, Weight 4, Listen→Connected + auto-depth
-TENSE        - Draw 1, Weight 1, Listen→Guarded
-EAGER        - Draw 3, +3 bonus for sets, Listen→Eager
-OVERWHELMED  - Draw 1, Max 1 card only, Listen→Neutral
-DESPERATE    - Draw 2+crisis, Crisis free, Listen→Hostile!
-HOSTILE      - Cannot converse
-```
+Frontend components map these to actual narrative prose.
+
+### Current System Analysis
+
+**What Exists:**
+- NPCStateResolver: Maps letter deadlines → emotional states
+- ObservationSystem: Generates location observations  
+- CardTemplates: Categorical card system (already refactored)
+- AtmosphereCalculator: NPC presence → atmosphere effects
+- TimeBlockAttentionManager: Attention persistence system
+
+**What's Missing:**
+- NO systematic content generation from categorical data
+- NO dynamic narrative from game mechanics
+- NO observation-to-card conversion
+- UI doesn't match mockups
+- Content is hardcoded, not generated
 
 ## Implementation Phases
 
-### Phase 1: Complete Deletion ✅ COMPLETED
-- Deleted all CSS files
-- Deleted entire /Game/ConversationSystem/ folder
-- Deleted ConversationScreen UI files
-- Deleted conversation services and content
-- Clean slate achieved
+### Phase 1: Create Backend Categorical Generators 🚧 IN PROGRESS
 
-### Phase 2: Build New System ✅ COMPLETE
-Created from scratch:
+**New Files to Create:**
 ```
-/src/Game/ConversationSystem/
-├── Core/
-│   ├── EmotionalState.cs ✅
-│   ├── ConversationCard.cs ✅ (with letter delivery & obligation manipulation)
-│   ├── CardDeck.cs ✅
-│   └── ConversationRules.cs ✅ (merged into EmotionalState.cs)
-├── Managers/
-│   ├── ConversationManager.cs (next)
-│   ├── CardSelectionManager.cs ✅
-│   └── StateTransitionManager.cs (may not need separate)
-└── Models/
-    ├── ConversationSession.cs (next)
-    ├── CardPlayResult.cs ✅
-    └── ConversationOutcome.cs (next)
+/src/GameState/
+├── ConversationNarrativeGenerator.cs - Maps states → narrative categories
+├── LocationNarrativeGenerator.cs - Maps location → atmosphere categories
+├── CardContextGenerator.cs - Enriches cards with categorical context
+└── NarrativeContextBuilder.cs - Builds tags and context objects
 ```
 
-**Completed Core Components:**
-- ✅ EmotionalState with 9 states and complete rulesets
-- ✅ ConversationCard with all properties including letter delivery/obligation manipulation
-- ✅ CardDeck managing NPC-specific decks based on personality
-- ✅ CardSelectionManager enforcing weight limits and combination rules
-- ✅ CardPlayResult tracking comfort, bonuses, and state changes
+**Key Functions:**
+- Generate narrative categories from emotional states
+- Map NPC personality + state → dialogue categories
+- Convert observations → card templates
+- Build pressure/relationship/resource tags
 
-### Phase 3: Create UI Components ✅ COMPLETE
-- ✅ ConversationScreen.razor (matching mockup exactly)
-- ✅ Dynamic generation from game state
-- ✅ Multi-card selection interface
-- ✅ Weight tracking display
-- ✅ State indicator with effects
-- ✅ Letter delivery through conversation support
-- ✅ Obligation manipulation support
+### Phase 2: Create Frontend Text Renderers 📝 PENDING
 
-### Phase 4: CSS Structure
+**New Razor Components:**
+```
+/src/Pages/Components/
+├── NarrativeTextRenderer.razor - Categories → prose
+├── DialogueRenderer.razor - State + personality → dialogue
+├── AtmosphereTextRenderer.razor - Atmosphere → descriptions
+└── ActionBeatRenderer.razor - Actions → UI text
+```
+
+**Key Mappings:**
+- CardTemplateType.OfferHelp + PersonalityType.DEVOTED → "I promise I'll help you..."
+- EmotionalState.DESPERATE + deadline context → "Time is running short..."
+- ObservationType.Important + guard context → "Guards blocking north road"
+### Phase 3: Refactor Existing Systems 📋 PENDING
+
+**Files to Refactor:**
+```
+ConversationManager.cs - Remove ALL hardcoded text
+NPCDeckFactory.cs - Use only templates, no text
+GameFacade.cs - Update screen generation methods
+```
+
+**Key Changes:**
+- Replace all Text properties with Template + Context
+- Remove narrative generation from backend
+- Add observation card injection
+- Calculate success percentages properly
+
+### Phase 4: Update UI to Match Mockups 🎨 PENDING
+
+**ConversationScreen Updates:**
+- Desperate state banner with countdown
+- Exact card structure (weight dots, outcome percentages)
+- "Crisis Card" and "State Card" markers
+- Listen/Speak action buttons matching mockup
+
+**LocationScreen Updates:**
+- Location path breadcrumbs
+- NPC emotional state badges
+- "If approached:" preview text
+- Observation integration indicators
+
+### Phase 5: CSS Structure
 ```
 /src/wwwroot/css/
 ├── conversation.css       # Main conversation styles
@@ -139,12 +164,51 @@ Created ObligationManipulationType enum with 6 types:
 - Cancel requires 10+ total tokens (relationship gate)
 - ConversationManager.ExecuteObligationManipulation() connects to UI
 
+## Example Content Generation Flow
+
+### Elena DESPERATE Conversation:
+1. **Backend generates:**
+   - EmotionalState: DESPERATE
+   - CardTemplate: PromiseToHelp
+   - Context: { Urgency: 2, Stakes: SAFETY, Personality: DEVOTED }
+   
+2. **Frontend renders:**
+   - Narrative: "Time is running short. Elena's desperation fills the space..."
+   - Dialogue: "Please, I need your help. The letter to Lord Blackwood..."
+   - Card text: "I promise I'll help you, Elena. We'll get your letter..."
+
+### Location Screen Flow:
+1. **Backend generates:**
+   - NPCs: [{ Name: "Elena", State: DESPERATE }]
+   - Observations: [{ Type: Important, Category: "guards" }]
+   - Atmosphere: { Modifier: -1, Category: "tense" }
+   
+2. **Frontend renders:**
+   - NPC card: "Elena - clutching sealed letter with white knuckles..."
+   - Observation: "Guards blocking north road"
+   - Atmosphere: "Firelight dances on worn wooden beams..."
+
+## Success Criteria
+
+✅ **Completed:**
+- Card template system with categorical data
+- Emotional state system with 9 states
+
+📝 **To Complete:**
+- [ ] UI screens match HTML mockups EXACTLY
+- [ ] ALL content systematically generated from mechanics
+- [ ] NO hardcoded narrative text in backend
+- [ ] Emotional states drive all NPC behavior
+- [ ] Observations seamlessly integrate as cards
+- [ ] Complete separation: Backend=Categories, Frontend=Text
+
 ## Technical Decisions
 
-### Why Complete Rewrite?
-1. **Clean Architecture**: No legacy code to work around
-2. **Exact Implementation**: Direct from design doc
-3. **Faster Development**: ~16 hours vs 20+ for refactoring
+### Why Categorical Architecture?
+1. **Clean Separation**: Backend logic vs frontend presentation
+2. **Flexibility**: Easy to modify narrative without touching mechanics
+3. **Testability**: Can test mechanics without UI
+4. **Localization**: Future support for multiple languages
 4. **Simpler Testing**: No compatibility concerns
 5. **Better Performance**: Optimized from start
 
