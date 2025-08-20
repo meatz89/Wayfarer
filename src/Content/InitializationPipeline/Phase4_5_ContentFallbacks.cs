@@ -18,24 +18,8 @@ public class Phase4_5_ContentFallbacks : IInitializationPhase
     {
         Console.WriteLine("Checking for missing content references and creating fallbacks...");
 
-        // During initialization, we need to create minimal services
-        // These will be replaced by DI-injected versions after initialization
-        NPCRepository npcRepository = new NPCRepository(
-            context.GameWorld,
-            null, // DebugLogger not available during initialization
-            new NPCVisibilityService()
-        );
-
-        LocationRepository locationRepository = new LocationRepository(context.GameWorld);
-        ItemRepository itemRepository = new ItemRepository(context.GameWorld);
-        RouteRepository routeRepository = new RouteRepository(context.GameWorld, itemRepository);
-
-        // Create fallback service
-        ContentFallbackService fallbackService = new ContentFallbackService(
-            npcRepository,
-            locationRepository,
-            routeRepository
-        );
+        // Create fallback service with just GameWorld to avoid circular dependencies
+        ContentFallbackService fallbackService = new ContentFallbackService(context.GameWorld);
 
         // Get loaded conversations from shared data
         Dictionary<string, ConversationDefinition> conversations = context.SharedData.ContainsKey("Conversations")

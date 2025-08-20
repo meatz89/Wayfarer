@@ -266,19 +266,32 @@
         }
 
         .state-indicator, .depth-indicator {
-            font-size: 14px;
+            font-size: 13px;
             color: #5c4a3a;
         }
 
-        .state-indicator span, .depth-indicator span {
+        .state-label, .depth-label {
+            color: #7a6250;
+            font-weight: normal;
+        }
+
+        .state-name, .depth-value {
             color: #8b4726;
             font-weight: bold;
+            margin: 0 4px;
         }
 
         .state-effects {
             font-size: 11px;
             color: #7a6250;
-            margin-left: 10px;
+            margin-left: 8px;
+            font-style: italic;
+        }
+
+        .depth-status {
+            font-size: 11px;
+            color: #8b4726;
+            margin-left: 8px;
         }
 
         /* Narrative Section */
@@ -485,6 +498,39 @@
             position: relative;
         }
 
+        /* Card type markers */
+        .card-type-marker {
+            position: absolute;
+            top: -8px;
+            left: 12px;
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+            color: #faf4ea;
+        }
+
+        .card-type-marker.comfort-type {
+            background: #7a8b5a;
+        }
+
+        .card-type-marker.state-type {
+            background: #8b7355;
+        }
+
+        .card-type-marker.crisis-type {
+            background: #8b4726;
+            animation: pulse 2s infinite;
+        }
+
+        /* State cards */
+        .dialog-option.state-card {
+            background: linear-gradient(to right, #f4e8d0 0%, #faf4ea 10%);
+            border-color: #a68b6f;
+        }
+
         /* Observation cards special styling */
         .dialog-option.observation-card {
             background: linear-gradient(to right, #f9f3e9 0%, #faf4ea 10%);
@@ -502,6 +548,49 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Updated outcome display */
+        .prop-group.outcomes {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+        }
+
+        .outcome-column {
+            flex: 1;
+            padding: 8px;
+            background: #f4e8d0;
+            border-radius: 2px;
+            text-align: center;
+        }
+
+        .outcome-header {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .outcome-header.success {
+            color: #5a7a3a;
+        }
+
+        .outcome-header.failure {
+            color: #8b4726;
+        }
+
+        .outcome-effect {
+            font-size: 12px;
+            color: #5c4a3a;
+            line-height: 1.3;
         }
 
         /* Persistence borders */
@@ -876,11 +965,14 @@
             <!-- State and Depth -->
             <div class="state-depth-section">
                 <div class="state-indicator">
-                    State: <span>Vulnerable</span>
-                    <span class="state-effects">(Weight -1, moments fleeting)</span>
+                    <span class="state-label">Emotional State:</span>
+                    <span class="state-name">Desperate</span>
+                    <span class="state-effects">Draw 2 + crisis • Crisis free • Listen worsens</span>
                 </div>
                 <div class="depth-indicator">
-                    Depth: <span>1</span> (Personal conversations)
+                    <span class="depth-label">Depth:</span>
+                    <span class="depth-value">1</span>
+                    <span class="depth-status">(Blocked - negative state)</span>
                 </div>
             </div>
         </div>
@@ -921,8 +1013,8 @@
             <div class="dialog-header">
                 <div class="dialog-title">Your Thoughts</div>
                 <div class="hand-status">
-                    <span class="hand-count">7 cards in hand</span>
-                    <span class="hand-note">• 2 from observations</span>
+                    <span class="hand-count">3 cards in hand</span>
+                    <span class="hand-note">• Types: Comfort, State, Crisis</span>
                 </div>
                 <div class="weight-tracker" id="weight-tracker">
                     <span>Weight:</span>
@@ -947,14 +1039,14 @@
                                     <span class="weight-label">Weight:</span>
                                     <div class="weight-dots">
                                         <div class="weight-dot filled"></div>
-                                        <div class="weight-dot"></div>
+                                        <div class="weight-dot filled"></div>
                                         <div class="weight-dot"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="prop-group outcomes">
                                 <div class="outcome-stat">
-                                    <span class="outcome-value success-high">63%</span>
+                                    <span class="outcome-value success-medium">53%</span>
                                     <span class="outcome-label">Success</span>
                                 </div>
                                 <div class="outcome-stat">
@@ -991,7 +1083,7 @@
                             </div>
                             <div class="prop-group outcomes">
                                 <div class="outcome-stat">
-                                    <span class="outcome-value success-high">83%</span>
+                                    <span class="outcome-value success-high">73%</span>
                                     <span class="outcome-label">Success</span>
                                 </div>
                                 <div class="outcome-stat">
@@ -1000,6 +1092,43 @@
                                 </div>
                             </div>
                             <div class="special-effect">Knowledge from earlier observation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mention the Guards (Observation) -->
+                <div class="dialog-option shadow opportunity will-vanish observation-card" onclick="toggleCard(this)" data-weight="1" data-comfort="2">
+                    <div class="observation-marker">From Market Square observation</div>
+                    <div class="option-content">
+                        <div class="option-text">
+                            "I saw Lord Blackwood's guards at the tavern earlier. They mentioned he's leaving for the capital at dawn. We need to reach him tonight."
+                        </div>
+                        <div class="option-properties">
+                            <div class="prop-group primary">
+                                <div class="card-identity">
+                                    <span class="tag type">Shadow</span>
+                                    <span class="tag persistence">⏱ Opportunity</span>
+                                </div>
+                                <div class="weight-indicator">
+                                    <span class="weight-label">Weight:</span>
+                                    <div class="weight-dots">
+                                        <div class="weight-dot filled"></div>
+                                        <div class="weight-dot"></div>
+                                        <div class="weight-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="prop-group outcomes">
+                                <div class="outcome-stat">
+                                    <span class="outcome-value success-high">63%</span>
+                                    <span class="outcome-label">Success</span>
+                                </div>
+                                <div class="outcome-stat">
+                                    <span class="outcome-value">+2</span>
+                                    <span class="outcome-label">Comfort</span>
+                                </div>
+                            </div>
+                            <div class="special-effect">Creates: Tense (urgent information)</div>
                         </div>
                     </div>
                 </div>
@@ -1112,7 +1241,7 @@
                 </div>
 
                 <!-- Deep Confession -->
-                <div class="dialog-option trust one-shot" onclick="toggleCard(this)" data-weight="4" data-comfort="4">
+                <div class="dialog-option trust one-shot" onclick="toggleCard(this)" data-weight="3" data-comfort="8">
                     <div class="option-content">
                         <div class="option-text">
                             "Elena, I need to tell you something. The reason I understand your situation so deeply... I've been in love with you for years. Seeing you forced into this marriage is tearing me apart."
@@ -1134,21 +1263,59 @@
                             </div>
                             <div class="prop-group outcomes">
                                 <div class="outcome-stat">
-                                    <span class="outcome-value success-low">23%</span>
+                                    <span class="outcome-value success-low">33%</span>
                                     <span class="outcome-label">Success</span>
                                 </div>
                                 <div class="outcome-stat">
-                                    <span class="outcome-value comfort-medium">+4</span>
+                                    <span class="outcome-value comfort-high">+8</span>
                                     <span class="outcome-label">Comfort</span>
                                 </div>
                             </div>
-                            <div class="special-effect">Wrong depth (-50% comfort) • Permanent</div>
+                            <div class="special-effect">Permanently removed after use</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calm Reassurance (State Changer) -->
+                <div class="dialog-option trust persistent state-changer" onclick="toggleCard(this)" data-weight="1" data-comfort="2">
+                    <div class="state-change-marker">State: Desperate → Anxious</div>
+                    <div class="option-content">
+                        <div class="option-text">
+                            "Elena, breathe. We have time. I'm here to help you. Let's think through this together - there's always a way."
+                        </div>
+                        <div class="option-properties">
+                            <div class="prop-group primary">
+                                <div class="card-identity">
+                                    <span class="tag type">Trust</span>
+                                    <span class="tag persistence">♻ Persistent</span>
+                                </div>
+                                <div class="weight-indicator">
+                                    <span class="weight-label">Weight:</span>
+                                    <div class="weight-dots">
+                                        <div class="weight-dot filled"></div>
+                                        <div class="weight-dot"></div>
+                                        <div class="weight-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="prop-group outcomes">
+                                <div class="outcome-stat">
+                                    <span class="outcome-value success-high">63%</span>
+                                    <span class="outcome-label">Success</span>
+                                </div>
+                                <div class="outcome-stat">
+                                    <span class="outcome-value">+2</span>
+                                    <span class="outcome-label">Comfort</span>
+                                </div>
+                            </div>
+                            <div class="special-effect">Changes emotional state</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Desperate Promise (Crisis) -->
                 <div class="dialog-option trust crisis" onclick="toggleCard(this)" data-weight="5" data-comfort="10">
+                    <div class="crisis-free-marker">FREE in Desperate state!</div>
                     <div class="option-content">
                         <div class="option-text">
                             "Elena, I swear on my life - I will get this letter to Lord Blackwood. Even if I have to fight through his guards, even if it costs me everything. You will not be forced into this marriage!"
@@ -1161,7 +1328,7 @@
                                 </div>
                                 <div class="weight-indicator">
                                     <span class="weight-label">Weight:</span>
-                                    <span style="color: #8b4726; font-size: 11px;">Ignores limit</span>
+                                    <span style="color: #8b4726; font-size: 11px;">0 (Free in Desperate!)</span>
                                 </div>
                             </div>
                             <div class="prop-group outcomes">
@@ -1174,7 +1341,7 @@
                                     <span class="outcome-label">Comfort</span>
                                 </div>
                             </div>
-                            <div class="special-effect">Ends conversation • Generates letter</div>
+                            <div class="special-effect">Ends conversation • Generates letter • State → Relieved</div>
                         </div>
                     </div>
                 </div>
@@ -1239,11 +1406,11 @@
         function toggleCard(card) {
             if (selectedAction !== 'speak') return;
             
+            const cardType = card.dataset.cardtype;
             const weight = parseInt(card.dataset.weight);
-            const isCrisis = card.classList.contains('crisis');
             
-            // Crisis cards must be played alone
-            if (isCrisis) {
+            // State cards must be played alone
+            if (cardType === 'state') {
                 selectedCards.clear();
                 document.querySelectorAll('.dialog-option').forEach(c => {
                     c.classList.remove('selected');
@@ -1253,14 +1420,32 @@
                 });
                 selectedCards.add(card);
                 card.classList.add('selected');
-                totalWeight = 0; // Crisis ignores weight
+                totalWeight = weight;
                 updateWeightDisplay();
                 updatePlayButton();
                 return;
             }
             
-            // Clear crisis selection if selecting non-crisis
-            if (document.querySelector('.dialog-option.crisis.selected')) {
+            // Crisis cards must be played alone
+            if (cardType === 'crisis') {
+                selectedCards.clear();
+                document.querySelectorAll('.dialog-option').forEach(c => {
+                    c.classList.remove('selected');
+                    if (c !== card) {
+                        c.classList.add('disabled');
+                    }
+                });
+                selectedCards.add(card);
+                card.classList.add('selected');
+                totalWeight = 0; // Crisis ignores weight in Desperate
+                updateWeightDisplay();
+                updatePlayButton();
+                return;
+            }
+            
+            // Clear state/crisis selection if selecting comfort card
+            if (document.querySelector('.dialog-option.state-card.selected') || 
+                document.querySelector('.dialog-option.crisis.selected')) {
                 selectedCards.clear();
                 totalWeight = 0;
                 document.querySelectorAll('.dialog-option').forEach(c => {
@@ -1268,7 +1453,7 @@
                 });
             }
             
-            // Handle normal cards
+            // Handle comfort cards (can combine)
             if (selectedCards.has(card)) {
                 selectedCards.delete(card);
                 card.classList.remove('selected');
@@ -1276,7 +1461,6 @@
             } else {
                 // Check weight limit
                 if (totalWeight + weight > WEIGHT_LIMIT) {
-                    // Can't add - would exceed limit
                     return;
                 }
                 selectedCards.add(card);
@@ -1284,12 +1468,21 @@
                 totalWeight += weight;
             }
             
-            // Update disabled states based on remaining weight
-            document.querySelectorAll('.dialog-option:not(.selected)').forEach(c => {
+            // Update disabled states for comfort cards
+            document.querySelectorAll('.dialog-option[data-cardtype="comfort"]:not(.selected)').forEach(c => {
                 const cardWeight = parseInt(c.dataset.weight);
                 if (totalWeight + cardWeight > WEIGHT_LIMIT) {
                     c.classList.add('disabled');
                 } else {
+                    c.classList.remove('disabled');
+                }
+            });
+            
+            // Disable state and crisis cards when comfort cards selected
+            document.querySelectorAll('.dialog-option[data-cardtype="state"], .dialog-option[data-cardtype="crisis"]').forEach(c => {
+                if (selectedCards.size > 0 && !selectedCards.has(c)) {
+                    c.classList.add('disabled');
+                } else if (!selectedCards.has(c)) {
                     c.classList.remove('disabled');
                 }
             });

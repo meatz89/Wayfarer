@@ -13,18 +13,11 @@ public class ContentFallbackService
     private readonly Dictionary<string, Location> _fallbackLocations = new();
     private readonly Dictionary<string, RouteOption> _fallbackRoutes = new();
     private readonly List<ContentFallbackEntry> _fallbackLog = new();
-    private readonly NPCRepository _npcRepository;
-    private readonly LocationRepository _locationRepository;
-    private readonly RouteRepository _routeRepository;
+    private readonly GameWorld _gameWorld;
 
-    public ContentFallbackService(
-        NPCRepository npcRepository,
-        LocationRepository locationRepository,
-        RouteRepository routeRepository)
+    public ContentFallbackService(GameWorld gameWorld)
     {
-        _npcRepository = npcRepository;
-        _locationRepository = locationRepository;
-        _routeRepository = routeRepository;
+        _gameWorld = gameWorld;
     }
 
     /// <summary>
@@ -33,8 +26,8 @@ public class ContentFallbackService
     /// </summary>
     public NPC GetOrCreateFallbackNPC(string npcId)
     {
-        // First check if real NPC exists
-        NPC realNpc = _npcRepository.GetById(npcId);
+        // First check if real NPC exists in GameWorld
+        NPC realNpc = _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.ID == npcId);
         if (realNpc != null)
         {
             return realNpc;
@@ -61,7 +54,7 @@ public class ContentFallbackService
 
         // Register the fallback
         _fallbackNPCs[npcId] = fallbackNpc;
-        _npcRepository.AddNPC(fallbackNpc);
+        // Note: We can't add to GameWorld NPCs directly during runtime
 
         // Log the fallback creation
         LogFallback(ContentType.NPC, npcId, "NPC referenced but not defined in npcs.json");
@@ -74,8 +67,8 @@ public class ContentFallbackService
     /// </summary>
     public Location GetOrCreateFallbackLocation(string locationId)
     {
-        // First check if real location exists
-        Location realLocation = _locationRepository.GetLocation(locationId);
+        // First check if real location exists in GameWorld
+        Location realLocation = _gameWorld.WorldState.locations?.FirstOrDefault(l => l.Id == locationId);
         if (realLocation != null)
         {
             return realLocation;

@@ -1,54 +1,226 @@
 # Wayfarer Conversation System Design
 
 ## Core Concept
-Each NPC owns a conversation deck representing their personality, experiences, and relationship with the player. Players navigate these decks through strategic listening and speaking, building comfort to unlock letters and deepen relationships. The system uses a Listen/Speak dichotomy inspired by Jaipur, creating clear decision points each turn.
+Each NPC owns a conversation deck representing their personality, experiences, and relationship with the player. Players navigate these decks through strategic listening and speaking, building comfort to unlock letters and deepen relationships. The system uses a Listen/Speak dichotomy creating clear decision points each turn, with emotional states as the dynamic element affecting all interactions.
 
 ## The Core Loop
 
 ### Each Turn (Costs 1 Patience)
 Players make ONE choice:
 
-1. **LISTEN**: Draw 2 cards from NPC deck into hand
-   - Opportunity cards in hand vanish (moments pass)
-   - Persistent cards remain
-   - Gain information but lose fleeting moments
+1. **LISTEN**: Effects vary by emotional state
+   - ALL Opportunity cards currently in hand vanish (moments pass)
+   - Draw X cards based on state (1-3)
+   - State may transition (usually toward Neutral)
+   - Persistent cards remain in hand
 
-2. **SPEAK**: Play cards from hand with restrictions
+2. **SPEAK**: Play cards from hand with state-based restrictions
+   - **Weight Limit**: Varies by state (1-4)
    - **Coherent Expression**: Unlimited cards of SAME type (get set bonus)
    - **Scattered Thoughts**: Up to 2 cards of MIXED types (no bonus)
-   - **Weight Limit**: Total emotional weight ≤ 7
    - **Special Rules**: Crisis cards must be played alone
    - Each card rolls for success individually
 
 ### Why This Works
 - Binary choice creates clear decisions
-- Listen vs Speak models conversation rhythm
-- Hand limit (7) represents mental capacity
-- Patience as turns creates time pressure
+- States modify both actions differently
+- Listen manages emotional space, not just card draw
+- Weight limit of 3 (normal) forces selective expression
 - Opportunity cards create meaningful trade-offs
+
+## Emotional State System
+
+### The Central Dynamic
+NPC emotional state is THE core system element. Each state defines:
+1. **LISTEN effect** - How many cards drawn (1-3)
+2. **SPEAK constraint** - Weight limit for that turn (1-4)
+3. **LISTEN transition** - How state changes when listening
+
+### 9 Core Emotional States
+
+**NEUTRAL** (Default)
+- LISTEN: Draw 2 cards
+- SPEAK: Weight limit 3
+- LISTEN→ Stays Neutral
+
+**GUARDED** 
+- LISTEN: Draw 1 card
+- SPEAK: Weight limit 2
+- LISTEN→ Neutral
+
+**OPEN**
+- LISTEN: Draw 3 cards
+- SPEAK: Weight limit 3
+- LISTEN→ Stays Open
+
+**CONNECTED** (Pinnacle state)
+- LISTEN: Draw 3 cards
+- SPEAK: Weight limit 4
+- LISTEN→ Stays Connected
+- Special: Depth advances automatically at turn end
+
+**TENSE**
+- LISTEN: Draw 1 card
+- SPEAK: Weight limit 1
+- LISTEN→ Guarded
+
+**EAGER**
+- LISTEN: Draw 3 cards
+- SPEAK: Playing 2+ same-type cards gets +3 comfort bonus
+- LISTEN→ Stays Eager
+
+**OVERWHELMED**
+- LISTEN: Draw 1 card
+- SPEAK: Maximum 1 card only
+- LISTEN→ Neutral
+
+**DESPERATE** (Crisis state)
+- LISTEN: Draw 2 cards + inject 1 crisis card
+- SPEAK: Crisis cards cost 0 weight
+- LISTEN→ Hostile (escalates!)
+
+**HOSTILE** 
+- Cannot converse until resolved
+- Requires special action or time to clear
+
+### State Paths
+States form emotional journeys:
+- **Negative Journey**: Tense → Guarded → Neutral
+- **Positive Journey**: Neutral → Open → Connected  
+- **Crisis Journey**: Desperate → Hostile
+- **Recovery Journey**: Overwhelmed → Neutral
+
+### Why States Matter
+- No percentages or modifiers - only clear binary effects
+- States tell emotional story of conversation
+- Managing states often more important than comfort
+- Depth can only advance in: Neutral, Open, Connected
 
 ## Starting a Conversation
 
+### Standard Start
 1. **Cost**: 1 attention point to initiate
 2. **Starting Patience**: Base (8-15) + Trust bonus - Emotional penalties = Turns available
-3. **Starting Hand**: Draw 3 cards
-4. **Starting State**: Usually Neutral (may vary based on NPC emotion)
+3. **Starting Hand**: Draw 3 cards from NPC deck + Any relevant observation cards
+4. **Starting State**: Based on NPC emotional condition
 5. **Starting Depth**: 0 (Surface level)
+
+### Starting Hand with Observations
+- Base: 3 cards drawn from NPC deck
+- Plus: Any observation cards relevant to this NPC
+- If total starting hand > 7: Hand overflow occurs
+- Each observation is ONE-USE - consumed when converted to card
+
+### Hand Overflow Rules
+When starting hand exceeds 7 cards:
+- **Forced SPEAK**: Must SPEAK on turn 1 (cannot LISTEN)
+- **Narrative**: Represents urgency to share information
+- **Strategic**: Creates unique opening when heavily prepared
+
+## Observation System Integration
+
+### How Observations Become Cards
+
+1. **Location Phase**: 
+   - Spend 1 attention to observe something specific
+   - Creates "observation token" - knowledge possessed
+   - Each observation shows which NPCs would care
+
+2. **Conversation Start**:
+   - Relevant observations convert to Opportunity cards
+   - Added to starting hand automatically
+   - Marked as "From [Location] observation"
+   - Always Opportunity type (will vanish if not used)
+
+3. **Usage**:
+   - Play like any other card (subject to weight limit)
+   - Some observations create states when played
+   - Once played or vanished, observation is consumed
+   - Cannot be used in future conversations
+
+### Example Flow
+```
+Market Square: Observe "Guards blocking north road" (-1 attention)
+→ Start conversation with Elena
+→ Starting hand: 3 drawn cards + 1 observation card = 4 total
+→ Observation card is Opportunity (fleeting)
+→ Playing it creates Tense state (urgent information)
+→ If you LISTEN instead, observation vanishes forever
+```
+
+### Why No Peripheral Vision
+- Conversations require focus - can't observe while engaging
+- Observations are memories brought IN, not things noticed DURING
+- Attention and patience are separate resources with distinct uses
+- Maintains clean binary choice: LISTEN or SPEAK
+
+## Card Types - Separation of Purpose
+
+### Three Distinct Card Types
+
+**1. Comfort Cards**
+- Primary purpose: Build comfort
+- CAN combine with other comfort cards
+- Get set bonuses for same type
+- NEVER change state
+- Success/Failure only affects comfort amount
+
+**2. State Cards**
+- Primary purpose: Change emotional state
+- MUST be played alone
+- NO comfort gain (or minimal)
+- Success/Failure determines state change
+- Clearly marked as "STATE CARD"
+
+**3. Crisis Cards**
+- Emergency actions
+- MUST be played alone
+- Ignore weight limits
+- Free to play in Desperate/Panicked states
+- Often end conversation
+
+### Why This Separation Works
+- No conflicts possible - state cards can't combine
+- Clear purpose for each card type
+- Strategic choice: comfort within state OR change state
+- Matches real conversation dynamics
 
 ## Card Anatomy
 
+### Comfort Cards (Most common)
 ```
-Card Name [Rarity: Common/Uncommon/Rare/Legendary]
-Type: Trust/Commerce/Status/Shadow/Neutral
-Persistence: Persistent/Opportunity/One-shot/Burden/Crisis
-Emotional Weight: 0-5 (affects success chance, not playability)
-Optimal Depth: 0-3 (best effectiveness level)
+Card Name
+Type: Trust/Commerce/Status/Shadow
+Persistence: Persistent/Opportunity/One-shot/Burden
+Weight: 0-3
 
-Effect:
-- Comfort: +X (base value)
-- Special: [Create state/Generate letter/Obligation/etc.]
+Effects:
+- Success: +X comfort
+- Failure: +Y comfort (less)
+```
 
-Success Rate = 70% - (Weight × 10%) - (20% if wrong depth) + State bonus + Status bonus
+### State Cards (Rare, powerful)
+```
+Card Name [STATE CARD]
+Type: Trust/Commerce/Status/Shadow  
+Persistence: Usually Persistent
+Weight: 1-2 (must fit in constrained states)
+
+Effects:
+- Success: [State A] → [State B]
+- Failure: No state change
+```
+
+### Crisis Cards (Emergency)
+```
+Card Name [CRISIS]
+Type: Usually Trust
+Persistence: Crisis
+Weight: 5+ (but free in crisis states)
+
+Effects:
+- Success: Major effect (letter, obligation, etc.)
+- Failure: Negative consequence + state change
 ```
 
 ## Card Persistence Types
@@ -59,9 +231,10 @@ Success Rate = 70% - (Weight × 10%) - (20% if wrong depth) + State bonus + Stat
 - Always available fallbacks
 
 ### Opportunity
-- **Vanishes if you Listen** (moment passes)
-- Time-sensitive topics, emotional openings
+- **Vanishes if you LISTEN** (ALL Opportunities in hand disappear)
+- Time-sensitive topics, emotional openings, observations
 - Creates tension between drawing and playing
+- Observation cards are ALWAYS this type
 
 ### One-shot
 - Stays in hand if not played (too important to vanish)
@@ -74,23 +247,47 @@ Success Rate = 70% - (Weight × 10%) - (20% if wrong depth) + State bonus + Stat
 - Clogs hand until played and resolved
 
 ### Crisis
-- Only appears when NPC is desperate
-- Often costs extreme amounts (all remaining patience)
-- Can break normal rules
+- Only appears when NPC is desperate/panicked
+- Ignores weight limit completely
+- Often ends conversation immediately
+- FREE to play in Desperate/Panicked states
 
-## Emotional Weight System
+## Weight System
 
-Weight represents how emotionally difficult something is to express:
-- **Weight 0**: Trivial (nod, small talk) - No penalty
-- **Weight 1**: Light (casual stories) - -10% success
-- **Weight 2**: Moderate (personal shares) - -20% success
-- **Weight 3**: Heavy (deep feelings) - -30% success
-- **Weight 4**: Intense (confessions) - -40% success
-- **Weight 5**: Overwhelming (desperate pleas) - -50% success
+### Weight Limits by State
+Weight represents emotional bandwidth. Total weight per SPEAK action cannot exceed state limit:
+- **Tense**: Weight limit 1
+- **Guarded/Wary/Anxious/Reflecting**: Weight limit 2
+- **Neutral/Open**: Weight limit 3
+- **Connected**: Weight limit 4 (exceptional)
+- **Overwhelmed**: Maximum 1 card regardless of weight
+- **Desperate**: Crisis cards cost 0 weight
 
-Weight is NOT a cost - all cards are playable regardless of weight.
+### Weight Values
+- **Weight 0**: Trivial (nod, small talk)
+- **Weight 1**: Light (casual stories)
+- **Weight 2**: Moderate (personal shares)
+- **Weight 3**: Heavy (deep feelings)
 
-## Depth System
+### Why Weight 3 Maximum (Normal)
+- Forces genuine choice between options
+- One heavy statement OR two light ones OR three trivial
+- Represents realistic emotional bandwidth
+- Prevents "dump hand" strategies
+
+## Success Calculation
+
+```
+Base Success Rate = 70%
+- (Weight × 10%)
++ (Status tokens × 3%)
+
+Minimum: 10%, Maximum: 95%
+```
+
+Simple, clear, no hidden modifiers. States don't affect success rates - they affect what's possible.
+
+## Depth System (Simplified)
 
 ### Depth Levels
 - **Depth 0**: Surface (small talk, pleasantries)
@@ -98,23 +295,22 @@ Weight is NOT a cost - all cards are playable regardless of weight.
 - **Depth 2**: Intimate (deep connection)
 - **Depth 3**: Soul-deep (profound moments)
 
-### Optimal Depth vs Current Depth
-- **At optimal depth**: Full comfort reward
-- **Below optimal**: -50% comfort (too intimate too soon)
-- **Above optimal**: -25% comfort (too shallow for connection)
-
-Cards are NEVER locked by depth - you can always attempt them.
-
 ### Depth Progression
-Depth advances when:
-- Playing resonant cards in positive states
-- Achieving breakthrough moments (comfort 10+ in single turn)
-- Special card effects
+Depth can ONLY advance in positive states:
+- **Neutral**: Can advance with breakthrough (10+ comfort single turn)
+- **Open**: Can advance normally
+- **Connected**: Advances automatically each turn
 
 Depth decreases when:
-- Playing severely mismatched cards
-- Major failures on high-weight cards
-- Negative state transitions
+- Conversation ends below 5 comfort
+- Major failures on heavy cards
+- Certain state transitions
+
+### No Depth Requirements
+Cards don't have depth requirements or penalties. Depth affects:
+- Which cards appear in draws
+- Comfort thresholds for letters
+- Narrative framing
 
 ## Set Bonuses and Expression Types
 
@@ -123,64 +319,24 @@ Playing multiple cards of the SAME type in one SPEAK action:
 - **1 card**: Base comfort only
 - **2 same type**: +2 comfort bonus
 - **3 same type**: +5 comfort bonus
-- **4+ same type**: +8 comfort bonus
-- No limit on number if all same type (weight permitting)
+- **4+ same type**: +8 comfort bonus (rare with weight limits)
 
 ### Scattered Expression (Mixed Types)
-Playing cards of DIFFERENT types:
 - Maximum 2 cards when mixing types
 - No set bonus
-- Represents unfocused thoughts
 - Still subject to weight limit
 
-### Weight Limit
-Total emotional weight per SPEAK action cannot exceed 7:
-- Prevents emotional overload
-- Crisis cards ignore this limit
-- Represents conversational capacity
-
-## Conversation States
-
-One state active at a time, affecting the conversation's emotional climate.
-
-### Positive States
-- **Open**: Trust cards resonate, can advance depth
-- **Warm**: All weights -1 (easier expression)
-- **Vulnerable**: Double comfort or nothing (high risk/reward)
-- **Professional**: Commerce/Status cards resonate
-
-### Negative States
-- **Guarded**: All comfort -2, cannot advance depth
-- **Tense**: All weights +1, cannot advance depth
-
-### Special State Interactions
-- **Desperate NPCs**: More cards become Opportunities
-- **Vulnerable state**: Most cards become fleeting
-- States can modify card persistence
-
-## Success Calculation
-
-```
-Base Success Rate = 70%
-- (Weight × 10%)
-- 20% if not at optimal depth
-+ 10% if card resonates with state
-- 10% if card conflicts with state
-+ (Status tokens × 3%)
-+ Special modifiers
-
-Minimum: 10%, Maximum: 95%
-```
-
-Players see exact percentages before committing.
+### Special Bonuses
+- **Eager state**: +3 bonus for playing 2+ same type
+- **Connected state**: All comfort gains +2
 
 ## Comfort System
 
 ### Building Comfort
 - Accumulates through successful card plays
 - Set bonuses multiply effectiveness
-- State modifiers apply after base calculation
-- Some cards give comfort even on failure
+- Some states modify comfort (Connected: +2 all gains)
+- Cards show base comfort value only
 
 ### Comfort Thresholds
 - **5 comfort**: Relationship maintained (+1 token)
@@ -188,20 +344,6 @@ Players see exact percentages before committing.
 - **15 comfort**: Strong connection (+2 tokens)
 - **20 comfort**: Perfect conversation (special rewards)
 - **Below 5**: Relationship strains (-1 token)
-
-## Hand Management
-
-### Hand Limit: 7 Cards
-- Represents conversational working memory
-- Cannot draw beyond 7
-- Must play or Listen choices become forced
-- Burden cards count against limit
-
-### Drawing Strategy
-- Listen gives 2 cards but Opportunities vanish
-- More cards enable better sets
-- Risk of losing crucial moments
-- Must balance information vs action
 
 ## Token System
 
@@ -229,7 +371,7 @@ Players see exact percentages before committing.
 - Added to deck at Trust/Commerce/Status 3, 5, 7
 - Must achieve comfort threshold in conversation
 - One letter maximum per conversation
-- Type matches dominant relationship
+- Letter cards are Persistent (don't vanish)
 
 ## NPC Personalities
 
@@ -240,11 +382,12 @@ Players see exact percentages before committing.
 - **Cunning** (spies): 10-12 patience, Shadow-focused
 - **Steadfast** (workers): 11-13 patience, balanced
 
-### Emotional States
-- **Desperate** (<6 hours on letter): -3 patience, crisis cards appear, more Opportunities
-- **Anxious** (6-12 hours): -1 patience, starts Tense
+### Emotional Conditions
+Based on letter deadlines:
+- **Desperate** (<6 hours): Starts in Desperate state
+- **Anxious** (6-12 hours): Starts in Anxious state
 - **Hostile** (failed letter): Cannot converse
-- **Neutral**: Normal patience and cards
+- **Neutral** (no urgency): Starts in personality default
 
 ## Deck Evolution
 
@@ -256,30 +399,30 @@ Players see exact percentages before committing.
 
 ### Deck Growth (max 25 cards)
 - Letter delivery adds powerful cards
-- Observations add Opportunity cards
+- Only special "state changer" cards manipulate states
+- Most cards just provide weight + comfort + type
 - Failures add Burden cards
 - Perfect conversations transform negatives
 
-### Deck Curation
-When at maximum, must replace cards to add new ones, forcing relationship shaping.
+### Card Design Philosophy
+- **Most cards are simple**: Weight, comfort, type only
+- **State changers are rare**: Clear markers, specific effects
+- **No complex requirements**: All cards always playable
+- **No percentages on cards**: Just weight and comfort
 
 ## Drawing and Card Generation
 
 ### Standard Listen Action
-When choosing LISTEN, draw 2 cards:
-- Random from NPC deck
-- Filtered by current depth:
-  - Depth 0: Draw from depth 0-1 cards
-  - Depth 1: Draw from depth 0-2 cards
-  - Depth 2+: Draw from any depth
-- Opportunity cards in hand vanish first
+When choosing LISTEN:
+1. ALL Opportunities in hand vanish first
+2. Draw X cards based on current state (1-3)
+3. State may transition based on state rules
+4. Exception: Reflecting state preserves Opportunities
 
 ### Special Card Injection
-Certain triggers add cards DIRECTLY to hand (bypassing Listen):
-- **NPC becomes desperate**: 1-2 crisis cards inject to hand
-- **Player observation**: Relevant card injects to hand
-- **Emotional breakthrough**: Special cards may inject
-- Can cause hand overflow (>7 cards), forcing immediate Speak
+- **Desperate state**: Injects 1 crisis card when listening
+- **Panicked state**: Injects 2 crisis cards when listening
+- **Observations**: Added to starting hand only
 
 ### Deck Management
 - **No reshuffling** during conversation
@@ -293,101 +436,126 @@ Certain triggers add cards DIRECTLY to hand (bypassing Listen):
 If deck runs out:
 - Can only play from hand
 - Listen action draws nothing
-- Conversation naturally concludes soon
+- Conversation naturally concludes
 
-## Observation Integration
+## State Manipulation
 
-When players observe events in the world:
-- Cards inject DIRECTLY to hand (not deck)
-- Usually Opportunity type (time-sensitive)  
-- "Mention the guards" only relevant now
-- Can cause hand overflow, forcing quick decisions
-- Creates immediate conversational pressure
+### How States Change
 
-## Special Card Restrictions
+**Through Listening**:
+Each state has defined transition when listening
+- Negative states gradually relax toward Neutral
+- Positive states often maintain
+- Crisis states escalate if ignored (Desperate → Hostile)
 
-### Crisis Cards
-- Must be played alone (cannot combine)
-- Ignore weight limits
-- Often end conversation immediately
-- Represent desperate moments
+**Through State Cards**:
+Only STATE CARDS can change states when speaking
+- Must be played alone
+- Success changes state as specified
+- Failure maintains current state
+- Clearly marked to avoid confusion
 
-### One-Shot Cards  
-- Maximum one per SPEAK action
-- Too important to rush
-- Cannot combine with crisis cards
-- Permanently removed after playing
+Example State Cards:
+```
+"Calm Reassurance" [STATE CARD]
+Success: Desperate → Tense
+Failure: No change
 
-### Burden Cards
-- Can be mixed with regular cards
-- Add awkwardness to expression
-- Must be resolved eventually
-- Count toward weight limit
+"Break the Ice" [STATE CARD]
+Success: Guarded → Neutral
+Failure: No change
+
+"Share Vulnerability" [STATE CARD]
+Success: Open → Connected
+Failure: Current → Guarded
+```
+
+**State Cards Cannot Combine**:
+This prevents conflicts - you either:
+- Play comfort cards to build within current state
+- Play one state card to shift emotional landscape
+- Never both simultaneously
+
+### State Strategy
+- Sometimes worth spending turns to clear negative states
+- State cards are precious - limited in deck
+- Crisis states demand immediate attention
+- Connected state is pinnacle but fragile
 
 ## Example Turn Flow
 
-**Elena Conversation (Trust 4, Desperate, Depth 1)**
+**Elena Conversation (Desperate state, 3 cards in hand)**
 
-Starting: 5 patience (turns remaining)
+Starting patience: 5 turns
+Starting state: Desperate (draw 2 + crisis, crisis free, listen worsens)
 
-**Hand**: 3 Trust Opportunities (weight 2 each), 1 Persistent (weight 0), 1 One-shot (weight 4), 1 Crisis (weight 5)
+**Hand**: 
+- "Promise to Help" - Trust Comfort Card (weight 2)
+- "Calm Reassurance" - Trust State Card (weight 1)
+- "Desperate Promise" - Trust Crisis Card (weight 5, but FREE in Desperate)
 
-**Turn 5 Decision**:
-- **Listen**: Lose 3 Opportunities, draw 2 new cards
-- **Speak**: Play cards within restrictions
+**Turn 1 Decision**:
+- **Listen**: Draw 2 + crisis injection, state → Hostile (worsens!)
+- **Speak**: Choose card type strategy
 
-**Option A - Coherent Expression**: 
-Play 3 Trust cards (same type, total weight 6 ≤ 7):
-- Card 1: Weight 2, 50% success → Success! +4 comfort
-- Card 2: Weight 2, 50% success → Success! +4 comfort  
-- Card 3: Weight 2, 50% success → Fail, +1 comfort
-- Set bonus: +5 comfort
-- Total: 14 comfort (letter threshold reached!)
+**Option A - Crisis Resolution**:
+Play "Desperate Promise" alone (crisis card, free in Desperate):
+- Success (43%): Letter generated, conversation ends
+- Failure (57%): +5 comfort, state → Hostile
 
-**Option B - Crisis**:
-Play Crisis card alone (ignores weight limit):
-- Weight 5, 45% success → Success! 
-- Generates letter immediately
-- Conversation ends
+**Option B - State Management**:
+Play "Calm Reassurance" alone (state card):
+- Success (63%): State → Tense (improved!)
+- Failure (37%): State stays Desperate
 
-**Option C - Mixed Expression**:
-Play 1 Trust + 1 Persistent (mixed, max 2 cards):
-- No set bonus
-- Lower comfort gain
-- Preserves other Opportunities
+**Option C - Comfort Building**:
+Play "Promise to Help" alone (comfort card):
+- Success (53%): +4 comfort
+- Failure (47%): +1 comfort
+- State remains Desperate
+
+**Cannot Combine**:
+- State cards must be alone (no combining)
+- Crisis cards must be alone (no combining)
+- Only comfort cards can combine with each other
+
+**Strategic Consideration**:
+- Crisis card is risky but immediate solution
+- State card improves situation for future turns
+- Comfort card builds toward threshold but doesn't address crisis
 
 ## Design Philosophy
 
 ### Mechanical Elegance
 - One choice per turn (Listen or Speak)
-- All cards always playable
-- Weight affects difficulty, not availability
-- Depth affects effectiveness, not access
-- No complex state tracking
+- States create the dynamic element
+- Weight limits by state, not math
+- Cards are simple: weight + comfort + type
+- No hidden requirements or modifiers
 
 ### Verisimilitude
-- Can attempt anything anytime (like real conversation)
-- Heavier topics harder to land
-- Mistimed intimacy backfires
-- Some moments are fleeting
-- Time pressure from limited turns
+- Emotional states affect everything naturally
+- Can attempt anything (weight permitting)
+- Some moments are fleeting (Opportunities)
+- Limited emotional bandwidth (weight limits)
+- Listening gives space, speaking uses it
 
 ### Player Experience
 - Clear decisions with visible consequences
-- Discovery through deck exploration
-- Tension from vanishing Opportunities
-- Satisfaction from successful sets
-- Recovery possible from failures
+- State management as strategic layer
+- Observation rewards exploration
+- Crisis moments demand attention
+- Recovery always possible
 
-## Key Differences from Traditional Systems
+## Key Innovations
 
 ### What Makes This Unique
-1. **Listen/Speak Dichotomy**: Not playing cards one by one, but choosing to gather or express
-2. **Persistence Types**: Cards that vanish create temporal pressure
-3. **Weight Not Cost**: Emotional burden affects success, not playability
-4. **All Cards Playable**: No dead draws, only suboptimal timing
-5. **Turns Not Points**: Patience is time remaining, not spent per card
-6. **Extended Expression**: Multiple cards = one coherent statement
+1. **Card Type Separation**: Comfort cards build rapport, state cards shift emotions, crisis cards handle emergencies - never mixing purposes
+2. **State-Based Everything**: 9 distinct emotional states that affect all aspects of conversation
+3. **Listen as State Management**: Not just drawing cards but managing emotional space through defined transitions
+4. **No State Conflicts**: State cards must be played alone, structurally preventing conflicts
+5. **Crisis Escalation**: Ignoring desperate situations makes them worse (Desperate → Hostile)
+6. **Binary Effects Only**: No percentages or modifiers, just clear state-based rules
 
 ### Why It Works
-The system models real conversation: sometimes you listen to understand better, sometimes you express yourself fully. Moments pass if not seized. Heavy topics are always attemptable but harder to land. Time is limited. Every choice matters, but nothing is ever impossible.
+The system models real conversation through mechanical state. You either work within the current emotional context (comfort cards) OR carefully shift the mood (state cards) - never both simultaneously. Emotional states create complete conversational dynamics - someone Guarded shares less (draw 1) and handles less (weight limit 2). Managing emotional space through listening is as strategic as what you say. Crisis situations demand singular focus. Every conversation becomes a unique emotional journey with clear, predictable rules.

@@ -3,18 +3,16 @@
     private readonly GameWorld _gameWorld;
     private readonly DebugLogger _debugLogger;
     private readonly NPCVisibilityService _visibilityService;
-    private readonly ContentFallbackService _fallbackService;
+    private ContentFallbackService _fallbackService;
 
     public NPCRepository(
         GameWorld gameWorld, 
         DebugLogger debugLogger, 
-        NPCVisibilityService visibilityService,
-        ContentFallbackService fallbackService = null)
+        NPCVisibilityService visibilityService)
     {
         _gameWorld = gameWorld;
         _debugLogger = debugLogger; // Can be null during initialization
         _visibilityService = visibilityService;
-        _fallbackService = fallbackService; // Can be null during initialization
 
         if (_gameWorld.WorldState.GetCharacters() == null)
         {

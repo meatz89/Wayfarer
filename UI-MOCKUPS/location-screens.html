@@ -225,6 +225,34 @@
             border-radius: 2px;
         }
 
+        .npc-conversation-preview {
+            font-size: 11px;
+            padding: 6px 10px;
+            background: #fefaf0;
+            border-left: 2px solid #d4a76a;
+            border-radius: 2px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .preview-label {
+            color: #7a6250;
+            font-weight: bold;
+        }
+
+        .preview-state {
+            color: #8b4726;
+            font-weight: bold;
+        }
+
+        .preview-effect {
+            color: #7a6250;
+            font-style: italic;
+        }
+
         .npc-observations {
             font-size: 11px;
             color: #7a8b5a;
@@ -720,10 +748,10 @@
                 <div class="section-header">Observations Available</div>
                 <div class="observation-note">Knowledge gained here becomes conversation ammunition. Each observation converts to an Opportunity card when talking to relevant NPCs.</div>
                 <div class="observation-item">
-                    <span class="observation-text">Watch the crowd's movement patterns</span>
+                    <span class="observation-text">Notice guard checkpoint ahead</span>
                     <span class="observation-details">
                         <span class="observation-cost">1 attention</span>
-                        <span class="observation-relevance">→ Elena, Marcus</span>
+                        <span class="observation-relevance">→ Elena (Tense)</span>
                     </span>
                 </div>
                 <div class="observation-item">
@@ -733,23 +761,10 @@
                         <span class="observation-relevance">→ Marcus, Bertram</span>
                     </span>
                 </div>
-                <div class="observation-item">
-                    <span class="observation-text">Study the herald's mannerisms</span>
-                    <span class="observation-details">
-                        <span class="observation-cost">1 attention</span>
-                        <span class="observation-relevance">→ Lord Aldric</span>
-                    </span>
-                </div>
                 <div class="observation-item observed">
                     <span class="observation-text">✓ Guards blocking north road</span>
                     <span class="observation-details">
-                        <span class="observation-status">Ready for: Elena</span>
-                    </span>
-                </div>
-                <div class="observation-item observed">
-                    <span class="observation-text">✓ Marcus heading to his stall</span>
-                    <span class="observation-details">
-                        <span class="observation-status">Ready for: Elena</span>
+                        <span class="observation-status">Ready: Elena (creates Tense)</span>
                     </span>
                 </div>
             </div>
@@ -816,8 +831,13 @@
                 <div class="npc-description">
                     Clutching a sealed letter with white knuckles, her eyes darting to the door with each patron's entrance.
                 </div>
+                <div class="npc-conversation-preview">
+                    <span class="preview-label">If approached:</span>
+                    <span class="preview-state">Desperate state</span>
+                    <span class="preview-effect">• Crisis cards free • Draw 2 + crisis • Listen worsens</span>
+                </div>
                 <div class="npc-observations">
-                    Your observations: Guards blocking north road • Marcus's schedule
+                    Your observation ready: Guards blocking north (creates Tense)
                 </div>
                 <div class="npc-action">Approach Her Table</div>
             </div>
