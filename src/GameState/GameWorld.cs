@@ -31,8 +31,6 @@ private Player Player;
 public WorldState WorldState { get; private set; }
 public StreamingContentState StreamingContentState { get; private set; }
 
-public AIResponse CurrentAIResponse { get; set; }
-public bool IsAwaitingAIResponse { get; set; }
 public int DeadlineDay { get; set; }
 public string DeadlineReason { get; set; }
 public Guid GameInstanceId { get; set; }

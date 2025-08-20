@@ -1,4 +1,4 @@
-﻿using Wayfarer.GameState;
+﻿
 
 public static class ServiceConfiguration
 {

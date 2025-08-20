@@ -1,5 +1,3 @@
-namespace Wayfarer.Services;
-
 /// <summary>
 /// Calculates the time impact of actions including deadline effects
 /// </summary>

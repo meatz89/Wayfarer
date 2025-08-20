@@ -5,8 +5,7 @@
 
     public StrategicTag(
         string name,
-        ILocationProperty environmentalProperty,
-        LocationPropertyEffect environmentalPropertyEffect)
+        ILocationProperty environmentalProperty)
     {
         NarrativeName = name;
         EnvironmentalProperty = environmentalProperty;

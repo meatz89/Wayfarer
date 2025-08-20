@@ -306,3 +306,4 @@ public class DailyActivityResult
     public bool HasEvents => ExpiredLetterCount > 0 || ForcedLetterCount > 0 ||
                             NewLetterCount > 0 || UrgentLetterCount > 0 || PatronLetterCount > 0;
 }
+}

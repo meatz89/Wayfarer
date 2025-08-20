@@ -46,12 +46,12 @@ public List<ScheduleEntry> DailySchedule { get; set; } = new List<ScheduleEntry>
 private List<RouteOption> _knownRoutes = new List<RouteOption>();
 
 // Conversation deck - each NPC has unique cards representing shared history
-public NPCDeck ConversationDeck { get; set; }
+public CardDeck ConversationDeck { get; set; }
 
 // Initialize deck when NPC is created
 public void InitializeConversationDeck(NPCDeckFactory deckFactory)
 {
-    ConversationDeck ??= deckFactory.CreateDeck(ID, PersonalityType);
+    ConversationDeck ??= deckFactory.CreateDeckForNPC(this);
 }
 
 // Helper methods for UI display

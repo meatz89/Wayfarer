@@ -9,7 +9,7 @@ public class GameUIBase : ComponentBase
     [Inject] public ITimeManager TimeManager { get; set; }
     [Inject] public LoadingStateService LoadingStateService { get; set; }
     [Inject] public FlagService FlagService { get; set; }
-    [Inject] public Wayfarer.Services.NavigationCoordinator NavigationCoordinator { get; set; }
+    [Inject] public NavigationCoordinator NavigationCoordinator { get; set; }
 
     // Navigation state now managed by NavigationCoordinator
     public CurrentViews CurrentView => NavigationCoordinator?.CurrentView ?? CurrentViews.LocationScreen;

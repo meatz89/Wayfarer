@@ -22,7 +22,7 @@ public class CardDeck
     /// <summary>
     /// Initialize deck for an NPC based on personality
     /// </summary>
-    public void InitializeForNPC(NPC npc, NPCRelationshipTracker relationshipTracker)
+    public void InitializeForNPC(NPC npc, TokenMechanicsManager tokenManager)
     {
         cards.Clear();
         discardPile.Clear();
@@ -34,8 +34,8 @@ public class CardDeck
         AddPersonalityCards(npc.Personality);
 
         // Add relationship cards based on current tokens
-        var relationship = relationshipTracker.GetRelationship(npc.ID);
-        AddRelationshipCards(relationship);
+        var tokens = tokenManager.GetTokensWithNPC(npc.ID);
+        AddRelationshipCards(tokens);
 
         // Add one mild burden for narrative tension
         AddInitialBurden();
@@ -213,10 +213,10 @@ public class CardDeck
         }
     }
 
-    private void AddRelationshipCards(NPCConnectionTokens relationship)
+    private void AddRelationshipCards(Dictionary<ConnectionType, int> tokens)
     {
         // Add cards based on relationship depth
-        if (relationship.Trust >= 3)
+        if (tokens != null && tokens.TryGetValue(ConnectionType.Trust, out int trustTokens) && trustTokens >= 3)
         {
             cards.Add(new ConversationCard
             {
@@ -230,7 +230,7 @@ public class CardDeck
             });
         }
 
-        if (relationship.Commerce >= 3)
+        if (tokens != null && tokens.TryGetValue(ConnectionType.Commerce, out int commerceTokens) && commerceTokens >= 3)
         {
             cards.Add(new ConversationCard
             {
