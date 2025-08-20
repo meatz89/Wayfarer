@@ -1,92 +1,87 @@
 ﻿using System.Collections.Generic;
-using Wayfarer.Game.MainSystem;
 
-namespace Wayfarer.UIHelpers
-{
 
 public static class StyleHelper
 {
-    public static List<PropertyDisplay> GetSpotProperties(Location location, LocationSpot spot)
+public static List<PropertyDisplay> GetSpotProperties(Location location, LocationSpot spot)
+{
+    List<PropertyDisplay> properties = new List<PropertyDisplay>();
+
+    if (location.Population != null)
     {
-        List<PropertyDisplay> properties = new List<PropertyDisplay>();
-
-        if (location.Population != null)
-        {
-            properties.Add(new(
-            "📐",
-            FormatEnumString(location.Population.ToString()),
-            "",
-            "",
-            ""
-            ));
-        }
-
-        if (location.Physical != null)
-        {
-            properties.Add(new(
-            "🧩",
-            FormatEnumString(location.Physical.ToString()),
-            "",
-            "",
-            ""
-            ));
-        }
-
-        if (location.Illumination != null)
-        {
-            properties.Add(new(
-            "☀️",
-            FormatEnumString(location.Illumination.ToString()),
-            "",
-            "",
-            ""
-            ));
-        }
-
-        return properties;
+        properties.Add(new(
+        "📐",
+        FormatEnumString(location.Population.ToString()),
+        "",
+        "",
+        ""
+        ));
     }
 
-    public static string FormatEnumString(string value)
+    if (location.Physical != null)
     {
-        return string.Concat(value
-            .Select((x, i) => i > 0 && char.IsUpper(x) ? " " + x : x.ToString()))
-            .Replace("Type", "")
-            .Replace("Types", "");
+        properties.Add(new(
+        "🧩",
+        FormatEnumString(location.Physical.ToString()),
+        "",
+        "",
+        ""
+        ));
     }
 
-    public static string GetIconForCurrentTimeBlock(TimeBlocks time)
+    if (location.Illumination != null)
     {
-        return time switch
-        {
-            TimeBlocks.Night => "🌙",
-            TimeBlocks.Morning => "🌄",
-            TimeBlocks.Afternoon => "☀️",
-            TimeBlocks.Evening => "🌆",
-            _ => "❓"
-        };
-    }
-    public static string GetArchetypeIcon(Professions archetype)
-    {
-        return archetype switch
-        {
-            Professions.Soldier => "⚔️",
-            Professions.Scholar => "📚",
-            Professions.Merchant => "🎵",
-            _ => "❓"
-        };
+        properties.Add(new(
+        "☀️",
+        FormatEnumString(location.Illumination.ToString()),
+        "",
+        "",
+        ""
+        ));
     }
 
-    public static string GetTimeBlocksStyle(TimeBlocks currentTime)
-    {
-        return currentTime switch
-        {
-            TimeBlocks.Morning => "time-morning",
-            TimeBlocks.Afternoon => "time-afternoon",
-            TimeBlocks.Evening => "time-evening",
-            TimeBlocks.Night => "time-night",
-            _ => ""
-        };
-    }
+    return properties;
 }
 
+public static string FormatEnumString(string value)
+{
+    return string.Concat(value
+        .Select((x, i) => i > 0 && char.IsUpper(x) ? " " + x : x.ToString()))
+        .Replace("Type", "")
+        .Replace("Types", "");
+}
+
+public static string GetIconForCurrentTimeBlock(TimeBlocks time)
+{
+    return time switch
+    {
+        TimeBlocks.Night => "🌙",
+        TimeBlocks.Morning => "🌄",
+        TimeBlocks.Afternoon => "☀️",
+        TimeBlocks.Evening => "🌆",
+        _ => "❓"
+    };
+}
+public static string GetArchetypeIcon(Professions archetype)
+{
+    return archetype switch
+    {
+        Professions.Soldier => "⚔️",
+        Professions.Scholar => "📚",
+        Professions.Merchant => "🎵",
+        _ => "❓"
+    };
+}
+
+public static string GetTimeBlocksStyle(TimeBlocks currentTime)
+{
+    return currentTime switch
+    {
+        TimeBlocks.Morning => "time-morning",
+        TimeBlocks.Afternoon => "time-afternoon",
+        TimeBlocks.Evening => "time-evening",
+        TimeBlocks.Night => "time-night",
+        _ => ""
+    };
+}
 }

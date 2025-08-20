@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Constants;
 
 namespace Wayfarer.Game.MainSystem;
 

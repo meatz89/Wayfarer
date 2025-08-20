@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.GameState;
 
 /// <summary>
 /// Calculates atmospheric effects based on NPC presence at locations.

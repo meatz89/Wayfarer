@@ -1,29 +1,23 @@
-using Wayfarer.Game.MainSystem;
-using Wayfarer.GameState;
-using Wayfarer.GameState.Constants;
 
-namespace Wayfarer.GameState
-{
-    /// <summary>
-    /// Represents an optimized route recommendation based on player resources and strategy.
-    /// Provides justification for the recommendation and efficiency metrics.
-    /// </summary>
+/// <summary>
+/// Represents an optimized route recommendation based on player resources and strategy.
+/// Provides justification for the recommendation and efficiency metrics.
+/// </summary>
 public class RouteRecommendation
 {
-    public RouteOption RecommendedRoute { get; set; }
-    public string Justification { get; set; }
-    public double EfficiencyScore { get; set; }
-    public OptimizationStrategy Strategy { get; set; }
-    public string ResourceAnalysis { get; set; }
-    public string AlternativeOptions { get; set; }
+public RouteOption RecommendedRoute { get; set; }
+public string Justification { get; set; }
+public double EfficiencyScore { get; set; }
+public OptimizationStrategy Strategy { get; set; }
+public string ResourceAnalysis { get; set; }
+public string AlternativeOptions { get; set; }
 
-    public RouteRecommendation(RouteOption route, OptimizationStrategy strategy)
-    {
-        RecommendedRoute = route;
-        Strategy = strategy;
-        Justification = "";
-        ResourceAnalysis = "";
-        AlternativeOptions = "";
-    }
+public RouteRecommendation(RouteOption route, OptimizationStrategy strategy)
+{
+    RecommendedRoute = route;
+    Strategy = strategy;
+    Justification = "";
+    ResourceAnalysis = "";
+    AlternativeOptions = "";
 }
 }

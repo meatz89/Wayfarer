@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Wayfarer.Pages.Helpers;
-using Wayfarer.Services;
 
 namespace Wayfarer.Pages
 {

@@ -1,6 +1,4 @@
 ﻿using Wayfarer.GameState;
-using Wayfarer.Services;
-using Wayfarer.Game.ConversationSystem.Managers;
 
 public static class ServiceConfiguration
 {

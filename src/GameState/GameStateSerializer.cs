@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Wayfarer.Game.MainSystem;
 
 // IMPORTANT: For testing purposes, save/load functionality is DISABLED
 // This serializer exists but is NOT used for persisting game state

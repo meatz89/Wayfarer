@@ -3,10 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Wayfarer.Game.MainSystem;
-using Wayfarer.GameState;
-using Wayfarer.Services;
-using Wayfarer.ViewModels;
 
 namespace Wayfarer.Pages;
 

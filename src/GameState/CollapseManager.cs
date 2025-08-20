@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.Game.MainSystem;
-using Wayfarer.GameState;
-using Wayfarer.GameState.Constants;
 
 /// <summary>
 /// Manages the collapse mechanic when player stamina reaches 0.

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.GameState;
 
 /// <summary>
 /// Manages travel event card drawing and resolution during route travel

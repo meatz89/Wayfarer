@@ -1,158 +1,154 @@
 using System;
-using Wayfarer.GameState;
 
-namespace Wayfarer.Game.ConversationSystem.Core
+/// <summary>
+/// Types of conversation cards matching relationship types
+/// </summary>
+public enum CardType
+{
+    Trust,
+    Commerce,
+    Status,
+    Shadow
+}
+
+/// <summary>
+/// Persistence behavior when LISTEN action taken
+/// </summary>
+public enum PersistenceType
+{
+    Persistent,  // Stays in hand when listening
+    Opportunity, // Vanishes when listening (fleeting moments)
+    OneShot,     // Removed after playing (major confessions)
+    Burden,      // Cannot vanish (negative cards)
+    Crisis       // Emergency cards, free in DESPERATE state
+}
+
+/// <summary>
+/// A single conversation card representing something to say or do.
+/// Cards are the atomic units of conversation.
+/// </summary>
+public class ConversationCard
 {
     /// <summary>
-    /// Types of conversation cards matching relationship types
+    /// Unique identifier for this card
     /// </summary>
-    public enum CardType
+    public string Id { get; init; }
+
+    /// <summary>
+    /// The actual text/dialogue of the card
+    /// </summary>
+    public string Text { get; init; }
+
+    /// <summary>
+    /// Which relationship type this card builds
+    /// </summary>
+    public CardType Type { get; init; }
+
+    /// <summary>
+    /// How the card behaves when not played
+    /// </summary>
+    public PersistenceType Persistence { get; init; }
+
+    /// <summary>
+    /// Emotional bandwidth required (0-3)
+    /// </summary>
+    public int Weight { get; init; }
+
+    /// <summary>
+    /// Base comfort gained on success
+    /// </summary>
+    public int BaseComfort { get; init; }
+
+    /// <summary>
+    /// Whether this is a state-changing card (must play alone)
+    /// </summary>
+    public bool IsStateCard { get; init; }
+
+    /// <summary>
+    /// State to transition to on success (state cards only)
+    /// </summary>
+    public EmotionalState? SuccessState { get; init; }
+
+    /// <summary>
+    /// State to transition to on failure (state cards only)
+    /// </summary>
+    public EmotionalState? FailureState { get; init; }
+
+    /// <summary>
+    /// Whether this is a crisis card (must play alone, free in DESPERATE)
+    /// </summary>
+    public bool IsCrisis { get; init; }
+
+    /// <summary>
+    /// Whether this card came from an observation
+    /// </summary>
+    public bool IsObservation { get; init; }
+
+    /// <summary>
+    /// Source of observation if applicable
+    /// </summary>
+    public string ObservationSource { get; init; }
+
+    /// <summary>
+    /// Whether this card can deliver a letter in the queue
+    /// </summary>
+    public bool CanDeliverLetter { get; init; }
+
+    /// <summary>
+    /// Whether this card manipulates obligations
+    /// </summary>
+    public bool ManipulatesObligations { get; init; }
+
+    /// <summary>
+    /// Get effective weight considering state
+    /// </summary>
+    public int GetEffectiveWeight(EmotionalState state)
     {
-        Trust,
-        Commerce,
-        Status,
-        Shadow
+        // Crisis cards are free in DESPERATE state
+        if (IsCrisis && state == EmotionalState.DESPERATE)
+            return 0;
+        return Weight;
     }
 
     /// <summary>
-    /// Persistence behavior when LISTEN action taken
+    /// Get persistence icon for UI display
     /// </summary>
-    public enum PersistenceType
+    public string GetPersistenceIcon()
     {
-        Persistent,  // Stays in hand when listening
-        Opportunity, // Vanishes when listening (fleeting moments)
-        OneShot,     // Removed after playing (major confessions)
-        Burden,      // Cannot vanish (negative cards)
-        Crisis       // Emergency cards, free in DESPERATE state
+        return Persistence switch
+        {
+            PersistenceType.Persistent => "♻",
+            PersistenceType.Opportunity => "⏱",
+            PersistenceType.OneShot => "💠",
+            PersistenceType.Burden => "⚠",
+            PersistenceType.Crisis => "🔥",
+            _ => ""
+        };
     }
 
     /// <summary>
-    /// A single conversation card representing something to say or do.
-    /// Cards are the atomic units of conversation.
+    /// Calculate success chance based on weight and tokens
     /// </summary>
-    public class ConversationCard
+    public int CalculateSuccessChance(int statusTokens)
     {
-        /// <summary>
-        /// Unique identifier for this card
-        /// </summary>
-        public string Id { get; init; }
+        var baseChance = 70;
+        baseChance -= Weight * 10;
+        baseChance += statusTokens * 3;
+        return Math.Clamp(baseChance, 10, 95);
+    }
 
-        /// <summary>
-        /// The actual text/dialogue of the card
-        /// </summary>
-        public string Text { get; init; }
-
-        /// <summary>
-        /// Which relationship type this card builds
-        /// </summary>
-        public CardType Type { get; init; }
-
-        /// <summary>
-        /// How the card behaves when not played
-        /// </summary>
-        public PersistenceType Persistence { get; init; }
-
-        /// <summary>
-        /// Emotional bandwidth required (0-3)
-        /// </summary>
-        public int Weight { get; init; }
-
-        /// <summary>
-        /// Base comfort gained on success
-        /// </summary>
-        public int BaseComfort { get; init; }
-
-        /// <summary>
-        /// Whether this is a state-changing card (must play alone)
-        /// </summary>
-        public bool IsStateCard { get; init; }
-
-        /// <summary>
-        /// State to transition to on success (state cards only)
-        /// </summary>
-        public EmotionalState? SuccessState { get; init; }
-
-        /// <summary>
-        /// State to transition to on failure (state cards only)
-        /// </summary>
-        public EmotionalState? FailureState { get; init; }
-
-        /// <summary>
-        /// Whether this is a crisis card (must play alone, free in DESPERATE)
-        /// </summary>
-        public bool IsCrisis { get; init; }
-
-        /// <summary>
-        /// Whether this card came from an observation
-        /// </summary>
-        public bool IsObservation { get; init; }
-
-        /// <summary>
-        /// Source of observation if applicable
-        /// </summary>
-        public string ObservationSource { get; init; }
-
-        /// <summary>
-        /// Whether this card can deliver a letter in the queue
-        /// </summary>
-        public bool CanDeliverLetter { get; init; }
-
-        /// <summary>
-        /// Whether this card manipulates obligations
-        /// </summary>
-        public bool ManipulatesObligations { get; init; }
-
-        /// <summary>
-        /// Get effective weight considering state
-        /// </summary>
-        public int GetEffectiveWeight(EmotionalState state)
+    /// <summary>
+    /// Get the connection type this card builds
+    /// </summary>
+    public ConnectionType GetConnectionType()
+    {
+        return Type switch
         {
-            // Crisis cards are free in DESPERATE state
-            if (IsCrisis && state == EmotionalState.DESPERATE)
-                return 0;
-            return Weight;
-        }
-
-        /// <summary>
-        /// Get persistence icon for UI display
-        /// </summary>
-        public string GetPersistenceIcon()
-        {
-            return Persistence switch
-            {
-                PersistenceType.Persistent => "♻",
-                PersistenceType.Opportunity => "⏱",
-                PersistenceType.OneShot => "💠",
-                PersistenceType.Burden => "⚠",
-                PersistenceType.Crisis => "🔥",
-                _ => ""
-            };
-        }
-
-        /// <summary>
-        /// Calculate success chance based on weight and tokens
-        /// </summary>
-        public int CalculateSuccessChance(int statusTokens)
-        {
-            var baseChance = 70;
-            baseChance -= Weight * 10;
-            baseChance += statusTokens * 3;
-            return Math.Clamp(baseChance, 10, 95);
-        }
-
-        /// <summary>
-        /// Get the connection type this card builds
-        /// </summary>
-        public ConnectionType GetConnectionType()
-        {
-            return Type switch
-            {
-                CardType.Trust => ConnectionType.Trust,
-                CardType.Commerce => ConnectionType.Commerce,
-                CardType.Status => ConnectionType.Status,
-                CardType.Shadow => ConnectionType.Shadow,
-                _ => ConnectionType.Trust
-            };
-        }
+            CardType.Trust => ConnectionType.Trust,
+            CardType.Commerce => ConnectionType.Commerce,
+            CardType.Status => ConnectionType.Status,
+            CardType.Shadow => ConnectionType.Shadow,
+            _ => ConnectionType.Trust
+        };
     }
 }

@@ -1,134 +1,130 @@
 ﻿using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.Game.MainSystem;
-using Wayfarer.GameState;
 
-namespace Wayfarer.Game.MainSystem
+public class LocationSystem
 {
-    public class LocationSystem
+private LocationRepository locationRepository;
+private GameWorld gameWorld;
+
+public LocationSystem(GameWorld gameWorld, LocationRepository locationRepo)
 {
-    private LocationRepository locationRepository;
-    private GameWorld gameWorld;
+    this.gameWorld = gameWorld;
+    this.locationRepository = locationRepo;
+}
 
-    public LocationSystem(GameWorld gameWorld, LocationRepository locationRepo)
+public async Task<Location> Initialize()
+{
+    List<Location> allLocations = locationRepository.GetAllLocations().ToList();
+    Location startLoc = allLocations.First();
+
+    startLoc.LocationType = LocationTypes.Hub;
+
+    // FOR  POC: Make all locations known by default
+    // In full game, only locations with PlayerKnowledge=true would be known
+    foreach (Location loc in allLocations)
     {
-        this.gameWorld = gameWorld;
-        this.locationRepository = locationRepo;
-    }
+        // Check PlayerKnowledge OR default to true for  POC
+        bool shouldKnow = loc.PlayerKnowledge || true; //  POC: always true
 
-    public async Task<Location> Initialize()
-    {
-        List<Location> allLocations = locationRepository.GetAllLocations().ToList();
-        Location startLoc = allLocations.First();
-
-        startLoc.LocationType = LocationTypes.Hub;
-
-        // FOR  POC: Make all locations known by default
-        // In full game, only locations with PlayerKnowledge=true would be known
-        foreach (Location loc in allLocations)
+        if (shouldKnow)
         {
-            // Check PlayerKnowledge OR default to true for  POC
-            bool shouldKnow = loc.PlayerKnowledge || true; //  POC: always true
+            gameWorld.GetPlayer().AddKnownLocation(loc.Id);
 
-            if (shouldKnow)
+            // Add all spots for known locations in  POC
+            foreach (LocationSpot spot in locationRepository.GetSpotsForLocation(loc.Id))
             {
-                gameWorld.GetPlayer().AddKnownLocation(loc.Id);
+                // Check spot PlayerKnowledge OR default to true for  POC
+                bool shouldKnowSpot = spot.PlayerKnowledge || true; //  POC: always true
 
-                // Add all spots for known locations in  POC
-                foreach (LocationSpot spot in locationRepository.GetSpotsForLocation(loc.Id))
+                if (shouldKnowSpot)
                 {
-                    // Check spot PlayerKnowledge OR default to true for  POC
-                    bool shouldKnowSpot = spot.PlayerKnowledge || true; //  POC: always true
-
-                    if (shouldKnowSpot)
-                    {
-                        gameWorld.GetPlayer().AddKnownLocationSpot(spot.SpotID);
-                    }
+                    gameWorld.GetPlayer().AddKnownLocationSpot(spot.SpotID);
                 }
             }
         }
+    }
 
-        // CRITICAL: Ensure player always has valid spot (location is derived)
-        Player player = gameWorld.GetPlayer();
-        if (player.CurrentLocationSpot == null)
+    // CRITICAL: Ensure player always has valid spot (location is derived)
+    Player player = gameWorld.GetPlayer();
+    if (player.CurrentLocationSpot == null)
+    {
+        List<LocationSpot> startLocationSpots = GetLocationSpots(startLoc.Id);
+        if (startLocationSpots.Any())
         {
-            List<LocationSpot> startLocationSpots = GetLocationSpots(startLoc.Id);
-            if (startLocationSpots.Any())
-            {
-                player.CurrentLocationSpot = startLocationSpots.First();
-                Console.WriteLine($"Set player CurrentLocationSpot to: {player.CurrentLocationSpot.SpotID}");
-            }
-            else
-            {
-                throw new InvalidOperationException($"No spots found in starting location {startLoc.Id}");
-            }
+            player.CurrentLocationSpot = startLocationSpots.First();
+            Console.WriteLine($"Set player CurrentLocationSpot to: {player.CurrentLocationSpot.SpotID}");
         }
-
-        return GetLocation(startLoc.Id);
-    }
-
-    public Location GetLocation(string id)
-    {
-        Location location = locationRepository.GetLocation(id);
-        return location;
-    }
-
-    public List<Location> GetAllLocations()
-    {
-        List<Location> locations = locationRepository.GetAllLocations();
-        return locations;
-    }
-
-    public List<LocationSpot> GetLocationSpots(string locationId)
-    {
-        List<LocationSpot> locationSpots = locationRepository.GetSpotsForLocation(locationId);
-        return locationSpots;
-    }
-
-    public LocationSpot GetLocationSpot(string locationName, string spotName)
-    {
-        LocationSpot locationSpot = locationRepository.GetSpot(locationName, spotName);
-        return locationSpot;
-    }
-
-    public List<Location> GetConnectedLocations(string location)
-    {
-        List<Location> locations = locationRepository.GetConnectedLocations(location);
-        return locations;
-    }
-
-    public string FormatLocations(List<Location> locations)
-    {
-        StringBuilder sb = new StringBuilder();
-
-        if (locations == null || !locations.Any())
-            return "None";
-
-        foreach (Location loc in locations)
+        else
         {
-            sb.AppendLine($"- {loc.Id}: {loc.Description} (Depth: {loc.Depth})");
+            throw new InvalidOperationException($"No spots found in starting location {startLoc.Id}");
         }
-
-        return sb.ToString();
     }
 
-    public string FormatLocationSpots(Location location)
+    return GetLocation(startLoc.Id);
+}
+
+public Location GetLocation(string id)
+{
+    Location location = locationRepository.GetLocation(id);
+    return location;
+}
+
+public List<Location> GetAllLocations()
+{
+    List<Location> locations = locationRepository.GetAllLocations();
+    return locations;
+}
+
+public List<LocationSpot> GetLocationSpots(string locationId)
+{
+    List<LocationSpot> locationSpots = locationRepository.GetSpotsForLocation(locationId);
+    return locationSpots;
+}
+
+public LocationSpot GetLocationSpot(string locationName, string spotName)
+{
+    LocationSpot locationSpot = locationRepository.GetSpot(locationName, spotName);
+    return locationSpot;
+}
+
+public List<Location> GetConnectedLocations(string location)
+{
+    List<Location> locations = locationRepository.GetConnectedLocations(location);
+    return locations;
+}
+
+public string FormatLocations(List<Location> locations)
+{
+    StringBuilder sb = new StringBuilder();
+
+    if (locations == null || !locations.Any())
+        return "None";
+
+    foreach (Location loc in locations)
     {
-        StringBuilder sb = new StringBuilder();
-
-        List<LocationSpot> locationSpots = GetLocationSpots(location.Id);
-        if (location == null || locationSpots == null || !locationSpots.Any())
-            return "None";
-
-        foreach (LocationSpot spot in locationSpots)
-        {
-            sb.AppendLine($"- {spot.SpotID}: {spot.Description}");
-        }
-
-        return sb.ToString();
+        sb.AppendLine($"- {loc.Id}: {loc.Description} (Depth: {loc.Depth})");
     }
 
+    return sb.ToString();
+}
+
+public string FormatLocationSpots(Location location)
+{
+    StringBuilder sb = new StringBuilder();
+
+    List<LocationSpot> locationSpots = GetLocationSpots(location.Id);
+    if (location == null || locationSpots == null || !locationSpots.Any())
+        return "None";
+
+    foreach (LocationSpot spot in locationSpots)
+    {
+        sb.AppendLine($"- {spot.SpotID}: {spot.Description}");
+    }
+
+    return sb.ToString();
+}
 
 
-}}
+
+}

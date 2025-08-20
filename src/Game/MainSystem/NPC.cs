@@ -1,168 +1,165 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Wayfarer.Game.MainSystem
-{
 
 public class NPC
 {
-    // Identity
-    public string ID { get; set; }
-    public string Name { get; set; }
-    public string Role { get; set; }
-    public string Description { get; set; }
-    public string Location { get; set; }
-    public string SpotId { get; set; }
+// Identity
+public string ID { get; set; }
+public string Name { get; set; }
+public string Role { get; set; }
+public string Description { get; set; }
+public string Location { get; set; }
+public string SpotId { get; set; }
 
-    // Categorical Properties for Logical System Interactions
-    public Professions Profession { get; set; }
+// Categorical Properties for Logical System Interactions
+public Professions Profession { get; set; }
 
-    // Personality system
-    public string PersonalityDescription { get; set; } = string.Empty; // Authentic description from JSON
-    public PersonalityType PersonalityType { get; set; } = PersonalityType.STEADFAST; // Categorical type for mechanics
+// Personality system
+public string PersonalityDescription { get; set; } = string.Empty; // Authentic description from JSON
+public PersonalityType PersonalityType { get; set; } = PersonalityType.STEADFAST; // Categorical type for mechanics
 
-    // Tier system (1-5) for difficulty/content progression
-    public int Tier { get; set; } = 1;
+// Tier system (1-5) for difficulty/content progression
+public int Tier { get; set; } = 1;
 
-    // NPCs are always available - no schedule system
-    public List<ServiceTypes> ProvidedServices { get; set; } = new List<ServiceTypes>();
-    public NPCRelationship PlayerRelationship { get; set; } = NPCRelationship.Neutral;
+// NPCs are always available - no schedule system
+public List<ServiceTypes> ProvidedServices { get; set; } = new List<ServiceTypes>();
+public NPCRelationship PlayerRelationship { get; set; } = NPCRelationship.Neutral;
 
-    // DeliveryObligation Queue Properties
-    public List<ConnectionType> LetterTokenTypes { get; set; } = new List<ConnectionType>();
+// DeliveryObligation Queue Properties
+public List<ConnectionType> LetterTokenTypes { get; set; } = new List<ConnectionType>();
 
-    // Work Properties
-    public bool OffersWork => ProvidedServices.Contains(ServiceTypes.Work);
+// Work Properties
+public bool OffersWork => ProvidedServices.Contains(ServiceTypes.Work);
 
-    // Confrontation Tracking
-    public int LastConfrontationCount { get; set; } = 0;  // Track confrontations already shown
-    public int RedemptionProgress { get; set; } = 0;      // Progress toward emotional recovery
-    public bool HasPermanentScar { get; set; } = false;   // Some wounds never fully heal
+// Confrontation Tracking
+public int LastConfrontationCount { get; set; } = 0;  // Track confrontations already shown
+public int RedemptionProgress { get; set; } = 0;      // Progress toward emotional recovery
+public bool HasPermanentScar { get; set; } = false;   // Some wounds never fully heal
 
-    // DeliveryObligation offering system
+// DeliveryObligation offering system
 
-    // Schedule tracking (for INVESTIGATE verb discoveries)
-    public List<ScheduleEntry> DailySchedule { get; set; } = new List<ScheduleEntry>();
+// Schedule tracking (for INVESTIGATE verb discoveries)
+public List<ScheduleEntry> DailySchedule { get; set; } = new List<ScheduleEntry>();
 
-    // Known routes (for HELP verb sharing)
-    private List<RouteOption> _knownRoutes = new List<RouteOption>();
+// Known routes (for HELP verb sharing)
+private List<RouteOption> _knownRoutes = new List<RouteOption>();
 
-    // Conversation deck - each NPC has unique cards representing shared history
-    public NPCDeck ConversationDeck { get; set; }
+// Conversation deck - each NPC has unique cards representing shared history
+public NPCDeck ConversationDeck { get; set; }
 
-    // Initialize deck when NPC is created
-    public void InitializeConversationDeck(NPCDeckFactory deckFactory)
+// Initialize deck when NPC is created
+public void InitializeConversationDeck(NPCDeckFactory deckFactory)
+{
+    ConversationDeck ??= deckFactory.CreateDeck(ID, PersonalityType);
+}
+
+// Helper methods for UI display
+public string ProfessionDescription => Profession.ToString().Replace('_', ' ');
+
+public string ScheduleDescription => "Always available";
+
+public string ProvidedServicesDescription => ProvidedServices.Any()
+    ? $"Services: {string.Join(", ", ProvidedServices.Select(s => s.ToString().Replace('_', ' ')))}"
+    : "No services available";
+
+public bool IsAvailable(TimeBlocks currentTime)
+{
+    // NPCs are always available by default
+    return true;
+}
+
+public bool IsAvailableAtTime(string locationSpotId, TimeBlocks currentTime)
+{
+    // NPCs are always available by default
+    // Check if NPC is at the specified location spot
+    return SpotId == locationSpotId && IsAvailable(currentTime);
+}
+
+public bool CanProvideService(ServiceTypes requestedService)
+{
+    return ProvidedServices.Contains(requestedService);
+}
+
+internal bool IsAvailableAtLocation(string? spotID)
+{
+    // NPCs are available at their assigned location
+    return !string.IsNullOrEmpty(spotID) && Location == spotID;
+}
+
+
+
+// Methods expected by VerbContextualizer
+public NPC GetContact()
+{
+    // Return an NPC that this NPC knows
+    // In full implementation, would be based on NPC's network
+    return new NPC
     {
-        ConversationDeck ??= deckFactory.CreateDeck(ID, PersonalityType);
+        ID = $"contact_{new Random().Next(1, 5)}",
+        Name = $"Contact {new Random().Next(1, 5)}",
+        Role = "Acquaintance",
+        Description = $"An acquaintance of {Name}",
+        Location = this.Location,
+        SpotId = this.SpotId,
+        Profession = Professions.Merchant
+    };
+}
+
+// Method for adding known routes (used by HELP verb)
+public void AddKnownRoute(RouteOption route)
+{
+    if (!_knownRoutes.Any(r => r.Id == route.Id))
+    {
+        _knownRoutes.Add(route);
     }
+}
 
-    // Helper methods for UI display
-    public string ProfessionDescription => Profession.ToString().Replace('_', ' ');
 
-    public string ScheduleDescription => "Always available";
 
-    public string ProvidedServicesDescription => ProvidedServices.Any()
-        ? $"Services: {string.Join(", ", ProvidedServices.Select(s => s.ToString().Replace('_', ' ')))}"
-        : "No services available";
 
-    public bool IsAvailable(TimeBlocks currentTime)
+
+
+public RouteOption GetSecretRoute()
+{
+    // Return a secret route this NPC knows
+    // In full implementation, would be based on NPC's knowledge
+    return new RouteOption
     {
-        // NPCs are always available by default
-        return true;
-    }
+        Id = $"secret_route_{Location}_{new Random().Next(1, 3)}",
+        Name = $"Secret path from {Location}",
+        Description = "A hidden route known only to locals",
+        Destination = "MarketSquare",
+        TravelTimeMinutes = 1,
+        Method = TravelMethods.Walking
+    };
+}
 
-    public bool IsAvailableAtTime(string locationSpotId, TimeBlocks currentTime)
+public List<RouteOption> KnownRoutes()
+{
+    // Return list of routes this NPC knows
+    // In full implementation, would be based on NPC's profession and tier
+    return new List<RouteOption>
     {
-        // NPCs are always available by default
-        // Check if NPC is at the specified location spot
-        return SpotId == locationSpotId && IsAvailable(currentTime);
-    }
-
-    public bool CanProvideService(ServiceTypes requestedService)
-    {
-        return ProvidedServices.Contains(requestedService);
-    }
-
-    internal bool IsAvailableAtLocation(string? spotID)
-    {
-        // NPCs are available at their assigned location
-        return !string.IsNullOrEmpty(spotID) && Location == spotID;
-    }
-
-
-
-    // Methods expected by VerbContextualizer
-    public NPC GetContact()
-    {
-        // Return an NPC that this NPC knows
-        // In full implementation, would be based on NPC's network
-        return new NPC
+        new RouteOption
         {
-            ID = $"contact_{new Random().Next(1, 5)}",
-            Name = $"Contact {new Random().Next(1, 5)}",
-            Role = "Acquaintance",
-            Description = $"An acquaintance of {Name}",
-            Location = this.Location,
-            SpotId = this.SpotId,
-            Profession = Professions.Merchant
-        };
-    }
-
-    // Method for adding known routes (used by HELP verb)
-    public void AddKnownRoute(RouteOption route)
-    {
-        if (!_knownRoutes.Any(r => r.Id == route.Id))
-        {
-            _knownRoutes.Add(route);
-        }
-    }
-
-
-
-
-
-
-    public RouteOption GetSecretRoute()
-    {
-        // Return a secret route this NPC knows
-        // In full implementation, would be based on NPC's knowledge
-        return new RouteOption
-        {
-            Id = $"secret_route_{Location}_{new Random().Next(1, 3)}",
-            Name = $"Secret path from {Location}",
-            Description = "A hidden route known only to locals",
-            Destination = "MarketSquare",
-            TravelTimeMinutes = 1,
+            Id = $"route_{Location}_common",
+            Name = $"Common route from {Location}",
+            Description = "The usual path",
+            Destination = "TownGate",
+            TravelTimeMinutes = 2,
             Method = TravelMethods.Walking
-        };
-    }
-
-    public List<RouteOption> KnownRoutes()
-    {
-        // Return list of routes this NPC knows
-        // In full implementation, would be based on NPC's profession and tier
-        return new List<RouteOption>
+        },
+        new RouteOption
         {
-            new RouteOption
-            {
-                Id = $"route_{Location}_common",
-                Name = $"Common route from {Location}",
-                Description = "The usual path",
-                Destination = "TownGate",
-                TravelTimeMinutes = 2,
-                Method = TravelMethods.Walking
-            },
-            new RouteOption
-            {
-                Id = $"route_{Location}_trade",
-                Name = $"Trade route from {Location}",
-                Description = "The merchant's path",
-                Destination = "MerchantQuarter",
-                TravelTimeMinutes = 3,
-                Method = TravelMethods.Carriage
-            }
-        };
-    }
+            Id = $"route_{Location}_trade",
+            Name = $"Trade route from {Location}",
+            Description = "The merchant's path",
+            Destination = "MerchantQuarter",
+            TravelTimeMinutes = 3,
+            Method = TravelMethods.Carriage
+        }
+    };
+}
 }
 
-}

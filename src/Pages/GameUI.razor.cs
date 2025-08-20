@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Wayfarer.Services;
 namespace Wayfarer.Pages;
 
 public class GameUIBase : ComponentBase

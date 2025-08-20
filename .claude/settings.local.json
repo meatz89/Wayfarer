@@ -189,7 +189,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5125\" dotnet run --no-build)",
       "Bash(./fix-types.sh)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5125\" timeout 30 dotnet run --no-build)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(/mnt/c/git/wayfarer/src/remove_namespaces.sh:*)",
+      "Bash(./fix_closing_braces.sh:*)"
     ],
     "deny": []
   }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.GameState;
 
 /// <summary>
 /// Emotional states that emerge from letter properties in the queue.
