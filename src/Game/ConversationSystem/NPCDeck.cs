@@ -148,52 +148,108 @@ public class NPCDeck
             }
         });
 
-        // Add betrayal cards - only available during HOSTILE states
-        Cards.AddRange(new List<ConversationChoice>
-        {
-            new ConversationChoice
-            {
-                ChoiceID = "desperate_apology",
-                Name = "Desperate Apology",
-                Description = "Acknowledge your failures and beg for forgiveness",
-                NarrativeText = "Acknowledge your failures and beg for forgiveness",
-                Difficulty = 8,
-                PatienceCost = 2,
-                ComfortGain = 3,
-                Category = RelationshipCardCategory.Betrayal,
-                ChoiceType = ConversationChoiceType.AcceptLetterOffer,  // Positive betrayal recovery
-                MechanicalEffects = GetDesperateApologyEffects(NpcId)
-            },
-            new ConversationChoice
-            {
-                ChoiceID = "compensation_offer",
-                Name = "Offer Compensation",
-                Description = "Promise payment or services to make amends",
-                NarrativeText = "Promise payment or services to make amends",
-                Difficulty = 6,
-                PatienceCost = 1,
-                ComfortGain = 2,
-                Category = RelationshipCardCategory.Betrayal,
-                ChoiceType = ConversationChoiceType.AcceptLetterOffer,  // Positive betrayal recovery
-                MechanicalEffects = GetCompensationOfferEffects(NpcId)
-            },
-            new ConversationChoice
-            {
-                ChoiceID = "blame_circumstances",
-                Name = "Blame Circumstances",
-                Description = "Deflect responsibility to external factors",
-                NarrativeText = "Deflect responsibility to external factors",
-                Difficulty = 5,
-                PatienceCost = 1,
-                ComfortGain = -1,
-                Category = RelationshipCardCategory.Betrayal,
-                ChoiceType = ConversationChoiceType.PurgeLetter,  // NEGATIVE - makes things worse
-                MechanicalEffects = GetBlameCircumstancesEffects(NpcId)
-            }
-        });
+        // Add personality-specific betrayal recovery cards - only available during HOSTILE states
+        Cards.AddRange(GetPersonalityBetrayalCards(personalityType));
 
         // Add personality-specific cards based on NPC type
         Cards.AddRange(GetPersonalityCards(personalityType));
+    }
+
+    /// <summary>
+    /// Create personality-specific betrayal recovery cards that reflect how each personality type
+    /// would realistically respond to broken promises and trust violations.
+    /// </summary>
+    private List<ConversationChoice> GetPersonalityBetrayalCards(PersonalityType personalityType)
+    {
+        return personalityType switch
+        {
+            PersonalityType.DEVOTED => new List<ConversationChoice>
+            {
+                new ConversationChoice
+                {
+                    ChoiceID = "show_genuine_remorse",
+                    Name = "Show Genuine Remorse",
+                    Description = "Express heartfelt regret and demonstrate you understand the hurt caused",
+                    NarrativeText = "Express heartfelt regret and demonstrate you understand the hurt caused",
+                    Difficulty = 8,
+                    PatienceCost = 3,
+                    ComfortGain = 4,
+                    Category = RelationshipCardCategory.Betrayal,
+                    ChoiceType = ConversationChoiceType.AcceptLetterOffer,
+                    MechanicalEffects = GetDevotedBetrayalRecoveryEffects(NpcId)
+                }
+            },
+            
+            PersonalityType.MERCANTILE => new List<ConversationChoice>
+            {
+                new ConversationChoice
+                {
+                    ChoiceID = "offer_business_arrangement",
+                    Name = "Offer Business Arrangement",
+                    Description = "Propose a formal agreement that benefits both parties",
+                    NarrativeText = "Propose a formal agreement that benefits both parties",
+                    Difficulty = 6,
+                    PatienceCost = 1,
+                    ComfortGain = 2,
+                    Category = RelationshipCardCategory.Betrayal,
+                    ChoiceType = ConversationChoiceType.AcceptLetterOffer,
+                    MechanicalEffects = GetMercantileBetrayalRecoveryEffects(NpcId)
+                }
+            },
+            
+            PersonalityType.PROUD => new List<ConversationChoice>
+            {
+                new ConversationChoice
+                {
+                    ChoiceID = "formal_apology_ritual",
+                    Name = "Formal Apology Ritual",
+                    Description = "Make a proper, ceremonial acknowledgment of wrongdoing",
+                    NarrativeText = "Make a proper, ceremonial acknowledgment of wrongdoing",
+                    Difficulty = 7,
+                    PatienceCost = 2,
+                    ComfortGain = 3,
+                    Category = RelationshipCardCategory.Betrayal,
+                    ChoiceType = ConversationChoiceType.AcceptLetterOffer,
+                    MechanicalEffects = GetProudBetrayalRecoveryEffects(NpcId)
+                }
+            },
+            
+            PersonalityType.CUNNING => new List<ConversationChoice>
+            {
+                new ConversationChoice
+                {
+                    ChoiceID = "provide_valuable_information",
+                    Name = "Provide Valuable Information",
+                    Description = "Share secrets or knowledge as currency for forgiveness",
+                    NarrativeText = "Share secrets or knowledge as currency for forgiveness",
+                    Difficulty = 5,
+                    PatienceCost = 1,
+                    ComfortGain = 2,
+                    Category = RelationshipCardCategory.Betrayal,
+                    ChoiceType = ConversationChoiceType.AcceptLetterOffer,
+                    MechanicalEffects = GetCunningBetrayalRecoveryEffects(NpcId)
+                }
+            },
+            
+            PersonalityType.STEADFAST => new List<ConversationChoice>
+            {
+                new ConversationChoice
+                {
+                    ChoiceID = "demonstrate_renewed_commitment",
+                    Name = "Demonstrate Renewed Commitment",
+                    Description = "Prove your reliability through immediate action and future dedication",
+                    NarrativeText = "Prove your reliability through immediate action and future dedication",
+                    Difficulty = 6,
+                    PatienceCost = 2,
+                    ComfortGain = 3,
+                    Category = RelationshipCardCategory.Betrayal,
+                    ChoiceType = ConversationChoiceType.AcceptLetterOffer,
+                    MechanicalEffects = GetSteadfastBetrayalRecoveryEffects(NpcId)
+                }
+            },
+            
+            _ => new List<ConversationChoice>() // Fallback to empty list
+        };
     }
 
     /// <summary>
@@ -658,6 +714,89 @@ public class NPCDeck
             effects.Add(new BurnTokensEffect(ConnectionType.Trust, 2, npcId, _tokenManager)); // Deflection backfires
         }
 
+        return effects;
+    }
+
+    /// <summary>
+    /// DEVOTED personality betrayal recovery: Requires demonstrated emotional understanding
+    /// </summary>
+    private List<IMechanicalEffect> GetDevotedBetrayalRecoveryEffects(string npcId)
+    {
+        List<IMechanicalEffect> effects = new List<IMechanicalEffect>();
+        if (_tokenManager != null && _gameWorld != null)
+        {
+            // Genuine remorse moves from HOSTILE to WARY (requires ongoing trust building)
+            effects.Add(new RestoreRelationshipEffect(npcId, NPCRelationship.Wary, _gameWorld));
+            effects.Add(new BurnTokensEffect(ConnectionType.Status, 2, npcId, _tokenManager)); // Humble yourself
+            // Creates ongoing obligation to rebuild trust through actions
+            effects.Add(new CreateBindingObligationEffect(npcId, "Prove trustworthiness through consistent actions"));
+        }
+        return effects;
+    }
+
+    /// <summary>
+    /// MERCANTILE personality betrayal recovery: Business arrangement approach
+    /// </summary>
+    private List<IMechanicalEffect> GetMercantileBetrayalRecoveryEffects(string npcId)
+    {
+        List<IMechanicalEffect> effects = new List<IMechanicalEffect>();
+        if (_tokenManager != null && _gameWorld != null)
+        {
+            // Business arrangement quickly restores working relationship
+            effects.Add(new RestoreRelationshipEffect(npcId, NPCRelationship.Unfriendly, _gameWorld));
+            effects.Add(new BurnTokensEffect(ConnectionType.Commerce, 3, npcId, _tokenManager)); // Financial compensation
+            // Creates commercial obligation to maintain business relationship
+            effects.Add(new CreateBindingObligationEffect(npcId, "Maintain professional obligations"));
+        }
+        return effects;
+    }
+
+    /// <summary>
+    /// PROUD personality betrayal recovery: Formal acknowledgment of status and wrong
+    /// </summary>
+    private List<IMechanicalEffect> GetProudBetrayalRecoveryEffects(string npcId)
+    {
+        List<IMechanicalEffect> effects = new List<IMechanicalEffect>();
+        if (_tokenManager != null && _gameWorld != null)
+        {
+            // Formal apology restores dignity and relationship
+            effects.Add(new RestoreRelationshipEffect(npcId, NPCRelationship.Unfriendly, _gameWorld));
+            effects.Add(new BurnTokensEffect(ConnectionType.Status, 4, npcId, _tokenManager)); // Major loss of personal dignity
+            effects.Add(new GainTokensEffect(ConnectionType.Status, 2, npcId, _tokenManager)); // But acknowledges their status
+        }
+        return effects;
+    }
+
+    /// <summary>
+    /// CUNNING personality betrayal recovery: Information exchange for forgiveness
+    /// </summary>
+    private List<IMechanicalEffect> GetCunningBetrayalRecoveryEffects(string npcId)
+    {
+        List<IMechanicalEffect> effects = new List<IMechanicalEffect>();
+        if (_tokenManager != null && _gameWorld != null)
+        {
+            // Information exchange creates new dynamic - wary but interested
+            effects.Add(new RestoreRelationshipEffect(npcId, NPCRelationship.Wary, _gameWorld));
+            effects.Add(new GainTokensEffect(ConnectionType.Shadow, 2, npcId, _tokenManager)); // Information creates shadow bond
+            effects.Add(new BurnTokensEffect(ConnectionType.Trust, 1, npcId, _tokenManager)); // But trust remains damaged
+        }
+        return effects;
+    }
+
+    /// <summary>
+    /// STEADFAST personality betrayal recovery: Demonstrated commitment through action
+    /// </summary>
+    private List<IMechanicalEffect> GetSteadfastBetrayalRecoveryEffects(string npcId)
+    {
+        List<IMechanicalEffect> effects = new List<IMechanicalEffect>();
+        if (_tokenManager != null && _gameWorld != null)
+        {
+            // Commitment demonstration restores basic relationship
+            effects.Add(new RestoreRelationshipEffect(npcId, NPCRelationship.Unfriendly, _gameWorld));
+            effects.Add(new BurnTokensEffect(ConnectionType.Trust, 2, npcId, _tokenManager)); // Trust still damaged
+            // Creates strong obligation to prove reliability
+            effects.Add(new CreateBindingObligationEffect(npcId, "Demonstrate unwavering reliability"));
+        }
         return effects;
     }
 }

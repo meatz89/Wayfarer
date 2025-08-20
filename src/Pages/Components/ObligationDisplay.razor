@@ -52,21 +52,61 @@
                     <div class="obligation-duration">
                         Active for @obligation.DaysSinceAccepted days
                     </div>
+                    
+                    <div class="obligation-actions">
+                        <button class="break-obligation-btn" 
+                                @onclick="() => ShowBreakConfirmation(obligation)"
+                                title="Break this obligation (severe consequences)">
+                            ⚠️ Break Obligation
+                        </button>
+                    </div>
                 </div>
             }
         </div>
     </div>
 }
 
+@if (ShowingConfirmation && ObligationToBreak != null)
+{
+    <div class="obligation-confirmation-overlay">
+        <div class="obligation-confirmation-dialog">
+            <div class="confirmation-header">
+                <h3>⚠️ Break Obligation: @ObligationToBreak.Name</h3>
+            </div>
+            
+            <div class="confirmation-consequences">
+                <h4>Consequences:</h4>
+                <ul>
+                    <li>Lose @GameRules.OBLIGATION_BREAKING_PENALTY @ObligationToBreak.RelatedTokenType tokens</li>
+                    <li>@GetNPCName(ObligationToBreak.RelatedNPCId) becomes HOSTILE</li>
+                    <li>Must deliver overdue letters to restore communication</li>
+                    <li>Relationship will be permanently scarred</li>
+                </ul>
+            </div>
+            
+            <div class="confirmation-actions">
+                <button class="btn-danger" @onclick="ConfirmBreakObligation">
+                    Yes, Break Obligation
+                </button>
+                <button class="btn-secondary" @onclick="CancelBreakObligation">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<StandingObligation> ActiveObligations = new List<StandingObligation>();
+    private bool ShowingConfirmation = false;
+    private StandingObligation? ObligationToBreak = null;
     
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await LoadObligations();
+        LoadObligations();
     }
     
-    private async Task LoadObligations()
+    private void LoadObligations()
     {
         ActiveObligations = ObligationManager.GetActiveObligations();
         StateHasChanged();
@@ -150,8 +190,49 @@
         };
     }
     
-    public async Task RefreshObligations()
+    private void ShowBreakConfirmation(StandingObligation obligation)
     {
-        await LoadObligations();
+        ObligationToBreak = obligation;
+        ShowingConfirmation = true;
+        StateHasChanged();
+    }
+    
+    private void CancelBreakObligation()
+    {
+        ObligationToBreak = null;
+        ShowingConfirmation = false;
+        StateHasChanged();
+    }
+    
+    private void ConfirmBreakObligation()
+    {
+        if (ObligationToBreak == null) return;
+        
+        // Call the obligation manager to break the obligation
+        bool success = ObligationManager.RemoveObligation(ObligationToBreak.ID, isVoluntary: true);
+        
+        if (success)
+        {
+            // Refresh the obligations list
+            LoadObligations();
+        }
+        
+        // Close the confirmation dialog
+        ObligationToBreak = null;
+        ShowingConfirmation = false;
+        StateHasChanged();
+    }
+    
+    private string GetNPCName(string? npcId)
+    {
+        if (string.IsNullOrEmpty(npcId)) return "Unknown NPC";
+        
+        var npc = GameFacade.GetNPCById(npcId);
+        return npc?.Name ?? "Unknown NPC";
+    }
+    
+    public void RefreshObligations()
+    {
+        LoadObligations();
     }
 }
