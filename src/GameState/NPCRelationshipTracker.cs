@@ -163,6 +163,38 @@ public class NPCRelationshipTracker
     }
 
     /// <summary>
+    /// Modify tokens with an NPC.
+    /// </summary>
+    public void ModifyTokens(string npcId, ConnectionType tokenType, int amount)
+    {
+        // This is a simplified implementation
+        // In full version, would track tokens per NPC
+        EnsureHistory(npcId);
+        
+        if (amount > 0)
+        {
+            _histories[npcId].SuccessfulDeliveries += amount;
+        }
+    }
+    
+    /// <summary>
+    /// Get the relationship tokens with an NPC.
+    /// </summary>
+    public NPCRelationshipTokens GetRelationship(string npcId)
+    {
+        // For now, return a default relationship
+        // In full implementation, this would track actual tokens
+        return new NPCRelationshipTokens
+        {
+            NPCId = npcId,
+            Trust = GetSuccessfulDeliveries(npcId),
+            Commerce = 0,
+            Status = 0,
+            Shadow = 0
+        };
+    }
+    
+    /// <summary>
     /// Get contextual modifiers for conversation based on history.
     /// </summary>
     public ConversationModifiers GetConversationModifiers(string npcId)
@@ -268,4 +300,16 @@ public enum EmotionalModifier
     Neutral,
     Negative,
     Hurt
+}
+
+/// <summary>
+/// Represents the relationship tokens with an NPC.
+/// </summary>
+public class NPCRelationshipTokens
+{
+    public string NPCId { get; set; }
+    public int Trust { get; set; }
+    public int Commerce { get; set; }
+    public int Status { get; set; }
+    public int Shadow { get; set; }
 }

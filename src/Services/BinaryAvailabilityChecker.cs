@@ -267,9 +267,9 @@ public class BinaryAvailabilityChecker
         }
 
         // Add atmosphere-based tags
-        if (location.Atmosphere?.GetPropertyValue() != null)
+        if (location.Atmosphere.HasValue)
         {
-            tags.Add(location.Atmosphere.GetPropertyValue().ToLower());
+            tags.Add(location.Atmosphere.Value.GetPropertyValue().ToLower());
         }
 
         return tags;

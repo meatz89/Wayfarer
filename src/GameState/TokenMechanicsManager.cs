@@ -152,6 +152,37 @@ public class TokenMechanicsManager
         return false;
     }
 
+    // Grant tokens to player for relationship building
+    public void GrantTokens(ConnectionType type, int count, string npcId)
+    {
+        if (count <= 0) return;
+        
+        Player player = _gameWorld.GetPlayer();
+        
+        // Add to total tokens
+        if (!player.ConnectionTokens.ContainsKey(type))
+        {
+            player.ConnectionTokens[type] = 0;
+        }
+        player.ConnectionTokens[type] += count;
+        
+        // Track NPC-specific tokens if NPC provided
+        if (!string.IsNullOrEmpty(npcId))
+        {
+            if (!player.NPCTokens.ContainsKey(npcId))
+            {
+                player.NPCTokens[npcId] = new Dictionary<ConnectionType, int>();
+            }
+            if (!player.NPCTokens[npcId].ContainsKey(type))
+            {
+                player.NPCTokens[npcId][type] = 0;
+            }
+            player.NPCTokens[npcId][type] += count;
+        }
+        
+        _messageSystem.AddSystemMessage($"Gained {count} {type} token(s)", SystemMessageTypes.Success);
+    }
+    
     // Spend tokens with specific NPC context (for queue manipulation)
     public bool SpendTokensWithNPC(ConnectionType type, int count, string npcId)
     {

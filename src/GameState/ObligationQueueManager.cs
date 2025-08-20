@@ -62,6 +62,49 @@ public class ObligationQueueManager
 
         return activeObligations;
     }
+    
+    // Get the queue position of an obligation (1-based)
+    public int GetQueuePosition(DeliveryObligation obligation)
+    {
+        if (obligation == null) return -1;
+        
+        var queue = GetPlayerQueue();
+        for (int i = 0; i < queue.Length; i++)
+        {
+            if (queue[i]?.Id == obligation.Id)
+            {
+                return i + 1; // Return 1-based position
+            }
+        }
+        
+        return -1; // Not found
+    }
+    
+    // Deliver an obligation (mark as completed)
+    public bool DeliverObligation(string obligationId)
+    {
+        var obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
+        if (obligation == null) return false;
+        
+        var position = GetQueuePosition(obligation);
+        if (position <= 0) return false;
+        
+        // Remove from queue
+        RemoveObligationFromQueue(position);
+        
+        // Grant tokens for successful delivery
+        if (obligation.TokenType != ConnectionType.None)
+        {
+            _connectionTokenManager.GrantTokens(obligation.TokenType, 1, obligation.RecipientId);
+        }
+        
+        _messageSystem.AddSystemMessage(
+            $"✅ Letter delivered to {obligation.RecipientName}!",
+            SystemMessageTypes.Success
+        );
+        
+        return true;
+    }
 
     // Add letter to queue at specific position
     public bool AddObligationToQueue(DeliveryObligation obligation, int position)
@@ -2102,5 +2145,49 @@ public class ObligationQueueManager
     }
 
     #endregion
+    
+    /// <summary>
+    /// Prepare to skip an obligation (queue manipulation)
+    /// </summary>
+    public bool PrepareSkipAction(string obligationId)
+    {
+        var obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
+        if (obligation == null) return false;
+        
+        // For now, skip moves obligation to end of queue
+        var position = GetQueuePosition(obligation);
+        if (position > 0)
+        {
+            MoveObligationToPosition(obligation, _config.LetterQueue.MaxQueueSize);
+            _messageSystem.AddSystemMessage(
+                $"Moved {obligation.SenderName}'s letter to end of queue",
+                SystemMessageTypes.Info
+            );
+            return true;
+        }
+        return false;
+    }
+    
+    /// <summary>
+    /// Prepare to purge an obligation (remove from queue)
+    /// </summary>
+    public bool PreparePurgeAction(string obligationId)
+    {
+        var obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
+        if (obligation == null) return false;
+        
+        // Purge requires token cost or consequences
+        var position = GetQueuePosition(obligation);
+        if (position > 0)
+        {
+            RemoveObligationFromQueue(position);
+            _messageSystem.AddSystemMessage(
+                $"⚠️ Purged {obligation.SenderName}'s letter - expect consequences",
+                SystemMessageTypes.Warning
+            );
+            return true;
+        }
+        return false;
+    }
 
 }

@@ -8,25 +8,32 @@ public class NPCDeckFactory
     
     public CardDeck CreateDeckForNPC(NPC npc)
     {
-        var deck = new CardDeck
-        {
-            NPCPersonality = npc.Personality,
-            NPCId = npc.ID
-        };
+        var deck = new CardDeck();
         
         // Generate cards based on NPC personality
-        deck.AvailableCards.AddRange(GenerateCardsForPersonality(npc.Personality));
+        var cards = GenerateCardsForPersonality(npc.PersonalityType);
+        foreach (var card in cards)
+        {
+            deck.AddCard(card);
+        }
         
         // Add crisis cards if NPC has urgent obligations
         if (HasUrgentNeed(npc))
         {
-            deck.AvailableCards.Add(CreateCrisisCard(npc));
+            deck.AddCard(CreateCrisisCard(npc));
+        }
+        
+        // Add obligation manipulation cards
+        var obligationCards = CreateObligationManipulationCards();
+        foreach (var card in obligationCards)
+        {
+            deck.AddCard(card);
         }
         
         return deck;
     }
     
-    private List<ConversationCard> GenerateCardsForPersonality(string personality)
+    private List<ConversationCard> GenerateCardsForPersonality(PersonalityType personality)
     {
         var cards = new List<ConversationCard>();
         
@@ -45,24 +52,28 @@ public class NPCDeckFactory
         {
             Id = Guid.NewGuid().ToString(),
             Text = "Tell me more about that.",
-            Type = CardType.Social,
+            Type = CardType.Status,
             Persistence = PersistenceType.Persistent,
             Weight = 1,
             BaseComfort = 3
         });
         
         // Personality-specific cards
-        switch (personality?.ToLower())
+        switch (personality)
         {
-            case "merchant":
+            case PersonalityType.MERCANTILE:
                 cards.AddRange(CreateMerchantCards());
                 break;
-            case "noble":
+            case PersonalityType.PROUD:
                 cards.AddRange(CreateNobleCards());
                 break;
-            case "guard":
+            case PersonalityType.DEVOTED:
                 cards.AddRange(CreateGuardCards());
                 break;
+            case PersonalityType.CUNNING:
+                cards.AddRange(CreateCunningCards());
+                break;
+            case PersonalityType.STEADFAST:
             default:
                 cards.AddRange(CreateDefaultCards());
                 break;
@@ -73,7 +84,7 @@ public class NPCDeckFactory
         {
             Id = Guid.NewGuid().ToString(),
             Text = "Let me think about this carefully...",
-            Type = CardType.Social,
+            Type = CardType.Status,
             Persistence = PersistenceType.Persistent,
             Weight = 2,
             BaseComfort = 1,
@@ -93,7 +104,7 @@ public class NPCDeckFactory
             {
                 Id = Guid.NewGuid().ToString(),
                 Text = "Business has been good lately.",
-                Type = CardType.Practical,
+                Type = CardType.Commerce,
                 Persistence = PersistenceType.Opportunity,
                 Weight = 1,
                 BaseComfort = 2
@@ -102,7 +113,7 @@ public class NPCDeckFactory
             {
                 Id = Guid.NewGuid().ToString(),
                 Text = "I might have a delivery job for you.",
-                Type = CardType.Practical,
+                Type = CardType.Commerce,
                 Persistence = PersistenceType.OneShot,
                 Weight = 2,
                 BaseComfort = 4,
@@ -119,7 +130,7 @@ public class NPCDeckFactory
             {
                 Id = Guid.NewGuid().ToString(),
                 Text = "The political situation is quite delicate.",
-                Type = CardType.Social,
+                Type = CardType.Status,
                 Persistence = PersistenceType.Persistent,
                 Weight = 2,
                 BaseComfort = 3
@@ -128,7 +139,7 @@ public class NPCDeckFactory
             {
                 Id = Guid.NewGuid().ToString(),
                 Text = "I need someone I can trust with this.",
-                Type = CardType.Intimacy,
+                Type = CardType.Trust,
                 Persistence = PersistenceType.OneShot,
                 Weight = 3,
                 BaseComfort = 5,
@@ -145,7 +156,7 @@ public class NPCDeckFactory
             {
                 Id = Guid.NewGuid().ToString(),
                 Text = "Stay out of trouble.",
-                Type = CardType.Practical,
+                Type = CardType.Commerce,
                 Persistence = PersistenceType.Persistent,
                 Weight = 1,
                 BaseComfort = 1
@@ -154,9 +165,34 @@ public class NPCDeckFactory
             {
                 Id = Guid.NewGuid().ToString(),
                 Text = "I've seen some strange things lately.",
-                Type = CardType.Social,
+                Type = CardType.Status,
                 Persistence = PersistenceType.Opportunity,
                 Weight = 2,
+                BaseComfort = 3
+            }
+        };
+    }
+    
+    private List<ConversationCard> CreateCunningCards()
+    {
+        return new List<ConversationCard>
+        {
+            new ConversationCard
+            {
+                Id = Guid.NewGuid().ToString(),
+                Text = "I know something you might find interesting...",
+                Type = CardType.Shadow,
+                Persistence = PersistenceType.Opportunity,
+                Weight = 2,
+                BaseComfort = 4
+            },
+            new ConversationCard
+            {
+                Id = Guid.NewGuid().ToString(),
+                Text = "Let's keep this between us.",
+                Type = CardType.Shadow,
+                Persistence = PersistenceType.Persistent,
+                Weight = 1,
                 BaseComfort = 3
             }
         };
@@ -170,7 +206,7 @@ public class NPCDeckFactory
             {
                 Id = Guid.NewGuid().ToString(),
                 Text = "It's good to see you.",
-                Type = CardType.Comfort,
+                Type = CardType.Trust,
                 Persistence = PersistenceType.Persistent,
                 Weight = 1,
                 BaseComfort = 2
@@ -184,7 +220,7 @@ public class NPCDeckFactory
         {
             Id = Guid.NewGuid().ToString(),
             Text = "Please, I desperately need your help!",
-            Type = CardType.Comfort,
+            Type = CardType.Trust,
             Persistence = PersistenceType.Crisis,
             Weight = 3,
             BaseComfort = 10,

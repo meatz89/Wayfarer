@@ -21,10 +21,7 @@ public class Phase4_5_ContentFallbacks : IInitializationPhase
         // Create fallback service with just GameWorld to avoid circular dependencies
         ContentFallbackService fallbackService = new ContentFallbackService(context.GameWorld);
 
-        // Get loaded conversations from shared data
-        Dictionary<string, ConversationDefinition> conversations = context.SharedData.ContainsKey("Conversations")
-            ? (Dictionary<string, ConversationDefinition>)context.SharedData["Conversations"]
-            : new Dictionary<string, ConversationDefinition>();
+        // Conversations now handled by card-based system, no definitions to load
 
         // Get current obligations if any
         Player player = context.GameWorld.GetPlayer();
@@ -35,8 +32,8 @@ public class Phase4_5_ContentFallbacks : IInitializationPhase
         // Get routes
         List<RouteOption> routes = context.GameWorld.WorldState.Routes ?? new List<RouteOption>();
 
-        // Validate and patch all content
-        ContentFallbackReport report = fallbackService.ValidateAndPatchContent(conversations, obligations, routes);
+        // Validate and patch all content (without conversations)
+        ContentFallbackReport report = fallbackService.ValidateAndPatchContent(obligations, routes);
 
         // Store fallback service for later use
         context.SharedData["ContentFallbackService"] = fallbackService;

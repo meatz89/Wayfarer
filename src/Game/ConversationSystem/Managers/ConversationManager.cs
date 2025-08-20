@@ -247,12 +247,10 @@ public class ConversationManager
             SenderName = npc.Name,
             RecipientId = DetermineRecipient(npc),
             RecipientName = DetermineRecipientName(npc),
-            ConnectionType = connectionType,
+            TokenType = connectionType,
             Stakes = DetermineStakes(connectionType),
             DeadlineInMinutes = deadlineMinutes,
-            Payment = 5 + highestValue * 2,
-            TokenReward = connectionType,
-            TokenRewardAmount = 1
+            Payment = 5 + highestValue * 2
         };
     }
 

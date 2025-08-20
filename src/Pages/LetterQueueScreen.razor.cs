@@ -199,7 +199,7 @@ namespace Wayfarer.Pages
         private async Task StartConversation(string npcId)
         {
             Console.WriteLine($"[LetterQueueScreen] Starting conversation with NPC: {npcId}");
-            ViewModels.ConversationViewModel? conversation = await GameFacade.StartConversationAsync(npcId);
+            ConversationViewModel conversation = await GameFacade.StartConversationAsync(npcId);
             Console.WriteLine($"[LetterQueueScreen] Conversation created: {conversation != null}");
 
             if (conversation != null)

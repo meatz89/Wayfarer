@@ -26,6 +26,7 @@ public int PlayerCoins { get; set; } = 2;
 public int PlayerStamina { get; set; } = 5;
 public Inventory PlayerInventory { get; private set; }
 public List<Location> Locations { get; set; } = new List<Location>();
+public List<NPC> NPCs { get; set; } = new List<NPC>();
 
 private Player Player;
 public WorldState WorldState { get; private set; }
@@ -65,9 +66,6 @@ public GameWorld()
     StreamingContentState = new StreamingContentState();
 
     // FlagService and NarrativeManager are created by DI, not GameWorld
-
-    CurrentAIResponse = null;
-    IsAwaitingAIResponse = false;
 }
 
 public Player GetPlayer()

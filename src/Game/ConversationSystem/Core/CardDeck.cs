@@ -31,7 +31,7 @@ public class CardDeck
         AddUniversalCards();
 
         // Add personality-specific cards
-        AddPersonalityCards(npc.Personality);
+        AddPersonalityCards(npc.PersonalityType);
 
         // Add relationship cards based on current tokens
         var tokens = tokenManager.GetTokensWithNPC(npc.ID);

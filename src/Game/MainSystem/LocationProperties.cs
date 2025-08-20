@@ -1,41 +1,86 @@
 using System.Collections.Generic;
 
-// Minimal location property types to fix compilation
-// These are simplified from the old system
+// Location property enums for categorical mechanics
 
 public interface ILocationProperty
 {
     string GetDescription();
 }
 
-public class Population : ILocationProperty
+public enum Population
 {
-    public int Count { get; set; }
-    public string Type { get; set; }
-
-    public string GetDescription() => $"{Count} {Type}";
+    Quiet,
+    Crowded,
+    Scholarly
 }
 
-public class Atmosphere : ILocationProperty
+public enum Atmosphere
 {
-    public string Mood { get; set; }
-    public string Activity { get; set; }
-
-    public string GetDescription() => $"{Mood}, {Activity}";
+    Calm,
+    Tense,
+    Formal,
+    Chaotic
 }
 
-public class Physical : ILocationProperty
+public enum Physical
 {
-    public string Terrain { get; set; }
-    public string Features { get; set; }
-
-    public string GetDescription() => $"{Terrain} with {Features}";
+    Confined,
+    Expansive,
+    Hazardous
 }
 
-public class Illumination : ILocationProperty
+public enum Illumination
 {
-    public string LightLevel { get; set; }
-    public string Source { get; set; }
+    Bright,
+    Thiefy,  // Shadows for thieves
+    Dark
+}
 
-    public string GetDescription() => $"{LightLevel} from {Source}";
+// Extension methods for property values
+public static class LocationPropertyExtensions
+{
+    public static string GetPropertyValue(this Population pop)
+    {
+        return pop switch
+        {
+            Population.Quiet => "quiet",
+            Population.Crowded => "crowded",
+            Population.Scholarly => "scholarly",
+            _ => "normal"
+        };
+    }
+
+    public static string GetPropertyValue(this Atmosphere atm)
+    {
+        return atm switch
+        {
+            Atmosphere.Calm => "calm",
+            Atmosphere.Tense => "tense",
+            Atmosphere.Formal => "formal",
+            Atmosphere.Chaotic => "chaotic",
+            _ => "normal"
+        };
+    }
+
+    public static string GetPropertyValue(this Physical phys)
+    {
+        return phys switch
+        {
+            Physical.Confined => "confined",
+            Physical.Expansive => "expansive",
+            Physical.Hazardous => "hazardous",
+            _ => "normal"
+        };
+    }
+
+    public static string GetPropertyValue(this Illumination ill)
+    {
+        return ill switch
+        {
+            Illumination.Bright => "bright",
+            Illumination.Thiefy => "shadowy",
+            Illumination.Dark => "dark",
+            _ => "normal"
+        };
+    }
 }

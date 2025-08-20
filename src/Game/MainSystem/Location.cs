@@ -21,10 +21,10 @@ public List<string> NightProperties { get; set; } = new List<string>();
 // Tag Resonance System
 public List<string> DomainTags { get; set; } = new List<string>();
 
-public Population? Population { get; set; } = Population.Quiet;
-public Atmosphere? Atmosphere { get; set; } = Atmosphere.Calm;
-public Physical? Physical { get; set; } = Physical.Confined;
-public Illumination? Illumination { get; set; } = Illumination.Bright;
+public Population? Population { get; set; }
+public Atmosphere? Atmosphere { get; set; }
+public Physical? Physical { get; set; }
+public Illumination? Illumination { get; set; }
 
 public int TravelTimeMinutes { get; set; }
 public string TravelDescription { get; set; }

@@ -318,34 +318,8 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public async Task OnConversationCompleted()
     {
         // Conversations now handled by ConversationScreen component
-        // This method will be removed
-        if (conversation != null && conversation.ConversationTopic == "QueueManagement")
-        {
-            // Handle queue management completion through facade
-            // The facade should handle the queue operations internally
-            OnNavigate?.Invoke(CurrentViews.LetterQueueScreen);
-        }
-        else
-        {
-            // Check for tutorial patronage acceptance
-            if (conversation?.NpcId == "patron_intermediary")
-            {
-                NarrativeStateViewModel narrativeState = GameFacade.GetNarrativeState();
-                if (narrativeState.IsTutorialActive)
-                {
-                    TutorialGuidanceViewModel tutorialGuidance = GameFacade.GetTutorialGuidance();
-                    if (tutorialGuidance.StepTitle?.Contains("patronage") == true)
-                    {
-                        // Patron acceptance is handled by the backend through facade
-                        // Messages are already added by backend
-                    }
-                }
-            }
-
-            // Switch to narrative screen to show result
-            OnNavigate?.Invoke(CurrentViews.NarrativeScreen);
-        }
-
+        // Navigate back to appropriate screen
+        OnNavigate?.Invoke(CurrentViews.LocationScreen);
         UpdateState();
     }
 

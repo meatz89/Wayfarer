@@ -135,30 +135,31 @@ namespace Wayfarer.Pages
         // UI Helper Methods
         protected string GetCurrentTimeDisplay()
         {
-            return TimeManager.GetCurrentTimeDisplay();
+            return TimeManager.GetFormattedTimeDisplay();
         }
 
         protected string GetUrgentDeadline()
         {
-            var urgentObligation = GameFacade.GetLetterQueue()
-                .FirstOrDefault(o => o.MinutesUntilDeadline < 360);
+            var queue = GameFacade.GetLetterQueue();
+            var urgentSlot = queue?.QueueSlots?
+                .FirstOrDefault(s => s.IsOccupied && s.DeliveryObligation?.DeadlineInHours < 6);
             
-            if (urgentObligation != null)
+            if (urgentSlot?.DeliveryObligation != null)
             {
-                return $"{urgentObligation.SenderName}'s letter: {urgentObligation.GetDeadlineDescription()} remain";
+                return $"{urgentSlot.DeliveryObligation.SenderName}'s letter: {urgentSlot.DeliveryObligation.DeadlineInHours}h remain";
             }
             return null;
         }
 
         protected List<string> GetLocationPath()
         {
-            var location = GameFacade.GetCurrentLocation();
-            return new List<string> { location.District, location.Name };
+            var (location, spot) = GameFacade.GetCurrentLocation();
+            return new List<string> { location?.Name ?? "Unknown", spot?.Name ?? "Somewhere" };
         }
 
         protected string GetCurrentSpot()
         {
-            var spot = GameFacade.GetCurrentSpot();
+            var (_, spot) = GameFacade.GetCurrentLocation();
             return spot?.Name ?? "Somewhere";
         }
 
@@ -174,11 +175,12 @@ namespace Wayfarer.Pages
             
             if (state == EmotionalState.DESPERATE)
             {
-                var urgentLetter = GameFacade.GetLetterQueue()
-                    .FirstOrDefault(o => o.SenderId == Session.NPC.ID);
-                if (urgentLetter != null)
+                var queue = GameFacade.GetLetterQueue();
+                var urgentSlot = queue?.QueueSlots?
+                    .FirstOrDefault(s => s.IsOccupied && s.DeliveryObligation?.SenderName == Session.NPC.Name);
+                if (urgentSlot?.DeliveryObligation != null)
                 {
-                    description += $" • Letter deadline in {urgentLetter.GetDeadlineDescription()}!";
+                    description += $" • Letter deadline in {urgentSlot.DeliveryObligation.DeadlineInHours}h!";
                 }
             }
             

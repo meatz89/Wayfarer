@@ -33,6 +33,12 @@ public DailyActivitiesManager(
     // _patronLetterService removed - patron system deleted
 }
 
+// Get the last activity result
+public DailyActivityResult GetLastActivityResult()
+{
+    return _lastActivityResult ?? new DailyActivityResult();
+}
+
 // Process all daily activities and collect events
 public DailyActivityResult ProcessDailyActivities()
 {
@@ -117,7 +123,6 @@ public DailyActivityResult ProcessDailyActivities()
 
     // Store result for later retrieval
     _lastActivityResult = result;
-
     return result;
 }
 
@@ -272,6 +277,7 @@ private string GetPatronLetterNarrative(DeliveryObligation letter, int position)
     Random random = new Random();
     return narratives[random.Next(narratives.Length)];
 }
+}
 
 // Event types for daily activities
 public enum DailyEventType
@@ -305,5 +311,4 @@ public class DailyActivityResult
 
     public bool HasEvents => ExpiredLetterCount > 0 || ForcedLetterCount > 0 ||
                             NewLetterCount > 0 || UrgentLetterCount > 0 || PatronLetterCount > 0;
-}
 }

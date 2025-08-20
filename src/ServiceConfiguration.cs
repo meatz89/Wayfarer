@@ -58,12 +58,12 @@ public static class ServiceConfiguration
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<CharacterSystem>();
-        services.AddSingleton<WorldStateInputBuilder>();
+        // services.AddSingleton<WorldStateInputBuilder>(); // Removed - no longer exists
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<DebugLogger>();
 
-        services.AddSingleton<LocationCreationSystem>();
+        // services.AddSingleton<LocationCreationSystem>(); // Removed - no longer exists
         services.AddSingleton<LocationPropertyManager>();
         services.AddTimeSystem();
 
@@ -80,11 +80,11 @@ public static class ServiceConfiguration
         services.AddSingleton<TradeManager>();
         services.AddSingleton<RestManager>();
         services.AddSingleton<TransportCompatibilityValidator>();
-        services.AddSingleton<CollapseManager>();
+        // services.AddSingleton<CollapseManager>(); // Removed - no longer exists
 
         // DeliveryObligation Queue System
         services.AddSingleton<StandingObligationManager>();
-        services.AddSingleton<ConversationContextService>();
+        // services.AddSingleton<ConversationContextService>(); // Removed - no longer exists
 
         // New card-based conversation system
         services.AddSingleton<ConversationManager>();
@@ -98,7 +98,7 @@ public static class ServiceConfiguration
         // Leverage Calculator for power dynamics
 
         // Relationship tracking for contextual conversations
-        services.AddSingleton<Wayfarer.GameState.NPCRelationshipTracker>();
+        services.AddSingleton<NPCRelationshipTracker>();
 
         // Contextual conversation system
         // Removed - using existing ConversationChoiceGenerator instead
@@ -106,8 +106,8 @@ public static class ServiceConfiguration
         // Card-based conversation system - no confrontation service needed
 
         // Environmental Storytelling Systems
-        services.AddSingleton<Wayfarer.GameState.WorldMemorySystem>();
-        services.AddSingleton<Wayfarer.GameState.AmbientDialogueSystem>();
+        services.AddSingleton<WorldMemorySystem>();
+        services.AddSingleton<AmbientDialogueSystem>();
         services.AddSingleton<AtmosphereCalculator>();
 
         services.AddSingleton<ObligationQueueManager>();

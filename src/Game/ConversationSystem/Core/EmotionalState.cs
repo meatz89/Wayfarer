@@ -191,7 +191,7 @@ public static class ConversationRules
             return EmotionalState.HOSTILE;
 
         // Default based on personality
-        return npc.Personality switch
+        return npc.PersonalityType switch
         {
             PersonalityType.DEVOTED => EmotionalState.OPEN,
             PersonalityType.MERCANTILE => EmotionalState.NEUTRAL,

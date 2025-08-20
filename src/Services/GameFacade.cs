@@ -418,7 +418,7 @@ public class GameFacade
 
     public GameWorldSnapshot GetGameSnapshot()
     {
-        return new GameWorldSnapshot(_gameWorld, _conversationStateManager);
+        return new GameWorldSnapshot(_gameWorld);
     }
 
     public Player GetPlayer()
@@ -915,27 +915,11 @@ public class GameFacade
 
         try
         {
-            // Create conversation context
-            Location location = _locationRepository.GetCurrentLocation();
-            LocationSpot? spot = player.CurrentLocationSpot;
-            SceneContext context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
-
-            // Create conversation - this should always succeed with fallback content
-            ConversationManager conversation = await _conversationFactory.CreateConversation(context, player);
-            if (conversation == null)
+            // Start conversation with the new card-based system
+            var session = _conversationManager.StartConversation(npc.ID);
+            if (session == null)
             {
-                // This should never happen with proper fallback, but handle it anyway
-                _messageSystem.AddSystemMessage($"Failed to create conversation with {npc.Name}", SystemMessageTypes.Warning);
-                return false;
-            }
-
-            // Set conversation state
-            _conversationStateManager.SetCurrentConversation(conversation);
-
-            // Verify the conversation was set
-            if (!_conversationStateManager.ConversationPending || _conversationStateManager.PendingConversationManager == null)
-            {
-                _messageSystem.AddSystemMessage($"Failed to start conversation with {npc.Name} - state not set", SystemMessageTypes.Danger);
+                _messageSystem.AddSystemMessage($"Cannot talk to {npc.Name} right now", SystemMessageTypes.Warning);
                 return false;
             }
 
@@ -1116,9 +1100,9 @@ public class GameFacade
         // Handle special letter types - Endorsement letters removed from game
 
         // Process patron leverage
-        if (outcome.ReducesLeverage > 0)
+        if (outcome.ReducesLeverage)
         {
-            _messageSystem.AddSystemMessage($"Patron leverage reduced by {outcome.ReducesLeverage}", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage("Patron leverage reduced", SystemMessageTypes.Success);
         }
 
         // Track delivery
@@ -2237,720 +2221,81 @@ public class GameFacade
     // ========== CONVERSATIONS ==========
 
 
-    public async Task<bool> StartConversationAsync(string npcId)
+    public async Task<ConversationViewModel> StartConversationAsync(string npcId)
     {
         // New card-based conversation system
         // Conversations are now handled directly by ConversationScreen component
-        // This method just validates the NPC exists and is available
+        // This method validates the NPC exists and creates the view model
         
         NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null) return false;
+        if (npc == null) return null;
         
         Player player = _gameWorld.GetPlayer();
         Location location = _locationRepository.GetCurrentLocation();
         
         // Check if NPC is at current location
-        if (!location.NPCs.Contains(npcId))
-            return false;
-            
-        // Conversation will be started by ConversationScreen component
-        return true;
-    }
-
-    // All conversation methods removed - handled by new ConversationScreen component directly
-
-    // Temporary stub until all references are removed
-    public async Task<object> ProcessConversationChoice(string choiceId)
-    {
-        Console.WriteLine($"[GameFacade.ProcessConversationChoice] Processing choice: {choiceId}");
-
-        ConversationManager? currentConversation = _conversationStateManager.PendingConversationManager;
-        if (currentConversation == null || !_conversationStateManager.ConversationPending)
-        {
-            Console.WriteLine($"[GameFacade.ProcessConversationChoice] No active conversation");
+        var worldNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (worldNpc == null || worldNpc.Location != location.Id)
             return null;
-        }
-
-        // Find the selected choice
-        ConversationChoice? selectedChoice = currentConversation.Choices?.FirstOrDefault(c => c.ChoiceID == choiceId);
-        if (selectedChoice == null)
+            
+        // Create conversation view model
+        var viewModel = new ConversationViewModel
         {
-            Console.WriteLine($"[GameFacade.ProcessConversationChoice] Choice not found: {choiceId}");
-            return GetCurrentConversation();
-        }
-
-        Console.WriteLine($"[GameFacade.ProcessConversationChoice] Found choice: {selectedChoice.NarrativeText}, PatienceCost: {selectedChoice.PatienceCost}, ChoiceType: {selectedChoice.ChoiceType}");
-
-        // LETTER REQUEST CARD HANDLING: Process letter request cards with success/failure mechanics
-        if (selectedChoice.ChoiceType == ConversationChoiceType.RequestTrustLetter ||
-            selectedChoice.ChoiceType == ConversationChoiceType.RequestCommerceLetter ||
-            selectedChoice.ChoiceType == ConversationChoiceType.RequestStatusLetter ||
-            selectedChoice.ChoiceType == ConversationChoiceType.RequestShadowLetter)
-        {
-            return await ProcessLetterRequestCard(currentConversation, selectedChoice);
-        }
-        
-        // SPECIAL LETTER REQUEST HANDLING: Process special letter requests (Epic 7)
-        if (selectedChoice.ChoiceType == ConversationChoiceType.IntroductionLetter ||
-            selectedChoice.ChoiceType == ConversationChoiceType.AccessPermit)
-        {
-            return await ProcessSpecialLetterRequestCard(currentConversation, selectedChoice);
-        }
-        // LEGACY: Keep old instant offer handling for backward compatibility (will be removed)
-        else if (selectedChoice.ChoiceType == ConversationChoiceType.AcceptLetterOffer)
-        {
-            return await ProcessAcceptLetterOffer(currentConversation, selectedChoice);
-        }
-        else if (selectedChoice.ChoiceType == ConversationChoiceType.DeclineLetterOffer)
-        {
-            return await ProcessDeclineLetterOffer(currentConversation, selectedChoice);
-        }
-
-        // NEW: Use ConversationOutcomeCalculator for Success/Neutral/Failure determination
-        var outcomeCalculator = new Wayfarer.Game.ConversationSystem.ConversationOutcomeCalculator();
-        NPC npc = currentConversation.Context.TargetNPC; // Get NPC from context
-        Player player = _gameWorld.GetPlayer();
-        int currentPatience = currentConversation.State.FocusPoints;
-
-        // Calculate outcome probabilities and determine actual outcome
-        var probabilities = outcomeCalculator.CalculateProbabilities(selectedChoice, npc, player, currentPatience);
-        var actualOutcome = outcomeCalculator.DetermineOutcome(probabilities);
-        var choiceResult = outcomeCalculator.CalculateResult(selectedChoice, actualOutcome, npc, player);
-
-        Console.WriteLine($"[GameFacade.ProcessConversationChoice] Outcome: {actualOutcome}, ComfortGain: {choiceResult.ComfortGain}, PatienceCost: {choiceResult.PatienceCost}");
-
-        // CRITICAL: Provide clear feedback to player about conversation outcome
-        // NO SILENT BACKEND ACTIONS - player must see result of their choice
-        string outcomeMessage = actualOutcome switch
-        {
-            ConversationOutcome.Success => $"✓ {npc.Name} responds positively (+{choiceResult.ComfortGain} comfort)",
-            ConversationOutcome.Neutral => $"⚬ {npc.Name} gives a measured response (+{choiceResult.ComfortGain} comfort)", 
-            ConversationOutcome.Failure => $"✗ {npc.Name} seems unimpressed (no comfort gained)",
-            _ => $"⚬ {npc.Name} responds"
+            NpcName = npc.Name,
+            NpcId = npc.ID,
+            LocationName = location.Name,
+            CurrentAttention = _timeBlockAttentionManager.GetAttentionState().current,
+            MaxAttention = _timeBlockAttentionManager.GetAttentionState().max,
+            CurrentTime = _timeManager.GetFormattedTimeDisplay(),
+            QueueStatus = $"{player.ObligationQueue.Count(o => o != null)}/8",
+            CoinStatus = $"{player.Coins}s"
         };
-
-        SystemMessageTypes messageType = actualOutcome switch
-        {
-            ConversationOutcome.Success => SystemMessageTypes.Success,
-            ConversationOutcome.Neutral => SystemMessageTypes.Info,
-            ConversationOutcome.Failure => SystemMessageTypes.Warning,
-            _ => SystemMessageTypes.Info
-        };
-
-        _messageSystem.AddSystemMessage(outcomeMessage, messageType);
-
-        // Apply choice result to conversation state
-        currentConversation.State.FocusPoints -= choiceResult.PatienceCost; // Reduce patience directly
-        currentConversation.State.AddComfort(choiceResult.ComfortGain); // Add comfort using existing method
         
-        // Apply token changes
-        foreach (var tokenChange in choiceResult.TokenChanges)
-        {
-            if (tokenChange.Value > 0)
-            {
-                _connectionTokenManager.AddTokensToNPC(tokenChange.Key, tokenChange.Value, npc.ID);
-            }
-            else if (tokenChange.Value < 0)
-            {
-                // Use SpendTokensWithNPC for negative changes
-                _connectionTokenManager.SpendTokensWithNPC(tokenChange.Key, Math.Abs(tokenChange.Value), npc.ID);
-            }
-        }
-
-        // Remove the selected choice from available choices (single-use)
-        if (currentConversation.Choices != null)
-        {
-            currentConversation.Choices.Remove(selectedChoice);
-        }
-
-        // Check for natural conversation ending conditions
-        bool shouldEndConversation = false;
-        
-        // End if patience reaches 0
-        if (currentConversation.State.FocusPoints <= 0)
-        {
-            Console.WriteLine($"[GameFacade.ProcessConversationChoice] Conversation ended - NPC patience exhausted");
-            shouldEndConversation = true;
-        }
-        // End if no more choices available
-        else if (currentConversation.Choices == null || !currentConversation.Choices.Any(c => c.IsAvailable))
-        {
-            Console.WriteLine($"[GameFacade.ProcessConversationChoice] Conversation ended - no more available choices");
-            shouldEndConversation = true;
-        }
-
-        if (shouldEndConversation)
-        {
-            await ProcessConversationCompletion(currentConversation);
-            _conversationStateManager.ClearPendingConversation();
-            Console.WriteLine($"[GameFacade.ProcessConversationChoice] Conversation completed and cleared");
-            return null;
-        }
-
-        // Track time for any time effects (keep existing logic)
-        int hoursBefore = _timeManager.GetCurrentTimeHours();
-        int minutesBefore = _timeManager.GetCurrentMinutes();
-        int dayBefore = _timeManager.GetCurrentDay();
-
-        // Generate new choices if conversation continues (reduce available options)
-        await currentConversation.ProcessNextBeat();
-
-        // Return updated view model
-        return CreateConversationViewModel(currentConversation);
+        return viewModel;
     }
 
-    private ConversationViewModel CreateConversationViewModel(ConversationManager conversation)
-    {
-        SceneContext? context = conversation.Context;
-        NPC? npc = conversation.Context?.TargetNPC;
-
-        // Use ContextTagCalculator to populate tags if available
-        if (_contextTagCalculator != null && context != null)
-        {
-            _contextTagCalculator.PopulateContextTags(context);
-        }
-
-        // Calculate NPC emotional state from letter queue
-        NPCEmotionalState npcState = NPCEmotionalState.WITHDRAWN;
-        if (_npcStateResolver != null && npc != null)
-        {
-            npcState = _npcStateResolver.CalculateState(npc);
-        }
-
-        // Get attention information
-        int currentAttention = context?.AttentionManager?.Current ?? 3;
-        int maxAttention = context?.AttentionManager?.Max ?? 3;
-
-        // Generate attention narrative based on remaining points
-        string attentionNarrative = currentAttention switch
-        {
-            3 => "Your mind is clear and focused, ready to absorb every detail.",
-            2 => "You remain attentive, though some of your focus has been spent.",
-            1 => "Your concentration wavers. You must choose your focus carefully.",
-            0 => "Mental fatigue clouds your thoughts. You can only respond simply.",
-            _ => ""
-        };
-
-        // Get the most urgent letter for this NPC (used in multiple places)
-        DeliveryObligation urgentDeliveryObligation = null;
-        if (npc != null)
-        {
-            urgentDeliveryObligation = _letterQueueManager.GetActiveObligations()
-                .Where(l => l.SenderId == npc.ID || l.SenderName == npc.Name)
-                .OrderBy(l => l.DeadlineInMinutes)
-                .FirstOrDefault();
-        }
-
-        // Generate body language description based on NPC emotional state
-        string bodyLanguage = "";
-        if (_npcStateResolver != null && npc != null)
-        {
-            StakeType stakes = urgentDeliveryObligation?.Stakes ?? StakeType.REPUTATION;
-            bodyLanguage = _npcStateResolver.GenerateBodyLanguage(npcState, stakes);
-        }
-        else
-        {
-            bodyLanguage = GenerateBodyLanguageFromTags(context);
-        }
-
-        // Generate peripheral observations
-        List<string> peripheralObservations = GeneratePeripheralObservations(context);
-
-        // Use EnvironmentalHintSystem for deadline pressure
-        string deadlinePressure = _environmentalHintSystem?.GetDeadlinePressure() ?? "";
-
-        // Use EnvironmentalHintSystem for environmental hints
-        List<string> environmentalHints = new List<string>();
-        if (!string.IsNullOrEmpty(context?.LocationName))
-        {
-            string? hint = _environmentalHintSystem?.GetEnvironmentalHint(context.LocationName.ToLower().Replace(" ", "_"));
-            if (!string.IsNullOrEmpty(hint))
-            {
-                environmentalHints.Add(hint);
-            }
-        }
-
-        // Get location atmosphere
-        string locationAtmosphere = "";
-        if (!string.IsNullOrEmpty(context?.LocationSpotName))
-        {
-            locationAtmosphere = context.LocationSpotName.Contains("Kettle")
-                ? "Warm hearth-light, nervous energy in the air"
-                : "The usual bustle of activity";
-        }
-
-        // Get the current narrative text, with fallback
-        string currentText = conversation.State?.CurrentNarrative;
-        if (string.IsNullOrWhiteSpace(currentText))
-        {
-            // Fallback narrative if none was generated
-            currentText = $"{conversation.Context.TargetNPC.Name} looks at you expectantly, waiting for you to speak.";
-        }
-
-        return new ConversationViewModel
-        {
-            NpcName = conversation.Context.TargetNPC.Name,
-            NpcId = conversation.Context.TargetNPC.ID,
-            CurrentText = currentText,
-
-            // Emotional State (from NPCStateResolver)
-            EmotionalState = npcState,
-            CurrentStakes = urgentDeliveryObligation?.Stakes,
-            HoursToDeadline = urgentDeliveryObligation?.DeadlineInMinutes,
-
-            Choices = conversation.Choices?.Select(c => new ConversationChoiceViewModel
-            {
-                Id = c.ChoiceID,
-                Text = c.NarrativeText,
-                IsAvailable = c.IsAffordable,
-                UnavailableReason = !c.IsAffordable ? $"Requires {c.PatienceCost} attention" : null,
-                PatienceCost = c.PatienceCost,
-                PatienceDisplay = GetAttentionDisplayString(c.PatienceCost),
-                PatienceDescription = GetAttentionDescription(c.PatienceCost),
-                IsInternalThought = c.NarrativeText.StartsWith("*") || c.TemplatePurpose?.Contains("INTERNAL") == true,
-                EmotionalTone = DetermineEmotionalTone(c),
-                IsLocked = c.IsLocked,
-                // Mechanics now handled by conversation cards
-                Mechanics = new List<MechanicEffectViewModel>()
-            }).ToList() ?? new List<ConversationChoiceViewModel>(),
-            IsComplete = conversation.State?.IsConversationComplete ?? false,
-            ConversationTopic = conversation.Context.ConversationTopic,
-
-            // Literary UI properties
-            CurrentAttention = currentAttention,
-            MaxAttention = maxAttention,
-            AttentionNarrative = attentionNarrative,
-
-            // Context tags
-            PressureTags = context?.PressureTags?.Select(t => t.ToString()).ToList() ?? new(),
-            RelationshipTags = context?.RelationshipTags?.Select(t => t.ToString()).ToList() ?? new(),
-            FeelingTags = context?.FeelingTags?.Select(t => t.ToString()).ToList() ?? new(),
-            DiscoveryTags = context?.DiscoveryTags?.Select(t => t.ToString()).ToList() ?? new(),
-            ResourceTags = context?.ResourceTags?.Select(t => t.ToString()).ToList() ?? new(),
-
-            // Scene pressure metrics
-            MinutesUntilDeadline = context?.MinutesUntilDeadline ?? 0,
-            LetterQueueSize = context?.ObligationQueueSize ?? 0,
-
-            // Body language and peripheral awareness
-            BodyLanguageDescription = bodyLanguage,
-            PeripheralObservations = peripheralObservations,
-
-            // Literary UI elements
-            DeadlinePressure = deadlinePressure,
-            EnvironmentalHints = environmentalHints,
-            LocationName = context?.LocationSpotName ?? "Unknown Location",
-            LocationAtmosphere = locationAtmosphere,
-            CharacterState = bodyLanguage,
-            CharacterAction = GenerateCharacterAction(npcState, urgentDeliveryObligation, conversation),
-            RelationshipStatus = GetRelationshipStatusDisplay(npc),
-
-            // Internal monologue (generated based on pressure)
-            InternalMonologue = GenerateInternalMonologue(context),
-
-            // Binding obligations (promises and debts)
-            BindingObligations = _bindingObligationSystem?.GetActiveObligations() ?? new List<BindingObligationViewModel>()
-        };
-    }
-
+    // Card-based conversation system integration
+    
     /// <summary>
-    /// Process letter request card with success/failure mechanics
-    /// This replaces instant letter offers with risk-based card play
+    /// Get current conversation session
     /// </summary>
-    private async Task<ConversationViewModel> ProcessLetterRequestCard(ConversationManager conversation, ConversationChoice choice)
+    public ConversationSession GetCurrentConversation()
     {
-        NPC npc = conversation.Context.TargetNPC;
-        Player player = _gameWorld.GetPlayer();
-        int currentPatience = conversation.State.FocusPoints;
-        
-        // Determine letter type from choice type
-        ConnectionType letterType = choice.ChoiceType switch
-        {
-            ConversationChoiceType.RequestTrustLetter => ConnectionType.Trust,
-            ConversationChoiceType.RequestCommerceLetter => ConnectionType.Commerce,
-            ConversationChoiceType.RequestStatusLetter => ConnectionType.Status,
-            ConversationChoiceType.RequestShadowLetter => ConnectionType.Shadow,
-            _ => ConnectionType.Trust
-        };
-
-        // Calculate success using existing outcome calculator
-        var outcomeCalculator = new Wayfarer.Game.ConversationSystem.ConversationOutcomeCalculator();
-        var probabilities = outcomeCalculator.CalculateProbabilities(choice, npc, player, currentPatience);
-        var actualOutcome = outcomeCalculator.DetermineOutcome(probabilities);
-        
-        // Apply patience cost regardless of outcome
-        conversation.State.FocusPoints -= choice.PatienceCost;
-        conversation.State.PlayCard(choice.ChoiceID); // Mark card as played this conversation
-        
-        // Handle success: Generate letter and remove card from deck
-        if (actualOutcome == ConversationOutcome.Success)
-        {
-            // Generate letter using existing service
-            // Legacy letter offer generation replaced with conversation-based system
-            var generatedLetters = new List<DeliveryObligation>();
-                
-            if (generatedLetters?.Any() == true)
-            {
-                DeliveryObligation letter = generatedLetters.First();
-                letter.TokenType = letterType; // Override with requested type
-                
-                // Add to queue
-                int position = _letterQueueManager.AddLetterWithObligationEffects(letter);
-                
-                // Remove successful letter card from deck (one-time use on success)
-                npc.ConversationDeck?.RemoveCard(choice.ChoiceID);
-                
-                // Provide feedback
-                _messageSystem.AddSystemMessage(
-                    $"✓ {npc.Name} agrees to your request! They entrust you with a {letterType} letter.",
-                    SystemMessageTypes.Success
-                );
-                _messageSystem.AddSystemMessage(
-                    $"💰 {letter.Payment} coins • ⏰ {letter.DeadlineInMinutes / 24} days • Position {position}",
-                    SystemMessageTypes.Info
-                );
-            }
-        }
-        // Handle failure: Card remains in deck for future attempts
-        else
-        {
-            string failureMessage = actualOutcome == ConversationOutcome.Neutral
-                ? $"⚬ {npc.Name} considers your request but isn't ready to trust you with a letter yet."
-                : $"✗ {npc.Name} politely declines. Perhaps when your relationship is stronger...";
-                
-            SystemMessageTypes messageType = actualOutcome == ConversationOutcome.Neutral 
-                ? SystemMessageTypes.Info 
-                : SystemMessageTypes.Warning;
-                
-            _messageSystem.AddSystemMessage(failureMessage, messageType);
-            
-            // Card stays in deck for retry in future conversations
-        }
-        
-        // Process standard choice effects
-        ConversationBeatOutcome beatOutcome = await conversation.ProcessPlayerChoice(choice);
-        
-        return CreateConversationViewModel(conversation);
+        return _conversationManager.CurrentSession;
     }
-
+    
     /// <summary>
-    /// Process special letter request card using SpecialLetterGenerationService
-    /// Epic 7: Only supports IntroductionLetter (Trust) and AccessPermit (Commerce)
+    /// Execute LISTEN action in current conversation
     /// </summary>
-    private async Task<ConversationViewModel> ProcessSpecialLetterRequestCard(ConversationManager conversation, ConversationChoice choice)
+    public void ExecuteConversationListen()
     {
-        NPC npc = conversation.Context.TargetNPC;
-        Player player = _gameWorld.GetPlayer();
-        int currentPatience = conversation.State.FocusPoints;
-        
-        // Determine token type from choice type
-        ConnectionType tokenType = choice.ChoiceType switch
+        if (!_conversationManager.IsConversationActive)
         {
-            ConversationChoiceType.IntroductionLetter => ConnectionType.Trust,
-            ConversationChoiceType.AccessPermit => ConnectionType.Commerce,
-            _ => throw new ArgumentException($"Unsupported special letter type: {choice.ChoiceType}")
-        };
-
-        // Check if we can request this special letter type
-        if (!_conversationLetterService.CanRequestSpecialLetter(npc.ID, tokenType))
-        {
-            // Use categorical message instead of hardcoded text
-            _messageSystem.AddSpecialLetterRequestResult(
-                npc.ID, 
-                tokenType, 
-                SpecialLetterRequestResult.InsufficientTokens
-            );
-            
-            // Apply patience cost but no other effects
-            conversation.State.FocusPoints -= choice.PatienceCost;
-            conversation.State.PlayCard(choice.ChoiceID);
-            
-            ConversationBeatOutcome failureOutcome = await conversation.ProcessPlayerChoice(choice);
-            return CreateConversationViewModel(conversation);
-        }
-
-        // Calculate success using existing outcome calculator
-        var outcomeCalculator = new Wayfarer.Game.ConversationSystem.ConversationOutcomeCalculator();
-        var probabilities = outcomeCalculator.CalculateProbabilities(choice, npc, player, currentPatience);
-        var actualOutcome = outcomeCalculator.DetermineOutcome(probabilities);
-        
-        // Apply patience cost regardless of outcome
-        conversation.State.FocusPoints -= choice.PatienceCost;
-        conversation.State.PlayCard(choice.ChoiceID);
-        
-        // Handle success: Generate special letter and remove card from deck
-        if (actualOutcome == ConversationOutcome.Success)
-        {
-            // Map token type to special letter type
-            LetterSpecialType specialType = tokenType switch
-            {
-                ConnectionType.Trust => LetterSpecialType.Introduction,
-                ConnectionType.Commerce => LetterSpecialType.AccessPermit,
-                _ => LetterSpecialType.None
-            };
-            
-            // Request special letter using the service
-            bool success = _conversationLetterService.RequestSpecialLetter(npc.ID, specialType);
-            
-            if (success)
-            {
-                // Remove successful special letter card from deck (one-time use on success)
-                npc.ConversationDeck?.RemoveCard(choice.ChoiceID);
-                
-                // Success message is already provided by SpecialLetterGenerationService categorically
-            }
-            else
-            {
-                // Use categorical failure message
-                _messageSystem.AddSpecialLetterRequestResult(
-                    npc.ID,
-                    tokenType, 
-                    SpecialLetterRequestResult.ProcessingFailed
-                );
-            }
-        }
-        // Handle failure: Card remains in deck for future attempts
-        else
-        {
-            // Use categorical result based on conversation outcome
-            SpecialLetterRequestResult result = actualOutcome == ConversationOutcome.Neutral
-                ? SpecialLetterRequestResult.Neutral
-                : SpecialLetterRequestResult.Declined;
-                
-            _messageSystem.AddSpecialLetterRequestResult(npc.ID, tokenType, result);
-            
-            // Card stays in deck for retry in future conversations
+            throw new InvalidOperationException("No active conversation");
         }
         
-        // Process standard choice effects
-        ConversationBeatOutcome beatOutcome = await conversation.ProcessPlayerChoice(choice);
-        
-        return CreateConversationViewModel(conversation);
+        _conversationManager.ExecuteListen();
     }
-
+    
     /// <summary>
-    /// Process player accepting letter offer - creates letter and adds to queue
+    /// Execute SPEAK action with selected cards
     /// </summary>
-    private async Task<ConversationViewModel> ProcessAcceptLetterOffer(ConversationManager conversation, ConversationChoice choice)
+    public CardPlayResult ExecuteConversationSpeak(HashSet<ConversationCard> selectedCards)
     {
-        NPC npc = conversation.Context.TargetNPC;
-        ConnectionType offerType = choice.OfferTokenType ?? ConnectionType.Trust;
-        LetterCategory offerCategory = choice.OfferCategory ?? LetterCategory.Quality;
-
-        Console.WriteLine($"[GameFacade] Processing accept letter offer: {offerType} {offerCategory} from {npc.Name}");
-
-        // Apply choice comfort gain and patience cost first
-        ConversationBeatOutcome outcome = await conversation.ProcessPlayerChoice(choice);
-
-        // Generate the actual letter using existing NPCLetterOfferService
-        // Legacy letter offer generation replaced with conversation-based system
-        var generatedLetters = new List<DeliveryObligation>();
-
-        if (generatedLetters?.Any() == true)
+        if (!_conversationManager.IsConversationActive)
         {
-            foreach (DeliveryObligation letter in generatedLetters)
-            {
-                // Add letters to queue using existing positioning logic
-                int position = _letterQueueManager.AddLetterWithObligationEffects(letter);
-                Console.WriteLine($"[GameFacade] DeliveryObligation added to queue at position: {position}");
-
-                string perfectBonus = conversation.State.HasReachedPerfectThreshold() ? " (Perfect Conversation!)" : "";
-                _messageSystem.AddSystemMessage(
-                    $"✉️ {npc.Name} trusts you with a {letter.TokenType} letter{perfectBonus}",
-                    SystemMessageTypes.Success
-                );
-                _messageSystem.AddSystemMessage(
-                    $"💰 {letter.Payment} coins • ⏰ {letter.DeadlineInMinutes / 24} days deadline",
-                    SystemMessageTypes.Info
-                );
-            }
-
-            // Show queue impact
-            DeliveryObligation[] queueSnapshot = _letterQueueManager.GetPlayerQueue();
-            int filledSlots = queueSnapshot.Count(letter => letter != null);
-            int totalWeight = queueSnapshot.Where(letter => letter != null).Sum(letter => 1);
-            
-            _messageSystem.AddSystemMessage(
-                $"📋 Queue: {filledSlots}/8 slots • {totalWeight}/12 weight",
-                SystemMessageTypes.Info
-            );
+            throw new InvalidOperationException("No active conversation");
         }
-
-        // Strengthen relationship for accepting offer
-        _connectionTokenManager.AddTokensToNPC(offerType, 1, npc.ID);
-        _messageSystem.AddSystemMessage(
-            $"🤝 {offerType} relationship with {npc.Name} strengthened",
-            SystemMessageTypes.Success
-        );
-
-        // Continue conversation or end if complete
-        if (outcome.IsConversationComplete)
-        {
-            _conversationStateManager.ClearPendingConversation();
-            return null;
-        }
-
-        // Generate new choices for next beat
-        await conversation.ProcessNextBeat();
-        return CreateConversationViewModel(conversation);
+        
+        return _conversationManager.ExecuteSpeak(selectedCards);
     }
-
+    
     /// <summary>
-    /// Process player declining letter offer - maintains relationship without consequences
+    /// End the current conversation
     /// </summary>
-    private async Task<ConversationViewModel> ProcessDeclineLetterOffer(ConversationManager conversation, ConversationChoice choice)
+    public void EndConversation()
     {
-        NPC npc = conversation.Context.TargetNPC;
-        ConnectionType offerType = choice.OfferTokenType ?? ConnectionType.Trust;
-
-        Console.WriteLine($"[GameFacade] Processing decline letter offer: {offerType} from {npc.Name}");
-
-        // Apply choice effects (no comfort gain, no patience cost)
-        ConversationBeatOutcome outcome = await conversation.ProcessPlayerChoice(choice);
-
-        _messageSystem.AddSystemMessage(
-            $"💬 {npc.Name} understands your current commitments",
-            SystemMessageTypes.Info
-        );
-        _messageSystem.AddSystemMessage(
-            $"🤝 Relationship with {npc.Name} maintained",
-            SystemMessageTypes.Success
-        );
-
-        // Continue conversation or end if complete
-        if (outcome.IsConversationComplete)
-        {
-            _conversationStateManager.ClearPendingConversation();
-            return null;
-        }
-
-        // Generate new choices for next beat
-        await conversation.ProcessNextBeat();
-        return CreateConversationViewModel(conversation);
-    }
-
-    private string GenerateCharacterAction(
-        NPCEmotionalState npcState,
-        DeliveryObligation urgentDeliveryObligation,
-        ConversationManager conversation)
-    {
-        if (_actionBeatGenerator == null) return "";
-
-        // Determine conversation turn (simplified - could track actual turns)
-        int conversationTurn = 1; // Default to first turn
-
-        // Check if urgent
-        bool isUrgent = urgentDeliveryObligation?.DeadlineInMinutes <= 2;
-
-        // Generate the action beat with NPC ID for determinism
-        string? npcId = conversation?.Context?.TargetNPC?.ID;
-        return _actionBeatGenerator.GenerateActionBeat(
-            npcState,
-            urgentDeliveryObligation?.Stakes,
-            conversationTurn,
-            isUrgent,
-            npcId
-        );
-    }
-
-    private string GenerateBodyLanguageFromTags(SceneContext context)
-    {
-        if (context?.RelationshipTags == null || !context.RelationshipTags.Any())
-            return "Their posture is neutral, giving little away.";
-
-        List<string> bodyLanguage = new List<string>();
-
-        if (context.RelationshipTags.Contains(RelationshipTag.TRUST_HIGH))
-            bodyLanguage.Add("leaning forward with open gestures");
-        if (context.RelationshipTags.Contains(RelationshipTag.TRUST_NEGATIVE))
-            bodyLanguage.Add("arms crossed defensively");
-        if (context.RelationshipTags.Contains(RelationshipTag.STATUS_RECOGNIZED))
-            bodyLanguage.Add("maintaining formal bearing");
-        if (context.RelationshipTags.Contains(RelationshipTag.SHADOW_COMPLICIT))
-            bodyLanguage.Add("glancing around nervously");
-        if (context.RelationshipTags.Contains(RelationshipTag.STRANGER))
-            bodyLanguage.Add("maintaining polite distance");
-
-        return bodyLanguage.Any() ? string.Join(", ", bodyLanguage) : "Their expression is unreadable.";
-    }
-
-    private List<string> GeneratePeripheralObservations(SceneContext context)
-    {
-        List<string> observations = new List<string>();
-
-        if (context?.PressureTags?.Contains(PressureTag.DEADLINE_IMMINENT) == true)
-            observations.Add("Time pressure weighs heavily...");
-        if (context?.FeelingTags?.Contains(FeelingTag.DANGER_LURKS) == true)
-            observations.Add("Something feels off about this place...");
-        if (context?.DiscoveryTags?.Contains(DiscoveryTag.SECRET_PRESENT) == true)
-            observations.Add("They seem to be holding something back...");
-
-        return observations;
-    }
-
-    private string GenerateInternalMonologue(SceneContext context)
-    {
-        if (context?.PressureTags?.Contains(PressureTag.DEADLINE_IMMINENT) == true)
-            return "Every minute here costs me dearly...";
-        if (context?.PressureTags?.Contains(PressureTag.DEBT_CRITICAL) == true)
-            return "I can't afford to make enemies now...";
-        if (context?.ResourceTags?.Contains(ResourceTag.STAMINA_EXHAUSTED) == true)
-            return "I can barely focus through the exhaustion...";
-
-        return null;
-    }
-
-    private string GetAttentionDescription(int cost)
-    {
-        return cost switch
-        {
-            0 => "A simple response",
-            1 => "Requires focus to pursue",
-            2 => "Demands significant mental effort",
-            3 => "Exhaustive investigation",
-            _ => ""
-        };
-    }
-
-    private string DetermineEmotionalTone(ConversationChoice choice)
-    {
-        // Determine emotional tone based on choice properties
-        if (choice.OfferTokenType == ConnectionType.Trust)
-            return "warm";
-        if (choice.OfferTokenType == ConnectionType.Status)
-            return "formal";
-        if (choice.OfferTokenType == ConnectionType.Shadow)
-            return "mysterious";
-        if (choice.OfferTokenType == ConnectionType.Commerce)
-            return "confident";
-        if (choice.PatienceCost >= 2)
-            return "anxious";
-
-        return "neutral";
-    }
-
-    // Mechanical effects now handled by conversation cards directly
-
-    private string GetAttentionDisplayString(int cost)
-    {
-        return cost switch
-        {
-            0 => "Free",
-            1 => "◆ 1",
-            2 => "◆◆ 2",
-            3 => "◆◆◆ 3",
-            _ => $"◆ {cost}"
-        };
-    }
-
-    private MechanicEffectType DetermineEffectType(string description)
-    {
-        // Determine type based on description content
-        if (description.Contains("✓") || description.Contains("Gain") || description.Contains("Unlock"))
-            return MechanicEffectType.Positive;
-        if (description.Contains("⚠") || description.Contains("Spend") || description.Contains("Burn") || description.Contains("Must"))
-            return MechanicEffectType.Negative;
-        return MechanicEffectType.Neutral;
+        _conversationManager.EndConversation();
     }
 
     // ========== LETTER QUEUE ==========
@@ -3111,7 +2456,11 @@ public class GameFacade
                 }
                 return deliverSuccess;
             case "skip":
-                _letterQueueManager.PrepareSkipAction(position);
+                DeliveryObligation letterToSkip = _letterQueueManager.GetLetterAt(position);
+                if (letterToSkip != null)
+                {
+                    _letterQueueManager.PrepareSkipAction(letterToSkip.Id);
+                }
                 return true;
             case "priority":
                 bool prioritySuccess = _letterQueueManager.TryPriorityMove(position);
@@ -3155,8 +2504,16 @@ public class GameFacade
         if (position < 2 || position > 8)
             return false;
 
-        _letterQueueManager.PrepareSkipAction(position);
-        return true;
+        // Get the obligation at this position
+        var obligations = _letterQueueManager.GetActiveObligations();
+        if (obligations == null || position > obligations.Length)
+            return false;
+            
+        var obligation = obligations[position - 1];
+        if (obligation == null)
+            return false;
+
+        return _letterQueueManager.PrepareSkipAction(obligation.Id);
     }
 
     public async Task<bool> LetterQueueMorningSwapAsync(int position1, int position2)
@@ -3223,8 +2580,19 @@ public class GameFacade
             _gameWorld.PendingQueueState.PendingPurgeTokens.SetTokenCount(selection.Key, selection.Value);
         }
 
+        // For purge, we need to specify which obligation to purge
+        // Typically this would be position 1 or specified elsewhere
+        // Get the first obligation as default target
+        var obligations = _letterQueueManager.GetActiveObligations();
+        if (obligations == null || obligations.Length == 0)
+            return false;
+            
+        var targetObligation = obligations[0]; // Default to first obligation
+        if (targetObligation == null)
+            return false;
+            
         // Trigger conversation
-        _letterQueueManager.PreparePurgeAction();
+        _letterQueueManager.PreparePurgeAction(targetObligation.Id);
         return true;
     }
 
@@ -3537,128 +2905,31 @@ public class GameFacade
     }
 
     // ========== NAVIGATION SUPPORT ==========
+    
+    public void RefreshLocationState()
+    {
+        // Refresh current location state
+        var player = _gameWorld.GetPlayer();
+        if (player.CurrentLocationSpot != null)
+        {
+            _messageSystem.AddSystemMessage("Location refreshed", SystemMessageTypes.Info);
+        }
+    }
 
     public async Task<bool> EndConversationAsync()
     {
-        // Check comfort thresholds before ending conversation
-        ConversationManager currentConversation = _conversationStateManager.PendingConversationManager;
-        if (currentConversation != null)
-        {
-            await ProcessConversationCompletion(currentConversation);
-        }
-
         // End any active conversation
-        _conversationStateManager.ClearPendingConversation();
-        _messageSystem.AddSystemMessage("Conversation ended", SystemMessageTypes.Info);
+        if (_conversationManager.IsConversationActive)
+        {
+            _conversationManager.EndConversation();
+            _messageSystem.AddSystemMessage("Conversation ended", SystemMessageTypes.Info);
+        }
         return await Task.FromResult(true);
     }
 
     /// <summary>
     /// Process conversation completion - check comfort thresholds and generate letters
     /// </summary>
-    private async Task ProcessConversationCompletion(ConversationManager conversation)
-    {
-        ConversationState state = conversation.State;
-        NPC npc = conversation.Context.TargetNPC;
-
-        if (state == null || npc == null)
-        {
-            Console.WriteLine("[GameFacade] Cannot process conversation completion - missing state or NPC");
-            return;
-        }
-
-        int totalComfort = state.TotalComfort;
-        int startingPatience = state.StartingPatience;
-
-        Console.WriteLine($"[GameFacade] Processing conversation completion with {npc.Name} - Comfort: {totalComfort}, Starting Patience: {startingPatience}");
-
-        // Check if minimum threshold for relationship maintenance was reached
-        if (!state.HasReachedMaintainThreshold())
-        {
-            _messageSystem.AddSystemMessage($"Conversation with {npc.Name} ended awkwardly", SystemMessageTypes.Warning);
-            Console.WriteLine($"[GameFacade] Conversation did not reach maintain threshold ({startingPatience * GameRules.COMFORT_MAINTAIN_THRESHOLD})");
-        }
-        else
-        {
-            _messageSystem.AddSystemMessage($"Good conversation with {npc.Name}", SystemMessageTypes.Success);
-            
-            // CRITICAL: Grant tokens when comfort thresholds are reached
-            // This is what enables NPCLetterOfferService to find templates
-            if (npc.LetterTokenTypes != null && npc.LetterTokenTypes.Any())
-            {
-                // Grant 1 token of the NPC's primary type for reaching maintain threshold
-                ConnectionType tokenType = npc.LetterTokenTypes.First();
-                _connectionTokenManager.AddTokensToNPC(tokenType, 1, npc.ID);
-                Console.WriteLine($"[GameFacade] Granted 1 {tokenType} token to player for reaching maintain threshold with {npc.Name}");
-                
-                // Grant bonus token for reaching perfect threshold
-                if (state.HasReachedPerfectThreshold())
-                {
-                    _connectionTokenManager.AddTokensToNPC(tokenType, 1, npc.ID);
-                    Console.WriteLine($"[GameFacade] Granted bonus {tokenType} token for perfect conversation with {npc.Name}");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"[GameFacade] NPC {npc.Name} has no letter token types - no tokens granted");
-            }
-        }
-
-        // REMOVED: Automatic letter generation - now handled through explicit player choices
-        // Letters are offered as conversation choices when threshold is reached
-        // This preserves the "NO SILENT BACKEND ACTIONS" architectural principle
-        if (state.HasReachedLetterThreshold())
-        {
-            Console.WriteLine($"[GameFacade] DeliveryObligation threshold reached - offers were available during conversation");
-        }
-        else
-        {
-            Console.WriteLine($"[GameFacade] DeliveryObligation threshold not reached (need {startingPatience * GameRules.COMFORT_LETTER_THRESHOLD}, got {totalComfort})");
-        }
-
-        // Perfect conversation bonus feedback
-        if (state.HasReachedPerfectThreshold())
-        {
-            _messageSystem.AddSystemMessage($"🌟 Perfect conversation with {npc.Name}! Your bond has deepened significantly.", SystemMessageTypes.Success);
-
-            // Award bonus relationship tokens for perfect conversations
-            ConnectionType highestTokenType = GetHighestRelationshipType(npc.ID);
-            _connectionTokenManager.AddTokensToNPC(highestTokenType, 1, npc.ID);
-
-            Console.WriteLine($"[GameFacade] Perfect conversation bonus: +1 {highestTokenType} token with {npc.Name}");
-        }
-
-        await Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Get the highest relationship type with an NPC for bonus rewards
-    /// </summary>
-    private ConnectionType GetHighestRelationshipType(string npcId)
-    {
-        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
-        if (!tokens.Any() || tokens.Values.All(v => v == 0))
-        {
-            return ConnectionType.Trust; // Default to Trust for new relationships
-        }
-
-        return tokens.OrderByDescending(kvp => kvp.Value).First().Key;
-    }
-
-    public void RefreshLocationState()
-    {
-        // Refresh the current location state
-        // This ensures NPCs are in correct positions for current time
-        Player player = _gameWorld.GetPlayer();
-        if (player?.CurrentLocationSpot != null)
-        {
-            // Update NPC positions for current time
-            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-            Console.WriteLine($"[GameFacade.RefreshLocationState] Refreshing location for time: {currentTime}");
-        }
-    }
-
-    // ========== MARKET ==========
 
     public MarketViewModel GetMarket()
     {
@@ -5046,10 +4317,6 @@ public class GameFacade
         return tokens != null && tokens.Any(t => t.Value > 0);
     }
 
-    public List<SpecialLetterOption> GetAvailableSpecialLetters(string npcId)
-    {
-        return _conversationLetterService?.GetAvailableSpecialLetters(npcId) ?? new List<SpecialLetterOption>();
-    }
 
     public bool RequestSpecialLetter(string npcId, ConnectionType tokenType)
     {
@@ -5061,13 +4328,21 @@ public class GameFacade
             _ => LetterSpecialType.None
         };
         
-        return specialType != LetterSpecialType.None && 
-               (_conversationLetterService?.RequestSpecialLetter(npcId, specialType) ?? false);
+        // For now, special letters not implemented in new system
+        return false;
     }
 
     public LetterCategory GetAvailableCategory(string npcId, ConnectionType tokenType)
     {
-        return _conversationLetterService?.GetLetterCategory(npcId, tokenType) ?? LetterCategory.Basic;
+        // Determine category based on token count
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        int tokenCount = tokens.TryGetValue(tokenType, out int count) ? count : 0;
+        
+        if (tokenCount >= GameRules.TOKENS_PREMIUM_THRESHOLD)
+            return LetterCategory.Premium;
+        if (tokenCount >= GameRules.TOKENS_QUALITY_THRESHOLD)
+            return LetterCategory.Quality;
+        return LetterCategory.Basic;
     }
 
     public int GetTokensToNextCategory(string npcId, ConnectionType tokenType)

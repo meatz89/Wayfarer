@@ -645,3 +645,24 @@ public class NPCConnection
         _player.ConnectionTokens[_tokenType] = Math.Max(0, globalValue + amount);
     }
 }
+
+// Extension methods for Player
+public static class PlayerExtensions
+{
+    public static void AddKnownLocation(this Player player, string locationId)
+    {
+        if (!player.DiscoveredLocationIds.Contains(locationId))
+        {
+            player.DiscoveredLocationIds.Add(locationId);
+        }
+    }
+    
+    public static void AddKnownLocationSpot(this Player player, string spotId)
+    {
+        // Track location spots in the LocationActionAvailability set
+        if (!player.LocationActionAvailability.Contains(spotId))
+        {
+            player.LocationActionAvailability.Add(spotId);
+        }
+    }
+}
