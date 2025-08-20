@@ -2,13 +2,9 @@
 
 /* CRITICAL FIX: Add padding to account for fixed position elements */
 main {
-    /* More padding to ensure attention orbs are fully visible */
-    padding-top: 80px;
-    /* Small padding on sides for mobile */
-    padding-left: 10px;
-    padding-right: 10px;
-    /* Account for BottomStatusBar at bottom (approx 60px) */
-    padding-bottom: 70px;
+    /* Remove ALL padding to fix white space above header */
+    padding: 0;
+    margin: 0;
     /* Ensure full height */
     min-height: 100vh;
     /* Enable scrolling */

@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Conversation with Elena</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 1100px;
+            background: #e8dcc4;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        /* Top Section - NPC and Status */
+        .conversation-header {
+            background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+            padding: 20px;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .npc-section {
+            margin-bottom: 20px;
+        }
+
+        .npc-details h2 {
+            color: #5c4a3a;
+            font-size: 26px;
+            margin-bottom: 5px;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        .npc-state {
+            font-size: 14px;
+            color: #7a6250;
+            font-style: italic;
+        }
+
+        .npc-state.desperate {
+            color: #8b4726;
+            font-weight: bold;
+        }
+
+        .relationship-tokens {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f9f3e9;
+            border: 1px solid #c4a684;
+            border-radius: 4px;
+        }
+
+        .token-type {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .token-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .token-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .token-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #f4e8d0;
+            border: 1px solid #a68b6f;
+        }
+
+        .token-dot.filled {
+            background: #8b7355;
+        }
+
+        .token-effect {
+            font-size: 10px;
+            color: #5c4a3a;
+            text-align: center;
+        }
+
+        /* Progress Bars */
+        .progress-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr 2fr;
+            gap: 15px;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .turns-remaining {
+            text-align: center;
+            padding: 15px;
+            background: #f9f3e9;
+            border-radius: 4px;
+            border: 2px solid #c4a684;
+        }
+
+        .turns-remaining.low {
+            border-color: #8b4726;
+            background: #f9ede0;
+        }
+
+        .turns-display {
+            font-size: 32px;
+            font-weight: normal;
+            color: #5c4a3a;
+            margin-bottom: 5px;
+        }
+
+        .turns-display.low {
+            color: #8b4726;
+        }
+
+        .turns-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .progress-bar {
+            background: #f9f3e9;
+            border: 1px solid #c4a684;
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #7a6250;
+        }
+
+        .progress-track {
+            height: 8px;
+            background: #e8dcc4;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #c4a684;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #7a8b5a, #8b9a6a);
+            transition: width 0.3s ease;
+        }
+
+        .progress-thresholds {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .threshold-marker {
+            position: absolute;
+            top: 0;
+            width: 1px;
+            height: 100%;
+            background: #5c4a3a;
+            opacity: 0.3;
+        }
+
+        .threshold-label {
+            position: absolute;
+            top: -18px;
+            font-size: 9px;
+            color: #7a6250;
+            transform: translateX(-50%);
+        }
+
+        /* Current State and Depth */
+        .state-depth-section {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f9f3e9;
+            border-radius: 4px;
+            border: 1px solid #c4a684;
+        }
+
+        .state-indicator, .depth-indicator {
+            font-size: 14px;
+            color: #5c4a3a;
+        }
+
+        .state-indicator span, .depth-indicator span {
+            color: #8b4726;
+            font-weight: bold;
+        }
+
+        .state-effects {
+            font-size: 11px;
+            color: #7a6250;
+            margin-left: 10px;
+        }
+
+        /* Narrative Section */
+        .narrative-section {
+            padding: 25px;
+            background: #f4e8d0;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .narrative-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #3d3429;
+            font-style: italic;
+        }
+
+        .npc-dialogue {
+            margin-top: 15px;
+            padding: 15px;
+            background: #faf4ea;
+            border-left: 3px solid #a68b6f;
+            border-radius: 2px;
+        }
+
+        .npc-dialogue.desperate {
+            border-left-color: #8b4726;
+            background: #faf0e6;
+        }
+
+        /* Action Section */
+        .action-section {
+            padding: 20px;
+            background: #e8dcc4;
+            text-align: center;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .turn-indicator {
+            font-size: 12px;
+            color: #7a6250;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .action-choices {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .action-button {
+            padding: 15px 40px;
+            background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+            border: 2px solid #a68b6f;
+            border-radius: 4px;
+            color: #5c4a3a;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .action-button:hover {
+            background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
+            border-color: #8b7355;
+            transform: translateY(-2px);
+        }
+
+        .action-button.selected {
+            background: linear-gradient(to bottom, #d4c5a0, #c4b590);
+            border-color: #7a6250;
+        }
+
+        .action-description {
+            font-size: 12px;
+            color: #7a6250;
+            margin-top: 5px;
+        }
+
+        .action-warning {
+            position: absolute;
+            top: -20px;
+            right: -10px;
+            background: #8b4726;
+            color: #faf4ea;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Dialog Options Section */
+        .dialog-section {
+            padding: 20px;
+            background: #f4e8d0;
+        }
+
+        .dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .dialog-title {
+            font-size: 14px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .weight-tracker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 10px;
+            background: #faf4ea;
+            border: 1px solid #c4a684;
+            border-radius: 4px;
+        }
+
+        .weight-tracker.overlimit {
+            border-color: #8b4726;
+            background: #faf0e6;
+        }
+
+        .weight-display {
+            font-size: 12px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .weight-display.overlimit {
+            color: #8b4726;
+        }
+
+        /* Dialog Options */
+        .dialog-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .dialog-option {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        /* Persistence borders */
+        .dialog-option.persistent {
+            border-left: 5px solid #7a8b5a;
+        }
+
+        .dialog-option.opportunity {
+            border-left: 5px dashed #d4a76a;
+            position: relative;
+        }
+
+        .dialog-option.opportunity.will-vanish::after {
+            content: "FLEETING";
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #d4a76a;
+            color: #2c241a;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .dialog-option.one-shot {
+            border-left: 6px double #9a7aaa;
+        }
+
+        .dialog-option.crisis {
+            border-left: 5px solid #8b4726;
+            background: #faf0e6;
+        }
+
+        .dialog-option:hover {
+            background: #fefaf0;
+            transform: translateX(5px);
+            border-color: #a68b6f;
+        }
+
+        .dialog-option.selected {
+            background: #e8dcc4;
+            border-color: #7a6250;
+            transform: translateX(8px);
+        }
+
+        .dialog-option.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .dialog-option.disabled:hover {
+            transform: none;
+            background: #faf4ea;
+        }
+
+        .option-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #2c241a;
+            margin-bottom: 5px;
+        }
+
+        .option-properties {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .prop-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .prop-group.primary {
+            flex: 0 0 auto;
+        }
+
+        .prop-group.outcomes {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+        }
+
+        /* Card type and persistence tags */
+        .card-identity {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .tag {
+            padding: 3px 8px;
+            background: #e8dcc4;
+            border: 1px solid #a68b6f;
+            border-radius: 2px;
+            font-size: 10px;
+            color: #5c4a3a;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tag.type {
+            background: #7a6250;
+            color: #faf4ea;
+            border: none;
+            font-weight: bold;
+        }
+
+        .tag.persistence {
+            background: transparent;
+            border-style: dashed;
+            font-style: italic;
+            text-transform: none;
+        }
+
+        /* Weight display */
+        .weight-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .weight-label {
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        .weight-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .weight-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #f4e8d0;
+            border: 1px solid #a68b6f;
+        }
+
+        .weight-dot.filled {
+            background: #8b7355;
+        }
+
+        /* Outcome displays */
+        .outcome-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .outcome-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .outcome-label {
+            font-size: 10px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .success-high { color: #5a7a3a !important; }
+        .success-medium { color: #7a6250 !important; }
+        .success-low { color: #d4a76a !important; }
+        .success-verylow { color: #8b4726 !important; }
+
+        .comfort-high { color: #5a7a3a !important; }
+        .comfort-medium { color: #7a8b5a !important; }
+
+        /* Special effects */
+        .special-effect {
+            font-size: 11px;
+            color: #8b4726;
+            font-style: italic;
+            padding: 3px 8px;
+            background: #faf0e6;
+            border-left: 2px solid #d4a76a;
+            border-radius: 2px;
+        }
+
+        /* Play Button */
+        .play-section {
+            padding: 20px;
+            text-align: center;
+            background: #e8dcc4;
+            border-top: 2px solid #a68b6f;
+        }
+
+        .play-button {
+            padding: 12px 30px;
+            background: linear-gradient(to bottom, #8b9a6a, #7a8b5a);
+            border: 2px solid #5a6a3a;
+            border-radius: 4px;
+            color: #faf4ea;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .play-button:hover {
+            background: linear-gradient(to bottom, #9aaa7a, #8b9a6a);
+            transform: translateY(-2px);
+        }
+
+        .play-button:disabled {
+            background: #c4a684;
+            border-color: #a68b6f;
+            color: #e8dcc4;
+            cursor: not-allowed;
+        }
+
+        .play-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #7a6250;
+        }
+
+        .set-bonus {
+            color: #5a7a3a;
+            font-weight: bold;
+        }
+
+        .opportunity-warning {
+            margin-top: 8px;
+            padding: 8px;
+            background: #faf0e6;
+            border: 1px solid #d4a76a;
+            border-radius: 2px;
+            font-size: 11px;
+            color: #8b4726;
+            display: none;
+        }
+
+        .opportunity-warning.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header with NPC info -->
+        <div class="conversation-header">
+            <div class="npc-section">
+                <div class="npc-details">
+                    <h2>Elena</h2>
+                    <div class="npc-state desperate">DESPERATE • Letter deadline in 3 hours!</div>
+                </div>
+                <div class="relationship-tokens">
+                    <div class="token-type">
+                        <span class="token-label">Trust</span>
+                        <div class="token-dots">
+                            <div class="token-dot filled"></div>
+                            <div class="token-dot filled"></div>
+                            <div class="token-dot filled"></div>
+                            <div class="token-dot filled"></div>
+                            <div class="token-dot"></div>
+                        </div>
+                        <span class="token-effect">+2 turns</span>
+                    </div>
+                    <div class="token-type">
+                        <span class="token-label">Commerce</span>
+                        <div class="token-dots">
+                            <div class="token-dot"></div>
+                            <div class="token-dot"></div>
+                            <div class="token-dot"></div>
+                            <div class="token-dot"></div>
+                            <div class="token-dot"></div>
+                        </div>
+                        <span class="token-effect">no bonus</span>
+                    </div>
+                    <div class="token-type">
+                        <span class="token-label">Status</span>
+                        <div class="token-dots">
+                            <div class="token-dot filled"></div>
+                            <div class="token-dot"></div>
+                            <div class="token-dot"></div>
+                            <div class="token-dot"></div>
+                            <div class="token-dot"></div>
+                        </div>
+                        <span class="token-effect">+3% success</span>
+                    </div>
+                    <div class="token-type">
+                        <span class="token-label">Shadow</span>
+                        <div class="token-dots">
+                            <div class="token-dot"></div>
+                            <div class="token-dot"></div>
+                            <div class="token-dot"></div>
+                            <div class="token-dot"></div>
+                            <div class="token-dot"></div>
+                        </div>
+                        <span class="token-effect">no bonus</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress bars with Turn Display -->
+            <div class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-label">
+                        <span>Comfort Built</span>
+                        <span>7/20</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: 35%"></div>
+                        <div class="progress-thresholds">
+                            <div class="threshold-marker" style="left: 25%">
+                                <span class="threshold-label">5</span>
+                            </div>
+                            <div class="threshold-marker" style="left: 50%">
+                                <span class="threshold-label">10 (Letter)</span>
+                            </div>
+                            <div class="threshold-marker" style="left: 75%">
+                                <span class="threshold-label">15</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="turns-remaining low">
+                    <div class="turns-display low">5</div>
+                    <div class="turns-label">Turns Left</div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-label">
+                        <span>Current Depth</span>
+                        <span>1 (Personal)</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: 33%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- State and Depth -->
+            <div class="state-depth-section">
+                <div class="state-indicator">
+                    State: <span>Vulnerable</span>
+                    <span class="state-effects">(Weight -1, moments fleeting)</span>
+                </div>
+                <div class="depth-indicator">
+                    Depth: <span>1</span> (Personal conversations)
+                </div>
+            </div>
+        </div>
+
+        <!-- Narrative Section -->
+        <div class="narrative-section">
+            <div class="narrative-text">
+                Time is running short. Elena's desperation has made her vulnerable, her usual guardedness stripped away by urgency. Every moment counts now.
+            </div>
+            <div class="npc-dialogue desperate">
+                "Please, I need to know - will you help me? The letter to Lord Blackwood... if he doesn't receive my refusal by tonight, my father will finalize the arrangement. I can't..." 
+                
+                Her voice catches, tears threatening. This is the moment of truth.
+            </div>
+        </div>
+
+        <!-- Action Choice -->
+        <div class="action-section">
+            <div class="turn-indicator">Turn 5 of 9 • Each choice uses 1 turn</div>
+            <div class="action-choices">
+                <div class="action-button" onclick="selectAction('listen')">
+                    <div class="action-warning">⚠ Fleeting moments vanish!</div>
+                    <div>👂 LISTEN</div>
+                    <div class="action-description">Let her continue • Draw 2 thoughts</div>
+                </div>
+                <div class="action-button" onclick="selectAction('speak')">
+                    <div>💭 SPEAK</div>
+                    <div class="action-description">Respond now • Use cards</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dialog Options -->
+        <div class="dialog-section">
+            <div class="dialog-header">
+                <div class="dialog-title">Your Thoughts</div>
+                <div class="weight-tracker" id="weight-tracker">
+                    <span>Weight:</span>
+                    <span class="weight-display" id="weight-display">0/3</span>
+                </div>
+            </div>
+            
+            <div class="dialog-options">
+                <!-- Promise to Help -->
+                <div class="dialog-option trust opportunity will-vanish" onclick="toggleCard(this)" data-weight="2" data-comfort="4">
+                    <div class="option-content">
+                        <div class="option-text">
+                            "I promise I'll help you, Elena. We'll get your letter to Lord Blackwood before the deadline. Your father won't force this marriage on you."
+                        </div>
+                        <div class="option-properties">
+                            <div class="prop-group primary">
+                                <div class="card-identity">
+                                    <span class="tag type">Trust</span>
+                                    <span class="tag persistence">⏱ Opportunity</span>
+                                </div>
+                                <div class="weight-indicator">
+                                    <span class="weight-label">Weight:</span>
+                                    <div class="weight-dots">
+                                        <div class="weight-dot filled"></div>
+                                        <div class="weight-dot"></div>
+                                        <div class="weight-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="prop-group outcomes">
+                                <div class="outcome-stat">
+                                    <span class="outcome-value success-high">63%</span>
+                                    <span class="outcome-label">Success</span>
+                                </div>
+                                <div class="outcome-stat">
+                                    <span class="outcome-value comfort-medium">+4</span>
+                                    <span class="outcome-label">Comfort</span>
+                                </div>
+                            </div>
+                            <div class="special-effect">Creates obligation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Share Similar Pain -->
+                <div class="dialog-option trust opportunity will-vanish" onclick="toggleCard(this)" data-weight="3" data-comfort="5">
+                    <div class="option-content">
+                        <div class="option-text">
+                            "I understand this pain. My own family tried to arrange my future once. The feeling of walls closing in, of your life being decided for you... I know it too well."
+                        </div>
+                        <div class="option-properties">
+                            <div class="prop-group primary">
+                                <div class="card-identity">
+                                    <span class="tag type">Trust</span>
+                                    <span class="tag persistence">⏱ Opportunity</span>
+                                </div>
+                                <div class="weight-indicator">
+                                    <span class="weight-label">Weight:</span>
+                                    <div class="weight-dots">
+                                        <div class="weight-dot filled"></div>
+                                        <div class="weight-dot filled"></div>
+                                        <div class="weight-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="prop-group outcomes">
+                                <div class="outcome-stat">
+                                    <span class="outcome-value success-medium">53%</span>
+                                    <span class="outcome-label">Success</span>
+                                </div>
+                                <div class="outcome-stat">
+                                    <span class="outcome-value comfort-high">+5</span>
+                                    <span class="outcome-label">Comfort</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mention the Guards -->
+                <div class="dialog-option shadow opportunity will-vanish" onclick="toggleCard(this)" data-weight="1" data-comfort="2">
+                    <div class="option-content">
+                        <div class="option-text">
+                            "I saw the Lord's guards at the tavern earlier. They mentioned he's leaving for the capital at dawn. We need to reach him tonight."
+                        </div>
+                        <div class="option-properties">
+                            <div class="prop-group primary">
+                                <div class="card-identity">
+                                    <span class="tag type">Shadow</span>
+                                    <span class="tag persistence">⏱ Opportunity</span>
+                                </div>
+                                <div class="weight-indicator">
+                                    <span class="weight-label">Weight:</span>
+                                    <div class="weight-dots">
+                                        <div class="weight-dot"></div>
+                                        <div class="weight-dot"></div>
+                                        <div class="weight-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="prop-group outcomes">
+                                <div class="outcome-stat">
+                                    <span class="outcome-value success-high">73%</span>
+                                    <span class="outcome-label">Success</span>
+                                </div>
+                                <div class="outcome-stat">
+                                    <span class="outcome-value">+2</span>
+                                    <span class="outcome-label">Comfort</span>
+                                </div>
+                            </div>
+                            <div class="special-effect">From observation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listen Carefully -->
+                <div class="dialog-option trust persistent" onclick="toggleCard(this)" data-weight="0" data-comfort="2">
+                    <div class="option-content">
+                        <div class="option-text">
+                            *You nod slowly, giving her your full attention, your eyes showing you understand the weight of this moment.*
+                        </div>
+                        <div class="option-properties">
+                            <div class="prop-group primary">
+                                <div class="card-identity">
+                                    <span class="tag type">Trust</span>
+                                    <span class="tag persistence">♻ Persistent</span>
+                                </div>
+                                <div class="weight-indicator">
+                                    <span class="weight-label">Weight:</span>
+                                    <div class="weight-dots">
+                                        <div class="weight-dot"></div>
+                                        <div class="weight-dot"></div>
+                                        <div class="weight-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="prop-group outcomes">
+                                <div class="outcome-stat">
+                                    <span class="outcome-value success-high">83%</span>
+                                    <span class="outcome-label">Success</span>
+                                </div>
+                                <div class="outcome-stat">
+                                    <span class="outcome-value">+2</span>
+                                    <span class="outcome-label">Comfort</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deep Confession -->
+                <div class="dialog-option trust one-shot" onclick="toggleCard(this)" data-weight="4" data-comfort="4">
+                    <div class="option-content">
+                        <div class="option-text">
+                            "Elena, I need to tell you something. The reason I understand your situation so deeply... I've been in love with you for years. Seeing you forced into this marriage is tearing me apart."
+                        </div>
+                        <div class="option-properties">
+                            <div class="prop-group primary">
+                                <div class="card-identity">
+                                    <span class="tag type">Trust</span>
+                                    <span class="tag persistence">💠 One-Shot</span>
+                                </div>
+                                <div class="weight-indicator">
+                                    <span class="weight-label">Weight:</span>
+                                    <div class="weight-dots">
+                                        <div class="weight-dot filled"></div>
+                                        <div class="weight-dot filled"></div>
+                                        <div class="weight-dot filled"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="prop-group outcomes">
+                                <div class="outcome-stat">
+                                    <span class="outcome-value success-low">23%</span>
+                                    <span class="outcome-label">Success</span>
+                                </div>
+                                <div class="outcome-stat">
+                                    <span class="outcome-value comfort-medium">+4</span>
+                                    <span class="outcome-label">Comfort</span>
+                                </div>
+                            </div>
+                            <div class="special-effect">Wrong depth (-50% comfort) • Permanent</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desperate Promise (Crisis) -->
+                <div class="dialog-option trust crisis" onclick="toggleCard(this)" data-weight="5" data-comfort="10">
+                    <div class="option-content">
+                        <div class="option-text">
+                            "Elena, I swear on my life - I will get this letter to Lord Blackwood. Even if I have to fight through his guards, even if it costs me everything. You will not be forced into this marriage!"
+                        </div>
+                        <div class="option-properties">
+                            <div class="prop-group primary">
+                                <div class="card-identity">
+                                    <span class="tag type">Trust</span>
+                                    <span class="tag persistence">🔥 Crisis</span>
+                                </div>
+                                <div class="weight-indicator">
+                                    <span class="weight-label">Weight:</span>
+                                    <span style="color: #8b4726; font-size: 11px;">Ignores limit</span>
+                                </div>
+                            </div>
+                            <div class="prop-group outcomes">
+                                <div class="outcome-stat">
+                                    <span class="outcome-value success-medium">43%</span>
+                                    <span class="outcome-label">Success</span>
+                                </div>
+                                <div class="outcome-stat">
+                                    <span class="outcome-value comfort-high">+10</span>
+                                    <span class="outcome-label">Comfort</span>
+                                </div>
+                            </div>
+                            <div class="special-effect">Ends conversation • Generates letter</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Play Button Section -->
+        <div class="play-section">
+            <button class="play-button" id="play-button" disabled onclick="playCards()">
+                Select LISTEN or SPEAK
+            </button>
+            <div class="play-info" id="play-info">
+                5 turns remaining • Each turn advances time
+            </div>
+            <div class="opportunity-warning" id="opportunity-warning">
+                ⚠ Warning: Listening will cause ALL fleeting opportunities to vanish forever
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedAction = null;
+        let selectedCards = new Set();
+        let totalWeight = 0;
+        const WEIGHT_LIMIT = 3;
+
+        function selectAction(action) {
+            selectedAction = action;
+            
+            // Update button states
+            document.querySelectorAll('.action-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.closest('.action-button').classList.add('selected');
+            
+            // Update play button and warnings
+            const playButton = document.getElementById('play-button');
+            const playInfo = document.getElementById('play-info');
+            const warning = document.getElementById('opportunity-warning');
+            
+            if (action === 'listen') {
+                playButton.textContent = 'Listen to Elena (costs 1 turn)';
+                playButton.disabled = false;
+                playInfo.textContent = 'Draw 2 new thoughts, but fleeting opportunities pass';
+                warning.classList.add('active');
+                
+                // Clear card selections
+                selectedCards.clear();
+                totalWeight = 0;
+                updateWeightDisplay();
+                document.querySelectorAll('.dialog-option').forEach(card => {
+                    card.classList.remove('selected', 'disabled');
+                });
+            } else {
+                playButton.textContent = 'Choose your response...';
+                playButton.disabled = true;
+                playInfo.textContent = 'Select how to respond (costs 1 turn regardless)';
+                warning.classList.remove('active');
+            }
+        }
+
+        function toggleCard(card) {
+            if (selectedAction !== 'speak') return;
+            
+            const weight = parseInt(card.dataset.weight);
+            const isCrisis = card.classList.contains('crisis');
+            
+            // Crisis cards must be played alone
+            if (isCrisis) {
+                selectedCards.clear();
+                document.querySelectorAll('.dialog-option').forEach(c => {
+                    c.classList.remove('selected');
+                    if (c !== card) {
+                        c.classList.add('disabled');
+                    }
+                });
+                selectedCards.add(card);
+                card.classList.add('selected');
+                totalWeight = 0; // Crisis ignores weight
+                updateWeightDisplay();
+                updatePlayButton();
+                return;
+            }
+            
+            // Clear crisis selection if selecting non-crisis
+            if (document.querySelector('.dialog-option.crisis.selected')) {
+                selectedCards.clear();
+                totalWeight = 0;
+                document.querySelectorAll('.dialog-option').forEach(c => {
+                    c.classList.remove('selected', 'disabled');
+                });
+            }
+            
+            // Handle normal cards
+            if (selectedCards.has(card)) {
+                selectedCards.delete(card);
+                card.classList.remove('selected');
+                totalWeight -= weight;
+            } else {
+                // Check weight limit
+                if (totalWeight + weight > WEIGHT_LIMIT) {
+                    // Can't add - would exceed limit
+                    return;
+                }
+                selectedCards.add(card);
+                card.classList.add('selected');
+                totalWeight += weight;
+            }
+            
+            // Update disabled states based on remaining weight
+            document.querySelectorAll('.dialog-option:not(.selected)').forEach(c => {
+                const cardWeight = parseInt(c.dataset.weight);
+                if (totalWeight + cardWeight > WEIGHT_LIMIT) {
+                    c.classList.add('disabled');
+                } else {
+                    c.classList.remove('disabled');
+                }
+            });
+            
+            updateWeightDisplay();
+            updatePlayButton();
+        }
+
+        function updateWeightDisplay() {
+            const display = document.getElementById('weight-display');
+            const tracker = document.getElementById('weight-tracker');
+            
+            if (document.querySelector('.dialog-option.crisis.selected')) {
+                display.textContent = 'Crisis!';
+                display.classList.add('overlimit');
+                tracker.classList.add('overlimit');
+            } else {
+                display.textContent = `${totalWeight}/${WEIGHT_LIMIT}`;
+                if (totalWeight > WEIGHT_LIMIT) {
+                    display.classList.add('overlimit');
+                    tracker.classList.add('overlimit');
+                } else {
+                    display.classList.remove('overlimit');
+                    tracker.classList.remove('overlimit');
+                }
+            }
+        }
+
+        function updatePlayButton() {
+            const playButton = document.getElementById('play-button');
+            const playInfo = document.getElementById('play-info');
+            
+            if (selectedCards.size > 0) {
+                // Check for crisis card
+                let hasCrisis = false;
+                let totalComfort = 0;
+                let setBonus = 0;
+                
+                // Count card types for set bonus
+                const types = {};
+                selectedCards.forEach(card => {
+                    if (card.classList.contains('crisis')) hasCrisis = true;
+                    
+                    // Get comfort value
+                    const comfort = parseInt(card.dataset.comfort);
+                    totalComfort += comfort;
+                    
+                    // Count types
+                    const type = Array.from(card.classList).find(c => ['trust', 'commerce', 'status', 'shadow'].includes(c));
+                    types[type] = (types[type] || 0) + 1;
+                });
+                
+                // Calculate set bonus only for same-type cards
+                const typeCount = Object.keys(types).length;
+                if (typeCount === 1) {
+                    const count = Object.values(types)[0];
+                    if (count >= 3) setBonus = 5;
+                    else if (count === 2) setBonus = 2;
+                }
+                
+                if (hasCrisis) {
+                    playButton.textContent = '🔥 DESPERATE ACTION (costs 1 turn)';
+                    playButton.style.background = 'linear-gradient(to bottom, #8b4726, #6b3716)';
+                } else if (selectedCards.size === 1) {
+                    playButton.textContent = 'Speak (costs 1 turn)';
+                    playButton.style.background = '';
+                } else if (typeCount === 1) {
+                    playButton.textContent = `Express Coherently (costs 1 turn)`;
+                    playButton.style.background = '';
+                } else {
+                    playButton.textContent = `Scattered Expression (costs 1 turn)`;
+                    playButton.style.background = '';
+                }
+                playButton.disabled = false;
+                
+                const bonusText = setBonus > 0 ? ` <span class="set-bonus">+${setBonus} set bonus!</span>` : '';
+                playInfo.innerHTML = `Expected: ${totalComfort} comfort${bonusText} (if all succeed)`;
+            } else {
+                playButton.textContent = 'Choose your response...';
+                playButton.disabled = true;
+                playInfo.textContent = 'Select how to respond (costs 1 turn regardless)';
+            }
+        }
+
+        function playCards() {
+            if (selectedAction === 'listen') {
+                console.log('Listening... ALL opportunity cards vanish, drawing 2 new cards');
+                // Would animate cards fading and new cards entering
+            } else if (selectedAction === 'speak' && selectedCards.size > 0) {
+                console.log(`Speaking with ${selectedCards.size} cards, costs 1 turn`);
+                // Would roll for each card and calculate comfort
+            }
+        }
+    </script>
+</body>
+</html>

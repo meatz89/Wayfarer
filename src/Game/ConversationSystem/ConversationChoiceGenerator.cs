@@ -63,6 +63,14 @@ public class ConversationChoiceGenerator
         // Store emotional state context for conversation flow
         context.CurrentTokens = tokenDict;
 
+        // LETTER CARD INTEGRATION: Add letter request cards when any comfort is built
+        // This must happen BEFORE drawing cards to ensure they appear in current conversation
+        if (state.TotalComfort > 0 && !state.LetterCardAddedThisConversation)
+        {
+            AddLetterRequestCardToDeck(context.TargetNPC, state);
+            state.LetterCardAddedThisConversation = true; // Track to avoid multiple additions per conversation
+        }
+
         // Draw 5 cards from NPC's deck filtered by emotional state and played cards - already ConversationChoice objects
         List<ConversationChoice> choices = context.TargetNPC.ConversationDeck.DrawCards(tokenDict, 0, emotionalState, state);
         
@@ -82,14 +90,6 @@ public class ConversationChoiceGenerator
             // Add delivery choice at the beginning of the list
             ConversationChoice deliveryChoice = CreateDeliveryChoice(letterInPosition1, context.TargetNPC);
             choices.Insert(0, deliveryChoice);
-        }
-
-        // LETTER CARD INTEGRATION: Add letter request cards to deck when comfort threshold reached
-        // This replaces the instant letter offer system with persistent deck cards
-        if (state.HasReachedLetterThreshold() && !state.LetterCardAddedThisConversation)
-        {
-            AddLetterRequestCardToDeck(context.TargetNPC, state);
-            state.LetterCardAddedThisConversation = true; // Track to avoid multiple additions per conversation
         }
 
         return choices;
@@ -130,7 +130,7 @@ public class ConversationChoiceGenerator
     }
 
     /// <summary>
-    /// Add letter request card to NPC's deck when comfort threshold is reached
+    /// Add letter request card to NPC's deck when comfort is built
     /// Card persists in deck until successfully played
     /// </summary>
     private void AddLetterRequestCardToDeck(NPC npc, ConversationState state)

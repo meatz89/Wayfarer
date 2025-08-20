@@ -29,22 +29,7 @@
     padding-bottom: 15px;
 }
 
-/* Attention Bar - Relative positioning to avoid cutoff */
-.attention-bar,
-.unified-attention-bar {
-    position: relative;
-    margin: 20px auto 10px auto; /* More top margin to ensure orbs aren't cut off */
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(44, 36, 22, 0.95);
-    padding: 12px 16px; /* More padding for orbs */
-    border-radius: 20px;
-    z-index: 100;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    width: fit-content;
-}
+/* DELETED - Duplicate unified-attention-bar CSS moved to mockup.css (HIGHLANDER PRINCIPLE) */
 
 .attention-label {
     color: #f4f1e8;

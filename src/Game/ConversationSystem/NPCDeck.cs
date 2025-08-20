@@ -410,6 +410,7 @@ public class NPCDeck
 
     /// <summary>
     /// Draw 5 cards from deck for this conversation round, excluding cards already played
+    /// Prioritizes letter request cards to ensure they appear when available
     /// </summary>
     public List<ConversationChoice> DrawCards(Dictionary<ConnectionType, int> currentTokens, int currentComfort = 0, NPCEmotionalState emotionalState = NPCEmotionalState.CALCULATING, ConversationState conversationState = null)
     {
@@ -424,21 +425,42 @@ public class NPCDeck
             
         Console.WriteLine($"[NPCDeck] Available cards after filtering: {availableCards.Count}");
 
-        // Shuffle available cards
-        Random random = new Random();
-        availableCards = availableCards.OrderBy(x => random.Next()).ToList();
+        // Separate letter request cards and other cards
+        List<ConversationChoice> letterRequestCards = availableCards
+            .Where(c => c.Category == RelationshipCardCategory.LetterRequest)
+            .ToList();
+        List<ConversationChoice> otherCards = availableCards
+            .Where(c => c.Category != RelationshipCardCategory.LetterRequest)
+            .ToList();
 
-        // Draw up to 5 cards, always include Quick Exit if available
+        // Shuffle non-priority cards
+        Random random = new Random();
+        otherCards = otherCards.OrderBy(x => random.Next()).ToList();
+
+        // Build final draw: Always include Quick Exit + Letter Request cards + fill with others
         List<ConversationChoice> drawnCards = new List<ConversationChoice>();
-        ConversationChoice? exitCard = availableCards.FirstOrDefault(c => c.ChoiceID == "quick_exit");
+        
+        // Always include Quick Exit if available
+        ConversationChoice? exitCard = otherCards.FirstOrDefault(c => c.ChoiceID == "quick_exit");
         if (exitCard != null)
         {
             drawnCards.Add(exitCard);
-            availableCards.Remove(exitCard);
+            otherCards.Remove(exitCard);
+        }
+
+        // Always include available letter request cards (these are the earned rewards)
+        foreach (ConversationChoice letterCard in letterRequestCards)
+        {
+            if (drawnCards.Count < 5)
+            {
+                drawnCards.Add(letterCard);
+                Console.WriteLine($"[NPCDeck] Prioritizing letter request card: {letterCard.ChoiceID}");
+            }
         }
 
         // Fill remaining slots with other cards
-        drawnCards.AddRange(availableCards.Take(4));
+        int remainingSlots = 5 - drawnCards.Count;
+        drawnCards.AddRange(otherCards.Take(remainingSlots));
 
         Console.WriteLine($"[NPCDeck] DrawCards returning {drawnCards.Count} choices for {NpcId}");
         foreach (var choice in drawnCards)
@@ -530,7 +552,7 @@ public class NPCDeck
             Difficulty = difficulty,
             PatienceCost = 2,
             ComfortGain = 0, // No comfort gain from asking
-            Requirements = new Dictionary<ConnectionType, int> { { tokenType, 2 } }, // Need some relationship to ask
+            Requirements = new Dictionary<ConnectionType, int>(), // No token requirements - comfort threshold is sufficient
             SuccessOutcome = "They consider your request carefully",
             NeutralOutcome = "They seem uncertain about entrusting you",
             FailureOutcome = "They politely decline your offer"

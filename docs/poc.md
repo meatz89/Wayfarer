@@ -105,56 +105,6 @@ Elena desperately needs her refusal letter delivered to Lord Blackwood in 8 minu
 3. Deliver Marcus's letter first (uses precious time)?
 4. Use coins for cart to save time?
 
-## Optimal Path (Proof of Concept)
-
-### Minute 0-2: Observe and Plan
-1. **Observe Market** (1 attention): See Marcus is CALCULATING, has letter
-2. **Converse with Marcus** (1 attention):
-   - Draw: Small Talk, Listen, Bad Memory, Trade Talk, Quick Exit
-   - Play Listen (73% success) → +3 comfort
-   - Play Trade Talk (73% success) → +2 comfort
-   - Comfort 5, patience 4 remaining
-   - Exit (don't accept new letter)
-
-### Minute 2-3: Travel to Tavern
-3. **Walk to Tavern** (1 minute, 0 attention)
-4. **Observe Tavern** (1 attention): See Elena DESPERATE, Lord leaving soon
-
-### Minute 3-5: Critical Conversation with Elena
-5. **Converse with Elena** (1 attention):
-   - Patience: 8 (good for desperate NPC)
-   - Draw: Small Talk, Share Trust, How Are Things, Ask Letter, Listen
-   - Play How Are Things (85% success) → reveals need
-   - Play Listen (73% success) → +3 comfort
-   - Play Share Trust (60% success) → +4 comfort
-   - Comfort 7, unlocks letter card
-   - Play Ask for Trust Letter (73% success) → Letter generated!
-   - Elena's letter enters at position 4 (Trust 3)
-
-### Minute 5-6: Queue Management Crisis
-6. **Critical Decision**: Elena's letter needs delivery NOW
-   - Option A: Deliver Marcus first (not enough time)
-   - Option B: Displace Marcus's letter
-   - **Choose B**: Move Elena's letter to position 1
-   - **Cost**: 3 Commerce tokens with Marcus (drops to Commerce -2)
-
-### Minute 6-7: Rush Delivery
-7. **Walk to Noble District** (2 minutes, 0 attention)
-   - Could take cart (1 minute for 2 coins) but walking still makes deadline
-
-### Minute 7-8: Deliver to Lord Blackwood
-8. **Deliver Letter** (1 attention):
-   - Lord Blackwood receives Elena's letter
-   - Success! +3 Trust with Elena
-   - Reward: Choose to add "Deep Trust" card to Elena's deck
-
-### Minute 8-9: Repair with Marcus
-9. **Return to Market** (1 attention for quick travel)
-10. **Converse with Marcus** (1 attention):
-    - He's now ANXIOUS (Commerce -2)
-    - Use remaining attention to rebuild
-    - Deliver his letter if possible, or promise obligation
-
 ## Test Acceptance Criteria
 
 ### Core Loop Tests
