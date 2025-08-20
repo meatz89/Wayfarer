@@ -1,4 +1,9 @@
-﻿using Wayfarer.GameState.Constants;
+using System.Collections.Generic;
+using Wayfarer.GameState.Constants;
+using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
+
+namespace Wayfarer.Content
 
 public class LocationSpot
 {
@@ -47,4 +52,5 @@ public class LocationSpot
     {
         return new List<string>();
     }
+}
 }

@@ -1,5 +1,6 @@
 ﻿using Wayfarer.GameState;
 using Wayfarer.Services;
+using Wayfarer.Game.ConversationSystem.Managers;
 
 public static class ServiceConfiguration
 {
@@ -87,9 +88,8 @@ public static class ServiceConfiguration
         services.AddSingleton<StandingObligationManager>();
         services.AddSingleton<ConversationContextService>();
 
-        // Conversation System
-        services.AddSingleton<DeterministicStreamingService>();
-        services.AddSingleton<ConversationStateManager>();
+        // New card-based conversation system
+        services.AddSingleton<ConversationManager>();
         services.AddSingleton<NPCDeckFactory>();
 
         // Wire up circular dependencies after initial creation
@@ -121,14 +121,12 @@ public static class ServiceConfiguration
         services.AddSingleton<NetworkUnlockManager>();
         services.AddSingleton<InformationDiscoveryManager>();
         services.AddSingleton<SpecialLetterHandler>();
-        services.AddSingleton<ConversationLetterService>();
+        // Letter generation now handled through conversation cards
         // PatronLetterService removed - patron system deleted
         services.AddSingleton<NetworkReferralService>();
         services.AddSingleton<DailyActivitiesManager>();
 
-        // Conversation system components
-        // ConversationChoiceGenerator is now created per-conversation in ConversationFactory
-        services.AddSingleton<ConversationFactory>();
+        // Old conversation system removed
 
         // Context and tag calculation
         services.AddSingleton<ContextTagCalculator>();
@@ -141,7 +139,7 @@ public static class ServiceConfiguration
 
         // Core services
         services.AddSingleton<FlagService>();
-        services.AddSingleton<ConversationRepository>();
+        // ConversationRepository removed - using new card system
 
         services.AddScoped<MusicService>();
         services.AddScoped<TimeImpactCalculator>();
@@ -152,6 +150,7 @@ public static class ServiceConfiguration
         services.AddSingleton<GameFacade>();
         services.AddScoped<NavigationCoordinator>();
         services.AddSingleton<NPCService>();
+        services.AddSingleton<LoadingStateService>();
 
         // UI Razor Services
 
@@ -159,46 +158,10 @@ public static class ServiceConfiguration
 
         // State Management Services - removed GameStateManager (legacy)
 
-        services.AddAIServices();
+        // AI services removed - using deterministic card system
 
         return services;
     }
 
-    public static IServiceCollection AddAIServices(this IServiceCollection services)
-    {
-        // Register core services
-        services.AddSingleton<ConversationHistoryManager>();
-        services.AddSingleton<NarrativeLogManager>();
-        services.AddSingleton<LoadingStateService>();
-        // Commented out until IAIProvider is configured
-        // services.AddSingleton<AIGameMaster>();
-        // services.AddSingleton<AIClient>();
-
-        // Register updated services
-        services.AddSingleton<AIPromptBuilder>();
-        services.AddSingleton<ConversationChoiceResponseParser>();
-        services.AddSingleton<ChoiceProjectionService>();
-
-        // Register narrative provider - choose which implementation to use
-        // For POC: Using DeterministicNarrativeProvider
-        services.AddSingleton<INarrativeProvider, DeterministicNarrativeProvider>();
-
-        // For full game with AI: Uncomment this and comment out the line above
-        // services.AddSingleton<INarrativeProvider, AIGameMaster>();
-
-        //// Register AI provider factory
-        //services.AddSingleton<IAIProvider>(serviceProvider =>
-        //{
-        //    string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "Ollama";
-
-        //    return defaultProvider.ToLower() switch
-        //    {
-        //        "ollama" => new OllamaProvider(configuration, logger),
-        //        _ => new OllamaProvider(configuration, logger)
-        //    };
-        //});
-
-        return services;
-    }
 
 }

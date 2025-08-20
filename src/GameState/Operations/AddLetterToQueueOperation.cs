@@ -1,7 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Wayfarer.GameState;
 
-/// <summary>
-/// Operation to add a letter to the queue at a specific position
-/// </summary>
+namespace Wayfarer.GameState.Operations
+{
+    /// <summary>
+    /// Operation to add a letter to the queue at a specific position
+    /// </summary>
 public class AddLetterToQueueOperation : IGameOperation
 {
     private readonly DeliveryObligation _letter;
@@ -77,4 +83,5 @@ public class AddLetterToQueueOperation : IGameOperation
             }
         }
     }
+}
 }

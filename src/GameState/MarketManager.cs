@@ -1,4 +1,11 @@
-﻿using Wayfarer.GameState.Constants;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Wayfarer.GameState.Constants;
+using Wayfarer.Game.MainSystem;
+using Wayfarer.Core.Repositories;
+
+namespace Wayfarer.GameState;
 
 /// <summary>
 /// Manages location-specific item pricing and trading operations.

@@ -68,25 +68,5 @@
         AddSystemMessage($"SPECIAL_LETTER_EVENT:{letterEvent.EventType}:{letterEvent.TargetNPCId}", severity);
     }
 
-    /// <summary>
-    /// Add categorical special letter request result for UI translation
-    /// Backend only provides categorical result, frontend translates to text and icons
-    /// </summary>
-    public void AddSpecialLetterRequestResult(string npcId, ConnectionType tokenType, SpecialLetterRequestResult result)
-    {
-        // Determine message severity based on result
-        SystemMessageTypes severity = result switch
-        {
-            SpecialLetterRequestResult.Success => SystemMessageTypes.Success,
-            SpecialLetterRequestResult.InsufficientTokens => SystemMessageTypes.Warning,
-            SpecialLetterRequestResult.Neutral => SystemMessageTypes.Info,
-            SpecialLetterRequestResult.Declined => SystemMessageTypes.Warning,
-            SpecialLetterRequestResult.ProcessingFailed => SystemMessageTypes.Danger,
-            _ => SystemMessageTypes.Info
-        };
-
-        // Add categorical message for UI to translate
-        // Format: SPECIAL_LETTER_REQUEST:result:tokenType:npcId
-        AddSystemMessage($"SPECIAL_LETTER_REQUEST:{result}:{tokenType}:{npcId}", severity);
-    }
+    // Special letter requests now handled through new conversation card system
 }

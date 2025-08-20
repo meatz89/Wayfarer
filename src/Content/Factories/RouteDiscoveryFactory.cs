@@ -1,6 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
+using Wayfarer.Content;
+
+namespace Wayfarer.Content.Factories
 
 /// <summary>
 /// Factory for creating route discoveries with guaranteed valid references.
@@ -144,4 +149,5 @@ public class RouteDiscoveryFactory
 
         AddDiscoveryContext(discovery, npc, equipment, narrative);
     }
+}
 }

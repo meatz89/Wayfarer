@@ -1,4 +1,9 @@
-﻿
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace Wayfarer.Game.MainSystem
+{
+
 public class NPC
 {
     // Identity
@@ -158,4 +163,6 @@ public class NPC
             }
         };
     }
+}
+
 }

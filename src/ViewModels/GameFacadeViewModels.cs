@@ -1,4 +1,8 @@
 using System.Collections.Generic;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.ViewModels
+{
 
 // ========== TRAVEL VIEW MODELS ==========
 
@@ -429,4 +433,6 @@ public class ActionOptionViewModel
 
     // Tutorial restriction
     public bool IsAllowedInTutorial { get; set; } = true;
+}
+
 }

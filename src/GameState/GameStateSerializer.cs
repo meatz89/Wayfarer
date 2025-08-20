@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Wayfarer.Game.MainSystem;
 
 // IMPORTANT: For testing purposes, save/load functionality is DISABLED
 // This serializer exists but is NOT used for persisting game state
@@ -23,7 +24,7 @@ public static class GameWorldSerializer
         };
     }
 
-    public static string SerializeGameWorld(GameWorld gameWorld, FlagService flagService = null, ConversationRepository conversationRepository = null)
+    public static string SerializeGameWorld(GameWorld gameWorld, FlagService flagService = null)
     {
         SerializableGameWorld serialized = new SerializableGameWorld
         {
@@ -368,7 +369,7 @@ public static class GameWorldSerializer
         return obligation;
     }
 
-    public static GameWorld DeserializeGameWorld(string json, List<Location> locations, List<LocationSpot> spots, FlagService flagService = null, ConversationRepository conversationRepository = null)
+    public static GameWorld DeserializeGameWorld(string json, List<Location> locations, List<LocationSpot> spots, FlagService flagService = null)
     {
         SerializableGameWorld serialized = JsonSerializer.Deserialize<SerializableGameWorld>(json, _jsonOptions);
         if (serialized == null)

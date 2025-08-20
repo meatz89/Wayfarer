@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
 using Wayfarer.ViewModels;
 
 namespace Wayfarer.Pages;
@@ -19,9 +21,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     // UI State Properties
     public int StateVersion = 0;
-    public ConversationViewModel CurrentConversation { get; set; }
-    public ConversationResult ConversationResult;
-    public ConversationBeatOutcome ConversationBeatOutcome { get; set; }
+    // Conversation handled by new ConversationScreen component
 
     // Navigation State
     public string SelectedLocation { get; set; }
@@ -161,47 +161,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             ProcessDailyActivities();
         }
 
-        // Check for pending conversation
-        CurrentConversation = GameFacade.GetCurrentConversation();
-        Console.WriteLine($"[MainGameplayView.PollGameState] CurrentConversation null? {CurrentConversation == null}");
-        if (CurrentConversation != null)
-        {
-            Console.WriteLine($"[MainGameplayView.PollGameState] CurrentConversation.IsComplete = {CurrentConversation.IsComplete}");
-        }
-
-        if (CurrentConversation != null && CurrentConversation.IsComplete == false)
-        {
-            Console.WriteLine("[MainGameplayView.PollGameState] ConversationPending detected!");
-            Console.WriteLine($"[MainGameplayView.PollGameState] OnNavigate null? {OnNavigate == null}");
-            Console.WriteLine($"[MainGameplayView.PollGameState] CurrentScreen before invoke: {CurrentScreen}");
-
-
-            if (OnNavigate != null && CurrentScreen != CurrentViews.ConversationScreen)
-            {
-                Console.WriteLine($"[MainGameplayView.PollGameState] Invoking OnNavigate with ConversationScreen...");
-                OnNavigate.Invoke(CurrentViews.ConversationScreen);
-                Console.WriteLine($"[MainGameplayView.PollGameState] OnNavigate invoked successfully");
-            }
-            else if (OnNavigate == null)
-            {
-                Console.WriteLine($"[MainGameplayView.PollGameState] ERROR: OnNavigate is null!");
-            }
-
-            Console.WriteLine($"[MainGameplayView.PollGameState] CurrentScreen after invoke: {CurrentScreen}");
-            Console.WriteLine($"[MainGameplayView.PollGameState] Calling StateHasChanged...");
-            StateHasChanged();
-            Console.WriteLine($"[MainGameplayView.PollGameState] StateHasChanged completed");
-        }
-        else if (CurrentScreen == CurrentViews.ConversationScreen && (CurrentConversation == null || CurrentConversation.IsComplete))
-        {
-            // Conversation ended - return to LocationScreen
-            Console.WriteLine("[MainGameplayView.PollGameState] Conversation ended - returning to LocationScreen");
-            if (OnNavigate != null)
-            {
-                OnNavigate.Invoke(CurrentViews.LocationScreen);
-                StateHasChanged();
-            }
-        }
+        // Conversations now handled by ConversationScreen component directly
 
         // Update travel destinations
         TravelDestinations = GameFacade.GetTravelDestinations();
@@ -360,8 +320,8 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public async Task OnConversationCompleted()
     {
-        // Get current conversation result from facade if needed
-        ConversationViewModel? conversation = GameFacade.GetCurrentConversation();
+        // Conversations now handled by ConversationScreen component
+        // This method will be removed
         if (conversation != null && conversation.ConversationTopic == "QueueManagement")
         {
             // Handle queue management completion through facade
@@ -406,7 +366,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public async Task OnNarrativeCompleted()
     {
-        ConversationBeatOutcome = null;
         OnNavigate?.Invoke(CurrentViews.LocationScreen);
         UpdateState();
     }

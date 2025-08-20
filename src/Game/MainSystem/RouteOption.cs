@@ -1,4 +1,6 @@
-﻿using Wayfarer.GameState.Constants;
+using Wayfarer.GameState.Constants;
+
+namespace Wayfarer.Game.MainSystem;
 
 public enum WeatherCondition
 {

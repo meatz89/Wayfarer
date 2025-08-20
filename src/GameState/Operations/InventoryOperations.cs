@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState;
+using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState.Constants;
+using Wayfarer.Content;
 
-
-/// <summary>
+namespace Wayfarer.GameState.Operations
+{
+    /// <summary>
 /// Handles all inventory state operations in an immutable, validated manner.
 /// All inventory changes must go through this class.
 /// </summary>
@@ -192,4 +197,5 @@ public class InventoryOperationResult
     {
         return new InventoryOperationResult(false, true, message, newInventory, affectedCount);
     }
+}
 }

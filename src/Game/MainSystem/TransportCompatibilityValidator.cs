@@ -1,3 +1,8 @@
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.Game.MainSystem
+{
+
 /// <summary>
 /// Validates transport method compatibility with terrain, equipment, and item constraints.
 /// Implements the logical transport restrictions outlined in UserStories.md.
@@ -166,4 +171,6 @@ public class TransportCompatibilityResult
     {
         return new TransportCompatibilityResult(false, reason);
     }
+}
+
 }

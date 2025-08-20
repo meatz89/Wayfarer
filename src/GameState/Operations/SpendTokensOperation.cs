@@ -1,7 +1,12 @@
+using System;
+using Wayfarer.GameState;
+using Wayfarer.GameState.Constants;
 
-/// <summary>
-/// Operation to spend tokens from the player's token pool
-/// </summary>
+namespace Wayfarer.GameState.Operations
+{
+    /// <summary>
+    /// Operation to spend tokens from the player's token pool
+    /// </summary>
 public class SpendTokensOperation : IGameOperation
 {
     private readonly ConnectionType _tokenType;
@@ -46,4 +51,5 @@ public class SpendTokensOperation : IGameOperation
             throw new InvalidOperationException($"Failed to spend {_amount} {_tokenType} tokens");
         }
     }
+}
 }

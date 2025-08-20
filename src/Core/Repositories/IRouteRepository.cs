@@ -1,8 +1,13 @@
 using System.Collections.Generic;
-/// <summary>
-/// Repository interface for Route-related operations
-/// </summary>
-public interface IRouteRepository
+using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
+
+namespace Wayfarer.Core.Repositories
+{
+    /// <summary>
+    /// Repository interface for Route-related operations
+    /// </summary>
+    public interface IRouteRepository
 {
     /// <summary>
     /// Get routes from a specific location
@@ -28,4 +33,5 @@ public interface IRouteRepository
     /// Check if player has required equipment for a route
     /// </summary>
     bool PlayerHasRequiredEquipment(RouteOption route, Player player);
+}
 }

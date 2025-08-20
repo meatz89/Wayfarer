@@ -163,53 +163,6 @@ Each route between locations has properties:
 
 Special letters compete for queue space but provide permanent unlocks.
 
-### Accepting and Delivering Letters
-
-**Acceptance Process**:
-1. Successfully achieve comfort threshold in conversation
-2. Play letter card from NPC's deck
-3. Letter enters queue at calculated position
-4. Must manage weight capacity and position conflicts
-
-**Delivery Process**:
-1. Letter must be in position 1
-2. Travel to recipient's location (costs time)
-3. Start conversation with recipient (costs attention)
-4. Delivery happens automatically if letter present
-5. Choose reward type based on letter
-
-**Failed Deliveries**:
-- Expired letters damage relationship with sender
-- Cannot be recovered once expired
-- Sender becomes HOSTILE until resolved
-
-### Standing Obligations (Mechanical Promises)
-
-Obligations are binding promises that override normal queue rules:
-
-**Types of Obligations**:
-- **Trust Obligation**: "I'll handle this personally"
-  - That NPC's letters always enter position 1
-  - Cannot be displaced without breaking promise
-- **Commerce Obligation**: "Your business comes first"
-  - Letters enter position 2, displace anything except position 1
-- **Status Obligation**: "I stake my reputation"
-  - Must deliver on time or lose Status globally
-- **Shadow Obligation**: "This stays between us"
-  - Cannot refuse or reveal letter contents
-
-**Creating Obligations**:
-- Only during DESPERATE states through crisis cards
-- Provides immediate +3 tokens
-- Remains active until fulfilled or broken
-- Each NPC can have ONE active obligation
-
-**Breaking Obligations**:
-- Costs -5 tokens with that NPC
-- They become HOSTILE
-- Adds "Betrayal" card to their deck
-- Future letters enter at worst positions
-
 ### Time Management in Delivery
 
 **How Time Advances**:

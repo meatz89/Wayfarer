@@ -1,5 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState;
+
+namespace Wayfarer.Content
+{
 
 public class NetworkUnlockRepository
 {
@@ -38,4 +42,6 @@ public class NetworkUnlockRepository
         }
         return null;
     }
+}
+
 }

@@ -1,4 +1,8 @@
-﻿using System.Text.Json;
+using System.Text.Json;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.Content;
+
 public static class RouteOptionParser
 {
     public static RouteOption ParseRouteOption(string json)

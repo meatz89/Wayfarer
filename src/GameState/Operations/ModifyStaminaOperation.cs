@@ -1,6 +1,11 @@
-/// <summary>
-/// Operation to modify player stamina
-/// </summary>
+using System;
+using Wayfarer.GameState;
+
+namespace Wayfarer.GameState.Operations
+{
+    /// <summary>
+    /// Operation to modify player stamina
+    /// </summary>
 public class ModifyStaminaOperation : IGameOperation
 {
     private readonly int _amount;
@@ -31,4 +36,5 @@ public class ModifyStaminaOperation : IGameOperation
         // Clamp to valid range
         player.Stamina = Math.Max(0, Math.Min(player.MaxStamina, player.Stamina));
     }
+}
 }

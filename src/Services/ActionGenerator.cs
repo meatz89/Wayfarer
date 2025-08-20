@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Wayfarer.GameState;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.Services
+{
 
 public class ActionGenerator
 {
@@ -387,4 +391,6 @@ public class ActionGenerator
         if (time == TimeBlocks.Evening) return "Whispered tales";
         return "Local gossip";
     }
+}
+
 }

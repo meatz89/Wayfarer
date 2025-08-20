@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.Game.TravelSystem
+{
 
 /// <summary>
 /// Manages the deck of travel event cards for a specific route
@@ -782,4 +786,6 @@ public enum RoutePersonality
     OPPORTUNISTIC,  // Back paths
     DANGEROUS,      // Wilderness
     SOCIAL          // Urban streets
+}
+
 }

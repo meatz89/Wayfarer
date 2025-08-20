@@ -1,4 +1,10 @@
-﻿public static class StyleHelper
+﻿using System.Collections.Generic;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.UIHelpers
+{
+
+public static class StyleHelper
 {
     public static List<PropertyDisplay> GetSpotProperties(Location location, LocationSpot spot)
     {
@@ -81,4 +87,6 @@
             _ => ""
         };
     }
+}
+
 }

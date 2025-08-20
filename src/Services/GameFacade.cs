@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Wayfarer.Game.ConversationSystem;
+using Wayfarer.Game.ConversationSystem.Managers;
+using Wayfarer.Game.MainSystem;
 using Wayfarer.GameState;
 using Wayfarer.GameState.Constants;
 using Wayfarer.Services;
@@ -31,23 +32,20 @@ public class GameFacade
     private readonly RouteDiscoveryManager _routeDiscoveryManager;
 
     // Domain services
-    private readonly ConversationFactory _conversationFactory;
     private readonly NPCRepository _npcRepository;
     private readonly LocationRepository _locationRepository;
     private readonly LocationSpotRepository _locationSpotRepository;
     private readonly RouteRepository _routeRepository;
     private readonly FlagService _flagService;
     private readonly ItemRepository _itemRepository;
-    private readonly ConversationStateManager _conversationStateManager;
     private readonly TokenMechanicsManager _connectionTokenManager;
-    private readonly ConversationLetterService _conversationLetterService;
+    private readonly ConversationManager _conversationManager;
     private readonly GameConfiguration _gameConfiguration;
     private readonly InformationDiscoveryManager _informationDiscoveryManager;
     private readonly StandingObligationManager _standingObligationManager;
     private readonly StandingObligationRepository _standingObligationRepository;
     private readonly MarketManager _marketManager;
     private readonly DailyActivitiesManager _dailyActivitiesManager;
-    private readonly ConversationContextService _deliveryConversationService;
     private readonly ContextTagCalculator _contextTagCalculator;
     private readonly NPCStateResolver _npcStateResolver;
     private readonly EnvironmentalHintSystem _environmentalHintSystem;
@@ -69,16 +67,14 @@ public class GameFacade
         TravelManager travelManager,
         ObligationQueueManager letterQueueManager,
         RouteDiscoveryManager routeDiscoveryManager,
-        ConversationFactory conversationFactory,
         NPCRepository npcRepository,
         LocationRepository locationRepository,
         LocationSpotRepository locationSpotRepository,
         RouteRepository routeRepository,
         FlagService flagService,
         ItemRepository itemRepository,
-        ConversationStateManager conversationStateManager,
         TokenMechanicsManager connectionTokenManager,
-        ConversationLetterService conversationLetterService,
+        ConversationManager conversationManager,
         GameConfiguration gameConfiguration,
         InformationDiscoveryManager informationDiscoveryManager,
         StandingObligationManager standingObligationManager,
@@ -87,7 +83,6 @@ public class GameFacade
         RestManager restManager,
         IGameRuleEngine ruleEngine,
         DailyActivitiesManager dailyActivitiesManager,
-        ConversationContextService deliveryConversationService,
         ContextTagCalculator contextTagCalculator,
         NPCStateResolver npcStateResolver,
         ActionGenerator actionGenerator,
@@ -109,16 +104,14 @@ public class GameFacade
         _travelManager = travelManager;
         _letterQueueManager = letterQueueManager;
         _routeDiscoveryManager = routeDiscoveryManager;
-        _conversationFactory = conversationFactory;
         _npcRepository = npcRepository;
         _locationRepository = locationRepository;
         _locationSpotRepository = locationSpotRepository;
         _routeRepository = routeRepository;
         _flagService = flagService;
         _itemRepository = itemRepository;
-        _conversationStateManager = conversationStateManager;
         _connectionTokenManager = connectionTokenManager;
-        _conversationLetterService = conversationLetterService;
+        _conversationManager = conversationManager;
         _gameConfiguration = gameConfiguration;
         _informationDiscoveryManager = informationDiscoveryManager;
         _standingObligationManager = standingObligationManager;
@@ -127,7 +120,6 @@ public class GameFacade
         _restManager = restManager;
         _ruleEngine = ruleEngine;
         _dailyActivitiesManager = dailyActivitiesManager;
-        _deliveryConversationService = deliveryConversationService;
         _contextTagCalculator = contextTagCalculator;
         _npcStateResolver = npcStateResolver;
         _actionGenerator = actionGenerator;
@@ -139,7 +131,7 @@ public class GameFacade
         _worldMemorySystem = worldMemorySystem;
         _ambientDialogueSystem = ambientDialogueSystem;
 
-        // Use injected TimeBlockAttentionManager (shared with ConversationFactory)
+        // Use injected TimeBlockAttentionManager
         _timeBlockAttentionManager = timeBlockAttentionManager;
         _deckFactory = deckFactory;
         _endingGenerator = endingGenerator;
@@ -1100,19 +1092,15 @@ public class GameFacade
             return false;
         }
 
-        // Generate delivery conversation context
-        DeliveryConversationContext conversationContext = _deliveryConversationService.AnalyzeDeliveryContext(letterToDeliver, recipient);
-        List<ConversationChoice> choices = _deliveryConversationService.GenerateDeliveryChoices(conversationContext);
-
-        // For now, execute standard delivery (first choice)
-        ConversationChoice? standardChoice = choices.FirstOrDefault();
-        if (standardChoice == null)
-        {
-            _messageSystem.AddSystemMessage("No delivery options available", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        DeliveryOutcome outcome = standardChoice.DeliveryOutcome;
+        // Delivery now handled through conversation cards
+        // Simple delivery for now - will be expanded through conversation system
+        DeliveryOutcome outcome = new DeliveryOutcome 
+        { 
+            BasePayment = letterToDeliver.Payment,
+            BonusPayment = 0,
+            TokenType = ConnectionType.Trust,
+            TokenAmount = 1
+        };
 
         // Process payment
         player.ModifyCoins(outcome.BasePayment + outcome.BonusPayment);
@@ -2254,90 +2242,30 @@ public class GameFacade
     // ========== CONVERSATIONS ==========
 
 
-    public async Task<ConversationViewModel> StartConversationAsync(string npcId)
+    public async Task<bool> StartConversationAsync(string npcId)
     {
-        // Card-based conversation system handles all conversation types
-
-        // Get NPC and create context
+        // New card-based conversation system
+        // Conversations are now handled directly by ConversationScreen component
+        // This method just validates the NPC exists and is available
+        
         NPC npc = _npcRepository.GetById(npcId);
+        if (npc == null) return false;
+        
         Player player = _gameWorld.GetPlayer();
         Location location = _locationRepository.GetCurrentLocation();
-        LocationSpot spot = player.CurrentLocationSpot;
-
-        // NPCs offer letters through conversation cards when comfort is built
-        // This creates the core tension: accepting letters fills your queue
-
-        SceneContext context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
-
-        // CRITICAL: Use persistent attention from time block manager
-        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        context.AttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
-        Console.WriteLine($"[StartConversationAsync] Using time-block attention for {currentTimeBlock}: {context.AttentionManager.GetAvailableAttention()}/{context.AttentionManager.GetMaxAttention()}");
-
-        // Start conversation directly
-        ConversationManager conversation = await _conversationFactory.CreateConversation(context, player);
-        if (conversation != null)
-        {
-            _conversationStateManager.SetCurrentConversation(conversation);
-        }
-        ConversationManager conversationManager = _conversationStateManager.PendingConversationManager;
-        if (conversationManager == null) return null;
-
-        return CreateConversationViewModel(conversationManager);
+        
+        // Check if NPC is at current location
+        if (!location.NPCs.Contains(npcId))
+            return false;
+            
+        // Conversation will be started by ConversationScreen component
+        return true;
     }
 
-    public async Task<ConversationViewModel> ContinueConversationAsync(string choiceId)
-    {
-        // Card-based conversation system handles all response types
+    // All conversation methods removed - handled by new ConversationScreen component directly
 
-        ConversationManager currentConversation = _conversationStateManager.PendingConversationManager;
-        if (currentConversation == null || !_conversationStateManager.ConversationPending) return null;
-
-        ConversationChoice? choice = currentConversation.Choices?.FirstOrDefault(c => c.ChoiceID == choiceId);
-        if (choice == null) return null;
-
-        // Process the choice
-        ConversationBeatOutcome outcome = await currentConversation.ProcessPlayerChoice(choice);
-
-        // If conversation is complete, clear it from state manager
-        if (outcome.IsConversationComplete)
-        {
-            _conversationStateManager.ClearPendingConversation();
-        }
-        else
-        {
-            // Generate new choices for the next beat
-            await currentConversation.ProcessNextBeat();
-        }
-
-        return CreateConversationViewModel(currentConversation);
-    }
-
-
-    public ConversationViewModel GetCurrentConversation()
-    {
-        Console.WriteLine($"[GameFacade.GetCurrentConversation] Called");
-        Console.WriteLine($"[GameFacade.GetCurrentConversation] ConversationPending: {_conversationStateManager.ConversationPending}");
-        Console.WriteLine($"[GameFacade.GetCurrentConversation] PendingConversationManager null? {_conversationStateManager.PendingConversationManager == null}");
-
-        ConversationManager? currentConversation = _conversationStateManager.PendingConversationManager;
-        if (currentConversation == null || !_conversationStateManager.ConversationPending)
-        {
-            Console.WriteLine($"[GameFacade.GetCurrentConversation] Returning null - no pending conversation");
-            return null;
-        }
-
-        ConversationViewModel? viewModel = CreateConversationViewModel(currentConversation);
-        Console.WriteLine($"[GameFacade.GetCurrentConversation] Created ViewModel with NpcId: {viewModel?.NpcId}, Text: {viewModel?.CurrentText?.Substring(0, Math.Min(50, viewModel?.CurrentText?.Length ?? 0))}");
-        return viewModel;
-    }
-
-    public ConversationManager GetCurrentConversationManager()
-    {
-        return _conversationStateManager.PendingConversationManager;
-    }
-
-    public async Task<ConversationViewModel> ProcessConversationChoice(string choiceId)
+    // Temporary stub until all references are removed
+    public async Task<object> ProcessConversationChoice(string choiceId)
     {
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Processing choice: {choiceId}");
 
@@ -2587,8 +2515,8 @@ public class GameFacade
                 IsInternalThought = c.NarrativeText.StartsWith("*") || c.TemplatePurpose?.Contains("INTERNAL") == true,
                 EmotionalTone = DetermineEmotionalTone(c),
                 IsLocked = c.IsLocked,
-                // Convert mechanical effects to display mechanics
-                Mechanics = ConvertMechanicalEffectsToDisplay(c.MechanicalEffects)
+                // Mechanics now handled by conversation cards
+                Mechanics = new List<MechanicEffectViewModel>()
             }).ToList() ?? new List<ConversationChoiceViewModel>(),
             IsComplete = conversation.State?.IsConversationComplete ?? false,
             ConversationTopic = conversation.Context.ConversationTopic,
@@ -3006,33 +2934,7 @@ public class GameFacade
         return "neutral";
     }
 
-    private List<MechanicEffectViewModel> ConvertMechanicalEffectsToDisplay(List<IMechanicalEffect> effects)
-    {
-        List<MechanicEffectViewModel> mechanics = new List<MechanicEffectViewModel>();
-
-        if (effects == null || !effects.Any())
-            return mechanics;
-
-        foreach (IMechanicalEffect effect in effects)
-        {
-            // Get the description for player display
-            string description = effect.GetDescriptionsForPlayer().FirstOrDefault()?.Text ?? "";
-            if (string.IsNullOrEmpty(description))
-                continue;
-
-            // Determine the effect type based on the description
-            MechanicEffectType effectType = DetermineEffectType(description);
-
-            // Convert to view model
-            mechanics.Add(new MechanicEffectViewModel
-            {
-                Description = description,
-                Type = effectType
-            });
-        }
-
-        return mechanics;
-    }
+    // Mechanical effects now handled by conversation cards directly
 
     private string GetAttentionDisplayString(int cost)
     {

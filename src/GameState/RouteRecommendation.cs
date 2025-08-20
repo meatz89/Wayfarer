@@ -1,7 +1,13 @@
-/// <summary>
-/// Represents an optimized route recommendation based on player resources and strategy.
-/// Provides justification for the recommendation and efficiency metrics.
-/// </summary>
+using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
+using Wayfarer.GameState.Constants;
+
+namespace Wayfarer.GameState
+{
+    /// <summary>
+    /// Represents an optimized route recommendation based on player resources and strategy.
+    /// Provides justification for the recommendation and efficiency metrics.
+    /// </summary>
 public class RouteRecommendation
 {
     public RouteOption RecommendedRoute { get; set; }
@@ -19,4 +25,5 @@ public class RouteRecommendation
         ResourceAnalysis = "";
         AlternativeOptions = "";
     }
+}
 }

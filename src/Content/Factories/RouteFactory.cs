@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.Content.Factories
+{
 
 /// <summary>
 /// Factory for creating routes with guaranteed valid references.
@@ -119,4 +123,6 @@ public class RouteFactory
         return CreateRoute(id, name, origin, destination, method, travelTimeMinutes,
                           baseStaminaCost, baseCoinCost, description);
     }
+}
+
 }

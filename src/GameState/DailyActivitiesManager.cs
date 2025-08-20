@@ -1,6 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
+using Wayfarer.GameState.Constants;
+
+namespace Wayfarer.GameState
 public partial class DailyActivitiesManager
 {
     private readonly GameWorld _gameWorld;
@@ -315,4 +320,5 @@ public partial class DailyActivitiesManager
     {
         return _lastActivityResult ?? new DailyActivityResult();
     }
+}
 }

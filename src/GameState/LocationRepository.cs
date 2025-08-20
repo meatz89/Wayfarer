@@ -1,4 +1,11 @@
-﻿public class LocationRepository
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.GameState
+{
+    public class LocationRepository
 {
     private readonly GameWorld _gameWorld;
 
@@ -153,4 +160,4 @@
     {
         return _gameWorld.WorldState.IsFirstVisit(locationId);
     }
-}
+}}

@@ -1,175 +1,239 @@
 @page "/conversation/{NpcId}"
-@using Wayfarer.ViewModels
-@using Wayfarer.Pages.Components
+@using Wayfarer.Game.ConversationSystem.Core
+@using Wayfarer.Game.ConversationSystem.Managers
+@using Wayfarer.Game.ConversationSystem.Models
 @using Wayfarer.GameState
-@using Microsoft.AspNetCore.Components
 @inherits ConversationScreenBase
 
-<div class="container">
-    
-    @* System messages display for conversation feedback *@
-    <MessageDisplay />
-    
-    @* Exit button for manual conversation exit *@
-    <div class="conversation-exit-controls">
-        <button class="exit-conversation-btn" @onclick="HandleExitConversation">
-            ← Exit Conversation
-        </button>
-    </div>
-    
-    @if (Model != null)
+<div class="game-container">
+    @if (Session != null)
     {
-
-        <!-- Peripheral Awareness - COGNITIVE EDGES -->
-        <div class="peripheral-layer">
-            
-            <!-- Environmental Hints - Peripheral Awareness -->
-            @if (Model.EnvironmentalHints?.Any() == true)
-            {
-                @foreach (var hint in Model.EnvironmentalHints)
+        <!-- Time and Deadline Header -->
+        <div class="header">
+            <div class="time-bar">
+                <span class="current-time">@GetCurrentTimeDisplay()</span>
+                @if (GetUrgentDeadline() != null)
                 {
-                    <div class="environmental-hints clickable-peripheral" @onclick="() => InvestigateEnvironment(hint)" title="Spend attention to investigate">
-                        @hint
-                    </div>
+                    <span class="deadline-warning">@GetUrgentDeadline()</span>
                 }
-            }
-            
-            <!-- Queue Weight - Bottom Left -->
-            <div class="satchel-weight" title="Letter queue burden">
-                Heavy (Queue weight indicator)
             </div>
-            
         </div>
 
-        <!-- Location Header - SETS ATMOSPHERE -->
-        <div class="location-header">
-            <div class="location-name">@(Model.LocationName ?? "The Copper Kettle - Corner Table")</div>
-            <div class="location-atmosphere">@(Model.LocationAtmosphere ?? "Warm hearth-light, nervous energy in the air")</div>
+        <!-- Location Context -->
+        <div class="location-context">
+            <div class="location-path">
+                @foreach (var segment in GetLocationPath())
+                {
+                    <span>@segment</span>
+                    @if (segment != GetLocationPath().Last())
+                    {
+                        <span>→</span>
+                    }
+                }
+            </div>
+            <div class="location-spot">@GetCurrentSpot()</div>
         </div>
 
-        <!-- Main Scene Content -->
-        <div class="scene-content">
-            <!-- Character Name Only -->
-            <div class="character-focus">
-                <div class="character-name">@Model.NpcName</div>
-            </div>
-                
-            @* NPC Patience and Comfort Display - Core conversation mechanics *@
-            <div class="npc-conversation-state">
-                <div class="patience-display">
-                    <span class="patience-label">@Model.NpcName's Patience:</span>
-                    <div class="patience-orbs">
-                        @for (int i = 0; i < MaxPatience; i++)
-                        {
-                            <div class="patience-orb @(i < CurrentPatience ? "active" : "spent")" 
-                                 aria-label="@GetPatienceOrbLabel(i)">
+        <!-- NPC Header with State -->
+        <div class="conversation-header">
+            <div class="npc-section">
+                <h2>@Session.NPC.Name</h2>
+                <div class="npc-state @GetStateClass()">
+                    @GetStateDescription()
+                </div>
+
+                <!-- Token Display -->
+                <div class="relationship-tokens">
+                    @foreach (var tokenType in Enum.GetValues<ConnectionType>())
+                    {
+                        <div class="token-type">
+                            <span class="token-label">@tokenType</span>
+                            <div class="token-dots">
+                                @for (int i = 0; i < 5; i++)
+                                {
+                                    <div class="token-dot @(i < GetTokenCount(tokenType) ? "filled" : "")"></div>
+                                }
                             </div>
-                        }
+                            <span class="token-effect">@GetTokenEffect(tokenType)</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Progress Display -->
+            <div class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-label">
+                        <span>Comfort Built</span>
+                        <span>@Session.CurrentComfort/@GetComfortTarget()</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: @GetComfortPercent()%"></div>
+                        <div class="progress-thresholds">
+                            <div class="threshold-marker" style="left: 25%">
+                                <span class="threshold-label">5</span>
+                            </div>
+                            <div class="threshold-marker" style="left: 50%">
+                                <span class="threshold-label">10 (Letter)</span>
+                            </div>
+                            <div class="threshold-marker" style="left: 75%">
+                                <span class="threshold-label">15</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="comfort-display">
-                    <span class="comfort-label">Comfort: @GetComfortDescription()</span>
+
+                <div class="turns-remaining @(Session.CurrentPatience <= 3 ? "low" : "")">
+                    <div class="turns-display @(Session.CurrentPatience <= 3 ? "low" : "")">@Session.CurrentPatience</div>
+                    <div class="turns-label">Turns Left</div>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-label">
+                        <span>Current Depth</span>
+                        <span>@Session.CurrentDepth @GetDepthName()</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: @(Session.CurrentDepth * 33)%"></div>
+                    </div>
                 </div>
             </div>
-                
-            @if (Model.RelationshipStatus?.Any() == true)
+
+            <!-- State Rules Display -->
+            <div class="state-indicator">
+                <span class="state-label">Emotional State:</span>
+                <span class="state-name">@Session.CurrentState</span>
+                <span class="state-effects">@ConversationRules.GetStateEffects(Session.CurrentState)</span>
+            </div>
+        </div>
+
+        <!-- Narrative Section -->
+        <div class="narrative-section">
+            <div class="narrative-text">@CurrentNarrative</div>
+            <div class="npc-dialogue @GetStateClass()">
+                "@NPCDialogue"
+            </div>
+        </div>
+
+        <!-- Action Choice -->
+        <div class="action-section">
+            <div class="turn-indicator">
+                Turn @Session.TurnNumber of @Session.MaxPatience • Each choice uses 1 turn
+            </div>
+
+            @if (Session.IsHandOverflowing())
             {
-                <div class="relationship-status">
-                    @foreach (var status in Model.RelationshipStatus)
-                    {
-                        <span>@status.Value</span>
-                    }
+                <div class="hand-overflow-warning">
+                    <span>⚠ Hand full! You have too much to share - must SPEAK first</span>
                 </div>
             }
 
-            <!-- Current Dialogue - NARRATIVE FOCUS -->
-            <div class="dialogue-container">
-                <div class="spoken-words">
-                    @Model.CurrentText
-                </div>
-                
-                @if (!string.IsNullOrEmpty(Model.CharacterAction))
-                {
-                    <div class="character-action">
-                        @Model.CharacterAction
+            <div class="action-choices">
+                <div class="action-button @(SelectedAction == ActionType.Listen ? "selected" : "")"
+                     @onclick="() => SelectAction(ActionType.Listen)">
+                    @if (HasOpportunities())
+                    {
+                        <div class="action-warning">⚠ Fleeting moments vanish!</div>
+                    }
+                    <div>👂 LISTEN</div>
+                    <div class="action-description">
+                        Let them continue • Draw @GetDrawCount() thoughts
                     </div>
-                }
+                </div>
+
+                <div class="action-button @(SelectedAction == ActionType.Speak ? "selected" : "")"
+                     @onclick="() => SelectAction(ActionType.Speak)">
+                    <div>💭 SPEAK</div>
+                    <div class="action-description">
+                        Respond now • Use cards
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Hand -->
+        <div class="dialog-section">
+            <div class="dialog-header">
+                <div class="dialog-title">Your Thoughts</div>
+                <div class="hand-status">
+                    <span class="hand-count">@Session.HandCards.Count cards in hand</span>
+                    @if (Session.ObservationCards.Any())
+                    {
+                        <span class="hand-note">• @Session.ObservationCards.Count from observation</span>
+                    }
+                </div>
+                <div class="weight-tracker @(IsOverWeight() ? "overlimit" : "")">
+                    <span>Weight:</span>
+                    <span class="weight-display">
+                        @if (HasCrisisSelected())
+                        {
+                            <text>Crisis!</text>
+                        }
+                        else
+                        {
+                            <text>@GetCurrentWeight()/@GetMaxWeight()</text>
+                        }
+                    </span>
+                </div>
             </div>
 
-            <!-- SHARP FOCUS: Elena and Conversation Choices -->
-            <div class="sharp-focus" id="main-focus">
-                
-                <!-- Token Relationship Display -->
-                @if (!string.IsNullOrEmpty(GetTokenBondsDisplay()))
+            <div class="dialog-options">
+                @foreach (var card in Session.HandCards)
                 {
-                    <div class="relationship-bonds">
-                        @GetTokenBondsDisplay()
-                    </div>
-                }
-                
-                <!-- Choice Cards - Beautiful Conversation Options -->
-                <div class="conversation-responses">
-                    @if (Choices?.Any() == true)
-                    {
-                        @foreach (var choice in Choices)
+                    <div class="dialog-option @GetCardClasses(card) @(SelectedCards.Contains(card) ? "selected" : "") @(!CanSelectCard(card) ? "disabled" : "")"
+                         @onclick="() => ToggleCard(card)"
+                         data-weight="@card.Weight"
+                         data-comfort="@card.BaseComfort">
+
+                        @if (card.IsStateCard)
                         {
-                            <div class="response-card @(choice.IsAvailable ? "" : "unplayable") @GetChoiceColorClass(choice)" @onclick="() => HandleChoice(choice)">
-                                
-                                <!-- Patience Cost Badge -->
-                                <div class="patience-cost @(choice.PatienceCost == 0 ? "free" : "")">
-                                    @if (choice.PatienceCost == 0)
-                                    {
-                                        <span>FREE</span>
-                                    }
-                                    else
-                                    {
-                                        <span>@choice.PatienceCost</span>
-                                    }
-                                </div>
-                                
-                                <!-- Choice Content -->
-                                <div class="choice-content">
-                                    <div class="response-thought">
-                                        "@choice.NarrativeText"
-                                    </div>
-                                    <div class="success-probability">
-                                        @GetSuccessProbabilityDisplay(choice)
-                                    </div>
-                                    
-                                    <!-- Compact Outcome Tiers -->
-                                    <div class="outcome-tiers">
-                                        <div class="outcome-tier tier-success">
-                                            ✓ @((MarkupString)GetOutcomePreview(choice, Wayfarer.Game.ConversationSystem.ConversationOutcome.Success))
-                                        </div>
-                                        <div class="outcome-tier tier-neutral">
-                                            ⚬ @((MarkupString)GetOutcomePreview(choice, Wayfarer.Game.ConversationSystem.ConversationOutcome.Neutral))
-                                        </div>
-                                        <div class="outcome-tier tier-failure">
-                                            ✗ @((MarkupString)GetOutcomePreview(choice, Wayfarer.Game.ConversationSystem.ConversationOutcome.Failure))
-                                        </div>
-                                    </div>
-                                    
-                                    @if (!choice.IsAvailable)
-                                    {
-                                        <div class="lock-reason">
-                                            @choice.MechanicalDescription
-                                        </div>
-                                    }
-                                </div>
+                            <div class="state-change-marker">
+                                State: @GetStateChangeText(card)
                             </div>
                         }
-                    }
-                else
-                {
-                    <div class="choice-option" @onclick="() => HandleChoice(DefaultChoice)">
-                        <div class="patience-cost free">FREE</div>
-                        <div class="choice-content">
-                            <div class="choice-text">"@DefaultChoice.NarrativeText"</div>
-                            <div class="choice-mechanics">
-                                <div class="mechanic-item mechanic-neutral">
-                                    <span class="icon icon-arrow"></span>
-                                    <span class="mechanic-text">@DefaultChoice.MechanicalDescription</span>
+
+                        @if (card.IsObservation)
+                        {
+                            <div class="observation-marker">
+                                @card.ObservationSource
+                            </div>
+                        }
+
+                        <div class="option-content">
+                            <div class="option-text">"@card.Text"</div>
+
+                            <div class="option-properties">
+                                <div class="prop-group primary">
+                                    <div class="card-identity">
+                                        <span class="tag type">@card.Type</span>
+                                        <span class="tag persistence">
+                                            @card.GetPersistenceIcon() @card.Persistence
+                                        </span>
+                                    </div>
+
+                                    <div class="weight-indicator">
+                                        <span class="weight-label">Weight:</span>
+                                        <div class="weight-dots">
+                                            @for (int i = 0; i < 3; i++)
+                                            {
+                                                <div class="weight-dot @(i < card.Weight ? "filled" : "")"></div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="outcome-display">
+                                    <div class="outcome success-outcome">
+                                        <div class="outcome-chance">@card.CalculateSuccessChance(GetStatusTokens())%</div>
+                                        <div class="outcome-label">Success</div>
+                                        <div class="outcome-effect">@GetSuccessEffect(card)</div>
+                                    </div>
+                                    <div class="outcome-divider"></div>
+                                    <div class="outcome failure-outcome">
+                                        <div class="outcome-chance">@(100 - card.CalculateSuccessChance(GetStatusTokens()))%</div>
+                                        <div class="outcome-label">Failure</div>
+                                        <div class="outcome-effect">@GetFailureEffect(card)</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -177,11 +241,24 @@
                 }
             </div>
         </div>
-        </div> @* Close scene-content *@
+
+        <!-- Play Button -->
+        <div class="play-section">
+            <button class="play-button" @onclick="ExecuteAction" disabled="@(!CanExecute())">
+                @GetPlayButtonText()
+            </button>
+            <div class="play-info">@GetPlayInfo()</div>
+
+            @if (ShowOpportunityWarning())
+            {
+                <div class="opportunity-warning active">
+                    ⚠ Warning: Listening will cause ALL fleeting opportunities to vanish forever
+                </div>
+            }
+        </div>
     }
     else
     {
-        <div class="loading">Loading conversation...</div>
+        <div class="loading">Starting conversation...</div>
     }
 </div>
-

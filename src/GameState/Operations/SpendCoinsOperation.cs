@@ -1,7 +1,11 @@
+using System;
+using Wayfarer.GameState;
 
-/// <summary>
-/// Operation to spend coins from the player's wallet
-/// </summary>
+namespace Wayfarer.GameState.Operations
+{
+    /// <summary>
+    /// Operation to spend coins from the player's wallet
+    /// </summary>
 public class SpendCoinsOperation : IGameOperation
 {
     private readonly int _amount;
@@ -27,4 +31,5 @@ public class SpendCoinsOperation : IGameOperation
         Player player = gameWorld.GetPlayer();
         player.Coins -= _amount;
     }
+}
 }

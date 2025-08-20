@@ -1,4 +1,10 @@
-﻿public class LocationPropertyManager
+﻿using System.Collections.Generic;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.Game.MainSystem
+{
+
+public class LocationPropertyManager
 {
     private LocationSystem locationSystem;
 
@@ -97,4 +103,6 @@
                 location.LocationType = LocationTypes.Rest;
         }
     }
+}
+
 }

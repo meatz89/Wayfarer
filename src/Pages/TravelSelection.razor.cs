@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Components;
+using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
 using Wayfarer.GameState.Constants;
 using Wayfarer.Services;
 

@@ -1,6 +1,10 @@
-/// <summary>
-/// Represents an atomic game operation that can be executed
-/// </summary>
+using Wayfarer.GameState;
+
+namespace Wayfarer.GameState
+{
+    /// <summary>
+    /// Represents an atomic game operation that can be executed
+    /// </summary>
 public interface IGameOperation
 {
     /// <summary>
@@ -17,4 +21,5 @@ public interface IGameOperation
     /// Gets a description of what this operation does
     /// </summary>
     string Description { get; }
+}
 }

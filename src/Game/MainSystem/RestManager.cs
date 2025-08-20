@@ -1,4 +1,12 @@
-﻿public class RestManager
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Extensions.Logging;
+using Wayfarer.GameState;
+
+namespace Wayfarer.Game.MainSystem
+{
+    public class RestManager
 {
     private GameWorld gameWorld;
     private ITimeManager timeManager;
@@ -295,4 +303,5 @@
         string timeDescription = hours == 1 ? "1 hour" : $"{hours} hours";
         messageSystem.AddSystemMessage($"Waited {timeDescription}. Time advanced to {timeManager.GetCurrentTimeHours()}:00", SystemMessageTypes.Info);
     }
+}
 }

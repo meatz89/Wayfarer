@@ -1,4 +1,9 @@
-﻿public class NPCRepository
+﻿using Wayfarer.GameState;
+
+namespace Wayfarer.Content
+{
+
+public class NPCRepository
 {
     private readonly GameWorld _gameWorld;
     private readonly DebugLogger _debugLogger;
@@ -274,4 +279,6 @@
     }
 
     #endregion
+}
+
 }

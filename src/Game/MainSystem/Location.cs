@@ -1,5 +1,10 @@
-﻿public class Location
+﻿using System.Collections.Generic;
+using Wayfarer.GameState;
+
+namespace Wayfarer.Game.MainSystem
 {
+    public class Location
+    {
     public string Id { get; set; }
     public string Name { get; private set; }
     public string Description { get; set; }
@@ -75,4 +80,5 @@
             : new List<Professions>();
     }
 
+}
 }

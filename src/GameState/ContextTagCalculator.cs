@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+namespace Wayfarer.GameState;
+
 /// <summary>
 /// Calculates context tags based on current GameWorld state.
 /// This is the bridge between game mechanics and narrative presentation.

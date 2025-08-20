@@ -1,7 +1,10 @@
+using Wayfarer.GameState;
 
-/// <summary>
-/// Operation to remove a letter from the queue
-/// </summary>
+namespace Wayfarer.GameState.Operations
+{
+    /// <summary>
+    /// Operation to remove a letter from the queue
+    /// </summary>
 public class RemoveLetterFromQueueOperation : IGameOperation
 {
     private readonly int _position;
@@ -44,4 +47,5 @@ public class RemoveLetterFromQueueOperation : IGameOperation
             }
         }
     }
+}
 }

@@ -1,4 +1,12 @@
+using System;
+using System.Collections.Generic;
 using System.Text.Json;
+using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
+using Wayfarer.GameState.Constants;
+using Wayfarer.Content;
+
+namespace Wayfarer.Content
 public static class NPCParser
 {
     public static NPC ParseNPC(string json)
@@ -151,4 +159,5 @@ public static class NPCParser
 
         return results;
     }
+}
 }

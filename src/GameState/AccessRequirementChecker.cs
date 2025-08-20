@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.GameState;
+
 /// <summary>
 /// Service for checking if a player meets access requirements for locations, spots, and routes.
 /// </summary>

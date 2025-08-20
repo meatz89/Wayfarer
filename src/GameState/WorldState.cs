@@ -1,4 +1,10 @@
-﻿public class WorldState
+using System.Collections.Generic;
+using System.Linq;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.GameState;
+
+public class WorldState
 {
     // Core data collections
     public List<Location> locations { get; set; } = new();

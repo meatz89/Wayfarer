@@ -1,4 +1,9 @@
-﻿public class ContentValidationResult
+﻿using System.Collections.Generic;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.Content
+{
+    public class ContentValidationResult
 {
     public List<MissingLocationSpotReference> MissingLocationSpots { get; } = new List<MissingLocationSpotReference>();
     public List<MissingConnectedLocationReference> MissingConnectedLocations { get; } = new List<MissingConnectedLocationReference>();
@@ -29,7 +34,7 @@ public class MissingLocationSpotReference
     }
 }
 
-public class MissingConnectedLocationReference
+    public class MissingConnectedLocationReference
 {
     public string LocationId { get; }
     public Location ReferencingLocation { get; }
@@ -39,4 +44,5 @@ public class MissingConnectedLocationReference
         LocationId = locationId;
         ReferencingLocation = referencingLocation;
     }
+}
 }

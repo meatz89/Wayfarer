@@ -188,7 +188,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5123\" timeout 30 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5125\" dotnet run --no-build)",
       "Bash(./fix-types.sh)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5125\" timeout 30 dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5125\" timeout 30 dotnet run --no-build)",
+      "WebSearch"
     ],
     "deny": []
   }

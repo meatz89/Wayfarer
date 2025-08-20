@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
 
 /// <summary>
 /// Provides fallback content when referenced entities are missing.
 /// This ensures the game can run even with content validation errors,
 /// allowing developers to test functionality while fixing content issues.
 /// </summary>
-public class ContentFallbackService
+namespace Wayfarer.Content
+{
+    public class ContentFallbackService
 {
     private readonly Dictionary<string, NPC> _fallbackNPCs = new();
     private readonly Dictionary<string, Location> _fallbackLocations = new();
@@ -102,32 +106,13 @@ public class ContentFallbackService
     /// Call this after initial content loading to ensure all references are resolvable.
     /// </summary>
     public ContentFallbackReport ValidateAndPatchContent(
-        Dictionary<string, ConversationDefinition> conversations,
         List<DeliveryObligation> letters,
         List<RouteOption> routes)
     {
         _fallbackLog.Clear();
 
-        // Validate conversation NPC references
-        foreach (ConversationDefinition conversation in conversations.Values)
-        {
-            if (!string.IsNullOrEmpty(conversation.NpcId))
-            {
-                GetOrCreateFallbackNPC(conversation.NpcId);
-            }
-
-            // Check NPC references in effects
-            if (conversation.Nodes != null)
-            {
-                foreach (ConversationNode node in conversation.Nodes.Values)
-                {
-                    if (node.Effects?.AddToken?.NpcId != null)
-                    {
-                        GetOrCreateFallbackNPC(node.Effects.AddToken.NpcId);
-                    }
-                }
-            }
-        }
+        // Conversations now handled by new card-based system
+        // No validation needed for old conversation definitions
 
         // Validate letter sender/recipient references
         foreach (DeliveryObligation letter in letters)
@@ -239,4 +224,4 @@ public class ContentFallbackReport
     public Dictionary<ContentType, int> FallbacksByType { get; set; }
     public List<ContentFallbackEntry> Details { get; set; }
     public bool HasFallbacks { get; set; }
-}
+}}

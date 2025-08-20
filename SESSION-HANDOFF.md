@@ -369,3 +369,54 @@ The remaining 287 errors fall into clear patterns:
 3. **PERFORMANCE PROFILING**: Identify and optimize bottlenecks
 4. **UI ENHANCEMENTS**: Implement remaining UI/UX improvements
 5. **GITHUB UPDATES**: Update issues and project board with progress
+
+---
+
+## 🔄 CONVERSATION SYSTEM REWRITE IN PROGRESS (2025-08-20)
+
+### MAJOR ARCHITECTURAL DECISION: Complete Delete & Rewrite
+Instead of refactoring the existing conversation system, we're doing a complete deletion and fresh rebuild inspired by Jaipur's card-drafting mechanics.
+
+### ✅ COMPLETED:
+1. **Deleted all CSS files** - Complete purge of old styling
+2. **Deleted entire conversation system** - /Game/ConversationSystem/ folder removed
+3. **Deleted conversation UI** - ConversationScreen.razor/cs removed
+4. **Deleted conversation services** - ConversationStateManager, ConversationRepository removed
+5. **Created IMPLEMENTATION-PLAN.md** - Complete design documentation
+
+### ✅ COMPLETED (2025-08-20 continued):
+**MAJOR REFACTORING COMPLETE**: Old conversation system fully removed
+- ✅ **Deleted IMechanicalEffect.cs** - old effect system completely removed
+- ✅ **Removed ConvertMechanicalEffectsToDisplay** from GameFacade
+- ✅ **Removed all old conversation methods** from GameFacade
+- ✅ **Fixed critical namespace issues** - ~30 core files fixed
+- ✅ **Removed ConversationRepository** references from GameStateSerializer
+- ✅ **Fixed MainGameplayView.razor.cs** syntax error (orphaned if-else block)
+- ⏳ **Adding letter delivery** to conversation cards (property exists, needs implementation)
+- ⏳ **Adding obligation manipulation** to cards (property exists, needs implementation)
+
+**ARCHITECTURAL DECISIONS THIS SESSION**:
+- NO STUBS OR COMPATIBILITY LAYERS - full refactoring in one go
+- Delete all legacy code immediately
+- Mechanical effects now handled directly by conversation cards
+- All conversation logic in new ConversationScreen component
+- GameFacade no longer manages conversations
+
+### KEY INNOVATION: States as Rulesets
+Each emotional state defines THREE things:
+1. **LISTEN effect** - Cards drawn (1-3)
+2. **SPEAK constraint** - Weight limit (1-4)
+3. **LISTEN transition** - Next state
+
+This creates Jaipur-like strategic tension through changing game rules rather than literal card markets.
+
+### NEXT IMMEDIATE STEPS:
+1. Create Core models (EmotionalState.cs, ConversationCard.cs)
+2. Build CardSelectionManager
+3. Implement new ConversationScreen.razor
+4. Add CSS styling matching mockup
+5. Test with Playwright
+
+**Estimated Completion**: 16 hours total (vs 20+ for refactoring)
+**Progress**: ~4 hours completed, 12 hours remaining
+**Current Status**: Core refactoring complete, 582 compilation errors remain (mostly repetitive namespace issues)

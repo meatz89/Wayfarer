@@ -3,833 +3,432 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.Game.ConversationSystem.Core;
+using Wayfarer.Game.ConversationSystem.Managers;
+using Wayfarer.Game.ConversationSystem.Models;
 using Wayfarer.GameState;
-using Wayfarer.GameState.Interactions;
-using Wayfarer.ViewModels;
+using Wayfarer.Services;
 
-public class ConversationScreenBase : ComponentBase
+namespace Wayfarer.Pages
 {
-    [Inject] protected GameFacade GameFacade { get; set; }
-    [Inject] protected NavigationManager Navigation { get; set; }
+    public enum ActionType { None, Listen, Speak }
 
-    [Parameter] public string NpcId { get; set; }
-    [Parameter] public Action OnConversationEnd { get; set; }
-    [Parameter] public EventCallback<CurrentViews> OnNavigate { get; set; }
-
-    protected ConversationViewModel Model { get; set; }
-    protected List<ConversationChoice> Choices { get; set; }
-    protected int CurrentPatience { get; set; }
-    protected int MaxPatience { get; set; }
-    protected int CurrentComfort { get; set; }
-    protected Dictionary<ConnectionType, int> NpcTokens { get; set; }
-    protected ConversationChoice DefaultChoice => GetDefaultChoice();
-
-    // Transparent mechanics properties
-    protected NPCEmotionalState? CurrentEmotionalState { get; set; }
-    protected StakeType? CurrentStakes { get; set; }
-    protected TimeSpan? TimeToDeadline { get; set; }
-
-    protected override async Task OnInitializedAsync()
+    public class ConversationScreenBase : ComponentBase
     {
-        await LoadConversation();
-        RefreshAllState(); // Use single state refresh pattern
-    }
+        [Parameter] public string NpcId { get; set; }
 
-    protected async Task LoadConversation()
-    {
-        try
+        [Inject] protected ConversationManager ConversationManager { get; set; }
+        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected ITimeManager TimeManager { get; set; }
+        [Inject] protected NPCRelationshipTracker RelationshipTracker { get; set; }
+        [Inject] protected NavigationManager Navigation { get; set; }
+
+        protected ConversationSession Session { get; set; }
+        protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
+        protected ActionType SelectedAction { get; set; } = ActionType.None;
+        protected string CurrentNarrative { get; set; } = "";
+        protected string NPCDialogue { get; set; } = "";
+        protected CardPlayResult LastResult { get; set; }
+
+        protected override async Task OnInitializedAsync()
         {
-            // First try to get the current pending conversation
-            Model = GameFacade.GetCurrentConversation();
-
-            // If no pending conversation, start a new one
-            if (Model == null && !string.IsNullOrEmpty(NpcId))
+            try
             {
-                Console.WriteLine($"[ConversationScreen] No pending conversation found, starting new conversation with NPC: {NpcId}");
-                Model = await GameFacade.StartConversationAsync(NpcId);
-            }
-
-            if (Model == null)
-            {
-                Console.WriteLine($"[ConversationScreen] ERROR: Could not load conversation model");
-            }
-            else
-            {
-                Console.WriteLine($"[ConversationScreen] Loaded conversation with NPC: {Model.NpcId}, Text: {Model.CurrentText?.Substring(0, Math.Min(50, Model.CurrentText?.Length ?? 0))}...");
-                await GenerateChoicesAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading conversation: {ex.Message}");
-        }
-    }
-
-    protected void RefreshConversationState()
-    {
-        // Get NPC patience and comfort for conversation UI display from GameFacade
-        ConversationManager conversationManager = GameFacade.GetCurrentConversationManager();
-        ConversationState? conversationState = conversationManager?.State;
-        
-        Console.WriteLine($"[ConversationScreen.RefreshConversationState] ConversationManager exists: {conversationManager != null}");
-        Console.WriteLine($"[ConversationScreen.RefreshConversationState] ConversationState exists: {conversationState != null}");
-        
-        if (conversationState != null)
-        {
-            // Map FocusPoints to Patience for UI display (these represent NPC patience in conversation)
-            CurrentPatience = conversationState.FocusPoints;
-            MaxPatience = conversationState.MaxFocusPoints;
-            // Use actual comfort tracking from conversation state
-            CurrentComfort = conversationState.TotalComfort;
-            
-            Console.WriteLine($"[ConversationScreen.RefreshConversationState] UPDATED UI STATE - Patience: {CurrentPatience}/{MaxPatience}, Comfort: {CurrentComfort}");
-            Console.WriteLine($"[ConversationScreen.RefreshConversationState] Source values - FocusPoints: {conversationState.FocusPoints}, MaxFocusPoints: {conversationState.MaxFocusPoints}, TotalComfort: {conversationState.TotalComfort}");
-        }
-        else
-        {
-            // Default values if conversation state not available
-            CurrentPatience = 3;
-            MaxPatience = 3;
-            CurrentComfort = 0;
-            Console.WriteLine($"[ConversationScreen.RefreshConversationState] WARNING: No conversation state found, using defaults - Patience: {CurrentPatience}/{MaxPatience}, Comfort: {CurrentComfort}");
-        }
-    }
-
-    protected async Task GenerateChoicesAsync()
-    {
-        // TEMPORARY: Force fresh choice generation from NPCDeck for testing categorical card coloring
-        Choices = await GenerateCardBasedChoicesAsync();
-        Console.WriteLine($"[ConversationScreen] TESTING: Generated {Choices.Count} fresh choices from deck");
-        
-        // OLD CODE (commented for testing):
-        // Get choices from the current conversation state (filtered by previous selections)
-        // ConversationManager? currentConversation = GameFacade.GetCurrentConversationManager();
-        // if (currentConversation?.Choices != null && currentConversation.Choices.Any())
-        // {
-        //     // Use the filtered choices from conversation state
-        //     Choices = currentConversation.Choices.Where(c => c.IsAvailable).ToList();
-        //     Console.WriteLine($"[ConversationScreen] Using {Choices.Count} filtered choices from conversation state");
-        // }
-        // else
-        // {
-        //     // Fall back to generating fresh choices if conversation state has none
-        //     Choices = await GenerateCardBasedChoicesAsync();
-        //     Console.WriteLine($"[ConversationScreen] Generated {Choices.Count} fresh choices from deck");
-        // }
-    }
-
-    protected async Task HandleChoice(ConversationChoice choice)
-    {
-        await SelectChoice(choice.ChoiceID);
-        // SelectChoice handles ALL state updates - no redundant calls needed
-    }
-
-    protected async Task SelectChoice(string choiceId)
-    {
-        try
-        {
-            Console.WriteLine($"[ConversationScreen] SelectChoice called with: {choiceId}");
-
-            // Process the choice through GameFacade
-            ConversationViewModel updatedModel = await GameFacade.ProcessConversationChoice(choiceId);
-
-            if (updatedModel != null)
-            {
-                Model = updatedModel;
-                await GenerateChoicesAsync();
-                RefreshAllState(); // Single atomic state refresh
-                StateHasChanged(); // Single UI update
-                Console.WriteLine($"[ConversationScreen] Conversation updated after choice");
-            }
-            else
-            {
-                Console.WriteLine($"[ConversationScreen] Conversation ended after choice");
-                // Notify parent that conversation has ended
-                OnConversationEnd?.Invoke();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error selecting choice: {ex.Message}");
-        }
-    }
-
-    protected ConversationChoice GetDefaultChoice()
-    {
-        return new ConversationChoice
-        {
-            ChoiceID = "default",
-            NarrativeText = "I understand. I'll see what I can do.",
-            PatienceCost = 0,
-            IsAvailable = true,
-            MechanicalDescription = "→ Maintains current state",
-            MechanicalEffects = new List<IMechanicalEffect>()
-        };
-    }
-
-    /// <summary>
-    /// Get success probability display for a choice
-    /// </summary>
-    protected string GetSuccessProbabilityDisplay(ConversationChoice choice)
-    {
-        try
-        {
-            Console.WriteLine($"[ConversationScreen.GetSuccessProbabilityDisplay] Called for choice: {choice.NarrativeText}, PatienceCost: {choice.PatienceCost}");
-            Console.WriteLine($"[ConversationScreen.GetSuccessProbabilityDisplay] CurrentPatience: {CurrentPatience}");
-            
-            // Use the same calculator as the backend
-            var outcomeCalculator = new Wayfarer.Game.ConversationSystem.ConversationOutcomeCalculator();
-            
-            // Get current conversation state
-            ConversationManager? currentConversation = GameFacade.GetCurrentConversationManager();
-            if (currentConversation?.Context?.TargetNPC == null)
-            {
-                Console.WriteLine($"[ConversationScreen.GetSuccessProbabilityDisplay] No conversation context - returning empty");
-                return ""; // No probability display if no conversation
-            }
+                // Get any observation cards from GameFacade
+                var observationCards = GetObservationCards();
                 
-            NPC npc = currentConversation.Context.TargetNPC;
-            Player player = GameFacade.GetPlayer();
-            int currentPatience = CurrentPatience;
-
-            Console.WriteLine($"[ConversationScreen.GetSuccessProbabilityDisplay] About to call CalculateProbabilities with patience: {currentPatience}");
-
-            // Calculate probabilities
-            var probabilities = outcomeCalculator.CalculateProbabilities(choice, npc, player, currentPatience);
-            
-            Console.WriteLine($"[ConversationScreen.GetSuccessProbabilityDisplay] Got result: {probabilities.SuccessChance}% Success");
-            
-            // Return exact percentage for transparent mechanics
-            return $"{probabilities.SuccessChance}% Success";
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[ConversationScreen.GetSuccessProbabilityDisplay] Exception: {ex.Message}");
-            return "Unknown difficulty";
-        }
-    }
-
-    /// <summary>
-    /// Get outcome preview for Success/Neutral/Failure with individual effect coloring
-    /// </summary>
-    protected string GetOutcomePreview(ConversationChoice choice, Wayfarer.Game.ConversationSystem.ConversationOutcome outcome)
-    {
-        try
-        {
-            var outcomeCalculator = new Wayfarer.Game.ConversationSystem.ConversationOutcomeCalculator();
-            ConversationManager? currentConversation = GameFacade.GetCurrentConversationManager();
-            
-            if (currentConversation?.Context?.TargetNPC == null)
-                return "";
+                // Start the conversation
+                Session = ConversationManager.StartConversation(NpcId, observationCards);
                 
-            NPC npc = currentConversation.Context.TargetNPC;
-            Player player = GameFacade.GetPlayer();
-            
-            // Calculate what would happen with this outcome
-            var result = outcomeCalculator.CalculateResult(choice, outcome, npc, player);
-            
-            List<string> effects = new List<string>();
-            
-            // Comfort effects with individual coloring
-            if (result.ComfortGain > 0)
-                effects.Add($"<span class=\"effect-positive\">+{result.ComfortGain} comfort</span>");
-            else if (result.ComfortGain < 0)
-                effects.Add($"<span class=\"effect-negative\">{result.ComfortGain} comfort</span>");
-            
-            // Token effects with individual coloring
-            if (result.TokenChanges?.Any() == true)
+                // Generate initial narrative
+                UpdateNarrative();
+            }
+            catch (Exception ex)
             {
-                foreach (var tokenChange in result.TokenChanges)
+                Console.WriteLine($"Failed to start conversation: {ex.Message}");
+                Navigation.NavigateTo("/location");
+            }
+        }
+
+        protected void SelectAction(ActionType action)
+        {
+            SelectedAction = action;
+            if (action == ActionType.Listen)
+            {
+                SelectedCards.Clear();
+            }
+            StateHasChanged();
+        }
+
+        protected void ToggleCard(ConversationCard card)
+        {
+            if (SelectedAction != ActionType.Speak) return;
+
+            if (SelectedCards.Contains(card))
+            {
+                SelectedCards.Remove(card);
+            }
+            else if (CanSelectCard(card))
+            {
+                // Check if we can add this card
+                var tempSelection = new HashSet<ConversationCard>(SelectedCards) { card };
+                if (ConversationManager.CanSelectCard(card, SelectedCards))
                 {
-                    string tokenName = tokenChange.Key.ToString();
-                    string changeStr = tokenChange.Value > 0 ? $"+{tokenChange.Value}" : tokenChange.Value.ToString();
-                    string effectClass = tokenChange.Value > 0 ? "effect-positive" : "effect-negative";
-                    effects.Add($"<span class=\"{effectClass}\">{changeStr} {tokenName}</span>");
+                    SelectedCards.Add(card);
                 }
             }
-            
-            if (effects.Any())
-                return string.Join(" • ", effects);
-            else
-                return "<span class=\"effect-neutral\">No change</span>";
+            StateHasChanged();
         }
-        catch (Exception)
-        {
-            return "<span class=\"effect-neutral\">Unknown effect</span>";
-        }
-    }
 
-    /// <summary>
-    /// Get token relationship bonds display
-    /// </summary>
-    protected string GetTokenBondsDisplay()
-    {
-        if (NpcTokens?.Any() != true) return "";
-        
-        List<string> bonds = new List<string>();
-        
-        foreach (var tokenType in Enum.GetValues<ConnectionType>())
+        protected bool CanSelectCard(ConversationCard card)
         {
-            if (NpcTokens.TryGetValue(tokenType, out int value) && value != 0)
+            if (SelectedAction != ActionType.Speak) return false;
+            return ConversationManager.CanSelectCard(card, SelectedCards);
+        }
+
+        protected async Task ExecuteAction()
+        {
+            if (SelectedAction == ActionType.Listen)
             {
-                string icon = GetTokenIcon(tokenType);
-                string dots = GetTokenDots(value);
-                bonds.Add($"{icon} {dots}");
+                ConversationManager.ExecuteListen();
+                SelectedCards.Clear();
+                UpdateNarrative();
             }
-        }
-        
-        return string.Join(" ", bonds);
-    }
-    
-    protected string GetTokenIcon(ConnectionType tokenType)
-    {
-        return tokenType switch
-        {
-            ConnectionType.Trust => "💝",
-            ConnectionType.Commerce => "🤝", 
-            ConnectionType.Status => "👑",
-            ConnectionType.Shadow => "🌑",
-            _ => "❓"
-        };
-    }
-    
-    protected string GetTokenDots(int value)
-    {
-        int absValue = Math.Abs(value);
-        int maxDots = 5; // Show up to 5 dots
-        string dot = value >= 0 ? "●" : "●"; // Use same dot, color with CSS
-        string emptyDot = "○";
-        
-        string dots = "";
-        for (int i = 0; i < Math.Min(absValue, maxDots); i++)
-        {
-            dots += dot;
-        }
-        for (int i = absValue; i < maxDots; i++)
-        {
-            dots += emptyDot;
-        }
-        
-        return dots;
-    }
-    
-    /// <summary>
-    /// Handle peripheral environmental investigation - costs attention
-    /// </summary>
-    protected async Task InvestigateEnvironment(string hint)
-    {
-        try
-        {
-            // This would spend attention to investigate environmental details
-            // For now, just log that we're investigating
-            Console.WriteLine($"[ConversationScreen] Investigating environmental hint: {hint}");
-            
-            // TODO: Implement attention spending and reveal environmental details
-            // This might reveal new conversation options, location actions, or story information
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error investigating environment: {ex.Message}");
-        }
-    }
-
-    protected async Task HandleExitConversation()
-    {
-        try
-        {
-            Console.WriteLine($"[ConversationScreen] HandleExitConversation - manually exiting conversation");
-
-            // End the conversation through GameFacade
-            await GameFacade.EndConversationAsync();
-
-            // Notify parent that conversation has ended
-            OnConversationEnd?.Invoke();
-
-            // Also trigger navigation if we have the callback
-            if (OnNavigate.HasDelegate)
+            else if (SelectedAction == ActionType.Speak && SelectedCards.Any())
             {
-                await OnNavigate.InvokeAsync(CurrentViews.LocationScreen);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error exiting conversation: {ex.Message}");
-        }
-    }
-
-    protected void LoadTokenData()
-    {
-        if (!string.IsNullOrEmpty(NpcId))
-        {
-            NPCTokenBalance tokenBalance = GameFacade.GetTokensWithNPC(NpcId);
-            NpcTokens = new Dictionary<ConnectionType, int>();
-
-            // Convert NPCTokenBalance to Dictionary
-            if (tokenBalance != null && tokenBalance.Balances != null)
-            {
-                foreach (TokenBalance balance in tokenBalance.Balances)
+                LastResult = ConversationManager.ExecuteSpeak(SelectedCards);
+                SelectedCards.Clear();
+                UpdateNarrative();
+                
+                // Check for letter generation
+                if (ConversationManager.TryGenerateLetter())
                 {
-                    NpcTokens[balance.TokenType] = balance.Amount;
+                    NPCDialogue += " I have something I need delivered...";
                 }
             }
 
-            // Ensure all token types are represented
-            foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+            SelectedAction = ActionType.None;
+            
+            // Check if conversation ended
+            if (!ConversationManager.IsConversationActive)
             {
-                if (!NpcTokens.ContainsKey(tokenType))
+                var outcome = Session.CheckThresholds();
+                // Show outcome and navigate back
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/location");
+            }
+            
+            StateHasChanged();
+        }
+
+        protected bool CanExecute()
+        {
+            if (SelectedAction == ActionType.Listen)
+                return true;
+            
+            if (SelectedAction == ActionType.Speak)
+            {
+                var rules = ConversationRules.States[Session.CurrentState];
+                if (rules.RequiredCards.HasValue)
+                    return SelectedCards.Count >= rules.RequiredCards.Value;
+                return SelectedCards.Any();
+            }
+            
+            return false;
+        }
+
+        // UI Helper Methods
+        protected string GetCurrentTimeDisplay()
+        {
+            return TimeManager.GetCurrentTimeDisplay();
+        }
+
+        protected string GetUrgentDeadline()
+        {
+            var urgentObligation = GameFacade.GetLetterQueue()
+                .FirstOrDefault(o => o.MinutesUntilDeadline < 360);
+            
+            if (urgentObligation != null)
+            {
+                return $"{urgentObligation.SenderName}'s letter: {urgentObligation.GetDeadlineDescription()} remain";
+            }
+            return null;
+        }
+
+        protected List<string> GetLocationPath()
+        {
+            var location = GameFacade.GetCurrentLocation();
+            return new List<string> { location.District, location.Name };
+        }
+
+        protected string GetCurrentSpot()
+        {
+            var spot = GameFacade.GetCurrentSpot();
+            return spot?.Name ?? "Somewhere";
+        }
+
+        protected string GetStateClass()
+        {
+            return Session.CurrentState.ToString().ToLower();
+        }
+
+        protected string GetStateDescription()
+        {
+            var state = Session.CurrentState;
+            var description = state.ToString();
+            
+            if (state == EmotionalState.DESPERATE)
+            {
+                var urgentLetter = GameFacade.GetLetterQueue()
+                    .FirstOrDefault(o => o.SenderId == Session.NPC.ID);
+                if (urgentLetter != null)
                 {
-                    NpcTokens[tokenType] = 0;
+                    description += $" • Letter deadline in {urgentLetter.GetDeadlineDescription()}!";
                 }
             }
+            
+            return description;
         }
-    }
 
-    protected string GetCurrentConversationContext()
-    {
-        // Determine context from NPC emotional state - no string matching
-        if (CurrentEmotionalState.HasValue)
+        protected int GetTokenCount(ConnectionType type)
         {
-            return CurrentEmotionalState.Value switch
+            var relationship = RelationshipTracker.GetRelationship(Session.NPC.ID);
+            return type switch
             {
-                NPCEmotionalState.DESPERATE => "help",      // Desperate NPCs need assistance
-                NPCEmotionalState.ANXIOUS => "help",        // Anxious NPCs need comfort
-                NPCEmotionalState.CALCULATING => "negotiate", // Calculating NPCs prefer deals
-                NPCEmotionalState.HOSTILE => "negotiate",   // Hostile NPCs require negotiation
-                NPCEmotionalState.WITHDRAWN => "investigate", // Withdrawn NPCs need probing
-                _ => "help"
+                ConnectionType.Trust => relationship.Trust,
+                ConnectionType.Commerce => relationship.Commerce,
+                ConnectionType.Status => relationship.Status,
+                ConnectionType.Shadow => relationship.Shadow,
+                _ => 0
             };
         }
 
-        // Fallback: Default context based on categorical mechanics
-        return "help"; // Default context when no emotional state available
-    }
-
-    protected string GetNpcRole()
-    {
-        // Determine NPC role from their ID or other context
-        // This would ideally come from NPC data, but we can infer from name/ID
-        if (string.IsNullOrEmpty(NpcId)) return null;
-
-        string lowerNpcId = NpcId.ToLower();
-
-        if (lowerNpcId.Contains("merchant") || lowerNpcId.Contains("trader") || lowerNpcId.Contains("shop"))
-            return "merchant";
-        if (lowerNpcId.Contains("noble") || lowerNpcId.Contains("lord") || lowerNpcId.Contains("lady"))
-            return "noble";
-        if (lowerNpcId.Contains("guard") || lowerNpcId.Contains("captain") || lowerNpcId.Contains("soldier"))
-            return "guard";
-        if (lowerNpcId.Contains("friend") || lowerNpcId == "elena" || lowerNpcId == "tam")
-            return "friend";
-        if (lowerNpcId.Contains("shadow") || lowerNpcId.Contains("informant"))
-            return "informant";
-
-        // Check NPC name if available
-        if (Model?.NpcName != null)
+        protected string GetTokenEffect(ConnectionType type)
         {
-            string lowerName = Model.NpcName.ToLower();
-            if (lowerName.Contains("merchant") || lowerName.Contains("trader"))
-                return "merchant";
-            if (lowerName.Contains("lord") || lowerName.Contains("lady"))
-                return "noble";
-            if (lowerName == "elena" || lowerName == "tam")
-                return "friend";
-        }
-
-        return null; // Unknown role
-    }
-
-
-    /// <summary>
-    /// SINGLE POINT state refresh - eliminates race conditions
-    /// All state updates happen atomically in correct order
-    /// </summary>
-    protected void RefreshAllState()
-    {
-        LoadTokenData();
-        RefreshConversationState();
-        LoadEmotionalStateData();
-        Console.WriteLine($"[ConversationScreen] State refreshed - Patience: {CurrentPatience}/{MaxPatience}, Comfort: {CurrentComfort}");
-    }
-
-    protected void LoadEmotionalStateData()
-    {
-        if (Model == null) return;
-
-        // Use the emotional state from the ViewModel (calculated by NPCStateResolver)
-        if (Model.EmotionalState.HasValue)
-        {
-            CurrentEmotionalState = Model.EmotionalState.Value;
-            CurrentStakes = Model.CurrentStakes;
-
-            if (Model.HoursToDeadline.HasValue)
+            var count = GetTokenCount(type);
+            return type switch
             {
-                TimeToDeadline = TimeSpan.FromHours(Model.HoursToDeadline.Value);
-            }
-        }
-    }
-
-
-    private StakeType DetermineStakesFromLetter(LetterViewModel letter)
-    {
-        // Infer stakes from letter properties
-        // Since we don't have subject/content, use what we have
-
-        // Check deadline urgency
-        if (letter.DeadlineInHours < 4)
-            return StakeType.SAFETY; // Very urgent = safety at stake
-
-        // Check payment amount
-        if (letter.Payment > 50)
-            return StakeType.WEALTH; // High payment = financial stakes
-
-        // Check if special letter
-        if (letter.IsSpecial)
-            return StakeType.SECRET; // Special letters often carry secrets
-
-        // Default to reputation
-        return StakeType.REPUTATION;
-    }
-
-    protected string GetStakesDescription()
-    {
-        if (CurrentStakes == null) return "No urgent letter";
-
-        // Get the letter from the queue if it exists
-        LetterQueueViewModel queue = GameFacade.GetLetterQueue();
-        LetterViewModel? npcDeliveryObligation = queue?.QueueSlots?.FirstOrDefault(s => s.DeliveryObligation?.SenderName == NpcId)?.DeliveryObligation;
-        string subject = npcDeliveryObligation?.SenderName ?? "matter";
-
-        return CurrentStakes switch
-        {
-            StakeType.REPUTATION => $"Reputation at stake ({subject})",
-            StakeType.WEALTH => $"Financial matter ({subject})",
-            StakeType.SAFETY => $"Safety concerns ({subject})",
-            StakeType.SECRET => $"Sensitive information ({subject})",
-            _ => "Unknown stakes"
-        };
-    }
-
-    protected TimeSpan? GetTimeRemaining()
-    {
-        return TimeToDeadline;
-    }
-
-    /// <summary>
-    /// Generate enhanced conversation choices using the card deck system
-    /// This integrates with the backend ConversationChoiceGenerator
-    /// </summary>
-    protected async Task<List<ConversationChoice>> GenerateCardBasedChoicesAsync()
-    {
-        try
-        {
-            // HIGHLANDER PRINCIPLE: Model.NpcId is the ONLY source of truth
-            if (string.IsNullOrEmpty(Model?.NpcId))
-            {
-                throw new InvalidOperationException("Cannot generate conversation choices: Model.NpcId is required");
-            }
-
-            // Card/deck system removed - return basic conversation choices
-            return new List<ConversationChoice>
-            {
-                new ConversationChoice
-                {
-                    ChoiceType = ConversationChoiceType.Default,
-                    NarrativeText = "I should be going.",
-                    PatienceCost = 0,
-                    IsAvailable = true,
-                    IsAffordable = true
-                }
+                ConnectionType.Trust => count >= 2 ? $"+{count/2} turns" : "no bonus",
+                ConnectionType.Commerce => count > 0 ? $"+{count} coin mult" : "no bonus",
+                ConnectionType.Status => count > 0 ? $"+{count*3}% success" : "no bonus",
+                ConnectionType.Shadow => count >= 3 ? "protects cards" : "no bonus",
+                _ => "no bonus"
             };
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Critical error generating card-based choices: {ex.Message}");
-            throw; // Let the exception bubble up - no fallbacks allowed
-        }
-    }
 
-
-    // UI Helper methods for conversation choices
-    protected string GetCostDisplay(int cost)
-    {
-        // Return just the number - CSS will handle beautiful diamond icons
-        return cost.ToString();
-    }
-
-    protected List<string> ParseMechanicalDescription(string description)
-    {
-        // Split by pipe (|) for multiple effects and add relationship impact previews
-        return description.Split('|', StringSplitOptions.RemoveEmptyEntries)
-                         .Select(s => s.Trim())
-                         .Select(effect => AddRelationshipImpactPreview(effect))
-                         .ToList();
-    }
-
-    /// <summary>
-    /// Add relationship impact preview to mechanical effects
-    /// Frontend UI translates mechanical effects to human relationship context
-    /// </summary>
-    protected string AddRelationshipImpactPreview(string mechanicalEffect)
-    {
-        string lower = mechanicalEffect.ToLowerInvariant();
-
-        // Add human relationship context to token effects while preserving mechanical display
-        if (lower.Contains("trust") && lower.Contains("+"))
+        protected int GetComfortTarget()
         {
-            return $"{mechanicalEffect} <span class='relationship-preview'>({Model?.NpcName} will remember this kindness)</span>";
-        }
-        else if (lower.Contains("trust") && lower.Contains("-"))
-        {
-            return $"{mechanicalEffect} <span class='relationship-preview'>({Model?.NpcName} will feel betrayed)</span>";
-        }
-        else if (lower.Contains("commerce") && lower.Contains("+"))
-        {
-            return $"{mechanicalEffect} <span class='relationship-preview'>(Improved business relationship)</span>";
-        }
-        else if (lower.Contains("commerce") && lower.Contains("-"))
-        {
-            return $"{mechanicalEffect} <span class='relationship-preview'>(You owe {Model?.NpcName} for this favor)</span>";
-        }
-        else if (lower.Contains("status") && lower.Contains("+"))
-        {
-            return $"{mechanicalEffect} <span class='relationship-preview'>(Enhanced social standing)</span>";
-        }
-        else if (lower.Contains("status") && lower.Contains("-"))
-        {
-            return $"{mechanicalEffect} <span class='relationship-preview'>(Loss of respect and standing)</span>";
-        }
-        else if (lower.Contains("shadow") && lower.Contains("+"))
-        {
-            return $"{mechanicalEffect} <span class='relationship-preview'>(Deeper into secretive circles)</span>";
-        }
-        else if (lower.Contains("shadow") && lower.Contains("-"))
-        {
-            return $"{mechanicalEffect} <span class='relationship-preview'>(Information networks distance themselves)</span>";
-        }
-        else if (lower.Contains("binding obligation"))
-        {
-            return $"{mechanicalEffect} <span class='relationship-preview'>(Creates ongoing commitment)</span>";
+            if (Session.CurrentComfort >= 15) return 20;
+            if (Session.CurrentComfort >= 10) return 15;
+            if (Session.CurrentComfort >= 5) return 10;
+            return 5;
         }
 
-        // Return original effect if no relationship context applies
-        return mechanicalEffect;
-    }
-
-    protected string GetEffectIcon(string description)
-    {
-        // Use beautiful CSS-based icons instead of ugly Unicode symbols
-        string lowerDesc = description.ToLowerInvariant();
-
-        // Positive outcomes - return CSS class for green plus icon
-        if (lowerDesc.Contains("gain") || lowerDesc.Contains("unlock") ||
-            lowerDesc.Contains("open") || lowerDesc.Contains("+") ||
-            lowerDesc.Contains("comfort") || lowerDesc.Contains("trust"))
-            return "icon icon-positive";
-
-        // Negative/warning outcomes - return CSS class for red minus icon
-        if (lowerDesc.Contains("lose") || lowerDesc.Contains("burn") ||
-            lowerDesc.Contains("cost") || lowerDesc.Contains("obligation") ||
-            lowerDesc.Contains("binding") || lowerDesc.Contains("-"))
-            return "icon icon-negative";
-
-        // Arrow/progression - return CSS class for arrow
-        if (lowerDesc.Contains("maintain") || lowerDesc.Contains("negotiation"))
-            return "icon icon-arrow";
-
-        // Informational/neutral - return CSS class for blue info icon
-        return "icon icon-neutral";
-    }
-
-    protected string GetMechanicClass(string preview)
-    {
-        // Style effects based on their type - matching mockup colors
-        string lowerPreview = preview.ToLowerInvariant();
-
-        // Positive effects (green)
-        if (preview.Contains("✓") || lowerPreview.Contains("gain") ||
-            lowerPreview.Contains("opens") || lowerPreview.Contains("+") ||
-            lowerPreview.Contains("unlock"))
-            return "mechanic-positive";
-
-        // Negative effects (red)
-        if (preview.Contains("⚠") || lowerPreview.Contains("lose") ||
-            lowerPreview.Contains("burn") || lowerPreview.Contains("cost") ||
-            lowerPreview.Contains("-") || lowerPreview.Contains("obligation") ||
-            lowerPreview.Contains("binding"))
-            return "mechanic-negative";
-
-        // Informational effects (blue)
-        if (preview.Contains("ℹ") || preview.Contains("→") ||
-            lowerPreview.Contains("learn") || lowerPreview.Contains("maintain") ||
-            lowerPreview.Contains("time") || lowerPreview.Contains("minute") ||
-            lowerPreview.Contains("investigate") || lowerPreview.Contains("discover"))
-            return "mechanic-neutral";
-
-        return "mechanic-neutral";
-    }
-
-    protected string GetChoiceClass(ConversationChoice choice)
-    {
-        List<string> classes = new List<string> { "choice-option" };
-
-        if (!choice.IsAvailable || choice.PatienceCost > CurrentPatience)
+        protected int GetComfortPercent()
         {
-            classes.Add("locked");
+            var target = GetComfortTarget();
+            return Math.Min(100, (Session.CurrentComfort * 100) / target);
         }
 
-        return string.Join(" ", classes);
-    }
-
-    protected string GetPatienceOrbLabel(int index)
-    {
-        return index < CurrentPatience
-            ? $"Patience point {index + 1} available"
-            : $"Patience point {index + 1} spent";
-    }
-
-    protected string GetComfortClass()
-    {
-        ConversationManager conversationManager = GameFacade.GetCurrentConversationManager();
-        ConversationState? state = conversationManager?.State;
-
-        if (state == null) return "comfort-neutral";
-
-        // Use threshold-based classes for meaningful feedback
-        if (state.HasReachedPerfectThreshold())
-            return "comfort-perfect";
-        else if (state.HasReachedLetterThreshold())
-            return "comfort-letter-ready";
-        else if (state.HasReachedMaintainThreshold())
-            return "comfort-maintaining";
-        else if (CurrentComfort > 0)
-            return "comfort-building";
-        else if (CurrentComfort == 0)
-            return "comfort-neutral";
-        else
-            return "comfort-declining";
-    }
-
-    protected string GetComfortDescription()
-    {
-        ConversationManager conversationManager = GameFacade.GetCurrentConversationManager();
-        ConversationState? state = conversationManager?.State;
-
-        if (state == null) return "Unknown";
-
-        // Show threshold progress for meaningful feedback
-        if (state.HasReachedPerfectThreshold())
-            return $"Perfect! ({CurrentComfort})";
-        else if (state.HasReachedLetterThreshold())
-            return $"Trust Earned ({CurrentComfort})";
-        else if (state.HasReachedMaintainThreshold())
-            return $"Comfortable ({CurrentComfort})";
-        else if (CurrentComfort > 0)
-            return $"Building ({CurrentComfort})";
-        else if (CurrentComfort == 0)
-            return "Neutral (0)";
-        else
-            return $"Strained ({CurrentComfort})";
-    }
-
-    protected string GetComfortProgressHint()
-    {
-        ConversationManager conversationManager = GameFacade.GetCurrentConversationManager();
-        ConversationState? state = conversationManager?.State;
-
-        if (state == null) return "";
-
-        int maintainThreshold = (int)(state.StartingPatience * GameRules.COMFORT_MAINTAIN_THRESHOLD);
-        int letterThreshold = (int)(state.StartingPatience * GameRules.COMFORT_LETTER_THRESHOLD);
-        int perfectThreshold = (int)(state.StartingPatience * GameRules.COMFORT_PERFECT_THRESHOLD);
-
-        if (state.HasReachedPerfectThreshold())
-            return "Perfect conversation achieved!";
-        else if (state.HasReachedLetterThreshold())
-            return $"DeliveryObligation available! ({perfectThreshold - CurrentComfort} more for perfect)";
-        else if (state.HasReachedMaintainThreshold())
-            return $"Good relationship! ({letterThreshold - CurrentComfort} more for letter)";
-        else
-            return $"Need {maintainThreshold - CurrentComfort} more to maintain relationship";
-    }
-
-    protected double GetComfortProgressPercentage()
-    {
-        ConversationManager conversationManager = GameFacade.GetCurrentConversationManager();
-        ConversationState? state = conversationManager?.State;
-
-        if (state == null) return 0;
-
-        int perfectThreshold = (int)(state.StartingPatience * GameRules.COMFORT_PERFECT_THRESHOLD);
-        if (perfectThreshold == 0) return 0;
-
-        return Math.Min(100, (double)CurrentComfort / perfectThreshold * 100);
-    }
-
-    protected string GetComfortThresholdClass(string thresholdType)
-    {
-        ConversationManager conversationManager = GameFacade.GetCurrentConversationManager();
-        ConversationState? state = conversationManager?.State;
-
-        if (state == null) return "";
-
-        return thresholdType switch
+        protected string GetDepthName()
         {
-            "maintain" => state.HasReachedMaintainThreshold() ? "reached" : "",
-            "letter" => state.HasReachedLetterThreshold() ? "reached" : "",
-            "perfect" => state.HasReachedPerfectThreshold() ? "reached" : "",
-            _ => ""
-        };
-    }
+            return Session.CurrentDepth switch
+            {
+                0 => "(Surface)",
+                1 => "(Personal)",
+                2 => "(Intimate)",
+                3 => "(Soul-deep)",
+                _ => ""
+            };
+        }
 
-    /// <summary>
-    /// CATEGORICAL card coloring based on ConversationChoiceType
-    /// Each card type gets its appropriate color based on its categorical nature
-    /// </summary>
-    protected string GetChoiceColorClass(ConversationChoice choice)
-    {
-        // DEBUG: Log the actual ChoiceType values to understand what's happening
-        Console.WriteLine($"[ConversationScreen] Choice '{choice.NarrativeText}' has ChoiceType: {choice.ChoiceType}");
-        
-        string colorClass = choice.ChoiceType switch
+        protected int GetDrawCount()
         {
-            // Negative/destructive choice types - RED
-            ConversationChoiceType.DeclineLetterOffer => "negative-card",
-            ConversationChoiceType.PurgeLetter => "negative-card",
-            ConversationChoiceType.TravelForceThrough => "negative-card",
+            var rules = ConversationRules.States[Session.CurrentState];
+            return rules.CardsOnListen;
+        }
+
+        protected bool HasOpportunities()
+        {
+            return Session.HandCards.Any(c => c.Persistence == PersistenceType.Opportunity);
+        }
+
+        protected int GetCurrentWeight()
+        {
+            return SelectedCards.Sum(c => c.GetEffectiveWeight(Session.CurrentState));
+        }
+
+        protected int GetMaxWeight()
+        {
+            var rules = ConversationRules.States[Session.CurrentState];
+            return rules.MaxWeight;
+        }
+
+        protected bool IsOverWeight()
+        {
+            return GetCurrentWeight() > GetMaxWeight();
+        }
+
+        protected bool HasCrisisSelected()
+        {
+            return SelectedCards.Any(c => c.IsCrisis);
+        }
+
+        protected string GetCardClasses(ConversationCard card)
+        {
+            var classes = new List<string>();
             
-            // Positive/beneficial choice types - GREEN
-            ConversationChoiceType.AcceptLetterOffer => "positive-card",
-            ConversationChoiceType.KeepLetter => "positive-card",
-            ConversationChoiceType.Introduction => "positive-card",
-            ConversationChoiceType.TravelCautious => "positive-card",
+            classes.Add(card.Type.ToString().ToLower());
+            classes.Add(card.Persistence.ToString().ToLower());
             
-            // Risky/uncertain choice types - YELLOW
-            ConversationChoiceType.SkipAndDeliver => "risky-card",
-            ConversationChoiceType.TravelUseEquipment => "risky-card",
-            ConversationChoiceType.TravelTradeHelp => "risky-card",
-            ConversationChoiceType.TravelExchangeInfo => "risky-card",
+            if (card.IsCrisis) classes.Add("crisis");
+            if (card.IsStateCard) classes.Add("state-changer");
+            if (card.IsObservation) classes.Add("observation-card");
+            if (card.CanDeliverLetter) classes.Add("letter-delivery");
             
-            // DeliveryObligation request cards - YELLOW (risky with potential reward)
-            ConversationChoiceType.RequestTrustLetter => "risky-card",
-            ConversationChoiceType.RequestCommerceLetter => "risky-card",
-            ConversationChoiceType.RequestStatusLetter => "risky-card",
-            ConversationChoiceType.RequestShadowLetter => "risky-card",
+            return string.Join(" ", classes);
+        }
+
+        protected string GetStateChangeText(ConversationCard card)
+        {
+            if (!card.IsStateCard) return "";
             
-            // Special letter requests - GOLD (high value, rare opportunities)
-            ConversationChoiceType.IntroductionLetter => "special-card",
-            ConversationChoiceType.AccessPermit => "special-card",
+            if (card.SuccessState.HasValue)
+            {
+                return $"{Session.CurrentState} → {card.SuccessState.Value}";
+            }
+            return "State change";
+        }
+
+        protected int GetStatusTokens()
+        {
+            var relationship = RelationshipTracker.GetRelationship(Session.NPC.ID);
+            return relationship.Status;
+        }
+
+        protected string GetSuccessEffect(ConversationCard card)
+        {
+            if (card.IsStateCard && card.SuccessState.HasValue)
+            {
+                return $"{Session.CurrentState} → {card.SuccessState.Value}";
+            }
+            if (card.CanDeliverLetter)
+            {
+                return $"+{card.BaseComfort} comfort + deliver";
+            }
+            return $"+{card.BaseComfort} comfort";
+        }
+
+        protected string GetFailureEffect(ConversationCard card)
+        {
+            if (card.IsStateCard && card.FailureState.HasValue)
+            {
+                return $"{Session.CurrentState} → {card.FailureState.Value}";
+            }
+            return "+1 comfort";
+        }
+
+        protected string GetPlayButtonText()
+        {
+            if (SelectedAction == ActionType.None)
+                return "Select LISTEN or SPEAK";
             
-            // Discovery/neutral choice types - BLUE
-            ConversationChoiceType.DiscoverRoute => "discovery-card",
-            ConversationChoiceType.RespectQueueOrder => "neutral-card",
-            ConversationChoiceType.TravelSlowProgress => "neutral-card",
+            if (SelectedAction == ActionType.Listen)
+                return $"Listen to {Session.NPC.Name} (costs 1 turn)";
             
-            // Default - no coloring
-            ConversationChoiceType.Default => "",
-            _ => ""
-        };
-        
-        Console.WriteLine($"[ConversationScreen] Returning color class: '{colorClass}' for ChoiceType: {choice.ChoiceType}");
-        return colorClass;
+            if (SelectedAction == ActionType.Speak)
+            {
+                if (!SelectedCards.Any())
+                    return "Choose your response...";
+                
+                if (HasCrisisSelected())
+                    return "🔥 DESPERATE ACTION (costs 1 turn)";
+                
+                var manager = new CardSelectionManager(Session.CurrentState);
+                foreach (var card in SelectedCards)
+                {
+                    manager.ToggleCard(card);
+                }
+                
+                return manager.GetSelectionDescription() + " (costs 1 turn)";
+            }
+            
+            return "Select action";
+        }
+
+        protected string GetPlayInfo()
+        {
+            if (SelectedAction == ActionType.Listen)
+            {
+                var rules = ConversationRules.States[Session.CurrentState];
+                return $"Draw {rules.CardsOnListen} new thoughts, but fleeting opportunities pass";
+            }
+            
+            if (SelectedAction == ActionType.Speak && SelectedCards.Any())
+            {
+                var totalComfort = SelectedCards.Sum(c => c.BaseComfort);
+                var types = SelectedCards.Select(c => c.Type).Distinct();
+                
+                if (types.Count() == 1 && SelectedCards.Count > 1)
+                {
+                    var bonus = SelectedCards.Count switch
+                    {
+                        2 => 2,
+                        3 => 5,
+                        _ => 8
+                    };
+                    return $"Expected: {totalComfort} comfort +{bonus} set bonus! (if all succeed)";
+                }
+                
+                return $"Expected: {totalComfort} comfort (if all succeed)";
+            }
+            
+            return $"{Session.CurrentPatience} turns remaining • Each turn advances time";
+        }
+
+        protected bool ShowOpportunityWarning()
+        {
+            return SelectedAction == ActionType.Listen && HasOpportunities();
+        }
+
+        private List<ConversationCard> GetObservationCards()
+        {
+            // This would get observation cards from the game state
+            // For now, return empty list
+            return new List<ConversationCard>();
+        }
+
+        private void UpdateNarrative()
+        {
+            // Generate narrative based on current state
+            CurrentNarrative = Session.CurrentState switch
+            {
+                EmotionalState.DESPERATE => $"Time is running short. {Session.NPC.Name}'s desperation has made them vulnerable.",
+                EmotionalState.TENSE => $"The air is thick with tension. {Session.NPC.Name} seems on edge.",
+                EmotionalState.GUARDED => $"{Session.NPC.Name} watches you carefully, keeping their guard up.",
+                EmotionalState.OPEN => $"{Session.NPC.Name} seems receptive to what you have to say.",
+                EmotionalState.CONNECTED => $"You feel a deep connection with {Session.NPC.Name}.",
+                _ => $"The conversation continues with {Session.NPC.Name}."
+            };
+
+            // Generate NPC dialogue
+            NPCDialogue = GenerateNPCDialogue();
+        }
+
+        private string GenerateNPCDialogue()
+        {
+            // This would generate contextual dialogue based on state and recent actions
+            return Session.CurrentState switch
+            {
+                EmotionalState.DESPERATE => "Please, I need your help. Time is running out!",
+                EmotionalState.TENSE => "I... I'm not sure how to say this.",
+                EmotionalState.GUARDED => "What do you want?",
+                EmotionalState.OPEN => "I'm listening. What's on your mind?",
+                EmotionalState.CONNECTED => "I feel like I can trust you with anything.",
+                EmotionalState.EAGER => "Yes! Tell me more!",
+                EmotionalState.OVERWHELMED => "This is... a lot to process.",
+                _ => "..."
+            };
+        }
     }
 }

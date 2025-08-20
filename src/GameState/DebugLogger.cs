@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+namespace Wayfarer.GameState;
+
 /// <summary>
 /// Centralized debug logging service for tracking game state and flow
 /// </summary>
@@ -11,12 +13,10 @@ public class DebugLogger
     private readonly int _maxLogs = 1000;
     private bool _enabled = true;
     private readonly ITimeManager _timeManager;
-    private readonly ConversationStateManager _conversationStateManager;
 
-    public DebugLogger(ITimeManager timeManager, ConversationStateManager conversationStateManager)
+    public DebugLogger(ITimeManager timeManager)
     {
         _timeManager = timeManager;
-        _conversationStateManager = conversationStateManager;
     }
 
     public bool IsEnabled
@@ -196,15 +196,9 @@ public class DebugLogger
         report.Add($"  Hours Remaining: {_timeManager.HoursRemaining}");
         report.Add("");
 
-        // Conversation state
+        // Conversation state removed - no longer available
         report.Add("CONVERSATION STATE:");
-        report.Add($"  Pending: {_conversationStateManager.ConversationPending}");
-        report.Add($"  Manager exists: {_conversationStateManager.PendingConversationManager != null}");
-        if (_conversationStateManager.PendingConversationManager != null)
-        {
-            report.Add($"  Is Awaiting Response: {_conversationStateManager.PendingConversationManager.IsAwaitingResponse}");
-            report.Add($"  Choices Count: {_conversationStateManager.PendingConversationManager.Choices?.Count ?? 0}");
-        }
+        report.Add("  System refactored - conversation state tracking removed");
         report.Add("");
 
         // NPCs at location

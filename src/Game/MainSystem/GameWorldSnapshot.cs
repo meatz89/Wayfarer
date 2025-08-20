@@ -1,4 +1,9 @@
-﻿public class GameWorldSnapshot
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Wayfarer.Game.MainSystem;
+
+public class GameWorldSnapshot
 {
     public bool HasActiveEncounter { get; private set; }
     public int? CurrentFocusPoints { get; private set; }
@@ -14,13 +19,13 @@
     public int Concentration { get; internal set; }
     public TimeBlocks CurrentTimeBlock { get; internal set; } = new TimeBlocks();
     // Flag system removed - using connection tokens instead
-    public List<ConversationChoice> AvailableChoices { get; private set; } = new List<ConversationChoice>();
+    // ConversationChoice system removed - using new conversation system
     public string LastChoiceLabel { get; private set; }
     public bool LastChoiceSuccess { get; private set; }
     public bool IsConversationComplete { get; private set; }
     public bool ConversationPending { get; internal set; }
 
-    public GameWorldSnapshot(GameWorld gameWorld, ConversationStateManager conversationStateManager)
+    public GameWorldSnapshot(GameWorld gameWorld)
     {
         // Encounter system removed - using letter queue and conversations
         HasActiveEncounter = false;
@@ -30,23 +35,11 @@
         IsStreaming = streamingState.IsStreaming;
         StreamProgress = streamingState.StreamProgress;
 
-        // Conversation state from ConversationStateManager
-        ConversationPending = conversationStateManager.ConversationPending;
-
-        if (conversationStateManager.PendingConversationManager != null)
-        {
-            IsAwaitingAIResponse = conversationStateManager.PendingConversationManager.IsAwaitingResponse;
-            AvailableChoices = conversationStateManager.PendingConversationManager.Choices ?? new List<ConversationChoice>();
-            CanSelectChoice = AvailableChoices.Any() && !IsAwaitingAIResponse;
-            IsConversationComplete = conversationStateManager.PendingConversationManager.State?.IsConversationComplete ?? false;
-        }
-        else
-        {
-            IsAwaitingAIResponse = false;
-            AvailableChoices = new List<ConversationChoice>();
-            CanSelectChoice = false;
-            IsConversationComplete = false;
-        }
+        // Conversation state system removed - using new conversation architecture
+        ConversationPending = false;
+        IsAwaitingAIResponse = false;
+        CanSelectChoice = false;
+        IsConversationComplete = false;
     }
 
     public bool IsEqualTo(GameWorldSnapshot snapshot)
@@ -67,16 +60,7 @@
         if (Concentration != snapshot.Concentration) return false;
 
         // Flag comparison removed - using connection tokens instead
-
-        if ((AvailableChoices == null) != (snapshot.AvailableChoices == null)) return false;
-        if (AvailableChoices != null)
-        {
-            if (AvailableChoices.Count != snapshot.AvailableChoices.Count) return false;
-            for (int i = 0; i < AvailableChoices.Count; i++)
-            {
-                if (AvailableChoices[i] != snapshot.AvailableChoices[i]) return false;
-            }
-        }
+        // Conversation choice comparison removed - using new conversation system
 
         return true;
     }

@@ -1,4 +1,8 @@
 ﻿using System.Text.Json;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.Content
+{
 
 public static class LocationParser
 {
@@ -103,4 +107,6 @@ public static class LocationParser
         }
         return defaultValue;
     }
+}
+
 }

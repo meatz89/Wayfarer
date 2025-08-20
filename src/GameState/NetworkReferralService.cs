@@ -1,6 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
+using Wayfarer.Content;
+using Wayfarer.GameState.Constants;
+
+namespace Wayfarer.GameState
 /// <summary>
 /// Service for managing network referral letters - NPCs recommending other NPCs for letter opportunities.
 /// This gives players agency to actively seek letters when needed.
@@ -329,4 +335,5 @@ public class NetworkReferral
     public DeliveryObligation ReferralDeliveryObligation { get; set; }
     public int ExpiresDay { get; set; }
     public bool IsUsed { get; set; }
+}
 }

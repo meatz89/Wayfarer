@@ -1,7 +1,11 @@
+using System;
+using Wayfarer.GameState;
 
-/// <summary>
-/// Operation to advance game time
-/// </summary>
+namespace Wayfarer.GameState.Operations
+{
+    /// <summary>
+    /// Operation to advance game time
+    /// </summary>
 public class AdvanceTimeOperation : IGameOperation
 {
     private readonly int _minutes;
@@ -53,4 +57,5 @@ public class AdvanceTimeOperation : IGameOperation
         // Note: CarriedLetters are physical Letter objects without deadlines
         // Only obligations in queue have deadlines that need updating
     }
+}
 }

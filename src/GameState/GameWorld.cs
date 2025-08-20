@@ -1,4 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using Wayfarer.Game.MainSystem;
+
+namespace Wayfarer.GameState
+{
 
 public class GameWorld
 {
@@ -101,5 +106,4 @@ public class GameWorld
 
 }
 
-
-
+}

@@ -1,6 +1,12 @@
 ﻿using System.Text;
+using System.Collections.Generic;
+using System.Linq;
+using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
 
-public class LocationSystem
+namespace Wayfarer.Game.MainSystem
+{
+    public class LocationSystem
 {
     private LocationRepository locationRepository;
     private GameWorld gameWorld;
@@ -125,4 +131,4 @@ public class LocationSystem
 
 
 
-}
+}}
