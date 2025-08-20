@@ -94,6 +94,9 @@ public class ConversationChoiceGenerator
             ConversationChoice deliveryChoice = CreateDeliveryChoice(letterInPosition1, context.TargetNPC);
             choices.Insert(0, deliveryChoice);
         }
+        
+        // OBLIGATION MANIPULATION: Check if player has any obligations from this NPC
+        AddObligationManipulationChoices(choices, context.TargetNPC, state);
 
         return choices;
     }
@@ -280,6 +283,71 @@ public class ConversationChoiceGenerator
     private string TranslateEffectDescription(MechanicalEffectDescription desc)
     {
         return desc.Text; // No Unicode symbols - let CSS handle icons via effect categorization
+    }
+    
+    /// <summary>
+    /// Add choices for manipulating obligations from this NPC
+    /// </summary>
+    private void AddObligationManipulationChoices(List<ConversationChoice> choices, NPC npc, ConversationState state)
+    {
+        Player player = _gameWorld.GetPlayer();
+        DeliveryObligation[] queue = player.ObligationQueue;
+        
+        // Find all obligations from this NPC
+        List<DeliveryObligation> npcObligations = new List<DeliveryObligation>();
+        for (int i = 0; i < queue.Length; i++)
+        {
+            if (queue[i] != null && queue[i].SenderId == npc.ID)
+            {
+                npcObligations.Add(queue[i]);
+            }
+        }
+        
+        // If no obligations from this NPC, nothing to manipulate
+        if (npcObligations.Count == 0) return;
+        
+        // For each obligation from this NPC, offer manipulation options
+        foreach (var obligation in npcObligations)
+        {
+            int position = Array.IndexOf(queue, obligation) + 1; // 1-based position
+            
+            // Option to prioritize this obligation (move to position 1)
+            if (position > 1)
+            {
+                choices.Add(new ConversationChoice
+                {
+                    ChoiceID = $"prioritize_{obligation.Id}",
+                    NarrativeText = $"\"About your letter to {obligation.RecipientName} - it's urgent.\"",
+                    PatienceCost = 1,
+                    IsAffordable = true,
+                    IsAvailable = true,
+                    MechanicalDescription = $"Move letter to position 1 | Costs Trust tokens",
+                    ComfortGain = 0,
+                    Difficulty = 2,
+                    ChoiceType = ConversationChoiceType.Default,
+                    Category = RelationshipCardCategory.Personal
+                });
+            }
+            
+            // Option to purge this obligation (with token cost)
+            Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc.ID);
+            if (tokens.GetValueOrDefault(obligation.TokenType) >= 3)
+            {
+                choices.Add(new ConversationChoice
+                {
+                    ChoiceID = $"purge_{obligation.Id}",
+                    NarrativeText = $"\"I cannot deliver your letter to {obligation.RecipientName}.\"",
+                    PatienceCost = 2,
+                    IsAffordable = true,
+                    IsAvailable = true,
+                    MechanicalDescription = $"Remove obligation | -3 {obligation.TokenType} tokens",
+                    ComfortGain = -1, // Refusing hurts comfort
+                    Difficulty = 3,
+                    ChoiceType = ConversationChoiceType.PurgeLetter,
+                    Category = RelationshipCardCategory.Personal
+                });
+            }
+        }
     }
 
 }

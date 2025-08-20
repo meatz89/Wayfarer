@@ -75,7 +75,7 @@
             if (queueVM?.Status != null)
             {
                 // Show both count and weight: "3/8 [7/12w]"
-                return $"{queueVM.Status.LetterCount}/8 [{queueVM.Status.TotalWeight}/{queueVM.Status.MaxWeight}w]";
+                return $"{queueVM.Status.LetterCount}/8 [{queueVM.Status.TotalSize}/{queueVM.Status.MaxSize}s]";
             }
             
             // Fallback to simple count
@@ -140,11 +140,11 @@
             LetterViewModel mostUrgent = null;
             foreach (var slot in queueVM.QueueSlots)
             {
-                if (slot.IsOccupied && slot.Letter != null)
+                if (slot.IsOccupied && slot.DeliveryObligation != null)
                 {
-                    if (mostUrgent == null || slot.Letter.DeadlineInHours < mostUrgent.DeadlineInHours)
+                    if (mostUrgent == null || slot.DeliveryObligation.DeadlineInHours < mostUrgent.DeadlineInHours)
                     {
-                        mostUrgent = slot.Letter;
+                        mostUrgent = slot.DeliveryObligation;
                     }
                 }
             }

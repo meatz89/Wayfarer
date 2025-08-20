@@ -55,8 +55,6 @@ public class ConversationContextService
             HasWeakRelationship = hasWeakRelationship,
             PlayerIsDesperate = playerIsDesperate,
             PlayerIsExhausted = playerIsExhausted,
-            HasPatronObligation = hasPatronObligation,
-            RecipientIsPatron = recipientIsPatron,
             RecipientTokens = recipientTokens
         };
     }
@@ -83,12 +81,10 @@ public class ConversationContextService
 
         // Physical properties (fragile, valuable, confidential) don't apply to obligations
 
-        if (context.PlayerIsDesperate && !context.RecipientIsPatron)
         {
             choices.Add(CreateBegForTipChoice(context, choiceId++));
         }
 
-        if (context.RecipientIsPatron && context.HasPatronObligation)
         {
             choices.Add(CreateReportProgressChoice(context, choiceId++));
         }
@@ -371,8 +367,6 @@ public class DeliveryConversationContext
     public bool HasWeakRelationship { get; set; }
     public bool PlayerIsDesperate { get; set; }
     public bool PlayerIsExhausted { get; set; }
-    public bool HasPatronObligation { get; set; }
-    public bool RecipientIsPatron { get; set; }
     public int RecipientTokens { get; set; }
 }
 

@@ -36,7 +36,6 @@ public static class LetterTemplateParser
         template.SpecialTargetId = GetStringProperty(root, "specialTargetId", "");
 
         // Parse human context and consequences
-        template.HumanContext = GetStringProperty(root, "humanContext", "");
         template.ConsequenceIfLate = GetStringProperty(root, "consequenceIfLate", "");
         template.ConsequenceIfDelivered = GetStringProperty(root, "consequenceIfDelivered", "");
 
@@ -70,8 +69,6 @@ public static class LetterTemplateParser
         {
             "Introduction" => LetterSpecialType.Introduction,
             "AccessPermit" => LetterSpecialType.AccessPermit,
-            "Endorsement" => LetterSpecialType.Endorsement,
-            "Information" => LetterSpecialType.Information,
             "None" => LetterSpecialType.None,
             _ => LetterSpecialType.None // Default fallback
         };

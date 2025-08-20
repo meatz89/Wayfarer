@@ -26,16 +26,10 @@ public enum SpecialLetterEventType
     // Access permit events
     AccessPermitGenerated,          // DeliveryObligation successfully generated and added to satchel
     LocationAccessGranted,
+    RouteAccessGranted,
     AccessPermitIncomplete,
     AccessTargetNotFound,
 
-    // Endorsement letter events
-    EndorsementActivated,
-    EndorsementExpired,
-
-    // Information letter events
-    InformationDiscovered,
-    InformationAlreadyKnown,
 
     // Token bonus events
     SpecialLetterTokenBonus,
@@ -55,11 +49,11 @@ public class SpecialLetterEvent
     public LetterSpecialType LetterType { get; set; }
     public string TargetNPCId { get; set; } = string.Empty;
     public string TargetLocationId { get; set; } = string.Empty;
+    public string TargetRouteId { get; set; } = string.Empty;
     public string SenderName { get; set; } = string.Empty;
     public string RecipientName { get; set; } = string.Empty;
     public ConnectionType TokenType { get; set; }
     public int TokenAmount { get; set; }
-    public string InformationId { get; set; } = string.Empty;
     public NarrativeSeverity Severity { get; set; } = NarrativeSeverity.Info;
     
     // Additional fields for letter generation events

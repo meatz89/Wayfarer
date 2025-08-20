@@ -26,21 +26,22 @@ namespace Wayfarer.Pages
 
         private string GetNextDeadline()
         {
-            Letter[] letters = GameFacade.GetPlayer().ObligationQueue;
-            if (letters == null || !letters.Any(l => l != null)) return "";
+            DeliveryObligation[] obligations = GameFacade.GetPlayer().ObligationQueue;
+            if (obligations == null || !obligations.Any(o => o != null)) return "";
 
-            Letter? nextDeadline = letters.Where(l => l != null && l.DeadlineInMinutes > 0)
-                .OrderBy(l => l.DeadlineInMinutes)
+            DeliveryObligation? nextDeadline = obligations.Where(o => o != null && o.DeadlineInMinutes > 0)
+                .OrderBy(o => o.DeadlineInMinutes)
                 .FirstOrDefault();
 
             if (nextDeadline == null) return "";
 
-            int hoursLeft = nextDeadline.DeadlineInMinutes;
+            int minutesLeft = nextDeadline.DeadlineInMinutes;
             string recipientShort = GetShortName(nextDeadline.RecipientName);
 
             // Use our human-readable format
             string timeDesc = GetShortDeadline(nextDeadline);
 
+            int hoursLeft = minutesLeft / 60;
             if (hoursLeft <= 3)
             {
                 return $"⚡ {recipientShort}: {timeDesc}";
@@ -184,16 +185,17 @@ namespace Wayfarer.Pages
             return "deadline-normal";
         }
 
-        private int GetTotalWeight()
+        private int GetTotalSize()
         {
-            DeliveryObligation[] queue = GameFacade.GetPlayer().ObligationQueue;
-            if (queue == null) return 0;
-            return queue.Where(l => l != null).Sum(l => l.Weight);
+            // Size is a property of physical Letters in satchel, not queue obligations
+            List<Letter> carriedLetters = GameFacade.GetPlayer().CarriedLetters;
+            if (carriedLetters == null) return 0;
+            return carriedLetters.Sum(l => l.Size);
         }
 
-        private int GetMaxWeight()
+        private int GetMaxSize()
         {
-            return 12; // Max weight capacity
+            return GameFacade.GetPlayer().MaxSatchelSize; // Get from player's satchel capacity
         }
 
         private async Task StartConversation(string npcId)
@@ -363,7 +365,7 @@ namespace Wayfarer.Pages
             else
             {
                 // Show error message - would normally use MessageSystem
-                Console.WriteLine($"Delivery failed: {result.FailureReason}");
+                Console.WriteLine($"Delivery failed: {result.ErrorMessage}");
             }
         }
 
@@ -427,7 +429,7 @@ namespace Wayfarer.Pages
                 QueueOperationResult result = await QueueOperations.TryMorningSwapAsync(1, position);
                 if (!result.Success)
                 {
-                    Console.WriteLine($"Morning swap failed: {result.FailureReason}");
+                    Console.WriteLine($"Morning swap failed: {result.ErrorMessage}");
                 }
                 expandedPosition = null;
                 StateHasChanged();
@@ -437,7 +439,12 @@ namespace Wayfarer.Pages
         private bool CanDeliverNow()
         {
             // Check if we can deliver the letter at position 1 right now
-            return QueueOperations.CanPerformOperation(QueueOperationType.Deliver, 1);
+            DeliveryObligation letter = GetLetterAtPosition(1);
+            if (letter == null) return false;
+            
+            // Can only deliver if at recipient's location
+            (Location location, LocationSpot spot) = GameFacade.GetCurrentLocation();
+            return spot?.SpotID == letter.RecipientId;
         }
 
         private void NavigateToRecipient()
@@ -459,18 +466,18 @@ namespace Wayfarer.Pages
 
         private bool HasCriticalDeadlines()
         {
-            Letter[] letters = GameFacade.GetPlayer().ObligationQueue;
-            if (letters == null) return false;
-            return letters.Any(l => l != null && l.DeadlineInMinutes <= 3 && l.DeadlineInMinutes > 0);
+            DeliveryObligation[] obligations = GameFacade.GetPlayer().ObligationQueue;
+            if (obligations == null) return false;
+            return obligations.Any(o => o != null && o.DeadlineInMinutes <= 180 && o.DeadlineInMinutes > 0); // 3 hours in minutes
         }
 
         private DeliveryObligation GetMostUrgentLetter()
         {
-            Letter[] letters = GameFacade.GetPlayer().ObligationQueue;
-            if (letters == null) return null;
+            DeliveryObligation[] obligations = GameFacade.GetPlayer().ObligationQueue;
+            if (obligations == null) return null;
 
-            return letters.Where(l => l != null && l.DeadlineInMinutes > 0)
-                .OrderBy(l => l.DeadlineInMinutes)
+            return obligations.Where(o => o != null && o.DeadlineInMinutes > 0)
+                .OrderBy(o => o.DeadlineInMinutes)
                 .FirstOrDefault();
         }
 

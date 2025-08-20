@@ -37,8 +37,7 @@ public class LetterTemplateDTO
     public List<string> PhysicalProperties { get; set; }
     public string RequiredEquipment { get; set; }
 
-    // Human context and consequences
-    public string HumanContext { get; set; }
+    // Consequences
     public string ConsequenceIfLate { get; set; }
     public string ConsequenceIfDelivered { get; set; }
     public string EmotionalWeight { get; set; } = "MEDIUM";

@@ -43,7 +43,7 @@
 
         <!-- Letter Queue Section - MINIMAL AS PER MOCKUP -->
         <div class="letter-queue-section">
-            <h3 class="section-header">Letter Queue [@GetTotalWeight()/@GetMaxWeight() weight]</h3>
+            <h3 class="section-header">Letter Queue [@GetTotalSize()/@GetMaxSize() size]</h3>
             
             <!-- Visual Queue Display - ASCII STYLE -->
             <div class="visual-queue">
@@ -54,17 +54,12 @@
                     <div class="queue-slot @(expandedPosition == position ? "expanded" : "") @(_selectedForReorder == position ? "selected-for-reorder" : "") @(_isReordering && _selectedForReorder != position ? "reorder-target" : "")" 
                          @onclick="() => HandleSlotClick(position)">
                         
-                        <!-- Position and Weight Blocks -->
+                        <!-- Position and Size Blocks -->
                         <span class="slot-display">
                             [@(position)]
                             @if (letter != null)
                             {
-                                <span class="weight-blocks">[</span>
-                                @for (int w = 0; w < letter.Weight; w++)
-                                {
-                                    <text>■</text>
-                                }
-                                <span class="weight-blocks">]</span>
+                                <span class="size-blocks">[■]</span>
                                 @if (letter.EmotionalWeight >= EmotionalWeight.HIGH)
                                 {
                                     <span class="emotional-indicator">@letter.GetEmotionalWeightIcon()</span>
@@ -86,9 +81,7 @@
                                 </span>
                             </span>
                             <span class="route-preview">@letter.RecipientName</span>
-                            @if (!string.IsNullOrEmpty(letter.HumanContext))
                             {
-                                <span class="human-context">"@letter.HumanContext"</span>
                             }
                         }
                         else
@@ -110,9 +103,7 @@
                             @letter.SenderName → @letter.RecipientName
                         </div>
                         <div class="detail-desc">
-                            @if (!string.IsNullOrEmpty(letter.HumanContext))
                             {
-                                <div class="human-context-full">@letter.HumanContext</div>
                             }
                             else
                             {
@@ -132,7 +123,7 @@
                         <div class="detail-meta">
                             Stakes: @GetStakesDisplay(letter.Stakes) | 
                             Deadline: @GetDeadlineDisplay(letter) |
-                            Weight: @GetEmotionalWeightDisplay(letter.EmotionalWeight)
+                            Emotional Weight: @GetEmotionalWeightDisplay(letter.EmotionalWeight)
                         </div>
                         <div class="letter-actions">
                             @if (expandedPosition == 1)

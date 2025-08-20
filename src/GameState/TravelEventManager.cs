@@ -261,13 +261,8 @@ public class TravelEventManager
             }
         }
         
-        // DeliveryObligation effects
-        if (effect.DeliverSecondaryLetter)
-        {
-            // Mark a secondary letter as delivered
-            result.Messages.Add("Secondary letter will be delivered");
-            result.SecondaryLetterDelivered = true;
-        }
+        // DeliveryObligation effects - REMOVED
+        // Letters are only delivered through player actions, not travel events
         
         if (effect.DeadlineChangeMinutes != 0)
         {

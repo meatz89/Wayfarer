@@ -27,7 +27,6 @@ public static class ServiceConfiguration
         services.AddSingleton<RouteFactory>();
         services.AddSingleton<RouteDiscoveryFactory>();
         services.AddSingleton<NetworkUnlockFactory>();
-        services.AddSingleton<LetterTemplateFactory>();
         services.AddSingleton<StandingObligationFactory>();
 
         // Register GameWorld using static GameWorldInitializer
@@ -54,7 +53,6 @@ public static class ServiceConfiguration
         services.AddSingleton<StandingObligationRepository>();
         services.AddSingleton<RouteDiscoveryRepository>();
         services.AddSingleton<NetworkUnlockRepository>();
-        services.AddSingleton<DeliveryTemplateService>();
 
         // Register content fallback service for resilience
         services.AddSingleton<ContentFallbackService>();
@@ -87,7 +85,6 @@ public static class ServiceConfiguration
 
         // DeliveryObligation Queue System
         services.AddSingleton<StandingObligationManager>();
-        services.AddSingleton<LetterCategoryService>();
         services.AddSingleton<ConversationContextService>();
 
         // Conversation System
@@ -116,7 +113,6 @@ public static class ServiceConfiguration
         services.AddSingleton<AtmosphereCalculator>();
 
         services.AddSingleton<ObligationQueueManager>();
-        services.AddSingleton<EndorsementManager>();
 
         // Transaction and Preview System
         services.AddSingleton<AccessRequirementChecker>();
@@ -125,9 +121,7 @@ public static class ServiceConfiguration
         services.AddSingleton<NetworkUnlockManager>();
         services.AddSingleton<InformationDiscoveryManager>();
         services.AddSingleton<SpecialLetterHandler>();
-        services.AddSingleton<SpecialLetterGenerationService>();
-        services.AddSingleton<InformationRevealService>();
-        services.AddSingleton<NPCLetterOfferService>();
+        services.AddSingleton<ConversationLetterService>();
         // PatronLetterService removed - patron system deleted
         services.AddSingleton<NetworkReferralService>();
         services.AddSingleton<DailyActivitiesManager>();
@@ -156,10 +150,8 @@ public static class ServiceConfiguration
 
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();
-        services.AddSingleton<ILetterQueueOperations>(provider => provider.GetRequiredService<GameFacade>());
         services.AddScoped<NavigationCoordinator>();
         services.AddSingleton<NPCService>();
-        services.AddSingleton<LetterGenerationService>();
 
         // UI Razor Services
 

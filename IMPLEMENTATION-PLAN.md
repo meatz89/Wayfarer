@@ -39,11 +39,18 @@ This document provides the complete implementation roadmap for Wayfarer's dual-l
 
 ### ✅ COMPLETED SYSTEMS
 - **GameWorld**: Basic structure with time/day tracking
-- **LetterQueue**: 8-slot, 12-weight system with displacement mechanics
+- **LetterQueue**: 8-slot system for DeliveryObligations (queue promises)
 - **Basic Conversation System**: NPCs, cards, and conversation manager
 - **Token Framework**: Four types (Trust, Commerce, Status, Shadow) with storage
-- **Letter Properties**: Comprehensive letter system with special types
+- **Letter/Obligation Separation**: DeliveryObligation (abstract) vs Letter (physical)
 - **Basic UI Components**: ConversationScreen, LetterQueueScreen, LocationScreen
+
+### 🔄 ARCHITECTURAL DECISIONS (2025-08-20)
+- **LETTERS ONLY FROM CONVERSATIONS**: No automatic generation, no forced letters
+- **HIGHLANDER PRINCIPLE**: One service per domain (ConversationLetterService for all letters)
+- **NO COMPATIBILITY LAYERS**: Delete legacy code immediately, fix all references
+- **DI PATTERNS**: Constructor injection only, no setter methods or service locators
+- **GAMEWORLD SINGLE SOURCE**: All game state flows from GameWorld, no duplicate tracking
 
 ### ✅ CRITICAL SYSTEMS NOW COMPLETE
 1. **✅ Two-Layer Integration**: Conversations → Comfort → Tokens → Letters → Queue (FUNCTIONAL)
@@ -656,14 +663,15 @@ Make AI narrative generation feel authentic and connected to mechanical state.
 - **✅ Epic 8**: Complete obligation breaking system with personality-specific betrayal recovery
 - **✅ Epic 9**: Attention refresh with coins (location-based tavern/inn services)
 
-### PHASE 2: SPECIAL SYSTEMS - 🔄 IN PROGRESS
-- **🔄 Epic 7**: Special Letters System - BACKEND COMPLETE, UI INTEGRATION NEEDED
-  - **✅ Backend Architecture**: SpecialLetterGenerationService fully implemented
-  - **✅ Letter Types**: Introduction, AccessPermit, Endorsement, Information all functional
-  - **✅ Processing Logic**: SpecialLetterHandler processes delivery effects correctly
-  - **✅ Token Integration**: 5 token threshold, 3 token cost working
-  - **❌ UI Integration**: No conversation choices for requesting special letters
-  - **❌ Template Integration**: No special letter templates in letter_templates.json
+### PHASE 2: SPECIAL SYSTEMS - 🔄 MAJOR REFACTORING IN PROGRESS
+- **🔄 Epic 7**: Letter System Architecture Overhaul
+  - **🔄 HIGHLANDER PRINCIPLE**: Consolidating 6+ letter services into ONE ConversationLetterService
+  - **🔄 SEPARATION OF CONCERNS**: DeliveryObligation (queue promise) vs Letter (physical item)
+  - **🔄 NO AUTOMATIC GENERATION**: Letters ONLY created through conversation choices
+  - **🔄 SPECIAL LETTERS**: Introduction/AccessPermit go to satchel only (no queue obligation)
+  - **🔄 DELIVERY LETTERS**: Create BOTH obligation (queue) AND physical letter (satchel)
+  - **❌ Compilation**: 292 errors remaining from architectural changes
+  - **❌ UI Integration**: Components need updating for new type separation
 
 ### PHASE 3: OBSERVATION - ⏸️ PENDING
 - **Epic 10**: Observation System (enhanced location awareness)

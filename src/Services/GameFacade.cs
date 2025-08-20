@@ -40,18 +40,14 @@ public class GameFacade
     private readonly ItemRepository _itemRepository;
     private readonly ConversationStateManager _conversationStateManager;
     private readonly TokenMechanicsManager _connectionTokenManager;
-    private readonly NPCLetterOfferService _letterOfferService;
+    private readonly ConversationLetterService _conversationLetterService;
     private readonly GameConfiguration _gameConfiguration;
     private readonly InformationDiscoveryManager _informationDiscoveryManager;
     private readonly StandingObligationManager _standingObligationManager;
     private readonly StandingObligationRepository _standingObligationRepository;
     private readonly MarketManager _marketManager;
-    private readonly LetterCategoryService _letterCategoryService;
-    private readonly SpecialLetterGenerationService _specialLetterService;
     private readonly DailyActivitiesManager _dailyActivitiesManager;
     private readonly ConversationContextService _deliveryConversationService;
-    private readonly DeliveryTemplateService _letterTemplateRepository;
-    private readonly InformationRevealService _informationRevealService;
     private readonly ContextTagCalculator _contextTagCalculator;
     private readonly NPCStateResolver _npcStateResolver;
     private readonly EnvironmentalHintSystem _environmentalHintSystem;
@@ -82,7 +78,7 @@ public class GameFacade
         ItemRepository itemRepository,
         ConversationStateManager conversationStateManager,
         TokenMechanicsManager connectionTokenManager,
-        NPCLetterOfferService letterOfferService,
+        ConversationLetterService conversationLetterService,
         GameConfiguration gameConfiguration,
         InformationDiscoveryManager informationDiscoveryManager,
         StandingObligationManager standingObligationManager,
@@ -90,12 +86,8 @@ public class GameFacade
         MarketManager marketManager,
         RestManager restManager,
         IGameRuleEngine ruleEngine,
-        LetterCategoryService letterCategoryService,
-        SpecialLetterGenerationService specialLetterService,
         DailyActivitiesManager dailyActivitiesManager,
         ConversationContextService deliveryConversationService,
-        DeliveryTemplateService letterTemplateRepository,
-        InformationRevealService informationRevealService,
         ContextTagCalculator contextTagCalculator,
         NPCStateResolver npcStateResolver,
         ActionGenerator actionGenerator,
@@ -126,7 +118,7 @@ public class GameFacade
         _itemRepository = itemRepository;
         _conversationStateManager = conversationStateManager;
         _connectionTokenManager = connectionTokenManager;
-        _letterOfferService = letterOfferService;
+        _conversationLetterService = conversationLetterService;
         _gameConfiguration = gameConfiguration;
         _informationDiscoveryManager = informationDiscoveryManager;
         _standingObligationManager = standingObligationManager;
@@ -134,13 +126,8 @@ public class GameFacade
         _marketManager = marketManager;
         _restManager = restManager;
         _ruleEngine = ruleEngine;
-        _letterCategoryService = letterCategoryService;
-        _specialLetterService = specialLetterService;
         _dailyActivitiesManager = dailyActivitiesManager;
         _deliveryConversationService = deliveryConversationService;
-        // _endorsementManager = endorsementManager; // Removed
-        _letterTemplateRepository = letterTemplateRepository;
-        _informationRevealService = informationRevealService;
         _contextTagCalculator = contextTagCalculator;
         _npcStateResolver = npcStateResolver;
         _actionGenerator = actionGenerator;
@@ -350,7 +337,7 @@ public class GameFacade
         _letterQueueManager.ProcessHourlyDeadlines(hours);
 
         // Process carried information letters after time change
-        _informationRevealService?.ProcessCarriedInformation();
+        // Information revelation handled through other systems now
     }
 
     private void ProcessTimeAdvancementMinutes(int minutes)
@@ -367,7 +354,7 @@ public class GameFacade
         }
 
         // Process carried information letters after time change
-        _informationRevealService?.ProcessCarriedInformation();
+        // Information revelation handled through other systems now
     }
 
     private string GetMarketAvailabilityStatus(string locationId)
@@ -428,12 +415,12 @@ public class GameFacade
             }
         }
 
-        // Add letter weights
-        foreach (DeliveryObligation letter in player.ObligationQueue)
+        // Add letter sizes from physical satchel
+        foreach (Letter letter in player.CarriedLetters)
         {
-            if (letter != null && letter.State == LetterState.Collected)
+            if (letter != null)
             {
-                totalWeight += letter.CarryWeight;
+                totalWeight += letter.Size;
             }
         }
 
@@ -512,6 +499,78 @@ public class GameFacade
     }
 
     // ========== LOCATION ACTIONS ==========
+
+    public LocationScreenViewModel GetLocationScreen()
+    {
+        Player player = _gameWorld.GetPlayer();
+        (Location location, LocationSpot spot) = GetCurrentLocation();
+        
+        var viewModel = new LocationScreenViewModel
+        {
+            CurrentTime = _timeManager.GetFormattedTimeDisplay(),
+            DeadlineTimer = GetNextDeadlineDisplay(),
+            LocationPath = new List<string> { location?.Name ?? "Unknown" },
+            LocationName = spot?.Name ?? "Unknown Location",
+            AtmosphereText = spot?.Description ?? "A quiet place.",
+            QuickActions = new List<LocationActionViewModel>(),
+            NPCsPresent = new List<NPCPresenceViewModel>()
+        };
+        
+        // Add NPCs at current location
+        if (spot != null)
+        {
+            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+            var npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
+            
+            foreach (var npc in npcs)
+            {
+                viewModel.NPCsPresent.Add(new NPCPresenceViewModel
+                {
+                    Id = npc.ID,
+                    Name = npc.Name,
+                    MoodEmoji = GetNPCMoodEmoji(npc),
+                    Description = npc.Description ?? "",
+                    Interactions = new List<InteractionOptionViewModel>
+                    {
+                        new InteractionOptionViewModel
+                        {
+                            Text = $"Talk to {npc.Name}",
+                            Cost = "1 hour"
+                        }
+                    }
+                });
+            }
+        }
+        
+        return viewModel;
+    }
+    
+    private string GetNextDeadlineDisplay()
+    {
+        var queue = GetLetterQueue();
+        if (queue?.QueueSlots == null) return "";
+        
+        var mostUrgent = queue.QueueSlots
+            .Where(s => s.IsOccupied && s.DeliveryObligation != null)
+            .OrderBy(s => s.DeliveryObligation.DeadlineInHours)
+            .FirstOrDefault();
+            
+        if (mostUrgent?.DeliveryObligation == null) return "";
+        
+        var deadline = mostUrgent.DeliveryObligation;
+        if (deadline.DeadlineInHours <= 3)
+            return $"⚡ {deadline.RecipientName}: {deadline.DeadlineInHours}h";
+        else if (deadline.DeadlineInHours <= 24)
+            return $"📜 Next: {deadline.RecipientName} in {deadline.DeadlineInHours}h";
+        else
+            return "";
+    }
+    
+    private string GetNPCMoodEmoji(NPC npc)
+    {
+        // Simple mood display based on NPC state
+        return "😐";
+    }
 
     public LocationActionsViewModel GetLocationActions()
     {
@@ -778,10 +837,9 @@ public class GameFacade
                 ObserveLocationIntent observe => await ExecuteObserve(observe),
                 ExploreAreaIntent explore => await ExecuteExplore(explore),
                 RequestPatronFundsIntent patron => await ExecutePatronFunds(patron),
-                AcceptLetterOfferIntent offer => await ExecuteAcceptOffer(offer),
+                AcceptLetterOfferIntent offer => await ExecuteAcceptOffer(offer), // Legacy - returns false
                 TravelIntent travel => await ExecuteTravel(travel),
                 DiscoverRouteIntent discover => await ExecuteDiscoverRoute(discover),
-                ConvertEndorsementsIntent convert => await ExecuteConvertEndorsements(convert),
                 _ => throw new NotSupportedException($"Unknown intent type: {intent.GetType()}")
             };
         }
@@ -947,14 +1005,14 @@ public class GameFacade
         _messageSystem.AddSystemMessage(message, SystemMessageTypes.Info);
 
         // Check for missed deadlines from letter queue
-        LetterQueueViewModel letterQueue = GetQueueViewModel();
+        LetterQueueViewModel letterQueue = GetLetterQueue();
         if (letterQueue?.QueueSlots != null)
         {
             foreach (QueueSlotViewModel slot in letterQueue.QueueSlots)
             {
-                if (slot.IsOccupied && slot.Letter?.DeadlineInMinutes <= 0)
+                if (slot.IsOccupied && slot.DeliveryObligation?.DeadlineInHours <= 0)
                 {
-                    _messageSystem.AddSystemMessage($"DeliveryObligation to {slot.Letter.RecipientName} has expired!", SystemMessageTypes.Danger);
+                    _messageSystem.AddSystemMessage($"DeliveryObligation to {slot.DeliveryObligation.RecipientName} has expired!", SystemMessageTypes.Danger);
                 }
             }
         }
@@ -1077,7 +1135,6 @@ public class GameFacade
         // Process patron leverage
         if (outcome.ReducesLeverage > 0)
         {
-            player.PatronLeverage = Math.Max(0, player.PatronLeverage - outcome.ReducesLeverage);
             _messageSystem.AddSystemMessage($"Patron leverage reduced by {outcome.ReducesLeverage}", SystemMessageTypes.Success);
         }
 
@@ -1102,37 +1159,9 @@ public class GameFacade
 
     private async Task<bool> ExecuteCollectLetter(CollectLetterIntent intent)
     {
-        Player player = _gameWorld.GetPlayer();
-
-        // Check if queue has space
-        if (_letterQueueManager.GetLetterCount() >= _gameConfiguration.LetterQueue.MaxQueueSize)
-        {
-            _messageSystem.AddSystemMessage("Your letter queue is full!", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // For now, use the notice board service to generate a letter
-        // In the future, this could work with pre-generated offers
-
-        if (letter == null)
-        {
-            _messageSystem.AddSystemMessage("No letters available on the board", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Add letter to queue
-        int position = _letterQueueManager.AddLetter(letter);
-        if (position > 0)
-        {
-            _messageSystem.AddSystemMessage($"Collected letter from {letter.SenderName} to {letter.RecipientName}", SystemMessageTypes.Success);
-            _messageSystem.AddSystemMessage($"DeliveryObligation added to queue position {position}", SystemMessageTypes.Info);
-            return true;
-        }
-        else
-        {
-            _messageSystem.AddSystemMessage("Failed to add letter to queue", SystemMessageTypes.Warning);
-            return false;
-        }
+        // Notice boards have been removed - letters only come from conversations
+        _messageSystem.AddSystemMessage("Letters are now obtained through conversations with NPCs", SystemMessageTypes.Info);
+        return false;
     }
 
     private async Task<bool> ExecuteObserve(ObserveLocationIntent intent)
@@ -1277,138 +1306,20 @@ public class GameFacade
 
     private async Task<bool> ExecutePatronFunds(RequestPatronFundsIntent intent)
     {
-        Player player = _gameWorld.GetPlayer();
-
-        // Check if player has a patron
-        if (!player.HasPatron)
-        {
-            _messageSystem.AddSystemMessage("You don't have a patron to request funds from", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Check cooldown (7 days between requests)
-        int daysSinceLastRequest = _gameWorld.CurrentDay - player.LastPatronFundDay;
-        const int PATRON_FUND_COOLDOWN = 7;
-
-        if (daysSinceLastRequest < PATRON_FUND_COOLDOWN)
-        {
-            int daysRemaining = PATRON_FUND_COOLDOWN - daysSinceLastRequest;
-            _messageSystem.AddSystemMessage($"Your patron won't provide funds again for {daysRemaining} more days", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Grant funds (10 coins as emergency support)
-        const int PATRON_FUND_AMOUNT = 10;
-        player.ModifyCoins(PATRON_FUND_AMOUNT);
-        player.LastPatronFundDay = _gameWorld.CurrentDay;
-
-        // Increase patron leverage (they're helping you, so you owe them more)
-        const int LEVERAGE_INCREASE = 3;
-        player.PatronLeverage += LEVERAGE_INCREASE;
-
-        _messageSystem.AddSystemMessage($"Your patron provides {PATRON_FUND_AMOUNT} coins of emergency funding", SystemMessageTypes.Success);
-        _messageSystem.AddSystemMessage($"Their leverage over you increases by {LEVERAGE_INCREASE}", SystemMessageTypes.Warning);
-        _messageSystem.AddSystemMessage($"Patron leverage is now {player.PatronLeverage}", SystemMessageTypes.Info);
-
-        // If patron leverage is high, warn the player
-        if (player.PatronLeverage >= 10)
-        {
-            _messageSystem.AddSystemMessage("Your patron's grip tightens. Their letters will demand even higher priority", SystemMessageTypes.Danger);
-        }
-
-        return true;
+        // Patron system has been completely removed
+        _messageSystem.AddSystemMessage("The patron system no longer exists. Earn coins through deliveries and trade.", SystemMessageTypes.Info);
+        return false;
     }
 
     private async Task<bool> ExecuteAcceptOffer(AcceptLetterOfferIntent intent)
     {
-        Player player = _gameWorld.GetPlayer();
-
-        // Check if queue has space
-        if (_letterQueueManager.GetLetterCount() >= _gameConfiguration.LetterQueue.MaxQueueSize)
-        {
-            _messageSystem.AddSystemMessage("Your letter queue is full!", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Parse offer ID to get NPC ID and offer details
-        // Offer ID format: "npc_id|offer_guid"
-        string[] parts = intent.OfferId.Split('|');
-        if (parts.Length != 2)
-        {
-            _messageSystem.AddSystemMessage("Invalid offer ID", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        string npcId = parts[0];
-        string offerId = parts[1];
-
-        // Get the NPC
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null)
-        {
-            _messageSystem.AddSystemMessage("NPC not found", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Get pending offers for this NPC
-        List<LetterOffer> offers = _letterOfferService.GetPendingOffersForNPC(npcId);
-        LetterOffer? offer = offers.FirstOrDefault(o => o.Id == offerId);
-
-        if (offer == null)
-        {
-            _messageSystem.AddSystemMessage("DeliveryObligation offer no longer available", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Find a suitable recipient
-        List<NPC> possibleRecipients = _npcRepository.GetAllNPCs()
-            .Where(n => n.ID != npcId && n.SpotId != player.CurrentLocationSpot?.SpotID)
-            .ToList();
-
-        if (!possibleRecipients.Any())
-        {
-            _messageSystem.AddSystemMessage("No suitable recipients available for this letter", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        Random random = new Random();
-        NPC recipient = possibleRecipients[random.Next(possibleRecipients.Count)];
-
-        // Create letter from offer
-        DeliveryObligation letter = new Letter
-        {
-            Id = Guid.NewGuid().ToString(),
-            SenderName = offer.NPCName,
-            SenderId = npcId,
-            RecipientName = recipient.Name,
-            RecipientId = recipient.ID,
-            Payment = offer.Payment,
-            DeadlineInMinutes = offer.DeadlineInMinutes,
-            DaysInQueue = 0,
-            QueuePosition = 0,
-            TokenType = offer.LetterType,
-            Description = $"DeliveryObligation from {offer.NPCName} to {recipient.Name}"
-        };
-
-        // Add letter to queue
-        int position = _letterQueueManager.AddLetter(letter);
-        if (position > 0)
-        {
-            _messageSystem.AddSystemMessage($"Accepted letter from {offer.NPCName}", SystemMessageTypes.Success);
-            _messageSystem.AddSystemMessage($"Deliver to {letter.RecipientName}", SystemMessageTypes.Info);
-            _messageSystem.AddSystemMessage($"Payment: {letter.Payment} coins", SystemMessageTypes.Info);
-
-            // Remove the accepted offer
-            // Note: NPCLetterOfferService would need a method to remove offers
-            // For now, the offer will expire naturally
-
-            return true;
-        }
-        else
-        {
-            _messageSystem.AddSystemMessage("Failed to add letter to queue", SystemMessageTypes.Warning);
-            return false;
-        }
+        // REMOVED - Letters are now ONLY created through conversation choices
+        // This legacy automatic offer system violates our architectural principles
+        _messageSystem.AddSystemMessage(
+            "Letter offers are now handled through conversations. Talk to NPCs to request letters!",
+            SystemMessageTypes.Info
+        );
+        return false;
     }
 
     private async Task<bool> ExecuteTravel(TravelIntent intent)
@@ -1593,103 +1504,7 @@ public class GameFacade
         return success;
     }
 
-    private async Task<bool> ExecuteConvertEndorsements(ConvertEndorsementsIntent intent)
-    {
-        Player player = _gameWorld.GetPlayer();
-        LocationSpot currentLocation = player.CurrentLocationSpot;
-
-        if (currentLocation == null || currentLocation.LocationId != intent.LocationId)
-        {
-            _messageSystem.AddSystemMessage("You must be at the guild to convert endorsements", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Check if this is actually a guild location by ID
-        string[] validGuildLocations = new[] { "merchant_guild", "messenger_guild", "scholar_guild" };
-        if (!validGuildLocations.Contains(intent.LocationId))
-        {
-            _messageSystem.AddSystemMessage("This isn't a guild location", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Parse target tier
-        if (!Enum.TryParse<SealTier>(intent.TargetTier, out SealTier targetTier))
-        {
-            _messageSystem.AddSystemMessage("Invalid seal tier specified", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Get available conversions at this guild
-        // List<SealConversionOption> conversions = _endorsementManager.GetAvailableSealConversions(intent.LocationId); // Endorsements removed
-        List<SealConversionOption> conversions = new List<SealConversionOption>(); // Empty - endorsements removed
-        SealConversionOption? targetConversion = conversions.FirstOrDefault(c => c.TargetTier == targetTier);
-
-        if (targetConversion == null)
-        {
-            _messageSystem.AddSystemMessage("That seal tier is not available for conversion", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        if (!targetConversion.CanConvert)
-        {
-            _messageSystem.AddSystemMessage($"You need {targetConversion.RequiredEndorsements} endorsements. You have {targetConversion.CurrentEndorsements}.", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Show conversion dialog
-        _messageSystem.AddSystemMessage($"🏛️ Presenting your endorsements to the {targetConversion.GuildName}...", SystemMessageTypes.Info);
-
-        // Perform the conversion
-        // bool success = _endorsementManager.ConvertEndorsementsToSeal(intent.LocationId, targetTier); // Endorsements removed
-        bool success = false; // Endorsements removed - conversion always fails
-
-        if (success)
-        {
-            // Add narrative flavor based on seal type and tier
-            SealType sealType = _endorsementManager.GetSealTypeForGuild(intent.LocationId);
-            string narrative = GetSealConversionNarrative(sealType, targetTier);
-            _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
-
-            // Time passes during ceremony
-            ProcessTimeAdvancement(1);
-
-            // Check for new opportunities
-            CheckNewSealOpportunities(sealType, targetTier);
-        }
-
-        return success;
-    }
-
-    private string GetSealConversionNarrative(SealType type, SealTier tier)
-    {
-        return (type, tier) switch
-        {
-            (SealType.Commerce, SealTier.Apprentice) => "The guild master reviews your endorsements and nods approvingly. 'Welcome to the Merchant's Guild, apprentice.'",
-            (SealType.Commerce, SealTier.Journeyman) => "After careful examination of your record, the guild council promotes you. 'Your business acumen has proven itself.'",
-            (SealType.Commerce, SealTier.Master) => "The grand ceremony concludes with thunderous applause. 'Rise, Master Merchant, and take your place among the elite.'",
-            (SealType.Status, SealTier.Apprentice) => "The scholars examine your credentials carefully. 'Your intellectual pursuits have earned recognition.'",
-            (SealType.Status, SealTier.Journeyman) => "The academic council deliberates briefly. 'Your contributions to knowledge are noted. Welcome, Scholar.'",
-            (SealType.Status, SealTier.Master) => "In a solemn ceremony, you receive the highest academic honor. 'May your wisdom guide others.'",
-            (SealType.Shadow, SealTier.Apprentice) => "A hooded figure accepts your tokens. 'The shadows acknowledge your service.'",
-            (SealType.Shadow, SealTier.Journeyman) => "Without ceremony, a new seal appears in your possession. 'Your discretion has been noted.'",
-            (SealType.Shadow, SealTier.Master) => "In absolute silence, you are inducted into the inner circle. No words are needed.",
-            _ => "The guild acknowledges your achievements with a new seal."
-        };
-    }
-
-    private void CheckNewSealOpportunities(SealType type, SealTier tier)
-    {
-        // Check for newly available routes/locations/NPCs based on seal
-        if (tier >= SealTier.Journeyman)
-        {
-            _messageSystem.AddSystemMessage("🔓 Your new seal may grant access to restricted areas and exclusive opportunities.", SystemMessageTypes.Info);
-        }
-
-        if (tier == SealTier.Master)
-        {
-            _messageSystem.AddSystemMessage("👑 As a Master, you now have significant influence in guild matters.", SystemMessageTypes.Info);
-        }
-    }
+    // Seal conversion system completely removed - endorsements and seals no longer exist
 
     // ========== TRAVEL ==========
 
@@ -1718,7 +1533,7 @@ public class GameFacade
         int baseStaminaCost = totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX ? GameConstants.LoadWeight.LIGHT_LOAD_STAMINA_PENALTY :
                              (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX ? GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY : GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY);
 
-        List<DeliveryObligation> carriedLetters = player.CarriedLetters ?? new List<DeliveryObligation>();
+        List<Letter> carriedLetters = player.CarriedLetters ?? new List<Letter>();
         bool hasHeavyLetters = carriedLetters.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy));
         bool hasFragileLetters = carriedLetters.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Fragile));
         bool hasValuableLetters = carriedLetters.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Valuable));
@@ -1778,7 +1593,7 @@ public class GameFacade
     private List<RouteViewModel> ConvertRoutes(List<RouteOption> routes)
     {
         Player player = _gameWorld.GetPlayer();
-        List<DeliveryObligation> carriedLetters = player.CarriedLetters ?? new List<DeliveryObligation>();
+        List<Letter> carriedLetters = player.CarriedLetters ?? new List<Letter>();
         bool hasHeavyLetters = carriedLetters.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy));
 
         return routes.Select(route =>
@@ -2025,7 +1840,7 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
         int totalWeight = CalculateTotalWeight();
-        List<DeliveryObligation>? carriedLetters = player.CarriedLetters;
+        List<Letter>? carriedLetters = player.CarriedLetters;
 
         // Calculate weight status
         string weightStatus;
@@ -2449,12 +2264,8 @@ public class GameFacade
         Location location = _locationRepository.GetCurrentLocation();
         LocationSpot spot = player.CurrentLocationSpot;
 
-        // NPCs should have letters to offer when starting conversations
+        // NPCs offer letters through conversation cards when comfort is built
         // This creates the core tension: accepting letters fills your queue
-        if (npc != null)
-        {
-            npc.HasLetterToOffer = true; // NPCs always have something to ask of you
-        }
 
         SceneContext context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
 
@@ -2548,16 +2359,16 @@ public class GameFacade
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Found choice: {selectedChoice.NarrativeText}, PatienceCost: {selectedChoice.PatienceCost}, ChoiceType: {selectedChoice.ChoiceType}");
 
         // LETTER REQUEST CARD HANDLING: Process letter request cards with success/failure mechanics
-        if (selectedChoice.ChoiceType == ConversationChoiceType.RequestTrustDeliveryObligation ||
-            selectedChoice.ChoiceType == ConversationChoiceType.RequestCommerceDeliveryObligation ||
-            selectedChoice.ChoiceType == ConversationChoiceType.RequestStatusDeliveryObligation ||
+        if (selectedChoice.ChoiceType == ConversationChoiceType.RequestTrustLetter ||
+            selectedChoice.ChoiceType == ConversationChoiceType.RequestCommerceLetter ||
+            selectedChoice.ChoiceType == ConversationChoiceType.RequestStatusLetter ||
             selectedChoice.ChoiceType == ConversationChoiceType.RequestShadowLetter)
         {
             return await ProcessLetterRequestCard(currentConversation, selectedChoice);
         }
         
         // SPECIAL LETTER REQUEST HANDLING: Process special letter requests (Epic 7)
-        if (selectedChoice.ChoiceType == ConversationChoiceType.IntroductionDeliveryObligation ||
+        if (selectedChoice.ChoiceType == ConversationChoiceType.IntroductionLetter ||
             selectedChoice.ChoiceType == ConversationChoiceType.AccessPermit)
         {
             return await ProcessSpecialLetterRequestCard(currentConversation, selectedChoice);
@@ -2711,7 +2522,7 @@ public class GameFacade
         string bodyLanguage = "";
         if (_npcStateResolver != null && npc != null)
         {
-            StakeType stakes = urgentLetter?.Stakes ?? StakeType.REPUTATION;
+            StakeType stakes = urgentDeliveryObligation?.Stakes ?? StakeType.REPUTATION;
             bodyLanguage = _npcStateResolver.GenerateBodyLanguage(npcState, stakes);
         }
         else
@@ -2761,8 +2572,8 @@ public class GameFacade
 
             // Emotional State (from NPCStateResolver)
             EmotionalState = npcState,
-            CurrentStakes = urgentLetter?.Stakes,
-            HoursToDeadline = urgentLetter?.DeadlineInMinutes,
+            CurrentStakes = urgentDeliveryObligation?.Stakes,
+            HoursToDeadline = urgentDeliveryObligation?.DeadlineInMinutes,
 
             Choices = conversation.Choices?.Select(c => new ConversationChoiceViewModel
             {
@@ -2808,7 +2619,7 @@ public class GameFacade
             LocationName = context?.LocationSpotName ?? "Unknown Location",
             LocationAtmosphere = locationAtmosphere,
             CharacterState = bodyLanguage,
-            CharacterAction = GenerateCharacterAction(npcState, urgentLetter, conversation),
+            CharacterAction = GenerateCharacterAction(npcState, urgentDeliveryObligation, conversation),
             RelationshipStatus = GetRelationshipStatusDisplay(npc),
 
             // Internal monologue (generated based on pressure)
@@ -2832,10 +2643,10 @@ public class GameFacade
         // Determine letter type from choice type
         ConnectionType letterType = choice.ChoiceType switch
         {
-            ConversationChoiceType.RequestTrustDeliveryObligation => ConnectionType.Trust,
-            ConversationChoiceType.RequestCommerceDeliveryObligation => ConnectionType.Commerce,
-            ConversationChoiceType.RequestStatusDeliveryObligation => ConnectionType.Status,
-            ConversationChoiceType.RequestShadowDeliveryObligation => ConnectionType.Shadow,
+            ConversationChoiceType.RequestTrustLetter => ConnectionType.Trust,
+            ConversationChoiceType.RequestCommerceLetter => ConnectionType.Commerce,
+            ConversationChoiceType.RequestStatusLetter => ConnectionType.Status,
+            ConversationChoiceType.RequestShadowLetter => ConnectionType.Shadow,
             _ => ConnectionType.Trust
         };
 
@@ -2852,8 +2663,8 @@ public class GameFacade
         if (actualOutcome == ConversationOutcome.Success)
         {
             // Generate letter using existing service
-            var generatedLetters = _letterOfferService.GenerateFromConversation(npc.ID, 
-                conversation.State.TotalComfort, conversation.State.StartingPatience);
+            // Legacy letter offer generation replaced with conversation-based system
+            var generatedLetters = new List<DeliveryObligation>();
                 
             if (generatedLetters?.Any() == true)
             {
@@ -2901,7 +2712,7 @@ public class GameFacade
 
     /// <summary>
     /// Process special letter request card using SpecialLetterGenerationService
-    /// Epic 7: Only supports IntroductionDeliveryObligation (Trust) and AccessPermit (Commerce)
+    /// Epic 7: Only supports IntroductionLetter (Trust) and AccessPermit (Commerce)
     /// </summary>
     private async Task<ConversationViewModel> ProcessSpecialLetterRequestCard(ConversationManager conversation, ConversationChoice choice)
     {
@@ -2912,13 +2723,13 @@ public class GameFacade
         // Determine token type from choice type
         ConnectionType tokenType = choice.ChoiceType switch
         {
-            ConversationChoiceType.IntroductionDeliveryObligation => ConnectionType.Trust,
+            ConversationChoiceType.IntroductionLetter => ConnectionType.Trust,
             ConversationChoiceType.AccessPermit => ConnectionType.Commerce,
             _ => throw new ArgumentException($"Unsupported special letter type: {choice.ChoiceType}")
         };
 
         // Check if we can request this special letter type
-        if (!_specialLetterService.CanRequestSpecialLetter(npc.ID, tokenType))
+        if (!_conversationLetterService.CanRequestSpecialLetter(npc.ID, tokenType))
         {
             // Use categorical message instead of hardcoded text
             _messageSystem.AddSpecialLetterRequestResult(
@@ -2947,8 +2758,16 @@ public class GameFacade
         // Handle success: Generate special letter and remove card from deck
         if (actualOutcome == ConversationOutcome.Success)
         {
+            // Map token type to special letter type
+            LetterSpecialType specialType = tokenType switch
+            {
+                ConnectionType.Trust => LetterSpecialType.Introduction,
+                ConnectionType.Commerce => LetterSpecialType.AccessPermit,
+                _ => LetterSpecialType.None
+            };
+            
             // Request special letter using the service
-            bool success = _specialLetterService.RequestSpecialLetter(npc.ID, tokenType);
+            bool success = _conversationLetterService.RequestSpecialLetter(npc.ID, specialType);
             
             if (success)
             {
@@ -3001,8 +2820,8 @@ public class GameFacade
         ConversationBeatOutcome outcome = await conversation.ProcessPlayerChoice(choice);
 
         // Generate the actual letter using existing NPCLetterOfferService
-        var generatedLetters = _letterOfferService.GenerateFromConversation(npc.ID, 
-            conversation.State.TotalComfort, conversation.State.StartingPatience);
+        // Legacy letter offer generation replaced with conversation-based system
+        var generatedLetters = new List<DeliveryObligation>();
 
         if (generatedLetters?.Any() == true)
         {
@@ -3024,7 +2843,7 @@ public class GameFacade
             }
 
             // Show queue impact
-            DeliveryObligation[] queueSnapshot = GetQueueArray();
+            DeliveryObligation[] queueSnapshot = _letterQueueManager.GetPlayerQueue();
             int filledSlots = queueSnapshot.Count(letter => letter != null);
             int totalWeight = queueSnapshot.Where(letter => letter != null).Sum(letter => 1);
             
@@ -3089,7 +2908,7 @@ public class GameFacade
 
     private string GenerateCharacterAction(
         NPCEmotionalState npcState,
-        DeliveryObligation urgentLetter,
+        DeliveryObligation urgentDeliveryObligation,
         ConversationManager conversation)
     {
         if (_actionBeatGenerator == null) return "";
@@ -3098,13 +2917,13 @@ public class GameFacade
         int conversationTurn = 1; // Default to first turn
 
         // Check if urgent
-        bool isUrgent = urgentLetter?.DeadlineInMinutes <= 2;
+        bool isUrgent = urgentDeliveryObligation?.DeadlineInMinutes <= 2;
 
         // Generate the action beat with NPC ID for determinism
         string? npcId = conversation?.Context?.TargetNPC?.ID;
         return _actionBeatGenerator.GenerateActionBeat(
             npcState,
-            urgentLetter?.Stakes,
+            urgentDeliveryObligation?.Stakes,
             conversationTurn,
             isUrgent,
             npcId
@@ -3239,7 +3058,7 @@ public class GameFacade
 
     // ========== LETTER QUEUE ==========
 
-    public LetterQueueViewModel GetQueueViewModel()
+    public LetterQueueViewModel GetLetterQueue()
     {
         Player player = _gameWorld.GetPlayer();
 
@@ -3249,31 +3068,51 @@ public class GameFacade
             CurrentDay = _gameWorld.CurrentDay,
             LastMorningSwapDay = player.LastMorningSwapDay,
             QueueSlots = new List<QueueSlotViewModel>(),
-            Status = GetQueueStatus(),
-            Actions = GetQueueActions()
+            Status = new QueueStatusViewModel
+            {
+                LetterCount = player.ObligationQueue.Count(o => o != null),
+                MaxCapacity = 8,
+                ExpiredCount = player.ObligationQueue.Where(o => o != null && o.DeadlineInMinutes <= 0).Count(),
+                UrgentCount = player.ObligationQueue.Where(o => o != null && o.DeadlineInMinutes > 0 && o.DeadlineInMinutes <= 24).Count(),
+                WarningCount = player.ObligationQueue.Where(o => o != null && o.DeadlineInMinutes > 24 && o.DeadlineInMinutes <= 48).Count(),
+                TotalSize = player.ObligationQueue.Where(o => o != null).Count(), // Each obligation takes 1 slot
+                MaxSize = 12, // Satchel size capacity
+                RemainingSize = 12 - player.ObligationQueue.Where(o => o != null).Count(),
+                SizeDisplay = $"{player.ObligationQueue.Where(o => o != null).Count()}/12"
+            },
+            Actions = new QueueActionsViewModel
+            {
+                CanMorningSwap = _timeManager.GetCurrentTimeBlock() == TimeBlocks.Morning && player.LastMorningSwapDay < _gameWorld.CurrentDay,
+                MorningSwapReason = _timeManager.GetCurrentTimeBlock() != TimeBlocks.Morning ? "Only available in morning" : 
+                                   player.LastMorningSwapDay >= _gameWorld.CurrentDay ? "Already swapped today" : 
+                                   "Available",
+                HasBottomDeliveryObligation = player.ObligationQueue[7] != null,
+                TotalAvailableTokens = 0, // Would need to calculate total tokens across all NPCs
+                PurgeTokenOptions = new List<TokenOptionViewModel>()
+            }
         };
 
         // Build queue slots
         for (int position = 1; position <= 8; position++)
         {
-            Letter? letter = _letterQueueManager.GetLetterAt(position);
-            bool canSkip = position > 1 && letter != null && _letterQueueManager.GetLetterAt(1) == null;
+            DeliveryObligation? obligation = _letterQueueManager.GetLetterAt(position);
+            bool canSkip = position > 1 && obligation != null && _letterQueueManager.GetLetterAt(1) == null;
 
             // Calculate skip action details
             SkipActionViewModel? skipAction = null;
             if (canSkip)
             {
                 int baseCost = position - 1;
-                int multiplier = _standingObligationManager.CalculateSkipCostMultiplier(letter);
+                int multiplier = _standingObligationManager.CalculateSkipCostMultiplier(obligation);
                 int tokenCost = baseCost * multiplier;
-                int availableTokens = _connectionTokenManager.GetTokenCount(letter.TokenType);
+                int availableTokens = _connectionTokenManager.GetTokenCount(obligation.TokenType);
 
                 // Build detailed multiplier reason
                 string multiplierReason = null;
                 if (multiplier > 1)
                 {
                     List<StandingObligation> activeObligations = _standingObligationManager.GetActiveObligations()
-                        .Where(o => o.HasEffect(ObligationEffect.TrustSkipDoubleCost) && o.AppliesTo(letter.TokenType))
+                        .Where(o => o.HasEffect(ObligationEffect.TrustSkipDoubleCost) && o.AppliesTo(obligation.TokenType))
                         .ToList();
 
                     if (activeObligations.Any())
@@ -3292,7 +3131,7 @@ public class GameFacade
                     BaseCost = baseCost,
                     Multiplier = multiplier,
                     TotalCost = tokenCost,
-                    TokenType = letter.TokenType.ToString(),
+                    TokenType = obligation.TokenType.ToString(),
                     AvailableTokens = availableTokens,
                     HasEnoughTokens = availableTokens >= tokenCost,
                     MultiplierReason = multiplierReason
@@ -3302,9 +3141,9 @@ public class GameFacade
             QueueSlotViewModel slot = new QueueSlotViewModel
             {
                 Position = position,
-                IsOccupied = letter != null,
-                DeliveryObligation = letter != null ? ConvertToLetterViewModel(letter) : null,
-                CanDeliver = position == 1 && letter?.State == LetterState.Collected,
+                IsOccupied = obligation != null,
+                DeliveryObligation = obligation != null ? ConvertToLetterViewModel(obligation) : null,
+                CanDeliver = position == 1 && obligation != null,
                 CanSkip = canSkip,
                 SkipAction = skipAction
             };
@@ -3313,6 +3152,40 @@ public class GameFacade
         }
 
         return viewModel;
+    }
+    
+    private LetterViewModel ConvertToLetterViewModel(DeliveryObligation obligation)
+    {
+        if (obligation == null) return null;
+        
+        // Calculate deadline urgency
+        string deadlineClass = obligation.DeadlineInMinutes <= 24 ? "danger" : 
+                              obligation.DeadlineInMinutes <= 48 ? "warning" : "normal";
+        string deadlineIcon = obligation.DeadlineInMinutes <= 24 ? "⚠️" : "⏰";
+        
+        return new LetterViewModel
+        {
+            Id = obligation.Id,
+            SenderName = obligation.SenderName,
+            RecipientName = obligation.RecipientName,
+            DeadlineInHours = obligation.DeadlineInMinutes / 60,
+            Payment = obligation.Payment,
+            TokenType = obligation.TokenType.ToString(),
+            TokenIcon = GetTokenIcon(obligation.TokenType),
+            Size = 1, // Obligations don't have size - that's a physical letter property
+            SizeIcon = "📜",
+            SizeDisplay = "■",
+            IsPatronDeliveryObligation = false,
+            IsCollected = false,
+            PhysicalConstraints = "",
+            PhysicalIcon = "",
+            IsSpecial = false,
+            SpecialIcon = "",
+            SpecialDescription = "",
+            DeadlineClass = deadlineClass,
+            DeadlineIcon = deadlineIcon,
+            DeadlineDescription = $"{obligation.DeadlineInMinutes / 60}h deadline"
+        };
     }
 
     public async Task<bool> ExecuteLetterActionAsync(string actionType, string letterId)
@@ -3473,29 +3346,11 @@ public class GameFacade
             };
         }
 
-        // Get offers from the letter queue manager
-        Player player = _gameWorld.GetPlayer();
-        LetterQueueViewModel queueViewModel = GetQueueViewModel();
-        List<LetterOffer> offers = new List<LetterOffer>();
-
-        // DeliveryObligation board offers are now retrieved from ObligationQueueManager
-        List<LetterOfferViewModel> offerViewModels = offers.Select(offer => new LetterOfferViewModel
-        {
-            Id = offer.Id,
-            SenderName = offer.NPCName,
-            RecipientName = "Various Recipients", // offer.RecipientName removed
-            Description = offer.Message,
-            Payment = offer.Payment,
-            DeadlineDays = offer.DeadlineInMinutes / 24,
-            CanAccept = true, // CanAcceptMore method removed
-            CannotAcceptReason = null,
-            TokenTypes = new List<string> { offer.LetterType.ToString() }
-        }).ToList();
-
+        // Letter board no longer exists - all letters come from conversations
         return new LetterBoardViewModel
         {
-            IsAvailable = true,
-            Offers = offerViewModels,
+            IsAvailable = false,
+            Offers = new List<LetterOfferViewModel>(),
             CurrentTime = currentTime
         };
     }
@@ -3574,12 +3429,12 @@ public class GameFacade
                 break;
         }
 
-        return new QueueOperationCost(
-            costs,
-            operation == QueueOperationType.MorningSwap,
-            operation == QueueOperationType.Deliver,
-            errors.ToArray()
-        );
+        return new QueueOperationCost
+        {
+            TokenCosts = costs,
+            ValidationErrors = errors,
+            IsAffordable = errors.Count == 0
+        };
     }
 
     public bool CanPerformOperation(QueueOperationType operation, int position1, int? position2 = null)
@@ -3587,7 +3442,7 @@ public class GameFacade
         QueueOperationCost cost = GetOperationCost(operation, position1, position2);
 
         // Check for validation errors
-        if (cost.ValidationErrors.Length > 0)
+        if (cost.ValidationErrors.Count > 0)
             return false;
 
         // Check token affordability
@@ -3619,7 +3474,7 @@ public class GameFacade
         {
             // Validate operation
             QueueOperationCost cost = GetOperationCost(QueueOperationType.MorningSwap, position1, position2);
-            if (cost.ValidationErrors.Length > 0)
+            if (cost.ValidationErrors.Count > 0)
                 return new QueueOperationResult(false, string.Join(", ", cost.ValidationErrors), null, GetQueueSnapshot());
 
             // Execute swap
@@ -3762,14 +3617,18 @@ public class GameFacade
         {
             // Get the queue object directly
             Player player = _gameWorld.GetPlayer();
-            DeliveryObligation[] queue = _letterQueueManager.GetQueueViewModel();
+            DeliveryObligation[] queue = _letterQueueManager.GetPlayerQueue();
             if (queue == null)
                 return new QueueOperationResult(false, "Queue not available", null, GetQueueSnapshot());
 
-            // Use the LetterQueue's Reorder method
-            bool success = queue.Reorder(fromPosition, toPosition);
-            if (!success)
-                return new QueueOperationResult(false, "Failed to reorder queue", null, GetQueueSnapshot());
+            // Get the obligation at fromPosition
+            DeliveryObligation obligationToMove = _letterQueueManager.GetLetterAt(fromPosition);
+            if (obligationToMove == null)
+                return new QueueOperationResult(false, $"No obligation at position {fromPosition}", null, GetQueueSnapshot());
+            
+            // Move it to toPosition
+            _letterQueueManager.MoveObligationToPosition(obligationToMove, toPosition);
+            bool success = true;
 
             _messageSystem.AddSystemMessage($"Reordered: moved position {fromPosition} to {toPosition}", SystemMessageTypes.Success);
             return new QueueOperationResult(true, null, new Dictionary<ConnectionType, int>(), GetQueueSnapshot());
@@ -4039,7 +3898,6 @@ public class GameFacade
                     Description = item.Description,
                     Weight = item.Weight,
                     Value = item.SellPrice,
-                    CanRead = item.IsReadable()
                 });
             }
         }
@@ -4059,7 +3917,6 @@ public class GameFacade
         Item item = _itemRepository.GetItemById(itemId);
         if (item == null) return false;
 
-        if (item.IsReadable())
         {
             return await ReadLetterAsync(itemId);
         }
@@ -4184,7 +4041,7 @@ public class GameFacade
             NPCName = npc.Name,
             Role = npc.Role,
             HasDirectOfferAvailable = _connectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID),
-            PendingOfferCount = _letterOfferService.GetPendingOffersForNPC(npc.ID).Count,
+            PendingOfferCount = 0, // Legacy offer system removed
             IsAvailable = npc.IsAvailable(currentTime)
         })
         .Where(npc => npc.HasDirectOfferAvailable || npc.PendingOfferCount > 0)
@@ -4246,12 +4103,10 @@ public class GameFacade
         }
 
         // Check for patron obligations based on leverage
-        if (player.HasPatron && player.PatronLeverage > 0)
         {
             obligations.Add(new ObligationViewModel
             {
                 Name = "Patron Employment",
-                Description = $"Patron has {player.PatronLeverage} leverage over you",
                 Type = "Patron",
                 Priority = 2
             });
@@ -4321,17 +4176,7 @@ public class GameFacade
                 activeVm.TokenCount = _connectionTokenManager.GetTokenCount(obligation.RelatedTokenType.Value);
             }
 
-            // Check for forced letter warnings
-            if (obligation.HasEffect(ObligationEffect.ShadowForced))
-            {
-                activeVm.HasForcedLetterWarning = obligation.DaysSinceLastForcedDeliveryObligation >= 2;
-                activeVm.DaysUntilForcedDeliveryObligation = Math.Max(0, 3 - obligation.DaysSinceLastForcedLetter);
-            }
-            else if (obligation.HasEffect(ObligationEffect.PatronMonthly))
-            {
-                activeVm.HasForcedLetterWarning = obligation.DaysSinceLastForcedDeliveryObligation >= 28;
-                activeVm.DaysUntilForcedDeliveryObligation = Math.Max(0, 30 - obligation.DaysSinceLastForcedLetter);
-            }
+            // Forced letter system removed - all letters come from conversations
 
             // Check for conflicts
             activeVm.HasConflicts = CheckForConflicts(obligation, _standingObligationManager.GetActiveObligations());
@@ -4589,13 +4434,13 @@ public class GameFacade
         if (currentState == NPCEmotionalState.DESPERATE || currentState == NPCEmotionalState.ANXIOUS)
         {
             // Check if they have urgent letters or deadlines
-            Letter[] playerQueue = GetPlayer().ObligationQueue;
-            Letter? urgentDeliveryObligation = playerQueue?.FirstOrDefault(l => l != null &&
-                l.SenderName == npc.Name && l.DeadlineInMinutes <= 6);
+            DeliveryObligation[] playerQueue = GetPlayer().ObligationQueue;
+            DeliveryObligation? urgentDeliveryObligation = playerQueue?.FirstOrDefault(o => o != null &&
+                o.SenderName == npc.Name && o.DeadlineInMinutes <= 6);
 
             if (urgentDeliveryObligation != null)
             {
-                return $"Urgent letter deadline approaching ({urgentLetter.DeadlineInMinutes}h)";
+                return $"Urgent letter deadline approaching ({urgentDeliveryObligation.DeadlineInMinutes}h)";
             }
 
             return "Has urgent personal matters to discuss";
@@ -4828,221 +4673,6 @@ public class GameFacade
         // No cache to clear with simplified leverage system
     }
 
-    // ========== SEAL MANAGEMENT ==========
-
-    public SealProgressionViewModel GetSealProgression()
-    {
-        SealProgressionViewModel viewModel = new SealProgressionViewModel();
-        Player player = _gameWorld.GetPlayer();
-
-        // Get all owned seals
-        foreach (Seal seal in player.OwnedSeals)
-        {
-            OwnedSeal ownedSeal = new OwnedSeal
-            {
-                Id = seal.Id,
-                Name = seal.GetFullName(),
-                Type = seal.Type,
-                Tier = seal.Tier,
-                Description = seal.Description,
-                Material = seal.Material,
-                Insignia = seal.Insignia,
-                DayIssued = seal.DayIssued,
-                IssuingGuild = GetGuildNameFromId(seal.IssuingGuildId),
-                IsWorn = player.WornSeals.Contains(seal),
-                Benefits = GetSealBenefits(seal)
-            };
-            viewModel.OwnedSeals.Add(ownedSeal);
-        }
-
-        // Get worn seals with slot numbers
-        int slotNumber = 1;
-        foreach (Seal seal in player.WornSeals)
-        {
-            viewModel.WornSeals.Add(new WornSeal
-            {
-                Id = seal.Id,
-                Name = seal.GetFullName(),
-                Type = seal.Type,
-                Tier = seal.Tier,
-                SlotNumber = slotNumber++
-            });
-        }
-
-        // Get endorsement progress for each seal type
-        foreach (SealType sealType in Enum.GetValues<SealType>())
-        {
-            EndorsementProgress progress = new EndorsementProgress
-            {
-                Type = sealType,
-                TypeName = sealType.ToString()
-            };
-
-            // Get current endorsement count
-            string endorsementKey = $"endorsements_delivered_{sealType}";
-            MemoryFlag memory = player.GetMemory(endorsementKey);
-            progress.CurrentEndorsements = memory?.Importance ?? 0;
-
-            // Get current seal tier
-            Seal? currentSeal = player.OwnedSeals.FirstOrDefault(s => s.Type == sealType);
-            progress.CurrentTier = currentSeal?.Tier ?? (SealTier)0; // 0 means no seal
-
-            // Determine next tier and requirements
-            if (progress.CurrentTier < SealTier.Master)
-            {
-                progress.NextTier = progress.CurrentTier == 0 ? SealTier.Apprentice : progress.CurrentTier + 1;
-                progress.EndorsementsToNext = GetEndorsementsRequired(progress.NextTier.Value) - progress.CurrentEndorsements;
-                progress.NextTierBenefits = GetTierBenefits(sealType, progress.NextTier.Value);
-            }
-
-            // Get guild locations for this seal type
-            progress.GuildLocations = GetGuildLocationsForSealType(sealType);
-
-            viewModel.EndorsementTracking.Add(progress);
-        }
-
-        return viewModel;
-    }
-
-    public async Task<bool> EquipSealAsync(string sealId)
-    {
-        Player player = _gameWorld.GetPlayer();
-        Seal? seal = player.OwnedSeals.FirstOrDefault(s => s.Id == sealId);
-
-        if (seal == null)
-        {
-            _messageSystem.AddSystemMessage("You don't own this seal.", SystemMessageTypes.Danger);
-            return false;
-        }
-
-        if (player.WornSeals.Contains(seal))
-        {
-            _messageSystem.AddSystemMessage("This seal is already equipped.", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        if (player.WornSeals.Count >= 3)
-        {
-            _messageSystem.AddSystemMessage("You can only wear 3 seals at once. Unequip one first.", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        bool success = player.EquipSeal(seal);
-        if (success)
-        {
-            _messageSystem.AddSystemMessage($"Equipped {seal.GetFullName()}.", SystemMessageTypes.Success);
-        }
-
-        return success;
-    }
-
-    public async Task<bool> UnequipSealAsync(string sealId)
-    {
-        Player player = _gameWorld.GetPlayer();
-        Seal? seal = player.WornSeals.FirstOrDefault(s => s.Id == sealId);
-
-        if (seal == null)
-        {
-            _messageSystem.AddSystemMessage("This seal is not equipped.", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        bool success = player.UnequipSeal(seal);
-        if (success)
-        {
-            _messageSystem.AddSystemMessage($"Unequipped {seal.GetFullName()}.", SystemMessageTypes.Success);
-        }
-
-        return success;
-    }
-
-    private List<string> GetSealBenefits(Seal seal)
-    {
-        List<string> benefits = new List<string>();
-
-        // Base benefits by type
-        switch (seal.Type)
-        {
-            case SealType.Commerce:
-                benefits.Add("Better prices at markets");
-                benefits.Add("Access to merchant guild services");
-                if (seal.Tier >= SealTier.Journeyman)
-                    benefits.Add("Priority trading with guild members");
-                if (seal.Tier >= SealTier.Master)
-                    benefits.Add("Exclusive trade route information");
-                break;
-
-            case SealType.Status:
-                benefits.Add("Recognition by nobles and scholars");
-                benefits.Add("Access to restricted libraries");
-                if (seal.Tier >= SealTier.Journeyman)
-                    benefits.Add("Invitation to exclusive events");
-                if (seal.Tier >= SealTier.Master)
-                    benefits.Add("Authority to issue recommendations");
-                break;
-
-            case SealType.Shadow:
-                benefits.Add("Safe passage through dangerous areas");
-                benefits.Add("Access to black market contacts");
-                if (seal.Tier >= SealTier.Journeyman)
-                    benefits.Add("Protection from rival gangs");
-                if (seal.Tier >= SealTier.Master)
-                    benefits.Add("Control over underground networks");
-                break;
-        }
-
-        return benefits;
-    }
-
-    private string GetTierBenefits(SealType type, SealTier tier)
-    {
-        return (type, tier) switch
-        {
-            (SealType.Commerce, SealTier.Apprentice) => "Basic trading privileges and guild recognition",
-            (SealType.Commerce, SealTier.Journeyman) => "Full merchant rights and priority trading",
-            (SealType.Commerce, SealTier.Master) => "Elite status with exclusive trade routes",
-            (SealType.Status, SealTier.Apprentice) => "Recognition among educated classes",
-            (SealType.Status, SealTier.Journeyman) => "Library access and event invitations",
-            (SealType.Status, SealTier.Master) => "Academic authority and teaching rights",
-            (SealType.Shadow, SealTier.Apprentice) => "Safe passage and underground contacts",
-            (SealType.Shadow, SealTier.Journeyman) => "Gang protection and safe house access",
-            (SealType.Shadow, SealTier.Master) => "Network control and criminal authority",
-            _ => "Guild recognition and privileges"
-        };
-    }
-
-    private int GetEndorsementsRequired(SealTier tier)
-    {
-        return tier switch
-        {
-            SealTier.Apprentice => 3,
-            SealTier.Journeyman => 5,
-            SealTier.Master => 7,
-            _ => 3
-        };
-    }
-
-    private List<string> GetGuildLocationsForSealType(SealType type)
-    {
-        return type switch
-        {
-            SealType.Commerce => new List<string> { "Merchant Guild", "Courier's Guild" },
-            SealType.Status => new List<string> { "Scholar's Atheneum" },
-            SealType.Shadow => new List<string> { "Underground Guild Halls" },
-            _ => new List<string>()
-        };
-    }
-
-    private string GetGuildNameFromId(string guildId)
-    {
-        return guildId switch
-        {
-            "merchant_guild" => "Merchant Guild",
-            "messenger_guild" => "Courier's Guild",
-            "scholar_guild" => "Scholar's Atheneum",
-            _ => "Unknown Guild"
-        };
-    }
 
     // ========== INFORMATION DISCOVERY ==========
 
@@ -5134,7 +4764,6 @@ public class GameFacade
         // Check seals
         foreach (string sealId in info.SealRequirements)
         {
-            if (!player.Seals.Any(s => s.Id == sealId))
                 return false;
         }
 
@@ -5515,27 +5144,52 @@ public class GameFacade
 
     public List<SpecialLetterOption> GetAvailableSpecialLetters(string npcId)
     {
-        return _specialLetterService?.GetAvailableSpecialLetters(npcId) ?? new List<SpecialLetterOption>();
+        return _conversationLetterService?.GetAvailableSpecialLetters(npcId) ?? new List<SpecialLetterOption>();
     }
 
     public bool RequestSpecialLetter(string npcId, ConnectionType tokenType)
     {
-        return _specialLetterService?.RequestSpecialLetter(npcId, tokenType) ?? false;
+        // Map token type to special letter type
+        LetterSpecialType specialType = tokenType switch
+        {
+            ConnectionType.Trust => LetterSpecialType.Introduction,
+            ConnectionType.Commerce => LetterSpecialType.AccessPermit,
+            _ => LetterSpecialType.None
+        };
+        
+        return specialType != LetterSpecialType.None && 
+               (_conversationLetterService?.RequestSpecialLetter(npcId, specialType) ?? false);
     }
 
     public LetterCategory GetAvailableCategory(string npcId, ConnectionType tokenType)
     {
-        return _letterCategoryService?.GetAvailableCategory(npcId, tokenType) ?? LetterCategory.Basic;
+        return _conversationLetterService?.GetLetterCategory(npcId, tokenType) ?? LetterCategory.Basic;
     }
 
     public int GetTokensToNextCategory(string npcId, ConnectionType tokenType)
     {
-        return _letterCategoryService?.GetTokensToNextCategory(npcId, tokenType) ?? 0;
+        // Calculate tokens needed for next category threshold
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        int currentTokens = tokens.GetValueOrDefault(tokenType, 0);
+        
+        if (currentTokens < GameRules.TOKENS_QUALITY_THRESHOLD)
+            return GameRules.TOKENS_QUALITY_THRESHOLD - currentTokens;
+        if (currentTokens < GameRules.TOKENS_PREMIUM_THRESHOLD)
+            return GameRules.TOKENS_PREMIUM_THRESHOLD - currentTokens;
+        
+        return 0; // Already at premium
     }
 
     public (int min, int max) GetCategoryPaymentRange(LetterCategory category)
     {
-        return _letterCategoryService?.GetCategoryPaymentRange(category) ?? (0, 0);
+        // Payment ranges based on category
+        return category switch
+        {
+            LetterCategory.Basic => (4, 8),
+            LetterCategory.Quality => (8, 12),
+            LetterCategory.Premium => (12, 20),
+            _ => (4, 8)
+        };
     }
 
     // ========== ITEM MANAGEMENT ==========
@@ -5548,22 +5202,18 @@ public class GameFacade
     public async Task<bool> ReadLetterAsync(string itemId)
     {
         Item item = _itemRepository.GetItemById(itemId);
-        if (item == null || !item.IsReadable())
         {
             return false;
         }
 
         // Execute read directly
-        if (!string.IsNullOrEmpty(item.ReadFlagToSet))
         {
-            _flagService.SetFlag(item.ReadFlagToSet);
         }
 
         // Show message about reading the letter
         _messageSystem.AddSystemMessage($"You carefully read the {item.Name}...", SystemMessageTypes.Info);
 
         // Show any special effects or notifications
-        if (!string.IsNullOrEmpty(item.ReadFlagToSet))
         {
             _messageSystem.AddSystemMessage("The letter's contents give you pause. This could change everything...", SystemMessageTypes.Tutorial);
         }
@@ -5575,23 +5225,24 @@ public class GameFacade
 
     public bool CanReadItem(string itemId)
     {
-        Item item = _itemRepository.GetItemById(itemId);
-        return item != null && item.IsReadable();
+        // Letters are not items - they're separate entities
+        // This method is for legacy compatibility
+        return false;
     }
 
 
     // ========== LETTER QUEUE MANAGEMENT ==========
 
-    public int GetQueueSnapshotCount()
+    public int GetLetterQueueCount()
     {
         Player player = _gameWorld.GetPlayer();
         if (player?.ObligationQueue == null) return 0;
-        return player.ObligationQueue.Count(l => l != null && l.State == LetterState.Collected);
+        return player.ObligationQueue.Count(o => o != null);
     }
 
     public bool IsLetterQueueFull()
     {
-        int count = GetQueueSnapshotCount();
+        int count = GetLetterQueueCount();
         return count >= 8; // MAX_LETTER_QUEUE_SIZE
     }
 
@@ -5624,6 +5275,8 @@ public enum QueueOperationType
     PriorityMove,
     ExtendDeadline,
     SkipDelivery,
+    Deliver,
+    SkipDeliver,
     Reorder
 }
 

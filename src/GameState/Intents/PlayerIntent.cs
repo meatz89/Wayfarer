@@ -156,17 +156,3 @@ public class DiscoverRouteIntent : PlayerIntent
     }
 }
 
-/// <summary>
-/// Intent to convert endorsements to a guild seal
-/// </summary>
-public class ConvertEndorsementsIntent : PlayerIntent
-{
-    public string LocationId { get; }
-    public string TargetTier { get; }
-
-    public ConvertEndorsementsIntent(string locationId, string targetTier)
-    {
-        LocationId = locationId ?? throw new ArgumentNullException(nameof(locationId));
-        TargetTier = targetTier ?? throw new ArgumentNullException(nameof(targetTier));
-    }
-}

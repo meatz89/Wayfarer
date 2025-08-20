@@ -42,10 +42,9 @@ public class LetterViewModel
     public int Payment { get; init; }
     public string TokenType { get; init; }
     public string TokenIcon { get; init; }
-    public string Size { get; init; }
+    public int Size { get; init; } // Size (1-3 slots)
     public string SizeIcon { get; init; }
-    public int Weight { get; init; } // Weight (1-3 slots)
-    public string WeightDisplay { get; init; } // Visual representation (e.g., "■■■")
+    public string SizeDisplay { get; init; } // Visual representation (e.g., "■■■")
     public bool IsPatronDeliveryObligation { get; init; }
     public bool IsCollected { get; init; }
     public string PhysicalConstraints { get; init; }
@@ -108,10 +107,10 @@ public class QueueStatusViewModel
     public int ExpiredCount { get; init; }
     public int UrgentCount { get; init; }
     public int WarningCount { get; init; }
-    public int TotalWeight { get; init; } // Current total weight in queue
-    public int MaxWeight { get; init; } // Maximum weight capacity (12)
-    public int RemainingWeight { get; init; } // Available weight capacity
-    public string WeightDisplay { get; init; } // Visual representation (e.g., "7/12")
+    public int TotalSize { get; init; } // Current total size in satchel
+    public int MaxSize { get; init; } // Maximum size capacity (12)
+    public int RemainingSize { get; init; } // Available size capacity
+    public string SizeDisplay { get; init; } // Visual representation (e.g., "7/12")
 }
 
 /// <summary>

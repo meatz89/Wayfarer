@@ -4,16 +4,14 @@ public class StandingObligationManager
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
-    private readonly DeliveryTemplateService _letterTemplateRepository;
     private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly StandingObligationRepository _obligationRepository;
     private readonly ITimeManager _timeManager;
 
-    public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, DeliveryTemplateService letterTemplateRepository, TokenMechanicsManager connectionTokenManager, StandingObligationRepository obligationRepository, ITimeManager timeManager)
+    public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, TokenMechanicsManager connectionTokenManager, StandingObligationRepository obligationRepository, ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
-        _letterTemplateRepository = letterTemplateRepository;
         _connectionTokenManager = connectionTokenManager;
         _obligationRepository = obligationRepository;
         _timeManager = timeManager;
@@ -153,71 +151,21 @@ public class StandingObligationManager
         return forcedLetters;
     }
 
-    // Generate a forced letter for a specific obligation
+    // Obligations no longer generate forced letters
+    // Letters are ONLY created through conversation choices
     public DeliveryObligation GenerateForcedLetter(StandingObligation obligation)
     {
-        if (obligation.HasEffect(ObligationEffect.ShadowForced))
-        {
-            return GenerateShadowForcedLetter();
-        }
-
-        if (obligation.HasEffect(ObligationEffect.PatronMonthly))
-        {
-            return GeneratePatronMonthlyLetter();
-        }
-
+        // This method is deprecated - obligations create conversation opportunities, not automatic letters
+        _messageSystem.AddSystemMessage(
+            $"Obligation {obligation.Name} creates new conversation opportunities!",
+            SystemMessageTypes.Info
+        );
         return null;
     }
 
-    // Generate shadow obligation forced letter using templates
-    private DeliveryObligation GenerateShadowForcedLetter()
-    {
-        LetterTemplate template = _letterTemplateRepository.GetRandomForcedShadowTemplate();
-        if (template != null)
-        {
-            return _letterTemplateRepository.GenerateForcedLetterFromTemplate(template);
-        }
+    // REMOVED - Letters are only created through conversation choices
 
-        // Fallback to hardcoded generation if no templates available
-        string[] shadowSenders = new[] { "The Fence", "Midnight Contact", "Shadow Broker", "Anonymous Source" };
-        string[] shadowRecipients = new[] { "Dead Drop", "Safe House", "Underground Contact", "Hidden Ally" };
-        Random random = new Random();
-
-        return new Letter
-        {
-            SenderName = shadowSenders[random.Next(shadowSenders.Length)],
-            RecipientName = shadowRecipients[random.Next(shadowRecipients.Length)],
-            TokenType = ConnectionType.Shadow,
-            Payment = random.Next(20, 40), // High base payment for dangerous work
-            DeadlineInMinutes = random.Next(1, 4), // Urgent deadlines
-            IsGenerated = true,
-            GenerationReason = "Shadow Obligation Forced (Fallback)"
-        };
-    }
-
-    // Generate patron monthly resource letter using templates
-    private DeliveryObligation GeneratePatronMonthlyLetter()
-    {
-        LetterTemplate template = _letterTemplateRepository.GetRandomForcedPatronTemplate();
-        if (template != null)
-        {
-            return _letterTemplateRepository.GenerateForcedLetterFromTemplate(template);
-        }
-
-        // Fallback to hardcoded generation if no templates available
-        Random random = new Random();
-
-        return new Letter
-        {
-            SenderName = "Your Patron",
-            RecipientName = "Resources Contact",
-            TokenType = ConnectionType.Status, // Patron letters usually noble
-            Payment = random.Next(50, 100), // Large resource package
-            DeadlineInMinutes = random.Next(3, 7), // Reasonable deadline
-            IsGenerated = true,
-            GenerationReason = "Patron Monthly Package (Fallback)"
-        };
-    }
+    // REMOVED - Letters are only created through conversation choices
 
     // Record that forced letters were generated for obligations
     public void RecordForcedLettersGenerated(List<StandingObligation> obligations)
@@ -235,7 +183,7 @@ public class StandingObligationManager
 
         foreach (StandingObligation obligation in activeObligations)
         {
-            obligation.DaysSinceLastForcedLetter++;
+            obligation.DaysSinceLastForcedDeliveryObligation++;
         }
     }
 

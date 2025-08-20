@@ -30,34 +30,36 @@ public class PeripheralAwarenessBase : ComponentBase
         Player player = GameFacade.GetPlayer();
         if (player == null) return;
 
-        Letter[] letterQueue = player.ObligationQueue;
+        DeliveryObligation[] obligationQueue = player.ObligationQueue;
 
-        // Get deadline narrative for most urgent letter
-        Letter? urgentDeliveryObligation = letterQueue
-            .Where(l => l != null && l.State == LetterState.Collected)
+        // Get deadline narrative for most urgent obligation
+        DeliveryObligation? urgentObligation = obligationQueue
+            .Where(l => l != null && l.IsGenerated)
             .OrderBy(l => l.DeadlineInMinutes)
             .FirstOrDefault();
 
-        if (urgentDeliveryObligation != null && urgentLetter.DeadlineInMinutes <= 72) // 3 days = 72 hours
+        if (urgentObligation != null && urgentObligation.DeadlineInMinutes <= 4320) // 3 days in minutes
         {
-            DeadlineNarrative = urgentLetter.DeadlineInMinutes switch
+            int hoursLeft = urgentObligation.DeadlineInMinutes / 60;
+            DeadlineNarrative = hoursLeft switch
             {
-                <= 6 => $"⚡ {urgentLetter.SenderName}'s letter burns in your satchel - {urgentLetter.DeadlineInMinutes}h left!",
-                <= 24 => $"⏰ {urgentLetter.SenderName} needs their letter delivered today - {urgentLetter.DeadlineInMinutes}h",
-                <= 48 => $"📬 {urgentLetter.SenderName}'s letter needs attention soon",
-                _ => $"📬 {urgentLetter.SenderName}'s letter weighs on your mind"
+                <= 6 => $"⚡ {urgentObligation.SenderName}'s obligation burns urgent - {hoursLeft}h left!",
+                <= 24 => $"⏰ {urgentObligation.SenderName} needs delivery today - {hoursLeft}h",
+                <= 48 => $"📬 {urgentObligation.SenderName}'s obligation needs attention soon",
+                _ => $"📬 {urgentObligation.SenderName}'s obligation weighs on your mind"
             };
         }
 
         // Calculate queue pressure
-        int activeLetterCount = letterQueue.Count(l => l != null && l.State == LetterState.Collected);
-        if (activeLetterCount > 6)
+        int activeObligationCount = obligationQueue.Count(l => l != null && l.IsGenerated);
+        if (activeObligationCount > 6)
         {
             QueuePressureNarrative = "Your satchel strains with accumulated correspondence";
         }
-        else if (urgentDeliveryObligation != null && urgentLetter.DeadlineInMinutes <= 24) // 1 day = 24 hours
+        else if (urgentObligation != null && urgentObligation.DeadlineInMinutes <= 1440) // 1 day in minutes
         {
-            QueuePressureNarrative = $"⚡ {urgentLetter.SenderName}'s letter burns in your satchel - {urgentLetter.DeadlineInMinutes}h left!";
+            int hoursLeft = urgentObligation.DeadlineInMinutes / 60;
+            QueuePressureNarrative = $"⚡ {urgentObligation.SenderName}'s obligation burns urgent - {hoursLeft}h left!";
         }
     }
 }

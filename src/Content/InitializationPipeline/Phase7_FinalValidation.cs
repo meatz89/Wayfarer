@@ -216,11 +216,18 @@ public class Phase7_FinalValidation : IInitializationPhase
     {
         if (!gameWorld.WorldState.LetterTemplates.Any())
         {
-            LetterTemplateFactory templateFactory = new LetterTemplateFactory();
-
             // Create at least one basic template
-            LetterTemplate basicTemplate = templateFactory.CreateMinimalLetterTemplate("dummy_basic_letter");
-            basicTemplate.Description = "A simple letter delivery task";
+            LetterTemplate basicTemplate = new LetterTemplate
+            {
+                Id = "dummy_basic_letter",
+                Description = "A simple letter delivery task",
+                TokenType = ConnectionType.Trust,
+                MinPayment = 3,
+                MaxPayment = 5,
+                MinDeadlineInMinutes = 1440,
+                MaxDeadlineInMinutes = 2880,
+                Category = LetterCategory.Basic
+            };
 
             gameWorld.WorldState.LetterTemplates.Add(basicTemplate);
             createdDummies.Add($"LetterTemplate: {basicTemplate.Id} (basic delivery) - NO LETTER TEMPLATES IN JSON");

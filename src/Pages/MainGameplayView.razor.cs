@@ -374,7 +374,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         {
             // Handle queue management completion through facade
             // The facade should handle the queue operations internally
-            OnNavigate?.Invoke(CurrentViews.ObligationQueueScreen);
+            OnNavigate?.Invoke(CurrentViews.LetterQueueScreen);
         }
         else
         {

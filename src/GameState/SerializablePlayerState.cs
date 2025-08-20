@@ -56,7 +56,6 @@ public class SerializableLetter
     public string TokenType { get; set; }
     public string State { get; set; }
     public int QueuePosition { get; set; }
-    public string Size { get; set; }
     // IsFromPatron removed - patron system deleted
     public string PhysicalProperties { get; set; }
     public string RequiredEquipment { get; set; }
@@ -72,7 +71,7 @@ public class SerializableLetter
     
     // Physical Letter Properties
     public string SpecialType { get; set; }
-    public int Weight { get; set; }
+    public int Size { get; set; }
     public string InformationId { get; set; }
     public bool IsSealed { get; set; }
     public bool IsUrgent { get; set; }

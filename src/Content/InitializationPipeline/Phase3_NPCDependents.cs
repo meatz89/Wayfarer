@@ -162,7 +162,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                 return;
             }
 
-            LetterTemplateFactory templateFactory = new LetterTemplateFactory();
+            // LetterTemplateFactory removed - templates created directly
 
             foreach (LetterTemplateDTO dto in templateDTOs)
             {
@@ -242,7 +242,6 @@ public class Phase3_NPCDependents : IInitializationPhase
                         PossibleRecipients = dto.PossibleRecipients?.ToArray() ?? new string[0],
                         UnlocksLetterIds = dto.UnlocksLetterIds?.ToArray() ?? new string[0],
                         TierLevel = tierLevel,
-                        HumanContext = dto.HumanContext ?? "",
                         ConsequenceIfLate = dto.ConsequenceIfLate ?? "",
                         ConsequenceIfDelivered = dto.ConsequenceIfDelivered ?? "",
                         EmotionalWeight = emotionalWeight,
@@ -277,7 +276,7 @@ public class Phase3_NPCDependents : IInitializationPhase
 
     private void CreateBasicLetterTemplates(InitializationContext context)
     {
-        LetterTemplateFactory templateFactory = new LetterTemplateFactory();
+        // LetterTemplateFactory removed - templates created directly
 
         // Create one template for each token type
         ConnectionType[] tokenTypes = new[]

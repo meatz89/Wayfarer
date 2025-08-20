@@ -200,7 +200,7 @@ public class RouteDeck
                     {
                         Description = "Hire to deliver secondary letter",
                         RequiredCoins = 2,
-                        Effect = new TravelEventEffect { CoinChange = -2, DeliverSecondaryDeliveryObligation = true }
+                        Effect = new TravelEventEffect { CoinChange = -2 } // Hiring courier costs money
                     },
                     new TravelEventOption
                     {
@@ -735,8 +735,7 @@ public class TravelEventEffect
     public string UnlockedRouteId { get; set; }
     
     // DeliveryObligation effects
-    public bool DeliverSecondaryDeliveryObligation { get; set; }
-    public int DeadlineChangeMinutes { get; set; }
+    public int DeadlineChangeMinutes { get; set; } // Affects all obligations in queue
     
     // Route effects
     public bool PreventsFamiliarityGain { get; set; }

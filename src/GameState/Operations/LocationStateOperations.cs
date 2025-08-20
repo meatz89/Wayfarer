@@ -58,7 +58,7 @@ public static class LocationStateOperations
     /// <summary>
     /// Validates if a location is accessible based on requirements.
     /// </summary>
-    public static bool IsAccessible(LocationState state, ExtendedPlayerState playerState, int currentDay)
+    public static bool IsAccessible(LocationState state, Player playerState, int currentDay)
     {
         if (state?.AccessRequirement == null)
             return true;

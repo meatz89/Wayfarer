@@ -84,7 +84,8 @@ public class Player
     public Dictionary<string, Dictionary<ConnectionType, int>> NPCTokens { get; private set; } = new Dictionary<string, Dictionary<ConnectionType, int>>();
 
     // Physical DeliveryObligation Carrying
-    public List<Letter> CarriedLetters { get; private set; } = new List<Letter>(); // Letters physically in inventory for delivery
+    public List<Letter> CarriedLetters { get; private set; } = new List<Letter>(); // Letters physically in satchel for delivery
+    public int MaxSatchelSize { get; set; } = 12; // Maximum size capacity for letters in satchel
 
     // Queue manipulation tracking
     public int LastMorningSwapDay { get; set; } = -1; // Track when morning swap was last used
@@ -97,17 +98,12 @@ public class Player
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
 
-    // Seal System
-    public List<Seal> Seals { get; private set; } = new List<Seal>();
 
     // Token Favor System
     public List<string> PurchasedFavors { get; set; } = new List<string>();
     public List<string> UnlockedLocationIds { get; set; } = new List<string>();
     public List<string> UnlockedServices { get; set; } = new List<string>();
 
-    // Seal System - Players can wear up to 3 seals
-    public List<Seal> WornSeals { get; set; } = new List<Seal>(3);
-    public List<Seal> OwnedSeals { get; set; } = new List<Seal>();  // All seals earned
 
     // Collapse callback - set by GameWorldManager
     public Action OnStaminaExhausted { get; set; }
@@ -644,40 +640,6 @@ public class Player
         Stamina = Math.Clamp(value, 0, MaxStamina);
     }
 
-    /// <summary>
-    /// Check if player has a seal that meets the requirements
-    /// </summary>
-    public bool HasSeal(SealType type, SealTier minimumTier = SealTier.Apprentice)
-    {
-        return WornSeals.Any(seal => seal.MeetsRequirement(type, minimumTier));
-    }
-
-    /// <summary>
-    /// Equip a seal (max 3 worn at once)
-    /// </summary>
-    public bool EquipSeal(Seal seal)
-    {
-        if (!OwnedSeals.Contains(seal))
-            return false;
-
-        if (WornSeals.Count >= 3)
-            return false;
-
-        if (!WornSeals.Contains(seal))
-        {
-            WornSeals.Add(seal);
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Remove a worn seal
-    /// </summary>
-    public bool UnequipSeal(Seal seal)
-    {
-        return WornSeals.Remove(seal);
-    }
 
     /// <summary>
     /// Get connection tokens with a specific NPC.

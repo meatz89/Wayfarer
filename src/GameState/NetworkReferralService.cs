@@ -10,10 +10,9 @@ public class NetworkReferralService
     private readonly GameWorld _gameWorld;
     private readonly NPCRepository _npcRepository;
     private readonly ObligationQueueManager _letterQueueManager;
-    private readonly DeliveryTemplateService _letterTemplateRepository;
     private readonly TokenMechanicsManager _connectionTokenManager;
-    private readonly NPCLetterOfferService _letterOfferService;
     private readonly MessageSystem _messageSystem;
+    private readonly ITimeManager _timeManager;
     private readonly Random _random = new Random();
 
     // Track active referrals
@@ -23,18 +22,16 @@ public class NetworkReferralService
         GameWorld gameWorld,
         NPCRepository npcRepository,
         ObligationQueueManager letterQueueManager,
-        DeliveryTemplateService letterTemplateRepository,
         TokenMechanicsManager connectionTokenManager,
-        NPCLetterOfferService letterOfferService,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _npcRepository = npcRepository;
         _letterQueueManager = letterQueueManager;
-        _letterTemplateRepository = letterTemplateRepository;
         _connectionTokenManager = connectionTokenManager;
-        _letterOfferService = letterOfferService;
         _messageSystem = messageSystem;
+        _timeManager = timeManager;
     }
 
     /// <summary>
@@ -171,7 +168,7 @@ public class NetworkReferralService
             TokenType = tokenType,
             IntroductionMessage = introMessages[_random.Next(introMessages.Length)],
             ReferralDeliveryObligation = referralDeliveryObligation,
-            ExpiresDay = _gameWorld.CurrentDay + 7, // Referrals last 7 days
+            ExpiresDay = _timeManager.GetCurrentDay() + 7, // Referrals last 7 days
             IsUsed = false
         };
     }
@@ -189,22 +186,11 @@ public class NetworkReferralService
             _ => "introduction_letter"
         };
 
-        LetterTemplate template = _letterTemplateRepository.GetTemplateById(templateIds);
-        if (template == null)
-        {
-            // Fallback template
-            template = new LetterTemplate
-            {
-                Id = "generic_referral",
-                Description = $"DeliveryObligation of introduction from {referrer.Name}",
-                TokenType = tokenType,
-                Category = LetterCategory.Quality,
-                MinDeadlineInMinutes = 3,
-                MaxDeadlineInMinutes = 5,
-                MinPayment = 8,
-                MaxPayment = 12
-            };
-        }
+        // Create referral letter directly without template lookup
+        int minDeadline = 4320; // 3 days in minutes
+        int maxDeadline = 7200; // 5 days in minutes
+        int minPayment = 8;
+        int maxPayment = 12;
 
         DeliveryObligation letter = new DeliveryObligation
         {
@@ -215,17 +201,14 @@ public class NetworkReferralService
             RecipientName = target.Name,
             Description = $"Introduction letter to {target.Name}",
             TokenType = tokenType,
-            Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
-            DeadlineInMinutes = _random.Next(template.MinDeadlineInMinutes, template.MaxDeadlineInMinutes + 1),
+            Payment = _random.Next(minPayment, maxPayment + 1),
+            DeadlineInMinutes = _random.Next(minDeadline, maxDeadline + 1),
             IsGenerated = true,
             GenerationReason = "Network Referral",
             Message = $"{referrer.Name} speaks highly of your courier services and suggests we should meet."
         };
 
-        if (template.UnlocksLetterIds?.Length > 0)
-        {
-            letter.UnlocksLetterIds = template.UnlocksLetterIds.ToList();
-        }
+        // Network referrals don't use templates - they're direct letters
 
         return letter;
     }
@@ -253,7 +236,7 @@ public class NetworkReferralService
         if (referral == null || referral.IsUsed)
             return false;
 
-        if (_gameWorld.CurrentDay > referral.ExpiresDay)
+        if (_timeManager.GetCurrentDay() > referral.ExpiresDay)
         {
             _messageSystem.AddSystemMessage(
                 "This referral has expired. Network connections fade without use.",
@@ -283,15 +266,12 @@ public class NetworkReferralService
             SystemMessageTypes.Success
         );
 
-        // Generate immediate letter offer from the new connection
-        List<LetterOffer> offers = _letterOfferService.GenerateNPCLetterOffers(targetNPCId);
-        if (offers.Any())
-        {
-            _messageSystem.AddSystemMessage(
-                $"{targetNPC.Name} has letters that need delivering!",
-                SystemMessageTypes.Info
-            );
-        }
+        // Network referrals now only unlock the ability to request letters through conversation
+        // No automatic letter generation - player must choose to request letters
+        _messageSystem.AddSystemMessage(
+            $"You can now request letters from {targetNPC.Name} through conversation!",
+            SystemMessageTypes.Info
+        );
 
         return true;
     }
@@ -308,7 +288,7 @@ public class NetworkReferralService
             if (_activeReferrals.ContainsKey(npcId))
             {
                 activeReferrals = _activeReferrals[npcId]
-                    .Where(r => !r.IsUsed && _gameWorld.CurrentDay <= r.ExpiresDay)
+                    .Where(r => !r.IsUsed && _timeManager.GetCurrentDay() <= r.ExpiresDay)
                     .ToList();
             }
         }
@@ -317,7 +297,7 @@ public class NetworkReferralService
             foreach (List<NetworkReferral> referrals in _activeReferrals.Values)
             {
                 activeReferrals.AddRange(referrals
-                    .Where(r => !r.IsUsed && _gameWorld.CurrentDay <= r.ExpiresDay));
+                    .Where(r => !r.IsUsed && _timeManager.GetCurrentDay() <= r.ExpiresDay));
             }
         }
 

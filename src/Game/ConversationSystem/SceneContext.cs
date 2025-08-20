@@ -91,7 +91,7 @@ public class QueueManagementContext : SceneContext
     public DeliveryObligation TargetDeliveryObligation { get; set; }
     public string ManagementAction { get; set; } // "SkipDeliver", "Purge", etc.
     public int TokenCost { get; set; }
-    public Dictionary<int, Letter> SkippedLetters { get; set; } // For skip action - letters that would be skipped
+    public Dictionary<int, DeliveryObligation> SkippedLetters { get; set; } // For skip action - obligations that would be skipped
 }
 
 /// <summary>

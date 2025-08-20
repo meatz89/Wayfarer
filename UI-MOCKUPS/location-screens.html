@@ -225,6 +225,17 @@
             border-radius: 2px;
         }
 
+        .npc-observations {
+            font-size: 11px;
+            color: #7a8b5a;
+            padding: 6px 10px;
+            background: #f4e8d0;
+            border-left: 2px solid #7a8b5a;
+            border-radius: 2px;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
         .npc-action {
             background: white;
             border: 1px solid #d4c5a0;
@@ -234,6 +245,7 @@
             transition: all 0.2s;
             font-size: 13px;
             color: #5c4a3a;
+            text-align: center;
         }
 
         .npc-action:hover {
@@ -251,6 +263,15 @@
             margin: 20px 0;
         }
 
+        .observation-note {
+            font-size: 11px;
+            color: #7a6250;
+            font-style: italic;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8dcc4;
+        }
+
         .observation-item {
             display: flex;
             align-items: center;
@@ -265,18 +286,46 @@
             border-bottom: none;
         }
 
-        .observation-item:hover {
+        .observation-item:hover:not(.observed) {
             padding-left: 8px;
+        }
+
+        .observation-item.observed {
+            opacity: 0.7;
+            cursor: default;
+            background: #f4e8d0;
+            padding: 8px;
+            margin: 0 -8px;
+            border-radius: 2px;
         }
 
         .observation-text {
             font-size: 13px;
             color: #5c4a3a;
+            flex: 1;
+        }
+
+        .observation-details {
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
 
         .observation-cost {
             font-size: 11px;
             color: #8b4726;
+            font-weight: bold;
+        }
+
+        .observation-relevance {
+            font-size: 11px;
+            color: #7a8b5a;
+            font-style: italic;
+        }
+
+        .observation-status {
+            font-size: 11px;
+            color: #7a8b5a;
             font-weight: bold;
         }
 
@@ -669,17 +718,39 @@
 
             <div class="observations">
                 <div class="section-header">Observations Available</div>
+                <div class="observation-note">Knowledge gained here becomes conversation ammunition. Each observation converts to an Opportunity card when talking to relevant NPCs.</div>
                 <div class="observation-item">
                     <span class="observation-text">Watch the crowd's movement patterns</span>
-                    <span class="observation-cost">1 attention</span>
+                    <span class="observation-details">
+                        <span class="observation-cost">1 attention</span>
+                        <span class="observation-relevance">→ Elena, Marcus</span>
+                    </span>
                 </div>
                 <div class="observation-item">
                     <span class="observation-text">Eavesdrop on merchant negotiations</span>
-                    <span class="observation-cost">1 attention</span>
+                    <span class="observation-details">
+                        <span class="observation-cost">1 attention</span>
+                        <span class="observation-relevance">→ Marcus, Bertram</span>
+                    </span>
                 </div>
                 <div class="observation-item">
                     <span class="observation-text">Study the herald's mannerisms</span>
-                    <span class="observation-cost">1 attention</span>
+                    <span class="observation-details">
+                        <span class="observation-cost">1 attention</span>
+                        <span class="observation-relevance">→ Lord Aldric</span>
+                    </span>
+                </div>
+                <div class="observation-item observed">
+                    <span class="observation-text">✓ Guards blocking north road</span>
+                    <span class="observation-details">
+                        <span class="observation-status">Ready for: Elena</span>
+                    </span>
+                </div>
+                <div class="observation-item observed">
+                    <span class="observation-text">✓ Marcus heading to his stall</span>
+                    <span class="observation-details">
+                        <span class="observation-status">Ready for: Elena</span>
+                    </span>
                 </div>
             </div>
 
@@ -744,6 +815,9 @@
                 </div>
                 <div class="npc-description">
                     Clutching a sealed letter with white knuckles, her eyes darting to the door with each patron's entrance.
+                </div>
+                <div class="npc-observations">
+                    Your observations: Guards blocking north road • Marcus's schedule
                 </div>
                 <div class="npc-action">Approach Her Table</div>
             </div>

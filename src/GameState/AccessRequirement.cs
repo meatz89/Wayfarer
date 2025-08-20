@@ -36,10 +36,6 @@ public class AccessRequirement
     /// </summary>
     public List<TokenTypeRequirement> RequiredTokensPerType { get; set; } = new List<TokenTypeRequirement>();
 
-    /// <summary>
-    /// Seal requirements - must have a seal of specific type and minimum tier.
-    /// </summary>
-    public List<SealRequirement> RequiredSeals { get; set; } = new List<SealRequirement>();
 
     /// <summary>
     /// Minimum tier required to access this content (1-5).

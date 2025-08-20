@@ -192,8 +192,7 @@ public class SpecialLetterHandler
                 Severity = NarrativeSeverity.Success
             });
 
-            // Discover information about this route's destination
-            _informationManager.DiscoverFromRouteUnlock(route.Id);
+            // Route unlock completed - information discovery handled separately
         }
         else
         {

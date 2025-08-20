@@ -11,8 +11,3 @@ public class TokenTypeRequirement
     public int MinimumCount { get; set; }
 }
 
-public class SealRequirement
-{
-    public SealType Type { get; set; }
-    public SealTier MinimumTier { get; set; }
-}

@@ -89,11 +89,9 @@ public class AccessRequirementChecker
         bool itemsMet = CheckItemRequirements(requirement, player, missingRequirements);
         bool npcTokensMet = CheckNPCTokenRequirements(requirement, missingRequirements);
         bool typeTokensMet = CheckTypeTokenRequirements(requirement, missingRequirements);
-        bool sealsMet = CheckSealRequirements(requirement, player, missingRequirements);
-
         bool requirementsMet = requirement.Logic == RequirementLogic.And
-            ? equipmentMet && itemsMet && npcTokensMet && typeTokensMet && sealsMet
-            : equipmentMet || itemsMet || npcTokensMet || typeTokensMet || sealsMet;
+            ? equipmentMet && itemsMet && npcTokensMet && typeTokensMet
+            : equipmentMet || itemsMet || npcTokensMet || typeTokensMet;
 
         if (requirementsMet)
         {
@@ -272,49 +270,6 @@ public class AccessRequirementChecker
         }
     }
 
-    /// <summary>
-    /// Check if player has required seals.
-    /// </summary>
-    private bool CheckSealRequirements(AccessRequirement requirement, Player player, List<string> missing)
-    {
-        if (!requirement.RequiredSeals.Any())
-            return true;
-
-        if (requirement.Logic == RequirementLogic.Or)
-        {
-            // Need ANY of the required seals
-            bool hasAny = false;
-            foreach (SealRequirement sealReq in requirement.RequiredSeals)
-            {
-                if (player.HasSeal(sealReq.Type, sealReq.MinimumTier))
-                {
-                    hasAny = true;
-                    break;
-                }
-            }
-
-            if (!hasAny)
-            {
-                IEnumerable<string> options = requirement.RequiredSeals.Select(req =>
-                    $"{req.MinimumTier} {req.Type} Seal"
-                );
-                missing.Add($"Need one of: {string.Join(", ", options)}");
-            }
-            return hasAny;
-        }
-        else
-        {
-            // Need ALL of the required seals
-            foreach (SealRequirement sealReq in requirement.RequiredSeals)
-            {
-                if (!player.HasSeal(sealReq.Type, sealReq.MinimumTier))
-                {
-                    missing.Add($"Need {sealReq.MinimumTier} {sealReq.Type} Seal");
-                }
-            }
-            return !missing.Any();
-        }
-    }
 
     /// <summary>
     /// Spend tokens to gain access (for token-gated areas).
@@ -447,11 +402,7 @@ public class AccessRequirementChecker
                          _tokenManager.GetTokenCount(ConnectionType.Shadow);
         int tierFromTokens = Math.Min(5, 1 + totalTokens / 10);
 
-        // Bonus from seals
-        int tierFromSeals = player.WornSeals.Any() ?
-            player.WornSeals.Max(s => (int)s.Tier) : 1;
-
-        // Take the highest tier achieved
-        return Math.Max(tierFromLevel, Math.Max(tierFromTokens, tierFromSeals));
+        // Take the highest tier achieved (seals removed from game)
+        return Math.Max(tierFromLevel, tierFromTokens);
     }
 }

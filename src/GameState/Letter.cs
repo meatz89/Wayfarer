@@ -11,7 +11,7 @@ public class Letter
     public string Id { get; set; } = Guid.NewGuid().ToString();
     
     // Physical properties
-    public int Weight { get; set; } = 1; // Physical weight for satchel capacity
+    public int Size { get; set; } = 1; // Physical size for satchel capacity
     public LetterPhysicalProperties PhysicalProperties { get; set; } = LetterPhysicalProperties.None;
     
     // Content metadata (what's written on the letter)

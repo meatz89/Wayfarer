@@ -46,7 +46,7 @@ public class ConversationScreenBase : ComponentBase
             if (Model == null && !string.IsNullOrEmpty(NpcId))
             {
                 Console.WriteLine($"[ConversationScreen] No pending conversation found, starting new conversation with NPC: {NpcId}");
-                Model = await GameFacade.GetConversationAsync(NpcId);
+                Model = await GameFacade.StartConversationAsync(NpcId);
             }
 
             if (Model == null)
@@ -475,7 +475,7 @@ public class ConversationScreenBase : ComponentBase
         // Since we don't have subject/content, use what we have
 
         // Check deadline urgency
-        if (letter.DeadlineInMinutes < 4)
+        if (letter.DeadlineInHours < 4)
             return StakeType.SAFETY; // Very urgent = safety at stake
 
         // Check payment amount
@@ -496,8 +496,8 @@ public class ConversationScreenBase : ComponentBase
 
         // Get the letter from the queue if it exists
         LetterQueueViewModel queue = GameFacade.GetLetterQueue();
-        LetterViewModel? npcDeliveryObligation = queue?.QueueSlots?.FirstOrDefault(s => s.Letter?.SenderName == NpcId)?.Letter;
-        string subject = npcLetter?.SenderName ?? "matter";
+        LetterViewModel? npcDeliveryObligation = queue?.QueueSlots?.FirstOrDefault(s => s.DeliveryObligation?.SenderName == NpcId)?.DeliveryObligation;
+        string subject = npcDeliveryObligation?.SenderName ?? "matter";
 
         return CurrentStakes switch
         {
@@ -528,18 +528,18 @@ public class ConversationScreenBase : ComponentBase
                 throw new InvalidOperationException("Cannot generate conversation choices: Model.NpcId is required");
             }
 
-            // Get real card-based choices from GameFacade
-            List<ConversationChoice> cardChoices = await GameFacade.GetConversationChoicesFromDeckAsync(Model.NpcId);
-
-            if (cardChoices?.Any() == true)
+            // Card/deck system removed - return basic conversation choices
+            return new List<ConversationChoice>
             {
-                Console.WriteLine($"[ConversationScreen] Generated {cardChoices.Count} card-based choices for {Model.NpcId}");
-                return cardChoices;
-            }
-            else
-            {
-                throw new InvalidOperationException($"NPC deck failed to generate choices for {Model.NpcId} - conversation system error");
-            }
+                new ConversationChoice
+                {
+                    ChoiceType = ConversationChoiceType.Default,
+                    NarrativeText = "I should be going.",
+                    PatienceCost = 0,
+                    IsAvailable = true,
+                    IsAffordable = true
+                }
+            };
         }
         catch (Exception ex)
         {
@@ -794,12 +794,12 @@ public class ConversationScreenBase : ComponentBase
         {
             // Negative/destructive choice types - RED
             ConversationChoiceType.DeclineLetterOffer => "negative-card",
-            ConversationChoiceType.PurgeDeliveryObligation => "negative-card",
+            ConversationChoiceType.PurgeLetter => "negative-card",
             ConversationChoiceType.TravelForceThrough => "negative-card",
             
             // Positive/beneficial choice types - GREEN
             ConversationChoiceType.AcceptLetterOffer => "positive-card",
-            ConversationChoiceType.KeepDeliveryObligation => "positive-card",
+            ConversationChoiceType.KeepLetter => "positive-card",
             ConversationChoiceType.Introduction => "positive-card",
             ConversationChoiceType.TravelCautious => "positive-card",
             
@@ -810,13 +810,13 @@ public class ConversationScreenBase : ComponentBase
             ConversationChoiceType.TravelExchangeInfo => "risky-card",
             
             // DeliveryObligation request cards - YELLOW (risky with potential reward)
-            ConversationChoiceType.RequestTrustDeliveryObligation => "risky-card",
-            ConversationChoiceType.RequestCommerceDeliveryObligation => "risky-card",
-            ConversationChoiceType.RequestStatusDeliveryObligation => "risky-card",
-            ConversationChoiceType.RequestShadowDeliveryObligation => "risky-card",
+            ConversationChoiceType.RequestTrustLetter => "risky-card",
+            ConversationChoiceType.RequestCommerceLetter => "risky-card",
+            ConversationChoiceType.RequestStatusLetter => "risky-card",
+            ConversationChoiceType.RequestShadowLetter => "risky-card",
             
             // Special letter requests - GOLD (high value, rare opportunities)
-            ConversationChoiceType.IntroductionDeliveryObligation => "special-card",
+            ConversationChoiceType.IntroductionLetter => "special-card",
             ConversationChoiceType.AccessPermit => "special-card",
             
             // Discovery/neutral choice types - BLUE

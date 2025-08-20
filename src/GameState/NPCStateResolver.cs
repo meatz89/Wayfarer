@@ -211,7 +211,7 @@ public class NPCStateResolver
         DeliveryObligation mostUrgentLetter,
         SceneContext context)
     {
-        if (mostUrgentDeliveryObligation == null)
+        if (mostUrgentLetter == null)
         {
             return GenerateNoLetterDialogue(npc, state);
         }

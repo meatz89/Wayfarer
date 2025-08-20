@@ -38,7 +38,7 @@ public class QueueDisplacementPlanner
             ActionType = DisplacementActionType.AddLetter
         };
 
-        Letter[] currentQueue = _queueManager.GetPlayerQueue();
+        DeliveryObligation[] currentQueue = _queueManager.GetPlayerQueue();
 
         // Check if queue is full
         if (currentQueue.All(slot => slot != null))
@@ -74,7 +74,7 @@ public class QueueDisplacementPlanner
                 {
                     plan.Evictions.Add(new LetterEviction
                     {
-                        DeliveryObligation = movement.Letter,
+                        DeliveryObligation = movement.DeliveryObligation,
                         FromPosition = movement.FromPosition,
                         Reason = "Pushed out by leverage",
                         TokenPenalty = _config.LetterQueue.DeadlinePenaltyTokens
@@ -102,7 +102,7 @@ public class QueueDisplacementPlanner
             ActionType = DisplacementActionType.SkipDelivery
         };
 
-        Letter[] currentQueue = _queueManager.GetPlayerQueue();
+        DeliveryObligation[] currentQueue = _queueManager.GetPlayerQueue();
 
         // Validate position
         if (fromPosition <= 1 || fromPosition > _config.LetterQueue.MaxQueueSize)
@@ -186,7 +186,7 @@ public class QueueDisplacementPlanner
             ActionType = DisplacementActionType.Purge
         };
 
-        Letter[] currentQueue = _queueManager.GetPlayerQueue();
+        DeliveryObligation[] currentQueue = _queueManager.GetPlayerQueue();
         DeliveryObligation letterToPurge = currentQueue[_config.LetterQueue.MaxQueueSize - 1];
 
         if (letterToPurge == null)
@@ -225,7 +225,7 @@ public class QueueDisplacementPlanner
             ActionType = DisplacementActionType.MorningSwap
         };
 
-        Letter[] currentQueue = _queueManager.GetPlayerQueue();
+        DeliveryObligation[] currentQueue = _queueManager.GetPlayerQueue();
 
         // Validate positions are adjacent
         if (Math.Abs(position1 - position2) != 1)
@@ -244,7 +244,7 @@ public class QueueDisplacementPlanner
             return plan;
         }
 
-        Letter? letter1 = currentQueue[position1 - 1];
+        DeliveryObligation? letter1 = currentQueue[position1 - 1];
         DeliveryObligation letter2 = currentQueue[position2 - 1];
 
         // At least one position must have a letter
@@ -300,21 +300,21 @@ public class QueueDisplacementPlanner
         {
             case DisplacementActionType.AddLetter:
                 _messageSystem.AddSystemMessage(
-                    $"📨 PREVIEW: Adding {plan.NewLetter.SenderName}'s letter at position {plan.TargetPosition}",
+                    $"📨 PREVIEW: Adding {plan.NewDeliveryObligation.SenderName}'s letter at position {plan.TargetPosition}",
                     SystemMessageTypes.Info
                 );
                 break;
 
             case DisplacementActionType.SkipDelivery:
                 _messageSystem.AddSystemMessage(
-                    $"⏭️ PREVIEW: Skipping {plan.NewLetter.SenderName}'s letter to position 1",
+                    $"⏭️ PREVIEW: Skipping {plan.NewDeliveryObligation.SenderName}'s letter to position 1",
                     SystemMessageTypes.Info
                 );
                 break;
 
             case DisplacementActionType.Purge:
                 _messageSystem.AddSystemMessage(
-                    $"🔥 PREVIEW: Purging {plan.NewLetter.SenderName}'s letter",
+                    $"🔥 PREVIEW: Purging {plan.NewDeliveryObligation.SenderName}'s letter",
                     SystemMessageTypes.Warning
                 );
                 break;
@@ -346,9 +346,9 @@ public class QueueDisplacementPlanner
             _messageSystem.AddSystemMessage("📬 Queue Changes:", SystemMessageTypes.Info);
             foreach (LetterMovement movement in plan.Movements)
             {
-                string urgency = movement.Letter.DeadlineInMinutes <= 2 ? " ⚠️" : "";
+                string urgency = movement.DeliveryObligation.DeadlineInMinutes <= 2 ? " ⚠️" : "";
                 _messageSystem.AddSystemMessage(
-                    $"  • {movement.Letter.SenderName}: position {movement.FromPosition} → {movement.ToPosition}{urgency}",
+                    $"  • {movement.DeliveryObligation.SenderName}: position {movement.FromPosition} → {movement.ToPosition}{urgency}",
                     SystemMessageTypes.Info
                 );
             }
@@ -358,10 +358,10 @@ public class QueueDisplacementPlanner
         if (plan.SkippedLetters.Any())
         {
             _messageSystem.AddSystemMessage("⏩ Skipped Letters:", SystemMessageTypes.Warning);
-            foreach (SkippedDeliveryObligation skipped in plan.SkippedLetters)
+            foreach (SkippedLetter skipped in plan.SkippedLetters)
             {
                 _messageSystem.AddSystemMessage(
-                    $"  • {skipped.Letter.SenderName} at position {skipped.Position} (relationship -1)",
+                    $"  • {skipped.DeliveryObligation.SenderName} at position {skipped.Position} (relationship -1)",
                     SystemMessageTypes.Warning
                 );
             }
@@ -374,13 +374,13 @@ public class QueueDisplacementPlanner
             foreach (LetterEviction eviction in plan.Evictions)
             {
                 _messageSystem.AddSystemMessage(
-                    $"  • {eviction.Letter.SenderName} will be REMOVED ({eviction.Reason})",
+                    $"  • {eviction.DeliveryObligation.SenderName} will be REMOVED ({eviction.Reason})",
                     SystemMessageTypes.Danger
                 );
                 if (eviction.TokenPenalty > 0)
                 {
                     _messageSystem.AddSystemMessage(
-                        $"    → Lose {eviction.TokenPenalty} {eviction.Letter.TokenType} tokens!",
+                        $"    → Lose {eviction.TokenPenalty} {eviction.DeliveryObligation.TokenType} tokens!",
                         SystemMessageTypes.Danger
                     );
                 }

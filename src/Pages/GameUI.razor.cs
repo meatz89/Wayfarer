@@ -118,7 +118,7 @@ public class GameUIBase : ComponentBase
     {
         Console.WriteLine($"[GameUIBase.HandleCharacterCreated] Character created: {player?.Name ?? "null"}");
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] Calling GameFacade.StartGame()...");
-        await GameFacade.StartGame();
+        await GameFacade.StartGameAsync();
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] GameFacade.StartGame() completed.");
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] Navigating to LocationScreen...");
         await NavigationCoordinator.NavigateToAsync(CurrentViews.LocationScreen);

@@ -7,8 +7,6 @@ public class TokenMechanicsManager
     private readonly MessageSystem _messageSystem;
     private readonly NPCRepository _npcRepository;
     private readonly ItemRepository _itemRepository;
-    private LetterCategoryService _categoryService;
-    private StandingObligationManager _obligationManager;
 
     // Token mechanic constants
     private const int TRUST_DEADLINE_HOURS_PER_TOKEN = 2;
@@ -23,15 +21,7 @@ public class TokenMechanicsManager
         _itemRepository = itemRepository;
     }
 
-    public void SetCategoryService(LetterCategoryService categoryService)
-    {
-        _categoryService = categoryService;
-    }
 
-    public void SetObligationManager(StandingObligationManager obligationManager)
-    {
-        _obligationManager = obligationManager;
-    }
 
     // Get player's total tokens by type
     public Dictionary<ConnectionType, int> GetPlayerTokens()
@@ -130,18 +120,10 @@ public class TokenMechanicsManager
             int totalWithNPC = npcTokens[npcId].Values.Sum();
             CheckRelationshipMilestone(npc, totalWithNPC);
 
-            // Check category unlocks if we have the service
-            if (_categoryService != null && npc.LetterTokenTypes.Contains(type))
-            {
-                _categoryService.CheckCategoryUnlock(npcId, type, oldTokenCount, newTokenCount);
-            }
+            // Category service removed - letters created through conversation choices only
         }
 
-        // Check threshold-based obligations if we have the manager
-        if (_obligationManager != null)
-        {
-            _obligationManager.OnTokensChanged(npcId, type, oldTokenCount, newTokenCount);
-        }
+        // Token change notifications are handled by GameFacade orchestration
     }
 
     // Spend tokens (for queue actions)
@@ -220,11 +202,7 @@ public class TokenMechanicsManager
         }
 
         // Check threshold-based obligations if we have the manager
-        if (_obligationManager != null)
-        {
-            int oldCount = player.NPCTokens[npcId][type] + count; // Calculate what it was before spending
-            _obligationManager.OnTokensChanged(npcId, type, oldCount, player.NPCTokens[npcId][type]);
-        }
+        // Token change notifications are handled by GameFacade orchestration
 
         return true;
     }
@@ -428,11 +406,7 @@ public class TokenMechanicsManager
             }
         }
 
-        // Check threshold-based obligations if we have the manager
-        if (_obligationManager != null)
-        {
-            _obligationManager.OnTokensChanged(npcId, type, oldCount, npcTokens[npcId][type]);
-        }
+        // Token change notifications are handled by GameFacade orchestration
     }
 
     // Check if player has 3+ tokens with a specific NPC

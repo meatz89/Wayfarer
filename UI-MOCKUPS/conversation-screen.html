@@ -324,6 +324,18 @@
             letter-spacing: 1px;
         }
 
+        .hand-overflow-warning {
+            background: #faf0e6;
+            border: 1px solid #d4a76a;
+            padding: 8px;
+            margin-bottom: 12px;
+            border-radius: 2px;
+            text-align: center;
+            font-size: 12px;
+            color: #8b4726;
+            font-weight: bold;
+        }
+
         .action-choices {
             display: flex;
             justify-content: center;
@@ -390,6 +402,38 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .dialog-title {
+            font-size: 14px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hand-status {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 12px;
+            color: #7a6250;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .hand-count {
+            font-weight: bold;
+        }
+
+        .hand-count.overflow {
+            color: #8b4726;
+        }
+
+        .hand-note {
+            font-style: italic;
+            color: #7a8b5a;
         }
 
         .dialog-title {
@@ -439,6 +483,25 @@
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
+        }
+
+        /* Observation cards special styling */
+        .dialog-option.observation-card {
+            background: linear-gradient(to right, #f9f3e9 0%, #faf4ea 10%);
+        }
+
+        .observation-marker {
+            position: absolute;
+            top: -8px;
+            left: 12px;
+            background: #7a8b5a;
+            color: #faf4ea;
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: bold;
         }
 
         /* Persistence borders */
@@ -825,7 +888,7 @@
         <!-- Narrative Section -->
         <div class="narrative-section">
             <div class="narrative-text">
-                Time is running short. Elena's desperation has made her vulnerable, her usual guardedness stripped away by urgency. Every moment counts now.
+                Time is running short. Elena's desperation has made her vulnerable, her usual guardedness stripped away by urgency. You've been observing the city's movements - information that might help her now. Every moment counts.
             </div>
             <div class="npc-dialogue desperate">
                 "Please, I need to know - will you help me? The letter to Lord Blackwood... if he doesn't receive my refusal by tonight, my father will finalize the arrangement. I can't..." 
@@ -837,6 +900,9 @@
         <!-- Action Choice -->
         <div class="action-section">
             <div class="turn-indicator">Turn 5 of 9 • Each choice uses 1 turn</div>
+            <div class="hand-overflow-warning" style="display: none;">
+                <span>⚠ Hand full! You have too much to share - must SPEAK first</span>
+            </div>
             <div class="action-choices">
                 <div class="action-button" onclick="selectAction('listen')">
                     <div class="action-warning">⚠ Fleeting moments vanish!</div>
@@ -854,6 +920,10 @@
         <div class="dialog-section">
             <div class="dialog-header">
                 <div class="dialog-title">Your Thoughts</div>
+                <div class="hand-status">
+                    <span class="hand-count">7 cards in hand</span>
+                    <span class="hand-note">• 2 from observations</span>
+                </div>
                 <div class="weight-tracker" id="weight-tracker">
                     <span>Weight:</span>
                     <span class="weight-display" id="weight-display">0/3</span>
@@ -897,6 +967,43 @@
                     </div>
                 </div>
 
+                <!-- Mention Marcus's Schedule (Observation) -->
+                <div class="dialog-option commerce opportunity will-vanish observation-card" onclick="toggleCard(this)" data-weight="0" data-comfort="1">
+                    <div class="observation-marker">From Market Square observation</div>
+                    <div class="option-content">
+                        <div class="option-text">
+                            "I noticed Marcus closing his stall early today. He might be able to help - he owes me a favor."
+                        </div>
+                        <div class="option-properties">
+                            <div class="prop-group primary">
+                                <div class="card-identity">
+                                    <span class="tag type">Commerce</span>
+                                    <span class="tag persistence">⏱ Opportunity</span>
+                                </div>
+                                <div class="weight-indicator">
+                                    <span class="weight-label">Weight:</span>
+                                    <div class="weight-dots">
+                                        <div class="weight-dot"></div>
+                                        <div class="weight-dot"></div>
+                                        <div class="weight-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="prop-group outcomes">
+                                <div class="outcome-stat">
+                                    <span class="outcome-value success-high">83%</span>
+                                    <span class="outcome-label">Success</span>
+                                </div>
+                                <div class="outcome-stat">
+                                    <span class="outcome-value">+1</span>
+                                    <span class="outcome-label">Comfort</span>
+                                </div>
+                            </div>
+                            <div class="special-effect">Knowledge from earlier observation</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Share Similar Pain -->
                 <div class="dialog-option trust opportunity will-vanish" onclick="toggleCard(this)" data-weight="3" data-comfort="5">
                     <div class="option-content">
@@ -932,11 +1039,12 @@
                     </div>
                 </div>
 
-                <!-- Mention the Guards -->
-                <div class="dialog-option shadow opportunity will-vanish" onclick="toggleCard(this)" data-weight="1" data-comfort="2">
+                <!-- Mention the Guards (Observation) -->
+                <div class="dialog-option shadow opportunity will-vanish observation-card" onclick="toggleCard(this)" data-weight="1" data-comfort="2">
+                    <div class="observation-marker">From Market Square observation</div>
                     <div class="option-content">
                         <div class="option-text">
-                            "I saw the Lord's guards at the tavern earlier. They mentioned he's leaving for the capital at dawn. We need to reach him tonight."
+                            "I saw Lord Blackwood's guards at the tavern earlier. They mentioned he's leaving for the capital at dawn. We need to reach him tonight."
                         </div>
                         <div class="option-properties">
                             <div class="prop-group primary">
@@ -963,7 +1071,7 @@
                                     <span class="outcome-label">Comfort</span>
                                 </div>
                             </div>
-                            <div class="special-effect">From observation</div>
+                            <div class="special-effect">Knowledge from earlier observation</div>
                         </div>
                     </div>
                 </div>

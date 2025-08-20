@@ -97,9 +97,8 @@ public class DeliveryObligation
     public List<string> UnlocksLetterIds { get; set; } = new List<string>();
     public string ParentLetterId { get; set; } = "";
 
-    // Content and Human Context
+    // Content
     public string Message { get; set; } = "";
-    public string HumanContext { get; set; } = ""; // One-line emotional hook showing what's really at stake
     public string ConsequenceIfLate { get; set; } = ""; // What happens if we fail to deliver
     public string ConsequenceIfDelivered { get; set; } = ""; // What we prevent by delivering
     public EmotionalWeight EmotionalWeight { get; set; } = EmotionalWeight.MEDIUM; // How heavy this weighs on conscience
@@ -169,8 +168,6 @@ public class DeliveryObligation
     public string GetStakesHint()
     {
         // Use the human context if available, otherwise fall back to generic descriptions
-        if (!string.IsNullOrEmpty(HumanContext))
-            return HumanContext;
 
         return (TokenType, Stakes) switch
         {
