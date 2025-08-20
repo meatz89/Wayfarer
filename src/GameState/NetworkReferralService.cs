@@ -9,8 +9,8 @@ public class NetworkReferralService
 {
     private readonly GameWorld _gameWorld;
     private readonly NPCRepository _npcRepository;
-    private readonly LetterQueueManager _letterQueueManager;
-    private readonly LetterTemplateRepository _letterTemplateRepository;
+    private readonly ObligationQueueManager _letterQueueManager;
+    private readonly DeliveryTemplateService _letterTemplateRepository;
     private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly NPCLetterOfferService _letterOfferService;
     private readonly MessageSystem _messageSystem;
@@ -22,8 +22,8 @@ public class NetworkReferralService
     public NetworkReferralService(
         GameWorld gameWorld,
         NPCRepository npcRepository,
-        LetterQueueManager letterQueueManager,
-        LetterTemplateRepository letterTemplateRepository,
+        ObligationQueueManager letterQueueManager,
+        DeliveryTemplateService letterTemplateRepository,
         TokenMechanicsManager connectionTokenManager,
         NPCLetterOfferService letterOfferService,
         MessageSystem messageSystem)
@@ -159,7 +159,7 @@ public class NetworkReferralService
             _ => new[] { $"{targetNPC.Name} might have work for you." }
         };
 
-        Letter referralLetter = GenerateReferralLetter(referringNPC, targetNPC, tokenType);
+        DeliveryObligation referralDeliveryObligation = GenerateReferralLetter(referringNPC, targetNPC, tokenType);
 
         return new NetworkReferral
         {
@@ -170,7 +170,7 @@ public class NetworkReferralService
             TargetNPCName = targetNPC.Name,
             TokenType = tokenType,
             IntroductionMessage = introMessages[_random.Next(introMessages.Length)],
-            ReferralLetter = referralLetter,
+            ReferralDeliveryObligation = referralDeliveryObligation,
             ExpiresDay = _gameWorld.CurrentDay + 7, // Referrals last 7 days
             IsUsed = false
         };
@@ -179,7 +179,7 @@ public class NetworkReferralService
     /// <summary>
     /// Generate the actual referral letter to deliver.
     /// </summary>
-    private Letter GenerateReferralLetter(NPC referrer, NPC target, ConnectionType tokenType)
+    private DeliveryObligation GenerateReferralLetter(NPC referrer, NPC target, ConnectionType tokenType)
     {
         // Use network referral templates
         string templateIds = tokenType switch
@@ -196,17 +196,17 @@ public class NetworkReferralService
             template = new LetterTemplate
             {
                 Id = "generic_referral",
-                Description = $"Letter of introduction from {referrer.Name}",
+                Description = $"DeliveryObligation of introduction from {referrer.Name}",
                 TokenType = tokenType,
                 Category = LetterCategory.Quality,
-                MinDeadlineInHours = 3,
-                MaxDeadlineInHours = 5,
+                MinDeadlineInMinutes = 3,
+                MaxDeadlineInMinutes = 5,
                 MinPayment = 8,
                 MaxPayment = 12
             };
         }
 
-        Letter letter = new Letter
+        DeliveryObligation letter = new DeliveryObligation
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = referrer.ID,
@@ -216,13 +216,12 @@ public class NetworkReferralService
             Description = $"Introduction letter to {target.Name}",
             TokenType = tokenType,
             Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
-            DeadlineInHours = _random.Next(template.MinDeadlineInHours, template.MaxDeadlineInHours + 1),
+            DeadlineInMinutes = _random.Next(template.MinDeadlineInMinutes, template.MaxDeadlineInMinutes + 1),
             IsGenerated = true,
             GenerationReason = "Network Referral",
             Message = $"{referrer.Name} speaks highly of your courier services and suggests we should meet."
         };
 
-        // Add chain letter properties if template has them
         if (template.UnlocksLetterIds?.Length > 0)
         {
             letter.UnlocksLetterIds = template.UnlocksLetterIds.ToList();
@@ -330,7 +329,7 @@ public class NetworkReferralService
     /// </summary>
     public bool HasReferralLetter(string targetNPCId)
     {
-        Letter[] queue = _letterQueueManager.GetPlayerQueue();
+        DeliveryObligation[] queue = _letterQueueManager.GetPlayerQueue();
         return queue.Any(l => l != null && l.RecipientId == targetNPCId && l.GenerationReason == "Network Referral");
     }
 }
@@ -347,7 +346,7 @@ public class NetworkReferral
     public string TargetNPCName { get; set; }
     public ConnectionType TokenType { get; set; }
     public string IntroductionMessage { get; set; }
-    public Letter ReferralLetter { get; set; }
+    public DeliveryObligation ReferralDeliveryObligation { get; set; }
     public int ExpiresDay { get; set; }
     public bool IsUsed { get; set; }
 }

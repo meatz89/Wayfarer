@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// ViewModel for the Letter Queue Display - contains only display data
+/// ViewModel for the DeliveryObligation Queue Display - contains only display data
 /// </summary>
 public class LetterQueueViewModel
 {
@@ -22,7 +22,7 @@ public class QueueSlotViewModel
 {
     public int Position { get; init; }
     public bool IsOccupied { get; init; }
-    public LetterViewModel Letter { get; init; }
+    public LetterViewModel DeliveryObligation { get; init; }
 
     // Action availability
     public bool CanDeliver { get; init; }
@@ -46,7 +46,7 @@ public class LetterViewModel
     public string SizeIcon { get; init; }
     public int Weight { get; init; } // Weight (1-3 slots)
     public string WeightDisplay { get; init; } // Visual representation (e.g., "■■■")
-    public bool IsPatronLetter { get; init; }
+    public bool IsPatronDeliveryObligation { get; init; }
     public bool IsCollected { get; init; }
     public string PhysicalConstraints { get; init; }
     public string PhysicalIcon { get; init; }
@@ -122,7 +122,7 @@ public class QueueActionsViewModel
     public bool CanMorningSwap { get; init; }
     public string MorningSwapReason { get; init; }
 
-    public bool HasBottomLetter { get; init; }
+    public bool HasBottomDeliveryObligation { get; init; }
     public int TotalAvailableTokens { get; init; }
 
     // Token options for purge

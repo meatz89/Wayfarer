@@ -493,7 +493,7 @@ public class NPCDeck
         Random random = new Random();
         otherCards = otherCards.OrderBy(x => random.Next()).ToList();
 
-        // Build final draw: Always include Quick Exit + Letter Request cards + fill with others
+        // Build final draw: Always include Quick Exit + DeliveryObligation Request cards + fill with others
         List<ConversationChoice> drawnCards = new List<ConversationChoice>();
         
         // Always include Quick Exit if available
@@ -618,6 +618,99 @@ public class NPCDeck
     private string GetLetterRequestCardId(ConnectionType tokenType)
     {
         return $"letter_request_{tokenType.ToString().ToLower()}";
+    }
+
+    /// <summary>
+    /// Check if deck has a special letter request card of specified type
+    /// </summary>
+    public bool HasSpecialLetterRequestCard(ConnectionType tokenType)
+    {
+        string cardId = GetSpecialLetterRequestCardId(tokenType);
+        return Cards.Any(c => c.ChoiceID == cardId);
+    }
+
+    /// <summary>
+    /// Add special letter request card when token threshold (5+ tokens) is reached
+    /// Special letters require higher relationship investment
+    /// Only supports IntroductionDeliveryObligation (Trust) and AccessPermit (Commerce)
+    /// </summary>
+    public void AddSpecialLetterRequestCard(ConnectionType tokenType, int currentTokenCount)
+    {
+        // Only support Trust (Introduction) and Commerce (AccessPermit) special letters
+        if (tokenType != ConnectionType.Trust && tokenType != ConnectionType.Commerce) return;
+        
+        // Don't add duplicates
+        if (HasSpecialLetterRequestCard(tokenType)) return;
+        
+        // Only add if meets threshold (5+ tokens)
+        if (currentTokenCount < 5) return;
+        
+        // Create special letter request card
+        ConversationChoice specialCard = CreateSpecialLetterRequestCard(tokenType, currentTokenCount);
+        AddCard(specialCard);
+    }
+
+    /// <summary>
+    /// Create a special letter request card for the specified token type
+    /// Only supports IntroductionDeliveryObligation (Trust) and AccessPermit (Commerce)
+    /// </summary>
+    private ConversationChoice CreateSpecialLetterRequestCard(ConnectionType tokenType, int tokenCount)
+    {
+        ConversationChoiceType choiceType = tokenType switch
+        {
+            ConnectionType.Trust => ConversationChoiceType.IntroductionLetter,
+            ConnectionType.Commerce => ConversationChoiceType.AccessPermit,
+            _ => throw new ArgumentException($"Special letters only support Trust (Introduction) and Commerce (AccessPermit), not {tokenType}")
+        };
+
+        string specialType = tokenType switch
+        {
+            ConnectionType.Trust => "Introduction",
+            ConnectionType.Commerce => "Access Permit",
+            _ => throw new ArgumentException($"Unsupported special letter type: {tokenType}")
+        };
+
+        string narrative = tokenType switch
+        {
+            ConnectionType.Trust => "Ask if they could introduce you to someone in their network",
+            ConnectionType.Commerce => "Request access to restricted business areas or routes",
+            _ => throw new ArgumentException($"Unsupported special letter type: {tokenType}")
+        };
+
+        string benefit = tokenType switch
+        {
+            ConnectionType.Trust => "Unlocks new contact",
+            ConnectionType.Commerce => "Unlocks new routes",
+            _ => throw new ArgumentException($"Unsupported special letter type: {tokenType}")
+        };
+
+        // Special letters are more challenging requests
+        int difficulty = Math.Max(4, 8 - tokenCount / 3);
+        
+        return new ConversationChoice
+        {
+            ChoiceID = GetSpecialLetterRequestCardId(tokenType),
+            Name = $"Request {specialType} Letter",
+            Description = $"Ask for a special {specialType.ToLower()} letter ({benefit})",
+            NarrativeText = narrative,
+            Category = RelationshipCardCategory.LetterRequest,
+            ChoiceType = choiceType,
+            Difficulty = difficulty,
+            PatienceCost = 3, // Special requests cost more patience
+            ComfortGain = 0, // No comfort gain from requesting favors
+            Requirements = new Dictionary<ConnectionType, int> 
+            { 
+                { tokenType, 5 } // Requires 5+ tokens of the type
+            },
+            SuccessOutcome = $"They agree to provide the {specialType.ToLower()} letter",
+            NeutralOutcome = $"They consider your request for the {specialType.ToLower()} letter",
+            FailureOutcome = $"They decline to provide the {specialType.ToLower()} letter"
+        };
+    }
+
+    private string GetSpecialLetterRequestCardId(ConnectionType tokenType)
+    {
+        return $"special_letter_request_{tokenType.ToString().ToLower()}";
     }
 
     /// <summary>

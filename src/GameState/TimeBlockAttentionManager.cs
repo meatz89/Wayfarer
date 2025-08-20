@@ -3,10 +3,12 @@ namespace Wayfarer.GameState;
 /// <summary>
 /// Manages attention persistence across time blocks instead of per-conversation
 /// This is the KEY CHANGE that fixes the infinite conversation exploit
+/// Epic 9: Added coin-based attention refresh tracking
 /// </summary>
 public class TimeBlockAttentionManager
 {
     private readonly Dictionary<string, AttentionManager> _timeBlockAttention = new();
+    private readonly Dictionary<string, bool> _timeBlockRefreshUsed = new();
     private string _currentTimeBlock;
     private AttentionManager _currentAttention;
 
@@ -108,6 +110,7 @@ public class TimeBlockAttentionManager
     {
         Console.WriteLine("[TimeBlockAttention] Starting new day - clearing all attention states");
         _timeBlockAttention.Clear();
+        _timeBlockRefreshUsed.Clear(); // Reset refresh usage tracking
         _currentAttention = CreateFreshAttention();
         _timeBlockAttention[_currentTimeBlock] = _currentAttention;
     }
@@ -123,5 +126,90 @@ public class TimeBlockAttentionManager
             _currentAttention.SetMaxAttention(newMax);
             Console.WriteLine($"[TimeBlockAttention] Modified attention by {modifier} due to {reason}. New max: {newMax}");
         }
+    }
+
+    /// <summary>
+    /// Epic 9: Refresh attention with coins at appropriate locations
+    /// </summary>
+    public AttentionRefreshResult TryRefreshWithCoins(int attentionPoints, int coinCost)
+    {
+        // Check if refresh already used this time block
+        if (_timeBlockRefreshUsed.ContainsKey(_currentTimeBlock) && _timeBlockRefreshUsed[_currentTimeBlock])
+        {
+            return new AttentionRefreshResult
+            {
+                Success = false,
+                Message = "You have already refreshed your attention this time block.",
+                RemainingAttention = _currentAttention?.GetAvailableAttention() ?? 0
+            };
+        }
+
+        if (_currentAttention == null)
+        {
+            return new AttentionRefreshResult
+            {
+                Success = false,
+                Message = "No attention manager available.",
+                RemainingAttention = 0
+            };
+        }
+
+        // Calculate new attention total
+        int currentAttention = _currentAttention.GetAvailableAttention();
+        int newAttention = Math.Min(currentAttention + attentionPoints, GameRules.ATTENTION_REFRESH_MAX_TOTAL);
+        int actualGain = newAttention - currentAttention;
+
+        if (actualGain <= 0)
+        {
+            return new AttentionRefreshResult
+            {
+                Success = false,
+                Message = "Your attention is already at maximum.",
+                RemainingAttention = currentAttention
+            };
+        }
+
+        // Apply the refresh
+        _currentAttention.AddAttention(actualGain);
+        _timeBlockRefreshUsed[_currentTimeBlock] = true;
+
+        Console.WriteLine($"[TimeBlockAttention] Refreshed attention by {actualGain} for {coinCost} coins in {_currentTimeBlock}");
+
+        return new AttentionRefreshResult
+        {
+            Success = true,
+            Message = $"Refreshed! Gained {actualGain} attention points.",
+            RemainingAttention = newAttention,
+            AttentionGained = actualGain,
+            CoinsSpent = coinCost
+        };
+    }
+
+    /// <summary>
+    /// Check if attention refresh is available this time block
+    /// </summary>
+    public bool CanRefreshAttention()
+    {
+        return !(_timeBlockRefreshUsed.ContainsKey(_currentTimeBlock) && _timeBlockRefreshUsed[_currentTimeBlock]);
+    }
+
+    /// <summary>
+    /// Get refresh status for UI display
+    /// </summary>
+    public AttentionRefreshStatus GetRefreshStatus()
+    {
+        bool canRefresh = CanRefreshAttention();
+        int currentAttention = _currentAttention?.GetAvailableAttention() ?? 0;
+        int maxPossible = GameRules.ATTENTION_REFRESH_MAX_TOTAL;
+        bool atMaximum = currentAttention >= maxPossible;
+
+        return new AttentionRefreshStatus
+        {
+            CanRefresh = canRefresh && !atMaximum,
+            RefreshUsedThisBlock = !canRefresh,
+            CurrentAttention = currentAttention,
+            MaximumPossible = maxPossible,
+            AtMaximum = atMaximum
+        };
     }
 }

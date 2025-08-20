@@ -22,11 +22,11 @@ public enum NPCEmotionalState
 /// </summary>
 public class NPCStateResolver
 {
-    private readonly LetterQueueManager _letterQueueManager;
+    private readonly ObligationQueueManager _letterQueueManager;
     private readonly ITimeManager _timeManager;
 
     public NPCStateResolver(
-        LetterQueueManager letterQueueManager,
+        ObligationQueueManager letterQueueManager,
         ITimeManager timeManager = null)
     {
         _letterQueueManager = letterQueueManager;
@@ -49,8 +49,8 @@ public class NPCStateResolver
             return NPCEmotionalState.HOSTILE;
         }
 
-        Letter[] queue = _letterQueueManager.GetActiveLetters();
-        List<Letter> theirLetters = queue.Where(l =>
+        DeliveryObligation[] queue = _letterQueueManager.GetActiveObligations();
+        List<DeliveryObligation> theirLetters = queue.Where(l =>
             l.SenderId == npc.ID || l.SenderName == npc.Name).ToList();
 
         // No letters = WITHDRAWN
@@ -62,8 +62,8 @@ public class NPCStateResolver
 
 
         // Find most urgent letter to determine state
-        Letter mostUrgent = theirLetters.OrderBy(l => l.DeadlineInHours).First();
-        int hoursRemaining = mostUrgent.DeadlineInHours;
+        DeliveryObligation mostUrgent = theirLetters.OrderBy(l => l.DeadlineInMinutes).First();
+        int hoursRemaining = mostUrgent.DeadlineInMinutes;
 
         Console.WriteLine($"[NPCStateResolver] Most urgent letter: {mostUrgent.Stakes} with {hoursRemaining}h remaining");
 
@@ -175,28 +175,28 @@ public class NPCStateResolver
     /// <summary>
     /// Calculate the narrative pressure level (for peripheral awareness)
     /// </summary>
-    public string GetQueuePressureNarrative(LetterQueue queue)
+    public string GetQueuePressureNarrative(DeliveryObligation[] obligations)
     {
-        if (queue == null || !queue.Letters.Any()) return null;
+        if (obligations == null || !obligations.Any(o => o != null)) return null;
 
-        Letter? mostUrgent = queue.Letters
-            .Where(l => l.State == LetterState.Collected)
-            .OrderBy(l => l.DeadlineInHours)
+        DeliveryObligation mostUrgent = obligations
+            .Where(o => o != null)
+            .OrderBy(o => o.MinutesUntilDeadline)
             .FirstOrDefault();
 
         if (mostUrgent == null) return null;
 
-        if (mostUrgent.DeadlineInHours <= 1)
+        if (mostUrgent.MinutesUntilDeadline <= 60) // 1 hour
         {
-            return $"⚡ {mostUrgent.SenderName}'s letter burns in your satchel";
+            return $"⚡ {mostUrgent.SenderNPC}'s obligation burns in your mind";
         }
-        else if (mostUrgent.DeadlineInHours <= 3)
+        else if (mostUrgent.MinutesUntilDeadline <= 180) // 3 hours
         {
-            return $"The weight of {mostUrgent.SenderName}'s letter presses against your ribs";
+            return $"The weight of {mostUrgent.SenderNPC}'s promise presses against your conscience";
         }
-        else if (queue.Letters.Count(l => l.State == LetterState.Collected) > 6)
+        else if (obligations.Count(o => o != null) > 6)
         {
-            return "Your satchel strains with accumulated correspondence";
+            return "Your mind strains with accumulated promises";
         }
 
         return null;
@@ -208,17 +208,17 @@ public class NPCStateResolver
     public string GenerateNPCDialogue(
         NPC npc,
         NPCEmotionalState state,
-        Letter mostUrgentLetter,
+        DeliveryObligation mostUrgentLetter,
         SceneContext context)
     {
-        if (mostUrgentLetter == null)
+        if (mostUrgentDeliveryObligation == null)
         {
             return GenerateNoLetterDialogue(npc, state);
         }
 
         // Build dialogue from letter properties
         string stakesHint = mostUrgentLetter.GetStakesHint();
-        string urgency = GetUrgencyDescription(mostUrgentLetter.DeadlineInHours);
+        string urgency = GetUrgencyDescription(mostUrgentLetter.DeadlineInMinutes);
 
         return (state, mostUrgentLetter.Stakes) switch
         {

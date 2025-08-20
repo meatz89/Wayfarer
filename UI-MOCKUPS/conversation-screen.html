@@ -32,6 +32,54 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         }
 
+        /* Time and Deadline Header */
+        .header {
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #5c4a3a;
+        }
+
+        .time-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        .current-time {
+            text-transform: uppercase;
+        }
+
+        .deadline-warning {
+            color: #d4a76a;
+            font-weight: bold;
+        }
+
+        /* Location Context */
+        .location-context {
+            background: #f9f3e9;
+            padding: 12px 20px;
+            border-bottom: 1px solid #c4a684;
+        }
+
+        .location-path {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .location-spot {
+            font-size: 14px;
+            color: #5c4a3a;
+            font-style: italic;
+        }
+
         /* Top Section - NPC and Status */
         .conversation-header {
             background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
@@ -648,6 +696,26 @@
 </head>
 <body>
     <div class="game-container">
+        <!-- Time and Deadline Header -->
+        <div class="header">
+            <div class="time-bar">
+                <span class="current-time">Tuesday, Third Bell Past Noon</span>
+                <span class="deadline-warning">Elena's letter: 2 hours remain</span>
+            </div>
+        </div>
+
+        <!-- Location Context -->
+        <div class="location-context">
+            <div class="location-path">
+                <span>Market Square</span>
+                <span>→</span>
+                <span>West Side</span>
+                <span>→</span>
+                <span>Copper Kettle Tavern</span>
+            </div>
+            <div class="location-spot">Corner Booth</div>
+        </div>
+
         <!-- Header with NPC info -->
         <div class="conversation-header">
             <div class="npc-section">

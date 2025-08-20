@@ -110,7 +110,7 @@ public class ContentFallbackService
     /// </summary>
     public ContentFallbackReport ValidateAndPatchContent(
         Dictionary<string, ConversationDefinition> conversations,
-        List<Letter> letters,
+        List<DeliveryObligation> letters,
         List<RouteOption> routes)
     {
         _fallbackLog.Clear();
@@ -137,7 +137,7 @@ public class ContentFallbackService
         }
 
         // Validate letter sender/recipient references
-        foreach (Letter letter in letters)
+        foreach (DeliveryObligation letter in letters)
         {
             if (!string.IsNullOrEmpty(letter.SenderId))
             {

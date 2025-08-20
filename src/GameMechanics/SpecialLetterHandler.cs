@@ -13,7 +13,7 @@ public class SpecialLetterHandler
     private readonly LocationRepository _locationRepository;
     private readonly InformationDiscoveryManager _informationManager;
     private readonly TokenMechanicsManager _tokenManager;
-    private readonly EndorsementManager _endorsementManager;
+    // EndorsementManager removed - endorsements no longer exist
     private readonly RouteRepository _routeRepository;
 
     public SpecialLetterHandler(
@@ -23,7 +23,7 @@ public class SpecialLetterHandler
         LocationRepository locationRepository,
         InformationDiscoveryManager informationManager,
         TokenMechanicsManager tokenManager,
-        EndorsementManager endorsementManager = null,
+        // EndorsementManager endorsementManager = null, // Removed
         RouteRepository routeRepository = null)
     {
         _gameWorld = gameWorld;
@@ -32,49 +32,43 @@ public class SpecialLetterHandler
         _locationRepository = locationRepository;
         _informationManager = informationManager;
         _tokenManager = tokenManager;
-        _endorsementManager = endorsementManager ?? new EndorsementManager(gameWorld, messageSystem);
+        // _endorsementManager removed - endorsements no longer exist
         _routeRepository = routeRepository ?? new RouteRepository(gameWorld, new ItemRepository(gameWorld));
     }
 
     /// <summary>
     /// Process special letter effects when delivered
+    /// ARCHITECTURAL FIX: Special letters are physical Letter objects with SpecialType, but need obligation metadata
+    /// Takes both Letter (for type checking) and DeliveryObligation (for delivery metadata)
     /// </summary>
-    public void ProcessSpecialLetterDelivery(Letter letter)
+    public void ProcessSpecialLetterDelivery(Letter physicalLetter, DeliveryObligation obligation)
     {
-        if (letter.SpecialType == LetterSpecialType.None) return;
+        if (physicalLetter.SpecialType == LetterSpecialType.None) return;
 
-        switch (letter.SpecialType)
+        switch (physicalLetter.SpecialType)
         {
             case LetterSpecialType.Introduction:
-                ProcessIntroductionLetter(letter);
+                ProcessIntroductionLetter(physicalLetter, obligation);
                 break;
 
             case LetterSpecialType.AccessPermit:
-                ProcessAccessPermitLetter(letter);
-                break;
-
-            case LetterSpecialType.Endorsement:
-                ProcessEndorsementLetter(letter);
-                break;
-
-            case LetterSpecialType.Information:
-                ProcessInformationLetter(letter);
+                ProcessAccessPermitLetter(physicalLetter, obligation);
                 break;
         }
 
         // All special letters grant bonus tokens of their type
-        int bonusTokens = CalculateSpecialLetterTokenBonus(letter);
+        int bonusTokens = CalculateSpecialLetterTokenBonus(obligation);
         if (bonusTokens > 0)
         {
-            _tokenManager.AddTokensToNPC(letter.TokenType, bonusTokens, letter.RecipientId);
+            _tokenManager.AddTokensToNPC(obligation.TokenType, bonusTokens, obligation.RecipientId);
             _messageSystem.AddSpecialLetterEvent(new SpecialLetterEvent
             {
                 EventType = SpecialLetterEventType.SpecialLetterTokenBonus,
-                LetterType = letter.SpecialType,
-                TokenType = letter.TokenType,
+                LetterType = physicalLetter.SpecialType,
+                TokenType = obligation.TokenType,
                 TokenAmount = bonusTokens,
-                SenderName = letter.SenderName,
-                RecipientName = letter.RecipientName,
+                SenderName = obligation.SenderName,
+                RecipientName = obligation.RecipientName,
                 Severity = NarrativeSeverity.Success
             });
         }
@@ -83,31 +77,31 @@ public class SpecialLetterHandler
     /// <summary>
     /// Trust - Introduction letters unlock new NPCs
     /// </summary>
-    private void ProcessIntroductionLetter(Letter letter)
+    private void ProcessIntroductionLetter(Letter physicalLetter, DeliveryObligation obligation)
     {
-        if (string.IsNullOrEmpty(letter.UnlocksNPCId))
+        if (string.IsNullOrEmpty(physicalLetter.UnlocksNPCId))
         {
             _messageSystem.AddSpecialLetterEvent(new SpecialLetterEvent
             {
                 EventType = SpecialLetterEventType.IntroductionLetterIncomplete,
                 LetterType = LetterSpecialType.Introduction,
-                SenderName = letter.SenderName,
-                RecipientName = letter.RecipientName,
+                SenderName = obligation.SenderName,
+                RecipientName = obligation.RecipientName,
                 Severity = NarrativeSeverity.Warning
             });
             return;
         }
 
-        NPC npc = _npcRepository.GetById(letter.UnlocksNPCId);
+        NPC npc = _npcRepository.GetById(physicalLetter.UnlocksNPCId);
         if (npc == null)
         {
             _messageSystem.AddSpecialLetterEvent(new SpecialLetterEvent
             {
                 EventType = SpecialLetterEventType.IntroductionTargetNotFound,
                 LetterType = LetterSpecialType.Introduction,
-                TargetNPCId = letter.UnlocksNPCId,
-                SenderName = letter.SenderName,
-                RecipientName = letter.RecipientName,
+                TargetNPCId = physicalLetter.UnlocksNPCId,
+                SenderName = obligation.SenderName,
+                RecipientName = obligation.RecipientName,
                 Severity = NarrativeSeverity.Warning
             });
             return;
@@ -117,9 +111,9 @@ public class SpecialLetterHandler
         Player player = _gameWorld.GetPlayer();
         player.AddMemory(
             $"npc_introduced_{npc.ID}",
-            $"Introduced to {npc.Name} by {letter.SenderName}",
+            $"Introduced to {npc.Name} by {obligation.SenderName}",
             _gameWorld.CurrentDay,
-            (int)letter.Tier
+            (int)obligation.Tier
         );
 
         // Grant initial trust tokens with the new NPC
@@ -130,8 +124,8 @@ public class SpecialLetterHandler
             EventType = SpecialLetterEventType.NPCIntroduced,
             LetterType = LetterSpecialType.Introduction,
             TargetNPCId = npc.ID,
-            SenderName = letter.SenderName,
-            RecipientName = letter.RecipientName,
+            SenderName = obligation.SenderName,
+            RecipientName = obligation.RecipientName,
             TokenType = ConnectionType.Trust,
             TokenAmount = 1,
             Severity = NarrativeSeverity.Success
@@ -145,62 +139,66 @@ public class SpecialLetterHandler
     /// Commerce - Access Permit letters unlock new locations and routes
     /// CONTENT EFFICIENT: Works with Transport NPCs to unlock routes
     /// </summary>
-    private void ProcessAccessPermitLetter(Letter letter)
+    private void ProcessAccessPermitLetter(Letter physicalLetter, DeliveryObligation obligation)
     {
         Player player = _gameWorld.GetPlayer();
 
         // Check if delivered to a Transport NPC
-        NPC recipient = _npcRepository.GetById(letter.RecipientId);
+        NPC recipient = _npcRepository.GetById(obligation.RecipientId);
         if (recipient != null && recipient.ProvidedServices.Contains(ServiceTypes.Transport))
         {
             // Transport NPC - unlock routes they control
-            ProcessTransportPermit(letter, recipient);
+            ProcessTransportPermit(obligation, recipient);
             return;
         }
 
         // Original location unlocking logic
-        if (!string.IsNullOrEmpty(letter.UnlocksLocationId))
+        if (!string.IsNullOrEmpty(physicalLetter.UnlocksRouteId))
         {
-            Location location = _locationRepository.GetLocation(letter.UnlocksLocationId);
-            if (location == null)
+            // Find route by ID and unlock it
+            RouteOption route = _routeRepository.GetRouteById(physicalLetter.UnlocksRouteId);
+            if (route == null)
             {
                 _messageSystem.AddSpecialLetterEvent(new SpecialLetterEvent
                 {
                     EventType = SpecialLetterEventType.AccessTargetNotFound,
                     LetterType = LetterSpecialType.AccessPermit,
-                    TargetLocationId = letter.UnlocksLocationId,
-                    SenderName = letter.SenderName,
-                    RecipientName = letter.RecipientName,
+                    TargetRouteId = physicalLetter.UnlocksRouteId,
+                    SenderName = obligation.SenderName,
+                    RecipientName = obligation.RecipientName,
                     Severity = NarrativeSeverity.Warning
                 });
                 return;
             }
 
-            // Mark location as accessible
+            // Mark route as accessible
+            route.IsDiscovered = true;
+            route.HasPermitUnlock = true;
+            
             player.AddMemory(
-                $"location_permit_{location.Id}",
-                $"Access permit to {location.Name} granted by {letter.SenderName}",
+                $"route_permit_{route.Id}",
+                $"Access permit for {route.Name} granted by {obligation.SenderName}",
                 _gameWorld.CurrentDay,
-                (int)letter.Tier
+                (int)obligation.Tier
             );
 
             _messageSystem.AddSpecialLetterEvent(new SpecialLetterEvent
             {
-                EventType = SpecialLetterEventType.LocationAccessGranted,
+                EventType = SpecialLetterEventType.RouteAccessGranted,
                 LetterType = LetterSpecialType.AccessPermit,
-                TargetLocationId = location.Id,
-                SenderName = letter.SenderName,
-                RecipientName = letter.RecipientName,
+                TargetRouteId = route.Id,
+                SenderName = obligation.SenderName,
+                RecipientName = obligation.RecipientName,
                 Severity = NarrativeSeverity.Success
             });
 
-            // Discover information about this location
-            _informationManager.DiscoverFromLocationVisit(location.Id);
+            // Discover information about this route's destination
+            _informationManager.DiscoverFromRouteUnlock(route.Id);
         }
         else
         {
             // Generic permit - unlock a route from current location
-            UnlockRouteFromCurrentLocation(letter);
+            UnlockRouteFromCurrentLocation(obligation);
         }
     }
 
@@ -208,7 +206,7 @@ public class SpecialLetterHandler
     /// Process travel permit delivered to Transport NPC
     /// CONTENT EFFICIENT: Unlocks routes without requiring extra NPCs
     /// </summary>
-    private void ProcessTransportPermit(Letter letter, NPC transportNPC)
+    private void ProcessTransportPermit(DeliveryObligation letter, NPC transportNPC)
     {
         // Find routes this Transport NPC controls based on their profession and location
         List<RouteOption> controlledRoutes = GetTransportNPCRoutes(transportNPC, _routeRepository);
@@ -279,7 +277,7 @@ public class SpecialLetterHandler
     /// <summary>
     /// Unlock a route from player's current location
     /// </summary>
-    private void UnlockRouteFromCurrentLocation(Letter letter)
+    private void UnlockRouteFromCurrentLocation(DeliveryObligation obligation)
     {
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = player.GetCurrentLocation(_locationRepository);
@@ -314,206 +312,29 @@ public class SpecialLetterHandler
         }
     }
 
-    /// <summary>
-    /// Status - Endorsement letters grant temporary bonuses
-    /// </summary>
-    private void ProcessEndorsementLetter(Letter letter)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        // Track the endorsement for seal conversion
-        _endorsementManager.RecordEndorsement(letter);
-
-        // Also record temporary benefits
-        int endDate = _gameWorld.CurrentDay + letter.BonusDuration;
-        string endorsementKey = $"endorsement_{letter.SenderId}_{(int)letter.Tier}";
-        string description = GetEndorsementDescription(letter);
-
-        player.AddMemory(
-            endorsementKey,
-            description,
-            _gameWorld.CurrentDay,
-            (int)letter.Tier
-        );
-
-        // Store expiration date in a separate memory entry
-        player.AddMemory(
-            $"{endorsementKey}_expires",
-            endDate.ToString(),
-            _gameWorld.CurrentDay,
-            1 // Low importance
-        );
-
-        _messageSystem.AddSystemMessage(
-            $"⭐ {letter.SenderName}'s endorsement grants you {description} for {letter.BonusDuration} days!",
-            SystemMessageTypes.Success
-        );
-
-        // Log the effects that would be applied
-        LogEndorsementEffects(letter);
-    }
-
-    /// <summary>
-    /// Shadow - Information letters trigger discovery events
-    /// </summary>
-    private void ProcessInformationLetter(Letter letter)
-    {
-        if (string.IsNullOrEmpty(letter.InformationId))
-        {
-            // Generic information discovery
-            _messageSystem.AddSystemMessage(
-                $"🔍 The letter contains valuable information about local activities...",
-                SystemMessageTypes.Info
-            );
-
-            // Discover random shadow-related information
-            DiscoverShadowInformation(letter);
-        }
-        else
-        {
-            // Specific information discovery
-            bool discovered = _informationManager.DiscoverInformation(letter.InformationId);
-            if (!discovered)
-            {
-                _messageSystem.AddSystemMessage(
-                    "You already knew the information in this letter.",
-                    SystemMessageTypes.Info
-                );
-            }
-        }
-    }
+    // Endorsement and Information letters removed from game design
 
     /// <summary>
     /// Calculate bonus tokens for special letter delivery
     /// </summary>
-    private int CalculateSpecialLetterTokenBonus(Letter letter)
+    private int CalculateSpecialLetterTokenBonus(DeliveryObligation obligation)
     {
         // Base bonus based on tier
-        int baseBonus = (int)letter.Tier;
+        int baseBonus = (int)obligation.Tier;
 
         // Additional bonus for matching token type
-        switch (letter.SpecialType)
+        switch (obligation.TokenType)
         {
-            case LetterSpecialType.Introduction when letter.TokenType == ConnectionType.Trust:
+            case ConnectionType.Trust: // Introduction letters
                 return baseBonus + 2;
-            case LetterSpecialType.AccessPermit when letter.TokenType == ConnectionType.Commerce:
-                return baseBonus + 2;
-            case LetterSpecialType.Endorsement when letter.TokenType == ConnectionType.Status:
-                return baseBonus + 2;
-            case LetterSpecialType.Information when letter.TokenType == ConnectionType.Shadow:
+            case ConnectionType.Commerce: // Access permit letters
                 return baseBonus + 2;
             default:
                 return baseBonus;
         }
     }
 
-    /// <summary>
-    /// Get description of endorsement effects
-    /// </summary>
-    private string GetEndorsementDescription(Letter letter)
-    {
-        return letter.Tier switch
-        {
-            TierLevel.T1 => "minor social privileges",
-            TierLevel.T2 => "improved status letter handling",
-            TierLevel.T3 => "significant social advantages",
-            _ => "social benefits"
-        };
-    }
-
-    /// <summary>
-    /// Log what effects the endorsement would apply
-    /// </summary>
-    private void LogEndorsementEffects(Letter letter)
-    {
-        // This demonstrates what a full implementation would do
-        switch (letter.Tier)
-        {
-            case TierLevel.T1:
-                _messageSystem.AddSystemMessage(
-                    "  • Status letters will pay +3 bonus coins",
-                    SystemMessageTypes.Info
-                );
-                break;
-
-            case TierLevel.T2:
-                _messageSystem.AddSystemMessage(
-                    "  • Status letters enter queue at position 3",
-                    SystemMessageTypes.Info
-                );
-                _messageSystem.AddSystemMessage(
-                    "  • Automatic priority for Status obligations",
-                    SystemMessageTypes.Info
-                );
-                break;
-
-            case TierLevel.T3:
-                _messageSystem.AddSystemMessage(
-                    "  • Status letters enter queue at position 3",
-                    SystemMessageTypes.Info
-                );
-                _messageSystem.AddSystemMessage(
-                    "  • Status letters get +2 days deadline",
-                    SystemMessageTypes.Info
-                );
-                _messageSystem.AddSystemMessage(
-                    "  • Status letters pay bonus based on your Status tokens",
-                    SystemMessageTypes.Info
-                );
-                break;
-        }
-    }
-
-    /// <summary>
-    /// Discover shadow-related information from information letters
-    /// </summary>
-    private void DiscoverShadowInformation(Letter letter)
-    {
-        Player player = _gameWorld.GetPlayer();
-        Random random = new Random();
-
-        // Types of shadow information based on tier
-        string[] tier1Info = new[]
-        {
-            "Location of a hidden dead drop",
-            "Password for a secret meeting",
-            "Identity of a local informant"
-        };
-
-        string[] tier2Info = new[]
-        {
-            "Schedule of guard patrols",
-            "Location of smuggling routes",
-            "Identity of corrupt officials"
-        };
-
-        string[] tier3PlusInfo = new[]
-        {
-            "Blackmail material on a noble",
-            "Plans for an upcoming heist",
-            "Location of hidden treasure"
-        };
-
-        string discoveredInfo = letter.Tier switch
-        {
-            TierLevel.T1 => tier1Info[random.Next(tier1Info.Length)],
-            TierLevel.T2 => tier2Info[random.Next(tier2Info.Length)],
-            TierLevel.T3 => tier3PlusInfo[random.Next(tier3PlusInfo.Length)],
-            _ => tier3PlusInfo[random.Next(tier3PlusInfo.Length)]
-        };
-
-        player.AddMemory(
-            $"shadow_info_{letter.Id}",
-            discoveredInfo,
-            _gameWorld.CurrentDay,
-            (int)letter.Tier
-        );
-
-        _messageSystem.AddSystemMessage(
-            $"🔍 Discovered: {discoveredInfo}",
-            SystemMessageTypes.Success
-        );
-    }
+    // Endorsement and Information letter methods removed
 
     /// <summary>
     /// Check if player meets requirements to receive a special letter
@@ -540,8 +361,6 @@ public class SpecialLetterHandler
         {
             LetterSpecialType.Introduction => true, // Always available if tier met
             LetterSpecialType.AccessPermit => player.HasMemory("trader_recognized", _gameWorld.CurrentDay),
-            LetterSpecialType.Endorsement => player.HasMemory("noble_contact", _gameWorld.CurrentDay),
-            LetterSpecialType.Information => player.HasMemory("shadow_contact", _gameWorld.CurrentDay),
             _ => true
         };
     }
@@ -555,8 +374,6 @@ public class SpecialLetterHandler
         {
             LetterSpecialType.Introduction => ConnectionType.Trust,
             LetterSpecialType.AccessPermit => ConnectionType.Commerce,
-            LetterSpecialType.Endorsement => ConnectionType.Status,
-            LetterSpecialType.Information => ConnectionType.Shadow,
             _ => ConnectionType.Trust
         };
     }

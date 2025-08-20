@@ -222,7 +222,7 @@ public partial class LocationScreen : ComponentBase
     {
         if (OnNavigate.HasDelegate)
         {
-            await OnNavigate.InvokeAsync(CurrentViews.LetterQueueScreen);
+            await OnNavigate.InvokeAsync(CurrentViews.ObligationQueueScreen);
         }
     }
 
@@ -234,7 +234,7 @@ public partial class LocationScreen : ComponentBase
             if (queueVM?.Status != null)
             {
                 // Show count/max and urgent indicator if needed
-                bool hasUrgent = queueVM.QueueSlots?.Any(s => s.IsOccupied && s.Letter?.DeadlineInHours <= 6) ?? false;
+                bool hasUrgent = queueVM.QueueSlots?.Any(s => s.IsOccupied && s.Letter?.DeadlineInMinutes <= 6) ?? false;
                 string display = $"{queueVM.Status.LetterCount}/8";
                 if (hasUrgent)
                 {

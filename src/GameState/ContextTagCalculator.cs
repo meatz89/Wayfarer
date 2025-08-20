@@ -11,14 +11,14 @@ public class ContextTagCalculator
 {
     private readonly GameWorld _gameWorld;
     private readonly TokenMechanicsManager _tokenManager;
-    private readonly LetterQueueManager _letterQueueManager;
+    private readonly ObligationQueueManager _letterQueueManager;
     private readonly StandingObligationManager _obligationManager;
     private readonly TimeManager _timeManager;
 
     public ContextTagCalculator(
         GameWorld gameWorld,
         TokenMechanicsManager tokenManager,
-        LetterQueueManager letterQueueManager,
+        ObligationQueueManager letterQueueManager,
         StandingObligationManager obligationManager,
         TimeManager timeManager)
     {
@@ -54,7 +54,7 @@ public class ContextTagCalculator
 
         // Set specific values
         context.MinutesUntilDeadline = CalculateMinutesUntilDeadline();
-        context.LetterQueueSize = _letterQueueManager?.GetPlayerQueue()?.Count(l => l != null) ?? 0;
+        context.ObligationQueueSize = _letterQueueManager?.GetPlayerQueue()?.Count(l => l != null) ?? 0;
 
         // Initialize attention manager if not present
         if (context.AttentionManager == null)
@@ -216,18 +216,18 @@ public class ContextTagCalculator
     private int CalculateMinutesUntilDeadline()
     {
         // Get the most urgent letter deadline
-        Letter? urgentLetter = _letterQueueManager?.GetPlayerQueue()?
+        DeliveryObligation? urgentObligation = _letterQueueManager?.GetPlayerQueue()?
             .Where(l => l != null)?
-            .Where(l => l.DeadlineInHours > 0)
-            .OrderBy(l => l.DeadlineInHours)
+            .Where(l => l.DeadlineInMinutes > 0)
+            .OrderBy(l => l.DeadlineInMinutes)
             .FirstOrDefault();
 
-        if (urgentLetter == null)
+        if (urgentObligation == null)
             return 9999; // No deadline
 
         // Calculate minutes until deadline
         // DeadlineInHours is the number of hours remaining
-        int totalHours = urgentLetter.DeadlineInHours;
+        int totalHours = urgentObligation.DeadlineInMinutes;
 
         return Math.Max(0, totalHours * 60);
     }

@@ -49,18 +49,18 @@ public sealed class ExtendedPlayerState
     public string CurrentLocationId { get; }
     public string CurrentLocationSpotId { get; }
 
-    // Letter Queue System
+    // DeliveryObligation Queue System
     public ImmutableArray<Letter> LetterQueue { get; }
     public ImmutableDictionary<ConnectionType, int> ConnectionTokens { get; }
     public ImmutableDictionary<string, ImmutableDictionary<ConnectionType, int>> NPCTokens { get; }
-    public ImmutableList<Letter> CarriedLetters { get; }
+    public ImmutableList<DeliveryObligation> CarriedLetters { get; }
 
     // Queue manipulation tracking
     public int LastMorningSwapDay { get; }
     public int LastLetterBoardDay { get; }
-    public ImmutableList<Letter> DailyBoardLetters { get; }
+    public ImmutableList<DeliveryObligation> DailyBoardLetters { get; }
 
-    // Letter history tracking
+    // DeliveryObligation history tracking
     public ImmutableDictionary<string, LetterHistory> NPCLetterHistory { get; }
 
     // Standing Obligations System
@@ -72,7 +72,7 @@ public sealed class ExtendedPlayerState
     public ImmutableList<string> UnlockedServices { get; }
 
     // Scenario tracking
-    public ImmutableList<Letter> DeliveredLetters { get; }
+    public ImmutableList<DeliveryObligation> DeliveredLetters { get; }
     public int TotalLettersDelivered { get; }
     public int TotalLettersExpired { get; }
     public int TotalTokensSpent { get; }
@@ -191,16 +191,16 @@ public sealed class ExtendedPlayerState
         ).ToImmutableDictionary() ?? ImmutableDictionary<string, ImmutableDictionary<ConnectionType, int>>.Empty;
         NPCTokens = immutableNpcTokens;
 
-        CarriedLetters = carriedLetters?.ToImmutableList() ?? ImmutableList<Letter>.Empty;
+        CarriedLetters = carriedLetters?.ToImmutableList() ?? ImmutableList<DeliveryObligation>.Empty;
         LastMorningSwapDay = lastMorningSwapDay;
         LastLetterBoardDay = lastLetterBoardDay;
-        DailyBoardLetters = dailyBoardLetters?.ToImmutableList() ?? ImmutableList<Letter>.Empty;
+        DailyBoardLetters = dailyBoardLetters?.ToImmutableList() ?? ImmutableList<DeliveryObligation>.Empty;
         NPCLetterHistory = npcLetterHistory?.ToImmutableDictionary() ?? ImmutableDictionary<string, LetterHistory>.Empty;
         StandingObligations = standingObligations?.ToImmutableList() ?? ImmutableList<StandingObligation>.Empty;
         PurchasedFavors = purchasedFavors?.ToImmutableList() ?? ImmutableList<string>.Empty;
         UnlockedLocationIds = unlockedLocationIds?.ToImmutableList() ?? ImmutableList<string>.Empty;
         UnlockedServices = unlockedServices?.ToImmutableList() ?? ImmutableList<string>.Empty;
-        DeliveredLetters = deliveredLetters?.ToImmutableList() ?? ImmutableList<Letter>.Empty;
+        DeliveredLetters = deliveredLetters?.ToImmutableList() ?? ImmutableList<DeliveryObligation>.Empty;
         TotalLettersDelivered = totalLettersDelivered;
         TotalLettersExpired = totalLettersExpired;
         TotalTokensSpent = totalTokensSpent;
@@ -246,7 +246,7 @@ public sealed class ExtendedPlayerState
             player.KnownContracts,
             player.CurrentLocationSpot?.LocationId,
             player.CurrentLocationSpot?.SpotID,
-            player.LetterQueue,
+            player.ObligationQueue,
             player.ConnectionTokens,
             player.NPCTokens,
             player.CarriedLetters,
@@ -333,19 +333,19 @@ public sealed class ExtendedPlayerState
         private List<string> _knownContracts = new();
         private string _currentLocationId = "";
         private string _currentLocationSpotId = "";
-        private Letter[] _letterQueue = new Letter[8];
+        private DeliveryObligation[] _letterQueue = new Letter[8];
         private Dictionary<ConnectionType, int> _connectionTokens = new();
         private Dictionary<string, Dictionary<ConnectionType, int>> _npcTokens = new();
-        private List<Letter> _carriedLetters = new();
+        private List<DeliveryObligation> _carriedLetters = new();
         private int _lastMorningSwapDay = -1;
         private int _lastLetterBoardDay = -1;
-        private List<Letter> _dailyBoardLetters = new();
+        private List<DeliveryObligation> _dailyBoardLetters = new();
         private Dictionary<string, LetterHistory> _npcLetterHistory = new();
         private List<StandingObligation> _standingObligations = new();
         private List<string> _purchasedFavors = new();
         private List<string> _unlockedLocationIds = new();
         private List<string> _unlockedServices = new();
-        private List<Letter> _deliveredLetters = new();
+        private List<DeliveryObligation> _deliveredLetters = new();
         private int _totalLettersDelivered = 0;
         private int _totalLettersExpired = 0;
         private int _totalTokensSpent = 0;
@@ -386,22 +386,22 @@ public sealed class ExtendedPlayerState
             _knownContracts = new List<string>(player.KnownContracts);
             _currentLocationId = player.CurrentLocationSpot?.LocationId;
             _currentLocationSpotId = player.CurrentLocationSpot?.SpotID;
-            _letterQueue = player.LetterQueue.ToArray();
+            _letterQueue = player.ObligationQueue.ToArray();
             _connectionTokens = new Dictionary<ConnectionType, int>(player.ConnectionTokens);
             _npcTokens = player.NPCTokens.ToDictionary(
                 kvp => kvp.Key,
                 kvp => new Dictionary<ConnectionType, int>(kvp.Value)
             );
-            _carriedLetters = new List<Letter>(player.CarriedLetters);
+            _carriedLetters = new List<DeliveryObligation>(player.CarriedLetters);
             _lastMorningSwapDay = player.LastMorningSwapDay;
             _lastLetterBoardDay = player.LastLetterBoardDay;
-            _dailyBoardLetters = new List<Letter>(player.DailyBoardLetters);
+            _dailyBoardLetters = new List<DeliveryObligation>(player.DailyBoardLetters);
             _npcLetterHistory = new Dictionary<string, LetterHistory>(player.NPCLetterHistory);
             _standingObligations = new List<StandingObligation>(player.StandingObligations);
             _purchasedFavors = new List<string>(player.PurchasedFavors);
             _unlockedLocationIds = new List<string>(player.UnlockedLocationIds);
             _unlockedServices = new List<string>(player.UnlockedServices);
-            _deliveredLetters = new List<Letter>(player.DeliveredLetters);
+            _deliveredLetters = new List<DeliveryObligation>(player.DeliveredLetters);
             _totalLettersDelivered = player.TotalLettersDelivered;
             _totalLettersExpired = player.TotalLettersExpired;
             _totalTokensSpent = player.TotalTokensSpent;

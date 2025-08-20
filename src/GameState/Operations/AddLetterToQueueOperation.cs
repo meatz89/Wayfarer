@@ -4,11 +4,11 @@
 /// </summary>
 public class AddLetterToQueueOperation : IGameOperation
 {
-    private readonly Letter _letter;
+    private readonly DeliveryObligation _letter;
     private readonly int _targetPosition;
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
 
-    public AddLetterToQueueOperation(Letter letter, int targetPosition, LetterQueueManager queueManager)
+    public AddLetterToQueueOperation(DeliveryObligation letter, int targetPosition, ObligationQueueManager queueManager)
     {
         _letter = letter ?? throw new ArgumentNullException(nameof(letter));
         _targetPosition = targetPosition;
@@ -19,7 +19,7 @@ public class AddLetterToQueueOperation : IGameOperation
 
     public bool CanExecute(GameWorld gameWorld)
     {
-        Letter[] queue = gameWorld.GetPlayer().LetterQueue;
+        DeliveryObligation[] queue = gameWorld.GetPlayer().ObligationQueue;
 
         // Check if queue has any space at all
         if (queue.All(slot => slot != null))
@@ -33,19 +33,18 @@ public class AddLetterToQueueOperation : IGameOperation
 
     public void Execute(GameWorld gameWorld)
     {
-        Letter[] queue = gameWorld.GetPlayer().LetterQueue;
+        DeliveryObligation[] queue = gameWorld.GetPlayer().ObligationQueue;
 
         // If target position is empty, simple insertion
         if (queue[_targetPosition - 1] == null)
         {
             queue[_targetPosition - 1] = _letter;
             _letter.QueuePosition = _targetPosition;
-            _letter.State = LetterState.Collected;
             return;
         }
 
         // Target occupied - need to displace letters
-        List<Letter> displacedLetters = new();
+        List<DeliveryObligation> displacedLetters = new();
 
         // Collect all letters from target position downward
         for (int i = _targetPosition - 1; i < queue.Length; i++)
@@ -60,11 +59,10 @@ public class AddLetterToQueueOperation : IGameOperation
         // Insert new letter at target position
         queue[_targetPosition - 1] = _letter;
         _letter.QueuePosition = _targetPosition;
-        _letter.State = LetterState.Collected;
 
         // Reinsert displaced letters
         int nextAvailable = _targetPosition;
-        foreach (Letter displaced in displacedLetters)
+        foreach (DeliveryObligation displaced in displacedLetters)
         {
             nextAvailable++;
             if (nextAvailable <= queue.Length)
@@ -74,8 +72,8 @@ public class AddLetterToQueueOperation : IGameOperation
             }
             else
             {
-                // Letter falls off the queue - this should be handled by the transaction
-                throw new InvalidOperationException($"Letter from {displaced.SenderName} would be pushed out of queue");
+                // DeliveryObligation falls off the queue - this should be handled by the transaction
+                throw new InvalidOperationException($"DeliveryObligation from {displaced.SenderName} would be pushed out of queue");
             }
         }
     }

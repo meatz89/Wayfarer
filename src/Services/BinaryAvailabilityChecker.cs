@@ -82,7 +82,7 @@ public class BinaryAvailabilityChecker
         // 5. Check queue state requirements
         if (requirements.RequiresQueueSpace)
         {
-            int queueSize = context.QueueManager?.GetActiveLetters()?.Length ?? 0;
+            int queueSize = context.QueueManager?.GetActiveObligations()?.Length ?? 0;
             if (queueSize >= 8)
             {
                 return new AvailabilityResult(false, "Queue is full");
@@ -358,7 +358,7 @@ public class AvailabilityContext
     public NPCEmotionalState NPCState { get; set; }
     public Location Location { get; set; }
     public LocationSpot LocationSpot { get; set; }
-    public LetterQueueManager QueueManager { get; set; }
+    public ObligationQueueManager QueueManager { get; set; }
     public TimeBlockAttentionManager TimeBlockAttentionManager { get; set; }
     public TimeBlocks CurrentTime { get; set; }
 }

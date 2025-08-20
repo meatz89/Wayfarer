@@ -136,7 +136,7 @@ namespace Wayfarer.Services
                 return "Finish your conversation first";
 
             if (targetView == CurrentViews.LetterBoardScreen && _timeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
-                return "Letter board only opens at dawn";
+                return "DeliveryObligation board only opens at dawn";
 
             if (targetView == CurrentViews.TravelScreen && _currentView == CurrentViews.ConversationScreen)
                 return "Can't travel during a conversation";

@@ -10,7 +10,7 @@ public class SpecialLetterGenerationService
 {
     private readonly GameWorld _gameWorld;
     private readonly TokenMechanicsManager _tokenManager;
-    private readonly LetterQueueManager _letterQueueManager;
+    private readonly ObligationQueueManager _letterQueueManager;
     private readonly MessageSystem _messageSystem;
     private readonly NPCRepository _npcRepository;
     private readonly LocationRepository _locationRepository;
@@ -23,7 +23,7 @@ public class SpecialLetterGenerationService
     public SpecialLetterGenerationService(
         GameWorld gameWorld,
         TokenMechanicsManager tokenManager,
-        LetterQueueManager letterQueueManager,
+        ObligationQueueManager letterQueueManager,
         MessageSystem messageSystem,
         NPCRepository npcRepository,
         LocationRepository locationRepository,
@@ -96,10 +96,7 @@ public class SpecialLetterGenerationService
     {
         if (!CanRequestSpecialLetter(npcId, tokenType))
         {
-            _messageSystem.AddSystemMessage(
-                "You don't meet the requirements for this special letter.",
-                SystemMessageTypes.Warning
-            );
+            _messageSystem.AddSpecialLetterRequestResult(npcId, tokenType, SpecialLetterRequestResult.InsufficientTokens);
             return false;
         }
 
@@ -111,142 +108,84 @@ public class SpecialLetterGenerationService
 
         // Generate the special letter
         LetterSpecialType specialType = GetSpecialTypeForTokenType(tokenType);
-        Letter specialLetter = CreateSpecialLetter(npc, tokenType, specialType);
+        DeliveryObligation specialDeliveryObligation = CreateSpecialLetter(npc, tokenType, specialType);
 
-        // Check if this is an Information letter that goes to inventory
-        if (specialLetter.SpecialType == LetterSpecialType.Information)
+        // Create both obligation (queue) and physical letter (satchel)
+        Letter physicalLetter = new Letter
         {
-            // Add Information letter to carried letters (satchel) instead of queue
-            _gameWorld.GetPlayer().CarriedLetters.Add(specialLetter);
-            specialLetter.State = LetterState.Collected; // Mark as physical item
-
-            // Announce the special letter (position 0 means satchel)
-            ShowSpecialLetterNarrative(specialLetter, npc, tokenType, 0);
-        }
-        else
+            Id = specialDeliveryObligation.Id,
+            SenderName = specialDeliveryObligation.SenderName,
+            RecipientName = specialDeliveryObligation.RecipientName,
+            SpecialType = specialType
+        };
+        
+        // Set unlock properties on physical letter based on type
+        switch (specialType)
         {
-            // Regular special letters go to queue
-            int position = _letterQueueManager.AddLetterWithObligationEffects(specialLetter);
-
-            // Announce the special letter
-            ShowSpecialLetterNarrative(specialLetter, npc, tokenType, position);
+            case LetterSpecialType.Introduction:
+                physicalLetter.UnlocksNPCId = targetId;
+                break;
+            case LetterSpecialType.AccessPermit:
+                physicalLetter.UnlocksRouteId = targetId;
+                break;
         }
+
+        // Add physical letter to satchel
+        _gameWorld.GetPlayer().CarriedLetters.Add(physicalLetter);
+
+        // Announce the special letter (position 0 means satchel)
+        ShowSpecialLetterNarrative(specialDeliveryObligation, npc, tokenType, 0);
 
         return true;
     }
 
-    private Letter CreateSpecialLetter(NPC npc, ConnectionType tokenType, LetterSpecialType specialType)
+    private DeliveryObligation CreateSpecialLetter(NPC npc, ConnectionType tokenType, LetterSpecialType specialType)
     {
         // Generate appropriate recipient based on special type
         string recipientName = GenerateRecipient(specialType, npc);
         string targetId = GenerateTargetId(specialType, npc);
 
-        Letter letter = new Letter
+        DeliveryObligation obligation = new DeliveryObligation
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = npc.ID,
             SenderName = npc.Name,
             RecipientName = recipientName,
             TokenType = tokenType,
-            SpecialType = specialType,
-            Payment = GetSpecialLetterPayment(specialType),
-            DeadlineInHours = GetSpecialLetterDeadline(specialType),
-            Size = SizeCategory.Medium,
-            Tier = TierLevel.T3, // Special letters are tier 3
-            State = LetterState.Offered
+            Payment = 0, // Special letters have no payment - they unlock mechanics, not earn coins
+            DeadlineInMinutes = GetSpecialLetterDeadline(specialType),
+            Tier = TierLevel.T3 // Special letters are tier 3
         };
 
-        // Set special properties based on type
-        switch (specialType)
-        {
-            case LetterSpecialType.Introduction:
-                letter.UnlocksNPCId = targetId;
-                break;
-            case LetterSpecialType.AccessPermit:
-                letter.UnlocksLocationId = targetId;
-                break;
-            case LetterSpecialType.Endorsement:
-                letter.BonusDuration = 7;
-                break;
-            case LetterSpecialType.Information:
-                letter.InformationId = targetId;
-                break;
-        }
+        // Special properties are set on physical Letter, not DeliveryObligation
 
-        return letter;
+        return obligation;
     }
 
-    private void ShowSpecialLetterNarrative(Letter letter, NPC npc, ConnectionType tokenType, int position)
+    private void ShowSpecialLetterNarrative(DeliveryObligation obligation, NPC npc, ConnectionType tokenType, int position)
     {
-        string icon = letter.GetSpecialIcon();
+        // Use categorical success message
+        _messageSystem.AddSpecialLetterRequestResult(npc.ID, tokenType, SpecialLetterRequestResult.Success);
 
-        _messageSystem.AddSystemMessage(
-            $"{icon} {npc.Name} trusts you with a SPECIAL LETTER!",
-            SystemMessageTypes.Success
-        );
-
-        switch (letter.SpecialType)
+        // Create categorical special letter event for detailed UI handling
+        var specialLetterEvent = new SpecialLetterEvent
         {
-            case LetterSpecialType.Introduction:
-                _messageSystem.AddSystemMessage(
-                    $"📜 Letter of Introduction to {letter.RecipientName}",
-                    SystemMessageTypes.Info
-                );
-                _messageSystem.AddSystemMessage(
-                    "This will unlock access to a new contact when delivered!",
-                    SystemMessageTypes.Info
-                );
-                break;
+            EventType = GetSpecialTypeForTokenType(tokenType) switch
+            {
+                LetterSpecialType.Introduction => SpecialLetterEventType.IntroductionLetterGenerated,
+                LetterSpecialType.AccessPermit => SpecialLetterEventType.AccessPermitGenerated,
+                _ => throw new ArgumentException($"Unsupported token type: {tokenType}")
+            },
+            TargetNPCId = npc.ID,
+            LetterType = GetSpecialTypeForTokenType(tokenType),
+            Severity = NarrativeSeverity.Success,
+            Position = position,
+            TokenCost = SPECIAL_LETTER_TOKEN_COST,
+            TokenType = tokenType,
+            RecipientName = obligation.RecipientName
+        };
 
-            case LetterSpecialType.AccessPermit:
-                _messageSystem.AddSystemMessage(
-                    $"🔓 Access Permit for restricted areas",
-                    SystemMessageTypes.Info
-                );
-                _messageSystem.AddSystemMessage(
-                    "Deliver this to unlock new routes and locations!",
-                    SystemMessageTypes.Info
-                );
-                break;
-
-            case LetterSpecialType.Endorsement:
-                _messageSystem.AddSystemMessage(
-                    $"⭐ Letter of Endorsement to {letter.RecipientName}",
-                    SystemMessageTypes.Info
-                );
-                _messageSystem.AddSystemMessage(
-                    "Take this to a guild to progress your standing!",
-                    SystemMessageTypes.Info
-                );
-                break;
-
-            case LetterSpecialType.Information:
-                _messageSystem.AddSystemMessage(
-                    $"🔍 Confidential Information about hidden secrets",
-                    SystemMessageTypes.Info
-                );
-                _messageSystem.AddSystemMessage(
-                    "Carrying this will reveal hidden opportunities!",
-                    SystemMessageTypes.Info
-                );
-                break;
-        }
-
-        // Show appropriate message based on where letter was placed
-        if (position == 0 && letter.SpecialType == LetterSpecialType.Information)
-        {
-            _messageSystem.AddSystemMessage(
-                $"📨 Added to your satchel • Cost: {SPECIAL_LETTER_TOKEN_COST} {tokenType} tokens",
-                SystemMessageTypes.Info
-            );
-        }
-        else
-        {
-            _messageSystem.AddSystemMessage(
-                $"📨 Added to queue at position {position} • Cost: {SPECIAL_LETTER_TOKEN_COST} {tokenType} tokens",
-                SystemMessageTypes.Info
-            );
-        }
+        _messageSystem.AddSpecialLetterEvent(specialLetterEvent);
     }
 
     private LetterSpecialType GetSpecialTypeForTokenType(ConnectionType tokenType)
@@ -255,9 +194,7 @@ public class SpecialLetterGenerationService
         {
             ConnectionType.Trust => LetterSpecialType.Introduction,
             ConnectionType.Commerce => LetterSpecialType.AccessPermit,
-            ConnectionType.Status => LetterSpecialType.Endorsement,
-            ConnectionType.Shadow => LetterSpecialType.Information,
-            _ => LetterSpecialType.None
+            _ => LetterSpecialType.None // Only Trust and Commerce supported
         };
     }
 
@@ -268,11 +205,7 @@ public class SpecialLetterGenerationService
             LetterSpecialType.Introduction =>
                 $"{npc.Name} can introduce you to someone in their network",
             LetterSpecialType.AccessPermit =>
-                $"{npc.Name} can arrange access to restricted areas",
-            LetterSpecialType.Endorsement =>
-                $"{npc.Name} will vouch for your reputation",
-            LetterSpecialType.Information =>
-                $"{npc.Name} has valuable information to share",
+                $"{npc.Name} can arrange access to new routes",
             _ => ""
         };
     }
@@ -283,8 +216,6 @@ public class SpecialLetterGenerationService
         {
             LetterSpecialType.Introduction => "Unlocks: New Contact",
             LetterSpecialType.AccessPermit => "Unlocks: New Routes",
-            LetterSpecialType.Endorsement => "Benefit: Guild Standing",
-            LetterSpecialType.Information => "Reveals: Hidden Content",
             _ => ""
         };
     }
@@ -295,9 +226,7 @@ public class SpecialLetterGenerationService
         return type switch
         {
             LetterSpecialType.Introduction => "Lord Blackwood", // TODO: Select from high-tier NPCs
-            LetterSpecialType.AccessPermit => "City Watch Captain",
-            LetterSpecialType.Endorsement => "Merchant Guildmaster",
-            LetterSpecialType.Information => sender.Name, // Information letters go back to sender
+            LetterSpecialType.AccessPermit => "Harbor Master", // Transport NPCs handle route permits
             _ => "Unknown"
         };
     }
@@ -308,46 +237,14 @@ public class SpecialLetterGenerationService
         return type switch
         {
             LetterSpecialType.Introduction => "npc_lord_blackwood",
-            LetterSpecialType.AccessPermit => "location_noble_district",
-            LetterSpecialType.Endorsement => "",
-            LetterSpecialType.Information => GenerateInformationId(sender),
+            LetterSpecialType.AccessPermit => "route_harbor_passage", // Routes, not locations
             _ => ""
         };
     }
 
-    private string GenerateInformationId(NPC sender)
-    {
-        // Generate InformationId based on sender's connections
-        // Format: "type:targetId"
-        Random random = new Random();
-        List<string> options = new List<string>();
+    // GenerateInformationId removed - Information letters no longer exist
 
-        // Add potential NPC reveals
-        options.Add("npc:shadow_informant");
-        options.Add("npc:underground_merchant");
-
-        // Add potential location reveals
-        options.Add("location:hidden_market");
-        options.Add("location:shadow_safehouse");
-
-        // Add potential service reveals
-        options.Add("service:black_market_access");
-        options.Add("service:information_network");
-
-        return options[random.Next(options.Count)];
-    }
-
-    private int GetSpecialLetterPayment(LetterSpecialType type)
-    {
-        return type switch
-        {
-            LetterSpecialType.Introduction => 15,
-            LetterSpecialType.AccessPermit => 20,
-            LetterSpecialType.Endorsement => 25,
-            LetterSpecialType.Information => 10,
-            _ => 10
-        };
-    }
+    // GetSpecialLetterPayment removed - special letters have no payment
 
     private int GetSpecialLetterDeadline(LetterSpecialType type)
     {
@@ -355,8 +252,6 @@ public class SpecialLetterGenerationService
         {
             LetterSpecialType.Introduction => 5,
             LetterSpecialType.AccessPermit => 4,
-            LetterSpecialType.Endorsement => 6,
-            LetterSpecialType.Information => 3,
             _ => 4
         };
     }

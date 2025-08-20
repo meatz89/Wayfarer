@@ -261,7 +261,7 @@ public class TravelEventManager
             }
         }
         
-        // Letter effects
+        // DeliveryObligation effects
         if (effect.DeliverSecondaryLetter)
         {
             // Mark a secondary letter as delivered
@@ -318,7 +318,7 @@ public class TravelEventManager
         var player = _gameWorld.GetPlayer();
         
         // Adjust queue letters
-        foreach (var letter in player.LetterQueue.Where(l => l != null))
+        foreach (var letter in player.ObligationQueue.Where(l => l != null))
         {
             // This would need proper deadline adjustment logic
             // For now just track that it happened

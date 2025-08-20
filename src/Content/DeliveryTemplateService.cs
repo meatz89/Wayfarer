@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public class LetterTemplateRepository
+public class DeliveryTemplateService
 {
     private readonly GameWorld _gameWorld;
     private readonly Random _random = new Random();
     private LetterCategoryService _categoryService;
     private ConversationRepository _conversationRepository;
 
-    public LetterTemplateRepository(GameWorld gameWorld)
+    public DeliveryTemplateService(GameWorld gameWorld)
     {
         _gameWorld = gameWorld;
     }
@@ -124,7 +124,7 @@ public class LetterTemplateRepository
     }
 
     // Generate a letter from a template with random values
-    public Letter GenerateLetterFromTemplate(LetterTemplate template, string senderName, string recipientName)
+    public Letter? GenerateLetterFromTemplate(LetterTemplate template, string senderName, string recipientName)
     {
         if (template == null) return null;
 
@@ -147,42 +147,19 @@ public class LetterTemplateRepository
         {
             SenderName = senderName,
             RecipientName = recipientName,
-            TokenType = template.TokenType,
-            DeadlineInHours = _random.Next(template.MinDeadlineInHours, template.MaxDeadlineInHours + 1),
-            Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
-            Size = template.Size,
+            Weight = template.Size == SizeCategory.Large ? 3 : template.Size == SizeCategory.Medium ? 2 : 1,
             PhysicalProperties = template.PhysicalProperties,
-            RequiredEquipment = template.RequiredEquipment,
-            Description = template.Description,
             SpecialType = template.SpecialType
         };
 
-        // Set special letter properties based on type
-        if (template.SpecialType != LetterSpecialType.None && !string.IsNullOrEmpty(template.SpecialTargetId))
-        {
-            switch (template.SpecialType)
-            {
-                case LetterSpecialType.Introduction:
-                    letter.UnlocksNPCId = template.SpecialTargetId;
-                    break;
-                case LetterSpecialType.AccessPermit:
-                    letter.UnlocksLocationId = template.SpecialTargetId;
-                    break;
-                case LetterSpecialType.Endorsement:
-                    letter.BonusDuration = 7; // Default 7 days for endorsements
-                    break;
-                case LetterSpecialType.Information:
-                    letter.InformationId = template.SpecialTargetId;
-                    break;
-            }
-        }
-
+        // Special letter mechanical effects are handled by the services that use them
+        // The Letter object just needs to identify its type
         return letter;
     }
 
     // Generate a forced letter from a template (for standing obligations)
     // Narrative names should be provided by the calling service, not the template
-    public Letter GenerateForcedLetterFromTemplate(LetterTemplate template)
+    public DeliveryObligation GenerateForcedLetterFromTemplate(LetterTemplate template)
     {
         if (template == null) return null;
 
@@ -213,43 +190,60 @@ public class LetterTemplateRepository
                 break;
         }
 
-        Letter letter = new Letter
+        DeliveryObligation obligation = new DeliveryObligation
         {
+            Id = Guid.NewGuid().ToString(),
             SenderName = senderName,
             RecipientName = recipientName,
-            TokenType = template.TokenType,
-            DeadlineInHours = _random.Next(template.MinDeadlineInHours, template.MaxDeadlineInHours + 1),
+            SenderId = "anonymous", // Forced letters don't have specific NPC IDs
+            RecipientId = "anonymous",
+            DeadlineInMinutes = _random.Next(template.MinDeadlineInMinutes, template.MaxDeadlineInMinutes + 1),
             Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
-            IsGenerated = true,
-            GenerationReason = $"Forced from template: {template.Id}",
-            Size = template.Size,
-            PhysicalProperties = template.PhysicalProperties,
-            RequiredEquipment = template.RequiredEquipment,
+            TokenType = template.TokenType,
             Description = template.Description,
-            SpecialType = template.SpecialType
+            Stakes = template.Stakes,
+            IsGenerated = true,
+            GenerationReason = "Forced by Standing Obligation",
+            DaysInQueue = 0,
+            // State is only for physical Letters, not abstract DeliveryObligations
         };
 
-        // Set special letter properties for forced letters
-        if (template.SpecialType != LetterSpecialType.None && !string.IsNullOrEmpty(template.SpecialTargetId))
-        {
-            switch (template.SpecialType)
-            {
-                case LetterSpecialType.Introduction:
-                    letter.UnlocksNPCId = template.SpecialTargetId;
-                    break;
-                case LetterSpecialType.AccessPermit:
-                    letter.UnlocksLocationId = template.SpecialTargetId;
-                    break;
-                case LetterSpecialType.Endorsement:
-                    letter.BonusDuration = 7;
-                    break;
-                case LetterSpecialType.Information:
-                    letter.InformationId = template.SpecialTargetId;
-                    break;
-            }
-        }
+        // Forced letters are delivery obligations for the queue
+        return obligation;
+    }
 
-        return letter;
+    /// <summary>
+    /// Generate a DeliveryObligation from template for queue placement.
+    /// </summary>
+    public DeliveryObligation? GenerateObligationFromTemplate(LetterTemplate template, string senderName, string recipientName)
+    {
+        if (template == null) return null;
+
+        // Find NPCs for proper ID assignment
+        NPC? sender = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.Name == senderName);
+        NPC? recipient = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.Name == recipientName);
+
+        if (sender == null || recipient == null) return null;
+
+        DeliveryObligation obligation = new DeliveryObligation
+        {
+            Id = Guid.NewGuid().ToString(),
+            SenderName = senderName,
+            RecipientName = recipientName,
+            SenderId = sender.ID,
+            RecipientId = recipient.ID,
+            DeadlineInMinutes = _random.Next(template.MinDeadlineInMinutes, template.MaxDeadlineInMinutes + 1),
+            Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
+            TokenType = template.TokenType,
+            Description = template.Description,
+            Stakes = template.Stakes,
+            IsGenerated = true,
+            GenerationReason = "NPC Request",
+            DaysInQueue = 0,
+            // State is only for physical Letters, not abstract DeliveryObligations
+        };
+
+        return obligation;
     }
 
     /// <summary>
@@ -266,7 +260,7 @@ public class LetterTemplateRepository
     /// <summary>
     /// Generate a letter from an NPC respecting category thresholds.
     /// </summary>
-    public Letter GenerateLetterFromNPC(string npcId, string senderName, ConnectionType tokenType)
+    public DeliveryObligation GenerateLetterFromNPC(string npcId, string senderName, ConnectionType tokenType)
     {
         List<LetterTemplate> availableTemplates = GetAvailableTemplatesForNPC(npcId, tokenType);
         if (!availableTemplates.Any()) return null;
@@ -306,8 +300,8 @@ public class LetterTemplateRepository
             recipientName = recipient.Name;
         }
 
-        // Generate letter with category-appropriate payment
-        Letter letter = GenerateLetterFromTemplate(template, senderName, recipientName);
+        // Generate delivery obligation with category-appropriate payment
+        DeliveryObligation letter = GenerateObligationFromTemplate(template, senderName, recipientName);
 
         // Override payment to match category if needed
         if (_categoryService != null)
@@ -317,5 +311,92 @@ public class LetterTemplateRepository
         }
 
         return letter;
+    }
+
+    /// <summary>
+    /// Generate a basic delivery obligation from an NPC's characteristics.
+    /// </summary>
+    public DeliveryObligation GenerateObligationFromNPC(NPC npc)
+    {
+        if (npc.LetterTokenTypes == null || !npc.LetterTokenTypes.Any())
+            return null;
+
+        // Use NPC's primary token type
+        ConnectionType tokenType = npc.LetterTokenTypes.FirstOrDefault();
+        
+        // Find available templates for this NPC and token type
+        List<LetterTemplate> availableTemplates = GetAvailableTemplatesForNPC(npc.ID, tokenType);
+        if (!availableTemplates.Any())
+        {
+            // Create a basic obligation if no templates available
+            return CreateBasicObligationFromNPC(npc, tokenType);
+        }
+
+        // Use existing template-based generation
+        return GenerateLetterFromNPC(npc.ID, npc.Name, tokenType);
+    }
+
+    /// <summary>
+    /// Generate an urgent delivery obligation from an NPC.
+    /// </summary>
+    public DeliveryObligation GenerateUrgentObligationFromNPC(NPC npc)
+    {
+        DeliveryObligation obligation = GenerateObligationFromNPC(npc);
+        if (obligation != null)
+        {
+            // Make it urgent - short deadline and higher stakes
+            obligation.DeadlineInMinutes = _random.Next(1, 3); // 1-2 hours
+            obligation.Stakes = StakeType.SAFETY; // Higher stakes
+            obligation.GenerationReason = "Urgent Request";
+        }
+        return obligation;
+    }
+
+    /// <summary>
+    /// Create a basic obligation when no templates are available.
+    /// </summary>
+    private DeliveryObligation CreateBasicObligationFromNPC(NPC npc, ConnectionType tokenType)
+    {
+        // Find a reasonable recipient (not the sender)
+        List<NPC> allNpcs = _gameWorld.WorldState.NPCs;
+        List<NPC> possibleRecipients = allNpcs.Where(n => n.ID != npc.ID).ToList();
+        if (!possibleRecipients.Any()) return null;
+
+        NPC recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
+
+        return new DeliveryObligation
+        {
+            Id = Guid.NewGuid().ToString(),
+            SenderName = npc.Name,
+            RecipientName = recipient.Name,
+            SenderId = npc.ID,
+            RecipientId = recipient.ID,
+            DeadlineInMinutes = _random.Next(12, 72), // 12-72 hours
+            Payment = _random.Next(5, 25), // Basic payment range
+            TokenType = tokenType,
+            Stakes = GetStakesByProfession(npc.Profession),
+            Description = $"Delivery request from {npc.Name}",
+            // State is only for physical Letters, not abstract DeliveryObligations
+            IsGenerated = true,
+            GenerationReason = "NPC Request",
+            DaysInQueue = 0,
+            QueuePosition = -1
+        };
+    }
+
+    /// <summary>
+    /// Get appropriate stakes based on NPC profession.
+    /// </summary>
+    private StakeType GetStakesByProfession(Professions profession)
+    {
+        return profession switch
+        {
+            Professions.Merchant => StakeType.REPUTATION,
+            Professions.Noble => StakeType.STATUS,
+            Professions.Scribe => StakeType.REPUTATION,
+            Professions.Guard => StakeType.SAFETY,
+            Professions.Priest => StakeType.SECRET,
+            _ => StakeType.REPUTATION
+        };
     }
 }

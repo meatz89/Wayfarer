@@ -10,13 +10,13 @@ public class EnvironmentalHintSystem
 {
     private readonly GameWorld _gameWorld;
     private readonly ITimeManager _timeManager;
-    private readonly LetterQueueManager _letterQueueManager;
+    private readonly ObligationQueueManager _letterQueueManager;
     private readonly Dictionary<string, List<EnvironmentalHint>> _locationHints;
 
     public EnvironmentalHintSystem(
         GameWorld gameWorld,
         ITimeManager timeManager,
-        LetterQueueManager letterQueueManager)
+        ObligationQueueManager letterQueueManager)
     {
         _gameWorld = gameWorld;
         _timeManager = timeManager;
@@ -63,20 +63,20 @@ public class EnvironmentalHintSystem
     /// </summary>
     public string GetDeadlinePressure()
     {
-        Letter? mostUrgent = _letterQueueManager.GetActiveLetters()
+        DeliveryObligation? mostUrgent = _letterQueueManager.GetActiveObligations()
             .Where(l => l != null)
-            .OrderBy(l => l.DeadlineInHours)
+            .OrderBy(l => l.DeadlineInMinutes)
             .FirstOrDefault();
 
         if (mostUrgent == null) return null;
 
-        if (mostUrgent.DeadlineInHours <= 0)
+        if (mostUrgent.DeadlineInMinutes <= 0)
             return $"💀 {mostUrgent.RecipientName}: EXPIRED!";
 
-        if (mostUrgent.DeadlineInHours <= 3)
+        if (mostUrgent.DeadlineInMinutes <= 3)
         {
-            int hours = mostUrgent.DeadlineInHours;
-            int minutes = (int)((mostUrgent.DeadlineInHours - hours) * 60);
+            int hours = mostUrgent.DeadlineInMinutes;
+            int minutes = (int)((mostUrgent.DeadlineInMinutes - hours) * 60);
             return $"⚡ {mostUrgent.RecipientName}: {hours}h {minutes}m";
         }
 
@@ -224,13 +224,13 @@ public class EnvironmentalHintSystem
 
     private bool HasUrgentLetters()
     {
-        return _letterQueueManager.GetActiveLetters()
-            .Any(l => l != null && l.DeadlineInHours <= 3);
+        return _letterQueueManager.GetActiveObligations()
+            .Any(l => l != null && l.DeadlineInMinutes <= 3);
     }
 
     private float GetQueuePressure()
     {
-        Letter[] letters = _letterQueueManager.GetActiveLetters();
+        DeliveryObligation[] letters = _letterQueueManager.GetActiveObligations();
         return letters.Count(l => l != null) / 8.0f;
     }
 

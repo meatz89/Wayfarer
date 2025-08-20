@@ -13,7 +13,7 @@ using Wayfarer.ViewModels;
 /// GameFacade - THE single entry point for all UI-Backend communication.
 /// This class delegates to existing UIServices and managers to maintain clean separation.
 /// </summary>
-public class GameFacade : ILetterQueueOperations
+public class GameFacade
 {
     // Queue operation lock to ensure atomicity
     private readonly SemaphoreSlim _queueOperationLock = new(1, 1);
@@ -27,7 +27,7 @@ public class GameFacade : ILetterQueueOperations
     // Managers
     private readonly TravelManager _travelManager;
     private readonly RestManager _restManager;
-    private readonly LetterQueueManager _letterQueueManager;
+    private readonly ObligationQueueManager _letterQueueManager;
     private readonly RouteDiscoveryManager _routeDiscoveryManager;
 
     // Domain services
@@ -49,10 +49,8 @@ public class GameFacade : ILetterQueueOperations
     private readonly LetterCategoryService _letterCategoryService;
     private readonly SpecialLetterGenerationService _specialLetterService;
     private readonly DailyActivitiesManager _dailyActivitiesManager;
-    private readonly DeliveryConversationService _deliveryConversationService;
-    private readonly EndorsementManager _endorsementManager;
-    private readonly NoticeBoardService _noticeBoardService;
-    private readonly LetterTemplateRepository _letterTemplateRepository;
+    private readonly ConversationContextService _deliveryConversationService;
+    private readonly DeliveryTemplateService _letterTemplateRepository;
     private readonly InformationRevealService _informationRevealService;
     private readonly ContextTagCalculator _contextTagCalculator;
     private readonly NPCStateResolver _npcStateResolver;
@@ -73,7 +71,7 @@ public class GameFacade : ILetterQueueOperations
         ITimeManager timeManager,
         MessageSystem messageSystem,
         TravelManager travelManager,
-        LetterQueueManager letterQueueManager,
+        ObligationQueueManager letterQueueManager,
         RouteDiscoveryManager routeDiscoveryManager,
         ConversationFactory conversationFactory,
         NPCRepository npcRepository,
@@ -95,10 +93,8 @@ public class GameFacade : ILetterQueueOperations
         LetterCategoryService letterCategoryService,
         SpecialLetterGenerationService specialLetterService,
         DailyActivitiesManager dailyActivitiesManager,
-        DeliveryConversationService deliveryConversationService,
-        EndorsementManager endorsementManager,
-        NoticeBoardService noticeBoardService,
-        LetterTemplateRepository letterTemplateRepository,
+        ConversationContextService deliveryConversationService,
+        DeliveryTemplateService letterTemplateRepository,
         InformationRevealService informationRevealService,
         ContextTagCalculator contextTagCalculator,
         NPCStateResolver npcStateResolver,
@@ -142,8 +138,7 @@ public class GameFacade : ILetterQueueOperations
         _specialLetterService = specialLetterService;
         _dailyActivitiesManager = dailyActivitiesManager;
         _deliveryConversationService = deliveryConversationService;
-        _endorsementManager = endorsementManager;
-        _noticeBoardService = noticeBoardService;
+        // _endorsementManager = endorsementManager; // Removed
         _letterTemplateRepository = letterTemplateRepository;
         _informationRevealService = informationRevealService;
         _contextTagCalculator = contextTagCalculator;
@@ -179,6 +174,132 @@ public class GameFacade : ILetterQueueOperations
             attention.GetMaxAttention(),
             currentTimeBlock
         );
+    }
+
+    // ========== EPIC 9: ATTENTION REFRESH SYSTEM ==========
+
+    /// <summary>
+    /// Epic 9: Check if attention refresh is available at current location
+    /// </summary>
+    public bool CanRefreshAttentionAtCurrentLocation()
+    {
+        Player player = _gameWorld.GetPlayer();
+        if (player.CurrentLocationSpot == null) return false;
+
+        // Check if any NPCs at current location provide appropriate services
+        List<NPC> npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(
+            player.CurrentLocationSpot.SpotID, 
+            _timeManager.GetCurrentTimeBlock()
+        );
+
+        // Must have Rest, Lodging, or FoodProduction services for attention refresh
+        bool hasAppropriateServices = npcsHere.Any(npc => 
+            npc.ProvidedServices.Contains(ServiceTypes.Rest) ||
+            npc.ProvidedServices.Contains(ServiceTypes.Lodging) ||
+            npc.ProvidedServices.Contains(ServiceTypes.FoodProduction)
+        );
+
+        // For testing: temporarily allow refresh at any location with Trade services (Marcus's stall)
+        if (!hasAppropriateServices)
+        {
+            hasAppropriateServices = npcsHere.Any(npc => npc.ProvidedServices.Contains(ServiceTypes.Trade));
+        }
+
+        return hasAppropriateServices && _timeBlockAttentionManager.CanRefreshAttention();
+    }
+
+    /// <summary>
+    /// Epic 9: Get attention refresh status for UI display
+    /// </summary>
+    public AttentionRefreshStatus GetAttentionRefreshStatus()
+    {
+        return _timeBlockAttentionManager.GetRefreshStatus();
+    }
+
+    /// <summary>
+    /// Epic 9: Attempt to refresh attention with quick drink (1 coin = +1 attention)
+    /// </summary>
+    public AttentionRefreshResult TryRefreshWithQuickDrink()
+    {
+        Player player = _gameWorld.GetPlayer();
+        
+        if (!CanRefreshAttentionAtCurrentLocation())
+        {
+            return new AttentionRefreshResult
+            {
+                Success = false,
+                Message = "No tavern or inn services available here."
+            };
+        }
+
+        if (player.Coins < GameRules.ATTENTION_REFRESH_QUICK_DRINK_COST)
+        {
+            return new AttentionRefreshResult
+            {
+                Success = false,
+                Message = $"Need {GameRules.ATTENTION_REFRESH_QUICK_DRINK_COST} coin for a quick drink.",
+                RemainingAttention = _timeBlockAttentionManager.GetAttentionState().current
+            };
+        }
+
+        AttentionRefreshResult result = _timeBlockAttentionManager.TryRefreshWithCoins(
+            GameRules.ATTENTION_REFRESH_QUICK_DRINK_POINTS,
+            GameRules.ATTENTION_REFRESH_QUICK_DRINK_COST
+        );
+
+        if (result.Success)
+        {
+            player.ModifyCoins(-GameRules.ATTENTION_REFRESH_QUICK_DRINK_COST);
+            _messageSystem.AddSystemMessage(
+                "☕ A quick drink sharpens your focus.", 
+                SystemMessageTypes.Success
+            );
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Epic 9: Attempt to refresh attention with full meal (3 coins = +2 attention)
+    /// </summary>
+    public AttentionRefreshResult TryRefreshWithFullMeal()
+    {
+        Player player = _gameWorld.GetPlayer();
+        
+        if (!CanRefreshAttentionAtCurrentLocation())
+        {
+            return new AttentionRefreshResult
+            {
+                Success = false,
+                Message = "No tavern or inn services available here."
+            };
+        }
+
+        if (player.Coins < GameRules.ATTENTION_REFRESH_FULL_MEAL_COST)
+        {
+            return new AttentionRefreshResult
+            {
+                Success = false,
+                Message = $"Need {GameRules.ATTENTION_REFRESH_FULL_MEAL_COST} coins for a full meal.",
+                RemainingAttention = _timeBlockAttentionManager.GetAttentionState().current
+            };
+        }
+
+        AttentionRefreshResult result = _timeBlockAttentionManager.TryRefreshWithCoins(
+            GameRules.ATTENTION_REFRESH_FULL_MEAL_POINTS,
+            GameRules.ATTENTION_REFRESH_FULL_MEAL_COST
+        );
+
+        if (result.Success)
+        {
+            player.ModifyCoins(-GameRules.ATTENTION_REFRESH_FULL_MEAL_COST);
+            _messageSystem.AddSystemMessage(
+                "🍽️ A hearty meal restores your energy and focus.", 
+                SystemMessageTypes.Success
+            );
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -308,7 +429,7 @@ public class GameFacade : ILetterQueueOperations
         }
 
         // Add letter weights
-        foreach (Letter letter in player.LetterQueue)
+        foreach (DeliveryObligation letter in player.ObligationQueue)
         {
             if (letter != null && letter.State == LetterState.Collected)
             {
@@ -505,6 +626,41 @@ public class GameFacade : ILetterQueueOperations
             RewardsDescription = "Study your surroundings for opportunities"
         });
 
+        // Epic 9: Add attention refresh actions at appropriate locations
+        if (CanRefreshAttentionAtCurrentLocation())
+        {
+            AttentionRefreshStatus refreshStatus = GetAttentionRefreshStatus();
+            
+            if (refreshStatus.CanRefresh)
+            {
+                actions.Add(new ActionOptionViewModel
+                {
+                    Id = "attention_quick_drink",
+                    Description = $"Quick drink ({GameRules.ATTENTION_REFRESH_QUICK_DRINK_COST} coin)",
+                    TimeCost = 0,
+                    StaminaCost = 0,
+                    CoinCost = GameRules.ATTENTION_REFRESH_QUICK_DRINK_COST,
+                    HasEnoughTime = true,
+                    HasEnoughStamina = true,
+                    HasEnoughCoins = player.Coins >= GameRules.ATTENTION_REFRESH_QUICK_DRINK_COST,
+                    RewardsDescription = $"+{GameRules.ATTENTION_REFRESH_QUICK_DRINK_POINTS} attention"
+                });
+
+                actions.Add(new ActionOptionViewModel
+                {
+                    Id = "attention_full_meal",
+                    Description = $"Full meal ({GameRules.ATTENTION_REFRESH_FULL_MEAL_COST} coins)",
+                    TimeCost = 0,
+                    StaminaCost = 0,
+                    CoinCost = GameRules.ATTENTION_REFRESH_FULL_MEAL_COST,
+                    HasEnoughTime = true,
+                    HasEnoughStamina = true,
+                    HasEnoughCoins = player.Coins >= GameRules.ATTENTION_REFRESH_FULL_MEAL_COST,
+                    RewardsDescription = $"+{GameRules.ATTENTION_REFRESH_FULL_MEAL_POINTS} attention"
+                });
+            }
+        }
+
         // Group actions by category
         List<ActionOptionViewModel> socialActions = actions.Where(a => a.Id.StartsWith("talk_")).ToList();
         List<ActionOptionViewModel> restActions = actions.Where(a => a.Id.StartsWith("rest_")).ToList();
@@ -563,6 +719,26 @@ public class GameFacade : ILetterQueueOperations
         else if (actionId == "observe")
         {
             intent = new ObserveLocationIntent();
+        }
+        else if (actionId == "attention_quick_drink")
+        {
+            // Epic 9: Handle quick drink refresh
+            AttentionRefreshResult result = TryRefreshWithQuickDrink();
+            if (!result.Success)
+            {
+                _messageSystem.AddSystemMessage(result.Message, SystemMessageTypes.Warning);
+            }
+            return result.Success;
+        }
+        else if (actionId == "attention_full_meal")
+        {
+            // Epic 9: Handle full meal refresh
+            AttentionRefreshResult result = TryRefreshWithFullMeal();
+            if (!result.Success)
+            {
+                _messageSystem.AddSystemMessage(result.Message, SystemMessageTypes.Warning);
+            }
+            return result.Success;
         }
         else if (actionId.StartsWith("move_"))
         {
@@ -771,14 +947,14 @@ public class GameFacade : ILetterQueueOperations
         _messageSystem.AddSystemMessage(message, SystemMessageTypes.Info);
 
         // Check for missed deadlines from letter queue
-        LetterQueueViewModel letterQueue = GetLetterQueue();
+        LetterQueueViewModel letterQueue = GetQueueViewModel();
         if (letterQueue?.QueueSlots != null)
         {
             foreach (QueueSlotViewModel slot in letterQueue.QueueSlots)
             {
-                if (slot.IsOccupied && slot.Letter?.DeadlineInHours <= 0)
+                if (slot.IsOccupied && slot.Letter?.DeadlineInMinutes <= 0)
                 {
-                    _messageSystem.AddSystemMessage($"Letter to {slot.Letter.RecipientName} has expired!", SystemMessageTypes.Danger);
+                    _messageSystem.AddSystemMessage($"DeliveryObligation to {slot.Letter.RecipientName} has expired!", SystemMessageTypes.Danger);
                 }
             }
         }
@@ -831,14 +1007,14 @@ public class GameFacade : ILetterQueueOperations
         Player player = _gameWorld.GetPlayer();
 
         // Find the letter in the player's queue
-        Letter letterToDeliver = null;
+        DeliveryObligation letterToDeliver = null;
         int letterPosition = -1;
 
-        for (int i = 0; i < player.LetterQueue.Length; i++)
+        for (int i = 0; i < player.ObligationQueue.Length; i++)
         {
-            if (player.LetterQueue[i]?.Id == intent.LetterId)
+            if (player.ObligationQueue[i]?.Id == intent.LetterId)
             {
-                letterToDeliver = player.LetterQueue[i];
+                letterToDeliver = player.ObligationQueue[i];
                 letterPosition = i + 1; // Queue positions are 1-indexed
                 break;
             }
@@ -846,7 +1022,7 @@ public class GameFacade : ILetterQueueOperations
 
         if (letterToDeliver == null)
         {
-            _messageSystem.AddSystemMessage("Letter not found in your queue", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("DeliveryObligation not found in your queue", SystemMessageTypes.Warning);
             return false;
         }
 
@@ -896,12 +1072,7 @@ public class GameFacade : ILetterQueueOperations
             _messageSystem.AddSystemMessage($"Lost {Math.Abs(outcome.TokenAmount)} {outcome.TokenType} token with {recipient.Name}", SystemMessageTypes.Warning);
         }
 
-        // Handle special letter types
-        if (letterToDeliver.SpecialType == LetterSpecialType.Endorsement && _endorsementManager != null)
-        {
-            // For now, just log endorsement delivery
-            _messageSystem.AddSystemMessage("Endorsement successfully delivered!", SystemMessageTypes.Success);
-        }
+        // Handle special letter types - Endorsement letters removed from game
 
         // Process patron leverage
         if (outcome.ReducesLeverage > 0)
@@ -942,7 +1113,6 @@ public class GameFacade : ILetterQueueOperations
 
         // For now, use the notice board service to generate a letter
         // In the future, this could work with pre-generated offers
-        Letter? letter = _noticeBoardService?.UseNoticeBoard(NoticeBoardService.NoticeBoardOption.AnythingHeading);
 
         if (letter == null)
         {
@@ -955,7 +1125,7 @@ public class GameFacade : ILetterQueueOperations
         if (position > 0)
         {
             _messageSystem.AddSystemMessage($"Collected letter from {letter.SenderName} to {letter.RecipientName}", SystemMessageTypes.Success);
-            _messageSystem.AddSystemMessage($"Letter added to queue position {position}", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"DeliveryObligation added to queue position {position}", SystemMessageTypes.Info);
             return true;
         }
         else
@@ -1186,7 +1356,7 @@ public class GameFacade : ILetterQueueOperations
 
         if (offer == null)
         {
-            _messageSystem.AddSystemMessage("Letter offer no longer available", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("DeliveryObligation offer no longer available", SystemMessageTypes.Warning);
             return false;
         }
 
@@ -1205,7 +1375,7 @@ public class GameFacade : ILetterQueueOperations
         NPC recipient = possibleRecipients[random.Next(possibleRecipients.Count)];
 
         // Create letter from offer
-        Letter letter = new Letter
+        DeliveryObligation letter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderName = offer.NPCName,
@@ -1213,11 +1383,11 @@ public class GameFacade : ILetterQueueOperations
             RecipientName = recipient.Name,
             RecipientId = recipient.ID,
             Payment = offer.Payment,
-            DeadlineInHours = offer.DeadlineInHours,
+            DeadlineInMinutes = offer.DeadlineInMinutes,
             DaysInQueue = 0,
             QueuePosition = 0,
             TokenType = offer.LetterType,
-            Description = $"Letter from {offer.NPCName} to {recipient.Name}"
+            Description = $"DeliveryObligation from {offer.NPCName} to {recipient.Name}"
         };
 
         // Add letter to queue
@@ -1450,7 +1620,8 @@ public class GameFacade : ILetterQueueOperations
         }
 
         // Get available conversions at this guild
-        List<SealConversionOption> conversions = _endorsementManager.GetAvailableSealConversions(intent.LocationId);
+        // List<SealConversionOption> conversions = _endorsementManager.GetAvailableSealConversions(intent.LocationId); // Endorsements removed
+        List<SealConversionOption> conversions = new List<SealConversionOption>(); // Empty - endorsements removed
         SealConversionOption? targetConversion = conversions.FirstOrDefault(c => c.TargetTier == targetTier);
 
         if (targetConversion == null)
@@ -1469,7 +1640,8 @@ public class GameFacade : ILetterQueueOperations
         _messageSystem.AddSystemMessage($"🏛️ Presenting your endorsements to the {targetConversion.GuildName}...", SystemMessageTypes.Info);
 
         // Perform the conversion
-        bool success = _endorsementManager.ConvertEndorsementsToSeal(intent.LocationId, targetTier);
+        // bool success = _endorsementManager.ConvertEndorsementsToSeal(intent.LocationId, targetTier); // Endorsements removed
+        bool success = false; // Endorsements removed - conversion always fails
 
         if (success)
         {
@@ -1546,7 +1718,7 @@ public class GameFacade : ILetterQueueOperations
         int baseStaminaCost = totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX ? GameConstants.LoadWeight.LIGHT_LOAD_STAMINA_PENALTY :
                              (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX ? GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY : GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY);
 
-        List<Letter> carriedLetters = player.CarriedLetters ?? new List<Letter>();
+        List<DeliveryObligation> carriedLetters = player.CarriedLetters ?? new List<DeliveryObligation>();
         bool hasHeavyLetters = carriedLetters.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy));
         bool hasFragileLetters = carriedLetters.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Fragile));
         bool hasValuableLetters = carriedLetters.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Valuable));
@@ -1606,7 +1778,7 @@ public class GameFacade : ILetterQueueOperations
     private List<RouteViewModel> ConvertRoutes(List<RouteOption> routes)
     {
         Player player = _gameWorld.GetPlayer();
-        List<Letter> carriedLetters = player.CarriedLetters ?? new List<Letter>();
+        List<DeliveryObligation> carriedLetters = player.CarriedLetters ?? new List<DeliveryObligation>();
         bool hasHeavyLetters = carriedLetters.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy));
 
         return routes.Select(route =>
@@ -1853,7 +2025,7 @@ public class GameFacade : ILetterQueueOperations
     {
         Player player = _gameWorld.GetPlayer();
         int totalWeight = CalculateTotalWeight();
-        List<Letter>? carriedLetters = player.CarriedLetters;
+        List<DeliveryObligation>? carriedLetters = player.CarriedLetters;
 
         // Calculate weight status
         string weightStatus;
@@ -2376,12 +2548,19 @@ public class GameFacade : ILetterQueueOperations
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Found choice: {selectedChoice.NarrativeText}, PatienceCost: {selectedChoice.PatienceCost}, ChoiceType: {selectedChoice.ChoiceType}");
 
         // LETTER REQUEST CARD HANDLING: Process letter request cards with success/failure mechanics
-        if (selectedChoice.ChoiceType == ConversationChoiceType.RequestTrustLetter ||
-            selectedChoice.ChoiceType == ConversationChoiceType.RequestCommerceLetter ||
-            selectedChoice.ChoiceType == ConversationChoiceType.RequestStatusLetter ||
+        if (selectedChoice.ChoiceType == ConversationChoiceType.RequestTrustDeliveryObligation ||
+            selectedChoice.ChoiceType == ConversationChoiceType.RequestCommerceDeliveryObligation ||
+            selectedChoice.ChoiceType == ConversationChoiceType.RequestStatusDeliveryObligation ||
             selectedChoice.ChoiceType == ConversationChoiceType.RequestShadowLetter)
         {
             return await ProcessLetterRequestCard(currentConversation, selectedChoice);
+        }
+        
+        // SPECIAL LETTER REQUEST HANDLING: Process special letter requests (Epic 7)
+        if (selectedChoice.ChoiceType == ConversationChoiceType.IntroductionDeliveryObligation ||
+            selectedChoice.ChoiceType == ConversationChoiceType.AccessPermit)
+        {
+            return await ProcessSpecialLetterRequestCard(currentConversation, selectedChoice);
         }
         // LEGACY: Keep old instant offer handling for backward compatibility (will be removed)
         else if (selectedChoice.ChoiceType == ConversationChoiceType.AcceptLetterOffer)
@@ -2519,12 +2698,12 @@ public class GameFacade : ILetterQueueOperations
         };
 
         // Get the most urgent letter for this NPC (used in multiple places)
-        Letter urgentLetter = null;
+        DeliveryObligation urgentDeliveryObligation = null;
         if (npc != null)
         {
-            urgentLetter = _letterQueueManager.GetActiveLetters()
+            urgentDeliveryObligation = _letterQueueManager.GetActiveObligations()
                 .Where(l => l.SenderId == npc.ID || l.SenderName == npc.Name)
-                .OrderBy(l => l.DeadlineInHours)
+                .OrderBy(l => l.DeadlineInMinutes)
                 .FirstOrDefault();
         }
 
@@ -2583,7 +2762,7 @@ public class GameFacade : ILetterQueueOperations
             // Emotional State (from NPCStateResolver)
             EmotionalState = npcState,
             CurrentStakes = urgentLetter?.Stakes,
-            HoursToDeadline = urgentLetter?.DeadlineInHours,
+            HoursToDeadline = urgentLetter?.DeadlineInMinutes,
 
             Choices = conversation.Choices?.Select(c => new ConversationChoiceViewModel
             {
@@ -2617,7 +2796,7 @@ public class GameFacade : ILetterQueueOperations
 
             // Scene pressure metrics
             MinutesUntilDeadline = context?.MinutesUntilDeadline ?? 0,
-            LetterQueueSize = context?.LetterQueueSize ?? 0,
+            LetterQueueSize = context?.ObligationQueueSize ?? 0,
 
             // Body language and peripheral awareness
             BodyLanguageDescription = bodyLanguage,
@@ -2653,10 +2832,10 @@ public class GameFacade : ILetterQueueOperations
         // Determine letter type from choice type
         ConnectionType letterType = choice.ChoiceType switch
         {
-            ConversationChoiceType.RequestTrustLetter => ConnectionType.Trust,
-            ConversationChoiceType.RequestCommerceLetter => ConnectionType.Commerce,
-            ConversationChoiceType.RequestStatusLetter => ConnectionType.Status,
-            ConversationChoiceType.RequestShadowLetter => ConnectionType.Shadow,
+            ConversationChoiceType.RequestTrustDeliveryObligation => ConnectionType.Trust,
+            ConversationChoiceType.RequestCommerceDeliveryObligation => ConnectionType.Commerce,
+            ConversationChoiceType.RequestStatusDeliveryObligation => ConnectionType.Status,
+            ConversationChoiceType.RequestShadowDeliveryObligation => ConnectionType.Shadow,
             _ => ConnectionType.Trust
         };
 
@@ -2678,7 +2857,7 @@ public class GameFacade : ILetterQueueOperations
                 
             if (generatedLetters?.Any() == true)
             {
-                Letter letter = generatedLetters.First();
+                DeliveryObligation letter = generatedLetters.First();
                 letter.TokenType = letterType; // Override with requested type
                 
                 // Add to queue
@@ -2693,7 +2872,7 @@ public class GameFacade : ILetterQueueOperations
                     SystemMessageTypes.Success
                 );
                 _messageSystem.AddSystemMessage(
-                    $"💰 {letter.Payment} coins • ⏰ {letter.DeadlineInHours / 24} days • Position {position}",
+                    $"💰 {letter.Payment} coins • ⏰ {letter.DeadlineInMinutes / 24} days • Position {position}",
                     SystemMessageTypes.Info
                 );
             }
@@ -2710,6 +2889,93 @@ public class GameFacade : ILetterQueueOperations
                 : SystemMessageTypes.Warning;
                 
             _messageSystem.AddSystemMessage(failureMessage, messageType);
+            
+            // Card stays in deck for retry in future conversations
+        }
+        
+        // Process standard choice effects
+        ConversationBeatOutcome beatOutcome = await conversation.ProcessPlayerChoice(choice);
+        
+        return CreateConversationViewModel(conversation);
+    }
+
+    /// <summary>
+    /// Process special letter request card using SpecialLetterGenerationService
+    /// Epic 7: Only supports IntroductionDeliveryObligation (Trust) and AccessPermit (Commerce)
+    /// </summary>
+    private async Task<ConversationViewModel> ProcessSpecialLetterRequestCard(ConversationManager conversation, ConversationChoice choice)
+    {
+        NPC npc = conversation.Context.TargetNPC;
+        Player player = _gameWorld.GetPlayer();
+        int currentPatience = conversation.State.FocusPoints;
+        
+        // Determine token type from choice type
+        ConnectionType tokenType = choice.ChoiceType switch
+        {
+            ConversationChoiceType.IntroductionDeliveryObligation => ConnectionType.Trust,
+            ConversationChoiceType.AccessPermit => ConnectionType.Commerce,
+            _ => throw new ArgumentException($"Unsupported special letter type: {choice.ChoiceType}")
+        };
+
+        // Check if we can request this special letter type
+        if (!_specialLetterService.CanRequestSpecialLetter(npc.ID, tokenType))
+        {
+            // Use categorical message instead of hardcoded text
+            _messageSystem.AddSpecialLetterRequestResult(
+                npc.ID, 
+                tokenType, 
+                SpecialLetterRequestResult.InsufficientTokens
+            );
+            
+            // Apply patience cost but no other effects
+            conversation.State.FocusPoints -= choice.PatienceCost;
+            conversation.State.PlayCard(choice.ChoiceID);
+            
+            ConversationBeatOutcome failureOutcome = await conversation.ProcessPlayerChoice(choice);
+            return CreateConversationViewModel(conversation);
+        }
+
+        // Calculate success using existing outcome calculator
+        var outcomeCalculator = new Wayfarer.Game.ConversationSystem.ConversationOutcomeCalculator();
+        var probabilities = outcomeCalculator.CalculateProbabilities(choice, npc, player, currentPatience);
+        var actualOutcome = outcomeCalculator.DetermineOutcome(probabilities);
+        
+        // Apply patience cost regardless of outcome
+        conversation.State.FocusPoints -= choice.PatienceCost;
+        conversation.State.PlayCard(choice.ChoiceID);
+        
+        // Handle success: Generate special letter and remove card from deck
+        if (actualOutcome == ConversationOutcome.Success)
+        {
+            // Request special letter using the service
+            bool success = _specialLetterService.RequestSpecialLetter(npc.ID, tokenType);
+            
+            if (success)
+            {
+                // Remove successful special letter card from deck (one-time use on success)
+                npc.ConversationDeck?.RemoveCard(choice.ChoiceID);
+                
+                // Success message is already provided by SpecialLetterGenerationService categorically
+            }
+            else
+            {
+                // Use categorical failure message
+                _messageSystem.AddSpecialLetterRequestResult(
+                    npc.ID,
+                    tokenType, 
+                    SpecialLetterRequestResult.ProcessingFailed
+                );
+            }
+        }
+        // Handle failure: Card remains in deck for future attempts
+        else
+        {
+            // Use categorical result based on conversation outcome
+            SpecialLetterRequestResult result = actualOutcome == ConversationOutcome.Neutral
+                ? SpecialLetterRequestResult.Neutral
+                : SpecialLetterRequestResult.Declined;
+                
+            _messageSystem.AddSpecialLetterRequestResult(npc.ID, tokenType, result);
             
             // Card stays in deck for retry in future conversations
         }
@@ -2740,11 +3006,11 @@ public class GameFacade : ILetterQueueOperations
 
         if (generatedLetters?.Any() == true)
         {
-            foreach (Letter letter in generatedLetters)
+            foreach (DeliveryObligation letter in generatedLetters)
             {
                 // Add letters to queue using existing positioning logic
                 int position = _letterQueueManager.AddLetterWithObligationEffects(letter);
-                Console.WriteLine($"[GameFacade] Letter added to queue at position: {position}");
+                Console.WriteLine($"[GameFacade] DeliveryObligation added to queue at position: {position}");
 
                 string perfectBonus = conversation.State.HasReachedPerfectThreshold() ? " (Perfect Conversation!)" : "";
                 _messageSystem.AddSystemMessage(
@@ -2752,15 +3018,15 @@ public class GameFacade : ILetterQueueOperations
                     SystemMessageTypes.Success
                 );
                 _messageSystem.AddSystemMessage(
-                    $"💰 {letter.Payment} coins • ⏰ {letter.DeadlineInHours / 24} days deadline",
+                    $"💰 {letter.Payment} coins • ⏰ {letter.DeadlineInMinutes / 24} days deadline",
                     SystemMessageTypes.Info
                 );
             }
 
             // Show queue impact
-            Letter[] queueSnapshot = GetQueueSnapshot();
+            DeliveryObligation[] queueSnapshot = GetQueueArray();
             int filledSlots = queueSnapshot.Count(letter => letter != null);
-            int totalWeight = queueSnapshot.Where(letter => letter != null).Sum(letter => letter.Weight);
+            int totalWeight = queueSnapshot.Where(letter => letter != null).Sum(letter => 1);
             
             _messageSystem.AddSystemMessage(
                 $"📋 Queue: {filledSlots}/8 slots • {totalWeight}/12 weight",
@@ -2823,7 +3089,7 @@ public class GameFacade : ILetterQueueOperations
 
     private string GenerateCharacterAction(
         NPCEmotionalState npcState,
-        Letter urgentLetter,
+        DeliveryObligation urgentLetter,
         ConversationManager conversation)
     {
         if (_actionBeatGenerator == null) return "";
@@ -2832,7 +3098,7 @@ public class GameFacade : ILetterQueueOperations
         int conversationTurn = 1; // Default to first turn
 
         // Check if urgent
-        bool isUrgent = urgentLetter?.DeadlineInHours <= 2;
+        bool isUrgent = urgentLetter?.DeadlineInMinutes <= 2;
 
         // Generate the action beat with NPC ID for determinism
         string? npcId = conversation?.Context?.TargetNPC?.ID;
@@ -2973,7 +3239,7 @@ public class GameFacade : ILetterQueueOperations
 
     // ========== LETTER QUEUE ==========
 
-    public LetterQueueViewModel GetLetterQueue()
+    public LetterQueueViewModel GetQueueViewModel()
     {
         Player player = _gameWorld.GetPlayer();
 
@@ -3037,7 +3303,7 @@ public class GameFacade : ILetterQueueOperations
             {
                 Position = position,
                 IsOccupied = letter != null,
-                Letter = letter != null ? ConvertToLetterViewModel(letter) : null,
+                DeliveryObligation = letter != null ? ConvertToLetterViewModel(letter) : null,
                 CanDeliver = position == 1 && letter?.State == LetterState.Collected,
                 CanSkip = canSkip,
                 SkipAction = skipAction
@@ -3058,7 +3324,7 @@ public class GameFacade : ILetterQueueOperations
         switch (actionType.ToLower())
         {
             case "deliver":
-                Letter letter = _letterQueueManager.GetLetterAt(position);
+                DeliveryObligation letter = _letterQueueManager.GetLetterAt(position);
                 if (letter == null) return false;
                 bool deliverSuccess = _letterQueueManager.DeliverFromPosition1();
                 if (deliverSuccess)
@@ -3071,7 +3337,7 @@ public class GameFacade : ILetterQueueOperations
 
                     // Delivery takes 1 hour
                     ProcessTimeAdvancement(1);
-                    _messageSystem.AddSystemMessage("Letter delivered successfully", SystemMessageTypes.Success);
+                    _messageSystem.AddSystemMessage("DeliveryObligation delivered successfully", SystemMessageTypes.Success);
                 }
                 return deliverSuccess;
             case "skip":
@@ -3081,14 +3347,14 @@ public class GameFacade : ILetterQueueOperations
                 bool prioritySuccess = _letterQueueManager.TryPriorityMove(position);
                 if (prioritySuccess)
                 {
-                    _messageSystem.AddSystemMessage("Letter moved to priority position", SystemMessageTypes.Success);
+                    _messageSystem.AddSystemMessage("DeliveryObligation moved to priority position", SystemMessageTypes.Success);
                 }
                 return prioritySuccess;
             case "extend":
                 bool extendSuccess = _letterQueueManager.TryExtendDeadline(position);
                 if (extendSuccess)
                 {
-                    _messageSystem.AddSystemMessage("Letter deadline extended", SystemMessageTypes.Success);
+                    _messageSystem.AddSystemMessage("DeliveryObligation deadline extended", SystemMessageTypes.Success);
                 }
                 return extendSuccess;
             default:
@@ -3100,7 +3366,7 @@ public class GameFacade : ILetterQueueOperations
     {
         // For now, we only support delivering from position 1
         // The letterId parameter is kept for future flexibility if we need to deliver by ID
-        Letter letter = _letterQueueManager.GetLetterAt(1);
+        DeliveryObligation letter = _letterQueueManager.GetLetterAt(1);
         if (letter == null) return false;
 
         bool success = _letterQueueManager.DeliverFromPosition1();
@@ -3108,7 +3374,7 @@ public class GameFacade : ILetterQueueOperations
         {
             // Delivery takes 1 hour
             ProcessTimeAdvancement(1);
-            _messageSystem.AddSystemMessage("Letter delivered successfully", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage("DeliveryObligation delivered successfully", SystemMessageTypes.Success);
         }
         return success;
     }
@@ -3201,7 +3467,7 @@ public class GameFacade : ILetterQueueOperations
             return new LetterBoardViewModel
             {
                 IsAvailable = false,
-                UnavailableReason = "Letter board is only available at Dawn",
+                UnavailableReason = "DeliveryObligation board is only available at Dawn",
                 Offers = new List<LetterOfferViewModel>(),
                 CurrentTime = currentTime
             };
@@ -3209,10 +3475,10 @@ public class GameFacade : ILetterQueueOperations
 
         // Get offers from the letter queue manager
         Player player = _gameWorld.GetPlayer();
-        LetterQueueViewModel queueViewModel = GetLetterQueue();
+        LetterQueueViewModel queueViewModel = GetQueueViewModel();
         List<LetterOffer> offers = new List<LetterOffer>();
 
-        // Letter board offers are now retrieved from LetterQueueManager
+        // DeliveryObligation board offers are now retrieved from ObligationQueueManager
         List<LetterOfferViewModel> offerViewModels = offers.Select(offer => new LetterOfferViewModel
         {
             Id = offer.Id,
@@ -3220,7 +3486,7 @@ public class GameFacade : ILetterQueueOperations
             RecipientName = "Various Recipients", // offer.RecipientName removed
             Description = offer.Message,
             Payment = offer.Payment,
-            DeadlineDays = offer.DeadlineInHours / 24,
+            DeadlineDays = offer.DeadlineInMinutes / 24,
             CanAccept = true, // CanAcceptMore method removed
             CannotAcceptReason = null,
             TokenTypes = new List<string> { offer.LetterType.ToString() }
@@ -3236,19 +3502,19 @@ public class GameFacade : ILetterQueueOperations
 
     public async Task<bool> AcceptLetterOfferAsync(string offerId)
     {
-        // Letter offer acceptance now handled through LetterQueueManager
+        // DeliveryObligation offer acceptance now handled through ObligationQueueManager
         // AcceptLetterOffer method removed - needs reimplementation
         return await Task.FromResult(false);
     }
 
     // ========== ILetterQueueOperations Implementation ==========
 
-    public Letter[] GetQueueSnapshot()
+    public DeliveryObligation[] GetQueueSnapshot()
     {
         // Return defensive copy of queue
         Player player = _gameWorld.GetPlayer();
-        if (player?.LetterQueue == null) return new Letter[8];
-        return player.LetterQueue.ToArray();
+        if (player?.ObligationQueue == null) return new DeliveryObligation[8];
+        return player.ObligationQueue.ToArray();
     }
 
     public QueueOperationCost GetOperationCost(QueueOperationType operation, int position1, int? position2 = null)
@@ -3448,7 +3714,7 @@ public class GameFacade : ILetterQueueOperations
 
             // Delivery takes 1 hour
             ProcessTimeAdvancement(1);
-            _messageSystem.AddSystemMessage("Letter delivered successfully!", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage("DeliveryObligation delivered successfully!", SystemMessageTypes.Success);
             return new QueueOperationResult(true, null, new Dictionary<ConnectionType, int>(), GetQueueSnapshot());
         }
         finally
@@ -3496,7 +3762,7 @@ public class GameFacade : ILetterQueueOperations
         {
             // Get the queue object directly
             Player player = _gameWorld.GetPlayer();
-            LetterQueue queue = _letterQueueManager.GetLetterQueue();
+            DeliveryObligation[] queue = _letterQueueManager.GetQueueViewModel();
             if (queue == null)
                 return new QueueOperationResult(false, "Queue not available", null, GetQueueSnapshot());
 
@@ -3587,11 +3853,11 @@ public class GameFacade : ILetterQueueOperations
         // This preserves the "NO SILENT BACKEND ACTIONS" architectural principle
         if (state.HasReachedLetterThreshold())
         {
-            Console.WriteLine($"[GameFacade] Letter threshold reached - offers were available during conversation");
+            Console.WriteLine($"[GameFacade] DeliveryObligation threshold reached - offers were available during conversation");
         }
         else
         {
-            Console.WriteLine($"[GameFacade] Letter threshold not reached (need {startingPatience * GameRules.COMFORT_LETTER_THRESHOLD}, got {totalComfort})");
+            Console.WriteLine($"[GameFacade] DeliveryObligation threshold not reached (need {startingPatience * GameRules.COMFORT_LETTER_THRESHOLD}, got {totalComfort})");
         }
 
         // Perfect conversation bonus feedback
@@ -4034,7 +4300,7 @@ public class GameFacade : ILetterQueueOperations
                 RelatedTokenType = obligation.RelatedTokenType,
                 TokenCount = 0,
                 HasForcedLetterWarning = false,
-                DaysUntilForcedLetter = 0
+                DaysUntilForcedDeliveryObligation = 0
             };
 
             // Add benefit descriptions
@@ -4058,13 +4324,13 @@ public class GameFacade : ILetterQueueOperations
             // Check for forced letter warnings
             if (obligation.HasEffect(ObligationEffect.ShadowForced))
             {
-                activeVm.HasForcedLetterWarning = obligation.DaysSinceLastForcedLetter >= 2;
-                activeVm.DaysUntilForcedLetter = Math.Max(0, 3 - obligation.DaysSinceLastForcedLetter);
+                activeVm.HasForcedLetterWarning = obligation.DaysSinceLastForcedDeliveryObligation >= 2;
+                activeVm.DaysUntilForcedDeliveryObligation = Math.Max(0, 3 - obligation.DaysSinceLastForcedLetter);
             }
             else if (obligation.HasEffect(ObligationEffect.PatronMonthly))
             {
-                activeVm.HasForcedLetterWarning = obligation.DaysSinceLastForcedLetter >= 28;
-                activeVm.DaysUntilForcedLetter = Math.Max(0, 30 - obligation.DaysSinceLastForcedLetter);
+                activeVm.HasForcedLetterWarning = obligation.DaysSinceLastForcedDeliveryObligation >= 28;
+                activeVm.DaysUntilForcedDeliveryObligation = Math.Max(0, 30 - obligation.DaysSinceLastForcedLetter);
             }
 
             // Check for conflicts
@@ -4323,13 +4589,13 @@ public class GameFacade : ILetterQueueOperations
         if (currentState == NPCEmotionalState.DESPERATE || currentState == NPCEmotionalState.ANXIOUS)
         {
             // Check if they have urgent letters or deadlines
-            Letter[] playerQueue = GetPlayer().LetterQueue;
-            Letter? urgentLetter = playerQueue?.FirstOrDefault(l => l != null &&
-                l.SenderName == npc.Name && l.DeadlineInHours <= 6);
+            Letter[] playerQueue = GetPlayer().ObligationQueue;
+            Letter? urgentDeliveryObligation = playerQueue?.FirstOrDefault(l => l != null &&
+                l.SenderName == npc.Name && l.DeadlineInMinutes <= 6);
 
-            if (urgentLetter != null)
+            if (urgentDeliveryObligation != null)
             {
-                return $"Urgent letter deadline approaching ({urgentLetter.DeadlineInHours}h)";
+                return $"Urgent letter deadline approaching ({urgentLetter.DeadlineInMinutes}h)";
             }
 
             return "Has urgent personal matters to discuss";
@@ -4899,18 +5165,18 @@ public class GameFacade : ILetterQueueOperations
             return;
         }
 
-        // Check for Letter Board availability
+        // Check for DeliveryObligation Board availability
         if (_timeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
         {
             ActionOptionViewModel letterBoardInfo = new ActionOptionViewModel
             {
                 Id = "letter_board_closed",
-                Description = "Visit Letter Board",
+                Description = "Visit DeliveryObligation Board",
                 IsAvailable = false,
                 IsServiceClosed = true,
                 NextAvailableTime = GetNextAvailableTime(TimeBlocks.Dawn),
                 ServiceSchedule = "Available only at Dawn",
-                UnavailableReasons = new List<string> { "Letter Board is closed. Only available during Dawn hours." }
+                UnavailableReasons = new List<string> { "DeliveryObligation Board is closed. Only available during Dawn hours." }
             };
 
             // Add to Special category
@@ -5313,49 +5579,32 @@ public class GameFacade : ILetterQueueOperations
         return item != null && item.IsReadable();
     }
 
-    public ReadableLetterInfo GetLetterInfo(string itemId)
-    {
-        Item item = _itemRepository.GetItemById(itemId);
-        if (item == null || !item.IsReadable())
-        {
-            return null;
-        }
-
-        return new ReadableLetterInfo
-        {
-            ItemId = item.Id,
-            Name = item.Name,
-            Description = item.Description,
-            IsRead = !string.IsNullOrEmpty(item.ReadFlagToSet) && _flagService.HasFlag(item.ReadFlagToSet),
-            HasSpecialEffect = !string.IsNullOrEmpty(item.ReadFlagToSet)
-        };
-    }
 
     // ========== LETTER QUEUE MANAGEMENT ==========
 
-    public int GetLetterQueueCount()
+    public int GetQueueSnapshotCount()
     {
         Player player = _gameWorld.GetPlayer();
-        if (player?.LetterQueue == null) return 0;
-        return player.LetterQueue.Count(l => l != null && l.State == LetterState.Collected);
+        if (player?.ObligationQueue == null) return 0;
+        return player.ObligationQueue.Count(l => l != null && l.State == LetterState.Collected);
     }
 
     public bool IsLetterQueueFull()
     {
-        int count = GetLetterQueueCount();
+        int count = GetQueueSnapshotCount();
         return count >= 8; // MAX_LETTER_QUEUE_SIZE
     }
 
-    public int AddLetterWithObligationEffects(Letter letter)
+    public int AddLetterWithObligationEffects(DeliveryObligation letter)
     {
         if (letter == null || IsLetterQueueFull())
             return -1;
 
-        // Delegate to LetterQueueManager for proper queue management
+        // Delegate to ObligationQueueManager for proper queue management
         return _letterQueueManager.AddLetterWithObligationEffects(letter);
     }
 
-    public bool IsActionForbidden(string actionType, Letter letter, out string reason)
+    public bool IsActionForbidden(string actionType, DeliveryObligation letter, out string reason)
     {
         reason = null;
 
@@ -5365,1031 +5614,38 @@ public class GameFacade : ILetterQueueOperations
         return _standingObligationManager.IsActionForbidden(actionType, letter, out reason);
     }
 
-    // ========== NOTICE BOARD ==========
-
-    public List<NoticeBoardOption> GetNoticeBoardOptions()
-    {
-        List<NoticeBoardOption> options = new List<NoticeBoardOption>();
-
-        // Define the three standard notice board options
-        options.Add(new NoticeBoardOption
-        {
-            Id = "anything_heading",
-            Name = "Anything heading...",
-            Description = "Ask about letters going to specific locations",
-            TokenCost = 2,
-            OptionType = NoticeBoardOptionType.AnythingHeading,
-            RequiresDirection = true
-        });
-
-        options.Add(new NoticeBoardOption
-        {
-            Id = "looking_for_work",
-            Name = "Looking for work...",
-            Description = "Request letters of a specific type",
-            TokenCost = 3,
-            OptionType = NoticeBoardOptionType.LookingForWork,
-            RequiresTokenType = true
-        });
-
-        options.Add(new NoticeBoardOption
-        {
-            Id = "urgent_deliveries",
-            Name = "Urgent deliveries?",
-            Description = "High-paying letters with tight deadlines",
-            TokenCost = 5,
-            OptionType = NoticeBoardOptionType.UrgentDeliveries
-        });
-
-        return options;
-    }
-
-    public bool CanAffordNoticeBoardOption(NoticeBoardOption option)
-    {
-        if (option == null)
-            return false;
-
-        Player player = _gameWorld.GetPlayer();
-        int totalTokens = 0;
-
-        // Count all tokens
-        foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
-        {
-            totalTokens += _connectionTokenManager?.GetTokenCount(tokenType) ?? 0;
-        }
-
-        return totalTokens >= option.TokenCost;
-    }
-
-    public async Task<bool> ExecuteNoticeBoardOption(NoticeBoardOption option, string direction = null)
-    {
-        if (option == null || !CanAffordNoticeBoardOption(option))
-            return false;
-
-        Player player = _gameWorld.GetPlayer();
-
-        // Deduct tokens (randomly from available types)
-        List<(ConnectionType type, int count)> availableTokens = new List<(ConnectionType type, int count)>();
-        foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
-        {
-            int count = _connectionTokenManager?.GetTokenCount(tokenType) ?? 0;
-            if (count > 0)
-                availableTokens.Add((tokenType, count));
-        }
-
-        if (!availableTokens.Any())
-            return false;
-
-        // Deduct tokens randomly
-        Random random = new Random();
-        int tokensToDeduct = option.TokenCost;
-
-        while (tokensToDeduct > 0 && availableTokens.Any())
-        {
-            int index = random.Next(availableTokens.Count);
-            (ConnectionType tokenType, int count) = availableTokens[index];
-
-            // Find an NPC to deduct from
-            List<NPC> allNpcs = _npcRepository?.GetAllNPCs() ?? new List<NPC>();
-            foreach (NPC npc in allNpcs)
-            {
-                Dictionary<ConnectionType, int>? npcTokens = _connectionTokenManager?.GetTokensWithNPC(npc.ID);
-                if (npcTokens != null && npcTokens.ContainsKey(tokenType) && npcTokens[tokenType] > 0)
-                {
-                    // Deduct token directly from player's balance with NPC
-                    Dictionary<string, Dictionary<ConnectionType, int>> playerTokens = _gameWorld.GetPlayer().NPCTokens;
-                    if (playerTokens.ContainsKey(npc.ID) && playerTokens[npc.ID].ContainsKey(tokenType))
-                    {
-                        playerTokens[npc.ID][tokenType]--;
-                        if (playerTokens[npc.ID][tokenType] <= 0)
-                        {
-                            playerTokens[npc.ID].Remove(tokenType);
-                            if (playerTokens[npc.ID].Count == 0)
-                                playerTokens.Remove(npc.ID);
-                        }
-                    }
-                    tokensToDeduct--;
-
-                    availableTokens[index] = (tokenType, count - 1);
-                    if (availableTokens[index].count == 0)
-                        availableTokens.RemoveAt(index);
-
-                    break;
-                }
-            }
-        }
-
-        // Generate a letter based on the option type
-        Letter generatedLetter = null;
-
-        switch (option.OptionType)
-        {
-            case NoticeBoardOptionType.AnythingHeading:
-                // Generate letter heading to specified direction
-                generatedLetter = GenerateDirectionalLetter(direction);
-                break;
-
-            case NoticeBoardOptionType.LookingForWork:
-                // Generate letter of specific type (would need token type parameter)
-                generatedLetter = GenerateTypedLetter(ConnectionType.Commerce); // Default for now
-                break;
-
-            case NoticeBoardOptionType.UrgentDeliveries:
-                // Generate urgent high-paying letter
-                generatedLetter = GenerateUrgentLetter();
-                break;
-        }
-
-        if (generatedLetter != null)
-        {
-            int position = AddLetterWithObligationEffects(generatedLetter);
-            if (position > 0)
-            {
-                _messageSystem?.AddSystemMessage(
-                    $"📬 Letter added to your queue at position {position}!",
-                    SystemMessageTypes.Success
-                );
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private Letter GenerateDirectionalLetter(string direction)
-    {
-        Letter letter = new Letter
-        {
-            Id = Guid.NewGuid().ToString(),
-            SenderName = "Notice Board Client",
-            RecipientName = $"Recipient in {direction}",
-            Payment = 20 + new Random().Next(10),
-            DeadlineInHours = (3 + new Random().Next(2)) * 24,
-            TokenType = (ConnectionType)new Random().Next(4)
-        };
-
-        return letter;
-    }
-
-    private Letter GenerateTypedLetter(ConnectionType tokenType)
-    {
-        Letter letter = new Letter
-        {
-            Id = Guid.NewGuid().ToString(),
-            SenderName = $"{tokenType} Contact",
-            RecipientName = $"{tokenType} Recipient",
-            Payment = tokenType == ConnectionType.Shadow ? 40 : 25,
-            DeadlineInHours = 4 * 24,
-            TokenType = tokenType
-        };
-
-        return letter;
-    }
-
-    private Letter GenerateUrgentLetter()
-    {
-        Letter letter = new Letter
-        {
-            Id = Guid.NewGuid().ToString(),
-            SenderName = "Urgent Client",
-            RecipientName = "Time-Sensitive Recipient",
-            Payment = 50 + new Random().Next(20),
-            DeadlineInHours = 2 * 24,
-            TokenType = (ConnectionType)new Random().Next(4),
-            PhysicalProperties = LetterPhysicalProperties.Fragile
-        };
-
-        return letter;
-    }
-
-    // ========== LETTER QUEUE HELPER METHODS ==========
-
-    private LetterViewModel ConvertToLetterViewModel(Letter letter)
-    {
-        (bool HasLeverage, string Indicator, string Tooltip, int LeverageStrength, int TokenBalance) leverage = GetLetterLeverageInfo(letter);
-        (int paymentBonus, string paymentBonusSource, int deadlineExtension, string deadlineExtensionSource, int positionModifier, string positionModifierSource, List<string> activeEffects) obligationEffects = GetLetterObligationEffects(letter);
-
-        return new LetterViewModel
-        {
-            Id = letter.Id,
-            SenderName = letter.SenderName,
-            RecipientName = letter.RecipientName,
-            DeadlineInHours = letter.DeadlineInHours,
-            Payment = letter.Payment,
-            TokenType = letter.TokenType.ToString(),
-            TokenIcon = GetTokenIcon(letter.TokenType),
-            Size = letter.Size.ToString(),
-            SizeIcon = GetSizeIcon(letter.Size),
-            Weight = letter.Weight,
-            WeightDisplay = GetWeightDisplay(letter.Weight),
-            IsPatronLetter = letter.IsFromPatron,
-            IsCollected = letter.State == LetterState.Collected,
-            PhysicalConstraints = letter.GetPhysicalConstraintsDescription(),
-            PhysicalIcon = GetPhysicalIcon(letter.PhysicalProperties),
-            IsSpecial = letter.IsSpecial,
-            SpecialIcon = letter.GetSpecialIcon(),
-            SpecialDescription = letter.GetSpecialDescription(),
-            DeadlineClass = GetDeadlineClass(letter.DeadlineInHours),
-            DeadlineIcon = GetDeadlineIcon(letter.DeadlineInHours),
-            DeadlineDescription = GetDeadlineDescription(letter.DeadlineInHours),
-            LeverageIndicator = leverage.Indicator,
-            LeverageTooltip = leverage.Tooltip,
-            HasLeverage = leverage.HasLeverage,
-            LeverageStrength = leverage.LeverageStrength,
-            TokenBalance = leverage.TokenBalance,
-            LeverageClass = GetLeverageClass(leverage.LeverageStrength),
-            OriginalPosition = letter.OriginalQueuePosition ?? 0,
-            CurrentPosition = _letterQueueManager.GetLetterPosition(letter.Id) ?? 0,
-            HasPaymentBonus = obligationEffects.paymentBonus > 0,
-            PaymentBonusAmount = obligationEffects.paymentBonus,
-            PaymentBonusSource = obligationEffects.paymentBonusSource,
-            HasDeadlineExtension = obligationEffects.deadlineExtension > 0,
-            DeadlineExtensionHours = obligationEffects.deadlineExtension,
-            DeadlineExtensionSource = obligationEffects.deadlineExtensionSource,
-            HasPositionModifier = obligationEffects.positionModifier != 0,
-            PositionModifierAmount = obligationEffects.positionModifier,
-            PositionModifierSource = obligationEffects.positionModifierSource,
-            ActiveObligationEffects = obligationEffects.activeEffects
-        };
-    }
-
-    private QueueStatusViewModel GetQueueStatus()
-    {
-        LetterQueue queue = _letterQueueManager.GetLetterQueue();
-        int totalWeight = queue.GetTotalWeight();
-        int maxWeight = queue.MaxWeight;
-
-        return new QueueStatusViewModel
-        {
-            LetterCount = _letterQueueManager.GetLetterCount(),
-            MaxCapacity = 8,
-            ExpiredCount = _letterQueueManager.GetExpiringLetters(0).Length,
-            UrgentCount = _letterQueueManager.GetExpiringLetters(1).Length,
-            WarningCount = _letterQueueManager.GetExpiringLetters(2).Length,
-            TotalWeight = totalWeight,
-            MaxWeight = maxWeight,
-            RemainingWeight = maxWeight - totalWeight,
-            WeightDisplay = $"{totalWeight}/{maxWeight}"
-        };
-    }
-
-    private QueueActionsViewModel GetQueueActions()
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        QueueActionsViewModel actions = new QueueActionsViewModel
-        {
-            CanMorningSwap = _timeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn &&
-                           player.LastMorningSwapDay != _gameWorld.CurrentDay,
-            MorningSwapReason = GetMorningSwapReason(),
-            HasBottomLetter = _letterQueueManager.GetLetterAt(8) != null,
-            TotalAvailableTokens = GetTotalAvailableTokens(),
-            PurgeTokenOptions = GetPurgeTokenOptions()
-        };
-
-        return actions;
-    }
-
-    private string GetMorningSwapReason()
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        if (_timeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
-            return "Only available at dawn";
-        if (player.LastMorningSwapDay == _gameWorld.CurrentDay)
-            return "Already used today";
-        return "Once per day at dawn";
-    }
-
-    private List<TokenOptionViewModel> GetPurgeTokenOptions()
-    {
-        List<TokenOptionViewModel> options = new List<TokenOptionViewModel>();
-
-        foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
-        {
-            int available = _connectionTokenManager.GetTokenCount(tokenType);
-            if (available > 0)
-            {
-                options.Add(new TokenOptionViewModel
-                {
-                    TokenType = tokenType.ToString(),
-                    TokenIcon = GetTokenIcon(tokenType),
-                    Available = available
-                });
-            }
-        }
-
-        return options;
-    }
-
-    private int GetTotalAvailableTokens()
-    {
-        return Enum.GetValues<ConnectionType>()
-            .Cast<ConnectionType>()
-            .Sum(type => _connectionTokenManager.GetTokenCount(type));
-    }
-
-    private (bool HasLeverage, string Indicator, string Tooltip, int LeverageStrength, int TokenBalance) GetLetterLeverageInfo(Letter letter)
-    {
-        Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(letter.SenderName);
-        int tokenBalance = npcTokens.GetValueOrDefault(letter.TokenType, 0);
-
-        if (tokenBalance < 0)
-        {
-            int leverageStrength = Math.Abs(tokenBalance);
-            string indicator = $"💸 -{leverageStrength}";
-            string tooltip = $"You owe {leverageStrength} {letter.TokenType} tokens to {letter.SenderName}. This debt gives them leverage to push their letters forward in your queue.";
-            return (true, indicator, tooltip, leverageStrength, tokenBalance);
-        }
-        else if (tokenBalance >= 4)
-        {
-            string indicator = "🛡️";
-            string tooltip = $"Your strong relationship ({tokenBalance} tokens) reduces {letter.SenderName}'s leverage";
-            return (false, indicator, tooltip, 0, tokenBalance);
-        }
-
-        return (false, "", "", 0, tokenBalance);
-    }
-
-    private (int paymentBonus, string paymentBonusSource, int deadlineExtension, string deadlineExtensionSource,
-            int positionModifier, string positionModifierSource, List<string> activeEffects) GetLetterObligationEffects(Letter letter)
-    {
-        int paymentBonus = 0;
-        string paymentBonusSource = "";
-        int deadlineExtension = 0;
-        string deadlineExtensionSource = "";
-        int positionModifier = 0;
-        string positionModifierSource = "";
-        List<string> activeEffects = new();
-
-        if (_standingObligationManager == null)
-            return (0, "", 0, "", 0, "", activeEffects);
-
-        // Calculate payment bonus
-        int calculatedBonus = _standingObligationManager.CalculateTotalCoinBonus(letter);
-        if (calculatedBonus > 0)
-        {
-            paymentBonus = calculatedBonus;
-            List<StandingObligation> paymentObligations = _standingObligationManager.GetActiveObligations()
-                .Where(o => o.AppliesTo(letter.TokenType) &&
-                       (o.HasEffect(ObligationEffect.CommerceBonus) ||
-                        o.HasEffect(ObligationEffect.CommerceBonusPlus3) ||
-                        o.HasEffect(ObligationEffect.ShadowTriplePay) ||
-                        o.HasEffect(ObligationEffect.DynamicPaymentBonus)))
-                .ToList();
-
-            if (paymentObligations.Any())
-            {
-                paymentBonusSource = string.Join(", ", paymentObligations.Select(o => o.Name));
-                activeEffects.Add($"+{calculatedBonus} coins from {paymentBonusSource}");
-            }
-        }
-
-        // Calculate deadline extensions
-        List<StandingObligation> deadlineObligations = _standingObligationManager.GetActiveObligations()
-            .Where(o => o.AppliesTo(letter.TokenType) &&
-                   (o.HasEffect(ObligationEffect.DeadlinePlus2Days) ||
-                    o.HasEffect(ObligationEffect.DynamicDeadlineBonus)))
-            .ToList();
-
-        foreach (StandingObligation? obligation in deadlineObligations)
-        {
-            if (obligation.HasEffect(ObligationEffect.DeadlinePlus2Days))
-            {
-                deadlineExtension += 2;
-                deadlineExtensionSource = obligation.Name;
-                activeEffects.Add($"+2 days deadline from {obligation.Name}");
-            }
-        }
-
-        // Calculate position modifiers
-        List<StandingObligation> positionObligations = _standingObligationManager.GetActiveObligations()
-            .Where(o => o.AppliesTo(letter.TokenType) &&
-                   (o.HasEffect(ObligationEffect.StatusPriority) ||
-                    o.HasEffect(ObligationEffect.CommercePriority) ||
-                    o.HasEffect(ObligationEffect.TrustPriority) ||
-                    o.HasEffect(ObligationEffect.PatronLettersPosition1) ||
-                    o.HasEffect(ObligationEffect.PatronLettersPosition3) ||
-                    o.HasEffect(ObligationEffect.DynamicLeverageModifier)))
-            .ToList();
-
-        if (positionObligations.Any())
-        {
-            int bestPosition = _standingObligationManager.CalculateBestEntryPosition(letter, 8);
-            if (bestPosition < 8)
-            {
-                positionModifier = bestPosition - 8; // Negative value means better position
-                positionModifierSource = string.Join(", ", positionObligations.Select(o => o.Name));
-                activeEffects.Add($"Position {bestPosition} from {positionModifierSource}");
-            }
-        }
-
-        // Add restriction effects
-        if (_standingObligationManager.IsActionForbidden("refuse", letter, out string refuseReason))
-        {
-            activeEffects.Add($"Cannot refuse: {refuseReason}");
-        }
-
-        if (_standingObligationManager.IsActionForbidden("purge", letter, out string purgeReason))
-        {
-            activeEffects.Add($"Cannot purge: {purgeReason}");
-        }
-
-        // Check for skip cost multipliers
-        int skipMultiplier = _standingObligationManager.CalculateSkipCostMultiplier(letter);
-        if (skipMultiplier > 1)
-        {
-            List<StandingObligation> skipObligations = _standingObligationManager.GetActiveObligations()
-                .Where(o => o.HasEffect(ObligationEffect.TrustSkipDoubleCost) && o.AppliesTo(letter.TokenType))
-                .ToList();
-            if (skipObligations.Any())
-            {
-                activeEffects.Add($"Skip costs ×{skipMultiplier} from {string.Join(", ", skipObligations.Select(o => o.Name))}");
-            }
-        }
-
-        return (paymentBonus, paymentBonusSource, deadlineExtension, deadlineExtensionSource,
-                positionModifier, positionModifierSource, activeEffects);
-    }
-
-    private string GetSizeIcon(SizeCategory size)
-    {
-        return size switch
-        {
-            SizeCategory.Small => "📄",
-            SizeCategory.Medium => "📦",
-            SizeCategory.Large => "📦",
-            _ => "📦"
-        };
-    }
-
-    private string GetPhysicalIcon(LetterPhysicalProperties props)
-    {
-        if (props.HasFlag(LetterPhysicalProperties.Fragile))
-            return "⚠️";
-        if (props.HasFlag(LetterPhysicalProperties.Heavy))
-            return "💪";
-        if (props.HasFlag(LetterPhysicalProperties.Perishable))
-            return "🕒";
-        if (props.HasFlag(LetterPhysicalProperties.Valuable))
-            return "💎";
-        return "";
-    }
-
-    private string GetWeightDisplay(int weight)
-    {
-        return weight switch
-        {
-            1 => "■",
-            2 => "■■",
-            3 => "■■■",
-            _ => "■"
-        };
-    }
-
-    private string GetDeadlineClass(int deadlineHours)
-    {
-        if (deadlineHours <= 0) return "deadline-expired";
-        if (deadlineHours <= 6) return "deadline-urgent";
-        if (deadlineHours <= 24) return "deadline-warning";
-        return "deadline-normal";
-    }
-
-    private string GetDeadlineIcon(int deadlineHours)
-    {
-        if (deadlineHours <= 0) return "💀";
-        if (deadlineHours <= 6) return "🔥";
-        if (deadlineHours <= 24) return "⚠️";
-        return "📅";
-    }
-
-    private string GetDeadlineDescription(int deadlineHours)
-    {
-        if (deadlineHours <= 0) return "EXPIRED!";
-        if (deadlineHours <= 6) return "Due within hours!";
-        if (deadlineHours <= 24) return "Due today!";
-        int days = deadlineHours / 24;
-        int hours = deadlineHours % 24;
-        if (hours == 0) return $"{days} days";
-        return $"{days}d {hours}h";
-    }
-
-    private string GetLeverageClass(int leverageStrength)
-    {
-        if (leverageStrength >= 5) return "leverage-strong";
-        if (leverageStrength >= 3) return "leverage-medium";
-        if (leverageStrength >= 1) return "leverage-weak";
-        return "";
-    }
-
-    // Missing methods for compilation
-    public List<Location> GetPlayerKnownLocations()
-    {
-        Player player = _gameWorld.GetPlayer();
-        return _locationRepository.GetAllLocations();
-    }
-
-    public async Task StartGame()
-    {
-        // Game is already initialized during startup
-        await Task.CompletedTask;
-    }
-
-    public bool CanTravelRoute(string routeId)
-    {
-        return _travelManager.CanTravelTo(routeId);
-    }
-
-    public bool CanTravelTo(string locationId)
-    {
-        return _travelManager.CanTravelTo(locationId);
-    }
-
-    #region Literary UI Support
-
-    /// <summary>
-    /// Get literary conversation data for the mockup-style UI
-    /// This starts a conversation if one isn't already active
-    /// </summary>
-    public async Task<ConversationViewModel> GetConversationAsync(string npcId)
-    {
-        // Check if there's already an active conversation with this NPC
-        ConversationManager existing = _conversationStateManager.PendingConversationManager;
-        if (existing != null && existing.Context?.TargetNPC?.ID == npcId)
-        {
-            return CreateConversationViewModel(existing);
-        }
-
-        // Otherwise, start a new conversation properly with async/await
-        Player player = _gameWorld.GetPlayer();
-        NPC npc = _npcRepository.GetById(npcId);
-        Location? location = player.GetCurrentLocation(_locationRepository);
-        LocationSpot spot = player.CurrentLocationSpot;
-
-        if (npc == null) return null;
-
-        // Create context for conversation with PERSISTENT attention from time block
-        SceneContext context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
-
-        // CRITICAL: Pass the persistent attention manager for this time block
-        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        context.AttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
-        Console.WriteLine($"[GameFacade] Providing attention for {currentTimeBlock}: {context.AttentionManager.GetAvailableAttention()}/{context.AttentionManager.GetMaxAttention()}");
-
-        // Start the conversation to generate choices
-        ConversationManager conversation = await _conversationFactory.CreateConversation(context, player);
-
-        if (conversation != null)
-        {
-            _conversationStateManager.SetCurrentConversation(conversation);
-            return CreateConversationViewModel(conversation);
-        }
-
-        // Fallback if conversation creation failed - create basic view model
-        int baseAttention = 3;
-        int attentionModifier = 0;
-        string atmosphereDescription = "The space feels neutral";
-
-        // Use AtmosphereCalculator if available
-        if (_atmosphereCalculator != null && player.CurrentLocationSpot != null)
-        {
-            AtmosphereEffect atmosphere = _atmosphereCalculator.CalculateForLocation(player.CurrentLocationSpot.SpotID);
-            attentionModifier = atmosphere.AttentionModifier;
-            atmosphereDescription = atmosphere.Description;
-        }
-
-        int maxAttention = Math.Max(1, Math.Min(5, baseAttention + attentionModifier));
-        int currentAttention = maxAttention; // Start with full attention
-
-        string attentionNarrative = attentionModifier < 0
-            ? "The distractions make it hard to focus"
-            : attentionModifier > 0
-                ? "The comfortable atmosphere helps you focus"
-                : "You give your full attention";
-
-        ConversationViewModel viewModel = new ConversationViewModel
-        {
-            // Attention System - dynamic based on environment
-            CurrentAttention = currentAttention,
-            MaxAttention = maxAttention,
-            AttentionNarrative = attentionNarrative,
-
-            // Location Context
-            LocationName = (location?.Name ?? "Unknown Location") + (player.CurrentLocationSpot != null ? $" - {player.CurrentLocationSpot.Name}" : ""),
-            LocationAtmosphere = GenerateLocationAtmosphere(location),
-            LocationPath = GetLocationPath(player.CurrentLocationSpot),
-
-            // Character Focus
-            CharacterName = npc.Name,
-            CharacterState = GetNPCBodyLanguage(npc),
-
-            // Bottom Status
-            CurrentLocation = player.CurrentLocationSpot?.Name ?? "Unknown",
-            QueueStatus = $"{player.LetterQueue.Count(l => l != null)}/8",
-            CoinStatus = $"{player.Coins}s",
-            CurrentTime = FormatGameTime()
-        };
-
-        // Add relationship status
-        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
-        foreach (KeyValuePair<ConnectionType, int> token in tokens)
-        {
-            string dots = new string('●', Math.Min(5, Math.Max(0, token.Value)));
-            string empty = new string('○', 5 - dots.Length);
-            viewModel.RelationshipStatus[token.Key.ToString()] = $"{token.Key} {dots}{empty}";
-        }
-
-        // Add deadline pressure
-        Letter? urgentLetter = player.LetterQueue
-            .Where(l => l != null && l.State == LetterState.Collected)
-            .OrderBy(l => l.DeadlineInHours)
-            .FirstOrDefault();
-
-        if (urgentLetter != null && urgentLetter.DeadlineInHours <= 72)
-        {
-            viewModel.DeadlinePressure = $"⚡ {urgentLetter.SenderName}: {urgentLetter.DeadlineInHours / 24}d";
-        }
-
-        return viewModel;
-    }
-
-    /// <summary>
-    /// Get location screen data for the mockup-style UI
-    /// </summary>
-    public LocationScreenViewModel GetLocationScreen()
-    {
-        Player player = _gameWorld.GetPlayer();
-        Location? location = player.GetCurrentLocation(_locationRepository);
-        LocationSpot? spot = player.CurrentLocationSpot;
-
-        LocationScreenViewModel viewModel = new LocationScreenViewModel
-        {
-            CurrentTime = FormatGameTime(),
-            DeadlineTimer = GetDeadlineTimer(),
-            LocationPath = GetLocationPath(spot),
-            LocationName = spot?.Name ?? "Unknown Location",
-            AtmosphereText = GenerateLocationAtmosphere(location)
-        };
-
-        // Tags removed - atmosphere is now calculated from NPC presence instead
-
-        // Generate actions using ActionGenerator
-        if (_actionGenerator != null && location != null)
-        {
-            viewModel.QuickActions = _actionGenerator.GenerateActionsForLocation(location, spot);
-        }
-
-        // Ensure QuickActions is initialized
-        if (viewModel.QuickActions == null)
-        {
-            viewModel.QuickActions = new List<LocationActionViewModel>();
-        }
-
-        // Add NPCs present
-        List<NPC> npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot?.SpotID ?? "", _timeManager.GetCurrentTimeBlock());
-        foreach (NPC npc in npcs)
-        {
-            NPCPresenceViewModel npcPresence = new NPCPresenceViewModel
-            {
-                Id = npc.ID,  // Add NPC ID for conversation initiation
-                Name = npc.Name,
-                MoodEmoji = GetNPCMoodEmoji(npc),
-                Description = GetNPCDescription(npc)
-            };
-
-            npcPresence.Interactions.Add(new InteractionOptionViewModel
-            {
-                Text = "Start conversation",
-                Cost = "10 min"
-            });
-
-            viewModel.NPCsPresent.Add(npcPresence);
-        }
-
-        // Calculate current attention for observation checks
-        int baseAttention = 3;
-        bool isCrowded = npcs.Count > 3 || location?.Population?.GetPropertyValue() == "Crowded";
-        int attentionModifier = isCrowded ? -1 : 0;
-        int currentAttention = Math.Max(1, baseAttention + attentionModifier);
-
-        // Use ObservationSystem to get dynamic observations (only if attention >= 2)
-        if (_observationSystem != null && location != null && currentAttention >= 2)
-        {
-            List<ObservableViewModel> systemObservations = _observationSystem.GetObservations(location.Id);
-            foreach (ObservableViewModel obs in systemObservations)
-            {
-                viewModel.Observations.Add(new ObservationViewModel
-                {
-                    Icon = obs.Icon,
-                    Text = obs.Text,
-                    IsUnknown = !obs.IsKnown
-                });
-            }
-        }
-        else if (_observationSystem != null && location != null)
-        {
-            // Limited observations when distracted
-            viewModel.Observations.Add(new ObservationViewModel
-            {
-                Icon = "💭",
-                Text = "Too distracted to notice details",
-                IsUnknown = false
-            });
-        }
-        else
-        {
-            // Fallback observations if system not available
-            if (npcs.Any(n => n.Name == "Marcus"))
-            {
-                viewModel.Observations.Add(new ObservationViewModel
-                {
-                    Icon = "🛒",
-                    Text = "Marcus heading to his stall",
-                    IsUnknown = false
-                });
-            }
-        }
-
-        // Add ambient dialogue from NPCs (environmental storytelling)
-        List<string> ambientComments = GetLocationAmbience();
-        foreach (string? comment in ambientComments.Take(2)) // Limit to 2 comments to avoid clutter
-        {
-            viewModel.Observations.Insert(0, new ObservationViewModel
-            {
-                Icon = "💬",
-                Text = comment,
-                IsUnknown = false
-            });
-        }
-
-        // CRITICAL FIX: Always add travel button as first action so players can navigate
-        // Insert at position 0 to ensure it's always visible
-        viewModel.QuickActions.Insert(0, new LocationActionViewModel
-        {
-            ActionType = "travel",
-            Title = "Travel",
-            Icon = "🗺️",
-            Cost = "FREE",
-            Detail = "Go to another location"
-        });
-
-        // Add intra-location spot options for narrative perspective shifting
-        // Phase 2: Bottom routes now show spots within current location (free movement)
-        // Use the spot's LocationId to find other spots in the same location
-        string currentLocationId = spot?.LocationId ?? location?.Id ?? "market_square";
-        
-        Console.WriteLine($"[GameFacade] Getting spots for location: {currentLocationId}");
-        
-        // Get all spots in current location
-        List<LocationSpot> spotsInLocation = _locationSpotRepository.GetSpotsForLocation(currentLocationId);
-        
-        Console.WriteLine($"[GameFacade] Total spots in {currentLocationId}: {spotsInLocation.Count}");
-
-        foreach (LocationSpot spotOption in spotsInLocation)
-        {
-            // Skip current spot to avoid redundant "move to where you are"
-            if (spot?.SpotID == spotOption.SpotID)
-                continue;
-
-            // Check if spot is accessible (not closed, meets requirements)
-            bool isLocked = spotOption.IsClosed;
-            string lockReason = "";
-            
-            if (spotOption.IsClosed)
-            {
-                lockReason = "Currently closed";
-            }
-            // Add other access requirement checks here as needed
-
-            viewModel.Routes.Add(new RouteOptionViewModel
-            {
-                RouteId = spotOption.SpotID, // Use SpotID as the route identifier for movement
-                Destination = spotOption.Name,
-                TravelTime = "Free", // Intra-location movement is free and instant
-                Detail = spotOption.Description ?? "Move your attention here",
-                IsLocked = isLocked,
-                LockReason = lockReason,
-                RequiredTier = TierLevel.T1, // No tier requirements for intra-location movement
-                CanUnlockWithPermit = false
-            });
-        }
-
-        return viewModel;
-    }
-
-    private string GenerateLocationAtmosphere(Location location)
-    {
-        if (location == null) return "A quiet place.";
-
-        string timeOfDay = (_timeManager.GetCurrentTimeBlock() == TimeBlocks.Morning || _timeManager.GetCurrentTimeBlock() == TimeBlocks.Afternoon) ? "day" : "evening";
-        string activity = location?.AvailableServices?.FirstOrDefault() switch
-        {
-            ServiceTypes.Trade => "Bustling crowds. Merchant calls.",
-            ServiceTypes.Rest => "Warm firelight. Clinking mugs.",
-            _ => "People moving with purpose."
-        };
-
-        return $"{activity} The {timeOfDay} continues.";
-    }
-
-    private List<string> GetLocationPath(LocationSpot spot)
-    {
-        List<string> path = new List<string>();
-
-        if (spot != null)
-        {
-            Location location = _locationRepository.GetLocation(spot.LocationId);
-            if (location != null)
-            {
-                path.Add(location.Name);
-                if (spot.Name != location.Name)
-                {
-                    path.Add(spot.Name);
-                }
-            }
-        }
-
-        return path;
-    }
-
-    private string FormatGameTime()
-    {
-        // Use TimeManager's consistent formatting
-        return _timeManager.GetFormattedTimeDisplay();
-    }
-
-    private string GetDeadlineTimer()
-    {
-        Player player = _gameWorld.GetPlayer();
-        Letter? urgentLetter = player.LetterQueue
-            .Where(l => l != null && l.State == LetterState.Collected)
-            .OrderBy(l => l.DeadlineInHours)
-            .FirstOrDefault();
-
-        if (urgentLetter != null && urgentLetter.DeadlineInHours <= 48)
-        {
-            int hours = urgentLetter.DeadlineInHours;
-            return $"⚡ {hours}h until {urgentLetter.SenderName}";
-        }
-
-        return "";
-    }
-
-    private string GetNPCBodyLanguage(NPC npc)
-    {
-        // Simplified body language based on tokens
-        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-        int trustTokens = tokens.TryGetValue(ConnectionType.Trust, out int trust) ? trust : 0;
-
-        if (trustTokens < -2) return "arms crossed, looking away";
-        else if (trustTokens < 1) return "watching you carefully";
-        else if (trustTokens < 3) return "leaning forward with interest";
-        else return "hands clasped together anxiously";
-    }
-
-    private string GetNPCMoodEmoji(NPC npc)
-    {
-        // Simplified mood calculation based on tokens
-        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-        int trustTokens = tokens.TryGetValue(ConnectionType.Trust, out int trust) ? trust : 0;
-
-        NPCEmotionalState state;
-        if (trustTokens < -2) state = NPCEmotionalState.HOSTILE;
-        else if (trustTokens < 1) state = NPCEmotionalState.WITHDRAWN;
-        else if (trustTokens < 3) state = NPCEmotionalState.CALCULATING;
-        else state = NPCEmotionalState.DESPERATE;
-        return state switch
-        {
-            NPCEmotionalState.DESPERATE => "😰",
-            NPCEmotionalState.HOSTILE => "😠",
-            NPCEmotionalState.CALCULATING => "🤔",
-            NPCEmotionalState.WITHDRAWN => "😐",
-            _ => "😊"
-        };
-    }
-
-    private string GetNPCDescription(NPC npc)
-    {
-        // Simplified description based on tokens
-        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-        int trustTokens = tokens.TryGetValue(ConnectionType.Trust, out int trust) ? trust : 0;
-
-        NPCEmotionalState state;
-        if (trustTokens < -2) state = NPCEmotionalState.HOSTILE;
-        else if (trustTokens < 1) state = NPCEmotionalState.WITHDRAWN;
-        else if (trustTokens < 3) state = NPCEmotionalState.CALCULATING;
-        else state = NPCEmotionalState.DESPERATE;
-        return state switch
-        {
-            NPCEmotionalState.DESPERATE => $"Looking anxious, clearly needs help",
-            NPCEmotionalState.HOSTILE => $"Avoiding eye contact, seems upset",
-            NPCEmotionalState.CALCULATING => $"Thoughtful expression, considering options",
-            NPCEmotionalState.WITHDRAWN => $"Going about their business",
-            _ => $"Available to talk"
-        };
-    }
-
-    /// <summary>
-    /// Get conversation choices from NPC's card deck for frontend integration
-    /// </summary>
-    public async Task<List<ConversationChoice>> GetConversationChoicesFromDeckAsync(string npcId)
-    {
-        try
-        {
-            // Get the current conversation if available
-            ConversationManager currentConversation = _conversationStateManager.PendingConversationManager;
-            if (currentConversation != null && currentConversation.Context?.TargetNPC?.ID == npcId)
-            {
-                // Use existing conversation's choices if available
-                if (currentConversation.Choices?.Any() == true)
-                {
-                    return currentConversation.Choices;
-                }
-            }
-
-            // Create new choice generator to get card-based choices
-            Player player = _gameWorld.GetPlayer();
-            NPC npc = _npcRepository.GetById(npcId);
-            if (npc == null)
-            {
-                Console.WriteLine($"[GameFacade] NPC not found: {npcId}");
-                return new List<ConversationChoice>();
-            }
-
-            // Create context for choice generation
-            Location location = player.GetCurrentLocation(_locationRepository);
-            LocationSpot spot = player.CurrentLocationSpot;
-            SceneContext context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
-
-            // Create choice generator
-            ConversationChoiceGenerator choiceGenerator = new ConversationChoiceGenerator(
-                _letterQueueManager,
-                _connectionTokenManager,
-                _npcStateResolver,
-                _timeManager,
-                player,
-                _gameWorld,
-                _timeBlockAttentionManager,
-                _deckFactory);
-
-            // Generate choices from card deck
-            ConversationState state = new ConversationState(player, npc, _gameWorld, 3, 8); // Basic state for choice generation
-            List<ConversationChoice> choices = choiceGenerator.GenerateChoices(context, state);
-
-            Console.WriteLine($"[GameFacade] Generated {choices.Count} card-based choices for {npcId}");
-            return choices;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[GameFacade] Error generating card choices for {npcId}: {ex.Message}");
-            return new List<ConversationChoice>();
-        }
-    }
-
-    #endregion
-
-    // ========== ENDING SYSTEM ==========
-
-    /// <summary>
-    /// Check if the game has reached the 30-day ending
-    /// </summary>
-    public bool HasReachedEnding()
-    {
-        return _endingGenerator.HasReachedEnding();
-    }
-
-    /// <summary>
-    /// Generate the game ending based on current relationships
-    /// </summary>
-    public GameEnding GenerateEnding()
-    {
-        return _endingGenerator.GenerateEnding();
-    }
-
-    /// <summary>
-    /// Enable endless mode after the main story concludes
-    /// </summary>
-    public void EnableEndlessMode()
-    {
-        // Set flag in game world to indicate endless mode is active
-        _gameWorld.SetEndlessMode(true);
-    }
-
-    /// <summary>
-    /// Check if endless mode is active
-    /// </summary>
-    public bool IsEndlessModeActive()
-    {
-        return _gameWorld.IsEndlessModeActive();
-    }
-
 }
 
-public class ReadableLetterInfo
+
+// Queue operation types moved from deleted interface
+public enum QueueOperationType
 {
-    public string ItemId { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public bool IsRead { get; set; }
-    public bool HasSpecialEffect { get; set; }
+    MorningSwap,
+    PriorityMove,
+    ExtendDeadline,
+    SkipDelivery,
+    Reorder
+}
+
+public class QueueOperationCost
+{
+    public Dictionary<ConnectionType, int> TokenCosts { get; set; } = new Dictionary<ConnectionType, int>();
+    public List<string> ValidationErrors { get; set; } = new List<string>();
+    public bool IsAffordable { get; set; }
+}
+
+public class QueueOperationResult
+{
+    public bool Success { get; set; }
+    public string ErrorMessage { get; set; }
+    public Dictionary<ConnectionType, int> TokensSpent { get; set; }
+    public DeliveryObligation[] UpdatedQueue { get; set; }
+
+    public QueueOperationResult(bool success, string errorMessage, Dictionary<ConnectionType, int> tokensSpent, DeliveryObligation[] updatedQueue)
+    {
+        Success = success;
+        ErrorMessage = errorMessage;
+        TokensSpent = tokensSpent ?? new Dictionary<ConnectionType, int>();
+        UpdatedQueue = updatedQueue;
+    }
 }

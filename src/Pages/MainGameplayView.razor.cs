@@ -51,7 +51,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     // Time Planning State
     public bool showFullDayView = false;
 
-    // Letter Offer State
+    // DeliveryObligation Offer State
     public bool ShowLetterOfferDialog = false;
     public LetterOfferViewModel CurrentLetterOffer = null;
     public string CurrentNPCOfferId = null;
@@ -374,7 +374,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         {
             // Handle queue management completion through facade
             // The facade should handle the queue operations internally
-            OnNavigate?.Invoke(CurrentViews.LetterQueueScreen);
+            OnNavigate?.Invoke(CurrentViews.ObligationQueueScreen);
         }
         else
         {
@@ -704,25 +704,8 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     // Backward compatibility properties
     public List<Location> Locations => TravelDestinations?.Select(d => new Location(d.LocationId, d.LocationName)).ToList() ?? new List<Location>();
 
-    // These are now delegated through GameFacade but kept for backward compatibility
-    public DebugLogger DebugLogger => null; // Stub for compatibility - use Console.WriteLine instead
-    public ITimeManager TimeManager => null; // Should use GameFacade.GetTimeInfo() instead
-    public ConversationStateManager ConversationStateManager => null; // Should use GameFacade.GetCurrentConversation() instead
-    // Narrative system replaced with conversation system
-    public FlagService FlagService => null; // Should use GameFacade.IsTutorialActive() instead
-    public StandingObligationManager StandingObligationManager => null; // Should use GameFacade methods instead
-    public StandingObligationRepository StandingObligationRepository => null; // Should use GameFacade methods instead
-    public PatronLetterService PatronLetterService => null; // Should use GameFacade methods instead
-    public MessageSystem MessageSystem => null; // Should use GameFacade.GetSystemMessages() instead
-    public NPCLetterOfferService NPCLetterOfferService => null; // Should use GameFacade.AcceptLetterOfferAsync() instead
-    public LetterQueueManager LetterQueueManager => null; // Should use GameFacade.ExecuteLetterActionAsync() instead
-    public TokenMechanicsManager TokenMechanicsManager => null; // Should use GameFacade methods instead
-    public NPCRepository NPCRepository => null; // Should use GameFacade.GetLocationActions() instead
-    public LocationRepository LocationRepository => null; // Should use GameFacade.GetCurrentLocation() instead
-    public ItemRepository ItemRepository => null; // Should use GameFacade.GetInventory() instead
-    public LoadingStateService LoadingStateService => null; // No longer needed with facade
-    // All operations go through GameFacade
-    public GameWorld GameWorld => null; // Never access GameWorld directly - use GameFacade
+    // All legacy service getters completely removed - use GameFacade methods exclusively
+    // Following architectural principle: DELETE LEGACY CODE ENTIRELY
 
     // Helper method to calculate total weight
     public int CalculateTotalWeight()

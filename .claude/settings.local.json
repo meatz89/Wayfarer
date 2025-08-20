@@ -186,7 +186,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5122\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5123\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5123\" timeout 30 dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5125\" dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5125\" dotnet run --no-build)",
+      "Bash(./fix-types.sh)"
     ],
     "deny": []
   }

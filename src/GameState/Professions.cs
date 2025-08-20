@@ -20,5 +20,7 @@ public enum Professions
     Guild_Agent,    // Representatives of trade guilds
     Community_Service, // Community board and mutual aid coordinators
     Information_Broker, // Dealers in secrets and information
-    Noble_Representative // Court liaisons and noble messengers
+    Noble_Representative, // Court liaisons and noble messengers
+    Guard,          // Security and protection personnel
+    Priest          // Religious clergy and spiritual advisors
 }

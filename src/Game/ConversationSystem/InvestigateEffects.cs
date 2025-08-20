@@ -11,13 +11,13 @@ public class RevealLetterPropertyEffect : IMechanicalEffect
 {
     private readonly string _letterId;
     private readonly string _propertyToReveal;
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
     private readonly Player _player;
 
     public RevealLetterPropertyEffect(
         string letterId,
         string propertyToReveal,
-        LetterQueueManager queueManager,
+        ObligationQueueManager queueManager,
         Player player)
     {
         _letterId = letterId;
@@ -31,14 +31,14 @@ public class RevealLetterPropertyEffect : IMechanicalEffect
         int? position = _queueManager.GetLetterPosition(_letterId);
         if (!position.HasValue) return;
 
-        Letter letter = _queueManager.GetLetterAt(position.Value);
+        DeliveryObligation letter = _queueManager.GetLetterAt(position.Value);
 
         // Store the revealed information as a memory
         string revelation = _propertyToReveal switch
         {
             "sender" => $"The letter claiming to be from {letter.SenderName} is actually from someone else",
             "stakes" => $"The true stakes of this letter: {letter.ConsequenceIfLate}",
-            "urgency" => $"This deadline is {(letter.DeadlineInHours < 6 ? "genuinely urgent" : "artificially rushed")}",
+            "urgency" => $"This deadline is {(letter.DeadlineInMinutes < 6 ? "genuinely urgent" : "artificially rushed")}",
             "recipient" => $"The real recipient may not be {letter.RecipientName}",
             _ => $"Hidden truth about the letter: {_propertyToReveal}"
         };
@@ -74,12 +74,12 @@ public class RevealLetterPropertyEffect : IMechanicalEffect
 public class PredictConsequenceEffect : IMechanicalEffect
 {
     private readonly string _letterId;
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
     private readonly Player _player;
 
     public PredictConsequenceEffect(
         string letterId,
-        LetterQueueManager queueManager,
+        ObligationQueueManager queueManager,
         Player player)
     {
         _letterId = letterId;
@@ -92,7 +92,7 @@ public class PredictConsequenceEffect : IMechanicalEffect
         int? position = _queueManager.GetLetterPosition(_letterId);
         if (!position.HasValue) return;
 
-        Letter letter = _queueManager.GetLetterAt(position.Value);
+        DeliveryObligation letter = _queueManager.GetLetterAt(position.Value);
 
         // Get actual consequence from the letter
         string predictedConsequence = letter.ConsequenceIfLate ?? "Unknown consequences";
@@ -205,12 +205,12 @@ public class LearnNPCScheduleEffect : IMechanicalEffect
 public class DiscoverLetterNetworkEffect : IMechanicalEffect
 {
     private readonly string _letterId;
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
     private readonly Player _player;
 
     public DiscoverLetterNetworkEffect(
         string letterId,
-        LetterQueueManager queueManager,
+        ObligationQueueManager queueManager,
         Player player)
     {
         _letterId = letterId;
@@ -223,11 +223,11 @@ public class DiscoverLetterNetworkEffect : IMechanicalEffect
         int? position = _queueManager.GetLetterPosition(_letterId);
         if (!position.HasValue) return;
 
-        Letter letter = _queueManager.GetLetterAt(position.Value);
-        Letter[] allLetters = _queueManager.GetActiveLetters();
+        DeliveryObligation letter = _queueManager.GetLetterAt(position.Value);
+        DeliveryObligation[] allLetters = _queueManager.GetActiveObligations();
 
         // Find related letters (same sender, recipient, or stakes)
-        List<Letter> relatedLetters = allLetters.Where(l =>
+        List<DeliveryObligation> relatedLetters = allLetters.Where(l =>
             l.Id != _letterId &&
             (l.SenderId == letter.SenderId ||
              l.RecipientId == letter.RecipientId ||
@@ -252,7 +252,6 @@ public class DiscoverLetterNetworkEffect : IMechanicalEffect
         {
             _player.Memories.Add(new MemoryFlag
             {
-                Key = $"reputation_chain_{_letterId}",
                 Description = $"Failing this will damage {letter.RecipientName}'s reputation, affecting future letters",
                 Importance = 8
             });
@@ -282,7 +281,7 @@ public class SwapLetterPositionsEffect : IMechanicalEffect
     private readonly string _letterId2;
     private readonly int _tokenCost;
     private readonly ConnectionType _tokenType;
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly string _npcId;
 
@@ -291,7 +290,7 @@ public class SwapLetterPositionsEffect : IMechanicalEffect
         string letterId2,
         int tokenCost,
         ConnectionType tokenType,
-        LetterQueueManager queueManager,
+        ObligationQueueManager queueManager,
         TokenMechanicsManager tokenManager,
         string npcId)
     {
@@ -326,8 +325,8 @@ public class SwapLetterPositionsEffect : IMechanicalEffect
         }
 
         // Get the letters
-        Letter letter1 = _queueManager.GetLetterAt(pos1.Value);
-        Letter letter2 = _queueManager.GetLetterAt(pos2.Value);
+        DeliveryObligation letter1 = _queueManager.GetLetterAt(pos1.Value);
+        DeliveryObligation letter2 = _queueManager.GetLetterAt(pos2.Value);
 
         // Remove both from queue
         _queueManager.RemoveLetterFromQueue(Math.Max(pos1.Value, pos2.Value));

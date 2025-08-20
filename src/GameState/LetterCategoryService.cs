@@ -13,7 +13,7 @@ public class LetterCategoryService
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
     private readonly GameConfiguration _config;
-    private LetterTemplateRepository _letterTemplateRepository;
+    private DeliveryTemplateService _letterTemplateRepository;
 
     public LetterCategoryService(GameWorld gameWorld, TokenMechanicsManager connectionTokenManager,
         NPCRepository npcRepository, MessageSystem messageSystem, GameConfiguration config)
@@ -25,7 +25,7 @@ public class LetterCategoryService
         _config = config;
     }
 
-    public void SetLetterTemplateRepository(LetterTemplateRepository letterTemplateRepository)
+    public void SetDeliveryTemplateService(DeliveryTemplateService letterTemplateRepository)
     {
         _letterTemplateRepository = letterTemplateRepository;
     }

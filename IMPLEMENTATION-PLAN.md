@@ -648,11 +648,34 @@ Make AI narrative generation feel authentic and connected to mechanical state.
 - **Route Network Completion**: Some location connections missing (Market Square ↔ Riverside Path)
 - **Transport NPC Full Accessibility**: Harbor Office reachable but requires route through Riverside Path
 
+## ✅ EPIC COMPLETION STATUS (Updated 2025-08-20)
+
+### PHASE 1: FOUNDATION - ✅ COMPLETED
+- **✅ Epic 1**: 30-day timeline with EndingGenerator and 10 relationship-based endings
+- **✅ Epic 6**: Transport costs with minute-based granular control (Walking/Cart/Carriage)
+- **✅ Epic 8**: Complete obligation breaking system with personality-specific betrayal recovery
+- **✅ Epic 9**: Attention refresh with coins (location-based tavern/inn services)
+
+### PHASE 2: SPECIAL SYSTEMS - 🔄 IN PROGRESS
+- **🔄 Epic 7**: Special Letters System - BACKEND COMPLETE, UI INTEGRATION NEEDED
+  - **✅ Backend Architecture**: SpecialLetterGenerationService fully implemented
+  - **✅ Letter Types**: Introduction, AccessPermit, Endorsement, Information all functional
+  - **✅ Processing Logic**: SpecialLetterHandler processes delivery effects correctly
+  - **✅ Token Integration**: 5 token threshold, 3 token cost working
+  - **❌ UI Integration**: No conversation choices for requesting special letters
+  - **❌ Template Integration**: No special letter templates in letter_templates.json
+
+### PHASE 3: OBSERVATION - ⏸️ PENDING
+- **Epic 10**: Observation System (enhanced location awareness)
+
 ## Completed Systems Integration
 - **✅ Queue Visibility**: Seamless navigation between conversations and queue management
 - **✅ Narrative Integration**: All mechanical systems feel authentically medieval
 - **✅ Core Game Loop**: Conversation→Comfort→Token→Letter→Queue creates sustainable pressure
 - **✅ Location/Spot Navigation**: Free narrative perspective shifts with costly strategic travel
+- **✅ Betrayal System**: Personality-specific recovery with authentic medieval social dynamics
+- **✅ Transport System**: Strategic time/cost trade-offs with meaningful player choices
+- **✅ Attention Management**: Resource-based conversation limits with coin refresh options
 
 ---
 

@@ -4,19 +4,19 @@
 /// </summary>
 public class AdvanceTimeOperation : IGameOperation
 {
-    private readonly int _hours;
+    private readonly int _minutes;
     private readonly TimeManager _timeManager;
 
-    public AdvanceTimeOperation(int hours, TimeManager timeManager)
+    public AdvanceTimeOperation(int minutes, TimeManager timeManager)
     {
-        if (hours <= 0)
-            throw new ArgumentException("Hours must be positive", nameof(hours));
+        if (minutes <= 0)
+            throw new ArgumentException("Minutes must be positive", nameof(minutes));
 
-        _hours = hours;
+        _minutes = minutes;
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
     }
 
-    public string Description => $"Advance time by {_hours} hour(s)";
+    public string Description => $"Advance time by {_minutes} minute(s)";
 
     public bool CanExecute(GameWorld gameWorld)
     {
@@ -26,46 +26,31 @@ public class AdvanceTimeOperation : IGameOperation
     public void Execute(GameWorld gameWorld)
     {
         // Advance time
-        _timeManager.AdvanceTime(_hours);
+        _timeManager.AdvanceTime(_minutes);
 
         // CRITICAL: Update all letter deadlines when time advances
         // This creates the core tension - letters expire if not delivered
         Player? player = gameWorld.GetPlayer();
 
         // Update deadlines for letters in queue
-        if (player?.LetterQueue != null)
+        if (player?.ObligationQueue != null)
         {
-            foreach (Letter letter in player.LetterQueue)
+            foreach (DeliveryObligation obligation in player.ObligationQueue)
             {
-                if (letter != null && !letter.IsExpired)
+                if (obligation != null && !obligation.IsExpired)
                 {
-                    letter.DeadlineInHours -= _hours;
+                    obligation.DeadlineInMinutes -= _minutes;
 
                     // Clamp to 0, never go negative
-                    if (letter.DeadlineInHours < 0)
+                    if (obligation.DeadlineInMinutes < 0)
                     {
-                        letter.DeadlineInHours = 0;
+                        obligation.DeadlineInMinutes = 0;
                     }
                 }
             }
         }
 
-        // Also update deadlines for carried letters (physical letters in inventory)
-        if (player?.CarriedLetters != null)
-        {
-            foreach (Letter letter in player.CarriedLetters)
-            {
-                if (letter != null && !letter.IsExpired)
-                {
-                    letter.DeadlineInHours -= _hours;
-
-                    // Clamp to 0, never go negative
-                    if (letter.DeadlineInHours < 0)
-                    {
-                        letter.DeadlineInHours = 0;
-                    }
-                }
-            }
-        }
+        // Note: CarriedLetters are physical Letter objects without deadlines
+        // Only obligations in queue have deadlines that need updating
     }
 }

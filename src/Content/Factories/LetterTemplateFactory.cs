@@ -4,7 +4,7 @@ using System.Linq;
 
 /// <summary>
 /// Factory for creating letter templates with guaranteed valid references.
-/// Letter templates reference NPCs as possible senders/recipients.
+/// DeliveryObligation templates reference NPCs as possible senders/recipients.
 /// </summary>
 public class LetterTemplateFactory
 {
@@ -20,7 +20,7 @@ public class LetterTemplateFactory
     public LetterTemplate CreateMinimalLetterTemplate(string id)
     {
         if (string.IsNullOrEmpty(id))
-            throw new ArgumentException("Letter template ID cannot be empty", nameof(id));
+            throw new ArgumentException("DeliveryObligation template ID cannot be empty", nameof(id));
 
         string name = FormatIdAsName(id);
 
@@ -29,8 +29,8 @@ public class LetterTemplateFactory
             Id = id,
             Description = $"A letter template called {name}",
             TokenType = ConnectionType.Trust, // Most basic type
-            MinDeadlineInHours = 24, // One day minimum
-            MaxDeadlineInHours = 48, // Two days maximum
+            MinDeadlineInMinutes = 1440, // One day minimum (24*60)
+            MaxDeadlineInMinutes = 2880, // Two days maximum (48*60)
             MinPayment = 2, // Low but reasonable
             MaxPayment = 5,
             Category = LetterCategory.Basic,
@@ -38,7 +38,6 @@ public class LetterTemplateFactory
             PossibleSenders = new string[0],
             PossibleRecipients = new string[0],
             UnlocksLetterIds = new string[0],
-            IsChainLetter = false,
             Size = SizeCategory.Small, // Easy to carry
             PhysicalProperties = LetterPhysicalProperties.None,
             RequiredEquipment = null,
@@ -79,7 +78,7 @@ public class LetterTemplateFactory
         IEnumerable<NPC> possibleSenders = null,
         IEnumerable<NPC> possibleRecipients = null,
         IEnumerable<string> unlocksLetterIds = null,
-        bool isChainLetter = false,
+        bool isChainDeliveryObligation = false,
         SizeCategory size = SizeCategory.Medium,
         LetterPhysicalProperties physicalProperties = LetterPhysicalProperties.None,
         ItemCategory? requiredEquipment = null,
@@ -93,9 +92,9 @@ public class LetterTemplateFactory
         TierLevel tierLevel = TierLevel.T1)
     {
         if (string.IsNullOrEmpty(id))
-            throw new ArgumentException("Letter template ID cannot be empty", nameof(id));
+            throw new ArgumentException("DeliveryObligation template ID cannot be empty", nameof(id));
         if (string.IsNullOrEmpty(description))
-            throw new ArgumentException("Letter template description cannot be empty", nameof(description));
+            throw new ArgumentException("DeliveryObligation template description cannot be empty", nameof(description));
         if (minDeadlineInHours < 1)
             throw new ArgumentException("Minimum deadline must be at least 1 hour", nameof(minDeadlineInHours));
         if (maxDeadlineInHours < minDeadlineInHours)
@@ -110,8 +109,8 @@ public class LetterTemplateFactory
             Id = id,
             Description = description,
             TokenType = tokenType,
-            MinDeadlineInHours = minDeadlineInHours,
-            MaxDeadlineInHours = maxDeadlineInHours,
+            MinDeadlineInMinutes = minDeadlineInHours,
+            MaxDeadlineInMinutes = maxDeadlineInHours,
             MinPayment = minPayment,
             MaxPayment = maxPayment,
             Category = category,
@@ -119,7 +118,6 @@ public class LetterTemplateFactory
             PossibleSenders = possibleSenders?.Select(npc => npc.ID).ToArray() ?? new string[0],
             PossibleRecipients = possibleRecipients?.Select(npc => npc.ID).ToArray() ?? new string[0],
             UnlocksLetterIds = unlocksLetterIds?.ToArray() ?? new string[0],
-            IsChainLetter = isChainLetter,
             Size = size,
             PhysicalProperties = physicalProperties,
             RequiredEquipment = requiredEquipment,
@@ -153,7 +151,7 @@ public class LetterTemplateFactory
         IEnumerable<string> possibleRecipientIds,
         IEnumerable<NPC> availableNPCs,
         IEnumerable<string> unlocksLetterIds = null,
-        bool isChainLetter = false,
+        bool isChainDeliveryObligation = false,
         SizeCategory size = SizeCategory.Medium,
         LetterPhysicalProperties physicalProperties = LetterPhysicalProperties.None,
         ItemCategory? requiredEquipment = null,
@@ -185,7 +183,7 @@ public class LetterTemplateFactory
                 NPC? npc = availableNPCs.FirstOrDefault(n => n.ID == senderId);
                 if (npc == null)
                 {
-                    Console.WriteLine($"WARNING: Letter template '{id}' references non-existent sender NPC '{senderId}'");
+                    Console.WriteLine($"WARNING: DeliveryObligation template '{id}' references non-existent sender NPC '{senderId}'");
                 }
                 else
                 {
@@ -203,7 +201,7 @@ public class LetterTemplateFactory
                 NPC? npc = availableNPCs.FirstOrDefault(n => n.ID == recipientId);
                 if (npc == null)
                 {
-                    Console.WriteLine($"WARNING: Letter template '{id}' references non-existent recipient NPC '{recipientId}'");
+                    Console.WriteLine($"WARNING: DeliveryObligation template '{id}' references non-existent recipient NPC '{recipientId}'");
                 }
                 else
                 {
@@ -214,7 +212,8 @@ public class LetterTemplateFactory
 
         return CreateLetterTemplate(id, description, tokenType, minDeadlineInHours, maxDeadlineInHours,
                                    minPayment, maxPayment, category, minTokensRequired,
-                                   senders, recipients, unlocksLetterIds, isChainLetter,
+                                   possibleSenders: null, possibleRecipients: null, unlocksLetterIds: null, 
+                                   isChainDeliveryObligation: false,
                                    size, physicalProperties, requiredEquipment,
                                    specialType, specialTargetId, humanContext, consequenceIfLate,
                                    consequenceIfDelivered, emotionalWeight, stakes, tierLevel);

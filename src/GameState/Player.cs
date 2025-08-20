@@ -24,9 +24,7 @@ public class Player
     public int Concentration { get; set; } = 10; // Starting concentration - intentionally kept as literal
     public int Health { get; set; }
     public int Food { get; set; }
-    public int PatronLeverage { get; set; } = 0;
-    public bool HasPatron { get; set; } = false;
-    public int LastPatronFundDay { get; set; } = -7; // Allow immediate request on game start - intentionally negative
+    // Patron system removed - deleted all patron-related properties
 
     public int MaxStamina { get; set; } = 10;  // From GameConfiguration.MaxStamina
     public int MaxConcentration { get; set; }
@@ -80,20 +78,20 @@ public class Player
     public List<Goal> CompletedGoals { get; private set; } = new List<Goal>();
     public List<Goal> FailedGoals { get; private set; } = new List<Goal>();
 
-    // Letter Queue System
-    public Letter[] LetterQueue { get; private set; } = new Letter[8];
+    // DeliveryObligation Queue System
+    public DeliveryObligation[] ObligationQueue { get; private set; } = new DeliveryObligation[8];
     public Dictionary<ConnectionType, int> ConnectionTokens { get; private set; } = new Dictionary<ConnectionType, int>();
     public Dictionary<string, Dictionary<ConnectionType, int>> NPCTokens { get; private set; } = new Dictionary<string, Dictionary<ConnectionType, int>>();
 
-    // Physical Letter Carrying
+    // Physical DeliveryObligation Carrying
     public List<Letter> CarriedLetters { get; private set; } = new List<Letter>(); // Letters physically in inventory for delivery
 
     // Queue manipulation tracking
     public int LastMorningSwapDay { get; set; } = -1; // Track when morning swap was last used
     public int LastLetterBoardDay { get; set; } = -1; // Track when letter board was last generated
-    public List<Letter> DailyBoardLetters { get; set; } = new List<Letter>(); // Store today's board letters
+    public List<DeliveryObligation> DailyBoardLetters { get; set; } = new List<DeliveryObligation>(); // Store today's board letters
 
-    // Letter history tracking
+    // DeliveryObligation history tracking
     public Dictionary<string, LetterHistory> NPCLetterHistory { get; private set; } = new Dictionary<string, LetterHistory>();
 
     // Standing Obligations System
@@ -115,7 +113,7 @@ public class Player
     public Action OnStaminaExhausted { get; set; }
 
     // Scenario tracking
-    public List<Letter> DeliveredLetters { get; set; } = new List<Letter>();
+    public List<DeliveryObligation> DeliveredLetters { get; set; } = new List<DeliveryObligation>();
     public int TotalLettersDelivered { get; set; } = 0;
     public int TotalLettersExpired { get; set; } = 0;
     public int TotalTokensSpent { get; set; } = 0;

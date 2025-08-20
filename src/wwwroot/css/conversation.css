@@ -1003,6 +1003,32 @@ body {
     box-shadow: 0 2px 4px rgba(255, 215, 0, 0.1);
 }
 
+/* Special letter requests - GOLD (high value, rare opportunities) */
+.response-card.special-card {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    border-color: #e17055;
+    box-shadow: 0 3px 6px rgba(225, 112, 85, 0.2);
+    position: relative;
+}
+
+.response-card.special-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, #e17055, #fdcb6e, #e17055);
+    border-radius: 8px;
+    z-index: -1;
+    animation: special-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes special-glow {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
 /* Discovery/information cards - BLUE */
 .response-card.discovery-card {
     background: linear-gradient(135deg, #e6f3ff 0%, #cce7ff 100%);

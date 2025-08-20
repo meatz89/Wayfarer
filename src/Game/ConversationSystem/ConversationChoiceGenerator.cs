@@ -9,7 +9,7 @@ using Wayfarer.GameState;
 /// </summary>
 public class ConversationChoiceGenerator
 {
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly NPCStateResolver _stateCalculator;
     private readonly ITimeManager _timeManager;
@@ -19,7 +19,7 @@ public class ConversationChoiceGenerator
     private readonly NPCDeckFactory _deckFactory;
 
     public ConversationChoiceGenerator(
-        LetterQueueManager queueManager,
+        ObligationQueueManager queueManager,
         TokenMechanicsManager tokenManager,
         NPCStateResolver stateCalculator,
         ITimeManager timeManager,
@@ -71,6 +71,9 @@ public class ConversationChoiceGenerator
             state.LetterCardAddedThisConversation = true; // Track to avoid multiple additions per conversation
         }
 
+        // SPECIAL LETTER CARD INTEGRATION: Add special letter request cards when token thresholds are met
+        AddSpecialLetterRequestCardsToDeck(context.TargetNPC, tokenDict);
+
         // Draw 5 cards from NPC's deck filtered by emotional state and played cards - already ConversationChoice objects
         List<ConversationChoice> choices = context.TargetNPC.ConversationDeck.DrawCards(tokenDict, 0, emotionalState, state);
         
@@ -83,7 +86,7 @@ public class ConversationChoiceGenerator
         }
 
         // LETTER DELIVERY: Check if player has a letter for this NPC in position 1
-        Letter letterInPosition1 = _queueManager.GetLetterAt(1);
+        DeliveryObligation letterInPosition1 = _queueManager.GetLetterAt(1);
         if (letterInPosition1 != null && 
             letterInPosition1.RecipientName.Equals(context.TargetNPC.Name, StringComparison.OrdinalIgnoreCase))
         {
@@ -98,12 +101,12 @@ public class ConversationChoiceGenerator
     /// <summary>
     /// Create a delivery choice for a letter in position 1
     /// </summary>
-    private ConversationChoice CreateDeliveryChoice(Letter letter, NPC recipient)
+    private ConversationChoice CreateDeliveryChoice(DeliveryObligation letter, NPC recipient)
     {
         // Calculate trust reward based on letter urgency
         int trustReward = 3; // Base trust for keeping your word
-        if (letter.DeadlineInHours < 24) trustReward = 4;
-        if (letter.DeadlineInHours < 12) trustReward = 5;
+        if (letter.DeadlineInMinutes < 24) trustReward = 4;
+        if (letter.DeadlineInMinutes < 12) trustReward = 5;
 
         var deliveryEffect = new DeliverLetterEffect(
             letter.Id,
@@ -167,6 +170,29 @@ public class ConversationChoiceGenerator
         }
 
         return tokens.OrderByDescending(kvp => kvp.Value).First().Key;
+    }
+
+    /// <summary>
+    /// Add special letter request cards to NPC deck when token thresholds are met (5+ tokens)
+    /// Only supports IntroductionDeliveryObligation (Trust) and AccessPermit (Commerce)
+    /// </summary>
+    private void AddSpecialLetterRequestCardsToDeck(NPC npc, Dictionary<ConnectionType, int> tokenDict)
+    {
+        if (npc.ConversationDeck == null) return;
+
+        // Only check Trust and Commerce tokens for special letters
+        ConnectionType[] supportedTypes = { ConnectionType.Trust, ConnectionType.Commerce };
+        
+        foreach (ConnectionType tokenType in supportedTypes)
+        {
+            int tokenCount = tokenDict.GetValueOrDefault(tokenType, 0);
+            
+            // Add special letter request card if meets threshold and not already present
+            if (tokenCount >= 5)
+            {
+                npc.ConversationDeck.AddSpecialLetterRequestCard(tokenType, tokenCount);
+            }
+        }
     }
 
 

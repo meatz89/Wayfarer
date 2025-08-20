@@ -7,12 +7,12 @@ public class TimeImpactCalculator
 {
     private readonly ITimeManager _timeManager;
     private readonly GameWorld _gameWorld;
-    private readonly LetterQueueManager _letterQueueManager;
+    private readonly ObligationQueueManager _letterQueueManager;
 
     public TimeImpactCalculator(
         ITimeManager timeManager,
         GameWorld gameWorld,
-        LetterQueueManager letterQueueManager)
+        ObligationQueueManager letterQueueManager)
     {
         _timeManager = timeManager;
         _gameWorld = gameWorld;
@@ -58,20 +58,20 @@ public class TimeImpactCalculator
     private List<AffectedLetterInfo> CalculateDeadlineImpacts(int daysAdvanced)
     {
         List<AffectedLetterInfo> impacts = new List<AffectedLetterInfo>();
-        Letter[] queue = _letterQueueManager.GetPlayerQueue();
+        DeliveryObligation[] queue = _letterQueueManager.GetPlayerQueue();
         int hoursAdvanced = daysAdvanced * 24;
 
-        foreach (Letter? letter in queue.Where(l => l != null))
+        foreach (DeliveryObligation? letter in queue.Where(l => l != null))
         {
-            int hoursRemaining = letter.DeadlineInHours - hoursAdvanced;
-            if (hoursRemaining <= 0 && letter.DeadlineInHours > 0)
+            int hoursRemaining = letter.DeadlineInMinutes - hoursAdvanced;
+            if (hoursRemaining <= 0 && letter.DeadlineInMinutes > 0)
             {
                 // This letter would expire
                 impacts.Add(new AffectedLetterInfo
                 {
                     LetterId = letter.Id,
                     Route = $"{letter.SenderName} → {letter.RecipientName}",
-                    CurrentHoursRemaining = letter.DeadlineInHours,
+                    CurrentHoursRemaining = letter.DeadlineInMinutes,
                     ResultHoursRemaining = hoursRemaining
                 });
             }

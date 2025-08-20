@@ -6,11 +6,11 @@ using System.Collections.Generic;
 /// </summary>
 public interface IGameRuleEngine
 {
-    // Letter queue mechanics
+    // DeliveryObligation queue mechanics
     int CalculateLeverage(string npcId, ConnectionType tokenType);
-    int CalculateLetterPosition(Letter letter, int npcTokenBalance);
-    int CalculateSkipCost(int fromPosition, Letter letter);
-    bool CanSkipToPosition(Letter letter, int targetPosition);
+    int CalculateLetterPosition(DeliveryObligation letter, int npcTokenBalance);
+    int CalculateSkipCost(int fromPosition, DeliveryObligation letter);
+    bool CanSkipToPosition(DeliveryObligation letter, int targetPosition);
 
     // Token economy
     int GetTokenThresholdForCategory(LetterCategory category);
@@ -34,10 +34,9 @@ public interface IGameRuleEngine
     bool ShouldOfferEmergencyActions(Player player);
     int CalculateDebtLeverage(int tokenBalance);
 
-    // Letter payments and deadlines
+    // DeliveryObligation payments and deadlines
     (int min, int max) GetPaymentRangeForCategory(LetterCategory category);
-    int CalculateLateDeliveryPenalty(Letter letter, int daysLate);
-    int CalculateChainLetterBonus(Letter letter);
+    int CalculateLateDeliveryPenalty(DeliveryObligation letter, int daysLate);
 
     // Patron mechanics  
     bool ShouldGeneratePatronLetter(int daysSinceLastLetter);

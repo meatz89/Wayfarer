@@ -21,7 +21,7 @@ public enum ObligationEffect
     TrustFreeExtend,       // Trust letters can extend deadline free
     DeadlinePlus2Days,     // Letters get +2 days to deadline
 
-    // Forced Letter Generation
+    // Forced DeliveryObligation Generation
     ShadowForced,          // Forced shadow letter every 3 days
     PatronMonthly,         // Monthly patron resource package
 
@@ -81,7 +81,7 @@ public class StandingObligation
     public bool WasAutoActivated { get; set; } = false; // Track if this was auto-activated by threshold
 
     // Tracking for forced generation effects
-    public int DaysSinceLastForcedLetter { get; set; } = 0;
+    public int DaysSinceLastForcedDeliveryObligation { get; set; } = 0;
 
     // Dynamic Scaling Properties
     public ScalingType ScalingType { get; set; } = ScalingType.None;
@@ -111,7 +111,7 @@ public class StandingObligation
     }
 
     // Calculate coin bonus for letter delivery
-    public int CalculateCoinBonus(Letter letter, int basePayment)
+    public int CalculateCoinBonus(DeliveryObligation letter, int basePayment)
     {
         if (!AppliesTo(letter.TokenType)) return 0;
 
@@ -134,7 +134,7 @@ public class StandingObligation
     }
 
     // Determine entry position for new letters
-    public int CalculateEntryPosition(Letter letter, int defaultPosition)
+    public int CalculateEntryPosition(DeliveryObligation letter, int defaultPosition)
     {
         if (!AppliesTo(letter.TokenType)) return defaultPosition;
 
@@ -168,14 +168,14 @@ public class StandingObligation
     }
 
     // Check if deadline extension is free
-    public bool IsFreeDeadlineExtension(Letter letter)
+    public bool IsFreeDeadlineExtension(DeliveryObligation letter)
     {
         return HasEffect(ObligationEffect.TrustFreeExtend) &&
                letter.TokenType == ConnectionType.Trust;
     }
 
     // Calculate skip cost multiplier
-    public int CalculateSkipCostMultiplier(Letter letter)
+    public int CalculateSkipCostMultiplier(DeliveryObligation letter)
     {
         if (HasEffect(ObligationEffect.TrustSkipDoubleCost) &&
             letter.TokenType == ConnectionType.Trust)
@@ -187,7 +187,7 @@ public class StandingObligation
     }
 
     // Check if action is forbidden by constraints
-    public bool IsForbiddenAction(string actionType, Letter letter)
+    public bool IsForbiddenAction(string actionType, DeliveryObligation letter)
     {
         if (actionType == "refuse" && HasEffect(ObligationEffect.NoStatusRefusal) &&
             letter.TokenType == ConnectionType.Status)
@@ -214,12 +214,12 @@ public class StandingObligation
     {
         if (HasEffect(ObligationEffect.ShadowForced))
         {
-            return DaysSinceLastForcedLetter >= 3; // Every 3 days
+            return DaysSinceLastForcedDeliveryObligation >= 3; // Every 3 days
         }
 
         if (HasEffect(ObligationEffect.PatronMonthly))
         {
-            return DaysSinceLastForcedLetter >= 30; // Monthly
+            return DaysSinceLastForcedDeliveryObligation >= 30; // Monthly
         }
 
         return false;
@@ -228,7 +228,7 @@ public class StandingObligation
     // Record forced letter generation
     public void RecordForcedLetterGenerated()
     {
-        DaysSinceLastForcedLetter = 0;
+        DaysSinceLastForcedDeliveryObligation = 0;
     }
 
     // Check if this obligation should be active based on current token count
@@ -382,7 +382,7 @@ public class StandingObligation
     }
 
     // Calculate dynamic leverage modifier
-    public int CalculateDynamicLeverage(Letter letter, int currentPosition, int tokenCount)
+    public int CalculateDynamicLeverage(DeliveryObligation letter, int currentPosition, int tokenCount)
     {
         if (!HasEffect(ObligationEffect.DynamicLeverageModifier)) return currentPosition;
         if (!AppliesTo(letter.TokenType)) return currentPosition;
@@ -394,7 +394,7 @@ public class StandingObligation
     }
 
     // Calculate dynamic payment bonus
-    public int CalculateDynamicPaymentBonus(Letter letter, int basePayment, int tokenCount)
+    public int CalculateDynamicPaymentBonus(DeliveryObligation letter, int basePayment, int tokenCount)
     {
         if (!HasEffect(ObligationEffect.DynamicPaymentBonus)) return 0;
         if (!AppliesTo(letter.TokenType)) return 0;
@@ -404,7 +404,7 @@ public class StandingObligation
     }
 
     // Calculate dynamic deadline bonus
-    public int CalculateDynamicDeadlineBonus(Letter letter, int tokenCount)
+    public int CalculateDynamicDeadlineBonus(DeliveryObligation letter, int tokenCount)
     {
         if (!HasEffect(ObligationEffect.DynamicDeadlineBonus)) return 0;
         if (!AppliesTo(letter.TokenType)) return 0;

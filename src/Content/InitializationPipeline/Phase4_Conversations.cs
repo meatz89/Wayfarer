@@ -103,7 +103,7 @@ public class ConversationChoiceDefinition
 /// </summary>
 public class ConversationEffects
 {
-    public AddLetterEffect AddLetter { get; set; }
+    public AddLetterEffect AddDeliveryObligation { get; set; }
     public AddTokenEffect AddToken { get; set; }
 }
 

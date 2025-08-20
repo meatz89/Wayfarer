@@ -23,8 +23,6 @@ public static class ItemParser
             LocationId = GetStringProperty(root, "locationId", ""),
             SpotId = GetStringProperty(root, "spotId", ""),
             Description = GetStringProperty(root, "description", ""),
-            ReadableContent = GetStringProperty(root, "readableContent", ""),
-            ReadFlagToSet = GetStringProperty(root, "readFlagToSet", ""),
         };
 
         // Parse item categories

@@ -10,9 +10,9 @@ public class NPCLetterOfferService
 {
     private readonly GameWorld _gameWorld;
     private readonly NPCRepository _npcRepository;
-    private readonly LetterTemplateRepository _letterTemplateRepository;
+    private readonly DeliveryTemplateService _letterTemplateRepository;
     private readonly TokenMechanicsManager _connectionTokenManager;
-    private readonly LetterQueueManager _letterQueueManager;
+    private readonly ObligationQueueManager _letterQueueManager;
     private readonly MessageSystem _messageSystem;
     private readonly ITimeManager _timeManager;
     private readonly Random _random = new Random();
@@ -27,9 +27,9 @@ public class NPCLetterOfferService
     public NPCLetterOfferService(
         GameWorld gameWorld,
         NPCRepository npcRepository,
-        LetterTemplateRepository letterTemplateRepository,
+        DeliveryTemplateService letterTemplateRepository,
         TokenMechanicsManager connectionTokenManager,
-        LetterQueueManager letterQueueManager,
+        ObligationQueueManager letterQueueManager,
         MessageSystem messageSystem,
         ITimeManager timeManager)
     {
@@ -151,7 +151,7 @@ public class NPCLetterOfferService
         int payment = _random.Next(template.MinPayment, template.MaxPayment + 1);
 
         // Calculate deadline - Direct Approaches tend to be more generous
-        int baseDeadline = _random.Next(template.MinDeadlineInHours, template.MaxDeadlineInHours + 1);
+        int baseDeadline = _random.Next(template.MinDeadlineInMinutes, template.MaxDeadlineInMinutes + 1);
         int deadlineBonus = tokensOfType >= GameRules.TOKENS_QUALITY_THRESHOLD ? 1 : 0; // +1 day for quality relationships
         int finalDeadline = baseDeadline + deadlineBonus;
 
@@ -163,7 +163,7 @@ public class NPCLetterOfferService
             LetterType = letterType,
             Message = message,
             Payment = payment,
-            DeadlineInHours = finalDeadline,
+            DeadlineInMinutes = finalDeadline,
             TemplateId = template.Id,
             IsDirectApproach = true,
             Category = template.Category
@@ -227,7 +227,7 @@ public class NPCLetterOfferService
         // Check if queue has space
         if (_letterQueueManager.IsQueueFull())
         {
-            _messageSystem.AddSystemMessage("Letter queue is full. Cannot accept more letters.", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage("DeliveryObligation queue is full. Cannot accept more letters.", SystemMessageTypes.Danger);
             return false;
         }
 
@@ -235,44 +235,27 @@ public class NPCLetterOfferService
         LetterOffer offer = GetLetterOfferById(npcId, offerId);
         if (offer == null)
         {
-            _messageSystem.AddSystemMessage("Letter offer not found.", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage("DeliveryObligation offer not found.", SystemMessageTypes.Danger);
             return false;
         }
 
-        Letter letter = GenerateLetterFromOffer(offer);
+        DeliveryObligation letter = GenerateLetterFromOffer(offer);
         if (letter == null)
         {
             _messageSystem.AddSystemMessage("Failed to generate letter from offer.", SystemMessageTypes.Danger);
             return false;
         }
 
-        // Check if this is an Information letter that goes to inventory instead of queue
-        if (letter.SpecialType == LetterSpecialType.Information)
-        {
-            // Add Information letter to carried letters (satchel) instead of queue
-            _gameWorld.GetPlayer().CarriedLetters.Add(letter);
-            letter.State = LetterState.Collected; // Mark as physical item
+        // All obligations go to the queue - physical Letters are created separately when needed
+        // DeliveryObligations don't have SpecialType - only physical Letters do
+        _letterQueueManager.AddLetterWithObligationEffects(letter);
 
-            // Enhanced feedback for Information letters
-            _messageSystem.AddSystemMessage($"💬 {npc.Name} appreciates your acceptance!", SystemMessageTypes.Success);
-            _messageSystem.AddSystemMessage($"📜 Information letter added to your satchel", SystemMessageTypes.Info);
-            _messageSystem.AddSystemMessage($"🎒 Takes inventory space but not queue slot", SystemMessageTypes.Info);
-            _messageSystem.AddSystemMessage($"💰 Payment: {offer.Payment} coins", SystemMessageTypes.Info);
-            _messageSystem.AddSystemMessage($"⏰ Deadline: {offer.DeadlineInHours / 24} days", SystemMessageTypes.Info);
-            _messageSystem.AddSystemMessage($"🤝 Relationship with {npc.Name} strengthened", SystemMessageTypes.Success);
-        }
-        else
-        {
-            // Regular letters go to queue
-            _letterQueueManager.AddLetterWithObligationEffects(letter);
-
-            // Enhanced success feedback
-            _messageSystem.AddSystemMessage($"💬 {npc.Name} appreciates your acceptance!", SystemMessageTypes.Success);
-            _messageSystem.AddSystemMessage($"✉️ {offer.LetterType} letter added to queue", SystemMessageTypes.Info);
-            _messageSystem.AddSystemMessage($"💰 Payment: {offer.Payment} coins", SystemMessageTypes.Info);
-            _messageSystem.AddSystemMessage($"⏰ Deadline: {offer.DeadlineInHours / 24} days", SystemMessageTypes.Info);
-            _messageSystem.AddSystemMessage($"🤝 Relationship with {npc.Name} strengthened", SystemMessageTypes.Success);
-        }
+        // Enhanced success feedback
+        _messageSystem.AddSystemMessage($"💬 {npc.Name} appreciates your acceptance!", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"✉️ {offer.LetterType} obligation added to queue", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage($"💰 Payment: {offer.Payment} coins", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage($"⏰ Deadline: {offer.DeadlineInMinutes / (60*24)} days", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage($"🤝 Relationship with {npc.Name} strengthened", SystemMessageTypes.Success);
 
         // Strengthen relationship with this NPC (1 token for accepting Direct Approach)
         _connectionTokenManager.AddTokensToNPC(offer.LetterType, 1, npcId);
@@ -286,7 +269,7 @@ public class NPCLetterOfferService
     /// <summary>
     /// Generate a letter from an accepted offer.
     /// </summary>
-    private Letter GenerateLetterFromOffer(LetterOffer offer)
+    private DeliveryObligation GenerateLetterFromOffer(LetterOffer offer)
     {
         LetterTemplate template = _letterTemplateRepository.GetTemplateById(offer.TemplateId);
         if (template == null)
@@ -305,22 +288,22 @@ public class NPCLetterOfferService
 
         NPC recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
 
-        // Generate letter using template
-        Letter? letter = _letterTemplateRepository.GenerateLetterFromTemplate(template, offer.NPCName, recipient.Name);
+        // Generate obligation from template
+        DeliveryObligation obligation = _letterTemplateRepository.GenerateObligationFromTemplate(template, offer.NPCName, recipient.Name);
 
-        if (letter != null)
+        if (obligation != null)
         {
             // Apply offer-specific properties
-            letter.Payment = offer.Payment;
-            letter.DeadlineInHours = offer.DeadlineInHours;
-            letter.TokenType = offer.LetterType;
+            obligation.Payment = offer.Payment;
+            obligation.DeadlineInMinutes = offer.DeadlineInMinutes;
+            obligation.TokenType = offer.LetterType;
 
             // Mark as Direct Approach
-            letter.IsGenerated = true;
-            letter.GenerationReason = "Direct Approach";
+            obligation.IsGenerated = true;
+            obligation.GenerationReason = "Direct Approach";
         }
 
-        return letter;
+        return obligation;
     }
 
     /// <summary>
@@ -496,7 +479,7 @@ public class NPCLetterOfferService
     /// <summary>
     /// Generate a return letter when recipient wants to send a reply.
     /// </summary>
-    public Letter GenerateReturnLetter(NPC recipient, Letter originalLetter)
+    public DeliveryObligation GenerateReturnLetter(NPC recipient, DeliveryObligation originalLetter)
     {
         // Find a suitable return recipient - prefer the original sender if they're an NPC
         NPC returnRecipient = null;
@@ -528,8 +511,8 @@ public class NPCLetterOfferService
 
         if (returnRecipient == null) return null;
 
-        // Generate return letter
-        Letter letter = new Letter
+        // Generate return obligation
+        DeliveryObligation obligation = new DeliveryObligation
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = recipient.ID,
@@ -537,39 +520,37 @@ public class NPCLetterOfferService
             RecipientId = returnRecipient.ID,
             RecipientName = returnRecipient.Name,
             Payment = _random.Next(8, 16), // Return letters pay slightly more
-            DeadlineInHours = (_gameWorld.CurrentDay + _random.Next(3, 5)) * 24,
+            DeadlineInMinutes = (_gameWorld.CurrentDay + _random.Next(3, 5)) * 24,
             IsGenerated = true,
             GenerationReason = "Return Letter",
-            State = LetterState.Collected,
             Message = $"Reply to: {originalLetter.SenderName}"
         };
 
         // Determine token type based on recipient
         if (returnRecipient.LetterTokenTypes.Any())
         {
-            letter.TokenType = returnRecipient.LetterTokenTypes.First();
+            obligation.TokenType = returnRecipient.LetterTokenTypes.First();
         }
         else
         {
-            letter.TokenType = ConnectionType.Trust;
+            obligation.TokenType = ConnectionType.Trust;
         }
 
-        // Add urgency sometimes
+        // Add payment bonus sometimes (no physical properties on obligations)
         if (_random.Next(100) < 30)
         {
-            letter.PhysicalProperties |= LetterPhysicalProperties.Valuable;
-            letter.Payment += 3;
+            obligation.Payment += 3;
         }
 
-        return letter;
+        return obligation;
     }
 
     /// <summary>
     /// Generate letter from successful conversation based on comfort thresholds
     /// </summary>
-    public List<Letter> GenerateFromConversation(string npcId, int totalComfort, int startingPatience)
+    public List<DeliveryObligation> GenerateFromConversation(string npcId, int totalComfort, int startingPatience)
     {
-        List<Letter> generatedLetters = new List<Letter>();
+        List<DeliveryObligation> generatedLetters = new List<DeliveryObligation>();
 
         NPC npc = _npcRepository.GetById(npcId);
         if (npc == null)
@@ -634,20 +615,20 @@ public class NPCLetterOfferService
             selectedTemplate = suitableTemplates.Where(t => t.Category == LetterCategory.Basic).FirstOrDefault() ?? suitableTemplates.First();
         }
 
-        // Generate letter from template
-        Letter? letter = CreateLetterFromConversationSuccess(npc, selectedTemplate, totalComfort, startingPatience, reachedPerfectThreshold);
+        // Generate obligation from template
+        DeliveryObligation obligation = CreateLetterFromConversationSuccess(npc, selectedTemplate, totalComfort, startingPatience, reachedPerfectThreshold);
 
-        if (letter != null)
+        if (obligation != null)
         {
-            generatedLetters.Add(letter);
+            generatedLetters.Add(obligation);
 
             // Perfect conversations might generate additional letters
             if (reachedPerfectThreshold && _random.Next(100) < 40) // 40% chance for bonus letter
             {
-                Letter? bonusLetter = CreateBonusLetter(npc, letterType);
-                if (bonusLetter != null)
+                DeliveryObligation bonusObligation = CreateBonusLetter(npc, letterType);
+                if (bonusObligation != null)
                 {
-                    generatedLetters.Add(bonusLetter);
+                    generatedLetters.Add(bonusObligation);
                     Console.WriteLine($"[NPCLetterOfferService] Perfect conversation bonus: Generated additional letter");
                 }
             }
@@ -661,7 +642,7 @@ public class NPCLetterOfferService
     /// <summary>
     /// Create letter from conversation success
     /// </summary>
-    private Letter CreateLetterFromConversationSuccess(NPC npc, LetterTemplate template, int totalComfort, int startingPatience, bool perfectConversation)
+    private DeliveryObligation CreateLetterFromConversationSuccess(NPC npc, LetterTemplate template, int totalComfort, int startingPatience, bool perfectConversation)
     {
         // Find recipient NPC (different from sender)
         List<NPC> allNPCs = _npcRepository.GetAllNPCs();
@@ -674,38 +655,38 @@ public class NPCLetterOfferService
 
         NPC recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
 
-        // Generate letter using template
-        Letter? letter = _letterTemplateRepository.GenerateLetterFromTemplate(template, npc.Name, recipient.Name);
+        // Generate obligation using template
+        DeliveryObligation obligation = _letterTemplateRepository.GenerateObligationFromTemplate(template, npc.Name, recipient.Name);
 
-        if (letter != null)
+        if (obligation != null)
         {
             // Apply comfort-based bonuses
             int basePayment = _random.Next(template.MinPayment, template.MaxPayment + 1);
             int comfortBonus = Math.Max(0, (totalComfort - startingPatience) / 2); // +1 coin per 2 comfort over threshold
             int perfectBonus = perfectConversation ? 5 : 0;
 
-            letter.Payment = basePayment + comfortBonus + perfectBonus;
+            obligation.Payment = basePayment + comfortBonus + perfectBonus;
 
             // Generous deadlines for conversation-generated letters
-            int baseDeadline = _random.Next(template.MinDeadlineInHours, template.MaxDeadlineInHours + 1);
+            int baseDeadline = _random.Next(template.MinDeadlineInMinutes, template.MaxDeadlineInMinutes + 1);
             int generosityBonus = perfectConversation ? 24 : 12; // +1 or +0.5 days extra
-            letter.DeadlineInHours = baseDeadline + generosityBonus;
+            obligation.DeadlineInMinutes = baseDeadline + generosityBonus;
 
             // Mark as conversation-generated
-            letter.IsGenerated = true;
-            letter.GenerationReason = perfectConversation ? "Perfect Conversation" : "Successful Conversation";
-            letter.TokenType = template.TokenType;
+            obligation.IsGenerated = true;
+            obligation.GenerationReason = perfectConversation ? "Perfect Conversation" : "Successful Conversation";
+            obligation.TokenType = template.TokenType;
 
-            Console.WriteLine($"[NPCLetterOfferService] Generated {template.Category} {template.TokenType} letter: {letter.Payment} coins, {letter.DeadlineInHours}h deadline");
+            Console.WriteLine($"[NPCLetterOfferService] Generated {template.Category} {template.TokenType} obligation: {obligation.Payment} coins, {obligation.DeadlineInMinutes} min deadline");
         }
 
-        return letter;
+        return obligation;
     }
 
     /// <summary>
     /// Create bonus letter for perfect conversations
     /// </summary>
-    private Letter CreateBonusLetter(NPC npc, ConnectionType primaryType)
+    private DeliveryObligation CreateBonusLetter(NPC npc, ConnectionType primaryType)
     {
         // Bonus letters are often different type to diversify queue
         List<ConnectionType> allTypes = Enum.GetValues<ConnectionType>().ToList();
@@ -733,18 +714,18 @@ public class NPCLetterOfferService
 
         NPC recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
 
-        Letter? bonusLetter = _letterTemplateRepository.GenerateLetterFromTemplate(bonusTemplate, npc.Name, recipient.Name);
+        DeliveryObligation bonusObligation = _letterTemplateRepository.GenerateObligationFromTemplate(bonusTemplate, npc.Name, recipient.Name);
 
-        if (bonusLetter != null)
+        if (bonusObligation != null)
         {
-            bonusLetter.Payment = _random.Next(bonusTemplate.MinPayment, bonusTemplate.MaxPayment + 1);
-            bonusLetter.DeadlineInHours = _random.Next(bonusTemplate.MinDeadlineInHours, bonusTemplate.MaxDeadlineInHours + 1);
-            bonusLetter.IsGenerated = true;
-            bonusLetter.GenerationReason = "Perfect Conversation Bonus";
-            bonusLetter.TokenType = bonusType;
+            bonusObligation.Payment = _random.Next(bonusTemplate.MinPayment, bonusTemplate.MaxPayment + 1);
+            bonusObligation.DeadlineInMinutes = _random.Next(bonusTemplate.MinDeadlineInMinutes, bonusTemplate.MaxDeadlineInMinutes + 1);
+            bonusObligation.IsGenerated = true;
+            bonusObligation.GenerationReason = "Perfect Conversation Bonus";
+            bonusObligation.TokenType = bonusType;
         }
 
-        return bonusLetter;
+        return bonusObligation;
     }
 
     /// <summary>
@@ -772,7 +753,7 @@ public class LetterOffer
     public ConnectionType LetterType { get; set; }
     public string Message { get; set; }
     public int Payment { get; set; }
-    public int DeadlineInHours { get; set; }
+    public int DeadlineInMinutes { get; set; }
     public string TemplateId { get; set; }
     public bool IsDirectApproach { get; set; }
     public int GeneratedDay { get; set; }

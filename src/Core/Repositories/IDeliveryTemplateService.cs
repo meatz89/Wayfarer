@@ -2,7 +2,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Repository interface for LetterTemplate entities
 /// </summary>
-public interface ILetterTemplateRepository : IRepository<LetterTemplate>
+public interface IDeliveryTemplateService : IRepository<LetterTemplate>
 {
     /// <summary>
     /// Get templates by token type

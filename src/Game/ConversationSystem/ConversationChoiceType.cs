@@ -14,6 +14,10 @@ public enum ConversationChoiceType
     KeepLetter,
     Deliver,  // Deliver a letter from position 1 to the recipient
 
+    // Special letter requests (Epic 7)  
+    IntroductionLetter,             // Request introduction letter (Trust tokens)
+    AccessPermit,                   // Request access permit (Commerce tokens)
+
     // Queue manipulation choices
     SkipAndDeliver,
     RespectQueueOrder,

@@ -4,10 +4,10 @@ using System.Linq;
 public partial class DailyActivitiesManager
 {
     private readonly GameWorld _gameWorld;
-    private readonly LetterQueueManager _letterQueueManager;
+    private readonly ObligationQueueManager _letterQueueManager;
     private readonly StandingObligationManager _obligationManager;
     private readonly MessageSystem _messageSystem;
-    private readonly PatronLetterService _patronLetterService;
+    // PatronLetterService removed - patron system deleted
     private readonly ITimeManager _timeManager;
 
     // Track daily events for display
@@ -18,18 +18,18 @@ public partial class DailyActivitiesManager
 
     public DailyActivitiesManager(
         GameWorld gameWorld,
-        LetterQueueManager letterQueueManager,
+        ObligationQueueManager letterQueueManager,
         StandingObligationManager obligationManager,
         MessageSystem messageSystem,
-        ITimeManager timeManager,
-        PatronLetterService patronLetterService = null)
+        ITimeManager timeManager)
+        // PatronLetterService parameter removed - patron system deleted
     {
         _gameWorld = gameWorld;
         _letterQueueManager = letterQueueManager;
         _obligationManager = obligationManager;
         _messageSystem = messageSystem;
         _timeManager = timeManager;
-        _patronLetterService = patronLetterService;
+        // _patronLetterService removed - patron system deleted
     }
 
     // Process all daily activities and collect events
@@ -45,8 +45,8 @@ public partial class DailyActivitiesManager
         );
 
         // 1. Track letters that will expire
-        Letter[] expiringLetters = GetLettersAboutToExpire();
-        foreach (Letter letter in expiringLetters)
+        DeliveryObligation[] expiringLetters = GetLettersAboutToExpire();
+        foreach (DeliveryObligation letter in expiringLetters)
         {
             DailyEvents.Add(new DailyEvent
             {
@@ -64,8 +64,8 @@ public partial class DailyActivitiesManager
         // Deadlines are processed when time actually advances via ProcessTimeAdvancement
 
         // 3. Process obligations and get forced letters
-        List<Letter> forcedLetters = _obligationManager.ProcessDailyObligations(_gameWorld.CurrentDay);
-        foreach (Letter letter in forcedLetters)
+        List<DeliveryObligation> forcedLetters = _obligationManager.ProcessDailyObligations(_gameWorld.CurrentDay);
+        foreach (DeliveryObligation letter in forcedLetters)
         {
             int position = _letterQueueManager.AddLetterWithObligationEffects(letter);
             if (position > 0)
@@ -84,28 +84,7 @@ public partial class DailyActivitiesManager
         // 4. Advance obligation time
         _obligationManager.AdvanceDailyTime();
 
-        // 5. Check for patron letters
-        if (_patronLetterService != null)
-        {
-            Letter patronLetter = _patronLetterService.CheckForPatronLetter();
-            if (patronLetter != null)
-            {
-                // Add patron letter to queue - extreme debt gives it leverage
-                int position = _letterQueueManager.AddLetterWithObligationEffects(patronLetter);
-
-                if (position > 0)
-                {
-                    DailyEvents.Add(new DailyEvent
-                    {
-                        Type = DailyEventType.PatronLetterAdded,
-                        Description = GetPatronLetterNarrative(patronLetter, position),
-                        LetterPosition = position,
-                        SenderName = "Your Patron"
-                    });
-                    result.PatronLetterCount = 1;
-                }
-            }
-        }
+        // Patron letter system removed - patron system deleted completely
 
         // 6. Generate regular daily letters
         int newLetterCount = _letterQueueManager.GenerateDailyLetters();
@@ -120,8 +99,8 @@ public partial class DailyActivitiesManager
         }
 
         // 7. Check for urgent letters needing attention
-        Letter[] urgentLetters = _letterQueueManager.GetExpiringLetters(2);
-        foreach (Letter letter in urgentLetters)
+        DeliveryObligation[] urgentLetters = _letterQueueManager.GetExpiringLetters(2);
+        foreach (DeliveryObligation letter in urgentLetters)
         {
             DailyEvents.Add(new DailyEvent
             {
@@ -142,10 +121,10 @@ public partial class DailyActivitiesManager
     }
 
     // Get letters that are about to expire (deadline = 0)
-    private Letter[] GetLettersAboutToExpire()
+    private DeliveryObligation[] GetLettersAboutToExpire()
     {
-        return _gameWorld.GetPlayer().LetterQueue
-            .Where(l => l != null && l.DeadlineInHours == 0)
+        return _gameWorld.GetPlayer().ObligationQueue
+            .Where(l => l != null && l.DeadlineInMinutes == 0)
             .ToArray();
     }
 
@@ -198,7 +177,7 @@ public partial class DailyActivitiesManager
     }
 
     // Narrative generation methods
-    private string GetExpiredLetterNarrative(Letter letter)
+    private string GetExpiredLetterNarrative(DeliveryObligation letter)
     {
         string[] narratives = new string[]
         {
@@ -212,7 +191,7 @@ public partial class DailyActivitiesManager
         return narratives[random.Next(narratives.Length)];
     }
 
-    private string GetObligationLetterNarrative(Letter letter, int position)
+    private string GetObligationLetterNarrative(DeliveryObligation letter, int position)
     {
         string[] narratives = new string[]
         {
@@ -253,9 +232,9 @@ public partial class DailyActivitiesManager
         }
     }
 
-    private string GetUrgentLetterNarrative(Letter letter)
+    private string GetUrgentLetterNarrative(DeliveryObligation letter)
     {
-        if (letter.DeadlineInHours == 1)
+        if (letter.DeadlineInMinutes == 1)
         {
             string[] narratives = new string[]
             {
@@ -270,16 +249,16 @@ public partial class DailyActivitiesManager
         {
             string[] narratives = new string[]
             {
-                $"The seal on {letter.RecipientName}'s letter grows warm - only {letter.DeadlineInHours} days remain.",
-                $"{letter.RecipientName} waits for word that grows more urgent by the hour. {letter.DeadlineInHours} days left.",
-                $"The letter to {letter.RecipientName} weighs heavier each day. {letter.DeadlineInHours} sunrises remain."
+                $"The seal on {letter.RecipientName}'s letter grows warm - only {letter.DeadlineInMinutes} days remain.",
+                $"{letter.RecipientName} waits for word that grows more urgent by the hour. {letter.DeadlineInMinutes} days left.",
+                $"The letter to {letter.RecipientName} weighs heavier each day. {letter.DeadlineInMinutes} sunrises remain."
             };
             Random random = new Random();
             return narratives[random.Next(narratives.Length)];
         }
     }
 
-    private string GetPatronLetterNarrative(Letter letter, int position)
+    private string GetPatronLetterNarrative(DeliveryObligation letter, int position)
     {
         string[] narratives = new string[]
         {

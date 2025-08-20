@@ -40,7 +40,7 @@ public class GameWorld
     public List<SystemMessage> SystemMessages { get; set; } = new List<SystemMessage>();
     // Event Log - Permanent record of all messages
     public List<SystemMessage> EventLog { get; set; } = new List<SystemMessage>();
-    // Letter positioning messages for UI translation
+    // DeliveryObligation positioning messages for UI translation
     public List<LetterPositioningMessage> LetterPositioningMessages { get; set; } = new List<LetterPositioningMessage>();
     // Special letter events for UI translation
     public List<SpecialLetterEvent> SpecialLetterEvents { get; set; } = new List<SpecialLetterEvent>();

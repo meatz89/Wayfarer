@@ -12,7 +12,7 @@
     public IMechanicalEffect SuccessEffect { get; private set; }
     public IMechanicalEffect FailureEffect { get; private set; }
 
-    // Letter offer specific properties
+    // DeliveryObligation offer specific properties
     public string Purpose { get; set; }
     public string Description { get; set; }
     public ConnectionType? TokenType { get; set; }

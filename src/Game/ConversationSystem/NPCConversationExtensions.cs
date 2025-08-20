@@ -21,13 +21,13 @@ public static class NPCConversationExtensions
     /// <summary>
     /// Generate a letter from this NPC.
     /// </summary>
-    public static Letter GenerateLetter(this NPC npc)
+    public static DeliveryObligation GenerateLetter(this NPC npc)
     {
         Random random = new Random();
         ConnectionType[] tokenTypes = Enum.GetValues<ConnectionType>();
         StakeType[] stakeTypes = Enum.GetValues<StakeType>();
 
-        return new Letter
+        return new DeliveryObligation
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = npc.ID,
@@ -36,10 +36,14 @@ public static class NPCConversationExtensions
             RecipientName = "Someone Important",
             TokenType = tokenTypes[random.Next(tokenTypes.Length)],
             Stakes = stakeTypes[random.Next(stakeTypes.Length)],
-            Size = (SizeCategory)random.Next(1, 4), // Small/Medium/Large
-            DeadlineInHours = random.Next(3, 8), // 3-7 days
-            State = LetterState.Offered,
-            QueuePosition = -1 // Not in queue yet
+            DeadlineInMinutes = random.Next(3, 8), // 3-7 days
+            // State is only for physical Letters, not abstract DeliveryObligations
+            QueuePosition = -1, // Not in queue yet
+            Payment = random.Next(5, 25), // Basic payment range
+            Description = "Generated letter",
+            IsGenerated = true,
+            GenerationReason = "NPC Extension Method",
+            DaysInQueue = 0
         };
     }
 

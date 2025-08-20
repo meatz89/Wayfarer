@@ -11,7 +11,7 @@ public class RefuseLetterEffect : IMechanicalEffect
     private readonly string _letterId;
     private readonly string _senderId;
     private readonly string _senderName;
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly int _trustPenalty = 3; // Heavy cost - this is betrayal
 
@@ -19,7 +19,7 @@ public class RefuseLetterEffect : IMechanicalEffect
         string letterId,
         string senderId,
         string senderName,
-        LetterQueueManager queueManager,
+        ObligationQueueManager queueManager,
         TokenMechanicsManager tokenManager)
     {
         _letterId = letterId;
@@ -35,7 +35,7 @@ public class RefuseLetterEffect : IMechanicalEffect
         int? position = _queueManager.GetLetterPosition(_letterId);
         if (!position.HasValue)
         {
-            throw new InvalidOperationException($"Letter {_letterId} not found in queue - cannot refuse what you don't have");
+            throw new InvalidOperationException($"DeliveryObligation {_letterId} not found in queue - cannot refuse what you don't have");
         }
 
         // Remove the letter from queue - this is the mechanical relief

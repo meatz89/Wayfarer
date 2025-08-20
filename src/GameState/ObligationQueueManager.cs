@@ -2,10 +2,10 @@ using System;
 using System.Linq;
 using Wayfarer.GameState;
 
-public class LetterQueueManager
+public class ObligationQueueManager
 {
     private readonly GameWorld _gameWorld;
-    private readonly LetterTemplateRepository _letterTemplateRepository;
+    private readonly DeliveryTemplateService _letterTemplateRepository;
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
     private readonly StandingObligationManager _obligationManager;
@@ -16,7 +16,7 @@ public class LetterQueueManager
     private readonly ITimeManager _timeManager;
     private readonly Random _random = new Random();
 
-    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, TokenMechanicsManager connectionTokenManager, LetterCategoryService categoryService, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager)
+    public ObligationQueueManager(GameWorld gameWorld, DeliveryTemplateService letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, TokenMechanicsManager connectionTokenManager, LetterCategoryService categoryService, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _letterTemplateRepository = letterTemplateRepository;
@@ -31,79 +31,67 @@ public class LetterQueueManager
     }
 
     // Get the player's letter queue
-    public Letter[] GetPlayerQueue()
+    public DeliveryObligation[] GetPlayerQueue()
     {
-        return _gameWorld.GetPlayer().LetterQueue;
+        return _gameWorld.GetPlayer().ObligationQueue;
     }
 
-    // Get the LetterQueue object wrapper for weight management
-    public LetterQueue GetLetterQueue()
-    {
-        LetterQueue queue = new LetterQueue();
-        Letter[] playerQueue = _gameWorld.GetPlayer().LetterQueue;
-
-        // Populate the LetterQueue wrapper with current letters
-        for (int i = 0; i < playerQueue.Length; i++)
-        {
-            if (playerQueue[i] != null)
-            {
-                queue.AddLetter(playerQueue[i], i + 1);
-            }
-        }
-
-        return queue;
-    }
-
-    // Get active letters (non-null entries in the queue)
-    public Letter[] GetActiveLetters()
+    // Get the total weight of all physical letters in satchel
+    public int GetTotalWeight()
     {
         Player player = _gameWorld.GetPlayer();
-        Console.WriteLine($"[GetActiveLetters] Player has {player.LetterQueue.Length} queue slots");
+        int totalWeight = 0;
+        foreach (Letter letter in player.CarriedLetters)
+        {
+            totalWeight += letter.Weight;
+        }
+        return totalWeight;
+    }
 
-        Letter[] activeLetters = player.LetterQueue
-            .Where(l => l != null)
+    // Get active obligations (non-null entries in the queue)
+    public DeliveryObligation[] GetActiveObligations()
+    {
+        Player player = _gameWorld.GetPlayer();
+        Console.WriteLine($"[GetActiveObligations] Player has {player.ObligationQueue.Length} queue slots");
+
+        DeliveryObligation[] activeObligations = player.ObligationQueue
+            .Where(o => o != null)
             .ToArray();
 
-        Console.WriteLine($"[GetActiveLetters] Found {activeLetters.Length} non-null letters");
+        Console.WriteLine($"[GetActiveObligations] Found {activeObligations.Length} non-null obligations");
 
-        foreach (Letter? letter in activeLetters)
+        foreach (DeliveryObligation obligation in activeObligations)
         {
-            Console.WriteLine($"  - Letter: {letter.Description}, State: {letter.State}");
+            Console.WriteLine($"  - Obligation: {obligation.Id}, Sender: {obligation.SenderId}");
         }
 
-        Letter[] collected = activeLetters
-            .Where(l => l.State == LetterState.Collected)
-            .ToArray();
-
-        Console.WriteLine($"[GetActiveLetters] Returning {collected.Length} collected letters");
-
-        return collected;
+        return activeObligations;
     }
 
     // Add letter to queue at specific position
-    public bool AddLetterToQueue(Letter letter, int position)
+    public bool AddLetterToQueue(DeliveryObligation letter, int position)
     {
         if (letter == null || position < 1 || position > _config.LetterQueue.MaxQueueSize) return false;
 
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
         if (queue[position - 1] != null) return false; // Position occupied
 
         queue[position - 1] = letter;
         letter.QueuePosition = position;
 
         _messageSystem.AddSystemMessage(
-            $"📨 Letter from {letter.SenderName} added to position {position}",
+            $"📨 DeliveryObligation from {letter.SenderName} added to position {position}",
             SystemMessageTypes.Success
         );
 
         return true;
     }
     // Add letter to first available slot - queue fills from position 1
-    public int AddLetter(Letter letter)
+    public int AddLetter(DeliveryObligation letter)
     {
         if (letter == null) return 0;
 
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
         // Find the FIRST empty slot, filling from position 1
         for (int i = 0; i < _config.LetterQueue.MaxQueueSize; i++)
@@ -112,7 +100,6 @@ public class LetterQueueManager
             {
                 queue[i] = letter;
                 letter.QueuePosition = i + 1;
-                letter.State = LetterState.Collected; // Letter enters queue in Accepted state
 
                 _messageSystem.AddSystemMessage(
                     $"📨 New letter from {letter.SenderName} enters queue at position {i + 1}",
@@ -126,7 +113,8 @@ public class LetterQueueManager
     }
 
     // Add letter with leverage-aware positioning
-    public int AddLetterWithObligationEffects(Letter letter)
+    // Regular delivery letters go to BOTH queue AND satchel (compete for physical space)
+    public int AddLetterWithObligationEffects(DeliveryObligation letter)
     {
         if (letter == null) return 0;
 
@@ -139,11 +127,31 @@ public class LetterQueueManager
         // Calculate leverage position
         int targetPosition = CalculateLeveragePosition(letter);
 
-        return AddLetterWithLeverage(letter, targetPosition);
+        // Add to queue
+        int queuePosition = AddLetterWithLeverage(letter, targetPosition);
+        
+        // Also add to satchel (physical inventory) - regular letters take physical space
+        if (queuePosition > 0)
+        {
+            // Create physical Letter object from DeliveryObligation
+            Letter physicalLetter = new Letter
+            {
+                Id = letter.Id,
+                SenderName = letter.SenderName,
+                RecipientName = letter.RecipientName,
+                Weight = 1, // Standard letter weight
+                PhysicalProperties = LetterPhysicalProperties.None,
+                SpecialType = LetterSpecialType.None // Physical letters default to regular type
+            };
+            
+            _gameWorld.GetPlayer().CarriedLetters.Add(physicalLetter);
+        }
+
+        return queuePosition;
     }
 
     // Apply deadline bonuses from active obligations
-    private void ApplyDeadlineBonuses(Letter letter)
+    private void ApplyDeadlineBonuses(DeliveryObligation letter)
     {
         List<StandingObligation> activeObligations = _obligationManager.GetActiveObligations();
 
@@ -162,7 +170,7 @@ public class LetterQueueManager
                     if (npc == null || npc.ID != obligation.RelatedNPCId) continue;
                 }
 
-                letter.DeadlineInHours += 48;
+                letter.DeadlineInMinutes += 48;
                 _messageSystem.AddSystemMessage(
                     $"📅 {obligation.Name} grants +2 days to deadline for letter from {letter.SenderName}",
                     SystemMessageTypes.Info
@@ -176,7 +184,7 @@ public class LetterQueueManager
 
     // Calculate relationship-based entry position using the queue position algorithm
     // Position = 8 - (highest positive token) + (worst negative token penalty)
-    private int CalculateLeveragePosition(Letter letter)
+    private int CalculateLeveragePosition(DeliveryObligation letter)
     {
         string senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId))
@@ -265,7 +273,7 @@ public class LetterQueueManager
     /// Record letter positioning data for frontend translation
     /// Backend only sets categorical types - UI translates to text
     /// </summary>
-    private void RecordLetterPositioning(Letter letter, string senderId, Dictionary<ConnectionType, int> allTokens,
+    private void RecordLetterPositioning(DeliveryObligation letter, string senderId, Dictionary<ConnectionType, int> allTokens,
         int finalPosition, int highestPositiveToken, int worstNegativeTokenPenalty)
     {
         // Determine positioning reason category
@@ -310,7 +318,7 @@ public class LetterQueueManager
     }
 
     // Add letter with leverage-based displacement
-    private int AddLetterWithLeverage(Letter letter, int targetPosition)
+    private int AddLetterWithLeverage(DeliveryObligation letter, int targetPosition)
     {
         if (!ValidateLetterCanBeAdded(letter))
             return 0;
@@ -325,7 +333,7 @@ public class LetterQueueManager
             targetPosition = Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, targetPosition));
         }
 
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
         // Additional safety check for array bounds
         if (targetPosition - 1 < 0 || targetPosition - 1 >= queue.Length)
@@ -350,7 +358,7 @@ public class LetterQueueManager
     // Get the current position of a letter in the queue
     public int? GetLetterPosition(string letterId)
     {
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
         for (int i = 0; i < queue.Length; i++)
         {
             if (queue[i]?.Id == letterId)
@@ -362,7 +370,7 @@ public class LetterQueueManager
     }
 
     // Validate that a letter can be added to the queue
-    private bool ValidateLetterCanBeAdded(Letter letter)
+    private bool ValidateLetterCanBeAdded(DeliveryObligation letter)
     {
         if (IsQueueFull())
         {
@@ -376,12 +384,11 @@ public class LetterQueueManager
     }
 
     // Insert letter at an empty position
-    private int InsertLetterAtPosition(Letter letter, int position)
+    private int InsertLetterAtPosition(DeliveryObligation letter, int position)
     {
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
         queue[position - 1] = letter;
         letter.QueuePosition = position;
-        letter.State = LetterState.Collected;
 
         // Track original vs actual position for leverage visibility
         int basePosition = _config.LetterQueue.MaxQueueSize;
@@ -398,7 +405,7 @@ public class LetterQueueManager
     }
 
     // Show narrative explaining why letter entered at this position
-    private void ShowLeverageNarrative(Letter letter, int actualPosition)
+    private void ShowLeverageNarrative(DeliveryObligation letter, int actualPosition)
     {
         int basePosition = _config.LetterQueue.MaxQueueSize;
 
@@ -417,13 +424,7 @@ public class LetterQueueManager
                         SystemMessageTypes.Warning
                     );
                 }
-                else if (letter.IsFromPatron)
-                {
-                    _messageSystem.AddSystemMessage(
-                        $"👑 Patron privilege: Letter enters at position {actualPosition} due to patronage debt",
-                        SystemMessageTypes.Warning
-                    );
-                }
+                // Patron privilege messaging removed - patron system deleted
             }
         }
         else if (actualPosition > basePosition)
@@ -436,22 +437,22 @@ public class LetterQueueManager
         else
         {
             _messageSystem.AddSystemMessage(
-                $"📨 Letter from {letter.SenderName} enters queue at position {actualPosition}",
+                $"📨 DeliveryObligation from {letter.SenderName} enters queue at position {actualPosition}",
                 SystemMessageTypes.Info
             );
         }
     }
 
     // Displace letters to insert at leverage position
-    private int DisplaceAndInsertLetter(Letter letter, int targetPosition)
+    private int DisplaceAndInsertLetter(DeliveryObligation letter, int targetPosition)
     {
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
         // Announce the leverage-based displacement
         ShowLeverageDisplacement(letter, targetPosition);
 
         // Collect all letters from target position downward
-        List<Letter> lettersToDisplace = new System.Collections.Generic.List<Letter>();
+        List<DeliveryObligation> lettersToDisplace = new System.Collections.Generic.List<DeliveryObligation>();
         for (int i = targetPosition - 1; i < _config.LetterQueue.MaxQueueSize; i++)
         {
             if (queue[i] != null)
@@ -472,11 +473,10 @@ public class LetterQueueManager
             letter.OriginalQueuePosition = basePosition;
             letter.LeverageBoost = basePosition - targetPosition;
         }
-        letter.State = LetterState.Collected;
 
         // Reinsert displaced letters
         int nextAvailable = targetPosition;
-        foreach (Letter displaced in lettersToDisplace)
+        foreach (DeliveryObligation displaced in lettersToDisplace)
         {
             nextAvailable++;
             if (nextAvailable <= _config.LetterQueue.MaxQueueSize)
@@ -496,16 +496,10 @@ public class LetterQueueManager
 
 
     // Show narrative for debt-based leverage
-    private void ShowDebtLeverageNarrative(Letter letter, int position, int basePosition, int tokenBalance)
+    private void ShowDebtLeverageNarrative(DeliveryObligation letter, int position, int basePosition, int tokenBalance)
     {
-        if (letter.IsFromPatron && tokenBalance <= -10)
-        {
-            ShowPatronLeverageNarrative(letter, position, tokenBalance);
-        }
-        else
-        {
-            ShowNormalDebtNarrative(letter, position, basePosition, tokenBalance);
-        }
+        // Patron system removed - all letters use normal debt narrative
+        ShowNormalDebtNarrative(letter, position, basePosition, tokenBalance);
 
         if (position <= 3 && basePosition >= 5)
         {
@@ -517,7 +511,7 @@ public class LetterQueueManager
     }
 
     // Show narrative for patron letters with extreme debt
-    private void ShowPatronLeverageNarrative(Letter letter, int position, int tokenBalance)
+    private void ShowPatronLeverageNarrative(DeliveryObligation letter, int position, int tokenBalance)
     {
         _messageSystem.AddSystemMessage(
             $"🌟 A GOLD-SEALED LETTER ARRIVES FROM YOUR PATRON!",
@@ -534,7 +528,7 @@ public class LetterQueueManager
     }
 
     // Show narrative for normal debt leverage
-    private void ShowNormalDebtNarrative(Letter letter, int position, int basePosition, int tokenBalance)
+    private void ShowNormalDebtNarrative(DeliveryObligation letter, int position, int basePosition, int tokenBalance)
     {
         _messageSystem.AddSystemMessage(
             $"💸 {letter.SenderName} has LEVERAGE! Your debt gives them power.",
@@ -547,7 +541,7 @@ public class LetterQueueManager
     }
 
     // Show narrative for reduced leverage due to good relationship
-    private void ShowReducedLeverageNarrative(Letter letter, int position, int basePosition)
+    private void ShowReducedLeverageNarrative(DeliveryObligation letter, int position, int basePosition)
     {
         _messageSystem.AddSystemMessage(
             $"✨ Strong relationship with {letter.SenderName} reduces their demands.",
@@ -560,9 +554,9 @@ public class LetterQueueManager
     }
 
     // Show narrative for normal letter entry
-    private void ShowNormalEntryNarrative(Letter letter, int position)
+    private void ShowNormalEntryNarrative(DeliveryObligation letter, int position)
     {
-        string urgency = letter.DeadlineInHours <= 72 ? " ⚠️" : "";
+        string urgency = letter.DeadlineInMinutes <= 72 ? " ⚠️" : "";
         _messageSystem.AddSystemMessage(
             $"📨 New letter from {letter.SenderName} enters queue at position {position}{urgency}",
             SystemMessageTypes.Info
@@ -570,7 +564,7 @@ public class LetterQueueManager
     }
 
     // Show displacement narrative
-    private void ShowLeverageDisplacement(Letter letter, int targetPosition)
+    private void ShowLeverageDisplacement(DeliveryObligation letter, int targetPosition)
     {
         string senderId = GetNPCIdByName(letter.SenderName);
         int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[letter.TokenType];
@@ -596,17 +590,17 @@ public class LetterQueueManager
     }
 
     // Notify when letter is shifted
-    private void NotifyLetterShifted(Letter letter, int newPosition)
+    private void NotifyLetterShifted(DeliveryObligation letter, int newPosition)
     {
-        string urgency = letter.DeadlineInHours <= 48 ? " 🆘" : "";
+        string urgency = letter.DeadlineInMinutes <= 48 ? " 🆘" : "";
         _messageSystem.AddSystemMessage(
             $"  • {letter.SenderName}'s letter pushed to position {newPosition}{urgency}",
-            letter.DeadlineInHours <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+            letter.DeadlineInMinutes <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
         );
     }
 
     // Handle letter pushed out of queue
-    private void HandleQueueOverflow(Letter overflowLetter)
+    private void HandleQueueOverflow(DeliveryObligation overflowLetter)
     {
         _messageSystem.AddSystemMessage(
             $"💥 {overflowLetter.SenderName}'s letter FORCED OUT by leverage!",
@@ -650,8 +644,8 @@ public class LetterQueueManager
     {
         if (position < 1 || position > _config.LetterQueue.MaxQueueSize) return false;
 
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
-        Letter letter = queue[position - 1];
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
+        DeliveryObligation letter = queue[position - 1];
         if (letter == null) return false;
 
         letter.QueuePosition = 0;
@@ -664,16 +658,16 @@ public class LetterQueueManager
     }
 
     // Get letter at position
-    public Letter GetLetterAt(int position)
+    public DeliveryObligation GetLetterAt(int position)
     {
         if (position < 1 || position > _config.LetterQueue.MaxQueueSize) return null;
-        return _gameWorld.GetPlayer().LetterQueue[position - 1];
+        return _gameWorld.GetPlayer().ObligationQueue[position - 1];
     }
 
     // Check if position 1 has a letter and player is at recipient location
     public bool CanDeliverFromPosition1()
     {
-        Letter letter = GetLetterAt(1);
+        DeliveryObligation letter = GetLetterAt(1);
         if (letter == null) return false;
 
         // Check if player is at the recipient's location
@@ -692,19 +686,19 @@ public class LetterQueueManager
     }
 
     // Generate a letter from an NPC and add to queue
-    public Letter GenerateLetterFromNPC(NPC npc)
+    public DeliveryObligation GenerateLetterFromNPC(NPC npc)
     {
         if (npc == null) return null;
 
         // Check if queue has space
         Player player = _gameWorld.GetPlayer();
-        Letter[] queue = player.LetterQueue;
+        DeliveryObligation[] queue = player.ObligationQueue;
         bool emptySlot = queue.Any(l => l == null);
 
         if (!emptySlot)
         {
             _messageSystem.AddSystemMessage(
-                "❌ Letter queue is full! Make room before accepting more letters.",
+                "❌ DeliveryObligation queue is full! Make room before accepting more letters.",
                 SystemMessageTypes.Danger
             );
             return null;
@@ -742,7 +736,7 @@ public class LetterQueueManager
     }
 
     // Check if player is at the recipient's location
-    private bool IsPlayerAtRecipientLocation(Letter letter)
+    private bool IsPlayerAtRecipientLocation(DeliveryObligation letter)
     {
         if (letter == null) return false;
 
@@ -763,7 +757,7 @@ public class LetterQueueManager
         if (!CanDeliverFromPosition1()) return false;
 
         Player player = _gameWorld.GetPlayer();
-        Letter letter = GetLetterAt(1);
+        DeliveryObligation letter = GetLetterAt(1);
 
         // CRITICAL: Validate player is at recipient's location
         if (!IsPlayerAtRecipientLocation(letter))
@@ -780,7 +774,7 @@ public class LetterQueueManager
         }
 
         // Remove from queue
-        player.LetterQueue[0] = null;
+        player.ObligationQueue[0] = null;
 
         // Shift all letters up
         CompressQueue();
@@ -790,7 +784,7 @@ public class LetterQueueManager
 
         // Show success message with payment details
         _messageSystem.AddSystemMessage(
-            $"📬 Letter delivered to {letter.RecipientName}!",
+            $"📬 DeliveryObligation delivered to {letter.RecipientName}!",
             SystemMessageTypes.Success
         );
         _messageSystem.AddSystemMessage(
@@ -813,12 +807,12 @@ public class LetterQueueManager
         int writeIndex = 0;
         for (int i = 0; i < _config.LetterQueue.MaxQueueSize; i++)
         {
-            if (player.LetterQueue[i] != null)
+            if (player.ObligationQueue[i] != null)
             {
                 if (i != writeIndex)
                 {
-                    player.LetterQueue[writeIndex] = player.LetterQueue[i];
-                    player.LetterQueue[i] = null;
+                    player.ObligationQueue[writeIndex] = player.ObligationQueue[i];
+                    player.ObligationQueue[i] = null;
                 }
                 writeIndex++;
             }
@@ -830,16 +824,16 @@ public class LetterQueueManager
     {
         if (hoursElapsed <= 0) return;
 
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
         // PHASE 1: Update deadlines and track expired letters - O(8)
-        List<Letter> expiredLetters = new List<Letter>();
+        List<DeliveryObligation> expiredLetters = new List<DeliveryObligation>();
         for (int i = 0; i < 8; i++)
         {
             if (queue[i] != null)
             {
-                queue[i].DeadlineInHours -= hoursElapsed;
-                if (queue[i].DeadlineInHours <= 0)
+                queue[i].DeadlineInMinutes -= hoursElapsed;
+                if (queue[i].DeadlineInMinutes <= 0)
                 {
                     expiredLetters.Add(queue[i]);
                 }
@@ -847,7 +841,7 @@ public class LetterQueueManager
         }
 
         // PHASE 2: Apply consequences for all expired letters - O(k)
-        foreach (Letter letter in expiredLetters)
+        foreach (DeliveryObligation letter in expiredLetters)
         {
             ApplyRelationshipDamage(letter, _connectionTokenManager);
         }
@@ -856,7 +850,7 @@ public class LetterQueueManager
         int writeIndex = 0;
         for (int readIndex = 0; readIndex < 8; readIndex++)
         {
-            if (queue[readIndex] != null && queue[readIndex].DeadlineInHours > 0)
+            if (queue[readIndex] != null && queue[readIndex].DeadlineInMinutes > 0)
             {
                 if (writeIndex != readIndex)
                 {
@@ -876,7 +870,7 @@ public class LetterQueueManager
     }
 
     // Apply token penalty when a letter expires
-    private void ApplyRelationshipDamage(Letter letter, TokenMechanicsManager _connectionTokenManager)
+    private void ApplyRelationshipDamage(DeliveryObligation letter, TokenMechanicsManager _connectionTokenManager)
     {
         string senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId)) return;
@@ -894,7 +888,7 @@ public class LetterQueueManager
     }
 
     // Show the dramatic moment of letter expiry
-    private void ShowExpiryFailure(Letter letter)
+    private void ShowExpiryFailure(DeliveryObligation letter)
     {
         _messageSystem.AddSystemMessage(
             $"⏰ TIME'S UP! {letter.SenderName}'s letter has expired!",
@@ -903,7 +897,7 @@ public class LetterQueueManager
     }
 
     // Apply token penalty for expired letter
-    private void ApplyTokenPenalty(Letter letter, string senderId, int tokenPenalty)
+    private void ApplyTokenPenalty(DeliveryObligation letter, string senderId, int tokenPenalty)
     {
         _connectionTokenManager.RemoveTokensFromNPC(letter.TokenType, tokenPenalty, senderId);
     }
@@ -920,7 +914,7 @@ public class LetterQueueManager
     }
 
     // Show narrative for relationship damage
-    private void ShowRelationshipDamageNarrative(Letter letter, NPC senderNpc, int tokenPenalty, string senderId)
+    private void ShowRelationshipDamageNarrative(DeliveryObligation letter, NPC senderNpc, int tokenPenalty, string senderId)
     {
         _messageSystem.AddSystemMessage(
             $"💔 Lost {tokenPenalty} {letter.TokenType} tokens with {letter.SenderName}. Trust broken.",
@@ -936,7 +930,7 @@ public class LetterQueueManager
     }
 
     // Show contextual consequence for expired letter
-    private void ShowConsequenceNarrative(NPC senderNpc, Letter letter)
+    private void ShowConsequenceNarrative(NPC senderNpc, DeliveryObligation letter)
     {
         string consequence = GetExpiryConsequence(senderNpc, letter);
         _messageSystem.AddSystemMessage(
@@ -946,7 +940,7 @@ public class LetterQueueManager
     }
 
     // Show cumulative damage if multiple letters expired
-    private void ShowCumulativeDamage(Letter letter, string senderId)
+    private void ShowCumulativeDamage(DeliveryObligation letter, string senderId)
     {
         Player player = _gameWorld.GetPlayer();
         LetterHistory history = player.NPCLetterHistory[senderId];
@@ -961,7 +955,7 @@ public class LetterQueueManager
     }
 
     // Get contextual consequence for expired letter
-    private string GetExpiryConsequence(NPC npc, Letter letter)
+    private string GetExpiryConsequence(NPC npc, DeliveryObligation letter)
     {
         if (npc.LetterTokenTypes.Contains(ConnectionType.Trust))
         {
@@ -1023,8 +1017,7 @@ public class LetterQueueManager
         return npc?.ID ?? "";
     }
 
-    // Track letter delivery in history and process chain letters
-    public void RecordLetterDelivery(Letter letter)
+    public void RecordLetterDelivery(DeliveryObligation letter)
     {
         if (letter == null) return;
 
@@ -1067,8 +1060,6 @@ public class LetterQueueManager
             }
         }
 
-        // Process chain letters
-        ProcessChainLetters(letter);
 
         // Store delivered letter info in player state for scenario tracking
         if (!player.DeliveredLetters.Contains(letter))
@@ -1079,7 +1070,7 @@ public class LetterQueueManager
     }
 
     // Track letter skip in history
-    public void RecordLetterSkip(Letter letter)
+    public void RecordLetterSkip(DeliveryObligation letter)
     {
         if (letter == null) return;
 
@@ -1127,7 +1118,7 @@ public class LetterQueueManager
     }
 
     // Get contextual skip reaction based on NPC type
-    private string GetSkipReaction(NPC npc, Letter letter)
+    private string GetSkipReaction(NPC npc, DeliveryObligation letter)
     {
         // Generate reaction based on NPC's token types and profession
         if (npc.LetterTokenTypes.Contains(ConnectionType.Trust))
@@ -1153,11 +1144,11 @@ public class LetterQueueManager
     }
 
     // Get expiring letters
-    public Letter[] GetExpiringLetters(int daysThreshold)
+    public DeliveryObligation[] GetExpiringLetters(int daysThreshold)
     {
-        return _gameWorld.GetPlayer().LetterQueue
-            .Where(l => l != null && l.DeadlineInHours <= daysThreshold * 24)
-            .OrderBy(l => l.DeadlineInHours)
+        return _gameWorld.GetPlayer().ObligationQueue
+            .Where(l => l != null && l.DeadlineInMinutes <= daysThreshold * 24)
+            .OrderBy(l => l.DeadlineInMinutes)
             .ToArray();
     }
 
@@ -1176,10 +1167,10 @@ public class LetterQueueManager
     // Shift queue up after removal - compact all letters to fill gaps
     private void ShiftQueueUp(int removedPosition)
     {
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
         // Collect all letters after the removed position
-        List<Letter> remainingLetters = new System.Collections.Generic.List<Letter>();
+        List<DeliveryObligation> remainingLetters = new System.Collections.Generic.List<DeliveryObligation>();
         for (int i = removedPosition; i < _config.LetterQueue.MaxQueueSize; i++)
         {
             if (queue[i] != null)
@@ -1200,7 +1191,7 @@ public class LetterQueueManager
 
         // Place remaining letters starting from the removed position, filling gaps
         int writePosition = removedPosition - 1; // Convert to 0-based index
-        foreach (Letter letter in remainingLetters)
+        foreach (DeliveryObligation letter in remainingLetters)
         {
             // Find next empty slot starting from the removed position
             while (writePosition < _config.LetterQueue.MaxQueueSize && queue[writePosition] != null)
@@ -1215,12 +1206,12 @@ public class LetterQueueManager
                 letter.QueuePosition = writePosition + 1; // Convert back to 1-based
 
                 // Provide narrative context for each letter moving
-                string urgency = letter.DeadlineInHours <= 48 ? " ⚠️ URGENT!" : "";
-                string deadlineText = letter.DeadlineInHours <= 24 ? "expires today!" : $"{letter.DeadlineInHours / 24} days left";
+                string urgency = letter.DeadlineInMinutes <= 48 ? " ⚠️ URGENT!" : "";
+                string deadlineText = letter.DeadlineInMinutes <= 24 ? "expires today!" : $"{letter.DeadlineInMinutes / 24} days left";
 
                 _messageSystem.AddSystemMessage(
                     $"  • {letter.SenderName}'s letter moves from slot {oldPosition} → {letter.QueuePosition} ({deadlineText}){urgency}",
-                    letter.DeadlineInHours <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+                    letter.DeadlineInMinutes <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
                 );
             }
         }
@@ -1231,7 +1222,7 @@ public class LetterQueueManager
     {
         if (position <= 1 || position > _config.LetterQueue.MaxQueueSize) return null;
 
-        Letter letter = GetLetterAt(position);
+        DeliveryObligation letter = GetLetterAt(position);
         if (letter == null) return null;
 
         // Check if position 1 is occupied
@@ -1243,8 +1234,8 @@ public class LetterQueueManager
 
         for (int i = 2; i < position; i++)
         {
-            Letter skippedLetter = GetLetterAt(i);
-            if (skippedLetter != null)
+            DeliveryObligation skippedDeliveryObligation = GetLetterAt(i);
+            if (skippedDeliveryObligation != null)
             {
                 skippedLetters[i] = skippedLetter;
             }
@@ -1252,7 +1243,7 @@ public class LetterQueueManager
 
         return new QueueManagementContext
         {
-            TargetLetter = letter,
+            TargetDeliveryObligation = letter,
             ManagementAction = "SkipDeliver",
             TokenCost = tokenCost,
             SkippedLetters = skippedLetters,
@@ -1281,7 +1272,7 @@ public class LetterQueueManager
     // Create conversation context for purge action
     public QueueManagementContext CreatePurgeContext()
     {
-        Letter letter = GetLetterAt(_config.LetterQueue.MaxQueueSize);
+        DeliveryObligation letter = GetLetterAt(_config.LetterQueue.MaxQueueSize);
         if (letter == null) return null;
 
         // Check if purging is forbidden
@@ -1292,7 +1283,7 @@ public class LetterQueueManager
 
         return new QueueManagementContext
         {
-            TargetLetter = letter,
+            TargetDeliveryObligation = letter,
             ManagementAction = "Purge",
             TokenCost = _config.LetterQueue.PurgeCostTokens,
             GameWorld = _gameWorld,
@@ -1323,7 +1314,7 @@ public class LetterQueueManager
         if (!ValidateSkipDeliverPosition(position))
             return false;
 
-        Letter letter = GetLetterAt(position);
+        DeliveryObligation letter = GetLetterAt(position);
         if (letter == null) return false;
 
         if (!ValidatePosition1Available())
@@ -1360,7 +1351,7 @@ public class LetterQueueManager
     }
 
     // Calculate token cost for skipping
-    private int CalculateSkipCost(int position, Letter letter)
+    private int CalculateSkipCost(int position, DeliveryObligation letter)
     {
         int baseCost = position - 1;
         int multiplier = _obligationManager.CalculateSkipCostMultiplier(letter);
@@ -1368,7 +1359,7 @@ public class LetterQueueManager
     }
 
     // Process token payment for skip delivery
-    private bool ProcessSkipPayment(Letter letter, int tokenCost, string senderId)
+    private bool ProcessSkipPayment(DeliveryObligation letter, int tokenCost, string senderId)
     {
         _messageSystem.AddSystemMessage(
             $"💸 Attempting to skip {letter.SenderName}'s letter to position 1...",
@@ -1382,7 +1373,7 @@ public class LetterQueueManager
     }
 
     // Validate player has enough tokens
-    private bool ValidateTokenAvailability(Letter letter, int tokenCost)
+    private bool ValidateTokenAvailability(DeliveryObligation letter, int tokenCost)
     {
         if (!_connectionTokenManager.HasTokens(letter.TokenType, tokenCost))
         {
@@ -1396,7 +1387,7 @@ public class LetterQueueManager
     }
 
     // Spend tokens for skip action
-    private bool SpendTokensForSkip(Letter letter, int tokenCost, string senderId)
+    private bool SpendTokensForSkip(DeliveryObligation letter, int tokenCost, string senderId)
     {
         _messageSystem.AddSystemMessage(
             $"  • Spending {tokenCost} {letter.TokenType} tokens with {letter.SenderName}...",
@@ -1407,7 +1398,7 @@ public class LetterQueueManager
     }
 
     // Perform the skip delivery action
-    private void PerformSkipDelivery(Letter letter, int position, int tokenCost)
+    private void PerformSkipDelivery(DeliveryObligation letter, int position, int tokenCost)
     {
         MoveLetterToPosition1(letter, position);
         ShowSkipSuccessNarrative(letter, tokenCost);
@@ -1415,17 +1406,39 @@ public class LetterQueueManager
         RecordLetterSkip(letter);
     }
 
-    // Move letter to position 1
-    private void MoveLetterToPosition1(Letter letter, int fromPosition)
+    // Move letter to specific position
+    public void MoveLetterToPosition(DeliveryObligation letter, int targetPosition)
     {
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        if (targetPosition < 1 || targetPosition > _gameWorld.GetPlayer().LetterQueue.Length) return;
+        
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
+        
+        // Clear current position
+        for (int i = 0; i < queue.Length; i++)
+        {
+            if (queue[i] == letter)
+            {
+                queue[i] = null;
+                break;
+            }
+        }
+        
+        // Set new position
+        queue[targetPosition - 1] = letter;
+        letter.QueuePosition = targetPosition;
+    }
+
+    // Move letter to position 1
+    private void MoveLetterToPosition1(DeliveryObligation letter, int fromPosition)
+    {
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
         queue[0] = letter;
         queue[fromPosition - 1] = null;
         letter.QueuePosition = 1;
     }
 
     // Show success narrative for skip
-    private void ShowSkipSuccessNarrative(Letter letter, int tokenCost)
+    private void ShowSkipSuccessNarrative(DeliveryObligation letter, int tokenCost)
     {
         _messageSystem.AddSystemMessage(
             $"✅ {letter.SenderName}'s letter jumps the queue to position 1!",
@@ -1507,7 +1520,7 @@ public class LetterQueueManager
         ConnectionType tokenType = SelectTokenType(sender);
         if (tokenType == default) return true; // Continue trying
 
-        Letter letter = GenerateLetterFromSender(sender, tokenType);
+        DeliveryObligation letter = GenerateLetterFromSender(sender, tokenType);
         if (letter != null)
         {
             AddGeneratedLetter(letter, sender, tokenType, ref lettersGenerated);
@@ -1562,10 +1575,10 @@ public class LetterQueueManager
     }
 
     // Generate a letter from the selected sender
-    private Letter GenerateLetterFromSender(NPC sender, ConnectionType tokenType)
+    private DeliveryObligation GenerateLetterFromSender(NPC sender, ConnectionType tokenType)
     {
         // Try category-based generation first
-        Letter letter = _letterTemplateRepository.GenerateLetterFromNPC(sender.ID, sender.Name, tokenType);
+        DeliveryObligation letter = _letterTemplateRepository.GenerateLetterFromNPC(sender.ID, sender.Name, tokenType);
         if (letter != null) return letter;
 
         // Fallback to template-based generation
@@ -1573,7 +1586,7 @@ public class LetterQueueManager
     }
 
     // Generate letter using template system
-    private Letter GenerateLetterFromTemplate(NPC sender, ConnectionType tokenType)
+    private DeliveryObligation GenerateLetterFromTemplate(NPC sender, ConnectionType tokenType)
     {
         LetterTemplate template = _letterTemplateRepository.GetRandomTemplateByTokenType(tokenType);
         if (template == null) return null;
@@ -1586,7 +1599,7 @@ public class LetterQueueManager
     }
 
     // Add generated letter to queue and show narrative
-    private void AddGeneratedLetter(Letter letter, NPC sender, ConnectionType tokenType, ref int lettersGenerated)
+    private void AddGeneratedLetter(DeliveryObligation letter, NPC sender, ConnectionType tokenType, ref int lettersGenerated)
     {
         int position = AddLetter(letter);
         if (position > 0)
@@ -1597,15 +1610,15 @@ public class LetterQueueManager
     }
 
     // Show narrative for newly generated letter
-    private void ShowGeneratedLetterNarrative(Letter letter, NPC sender, ConnectionType tokenType, int position)
+    private void ShowGeneratedLetterNarrative(DeliveryObligation letter, NPC sender, ConnectionType tokenType, int position)
     {
-        string urgency = letter.DeadlineInHours <= 72 ? " - needs urgent delivery!" : "";
+        string urgency = letter.DeadlineInMinutes <= 72 ? " - needs urgent delivery!" : "";
         string tokenTypeText = GetTokenTypeDescription(letter.TokenType);
         string categoryText = GetCategoryText(sender, tokenType);
 
         _messageSystem.AddSystemMessage(
-            $"  • Letter from {sender.Name} to {letter.RecipientName} ({tokenTypeText} correspondence{categoryText}){urgency}",
-            letter.DeadlineInHours <= 72 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+            $"  • DeliveryObligation from {sender.Name} to {letter.RecipientName} ({tokenTypeText} correspondence{categoryText}){urgency}",
+            letter.DeadlineInMinutes <= 72 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
         );
 
         _messageSystem.AddSystemMessage(
@@ -1673,7 +1686,7 @@ public class LetterQueueManager
 
         // Get letters at positions
         Letter? letter1 = GetLetterAt(position1);
-        Letter letter2 = GetLetterAt(position2);
+        DeliveryObligation letter2 = GetLetterAt(position2);
 
         // At least one position must have a letter
         if (letter1 == null && letter2 == null)
@@ -1682,7 +1695,7 @@ public class LetterQueueManager
         }
 
         // Perform the swap
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
         queue[position1 - 1] = letter2;
         queue[position2 - 1] = letter1;
 
@@ -1700,7 +1713,7 @@ public class LetterQueueManager
     public bool TryPurgeLetter(Dictionary<ConnectionType, int> tokenPayment)
     {
         // Check if there's a letter in the last position
-        Letter letterToPurge = GetLetterAt(_config.LetterQueue.MaxQueueSize);
+        DeliveryObligation letterToPurge = GetLetterAt(_config.LetterQueue.MaxQueueSize);
         if (letterToPurge == null)
         {
             _messageSystem.AddSystemMessage(
@@ -1808,7 +1821,7 @@ public class LetterQueueManager
         }
 
         // Get the letter
-        Letter letter = GetLetterAt(fromPosition);
+        DeliveryObligation letter = GetLetterAt(fromPosition);
         if (letter == null)
         {
             return false; // No letter at position
@@ -1859,7 +1872,7 @@ public class LetterQueueManager
         }
 
         // Move letter to position 1
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
         queue[fromPosition - 1] = null; // Clear original position
         queue[0] = letter; // Place in position 1
         letter.QueuePosition = 1;
@@ -1891,7 +1904,7 @@ public class LetterQueueManager
         }
 
         // Get the letter
-        Letter letter = GetLetterAt(position);
+        DeliveryObligation letter = GetLetterAt(position);
         if (letter == null)
         {
             return false; // No letter at position
@@ -1907,10 +1920,10 @@ public class LetterQueueManager
         );
 
         // Show current deadline pressure
-        string urgency = letter.DeadlineInHours <= 48 ? " 🆘 CRITICAL!" : "";
+        string urgency = letter.DeadlineInMinutes <= 48 ? " 🆘 CRITICAL!" : "";
         _messageSystem.AddSystemMessage(
-            $"  • Current deadline: {letter.DeadlineInHours / 24} days{urgency}",
-            letter.DeadlineInHours <= 48 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
+            $"  • Current deadline: {letter.DeadlineInMinutes / 24} days{urgency}",
+            letter.DeadlineInMinutes <= 48 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
         );
 
         // Check token cost (2 matching tokens)
@@ -1939,8 +1952,8 @@ public class LetterQueueManager
         }
 
         // Extend the deadline
-        int oldDeadlineHours = letter.DeadlineInHours;
-        letter.DeadlineInHours += 48;
+        int oldDeadlineHours = letter.DeadlineInMinutes;
+        letter.DeadlineInMinutes += 48;
 
         // Success narrative
         _messageSystem.AddSystemMessage(
@@ -1949,7 +1962,7 @@ public class LetterQueueManager
         );
 
         _messageSystem.AddSystemMessage(
-            $"  • New deadline: {letter.DeadlineInHours / 24} days (was {oldDeadlineHours / 24})",
+            $"  • New deadline: {letter.DeadlineInMinutes / 24} days (was {oldDeadlineHours / 24})",
             SystemMessageTypes.Info
         );
 
@@ -1957,344 +1970,6 @@ public class LetterQueueManager
             $"  • \"Just this once,\" {letter.SenderName} says, \"but don't make a habit of it.\"",
             SystemMessageTypes.Info
         );
-
-        return true;
-    }
-
-    // Process chain letters when a letter is delivered
-    private void ProcessChainLetters(Letter deliveredLetter)
-    {
-        List<Letter> chainLetters = CollectChainLetters(deliveredLetter);
-        AddChainLettersToQueue(chainLetters, deliveredLetter);
-    }
-
-    // Collect all chain letters from delivered letter
-    private List<Letter> CollectChainLetters(Letter deliveredLetter)
-    {
-        List<Letter> chainLetters = new System.Collections.Generic.List<Letter>();
-
-        // Check letter's own chain letters
-        chainLetters.AddRange(GenerateChainLettersFromIds(deliveredLetter.UnlocksLetterIds.ToArray(), deliveredLetter));
-
-        // Check template's chain letters if letter has none
-        if (!deliveredLetter.UnlocksLetterIds.Any())
-        {
-            LetterTemplate letterTemplate = FindLetterTemplate(deliveredLetter);
-            if (letterTemplate != null && letterTemplate.UnlocksLetterIds.Any())
-            {
-                chainLetters.AddRange(GenerateChainLettersFromIds(letterTemplate.UnlocksLetterIds, deliveredLetter));
-            }
-        }
-
-        return chainLetters;
-    }
-
-    // Generate chain letters from template IDs
-    private List<Letter> GenerateChainLettersFromIds(string[] templateIds, Letter parentLetter)
-    {
-        List<Letter> chainLetters = new System.Collections.Generic.List<Letter>();
-
-        foreach (string templateId in templateIds)
-        {
-            Letter chainLetter = GenerateChainLetter(templateId, parentLetter);
-            if (chainLetter != null)
-            {
-                chainLetters.Add(chainLetter);
-            }
-        }
-
-        return chainLetters;
-    }
-
-    // Add chain letters to queue with narrative
-    private void AddChainLettersToQueue(List<Letter> chainLetters, Letter deliveredLetter)
-    {
-        foreach (Letter chainLetter in chainLetters)
-        {
-            AddLetterWithObligationEffects(chainLetter);
-            ShowChainLetterNarrative(chainLetter, deliveredLetter);
-        }
-    }
-
-    // Show narrative for chain letter generation
-    private void ShowChainLetterNarrative(Letter chainLetter, Letter parentLetter)
-    {
-        _messageSystem.AddSystemMessage($"📬 Follow-up letter generated!", SystemMessageTypes.Info);
-        _messageSystem.AddSystemMessage($"✉️ {chainLetter.SenderName} → {chainLetter.RecipientName}", SystemMessageTypes.Info);
-        _messageSystem.AddSystemMessage($"🔗 Chain letter from completing {parentLetter.SenderName}'s delivery", SystemMessageTypes.Info);
-    }
-
-    // Generate a chain letter from a template ID
-    private Letter GenerateChainLetter(string templateId, Letter parentLetter)
-    {
-        LetterTemplate template = _letterTemplateRepository.GetTemplateById(templateId);
-        if (template == null)
-        {
-            return null;
-        }
-
-        // Determine sender and recipient for the chain letter
-        string senderName = DetermineChainSender(template, parentLetter);
-        string recipientName = DetermineChainRecipient(template, parentLetter);
-
-        if (string.IsNullOrEmpty(senderName) || string.IsNullOrEmpty(recipientName))
-        {
-            return null;
-        }
-
-        // Generate the chain letter
-        Letter? chainLetter = _letterTemplateRepository.GenerateLetterFromTemplate(template, senderName, recipientName);
-
-        if (chainLetter != null)
-        {
-            // Mark it as a chain letter
-            chainLetter.IsChainLetter = true;
-            chainLetter.ParentLetterId = parentLetter.Id;
-
-            // Chain letters typically have similar or longer deadlines
-            chainLetter.DeadlineInHours = Math.Max(chainLetter.DeadlineInHours, parentLetter.DeadlineInHours + 24);
-
-            // Chain letters often have better payment (reward for completing the chain)
-            chainLetter.Payment = (int)(chainLetter.Payment * 1.2f);
-        }
-
-        return chainLetter;
-    }
-
-    // Determine the sender for a chain letter based on the template and parent letter
-    private string DetermineChainSender(LetterTemplate template, Letter parentLetter)
-    {
-        // Check if template specifies possible senders
-        if (template.PossibleSenders != null && template.PossibleSenders.Length > 0)
-        {
-            Random random = new Random();
-            return template.PossibleSenders[random.Next(template.PossibleSenders.Length)];
-        }
-
-        // Default logic: chain letters often come from the original recipient
-        // This creates a "reply" effect
-        return parentLetter.RecipientName;
-    }
-
-    // Determine the recipient for a chain letter based on the template and parent letter
-    private string DetermineChainRecipient(LetterTemplate template, Letter parentLetter)
-    {
-        // Check if template specifies possible recipients
-        if (template.PossibleRecipients != null && template.PossibleRecipients.Length > 0)
-        {
-            Random random = new Random();
-            return template.PossibleRecipients[random.Next(template.PossibleRecipients.Length)];
-        }
-
-        // Default logic: chain letters often go to the original sender
-        // This creates a "reply" effect
-        return parentLetter.SenderName;
-    }
-
-    // Find the letter template that was used to generate a letter
-    private LetterTemplate FindLetterTemplate(Letter letter)
-    {
-        // This is a simplified approach - in a full implementation,
-        // we might store the template ID on the letter itself
-        List<LetterTemplate> allTemplates = _letterTemplateRepository.GetAllTemplates();
-
-        // Try to find a template that matches the letter's characteristics
-        return allTemplates.FirstOrDefault(t =>
-            t.TokenType == letter.TokenType &&
-            t.MinPayment <= letter.Payment &&
-            t.MaxPayment >= letter.Payment);
-    }
-
-    // Check if a letter has potential chain letters
-    public bool HasChainLetters(Letter letter)
-    {
-        // Check if the letter itself has chain letters
-        if (letter.UnlocksLetterIds.Any())
-        {
-            return true;
-        }
-
-        // Check if the letter's template has chain letters
-        LetterTemplate template = FindLetterTemplate(letter);
-        return template != null && template.UnlocksLetterIds.Any();
-    }
-
-    // Get information about potential chain letters for a letter
-    public System.Collections.Generic.List<string> GetChainLetterInfo(Letter letter)
-    {
-        List<string> chainInfo = new System.Collections.Generic.List<string>();
-
-        // Check letter's own chain letters
-        foreach (string templateId in letter.UnlocksLetterIds)
-        {
-            LetterTemplate template = _letterTemplateRepository.GetTemplateById(templateId);
-            if (template != null)
-            {
-                chainInfo.Add($"Unlocks: {template.Description}");
-            }
-        }
-
-        // Check template's chain letters
-        LetterTemplate letterTemplate = FindLetterTemplate(letter);
-        if (letterTemplate != null)
-        {
-            foreach (string templateId in letterTemplate.UnlocksLetterIds)
-            {
-                LetterTemplate template = _letterTemplateRepository.GetTemplateById(templateId);
-                if (template != null)
-                {
-                    chainInfo.Add($"May unlock: {template.Description}");
-                }
-            }
-        }
-
-        return chainInfo;
-    }
-
-    // Move letter to specific position (for undo operations)
-    public void MoveLetterToPosition(Letter letter, int position)
-    {
-        if (letter == null || position < 1 || position > _config.LetterQueue.MaxQueueSize)
-            return;
-
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
-
-        // Clear current position if letter is in queue
-        for (int i = 0; i < queue.Length; i++)
-        {
-            if (queue[i] == letter)
-            {
-                queue[i] = null;
-                break;
-            }
-        }
-
-        // Place at new position
-        queue[position - 1] = letter;
-        letter.QueuePosition = position;
-    }
-
-    // Check if positions can be swapped
-    public bool CanSwapPositions(int position1, int position2)
-    {
-        if (position1 < 1 || position1 > _config.LetterQueue.MaxQueueSize ||
-            position2 < 1 || position2 > _config.LetterQueue.MaxQueueSize)
-            return false;
-
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
-
-        // At least one position must have a letter
-        if (queue[position1 - 1] == null && queue[position2 - 1] == null)
-            return false;
-
-        // Can't swap position 1 if letter is being delivered
-        Letter letterAt1 = queue[0];
-        if (letterAt1 != null && letterAt1.State == LetterState.Delivering)
-            return false;
-
-        return true;
-    }
-
-    // === SIMPLE POSITION-BASED QUEUE MANIPULATION ===
-
-    // Calculate simple position-based reorder cost
-    public int CalculateReorderCost(int fromPosition, int toPosition)
-    {
-        return Math.Abs(toPosition - fromPosition);
-    }
-
-    // Check if player can afford to reorder based on tokens with sender
-    public bool CanAffordReorder(string npcId, ConnectionType tokenType, int fromPos, int toPos)
-    {
-        int cost = CalculateReorderCost(fromPos, toPos);
-        int tokens = _connectionTokenManager.GetTokensWithNPC(npcId)[tokenType];
-        return tokens >= cost;
-    }
-
-    // Execute reorder with token spending
-    public bool ExecuteReorder(Letter letter, int fromPos, int toPos)
-    {
-        if (letter == null) return false;
-
-        // Validate positions
-        if (fromPos < 1 || fromPos > _config.LetterQueue.MaxQueueSize ||
-            toPos < 1 || toPos > _config.LetterQueue.MaxQueueSize)
-            return false;
-
-        int cost = CalculateReorderCost(fromPos, toPos);
-
-        // Get sender NPC ID
-        string senderId = GetNPCIdByName(letter.SenderName);
-        if (string.IsNullOrEmpty(senderId)) return false;
-
-        // Spend tokens with the letter's sender
-        if (!_connectionTokenManager.SpendTokensWithNPC(
-            letter.TokenType,
-            cost,
-            senderId))
-        {
-            _messageSystem.AddSystemMessage(
-                $"❌ Cannot reorder - insufficient {letter.TokenType} tokens with {letter.SenderName}",
-                SystemMessageTypes.Danger
-            );
-            return false;
-        }
-
-        // Move the letter
-        bool success = MoveLetterInQueue(fromPos, toPos);
-
-        if (success)
-        {
-            _messageSystem.AddSystemMessage(
-                $"✅ Reordered {letter.SenderName}'s letter from position {fromPos} to {toPos} (cost: {cost} {letter.TokenType} tokens)",
-                SystemMessageTypes.Success
-            );
-        }
-
-        return success;
-    }
-
-    // Move letter between positions in queue
-    private bool MoveLetterInQueue(int fromPos, int toPos)
-    {
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
-
-        // Get the letter to move
-        Letter letterToMove = queue[fromPos - 1];
-        if (letterToMove == null) return false;
-
-        // Check if target position is occupied
-        if (queue[toPos - 1] != null)
-        {
-            // Need to shift other letters
-            if (toPos < fromPos)
-            {
-                // Moving up - shift letters down
-                for (int i = fromPos - 1; i > toPos - 1; i--)
-                {
-                    queue[i] = queue[i - 1];
-                    if (queue[i] != null) queue[i].QueuePosition = i + 1;
-                }
-            }
-            else
-            {
-                // Moving down - shift letters up
-                for (int i = fromPos - 1; i < toPos - 1; i++)
-                {
-                    queue[i] = queue[i + 1];
-                    if (queue[i] != null) queue[i].QueuePosition = i + 1;
-                }
-            }
-        }
-        else
-        {
-            // Simple move - clear old position
-            queue[fromPos - 1] = null;
-        }
-
-        // Place letter in new position
-        queue[toPos - 1] = letterToMove;
-        letterToMove.QueuePosition = toPos;
 
         return true;
     }

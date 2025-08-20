@@ -8,15 +8,15 @@ using System.Collections.Generic;
 public class DeliverLetterEffect : IMechanicalEffect
 {
     private readonly string _letterId;
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
     private readonly ITimeManager _timeManager;
     private readonly TokenMechanicsManager _tokenManager;
-    private readonly Letter _letter;
+    private readonly DeliveryObligation _letter;
 
     public DeliverLetterEffect(
         string letterId,
-        Letter letter,
-        LetterQueueManager queueManager,
+        DeliveryObligation letter,
+        ObligationQueueManager queueManager,
         ITimeManager timeManager,
         TokenMechanicsManager tokenManager)
     {
@@ -51,19 +51,19 @@ public class DeliverLetterEffect : IMechanicalEffect
         }
     }
 
-    private int CalculateTrustReward(Letter letter)
+    private int CalculateTrustReward(DeliveryObligation letter)
     {
         // Base trust for keeping your word
         int baseTrust = 3;
 
         // Urgent letters (deadline < 24h) give more trust - you kept a harder promise
-        if (letter.DeadlineInHours < 24)
+        if (letter.DeadlineInMinutes < 24)
         {
             baseTrust = 4;
         }
 
         // Critical letters (deadline < 12h) give even more
-        if (letter.DeadlineInHours < 12)
+        if (letter.DeadlineInMinutes < 12)
         {
             baseTrust = 5;
         }

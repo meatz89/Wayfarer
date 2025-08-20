@@ -200,7 +200,7 @@ public class RouteDeck
                     {
                         Description = "Hire to deliver secondary letter",
                         RequiredCoins = 2,
-                        Effect = new TravelEventEffect { CoinChange = -2, DeliverSecondaryLetter = true }
+                        Effect = new TravelEventEffect { CoinChange = -2, DeliverSecondaryDeliveryObligation = true }
                     },
                     new TravelEventOption
                     {
@@ -734,8 +734,8 @@ public class TravelEventEffect
     public bool RevealsMarketInfo { get; set; }
     public string UnlockedRouteId { get; set; }
     
-    // Letter effects
-    public bool DeliverSecondaryLetter { get; set; }
+    // DeliveryObligation effects
+    public bool DeliverSecondaryDeliveryObligation { get; set; }
     public int DeadlineChangeMinutes { get; set; }
     
     // Route effects

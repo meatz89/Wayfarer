@@ -11,12 +11,12 @@ public class DeterministicNarrativeProvider : INarrativeProvider
 {
     private readonly ConversationRepository _conversationRepository;
     private readonly NPCStateResolver _stateCalculator;
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
 
     public DeterministicNarrativeProvider(
         ConversationRepository conversationRepository,
         NPCStateResolver stateCalculator,
-        LetterQueueManager queueManager)
+        ObligationQueueManager queueManager)
     {
         _conversationRepository = conversationRepository;
         _stateCalculator = stateCalculator;
@@ -67,21 +67,21 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             NPCEmotionalState npcState = _stateCalculator.CalculateState(context.TargetNPC);
 
             // Find their most urgent letter
-            Letter? npcLetters = _queueManager.GetActiveLetters()
+            DeliveryObligation? mostUrgentObligation = _queueManager.GetActiveObligations()
                 .Where(l => l.SenderId == context.TargetNPC.ID || l.SenderName == context.TargetNPC.Name)
-                .OrderBy(l => l.DeadlineInHours)
+                .OrderBy(l => l.DeadlineInMinutes)
                 .FirstOrDefault();
 
             // Generate dialogue from letter properties and emotional state
             string dialogue = _stateCalculator.GenerateNPCDialogue(
                 context.TargetNPC,
                 npcState,
-                npcLetters,
+                mostUrgentObligation,
                 context);
 
-            // Add body language for literary presentation
-            string bodyLanguage = npcLetters != null
-                ? _stateCalculator.GenerateBodyLanguage(npcState, npcLetters.Stakes)
+            // Add body language for literary presentation  
+            string bodyLanguage = mostUrgentObligation != null
+                ? _stateCalculator.GenerateBodyLanguage(npcState, mostUrgentObligation.Stakes)
                 : _stateCalculator.GenerateBodyLanguage(npcState, StakeType.REPUTATION);
 
             string fullIntroduction = $"{context.TargetNPC.Name} {bodyLanguage}. {dialogue}";

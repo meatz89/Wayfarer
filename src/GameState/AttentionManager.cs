@@ -132,6 +132,17 @@ public class AttentionManager
     }
 
     /// <summary>
+    /// Epic 9: Add attention points (for coin-based refresh)
+    /// Unlike RestoreAttention, this can exceed the normal maximum
+    /// </summary>
+    public void AddAttention(int amount)
+    {
+        // Allow exceeding normal maximum for coin-based refresh
+        int newAttention = _currentAttention + amount;
+        _currentAttention = Math.Min(newAttention, GameRules.ATTENTION_REFRESH_MAX_TOTAL);
+    }
+
+    /// <summary>
     /// Get the narrative description of current attention state
     /// </summary>
     public string GetNarrativeDescription()

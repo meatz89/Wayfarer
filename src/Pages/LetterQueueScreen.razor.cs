@@ -12,7 +12,7 @@ namespace Wayfarer.Pages
     {
         [Inject] private NPCRepository NPCRepository { get; set; }
         [Inject] private ITimeManager TimeManager { get; set; }
-        [Inject] private ILetterQueueOperations QueueOperations { get; set; }
+        [Inject] private GameFacade QueueOperations { get; set; }
 
         [Parameter] public CurrentViews ReturnView { get; set; } = CurrentViews.LocationScreen;
 
@@ -26,16 +26,16 @@ namespace Wayfarer.Pages
 
         private string GetNextDeadline()
         {
-            Letter[] letters = GameFacade.GetPlayer().LetterQueue;
+            Letter[] letters = GameFacade.GetPlayer().ObligationQueue;
             if (letters == null || !letters.Any(l => l != null)) return "";
 
-            Letter? nextDeadline = letters.Where(l => l != null && l.DeadlineInHours > 0)
-                .OrderBy(l => l.DeadlineInHours)
+            Letter? nextDeadline = letters.Where(l => l != null && l.DeadlineInMinutes > 0)
+                .OrderBy(l => l.DeadlineInMinutes)
                 .FirstOrDefault();
 
             if (nextDeadline == null) return "";
 
-            int hoursLeft = nextDeadline.DeadlineInHours;
+            int hoursLeft = nextDeadline.DeadlineInMinutes;
             string recipientShort = GetShortName(nextDeadline.RecipientName);
 
             // Use our human-readable format
@@ -65,9 +65,9 @@ namespace Wayfarer.Pages
             return fullName.Split(' ')[0];
         }
 
-        private Letter GetLetterAtPosition(int position)
+        private DeliveryObligation GetLetterAtPosition(int position)
         {
-            Letter[] queue = GameFacade.GetPlayer().LetterQueue;
+            DeliveryObligation[] queue = GameFacade.GetPlayer().ObligationQueue;
             if (queue == null || position > queue.Length || position < 1) return null;
             return queue[position - 1];
         }
@@ -84,14 +84,14 @@ namespace Wayfarer.Pages
             };
         }
 
-        private string GetDeadlineDisplay(Letter letter)
+        private string GetDeadlineDisplay(DeliveryObligation letter)
         {
-            int hoursLeft = letter.DeadlineInHours;
+            int hoursLeft = letter.DeadlineInMinutes;
             int currentHour = TimeManager.GetCurrentTimeHours();
             int daysAway = hoursLeft / 24;
             int hoursRemaining = hoursLeft % 24;
 
-            if (hoursLeft <= 0) return "Letter has expired - permanent consequences applied";
+            if (hoursLeft <= 0) return "DeliveryObligation has expired - permanent consequences applied";
             if (hoursLeft <= 3) return $"CRITICAL: {hoursLeft} hour{(hoursLeft == 1 ? "" : "s")} remaining!";
 
             if (daysAway == 0)
@@ -108,9 +108,9 @@ namespace Wayfarer.Pages
             }
         }
 
-        private string GetDeadlineIcon(Letter letter)
+        private string GetDeadlineIcon(DeliveryObligation letter)
         {
-            return letter.DeadlineInHours switch
+            return letter.DeadlineInMinutes switch
             {
                 <= 0 => "💀",    // Expired
                 <= 3 => "⚡",    // Critical
@@ -121,9 +121,9 @@ namespace Wayfarer.Pages
             };
         }
 
-        private string GetShortDeadline(Letter letter)
+        private string GetShortDeadline(DeliveryObligation letter)
         {
-            int hoursLeft = letter.DeadlineInHours;
+            int hoursLeft = letter.DeadlineInMinutes;
             int currentHour = TimeManager.GetCurrentTimeHours();
             int currentMinute = TimeManager.GetCurrentMinutes();
             int targetHour = (currentHour + hoursLeft) % 24;
@@ -174,19 +174,19 @@ namespace Wayfarer.Pages
             return $"In {daysAway} days";
         }
 
-        private string GetDeadlineClass(Letter letter)
+        private string GetDeadlineClass(DeliveryObligation letter)
         {
-            if (letter.DeadlineInHours <= 0) return "deadline-expired";
-            if (letter.DeadlineInHours <= 3) return "deadline-critical";
-            if (letter.DeadlineInHours <= 6) return "deadline-urgent";
-            if (letter.DeadlineInHours <= 24) return "deadline-today";
-            if (letter.DeadlineInHours <= 48) return "deadline-tomorrow";
+            if (letter.DeadlineInMinutes <= 0) return "deadline-expired";
+            if (letter.DeadlineInMinutes <= 3) return "deadline-critical";
+            if (letter.DeadlineInMinutes <= 6) return "deadline-urgent";
+            if (letter.DeadlineInMinutes <= 24) return "deadline-today";
+            if (letter.DeadlineInMinutes <= 48) return "deadline-tomorrow";
             return "deadline-normal";
         }
 
         private int GetTotalWeight()
         {
-            Letter[] queue = GameFacade.GetPlayer().LetterQueue;
+            DeliveryObligation[] queue = GameFacade.GetPlayer().ObligationQueue;
             if (queue == null) return 0;
             return queue.Where(l => l != null).Sum(l => l.Weight);
         }
@@ -369,7 +369,7 @@ namespace Wayfarer.Pages
 
         private async Task StartReorder(int position)
         {
-            Letter letter = GetLetterAtPosition(position);
+            DeliveryObligation letter = GetLetterAtPosition(position);
             if (letter != null)
             {
                 _isReordering = true;
@@ -411,7 +411,7 @@ namespace Wayfarer.Pages
 
         private void NavigateToDelivery()
         {
-            Letter letter = GetLetterAtPosition(1);
+            DeliveryObligation letter = GetLetterAtPosition(1);
             if (letter != null)
             {
                 // Navigate to location screen to handle delivery
@@ -443,7 +443,7 @@ namespace Wayfarer.Pages
         private void NavigateToRecipient()
         {
             // Navigate to travel screen to go to recipient's location
-            Letter letter = GetLetterAtPosition(1);
+            DeliveryObligation letter = GetLetterAtPosition(1);
             if (letter != null)
             {
                 // TODO: Pass recipient location to travel screen
@@ -459,30 +459,30 @@ namespace Wayfarer.Pages
 
         private bool HasCriticalDeadlines()
         {
-            Letter[] letters = GameFacade.GetPlayer().LetterQueue;
+            Letter[] letters = GameFacade.GetPlayer().ObligationQueue;
             if (letters == null) return false;
-            return letters.Any(l => l != null && l.DeadlineInHours <= 3 && l.DeadlineInHours > 0);
+            return letters.Any(l => l != null && l.DeadlineInMinutes <= 3 && l.DeadlineInMinutes > 0);
         }
 
-        private Letter GetMostUrgentLetter()
+        private DeliveryObligation GetMostUrgentLetter()
         {
-            Letter[] letters = GameFacade.GetPlayer().LetterQueue;
+            Letter[] letters = GameFacade.GetPlayer().ObligationQueue;
             if (letters == null) return null;
 
-            return letters.Where(l => l != null && l.DeadlineInHours > 0)
-                .OrderBy(l => l.DeadlineInHours)
+            return letters.Where(l => l != null && l.DeadlineInMinutes > 0)
+                .OrderBy(l => l.DeadlineInMinutes)
                 .FirstOrDefault();
         }
 
         private string GetCriticalLetterWarning()
         {
-            Letter urgent = GetMostUrgentLetter();
+            DeliveryObligation urgent = GetMostUrgentLetter();
             if (urgent == null) return "";
 
-            if (urgent.DeadlineInHours <= 1)
+            if (urgent.DeadlineInMinutes <= 1)
                 return $"⚠️ CRITICAL: {urgent.RecipientName} letter expires in 1 HOUR!";
-            else if (urgent.DeadlineInHours <= 3)
-                return $"⚠️ URGENT: {urgent.RecipientName} letter expires in {urgent.DeadlineInHours} hours!";
+            else if (urgent.DeadlineInMinutes <= 3)
+                return $"⚠️ URGENT: {urgent.RecipientName} letter expires in {urgent.DeadlineInMinutes} hours!";
             return "";
         }
     }

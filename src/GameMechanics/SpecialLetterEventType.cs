@@ -18,11 +18,13 @@ public enum NarrativeSeverity
 public enum SpecialLetterEventType
 {
     // Introduction letter events
+    IntroductionLetterGenerated,    // DeliveryObligation successfully generated and added to satchel
     NPCIntroduced,
     IntroductionLetterIncomplete,
     IntroductionTargetNotFound,
 
     // Access permit events
+    AccessPermitGenerated,          // DeliveryObligation successfully generated and added to satchel
     LocationAccessGranted,
     AccessPermitIncomplete,
     AccessTargetNotFound,
@@ -59,4 +61,8 @@ public class SpecialLetterEvent
     public int TokenAmount { get; set; }
     public string InformationId { get; set; } = string.Empty;
     public NarrativeSeverity Severity { get; set; } = NarrativeSeverity.Info;
+    
+    // Additional fields for letter generation events
+    public int Position { get; set; }        // Position in satchel (always 0 for special letters)
+    public int TokenCost { get; set; }       // Tokens spent to generate the letter
 }

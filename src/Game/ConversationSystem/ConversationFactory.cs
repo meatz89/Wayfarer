@@ -10,7 +10,7 @@ public class ConversationFactory
     private readonly INarrativeProvider _narrativeProvider;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly NPCStateResolver _stateCalculator;
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
     private readonly ITimeManager _timeManager;
     private readonly AtmosphereCalculator _atmosphereCalculator;
     private readonly Wayfarer.GameState.TimeBlockAttentionManager _timeBlockAttentionManager;
@@ -20,7 +20,7 @@ public class ConversationFactory
         INarrativeProvider narrativeProvider,
         TokenMechanicsManager tokenManager,
         NPCStateResolver stateCalculator,
-        LetterQueueManager queueManager,
+        ObligationQueueManager queueManager,
         ITimeManager timeManager,
         AtmosphereCalculator atmosphereCalculator,
         Wayfarer.GameState.TimeBlockAttentionManager timeBlockAttentionManager,
@@ -69,14 +69,14 @@ public class ConversationFactory
             NPCEmotionalState npcState = _stateCalculator.CalculateState(context.TargetNPC);
 
             // Find their most urgent letter for context
-            List<Letter> npcLetters = _queueManager.GetActiveLetters()
+            List<DeliveryObligation> npcLetters = _queueManager.GetActiveObligations()
                 .Where(l => l.SenderId == context.TargetNPC.ID || l.SenderName == context.TargetNPC.Name)
-                .OrderBy(l => l.DeadlineInHours)
+                .OrderBy(l => l.DeadlineInMinutes)
                 .ToList();
 
             // Store in context for narrative generation
             context.ConversationTopic = npcLetters.Any()
-                ? $"Letter to {npcLetters.First().RecipientName}"
+                ? $"DeliveryObligation to {npcLetters.First().RecipientName}"
                 : "General conversation";
         }
 

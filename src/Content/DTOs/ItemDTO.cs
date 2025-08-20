@@ -26,7 +26,4 @@ public class ItemDTO
     // Token types this equipment enables (e.g., ["Noble"] for Fine Clothes)
     public List<string> EnablesTokenGeneration { get; set; } = new List<string>();
 
-    // For readable items like special letters
-    public string ReadableContent { get; set; }
-    public string ReadFlagToSet { get; set; }
 }

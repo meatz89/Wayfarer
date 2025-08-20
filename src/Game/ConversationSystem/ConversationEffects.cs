@@ -11,7 +11,7 @@ public class LetterReorderEffect : IMechanicalEffect
     private readonly int _targetPosition;
     private readonly int _tokenCost;
     private readonly ConnectionType _tokenType;
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly string _npcId;
 
@@ -20,7 +20,7 @@ public class LetterReorderEffect : IMechanicalEffect
         int targetPosition,
         int tokenCost,
         ConnectionType tokenType,
-        LetterQueueManager queueManager,
+        ObligationQueueManager queueManager,
         TokenMechanicsManager tokenManager,
         string npcId)
     {
@@ -49,11 +49,11 @@ public class LetterReorderEffect : IMechanicalEffect
         int? currentPosition = _queueManager.GetLetterPosition(_letterId);
         if (!currentPosition.HasValue)
         {
-            throw new InvalidOperationException($"Letter {_letterId} not found in queue");
+            throw new InvalidOperationException($"DeliveryObligation {_letterId} not found in queue");
         }
 
         // Move letter to target position
-        Letter letter = _queueManager.GetLetterAt(currentPosition.Value);
+        DeliveryObligation letter = _queueManager.GetLetterAt(currentPosition.Value);
         _queueManager.RemoveLetterFromQueue(currentPosition.Value);
         _queueManager.MoveLetterToPosition(letter, _targetPosition);
     }
@@ -274,9 +274,9 @@ public class ConversationTimeEffect : IMechanicalEffect
 public class RemoveLetterTemporarilyEffect : IMechanicalEffect
 {
     private readonly string _letterId;
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
 
-    public RemoveLetterTemporarilyEffect(string letterId, LetterQueueManager queueManager)
+    public RemoveLetterTemporarilyEffect(string letterId, ObligationQueueManager queueManager)
     {
         _letterId = letterId;
         _queueManager = queueManager;
@@ -296,7 +296,7 @@ public class RemoveLetterTemporarilyEffect : IMechanicalEffect
     {
         return new List<MechanicalEffectDescription> {
             new MechanicalEffectDescription {
-                Text = "Letter held temporarily (can be retrieved later)",
+                Text = "DeliveryObligation held temporarily (can be retrieved later)",
                 Category = EffectCategory.LetterRemove
             }
         };
@@ -308,10 +308,10 @@ public class RemoveLetterTemporarilyEffect : IMechanicalEffect
 /// </summary>
 public class AcceptLetterEffect : IMechanicalEffect
 {
-    private readonly Letter _letter;
-    private readonly LetterQueueManager _queueManager;
+    private readonly DeliveryObligation _letter;
+    private readonly ObligationQueueManager _queueManager;
 
-    public AcceptLetterEffect(Letter letter, LetterQueueManager queueManager)
+    public AcceptLetterEffect(DeliveryObligation letter, ObligationQueueManager queueManager)
     {
         _letter = letter;
         _queueManager = queueManager;
@@ -320,7 +320,7 @@ public class AcceptLetterEffect : IMechanicalEffect
     public void Apply(ConversationState state)
     {
         // Add to next available position
-        int currentCount = _queueManager.GetActiveLetters().Count();
+        int currentCount = _queueManager.GetActiveObligations().Count();
         _queueManager.AddLetterToQueue(_letter, currentCount + 1);
     }
 
@@ -343,9 +343,9 @@ public class ExtendDeadlineEffect : IMechanicalEffect
 {
     private readonly string _letterId;
     private readonly int _daysToAdd;
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
 
-    public ExtendDeadlineEffect(string letterId, int daysToAdd, LetterQueueManager queueManager)
+    public ExtendDeadlineEffect(string letterId, int daysToAdd, ObligationQueueManager queueManager)
     {
         _letterId = letterId;
         _daysToAdd = daysToAdd;
@@ -357,8 +357,8 @@ public class ExtendDeadlineEffect : IMechanicalEffect
         int? position = _queueManager.GetLetterPosition(_letterId);
         if (position.HasValue)
         {
-            Letter letter = _queueManager.GetLetterAt(position.Value);
-            letter.DeadlineInHours += _daysToAdd * 24;
+            DeliveryObligation letter = _queueManager.GetLetterAt(position.Value);
+            letter.DeadlineInMinutes += _daysToAdd * 24;
         }
     }
 

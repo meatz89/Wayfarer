@@ -36,7 +36,7 @@ public class SceneContext
 
     // Scene pressure metrics
     public int MinutesUntilDeadline { get; set; }
-    public int LetterQueueSize { get; set; }
+    public int ObligationQueueSize { get; set; }
 
     // Factory method for standard scene context
     public static SceneContext Standard(GameWorld gameWorld, Player player, NPC targetNPC, Location location, LocationSpot spot)
@@ -88,7 +88,7 @@ public class SceneContext
 /// </summary>
 public class QueueManagementContext : SceneContext
 {
-    public Letter TargetLetter { get; set; }
+    public DeliveryObligation TargetDeliveryObligation { get; set; }
     public string ManagementAction { get; set; } // "SkipDeliver", "Purge", etc.
     public int TokenCost { get; set; }
     public Dictionary<int, Letter> SkippedLetters { get; set; } // For skip action - letters that would be skipped

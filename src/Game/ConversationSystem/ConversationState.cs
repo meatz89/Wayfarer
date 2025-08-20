@@ -28,7 +28,7 @@ public class ConversationState
     // Card game mechanics - minimal state tracking for this conversation only
     public HashSet<string> PlayedCardIds { get; private set; } = new HashSet<string>(); // Cards played this conversation
     
-    // Letter card tracking - prevent multiple additions per conversation
+    // DeliveryObligation card tracking - prevent multiple additions per conversation
     public bool LetterCardAddedThisConversation { get; set; } = false;
     
     // Conversation seed for deterministic generation

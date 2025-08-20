@@ -25,7 +25,7 @@ public class TravelContextViewModel
     public string WeightClass { get; set; } // CSS class: "", "warning", "danger"
     public int BaseStaminaPenalty { get; set; } // 0, 1, or 2
 
-    // Letter effects
+    // DeliveryObligation effects
     public int CarriedLetterCount { get; set; }
     public bool HasHeavyLetters { get; set; }
     public bool HasFragileLetters { get; set; }
@@ -281,7 +281,7 @@ public class ActiveObligationViewModel
     public int TokenCount { get; set; }
     public bool HasConflicts { get; set; }
     public bool HasForcedLetterWarning { get; set; }
-    public int DaysUntilForcedLetter { get; set; }
+    public int DaysUntilForcedDeliveryObligation { get; set; }
 }
 
 public class DebtObligationViewModel

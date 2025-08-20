@@ -23,7 +23,7 @@ public class NPC
     public List<ServiceTypes> ProvidedServices { get; set; } = new List<ServiceTypes>();
     public NPCRelationship PlayerRelationship { get; set; } = NPCRelationship.Neutral;
 
-    // Letter Queue Properties
+    // DeliveryObligation Queue Properties
     public List<ConnectionType> LetterTokenTypes { get; set; } = new List<ConnectionType>();
 
     // Work Properties
@@ -34,8 +34,7 @@ public class NPC
     public int RedemptionProgress { get; set; } = 0;      // Progress toward emotional recovery
     public bool HasPermanentScar { get; set; } = false;   // Some wounds never fully heal
 
-    // Letter offering system
-    public bool HasLetterToOffer { get; set; } = false;
+    // DeliveryObligation offering system
 
     // Schedule tracking (for INVESTIGATE verb discoveries)
     public List<ScheduleEntry> DailySchedule { get; set; } = new List<ScheduleEntry>();
@@ -85,33 +84,7 @@ public class NPC
         return !string.IsNullOrEmpty(spotID) && Location == spotID;
     }
 
-    // Letter generation methods for VerbContextualizer
-    public bool HasLetterToSend()
-    {
-        // Simple logic: NPCs have letters occasionally
-        // In full implementation, would check NPC state, relationships, etc.
-        return new Random().Next(3) == 0; // 33% chance
-    }
 
-    public Letter GenerateLetter()
-    {
-        // Generate a simple letter from this NPC
-        Letter letter = new Letter
-        {
-            Id = Guid.NewGuid().ToString(),
-            SenderId = this.ID,
-            SenderName = this.Name,
-            RecipientId = "player_contact_" + new Random().Next(1, 5),
-            RecipientName = "Contact " + new Random().Next(1, 5),
-            Description = $"Letter from {Name} about {Profession} matters",
-            TokenType = LetterTokenTypes.FirstOrDefault(),
-            Stakes = StakeType.REPUTATION,
-            DeadlineInHours = new Random().Next(2, 7) * 24,
-            QueuePosition = 6, // Add to back of queue
-            State = LetterState.Offered
-        };
-        return letter;
-    }
 
     // Methods expected by VerbContextualizer
     public NPC GetContact()
@@ -139,104 +112,10 @@ public class NPC
         }
     }
 
-    // Method for generating letter offers (used by HELP verb)
-    public Letter GenerateLetterOffer()
-    {
-        // Generate a letter based on NPC's profession and current state
-        Letter letter = new Letter
-        {
-            Id = Guid.NewGuid().ToString(),
-            SenderId = this.ID,
-            SenderName = this.Name,
-            RecipientId = $"recipient_{new Random().Next(1, 5)}",
-            RecipientName = GetRecipientNameByProfession(),
-            Description = GetLetterDescriptionByProfession(),
-            TokenType = LetterTokenTypes.FirstOrDefault(),
-            Stakes = GetStakesByProfession(),
-            DeadlineInHours = new Random().Next(4, 24),
-            Payment = new Random().Next(5, 20),
-            // Weight is calculated, not set directly
-            State = LetterState.Offered,
-            HumanContext = GetHumanContextByProfession(),
-            ConsequenceIfLate = GetConsequenceByProfession()
-        };
 
-        HasLetterToOffer = false; // Mark as offered
-        return letter;
-    }
 
-    // Check if NPC has an urgent letter to offer
-    public bool HasUrgentLetter()
-    {
-        // Simple random chance for now - in full implementation would check state
-        return new Random().Next(100) < 20; // 20% chance of urgent letter
-    }
 
-    // Generate an urgent letter with tight deadline
-    public Letter GenerateUrgentLetter()
-    {
-        Letter letter = GenerateLetterOffer();
-        letter.DeadlineInHours = new Random().Next(2, 8); // Much tighter deadline
-        letter.Stakes = StakeType.SAFETY; // Higher stakes
-        letter.Payment = new Random().Next(15, 30); // Better payment for urgency
-        letter.Description = $"URGENT: {letter.Description}";
-        return letter;
-    }
 
-    private string GetRecipientNameByProfession()
-    {
-        return Profession switch
-        {
-            Professions.Merchant => $"Master {new[] { "Goldwin", "Harwick", "Blackstone" }[new Random().Next(3)]}",
-            Professions.Scholar => $"Sister {new[] { "Mercy", "Grace", "Hope" }[new Random().Next(3)]}",
-            Professions.Noble => $"Lord {new[] { "Ashford", "Ravencrest", "Ironwood" }[new Random().Next(3)]}",
-            _ => $"Citizen {new Random().Next(1, 10)}"
-        };
-    }
-
-    private string GetLetterDescriptionByProfession()
-    {
-        return Profession switch
-        {
-            Professions.Merchant => "Trade agreement requiring urgent signature",
-            Professions.Scholar => "Medical supplies request for the infirmary",
-            Professions.Noble => "Summons to appear before the council",
-            _ => "Personal correspondence"
-        };
-    }
-
-    private StakeType GetStakesByProfession()
-    {
-        return Profession switch
-        {
-            Professions.Merchant => StakeType.WEALTH,
-            Professions.Scholar => StakeType.SAFETY,
-            Professions.Noble => StakeType.REPUTATION,
-            _ => StakeType.REPUTATION
-        };
-    }
-
-    private string GetHumanContextByProfession()
-    {
-        return Profession switch
-        {
-            Professions.Merchant => "A crucial trade deal hangs in the balance",
-            Professions.Scholar => "Lives depend on these medical supplies arriving",
-            Professions.Noble => "Political alliances shift with every delayed message",
-            _ => "Someone's future depends on this letter"
-        };
-    }
-
-    private string GetConsequenceByProfession()
-    {
-        return Profession switch
-        {
-            Professions.Merchant => "The merchant will lose their largest contract",
-            Professions.Scholar => "Patients may not survive without these supplies",
-            Professions.Noble => "Your standing with the nobility will be permanently damaged",
-            _ => "Trust will be broken beyond repair"
-        };
-    }
 
     public RouteOption GetSecretRoute()
     {

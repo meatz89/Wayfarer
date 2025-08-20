@@ -43,17 +43,17 @@ public class Phase4_5_ContentFallbacks : IInitializationPhase
             ? (Dictionary<string, ConversationDefinition>)context.SharedData["Conversations"]
             : new Dictionary<string, ConversationDefinition>();
 
-        // Get current letters if any
+        // Get current obligations if any
         Player player = context.GameWorld.GetPlayer();
-        List<Letter> letters = player?.LetterQueue != null
-            ? player.LetterQueue.Where(l => l != null).ToList()
-            : new List<Letter>();
+        List<DeliveryObligation> obligations = player?.ObligationQueue != null
+            ? player.ObligationQueue.Where(l => l != null).ToList()
+            : new List<DeliveryObligation>();
 
         // Get routes
         List<RouteOption> routes = context.GameWorld.WorldState.Routes ?? new List<RouteOption>();
 
         // Validate and patch all content
-        ContentFallbackReport report = fallbackService.ValidateAndPatchContent(conversations, letters, routes);
+        ContentFallbackReport report = fallbackService.ValidateAndPatchContent(conversations, obligations, routes);
 
         // Store fallback service for later use
         context.SharedData["ContentFallbackService"] = fallbackService;

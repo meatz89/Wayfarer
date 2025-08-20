@@ -475,7 +475,7 @@ public class ConversationScreenBase : ComponentBase
         // Since we don't have subject/content, use what we have
 
         // Check deadline urgency
-        if (letter.DeadlineInHours < 4)
+        if (letter.DeadlineInMinutes < 4)
             return StakeType.SAFETY; // Very urgent = safety at stake
 
         // Check payment amount
@@ -496,7 +496,7 @@ public class ConversationScreenBase : ComponentBase
 
         // Get the letter from the queue if it exists
         LetterQueueViewModel queue = GameFacade.GetLetterQueue();
-        LetterViewModel? npcLetter = queue?.QueueSlots?.FirstOrDefault(s => s.Letter?.SenderName == NpcId)?.Letter;
+        LetterViewModel? npcDeliveryObligation = queue?.QueueSlots?.FirstOrDefault(s => s.Letter?.SenderName == NpcId)?.Letter;
         string subject = npcLetter?.SenderName ?? "matter";
 
         return CurrentStakes switch
@@ -745,7 +745,7 @@ public class ConversationScreenBase : ComponentBase
         if (state.HasReachedPerfectThreshold())
             return "Perfect conversation achieved!";
         else if (state.HasReachedLetterThreshold())
-            return $"Letter available! ({perfectThreshold - CurrentComfort} more for perfect)";
+            return $"DeliveryObligation available! ({perfectThreshold - CurrentComfort} more for perfect)";
         else if (state.HasReachedMaintainThreshold())
             return $"Good relationship! ({letterThreshold - CurrentComfort} more for letter)";
         else
@@ -794,12 +794,12 @@ public class ConversationScreenBase : ComponentBase
         {
             // Negative/destructive choice types - RED
             ConversationChoiceType.DeclineLetterOffer => "negative-card",
-            ConversationChoiceType.PurgeLetter => "negative-card",
+            ConversationChoiceType.PurgeDeliveryObligation => "negative-card",
             ConversationChoiceType.TravelForceThrough => "negative-card",
             
             // Positive/beneficial choice types - GREEN
             ConversationChoiceType.AcceptLetterOffer => "positive-card",
-            ConversationChoiceType.KeepLetter => "positive-card",
+            ConversationChoiceType.KeepDeliveryObligation => "positive-card",
             ConversationChoiceType.Introduction => "positive-card",
             ConversationChoiceType.TravelCautious => "positive-card",
             
@@ -809,11 +809,15 @@ public class ConversationScreenBase : ComponentBase
             ConversationChoiceType.TravelTradeHelp => "risky-card",
             ConversationChoiceType.TravelExchangeInfo => "risky-card",
             
-            // Letter request cards - YELLOW (risky with potential reward)
-            ConversationChoiceType.RequestTrustLetter => "risky-card",
-            ConversationChoiceType.RequestCommerceLetter => "risky-card",
-            ConversationChoiceType.RequestStatusLetter => "risky-card",
-            ConversationChoiceType.RequestShadowLetter => "risky-card",
+            // DeliveryObligation request cards - YELLOW (risky with potential reward)
+            ConversationChoiceType.RequestTrustDeliveryObligation => "risky-card",
+            ConversationChoiceType.RequestCommerceDeliveryObligation => "risky-card",
+            ConversationChoiceType.RequestStatusDeliveryObligation => "risky-card",
+            ConversationChoiceType.RequestShadowDeliveryObligation => "risky-card",
+            
+            // Special letter requests - GOLD (high value, rare opportunities)
+            ConversationChoiceType.IntroductionDeliveryObligation => "special-card",
+            ConversationChoiceType.AccessPermit => "special-card",
             
             // Discovery/neutral choice types - BLUE
             ConversationChoiceType.DiscoverRoute => "discovery-card",

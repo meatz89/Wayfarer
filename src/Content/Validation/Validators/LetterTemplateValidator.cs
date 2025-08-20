@@ -32,7 +32,7 @@ public class LetterTemplateValidator : IContentValidator
             {
                 errors.Add(new ValidationError(
                     fileName,
-                    "Letter templates file must contain a JSON array",
+                    "DeliveryObligation templates file must contain a JSON array",
                     ValidationSeverity.Critical));
                 return errors;
             }

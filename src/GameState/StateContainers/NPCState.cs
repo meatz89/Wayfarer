@@ -21,7 +21,7 @@ public sealed class NPCState
     public ImmutableList<ServiceTypes> ProvidedServices { get; }
     public NPCRelationship PlayerRelationship { get; }
 
-    // Letter Queue Properties
+    // DeliveryObligation Queue Properties
     public ImmutableList<ConnectionType> LetterTokenTypes { get; }
 
     public NPCState(

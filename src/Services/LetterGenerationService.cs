@@ -8,14 +8,14 @@ using System.Linq;
 /// </summary>
 public class LetterGenerationService
 {
-    private readonly LetterTemplateRepository _templateRepository;
+    private readonly DeliveryTemplateService _templateRepository;
     private readonly NPCRepository _npcRepository;
     private readonly LetterCategoryService _categoryService;
     private readonly ILogger<LetterGenerationService> _logger;
     private readonly Random _random = new Random();
 
     public LetterGenerationService(
-        LetterTemplateRepository templateRepository,
+        DeliveryTemplateService templateRepository,
         NPCRepository npcRepository,
         LetterCategoryService categoryService,
         ILogger<LetterGenerationService> logger)
@@ -29,7 +29,7 @@ public class LetterGenerationService
     /// <summary>
     /// Generate a letter from a template with random values
     /// </summary>
-    public Letter GenerateLetterFromTemplate(LetterTemplate template, string senderName, string recipientName)
+    public DeliveryObligation GenerateLetterFromTemplate(LetterTemplate template, string senderName, string recipientName)
     {
         if (template == null)
         {
@@ -46,12 +46,12 @@ public class LetterGenerationService
             throw new ArgumentException("Recipient name is required", nameof(recipientName));
         }
 
-        Letter letter = new Letter
+        DeliveryObligation letter = new Letter
         {
             SenderName = senderName,
             RecipientName = recipientName,
             TokenType = template.TokenType,
-            DeadlineInHours = _random.Next(template.MinDeadlineInHours, template.MaxDeadlineInHours + 1),
+            DeadlineInMinutes = _random.Next(template.MinDeadlineInMinutes, template.MaxDeadlineInMinutes + 1),
             Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
             Size = template.Size,
             PhysicalProperties = template.PhysicalProperties,
@@ -74,7 +74,7 @@ public class LetterGenerationService
     /// Generate a forced letter from a template (for standing obligations)
     /// Forced letters can be any tier as they are part of obligations
     /// </summary>
-    public Letter GenerateForcedLetterFromTemplate(LetterTemplate template)
+    public DeliveryObligation GenerateForcedLetterFromTemplate(LetterTemplate template)
     {
         if (template == null)
         {
@@ -84,12 +84,12 @@ public class LetterGenerationService
         // Generate narrative names based on token type
         (string senderName, string recipientName) = GenerateNarrativeNames(template.TokenType);
 
-        Letter letter = new Letter
+        DeliveryObligation letter = new Letter
         {
             SenderName = senderName,
             RecipientName = recipientName,
             TokenType = template.TokenType,
-            DeadlineInHours = _random.Next(template.MinDeadlineInHours, template.MaxDeadlineInHours + 1),
+            DeadlineInMinutes = _random.Next(template.MinDeadlineInMinutes, template.MaxDeadlineInMinutes + 1),
             Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
             IsGenerated = true,
             GenerationReason = $"Forced from template: {template.Id}",
@@ -113,7 +113,7 @@ public class LetterGenerationService
     /// <summary>
     /// Generate a letter from an NPC respecting category thresholds and player tier
     /// </summary>
-    public Letter GenerateLetterFromNPC(string npcId, string senderName, ConnectionType tokenType, TierLevel playerTier = TierLevel.T1)
+    public DeliveryObligation GenerateLetterFromNPC(string npcId, string senderName, ConnectionType tokenType, TierLevel playerTier = TierLevel.T1)
     {
         List<LetterTemplate> availableTemplates = GetAvailableTemplatesForNPC(npcId, tokenType);
         if (!availableTemplates.Any())
@@ -157,7 +157,7 @@ public class LetterGenerationService
         NPC recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
 
         // Generate letter with category-appropriate payment
-        Letter letter = GenerateLetterFromTemplate(template, senderName, recipient.Name);
+        DeliveryObligation letter = GenerateLetterFromTemplate(template, senderName, recipient.Name);
 
         // Override payment to match category if needed
         if (_categoryService != null)
@@ -226,12 +226,12 @@ public class LetterGenerationService
     /// Generate a special letter with specific effects.
     /// CONTENT EFFICIENT: Works with existing 5 NPCs by using professions/services.
     /// </summary>
-    public Letter GenerateSpecialLetter(LetterSpecialType specialType, string recipientNpcId = null)
+    public DeliveryObligation GenerateSpecialLetter(LetterSpecialType specialType, string recipientNpcId = null)
     {
-        Letter letter = new Letter
+        DeliveryObligation letter = new Letter
         {
             SpecialType = specialType,
-            DeadlineInHours = _random.Next(36, 72), // Special letters have longer deadlines
+            DeadlineInMinutes = _random.Next(36, 72), // Special letters have longer deadlines
             State = LetterState.Offered,
             Tier = TierLevel.T3 // Special letters are always T3
         };
@@ -286,7 +286,7 @@ public class LetterGenerationService
                 letter.SenderName = "Respected Merchant";
                 letter.RecipientName = recipient?.Name ?? "Guild Representative";
                 letter.RecipientId = recipient?.ID ?? "";
-                letter.Description = "Letter of Introduction - Unlocks new contacts";
+                letter.Description = "DeliveryObligation of Introduction - Unlocks new contacts";
                 letter.HumanContext = "A personal recommendation that opens doors";
                 letter.ConsequenceIfLate = "The introduction loses its value";
                 letter.ConsequenceIfDelivered = "Access to previously unreachable contacts";
@@ -315,7 +315,7 @@ public class LetterGenerationService
                 letter.SenderName = "Noble Patron";
                 letter.RecipientName = recipient?.Name ?? "Local Authority";
                 letter.RecipientId = recipient?.ID ?? "";
-                letter.Description = "Letter of Endorsement - Temporary relationship bonus";
+                letter.Description = "DeliveryObligation of Endorsement - Temporary relationship bonus";
                 letter.HumanContext = "A powerful recommendation from someone important";
                 letter.ConsequenceIfLate = "The endorsement loses its impact";
                 letter.ConsequenceIfDelivered = "Significant temporary boost to standing";
@@ -349,7 +349,6 @@ public class LetterGenerationService
 
             default:
                 // Regular letter as fallback
-                letter.SpecialType = LetterSpecialType.None;
                 letter.TokenType = ConnectionType.Trust;
                 letter.SenderName = "Local Resident";
                 letter.RecipientName = "Neighbor";

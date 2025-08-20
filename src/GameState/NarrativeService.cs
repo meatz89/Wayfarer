@@ -132,7 +132,7 @@ public class NarrativeService
         string letterCount;
         string severity = "info";
 
-        // Letter count narrative
+        // DeliveryObligation count narrative
         if (lettersGenerated > 0)
         {
             letterCount = $"{lettersGenerated} new letter{(lettersGenerated > 1 ? "s have" : " has")} arrived at the posting board.";
@@ -154,7 +154,7 @@ public class NarrativeService
     /// Generate narrative for NPC letter offer
     /// Returns: array of narrative messages with context
     /// </summary>
-    public string[] GenerateNPCLetterOfferNarrative(NPC npc, Letter offer, TimeBlocks currentTime, int npcTokens)
+    public string[] GenerateNPCLetterOfferNarrative(NPC npc, DeliveryObligation offer, TimeBlocks currentTime, int npcTokens)
     {
         List<string> messages = new List<string>();
         string timeNarrative = GetTimeNarrative(currentTime);
@@ -218,7 +218,7 @@ public class NarrativeService
     /// Generate narrative for letter deadline warnings
     /// Returns: (message, severity)
     /// </summary>
-    public (string message, string severity) GenerateDeadlineWarning(Letter letter, int daysRemaining)
+    public (string message, string severity) GenerateDeadlineWarning(DeliveryObligation letter, int daysRemaining)
     {
         string urgency = daysRemaining switch
         {
@@ -229,30 +229,11 @@ public class NarrativeService
         };
 
         string severity = daysRemaining <= 1 ? "warning" : "info";
-        string message = $"⏰ Letter from {letter.SenderName} {urgency}!";
+        string message = $"⏰ DeliveryObligation from {letter.SenderName} {urgency}!";
 
         return (message, severity);
     }
 
-    /// <summary>
-    /// Generate narrative for letter chain generation
-    /// Returns: (chain narrative, chain info)
-    /// </summary>
-    public (string narrative, string info) GenerateLetterChainNarrative(Letter parentLetter, Letter chainLetter)
-    {
-        string[] chainNarratives = new[]
-            {
-                $"{parentLetter.RecipientName} was so pleased they immediately penned a reply.",
-                $"Your successful delivery sparked a chain of correspondence.",
-                $"{parentLetter.RecipientName} has urgent follow-up business.",
-                $"Word of your reliability has generated new opportunities."
-            };
-
-        string narrative = chainNarratives[_random.Next(chainNarratives.Length)];
-        string info = $"📬 Chain letter: {chainLetter.SenderName} → {chainLetter.RecipientName}";
-
-        return (narrative, info);
-    }
 
     /// <summary>
     /// Generate narrative for network unlock (NPC introduction)
@@ -351,7 +332,7 @@ public class NarrativeService
     /// <summary>
     /// Generate queue position narrative when letters enter at different positions
     /// </summary>
-    public string GenerateQueueEntryNarrative(Letter letter, int position)
+    public string GenerateQueueEntryNarrative(DeliveryObligation letter, int position)
     {
         if (position <= 3)
         {
@@ -363,7 +344,7 @@ public class NarrativeService
         }
         else
         {
-            return $"📨 Letter queued at position {position}.";
+            return $"📨 DeliveryObligation queued at position {position}.";
         }
     }
 
@@ -475,7 +456,7 @@ public class NarrativeService
     /// <summary>
     /// Generate narrative for forced letter generation
     /// </summary>
-    public string GenerateForcedLetterNarrative(StandingObligation obligation, Letter letter)
+    public string GenerateForcedLetterNarrative(StandingObligation obligation, DeliveryObligation letter)
     {
         Dictionary<string, string[]> forcedNarratives = new Dictionary<string, string[]>
             {

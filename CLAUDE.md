@@ -1,28 +1,32 @@
 * CLAUDE.md
 
-**🚨🚨🚨 CRITICAL: NEVER CLAIM ANYTHING IS FIXED WITHOUT VERIFICATION 🚨🚨🚨**
+**⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
+
+**🚨 CRITICAL RULE: NEVER MARK ANYTHING AS COMPLETE WITHOUT TESTING 🚨**
 **ALWAYS CHECK BEFORE CLAIMING SUCCESS. TAKE SCREENSHOTS. VERIFY THE ACTUAL RESULT.**
 **DO NOT LIE OR MAKE FALSE CLAIMS. IF YOU HAVEN'T VERIFIED, SAY "LET ME CHECK" NOT "IT'S FIXED"**
-
-**📋 IMPLEMENTATION PLAN: READ IMPLEMENTATION-PLAN.MD FOR COMPLETE ROADMAP**
-**This file provides the comprehensive implementation plan for all 88 user stories across 15 epics.**
-
-**⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
+- You MUST clean build and run manual playwright tests before claiming completion
+- You MUST verify the code works before saying "done" or "complete"
+- NEVER assume code works - ALWAYS TEST
+- If you haven't run `dotnet build`, IT'S NOT COMPLETE
+- Saying something is "complete" without testing is UNACCEPTABLE
 
 **⚠️ MANDATORY: READ ALL MARKDOWN FILES IN /DOCS FOLDER FULLY ⚠️**
 
-**CRITICAL DIRECTIVE: Before implementing ANY change to Wayfarer, you MUST debate all agents with the proposed change.**
-This includes:
-- New mechanics
-- Modified systems
-- UI changes 
-- Content structures 
-- Rule adjustments 
-- Feature additions 
-- Feature removals
-No exceptions. Even "small" changes must be reviewed by all specialized personas.
-
 **🚨 USE PLAYWRIGHT TO TEST THE GAME IN CHROME 🚨**
+**🧪 TESTING PRINCIPLE: ALWAYS USE PLAYWRIGHT FOR E2E TESTS 🧪**
+**NEVER create test API endpoints. Use Playwright browser automation for all testing.**
+**Test the actual UI experience that players will see, not backend endpoints.**
+**IMPORTANT: Server port is configured in Properties/launchSettings.json**
+
+**🚨🚨🚨 CRITICAL: NEVER ASSUME - ASK QUESTIONS FIRST 🚨🚨🚨**
+- BEFORE implementing any feature, ASK: "What are the ACTUAL values of the data I'm working with?"
+- BEFORE assuming properties are set correctly, ASK: "Where are these values actually assigned?"
+- BEFORE implementing UI changes, ASK: "What is the ACTUAL data flow from backend to frontend?"
+- BEFORE claiming something works, ASK: "Have I actually VERIFIED this with real data?"
+- STOP GOING IN CIRCLES: If something doesn't work as expected, INVESTIGATE THE ACTUAL DATA
+- LOOK AT THE FULL PICTURE: Examine the complete system, not just the piece you're working on
+- THINK FIRST: Before writing code, understand WHY the current approach isn't working
 
 **🚨 MANDATORY: ANALYZE BEFORE ANY CHANGE 🚨**
 - You MUST ALWAYS proactively DEBATE WITH EVERY ONE of my specialized agents for EVERY CHANGE
@@ -36,36 +40,18 @@ No exceptions. Even "small" changes must be reviewed by all specialized personas
 - ALWAYS check if a file exist before creating it
 - **ALWAYS understand the full context before writing ANY code**
 
-**🚨🚨🚨 CRITICAL: NEVER ASSUME - ASK QUESTIONS FIRST 🚨🚨🚨**
-- BEFORE implementing any feature, ASK: "What are the ACTUAL values of the data I'm working with?"
-- BEFORE assuming properties are set correctly, ASK: "Where are these values actually assigned?"
-- BEFORE implementing UI changes, ASK: "What is the ACTUAL data flow from backend to frontend?"
-- BEFORE claiming something works, ASK: "Have I actually VERIFIED this with real data?"
-- STOP GOING IN CIRCLES: If something doesn't work as expected, INVESTIGATE THE ACTUAL DATA
-- LOOK AT THE FULL PICTURE: Examine the complete system, not just the piece you're working on
-- THINK FIRST: Before writing code, understand WHY the current approach isn't working
-
-**🚨 CRITICAL RULE: NEVER MARK ANYTHING AS COMPLETE WITHOUT TESTING 🚨**
-- You MUST build and run tests before claiming completion
-- You MUST verify the code works before saying "done" or "complete"
-- NEVER assume code works - ALWAYS TEST
-- If you haven't run `dotnet build` and the E2E test, IT'S NOT COMPLETE
-- Saying something is "complete" without testing is UNACCEPTABLE
+**🚨 HIGHLANDER PRINCIPLE: THERE CAN BE ONLY ONE 🚨**
+- NEVER have duplicate enums, classes, or concepts for the same thing. If you find EmotionalState and NPCEmotionalState, DELETE ONE. If you find two ways to track the same state, DELETE ONE. No mapping, no conversion, no compatibility layers. ONE source of truth, ONE enum, ONE class per concept.
 
 **⚠️ CRITICAL: ALWAYS READ ALL FILES FULLY BEFORE MODIFYING IT ⚠️**
 **NEVER make changes to a file without reading it completely first. This is non-negotiable.**
 **DOUBLE-CHECK core architectural components (navigation, routing, service registration) - analyze ALL related files and dependencies before making ANY changes to avoid breaking the application architecture.**
 
-**🧪 TESTING PRINCIPLE: ALWAYS USE PLAYWRIGHT FOR E2E TESTS 🧪**
-**NEVER create test API endpoints. Use Playwright browser automation for all testing.**
-**Test the actual UI experience that players will see, not backend endpoints.**
-**IMPORTANT: Server port is configured in Properties/launchSettings.json - set to 5099**
-
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 *** PRIME PRINCIPLES ***
-- # ALWAYS act like you are "The Gordon Ramsay of Software Engineering"
-- **HIGHLANDER PRINCIPLE: THERE CAN BE ONLY ONE** - NEVER have duplicate enums, classes, or concepts for the same thing. If you find EmotionalState and NPCEmotionalState, DELETE ONE. If you find two ways to track the same state, DELETE ONE. No mapping, no conversion, no compatibility layers. ONE source of truth, ONE enum, ONE class per concept.
+- ALWAYS act like you are "The Gordon Ramsay of Software Engineering"
+- Before implementing ANY change to Wayfarer, you MUST debate all agents with the proposed change.
 - **BE OBJECTIVE** - You are too agreeable by default. I want you objective. I want a partner. Not a sycophant.
 - **NEVER ASSUME** - Check the documentation and codebase and ask the user for clarification
 - **RENAME AND RECONTEXTUALIZE** - Don't wrap new functionality in old classes, rename them to reflect new purpose
@@ -138,120 +124,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Key Principle**: The game should have very few special rules. When you find yourself wanting to add special cases or unique behaviors, this indicates a need to enrich the existing systems rather than adding exceptions.
 
-**Examples of the Wrong Approach:**
-- ❌ "Patron letters always go to position 1" - Special rule
-- ❌ "Noble letters can't be refused" - Special exception
-- ❌ "Shadow NPCs offer illegal work when player is desperate" - Conditional special case
-
-**The Right Approach - Categorical Mechanics:**
-- ✅ Create a "Leverage" system where debt affects ALL letter positions
-- ✅ Add "Obligation" mechanics that modify ALL queue behaviors
-- ✅ Use "Desperation" as a player state that affects ALL NPC interactions
-
-**Design Process:**
-1. **Identify the special case** - "I want patron letters to be high priority"
-2. **Ask why** - "Because the patron has power over the player"
-3. **Generalize the concept** - "Power dynamics affect letter priority"
-4. **Create categorical system** - "Leverage system: debt creates priority for ALL NPCs"
-5. **Special case becomes regular case** - "Patron starts with high leverage due to employment debt"
-
-**Benefits:**
-- Emergent gameplay from system interactions
-- Players discover strategies rather than memorizing exceptions
-- Code remains clean and general
-- New content automatically inherits system behaviors
-
 **📝 JSON VALIDATION BEST PRACTICES**
 - **Always use case-insensitive property matching** - JSON files use camelCase while C# DTOs use PascalCase
 - **Inherit from BaseValidator** - Provides TryGetPropertyCaseInsensitive helper method for robust validation
 - **Test validators with actual JSON** - Don't assume field names match between JSON and DTOs
 
-**🚂 TRAVEL SYSTEM DESIGN: See TRAVEL-SYSTEM-DESIGN.md**
-- Routes are progression mechanics like "80 Days"
-- Travel permits are special letters delivered to Transport NPCs
-- Transport NPCs at departure locations operate specific routes
-- Letters are delivered through conversation options with recipient NPCs
-
-
-## Key Design Insights from Initial Game Design Conversation
-
-**Core Game Concept:**
-- Medieval letter carrier simulation exploring social obligations
-- Focuses on managing impossible delivery deadlines
-- Emphasizes relationships over traditional RPG progression
-- No magic, no world-saving narrative
-- Survival through navigating social networks
-
-**Design Philosophy Highlights:**
-- Elegance over complexity
-- Strong verisimilitude throughout
-- Systems that reinforce social obligation fantasy
-- No arbitrary mechanics
-- Information and relationships as primary gameplay mechanics
-
-**Core Mechanical Innovations:**
-- Multi-context token system (Trust, Commerce, Status, Shadow, Shadow)
-- Isolated relationship tracking per context
-- Time as universal pressure
-- Tiered access system (routes, actions, information)
-- Information discovery as core progression mechanic
-
-**Design Principles:**
-- No special rules or exceptions
-- Emergent gameplay through system interactions
-- Every system touches every other system
-- Player choices create narrative through systemic pressures
-
-**Tone and Scope:**
-- Ordinary medieval life simulation
-- Focus on daily survival and social navigation
-- Finding human connection amid complex obligations
-- Inspired by slice-of-life narratives in challenging environments
-- 
-## What We're Building (Locked Scope)
-
-**Core Game Loop:**
-- Wake up with more letters than you can deliver
-- Only deliver from queue position 1
-- Travel costs time, NPCs have schedules
-- Missing deadlines has permanent consequences
-- Manage queue through conversations
-- Face mounting pressure each day
-
-**Exact Systems (No Additions):**
-- **3 Verbs**: HELP, NEGOTIATE, INVESTIGATE
-- **3 Tokens**: Trust, Commerce, Status, Shadow (no Shadow)
-- **8-Slot Queue**: Weight system, position-based delivery
-- **16 Active Hours**: 6 AM to 10 PM gameplay
-- **5 NPCs**: Each with schedules and emotional states
-- **5 Locations**: With specific travel times
-
-**What Creates Tension:**
-- More letters than time (core pressure)
-- Queue position restrictions
-- NPC availability windows
-- Cascading consequences for failures
-- Token debt creating obligations
-
-**UI Requirements (Exact):**
-- Queue always visible with weight/deadline indicators
-- Max 5 conversation choices
-- Attention points (3 per conversation)
-- Clear consequence previews
-- Time and deadline displays
-
-**We Are NOT Building:**
-- AI narrative generation
-- Procedural content
-- Complex branching stories
-- Magic or fantasy elements
-- RPG progression systems
-- Anything not
-
 **Principles and Memories:**
 - ALWAYS read the full file before editing
-- NEVER add features not in the implementation plan
-- NEVER change core mechanics from the plan
-- Build EXACTLY what's specified, test it, ship it
 - game mechanical values, that could be changed during balancing, should be read from GameRules configuration file.
 - avoid defensive programming like checking for null values, try catch blocks, throwing exceptions, using defaults or fallback values and so on. this increases complexity of the code and hides errors. just let it fail and let the program crash fast

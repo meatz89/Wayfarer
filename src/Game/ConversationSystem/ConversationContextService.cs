@@ -6,14 +6,14 @@ using System.Linq;
 /// Service that generates rich, contextual conversations for letter deliveries.
 /// Provides multiple meaningful choices based on letter content, timing, relationships, and circumstances.
 /// </summary>
-public class DeliveryConversationService
+public class ConversationContextService
 {
     private readonly GameWorld _gameWorld;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly StandingObligationManager _obligationManager;
     private readonly Random _random;
 
-    public DeliveryConversationService(
+    public ConversationContextService(
         GameWorld gameWorld,
         TokenMechanicsManager tokenManager,
         StandingObligationManager obligationManager)
@@ -24,15 +24,11 @@ public class DeliveryConversationService
         _random = new Random();
     }
 
-    public DeliveryConversationContext AnalyzeDeliveryContext(Letter letter, NPC recipient)
+    public DeliveryConversationContext AnalyzeDeliveryContext(DeliveryObligation letter, NPC recipient)
     {
         Player player = _gameWorld.GetPlayer();
         bool isLate = letter.DaysInQueue > 3;
         bool isVeryLate = letter.DaysInQueue > 5;
-        bool isFragile = letter.HasPhysicalProperty(LetterPhysicalProperties.Fragile);
-        bool isValuable = letter.HasPhysicalProperty(LetterPhysicalProperties.Valuable);
-        bool isConfidential = letter.HasPhysicalProperty(LetterPhysicalProperties.RequiresProtection);
-        bool isChainLetter = letter.IsChainLetter;
 
         // Analyze relationship - get tokens for the recipient's token types
         int recipientTokens = 0;
@@ -51,14 +47,10 @@ public class DeliveryConversationService
 
         return new DeliveryConversationContext
         {
-            Letter = letter,
+            DeliveryObligation = letter,
             Recipient = recipient,
             IsLate = isLate,
             IsVeryLate = isVeryLate,
-            IsFragile = isFragile,
-            IsValuable = isValuable,
-            IsConfidential = isConfidential,
-            IsChainLetter = isChainLetter,
             HasStrongRelationship = hasStrongRelationship,
             HasWeakRelationship = hasWeakRelationship,
             PlayerIsDesperate = playerIsDesperate,
@@ -89,24 +81,7 @@ public class DeliveryConversationService
             choices.Add(CreateHonestDeliveryChoice(context, choiceId++));
         }
 
-        if (context.IsFragile)
-        {
-            choices.Add(CreateCarefulDeliveryChoice(context, choiceId++));
-        }
-
-        if (context.IsValuable && context.HasStrongRelationship)
-        {
-            choices.Add(CreateDiscreetDeliveryChoice(context, choiceId++));
-        }
-
-        if (context.IsConfidential)
-        {
-            choices.Add(CreatePrivateDeliveryChoice(context, choiceId++));
-            if (context.HasWeakRelationship)
-            {
-                choices.Add(CreateGossipDeliveryChoice(context, choiceId++));
-            }
-        }
+        // Physical properties (fragile, valuable, confidential) don't apply to obligations
 
         if (context.PlayerIsDesperate && !context.RecipientIsPatron)
         {
@@ -118,10 +93,7 @@ public class DeliveryConversationService
             choices.Add(CreateReportProgressChoice(context, choiceId++));
         }
 
-        // Add chain letter specific choice
-        if (context.IsChainLetter)
         {
-            choices.Add(CreateChainLetterChoice(context, choiceId++));
         }
 
         // Limit choices to prevent overwhelming the player
@@ -139,7 +111,7 @@ public class DeliveryConversationService
 
     private ConversationChoice CreateStandardDeliveryChoice(DeliveryConversationContext context, int id)
     {
-        Letter letter = context.Letter;
+        DeliveryObligation letter = context.DeliveryObligation;
         ConnectionType tokenType = context.Recipient.LetterTokenTypes.FirstOrDefault();
 
         return new ConversationChoice
@@ -163,7 +135,7 @@ public class DeliveryConversationService
 
     private ConversationChoice CreateApologeticDeliveryChoice(DeliveryConversationContext context, int id)
     {
-        Letter letter = context.Letter;
+        DeliveryObligation letter = context.DeliveryObligation;
         ConnectionType tokenType = context.Recipient.LetterTokenTypes.FirstOrDefault();
 
         return new ConversationChoice
@@ -188,7 +160,7 @@ public class DeliveryConversationService
 
     private ConversationChoice CreateExcuseDeliveryChoice(DeliveryConversationContext context, int id)
     {
-        Letter letter = context.Letter;
+        DeliveryObligation letter = context.DeliveryObligation;
         return new ConversationChoice
         {
             ChoiceID = id.ToString(),
@@ -209,7 +181,7 @@ public class DeliveryConversationService
 
     private ConversationChoice CreateHonestDeliveryChoice(DeliveryConversationContext context, int id)
     {
-        Letter letter = context.Letter;
+        DeliveryObligation letter = context.DeliveryObligation;
         int penalty = Math.Min(letter.Payment / 2, 5);
         ConnectionType tokenType = context.Recipient.LetterTokenTypes.FirstOrDefault();
 
@@ -235,7 +207,7 @@ public class DeliveryConversationService
 
     private ConversationChoice CreateCarefulDeliveryChoice(DeliveryConversationContext context, int id)
     {
-        Letter letter = context.Letter;
+        DeliveryObligation letter = context.DeliveryObligation;
         ConnectionType tokenType = context.Recipient.LetterTokenTypes.FirstOrDefault();
 
         return new ConversationChoice
@@ -260,7 +232,7 @@ public class DeliveryConversationService
 
     private ConversationChoice CreateDiscreetDeliveryChoice(DeliveryConversationContext context, int id)
     {
-        Letter letter = context.Letter;
+        DeliveryObligation letter = context.DeliveryObligation;
         ConnectionType tokenType = context.Recipient.LetterTokenTypes.FirstOrDefault();
 
         return new ConversationChoice
@@ -285,7 +257,7 @@ public class DeliveryConversationService
 
     private ConversationChoice CreatePrivateDeliveryChoice(DeliveryConversationContext context, int id)
     {
-        Letter letter = context.Letter;
+        DeliveryObligation letter = context.DeliveryObligation;
         ConnectionType tokenType = context.Recipient.LetterTokenTypes.FirstOrDefault();
 
         return new ConversationChoice
@@ -310,7 +282,7 @@ public class DeliveryConversationService
 
     private ConversationChoice CreateGossipDeliveryChoice(DeliveryConversationContext context, int id)
     {
-        Letter letter = context.Letter;
+        DeliveryObligation letter = context.DeliveryObligation;
         ConnectionType tokenType = context.Recipient.LetterTokenTypes.FirstOrDefault();
 
         return new ConversationChoice
@@ -336,7 +308,7 @@ public class DeliveryConversationService
 
     private ConversationChoice CreateBegForTipChoice(DeliveryConversationContext context, int id)
     {
-        Letter letter = context.Letter;
+        DeliveryObligation letter = context.DeliveryObligation;
         double tipChance = context.HasStrongRelationship ? 0.7 : 0.3;
         ConnectionType tokenType = context.Recipient.LetterTokenTypes.FirstOrDefault();
 
@@ -364,7 +336,7 @@ public class DeliveryConversationService
 
     private ConversationChoice CreateReportProgressChoice(DeliveryConversationContext context, int id)
     {
-        Letter letter = context.Letter;
+        DeliveryObligation letter = context.DeliveryObligation;
         ConnectionType tokenType = context.Recipient.LetterTokenTypes.FirstOrDefault();
 
         return new ConversationChoice
@@ -387,44 +359,14 @@ public class DeliveryConversationService
             }
         };
     }
-
-    private ConversationChoice CreateChainLetterChoice(DeliveryConversationContext context, int id)
-    {
-        Letter letter = context.Letter;
-        ConnectionType tokenType = context.Recipient.LetterTokenTypes.FirstOrDefault();
-
-        return new ConversationChoice
-        {
-            ChoiceID = id.ToString(),
-            NarrativeText = $"Explain chain letter opportunity ({letter.Payment} coins + unlock chain)",
-            PatienceCost = 1,
-            IsAffordable = true,
-            TemplatePurpose = "Unlock chain letter sequence",
-            Priority = 2,
-            DeliveryOutcome = new DeliveryOutcome
-            {
-                BasePayment = letter.Payment,
-                BonusPayment = 0,
-                TokenReward = true,
-                TokenType = tokenType,
-                TokenAmount = 1,
-                UnlocksChainLetters = true,
-                AdditionalEffect = "Unlocks follow-up chain letters"
-            }
-        };
-    }
 }
 
 public class DeliveryConversationContext
 {
-    public Letter Letter { get; set; }
+    public DeliveryObligation DeliveryObligation { get; set; }
     public NPC Recipient { get; set; }
     public bool IsLate { get; set; }
     public bool IsVeryLate { get; set; }
-    public bool IsFragile { get; set; }
-    public bool IsValuable { get; set; }
-    public bool IsConfidential { get; set; }
-    public bool IsChainLetter { get; set; }
     public bool HasStrongRelationship { get; set; }
     public bool HasWeakRelationship { get; set; }
     public bool PlayerIsDesperate { get; set; }
@@ -442,8 +384,7 @@ public class DeliveryOutcome
     public bool TokenPenalty { get; set; }
     public ConnectionType TokenType { get; set; }
     public int TokenAmount { get; set; }
-    public bool GeneratesReturnLetter { get; set; }
-    public bool UnlocksChainLetters { get; set; }
+    public bool GeneratesReturnDeliveryObligation { get; set; }
     public double ChanceForTip { get; set; }
     public int TipAmount { get; set; }
     public int ReducesLeverage { get; set; }

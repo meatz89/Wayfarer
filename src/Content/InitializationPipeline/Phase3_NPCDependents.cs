@@ -5,7 +5,7 @@ using System.Linq;
 
 /// <summary>
 /// Phase 3: Load entities that depend on NPCs and locations being loaded.
-/// This includes: Routes, Letter Templates
+/// This includes: Routes, DeliveryObligation Templates
 /// </summary>
 public class Phase3_NPCDependents : IInitializationPhase
 {
@@ -18,7 +18,7 @@ public class Phase3_NPCDependents : IInitializationPhase
         // 1. Load Routes (depends on Locations)
         LoadRoutes(context);
 
-        // 2. Load Letter Templates (depends on NPCs for validation)
+        // 2. Load DeliveryObligation Templates (depends on NPCs for validation)
         LoadLetterTemplates(context);
     }
 
@@ -231,8 +231,8 @@ public class Phase3_NPCDependents : IInitializationPhase
                         Id = dto.Id,
                         Description = dto.Description ?? $"A {tokenType} letter",
                         TokenType = tokenType,
-                        MinDeadlineInHours = dto.MinDeadlineInHours,
-                        MaxDeadlineInHours = dto.MaxDeadlineInHours,
+                        MinDeadlineInMinutes = dto.MinDeadlineInMinutes,
+                        MaxDeadlineInMinutes = dto.MaxDeadlineInMinutes,
                         MinPayment = dto.MinPayment,
                         MaxPayment = dto.MaxPayment,
                         Category = category,
@@ -241,7 +241,6 @@ public class Phase3_NPCDependents : IInitializationPhase
                         PossibleSenders = dto.PossibleSenders?.ToArray() ?? new string[0],
                         PossibleRecipients = dto.PossibleRecipients?.ToArray() ?? new string[0],
                         UnlocksLetterIds = dto.UnlocksLetterIds?.ToArray() ?? new string[0],
-                        IsChainLetter = dto.IsChainLetter,
                         TierLevel = tierLevel,
                         HumanContext = dto.HumanContext ?? "",
                         ConsequenceIfLate = dto.ConsequenceIfLate ?? "",
@@ -265,7 +264,7 @@ public class Phase3_NPCDependents : IInitializationPhase
         {
             foreach (ValidationError error in ex.Errors)
             {
-                context.Warnings.Add($"Letter template validation: {error.Message}");
+                context.Warnings.Add($"DeliveryObligation template validation: {error.Message}");
             }
             CreateBasicLetterTemplates(context);
         }
@@ -298,8 +297,8 @@ public class Phase3_NPCDependents : IInitializationPhase
                 TokenType = tokenType,
                 MinPayment = 2,
                 MaxPayment = 8,
-                MinDeadlineInHours = 24,
-                MaxDeadlineInHours = 72,
+                MinDeadlineInMinutes = 1440, // 24 hours in minutes
+                MaxDeadlineInMinutes = 4320, // 72 hours in minutes
                 Size = SizeCategory.Small,
                 Category = LetterCategory.Basic,
                 MinTokensRequired = 1

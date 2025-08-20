@@ -4,12 +4,12 @@ public class StandingObligationManager
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
-    private readonly LetterTemplateRepository _letterTemplateRepository;
+    private readonly DeliveryTemplateService _letterTemplateRepository;
     private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly StandingObligationRepository _obligationRepository;
     private readonly ITimeManager _timeManager;
 
-    public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, LetterTemplateRepository letterTemplateRepository, TokenMechanicsManager connectionTokenManager, StandingObligationRepository obligationRepository, ITimeManager timeManager)
+    public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, DeliveryTemplateService letterTemplateRepository, TokenMechanicsManager connectionTokenManager, StandingObligationRepository obligationRepository, ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -130,14 +130,14 @@ public class StandingObligationManager
     }
 
     // Process daily obligations and return any forced letters generated
-    public List<Letter> ProcessDailyObligations(int currentDay)
+    public List<DeliveryObligation> ProcessDailyObligations(int currentDay)
     {
-        List<Letter> forcedLetters = new List<Letter>();
+        List<DeliveryObligation> forcedLetters = new List<DeliveryObligation>();
         List<StandingObligation> obligationsNeedingLetters = GetObligationsRequiringForcedLetters();
 
         foreach (StandingObligation obligation in obligationsNeedingLetters)
         {
-            Letter letter = GenerateForcedLetter(obligation);
+            DeliveryObligation letter = GenerateForcedLetter(obligation);
             if (letter != null)
             {
                 forcedLetters.Add(letter);
@@ -154,7 +154,7 @@ public class StandingObligationManager
     }
 
     // Generate a forced letter for a specific obligation
-    public Letter GenerateForcedLetter(StandingObligation obligation)
+    public DeliveryObligation GenerateForcedLetter(StandingObligation obligation)
     {
         if (obligation.HasEffect(ObligationEffect.ShadowForced))
         {
@@ -170,7 +170,7 @@ public class StandingObligationManager
     }
 
     // Generate shadow obligation forced letter using templates
-    private Letter GenerateShadowForcedLetter()
+    private DeliveryObligation GenerateShadowForcedLetter()
     {
         LetterTemplate template = _letterTemplateRepository.GetRandomForcedShadowTemplate();
         if (template != null)
@@ -189,14 +189,14 @@ public class StandingObligationManager
             RecipientName = shadowRecipients[random.Next(shadowRecipients.Length)],
             TokenType = ConnectionType.Shadow,
             Payment = random.Next(20, 40), // High base payment for dangerous work
-            DeadlineInHours = random.Next(1, 4), // Urgent deadlines
+            DeadlineInMinutes = random.Next(1, 4), // Urgent deadlines
             IsGenerated = true,
             GenerationReason = "Shadow Obligation Forced (Fallback)"
         };
     }
 
     // Generate patron monthly resource letter using templates
-    private Letter GeneratePatronMonthlyLetter()
+    private DeliveryObligation GeneratePatronMonthlyLetter()
     {
         LetterTemplate template = _letterTemplateRepository.GetRandomForcedPatronTemplate();
         if (template != null)
@@ -213,7 +213,7 @@ public class StandingObligationManager
             RecipientName = "Resources Contact",
             TokenType = ConnectionType.Status, // Patron letters usually noble
             Payment = random.Next(50, 100), // Large resource package
-            DeadlineInHours = random.Next(3, 7), // Reasonable deadline
+            DeadlineInMinutes = random.Next(3, 7), // Reasonable deadline
             IsGenerated = true,
             GenerationReason = "Patron Monthly Package (Fallback)"
         };
@@ -240,7 +240,7 @@ public class StandingObligationManager
     }
 
     // Calculate total coin bonus for a letter delivery
-    public int CalculateTotalCoinBonus(Letter letter)
+    public int CalculateTotalCoinBonus(DeliveryObligation letter)
     {
         int totalBonus = 0;
         List<StandingObligation> activeObligations = GetActiveObligations();
@@ -266,7 +266,7 @@ public class StandingObligationManager
     }
 
     // Calculate the best entry position for a new letter
-    public int CalculateBestEntryPosition(Letter letter, int basePosition)
+    public int CalculateBestEntryPosition(DeliveryObligation letter, int basePosition)
     {
         int bestPosition = basePosition;
         List<StandingObligation> activeObligations = GetActiveObligations();
@@ -281,7 +281,7 @@ public class StandingObligationManager
     }
 
     // Apply leverage modifiers from standing obligations
-    public int ApplyLeverageModifiers(Letter letter, int currentPosition)
+    public int ApplyLeverageModifiers(DeliveryObligation letter, int currentPosition)
     {
         List<StandingObligation> activeObligations = GetActiveObligations();
         int modifiedPosition = currentPosition;
@@ -295,7 +295,7 @@ public class StandingObligationManager
     }
 
     // Apply leverage modifier from a single obligation
-    private int ApplySingleObligationLeverage(StandingObligation obligation, Letter letter, int currentPosition)
+    private int ApplySingleObligationLeverage(StandingObligation obligation, DeliveryObligation letter, int currentPosition)
     {
         if (obligation.HasEffect(ObligationEffect.ShadowEqualsStatus))
         {
@@ -321,7 +321,7 @@ public class StandingObligationManager
     }
 
     // Apply shadow equals status leverage effect
-    private int ApplyShadowStatusEffect(Letter letter, int currentPosition)
+    private int ApplyShadowStatusEffect(DeliveryObligation letter, int currentPosition)
     {
         if (letter.TokenType == ConnectionType.Shadow)
         {
@@ -332,7 +332,7 @@ public class StandingObligationManager
 
 
     // Apply debt spiral effect - all negative positions get extra leverage
-    private int ApplyDebtSpiralEffect(Letter letter, int currentPosition)
+    private int ApplyDebtSpiralEffect(DeliveryObligation letter, int currentPosition)
     {
         string senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId))
@@ -348,7 +348,7 @@ public class StandingObligationManager
     }
 
     // Apply merchant respect effect - trade letters with 5+ tokens get less leverage
-    private int ApplyMerchantRespectEffect(Letter letter, int currentPosition)
+    private int ApplyMerchantRespectEffect(DeliveryObligation letter, int currentPosition)
     {
         if (letter.TokenType != ConnectionType.Commerce)
             return currentPosition;
@@ -367,7 +367,7 @@ public class StandingObligationManager
     }
 
     // Apply dynamic leverage effect - scales with token count
-    private int ApplyDynamicLeverageEffect(StandingObligation obligation, Letter letter, int currentPosition)
+    private int ApplyDynamicLeverageEffect(StandingObligation obligation, DeliveryObligation letter, int currentPosition)
     {
         string senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId))
@@ -386,14 +386,14 @@ public class StandingObligationManager
     }
 
     // Check if any obligation provides free deadline extension
-    public bool HasFreeDeadlineExtension(Letter letter)
+    public bool HasFreeDeadlineExtension(DeliveryObligation letter)
     {
         return GetActiveObligations()
             .Any(o => o.IsFreeDeadlineExtension(letter));
     }
 
     // Calculate total skip cost multiplier
-    public int CalculateSkipCostMultiplier(Letter letter)
+    public int CalculateSkipCostMultiplier(DeliveryObligation letter)
     {
         int maxMultiplier = 1;
         List<StandingObligation> activeObligations = GetActiveObligations();
@@ -408,7 +408,7 @@ public class StandingObligationManager
     }
 
     // Check if any obligation forbids an action
-    public bool IsActionForbidden(string actionType, Letter letter, out string reason)
+    public bool IsActionForbidden(string actionType, DeliveryObligation letter, out string reason)
     {
         reason = "";
         List<StandingObligation> activeObligations = GetActiveObligations();
@@ -512,7 +512,7 @@ public class StandingObligationManager
     }
 
     // Get the relevant token count for a letter-based calculation
-    private int GetRelevantTokenCountForLetter(StandingObligation obligation, Letter letter, string senderId)
+    private int GetRelevantTokenCountForLetter(StandingObligation obligation, DeliveryObligation letter, string senderId)
     {
         // If obligation is NPC-specific, only apply if letter is from that NPC
         if (!string.IsNullOrEmpty(obligation.RelatedNPCId) && obligation.RelatedNPCId != senderId)
@@ -550,7 +550,7 @@ public class StandingObligationManager
             IsActive = true,
             WasAutoActivated = true,
             DaysSinceAccepted = 0,
-            DaysSinceLastForcedLetter = 0
+            DaysSinceLastForcedDeliveryObligation = 0
         };
 
         Player player = _gameWorld.GetPlayer();
@@ -808,7 +808,7 @@ public class StandingObligationManager
 
 
     // Apply dynamic deadline bonuses from obligations
-    public void ApplyDynamicDeadlineBonuses(Letter letter)
+    public void ApplyDynamicDeadlineBonuses(DeliveryObligation letter)
     {
         List<StandingObligation> activeObligations = GetActiveObligations();
 
@@ -824,7 +824,7 @@ public class StandingObligationManager
 
                     if (deadlineBonus > 0)
                     {
-                        letter.DeadlineInHours += deadlineBonus;
+                        letter.DeadlineInMinutes += deadlineBonus;
                         _messageSystem.AddSystemMessage(
                             $"📅 {obligation.Name} grants +{deadlineBonus} days deadline (scaled by {tokenCount} tokens)",
                             SystemMessageTypes.Info

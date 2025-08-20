@@ -73,7 +73,7 @@ public static class GameConstants
     }
 
     /// <summary>
-    /// Letter queue position constants
+    /// DeliveryObligation queue position constants
     /// </summary>
     public static class LetterQueue
     {

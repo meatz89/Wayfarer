@@ -5,31 +5,31 @@
 public enum LetterPositioningReason
 {
     /// <summary>
-    /// Letter positioned due to active standing obligation with sender
+    /// DeliveryObligation positioned due to active standing obligation with sender
     /// Priority: Highest (position 1)
     /// </summary>
     Obligation,
 
     /// <summary>
-    /// Letter positioned due to Commerce debt >= 3 tokens
+    /// DeliveryObligation positioned due to Commerce debt >= 3 tokens
     /// Priority: Very High (position 2)
     /// </summary>
     CommerceDebt,
 
     /// <summary>
-    /// Letter positioned due to negative token balance (debt)
+    /// DeliveryObligation positioned due to negative token balance (debt)
     /// Priority: Low (pushed down by debt penalty)
     /// </summary>
     PoorStanding,
 
     /// <summary>
-    /// Letter positioned due to positive token balance 
+    /// DeliveryObligation positioned due to positive token balance 
     /// Priority: High (moved up by relationship strength)
     /// </summary>
     GoodStanding,
 
     /// <summary>
-    /// Letter positioned at default location (no significant relationship)
+    /// DeliveryObligation positioned at default location (no significant relationship)
     /// Priority: Normal (position 8 base)
     /// </summary>
     Neutral

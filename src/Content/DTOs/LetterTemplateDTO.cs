@@ -9,12 +9,12 @@ public class LetterTemplateDTO
     public string Id { get; set; }
     public string Description { get; set; }
     public string TokenType { get; set; }
-    public int MinDeadlineInHours { get; set; }
-    public int MaxDeadlineInHours { get; set; }
+    public int MinDeadlineInMinutes { get; set; }
+    public int MaxDeadlineInMinutes { get; set; }
     public int MinPayment { get; set; }
     public int MaxPayment { get; set; }
 
-    // Letter category and requirements
+    // DeliveryObligation category and requirements
     public string Category { get; set; } = "Basic";
     public int? MinTokensRequired { get; set; } = 3;
 
@@ -29,9 +29,8 @@ public class LetterTemplateDTO
     public List<string> PossibleSenders { get; set; }
     public List<string> PossibleRecipients { get; set; }
 
-    // Letter chain properties
+    // DeliveryObligation chain properties
     public List<string> UnlocksLetterIds { get; set; }
-    public bool IsChainLetter { get; set; }
 
     // Physical properties
     public string Size { get; set; } = "Medium";

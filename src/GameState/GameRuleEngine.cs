@@ -45,7 +45,7 @@ public class GameRuleEngine : IGameRuleEngine
         return 0;
     }
 
-    public int CalculateLetterPosition(Letter letter, int npcTokenBalance)
+    public int CalculateLetterPosition(DeliveryObligation letter, int npcTokenBalance)
     {
         // Get base position from configuration
         int basePosition = _config.LetterQueue.BasePositions.GetValueOrDefault(
@@ -71,7 +71,7 @@ public class GameRuleEngine : IGameRuleEngine
         return Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, targetPosition));
     }
 
-    public int CalculateSkipCost(int fromPosition, Letter letter)
+    public int CalculateSkipCost(int fromPosition, DeliveryObligation letter)
     {
         int baseCost = (fromPosition - 1) * _config.LetterQueue.SkipCostPerPosition;
 
@@ -79,14 +79,12 @@ public class GameRuleEngine : IGameRuleEngine
         return baseCost;
     }
 
-    public bool CanSkipToPosition(Letter letter, int targetPosition)
+    public bool CanSkipToPosition(DeliveryObligation letter, int targetPosition)
     {
         // Can't skip to an occupied position
-        // Can't skip patron letters (identified by IsFromPatron)
-        // Can't skip obligated letters
+        // Patron system removed - all letters can be skipped based on position rules only
         return targetPosition >= 1 &&
-               targetPosition <= _config.LetterQueue.MaxQueueSize &&
-               !letter.IsFromPatron;
+               targetPosition <= _config.LetterQueue.MaxQueueSize;
     }
 
     // Token economy
@@ -217,7 +215,7 @@ public class GameRuleEngine : IGameRuleEngine
         return 0;
     }
 
-    // Letter payments and deadlines
+    // DeliveryObligation payments and deadlines
     public (int min, int max) GetPaymentRangeForCategory(LetterCategory category)
     {
         return category switch
@@ -229,16 +227,9 @@ public class GameRuleEngine : IGameRuleEngine
         };
     }
 
-    public int CalculateLateDeliveryPenalty(Letter letter, int daysLate)
+    public int CalculateLateDeliveryPenalty(DeliveryObligation letter, int daysLate)
     {
         return daysLate * _config.LetterPayment.LateDeliveryPenaltyPerDay;
-    }
-
-    public int CalculateChainLetterBonus(Letter letter)
-    {
-        if (!letter.IsChainLetter) return 0;
-
-        return (int)(letter.Payment * (_config.QueueManagement.ChainLetterPaymentMultiplier - 1));
     }
 
     // Patron mechanics

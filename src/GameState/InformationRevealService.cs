@@ -39,7 +39,7 @@ public class InformationRevealService
             .Where(l => l.SpecialType == LetterSpecialType.Information && !string.IsNullOrEmpty(l.InformationId))
             .ToList();
 
-        foreach (Letter? letter in carriedInfoLetters)
+        foreach (Letter letter in carriedInfoLetters)
         {
             ProcessInformationLetter(letter);
         }

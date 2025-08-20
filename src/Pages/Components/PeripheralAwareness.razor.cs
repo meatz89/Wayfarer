@@ -30,20 +30,20 @@ public class PeripheralAwarenessBase : ComponentBase
         Player player = GameFacade.GetPlayer();
         if (player == null) return;
 
-        Letter[] letterQueue = player.LetterQueue;
+        Letter[] letterQueue = player.ObligationQueue;
 
         // Get deadline narrative for most urgent letter
-        Letter? urgentLetter = letterQueue
+        Letter? urgentDeliveryObligation = letterQueue
             .Where(l => l != null && l.State == LetterState.Collected)
-            .OrderBy(l => l.DeadlineInHours)
+            .OrderBy(l => l.DeadlineInMinutes)
             .FirstOrDefault();
 
-        if (urgentLetter != null && urgentLetter.DeadlineInHours <= 72) // 3 days = 72 hours
+        if (urgentDeliveryObligation != null && urgentLetter.DeadlineInMinutes <= 72) // 3 days = 72 hours
         {
-            DeadlineNarrative = urgentLetter.DeadlineInHours switch
+            DeadlineNarrative = urgentLetter.DeadlineInMinutes switch
             {
-                <= 6 => $"⚡ {urgentLetter.SenderName}'s letter burns in your satchel - {urgentLetter.DeadlineInHours}h left!",
-                <= 24 => $"⏰ {urgentLetter.SenderName} needs their letter delivered today - {urgentLetter.DeadlineInHours}h",
+                <= 6 => $"⚡ {urgentLetter.SenderName}'s letter burns in your satchel - {urgentLetter.DeadlineInMinutes}h left!",
+                <= 24 => $"⏰ {urgentLetter.SenderName} needs their letter delivered today - {urgentLetter.DeadlineInMinutes}h",
                 <= 48 => $"📬 {urgentLetter.SenderName}'s letter needs attention soon",
                 _ => $"📬 {urgentLetter.SenderName}'s letter weighs on your mind"
             };
@@ -55,9 +55,9 @@ public class PeripheralAwarenessBase : ComponentBase
         {
             QueuePressureNarrative = "Your satchel strains with accumulated correspondence";
         }
-        else if (urgentLetter != null && urgentLetter.DeadlineInHours <= 24) // 1 day = 24 hours
+        else if (urgentDeliveryObligation != null && urgentLetter.DeadlineInMinutes <= 24) // 1 day = 24 hours
         {
-            QueuePressureNarrative = $"⚡ {urgentLetter.SenderName}'s letter burns in your satchel - {urgentLetter.DeadlineInHours}h left!";
+            QueuePressureNarrative = $"⚡ {urgentLetter.SenderName}'s letter burns in your satchel - {urgentLetter.DeadlineInMinutes}h left!";
         }
     }
 }

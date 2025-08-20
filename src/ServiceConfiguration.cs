@@ -54,7 +54,7 @@ public static class ServiceConfiguration
         services.AddSingleton<StandingObligationRepository>();
         services.AddSingleton<RouteDiscoveryRepository>();
         services.AddSingleton<NetworkUnlockRepository>();
-        services.AddSingleton<LetterTemplateRepository>();
+        services.AddSingleton<DeliveryTemplateService>();
 
         // Register content fallback service for resilience
         services.AddSingleton<ContentFallbackService>();
@@ -85,10 +85,10 @@ public static class ServiceConfiguration
         services.AddSingleton<TransportCompatibilityValidator>();
         services.AddSingleton<CollapseManager>();
 
-        // Letter Queue System
+        // DeliveryObligation Queue System
         services.AddSingleton<StandingObligationManager>();
         services.AddSingleton<LetterCategoryService>();
-        services.AddSingleton<DeliveryConversationService>();
+        services.AddSingleton<ConversationContextService>();
 
         // Conversation System
         services.AddSingleton<DeterministicStreamingService>();
@@ -115,7 +115,7 @@ public static class ServiceConfiguration
         services.AddSingleton<Wayfarer.GameState.AmbientDialogueSystem>();
         services.AddSingleton<AtmosphereCalculator>();
 
-        services.AddSingleton<LetterQueueManager>();
+        services.AddSingleton<ObligationQueueManager>();
         services.AddSingleton<EndorsementManager>();
 
         // Transaction and Preview System
@@ -128,10 +128,9 @@ public static class ServiceConfiguration
         services.AddSingleton<SpecialLetterGenerationService>();
         services.AddSingleton<InformationRevealService>();
         services.AddSingleton<NPCLetterOfferService>();
-        services.AddSingleton<PatronLetterService>();
+        // PatronLetterService removed - patron system deleted
         services.AddSingleton<NetworkReferralService>();
         services.AddSingleton<DailyActivitiesManager>();
-        services.AddSingleton<NoticeBoardService>();
 
         // Conversation system components
         // ConversationChoiceGenerator is now created per-conversation in ConversationFactory

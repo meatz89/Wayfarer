@@ -9,13 +9,13 @@ namespace Wayfarer.GameState;
 /// </summary>
 public class QueueDisplacementPlanner
 {
-    private readonly LetterQueueManager _queueManager;
+    private readonly ObligationQueueManager _queueManager;
     private readonly GameConfiguration _config;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
 
     public QueueDisplacementPlanner(
-        LetterQueueManager queueManager,
+        ObligationQueueManager queueManager,
         GameConfiguration config,
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem)
@@ -29,11 +29,11 @@ public class QueueDisplacementPlanner
     /// <summary>
     /// Plans the displacement effects of adding a letter at a specific position
     /// </summary>
-    public DisplacementPlan PlanLetterAddition(Letter newLetter, int targetPosition)
+    public DisplacementPlan PlanLetterAddition(DeliveryObligation newLetter, int targetPosition)
     {
         DisplacementPlan plan = new DisplacementPlan
         {
-            NewLetter = newLetter,
+            NewDeliveryObligation = newLetter,
             TargetPosition = targetPosition,
             ActionType = DisplacementActionType.AddLetter
         };
@@ -64,7 +64,7 @@ public class QueueDisplacementPlanner
             {
                 LetterMovement movement = new LetterMovement
                 {
-                    Letter = currentQueue[i],
+                    DeliveryObligation = currentQueue[i],
                     FromPosition = i + 1,
                     ToPosition = i + 2
                 };
@@ -74,7 +74,7 @@ public class QueueDisplacementPlanner
                 {
                     plan.Evictions.Add(new LetterEviction
                     {
-                        Letter = movement.Letter,
+                        DeliveryObligation = movement.Letter,
                         FromPosition = movement.FromPosition,
                         Reason = "Pushed out by leverage",
                         TokenPenalty = _config.LetterQueue.DeadlinePenaltyTokens
@@ -112,7 +112,7 @@ public class QueueDisplacementPlanner
             return plan;
         }
 
-        Letter letter = currentQueue[fromPosition - 1];
+        DeliveryObligation letter = currentQueue[fromPosition - 1];
         if (letter == null)
         {
             plan.CanExecute = false;
@@ -120,7 +120,7 @@ public class QueueDisplacementPlanner
             return plan;
         }
 
-        plan.NewLetter = letter;
+        plan.NewDeliveryObligation = letter;
 
         // Check if position 1 is occupied
         if (currentQueue[0] != null)
@@ -156,7 +156,7 @@ public class QueueDisplacementPlanner
             {
                 plan.SkippedLetters.Add(new SkippedLetter
                 {
-                    Letter = currentQueue[i],
+                    DeliveryObligation = currentQueue[i],
                     Position = i + 1,
                     RelationshipImpact = -1 // Skipping damages relationship
                 });
@@ -166,7 +166,7 @@ public class QueueDisplacementPlanner
         // Plan the movement
         plan.Movements.Add(new LetterMovement
         {
-            Letter = letter,
+            DeliveryObligation = letter,
             FromPosition = fromPosition,
             ToPosition = 1
         });
@@ -187,7 +187,7 @@ public class QueueDisplacementPlanner
         };
 
         Letter[] currentQueue = _queueManager.GetPlayerQueue();
-        Letter letterToPurge = currentQueue[_config.LetterQueue.MaxQueueSize - 1];
+        DeliveryObligation letterToPurge = currentQueue[_config.LetterQueue.MaxQueueSize - 1];
 
         if (letterToPurge == null)
         {
@@ -196,7 +196,7 @@ public class QueueDisplacementPlanner
             return plan;
         }
 
-        plan.NewLetter = letterToPurge;
+        plan.NewDeliveryObligation = letterToPurge;
 
         // Set token cost (3 tokens of any type)
         plan.TokenCost = new Dictionary<ConnectionType, int>();
@@ -205,7 +205,7 @@ public class QueueDisplacementPlanner
         // Add purge to evictions
         plan.Evictions.Add(new LetterEviction
         {
-            Letter = letterToPurge,
+            DeliveryObligation = letterToPurge,
             FromPosition = _config.LetterQueue.MaxQueueSize,
             Reason = "Purged by player",
             TokenPenalty = 0 // No relationship penalty for purging
@@ -245,7 +245,7 @@ public class QueueDisplacementPlanner
         }
 
         Letter? letter1 = currentQueue[position1 - 1];
-        Letter letter2 = currentQueue[position2 - 1];
+        DeliveryObligation letter2 = currentQueue[position2 - 1];
 
         // At least one position must have a letter
         if (letter1 == null && letter2 == null)
@@ -260,7 +260,7 @@ public class QueueDisplacementPlanner
         {
             plan.Movements.Add(new LetterMovement
             {
-                Letter = letter1,
+                DeliveryObligation = letter1,
                 FromPosition = position1,
                 ToPosition = position2
             });
@@ -270,7 +270,7 @@ public class QueueDisplacementPlanner
         {
             plan.Movements.Add(new LetterMovement
             {
-                Letter = letter2,
+                DeliveryObligation = letter2,
                 FromPosition = position2,
                 ToPosition = position1
             });
@@ -346,7 +346,7 @@ public class QueueDisplacementPlanner
             _messageSystem.AddSystemMessage("📬 Queue Changes:", SystemMessageTypes.Info);
             foreach (LetterMovement movement in plan.Movements)
             {
-                string urgency = movement.Letter.DeadlineInHours <= 2 ? " ⚠️" : "";
+                string urgency = movement.Letter.DeadlineInMinutes <= 2 ? " ⚠️" : "";
                 _messageSystem.AddSystemMessage(
                     $"  • {movement.Letter.SenderName}: position {movement.FromPosition} → {movement.ToPosition}{urgency}",
                     SystemMessageTypes.Info
@@ -358,7 +358,7 @@ public class QueueDisplacementPlanner
         if (plan.SkippedLetters.Any())
         {
             _messageSystem.AddSystemMessage("⏩ Skipped Letters:", SystemMessageTypes.Warning);
-            foreach (SkippedLetter skipped in plan.SkippedLetters)
+            foreach (SkippedDeliveryObligation skipped in plan.SkippedLetters)
             {
                 _messageSystem.AddSystemMessage(
                     $"  • {skipped.Letter.SenderName} at position {skipped.Position} (relationship -1)",
@@ -412,7 +412,7 @@ public class QueueDisplacementPlanner
 public class DisplacementPlan
 {
     public DisplacementActionType ActionType { get; set; }
-    public Letter NewLetter { get; set; }
+    public DeliveryObligation NewDeliveryObligation { get; set; }
     public int TargetPosition { get; set; }
     public List<LetterMovement> Movements { get; set; } = new();
     public List<LetterEviction> Evictions { get; set; } = new();
@@ -432,7 +432,7 @@ public class DisplacementPlan
 /// </summary>
 public class LetterMovement
 {
-    public Letter Letter { get; set; }
+    public DeliveryObligation DeliveryObligation { get; set; }
     public int FromPosition { get; set; }
     public int ToPosition { get; set; }
 }
@@ -442,7 +442,7 @@ public class LetterMovement
 /// </summary>
 public class LetterEviction
 {
-    public Letter Letter { get; set; }
+    public DeliveryObligation DeliveryObligation { get; set; }
     public int FromPosition { get; set; }
     public string Reason { get; set; }
     public int TokenPenalty { get; set; }
@@ -453,7 +453,7 @@ public class LetterEviction
 /// </summary>
 public class SkippedLetter
 {
-    public Letter Letter { get; set; }
+    public DeliveryObligation DeliveryObligation { get; set; }
     public int Position { get; set; }
     public int RelationshipImpact { get; set; }
 }

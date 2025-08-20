@@ -113,8 +113,6 @@ public class GameConfiguration
                 MorningSwapTimeBlock = "Dawn",
                 LettersPerDayMin = 1,
                 LettersPerDayMax = 2,
-                ChainLetterDeadlineBonus = 1,
-                ChainLetterPaymentMultiplier = 1.2f
             },
             LetterPayment = new LetterPaymentConfig
             {
@@ -264,8 +262,6 @@ public class QueueManagementConfig
     public string MorningSwapTimeBlock { get; set; }
     public int LettersPerDayMin { get; set; }
     public int LettersPerDayMax { get; set; }
-    public int ChainLetterDeadlineBonus { get; set; }
-    public float ChainLetterPaymentMultiplier { get; set; }
 }
 
 public class LetterPaymentConfig

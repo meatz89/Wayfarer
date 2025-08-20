@@ -59,9 +59,6 @@ public class Item
     // Token types this equipment enables (e.g., Fine Clothes enables Noble token generation)
     public List<ConnectionType> EnablesTokenGeneration { get; set; } = new List<ConnectionType>();
 
-    // For readable items like special letters
-    public string ReadableContent { get; set; }
-    public string ReadFlagToSet { get; set; } // Flag to set when this item is read
 
     public string WeightDescription => Weight switch
     {
@@ -181,11 +178,4 @@ public class Item
         return effects.Any() ? string.Join(", ", effects) : "";
     }
 
-    /// <summary>
-    /// Check if this item can be read (has readable content)
-    /// </summary>
-    public bool IsReadable()
-    {
-        return !string.IsNullOrEmpty(ReadableContent) || HasCategory(ItemCategory.Special_Document);
-    }
 }
