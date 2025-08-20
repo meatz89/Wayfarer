@@ -8,6 +8,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     // Single facade injection - THE ONLY SERVICE INJECTION
     [Inject] public GameFacade GameFacade { get; set; }
     [Inject] public IJSRuntime JSRuntime { get; set; }
+    [Inject] public NavigationCoordinator NavigationCoordinator { get; set; }
 
     // Navigation parameters from parent component
     [Parameter] public CurrentViews CurrentView { get; set; }
@@ -22,7 +23,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     // Navigation State
     public string SelectedLocation { get; set; }
-    public string SelectedNpcId { get; set; }
+    public string SelectedNpcId => NavigationCoordinator?.GetCurrentNpcId();
     public TimeBlocks CurrentTimeBlock { get; set; }
     public int Stamina { get; set; } = 0;
     public int Concentration { get; set; } = 0;

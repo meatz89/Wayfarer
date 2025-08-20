@@ -2228,7 +2228,11 @@ public class GameFacade
         // This method validates the NPC exists and creates the view model
         
         NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null) return null;
+        if (npc == null) 
+        {
+            Console.WriteLine($"[GameFacade] NPC {npcId} not found in repository");
+            return null;
+        }
         
         Player player = _gameWorld.GetPlayer();
         Location location = _locationRepository.GetCurrentLocation();
@@ -2236,11 +2240,21 @@ public class GameFacade
         // Check if NPC exists in game world
         var worldNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (worldNpc == null)
+        {
+            Console.WriteLine($"[GameFacade] NPC {npcId} not found in GameWorld.NPCs");
             return null;
+        }
             
+        // Debug logging
+        Console.WriteLine($"[GameFacade] Player.CurrentLocationSpot: {player.CurrentLocationSpot?.SpotID ?? "null"}");
+        Console.WriteLine($"[GameFacade] NPC.SpotId: {worldNpc.SpotId}");
+        
         // Check if NPC is at current spot
         if (player.CurrentLocationSpot == null || worldNpc.SpotId != player.CurrentLocationSpot.SpotID)
+        {
+            Console.WriteLine($"[GameFacade] NPC spot mismatch - conversation blocked");
             return null;
+        }
             
         // Create conversation view model
         var viewModel = new ConversationViewModel

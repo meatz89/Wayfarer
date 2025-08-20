@@ -11,6 +11,7 @@ namespace Wayfarer.Pages
     public class ConversationScreenBase : ComponentBase
     {
         [Parameter] public string NpcId { get; set; }
+        [Parameter] public EventCallback OnConversationEnd { get; set; }
 
         [Inject] protected ConversationManager ConversationManager { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
@@ -110,7 +111,7 @@ namespace Wayfarer.Pages
                 var outcome = Session.CheckThresholds();
                 // Show outcome and navigate back
                 await Task.Delay(2000);
-                Navigation.NavigateTo("/location");
+                await OnConversationEnd.InvokeAsync();
             }
             
             StateHasChanged();

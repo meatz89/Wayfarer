@@ -12,6 +12,7 @@ public partial class LocationScreen : ComponentBase
     [Inject] private NPCRepository NPCRepository { get; set; }
     [Inject] private LocationRepository LocationRepository { get; set; }
     [Inject] private ITimeManager TimeManager { get; set; }
+    [Inject] private NavigationCoordinator NavigationCoordinator { get; set; }
 
     [Parameter] public EventCallback OnActionExecuted { get; set; }
     [Parameter] public EventCallback<CurrentViews> OnNavigate { get; set; }
@@ -77,6 +78,9 @@ public partial class LocationScreen : ComponentBase
 
         if (conversationStarted != null)
         {
+            // Store the NPC ID in NavigationCoordinator for the conversation screen
+            NavigationCoordinator.SetConversationNpcId(npc.Id);
+            
             // Only navigate if conversation was successfully started
             await OnNavigate.InvokeAsync(CurrentViews.ConversationScreen);
         }

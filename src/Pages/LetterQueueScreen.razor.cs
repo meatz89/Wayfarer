@@ -11,6 +11,7 @@ namespace Wayfarer.Pages
         [Inject] private NPCRepository NPCRepository { get; set; }
         [Inject] private ITimeManager TimeManager { get; set; }
         [Inject] private GameFacade QueueOperations { get; set; }
+        [Inject] private NavigationCoordinator NavigationCoordinator { get; set; }
 
         [Parameter] public CurrentViews ReturnView { get; set; } = CurrentViews.LocationScreen;
 
@@ -204,8 +205,8 @@ namespace Wayfarer.Pages
 
             if (conversation != null)
             {
-                // Set the selected NPC for the conversation screen
-                SelectedNpcId = npcId;
+                // Store the NPC ID in NavigationCoordinator for the conversation screen
+                NavigationCoordinator.SetConversationNpcId(npcId);
 
                 // Navigate to conversation screen
                 Console.WriteLine($"[LetterQueueScreen] OnNavigate null? {OnNavigate == null}");

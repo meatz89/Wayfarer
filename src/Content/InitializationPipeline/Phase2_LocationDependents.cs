@@ -179,6 +179,7 @@ public class Phase2_LocationDependents : IInitializationPhase
                 // Token types already set during creation
 
                 context.GameWorld.WorldState.NPCs.Add(npc);
+                context.GameWorld.NPCs.Add(npc); // Also add to GameWorld.NPCs for conversation system
                 Console.WriteLine($"  Loaded NPC: {npc.Name} ({npc.ID}) at {npc.Location}");
             }
 

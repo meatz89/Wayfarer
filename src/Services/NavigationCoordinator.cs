@@ -55,9 +55,15 @@ public class NavigationCoordinator
         try
         {
             // Store context for certain transitions
-            if (targetView == CurrentViews.ConversationScreen && context is string npcId)
+            if (targetView == CurrentViews.ConversationScreen)
             {
-                _currentNpcId = npcId;
+                // Only update NPC ID if context is provided
+                // This preserves NPC ID set by SetConversationNpcId() when context is null
+                if (context is string npcId)
+                {
+                    _currentNpcId = npcId;
+                }
+                // If context is null, keep the existing _currentNpcId value
             }
             else if (targetView == CurrentViews.TravelScreen && context is string locationId)
             {
@@ -196,6 +202,16 @@ public class NavigationCoordinator
     public async Task<bool> StartConversationAsync(string npcId)
     {
         return await NavigateToAsync(CurrentViews.ConversationScreen, npcId);
+    }
+    
+    public void SetConversationNpcId(string npcId)
+    {
+        _currentNpcId = npcId;
+    }
+    
+    public string GetCurrentNpcId()
+    {
+        return _currentNpcId;
     }
 
     public async Task<bool> OpenTravelSelectionAsync(string targetLocationId = null)
