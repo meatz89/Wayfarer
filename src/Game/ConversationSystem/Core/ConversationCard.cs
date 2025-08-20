@@ -35,9 +35,14 @@ public class ConversationCard
     public string Id { get; init; }
 
     /// <summary>
-    /// The actual text/dialogue of the card
+    /// Card template type for frontend text generation
     /// </summary>
-    public string Text { get; init; }
+    public CardTemplateType Template { get; init; }
+    
+    /// <summary>
+    /// Context data for template rendering
+    /// </summary>
+    public CardContext Context { get; init; }
 
     /// <summary>
     /// Which relationship type this card builds

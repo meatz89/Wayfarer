@@ -49,7 +49,8 @@ public class CardDeck
         cards.Add(new ConversationCard
         {
             Id = "small_talk",
-            Text = "How has your day been?",
+            Template = CardTemplateType.CasualInquiry,
+            Context = new CardContext { },
             Type = CardType.Trust,
             Persistence = PersistenceType.Persistent,
             Weight = 0,
@@ -59,7 +60,8 @@ public class CardDeck
         cards.Add(new ConversationCard
         {
             Id = "listen_actively",
-            Text = "*nod and listen attentively*",
+            Template = CardTemplateType.ActiveListening,
+            Context = new CardContext { },
             Type = CardType.Trust,
             Persistence = PersistenceType.Persistent,
             Weight = 0,
@@ -69,7 +71,8 @@ public class CardDeck
         cards.Add(new ConversationCard
         {
             Id = "share_news",
-            Text = "I heard something interesting in the market...",
+            Template = CardTemplateType.ShareInformation,
+            Context = new CardContext { },
             Type = CardType.Status,
             Persistence = PersistenceType.Persistent,
             Weight = 1,
@@ -79,7 +82,8 @@ public class CardDeck
         cards.Add(new ConversationCard
         {
             Id = "offer_help",
-            Text = "Is there anything I can do for you?",
+            Template = CardTemplateType.OfferHelp,
+            Context = new CardContext { },
             Type = CardType.Trust,
             Persistence = PersistenceType.Persistent,
             Weight = 1,
@@ -89,7 +93,8 @@ public class CardDeck
         cards.Add(new ConversationCard
         {
             Id = "weather_comment",
-            Text = "The weather has been unusual lately...",
+            Template = CardTemplateType.CasualInquiry,
+            Context = new CardContext { ObservationType = ObservationType.Normal },
             Type = CardType.Trust,
             Persistence = PersistenceType.Persistent,
             Weight = 0,
@@ -106,7 +111,8 @@ public class CardDeck
                 cards.Add(new ConversationCard
                 {
                     Id = "share_concern",
-                    Text = "I've been worried about you...",
+                    Template = CardTemplateType.ExpressEmpathy,
+                    Context = new CardContext { Personality = PersonalityType.DEVOTED },
                     Type = CardType.Trust,
                     Persistence = PersistenceType.Opportunity,
                     Weight = 2,
@@ -115,7 +121,8 @@ public class CardDeck
                 cards.Add(new ConversationCard
                 {
                     Id = "family_story",
-                    Text = "My family has a saying about times like these...",
+                    Template = CardTemplateType.SharePersonal,
+                    Context = new CardContext { Personality = PersonalityType.DEVOTED },
                     Type = CardType.Trust,
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
@@ -128,7 +135,8 @@ public class CardDeck
                 cards.Add(new ConversationCard
                 {
                     Id = "trade_opportunity",
-                    Text = "I know of a profitable opportunity...",
+                    Template = CardTemplateType.ProposeDeal,
+                    Context = new CardContext { Personality = PersonalityType.MERCANTILE },
                     Type = CardType.Commerce,
                     Persistence = PersistenceType.Opportunity,
                     Weight = 2,
@@ -137,7 +145,8 @@ public class CardDeck
                 cards.Add(new ConversationCard
                 {
                     Id = "negotiate_terms",
-                    Text = "Perhaps we can come to an arrangement?",
+                    Template = CardTemplateType.NegotiateTerms,
+                    Context = new CardContext { Personality = PersonalityType.MERCANTILE },
                     Type = CardType.Commerce,
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
@@ -150,7 +159,8 @@ public class CardDeck
                 cards.Add(new ConversationCard
                 {
                     Id = "social_position",
-                    Text = "Your reputation precedes you...",
+                    Template = CardTemplateType.AcknowledgePosition,
+                    Context = new CardContext { Personality = PersonalityType.PROUD },
                     Type = CardType.Status,
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
@@ -159,7 +169,8 @@ public class CardDeck
                 cards.Add(new ConversationCard
                 {
                     Id = "noble_bearing",
-                    Text = "One must maintain proper standards...",
+                    Template = CardTemplateType.ShowRespect,
+                    Context = new CardContext { Personality = PersonalityType.PROUD },
                     Type = CardType.Status,
                     Persistence = PersistenceType.Opportunity,
                     Weight = 2,
@@ -172,7 +183,8 @@ public class CardDeck
                 cards.Add(new ConversationCard
                 {
                     Id = "subtle_hint",
-                    Text = "Between you and me...",
+                    Template = CardTemplateType.ShareSecret,
+                    Context = new CardContext { Personality = PersonalityType.CUNNING },
                     Type = CardType.Shadow,
                     Persistence = PersistenceType.Opportunity,
                     Weight = 1,
@@ -181,7 +193,8 @@ public class CardDeck
                 cards.Add(new ConversationCard
                 {
                     Id = "hidden_knowledge",
-                    Text = "I know something others don't...",
+                    Template = CardTemplateType.ImplyKnowledge,
+                    Context = new CardContext { Personality = PersonalityType.CUNNING },
                     Type = CardType.Shadow,
                     Persistence = PersistenceType.Opportunity,
                     Weight = 2,
@@ -194,7 +207,8 @@ public class CardDeck
                 cards.Add(new ConversationCard
                 {
                     Id = "honest_opinion",
-                    Text = "I'll tell you what I really think...",
+                    Template = CardTemplateType.SharePersonal,
+                    Context = new CardContext { Personality = PersonalityType.STEADFAST },
                     Type = CardType.Trust,
                     Persistence = PersistenceType.Persistent,
                     Weight = 2,
@@ -203,7 +217,8 @@ public class CardDeck
                 cards.Add(new ConversationCard
                 {
                     Id = "practical_advice",
-                    Text = "Here's what I'd do in your position...",
+                    Template = CardTemplateType.OfferHelp,
+                    Context = new CardContext { Personality = PersonalityType.STEADFAST },
                     Type = CardType.Commerce,
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
@@ -221,7 +236,8 @@ public class CardDeck
             cards.Add(new ConversationCard
             {
                 Id = "request_trust_letter",
-                Text = "I need you to deliver something personal for me...",
+                Template = CardTemplateType.MentionLetter,
+                Context = new CardContext { },
                 Type = CardType.Trust,
                 Persistence = PersistenceType.Persistent,
                 Weight = 2,
@@ -235,7 +251,8 @@ public class CardDeck
             cards.Add(new ConversationCard
             {
                 Id = "request_commerce_letter",
-                Text = "I have a business matter that needs delivery...",
+                Template = CardTemplateType.MentionLetter,
+                Context = new CardContext { },
                 Type = CardType.Commerce,
                 Persistence = PersistenceType.Persistent,
                 Weight = 2,
@@ -248,7 +265,8 @@ public class CardDeck
         cards.Add(new ConversationCard
         {
             Id = "discuss_obligation",
-            Text = "About that letter you're carrying for me...",
+            Template = CardTemplateType.DiscussObligation,
+            Context = new CardContext { },
             Type = CardType.Trust,
             Persistence = PersistenceType.Opportunity,
             Weight = 1,
@@ -262,7 +280,8 @@ public class CardDeck
         cards.Add(new ConversationCard
         {
             Id = "awkward_silence",
-            Text = "*uncomfortable pause*",
+            Template = CardTemplateType.ShowingTension,
+            Context = new CardContext { },
             Type = CardType.Trust,
             Persistence = PersistenceType.Burden,
             Weight = 1,
@@ -340,7 +359,14 @@ public class CardDeck
         return new ConversationCard
         {
             Id = $"crisis_{Guid.NewGuid()}",
-            Text = "Please, I'm desperate! You must help me!",
+            Template = CardTemplateType.DesperateRequest,
+            Context = new CardContext 
+            { 
+                Personality = npc.PersonalityType,
+                EmotionalState = EmotionalState.DESPERATE,
+                UrgencyLevel = 3,
+                HasDeadline = true
+            },
             Type = CardType.Trust,
             Persistence = PersistenceType.Crisis,
             Weight = 5, // Heavy but free in DESPERATE
@@ -359,7 +385,8 @@ public class CardDeck
             EmotionalState.DESPERATE => new ConversationCard
             {
                 Id = "calm_reassurance",
-                Text = "Take a breath. We'll figure this out together.",
+                Template = CardTemplateType.CalmnessAttempt,
+                Context = new CardContext { EmotionalState = currentState },
                 Type = CardType.Trust,
                 Persistence = PersistenceType.Persistent,
                 Weight = 1,
@@ -371,7 +398,8 @@ public class CardDeck
             EmotionalState.GUARDED => new ConversationCard
             {
                 Id = "break_ice",
-                Text = "I understand your hesitation, but I'm here to help.",
+                Template = CardTemplateType.OpeningUp,
+                Context = new CardContext { EmotionalState = currentState },
                 Type = CardType.Trust,
                 Persistence = PersistenceType.Persistent,
                 Weight = 1,

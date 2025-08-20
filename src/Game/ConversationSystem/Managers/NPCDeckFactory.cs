@@ -41,7 +41,8 @@ public class NPCDeckFactory
         cards.Add(new ConversationCard
         {
             Id = Guid.NewGuid().ToString(),
-            Text = "How can I help you?",
+            Template = CardTemplateType.OfferHelp,
+            Context = new CardContext { Personality = personality },
             Type = CardType.Trust,
             Persistence = PersistenceType.Persistent,
             Weight = 1,
@@ -51,7 +52,8 @@ public class NPCDeckFactory
         cards.Add(new ConversationCard
         {
             Id = Guid.NewGuid().ToString(),
-            Text = "Tell me more about that.",
+            Template = CardTemplateType.ActiveListening,
+            Context = new CardContext { Personality = personality },
             Type = CardType.Status,
             Persistence = PersistenceType.Persistent,
             Weight = 1,
@@ -83,7 +85,8 @@ public class NPCDeckFactory
         cards.Add(new ConversationCard
         {
             Id = Guid.NewGuid().ToString(),
-            Text = "Let me think about this carefully...",
+            Template = CardTemplateType.OpeningUp,
+            Context = new CardContext { Personality = personality },
             Type = CardType.Status,
             Persistence = PersistenceType.Persistent,
             Weight = 2,
@@ -103,7 +106,8 @@ public class NPCDeckFactory
             new ConversationCard
             {
                 Id = Guid.NewGuid().ToString(),
-                Text = "Business has been good lately.",
+                Template = CardTemplateType.DiscussBusiness,
+                Context = new CardContext { Personality = PersonalityType.MERCANTILE },
                 Type = CardType.Commerce,
                 Persistence = PersistenceType.Opportunity,
                 Weight = 1,
@@ -112,7 +116,8 @@ public class NPCDeckFactory
             new ConversationCard
             {
                 Id = Guid.NewGuid().ToString(),
-                Text = "I might have a delivery job for you.",
+                Template = CardTemplateType.OfferWork,
+                Context = new CardContext { Personality = PersonalityType.MERCANTILE },
                 Type = CardType.Commerce,
                 Persistence = PersistenceType.OneShot,
                 Weight = 2,
@@ -129,7 +134,8 @@ public class NPCDeckFactory
             new ConversationCard
             {
                 Id = Guid.NewGuid().ToString(),
-                Text = "The political situation is quite delicate.",
+                Template = CardTemplateType.DiscussPolitics,
+                Context = new CardContext { Personality = PersonalityType.PROUD },
                 Type = CardType.Status,
                 Persistence = PersistenceType.Persistent,
                 Weight = 2,
@@ -138,7 +144,8 @@ public class NPCDeckFactory
             new ConversationCard
             {
                 Id = Guid.NewGuid().ToString(),
-                Text = "I need someone I can trust with this.",
+                Template = CardTemplateType.MakePromise,
+                Context = new CardContext { Personality = PersonalityType.PROUD },
                 Type = CardType.Trust,
                 Persistence = PersistenceType.OneShot,
                 Weight = 3,
@@ -155,7 +162,8 @@ public class NPCDeckFactory
             new ConversationCard
             {
                 Id = Guid.NewGuid().ToString(),
-                Text = "Stay out of trouble.",
+                Template = CardTemplateType.ShowRespect,
+                Context = new CardContext { Personality = PersonalityType.DEVOTED },
                 Type = CardType.Commerce,
                 Persistence = PersistenceType.Persistent,
                 Weight = 1,
@@ -164,7 +172,8 @@ public class NPCDeckFactory
             new ConversationCard
             {
                 Id = Guid.NewGuid().ToString(),
-                Text = "I've seen some strange things lately.",
+                Template = CardTemplateType.ShareInformation,
+                Context = new CardContext { Personality = PersonalityType.DEVOTED },
                 Type = CardType.Status,
                 Persistence = PersistenceType.Opportunity,
                 Weight = 2,
@@ -180,7 +189,8 @@ public class NPCDeckFactory
             new ConversationCard
             {
                 Id = Guid.NewGuid().ToString(),
-                Text = "I know something you might find interesting...",
+                Template = CardTemplateType.ImplyKnowledge,
+                Context = new CardContext { Personality = PersonalityType.CUNNING },
                 Type = CardType.Shadow,
                 Persistence = PersistenceType.Opportunity,
                 Weight = 2,
@@ -189,7 +199,8 @@ public class NPCDeckFactory
             new ConversationCard
             {
                 Id = Guid.NewGuid().ToString(),
-                Text = "Let's keep this between us.",
+                Template = CardTemplateType.RequestDiscretion,
+                Context = new CardContext { Personality = PersonalityType.CUNNING },
                 Type = CardType.Shadow,
                 Persistence = PersistenceType.Persistent,
                 Weight = 1,
@@ -205,7 +216,8 @@ public class NPCDeckFactory
             new ConversationCard
             {
                 Id = Guid.NewGuid().ToString(),
-                Text = "It's good to see you.",
+                Template = CardTemplateType.SimpleGreeting,
+                Context = new CardContext { Personality = PersonalityType.STEADFAST },
                 Type = CardType.Trust,
                 Persistence = PersistenceType.Persistent,
                 Weight = 1,
@@ -219,7 +231,14 @@ public class NPCDeckFactory
         return new ConversationCard
         {
             Id = Guid.NewGuid().ToString(),
-            Text = "Please, I desperately need your help!",
+            Template = CardTemplateType.DesperateRequest,
+            Context = new CardContext 
+            { 
+                Personality = npc.PersonalityType,
+                EmotionalState = EmotionalState.DESPERATE,
+                UrgencyLevel = 3,
+                HasDeadline = true
+            },
             Type = CardType.Trust,
             Persistence = PersistenceType.Crisis,
             Weight = 3,
@@ -244,7 +263,8 @@ public class NPCDeckFactory
         cards.Add(new ConversationCard
         {
             Id = Guid.NewGuid().ToString(),
-            Text = "About that letter you gave me...",
+            Template = CardTemplateType.DiscussObligation,
+            Context = new CardContext { },
             Type = CardType.Trust,
             Persistence = PersistenceType.Persistent,
             Weight = 2,
@@ -256,7 +276,8 @@ public class NPCDeckFactory
         cards.Add(new ConversationCard
         {
             Id = Guid.NewGuid().ToString(),
-            Text = "I have your letter right here.",
+            Template = CardTemplateType.DeliverLetter,
+            Context = new CardContext { },
             Type = CardType.Trust,
             Persistence = PersistenceType.OneShot,
             Weight = 1,

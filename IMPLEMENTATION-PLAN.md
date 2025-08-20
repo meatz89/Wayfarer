@@ -1,8 +1,8 @@
 # Wayfarer Conversation System - Implementation Plan
 
-## Current Status: 73% COMPLETE - 44 ERRORS REMAINING
+## Current Status: 90% COMPLETE - BUILD SUCCESSFUL - CONVERSATION SYSTEM WORKING
 Started: 2025-08-20
-Last Updated: 2025-08-20 (Session 2)
+Last Updated: 2025-08-20 (Session 3)
 
 ## Overview
 Complete rewrite of the conversation system as an elegant card-drafting game inspired by Jaipur's strategic mechanics but maintaining emotional authenticity.
@@ -250,20 +250,194 @@ Created ObligationManipulationType enum with 6 types:
 - ✅ GameWorld now has NPCs collection
 - ✅ Full card-based conversation integration
 
-## Remaining Issues (44 errors)
-- UI layer: ConversationScreen, MainGameplayView compatibility
-- Missing ITimeManager.GetCurrentTimeDisplay
-- LoadingStateService properties
-- Various type mismatches in view models
+## Session 3 Accomplishments (2025-08-20 Evening)
+- ✅ Fixed all remaining 44 compilation errors
+- ✅ BUILD NOW SUCCESSFUL (0 errors, 10 warnings)
+- ✅ Fixed NPC ID passing through NavigationCoordinator
+- ✅ Fixed ConversationManager to inject TokenMechanicsManager
+- ✅ Fixed CardDeck initialization - cards now populate
+- ✅ Fixed ConversationScreen error handling
+- ✅ Fixed ConversationManager singleton issue
+- ✅ Fixed CSS for conversation UI containers
+- ✅ Cards display properly (3 cards in hand)
+- ✅ Conversation system tested and working with Garrett NPC
+- ✅ LISTEN/SPEAK actions functional
+- ✅ Turn counter and emotional states working
+
+## Session 4 Progress (2025-08-20 Late Evening)
+
+### COMPLETED MECHANICS
+1. **Emotional State-Based Mechanics** ✅
+   - States already manipulate conversation mechanics via StateRuleset
+   - Each state defines complete ruleset (draw count, weight limits, transitions)
+   - State transitions working through ConversationRules
+   - Crisis states (DESPERATE) create urgency and special rules
+
+2. **Categorical Card Generation** ✅
+   - Refactored to use CardTemplateType enum instead of text
+   - CardContext provides strongly-typed categorical data
+   - Personality type determines card pool via NPCDeckFactory
+   - Frontend will map templates to actual narrative text
+   - No text generation in backend - only categorical models
+
+3. **Dice Rolling System** ✅
+   - Already implemented in CardSelectionManager.PlaySelectedCards()
+   - Uses card.CalculateSuccessChance() method on ConversationCard
+   - Success chance = Base 70% - (Weight × 10%) + (Status tokens × 3%)
+   - Clamped 10% min, 95% max in ConversationCard
+   - Each card rolls individually with results tracked
+   - SingleCardResult tracks roll, success, and comfort gained
+
+4. **Card Effect Application** ✅
+   - Comfort application working
+   - State changes working for single cards
+   - Set bonuses calculated
+   - Letter delivery and obligation flags set
+   - Dice rolling implemented with success/failure
+
+5. **Categorical Card System** ✅
+   - Removed all hardcoded text from backend
+   - Created CardTemplateType enum for categorical templates
+   - Created CardContext for strongly-typed context data
+   - Frontend CardTextRenderer maps templates to narrative text
+   - All NPCDeckFactory and CardDeck refactored to use templates
+   - Backend provides only categorical data, frontend generates text
+
+## FULL IMPLEMENTATION PLAN - EXACT UI WITH SYSTEMATIC CONTENT
+
+### Phase 1: Emotional State Mechanics System ⚡ PRIORITY
+**Create state-driven conversation mechanics**
+```
+/src/Game/ConversationSystem/StateEffects/
+├── StateEffectProcessor.cs - Apply state rules to mechanics
+├── StateTransitionRules.cs - Define valid state transitions
+└── CrisisEscalation.cs - Handle desperate→hostile path
+```
+- States manipulate: draw count, weight limits, transitions
+- DESPERATE: Crisis cards free, draws crisis cards, escalates to HOSTILE
+- CONNECTED: Auto-depth progression, max weight 4
+- TENSE: Weight limit 1, minimal draw
+- Each state = complete ruleset, not modifiers
+
+### Phase 2: Dynamic Card Generation System ⚡ PRIORITY
+**Generate cards based on NPC state and context**
+```
+/src/Game/ConversationSystem/Generation/
+├── CardTextGenerator.cs - Generate dynamic card text
+├── PersonalityCardPool.cs - Personality-specific cards
+├── StateCardGenerator.cs - State-based card creation
+└── ObservationCardBuilder.cs - Convert observations to cards
+```
+- NPCDeckFactory enhanced with:
+  - Emotional state awareness
+  - Personality-driven text
+  - Context-sensitive cards (deadlines, letters)
+  - Observation integration
+  - Dynamic crisis cards
+
+### Phase 3: Dice Rolling & Success System ⚡ PRIORITY
+**Implement success/failure mechanics**
+```
+/src/Game/ConversationSystem/Resolution/
+├── DiceRoller.cs - Core rolling mechanics
+├── SuccessCalculator.cs - Calculate success chances
+└── OutcomeResolver.cs - Apply results to game state
+```
+- Formula: 70% - (Weight × 10%) + (Status tokens × 3%)
+- Clamped: 10% min, 95% max
+- Visual feedback in UI
+- Multiple cards = multiple rolls
+- Track individual card results
+
+### Phase 4: Effect Application System ⚡ PRIORITY
+**Apply card effects to game state**
+```
+/src/Game/ConversationSystem/Effects/
+├── ComfortEffectHandler.cs - Comfort gains/losses
+├── StateChangeHandler.cs - Emotional state transitions
+├── LetterDeliveryHandler.cs - Handle letter mechanics
+└── TokenEffectHandler.cs - Relationship token changes
+```
+- Success effects: comfort, tokens, state changes
+- Failure effects: reduced gains, negative states
+- Special effects: letter delivery, obligations
+- Depth progression on thresholds
+
+### Phase 5: Narrative Generation System
+**Create contextual narrative and dialogue**
+```
+/src/GameState/Narrative/
+├── ConversationNarrativeGenerator.cs - Scene narrative
+├── NPCDialogueTemplates.cs - Personality dialogues
+├── StateNarrativeLibrary.cs - State-specific text
+└── UrgencyDialogueSystem.cs - Deadline-aware dialogue
+```
+- Generate based on:
+  - Current emotional state
+  - NPC personality type
+  - Active deadlines
+  - Recent player actions
+  - Location context
+
+### Phase 6: UI Implementation - Match Mockups EXACTLY
+**Update UI to match HTML mockups precisely**
+
+**ConversationScreen Updates:**
+- Exact div structure from mockup
+- Progress bars with thresholds
+- Card display with outcomes
+- Weight tracker
+- State effects display
+- Dice roll feedback
+
+**LocationScreen Updates:**
+- Atmosphere text section
+- NPC cards with states
+- Observation opportunities
+- Area navigation
+- Action grid
+
+**New Components:**
+- TravelSelectionModal.razor
+- TravelEncounterScreen.razor
+- CardOutcomeDisplay.razor
+- DiceRollAnimation.razor
+
+### Phase 7: CSS Alignment
+**Copy exact styles from mockups**
+- conversation.css - All card styles, outcomes, states
+- location.css - NPCs, observations, areas
+- game-base.css - Consistent base styles
+- animations.css - Dice rolls, state transitions
+
+### Phase 8: Content Template System
+**Systematic content generation**
+```
+/src/Content/Generation/
+├── ContentTemplateSystem.cs - Template management
+├── VariationEngine.cs - Generate varied content
+├── PersonalityVoice.cs - NPC-specific speech
+└── ContextualContent.cs - Situation-aware text
+```
+
+### Implementation Order:
+1. **State Mechanics** - Foundation for everything
+2. **Card Generation** - Creates conversation content
+3. **Dice System** - Determines outcomes
+4. **Effect Application** - Updates game state
+5. **Narrative Generation** - Creates text
+6. **UI Updates** - Display everything
+7. **CSS Alignment** - Visual fidelity
+8. **Content Templates** - Variety and depth
 
 ## Timeline
 - Phase 1: ✅ Complete (30 min)
-- Phase 2: ✅ 90% Complete (6 hours actual)
-- Phase 3: In Progress (2 hours remaining)
-- Phase 4: Pending (2 hours)
-- Testing: Pending (2 hours)
+- Phase 2: ✅ Complete (8 hours actual)
+- Phase 3: ✅ Complete (4 hours actual)
+- Phase 4: In Progress - Critical mechanics implementation
+- Testing: In Progress - Basic functionality confirmed
 
-**Total Progress: ~73% complete**
+**Total Progress: ~60% complete - CORE WORKING, MECHANICS NEEDED**
 
 ## Notes
 - Using emotional states as rulesets is the key innovation

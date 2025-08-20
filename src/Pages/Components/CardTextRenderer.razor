@@ -1,0 +1,119 @@
+@namespace Wayfarer.Pages.Components
+
+@code {
+    [Parameter] public CardTemplateType Template { get; set; }
+    [Parameter] public CardContext Context { get; set; }
+    
+    private string GetCardText()
+    {
+        // Map template and context to narrative text
+        // This is where frontend generates the actual narrative
+        return Template switch
+        {
+            // Generic templates
+            CardTemplateType.SimpleGreeting => Context?.Personality switch
+            {
+                PersonalityType.DEVOTED => "It's wonderful to see you again.",
+                PersonalityType.MERCANTILE => "Good to see you, friend. Business treating you well?",
+                PersonalityType.PROUD => "Ah, you've arrived.",
+                PersonalityType.CUNNING => "Well, well... look who's here.",
+                _ => "Good to see you."
+            },
+            
+            CardTemplateType.CasualInquiry => Context?.ObservationType switch
+            {
+                ObservationType.Normal => "The weather has been unusual lately...",
+                _ => "How has your day been?"
+            },
+            
+            CardTemplateType.ActiveListening => "*nod and listen attentively*",
+            
+            // Trust templates
+            CardTemplateType.OfferHelp => Context?.Personality switch
+            {
+                PersonalityType.DEVOTED => "Please, let me help you with this.",
+                PersonalityType.STEADFAST => "Here's what I'd do in your position...",
+                _ => "Is there anything I can do for you?"
+            },
+            
+            CardTemplateType.SharePersonal => Context?.Personality switch
+            {
+                PersonalityType.DEVOTED => "My family has a saying about times like these...",
+                PersonalityType.STEADFAST => "I'll tell you what I really think...",
+                _ => "Let me share something with you..."
+            },
+            
+            CardTemplateType.MakePromise => Context?.Personality switch
+            {
+                PersonalityType.PROUD => "I need someone I can trust with this.",
+                _ => "You have my word on this."
+            },
+            
+            CardTemplateType.ExpressEmpathy => Context?.Personality switch
+            {
+                PersonalityType.DEVOTED => "I've been worried about you...",
+                _ => "I understand how you feel."
+            },
+            
+            // Commerce templates
+            CardTemplateType.DiscussBusiness => "Business has been interesting lately.",
+            CardTemplateType.ProposeDeal => "I know of a profitable opportunity...",
+            CardTemplateType.NegotiateTerms => "Perhaps we can come to an arrangement?",
+            CardTemplateType.OfferWork => "I might have a delivery job for you.",
+            
+            // Status templates
+            CardTemplateType.AcknowledgePosition => "Your reputation precedes you...",
+            CardTemplateType.ShowRespect => Context?.Personality switch
+            {
+                PersonalityType.PROUD => "One must maintain proper standards...",
+                PersonalityType.DEVOTED => "Stay out of trouble.",
+                _ => "I respect what you're doing."
+            },
+            CardTemplateType.DiscussPolitics => "The political situation is quite delicate.",
+            CardTemplateType.MentionConnections => "I know someone who might help.",
+            
+            // Shadow templates
+            CardTemplateType.ShareSecret => "Between you and me...",
+            CardTemplateType.ImplyKnowledge => "I know something others don't...",
+            CardTemplateType.OfferInformation => "I might have information you need.",
+            CardTemplateType.RequestDiscretion => "Let's keep this between us.",
+            
+            // State change templates
+            CardTemplateType.CalmnessAttempt => "Take a breath. We'll figure this out together.",
+            CardTemplateType.OpeningUp => "I understand your hesitation, but I'm here to help.",
+            CardTemplateType.ShowingTension => "*uncomfortable pause*",
+            CardTemplateType.BecomingEager => "Yes! Tell me more about this!",
+            
+            // Crisis templates
+            CardTemplateType.DesperateRequest => Context?.Personality switch
+            {
+                PersonalityType.DEVOTED => "Please, I need to know - will you help me? The letter to Lord Blackwood... if he doesn't receive my refusal by tonight, my father will finalize the arrangement.",
+                PersonalityType.MERCANTILE => "Listen, this isn't just business anymore - if I don't get this contract delivered today, I'll lose everything!",
+                PersonalityType.PROUD => "I... I never thought I'd have to beg, but here I am. This letter contains my family's last hope.",
+                _ => "Please, I'm desperate! You must help me!"
+            },
+            
+            CardTemplateType.UrgentPlea => "Time is running out! Please!",
+            CardTemplateType.LastChance => "This is my last chance...",
+            
+            // Letter/Obligation templates
+            CardTemplateType.MentionLetter => Context?.Personality switch
+            {
+                PersonalityType.MERCANTILE => "I have a business matter that needs delivery...",
+                _ => "I need you to deliver something for me..."
+            },
+            CardTemplateType.DeliverLetter => "I have your letter right here.",
+            CardTemplateType.DiscussObligation => "About that letter you're carrying for me...",
+            CardTemplateType.NegotiateDeadline => "Could we discuss the timeline?",
+            
+            // Observation templates
+            CardTemplateType.MentionObservation => "I noticed something earlier...",
+            CardTemplateType.ShareInformation => "I heard something interesting in the market...",
+            CardTemplateType.ProvideContext => "There's something you should know...",
+            
+            _ => "..."
+        };
+    }
+}
+
+@GetCardText()
