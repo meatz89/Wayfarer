@@ -84,6 +84,14 @@ namespace Wayfarer.Pages
 
         protected async Task ExecuteAction()
         {
+            // Check if session is still active
+            if (Session == null || !ConversationManager.IsConversationActive)
+            {
+                Console.WriteLine("[ConversationScreen] No active session, returning to location");
+                await OnConversationEnd.InvokeAsync();
+                return;
+            }
+            
             if (SelectedAction == ActionType.Listen)
             {
                 ConversationManager.ExecuteListen();

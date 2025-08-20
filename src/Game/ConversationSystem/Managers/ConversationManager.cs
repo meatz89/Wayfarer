@@ -12,18 +12,21 @@ public class ConversationManager
     private readonly ObligationQueueManager queueManager;
     private readonly NPCRelationshipTracker relationshipTracker;
     private readonly ITimeManager timeManager;
+    private readonly TokenMechanicsManager tokenManager;
     private ConversationSession currentSession;
 
     public ConversationManager(
         GameWorld gameWorld,
         ObligationQueueManager queueManager,
         NPCRelationshipTracker relationshipTracker,
-        ITimeManager timeManager)
+        ITimeManager timeManager,
+        TokenMechanicsManager tokenManager)
     {
         this.gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         this.queueManager = queueManager ?? throw new ArgumentNullException(nameof(queueManager));
         this.relationshipTracker = relationshipTracker ?? throw new ArgumentNullException(nameof(relationshipTracker));
         this.timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
+        this.tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
     }
 
     /// <summary>
@@ -43,7 +46,9 @@ public class ConversationManager
     {
         if (IsConversationActive)
         {
-            throw new InvalidOperationException("A conversation is already active");
+            // End the existing conversation first
+            Console.WriteLine($"[ConversationManager] Ending existing conversation before starting new one");
+            EndConversation();
         }
 
         var npc = gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
@@ -63,6 +68,7 @@ public class ConversationManager
             npc,
             queueManager,
             relationshipTracker,
+            tokenManager,
             observationCards
         );
 

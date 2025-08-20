@@ -106,10 +106,11 @@
 
 .progress-section {
     display: grid;
-    grid-template-columns: 2fr 1fr 2fr;
-    gap: 15px;
+    grid-template-columns: minmax(250px, 1fr) auto minmax(250px, 1fr);
+    gap: 20px;
     align-items: center;
     margin-top: 15px;
+    padding: 0 10px;
 }
 
 .turns-remaining {
@@ -148,22 +149,24 @@
     border: 1px solid #c4a684;
     border-radius: 4px;
     padding: 10px;
+    min-width: 200px;
 }
 
 .progress-label {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 5px;
-    font-size: 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
     color: #7a6250;
+    white-space: nowrap;
 }
 
 .progress-track {
-    height: 8px;
+    height: 10px;
     background: #e8dcc4;
     border-radius: 4px;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid #c4a684;
 }
 
@@ -189,9 +192,11 @@
 }
 
 .threshold-label {
-    font-size: 9px;
+    font-size: 11px;
     color: #7a6250;
     white-space: nowrap;
+    display: block;
+    text-align: center;
 }
 
 .state-indicator {
@@ -370,4 +375,104 @@
 
 .opportunity-warning.active {
     display: block;
+}
+/* Card Display Section - Fixed sizing */
+.dialog-section {
+    margin: 20px 0;
+    padding: 15px;
+}
+
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #c4a684;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.dialog-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.hand-status {
+    font-size: 13px;
+    color: #7a6250;
+}
+
+.weight-tracker {
+    font-size: 14px;
+    color: #7a6250;
+    white-space: nowrap;
+}
+
+.weight-tracker.overlimit {
+    color: #a04030;
+    font-weight: bold;
+}
+
+.dialog-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.dialog-option {
+    background: #f9f3e9;
+    border: 1px solid #c4a684;
+    border-radius: 6px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 80px;
+}
+
+.dialog-option:hover {
+    background: #f4e8d0;
+    border-color: #a68b6f;
+}
+
+.dialog-option.selected {
+    background: #e8dcc4;
+    border-color: #8b6f4a;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.dialog-option.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Fix progress thresholds display */
+.progress-thresholds {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.threshold-marker {
+    position: absolute;
+    top: -25px;
+    transform: translateX(-50%);
+    height: calc(100% + 25px);
+}
+
+.threshold-marker::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    height: 10px;
+    background: #a68b6f;
+    transform: translateX(-50%);
 }

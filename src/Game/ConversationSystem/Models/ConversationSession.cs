@@ -70,6 +70,7 @@ public class ConversationSession
         NPC npc,
         ObligationQueueManager queueManager,
         NPCRelationshipTracker relationshipTracker,
+        TokenMechanicsManager tokenManager,
         List<ConversationCard> observationCards = null)
     {
         // Determine initial state based on NPC condition
@@ -92,8 +93,7 @@ public class ConversationSession
 
         // Create and initialize deck
         var deck = new CardDeck();
-        // Token manager should be injected, but for now we skip token-based initialization
-        // deck.InitializeForNPC(npc, tokenManager);
+        deck.InitializeForNPC(npc, tokenManager);
 
         // Draw initial hand
         var handCards = new List<ConversationCard>();
