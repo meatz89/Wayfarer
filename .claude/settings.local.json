@@ -191,7 +191,11 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5125\" timeout 30 dotnet run --no-build)",
       "WebSearch",
       "Bash(/mnt/c/git/wayfarer/src/remove_namespaces.sh:*)",
-      "Bash(./fix_closing_braces.sh:*)"
+      "Bash(./fix_closing_braces.sh:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5130\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5121\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5131\" timeout 30 dotnet run --no-build)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5121\" dotnet run)"
     ],
     "deny": []
   }

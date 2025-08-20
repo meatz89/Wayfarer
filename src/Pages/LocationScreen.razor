@@ -3,22 +3,22 @@
 
 @* Unified Attention Bar - REMOVED per user request *@
 
-<div class="main-container">
+<div class="location-screen">
     @if (Model != null)
     {
         <!-- Header -->
-        <div class="location-header-bar">
+        <div class="header">
             <div class="time-bar">
-                <span>@Model.CurrentTime</span>
+                <span class="current-time">@Model.CurrentTime</span>
                 @if (!string.IsNullOrEmpty(Model.DeadlineTimer))
                 {
-                    <span class="deadline-timer">@Model.DeadlineTimer</span>
+                    <span class="deadline-warning">@Model.DeadlineTimer</span>
                 }
             </div>
         </div>
 
         <!-- Location Header -->
-        <div class="location-info-header">
+        <div class="location-header">
             @if (Model.LocationPath?.Any() == true)
             {
                 <div class="location-path">
@@ -32,10 +32,10 @@
                     }
                 </div>
             }
-            <div class="location-title">@Model.LocationName</div>
+            <div class="location-name">@Model.LocationName</div>
         </div>
 
-        <div class="location-content">
+        <div class="content-area">
             @if (!string.IsNullOrEmpty(Model.AtmosphereText))
             {
                 <div class="atmosphere-text">

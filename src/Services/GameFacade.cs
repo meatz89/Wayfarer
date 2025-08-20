@@ -2233,9 +2233,13 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();
         Location location = _locationRepository.GetCurrentLocation();
         
-        // Check if NPC is at current location
+        // Check if NPC exists in game world
         var worldNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-        if (worldNpc == null || worldNpc.Location != location.Id)
+        if (worldNpc == null)
+            return null;
+            
+        // Check if NPC is at current spot
+        if (player.CurrentLocationSpot == null || worldNpc.SpotId != player.CurrentLocationSpot.SpotID)
             return null;
             
         // Create conversation view model

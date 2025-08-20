@@ -4,7 +4,13 @@ using Serilog;
 Environment.SetEnvironmentVariable("ASPNETCORE_SUPPRESSSTATUSMESSAGES", "true");
 
 Console.WriteLine("[STARTUP] Creating WebApplicationBuilder...");
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+var options = new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = Directory.GetCurrentDirectory(),
+    WebRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")
+};
+WebApplicationBuilder builder = WebApplication.CreateBuilder(options);
 Console.WriteLine("[STARTUP] WebApplicationBuilder created");
 
 // Add services to the container.
