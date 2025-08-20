@@ -816,7 +816,7 @@ public class UnlockRouteEffect : IMechanicalEffect
         {
             Id = Guid.NewGuid().ToString(),
             Name = _routeName,
-            TravelTimeHours = 1,
+            TravelTimeMinutes = 1,
             Description = $"Fast route to Noble Quarter via {_routeName}"
         };
 

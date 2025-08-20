@@ -31,7 +31,7 @@ public class RouteFactory
             Origin = originId ?? "unknown_origin",
             Destination = destinationId ?? "unknown_destination",
             Method = TravelMethods.Walking, // Most basic method
-            TravelTimeHours = 8, // Standard day travel
+            TravelTimeMinutes = 480, // Standard day travel (8 hours in minutes)
             BaseStaminaCost = 2, // Minimal cost
             BaseCoinCost = 0, // Free
             Description = $"A route called {name}",
@@ -59,7 +59,7 @@ public class RouteFactory
         Location origin,      // Not string - actual Location object
         Location destination, // Not string - actual Location object
         TravelMethods method,
-        int travelTimeHours,
+        int travelTimeMinutes,
         int baseStaminaCost = 2,
         int baseCoinCost = 0,
         string description = "")
@@ -81,7 +81,7 @@ public class RouteFactory
             Origin = origin.Id,           // Extract ID from validated object
             Destination = destination.Id, // Extract ID from validated object
             Method = method,
-            TravelTimeHours = travelTimeHours,
+            TravelTimeMinutes = travelTimeMinutes,
             BaseStaminaCost = baseStaminaCost,
             BaseCoinCost = baseCoinCost,
             Description = description ?? $"Travel from {origin.Name} to {destination.Name}",
@@ -102,7 +102,7 @@ public class RouteFactory
         string destinationId,
         IEnumerable<Location> availableLocations,
         TravelMethods method,
-        int travelTimeHours,
+        int travelTimeMinutes,
         int baseStaminaCost = 2,
         int baseCoinCost = 0,
         string description = "")
@@ -116,7 +116,7 @@ public class RouteFactory
         if (destination == null)
             throw new InvalidOperationException($"Cannot create route: destination location '{destinationId}' not found");
 
-        return CreateRoute(id, name, origin, destination, method, travelTimeHours,
+        return CreateRoute(id, name, origin, destination, method, travelTimeMinutes,
                           baseStaminaCost, baseCoinCost, description);
     }
 }

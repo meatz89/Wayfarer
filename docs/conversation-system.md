@@ -1,373 +1,393 @@
 # Wayfarer Conversation System Design
 
 ## Core Concept
-Each NPC owns a conversation deck representing their personality, experiences, and relationship with the player. Players navigate these decks through strategic card play, building comfort and depth to unlock letters and deepen relationships.
+Each NPC owns a conversation deck representing their personality, experiences, and relationship with the player. Players navigate these decks through strategic listening and speaking, building comfort to unlock letters and deepen relationships. The system uses a Listen/Speak dichotomy inspired by Jaipur, creating clear decision points each turn.
 
-## Conversation Flow
+## The Core Loop
 
-### Starting a Conversation
-1. Costs 1 attention point
-2. Calculate starting patience: Base (3-10) + Trust - Emotional modifiers
-3. Set depth to 0, state to Neutral
-4. Draw 5 cards from NPC's deck at current depth or lower
+### Each Turn (Costs 1 Patience)
+Players make ONE choice:
 
-### Each Turn
-1. Player must play one card (cannot pass)
-2. Pay patience cost
-3. Roll for success: (Patience - Difficulty + 5) × 12%
-4. Apply success or failure effects
-5. Check for state changes and depth shifts
-6. Draw back to 5 cards from available depth
+1. **LISTEN**: Draw 2 cards from NPC deck into hand
+   - Opportunity cards in hand vanish (moments pass)
+   - Persistent cards remain
+   - Gain information but lose fleeting moments
 
-### Ending Conditions
-- Patience reaches 0 (exhaustion)
-- Player plays Exit card (always available)
-- Letter generated (natural conclusion)
-- Obligation created (emotional weight)
-- Crisis card forces end
+2. **SPEAK**: Play cards from hand with restrictions
+   - **Coherent Expression**: Unlimited cards of SAME type (get set bonus)
+   - **Scattered Thoughts**: Up to 2 cards of MIXED types (no bonus)
+   - **Weight Limit**: Total emotional weight ≤ 7
+   - **Special Rules**: Crisis cards must be played alone
+   - Each card rolls for success individually
+
+### Why This Works
+- Binary choice creates clear decisions
+- Listen vs Speak models conversation rhythm
+- Hand limit (7) represents mental capacity
+- Patience as turns creates time pressure
+- Opportunity cards create meaningful trade-offs
+
+## Starting a Conversation
+
+1. **Cost**: 1 attention point to initiate
+2. **Starting Patience**: Base (8-15) + Trust bonus - Emotional penalties = Turns available
+3. **Starting Hand**: Draw 3 cards
+4. **Starting State**: Usually Neutral (may vary based on NPC emotion)
+5. **Starting Depth**: 0 (Surface level)
 
 ## Card Anatomy
 
 ```
 Card Name [Rarity: Common/Uncommon/Rare/Legendary]
-Type: Trust/Commerce/Status/Shadow
+Type: Trust/Commerce/Status/Shadow/Neutral
 Persistence: Persistent/Opportunity/One-shot/Burden/Crisis
-Depth Required: 0/1/2/3
-Cost: X patience (+ Y coins optional)
-Difficulty: X (used for success calculation)
+Emotional Weight: 0-5 (affects success chance, not playability)
+Optimal Depth: 0-3 (best effectiveness level)
 
-Success (66%+): +X comfort, [tokens], [special]
-Failure (0-65%): -X comfort or no effect, [negative]
+Effect:
+- Comfort: +X (base value)
+- Special: [Create state/Generate letter/Obligation/etc.]
 
-State:
-- Creates: [State name] or None
-- Resonates: [State type] → enables depth increase
+Success Rate = 70% - (Weight × 10%) - (20% if wrong depth) + State bonus + Status bonus
 ```
 
 ## Card Persistence Types
 
 ### Persistent
-- Always reshuffles if not played
-- Basic conversation options (Small Talk, Listen)
-- Reliable fallbacks
+- Remains in hand if not played when Listening
+- Basic conversation options (Small Talk, Listen, Nod)
+- Always available fallbacks
 
-### Opportunity  
-- Doesn't reshuffle if not played
-- Time-sensitive topics (current events, emotional moments)
-- Creates "use it or lose it" decisions
+### Opportunity
+- **Vanishes if you Listen** (moment passes)
+- Time-sensitive topics, emotional openings
+- Creates tension between drawing and playing
 
 ### One-shot
-- Permanently removed after playing
+- Stays in hand if not played (too important to vanish)
+- Permanently removed from deck after playing
 - Major confessions, life-changing promises
-- Cannot be repeated even in future conversations
 
 ### Burden
-- Remains in deck until resolved
+- Cannot vanish, must be addressed
 - Negative cards from failures or broken promises
-- Must be addressed to clear
+- Clogs hand until played and resolved
 
 ### Crisis
 - Only appears when NPC is desperate
-- High risk, high reward
-- Often ignores normal requirements
+- Often costs extreme amounts (all remaining patience)
+- Can break normal rules
 
-## Conversation States
+## Emotional Weight System
 
-Only ONE state active at a time. States create the emotional climate and govern what's possible.
+Weight represents how emotionally difficult something is to express:
+- **Weight 0**: Trivial (nod, small talk) - No penalty
+- **Weight 1**: Light (casual stories) - -10% success
+- **Weight 2**: Moderate (personal shares) - -20% success
+- **Weight 3**: Heavy (deep feelings) - -30% success
+- **Weight 4**: Intense (confessions) - -40% success
+- **Weight 5**: Overwhelming (desperate pleas) - -50% success
 
-### State Categories
-
-**Positive States** (enable depth through resonance):
-- **Open**: Trust and personal cards can increase depth
-- **Warm**: All comfort-building cards can increase depth
-- **Vulnerable**: Deep Trust/Shadow cards can increase depth
-- **Professional**: Commerce/Status cards can increase depth
-
-**Negative States** (block ALL depth increases):
-- **Guarded**: No depth increases possible, some cards unplayable
-- **Tense**: No depth increases possible, comfort gains reduced by 1
-
-**Neutral State**:
-- **Neutral**: Starting state, no special effects or depth changes
-
-### State Properties
-- Cards can create states when played
-- States last until replaced or conversation ends
-- Negative states must be cleared before depth can increase
-- Some cards specifically clear negative states
+Weight is NOT a cost - all cards are playable regardless of weight.
 
 ## Depth System
 
-Depth represents conversation intimacy (0-3, with 4 for legendary moments).
+### Depth Levels
+- **Depth 0**: Surface (small talk, pleasantries)
+- **Depth 1**: Personal (sharing experiences)
+- **Depth 2**: Intimate (deep connection)
+- **Depth 3**: Soul-deep (profound moments)
+
+### Optimal Depth vs Current Depth
+- **At optimal depth**: Full comfort reward
+- **Below optimal**: -50% comfort (too intimate too soon)
+- **Above optimal**: -25% comfort (too shallow for connection)
+
+Cards are NEVER locked by depth - you can always attempt them.
 
 ### Depth Progression
-
-**Depth INCREASES when**:
-- Playing a resonant card while in a positive state
-- Playing type-appropriate card in Professional state
-- Special card effects explicitly increase depth
-- Perfect success (90%+ roll) on high-difficulty cards
-
-**Depth DECREASES when**:
-- Critical failure (10% or less roll) on any depth 2+ card
-- Playing severely mismatched cards (Trust in Professional, Commerce in Vulnerable)
-- Certain burden cards when played
-
-**Depth CANNOT increase when**:
-- In Guarded or Tense state (must clear first)
-- No resonant cards available
-- Already at maximum depth for current relationship
-
-### Depth Gating
-- Depth 0: Surface level, always available
-- Depth 1: Personal, requires reaching depth 1
-- Depth 2: Intimate, requires reaching depth 2
-- Depth 3: Soul-deep, requires reaching depth 3
-- Depth 4: Transcendent (legendary cards only)
-
-## Token Generation
-
-Tokens represent relationship milestones, not just successful cards.
-
-### Token Triggers
-- Reaching comfort thresholds:
-  - Comfort 5: +1 token (maintain)
-  - Comfort 10: +1 token (progress)
-  - Comfort 15: +2 tokens (perfect)
-- Below comfort 5: -1 token (relationship decay)
-- Letter delivery: +1-3 tokens based on tier
+Depth advances when:
+- Playing resonant cards in positive states
+- Achieving breakthrough moments (comfort 10+ in single turn)
 - Special card effects
 
-### Token Types
-Each NPC relationship has four token types:
-- **Trust**: Adds to starting patience
-- **Commerce**: Reduces card costs (minimum 1)
-- **Status**: Reduces card difficulty
-- **Shadow**: Unlocks special options
+Depth decreases when:
+- Playing severely mismatched cards
+- Major failures on high-weight cards
+- Negative state transitions
 
-## Letter Generation
+## Set Bonuses and Expression Types
 
-Letters emerge from successful conversations, not random offers.
+### Coherent Expression (Same Type)
+Playing multiple cards of the SAME type in one SPEAK action:
+- **1 card**: Base comfort only
+- **2 same type**: +2 comfort bonus
+- **3 same type**: +5 comfort bonus
+- **4+ same type**: +8 comfort bonus
+- No limit on number if all same type (weight permitting)
 
-### Letter Card Requirements
-- Added to deck at relationship milestones (3, 5, 7)
-- Must be drawn into hand
-- Must meet comfort threshold (usually 10+)
-- Cannot be played in negative states
-- One letter maximum per conversation
+### Scattered Expression (Mixed Types)
+Playing cards of DIFFERENT types:
+- Maximum 2 cards when mixing types
+- No set bonus
+- Represents unfocused thoughts
+- Still subject to weight limit
 
-### Letter Tiers
-- Tier 1: Relationship 0-2, basic rewards
-- Tier 2: Relationship 3-5, moderate rewards  
-- Tier 3: Relationship 6+, powerful rewards
+### Weight Limit
+Total emotional weight per SPEAK action cannot exceed 7:
+- Prevents emotional overload
+- Crisis cards ignore this limit
+- Represents conversational capacity
 
-## Special Card Types
+## Conversation States
 
-### State Clearer Cards
-Cards that specifically remove negative states:
-```
-Sincere Apology [Uncommon]
-Type: Trust
-Cost: 3 patience
-Difficulty: 5
-Success: Clear any negative state, +2 comfort
-Failure: -1 comfort
-Creates: Open
-```
+One state active at a time, affecting the conversation's emotional climate.
 
-### Observation Cards
-Added to NPC decks when player observes relevant events:
-- Context-dependent effectiveness
-- May create unexpected states
-- Permanent additions to deck
+### Positive States
+- **Open**: Trust cards resonate, can advance depth
+- **Warm**: All weights -1 (easier expression)
+- **Vulnerable**: Double comfort or nothing (high risk/reward)
+- **Professional**: Commerce/Status cards resonate
 
-### Burden Resolution
-Burden cards must be addressed:
-- Can be played to clear (accepting the negative)
-- Can be transformed by special cards
-- Accumulate until forcing confrontation
+### Negative States
+- **Guarded**: All comfort -2, cannot advance depth
+- **Tense**: All weights +1, cannot advance depth
 
-### Crisis Cards
-Appear only during desperate states:
-- Cost all remaining patience
-- Ignore most requirements
-- Create obligations or major changes
-- Can break through negative states
-
-## Deck Evolution
-
-### Starting Deck (10 cards)
-- 5 universal basics (Small Talk, Listen, etc.)
-- 3 personality-specific cards
-- 2 mild burdens (everyone has baggage)
-
-### Deck Growth (max 20 cards)
-- Letter delivery adds powerful cards
-- Observations add contextual cards
-- Failures add burden cards
-- Perfect conversations transform negatives
-
-### Deck Curation
-When at 20 cards, adding new requires removing old - forcing players to shape relationships deliberately.
-
-## NPC Personality Influence
-
-### Personality Types
-- **Devoted**: High patience (8-10), Trust-focused
-- **Mercantile**: Medium patience (5-7), Commerce-focused
-- **Proud**: Low patience (3-5), Status-focused
-- **Cunning**: Variable patience (4-6), Shadow-focused
-- **Steadfast**: Balanced patience (6-8), mixed focus
-
-### Emotional States
-NPC emotional states modify conversations:
-- **Desperate** (<6 hours on letter): -3 patience, crisis cards appear
-- **Anxious** (6-12 hours): -1 patience, starts in Tense state
-- **Hostile** (failed letter): Cannot converse normally
-- **Neutral**: Normal patience and state
+### Special State Interactions
+- **Desperate NPCs**: More cards become Opportunities
+- **Vulnerable state**: Most cards become fleeting
+- States can modify card persistence
 
 ## Success Calculation
 
 ```
-Success Chance = (Current Patience - Card Difficulty + 5) × 12%
+Base Success Rate = 70%
+- (Weight × 10%)
+- 20% if not at optimal depth
++ 10% if card resonates with state
+- 10% if card conflicts with state
++ (Status tokens × 3%)
++ Special modifiers
+
+Minimum: 10%, Maximum: 95%
 ```
 
-- Minimum 0%, Maximum 100%
-- Status relationship reduces all difficulties by 1
-- Shadow 5+ can ignore one requirement per conversation
-- Player sees percentage before playing
+Players see exact percentages before committing.
 
-## Example Cards
+## Comfort System
 
-### Basic Card
-```
-Small Talk [Common]
-Type: Trust
-Persistence: Persistent
-Depth: 0
-Cost: 1 patience
-Difficulty: 2
+### Building Comfort
+- Accumulates through successful card plays
+- Set bonuses multiply effectiveness
+- State modifiers apply after base calculation
+- Some cards give comfort even on failure
 
-Success: +2 comfort
-Failure: +1 comfort
+### Comfort Thresholds
+- **5 comfort**: Relationship maintained (+1 token)
+- **10 comfort**: Progress achieved (letter cards activate)
+- **15 comfort**: Strong connection (+2 tokens)
+- **20 comfort**: Perfect conversation (special rewards)
+- **Below 5**: Relationship strains (-1 token)
 
-State:
-- Creates: Warm
-- Resonates: Open
-```
+## Hand Management
 
-### State Clearer
-```
-Break the Ice [Common]
-Type: Trust
-Persistence: Persistent
-Depth: 0
-Cost: 2 patience
-Difficulty: 3
+### Hand Limit: 7 Cards
+- Represents conversational working memory
+- Cannot draw beyond 7
+- Must play or Listen choices become forced
+- Burden cards count against limit
 
-Success: +2 comfort, clear negative state
-Failure: No effect
+### Drawing Strategy
+- Listen gives 2 cards but Opportunities vanish
+- More cards enable better sets
+- Risk of losing crucial moments
+- Must balance information vs action
 
-State:
-- Creates: Open
-- Resonates: None
-```
+## Token System
 
-### Letter Card
-```
-Request Personal Letter [Uncommon]
-Type: Trust  
-Persistence: Opportunity
-Depth: 2
-Cost: 2 patience
-Difficulty: 4
+### Token Types and Effects
+- **Trust**: +1 patience per 2 tokens (more conversation time)
+- **Commerce**: Set bonuses improved by 1
+- **Status**: +3% success rate per token
+- **Shadow**: Once per conversation, prevent 1 Opportunity from vanishing
 
-Success: +2 comfort, Generate Trust Letter
-Failure: Add "Rejected Request" burden
+### Earning Tokens
+- Reaching comfort thresholds
+- Delivering letters successfully
+- Special card effects
+- Perfect conversations (15+ comfort)
 
-State:
-- Creates: None
-- Resonates: Open, Vulnerable
-```
+## Letter Generation
 
-### Crisis Card
-```
-Desperate Plea [Crisis]
-Type: Trust
-Persistence: Crisis (this conversation only)
-Depth: Any (ignores requirement)
-Cost: All remaining patience
-Difficulty: 6
+### How Letters Emerge
+1. Build comfort to threshold (usually 10+)
+2. Letter cards appear in draws at relationship milestones
+3. Successfully play letter card when drawn
+4. Letter enters queue system
 
-Success: Generate letter, Create obligation, clear negative states
-Failure: -5 comfort, NPC becomes hostile
+### Letter Card Requirements
+- Added to deck at Trust/Commerce/Status 3, 5, 7
+- Must achieve comfort threshold in conversation
+- One letter maximum per conversation
+- Type matches dominant relationship
 
-State:
-- Creates: Vulnerable
-- Resonates: Any (desperation transcends states)
-```
+## NPC Personalities
 
-### Burden Card
-```
-Unresolved Issue [Burden]
-Type: None
-Persistence: Burden
-Depth: 0
-Cost: 2 patience
-Difficulty: 3
+### Personality Types
+- **Devoted** (family, clergy): 12-15 base patience, Trust-focused
+- **Mercantile** (traders): 10-12 patience, Commerce-focused
+- **Proud** (nobles): 8-10 patience, Status-focused
+- **Cunning** (spies): 10-12 patience, Shadow-focused
+- **Steadfast** (workers): 11-13 patience, balanced
 
-Success: Remove this card, +1 comfort
-Failure: -2 comfort, creates Tense state
+### Emotional States
+- **Desperate** (<6 hours on letter): -3 patience, crisis cards appear, more Opportunities
+- **Anxious** (6-12 hours): -1 patience, starts Tense
+- **Hostile** (failed letter): Cannot converse
+- **Neutral**: Normal patience and cards
 
-State:
-- Creates: Tense (on failure)
-- Resonates: None
-```
+## Deck Evolution
 
-## Design Principles
+### Starting Deck (15 cards)
+- 5 universal basics (always Persistent)
+- 6 personality-specific cards
+- 3 contextual cards (mix of types)
+- 1 mild burden
+
+### Deck Growth (max 25 cards)
+- Letter delivery adds powerful cards
+- Observations add Opportunity cards
+- Failures add Burden cards
+- Perfect conversations transform negatives
+
+### Deck Curation
+When at maximum, must replace cards to add new ones, forcing relationship shaping.
+
+## Drawing and Card Generation
+
+### Standard Listen Action
+When choosing LISTEN, draw 2 cards:
+- Random from NPC deck
+- Filtered by current depth:
+  - Depth 0: Draw from depth 0-1 cards
+  - Depth 1: Draw from depth 0-2 cards
+  - Depth 2+: Draw from any depth
+- Opportunity cards in hand vanish first
+
+### Special Card Injection
+Certain triggers add cards DIRECTLY to hand (bypassing Listen):
+- **NPC becomes desperate**: 1-2 crisis cards inject to hand
+- **Player observation**: Relevant card injects to hand
+- **Emotional breakthrough**: Special cards may inject
+- Can cause hand overflow (>7 cards), forcing immediate Speak
+
+### Deck Management
+- **No reshuffling** during conversation
+- **Played cards** go to discard pile
+- **One-shots** removed permanently when played
+- **Opportunities** removed if not played by conversation end
+- **Persistent cards** return to deck after conversation
+- **Burdens** remain in deck until resolved
+
+### Empty Deck Scenario
+If deck runs out:
+- Can only play from hand
+- Listen action draws nothing
+- Conversation naturally concludes soon
+
+## Observation Integration
+
+When players observe events in the world:
+- Cards inject DIRECTLY to hand (not deck)
+- Usually Opportunity type (time-sensitive)  
+- "Mention the guards" only relevant now
+- Can cause hand overflow, forcing quick decisions
+- Creates immediate conversational pressure
+
+## Special Card Restrictions
+
+### Crisis Cards
+- Must be played alone (cannot combine)
+- Ignore weight limits
+- Often end conversation immediately
+- Represent desperate moments
+
+### One-Shot Cards  
+- Maximum one per SPEAK action
+- Too important to rush
+- Cannot combine with crisis cards
+- Permanently removed after playing
+
+### Burden Cards
+- Can be mixed with regular cards
+- Add awkwardness to expression
+- Must be resolved eventually
+- Count toward weight limit
+
+## Example Turn Flow
+
+**Elena Conversation (Trust 4, Desperate, Depth 1)**
+
+Starting: 5 patience (turns remaining)
+
+**Hand**: 3 Trust Opportunities (weight 2 each), 1 Persistent (weight 0), 1 One-shot (weight 4), 1 Crisis (weight 5)
+
+**Turn 5 Decision**:
+- **Listen**: Lose 3 Opportunities, draw 2 new cards
+- **Speak**: Play cards within restrictions
+
+**Option A - Coherent Expression**: 
+Play 3 Trust cards (same type, total weight 6 ≤ 7):
+- Card 1: Weight 2, 50% success → Success! +4 comfort
+- Card 2: Weight 2, 50% success → Success! +4 comfort  
+- Card 3: Weight 2, 50% success → Fail, +1 comfort
+- Set bonus: +5 comfort
+- Total: 14 comfort (letter threshold reached!)
+
+**Option B - Crisis**:
+Play Crisis card alone (ignores weight limit):
+- Weight 5, 45% success → Success! 
+- Generates letter immediately
+- Conversation ends
+
+**Option C - Mixed Expression**:
+Play 1 Trust + 1 Persistent (mixed, max 2 cards):
+- No set bonus
+- Lower comfort gain
+- Preserves other Opportunities
+
+## Design Philosophy
 
 ### Mechanical Elegance
-- Binary success/failure (no partial outcomes)
-- States have clear mechanical effects
-- No multi-turn tracking needed
-- Depth emerges from state management
-- All information visible on cards
+- One choice per turn (Listen or Speak)
+- All cards always playable
+- Weight affects difficulty, not availability
+- Depth affects effectiveness, not access
+- No complex state tracking
 
 ### Verisimilitude
-- Negative states block intimacy (can't deepen when guarded)
-- Must repair before progressing
-- Crisis breaks through barriers
-- Some moments only happen once
-- Trust builds gradually
+- Can attempt anything anytime (like real conversation)
+- Heavier topics harder to land
+- Mistimed intimacy backfires
+- Some moments are fleeting
+- Time pressure from limited turns
 
 ### Player Experience
-- Clear obstacles (negative states) to overcome
-- Discovery through depth exploration
-- Risk/reward in state management
-- Crisis moments for dramatic saves
-- Every conversation tells a story
+- Clear decisions with visible consequences
+- Discovery through deck exploration
+- Tension from vanishing Opportunities
+- Satisfaction from successful sets
+- Recovery possible from failures
 
-## AI Narrative Generation
+## Key Differences from Traditional Systems
 
-The AI receives mechanical cards and generates contextual narrative:
+### What Makes This Unique
+1. **Listen/Speak Dichotomy**: Not playing cards one by one, but choosing to gather or express
+2. **Persistence Types**: Cards that vanish create temporal pressure
+3. **Weight Not Cost**: Emotional burden affects success, not playability
+4. **All Cards Playable**: No dead draws, only suboptimal timing
+5. **Turns Not Points**: Patience is time remaining, not spent per card
+6. **Extended Expression**: Multiple cards = one coherent statement
 
-### Input to AI
-- Current NPC (personality, emotional state, location)
-- 5 drawn cards with their mechanical properties
-- Current conversation state and depth
-- Previous cards played this conversation
-- Current comfort and patience levels
-
-### AI Generation Process
-1. Analyzes emotional state and active conversation state
-2. Identifies conversation theme from card types
-3. Generates NPC's opening based on state (guarded, open, etc.)
-4. Creates contextual description for each card option
-5. Maps mechanical effects to narrative outcomes
-
-### Example
-Mechanical: "Clear negative state, +2 comfort"
-Generated in Guarded state: "Your gentle persistence finally breaks through her defenses..."
-Generated in Tense state: "The laughter breaks the tension that's been building..."
-
-The same mechanical effect generates different narrative based on which negative state is being cleared, creating emergent storytelling from systematic mechanics.
+### Why It Works
+The system models real conversation: sometimes you listen to understand better, sometimes you express yourself fully. Moments pass if not seized. Heavy topics are always attemptable but harder to land. Time is limited. Every choice matters, but nothing is ever impossible.

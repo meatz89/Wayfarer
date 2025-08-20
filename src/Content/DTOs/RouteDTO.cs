@@ -12,7 +12,7 @@ public class RouteDTO
     public string Method { get; set; }
     public int BaseCoinCost { get; set; }
     public int BaseStaminaCost { get; set; }
-    public int TravelTimeHours { get; set; }
+    public int TravelTimeMinutes { get; set; }
     public string DepartureTime { get; set; }
     public bool IsDiscovered { get; set; }
     public List<string> TerrainCategories { get; set; } = new List<string>();

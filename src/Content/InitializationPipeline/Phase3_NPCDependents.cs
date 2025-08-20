@@ -100,7 +100,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                         Name = dto.Name,
                         Origin = origin.Id,
                         Destination = destination.Id,
-                        TravelTimeHours = dto.TravelTimeHours,
+                        TravelTimeMinutes = dto.TravelTimeMinutes,
                         BaseStaminaCost = dto.BaseStaminaCost,
                         BaseCoinCost = dto.BaseCoinCost,
                         Method = method,

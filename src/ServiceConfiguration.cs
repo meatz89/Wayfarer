@@ -97,6 +97,7 @@ public static class ServiceConfiguration
 
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();
+        services.AddSingleton<EndingGenerator>();
 
 
         // Leverage Calculator for power dynamics

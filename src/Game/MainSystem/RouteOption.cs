@@ -81,7 +81,7 @@ public class RouteOption
     public TravelMethods Method { get; set; }
     public int BaseCoinCost { get; set; }
     public int BaseStaminaCost { get; set; }
-    public int TravelTimeHours { get; set; }
+    public int TravelTimeMinutes { get; set; }
     public TimeBlocks? DepartureTime { get; set; }
     public bool IsDiscovered { get; set; } = true;
     public List<TerrainCategory> TerrainCategories { get; set; } = new List<TerrainCategory>();
@@ -231,7 +231,7 @@ public class RouteOption
 
     public int GetActualTimeCost()
     {
-        return TravelTimeHours;
+        return TravelTimeMinutes;
     }
 
     public int CalculateWeightAdjustedStaminaCost(int totalWeight)

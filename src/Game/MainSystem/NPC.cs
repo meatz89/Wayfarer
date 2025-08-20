@@ -248,7 +248,7 @@ public class NPC
             Name = $"Secret path from {Location}",
             Description = "A hidden route known only to locals",
             Destination = "MarketSquare",
-            TravelTimeHours = 1,
+            TravelTimeMinutes = 1,
             Method = TravelMethods.Walking
         };
     }
@@ -265,7 +265,7 @@ public class NPC
                 Name = $"Common route from {Location}",
                 Description = "The usual path",
                 Destination = "TownGate",
-                TravelTimeHours = 2,
+                TravelTimeMinutes = 2,
                 Method = TravelMethods.Walking
             },
             new RouteOption
@@ -274,7 +274,7 @@ public class NPC
                 Name = $"Trade route from {Location}",
                 Description = "The merchant's path",
                 Destination = "MerchantQuarter",
-                TravelTimeHours = 3,
+                TravelTimeMinutes = 3,
                 Method = TravelMethods.Carriage
             }
         };

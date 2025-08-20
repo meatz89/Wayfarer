@@ -81,7 +81,7 @@ public static class NPCConversationExtensions
             Name = $"Secret path known to {npc.Name}",
             Origin = npc.Location,
             Destination = "SecretDestination",
-            TravelTimeHours = 1,
+            TravelTimeMinutes = 1,
             Method = TravelMethods.Walking
         };
     }

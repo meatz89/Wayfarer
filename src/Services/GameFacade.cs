@@ -66,6 +66,7 @@ public class GameFacade : ILetterQueueOperations
     private readonly NPCDeckFactory _deckFactory;
     private readonly WorldMemorySystem _worldMemorySystem;
     private readonly AmbientDialogueSystem _ambientDialogueSystem;
+    private readonly EndingGenerator _endingGenerator;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -110,7 +111,8 @@ public class GameFacade : ILetterQueueOperations
         WorldMemorySystem worldMemorySystem,
         AmbientDialogueSystem ambientDialogueSystem,
         TimeBlockAttentionManager timeBlockAttentionManager,
-        NPCDeckFactory deckFactory
+        NPCDeckFactory deckFactory,
+        EndingGenerator endingGenerator
 )
     {
         _gameWorld = gameWorld;
@@ -158,6 +160,7 @@ public class GameFacade : ILetterQueueOperations
         // Use injected TimeBlockAttentionManager (shared with ConversationFactory)
         _timeBlockAttentionManager = timeBlockAttentionManager;
         _deckFactory = deckFactory;
+        _endingGenerator = endingGenerator;
     }
 
     // ========== ATTENTION STATE ACCESS ==========
@@ -1620,7 +1623,7 @@ public class GameFacade : ILetterQueueOperations
                 TerrainType = "Standard", // Terrain not needed for POC
                 CoinCost = coinCost,
                 StaminaCost = routeStaminaCost,
-                TravelTimeHours = route.TravelTimeHours,
+                TravelTimeMinutes = route.TravelTimeMinutes,
                 TransportRequirement = route.Method.ToString(),
                 CanAffordCoins = player.Coins >= coinCost,
                 CanAffordStamina = player.Stamina >= totalStaminaCost,
@@ -1731,7 +1734,7 @@ public class GameFacade : ILetterQueueOperations
                 CanTravel = canTravel,
                 CannotTravelReason = !canTravel ? "No available routes" : null,
                 MinimumCost = dest.AvailableRoutes.Where(r => !r.IsBlocked).Select(r => r.CoinCost).DefaultIfEmpty(0).Min(),
-                MinimumTime = dest.AvailableRoutes.Where(r => !r.IsBlocked).Select(r => r.TravelTimeHours).DefaultIfEmpty(0).Min()
+                MinimumTime = dest.AvailableRoutes.Where(r => !r.IsBlocked).Select(r => r.TravelTimeMinutes).DefaultIfEmpty(0).Min()
             });
         }
 
@@ -1756,7 +1759,7 @@ public class GameFacade : ILetterQueueOperations
                 RouteName = route.TerrainType,
                 Description = route.TransportRequirement ?? "Standard route",
                 TransportMethod = route.TransportRequirement == "Carriage" ? TravelMethods.Carriage : TravelMethods.Walking,
-                TimeCost = route.TravelTimeHours,
+                TimeCost = route.TravelTimeMinutes,
                 TotalStaminaCost = route.TotalStaminaCost,
                 CoinCost = route.CoinCost,
                 CanTravel = !route.IsBlocked,
@@ -2069,7 +2072,7 @@ public class GameFacade : ILetterQueueOperations
             RouteName = route.Name,
             Description = route.Description,
             TransportMethod = route.Method,
-            TimeCost = route.TravelTimeHours,
+            TimeCost = route.TravelTimeMinutes,
             BaseStaminaCost = route.BaseStaminaCost,
             TotalStaminaCost = totalStaminaCost,
             CoinCost = coinCost,
@@ -6344,6 +6347,41 @@ public class GameFacade : ILetterQueueOperations
     }
 
     #endregion
+
+    // ========== ENDING SYSTEM ==========
+
+    /// <summary>
+    /// Check if the game has reached the 30-day ending
+    /// </summary>
+    public bool HasReachedEnding()
+    {
+        return _endingGenerator.HasReachedEnding();
+    }
+
+    /// <summary>
+    /// Generate the game ending based on current relationships
+    /// </summary>
+    public GameEnding GenerateEnding()
+    {
+        return _endingGenerator.GenerateEnding();
+    }
+
+    /// <summary>
+    /// Enable endless mode after the main story concludes
+    /// </summary>
+    public void EnableEndlessMode()
+    {
+        // Set flag in game world to indicate endless mode is active
+        _gameWorld.SetEndlessMode(true);
+    }
+
+    /// <summary>
+    /// Check if endless mode is active
+    /// </summary>
+    public bool IsEndlessModeActive()
+    {
+        return _gameWorld.IsEndlessModeActive();
+    }
 
 }
 

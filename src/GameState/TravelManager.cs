@@ -243,7 +243,7 @@ public class TravelManager
                     Origin = fromLocationId,
                     Destination = toLocationId,
                     Method = TravelMethods.Walking,
-                    TravelTimeHours = (int)(travelTime / 60.0f), // Convert minutes to hours as int
+                    TravelTimeMinutes = travelTime, // Direct minutes from TravelTimeMatrix
                     BaseStaminaCost = Math.Max(1, travelTime / 30), // 1 stamina per 30 minutes
                     IsDiscovered = true, // All walking routes are discovered
                     Description = "On foot"

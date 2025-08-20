@@ -50,6 +50,9 @@ public class GameWorld
     // Strongly typed pending queue state (replaces unsafe metadata dictionary)
     public PendingQueueState PendingQueueState { get; private set; } = new PendingQueueState();
 
+    // Endless mode flag for post-30 day gameplay
+    public bool EndlessMode { get; set; } = false;
+
     public GameWorld()
     {
         if (GameInstanceId == Guid.Empty) GameInstanceId = Guid.NewGuid();
@@ -83,6 +86,17 @@ public class GameWorld
     {
         CurrentDay++;
         CurrentTimeBlock = TimeBlocks.Dawn;
+    }
+
+    // Endless mode management
+    public void SetEndlessMode(bool enabled)
+    {
+        EndlessMode = enabled;
+    }
+
+    public bool IsEndlessModeActive()
+    {
+        return EndlessMode;
     }
 
 }

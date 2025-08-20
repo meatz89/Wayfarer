@@ -236,6 +236,7 @@ public class TimeConfig
     public int HourCostStandardAction { get; set; }
     public int HourCostTravel { get; set; }
     public int HourCostDeepAction { get; set; }
+    public int MaxDays { get; set; } = 30; // 30-day narrative arc
     public Dictionary<string, TimeBlockDefinition> TimeBlocks { get; set; } = new();
 }
 

@@ -27,7 +27,7 @@ namespace Wayfarer.Pages
                 Method = viewModel.TransportMethod,
                 BaseStaminaCost = viewModel.BaseStaminaCost,
                 BaseCoinCost = viewModel.CoinCost,
-                TravelTimeHours = viewModel.TimeCost,
+                TravelTimeMinutes = viewModel.TimeCost,
                 TerrainCategories = viewModel.TerrainCategories ?? new List<TerrainCategory>(),
                 Description = viewModel.Description
             };

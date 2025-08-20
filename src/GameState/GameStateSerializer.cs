@@ -591,7 +591,7 @@ public static class GameWorldSerializer
             method = route.Method.ToString(),
             baseCoinCost = route.BaseCoinCost,
             baseStaminaCost = route.BaseStaminaCost,
-            travelTimeHours = route.TravelTimeHours,
+            travelTimeHours = route.TravelTimeMinutes,
             departureTime = route.DepartureTime?.ToString(),
             isDiscovered = route.IsDiscovered,
             terrainCategories = route.TerrainCategories.Select(c => c.ToString()).ToList(),

@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Location Screens</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            max-width: 720px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: #f4e8d0;
+            box-shadow: 0 0 60px rgba(0,0,0,0.7);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(to bottom, #2c241a, #3d3429);
+            color: #f4e8d0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 2px solid #8b7355;
+        }
+
+        .time-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 16px;
+            font-size: 13px;
+        }
+
+        .current-time {
+            color: #d4c5a0;
+            letter-spacing: 1px;
+        }
+
+        .deadline-timer {
+            color: #d4736a;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Location Header */
+        .location-header {
+            background: linear-gradient(to bottom, #faf4ea, #f4e8d0);
+            border-bottom: 2px solid #a68b6f;
+            padding: 20px;
+        }
+
+        .location-path {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #7a6250;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .path-arrow {
+            color: #a68b6f;
+        }
+
+        .location-name {
+            font-size: 24px;
+            color: #5c4a3a;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .location-traits {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .trait {
+            background: #e8dcc4;
+            padding: 3px 10px;
+            border-radius: 2px;
+            font-size: 11px;
+            color: #5c4a3a;
+            border: 1px solid #c4a684;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .trait.atmosphere { 
+            background: #f9f3e9; 
+            color: #8b6914;
+            border-color: #d4a76a;
+        }
+        
+        .trait.danger { 
+            background: #faf0e6; 
+            color: #8b4726;
+            border-color: #d4736a;
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 20px;
+            background: #f4e8d0;
+        }
+
+        .atmosphere-text {
+            font-style: italic;
+            color: #7a6250;
+            font-size: 14px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #faf4ea;
+            border-left: 3px solid #c4a684;
+            border-radius: 2px;
+            line-height: 1.5;
+        }
+
+        /* Section Headers */
+        .section-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7a6250;
+            margin: 20px 0 12px 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #d4c5a0;
+        }
+
+        /* Location Movement Grid */
+        .location-spots {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .spot-option {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            padding: 12px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .spot-option:hover {
+            border-color: #8b7355;
+            background: #fefaf0;
+            transform: translateX(4px);
+        }
+
+        .spot-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #5c4a3a;
+        }
+
+        .spot-detail {
+            font-size: 12px;
+            color: #7a6250;
+            font-style: italic;
+        }
+
+        /* Quick Actions */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .action-card {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .action-card:hover {
+            border-color: #8b7355;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .action-card.travel {
+            grid-column: span 2;
+            background: linear-gradient(to right, #faf4ea, #f4e8d0);
+            border-color: #8b7355;
+        }
+
+        .action-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #5c4a3a;
+            margin-bottom: 4px;
+        }
+
+        .action-detail {
+            font-size: 12px;
+            color: #7a6250;
+        }
+
+        .action-cost {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #7a6250;
+            color: #faf4ea;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .action-cost.free {
+            background: #7a8b5a;
+        }
+
+        /* Observations */
+        .observations {
+            background: #faf4ea;
+            border: 2px dashed #c4a684;
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .observable-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .observable {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: #f4e8d0;
+            border: 1px solid #d4c5a0;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .observable:hover {
+            border-color: #8b7355;
+            transform: translateX(4px);
+        }
+
+        .observable-text {
+            font-size: 13px;
+            color: #5c4a3a;
+        }
+
+        .observable.unknown {
+            font-style: italic;
+            color: #8b7355;
+        }
+
+        .observe-cost {
+            background: #5c4a3a;
+            color: #faf4ea;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* NPC Present */
+        .npc-present {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .npc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .npc-name {
+            font-weight: bold;
+            font-size: 16px;
+            color: #5c4a3a;
+        }
+
+        .npc-state {
+            font-size: 11px;
+            color: #8b7355;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .npc-state.desperate {
+            color: #8b4726;
+        }
+
+        .npc-description {
+            font-style: italic;
+            color: #7a6250;
+            font-size: 13px;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .npc-locked {
+            background: #e8dcc4;
+            padding: 8px;
+            border-radius: 2px;
+            font-size: 12px;
+            color: #7a6250;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .start-conversation {
+            background: linear-gradient(to bottom, #8b9a6a, #7a8b5a);
+            border: 2px solid #5a6a3a;
+            padding: 10px;
+            border-radius: 4px;
+            color: #faf4ea;
+            font-size: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .start-conversation:hover {
+            background: linear-gradient(to bottom, #9aaa7a, #8b9a6a);
+            transform: translateY(-1px);
+        }
+
+        /* Travel Screen Styles */
+        .travel-header {
+            background: linear-gradient(to bottom, #e8dcc4, #dfd0b4);
+            padding: 20px;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .route-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .route-name {
+            font-size: 20px;
+            color: #5c4a3a;
+        }
+
+        .route-type {
+            font-size: 12px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .familiarity-display {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            background: #faf4ea;
+            border: 1px solid #c4a684;
+            border-radius: 4px;
+        }
+
+        .familiarity-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .familiarity-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .familiarity-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #f4e8d0;
+            border: 1px solid #a68b6f;
+        }
+
+        .familiarity-dot.filled {
+            background: #8b7355;
+        }
+
+        .familiarity-effect {
+            font-size: 12px;
+            color: #5c4a3a;
+            font-style: italic;
+        }
+
+        /* Travel Cards */
+        .travel-card-area {
+            padding: 20px;
+            background: #f4e8d0;
+        }
+
+        .cards-drawn {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .travel-card {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .travel-card:hover {
+            border-color: #8b7355;
+            transform: translateX(4px);
+        }
+
+        .travel-card.selected {
+            background: #e8dcc4;
+            border-color: #7a6250;
+            transform: translateX(8px);
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 15px;
+            color: #5c4a3a;
+            margin-bottom: 8px;
+        }
+
+        .card-description {
+            font-style: italic;
+            color: #7a6250;
+            font-size: 13px;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .card-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-left: 16px;
+        }
+
+        .card-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #5c4a3a;
+        }
+
+        .option-effect {
+            font-size: 11px;
+            color: #7a8b5a;
+            font-weight: bold;
+        }
+
+        .option-cost {
+            font-size: 11px;
+            color: #8b4726;
+        }
+
+        /* Route Selection Modal */
+        .route-selection {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .route-modal {
+            background: #f4e8d0;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #f4e8d0;
+            padding: 16px 20px;
+            border-bottom: 2px solid #8b7355;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            letter-spacing: 1px;
+        }
+
+        .route-list {
+            padding: 20px;
+        }
+
+        .route-item {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .route-item:hover:not(.locked) {
+            border-color: #8b7355;
+            transform: translateX(4px);
+        }
+
+        .route-item.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #e8dcc4;
+        }
+
+        .route-destination {
+            font-weight: bold;
+            font-size: 16px;
+            color: #5c4a3a;
+            margin-bottom: 8px;
+        }
+
+        .route-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 12px;
+            color: #7a6250;
+        }
+
+        .transport-option {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 8px;
+            background: #f4e8d0;
+            border: 1px solid #d4c5a0;
+            border-radius: 2px;
+        }
+
+        .lock-reason {
+            grid-column: span 2;
+            color: #8b4726;
+            font-style: italic;
+            margin-top: 4px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            color: #f4e8d0;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Section divider */
+        .example-divider {
+            background: #2c241a;
+            color: #f4e8d0;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 40px 0 0 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="time-bar">
+                <span class="current-time">Tuesday, Third Bell Past Noon</span>
+                <span class="deadline-timer">Urgent: Elena's Letter - 2 hours remain</span>
+            </div>
+        </div>
+
+        <!-- EXAMPLE 1: Market Square (Hub Location) -->
+        <div class="location-header">
+            <div class="location-path">
+                <span>City Center</span>
+                <span class="path-arrow">→</span>
+                <span>Market Square</span>
+            </div>
+            <div class="location-name">Central Fountain Plaza</div>
+            <div class="location-traits">
+                <span class="trait">Public Square</span>
+                <span class="trait atmosphere">Bustling</span>
+                <span class="trait">Crossroads</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="atmosphere-text">
+                The fountain's spray catches afternoon light, creating small rainbows. Merchants hawk their wares while children dart between the stalls. The cobblestones are warm beneath your feet, worn smooth by countless travelers.
+            </div>
+
+            <div class="section-header">Move Within Market Square</div>
+            <div class="location-spots">
+                <div class="spot-option">
+                    <span class="spot-name">Fountain Edge</span>
+                    <span class="spot-detail">Shaded, peaceful</span>
+                </div>
+                <div class="spot-option">
+                    <span class="spot-name">Eastern Stalls</span>
+                    <span class="spot-detail">Spice merchants</span>
+                </div>
+                <div class="spot-option">
+                    <span class="spot-name">News Board</span>
+                    <span class="spot-detail">Posted notices</span>
+                </div>
+            </div>
+
+            <div class="section-header">Quick Actions</div>
+            <div class="action-grid">
+                <div class="action-card">
+                    <div class="action-cost free">Free</div>
+                    <div class="action-title">Rest at Fountain</div>
+                    <div class="action-detail">5 minutes • Clear your thoughts</div>
+                </div>
+                
+                <div class="action-card">
+                    <div class="action-cost">1 Coin</div>
+                    <div class="action-title">Buy Bread</div>
+                    <div class="action-detail">Quick sustenance</div>
+                </div>
+                
+                <div class="action-card travel">
+                    <div class="action-cost">Plan Route</div>
+                    <div class="action-title">Travel to Another Location</div>
+                    <div class="action-detail">Choose destination and transport</div>
+                </div>
+            </div>
+
+            <div class="section-header">People Here</div>
+            <div class="npc-present">
+                <div class="npc-header">
+                    <div>
+                        <div class="npc-name">Marcus the Spice Merchant</div>
+                        <div class="npc-state">Calculating</div>
+                    </div>
+                </div>
+                <div class="npc-description">
+                    Arranging saffron and cinnamon with practiced precision, occasionally glancing at his ledger with a furrowed brow
+                </div>
+                <div class="start-conversation">Begin Conversation</div>
+            </div>
+
+            <div class="observations">
+                <div class="section-header">Observations Available</div>
+                <div class="observable-list">
+                    <div class="observable">
+                        <span class="observable-text">Watch the crowd patterns</span>
+                        <span class="observe-cost">1 Attention</span>
+                    </div>
+                    <div class="observable">
+                        <span class="observable-text">Study the posted notices</span>
+                        <span class="observe-cost">1 Attention</span>
+                    </div>
+                    <div class="observable unknown">
+                        <span class="observable-text">That hooded figure...</span>
+                        <span class="observe-cost">1 Attention</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="example-divider">Example 2: Tavern with Multiple NPCs</div>
+
+        <!-- EXAMPLE 2: Copper Kettle Tavern -->
+        <div class="location-header">
+            <div class="location-path">
+                <span>Market Square</span>
+                <span class="path-arrow">→</span>
+                <span>West Side</span>
+                <span class="path-arrow">→</span>
+                <span>Copper Kettle</span>
+            </div>
+            <div class="location-name">The Copper Kettle Tavern</div>
+            <div class="location-traits">
+                <span class="trait">Indoor</span>
+                <span class="trait atmosphere">Warm Hearth</span>
+                <span class="trait">Social Hub</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="atmosphere-text">
+                Pipe smoke mingles with the scent of roasted meat. A bard strums quietly in the corner while patrons huddle over their ales, speaking in low voices about the day's troubles.
+            </div>
+
+            <div class="section-header">Move Within Tavern</div>
+            <div class="location-spots">
+                <div class="spot-option">
+                    <span class="spot-name">Bar Counter</span>
+                    <span class="spot-detail">Bertram serving</span>
+                </div>
+                <div class="spot-option">
+                    <span class="spot-name">Corner Table</span>
+                    <span class="spot-detail">Quiet, shadowed</span>
+                </div>
+                <div class="spot-option">
+                    <span class="spot-name">Hearth Benches</span>
+                    <span class="spot-detail">Warm, social</span>
+                </div>
+            </div>
+
+            <div class="section-header">People Here</div>
+            <div class="npc-present">
+                <div class="npc-header">
+                    <div>
+                        <div class="npc-name">Elena</div>
+                        <div class="npc-state desperate">Desperate</div>
+                    </div>
+                </div>
+                <div class="npc-description">
+                    Clutching a sealed letter with white knuckles, her eyes darting to the door every time it opens. Time is running out.
+                </div>
+                <div class="start-conversation">Begin Conversation</div>
+            </div>
+
+            <div class="npc-present">
+                <div class="npc-header">
+                    <div>
+                        <div class="npc-name">Lord Blackwood</div>
+                        <div class="npc-state">Neutral</div>
+                    </div>
+                </div>
+                <div class="npc-description">
+                    Sitting alone with documents and wine, reviewing what appear to be marriage contracts with a dispassionate expression
+                </div>
+                <div class="npc-locked">
+                    Requires formal introduction letter (Status 3+ or Noble connection)
+                </div>
+            </div>
+        </div>
+
+        <div class="example-divider">Example 3: Travel Screen with Cards</div>
+
+        <!-- EXAMPLE 3: Travel Screen -->
+        <div class="travel-header">
+            <div class="route-info">
+                <div>
+                    <div class="route-name">North Road to Noble District</div>
+                    <div class="route-type">Main Road (Safe)</div>
+                </div>
+                <div class="familiarity-display">
+                    <span class="familiarity-label">Familiarity</span>
+                    <div class="familiarity-dots">
+                        <div class="familiarity-dot filled"></div>
+                        <div class="familiarity-dot filled"></div>
+                        <div class="familiarity-dot"></div>
+                        <div class="familiarity-dot"></div>
+                        <div class="familiarity-dot"></div>
+                    </div>
+                    <span class="familiarity-effect">Draw 2, choose 1</span>
+                </div>
+            </div>
+            <div class="location-path">
+                <span>Market Square</span>
+                <span class="path-arrow">→</span>
+                <span>North Gate</span>
+                <span class="path-arrow">→</span>
+                <span>Willow Bend</span>
+                <span class="path-arrow">→</span>
+                <span>Noble District</span>
+            </div>
+        </div>
+
+        <div class="travel-card-area">
+            <div class="atmosphere-text">
+                The road winds uphill, paved stones giving way to packed earth. A merchant's cart has thrown a wheel ahead, blocking half the path.
+            </div>
+
+            <div class="section-header">Choose Your Path (Walking)</div>
+            <div class="cards-drawn">
+                <div class="travel-card">
+                    <div class="card-title">Guard Checkpoint</div>
+                    <div class="card-description">
+                        Two city guards have set up a checkpoint, checking papers and questioning travelers about their business in the Noble District.
+                    </div>
+                    <div class="card-options">
+                        <div class="card-option">
+                            <span>Show Status (if 3+)</span>
+                            <span class="option-effect">Pass freely</span>
+                        </div>
+                        <div class="card-option">
+                            <span>Pay toll</span>
+                            <span class="option-cost">2 coins</span>
+                        </div>
+                        <div class="card-option">
+                            <span>Argue your case</span>
+                            <span class="option-cost">+30 min delay</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="travel-card">
+                    <div class="card-title">Merchant with Broken Wheel</div>
+                    <div class="card-description">
+                        A silk merchant struggles with his damaged cart, expensive fabrics threatening to spill into the mud. He looks desperate for assistance.
+                    </div>
+                    <div class="card-options">
+                        <div class="card-option">
+                            <span>Help repair</span>
+                            <span class="option-effect">+1 Commerce token</span>
+                            <span class="option-cost">20 min delay</span>
+                        </div>
+                        <div class="card-option">
+                            <span>Share gossip</span>
+                            <span class="option-effect">Learn noble moods</span>
+                            <span class="option-cost">1 attention</span>
+                        </div>
+                        <div class="card-option">
+                            <span>Walk past</span>
+                            <span class="option-effect">Continue normally</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="observations">
+                <div class="section-header">Things You Notice</div>
+                <div class="observable-list">
+                    <div class="observable">
+                        <span class="observable-text">Fresh wheel ruts suggest heavy traffic this morning</span>
+                        <span class="observe-cost">1 Attention</span>
+                    </div>
+                    <div class="observable unknown">
+                        <span class="observable-text">Movement in the trees alongside the road...</span>
+                        <span class="observe-cost">1 Attention</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Route Selection Modal (Hidden by default) -->
+        <div class="route-selection" style="display: none;">
+            <div class="route-modal">
+                <div class="modal-header">
+                    <div class="modal-title">Select Your Route</div>
+                    <span class="close-modal">×</span>
+                </div>
+                <div class="route-list">
+                    <div class="route-item">
+                        <div class="route-destination">Noble District</div>
+                        <div class="route-details">
+                            <div class="transport-option">
+                                <span>Walking</span>
+                                <span>45 min • Free</span>
+                            </div>
+                            <div class="transport-option">
+                                <span>Cart</span>
+                                <span>20 min • 2 coins</span>
+                            </div>
+                            <div class="transport-option">
+                                <span>Carriage</span>
+                                <span>15 min • 5 coins</span>
+                            </div>
+                            <div style="grid-column: span 2; font-size: 11px; color: #7a6250; margin-top: 4px;">
+                                Main Road (Safe) • Familiarity: 2/5
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-destination">Riverside Docks</div>
+                        <div class="route-details">
+                            <div class="transport-option">
+                                <span>Walking</span>
+                                <span>30 min • Free</span>
+                            </div>
+                            <div class="transport-option">
+                                <span>Cart</span>
+                                <span>15 min • 2 coins</span>
+                            </div>
+                            <div style="grid-column: span 2; font-size: 11px; color: #7a6250; margin-top: 4px;">
+                                Back Paths (Opportunistic) • Familiarity: 0/5
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="route-item locked">
+                        <div class="route-destination">Castle Grounds</div>
+                        <div class="route-details">
+                            <div class="lock-reason">
+                                Requires Castle Access Permit (obtain from Chancellor)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="route-item locked">
+                        <div class="route-destination">Shadow Market</div>
+                        <div class="route-details">
+                            <div class="lock-reason">
+                                Unknown route - discover through Shadow contacts
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle travel button click
+        document.querySelectorAll('.action-card.travel').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelector('.route-selection').style.display = 'flex';
+            });
+        });
+
+        // Close modal
+        document.querySelector('.close-modal').addEventListener('click', () => {
+            document.querySelector('.route-selection').style.display = 'none';
+        });
+
+        // Handle route selection
+        document.querySelectorAll('.route-item:not(.locked)').forEach(route => {
+            route.addEventListener('click', () => {
+                console.log('Selected route:', route.querySelector('.route-destination').textContent);
+                // Would transition to travel screen with selected route
+            });
+        });
+
+        // Handle observation clicks
+        document.querySelectorAll('.observable').forEach(obs => {
+            obs.addEventListener('click', () => {
+                const cost = obs.querySelector('.observe-cost').textContent;
+                console.log('Observing... costs', cost);
+                // Would reveal observation and potentially inject card into conversation
+            });
+        });
+
+        // Handle travel card selection
+        document.querySelectorAll('.travel-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.travel-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+            });
+        });
+    </script>
+</body>
+</html>
