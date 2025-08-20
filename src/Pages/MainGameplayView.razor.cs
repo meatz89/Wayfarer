@@ -73,9 +73,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public WeatherCondition CurrentWeather { get; private set; }
     public List<TravelDestinationViewModel> TravelDestinations { get; private set; }
 
-    // Backward compatibility for child components
     public TimeBlocks CurrentTime => CurrentTimeBlock;
-    public ConversationManager ConversationManager { get; set; } // For compatibility
 
     public Dictionary<SidebarSections, bool> ExpandedSections = new Dictionary<SidebarSections, bool>
     {
@@ -177,12 +175,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             Console.WriteLine($"[MainGameplayView.PollGameState] OnNavigate null? {OnNavigate == null}");
             Console.WriteLine($"[MainGameplayView.PollGameState] CurrentScreen before invoke: {CurrentScreen}");
 
-            // For backward compatibility, create a ConversationManager if needed
-            if (ConversationManager == null)
-            {
-                // This is a shim for compatibility - ideally child components should use CurrentConversation
-                ConversationManager = new ConversationManager(null, null, null, null);
-            }
 
             if (OnNavigate != null && CurrentScreen != CurrentViews.ConversationScreen)
             {
@@ -664,44 +656,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         Console.WriteLine("Verification completed - check console");
     }
 
-    // Backward compatibility methods for child components
-    public List<NPC> GetNPCsAtCurrentSpot()
-    {
-        // Get NPCs through location actions
-        LocationActionsViewModel locationActions = GameFacade.GetLocationActions();
-        List<NPC> npcList = new List<NPC>();
-
-        // Extract NPCs from conversation actions
-        ActionGroupViewModel? conversationGroup = locationActions.ActionGroups
-            .FirstOrDefault(g => g.ActionType == "Conversation");
-
-        if (conversationGroup != null)
-        {
-            foreach (ActionOptionViewModel action in conversationGroup.Actions)
-            {
-                // Create NPC object from action data
-                // This is a compatibility shim - ideally child components should use ViewModels
-                NPC npc = new NPC
-                {
-                    ID = action.Id.Replace("talk_", ""),
-                    Name = action.Description.Replace("Talk to ", ""),
-                    SpotId = CurrentSpot?.SpotID
-                };
-                npcList.Add(npc);
-            }
-        }
-
-        return npcList;
-    }
-
-    public List<NPC> GetAvailableNPCsAtCurrentSpot()
-    {
-        // For now, return same as GetNPCsAtCurrentSpot
-        // Child components should ideally use the LocationActionsViewModel directly
-        return GetNPCsAtCurrentSpot();
-    }
-
-    // Backward compatibility properties
     public List<Location> Locations => TravelDestinations?.Select(d => new Location(d.LocationId, d.LocationName)).ToList() ?? new List<Location>();
 
     // All legacy service getters completely removed - use GameFacade methods exclusively

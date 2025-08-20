@@ -3828,17 +3828,24 @@ public class GameFacade
         };
     }
 
+    // Market action enum for categorical mapping
+    private enum MarketAction
+    {
+        Buy,
+        Sell
+    }
+
     public async Task<bool> BuyItemAsync(string itemId, string traderId)
     {
-        return await ExecuteMarketTradeAsync(itemId, "buy", traderId);
+        return await ExecuteMarketTradeAsync(itemId, MarketAction.Buy, traderId);
     }
 
     public async Task<bool> SellItemAsync(string itemId, string traderId)
     {
-        return await ExecuteMarketTradeAsync(itemId, "sell", traderId);
+        return await ExecuteMarketTradeAsync(itemId, MarketAction.Sell, traderId);
     }
 
-    private async Task<bool> ExecuteMarketTradeAsync(string itemId, string action, string locationId)
+    private async Task<bool> ExecuteMarketTradeAsync(string itemId, MarketAction action, string locationId)
     {
         if (_ruleEngine == null || _itemRepository == null)
         {
@@ -3847,7 +3854,7 @@ public class GameFacade
         }
 
         MarketManager.TradeActionResult result;
-        if (action.ToLower() == "buy")
+        if (action == MarketAction.Buy)
         {
             result = _marketManager.TryBuyItem(itemId, locationId);
             if (result.Success)

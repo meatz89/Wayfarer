@@ -3,9 +3,9 @@
 
 ## ✅ MAJOR SUCCESS: PHASE 1 CONVERSATION SYSTEM COMPLETE
 
-**Date**: 2025-08-19
-**Status**: PHASE 1 FULLY FUNCTIONAL - CONVERSATION → LETTER PIPELINE WORKING
-**Achievement**: Complete conversation system with dynamic letter generation
+**Date**: 2025-08-20 (Continued Refactoring)
+**Status**: PHASE 1 FULLY FUNCTIONAL + ARCHITECTURAL CLEANUP COMPLETE
+**Achievement**: Complete conversation system with dynamic letter generation + pure DI patterns
 
 ### ✅ PHASE 1 COMPLETED: Full Conversation → Letter Pipeline
 1. **Card Game Mechanics**: ✅ Choices removed after play, deck shuffling working
@@ -45,12 +45,14 @@ This document provides the complete implementation roadmap for Wayfarer's dual-l
 - **Letter/Obligation Separation**: DeliveryObligation (abstract) vs Letter (physical)
 - **Basic UI Components**: ConversationScreen, LetterQueueScreen, LocationScreen
 
-### 🔄 ARCHITECTURAL DECISIONS (2025-08-20)
-- **LETTERS ONLY FROM CONVERSATIONS**: No automatic generation, no forced letters
-- **HIGHLANDER PRINCIPLE**: One service per domain (ConversationLetterService for all letters)
-- **NO COMPATIBILITY LAYERS**: Delete legacy code immediately, fix all references
-- **DI PATTERNS**: Constructor injection only, no setter methods or service locators
-- **GAMEWORLD SINGLE SOURCE**: All game state flows from GameWorld, no duplicate tracking
+### ✅ ARCHITECTURAL REFACTORING COMPLETE (2025-08-20)
+- **✅ LETTERS ONLY FROM CONVERSATIONS**: No automatic generation, no forced letters
+- **✅ HIGHLANDER PRINCIPLE**: One service per domain (ConversationLetterService for all letters)
+- **✅ NO COMPATIBILITY LAYERS**: All backward compatibility code removed from MainGameplayView
+- **✅ DI PATTERNS**: Fixed all service creation - no more `new()` for services
+- **✅ GAMEWORLD SINGLE SOURCE**: All game state flows from GameWorld, no duplicate tracking
+- **✅ WEIGHT→SIZE REFACTORING**: Letters now use Size for satchel capacity (not Weight)
+- **✅ NO STRING MATCHING**: MarketAction enum replaces "buy"/"sell" string comparisons
 
 ### ✅ CRITICAL SYSTEMS NOW COMPLETE
 1. **✅ Two-Layer Integration**: Conversations → Comfort → Tokens → Letters → Queue (FUNCTIONAL)

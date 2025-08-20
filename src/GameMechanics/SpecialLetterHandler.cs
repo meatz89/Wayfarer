@@ -23,8 +23,7 @@ public class SpecialLetterHandler
         LocationRepository locationRepository,
         InformationDiscoveryManager informationManager,
         TokenMechanicsManager tokenManager,
-        // EndorsementManager endorsementManager = null, // Removed
-        RouteRepository routeRepository = null)
+        RouteRepository routeRepository)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -32,8 +31,7 @@ public class SpecialLetterHandler
         _locationRepository = locationRepository;
         _informationManager = informationManager;
         _tokenManager = tokenManager;
-        // _endorsementManager removed - endorsements no longer exist
-        _routeRepository = routeRepository ?? new RouteRepository(gameWorld, new ItemRepository(gameWorld));
+        _routeRepository = routeRepository;
     }
 
     /// <summary>

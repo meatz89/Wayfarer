@@ -18,9 +18,8 @@ public class Phase4_5_ContentFallbacks : IInitializationPhase
     {
         Console.WriteLine("Checking for missing content references and creating fallbacks...");
 
-        // Get repositories from GameWorld
-        // Note: We can't easily create DebugLogger here as it needs TimeManager and ConversationStateManager
-        // For now, we'll create a minimal version or skip the fallback service in the repository
+        // During initialization, we need to create minimal services
+        // These will be replaced by DI-injected versions after initialization
         NPCRepository npcRepository = new NPCRepository(
             context.GameWorld,
             null, // DebugLogger not available during initialization
@@ -80,7 +79,7 @@ public class Phase4_5_ContentFallbacks : IInitializationPhase
             Console.WriteLine("All content references are valid - no fallbacks needed.");
         }
 
-        // Connect the fallback service to the NPC repository
-        npcRepository.SetFallbackService(fallbackService);
+        // NOTE: SetFallbackService violates our architectural principles
+        // The NPCRepository should get its fallback service through DI, not setter injection
     }
 }

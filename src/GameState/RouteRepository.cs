@@ -4,10 +4,10 @@ public class RouteRepository : IRouteRepository
     private readonly GameWorld _gameWorld;
     private readonly ItemRepository _itemRepository;
 
-    public RouteRepository(GameWorld gameWorld, ItemRepository itemRepository = null)
+    public RouteRepository(GameWorld gameWorld, ItemRepository itemRepository)
     {
         _gameWorld = gameWorld;
-        _itemRepository = itemRepository ?? new ItemRepository(gameWorld);
+        _itemRepository = itemRepository;
     }
 
     // Check if a route is blocked
