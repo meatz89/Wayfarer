@@ -1,0 +1,130 @@
+@* Maps location atmosphere categories to descriptive text *@
+
+@code {
+    [Parameter] public string LocationName { get; set; }
+    [Parameter] public List<string> DomainTags { get; set; }
+    [Parameter] public TimeOfDay CurrentTime { get; set; }
+    [Parameter] public List<NPC> NPCsPresent { get; set; }
+    [Parameter] public AtmosphereCategory? Atmosphere { get; set; }
+    [Parameter] public LocationMood? Mood { get; set; }
+
+    private string GetAtmosphereText()
+    {
+        // Generate atmosphere based on location and context
+        if (LocationName?.Contains("Market") == true)
+        {
+            return CurrentTime switch
+            {
+                TimeOfDay.Morning => "Merchant calls echo across cobblestones. The fountain's spray catches morning light. Early shoppers browse the stalls.",
+                TimeOfDay.Afternoon => "The market bustles at its peak. Crowds flow between stalls like water finding its course. The air fills with haggling voices.",
+                TimeOfDay.Evening => "Vendors pack their wares as shadows lengthen. The square empties slowly, leaving only the dedicated traders.",
+                TimeOfDay.Night => "The market lies quiet under moonlight. Only the fountain's gentle splash breaks the silence.",
+                _ => "The market square stretches before you."
+            };
+        }
+
+        if (LocationName?.Contains("Tavern") == true)
+        {
+            if (NPCsPresent?.Any(n => n.Name == "Elena") == true)
+            {
+                return "Firelight dances on worn wooden beams. The clink of pottery mingles with hushed conversations. In the corner, someone clutches a letter with desperate intensity.";
+            }
+            return "Warm hearth-light fills the common room. Low voices share the day's gossip over ale and bread.";
+        }
+
+        if (LocationName?.Contains("Noble") == true)
+        {
+            return CurrentTime switch
+            {
+                TimeOfDay.Morning => "Manicured gardens glisten with dew. Servants hurry about their morning duties.",
+                TimeOfDay.Afternoon => "The district radiates quiet wealth. Guards stand at attention, their armor gleaming.",
+                TimeOfDay.Evening => "Lamp-lighters begin their rounds. Noble carriages rattle over cobblestones.",
+                _ => "The noble district maintains its austere grandeur."
+            };
+        }
+
+        // Default atmospheric text based on tags
+        if (DomainTags?.Contains("CROWDED") == true)
+        {
+            return "People press in from all sides. The air buzzes with countless conversations.";
+        }
+
+        if (DomainTags?.Contains("QUIET") == true)
+        {
+            return "A peaceful quiet settles over the area. You can hear your own footsteps clearly.";
+        }
+
+        return "The location has its own distinct character.";
+    }
+
+    private string GetNPCPresenceDescription(NPC npc)
+    {
+        // Generate description based on NPC state
+        var stateResolver = new NPCStateResolver(null, null); // Would be injected
+        var emotionalState = NPCEmotionalState.NEUTRAL; // Would be calculated
+
+        if (npc.Name == "Elena" && emotionalState == NPCEmotionalState.DESPERATE)
+        {
+            return "Clutching a sealed letter with white knuckles, her eyes darting to the door with each patron's entrance.";
+        }
+
+        if (npc.Name == "Marcus")
+        {
+            return "Arranging bolts of fabric with practiced efficiency, occasionally glancing at his ledger with a furrowed brow.";
+        }
+
+        if (npc.Name == "Bertram")
+        {
+            return "Polishing the same mug for the third time while surveying his domain with practiced ease.";
+        }
+
+        return npc.Description ?? "Going about their business.";
+    }
+
+    private string GetObservationHint()
+    {
+        // Hint at available observations
+        if (LocationName?.Contains("Market") == true)
+        {
+            return "You notice guard movements, merchant negotiations, and cart schedules.";
+        }
+
+        if (LocationName?.Contains("Tavern") == true)
+        {
+            return "The notice board catches your eye. Someone's distress is palpable.";
+        }
+
+        return null;
+    }
+}
+
+<div class="atmosphere-section">
+    <div class="atmosphere-text">
+        @GetAtmosphereText()
+    </div>
+
+    @if (NPCsPresent?.Any() == true)
+    {
+        <div class="npcs-present">
+            @foreach (var npc in NPCsPresent)
+            {
+                <div class="npc-presence">
+                    <div class="npc-name">@npc.Name</div>
+                    <div class="npc-description">
+                        @GetNPCPresenceDescription(npc)
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @{
+        var hint = GetObservationHint();
+        if (!string.IsNullOrEmpty(hint))
+        {
+            <div class="observation-hint">
+                <em>@hint</em>
+            </div>
+        }
+    }
+}

@@ -75,7 +75,7 @@ public class LocationNarrativeGenerator
             ObservationCount = observations.Count,
             HasUrgentObservations = observations.Any(o => o.Type == ObservationType.Important),
             RecentEvents = recentEvents,
-            SpotCharacter = spot?.Character ?? LocationSpotCharacter.Generic
+            SpotCharacter = LocationSpotCharacter.Generic // LocationSpot doesn't have Character property
         };
     }
 
@@ -94,7 +94,7 @@ public class LocationNarrativeGenerator
             NPCActivity activity = DetermineNPCActivity(npc, emotionalState);
             
             // Calculate body language category
-            BodyLanguageCategory bodyLanguage = DetermineBodyLanguage(emotionalState, npc.Personality);
+            BodyLanguageCategory bodyLanguage = DetermineBodyLanguage(emotionalState, npc.PersonalityType);
             
             // Determine if NPC has urgent business
             UrgencyIndicator urgency = CalculateUrgency(emotionalState);
@@ -104,7 +104,7 @@ public class LocationNarrativeGenerator
                 NPCId = npc.ID,
                 Name = npc.Name,
                 EmotionalState = emotionalState,
-                Personality = npc.Personality,
+                Personality = npc.PersonalityType,
                 Activity = activity,
                 BodyLanguage = bodyLanguage,
                 Urgency = urgency,
@@ -215,7 +215,7 @@ public class LocationNarrativeGenerator
             Professions.Soldier => NPCActivity.StandingWatch,
             Professions.Noble => NPCActivity.HoldingCourt,
             Professions.Scholar => NPCActivity.ReadingDocuments,
-            Professions.Laborer => NPCActivity.Working,
+            // Professions.Laborer => NPCActivity.Working, // Laborer doesn't exist, covered by Soldier
             _ => NPCActivity.GoingAboutBusiness
         };
     }

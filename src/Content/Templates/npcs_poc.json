@@ -1,0 +1,91 @@
+[
+	{
+		"id": "elena",
+		"name": "Elena",
+		"profession": "Scribe",
+		"locationId": "copper_kettle_tavern",
+		"spotId": "corner_table",
+		"description": "A young woman nervously fidgeting with a sealed letter",
+		"personality": "Intelligent and desperate, worried about Lord Aldwin's proposal",
+		"personalityType": "DEVOTED",
+		"services": ["Information"],
+		"letterTokenTypes": ["Trust"],
+		"currentState": "DESPERATE",
+		"letterDeadline": 480,
+		"urgentLetter": {
+			"id": "elena_refusal",
+			"sender": "elena",
+			"recipient": "lord_blackwood",
+			"weight": 3,
+			"deadlineInMinutes": 480,
+			"stakes": "SAFETY",
+			"description": "Marriage refusal to Lord Blackwood"
+		}
+	},
+	{
+		"id": "marcus",
+		"name": "Marcus",
+		"profession": "Merchant",
+		"locationId": "market_square",
+		"spotId": "marcus_stall",
+		"description": "A merchant heading to his stall",
+		"personality": "Businesslike and hurried",
+		"personalityType": "MERCANTILE",
+		"services": ["Trade"],
+		"letterTokenTypes": ["Commerce"],
+		"currentState": "CALCULATING",
+		"hasLetter": true,
+		"activeLetter": {
+			"id": "marcus_trade",
+			"sender": "marcus",
+			"recipient": "noble_district_merchant",
+			"weight": 2,
+			"deadlineInMinutes": 900,
+			"reward": 3,
+			"description": "Trade documents for Noble District"
+		}
+	},
+	{
+		"id": "lord_blackwood",
+		"name": "Lord Blackwood",
+		"profession": "Noble",
+		"locationId": "noble_district",
+		"spotId": "blackwood_estate",
+		"description": "An influential noble preparing to leave for the capital",
+		"personality": "Impatient and powerful",
+		"personalityType": "PROUD",
+		"services": [],
+		"letterTokenTypes": ["Status"],
+		"currentState": "NEUTRAL",
+		"leavingAt": 300,
+		"willBeUnavailableAfter": 300
+	},
+	{
+		"id": "bertram",
+		"name": "Bertram the Innkeeper",
+		"profession": "Innkeeper",
+		"locationId": "copper_kettle_tavern",
+		"spotId": "bar_counter",
+		"description": "Polishing glasses behind the bar, occasionally glancing your way with a welcoming nod",
+		"personality": "Friendly and observant",
+		"personalityType": "STEADFAST",
+		"services": ["Lodging", "Information"],
+		"letterTokenTypes": [],
+		"currentState": "WELCOMING"
+	},
+	{
+		"id": "viktor",
+		"name": "Viktor",
+		"profession": "Soldier",
+		"locationId": "market_square",
+		"spotId": "north_entrance",
+		"description": "A guard captain blocking the north road",
+		"personality": "Stern and dutiful",
+		"personalityType": "STEADFAST",
+		"services": [],
+		"letterTokenTypes": ["Status"],
+		"currentState": "NEUTRAL",
+		"isBlockingPath": true,
+		"requiresStatusToPass": 3
+	}
+]

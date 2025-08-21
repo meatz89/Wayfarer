@@ -1,0 +1,79 @@
+@* Maps emotional states and contexts to narrative text *@
+
+@code {
+    [Parameter] public EmotionalState State { get; set; }
+    [Parameter] public NPCEmotionalState? NPCState { get; set; }
+    [Parameter] public PersonalityType? Personality { get; set; }
+    [Parameter] public int? MinutesUntilDeadline { get; set; }
+    [Parameter] public string NPCName { get; set; }
+
+    private string GetNarrativeText()
+    {
+        // Generate contextual narrative based on state
+        if (NPCState == NPCEmotionalState.DESPERATE && MinutesUntilDeadline.HasValue)
+        {
+            int hours = MinutesUntilDeadline.Value / 60;
+            if (hours <= 2)
+            {
+                return $"Time is running short. {NPCName}'s desperation fills the space between you, making every word carry weight.";
+            }
+            return $"Urgency hangs in the air. {NPCName} needs your help, and time is not on their side.";
+        }
+
+        return State switch
+        {
+            EmotionalState.DESPERATE => "The air crackles with desperation. Every moment counts.",
+            EmotionalState.TENSE => "Tension coils through the conversation like a tightening spring.",
+            EmotionalState.GUARDED => "Walls are up. Trust must be earned word by careful word.",
+            EmotionalState.NEUTRAL => "The conversation flows at its natural pace.",
+            EmotionalState.OPEN => "Openness creates space for genuine connection.",
+            EmotionalState.CONNECTED => "A profound connection hums between you, each word perfectly placed.",
+            EmotionalState.EAGER => "Enthusiasm bubbles through every exchange.",
+            EmotionalState.OVERWHELMED => "Too much, too fast. The conversation needs breathing room.",
+            EmotionalState.HOSTILE => "Hostility poisons the air. Words become weapons.",
+            _ => "The moment unfolds."
+        };
+    }
+
+    private string GetStateDescription()
+    {
+        if (NPCState.HasValue)
+        {
+            return NPCState.Value switch
+            {
+                NPCEmotionalState.DESPERATE => $"DESPERATE • Letter deadline in {MinutesUntilDeadline / 60} hours!",
+                NPCEmotionalState.ANXIOUS => "ANXIOUS • Worried about deadlines",
+                NPCEmotionalState.HOSTILE => "HOSTILE • Too angry to converse",
+                NPCEmotionalState.NEUTRAL => "NEUTRAL • Open to conversation",
+                NPCEmotionalState.FRUSTRATED => "FRUSTRATED • Patience wearing thin",
+                NPCEmotionalState.JOYFUL => "JOYFUL • In excellent spirits",
+                _ => State.ToString()
+            };
+        }
+
+        return State switch
+        {
+            EmotionalState.DESPERATE => "Draw 2 + crisis • Crisis free • Listen worsens",
+            EmotionalState.TENSE => "Draw 1 • Weight limit 1 • Listen → Guarded",
+            EmotionalState.GUARDED => "Draw 1 • Weight limit 2 • Listen → Neutral",
+            EmotionalState.NEUTRAL => "Draw 2 • Weight limit 3 • Listen → stays",
+            EmotionalState.OPEN => "Draw 3 • Weight limit 3 • Listen → stays",
+            EmotionalState.CONNECTED => "Draw 3 • Weight limit 4 • Auto-depth progress",
+            EmotionalState.EAGER => "Draw 3 • +3 bonus for 2+ same type",
+            EmotionalState.OVERWHELMED => "Draw 1 • Max 1 card • Listen → Neutral",
+            EmotionalState.HOSTILE => "Cannot converse until resolved",
+            _ => ""
+        };
+    }
+}
+
+<div class="narrative-text">
+    @GetNarrativeText()
+</div>
+
+@if (!string.IsNullOrEmpty(GetStateDescription()))
+{
+    <div class="state-description">
+        @GetStateDescription()
+    </div>
+}

@@ -1,0 +1,108 @@
+@* Maps card templates and context to actual dialogue text *@
+
+@code {
+    [Parameter] public CardTemplateType Template { get; set; }
+    [Parameter] public CardContext Context { get; set; }
+    [Parameter] public string NPCName { get; set; }
+    [Parameter] public bool IsPlayerCard { get; set; } = true;
+
+    private string GetCardText()
+    {
+        // Map template + context to actual dialogue
+        if (Context?.EmotionalState == EmotionalState.DESPERATE)
+        {
+            return Template switch
+            {
+                CardTemplateType.PromiseToHelp => $"I promise I'll help you, {NPCName}. We'll get your letter to Lord Blackwood before the deadline. Your father won't force this marriage on you.",
+                CardTemplateType.MentionObservation => "I saw Lord Blackwood's guards at the tavern earlier. They mentioned he's leaving for the capital at dawn. We need to reach him tonight.",
+                CardTemplateType.CalmReassurance => $"{NPCName}, breathe. We have time. I'm here to help you. Let's think through this together - there's always a way.",
+                CardTemplateType.DesperatePromise => $"{NPCName}, I swear on my life - I will get this letter to Lord Blackwood. Even if I have to fight through his guards, even if it costs me everything!",
+                _ => GetDefaultCardText()
+            };
+        }
+
+        return GetDefaultCardText();
+    }
+
+    private string GetDefaultCardText()
+    {
+        return Template switch
+        {
+            // Generic templates
+            CardTemplateType.SimpleGreeting => IsPlayerCard ? "Good day. How are things?" : $"Ah, it's you. What brings you here?",
+            CardTemplateType.ActiveListening => IsPlayerCard ? "Please, tell me more." : "You seem interested in what I have to say.",
+            CardTemplateType.CasualInquiry => IsPlayerCard ? "What's been happening lately?" : "Just the usual troubles, nothing special.",
+            
+            // Trust templates
+            CardTemplateType.OfferHelp => IsPlayerCard ? "Is there anything I can do to help?" : "Your offer is appreciated.",
+            CardTemplateType.SharePersonal => IsPlayerCard ? "Let me tell you something about myself..." : "I don't often share this, but...",
+            CardTemplateType.MakePromise => IsPlayerCard ? "You have my word on this." : "I'm counting on you to keep that promise.",
+            CardTemplateType.ExpressEmpathy => IsPlayerCard ? "I understand how difficult this must be." : "It's rare to find someone who truly understands.",
+            
+            // Commerce templates
+            CardTemplateType.DiscussBusiness => IsPlayerCard ? "How's business been treating you?" : "Trade has been slow lately.",
+            CardTemplateType.ProposeDeal => IsPlayerCard ? "I have a proposition that might interest you." : "I'm listening. What are the terms?",
+            CardTemplateType.NegotiateTerms => IsPlayerCard ? "Let's work out the details." : "These terms are acceptable.",
+            
+            // Status templates
+            CardTemplateType.ShowRespect => IsPlayerCard ? "Your reputation precedes you." : "It's good to be recognized.",
+            CardTemplateType.AcknowledgePosition => IsPlayerCard ? "I understand your position in this matter." : "At least someone appreciates the situation.",
+            
+            // Shadow templates
+            CardTemplateType.ShareSecret => IsPlayerCard ? "I've heard something you should know..." : "This stays between us.",
+            CardTemplateType.ImplyKnowledge => IsPlayerCard ? "I know more than I'm saying." : "You seem well-informed.",
+            
+            // State change templates
+            CardTemplateType.CalmnessAttempt => IsPlayerCard ? "Let's take a moment to breathe." : "Perhaps you're right. I should calm down.",
+            CardTemplateType.OpeningUp => IsPlayerCard ? "I feel like we can trust each other." : "Yes, I'm beginning to feel the same.",
+            
+            // Crisis templates
+            CardTemplateType.UrgentPlea => IsPlayerCard ? "This is urgent - I need your help now!" : "Please, you must help me immediately!",
+            CardTemplateType.DesperateRequest => IsPlayerCard ? "I'm desperate. Please!" : "I have nowhere else to turn!",
+            
+            _ => IsPlayerCard ? "..." : "Hmm."
+        };
+    }
+
+    private string GetSuccessDescription()
+    {
+        var weight = GetCardWeight();
+        var successChance = Math.Max(10, Math.Min(95, 70 - (weight * 10) + (Context?.StatusTokens ?? 0) * 3));
+        return $"{successChance}%";
+    }
+
+    private int GetCardWeight()
+    {
+        return Template switch
+        {
+            CardTemplateType.SimpleGreeting => 0,
+            CardTemplateType.ActiveListening => 1,
+            CardTemplateType.CasualInquiry => 1,
+            CardTemplateType.OfferHelp => 2,
+            CardTemplateType.SharePersonal => 2,
+            CardTemplateType.ShareSecret => 3,
+            CardTemplateType.DesperatePromise => 5,
+            CardTemplateType.UrgentPlea => 4,
+            _ => 1
+        };
+    }
+
+    private string GetCardTypeClass()
+    {
+        if (Template.ToString().Contains("Calm") || Template.ToString().Contains("Opening"))
+            return "state";
+        if (Template.ToString().Contains("Desperate") || Template.ToString().Contains("Urgent"))
+            return "crisis";
+        return "comfort";
+    }
+}
+
+<div class="card-dialogue @GetCardTypeClass()">
+    <div class="card-text">
+        "@GetCardText()"
+    </div>
+    <div class="card-metadata">
+        <span class="weight">Weight: @GetCardWeight()</span>
+        <span class="success-chance">Success: @GetSuccessDescription()</span>
+    </div>
+}

@@ -1,0 +1,148 @@
+{
+	"templates": {
+		"PromiseToHelp": {
+			"type": "COMFORT",
+			"weight": 2,
+			"baseComfort": 4,
+			"persistence": "Opportunity",
+			"connectionType": "Trust",
+			"description": "A sincere promise to assist with their troubles"
+		},
+		"MentionGuards": {
+			"type": "COMFORT",
+			"weight": 1,
+			"baseComfort": 2,
+			"persistence": "Opportunity",
+			"connectionType": "Shadow",
+			"isObservation": true,
+			"createsState": "TENSE",
+			"description": "Share observed information about guard positions"
+		},
+		"CalmReassurance": {
+			"type": "STATE",
+			"weight": 1,
+			"persistence": "Persistent",
+			"connectionType": "Trust",
+			"isStateCard": true,
+			"successState": "TENSE",
+			"failureState": null,
+			"description": "Attempt to calm their emotional state"
+		},
+		"DesperatePromise": {
+			"type": "CRISIS",
+			"weight": 5,
+			"baseComfort": 10,
+			"persistence": "Crisis",
+			"connectionType": "Trust",
+			"isCrisis": true,
+			"freeInDesperate": true,
+			"generatesLetter": true,
+			"endsConversation": true,
+			"description": "A desperate oath to solve their crisis immediately"
+		},
+		"SimpleGreeting": {
+			"type": "COMFORT",
+			"weight": 0,
+			"baseComfort": 1,
+			"persistence": "Persistent",
+			"connectionType": "Trust",
+			"description": "A friendly greeting to start conversation"
+		},
+		"ActiveListening": {
+			"type": "COMFORT",
+			"weight": 1,
+			"baseComfort": 2,
+			"persistence": "Persistent",
+			"connectionType": "Trust",
+			"description": "Show genuine interest in their words"
+		},
+		"OfferHelp": {
+			"type": "COMFORT",
+			"weight": 2,
+			"baseComfort": 3,
+			"persistence": "Opportunity",
+			"connectionType": "Trust",
+			"description": "Offer assistance with their current troubles"
+		},
+		"SharePersonal": {
+			"type": "COMFORT",
+			"weight": 2,
+			"baseComfort": 3,
+			"persistence": "Opportunity",
+			"connectionType": "Trust",
+			"description": "Share something personal about yourself"
+		},
+		"DiscussBusiness": {
+			"type": "COMFORT",
+			"weight": 1,
+			"baseComfort": 2,
+			"persistence": "Persistent",
+			"connectionType": "Commerce",
+			"description": "Talk about trade and business matters"
+		},
+		"ProposeDeal": {
+			"type": "COMFORT",
+			"weight": 2,
+			"baseComfort": 3,
+			"persistence": "Opportunity",
+			"connectionType": "Commerce",
+			"description": "Suggest a mutually beneficial arrangement"
+		},
+		"ShowRespect": {
+			"type": "COMFORT",
+			"weight": 1,
+			"baseComfort": 2,
+			"persistence": "Persistent",
+			"connectionType": "Status",
+			"description": "Acknowledge their position and standing"
+		},
+		"ShareSecret": {
+			"type": "COMFORT",
+			"weight": 3,
+			"baseComfort": 4,
+			"persistence": "OneShot",
+			"connectionType": "Shadow",
+			"description": "Reveal confidential information"
+		},
+		"CalmnessAttempt": {
+			"type": "STATE",
+			"weight": 1,
+			"persistence": "Persistent",
+			"connectionType": "Trust",
+			"isStateCard": true,
+			"successState": "NEUTRAL",
+			"description": "Try to bring them to a calmer state"
+		},
+		"OpeningUp": {
+			"type": "STATE",
+			"weight": 2,
+			"persistence": "Opportunity",
+			"connectionType": "Trust",
+			"isStateCard": true,
+			"successState": "OPEN",
+			"description": "Create emotional openness"
+		},
+		"UrgentPlea": {
+			"type": "CRISIS",
+			"weight": 4,
+			"baseComfort": 6,
+			"persistence": "Crisis",
+			"connectionType": "Trust",
+			"isCrisis": true,
+			"description": "An urgent request for immediate help"
+		}
+	},
+	"setBonuses": {
+		"2_same_type": 2,
+		"3_same_type": 5,
+		"4_same_type": 8,
+		"eager_bonus": 3
+	},
+	"successFormula": {
+		"base": 70,
+		"weightPenalty": 10,
+		"statusBonus": 3,
+		"min": 10,
+		"max": 95
+	}
+}

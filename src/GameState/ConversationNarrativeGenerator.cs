@@ -41,7 +41,7 @@ public class ConversationNarrativeGenerator
         PressureLevel pressure = CalculatePressure(urgentLetter);
         
         // Get relationship context
-        NPCRelationship relationship = _relationshipTracker.GetRelationship(npc.ID);
+        NPCRelationshipTokens relationship = _relationshipTracker.GetRelationship(npc.ID);
         RelationshipDepth depth = CalculateRelationshipDepth(relationship);
         
         // Determine scene tone
@@ -60,7 +60,7 @@ public class ConversationNarrativeGenerator
             RelationshipDepth = depth,
             SceneTone = tone,
             ActionBeats = actionBeats,
-            NPCPersonality = npc.Personality,
+            NPCPersonality = npc.PersonalityType,
             LocationContext = GetLocationContext()
         };
     }
@@ -79,14 +79,14 @@ public class ConversationNarrativeGenerator
         DialogueUrgency urgency = CalculateDialogueUrgency(npcCondition);
         
         // Determine emotional coloring
-        EmotionalColoring coloring = DetermineEmotionalColoring(state, npc.Personality);
+        EmotionalColoring coloring = DetermineEmotionalColoring(state, npc.PersonalityType);
         
         return new DialogueContext
         {
             Type = dialogueType,
             Urgency = urgency,
             EmotionalColoring = coloring,
-            Personality = npc.Personality,
+            Personality = npc.PersonalityType,
             NPCState = npcCondition,
             ConversationState = state,
             ResponseToLastAction = lastResult != null
@@ -115,7 +115,7 @@ public class ConversationNarrativeGenerator
         };
     }
 
-    private RelationshipDepth CalculateRelationshipDepth(NPCRelationship relationship)
+    private RelationshipDepth CalculateRelationshipDepth(NPCRelationshipTokens relationship)
     {
         int totalTokens = relationship.Trust + relationship.Commerce + 
                          relationship.Status + relationship.Shadow;
@@ -198,7 +198,7 @@ public class ConversationNarrativeGenerator
 
     private DialogueType DetermineDialogueType(EmotionalState state, NPCEmotionalState npcState, CardPlayResult lastResult)
     {
-        if (lastResult?.StateChanged == true)
+        if (lastResult?.NewState != null)
             return DialogueType.StateReaction;
         
         if (npcState == NPCEmotionalState.DESPERATE)

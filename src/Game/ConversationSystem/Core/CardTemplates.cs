@@ -54,7 +54,26 @@ public enum CardTemplateType
     // Observation templates
     MentionObservation,
     ShareInformation,
-    ProvideContext
+    ProvideContext,
+    ShareUrgentNews,
+    MentionOpportunity,
+    HintAtSecret,
+    ExpressCuriosity,
+    SuggestAction,
+    MakeCasualObservation,
+    
+    // Additional crisis templates
+    MakeDesperatePromise,
+    OfferEverything,
+    TakeImmediateAction,
+    CalmTheSituation,
+    ActDecisively,
+    
+    // Additional state templates
+    ProvideReassurance,
+    AskDirectQuestion,
+    RevealSecret,
+    ExpressVulnerability
 }
 
 /// <summary>

@@ -49,16 +49,20 @@ public class CardContextGenerator
         // Calculate emotional weight
         EmotionalWeight emotionalWeight = CalculateEmotionalWeight(card, npcState);
         
-        // Set the enriched context using existing CardContext
+        // Context must be set during card creation since it's init-only
+        // This enrichment method should be called BEFORE card creation
+        // TODO: Refactor to pass context during card creation
+        /*
         card.Context = new CardContext
         {
-            Personality = npc.Personality,
+            Personality = npc.PersonalityType,
             EmotionalState = conversationState,
             UrgencyLevel = (int)urgency.Level,
             HasDeadline = urgency.HoursRemaining.HasValue,
             MinutesUntilDeadline = urgency.HoursRemaining * 60,
             ObservationType = card.IsObservation ? ObservationType.Normal : null
         };
+        */
     }
 
     /// <summary>
@@ -67,7 +71,7 @@ public class CardContextGenerator
     public ConversationCard ConvertObservationToCard(ObservableViewModel observation, NPC targetNPC)
     {
         // Map observation type to card template
-        CardTemplateType template = MapObservationToTemplate(observation.Type, targetNPC.Personality);
+        CardTemplateType template = MapObservationToTemplate(observation.Type, targetNPC.PersonalityType);
         
         // Determine card properties based on observation importance
         CardProperties properties = DetermineCardProperties(observation);
@@ -76,7 +80,7 @@ public class CardContextGenerator
         var card = new ConversationCard
         {
             Template = template,
-            Type = properties.Type,
+            Type = CardType.Trust, // Default to Trust for now
             Persistence = PersistenceType.Opportunity, // Observations are always fleeting
             Weight = properties.Weight,
             BaseComfort = properties.ComfortValue,
@@ -103,7 +107,7 @@ public class CardContextGenerator
         NPCEmotionalState npcState = _stateResolver.CalculateState(npc);
         
         // Determine crisis type based on NPC state and personality
-        CrisisCardType crisisType = DetermineCrisisType(npcState, npc.Personality);
+        CrisisCardType crisisType = DetermineCrisisType(npcState, npc.PersonalityType);
         
         // Map to appropriate template
         CardTemplateType template = MapCrisisToTemplate(crisisType);
@@ -111,7 +115,7 @@ public class CardContextGenerator
         var card = new ConversationCard
         {
             Template = template,
-            Type = ConnectionType.Trust, // Crisis cards usually Trust-based
+            Type = CardType.Trust, // Crisis cards usually Trust-based
             Persistence = PersistenceType.Crisis,
             Weight = 5, // Heavy but free in DESPERATE
             BaseComfort = 8, // High reward if successful
@@ -119,11 +123,11 @@ public class CardContextGenerator
             
             // Crisis cards can generate letters or obligations
             CanDeliverLetter = crisisType == CrisisCardType.DesperatePromise,
-            CanManipulateObligation = crisisType == CrisisCardType.EmergencyIntervention,
+            ManipulatesObligations = crisisType == CrisisCardType.EmergencyIntervention,
             
             // State effects
             IsStateCard = true,
-            SuccessState = EmotionalState.RELIEVED,
+            SuccessState = EmotionalState.NEUTRAL, // Crisis resolved, return to neutral
             FailureState = EmotionalState.HOSTILE
         };
         
@@ -241,23 +245,23 @@ public class CardContextGenerator
     {
         // Crisis cards are always heavy
         if (card.IsCrisis)
-            return EmotionalWeight.Critical;
+            return EmotionalWeight.CRITICAL;
         
         // Based on card weight and state
         if (card.Weight >= 3)
-            return EmotionalWeight.Heavy;
+            return EmotionalWeight.HIGH;
         
         if (card.Weight == 2)
         {
             if (npcState == NPCEmotionalState.ANXIOUS || npcState == NPCEmotionalState.DESPERATE)
-                return EmotionalWeight.Significant;
-            return EmotionalWeight.Moderate;
+                return EmotionalWeight.HIGH;
+            return EmotionalWeight.MEDIUM;
         }
         
         if (card.Weight == 1)
-            return EmotionalWeight.Light;
+            return EmotionalWeight.LOW;
         
-        return EmotionalWeight.Trivial;
+        return EmotionalWeight.LOW; // No TRIVIAL value, use LOW
     }
 
     private CardTemplateType MapObservationToTemplate(ObservationType type, PersonalityType personality)
