@@ -64,27 +64,29 @@ Status: ❌ UI DOES NOT MATCH MOCKUP - Wrong structure, missing sections, wrong 
 - [x] Create observation hints for each location
 - [x] Time-of-day variations
 
-## Phase 4: Update UI to Match Mockups EXACTLY 🚧 IN PROGRESS
+## Phase 4: Update UI to Match Mockups EXACTLY ⚠️ PARTIALLY COMPLETE
 
 ### 4.1 ConversationScreen.razor updates:
-- [x] Add exact div structure from mockup
-- [x] Display cards with weight dots, percentages, outcomes
-- [x] Show "Crisis Card" and "State Card" markers
-- [x] Add LISTEN/SPEAK buttons with state effects
-- [x] Display emotional state with rules
+- [ ] NOT VERIFIED - Add exact div structure from mockup
+- [ ] NOT TESTED - Display cards with weight dots, percentages, outcomes
+- [ ] NOT TESTED - Show "Crisis Card" and "State Card" markers
+- [ ] NOT TESTED - Add LISTEN/SPEAK buttons with state effects
+- [ ] NOT TESTED - Display emotional state with rules
 - [x] Integrated StateNarrativeRenderer for categorical text
 - [x] Integrated CardDialogueRenderer for card text
 
-### 4.2 LocationScreen.razor updates:
-- [x] Location path breadcrumbs (basic structure)
-- [x] Location traits (SYSTEMATIC - LocationTraitsParser loads from JSON)
-- [x] Actions section (SYSTEMATIC - ActionGenerator integration complete)
-- [x] NPCs emotional states (working with categorical descriptions)
-- [x] Observations (WORKING - ObservationParser converts JSON to enums)
-- [x] Areas within location (displaying spots properly)
-- [ ] Display "If approached:" preview with state effects
-- [ ] CSS styling to match mockup exactly
-- [x] All data loading systematically from JSON/mechanics
+### 4.2 LocationScreen.razor updates (SESSION 9):
+- [x] Location path breadcrumbs working
+- [ ] Location traits NOT using mockup values - showing wrong tags
+- [x] Actions section header added
+- [ ] Actions NOT complete - only 2 of 4 mockup actions showing
+- [ ] "People of Note" header added but NO NPCs to test
+- [x] Observations displaying
+- [x] Areas within location kept as requested
+- [x] Routes REMOVED from screen (now in modal)
+- [x] TravelModal created but NOT TESTED
+- [ ] CSS applied but NOT pixel-perfect
+- [ ] NOT all data loading correctly
 
 ### 4.3 CSS updates:
 - [ ] Copy exact styles from mockups
@@ -159,14 +161,14 @@ Status: ❌ UI DOES NOT MATCH MOCKUP - Wrong structure, missing sections, wrong 
   * Areas within location navigate properly
 - 📝 CSS styling still needs to be extracted from mockups
 
-## Success Criteria
-- [ ] UI matches HTML mockups pixel-perfect - **NOT EVEN CLOSE**
-- [ ] All text generated from JSON + mechanics - **PARTIALLY**
-- [ ] Elena appears DESPERATE with countdown - **NOT TESTED**
-- [ ] Cards show exact weights, percentages, outcomes - **NOT TESTED**
-- [ ] Observations convert to opportunity cards - **NOT TESTED**
-- [ ] Crisis cards free in desperate state - **NOT TESTED**
-- [ ] Location shows NPCs with emotional states - **PARTIALLY**
+## Success Criteria (HONEST STATUS):
+- ❌ UI matches HTML mockups - **BETTER but NOT pixel-perfect**
+- ⚠️ All text from JSON/mechanics - **PARTIAL - actions incomplete**
+- ❌ Elena DESPERATE scenario - **NOT TESTED**
+- ❌ Cards with weights/percentages - **NOT TESTED**
+- ❌ Observations to cards - **NOT TESTED**
+- ❌ Crisis cards mechanics - **NOT TESTED**
+- ❌ NPCs with states - **NO NPCs SHOWING**
 
 ## Session 9 Implementation Plan (Current)
 
