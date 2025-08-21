@@ -13,10 +13,10 @@
         {
             return Template switch
             {
-                CardTemplateType.PromiseToHelp => $"I promise I'll help you, {NPCName}. We'll get your letter to Lord Blackwood before the deadline. Your father won't force this marriage on you.",
+                CardTemplateType.MakePromise => $"I promise I'll help you, {NPCName}. We'll get your letter to Lord Blackwood before the deadline. Your father won't force this marriage on you.",
                 CardTemplateType.MentionObservation => "I saw Lord Blackwood's guards at the tavern earlier. They mentioned he's leaving for the capital at dawn. We need to reach him tonight.",
-                CardTemplateType.CalmReassurance => $"{NPCName}, breathe. We have time. I'm here to help you. Let's think through this together - there's always a way.",
-                CardTemplateType.DesperatePromise => $"{NPCName}, I swear on my life - I will get this letter to Lord Blackwood. Even if I have to fight through his guards, even if it costs me everything!",
+                CardTemplateType.ProvideReassurance => $"{NPCName}, breathe. We have time. I'm here to help you. Let's think through this together - there's always a way.",
+                CardTemplateType.MakeDesperatePromise => $"{NPCName}, I swear on my life - I will get this letter to Lord Blackwood. Even if I have to fight through his guards, even if it costs me everything!",
                 _ => GetDefaultCardText()
             };
         }
@@ -67,7 +67,7 @@
     private string GetSuccessDescription()
     {
         var weight = GetCardWeight();
-        var successChance = Math.Max(10, Math.Min(95, 70 - (weight * 10) + (Context?.StatusTokens ?? 0) * 3));
+        var successChance = Math.Max(10, Math.Min(95, 70 - (weight * 10)));
         return $"{successChance}%";
     }
 
@@ -81,7 +81,7 @@
             CardTemplateType.OfferHelp => 2,
             CardTemplateType.SharePersonal => 2,
             CardTemplateType.ShareSecret => 3,
-            CardTemplateType.DesperatePromise => 5,
+            CardTemplateType.MakeDesperatePromise => 5,
             CardTemplateType.UrgentPlea => 4,
             _ => 1
         };
@@ -105,4 +105,4 @@
         <span class="weight">Weight: @GetCardWeight()</span>
         <span class="success-chance">Success: @GetSuccessDescription()</span>
     </div>
-}
+</div>

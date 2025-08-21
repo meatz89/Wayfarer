@@ -9,7 +9,18 @@
 		"personality": "Intelligent and desperate, worried about Lord Aldwin's proposal",
 		"personalityType": "DEVOTED",
 		"services": ["Information"],
-		"letterTokenTypes": ["Trust"]
+		"letterTokenTypes": ["Trust"],
+		"currentState": "DESPERATE",
+		"letterDeadline": 480,
+		"urgentLetter": {
+			"id": "elena_refusal",
+			"sender": "elena",
+			"recipient": "lord_blackwood",
+			"weight": 3,
+			"deadlineInMinutes": 480,
+			"stakes": "SAFETY",
+			"description": "Marriage refusal to Lord Blackwood"
+		}
 	},
 	{
 		"id": "marcus",
@@ -19,8 +30,35 @@
 		"spotId": "marcus_stall",
 		"description": "A merchant heading to his stall",
 		"personality": "Businesslike and hurried",
+		"personalityType": "MERCANTILE",
 		"services": ["Trade"],
-		"letterTokenTypes": ["Commerce"]
+		"letterTokenTypes": ["Commerce"],
+		"currentState": "CALCULATING",
+		"hasLetter": true,
+		"activeLetter": {
+			"id": "marcus_trade",
+			"sender": "marcus",
+			"recipient": "noble_district_merchant",
+			"weight": 2,
+			"deadlineInMinutes": 900,
+			"reward": 3,
+			"description": "Trade documents for Noble District"
+		}
+	},
+	{
+		"id": "lord_blackwood",
+		"name": "Lord Blackwood",
+		"profession": "Noble",
+		"locationId": "noble_district",
+		"spotId": "blackwood_estate",
+		"description": "An influential noble preparing to leave for the capital",
+		"personality": "Impatient and powerful",
+		"personalityType": "PROUD",
+		"services": [],
+		"letterTokenTypes": ["Status"],
+		"currentState": "NEUTRAL",
+		"leavingAt": 300,
+		"willBeUnavailableAfter": 300
 	},
 	{
 		"id": "bertram",
@@ -30,19 +68,10 @@
 		"spotId": "bar_counter",
 		"description": "Polishing glasses behind the bar, occasionally glancing your way with a welcoming nod",
 		"personality": "Friendly and observant",
+		"personalityType": "STEADFAST",
 		"services": ["Lodging", "Information"],
-		"letterTokenTypes": []
-	},
-	{
-		"id": "lord_aldwin",
-		"name": "Lord Aldwin",
-		"profession": "Noble",
-		"locationId": "noble_district",
-		"spotId": "aldwin_manor",
-		"description": "A noble lord who sent a marriage proposal",
-		"personality": "Formal and insistent",
-		"services": [],
-		"letterTokenTypes": ["Status"]
+		"letterTokenTypes": [],
+		"currentState": "WELCOMING"
 	},
 	{
 		"id": "viktor",
@@ -52,53 +81,11 @@
 		"spotId": "north_entrance",
 		"description": "A guard captain blocking the north road",
 		"personality": "Stern and dutiful",
+		"personalityType": "STEADFAST",
 		"services": [],
-		"letterTokenTypes": ["Status"]
-	},
-	{
-		"id": "garrett",
-		"name": "Garrett",
-		"profession": "Agent",
-		"locationId": "market_square",
-		"spotId": "central_fountain",
-		"description": "A fellow courier watching you carefully",
-		"personality": "Mysterious and observant",
-		"services": [],
-		"letterTokenTypes": ["Shadow"]
-	},
-	{
-		"id": "lord_b",
-		"name": "Lord Blackwood",
-		"profession": "Noble",
-		"locationId": "noble_district",
-		"spotId": "blackwood_estate",
-		"description": "An influential noble with an urgent letter",
-		"personality": "Impatient and powerful",
-		"services": [],
-		"letterTokenTypes": ["Status"]
-	},
-	{
-		"id": "captain_thorne",
-		"name": "Captain Thorne",
-		"profession": "Harbor_Master",
-		"locationId": "harbor_office",
-		"spotId": "main_desk",
-		"description": "A weathered sea captain managing river transport operations",
-		"personality": "Gruff but professional, knows every waterway route",
-		"personalityType": "PRAGMATIC",
-		"services": ["Transport"],
-		"letterTokenTypes": ["Commerce"]
-	},
-	{
-		"id": "fishmonger_frans",
-		"name": "Frans the Ferryman",
-		"profession": "Ferryman",
-		"locationId": "city_gates",
-		"spotId": "ferry_dock",
-		"description": "A fishmonger who also operates the ferry crossing - two businesses in one",
-		"personality": "Practical businessman who juggles fish trade and ferry operations",
-		"personalityType": "PRAGMATIC",
-		"services": ["Transport", "Trade"],
-		"letterTokenTypes": ["Commerce", "Trust"]
+		"letterTokenTypes": ["Status"],
+		"currentState": "NEUTRAL",
+		"isBlockingPath": true,
+		"requiresStatusToPass": 3
 	}
 ]

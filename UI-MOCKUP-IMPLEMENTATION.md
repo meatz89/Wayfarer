@@ -5,8 +5,8 @@ Implement the EXACT UI from HTML mockups with ALL content systematically generat
 
 ## Current Status
 Started: 2025-08-21
-Last Updated: 2025-08-21 (13:15)
-Status: 🚧 IN PROGRESS - Creating frontend text renderers
+Last Updated: 2025-08-21 (14:30)
+Status: 🚧 IN PROGRESS - Refactoring UI screens to match mockups
 
 ## Phase 1: JSON Data Structure (POC Setup) ✅ COMPLETE
 **Create complete JSON content for POC scenario**
@@ -71,14 +71,16 @@ Status: 🚧 IN PROGRESS - Creating frontend text renderers
 - [x] Create observation hints for each location
 - [x] Time-of-day variations
 
-## Phase 4: Update UI to Match Mockups EXACTLY ⏳ PENDING
+## Phase 4: Update UI to Match Mockups EXACTLY 🚧 IN PROGRESS
 
 ### 4.1 ConversationScreen.razor updates:
-- [ ] Add exact div structure from mockup
-- [ ] Display cards with weight dots, percentages, outcomes
-- [ ] Show "Crisis Card" and "State Card" markers
-- [ ] Add LISTEN/SPEAK buttons with state effects
-- [ ] Display emotional state with rules
+- [x] Add exact div structure from mockup
+- [x] Display cards with weight dots, percentages, outcomes
+- [x] Show "Crisis Card" and "State Card" markers
+- [x] Add LISTEN/SPEAK buttons with state effects
+- [x] Display emotional state with rules
+- [x] Integrated StateNarrativeRenderer for categorical text
+- [x] Integrated CardDialogueRenderer for card text
 
 ### 4.2 LocationScreen.razor updates:
 - [ ] Add location path breadcrumbs
@@ -124,9 +126,11 @@ Status: 🚧 IN PROGRESS - Creating frontend text renderers
 
 ## Progress Summary
 - Build now compiles successfully (0 errors)
-- Created POC data files with Elena DESPERATE scenario
+- Created POC data files with Elena DESPERATE scenario  
 - Created text rendering components for narrative generation
-- Ready to update UI screens to match mockups exactly
+- Deleted unnecessary JSON files, kept only POC essentials
+- Phase8_InitialLetters already creates Elena's DESPERATE state (1 min deadline, SAFETY stakes)
+- Ready to refactor UI screens to match mockups exactly
 
 ## Success Criteria
 - [ ] UI matches HTML mockups pixel-perfect

@@ -18,6 +18,7 @@ namespace Wayfarer.Pages
         [Inject] protected ITimeManager TimeManager { get; set; }
         [Inject] protected NPCRelationshipTracker RelationshipTracker { get; set; }
         [Inject] protected NavigationManager Navigation { get; set; }
+        [Inject] protected ObligationQueueManager LetterQueueManager { get; set; }
 
         protected ConversationSession Session { get; set; }
         protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
@@ -435,6 +436,37 @@ namespace Wayfarer.Pages
                 EmotionalState.OVERWHELMED => "This is... a lot to process.",
                 _ => "..."
             };
+        }
+
+        protected EmotionalState GetNPCStartingState()
+        {
+            if (Session?.NPC == null) return EmotionalState.NEUTRAL;
+            
+            // Determine starting state from letter deadlines as per docs
+            var obligations = LetterQueueManager.GetActiveObligations();
+            var npcLetters = obligations.Where(o => o.SenderId == Session.NPC.ID || o.SenderName == Session.NPC.Name);
+            var mostUrgent = npcLetters.OrderBy(o => o.DeadlineInMinutes).FirstOrDefault();
+            
+            if (mostUrgent == null) return EmotionalState.NEUTRAL;
+            
+            // Apply rules from conversation-system.md line 385-391
+            if (mostUrgent.Stakes == StakeType.SAFETY && mostUrgent.DeadlineInMinutes < 360) // <6 hours
+                return EmotionalState.DESPERATE;
+            if (mostUrgent.DeadlineInMinutes < 720) // <12 hours
+                return EmotionalState.TENSE;
+            
+            return EmotionalState.NEUTRAL;
+        }
+
+        protected int? GetMinutesUntilDeadline()
+        {
+            if (Session?.NPC == null) return null;
+            
+            var obligations = LetterQueueManager.GetActiveObligations();
+            var npcLetters = obligations.Where(o => o.SenderId == Session.NPC.ID || o.SenderName == Session.NPC.Name);
+            var mostUrgent = npcLetters.OrderBy(o => o.DeadlineInMinutes).FirstOrDefault();
+            
+            return mostUrgent?.DeadlineInMinutes;
         }
     }
 }

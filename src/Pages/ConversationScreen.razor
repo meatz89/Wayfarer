@@ -106,10 +106,18 @@
 
         <!-- Narrative Section -->
         <div class="narrative-section">
-            <div class="narrative-text">@CurrentNarrative</div>
-            <div class="npc-dialogue @GetStateClass()">
-                "@NPCDialogue"
-            </div>
+            <StateNarrativeRenderer 
+                State="@Session.CurrentState" 
+                Personality="@Session.NPC.PersonalityType"
+                MinutesUntilDeadline="@GetMinutesUntilDeadline()"
+                NPCName="@Session.NPC.Name" />
+            
+            @if (!string.IsNullOrEmpty(NPCDialogue))
+            {
+                <div class="npc-dialogue @GetStateClass()">
+                    "@NPCDialogue"
+                </div>
+            }
         </div>
 
         <!-- Action Choice -->
@@ -197,7 +205,13 @@
                         }
 
                         <div class="option-content">
-                            <div class="option-text">"<CardTextRenderer Template="@card.Template" Context="@card.Context" />"</div>
+                            <div class="option-text">
+                                <CardDialogueRenderer 
+                                    Template="@card.Template" 
+                                    Context="@card.Context"
+                                    NPCName="@Session.NPC.Name"
+                                    IsPlayerCard="true" />
+                            </div>
 
                             <div class="option-properties">
                                 <div class="prop-group primary">

@@ -2,15 +2,14 @@
 
 @code {
     [Parameter] public EmotionalState State { get; set; }
-    [Parameter] public NPCEmotionalState? NPCState { get; set; }
     [Parameter] public PersonalityType? Personality { get; set; }
     [Parameter] public int? MinutesUntilDeadline { get; set; }
     [Parameter] public string NPCName { get; set; }
 
     private string GetNarrativeText()
     {
-        // Generate contextual narrative based on state
-        if (NPCState == NPCEmotionalState.DESPERATE && MinutesUntilDeadline.HasValue)
+        // Generate contextual narrative based on state and deadline
+        if (State == EmotionalState.DESPERATE && MinutesUntilDeadline.HasValue)
         {
             int hours = MinutesUntilDeadline.Value / 60;
             if (hours <= 2)
@@ -37,19 +36,6 @@
 
     private string GetStateDescription()
     {
-        if (NPCState.HasValue)
-        {
-            return NPCState.Value switch
-            {
-                NPCEmotionalState.DESPERATE => $"DESPERATE • Letter deadline in {MinutesUntilDeadline / 60} hours!",
-                NPCEmotionalState.ANXIOUS => "ANXIOUS • Worried about deadlines",
-                NPCEmotionalState.HOSTILE => "HOSTILE • Too angry to converse",
-                NPCEmotionalState.NEUTRAL => "NEUTRAL • Open to conversation",
-                NPCEmotionalState.FRUSTRATED => "FRUSTRATED • Patience wearing thin",
-                NPCEmotionalState.JOYFUL => "JOYFUL • In excellent spirits",
-                _ => State.ToString()
-            };
-        }
 
         return State switch
         {

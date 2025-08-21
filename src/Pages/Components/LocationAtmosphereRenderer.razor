@@ -1,12 +1,12 @@
 @* Maps location atmosphere categories to descriptive text *@
 
+@inject ObligationQueueManager LetterQueueManager
+
 @code {
     [Parameter] public string LocationName { get; set; }
     [Parameter] public List<string> DomainTags { get; set; }
-    [Parameter] public TimeOfDay CurrentTime { get; set; }
+    [Parameter] public TimeBlocks CurrentTime { get; set; }
     [Parameter] public List<NPC> NPCsPresent { get; set; }
-    [Parameter] public AtmosphereCategory? Atmosphere { get; set; }
-    [Parameter] public LocationMood? Mood { get; set; }
 
     private string GetAtmosphereText()
     {
@@ -15,19 +15,20 @@
         {
             return CurrentTime switch
             {
-                TimeOfDay.Morning => "Merchant calls echo across cobblestones. The fountain's spray catches morning light. Early shoppers browse the stalls.",
-                TimeOfDay.Afternoon => "The market bustles at its peak. Crowds flow between stalls like water finding its course. The air fills with haggling voices.",
-                TimeOfDay.Evening => "Vendors pack their wares as shadows lengthen. The square empties slowly, leaving only the dedicated traders.",
-                TimeOfDay.Night => "The market lies quiet under moonlight. Only the fountain's gentle splash breaks the silence.",
+                TimeBlocks.Morning => "Merchant calls echo across cobblestones. The fountain's spray catches morning light. Early shoppers browse the stalls.",
+                TimeBlocks.Afternoon => "The market bustles at its peak. Crowds flow between stalls like water finding its course. The air fills with haggling voices.",
+                TimeBlocks.Evening => "Vendors pack their wares as shadows lengthen. The square empties slowly, leaving only the dedicated traders.",
+                TimeBlocks.Night => "The market lies quiet under moonlight. Only the fountain's gentle splash breaks the silence.",
                 _ => "The market square stretches before you."
             };
         }
 
         if (LocationName?.Contains("Tavern") == true)
         {
-            if (NPCsPresent?.Any(n => n.Name == "Elena") == true)
+            // Generate based on NPCs present, not specific names
+            if (NPCsPresent?.Any() == true)
             {
-                return "Firelight dances on worn wooden beams. The clink of pottery mingles with hushed conversations. In the corner, someone clutches a letter with desperate intensity.";
+                return "Firelight dances on worn wooden beams. The clink of pottery mingles with hushed conversations.";
             }
             return "Warm hearth-light fills the common room. Low voices share the day's gossip over ale and bread.";
         }
@@ -36,9 +37,9 @@
         {
             return CurrentTime switch
             {
-                TimeOfDay.Morning => "Manicured gardens glisten with dew. Servants hurry about their morning duties.",
-                TimeOfDay.Afternoon => "The district radiates quiet wealth. Guards stand at attention, their armor gleaming.",
-                TimeOfDay.Evening => "Lamp-lighters begin their rounds. Noble carriages rattle over cobblestones.",
+                TimeBlocks.Morning => "Manicured gardens glisten with dew. Servants hurry about their morning duties.",
+                TimeBlocks.Afternoon => "The district radiates quiet wealth. Guards stand at attention, their armor gleaming.",
+                TimeBlocks.Evening => "Lamp-lighters begin their rounds. Noble carriages rattle over cobblestones.",
                 _ => "The noble district maintains its austere grandeur."
             };
         }
@@ -59,26 +60,94 @@
 
     private string GetNPCPresenceDescription(NPC npc)
     {
-        // Generate description based on NPC state
-        var stateResolver = new NPCStateResolver(null, null); // Would be injected
-        var emotionalState = NPCEmotionalState.NEUTRAL; // Would be calculated
-
-        if (npc.Name == "Elena" && emotionalState == NPCEmotionalState.DESPERATE)
+        // Generate description from categorical properties
+        var emotionalState = DetermineEmotionalState(npc);
+        var hasUrgentLetter = HasUrgentLetter(npc);
+        
+        var baseActivity = GetProfessionActivity(npc.Profession);
+        var emotionalModifier = GetEmotionalModifier(emotionalState, hasUrgentLetter);
+        var contextualProp = GetContextualProp(npc.Profession, hasUrgentLetter);
+        
+        // Combine categorical elements into description
+        if (emotionalState == EmotionalState.DESPERATE && hasUrgentLetter)
         {
-            return "Clutching a sealed letter with white knuckles, her eyes darting to the door with each patron's entrance.";
+            return $"{emotionalModifier} {contextualProp}, {GetDesperateDetail()}";
         }
-
-        if (npc.Name == "Marcus")
+        
+        return $"{baseActivity}, {emotionalModifier}";
+    }
+    
+    private EmotionalState DetermineEmotionalState(NPC npc)
+    {
+        // Determine state from letter deadlines
+        var obligations = LetterQueueManager?.GetActiveObligations() ?? new DeliveryObligation[0];
+        var npcLetters = obligations.Where(o => o.SenderId == npc.ID || o.SenderName == npc.Name);
+        var mostUrgent = npcLetters.OrderBy(o => o.DeadlineInMinutes).FirstOrDefault();
+        
+        if (mostUrgent == null) return EmotionalState.NEUTRAL;
+        
+        // Apply conversation-system.md rules
+        if (mostUrgent.Stakes == StakeType.SAFETY && mostUrgent.DeadlineInMinutes < 360)
+            return EmotionalState.DESPERATE;
+        if (mostUrgent.DeadlineInMinutes < 720)
+            return EmotionalState.TENSE;
+            
+        return EmotionalState.NEUTRAL;
+    }
+    
+    private bool HasUrgentLetter(NPC npc)
+    {
+        var obligations = LetterQueueManager?.GetActiveObligations() ?? new DeliveryObligation[0];
+        return obligations.Any(o => 
+            (o.SenderId == npc.ID || o.SenderName == npc.Name) && 
+            o.DeadlineInMinutes < 360);
+    }
+    
+    private string GetProfessionActivity(Professions profession)
+    {
+        return profession switch
         {
-            return "Arranging bolts of fabric with practiced efficiency, occasionally glancing at his ledger with a furrowed brow.";
-        }
-
-        if (npc.Name == "Bertram")
+            Professions.Scribe => "Hunched over documents",
+            Professions.Merchant => "Arranging goods with practiced efficiency",
+            Professions.Innkeeper => "Polishing glasses behind the bar",
+            Professions.Soldier => "Standing at attention",
+            Professions.Noble => "Reviewing correspondence",
+            Professions.Scholar => "Studying texts intently",
+            _ => "Going about their business"
+        };
+    }
+    
+    private string GetEmotionalModifier(EmotionalState state, bool hasUrgentLetter)
+    {
+        return state switch
         {
-            return "Polishing the same mug for the third time while surveying his domain with practiced ease.";
-        }
-
-        return npc.Description ?? "Going about their business.";
+            EmotionalState.DESPERATE when hasUrgentLetter => "clutching a sealed letter with white knuckles",
+            EmotionalState.DESPERATE => "visibly distressed",
+            EmotionalState.TENSE => "occasionally glancing around nervously",
+            EmotionalState.HOSTILE => "glaring at anyone who approaches",
+            EmotionalState.OPEN => "with a welcoming demeanor",
+            EmotionalState.GUARDED => "keeping a watchful eye on surroundings",
+            _ => "focused on the task at hand"
+        };
+    }
+    
+    private string GetContextualProp(Professions profession, bool hasUrgentLetter)
+    {
+        if (hasUrgentLetter) return "a sealed letter";
+        
+        return profession switch
+        {
+            Professions.Scribe => "quill and parchment",
+            Professions.Merchant => "ledger and scales",
+            Professions.Innkeeper => "a well-worn mug",
+            Professions.Soldier => "weapon at the ready",
+            _ => "their tools"
+        };
+    }
+    
+    private string GetDesperateDetail()
+    {
+        return "eyes darting to the door with each patron's entrance";
     }
 
     private string GetObservationHint()
@@ -127,4 +196,4 @@
             </div>
         }
     }
-}
+</div>
