@@ -74,7 +74,7 @@ NPC emotional state is THE core system element. Each state defines:
 - SPEAK: Maximum 1 card only
 - LISTEN→ Neutral
 
-**DESPERATE** (Crisis state)
+**Desperate** (Crisis state)
 - LISTEN: Draw 2 cards + inject 1 crisis card
 - SPEAK: Crisis cards cost 0 weight
 - LISTEN→ Hostile (escalates!)
@@ -148,11 +148,6 @@ Market Square: Observe "Guards blocking north road" (-1 attention)
 → If you LISTEN instead, observation vanishes forever
 ```
 
-### Why No Peripheral Vision
-- Conversations require focus - can't observe while engaging
-- Observations are memories brought IN, not things noticed DURING
-- Attention and patience are separate resources with distinct uses
-- Maintains clean binary choice: LISTEN or SPEAK
 
 ## Card Types - Separation of Purpose
 
@@ -176,7 +171,7 @@ Market Square: Observe "Guards blocking north road" (-1 attention)
 - Emergency actions
 - MUST be played alone
 - Ignore weight limits
-- Free to play in Desperate/Panicked states
+- Free to play in Desperate/Overwhelmed states
 - Often end conversation
 
 ### Why This Separation Works
@@ -230,7 +225,7 @@ Effects:
 - Basic conversation options (Small Talk, Listen, Nod)
 - Always available fallbacks
 
-### Opportunity
+### Opportunity (fleeting)
 - **Vanishes if you LISTEN** (ALL Opportunities in hand disappear)
 - Time-sensitive topics, emotional openings, observations
 - Creates tension between drawing and playing
@@ -247,18 +242,18 @@ Effects:
 - Clogs hand until played and resolved
 
 ### Crisis
-- Only appears when NPC is desperate/panicked
+- Only appears when NPC is Desperate/Overwhelmed
 - Ignores weight limit completely
 - Often ends conversation immediately
-- FREE to play in Desperate/Panicked states
+- FREE to play in Desperate/Overwhelmed states
 
 ## Weight System
 
 ### Weight Limits by State
 Weight represents emotional bandwidth. Total weight per SPEAK action cannot exceed state limit:
-- **Tense**: Weight limit 1
-- **Guarded/Wary/Anxious/Reflecting**: Weight limit 2
-- **Neutral/Open**: Weight limit 3
+- **Tense/Guarded**: Weight limit 1
+- **Neutral**: Weight limit 2
+- **Open**: Weight limit 3
 - **Connected**: Weight limit 4 (exceptional)
 - **Overwhelmed**: Maximum 1 card regardless of weight
 - **Desperate**: Crisis cards cost 0 weight
@@ -298,12 +293,11 @@ Simple, clear, no hidden modifiers. States don't affect success rates - they aff
 ### Depth Progression
 Depth can ONLY advance in positive states:
 - **Neutral**: Can advance with breakthrough (10+ comfort single turn)
-- **Open**: Can advance normally
+- **Open**: Can advance normally (5+ comfort single turn)
 - **Connected**: Advances automatically each turn
 
 Depth decreases when:
-- Conversation ends below 5 comfort
-- Major failures on heavy cards
+- Card Failures (-5 comfort single Turn)
 - Certain state transitions
 
 ### No Depth Requirements
@@ -385,7 +379,7 @@ Playing multiple cards of the SAME type in one SPEAK action:
 ### Emotional Conditions
 Based on letter deadlines:
 - **Desperate** (<6 hours): Starts in Desperate state
-- **Anxious** (6-12 hours): Starts in Anxious state
+- **Tense** (6-12 hours): Starts in Tense state
 - **Hostile** (failed letter): Cannot converse
 - **Neutral** (no urgency): Starts in personality default
 
@@ -421,7 +415,7 @@ When choosing LISTEN:
 
 ### Special Card Injection
 - **Desperate state**: Injects 1 crisis card when listening
-- **Panicked state**: Injects 2 crisis cards when listening
+- **Overwhelmed state**: Injects 2 crisis cards when listening
 - **Observations**: Added to starting hand only
 
 ### Deck Management
@@ -458,16 +452,16 @@ Only STATE CARDS can change states when speaking
 Example State Cards:
 ```
 "Calm Reassurance" [STATE CARD]
-Success: Desperate → Tense
+Success: → Tense
 Failure: No change
 
 "Break the Ice" [STATE CARD]
-Success: Guarded → Neutral
+Success: → Neutral
 Failure: No change
 
 "Share Vulnerability" [STATE CARD]
-Success: Open → Connected
-Failure: Current → Guarded
+Success: → Connected
+Failure: → Guarded
 ```
 
 **State Cards Cannot Combine**:
@@ -554,7 +548,7 @@ Play "Promise to Help" alone (comfort card):
 2. **State-Based Everything**: 9 distinct emotional states that affect all aspects of conversation
 3. **Listen as State Management**: Not just drawing cards but managing emotional space through defined transitions
 4. **No State Conflicts**: State cards must be played alone, structurally preventing conflicts
-5. **Crisis Escalation**: Ignoring desperate situations makes them worse (Desperate → Hostile)
+5. **Crisis Escalation**: Ignoring Desperate situations makes them worse (Desperate → Hostile)
 6. **Binary Effects Only**: No percentages or modifiers, just clear state-based rules
 
 ### Why It Works
