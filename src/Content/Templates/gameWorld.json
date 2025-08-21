@@ -1,8 +1,8 @@
 {
 	"CurrentLocationId": "market_square",
-	"CurrentLocationSpotId": "copper_kettle",
-	"CurrentDay": 2,
-	"CurrentTimeHours": 15.75,
+	"CurrentLocationSpotId": "central_fountain",
+	"CurrentDay": 3,
+	"CurrentTimeHours": 15,
 	"Player": {
 		"Name": "Courier",
 		"Gender": null,

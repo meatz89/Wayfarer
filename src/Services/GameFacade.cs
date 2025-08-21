@@ -721,13 +721,26 @@ public class GameFacade
             var destination = _locationRepository.GetLocation(route.Destination);
             if (destination != null)
             {
+                // Each route is ONE specific transport method - no multiple options
                 routes.Add(new RouteOptionViewModel
                 {
                     RouteId = route.Id,
                     Destination = destination.Name,
                     TravelTime = $"{route.TravelTimeMinutes} min",
-                    Detail = route.RouteType.ToString(),
-                    IsLocked = false
+                    Detail = route.Description ?? route.Name,
+                    IsLocked = !route.IsDiscovered,
+                    LockReason = !route.IsDiscovered ? "Route not yet discovered" : null,
+                    RequiredTier = route.TierRequired,
+                    
+                    // Each route IS a specific transport method
+                    TransportMethod = route.Method.ToString().ToLower(),
+                    
+                    // These are NOT used - each route is ONE method
+                    SupportsCart = false,
+                    SupportsCarriage = false,
+                    
+                    // Additional route info
+                    Familiarity = route.IsDiscovered ? null : "Unknown route"
                 });
             }
         }

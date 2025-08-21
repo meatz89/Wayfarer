@@ -11,13 +11,13 @@
 		"services": ["Information"],
 		"letterTokenTypes": ["Trust"],
 		"currentState": "DESPERATE",
-		"letterDeadline": 480,
+		"letterDeadline": 120,
 		"urgentLetter": {
 			"id": "elena_refusal",
 			"sender": "elena",
 			"recipient": "lord_blackwood",
 			"weight": 3,
-			"deadlineInMinutes": 480,
+			"deadlineInMinutes": 120,
 			"stakes": "SAFETY",
 			"description": "Marriage refusal to Lord Blackwood"
 		}

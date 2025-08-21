@@ -13,51 +13,35 @@
             <div class="route-list">
                 @if (Routes?.Any() == true)
                 {
-                    @foreach (var route in Routes)
+                    @foreach (var destinationGroup in Routes.GroupBy(r => r.Destination))
                     {
-                        <div class="route-card @(route.IsLocked ? "locked" : "")" @onclick="() => SelectRoute(route)">
-                            <div class="route-destination">@route.Destination</div>
-                            <div class="route-info">
-                                <span class="route-detail">@route.TravelTime</span>
-                                <span class="route-detail">@route.Detail</span>
-                            </div>
-                            @if (!string.IsNullOrEmpty(route.Familiarity))
-                            {
-                                <div class="route-familiarity">@route.Familiarity</div>
-                            }
-                            
-                            @if (!route.IsLocked)
-                            {
-                                <div class="transport-options">
-                                    <div class="transport-option" @onclick:stopPropagation="true" @onclick="() => TravelByWalking(route)">
-                                        <div class="transport-type">Walk</div>
-                                        <div class="transport-time">@route.TravelTime</div>
-                                        <div class="transport-cost">Free</div>
+                        <div class="destination-group">
+                            <div class="destination-header">@destinationGroup.Key</div>
+                            <div class="destination-routes">
+                                @foreach (var route in destinationGroup)
+                                {
+                                    <div class="route-card @(route.IsLocked ? "locked" : "")" @onclick="() => SelectRoute(route)">
+                                        <div class="route-header">
+                                            <div class="route-method">@GetTransportMethodDisplay(route.TransportMethod)</div>
+                                            <div class="route-cost">@GetTransportCost(route.TransportMethod)</div>
+                                        </div>
+                                        <div class="route-info">
+                                            <span class="route-detail">@route.TravelTime</span>
+                                            <span class="route-description">@route.Detail</span>
+                                        </div>
+                                        
+                                        @if (!string.IsNullOrEmpty(route.Familiarity))
+                                        {
+                                            <div class="route-familiarity">@route.Familiarity</div>
+                                        }
+                                        
+                                        @if (route.IsLocked)
+                                        {
+                                            <div class="route-requirement">@route.LockReason</div>
+                                        }
                                     </div>
-                                    
-                                    @if (route.SupportsCart)
-                                    {
-                                        <div class="transport-option" @onclick:stopPropagation="true" @onclick="() => TravelByCart(route)">
-                                            <div class="transport-type">Cart</div>
-                                            <div class="transport-time">Half time</div>
-                                            <div class="transport-cost">2 coins</div>
-                                        </div>
-                                    }
-                                    
-                                    @if (route.SupportsCarriage)
-                                    {
-                                        <div class="transport-option" @onclick:stopPropagation="true" @onclick="() => TravelByCarriage(route)">
-                                            <div class="transport-type">Carriage</div>
-                                            <div class="transport-time">Quarter time</div>
-                                            <div class="transport-cost">5 coins</div>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="route-requirement">@route.LockReason</div>
-                            }
+                                }
+                            </div>
                         </div>
                     }
                 }
@@ -93,29 +77,33 @@
     {
         if (!route.IsLocked)
         {
-            // Default to walking
-            await TravelByWalking(route);
+            // Route already has its transport method set
+            await OnRouteSelected.InvokeAsync(route);
+            await Close();
         }
     }
 
-    private async Task TravelByWalking(RouteOptionViewModel route)
+    private string GetTransportMethodDisplay(string method)
     {
-        route.TransportMethod = "walk";
-        await OnRouteSelected.InvokeAsync(route);
-        await Close();
+        return method?.ToLower() switch
+        {
+            "walking" => "🚶 Walk",
+            "cart" => "🛒 Cart",
+            "carriage" => "🚐 Carriage",
+            "boat" => "⛵ Boat",
+            _ => "🚶 Walk"
+        };
     }
 
-    private async Task TravelByCart(RouteOptionViewModel route)
+    private string GetTransportCost(string method)
     {
-        route.TransportMethod = "cart";
-        await OnRouteSelected.InvokeAsync(route);
-        await Close();
-    }
-
-    private async Task TravelByCarriage(RouteOptionViewModel route)
-    {
-        route.TransportMethod = "carriage";
-        await OnRouteSelected.InvokeAsync(route);
-        await Close();
+        return method?.ToLower() switch
+        {
+            "walking" => "Free",
+            "cart" => "2 coins",
+            "carriage" => "5 coins",
+            "boat" => "3 coins",
+            _ => "Free"
+        };
     }
 }

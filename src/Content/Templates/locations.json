@@ -55,7 +55,7 @@
 			"evening": [ "WARM", "SOCIAL", "BUSY" ],
 			"night": [ "DIM", "QUIET", "COZY" ]
 		},
-		"domainTags": [ "SOCIAL", "COMMERCE", "REST" ],
+		"domainTags": [ "SOCIAL", "COMMERCE", "REST", "CROSSROADS" ],
 		"locationSpots": [ "main_hall", "bar_counter", "corner_table", "upstairs_room" ],
 		"connectedTo": [ "market_square" ],
 		"socialExpectation": "Any",

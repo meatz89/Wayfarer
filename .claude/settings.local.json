@@ -201,7 +201,15 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5130\" timeout 30 dotnet run --no-build)",
       "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5201\" dotnet run --no-build)",
       "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5202\" timeout 30 dotnet run)",
-      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5210\" dotnet run)"
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5210\" dotnet run)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5211\" dotnet run)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5212\" dotnet run)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5213\" dotnet run)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5214\" dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5214\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5220\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5230\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5240\" dotnet run --no-build)"
     ],
     "deny": []
   }

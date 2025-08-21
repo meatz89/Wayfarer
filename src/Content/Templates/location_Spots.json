@@ -69,7 +69,7 @@
 		"initialState": "Clear water sparkles in the light. Citizens gather on benches around the fountain's edge.",
 		"locationId": "market_square",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "PUBLIC_SQUARE", "CROWDED", "CROSSROADS" ]
+		"domainTags": [ "PUBLIC_SQUARE", "CROWDED", "CROSSROADS", "COMMERCE" ]
 	},
 	{
 		"id": "marcus_stall",

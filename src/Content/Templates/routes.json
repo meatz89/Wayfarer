@@ -96,6 +96,38 @@
 		"tierRequired": "T1"
 	},
 	{
+		"id": "market_to_tavern",
+		"name": "To Copper Kettle",
+		"origin": "market_square",
+		"destination": "copper_kettle_tavern",
+		"method": "Walking",
+		"baseCoinCost": 0,
+		"baseStaminaCost": 1,
+		"travelTimeMinutes": 10,
+		"departureTime": null,
+		"isDiscovered": true,
+		"terrainCategories": [],
+		"maxItemCapacity": 5,
+		"description": "A short walk to the tavern.",
+		"tierRequired": "T1"
+	},
+	{
+		"id": "tavern_to_market",
+		"name": "Back to Market",
+		"origin": "copper_kettle_tavern",
+		"destination": "market_square",
+		"method": "Walking",
+		"baseCoinCost": 0,
+		"baseStaminaCost": 1,
+		"travelTimeMinutes": 10,
+		"departureTime": null,
+		"isDiscovered": true,
+		"terrainCategories": [],
+		"maxItemCapacity": 5,
+		"description": "Return to the market square.",
+		"tierRequired": "T1"
+	},
+	{
 		"id": "market_to_gates",
 		"name": "Gate Road",
 		"origin": "market_square",
