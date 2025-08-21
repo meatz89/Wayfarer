@@ -491,7 +491,8 @@ public class GameFacade
             CurrentTime = _timeManager.GetFormattedTimeDisplay(),
             DeadlineTimer = GetNextDeadlineDisplay(),
             LocationPath = BuildLocationPath(location, spot),
-            LocationName = spot?.Name ?? "Unknown Location",
+            LocationName = location?.Name ?? "Unknown Location",
+            CurrentSpotName = spot?.Name,
             LocationTraits = GetLocationTraits(location, spot),
             AtmosphereText = spot?.Description ?? location?.Description ?? "A quiet place.",
             QuickActions = new List<LocationActionViewModel>(),
@@ -518,6 +519,7 @@ public class GameFacade
                     Id = npc.ID,
                     Name = npc.Name,
                     MoodEmoji = GetEmotionalStateEmoji(emotionalState),
+                    EmotionalStateName = emotionalState.ToString(),
                     Description = GetNPCDescription(npc, emotionalState),
                     Interactions = new List<InteractionOptionViewModel>
                     {

@@ -178,7 +178,7 @@
     border: 1px solid #c4a684;
     border-radius: 4px;
     padding: 12px;
-    min-height: 60px;
+    min-height: 80px;
 }
 
 .progress-label {
@@ -399,7 +399,7 @@
     background: #faf4ea;
     border: 2px solid #c4a684;
     border-radius: 4px;
-    overflow: hidden;
+    min-height: 280px;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
@@ -419,15 +419,15 @@
 
 /* Card Type Borders */
 .dialog-card.comfort {
-    border-left: 5px solid #7a8b5a;
+    border-left: 5px solid #5a7a3a;
 }
 
 .dialog-card.state {
-    border-left: 5px solid #8b7355;
+    border-left: 5px solid #6b5345;
 }
 
 .dialog-card.crisis {
-    border-left: 5px solid #8b4726;
+    border-left: 5px solid #6b3716;
     background: #faf0e6;
 }
 

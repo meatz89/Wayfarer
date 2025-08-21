@@ -17,6 +17,9 @@
             </div>
         </div>
 
+        <!-- Obligations Panel -->
+        <DeadlinePanel />
+
         <!-- Location Header -->
         <div class="location-header">
             @if (Model.LocationPath?.Any() == true)
@@ -33,6 +36,13 @@
                 </div>
             }
             <div class="location-name">@Model.LocationName</div>
+            @if (!string.IsNullOrEmpty(Model.CurrentSpotName))
+            {
+                <div class="current-spot-indicator">
+                    <span class="spot-label">You are at:</span>
+                    <span class="spot-name">@Model.CurrentSpotName</span>
+                </div>
+            }
             @if (Model.LocationTraits?.Any() == true)
             {
                 <div class="location-traits">
@@ -78,6 +88,10 @@
                         <div class="npc-header">
                             <div>
                                 <div class="npc-name">@npc.Name</div>
+                                @if (!string.IsNullOrEmpty(npc.EmotionalStateName))
+                                {
+                                    <div class="npc-state @GetStateClass(npc.EmotionalStateName)">@npc.EmotionalStateName</div>
+                                }
                             </div>
                             <div class="npc-mood">@npc.MoodEmoji</div>
                         </div>

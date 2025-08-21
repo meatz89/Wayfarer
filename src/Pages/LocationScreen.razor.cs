@@ -44,6 +44,18 @@ public partial class LocationScreen : ComponentBase
         StateHasChanged();
     }
 
+    private string GetStateClass(string stateName)
+    {
+        return stateName?.ToUpper() switch
+        {
+            "DESPERATE" => "desperate",
+            "HOSTILE" => "hostile",
+            "TENSE" => "tense",
+            "OVERWHELMED" => "overwhelmed",
+            _ => ""
+        };
+    }
+
     private async Task ExecuteAction(LocationActionViewModel action)
     {
         // Handle special action types

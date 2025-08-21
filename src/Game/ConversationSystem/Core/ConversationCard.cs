@@ -110,13 +110,16 @@ public class ConversationCard
     public bool ManipulatesObligations { get; init; }
 
     /// <summary>
-    /// Get effective weight considering state
+    /// Get effective weight considering state rules
     /// </summary>
     public int GetEffectiveWeight(EmotionalState state)
     {
-        // Crisis cards are free in DESPERATE state
-        if (Category == CardCategory.CRISIS && state == EmotionalState.DESPERATE)
+        var rules = ConversationRules.States[state];
+        
+        // Check if this card's category is free in this state
+        if (rules.FreeWeightCategories != null && rules.FreeWeightCategories.Contains(Category))
             return 0;
+            
         return Weight;
     }
 

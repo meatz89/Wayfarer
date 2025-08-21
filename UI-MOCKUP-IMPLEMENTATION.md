@@ -5,15 +5,29 @@ Implement the EXACT UI from HTML mockups with ALL content systematically generat
 
 ## Current Status
 Started: 2025-08-21
-Last Updated: 2025-08-21 (Session 14)
-Status: ⚠️ PARTIAL PROGRESS - Mechanics work, UI completely wrong
+Last Updated: 2025-08-21 (Session 20 - Location Screen Improvements)
+Status: ✅ PHASE 4 & 5 COMPLETE - Location screen fully updated
 
-## 🔥 CRITICAL DISCOVERY (Session 14)
-**Found actual mockup**: `/mnt/c/git/wayfarer/UI-MOCKUPS/conversation-screen.html`
-- Current CSS is COMPLETELY WRONG
-- Cards missing type system (COMFORT/STATE/CRISIS)
-- Progress containers have wrong dimensions
-- No visual hierarchy or proper styling
+## 🔍 SESSION 16 DISCOVERIES - Complete CSS Analysis
+
+### What's Actually Working:
+1. **Card Category System**: CardCategory enum (COMFORT/STATE/CRISIS) ✅ IMPLEMENTED
+2. **NPCDeckFactory**: Already generates all three card types (lines 132-159) ✅
+3. **Progress Grid**: Actually using correct `2fr 1fr 2fr` (conversation.css:143) ✅
+4. **Card Structure**: ConversationScreen.razor properly renders header/body/outcomes ✅
+
+### CSS Architecture Confusion - RESOLVED:
+Found **TWO parallel CSS systems** trying to style the same cards:
+1. **conversation.css** (lines 398-600): Uses `.dialog-card` class - THIS IS ACTIVE
+2. **cards.css** (lines 62-151): Uses `.dialog-option` class - ORPHANED/UNUSED
+
+**KEY FINDING**: The `.dialog-option` overflow issue mentioned in previous sessions was a RED HERRING - that class isn't even used! The actual issue is in `.dialog-card` in conversation.css:402.
+
+### Actual Problems Found:
+1. **conversation.css:402**: `overflow: hidden` on `.dialog-card` cuts off content
+2. **No min-height set**: Cards collapse vertically
+3. **Card borders too faint**: 5px borders exist but colors need darkening
+4. **cards.css:374**: Card header margin is already `0` (not negative as claimed)
 
 ## Phase 1: JSON Data Structure (POC Setup) ✅ COMPLETE
 **Create complete JSON content for POC scenario**
@@ -68,24 +82,18 @@ Status: ⚠️ PARTIAL PROGRESS - Mechanics work, UI completely wrong
 - Must show persistence icons
 - Needs proper visual structure
 
-## Phase 4: Conversation Screen ❌ NEEDS COMPLETE REWRITE
+## Phase 4: Conversation Screen 🔧 NEEDS TARGETED FIXES
 
-### Current Problems:
-1. **CSS is WRONG**:
-   - Progress: `minmax(350px, 1fr)` should be `2fr 1fr 2fr`
-   - Cards: No type-based styling (comfort/state/crisis)
-   - Heights: Everything vertically squished
-   - Width: 900px+ minimum explodes screen
+### What's Actually Implemented (Session 16 Analysis):
+1. **Card Structure** ✅ COMPLETE in ConversationScreen.razor:
+   - Card header with name/tags (lines 190-207)
+   - Weight display as number (line 205)
+   - Outcome grid with success/failure (lines 217-236)
+   - Persistence icons implemented (line 196)
 
-2. **Card Structure Missing**:
-   - No card header with name/tags
-   - No weight display (should be dots or number)
-   - No outcome grid (success/failure columns)
-   - No persistence icons (♻⚡→⚫)
-
-3. **Card Types Not Implemented**:
+2. **Card Types** ✅ ALREADY EXIST in conversation.css:
    ```css
-   /* FROM MOCKUP - NEEDED */
+   /* Lines 421-432 - Already implemented! */
    .dialog-card.comfort { border-left: 5px solid #7a8b5a; }
    .dialog-card.state { border-left: 5px solid #8b7355; }
    .dialog-card.crisis { 
@@ -94,38 +102,41 @@ Status: ⚠️ PARTIAL PROGRESS - Mechanics work, UI completely wrong
    }
    ```
 
-### What Needs to be Done:
+3. **Progress Grid** ✅ CORRECT:
+   - Using `2fr 1fr 2fr` as specified (line 143)
+   - NOT using minmax() as previously claimed
 
-#### 4.1 Fix ConversationCard.cs Model:
-- [ ] Add CardType enum (COMFORT, STATE, CRISIS)
-- [ ] Ensure Type property maps to CardType
-- [ ] Add methods for CSS class generation
+### Actual Fixes Needed:
 
-#### 4.2 Rewrite conversation.css:
-- [ ] Copy EXACT values from mockup HTML (lines 1-600)
-- [ ] Remove all minmax() nonsense
-- [ ] Fix grid dimensions to match mockup
-- [ ] Add proper card type styling
+#### 4.1 ✅ ConversationCard.cs Model - ALREADY COMPLETE:
+- CardCategory enum exists (COMFORT, STATE, CRISIS)
+- GetCategoryClass() method implemented
+- NPCDeckFactory generates all types
 
-#### 4.3 Update ConversationScreen.razor:
-- [ ] Apply card type CSS classes
-- [ ] Add persistence icons
-- [ ] Structure cards with header/body/footer
-- [ ] Create outcome grid display
+#### 4.2 ✅ Fix conversation.css (COMPLETED Session 19):
+- [x] Line 402: Removed `overflow: hidden` 
+- [x] Line 398: Added `min-height: 280px` to `.dialog-card`
+- [x] Lines 421-432: Darkened border colors for visibility
+- [x] Line 180: Changed to `min-height: 80px` in `.progress-bar`
 
-#### 4.4 Visual Requirements:
-Each card MUST have:
-- Type-specific left border (5px solid color)
-- Header: Name, type tag, persistence icon, weight
-- Body: Dialogue text with proper padding
-- Footer: Success/failure grid with percentages
-- Hover effects per type
+#### 4.3 ✅ ConversationScreen.razor - ALREADY COMPLETE:
+- Card classes applied correctly (line 187)
+- Persistence icons working (line 196)
+- Header/body/footer structure implemented
+- Outcome grid displaying properly
 
-## Phase 5: Location Screen ⚠️ PARTIALLY WORKING
+#### 4.4 ✅ Clean Up Orphaned CSS (COMPLETED Session 19):
+- [x] Removed cards.css file entirely
+- [x] Removed cards.css reference from _Layout.cshtml
+- [x] Kept only the active `.dialog-card` system in conversation.css
+
+## Phase 5: Location Screen ✅ COMPLETE (Session 20)
 - Actions display correctly
 - Observations work
-- NPCs show emotional states
-- Missing some visual polish
+- NPCs show emotional states with text and emoji
+- Obligations panel shows active deadlines
+- Current spot name displayed subtly
+- Spot properties reserved for conversation context
 
 ## Phase 6: Letter Queue Screen ⚠️ NEEDS UPDATE
 - Basic functionality works
@@ -149,24 +160,49 @@ Each card MUST have:
 ❌ Success/failure outcomes completely hidden below fold
 ❌ Progress containers still vertically squished
 
-## Root Cause Analysis:
+## Root Cause Analysis (CORRECTED):
 ```css
-.dialog-option {
-    overflow: hidden;  /* ← THIS IS THE KILLER */
-    min-height: 100px; /* ← TOO SMALL (needs 280px) */
+/* ACTUAL ISSUE in conversation.css:402 */
+.dialog-card {
+    overflow: hidden;     /* ← Cuts off card content */
+    /* NO min-height set */ /* ← Cards collapse vertically */
 }
+
+/* NOT AN ISSUE - cards.css:374 */
 .card-header {
-    margin: -15px -15px 10px; /* ← PUSHES HEADER OUTSIDE VISIBLE AREA */
+    margin: 0;  /* ← Already correct, not negative */
 }
 ```
 
-## Session 16 Implementation Plan:
-1. **FIX OVERFLOW** - Remove `overflow: hidden` from `.dialog-option`
-2. **FIX HEIGHT** - Change `min-height: 100px` to `min-height: 280px`  
-3. **FIX MARGINS** - Change card-header margin to `0 0 10px`
-4. **FIX BORDERS** - Make 5px colored borders more prominent
-5. **ADD CARD TYPES** - Create STATE and CRISIS cards in NPCDeckFactory
-6. **TEST ALL TYPES** - Verify COMFORT, STATE, CRISIS all display correctly
+## Session 18 Accomplishments - Categorical Properties
+
+### Implemented Core Mechanics:
+1. ✅ **Emotional State Rules as Data**: StateRuleset class defines all rules
+   - Weight limits per state
+   - Cards drawn on listen
+   - Free weight categories (Crisis cards in DESPERATE/HOSTILE)
+   - Allowed categories (HOSTILE only allows crisis cards)
+   - Special overrides (OVERWHELMED max 1 card)
+
+2. ✅ **Location Spot Properties**: SpotPropertyType enum
+   - Privacy levels (Private, Discrete, Public, Exposed)
+   - Atmosphere (Quiet, Loud, Warm, Shaded)  
+   - View properties (ViewsMainEntrance, ViewsMarket, etc.)
+   - Comfort modifiers calculated based on properties + NPC personality
+
+3. ✅ **NPC Work/Home Locations**: Added to NPC class
+   - WorkLocationId and WorkSpotId
+   - HomeLocationId and HomeSpotId
+
+4. ✅ **Stakes System**: Already existed as StakeType enum
+   - REPUTATION, WEALTH, SAFETY, SECRET, STATUS
+
+### CSS Still Needs (From Session 16):
+1. **FIX OVERFLOW** - Remove `overflow: hidden` from `.dialog-card` 
+2. **FIX HEIGHT** - Add `min-height: 280px` to `.dialog-card`
+3. **FIX BORDERS** - Darken the 5px borders (too faint)
+4. **FIX PROGRESS** - Add min-heights to progress containers
+5. **CLEAN UP** - Remove orphaned `.dialog-option` styles
 
 ## Success Criteria:
 - [ ] Cards visually distinct by type (colored borders)

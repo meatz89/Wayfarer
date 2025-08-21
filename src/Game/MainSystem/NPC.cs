@@ -42,6 +42,12 @@ public bool HasPermanentScar { get; set; } = false;   // Some wounds never fully
 // Schedule tracking (for INVESTIGATE verb discoveries)
 public List<ScheduleEntry> DailySchedule { get; set; } = new List<ScheduleEntry>();
 
+// Work and Home locations (for deeper world building)
+public string WorkLocationId { get; set; }
+public string WorkSpotId { get; set; }
+public string HomeLocationId { get; set; }
+public string HomeSpotId { get; set; }
+
 // Known routes (for HELP verb sharing)
 private List<RouteOption> _knownRoutes = new List<RouteOption>();
 

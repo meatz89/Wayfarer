@@ -13,6 +13,7 @@ public class LocationScreenViewModel
     public List<string> LocationPath { get; set; } = new();
     public string LocationName { get; set; }
     public List<string> LocationTraits { get; set; } = new();
+    public string CurrentSpotName { get; set; }
     public string AtmosphereText { get; set; }
     public List<LocationActionViewModel> QuickActions { get; set; } = new();
     public List<NPCPresenceViewModel> NPCsPresent { get; set; } = new();
@@ -40,6 +41,7 @@ public class NPCPresenceViewModel
     public string Id { get; set; }
     public string Name { get; set; }
     public string MoodEmoji { get; set; }
+    public string EmotionalStateName { get; set; }
     public string Description { get; set; }
     public List<InteractionOptionViewModel> Interactions { get; set; } = new();
 }

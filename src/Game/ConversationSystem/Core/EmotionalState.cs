@@ -46,6 +46,11 @@ public class StateRuleset
     public bool InjectsCrisis { get; init; }
 
     /// <summary>
+    /// Number of crisis cards injected when listening
+    /// </summary>
+    public int CrisisCardsInjected { get; init; } = 1;
+
+    /// <summary>
     /// Whether opportunity cards are preserved when listening
     /// </summary>
     public bool PreservesOpportunities { get; init; }
@@ -69,6 +74,21 @@ public class StateRuleset
     /// Bonus comfort for playing sets (EAGER)
     /// </summary>
     public int SetBonus { get; init; }
+
+    /// <summary>
+    /// Card categories that cost 0 weight in this state
+    /// </summary>
+    public List<CardCategory> FreeWeightCategories { get; init; } = new();
+
+    /// <summary>
+    /// Card categories allowed to be played in this state (null = all allowed)
+    /// </summary>
+    public List<CardCategory> AllowedCategories { get; init; }
+
+    /// <summary>
+    /// Whether listening ends the conversation (HOSTILE breakdown)
+    /// </summary>
+    public bool ListenEndsConversation { get; init; }
 }
 
 /// <summary>
@@ -137,14 +157,21 @@ public static class ConversationRules
             CardsOnListen = 2,
             MaxWeight = 3,
             ListenTransition = EmotionalState.HOSTILE,
-            InjectsCrisis = true
+            InjectsCrisis = true,
+            CrisisCardsInjected = 1,
+            FreeWeightCategories = new() { CardCategory.CRISIS }  // Crisis cards cost 0 weight
         },
 
         [EmotionalState.HOSTILE] = new StateRuleset
         {
-            CardsOnListen = 0,
-            MaxWeight = 0,
-            ListenTransition = EmotionalState.HOSTILE
+            CardsOnListen = 1,
+            MaxWeight = 3,
+            ListenTransition = EmotionalState.HOSTILE,
+            InjectsCrisis = true,
+            CrisisCardsInjected = 2,
+            FreeWeightCategories = new() { CardCategory.CRISIS },  // Crisis cards cost 0 weight
+            AllowedCategories = new() { CardCategory.CRISIS },  // ONLY crisis cards can be played
+            ListenEndsConversation = true  // Listening causes breakdown
         }
     };
 

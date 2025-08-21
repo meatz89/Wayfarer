@@ -1,9 +1,163 @@
 # SESSION HANDOFF: WAYFARER IMPLEMENTATION
-**Session Date**: 2025-08-21 (Session 17 - COMPLETED)  
-**Status**: ⚠️ UI REFACTORED - Common CSS created, sizes fixed, but cards still need work
-**Build Status**: ✅ BUILDS & RUNS - All template types handled
+**Session Date**: 2025-08-21 (Session 20 - COMPLETED)  
+**Status**: ✅ LOCATION SCREEN COMPLETE - All UI improvements implemented
+**Build Status**: ✅ BUILDS CLEAN - All warnings are null reference checks
 **Branch**: letters-ledgers
-**Next Session**: Fix duplicate icons and complete card visual polish
+**Next Session**: Update Letter Queue Screen to match mockup style (Phase 6)
+
+## 🎯 SESSION 20 - LOCATION SCREEN IMPROVEMENTS
+
+### What Was Completed:
+
+1. **Obligations Panel (DeadlinePanel.razor)**:
+   - Created new component to show active letter deadlines
+   - Displays recipient, location, and time remaining
+   - Critical deadlines highlighted in red
+   - Auto-refreshes every 30 seconds
+
+2. **NPC Emotional State Display**:
+   - Added EmotionalStateName property to NPCPresenceViewModel
+   - Shows both text state (TENSE, DESPERATE, etc.) and emoji
+   - Visual styling for critical states (desperate, hostile)
+   - State affects NPC description dynamically
+
+3. **Current Spot Indicator**:
+   - Added CurrentSpotName to LocationScreenViewModel
+   - Subtle "You are at: [Spot Name]" display
+   - Shows location hierarchy (Market Square → Marcus's Stall)
+   - No complex navigation UI per agent recommendations
+
+4. **Agent Consultations**:
+   - UI/UX Designer Priya: Warned against spot navigation complexity
+   - Game Designer Chen: Confirmed spots add busywork not depth
+   - Decision: Keep spots subtle, no navigation UI
+
+### Files Modified:
+- `/src/Pages/Components/DeadlinePanel.razor` - NEW - Shows letter deadlines
+- `/src/Pages/LocationScreen.razor` - Added DeadlinePanel and spot display
+- `/src/Pages/LocationScreen.razor.cs` - Added GetStateClass method
+- `/src/ViewModels/GameViewModels.cs` - Added EmotionalStateName and CurrentSpotName
+- `/src/Services/GameFacade.cs` - Set emotional state name and current spot
+- `/src/wwwroot/css/location.css` - Added obligations panel and spot CSS
+
+### Testing Results:
+✅ Playwright testing confirmed all features working:
+- Obligations panel shows 3 active deliveries with deadlines
+- Current spot "You are at: Marcus's Stall" displays correctly
+- Marcus shows as "TENSE" with 😟 emoji
+- No navigation complexity - spots are informational only
+
+### Next Steps:
+1. Update Letter Queue Screen to match mockup style (Phase 6)
+2. Add visual polish to match exact mockup styling
+3. Consider adding spot properties to conversation setup only
+
+## 🎯 SESSION 19 - CSS FIXES & CLEANUP
+
+### What Was Completed:
+
+1. **Fixed Card Visibility Issues**:
+   - Removed `overflow: hidden` from `.dialog-card` (conversation.css:402)
+   - Added `min-height: 280px` to `.dialog-card` for proper content display
+   - Cards now show full content without being cut off
+
+2. **Enhanced Visual Clarity**:
+   - Darkened card type border colors:
+     - Comfort: #7a8b5a → #5a7a3a
+     - State: #8b7355 → #6b5345
+     - Crisis: #8b4726 → #6b3716
+   - Increased `.progress-bar` min-height from 60px to 80px for better readability
+
+3. **Removed Orphaned CSS**:
+   - Deleted entire cards.css file (was duplicate/orphaned)
+   - Removed cards.css reference from _Layout.cshtml
+   - Consolidated all card styles in conversation.css
+
+### Files Modified:
+- `/src/wwwroot/css/conversation.css` - Fixed overflow, added min-heights, darkened borders
+- `/src/Pages/_Layout.cshtml` - Removed cards.css reference
+- `/src/wwwroot/css/cards.css` - DELETED (orphaned file)
+- `/UI-MOCKUP-IMPLEMENTATION.md` - Updated status to reflect CSS fixes complete
+- `/SESSION-HANDOFF.md` - Documented session 19 changes
+
+### Build Status:
+✅ Clean build with only null reference warnings (not blocking)
+
+### Next Steps:
+1. Test conversation screen with actual gameplay to verify CSS fixes
+2. Implement location screen improvements from HTML mockup
+3. Add spot-based navigation within locations
+4. Integrate observation system with location UI
+
+## 🎯 SESSION 18 - CATEGORICAL PROPERTIES & STATE RULES
+
+### Major Implementation:
+
+**CSS Architecture Clarification:**
+1. **TWO Parallel CSS Systems Found:**
+   - `conversation.css` uses `.dialog-card` (ACTIVE - this is what's being used)
+   - `cards.css` uses `.dialog-option` (ORPHANED - not referenced in Razor)
+   - Previous sessions were debugging the WRONG system!
+
+2. **Card System Actually Working:**
+   - CardCategory enum ✅ IMPLEMENTED (COMFORT/STATE/CRISIS)
+   - NPCDeckFactory ✅ GENERATES all three types (lines 132-159)
+   - ConversationScreen.razor ✅ RENDERS complete structure
+   - Card borders ✅ EXIST (just too faint to see)
+
+3. **Progress Grid Not Broken:**
+   - Already using `2fr 1fr 2fr` correctly (conversation.css:143)
+   - NOT using minmax() as claimed in previous sessions
+   - Just needs min-height for visibility
+
+### Root Cause Analysis (CORRECTED):
+
+**What Previous Sessions Got Wrong:**
+- Claimed `.dialog-option` had overflow:hidden → This class ISN'T USED
+- Claimed card-header had negative margins → It's actually `margin: 0`
+- Claimed no card types implemented → All three types already exist
+- Claimed progress grid broken → It's actually correct
+
+**Actual Issues (Simple Fixes):**
+1. `conversation.css:402` - `.dialog-card` has `overflow: hidden` (cuts content)
+2. No min-height on `.dialog-card` (cards collapse)
+3. Border colors too faint (5px borders exist but hard to see)
+4. Progress containers need min-height
+5. Orphaned CSS in cards.css causing confusion
+
+### Categorical Properties Implemented:
+
+1. **Emotional State Rules as Data**:
+   - Updated `StateRuleset` class with `FreeWeightCategories` and `AllowedCategories`
+   - DESPERATE state: Crisis cards cost 0 weight
+   - HOSTILE state: Only crisis cards allowed
+   - Card.GetEffectiveWeight() now uses state rules data
+   - NO hardcoded category checks - rules ARE the data
+
+2. **Location Spot Properties**:
+   - Created `SpotPropertyType` enum (Private, Discrete, Public, etc.)
+   - Added to `LocationSpot` class with comfort modifiers
+   - `CalculateComfortModifier()` considers NPC personality + spot properties
+
+3. **NPC Work/Home Locations**:
+   - Added Work/Home LocationId and SpotId to NPC class
+   - Ready for schedule system implementation
+
+4. **Stakes System**:
+   - Already existed as `StakeType` enum
+   - Used in Meeting and Delivery obligations
+
+### Files Modified:
+- `/src/Game/ConversationSystem/Core/EmotionalState.cs` - Added state rule properties
+- `/src/Game/ConversationSystem/Core/ConversationCard.cs` - Updated GetEffectiveWeight
+- `/src/Game/MainSystem/SpotPropertyType.cs` - NEW categorical enum
+- `/src/Content/LocationSpot.cs` - Added spot properties and comfort calculation
+- `/src/Game/MainSystem/NPC.cs` - Added work/home locations
+- `/src/Game/ConversationSystem/Managers/NPCDeckFactory.cs` - Removed invalid properties
+
+### CSS That Still Needs Changes:
+- `conversation.css` - 4 simple fixes (remove overflow, add min-heights, darken borders)
+- `cards.css` - Remove orphaned `.dialog-option` styles
 
 ## 🔥 SESSION 17 - UI STANDARDIZATION & FIXES
 

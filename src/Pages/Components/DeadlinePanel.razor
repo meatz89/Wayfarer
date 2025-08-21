@@ -1,0 +1,117 @@
+@using Wayfarer.Pages.Components
+
+@inject ObligationQueueManager QueueManager
+@inject ITimeManager TimeManager
+
+@if (UpcomingDeadlines?.Any() == true)
+{
+    <div class="obligations-panel">
+        <div class="obligations-header">Active Obligations</div>
+        <div class="obligation-list">
+            @foreach (var deadline in UpcomingDeadlines.Take(3))
+            {
+                <div class="obligation-item @GetDeadlineClass(deadline)">
+                    <div class="obligation-target">@GetObligationType(deadline)</div>
+                    <div class="obligation-location">@GetLocationInfo(deadline)</div>
+                    <div class="obligation-time">@GetTimeRemaining(deadline)</div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private List<DeliveryObligation>? UpcomingDeadlines;
+    private System.Threading.Timer? _refreshTimer;
+
+    protected override void OnInitialized()
+    {
+        RefreshDeadlines();
+        // Refresh every 30 seconds to update time remaining
+        _refreshTimer = new System.Threading.Timer(_ => InvokeAsync(() =>
+        {
+            RefreshDeadlines();
+            StateHasChanged();
+        }), null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+    }
+
+    private void RefreshDeadlines()
+    {
+        var allLetters = QueueManager.GetPlayerQueue();
+        UpcomingDeadlines = allLetters
+            .Where(l => l?.DeadlineInMinutes > 0)
+            .OrderBy(l => l.DeadlineInMinutes)
+            .ToList();
+    }
+
+    private string GetDeadlineClass(DeliveryObligation deadline)
+    {
+        if (deadline.DeadlineInMinutes <= 120) return "critical"; // 2 hours
+        if (deadline.DeadlineInMinutes <= 480) return ""; // 8 hours
+        return "";
+    }
+
+    private string GetObligationType(DeliveryObligation deadline)
+    {
+        // All are deliveries in the current system
+        return $"Deliver to {deadline.RecipientName}";
+    }
+
+    private string GetLocationInfo(DeliveryObligation deadline)
+    {
+        // For now, just show recipient name as location (simplified)
+        // In future could look up NPC location
+        return deadline.RecipientName;
+    }
+
+    private string GetTimeRemaining(DeliveryObligation deadline)
+    {
+        int minutes = deadline.DeadlineInMinutes;
+        
+        if (minutes <= 0) return "EXPIRED";
+        if (minutes < 60) return $"{minutes}m";
+        if (minutes < 120) return $"1h {minutes - 60}m";
+        if (minutes < 1440) return $"{minutes / 60}h";
+        
+        int days = minutes / 1440;
+        return days == 1 ? "Tomorrow" : $"{days} days";
+    }
+
+    private string GetLocationName(string? locationId)
+    {
+        if (string.IsNullOrEmpty(locationId)) return "Unknown";
+        
+        // Map location IDs to display names
+        return locationId switch
+        {
+            "copper_kettle_tavern" => "Copper Kettle",
+            "market_square" => "Market Square",
+            "noble_district" => "Noble District",
+            "warehouse_district" => "Warehouse District",
+            "temple_of_bells" => "Temple of Bells",
+            _ => locationId.Replace("_", " ")
+        };
+    }
+
+    private string GetSpotName(string? spotId)
+    {
+        if (string.IsNullOrEmpty(spotId)) return "";
+        
+        // Map spot IDs to display names
+        return spotId switch
+        {
+            "corner_table" => "Corner Table",
+            "bar_counter" => "Bar",
+            "marcus_stall" => "Marcus's Stall",
+            "fountain" => "Fountain",
+            "north_entrance" => "North Entrance",
+            "blackwood_estate" => "Estate",
+            _ => spotId.Replace("_", " ")
+        };
+    }
+
+    public void Dispose()
+    {
+        _refreshTimer?.Dispose();
+    }
+}

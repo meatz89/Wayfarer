@@ -11,6 +11,56 @@
     box-shadow: 0 0 40px rgba(0,0,0,0.5);
 }
 
+/* Obligations Panel */
+.obligations-panel {
+    background: #f4e8d0;
+    border-bottom: 2px solid #a68b6f;
+    padding: 10px 20px;
+}
+
+.obligations-header {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #7a6250;
+    margin-bottom: 8px;
+}
+
+.obligation-list {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+}
+
+.obligation-item {
+    background: #faf4ea;
+    border: 1px solid #c4a684;
+    border-radius: 3px;
+    padding: 6px 10px;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.obligation-item.critical {
+    border-color: #d4704a;
+    background: #faf0e6;
+}
+
+.obligation-target {
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.obligation-location {
+    color: #7a6250;
+    font-size: 11px;
+}
+
+.obligation-time {
+    color: #8b4726;
+    font-weight: bold;
+}
+
 /* Location Header */
 .location-header {
     background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
@@ -23,6 +73,26 @@
     color: #5c4a3a;
     margin-bottom: 8px;
     font-weight: normal;
+}
+
+.current-spot-indicator {
+    font-size: 13px;
+    color: #7a6250;
+    font-style: italic;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+.spot-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 6px;
+}
+
+.spot-name {
+    color: #5c4a3a;
+    font-weight: bold;
 }
 
 .location-path {
@@ -187,6 +257,10 @@
     font-size: 16px;
     color: #5c4a3a;
     font-weight: bold;
+}
+
+.npc-mood {
+    font-size: 20px;
 }
 
 .npc-state {
