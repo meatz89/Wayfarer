@@ -13,7 +13,7 @@ public class Observation
     public EmotionalState? CreatesState { get; set; }
     public string CardTemplate { get; set; }
     public string Description { get; set; }
-    public InformationType? ProvidesInfo { get; set; }
+    public ObservationInfoType? ProvidesInfo { get; set; }
     public bool CreatesUrgency { get; set; }
     public bool Automatic { get; set; }
 }
@@ -28,7 +28,7 @@ public enum ObservationType
     NPC
 }
 
-public enum InformationType
+public enum ObservationInfoType
 {
     Transport,
     Timing,
@@ -39,10 +39,10 @@ public enum InformationType
 public class ObservationsData
 {
     public Dictionary<string, List<Observation>> locations { get; set; }
-    public Dictionary<string, ObservationType> observationTypes { get; set; }
+    public Dictionary<string, ObservationTypeData> observationTypes { get; set; }
 }
 
-public class ObservationType
+public class ObservationTypeData
 {
     public int Weight { get; set; }
     public int BaseComfort { get; set; }

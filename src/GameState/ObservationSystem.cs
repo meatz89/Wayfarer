@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using Newtonsoft.Json;
 
 /// <summary>
 /// Manages observable events and partial information at locations
@@ -39,11 +38,11 @@ public class ObservationSystem
         
         try
         {
-            string filePath = Path.Combine(_contentDirectory.TemplatesPath, "observations.json");
+            string filePath = Path.Combine(_contentDirectory.Path, "Templates", "observations.json");
             if (File.Exists(filePath))
             {
                 string json = File.ReadAllText(filePath);
-                var data = JsonConvert.DeserializeObject<ObservationsData>(json);
+                var data = ObservationParser.ParseObservations(json);
                 
                 if (data?.locations != null)
                 {
@@ -159,7 +158,7 @@ public class ObservationSystem
                     Icon = "❓",
                     FullText = "Garrett watching you from the shadows",
                     PartialText = "Courier watching you",
-                    Type = ObservationType.Mystery,
+                    Type = ObservationType.Shadow,
                     DisplayCondition = ctx => ctx.HasShadowDebt,
                     RevealCondition = ctx => ctx.ShadowTokens >= 3
                 },
@@ -192,7 +191,7 @@ public class ObservationSystem
                     Icon = "👥",
                     FullText = "Servants whispering about a scandal",
                     PartialText = "Servants whispering urgently",
-                    Type = ObservationType.Mystery,
+                    Type = ObservationType.Shadow,
                     DisplayCondition = ctx => ctx.Hour >= 6 && ctx.Hour <= 9,
                     RevealCondition = ctx => ctx.StatusTokens >= 2
                 }
@@ -205,7 +204,7 @@ public class ObservationSystem
                     Icon = "💰",
                     FullText = "Rare goods shipment arriving at noon",
                     PartialText = "Something big happening at noon",
-                    Type = ObservationType.Opportunity,
+                    Type = ObservationType.Important,
                     DisplayCondition = ctx => ctx.Hour >= 10 && ctx.Hour <= 11,
                     RevealCondition = ctx => ctx.CommerceTokens >= 1
                 },
@@ -228,7 +227,7 @@ public class ObservationSystem
                     Icon = "🚢",
                     FullText = "Smugglers unloading after dark",
                     PartialText = "Unusual activity at the docks",
-                    Type = ObservationType.Mystery,
+                    Type = ObservationType.Shadow,
                     DisplayCondition = ctx => ctx.Hour >= 20 || ctx.Hour <= 4,
                     RevealCondition = ctx => ctx.ShadowTokens >= 2
                 },
@@ -261,7 +260,7 @@ public class ObservationSystem
                     Icon = "🎒",
                     FullText = "Wealthy traveler seeking courier",
                     PartialText = "Traveler looking around anxiously",
-                    Type = ObservationType.Opportunity,
+                    Type = ObservationType.Important,
                     DisplayCondition = ctx => ctx.Hour >= 8 && ctx.Hour <= 12,
                     RevealCondition = ctx => ctx.TrustTokens >= 1
                 }
@@ -338,14 +337,6 @@ public class ObservableViewModel
 /// <summary>
 /// Types of observations for prioritization
 /// </summary>
-public enum ObservationType
-{
-    Normal,
-    Important,
-    Mystery,
-    Opportunity,
-    NPC
-}
 
 /// <summary>
 /// Context for evaluating observation conditions

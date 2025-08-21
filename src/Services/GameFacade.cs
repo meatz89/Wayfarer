@@ -493,8 +493,7 @@ public class GameFacade
             LocationPath = BuildLocationPath(location, spot),
             LocationName = spot?.Name ?? "Unknown Location",
             LocationTraits = GetLocationTraits(location, spot),
-            AtmosphereText = _atmosphereCalculator?.CalculateAtmosphere(location, spot, _timeManager.GetCurrentTimeBlock()) 
-                ?? spot?.Description ?? "A quiet place.",
+            AtmosphereText = spot?.Description ?? location?.Description ?? "A quiet place.",
             QuickActions = new List<LocationActionViewModel>(),
             NPCsPresent = new List<NPCPresenceViewModel>(),
             Observations = new List<ObservationViewModel>(),
@@ -534,7 +533,7 @@ public class GameFacade
             }
             
             // Add observations
-            viewModel.Observations = GetLocationObservations(location.LocationID);
+            viewModel.Observations = GetLocationObservations(location.Id);
             
             // Add areas within location
             viewModel.AreasWithinLocation = GetAreasWithinLocation(location, spot);
@@ -551,12 +550,10 @@ public class GameFacade
         var path = new List<string>();
         if (location != null)
         {
-            // Add parent areas if applicable
-            if (location.LocationID == "market_square")
-                path.Add("City Center");
-            else if (location.LocationID == "copper_kettle_tavern")
-                path.Add("Market Square");
-                
+            // Build path from location hierarchy
+            // For now, use location name as the primary path element
+            // TODO: When location hierarchy is properly defined in JSON, 
+            // use connectedTo relationships to build full path
             path.Add(location.Name);
         }
         if (spot != null && spot.Name != location?.Name)
@@ -568,80 +565,15 @@ public class GameFacade
     
     private List<string> GetLocationTraits(Location location, LocationSpot spot)
     {
-        var traits = new List<string>();
-        
-        // Map location to traits based on mockup
-        if (location?.LocationID == "market_square")
-        {
-            traits.Add("Public Square");
-            traits.Add("Crowded");
-            traits.Add("Crossroads");
-        }
-        else if (location?.LocationID == "copper_kettle_tavern")
-        {
-            traits.Add("Warm Hearth");
-            traits.Add("Low Voices");
-            traits.Add("Ale-scented");
-        }
-        else if (location?.LocationID == "noble_district")
-        {
-            traits.Add("Refined");
-            traits.Add("Guarded");
-            traits.Add("Wealthy");
-        }
-        
-        return traits;
+        // Use LocationTraitsParser for systematic trait generation from JSON data
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        return LocationTraitsParser.ParseLocationTraits(location, currentTime);
     }
     
     private List<LocationActionViewModel> GetLocationActions(Location location, LocationSpot spot)
     {
-        var actions = new List<LocationActionViewModel>();
-        
-        // Add location-specific actions from mockup
-        if (location.LocationID == "market_square")
-        {
-            actions.Add(new LocationActionViewModel
-            {
-                Title = "Rest at Fountain",
-                Detail = "Clear your thoughts",
-                Cost = "5 minutes",
-                Icon = "💧",
-                ActionType = "rest",
-                IsAvailable = true
-            });
-            
-            actions.Add(new LocationActionViewModel
-            {
-                Title = "Purchase Provisions",
-                Detail = "Food and supplies",
-                Cost = "1-5 coins",
-                Icon = "🛒",
-                ActionType = "shop",
-                IsAvailable = true
-            });
-            
-            actions.Add(new LocationActionViewModel
-            {
-                Title = "Listen to Town Crier",
-                Detail = "Hear proclamations",
-                Cost = "10 minutes",
-                Icon = "📢",
-                ActionType = "listen",
-                IsAvailable = true
-            });
-            
-            actions.Add(new LocationActionViewModel
-            {
-                Title = "Travel",
-                Detail = "Leave for another district",
-                Cost = "Various times",
-                Icon = "🚶",
-                ActionType = "travel",
-                IsAvailable = true
-            });
-        }
-        
-        return actions;
+        // Use ActionGenerator for systematic action generation
+        return _actionGenerator.GenerateActionsForLocation(location, spot);
     }
     
     private EmotionalState GetNPCEmotionalState(NPC npc)
@@ -715,7 +647,7 @@ public class GameFacade
                 observations.Add(new ObservationViewModel
                 {
                     Text = obs.Text,
-                    Icon = obs.Type == "Important" ? "⚠️" : "👁️",
+                    Icon = obs.Type == ObservationType.Important ? "⚠️" : "👁️",
                     AttentionCost = obs.AttentionCost,
                     Relevance = BuildRelevanceString(obs),
                     IsObserved = _observationSystem.IsObserved(obs.Id)
@@ -731,10 +663,10 @@ public class GameFacade
         if (obs.RelevantNPCs?.Any() == true)
         {
             var npcs = string.Join(", ", obs.RelevantNPCs.Select(id => 
-                _npcRepository.GetNPC(id)?.Name ?? id));
+                _npcRepository.GetById(id)?.Name ?? id));
             
-            if (!string.IsNullOrEmpty(obs.CreatesState))
-                return $"→ {npcs} ({obs.CreatesState})";
+            if (obs.CreatesState.HasValue)
+                return $"→ {npcs} ({obs.CreatesState.Value})";
             else
                 return $"→ {npcs}";
         }
@@ -746,7 +678,7 @@ public class GameFacade
         var areas = new List<AreaWithinLocationViewModel>();
         
         // Get all spots in the same location
-        var spots = _locationSpotRepository.GetSpotsForLocation(location.LocationID);
+        var spots = _locationSpotRepository.GetSpotsForLocation(location.Id);
         
         foreach (var spot in spots)
         {
@@ -782,18 +714,18 @@ public class GameFacade
         var routes = new List<RouteOptionViewModel>();
         
         // Get available routes
-        var availableRoutes = _routeRepository.GetRoutesFromLocation(location.LocationID);
+        var availableRoutes = _routeRepository.GetRoutesFromLocation(location.Id);
         
         foreach (var route in availableRoutes)
         {
-            var destination = _locationRepository.GetLocationById(route.DestinationLocationId);
+            var destination = _locationRepository.GetLocation(route.Destination);
             if (destination != null)
             {
                 routes.Add(new RouteOptionViewModel
                 {
-                    RouteId = route.RouteID,
+                    RouteId = route.Id,
                     Destination = destination.Name,
-                    TravelTime = $"{route.BaseMinutesCost} min",
+                    TravelTime = $"{route.TravelTimeMinutes} min",
                     Detail = route.RouteType.ToString(),
                     IsLocked = false
                 });

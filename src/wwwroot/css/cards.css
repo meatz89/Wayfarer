@@ -221,6 +221,48 @@
     font-weight: bold;
 }
 
+.tag.type-comfort {
+    background: #e8f5e9;
+    border-color: #7a8b5a;
+    color: #5a7a3a;
+    font-weight: bold;
+}
+
+.tag.type-social {
+    background: #f5e8f0;
+    border-color: #8b7a5a;
+    color: #6b5a4a;
+    font-weight: bold;
+}
+
+.tag.type-practical {
+    background: #e8f0f5;
+    border-color: #5a7a8b;
+    color: #4a5a6b;
+    font-weight: bold;
+}
+
+.tag.type-intimacy {
+    background: #f5e8f0;
+    border-color: #8b5a7a;
+    color: #6b4a5a;
+    font-weight: bold;
+}
+
+.tag.type-state {
+    background: #f4e8d0;
+    border-color: #8b7355;
+    color: #6b5d4f;
+    font-weight: bold;
+}
+
+.tag.type-crisis {
+    background: #faf0e6;
+    border-color: #8b4726;
+    color: #8b4726;
+    font-weight: bold;
+}
+
 .tag.persistence {
     font-style: italic;
 }
@@ -314,5 +356,98 @@
     right: 10px;
     font-size: 20px;
     color: #8b7355;
+    opacity: 0.5;
+}
+
+/* Card Header Styling */
+.card-header {
+    padding: 12px 15px;
+    background: #f9f3e9;
+    border-bottom: 1px solid #e8dcc4;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.card-identity {
+    flex: 1;
+}
+
+.card-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5c4a3a;
+    margin-bottom: 4px;
+}
+
+.card-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Card Body */
+.card-body {
+    padding: 15px;
+}
+
+.card-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #2c241a;
+    font-style: italic;
+    margin-bottom: 12px;
+}
+
+/* Card Effects */
+.card-effects {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e8dcc4;
+}
+
+.effect-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+}
+
+.effect-label {
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 10px;
+}
+
+.effect-value {
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.effect-value.positive {
+    color: #5a7a3a;
+}
+
+.effect-value.negative {
+    color: #8b4726;
+}
+
+/* Card States */
+.dialog-card.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+    border-style: dashed;
+}
+
+.dialog-card.locked::before {
+    content: "🔒";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 16px;
     opacity: 0.5;
 }
