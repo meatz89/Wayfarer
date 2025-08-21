@@ -1,120 +1,128 @@
 # SESSION HANDOFF: WAYFARER IMPLEMENTATION
-**Session Date**: 2025-08-21 (Session 14 - COMPLETED)  
-**Status**: ⚠️ PARTIAL PROGRESS - Core mechanics work, UI needs major fixes
-**Build Status**: ✅ BUILDS & RUNS - NPCDialogueGenerator added successfully
+**Session Date**: 2025-08-21 (Session 17 - COMPLETED)  
+**Status**: ⚠️ UI REFACTORED - Common CSS created, sizes fixed, but cards still need work
+**Build Status**: ✅ BUILDS & RUNS - All template types handled
 **Branch**: letters-ledgers
-**Next Session**: Fix card system (mechanical & visual) for pixel-perfect UI
+**Next Session**: Fix duplicate icons and complete card visual polish
 
-## 🔥 SESSION 14 - CRITICAL UI REALIZATIONS
+## 🔥 SESSION 17 - UI STANDARDIZATION & FIXES
 
-### What We Learned (CRITICAL):
-**UI Mockup CSS Discovery:**
-- Found actual mockup at `/mnt/c/git/wayfarer/UI-MOCKUPS/conversation-screen.html`
-- Current CSS is COMPLETELY WRONG compared to mockup
-- Progress section: Should be `2fr 1fr 2fr` NOT `minmax(350px, 1fr)` etc.
-- Cards need DISTINCT visual treatment per type (border colors, backgrounds)
+### Major Accomplishments:
+1. **DELETED cards.css** - Was conflicting with conversation.css
+2. **CREATED common.css** - Shared styles across all screens (720px width)
+3. **FIXED conversation screen width** - Now matches location screen (720px)
+4. **FIXED HTML structure** - Changed dialog-option → dialog-card
+5. **ADDED all missing template types** to GetCardDisplayName()
+6. **MOVED icon generation to frontend** - Backend no longer returns icons
 
-**Card System Misunderstanding:**
-- Cards have TWO type systems we ignored:
-  1. **Card Types**: COMFORT (green), STATE (brown), CRISIS (red)
-  2. **Persistence**: Persistent (♻), Opportunity (⚡), One-shot (→), Burden (⚫)
-- Each type needs DIFFERENT visual styling AND mechanical behavior
-- This is CORE to the game, not optional UI polish
+### Critical Realizations:
 
-**CSS Problems Identified:**
-- Progress containers: 900px+ minimum width EXPLODES the screen
-- Everything vertically SQUISHED (height problem, not width)
-- Cards are ugly text blocks, not structured components
-- Colors all flat beige, no visual hierarchy
+**CSS Architecture Issues:**
+- Had duplicate CSS files (cards.css AND conversation.css) doing same thing
+- No common CSS for shared container/layout styles
+- Conversation screen was 1200px wide while location was 720px
+- Font sizes were 15-18px when mockup uses 11-14px
+
+**Card Template Mapping:**
+- Many CardTemplateType values weren't handled in GetCardDisplayName()
+- Cards showing "Conversation Option" as fallback for unmapped templates
+- Added mappings for: ExpressEmpathy, SharePersonal, ProposeDeal, NegotiateTerms, AcknowledgePosition, ShareSecret, MentionLetter, ShowingTension
+
+**Icon Architecture Violation:**
+- Backend was returning icons directly (GetPersistenceIcon() in ConversationCard.cs)
+- FIXED: Removed backend method, added frontend mapping
+- Frontend now maps PersistenceType enum → icon string
 
 ### What We Fixed:
-**NPCDialogueGenerator Component:**
-- ✅ Created component that maps MeetingObligations → contextual dialogue
-- ✅ Elena now says: "Thank the gods you're here! I have 2 hours..."
-- ✅ Maps PersonalityType enum values correctly (DEVOTED, MERCANTILE, etc.)
-- ✅ Generates state-based dialogue for all 9 emotional states
 
-**Minor Fixes:**
-- Fixed compilation errors with PersonalityType enum mapping
-- Removed old hardcoded dialogue generation
-
-### What Still Needs Fixing:
-
-**1. Card Model (ConversationCard.cs):**
-- Add proper CardType enum (COMFORT, STATE, CRISIS)
-- Ensure PersistenceType is used correctly
-- Add visual type indicators
-
-**2. CSS Based on ACTUAL Mockup:**
+**CSS Improvements:**
 ```css
-/* FROM MOCKUP - CORRECT VALUES */
-.progress-section {
-    grid-template-columns: 2fr 1fr 2fr; /* NOT minmax! */
-    gap: 15px;
+/* common.css - NEW FILE */
+.game-screen {
+    max-width: 720px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #faf4ea;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
 }
 
-.dialog-card.comfort { border-left: 5px solid #7a8b5a; }
-.dialog-card.state { border-left: 5px solid #8b7355; }
-.dialog-card.crisis { 
-    border-left: 5px solid #8b4726;
-    background: #faf0e6;
+/* conversation.css - UPDATED */
+@import url('common.css');
+.game-container {
+    max-width: 720px; /* Was 1200px! */
+}
+
+/* Sizes from mockup */
+.progress-bar {
+    padding: 12px;
+    min-height: 60px; /* Added to fix squished progress bars */
 }
 ```
 
-**3. Card Display Structure:**
-- Card header with name, tags, weight
-- Card body with dialogue text
-- Card footer with outcome grid (success/failure columns)
-- Proper padding and spacing
+**Location Action Grid:**
+```css
+.action-grid {
+    grid-template-columns: repeat(2, 1fr); /* Was auto-fit with huge gaps */
+    gap: 12px;
+}
+```
+
+### Remaining Issues:
+
+1. **DUPLICATE PERSISTENCE ICONS** - Icons appearing twice:
+   - Once as separate text node before card
+   - Once in the persistence tag
+   - Root cause: Unknown rendering issue, not from backend
+
+2. **CARDS STILL SHOWING "Conversation Option"** - Some templates still unmapped:
+   - CasualInquiry shows "Conversation Option"
+   - Need to add ALL template mappings
+
+3. **CARDS NOT FULLY CLICKABLE** - Visual issue makes them appear disabled
+   - CSS shows cursor:pointer correctly
+   - May be z-index or overlay issue
+
+4. **LOCATION SCREEN POLISH**:
+   - Action cards have correct size but grid spacing fixed
+   - Changed from auto-fit to 2-column grid
 
 ### Files Modified This Session:
-- `/src/Pages/Components/NPCDialogueGenerator.razor` - NEW
-- `/src/Pages/ConversationScreen.razor` - Updated to use NPCDialogueGenerator
-- `/src/Pages/ConversationScreen.razor.cs` - Added GetMeetingObligation()
-- `/src/wwwroot/css/conversation.css` - Attempted fixes (NEED COMPLETE REWRITE)
+- `/src/wwwroot/css/common.css` - NEW - Shared styles
+- `/src/wwwroot/css/conversation.css` - Complete rewrite with mockup sizes
+- `/src/wwwroot/css/location.css` - Updated to use common.css, fixed grid
+- `/src/Pages/ConversationScreen.razor` - Fixed HTML structure
+- `/src/Pages/ConversationScreen.razor.cs` - Added GetPersistenceIcon(), expanded GetCardDisplayName()
+- `/src/Game/ConversationSystem/Core/ConversationCard.cs` - Removed GetPersistenceIcon()
+- `/src/Pages/Components/CardDialogueRenderer.razor` - Added missing template cases
 
 ### Critical Next Steps:
-1. **READ** the mockup CSS completely (lines 1-600+)
-2. **REPLACE** conversation.css with correct values from mockup
-3. **ADD** proper card type classes to ConversationScreen.razor
-4. **TEST** with all card types visible
+1. **FIND duplicate icon source** - Check for CSS ::before or other rendering
+2. **ADD remaining template mappings** - Ensure NO "Conversation Option" fallbacks
+3. **FIX card clickability** - Debug why cards appear greyed/disabled
+4. **TEST all card types** - Ensure all persistence types display correctly
 
 ### Architecture Notes:
-- MeetingObligation system works perfectly
-- NPCDialogueGenerator pattern is good (frontend maps categories → text)
-- Card system needs both mechanical AND visual implementation
+- Common CSS pattern working well for consistency
+- Frontend icon mapping is correct approach (backend provides enums only)
+- 720px width standard across all screens now
 
 ### Honest Assessment:
-- **Mechanical Systems**: ✅ Working correctly
-- **Contextual Dialogue**: ✅ Working correctly  
-- **UI/CSS**: ❌ Completely wrong, needs full rewrite
-- **Card System**: ❌ Missing type distinctions and visual hierarchy
+- **Screen Width Consistency**: ✅ Fixed (720px everywhere)
+- **Common Styles**: ✅ Created and implemented
+- **Card HTML Structure**: ✅ Matches mockup
+- **CSS Sizes**: ✅ Using mockup values (11-14px fonts)
+- **Template Mappings**: ⚠️ Most added but some missing
+- **Icon Duplication**: ❌ Still appearing twice
+- **Card Visual Polish**: ❌ Still needs work
 
-## Key Technical Debt:
-1. CSS is 900px+ minimum width (insane)
-2. Cards don't show their type visually
-3. No persistence icons displayed
-4. Progress containers vertically squished
-5. Card outcomes not in grid format
+## Key Learnings:
+1. **ALWAYS check for duplicate CSS files** before debugging styles
+2. **Frontend maps enums to display** - Backend should NEVER return UI strings/icons
+3. **Common CSS is essential** for multi-screen consistency
+4. **Read mockup CSS values carefully** - Our sizes were way off (15-18px vs 11-14px)
 
-## Session 15 PROGRESS:
-- [x] Fixed ConversationCard model with CardCategory enum (COMFORT/STATE/CRISIS)
-- [x] Replaced IsStateCard/IsCrisis booleans with single Category property (HIGHLANDER PRINCIPLE)
-- [x] Updated all card creation code to use new Category
-- [x] Added card type CSS classes (.comfort, .state, .crisis)
-- [x] Created proper HTML structure with card-header, card-tags, persistence icons
-- [x] Cards DO have colored left borders (green #7a8b5a for comfort visible but faint)
-
-## Session 15 CRITICAL DISCOVERY:
-**ROOT CAUSE FOUND**: Cards have `overflow: hidden` with only 125px height but content is 282px tall!
-- Card actualHeight: 125px (visible)
-- Card scrollHeight: 282px (actual content)
-- Result: Card headers, outcomes, everything below 125px is CUT OFF
-
-## Session 16 CRITICAL FIXES:
-1. **Remove `overflow: hidden` from `.dialog-option`** (THE MAIN FIX)
-2. **Increase min-height from 100px to ~280px** to fit all content
-3. **Fix card-header margin** from `-15px -15px 10px` to `0 0 10px`
-4. **Fix progress containers** - still vertically squished
-5. **Add STATE and CRISIS cards** to NPCDeckFactory for testing
-6. **Make borders more prominent** - currently barely visible
+## Next Session Priority:
+1. Find and fix duplicate icon rendering
+2. Complete all template mappings
+3. Polish card visual states (hover, selected, disabled)
+4. Verify all persistence types work correctly
