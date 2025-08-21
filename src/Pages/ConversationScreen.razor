@@ -193,7 +193,7 @@
                                 <div class="card-tags">
                                     <span class="tag type-@card.GetCategoryClass()">@card.Category</span>
                                     <span class="tag">@card.Type</span>
-                                    <span class="tag persistence">@card.GetPersistenceIcon() @card.Persistence</span>
+                                    <span class="tag persistence">@GetPersistenceIcon(card.Persistence) @card.Persistence</span>
                                     @if (card.IsObservation)
                                     {
                                         <span class="tag observation">@card.ObservationSource</span>

@@ -43,10 +43,12 @@
             CardTemplateType.DiscussBusiness => IsPlayerCard ? "How's business been treating you?" : "Trade has been slow lately.",
             CardTemplateType.ProposeDeal => IsPlayerCard ? "I have a proposition that might interest you." : "I'm listening. What are the terms?",
             CardTemplateType.NegotiateTerms => IsPlayerCard ? "Let's work out the details." : "These terms are acceptable.",
+            CardTemplateType.OfferWork => IsPlayerCard ? "Perhaps I could help with your deliveries?" : "I do need someone reliable.",
             
             // Status templates
             CardTemplateType.ShowRespect => IsPlayerCard ? "Your reputation precedes you." : "It's good to be recognized.",
             CardTemplateType.AcknowledgePosition => IsPlayerCard ? "I understand your position in this matter." : "At least someone appreciates the situation.",
+            CardTemplateType.ShareInformation => IsPlayerCard ? "I have some information that might interest you." : "Tell me what you know.",
             
             // Shadow templates
             CardTemplateType.ShareSecret => IsPlayerCard ? "I've heard something you should know..." : "This stays between us.",
@@ -59,6 +61,10 @@
             // Crisis templates
             CardTemplateType.UrgentPlea => IsPlayerCard ? "This is urgent - I need your help now!" : "Please, you must help me immediately!",
             CardTemplateType.DesperateRequest => IsPlayerCard ? "I'm desperate. Please!" : "I have nowhere else to turn!",
+            
+            // Letter/Obligation templates
+            CardTemplateType.DiscussObligation => IsPlayerCard ? "Let me tell you about my obligations." : "We all have our duties to fulfill.",
+            CardTemplateType.DeliverLetter => IsPlayerCard ? "I have a letter for you." : "Finally, I've been waiting for this.",
             
             _ => IsPlayerCard ? "..." : "Hmm."
         };

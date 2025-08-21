@@ -1,12 +1,15 @@
-/* Conversation Screen CSS - Exact sizes from UI Mockup */
+/* Conversation Screen CSS - Extends common.css */
+/* Import common styles first */
+@import url('common.css');
 
+/* Conversation-specific container using common base */
 .game-container {
-    width: 100%;
-    max-width: 1200px;
-    background: #e8dcc4;
-    border: 3px solid #8b7355;
-    border-radius: 8px;
+    /* Inherits from .game-screen in common.css */
+    max-width: 720px;
     margin: 0 auto;
+    min-height: 100vh;
+    background: #faf4ea;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
 }
 
 /* Time and Deadline Header */
@@ -174,7 +177,8 @@
     background: #f9f3e9;
     border: 1px solid #c4a684;
     border-radius: 4px;
-    padding: 10px;
+    padding: 12px;
+    min-height: 60px;
 }
 
 .progress-label {

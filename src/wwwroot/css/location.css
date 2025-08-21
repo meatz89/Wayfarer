@@ -1,5 +1,9 @@
-/* Location Screen Specific Styles - Complete from Mockup */
+/* Location Screen Specific Styles - Extends common.css */
+@import url('common.css');
+
+/* Location-specific container using common base */
 .location-screen {
+    /* Inherits from .game-screen in common.css */
     max-width: 720px;
     margin: 0 auto;
     min-height: 100vh;

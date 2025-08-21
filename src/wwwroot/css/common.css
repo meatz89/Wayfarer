@@ -1,0 +1,181 @@
+/* Common styles shared across all screens */
+
+/* Base container for all game screens */
+.game-screen {
+    max-width: 720px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #faf4ea;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
+
+/* Common header styles */
+.screen-header {
+    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+    border-bottom: 2px solid #a68b6f;
+    padding: 20px;
+}
+
+/* Common time display */
+.time-display {
+    background: #2c241a;
+    color: #e8dcc4;
+    padding: 10px 20px;
+    border-bottom: 2px solid #5c4a3a;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+/* Common location breadcrumb */
+.location-breadcrumb {
+    background: #1a1612;
+    color: #d4a76a;
+    padding: 8px 20px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Common progress bars */
+.progress-bar {
+    background: #f9f3e9;
+    border: 1px solid #c4a684;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: #7a6250;
+}
+
+.progress-track {
+    height: 8px;
+    background: #e8dcc4;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #c4a684;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #7a8b5a, #8b9a6a);
+    transition: width 0.3s ease;
+}
+
+/* Common button styles */
+.action-button {
+    padding: 12px 20px;
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.action-button:hover {
+    background: #fefaf0;
+    border-color: #a68b6f;
+    transform: translateY(-2px);
+}
+
+.action-button.selected {
+    background: #7a8b5a;
+    color: #faf4ea;
+    border-color: #5a7a3a;
+}
+
+.action-button:disabled {
+    background: #c4a684;
+    border-color: #a68b6f;
+    color: #8b7355;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Common section spacing */
+.content-section {
+    padding: 20px;
+    background: #f4e8d0;
+    border-bottom: 1px solid #d4c5a0;
+}
+
+.content-section.darker {
+    background: #e8dcc4;
+}
+
+/* Common text styles */
+.section-title {
+    font-size: 14px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.section-subtitle {
+    font-size: 12px;
+    color: #8b7355;
+    font-style: italic;
+}
+
+/* Common tag styles */
+.tag {
+    padding: 2px 6px;
+    background: #e8dcc4;
+    border: 1px solid #c4a684;
+    border-radius: 2px;
+    font-size: 9px;
+    color: #5c4a3a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+/* Common loading state */
+.loading {
+    padding: 40px;
+    text-align: center;
+    font-size: 14px;
+    color: #7a6250;
+    font-style: italic;
+}
+
+/* Common animations */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+    .game-screen {
+        max-width: 100%;
+        box-shadow: none;
+    }
+    
+    .screen-header,
+    .content-section {
+        padding: 15px;
+    }
+}

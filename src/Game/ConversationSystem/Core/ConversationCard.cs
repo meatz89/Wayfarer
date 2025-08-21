@@ -123,18 +123,6 @@ public class ConversationCard
     /// <summary>
     /// Get persistence icon for UI display
     /// </summary>
-    public string GetPersistenceIcon()
-    {
-        return Persistence switch
-        {
-            PersistenceType.Persistent => "♻",
-            PersistenceType.Opportunity => "⏱",
-            PersistenceType.OneShot => "💠",
-            PersistenceType.Burden => "⚠",
-            PersistenceType.Crisis => "🔥",
-            _ => ""
-        };
-    }
 
     /// <summary>
     /// Calculate success chance based on weight and tokens

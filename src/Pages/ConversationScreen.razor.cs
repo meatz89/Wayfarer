@@ -391,7 +391,8 @@ namespace Wayfarer.Pages
             {
                 CardTemplateType.OfferHelp => "Offer Assistance",
                 CardTemplateType.ActiveListening => "Listen Actively",
-                CardTemplateType.DiscussBusiness => "Discuss Commerce",
+                CardTemplateType.CasualInquiry => "Casual Question",
+                CardTemplateType.DiscussBusiness => "Discuss Business",
                 CardTemplateType.OfferWork => "Propose Work",
                 CardTemplateType.DiscussPolitics => "Political Discussion",
                 CardTemplateType.MakePromise => "Make Promise",
@@ -405,6 +406,14 @@ namespace Wayfarer.Pages
                 CardTemplateType.CalmnessAttempt => "Calm Reassurance",
                 CardTemplateType.DiscussObligation => "Discuss Obligations",
                 CardTemplateType.DeliverLetter => "Deliver Letter",
+                CardTemplateType.ShowingTension => "Show Tension",
+                CardTemplateType.ExpressEmpathy => "Express Empathy",
+                CardTemplateType.SharePersonal => "Share Personal",
+                CardTemplateType.ProposeDeal => "Propose Deal",
+                CardTemplateType.NegotiateTerms => "Negotiate Terms",
+                CardTemplateType.AcknowledgePosition => "Acknowledge Position",
+                CardTemplateType.ShareSecret => "Share Secret",
+                CardTemplateType.MentionLetter => "Mention Letter",
                 _ => "Conversation Option"
             };
         }
@@ -412,6 +421,19 @@ namespace Wayfarer.Pages
         protected bool ShowOpportunityWarning()
         {
             return SelectedAction == ActionType.Listen && HasOpportunities();
+        }
+
+        protected string GetPersistenceIcon(PersistenceType persistence)
+        {
+            return persistence switch
+            {
+                PersistenceType.Persistent => "♻",
+                PersistenceType.Opportunity => "⏱",
+                PersistenceType.OneShot => "→",
+                PersistenceType.Burden => "⚫",
+                PersistenceType.Crisis => "🔥",
+                _ => ""
+            };
         }
 
         private List<ConversationCard> GetObservationCards()
