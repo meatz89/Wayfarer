@@ -55,14 +55,14 @@
             <!-- Quick Actions -->
             @if (Model.QuickActions?.Any() == true)
             {
-                <div class="action-grid">
+                <div class="section-header">Actions</div>
+                <div class="main-actions">
                     @foreach (var action in Model.QuickActions)
                     {
-                        <div class="action-card" @onclick="() => ExecuteAction(action)">
-                            <div class="action-cost">@action.Cost</div>
-                            <div class="action-icon">@action.Icon</div>
-                            <div class="action-title">@action.Title</div>
+                        <div class="action-button" @onclick="() => ExecuteAction(action)">
+                            <div class="action-name">@action.Title</div>
                             <div class="action-detail">@action.Detail</div>
+                            <div class="action-cost">@action.Cost</div>
                         </div>
                     }
                 </div>
@@ -71,6 +71,7 @@
             <!-- NPCs Present -->
             @if (Model.NPCsPresent?.Any() == true)
             {
+                <div class="section-header">People of Note</div>
                 @foreach (var npc in Model.NPCsPresent)
                 {
                     <div class="npc-present">
@@ -141,22 +142,6 @@
                 </div>
             }
 
-            <!-- Movement Options -->
-            @if (Model.Routes?.Any() == true)
-            {
-                <div class="movement-grid">
-                    @foreach (var route in Model.Routes)
-                    {
-                        <div class="route-option" @onclick="() => TravelTo(route)">
-                            <span class="route-destination">@route.Destination</span>
-                            <div class="route-details">
-                                <span>🚶 @route.TravelTime</span>
-                                <span>@route.Detail</span>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
 
             <!-- Travel Progress (if traveling) -->
             @if (Model.TravelProgress != null)
@@ -178,3 +163,10 @@
         <div class="loading">Loading location...</div>
     }
 </div>
+
+<!-- Travel Modal -->
+<TravelModal IsVisible="@ShowTravelModal"
+             CurrentLocationName="@Model?.LocationName"
+             Routes="@Model?.Routes"
+             OnRouteSelected="@HandleRouteSelected"
+             OnClose="@CloseTravelModal" />

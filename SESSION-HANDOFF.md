@@ -1,9 +1,9 @@
 # SESSION HANDOFF: WAYFARER IMPLEMENTATION
-**Session Date**: 2025-08-21 (Session 7)  
-**Status**: ✅ SYSTEMATIC DATA LOADING COMPLETE - All hardcoded data eliminated
-**Build Status**: ✅ BUILDS & RUNS - 0 errors, UI fully functional
+**Session Date**: 2025-08-21 (Session 9)  
+**Status**: 🔧 IMPLEMENTING - Fixing UI structure to match mockups
+**Build Status**: ✅ BUILDS & RUNS - Implementing systematic action generation
 **Branch**: letters-ledgers
-**Next Session**: Apply CSS from mockups for pixel-perfect UI match
+**Next Session**: Complete UI mockup implementation with categorical actions
 
 ## 🔥 CRITICAL LEARNINGS FROM SESSION 5
 
@@ -36,6 +36,68 @@
   - EmotionalState → behavioral modifiers
   - Letter urgency → contextual props
   - NO HARDCODED NAMES
+
+---
+
+## 🔧 SESSION 9 - SYSTEMATIC ACTION GENERATION FROM TAGS
+
+### Key Learning: AVOID FEATURE CREEP
+**Problem**: Was trying to add new mechanics (market system, current events)
+**Solution**: Use ONLY existing mechanics:
+- Attention system (spend/restore)
+- Time advancement (wait/rest)
+- Observation system (gain knowledge)
+- Travel system (location movement)
+- Basic coin transactions
+
+### Categorical Action Mapping Discovered:
+Actions emerge from domain tags on locations/spots:
+- **"PUBLIC_SQUARE"** → "Rest at Fountain" (time advancement)
+- **"CROWDED"** → "Listen to Town Crier" (observation gain)
+- **"CROSSROADS"** → "Travel" (modal for routes)
+- **"COMMERCE"** → "Purchase Provisions" (coin spending)
+
+### Architecture Insights from Agents:
+1. **UI/UX (Priya)**: Routes on location screen cause cognitive overload (8+ cards)
+2. **Game Design (Chen)**: Modal friction is GOOD - makes travel deliberate
+3. **Core Principle**: Progressive disclosure - show what's relevant NOW
+
+---
+
+## ⚠️ SESSION 8 - PARTIAL PROGRESS ON UI IMPLEMENTATION
+
+### What Actually Got Done:
+1. **CSS Files Updated** ✅
+   - Copied CSS from mockups to game-base.css, location.css
+   - CSS loads and some styles apply
+   - BUT: UI structure still wrong so CSS can't fix everything
+
+2. **Started Fixing UI Issues** 🔧
+   - Removed BottomStatusBar from GameUI.razor (1 line change)
+   - That's it. Nothing else actually fixed.
+
+3. **Major Issues Still Present** ❌
+   - Routes STILL showing on location screen (NOT REMOVED)
+   - "People of Note" section header MISSING
+   - "Actions" section header MISSING  
+   - Actions are WRONG (not matching mockup)
+   - No Travel modal exists
+   - Areas within location should probably not be visible either
+
+### Critical Learning:
+**ALWAYS CHECK MOCKUP EXACTLY** - Don't assume CSS is working just because backgrounds change. Check:
+- Every section header exists
+- No extra UI elements not in mockup
+- Actions match mockup exactly
+- Routes only in Travel modal, not inline
+
+### Session 9 Active Tasks:
+1. 🔧 Remove Movement Options from LocationScreen.razor (lines 144-159)
+2. 📝 Add section headers: "Actions" and "People of Note"
+3. 📝 Update location_Spots.json with categorical tags
+4. 📝 Enhance ActionGenerator for tag-based actions
+5. 📝 Create TravelModal component
+6. 📝 Keep "Areas Within Location" section as requested
 
 ---
 

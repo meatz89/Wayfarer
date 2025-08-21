@@ -5,8 +5,8 @@ Implement the EXACT UI from HTML mockups with ALL content systematically generat
 
 ## Current Status
 Started: 2025-08-21
-Last Updated: 2025-08-21 (Session 7)
-Status: ✅ SYSTEMATIC DATA LOADING ACHIEVED - All hardcoded data eliminated
+Last Updated: 2025-08-21 (Session 8)
+Status: ❌ UI DOES NOT MATCH MOCKUP - Wrong structure, missing sections, wrong content
 
 ## Phase 1: JSON Data Structure (POC Setup) ✅ COMPLETE
 **Create complete JSON content for POC scenario**
@@ -117,10 +117,30 @@ Status: ✅ SYSTEMATIC DATA LOADING ACHIEVED - All hardcoded data eliminated
 1. **Fix compilation errors** (30 min) - ✅ COMPLETE
 2. **Create JSON data files** (30 min) - ✅ COMPLETE
 3. **Create text renderer components** (1 hour) - ✅ COMPLETE
-4. **Update UI screens to match mockups** (2 hours) - ✅ COMPLETE (70%)
-5. **Create ObservationParser** (30 min) - ⏳ NEXT
-6. **Copy CSS from mockups** (30 min) - ⏳ PENDING
-7. **Test with Playwright** (1 hour) - ⏳ PENDING
+4. **Update UI screens to match mockups** (2 hours) - 🔧 IN PROGRESS
+5. **Create ObservationParser** (30 min) - ✅ COMPLETE
+6. **Copy CSS from mockups** (30 min) - ✅ COMPLETE
+7. **Test with Playwright** (1 hour) - 🔧 IN PROGRESS
+
+## Progress Summary (Session 8)
+### What Was Actually Completed:
+- ✅ CSS files updated with mockup styles
+- ✅ Removed BottomStatusBar component (1 line change)
+- ❌ Everything else still broken
+
+### What's Still Wrong:
+1. **Routes showing on location screen** - Lines 144-159 in LocationScreen.razor NOT REMOVED
+2. **Missing "Actions" section header** - No header element before actions
+3. **Missing "People of Note" section header** - No header element before NPCs  
+4. **Wrong actions** - Still using QuickActions, not mockup actions (Rest, Purchase, Listen, Travel)
+5. **No Travel modal** - Travel should open modal, not show routes inline
+6. **Areas within location** - Questionable if this should even be visible
+
+### Honest Assessment:
+- UI looks slightly better with CSS but structure is WRONG
+- Only made 1 actual fix (removing BottomStatusBar)
+- Need to actually READ the mockup HTML and match it EXACTLY
+- Stop claiming things are complete when they're not
 
 ## Progress Summary (Session 7)
 - ✅ Created ObservationParser.cs following existing parser pattern
@@ -140,13 +160,40 @@ Status: ✅ SYSTEMATIC DATA LOADING ACHIEVED - All hardcoded data eliminated
 - 📝 CSS styling still needs to be extracted from mockups
 
 ## Success Criteria
-- [ ] UI matches HTML mockups pixel-perfect
-- [ ] All text generated from JSON + mechanics
-- [ ] Elena appears DESPERATE with countdown
-- [ ] Cards show exact weights, percentages, outcomes
-- [ ] Observations convert to opportunity cards
-- [ ] Crisis cards free in desperate state
-- [ ] Location shows NPCs with emotional states
+- [ ] UI matches HTML mockups pixel-perfect - **NOT EVEN CLOSE**
+- [ ] All text generated from JSON + mechanics - **PARTIALLY**
+- [ ] Elena appears DESPERATE with countdown - **NOT TESTED**
+- [ ] Cards show exact weights, percentages, outcomes - **NOT TESTED**
+- [ ] Observations convert to opportunity cards - **NOT TESTED**
+- [ ] Crisis cards free in desperate state - **NOT TESTED**
+- [ ] Location shows NPCs with emotional states - **PARTIALLY**
+
+## Session 9 Implementation Plan (Current)
+
+### Key Learning: NO FEATURE CREEP
+- Actions must use EXISTING mechanics only
+- No market system, no "current events" system
+- Use what we have: attention, time, observations, travel, coins
+
+### Categorical Action Generation from Domain Tags
+Actions emerge from location/spot tags using existing mechanics:
+- **"PUBLIC_SQUARE"** → "Rest at Fountain" (advance time to next period)
+- **"CROWDED"** → "Listen to Town Crier" (spend 1 attention for observation)
+- **"CROSSROADS"** → "Travel" (opens modal for route selection)
+- **"COMMERCE"** → "Purchase Provisions" (basic coin spending)
+
+### Implementation Tasks:
+1. ✅ Remove BottomStatusBar from GameUI.razor
+2. 🔧 Remove Routes section from LocationScreen (lines 144-159)
+3. 📝 Add "Actions" section header before actions
+4. 📝 Add "People of Note" section header before NPCs
+5. 📝 Keep "Areas Within Location" section
+6. 📝 Update central_fountain tags in location_Spots.json
+7. 📝 Update ActionGenerator for tag-based generation
+8. 📝 Create TravelModal component
+9. 📝 Test with Playwright
+
+### Next Session Priority:
 - [ ] All content emerges from categorical data
 
 ## Key Principles
@@ -157,11 +204,12 @@ Status: ✅ SYSTEMATIC DATA LOADING ACHIEVED - All hardcoded data eliminated
 5. **Mockups = Exact Target**: Match HTML mockups precisely
 
 ## Files to Track
-- `/src/GameState/ConversationNarrativeGenerator.cs` - Categorical narrative
-- `/src/GameState/LocationNarrativeGenerator.cs` - Location atmosphere
-- `/src/GameState/CardContextGenerator.cs` - Card enrichment
+- `/src/Pages/LocationScreen.razor` - Location UI (needs structure fixes)
+- `/src/Pages/LocationScreen.razor.cs` - Location logic (needs modal handling)
+- `/src/Services/ActionGenerator.cs` - Action generation (needs tag mapping)
+- `/src/Content/Templates/location_Spots.json` - Spot data (needs tag updates)
+- `/src/Pages/Components/TravelModal.razor` - Travel modal (TO CREATE)
 - `/src/Pages/ConversationScreen.razor` - Conversation UI
-- `/src/Pages/LocationScreen.razor` - Location UI
 - `/src/Content/Templates/npcs.json` - NPC data
 - `/src/Content/Templates/card_templates.json` - Card definitions
 - `/src/Content/Templates/observations.json` - Observable content

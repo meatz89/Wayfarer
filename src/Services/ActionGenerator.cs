@@ -67,6 +67,19 @@ public List<LocationActionViewModel> GenerateActionsForLocation(Location locatio
         actions.AddRange(GenerateSpotActions(spot, currentTime));
     }
 
+    // Generate location-level domain tag actions
+    if (location.DomainTags != null)
+    {
+        foreach (string tag in location.DomainTags)
+        {
+            LocationActionViewModel action = GenerateTagAction(tag, spot);
+            if (action != null && !actions.Any(a => a.Title == action.Title))
+            {
+                actions.Add(action);
+            }
+        }
+    }
+
     // Generate time-based actions
     actions.AddRange(GenerateTimeBasedActions(location, currentTime));
 
@@ -168,12 +181,24 @@ private LocationActionViewModel GenerateTagAction(string tag, LocationSpot spot)
 
     return tag.ToLower() switch
     {
-        "social" => CreateActionWithTierCheck(
-            "💬", "Join Conversation", "Locals chatting", "15m",
-            TierLevel.T1, playerTier, null),
+        "public_square" => CreateActionWithTierCheck(
+            "⛲", "Rest at Fountain", "Clear your thoughts", "5 minutes",
+            TierLevel.T1, playerTier, "rest"),
+
+        "crowded" => CreateActionWithTierCheck(
+            "📢", "Listen to Town Crier", "Hear proclamations", "10 minutes",
+            TierLevel.T1, playerTier, "observe"),
+
+        "crossroads" => CreateActionWithTierCheck(
+            "🗺️", "Travel", "Leave for another district", "Various times",
+            TierLevel.T1, playerTier, "travel"),
 
         "commerce" => CreateActionWithTierCheck(
-            "🪙", "Trade Gossip", "Exchange news", "FREE",
+            "🛍️", "Purchase Provisions", "Food and supplies", "1-5 coins",
+            TierLevel.T1, playerTier, "purchase"),
+
+        "social" => CreateActionWithTierCheck(
+            "💬", "Join Conversation", "Locals chatting", "15m",
             TierLevel.T1, playerTier, null),
 
         "religious" => CreateActionWithTierCheck(

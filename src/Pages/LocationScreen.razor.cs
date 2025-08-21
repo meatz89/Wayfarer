@@ -29,6 +29,9 @@ public partial class LocationScreen : ComponentBase
 
     // View Model
     private LocationScreenViewModel Model { get; set; }
+    
+    // Modal state
+    private bool ShowTravelModal { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,9 +54,9 @@ public partial class LocationScreen : ComponentBase
         }
         else if (action.ActionType == "travel")
         {
-            // Navigate to travel screen
-            await NavigateToTravel();
-            return; // Don't reload location since we're navigating away
+            // Open travel modal instead of navigating
+            OpenTravelModal();
+            return;
         }
         else if (action.ActionType == "rest")
         {
@@ -283,5 +286,25 @@ public partial class LocationScreen : ComponentBase
         {
             await OnActionExecuted.InvokeAsync();
         }
+    }
+    
+    // Modal handling methods
+    private void OpenTravelModal()
+    {
+        ShowTravelModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseTravelModal()
+    {
+        ShowTravelModal = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleRouteSelected(RouteOptionViewModel route)
+    {
+        // Close modal and execute travel
+        ShowTravelModal = false;
+        await TravelTo(route);
     }
 }

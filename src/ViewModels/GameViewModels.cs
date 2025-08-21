@@ -78,6 +78,12 @@ public class RouteOptionViewModel
     public string LockReason { get; set; }
     public TierLevel RequiredTier { get; set; }
     public bool CanUnlockWithPermit { get; set; }
+    
+    // Modal-specific properties
+    public string Familiarity { get; set; }
+    public bool SupportsCart { get; set; } = true;
+    public bool SupportsCarriage { get; set; } = true;
+    public string TransportMethod { get; set; } = "walk";
 }
 
 public class TravelProgressViewModel
