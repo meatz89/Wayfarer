@@ -184,71 +184,53 @@
             <div class="dialog-options">
                 @foreach (var card in Session.HandCards)
                 {
-                    <div class="dialog-option @GetCardClasses(card) @(SelectedCards.Contains(card) ? "selected" : "") @(!CanSelectCard(card) ? "disabled" : "")"
-                         @onclick="() => ToggleCard(card)"
-                         data-weight="@card.Weight"
-                         data-comfort="@card.BaseComfort">
-
+                    <div class="dialog-card @GetCardClasses(card) @(SelectedCards.Contains(card) ? "selected" : "")"
+                         @onclick="() => ToggleCard(card)">
+                        
                         <div class="card-header">
                             <div class="card-identity">
-                                <div class="card-name">
-                                    @GetCardDisplayName(card)
-                                </div>
+                                <div class="card-name">@GetCardDisplayName(card)</div>
                                 <div class="card-tags">
                                     <span class="tag type-@card.GetCategoryClass()">@card.Category</span>
                                     <span class="tag">@card.Type</span>
+                                    <span class="tag persistence">@card.GetPersistenceIcon() @card.Persistence</span>
                                     @if (card.IsObservation)
                                     {
-                                        <span class="tag">@card.ObservationSource</span>
+                                        <span class="tag observation">@card.ObservationSource</span>
                                     }
                                 </div>
                             </div>
-                            <div class="card-persistence">
-                                <span class="persistence-icon">@card.GetPersistenceIcon()</span>
+                            <div class="card-weight">
+                                <span class="weight-label">Weight</span>
+                                <span class="weight-value">@card.Weight</span>
                             </div>
                         </div>
 
-                        <div class="option-content">
-                            <div class="option-text">
-                                <CardDialogueRenderer 
-                                    Template="@card.Template" 
-                                    Context="@card.Context"
-                                    NPCName="@Session.NPC.Name"
-                                    IsPlayerCard="true" />
-                            </div>
+                        <div class="card-text">
+                            <CardDialogueRenderer 
+                                Template="@card.Template" 
+                                Context="@card.Context"
+                                NPCName="@Session.NPC.Name"
+                                IsPlayerCard="true" />
+                        </div>
 
-                            <div class="option-properties">
-                                <div class="prop-group primary">
-                                    <div class="card-identity">
-                                        <span class="tag type">@card.Type</span>
-                                        <span class="tag persistence">
-                                            @card.GetPersistenceIcon() @card.Persistence
-                                        </span>
-                                    </div>
-
-                                    <div class="weight-indicator">
-                                        <span class="weight-label">Weight:</span>
-                                        <div class="weight-dots">
-                                            @for (int i = 0; i < 3; i++)
-                                            {
-                                                <div class="weight-dot @(i < card.Weight ? "filled" : "")"></div>
-                                            }
-                                        </div>
-                                    </div>
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-header">
+                                    <span class="outcome-label">Success</span>
+                                    <span class="outcome-chance">@card.CalculateSuccessChance(GetStatusTokens())%</span>
                                 </div>
-
-                                <div class="outcome-display">
-                                    <div class="outcome success-outcome">
-                                        <div class="outcome-chance">@card.CalculateSuccessChance(GetStatusTokens())%</div>
-                                        <div class="outcome-label">Success</div>
-                                        <div class="outcome-effect">@GetSuccessEffect(card)</div>
-                                    </div>
-                                    <div class="outcome-divider"></div>
-                                    <div class="outcome failure-outcome">
-                                        <div class="outcome-chance">@(100 - card.CalculateSuccessChance(GetStatusTokens()))%</div>
-                                        <div class="outcome-label">Failure</div>
-                                        <div class="outcome-effect">@GetFailureEffect(card)</div>
-                                    </div>
+                                <div class="outcome-effects">
+                                    <div class="effect">@GetSuccessEffect(card)</div>
+                                </div>
+                            </div>
+                            <div class="outcome failure">
+                                <div class="outcome-header">
+                                    <span class="outcome-label">Failure</span>
+                                    <span class="outcome-chance">@(100 - card.CalculateSuccessChance(GetStatusTokens()))%</span>
+                                </div>
+                                <div class="outcome-effects">
+                                    <div class="effect">@GetFailureEffect(card)</div>
                                 </div>
                             </div>
                         </div>
