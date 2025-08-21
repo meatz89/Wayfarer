@@ -132,7 +132,7 @@ public class NPCDeckFactory
             new ConversationCard
             {
                 Id = Guid.NewGuid().ToString(),
-                Template = CardTemplateType.PressForUrgency,
+                Template = CardTemplateType.ShowingTension,
                 Context = new CardContext { Personality = PersonalityType.MERCANTILE },
                 Type = CardType.Commerce,
                 Persistence = PersistenceType.OneShot,
