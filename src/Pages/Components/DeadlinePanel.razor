@@ -1,19 +1,22 @@
 @using Wayfarer.Pages.Components
+@implements IDisposable
 
 @inject ObligationQueueManager QueueManager
 @inject ITimeManager TimeManager
+@inject NPCRepository NPCRepository
+@inject LocationRepository LocationRepository
 
-@if (UpcomingDeadlines?.Any() == true)
+@if (HasActiveObligations())
 {
     <div class="obligations-panel">
         <div class="obligations-header">Active Obligations</div>
         <div class="obligation-list">
-            @foreach (var deadline in UpcomingDeadlines.Take(3))
+            @foreach (var item in GetTopObligations())
             {
-                <div class="obligation-item @GetDeadlineClass(deadline)">
-                    <div class="obligation-target">@GetObligationType(deadline)</div>
-                    <div class="obligation-location">@GetLocationInfo(deadline)</div>
-                    <div class="obligation-time">@GetTimeRemaining(deadline)</div>
+                <div class="obligation-item @GetObligationClass(item)">
+                    <div class="obligation-target">@GetObligationTarget(item)</div>
+                    <div class="obligation-location">@GetObligationLocation(item)</div>
+                    <div class="obligation-time">@GetObligationTime(item)</div>
                 </div>
             }
         </div>
@@ -21,52 +24,117 @@
 }
 
 @code {
-    private List<DeliveryObligation>? UpcomingDeadlines;
+    // Represents any obligation with a deadline
+    private class ObligationItem
+    {
+        public string Type { get; set; } // "delivery" or "meeting"
+        public string TargetName { get; set; }
+        public string TargetId { get; set; }
+        public int DeadlineInMinutes { get; set; }
+        public StakeType? Stakes { get; set; }
+    }
+
     private System.Threading.Timer? _refreshTimer;
 
     protected override void OnInitialized()
     {
-        RefreshDeadlines();
         // Refresh every 30 seconds to update time remaining
         _refreshTimer = new System.Threading.Timer(_ => InvokeAsync(() =>
         {
-            RefreshDeadlines();
             StateHasChanged();
         }), null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
     }
 
-    private void RefreshDeadlines()
+    private bool HasActiveObligations()
     {
-        var allLetters = QueueManager.GetPlayerQueue();
-        UpcomingDeadlines = allLetters
-            .Where(l => l?.DeadlineInMinutes > 0)
-            .OrderBy(l => l.DeadlineInMinutes)
+        var deliveries = QueueManager.GetPlayerQueue();
+        var meetings = QueueManager.GetActiveMeetingObligations();
+        return (deliveries?.Any(d => d?.DeadlineInMinutes > 0) == true) ||
+               (meetings?.Any(m => m?.DeadlineInMinutes > 0) == true);
+    }
+
+    private List<ObligationItem> GetTopObligations()
+    {
+        var obligations = new List<ObligationItem>();
+        
+        // Add delivery obligations
+        var deliveries = QueueManager.GetPlayerQueue();
+        if (deliveries != null)
+        {
+            obligations.AddRange(deliveries
+                .Where(d => d?.DeadlineInMinutes > 0)
+                .Select(d => new ObligationItem
+                {
+                    Type = "delivery",
+                    TargetName = d.RecipientName,
+                    TargetId = d.RecipientId,
+                    DeadlineInMinutes = d.DeadlineInMinutes,
+                    Stakes = d.Stakes
+                }));
+        }
+        
+        // Add meeting obligations
+        var meetings = QueueManager.GetActiveMeetingObligations();
+        if (meetings != null)
+        {
+            obligations.AddRange(meetings
+                .Where(m => m?.DeadlineInMinutes > 0)
+                .Select(m => new ObligationItem
+                {
+                    Type = "meeting",
+                    TargetName = m.RequesterName,
+                    TargetId = m.RequesterId,
+                    DeadlineInMinutes = m.DeadlineInMinutes,
+                    Stakes = m.Stakes
+                }));
+        }
+        
+        // Sort by deadline and take top 3
+        return obligations
+            .OrderBy(o => o.DeadlineInMinutes)
+            .Take(3)
             .ToList();
     }
 
-    private string GetDeadlineClass(DeliveryObligation deadline)
+    private string GetObligationClass(ObligationItem item)
     {
-        if (deadline.DeadlineInMinutes <= 120) return "critical"; // 2 hours
-        if (deadline.DeadlineInMinutes <= 480) return ""; // 8 hours
+        if (item.DeadlineInMinutes <= 120) return "critical"; // 2 hours
+        if (item.DeadlineInMinutes <= 480) return "urgent"; // 8 hours
+        return "normal";
+    }
+
+    private string GetObligationTarget(ObligationItem item)
+    {
+        if (item.Type == "delivery")
+        {
+            return $"Deliver to {item.TargetName}";
+        }
+        else // meeting
+        {
+            return $"Meet with {item.TargetName}";
+        }
+    }
+
+    private string GetObligationLocation(ObligationItem item)
+    {
+        // Look up the actual NPC to find their location
+        var npc = NPCRepository.GetByName(item.TargetName);
+        if (npc != null)
+        {
+            var location = LocationRepository.GetLocation(npc.Location);
+            if (location != null)
+            {
+                return location.Name;
+            }
+        }
+        
+        // If NPC not found, return empty string (no hardcoded fallback)
         return "";
     }
 
-    private string GetObligationType(DeliveryObligation deadline)
+    private string GetObligationTime(ObligationItem item)
     {
-        // All are deliveries in the current system
-        return $"Deliver to {deadline.RecipientName}";
-    }
-
-    private string GetLocationInfo(DeliveryObligation deadline)
-    {
-        // For now, just show recipient name as location (simplified)
-        // In future could look up NPC location
-        return deadline.RecipientName;
-    }
-
-    private string GetTimeRemaining(DeliveryObligation deadline)
-    {
-        int minutes = deadline.DeadlineInMinutes;
+        int minutes = item.DeadlineInMinutes;
         
         if (minutes <= 0) return "EXPIRED";
         if (minutes < 60) return $"{minutes}m";
@@ -75,39 +143,6 @@
         
         int days = minutes / 1440;
         return days == 1 ? "Tomorrow" : $"{days} days";
-    }
-
-    private string GetLocationName(string? locationId)
-    {
-        if (string.IsNullOrEmpty(locationId)) return "Unknown";
-        
-        // Map location IDs to display names
-        return locationId switch
-        {
-            "copper_kettle_tavern" => "Copper Kettle",
-            "market_square" => "Market Square",
-            "noble_district" => "Noble District",
-            "warehouse_district" => "Warehouse District",
-            "temple_of_bells" => "Temple of Bells",
-            _ => locationId.Replace("_", " ")
-        };
-    }
-
-    private string GetSpotName(string? spotId)
-    {
-        if (string.IsNullOrEmpty(spotId)) return "";
-        
-        // Map spot IDs to display names
-        return spotId switch
-        {
-            "corner_table" => "Corner Table",
-            "bar_counter" => "Bar",
-            "marcus_stall" => "Marcus's Stall",
-            "fountain" => "Fountain",
-            "north_entrance" => "North Entrance",
-            "blackwood_estate" => "Estate",
-            _ => spotId.Replace("_", " ")
-        };
     }
 
     public void Dispose()

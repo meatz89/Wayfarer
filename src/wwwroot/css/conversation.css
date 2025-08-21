@@ -60,9 +60,46 @@
 }
 
 .location-spot {
-    color: #d4a76a;
-    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
+
+.spot-properties {
+    display: flex;
+    gap: 5px;
+}
+
+.spot-property {
+    padding: 2px 6px;
+    background: #2a2520;
+    border: 1px solid #4a3f30;
+    border-radius: 3px;
+    font-size: 10px;
+    color: #b8956a;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.comfort-modifier {
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.comfort-modifier.positive {
+    color: #7fb069;
+    background: #1e2a1c;
+}
+
+.comfort-modifier.negative {
+    color: #d4826a;
+    background: #2a1e1c;
+}
+
 
 /* Conversation Header */
 .conversation-header {

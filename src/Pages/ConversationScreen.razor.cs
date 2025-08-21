@@ -160,6 +160,59 @@ namespace Wayfarer.Pages
             return spot?.Name ?? "Somewhere";
         }
 
+        protected List<string> GetSpotProperties()
+        {
+            var (_, spot) = GameFacade.GetCurrentLocation();
+            if (spot == null) return new List<string>();
+
+            var properties = new List<string>();
+            var currentTime = TimeManager.GetCurrentTimeBlock();
+            
+            // Get all active properties (base + time-specific)
+            var activeProperties = new List<SpotPropertyType>(spot.SpotProperties);
+            if (spot.TimeSpecificProperties.ContainsKey(currentTime))
+            {
+                activeProperties.AddRange(spot.TimeSpecificProperties[currentTime]);
+            }
+
+            // Map relevant properties to display strings
+            foreach (var prop in activeProperties)
+            {
+                switch (prop)
+                {
+                    case SpotPropertyType.Private:
+                        properties.Add("Private");
+                        break;
+                    case SpotPropertyType.Discrete:
+                        properties.Add("Discrete");
+                        break;
+                    case SpotPropertyType.Public:
+                        properties.Add("Public");
+                        break;
+                    case SpotPropertyType.Exposed:
+                        properties.Add("Exposed");
+                        break;
+                    case SpotPropertyType.Quiet:
+                        properties.Add("Quiet");
+                        break;
+                    case SpotPropertyType.Loud:
+                        properties.Add("Loud");
+                        break;
+                }
+            }
+
+            return properties;
+        }
+
+        protected int GetSpotComfortModifier()
+        {
+            var (_, spot) = GameFacade.GetCurrentLocation();
+            if (spot == null || Session == null) return 0;
+            
+            var currentTime = TimeManager.GetCurrentTimeBlock();
+            return spot.CalculateComfortModifier(Session.NPC.PersonalityType, currentTime);
+        }
+
         protected string GetStateClass()
         {
             return Session.CurrentState.ToString().ToLower();
