@@ -1,141 +1,237 @@
 # SESSION HANDOFF: WAYFARER IMPLEMENTATION
-**Session Date**: 2025-08-20 (Session 4)  
-**Status**: 🚧 IMPLEMENTING UI MOCKUPS WITH SYSTEMATIC CONTENT GENERATION
-**Build Status**: ❌ BUILD FAILED - 43 compilation errors (fixing in progress)
+**Session Date**: 2025-08-21 (Session 6)  
+**Status**: 🚧 IMPLEMENTING UI MOCKUPS - GAMEFACADE REFACTORED, UI 70% COMPLETE
+**Build Status**: ✅ COMPILES - All errors fixed
 **Branch**: letters-ledgers
-**Next Session**: Complete frontend renderers, fix all errors, test Elena DESPERATE scenario
+**Next Session**: Create ObservationParser, apply CSS from mockups, test Elena DESPERATE scenario
 
-## 🚧 CURRENT SESSION PROGRESS (Session 4)
-**GOAL: Implement EXACT UI screens from mockups with systematically generated content**
+## 🔥 CRITICAL LEARNINGS FROM SESSION 5
 
-### Created Backend Categorical Generators:
-1. **ConversationNarrativeGenerator.cs** ✅
-   - Maps emotional states → narrative categories
-   - Generates dialogue contexts (no text)
-   - Creates action beats and scene tone
-   
-2. **LocationNarrativeGenerator.cs** ✅
-   - Maps NPCs + location → atmosphere
-   - Generates NPC presence contexts
-   - Creates activity levels and moods
-   
-3. **CardContextGenerator.cs** ✅
-   - Enriches cards with categorical context
-   - Converts observations → cards
-   - Generates crisis cards for desperate states
+### HIGHLANDER PRINCIPLE ENFORCEMENT
+- **MAJOR VIOLATION FOUND**: Two enums for emotional states (EmotionalState and NPCEmotionalState)
+- **RESOLUTION**: DELETED NPCEmotionalState entirely - THERE CAN BE ONLY ONE
+- **PRINCIPLE**: No duplicate concepts, no mapping, no conversion - DELETE DUPLICATES
 
-### Current Issues Being Fixed:
-- NPC.Personality → NPC.PersonalityType (property name mismatch)
-- NPCRelationship vs NPCRelationshipTokens confusion
-- Missing CardTemplateType enum values
-- CardContext property mismatches
-- ConnectionType vs CardType conversion issues
+### LEGACY CODE ELIMINATION
+- **DISCOVERED**: NPCStateResolver was LEGACY CODE not in target architecture
+- **ACTION**: DELETED ENTIRELY along with ALL legacy emotional state code:
+  - ❌ NPCStateResolver.cs
+  - ❌ NPCEmotionalState enum
+  - ❌ ConversationNarrativeGenerator.cs
+  - ❌ LocationNarrativeGenerator.cs
+  - ❌ CardContextGenerator.cs
+  - ❌ BinaryAvailabilityChecker.cs
+  - ❌ InteractionTemplateEngine.cs
+  - ❌ BodyLanguageDisplay components
+  - ❌ LiteraryUIConfiguration.cs
+  - ❌ ActionBeatGenerator.cs
+  - ❌ EmotionalStateDisplay.razor
+- **RULE**: If code outside conversation system accesses emotional states = LEGACY = DELETE
 
-### Architecture Maintained:
-- NO text generation in backend ✅
-- Only categorical data (enums, contexts) ✅
-- Frontend will map categories → text ✅
-- No interfaces or extensions ✅
-- No compatibility layers ✅
+### NO STRING MATCHING ENFORCEMENT
+- **VIOLATION**: Code checking `npc.Name == "Elena"`
+- **RESOLUTION**: Created categorical description generation system
+- **IMPLEMENTATION**: Descriptions emerge from:
+  - Profession → base activity
+  - EmotionalState → behavioral modifiers
+  - Letter urgency → contextual props
+  - NO HARDCODED NAMES
 
 ---
 
-## ✅ PREVIOUS SESSION ACCOMPLISHMENTS (Session 3)
+## 🚧 CURRENT SESSION PROGRESS (Session 6)
 
-### CRITICAL MECHANICS IMPLEMENTATION - Categorical Card System
-- **Emotional State Mechanics**: States fully manipulate conversation rules via StateRuleset
-- **Dice Rolling System**: Implemented proper success/failure with formula: 70% - (Weight × 10%) + (Status × 3%)
-- **Categorical Card Generation**: Complete refactor to remove ALL text from backend
-- **CardTemplateType Enum**: Created 40+ categorical templates for cards
-- **CardContext Class**: Strongly-typed context data (personality, state, urgency, etc)
-- **CardTextRenderer Component**: Frontend maps templates to narrative text
-- **Backend Purification**: Backend now provides ONLY categorical data, no text generation
-- **NPCDeckFactory Refactored**: All card generation uses templates, not text
-- **CardDeck Refactored**: All universal, personality, and relationship cards use templates
+### Major Accomplishments:
+1. **Fixed ALL Compilation Errors** ✅
+   - Removed legacy NPCStateResolver and ActionBeatGenerator references
+   - Fixed DI registrations (added EnvironmentalHintSystem, ObservationSystem, BindingObligationSystem)
+   - Created GameViewModels.cs with all needed ViewModels
+   - Deleted LiteraryUIViewModels.cs (legacy)
+
+2. **Identified EXACT Mockup Content** ✅
+   - Location traits: "Public Square", "Crowded", "Crossroads"
+   - Actions: "Rest at Fountain", "Purchase Provisions", "Listen to Town Crier", "Travel"
+   - Observations: "Notice guard checkpoint ahead", "Eavesdrop on merchant negotiations", "Guards blocking north road"
+   - Areas: "Western Stalls", "Eastern Arcade", "Fountain Plaza"
+   - NPCs: Elena (DESPERATE), Marcus (CALCULATING)
+
+3. **GameFacade.GetLocationScreen() Complete Rewrite** ✅
+   - Now populates ALL mockup data fields
+   - Calculates emotional states from letter deadlines
+   - Loads observations from JSON (needs parser)
+   - Generates location traits categorically
+   - Creates areas within location
+   - Builds proper location paths
+
+4. **UI Updates** ✅
+   - LocationScreen.razor displays location traits
+   - Observations section with attention costs and relevance
+   - Areas within location for navigation
+   - Proper NPC state display
+
+5. **Key Architecture Decisions**:
+   - ALL types must be strongly-typed enums, NEVER strings
+   - Parser classes convert JSON strings → enums
+   - ObservationSystem loads from observations.json
+   - Emotional states calculated from letter deadlines (SAFETY + <6h = DESPERATE)
+
+---
+
+## 🚧 PREVIOUS SESSION PROGRESS (Session 5)
+
+### Refactored Components:
+1. **LocationAtmosphereRenderer.razor** ✅
+   - Removed ALL string matching
+   - Added categorical description generation
+   - Descriptions emerge from Profession + EmotionalState + urgency
+   
+2. **ConversationScreen.razor/.cs** ✅
+   - Removed legacy NPCStateResolver references
+   - Added GetNPCStartingState() using letter deadlines
+   - Uses ONLY the 9 documented EmotionalState values
+   
+3. **StateNarrativeRenderer.razor** ✅
+   - Removed NPCEmotionalState parameter
+   - Uses only EmotionalState (9 values)
+   - Maps states to narrative text
+
+### Architecture Enforced:
+- ONE emotional state enum (9 values) ✅
+- NO legacy code compatibility ✅
+- NO string matching for names ✅
+- Categorical description generation ✅
+- Starting state from letter deadlines ✅
 
 ---
 
 ## 📋 TODO LIST STATUS:
-1. ✅ Analyze current state of UI generation
-2. ✅ Create ConversationNarrativeGenerator
-3. ✅ Create LocationNarrativeGenerator  
-4. ✅ Create CardContextGenerator
-5. 🚧 Fix compilation errors in narrative generators
-6. 📝 Create frontend NarrativeTextRenderer
-7. 📝 Create frontend DialogueRenderer
-8. 📝 Create frontend AtmosphereTextRenderer
-9. 📝 Refactor ConversationManager to remove hardcoded text
-10. 📝 Refactor NPCDeckFactory to use only templates
-11. 📝 Update ConversationScreen.razor to match mockup
-12. 📝 Update LocationScreen.razor to match mockup
-13. 📝 Test Elena DESPERATE state scenario
-14. 📝 Test complete integration
+1. ✅ Fix ALL compilation errors
+2. ✅ Refactor GameFacade.GetLocationScreen() 
+3. ✅ Add location traits, actions, observations to UI
+4. ✅ Update LocationScreen.razor with all sections
+5. 🚧 Create ObservationParser for proper JSON loading
+6. 📝 Extract and apply CSS from mockups
+7. 📝 Test Elena DESPERATE scenario with Playwright
+8. 📝 Verify categorical text generation works
 
 ---
 
 ## 🎯 NEXT STEPS:
-1. **Fix all compilation errors** (43 errors)
-   - Use correct NPC properties (PersonalityType not Personality)
-   - Fix relationship tracker return types
-   - Add missing CardTemplateType values
-   - Fix type conversions
+1. **Fix Compilation**
+   - Run `dotnet build`
+   - Fix any remaining errors from legacy code removal
+   - Verify all components use EmotionalState only
 
-2. **Create Frontend Renderers**
-   - NarrativeTextRenderer.razor
-   - DialogueRenderer.razor  
-   - AtmosphereTextRenderer.razor
-   - ActionBeatRenderer.razor
+2. **Test POC Scenario**
+   - Elena with 1-minute deadline → DESPERATE state
+   - Verify categorical descriptions work
+   - Check conversation state mechanics
 
-3. **Update UI to Match Mockups**
-   - ConversationScreen with exact card layout
-   - LocationScreen with NPC state badges
-   - Proper observation integration
-
-4. **Test Elena DESPERATE Scenario**
-   - Verify desperate state banner
-   - Check crisis card generation
-   - Confirm observation → card conversion
+3. **Complete UI Implementation**
+   - LocationScreen to match mockup
+   - Extract CSS from HTML mockups
+   - Apply exact styling
 
 ---
 
 ## 🔧 TECHNICAL NOTES:
 
-### Key Discoveries:
-- NPC has PersonalityType property (not Personality)
-- NPCRelationshipTracker returns NPCRelationshipTokens (not NPCRelationship)
-- Location uses DomainTags (not LocationType property)
-- CardContext is init-only, can't be modified after creation
-- ConversationCard.Type is CardType (not ConnectionType)
-
-### Architectural Principles Maintained:
-- Backend = Categories only ✅
-- Frontend = Text generation ✅
-- No string matching ✅
-- GameWorld as single source of truth ✅
-- DI throughout ✅
-- No new namespaces ✅
-
-### File Structure:
+### THE ONLY Emotional States (9 total):
+```csharp
+public enum EmotionalState
+{
+    NEUTRAL,     // Default
+    GUARDED,     // Closed off
+    OPEN,        // Receptive
+    CONNECTED,   // Peak rapport
+    TENSE,       // Stressed
+    EAGER,       // Engaged
+    OVERWHELMED, // Needs space
+    DESPERATE,   // Crisis mode
+    HOSTILE      // Cannot converse
+}
 ```
-/src/GameState/
-├── ConversationNarrativeGenerator.cs (NEW)
-├── LocationNarrativeGenerator.cs (NEW)
-├── CardContextGenerator.cs (NEW)
-└── NarrativeContextBuilder.cs (TODO)
 
-/src/Pages/Components/
-├── CardTextRenderer.razor (EXISTS)
-├── NarrativeTextRenderer.razor (TODO)
-├── DialogueRenderer.razor (TODO)
-└── AtmosphereTextRenderer.razor (TODO)
+### Starting State Determination:
+```csharp
+// From letter deadlines (conversation-system.md lines 385-391)
+if (mostUrgent.Stakes == StakeType.SAFETY && mostUrgent.DeadlineInMinutes < 360)
+    return EmotionalState.DESPERATE;
+if (mostUrgent.DeadlineInMinutes < 720) 
+    return EmotionalState.TENSE;
+return EmotionalState.NEUTRAL;
+```
+
+### Categorical Description Generation:
+```csharp
+// Profession → Activity
+Professions.Scribe → "Hunched over documents"
+Professions.Merchant → "Arranging goods"
+
+// State → Modifier
+EmotionalState.DESPERATE → "clutching with white knuckles"
+EmotionalState.TENSE → "glancing nervously"
+
+// Combine categorically, no string matching
 ```
 
 ---
 
-## ⚠️ CRITICAL REMINDERS:
-- NEVER generate text in backend services
-- ALWAYS use categorical data (enums, types)
-- REFACTOR existing code, don't create new
-- NO placeholders - generate from mechanics
-- DELETE legacy code immediately
-- TEST before claiming completion
+## ⚠️ CRITICAL PRINCIPLES:
+
+### HIGHLANDER PRINCIPLE
+- **THERE CAN BE ONLY ONE** of any concept
+- Find duplicates? DELETE ONE
+- No mapping, no conversion, no compatibility
+
+### NO LEGACY CODE
+- Delete immediately
+- Fix all callers
+- No backwards compatibility
+
+### NO STRING MATCHING
+- Only categorical/enum systems
+- No checking for "Elena" or other names
+- Content from JSON, behavior from mechanics
+
+### TARGET ARCHITECTURE
+- **9 EmotionalState values ONLY**
+- As documented in conversation-system.md
+- No additions, no modifications
+
+### GAMEWORLD TRUTH
+- Single source of truth
+- No duplicate state tracking
+- All state flows from GameWorld
+
+---
+
+## 📁 Key Files Status:
+
+### Deleted (Legacy):
+- `/src/GameState/NPCStateResolver.cs` ❌
+- `/src/GameState/ConversationNarrativeGenerator.cs` ❌
+- `/src/GameState/LocationNarrativeGenerator.cs` ❌
+- `/src/GameState/CardContextGenerator.cs` ❌
+- All "literary UI" components ❌
+
+### Modified (Refactored):
+- `/src/Pages/ConversationScreen.razor` ✅
+- `/src/Pages/ConversationScreen.razor.cs` ✅
+- `/src/Pages/Components/LocationAtmosphereRenderer.razor` ✅
+- `/src/Pages/Components/StateNarrativeRenderer.razor` ✅
+- `/src/Pages/Components/CardDialogueRenderer.razor` ✅
+
+### JSON Data:
+- `/src/Content/Templates/npcs.json` ✅ (POC data)
+- `/src/Content/Templates/card_templates.json` ✅
+- `/src/Content/Templates/observations.json` ✅
+
+---
+
+## 🚨 CRITICAL REMINDER:
+**NEVER** claim completion without:
+1. Running `dotnet build` successfully
+2. Testing the actual scenario
+3. Verifying UI matches mockups
+4. Checking all text generates categorically

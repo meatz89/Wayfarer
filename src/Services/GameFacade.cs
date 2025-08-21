@@ -42,11 +42,9 @@ public class GameFacade
     private readonly MarketManager _marketManager;
     private readonly DailyActivitiesManager _dailyActivitiesManager;
     private readonly ContextTagCalculator _contextTagCalculator;
-    private readonly NPCStateResolver _npcStateResolver;
     private readonly EnvironmentalHintSystem _environmentalHintSystem;
     private readonly ObservationSystem _observationSystem;
     private readonly ActionGenerator _actionGenerator;
-    private readonly ActionBeatGenerator _actionBeatGenerator;
     private readonly BindingObligationSystem _bindingObligationSystem;
     private readonly AtmosphereCalculator _atmosphereCalculator;
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
@@ -79,9 +77,7 @@ public class GameFacade
         IGameRuleEngine ruleEngine,
         DailyActivitiesManager dailyActivitiesManager,
         ContextTagCalculator contextTagCalculator,
-        NPCStateResolver npcStateResolver,
         ActionGenerator actionGenerator,
-        ActionBeatGenerator actionBeatGenerator,
         EnvironmentalHintSystem environmentalHintSystem,
         ObservationSystem observationSystem,
         BindingObligationSystem bindingObligationSystem,
@@ -116,9 +112,7 @@ public class GameFacade
         _ruleEngine = ruleEngine;
         _dailyActivitiesManager = dailyActivitiesManager;
         _contextTagCalculator = contextTagCalculator;
-        _npcStateResolver = npcStateResolver;
         _actionGenerator = actionGenerator;
-        _actionBeatGenerator = actionBeatGenerator;
         _environmentalHintSystem = environmentalHintSystem;
         _observationSystem = observationSystem;
         _bindingObligationSystem = bindingObligationSystem;
@@ -496,40 +490,317 @@ public class GameFacade
         {
             CurrentTime = _timeManager.GetFormattedTimeDisplay(),
             DeadlineTimer = GetNextDeadlineDisplay(),
-            LocationPath = new List<string> { location?.Name ?? "Unknown" },
+            LocationPath = BuildLocationPath(location, spot),
             LocationName = spot?.Name ?? "Unknown Location",
-            AtmosphereText = spot?.Description ?? "A quiet place.",
+            LocationTraits = GetLocationTraits(location, spot),
+            AtmosphereText = _atmosphereCalculator?.CalculateAtmosphere(location, spot, _timeManager.GetCurrentTimeBlock()) 
+                ?? spot?.Description ?? "A quiet place.",
             QuickActions = new List<LocationActionViewModel>(),
-            NPCsPresent = new List<NPCPresenceViewModel>()
+            NPCsPresent = new List<NPCPresenceViewModel>(),
+            Observations = new List<ObservationViewModel>(),
+            AreasWithinLocation = new List<AreaWithinLocationViewModel>(),
+            Routes = new List<RouteOptionViewModel>()
         };
         
-        // Add NPCs at current location
-        if (spot != null)
+        if (location != null && spot != null)
         {
+            // Add location-specific actions
+            viewModel.QuickActions = GetLocationActions(location, spot);
+            
+            // Add NPCs with emotional states
             TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             var npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
             
             foreach (var npc in npcs)
             {
+                var emotionalState = GetNPCEmotionalState(npc);
                 viewModel.NPCsPresent.Add(new NPCPresenceViewModel
                 {
                     Id = npc.ID,
                     Name = npc.Name,
-                    MoodEmoji = GetNPCMoodEmoji(npc),
-                    Description = npc.Description ?? "",
+                    MoodEmoji = GetEmotionalStateEmoji(emotionalState),
+                    Description = GetNPCDescription(npc, emotionalState),
                     Interactions = new List<InteractionOptionViewModel>
                     {
                         new InteractionOptionViewModel
                         {
-                            Text = $"Talk to {npc.Name}",
-                            Cost = "1 hour"
+                            Text = emotionalState == EmotionalState.DESPERATE 
+                                ? "Approach Her Table" 
+                                : $"Begin Conversation",
+                            Cost = "1 attention"
                         }
                     }
                 });
             }
+            
+            // Add observations
+            viewModel.Observations = GetLocationObservations(location.LocationID);
+            
+            // Add areas within location
+            viewModel.AreasWithinLocation = GetAreasWithinLocation(location, spot);
+            
+            // Add routes to other locations
+            viewModel.Routes = GetRoutesFromLocation(location);
         }
         
         return viewModel;
+    }
+    
+    private List<string> BuildLocationPath(Location location, LocationSpot spot)
+    {
+        var path = new List<string>();
+        if (location != null)
+        {
+            // Add parent areas if applicable
+            if (location.LocationID == "market_square")
+                path.Add("City Center");
+            else if (location.LocationID == "copper_kettle_tavern")
+                path.Add("Market Square");
+                
+            path.Add(location.Name);
+        }
+        if (spot != null && spot.Name != location?.Name)
+        {
+            path.Add(spot.Name);
+        }
+        return path;
+    }
+    
+    private List<string> GetLocationTraits(Location location, LocationSpot spot)
+    {
+        var traits = new List<string>();
+        
+        // Map location to traits based on mockup
+        if (location?.LocationID == "market_square")
+        {
+            traits.Add("Public Square");
+            traits.Add("Crowded");
+            traits.Add("Crossroads");
+        }
+        else if (location?.LocationID == "copper_kettle_tavern")
+        {
+            traits.Add("Warm Hearth");
+            traits.Add("Low Voices");
+            traits.Add("Ale-scented");
+        }
+        else if (location?.LocationID == "noble_district")
+        {
+            traits.Add("Refined");
+            traits.Add("Guarded");
+            traits.Add("Wealthy");
+        }
+        
+        return traits;
+    }
+    
+    private List<LocationActionViewModel> GetLocationActions(Location location, LocationSpot spot)
+    {
+        var actions = new List<LocationActionViewModel>();
+        
+        // Add location-specific actions from mockup
+        if (location.LocationID == "market_square")
+        {
+            actions.Add(new LocationActionViewModel
+            {
+                Title = "Rest at Fountain",
+                Detail = "Clear your thoughts",
+                Cost = "5 minutes",
+                Icon = "💧",
+                ActionType = "rest",
+                IsAvailable = true
+            });
+            
+            actions.Add(new LocationActionViewModel
+            {
+                Title = "Purchase Provisions",
+                Detail = "Food and supplies",
+                Cost = "1-5 coins",
+                Icon = "🛒",
+                ActionType = "shop",
+                IsAvailable = true
+            });
+            
+            actions.Add(new LocationActionViewModel
+            {
+                Title = "Listen to Town Crier",
+                Detail = "Hear proclamations",
+                Cost = "10 minutes",
+                Icon = "📢",
+                ActionType = "listen",
+                IsAvailable = true
+            });
+            
+            actions.Add(new LocationActionViewModel
+            {
+                Title = "Travel",
+                Detail = "Leave for another district",
+                Cost = "Various times",
+                Icon = "🚶",
+                ActionType = "travel",
+                IsAvailable = true
+            });
+        }
+        
+        return actions;
+    }
+    
+    private EmotionalState GetNPCEmotionalState(NPC npc)
+    {
+        // Determine emotional state from letter deadlines
+        var obligations = _letterQueueManager?.GetActiveObligations() ?? new DeliveryObligation[0];
+        var npcLetters = obligations.Where(o => o.SenderId == npc.ID || o.SenderName == npc.Name);
+        var mostUrgent = npcLetters.OrderBy(o => o.DeadlineInMinutes).FirstOrDefault();
+        
+        if (mostUrgent == null) return EmotionalState.NEUTRAL;
+        
+        // Apply conversation-system.md rules
+        if (mostUrgent.Stakes == StakeType.SAFETY && mostUrgent.DeadlineInMinutes < 360)
+            return EmotionalState.DESPERATE;
+        if (mostUrgent.DeadlineInMinutes < 720)
+            return EmotionalState.TENSE;
+            
+        // Check personality-based states
+        if (npc.PersonalityType == PersonalityType.MERCANTILE)
+            return EmotionalState.NEUTRAL; // Calculating maps to NEUTRAL with business focus
+            
+        return EmotionalState.NEUTRAL;
+    }
+    
+    private string GetEmotionalStateEmoji(EmotionalState state)
+    {
+        return state switch
+        {
+            EmotionalState.DESPERATE => "😰",
+            EmotionalState.TENSE => "😟",
+            EmotionalState.HOSTILE => "😠",
+            EmotionalState.GUARDED => "🤨",
+            EmotionalState.OPEN => "😊",
+            EmotionalState.CONNECTED => "🤝",
+            EmotionalState.EAGER => "😃",
+            EmotionalState.OVERWHELMED => "😵",
+            _ => "😐"
+        };
+    }
+    
+    private string GetNPCDescription(NPC npc, EmotionalState state)
+    {
+        // Generate categorical description based on profession and state
+        var baseActivity = npc.Profession switch
+        {
+            Professions.Scribe => "Hunched over documents",
+            Professions.Merchant => "Arranging goods with practiced efficiency",
+            Professions.Innkeeper => "Polishing glasses behind the bar",
+            _ => npc.Description ?? "Going about their business"
+        };
+        
+        if (state == EmotionalState.DESPERATE)
+        {
+            return "Clutching a sealed letter with white knuckles, eyes darting to the door with each patron's entrance.";
+        }
+        
+        return baseActivity;
+    }
+    
+    private List<ObservationViewModel> GetLocationObservations(string locationId)
+    {
+        var observations = new List<ObservationViewModel>();
+        
+        // Get observations from ObservationSystem
+        var locationObservations = _observationSystem?.GetObservationsForLocation(locationId);
+        
+        if (locationObservations != null)
+        {
+            foreach (var obs in locationObservations)
+            {
+                observations.Add(new ObservationViewModel
+                {
+                    Text = obs.Text,
+                    Icon = obs.Type == "Important" ? "⚠️" : "👁️",
+                    AttentionCost = obs.AttentionCost,
+                    Relevance = BuildRelevanceString(obs),
+                    IsObserved = _observationSystem.IsObserved(obs.Id)
+                });
+            }
+        }
+        
+        return observations;
+    }
+    
+    private string BuildRelevanceString(Observation obs)
+    {
+        if (obs.RelevantNPCs?.Any() == true)
+        {
+            var npcs = string.Join(", ", obs.RelevantNPCs.Select(id => 
+                _npcRepository.GetNPC(id)?.Name ?? id));
+            
+            if (!string.IsNullOrEmpty(obs.CreatesState))
+                return $"→ {npcs} ({obs.CreatesState})";
+            else
+                return $"→ {npcs}";
+        }
+        return "";
+    }
+    
+    private List<AreaWithinLocationViewModel> GetAreasWithinLocation(Location location, LocationSpot currentSpot)
+    {
+        var areas = new List<AreaWithinLocationViewModel>();
+        
+        // Get all spots in the same location
+        var spots = _locationSpotRepository.GetSpotsForLocation(location.LocationID);
+        
+        foreach (var spot in spots)
+        {
+            areas.Add(new AreaWithinLocationViewModel
+            {
+                Name = spot.Name,
+                Detail = GetSpotDetail(spot),
+                SpotId = spot.SpotID,
+                IsCurrent = spot.SpotID == currentSpot?.SpotID
+            });
+        }
+        
+        return areas;
+    }
+    
+    private string GetSpotDetail(LocationSpot spot)
+    {
+        // Generate detail based on spot ID
+        return spot.SpotID switch
+        {
+            "marcus_stall" => "Cloth merchant's stall",
+            "central_fountain" => "Gathering place",
+            "north_entrance" => "To Noble District",
+            "main_hall" => "Common room",
+            "bar_counter" => "Bertram's domain",
+            "corner_table" => "Private conversations",
+            _ => spot.Description ?? ""
+        };
+    }
+    
+    private List<RouteOptionViewModel> GetRoutesFromLocation(Location location)
+    {
+        var routes = new List<RouteOptionViewModel>();
+        
+        // Get available routes
+        var availableRoutes = _routeRepository.GetRoutesFromLocation(location.LocationID);
+        
+        foreach (var route in availableRoutes)
+        {
+            var destination = _locationRepository.GetLocationById(route.DestinationLocationId);
+            if (destination != null)
+            {
+                routes.Add(new RouteOptionViewModel
+                {
+                    RouteId = route.RouteID,
+                    Destination = destination.Name,
+                    TravelTime = $"{route.BaseMinutesCost} min",
+                    Detail = route.RouteType.ToString(),
+                    IsLocked = false
+                });
+            }
+        }
+        
+        return routes;
     }
     
     private string GetNextDeadlineDisplay()
@@ -3569,93 +3840,6 @@ public class GameFacade
         };
     }
 
-    private Dictionary<string, string> GetRelationshipStatusDisplay(NPC npc)
-    {
-        Dictionary<string, string> status = new Dictionary<string, string>();
-
-        if (npc == null)
-            return status;
-
-        // Get conversation-specific context instead of token balances
-        // Focus on NPC's current emotional state and conversation disposition
-
-        // Get NPC's current emotional state for conversation context
-        NPCEmotionalState currentState = _npcStateResolver?.CalculateState(npc) ?? NPCEmotionalState.WITHDRAWN;
-        PersonalityType personalityType = npc.PersonalityType;
-
-        // Add emotional state context
-        string emotionalContext = currentState switch
-        {
-            NPCEmotionalState.DESPERATE => "Seeking urgent help",
-            NPCEmotionalState.ANXIOUS => "Worried about something",
-            NPCEmotionalState.CALCULATING => "Considering options carefully",
-            NPCEmotionalState.WITHDRAWN => "Keeping thoughts private",
-            NPCEmotionalState.HOSTILE => "Angry about past events",
-            _ => "Ready to talk"
-        };
-
-        status["Current Mood"] = emotionalContext;
-
-        // Add personality-based conversation style
-        string conversationStyle = personalityType switch
-        {
-            PersonalityType.DEVOTED => "Values emotional connection",
-            PersonalityType.MERCANTILE => "Focuses on practical matters",
-            PersonalityType.PROUD => "Expects respect and formality",
-            PersonalityType.CUNNING => "Speaks in subtle meanings",
-            PersonalityType.STEADFAST => "Prefers direct, honest talk",
-            _ => "Open to various approaches"
-        };
-
-        status["Conversation Style"] = conversationStyle;
-
-        // Add context about what they might want to discuss
-        string topicHint = GetConversationTopicHint(npc, currentState);
-        if (!string.IsNullOrEmpty(topicHint))
-        {
-            status["Main Concern"] = topicHint;
-        }
-
-        return status;
-    }
-
-    private string GetConversationTopicHint(NPC npc, NPCEmotionalState currentState)
-    {
-        // Provide hints about what the NPC might want to talk about
-        // Based on their current state and any pressing matters
-
-        if (currentState == NPCEmotionalState.DESPERATE || currentState == NPCEmotionalState.ANXIOUS)
-        {
-            // Check if they have urgent letters or deadlines
-            DeliveryObligation[] playerQueue = GetPlayer().ObligationQueue;
-            DeliveryObligation? urgentDeliveryObligation = playerQueue?.FirstOrDefault(o => o != null &&
-                o.SenderName == npc.Name && o.DeadlineInMinutes <= 6);
-
-            if (urgentDeliveryObligation != null)
-            {
-                return $"Urgent letter deadline approaching ({urgentDeliveryObligation.DeadlineInMinutes}h)";
-            }
-
-            return "Has urgent personal matters to discuss";
-        }
-
-        if (currentState == NPCEmotionalState.HOSTILE)
-        {
-            return "Upset about previous interactions";
-        }
-
-        if (npc.PersonalityType == PersonalityType.MERCANTILE)
-        {
-            return "May discuss business opportunities";
-        }
-
-        if (npc.PersonalityType == PersonalityType.CUNNING)
-        {
-            return "Might share information or secrets";
-        }
-
-        return "Open to general conversation";
-    }
 
     private List<MechanicEffectViewModel> ParseMechanicalDescription(string mechanicalDescription)
     {

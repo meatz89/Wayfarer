@@ -67,11 +67,6 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationPropertyManager>();
         services.AddTimeSystem();
 
-        // Literary UI System - attention, NPC states, verb contextualization
-        services.AddLiteraryUISystem();
-
-        // Register NPCStateResolver with all dependencies
-        services.AddSingleton<NPCStateResolver>();
 
         // Managers that depend on TimeManager
         services.AddSingleton<TravelEventManager>();
@@ -109,6 +104,9 @@ public static class ServiceConfiguration
         services.AddSingleton<WorldMemorySystem>();
         services.AddSingleton<AmbientDialogueSystem>();
         services.AddSingleton<AtmosphereCalculator>();
+        services.AddSingleton<EnvironmentalHintSystem>();
+        services.AddSingleton<ObservationSystem>();
+        services.AddSingleton<BindingObligationSystem>();
 
         services.AddSingleton<ObligationQueueManager>();
 

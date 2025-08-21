@@ -5,8 +5,8 @@ Implement the EXACT UI from HTML mockups with ALL content systematically generat
 
 ## Current Status
 Started: 2025-08-21
-Last Updated: 2025-08-21 (14:30)
-Status: 🚧 IN PROGRESS - Refactoring UI screens to match mockups
+Last Updated: 2025-08-21 (Session 5)
+Status: 🚧 IN PROGRESS - Legacy code deleted, categorical system implemented, needs build verification
 
 ## Phase 1: JSON Data Structure (POC Setup) ✅ COMPLETE
 **Create complete JSON content for POC scenario**
@@ -29,27 +29,20 @@ Status: 🚧 IN PROGRESS - Refactoring UI screens to match mockups
 - [x] Noble District: Lord preparing, guard patterns
 - [x] Each observation has type, cost, relevance
 
-## Phase 2: Backend Categorical Generation ✅ COMPLETE
-**Fix and complete the categorical generators**
+## Phase 2: Backend Categorical Generation ❌ DELETED (LEGACY)
+**These were LEGACY CODE not in target architecture - ALL DELETED**
 
-### 2.1 Fix ConversationNarrativeGenerator.cs:
-- [x] Fix type: NPC.PersonalityType not Personality
-- [x] Fix NPCRelationshipTracker return types
-- [x] Map emotional states to narrative categories
-- [x] Generate context from NPC state + deadline
+### Deleted Files:
+- ❌ ConversationNarrativeGenerator.cs (legacy)
+- ❌ LocationNarrativeGenerator.cs (legacy)
+- ❌ CardContextGenerator.cs (legacy)
+- ❌ NPCStateResolver.cs (legacy)
+- ❌ All "literary UI" components (legacy)
 
-### 2.2 Fix LocationNarrativeGenerator.cs:
-- [x] Use DomainTags instead of LocationType
-- [x] Fix "Standing Watch" → "StandingWatch" enum
-- [x] Calculate atmosphere from NPCs present
-- [x] Generate location mood categories
-
-### 2.3 Fix CardContextGenerator.cs:
-- [x] Remove duplicate EmotionalWeight enum
-- [x] Fix "ProposeDeaclass" → "ProposeDeal" typo
-- [x] Fix CardContext initialization (init-only) - commented out
-- [x] Map observations to card templates
-- [x] Added missing CardTemplateType enum values
+### Lesson Learned:
+- If it's not in conversation-system.md, it's LEGACY
+- HIGHLANDER PRINCIPLE: There can be only ONE
+- No duplicate enums, no compatibility layers
 
 ## Phase 3: Frontend Text Rendering ✅ COMPLETE
 **Create components that map categories to text**
@@ -83,11 +76,13 @@ Status: 🚧 IN PROGRESS - Refactoring UI screens to match mockups
 - [x] Integrated CardDialogueRenderer for card text
 
 ### 4.2 LocationScreen.razor updates:
-- [ ] Add location path breadcrumbs
-- [ ] Show NPCs with emotional state badges
-- [ ] Display "If approached:" preview
-- [ ] Show observation opportunities with arrows
-- [ ] Add area navigation options
+- [x] Location path breadcrumbs (partially working)
+- [ ] Location traits ("Public Square", "Crowded", "Crossroads")
+- [ ] Actions section with specific actions
+- [ ] NPCs with emotional state badges (DESPERATE, CALCULATING, etc.)
+- [ ] Display "If approached:" preview with state effects
+- [ ] Observations that cost attention and become cards
+- [ ] Areas within location for navigation
 
 ### 4.3 CSS updates:
 - [ ] Copy exact styles from mockups
@@ -124,13 +119,16 @@ Status: 🚧 IN PROGRESS - Refactoring UI screens to match mockups
 5. **Copy CSS from mockups** (30 min) - ⏳ PENDING
 6. **Test with Playwright** (1 hour) - ⏳ PENDING
 
-## Progress Summary
-- Build now compiles successfully (0 errors)
-- Created POC data files with Elena DESPERATE scenario  
-- Created text rendering components for narrative generation
-- Deleted unnecessary JSON files, kept only POC essentials
-- Phase8_InitialLetters already creates Elena's DESPERATE state (1 min deadline, SAFETY stakes)
-- Ready to refactor UI screens to match mockups exactly
+## Progress Summary (Session 6)
+- Fixed compilation errors from legacy code deletion
+- Created ViewModels to support UI rendering
+- Identified EXACT missing features from mockup:
+  * Location traits: "Public Square", "Crowded", "Crossroads"
+  * Actions: "Rest at Fountain", "Purchase Provisions", "Listen to Town Crier", "Travel"
+  * Observations: "Notice guard checkpoint ahead" (1 attention → Elena/Tense)
+  * Areas: "Western Stalls", "Eastern Arcade", "Fountain Plaza"
+  * NPC states: Elena (DESPERATE), Marcus (CALCULATING)
+- GameFacade.GetLocationScreen() needs major update to populate all data
 
 ## Success Criteria
 - [ ] UI matches HTML mockups pixel-perfect
@@ -159,8 +157,35 @@ Status: 🚧 IN PROGRESS - Refactoring UI screens to match mockups
 - `/src/Content/Templates/card_templates.json` - Card definitions
 - `/src/Content/Templates/observations.json` - Observable content
 
-## Current Compilation Errors
-- 43 errors in narrative generators (fixing now)
-- Type mismatches: PersonalityType, NPCRelationshipTokens
-- Missing enum values in CardTemplateType
-- CardContext initialization issues
+## Key Architecture Decisions (Session 5)
+
+### Categorical Description System
+Descriptions emerge from:
+```
+Profession → Base Activity
+- Scribe → "Hunched over documents"
+- Merchant → "Arranging goods"
+- Innkeeper → "Polishing glasses"
+
+EmotionalState → Modifier
+- DESPERATE → "clutching with white knuckles"
+- TENSE → "glancing nervously"
+- NEUTRAL → "focused on task"
+
+Urgency → Props
+- Has urgent letter → "sealed letter"
+- No urgency → profession-specific tools
+```
+
+### The ONLY Emotional States (9)
+- NEUTRAL, GUARDED, OPEN, CONNECTED
+- TENSE, EAGER, OVERWHELMED
+- DESPERATE, HOSTILE
+
+### Starting State Logic
+```csharp
+// From letter deadlines directly
+SAFETY + <6h → DESPERATE
+Any <12h → TENSE
+None → NEUTRAL
+```

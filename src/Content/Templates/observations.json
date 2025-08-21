@@ -3,7 +3,7 @@
 		"market_square": [
 			{
 				"id": "guards_north",
-				"text": "Guards blocking north road",
+				"text": "Notice guard checkpoint ahead",
 				"type": "Important",
 				"attentionCost": 1,
 				"relevantNPCs": ["elena"],
@@ -13,7 +13,7 @@
 			},
 			{
 				"id": "merchant_negotiations",
-				"text": "Merchant price negotiations",
+				"text": "Eavesdrop on merchant negotiations",
 				"type": "Normal",
 				"attentionCost": 1,
 				"relevantNPCs": ["marcus", "bertram"],
@@ -21,13 +21,14 @@
 				"description": "Merchants arguing over grain prices"
 			},
 			{
-				"id": "cart_service",
-				"text": "Cart service available",
-				"type": "Useful",
-				"attentionCost": 0,
-				"relevantNPCs": [],
-				"providesInfo": "transport",
-				"description": "Cart to Noble District - 2 coins, saves 25 minutes"
+				"id": "guards_blocking",
+				"text": "Guards blocking north road",
+				"type": "Important",
+				"attentionCost": 1,
+				"relevantNPCs": ["elena"],
+				"createsState": "TENSE",
+				"cardTemplate": "MentionGuards",
+				"description": "The north road is completely blocked by guards"
 			}
 		],
 		"copper_kettle_tavern": [

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using Newtonsoft.Json;
 
 /// <summary>
 /// Manages observable events and partial information at locations
@@ -11,21 +13,76 @@ public class ObservationSystem
     private readonly GameWorld _gameWorld;
     private readonly ITimeManager _timeManager;
     private readonly NPCRepository _npcRepository;
+    private readonly IContentDirectory _contentDirectory;
     private readonly Dictionary<string, List<Observable>> _locationObservables;
     private readonly HashSet<string> _revealedObservations;
+    private readonly Dictionary<string, List<Observation>> _observationsByLocation;
 
     public ObservationSystem(
         GameWorld gameWorld,
         ITimeManager timeManager,
-        NPCRepository npcRepository)
+        NPCRepository npcRepository,
+        IContentDirectory contentDirectory)
     {
         _gameWorld = gameWorld;
         _timeManager = timeManager;
         _npcRepository = npcRepository;
+        _contentDirectory = contentDirectory;
         _revealedObservations = new HashSet<string>();
         _locationObservables = InitializeObservables();
+        _observationsByLocation = LoadObservationsFromJson();
     }
 
+    private Dictionary<string, List<Observation>> LoadObservationsFromJson()
+    {
+        var observations = new Dictionary<string, List<Observation>>();
+        
+        try
+        {
+            string filePath = Path.Combine(_contentDirectory.TemplatesPath, "observations.json");
+            if (File.Exists(filePath))
+            {
+                string json = File.ReadAllText(filePath);
+                var data = JsonConvert.DeserializeObject<ObservationsData>(json);
+                
+                if (data?.locations != null)
+                {
+                    foreach (var kvp in data.locations)
+                    {
+                        observations[kvp.Key] = kvp.Value;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ObservationSystem] Error loading observations.json: {ex.Message}");
+        }
+        
+        return observations;
+    }
+
+    /// <summary>
+    /// Get observations for location as Observation objects (for GameFacade)
+    /// </summary>
+    public List<Observation> GetObservationsForLocation(string locationId)
+    {
+        if (_observationsByLocation.TryGetValue(locationId, out var observations))
+        {
+            return observations;
+        }
+        
+        return new List<Observation>();
+    }
+    
+    /// <summary>
+    /// Check if an observation has been made
+    /// </summary>
+    public bool IsObserved(string observationId)
+    {
+        return _revealedObservations.Contains(observationId);
+    }
+    
     /// <summary>
     /// Get current observations for a location
     /// </summary>

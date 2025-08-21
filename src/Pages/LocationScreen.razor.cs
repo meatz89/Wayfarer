@@ -117,6 +117,26 @@ public partial class LocationScreen : ComponentBase
 
         await HandleActionExecuted();
     }
+    
+    private async Task NavigateToArea(AreaWithinLocationViewModel area)
+    {
+        if (!area.IsCurrent && !string.IsNullOrEmpty(area.SpotId))
+        {
+            // Navigate to area within location (no travel time)
+            MoveIntent moveIntent = new MoveIntent(area.SpotId);
+            bool success = await GameFacade.ExecuteIntent(moveIntent);
+            
+            if (success)
+            {
+                Console.WriteLine($"[LocationScreen] Successfully moved to {area.Name}");
+                await LoadLocation();
+            }
+            else
+            {
+                Console.WriteLine($"[LocationScreen] Failed to move to {area.Name}");
+            }
+        }
+    }
 
     private Location GetCurrentLocation()
     {

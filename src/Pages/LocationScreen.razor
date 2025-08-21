@@ -33,6 +33,15 @@
                 </div>
             }
             <div class="location-name">@Model.LocationName</div>
+            @if (Model.LocationTraits?.Any() == true)
+            {
+                <div class="location-traits">
+                    @foreach (var trait in Model.LocationTraits)
+                    {
+                        <span class="trait">@trait</span>
+                    }
+                </div>
+            }
         </div>
 
         <div class="content-area">
@@ -94,16 +103,41 @@
             @if (Model.Observations?.Any() == true)
             {
                 <div class="observations">
-                    <div class="observation-header">@Model.ObservationHeader</div>
-                    <div class="observable-list">
-                        @foreach (var obs in Model.Observations)
-                        {
-                            <div class="observable @(obs.IsUnknown ? "unknown" : "")">
-                                <span>@obs.Icon</span>
-                                <span>@obs.Text</span>
+                    <div class="section-header">@Model.ObservationHeader</div>
+                    <div class="observation-note">Knowledge gained here becomes conversation ammunition. Each observation converts to an Opportunity card when talking to relevant NPCs.</div>
+                    @foreach (var obs in Model.Observations)
+                    {
+                        <div class="observation-item @(obs.IsObserved ? "observed" : "")">
+                            <span class="observation-text">@(obs.IsObserved ? "✓ " : "")@obs.Text</span>
+                            <span class="observation-details">
+                                @if (!obs.IsObserved)
+                                {
+                                    <span class="observation-cost">@obs.AttentionCost attention</span>
+                                }
+                                <span class="observation-relevance">@obs.Relevance</span>
+                            </span>
+                        </div>
+                    }
+                </div>
+            }
+            
+            <!-- Areas Within Location -->
+            @if (Model.AreasWithinLocation?.Any() == true)
+            {
+                <div class="section-header">Areas Within @Model.LocationName</div>
+                <div class="area-list">
+                    @foreach (var area in Model.AreasWithinLocation)
+                    {
+                        <div class="area-option @(area.IsCurrent ? "current" : "")" @onclick="() => NavigateToArea(area)">
+                            <div>
+                                <div class="area-name">@area.Name</div>
+                                <div class="area-detail">@area.Detail</div>
                             </div>
-                        }
-                    </div>
+                            <span style="font-size: 11px; color: @(area.IsCurrent ? "#8b7355" : "#7a6250");">
+                                @(area.IsCurrent ? "You are here" : "No travel time")
+                            </span>
+                        </div>
+                    }
                 </div>
             }
 
