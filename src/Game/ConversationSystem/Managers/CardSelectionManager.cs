@@ -42,15 +42,15 @@ public class CardSelectionManager
     public bool CanSelectCard(ConversationCard card)
     {
         // State cards must be played alone
-        if (card.IsStateCard && selectedCards.Any())
+        if (card.Category == CardCategory.STATE && selectedCards.Any())
             return false;
-        if (selectedCards.Any(c => c.IsStateCard))
+        if (selectedCards.Any(c => c.Category == CardCategory.STATE))
             return false;
 
         // Crisis cards must be played alone
-        if (card.IsCrisis && selectedCards.Any())
+        if (card.Category == CardCategory.CRISIS && selectedCards.Any())
             return false;
-        if (selectedCards.Any(c => c.IsCrisis))
+        if (selectedCards.Any(c => c.Category == CardCategory.CRISIS))
             return false;
 
         // OVERWHELMED state: max 1 card only
@@ -152,7 +152,7 @@ public class CardSelectionManager
             var card = selectedCards.First();
             var result = results.First();
 
-            if (card.IsStateCard)
+            if (card.Category == CardCategory.STATE)
             {
                 newState = result.Success ? card.SuccessState : card.FailureState;
             }
@@ -208,10 +208,10 @@ public class CardSelectionManager
         var count = selectedCards.Count;
         var types = selectedCards.Select(c => c.Type).Distinct();
         
-        if (selectedCards.Any(c => c.IsCrisis))
+        if (selectedCards.Any(c => c.Category == CardCategory.CRISIS))
             return "DESPERATE ACTION";
         
-        if (selectedCards.Any(c => c.IsStateCard))
+        if (selectedCards.Any(c => c.Category == CardCategory.STATE))
             return "Emotional Shift";
         
         if (types.Count() == 1)

@@ -1,143 +1,315 @@
-# Wayfarer Content Contracts - Mechanical JSON Specification
+# Wayfarer Mechanical Content Contracts
 
-## Core Design Principles
+## Core Design Philosophy
 
-This document defines the complete mechanical contracts for Wayfarer's content system. Every element is purely mechanical with narrative tags for AI interpretation. The game mechanics are deterministic and complete without any narrative content. The AI translates mechanical relationships into contextual story.
+This system generates all narrative through mechanical causality and contextual AI interpretation. Every description, observation, and story element emerges from mechanical relationships, temporal states, and hierarchical world organization. The AI translates mechanical configurations into appropriate narrative, but the underlying system is purely deterministic.
 
-### Fundamental Rules
-1. **No narrative in mechanics** - Mechanics define what happens, tags guide how it's described
-2. **Complete determinism** - Every mechanical outcome is fully specified
-3. **Strict typing** - Each element has exactly one type and purpose
-4. **ID-based relationships** - All connections use IDs, never content
-5. **Mechanical tags** - Semantic markers for AI narrative generation
+## World Hierarchy
 
-## 1. Emotional States Definition
+### Region (Thematic Container)
 
-Emotional states are complete rulesets that define how conversations function. Each state specifies exact mechanical rules for Listen and Speak actions.
+**Properties:**
+- `id`: Unique identifier
+- `prosperityLevel`: Enum (Thriving/Stable/Declining/Desperate)
+- `authorityType`: Enum (Royal/Military/Merchant/Criminal/Religious)
+- `culturalTags`: List of strings (architectural style, customs, dress)
+- `currentEvents`: List of active event IDs
+- `basePriceModifier`: Integer percentage (affects all commerce)
+- `narrativeThemes`: List of strings for AI tone
 
-## 2. NPC Mechanical Definition
+**Implementation Notes:**
+Regions set the overall tone and economic reality. A Declining region with Military authority generates different narrative than a Thriving region with Merchant authority. These tags affect all AI-generated content within the region.
 
-NPCs are mechanical entities defined by their deck archetype, relationship network, and token preferences.
+### District (Neighborhood)
 
-## 3. Card Mechanical Definition
+**Properties:**
+- `id`: Unique identifier
+- `parentRegionId`: String
+- `wealthLevel`: Enum (Opulent/Wealthy/Modest/Poor/Destitute)
+- `populationDensity`: Enum (Packed/Crowded/Busy/Sparse/Empty)
+- `primaryFunction`: Enum (Residential/Commercial/Industrial/Administrative/Religious)
+- `dangerLevel`: Integer (0-5, affects encounter probability)
+- `architecturalTags`: List of strings
+- `districtTraits`: List of mechanical modifiers
 
-Cards are purely mechanical with clear type separation and deterministic effects.
+**District Trait Entry:**
+- `traitType`: Enum (GuardPresence/BlackMarket/SafeHaven/Lawless)
+- `intensity`: Integer (1-3)
+- `timeRestriction`: Time period or null
 
-## 4. Observation Mechanical Definition
+**Implementation Notes:**
+Districts create local flavor within regions. Wealth level affects NPC dress descriptions, available services, and building conditions. Population density affects crowd descriptions and observation availability. The AI uses these tags to generate appropriate atmosphere.
 
-Observations are information packets that convert to opportunity cards in conversations.
+### Location (Actual Places)
 
-## 5. Letter Contract Definition
+**Properties:**
+- `id`: Unique identifier
+- `parentDistrictId`: String
+- `locationType`: Enum (Market/Tavern/Temple/Palace/Street/Square/Shop/Home)
+- `operatingSchedule`: List of time periods when accessible
+- `ownerNpcId`: String or null
+- `baseCapacity`: Integer (how many people fit)
+- `locationSpots`: List of spot IDs
+- `connectedRoutes`: List of route IDs
+- `mechanicalTraits`: List of traits
+- `ambienceTags`: List of strings per time period
 
-Letters are mechanical contracts between NPCs that create obligations and modify relationships.
+**Mechanical Trait Entry:**
+- `trait`: Enum (Public/Private/Sacred/Commercial/Dangerous/Safe/Loud/Quiet)
+- `timePeriods`: List of periods when active
 
-## 6. Location Mechanical Definition
+**Time-Based Configuration:**
+- `timeSchedules`: List of schedule entries
 
-Locations are interaction spaces with available NPCs and observations.
+**Schedule Entry:**
+- `timePeriod`: Enum (Morning/Midday/Afternoon/Evening/Night/DeepNight)
+- `presentNpcs`: List of NPC IDs
+- `crowdLevel`: Enum (Empty/Sparse/Moderate/Busy/Packed)
+- `availableObservations`: List of observation templates
+- `atmosphereTags`: List of strings for this time period
 
-## 7. Route Encounter Definition
+**Implementation Notes:**
+Locations change dramatically by time. A market is Packed at Morning with merchant NPCs and commerce observations, but Empty at Night with only guard NPCs and danger observations. The AI generates different descriptions for each time period using the atmospheric tags.
 
-Routes generate encounters based on familiarity level.
+### Location Spot (Interaction Points)
 
-## 8. Campaign Configuration
+**Properties:**
+- `id`: Unique identifier
+- `parentLocationId`: String
+- `spotType`: Enum (Table/Corner/Bar/Stage/Altar/Counter/Booth/Alcove)
+- `privacyLevel`: Enum (Exposed/Public/Discrete/Private/Hidden)
+- `capacity`: Integer (1-4 typically)
+- `comfortModifier`: Integer (-2 to +2, affects patience)
+- `specialProperties`: List of strings
+- `narrativeTags`: List of strings
 
-Defines starting conditions and victory parameters.
+**Special Property Examples:**
+- "OverhearsBarConversations"
+- "ViewsMainEntrance"
+- "NearFireplace"
+- "DarkCorner"
 
-## Implementation Architecture
+**Implementation Notes:**
+Spots enable specific interactions. A Private booth allows sensitive conversations. An Exposed table might limit what NPCs will discuss. The AI uses tags to describe the specific area within the location.
 
-### Content Loading Order
-1. Load emotional states (defines all conversation rules)
-2. Load card templates (defines all possible cards)
-3. Load NPCs (references cards and states)
-4. Load observations (references NPCs for relevance)
-5. Load locations (references NPCs and observations)
-6. Load route encounters (references requirements)
-7. Load campaign (references everything)
+## Travel System
 
-### Deck Generation Process
-1. NPC personality archetype determines base distribution
-2. Token preferences weight specific card types
-3. Relationship states add specific cards
-4. Letter deliveries permanently modify deck
-5. Failed obligations add burden cards
+### Route (Direct Path)
 
-### Conversation Flow
-1. Meeting obligation deadline determines starting emotional state
-2. Starting hand draws from deck plus observation cards
-3. Each turn follows state-specific Listen/Speak rules
-4. State transitions occur through listening or state cards
-5. Comfort accumulation triggers letter generation at thresholds
-6. Conversation ends when patience depleted or crisis triggered
+**Properties:**
+- `id`: Unique identifier
+- `originLocationId`: String
+- `destinationLocationId`: String
+- `transportType`: Enum (Walk/Cart/Horse/Boat/Carriage)
+- `baseMinutes`: Integer
+- `costCoins`: Integer
+- `familiarityLevel`: Enum (Known/Learning/Unfamiliar/Dangerous)
+- `statusRequirement`: Integer or null
+- `routeTraits`: List of traits
+- `narrativeTags`: List of strings
 
-### AI Narrative Generation
+**Route Trait Entry:**
+- `trait`: Enum (Scenic/Direct/Dangerous/Patrolled/Hidden/Public)
+- `effect`: Mechanical modifier
 
-The AI receives mechanical events with narrative tags and generates appropriate descriptions:
+**Familiarity Effects:**
+- Known: No encounter
+- Learning: Draw 2 encounters, choose 1
+- Unfamiliar: Draw 1 encounter, must face
+- Dangerous: Draw 1 encounter, must face, negative weight
 
-The AI generates contextual narrative without affecting mechanics:
-- "Elena clutches the sealed letter with trembling hands..."
-- "The merchant's eyes dart nervously to the door..."
-- "Your old friend grips the parchment desperately..."
+**Implementation Notes:**
+Each route is a single transport option between two specific locations. You cannot travel directly between districts - only between connected locations. A cart route from Market to Docks is different from a boat route between the same locations. Travel time is always in minutes or hours, never days.
 
-### Mechanical Integrity Rules
+### Encounter (Travel Event)
 
-1. **State Changes**: Only occur through explicit mechanics (listening or state cards)
-2. **Card Effects**: Execute exactly as specified, no interpretation
-3. **Weight Limits**: Absolute constraints based on emotional state
-4. **Opportunity Vanishing**: ALL vanish on Listen (except special states)
-5. **Token Effects**: Apply mathematically without rounding
-6. **Deadline Tracking**: Precise minute-based calculation
-7. **Success Calculation**: Deterministic formula with no hidden modifiers
+**Properties:**
+- `id`: Unique identifier
+- `encounterTemplate`: Enum (GuardCheckpoint/Merchant/Beggar/Accident/Discovery)
+- `validRouteTraits`: List of traits where this can occur
+- `validTimePerods`: List of when this can occur
+- `mechanicalChoice`: Choice structure
+- `contextualTags`: List of strings for AI generation
 
-### Content Validation
+**Choice Structure:**
+- `option1`: {cost: Resource object, outcome: Effect object, narrativeTags: List}
+- `option2`: {cost: Resource object, outcome: Effect object, narrativeTags: List}
+- `option3`: Optional third choice
 
-Every JSON element must pass validation:
-- All IDs are unique within their type
-- All referenced IDs exist in appropriate collections
-- All numerical values are integers (no floats)
-- All state transitions reference valid states
-- All card effects are mechanically complete
-- No narrative content in mechanical definitions
+**Resource Object:**
+- `type`: Enum (Coins/Minutes/Attention/Status/Health)
+- `amount`: Integer
 
-## Design Rationale
+**Effect Object:**
+- `type`: Enum (Nothing/Observation/StateChange/RouteUnlock/ItemGain)
+- `value`: Appropriate value for type
 
-### Why Separate Mechanics from Narrative
+**Implementation Notes:**
+Encounters are generated based on route traits and time. A Patrolled route at Night might generate guard encounters. A Hidden route at Morning might generate discovery encounters. The AI creates specific narrative from templates and context.
 
-The mechanical system is completely deterministic and can run without any narrative layer. This separation ensures:
-- Mechanics can be tested independently
-- Narrative can be regenerated for different settings
-- No ambiguity in rule interpretation
-- AI can freely generate story without breaking mechanics
+## Temporal System
 
-### Why Emotional States as Rulesets
+### Time Period (Clock Segments)
 
-Rather than modifiers, each emotional state is a complete ruleset because:
-- Clear binary rules instead of percentage modifications
-- Each state creates genuinely different gameplay
-- No mental math or modifier stacking
-- Authentic representation of how emotions change interactions
+**Properties:**
+- `periodName`: Enum (Morning/Midday/Afternoon/Evening/Night/DeepNight)
+- `hourRange`: [start, end] in 24-hour format
+- `globalModifiers`: List of mechanical effects
+- `narrativeTone`: List of strings
 
-### Why Card Type Separation
+**Period Definitions:**
+- Morning: 6:00-10:00 (busy, fresh, merchants opening)
+- Midday: 10:00-14:00 (peak activity, hot, crowded)
+- Afternoon: 14:00-18:00 (winding down, golden light)
+- Evening: 18:00-22:00 (social time, taverns busy, shops closing)
+- Night: 22:00-2:00 (quiet, dangerous, illicit)
+- DeepNight: 2:00-6:00 (empty, very dangerous, secret)
 
-Strict separation between Comfort, State, and Crisis cards ensures:
-- No ambiguity about what can combine
-- Clear strategic choices between building comfort or changing state
-- Crisis situations feel mechanically distinct
-- No edge cases or conflicts in card interactions
+**Implementation Notes:**
+Time periods globally affect the world. All locations reference these periods for their schedules. NPCs move between locations at period boundaries. Observations refresh each period.
 
-### Why Observation Integration
+### World Event (Dynamic Modifiers)
 
-Observations converting to Opportunity cards creates:
-- Reward for world exploration
-- Natural integration between location and conversation gameplay
-- Time pressure through Opportunity vanishing
-- Mechanical representation of bringing outside knowledge into conversations
+**Properties:**
+- `id`: Unique identifier
+- `eventType`: Enum (Festival/Raid/Storm/Curfew/Market/Funeral/Arrival)
+- `affectedRegions`: List of region IDs
+- `affectedDistricts`: List of district IDs
+- `duration`: Integer hours
+- `mechanicalEffects`: List of effects
+- `narrativeImpact`: List of strings
 
-### Why Meeting Obligations Determine State
+**Mechanical Effect Entry:**
+- `effectType`: Enum (CrowdIncrease/PriceChange/RouteBlock/NPCMood)
+- `magnitude`: Integer
+- `targetIds`: List of affected entity IDs
 
-NPC emotional states deriving from player punctuality means:
-- Single source of truth for time pressure
-- Natural emergence of crisis situations
-- Player agency in managing NPC states
-- No need for complex NPC state tracking
+**Implementation Notes:**
+Events temporarily modify the world state. A Festival increases crowds and improves NPC moods. A Guard Raid makes certain NPCs unavailable and increases tension. The AI incorporates active events into all generated narrative.
 
-This system creates a mechanically complete game where narrative emerges from the interaction of simple, deterministic rules. Every story is unique, but every mechanical outcome is predictable and fair.
+## Dynamic Content Generation
+
+### Observation (Generated Knowledge)
+
+**Properties:**
+- `templateId`: Unique identifier
+- `generationType`: Enum (Social/Environmental/Commercial/Authority/Secret)
+- `validLocationTypes`: List of location types where applicable
+- `validTimePeriods`: List of when it can appear
+- `requiredTraits`: List of location traits needed
+- `cardWeight`: Integer (1-2)
+- `cardPersistence`: Always "Opportunity"
+- `attentionCost`: Integer
+- `mechanicalTrigger`: State modification or null
+- `relevanceFilters`: List of NPC filters
+- `generationTags`: List of strings for AI
+
+**Relevance Filter Entry:**
+- `filterType`: Enum (NPCType/TokenType/RelationshipLevel/State)
+- `value`: Appropriate value
+
+**Generation Rules:**
+- Each location + time period can generate 3-5 observations
+- Observations cannot repeat within 3 time periods
+- Player's past observations influence future generation
+- Current world events modify available observations
+
+**Implementation Notes:**
+Observations are generated fresh each time period based on location, time, events, and history. The same market might offer "merchant arguing about prices" at Morning but "guards changing shift" at Evening. The AI creates specific narrative from generation tags and context.
+
+### NPC Schedule (Movement Patterns)
+
+**Properties:**
+- `npcId`: String
+- `scheduleType`: Enum (Fixed/Flexible/Random/Event-driven)
+- `scheduleEntries`: List of entries
+
+**Schedule Entry:**
+- `timePeriod`: Enum
+- `locationId`: String
+- `spotPreference`: String or null
+- `alternativeLocationId`: String (if primary unavailable)
+- `activityTags`: List of strings
+
+**Implementation Notes:**
+NPCs move through the world on schedules. A merchant is at Market during Morning, Tavern during Evening. This affects where conversations can happen and what states NPCs are in based on player punctuality.
+
+## Conversation Integration
+
+### NPC (Expanded for World Integration)
+
+All previous NPC properties plus:
+
+**Additional Properties:**
+- `homeLocationId`: String (where they live)
+- `workLocationId`: String (where they work)
+- `scheduleId`: String
+- `currentLocationId`: String (dynamic)
+- `currentSpotId`: String or null (dynamic)
+- `mobilityType`: Enum (Stationary/Local/District/Regional)
+
+**Implementation Notes:**
+NPCs exist in the world beyond conversations. Their location affects their emotional state (comfortable at home, tense at work). Their schedule determines availability. Missing them at expected locations might trigger obligations.
+
+### Letter (Expanded for World Context)
+
+All previous Letter properties plus:
+
+**Additional Properties:**
+- `pickupLocationId`: String (where letter originates)
+- `deliveryLocationId`: String (where recipient will be)
+- `routeRestrictions`: List of route IDs that cannot be used
+- `weatherSensitive`: Boolean (storm affects deadline)
+- `eventSensitive`: List of event types that affect urgency
+
+**Implementation Notes:**
+Letters exist in the world geography. Pickup and delivery locations matter for route planning. World events can affect urgency (military letters during raids become Critical).
+
+## AI Narrative Generation
+
+### Context Assembly
+
+When generating narrative, the AI receives:
+
+**For Location Descriptions:**
+- Region prosperity and authority
+- District wealth and density
+- Location type and traits
+- Current time period
+- Current weather
+- Active events
+- Crowd level
+- Present NPCs
+- Player's familiarity level
+
+**For Observations:**
+- All location context above
+- Observation template type
+- Mechanical relevance filters
+- Recent player observations (avoid repetition)
+- NPC states that would care
+
+**For NPC Dialogue:**
+- Current emotional state
+- Location context (comfortable/uncomfortable)
+- Time pressure from obligations
+- Recent world events
+- Relationship history with player
+
+**For Travel Narrative:**
+- Route traits
+- Time of day
+- Weather conditions
+- Origin and destination context
+- Familiarity level
+- Transport type
+
+### Tagging Philosophy
+
+Tags are mechanical, not literary. Instead of "mysterious" use mechanical tags like:
+- LowVisibility
+- InfrequentVisitors
+- HiddenPurpose
+- UnknownOwner
+
+The AI interprets these mechanical states into appropriate narrative. A location with LowVisibility + InfrequentVisitors + Night generates different narrative than the same tags + Morning.

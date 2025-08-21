@@ -63,10 +63,12 @@
     background: #faf4ea;
     border: 2px solid #c4a684;
     border-radius: 4px;
-    overflow: hidden;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
 }
 
 .dialog-option:hover:not(.disabled) {
@@ -88,7 +90,7 @@
 }
 
 .dialog-option.comfort {
-    border-left: 5px solid #7a8b5a;
+    border-left: 8px solid #6a7b4a;
 }
 
 .dialog-option.social {
@@ -104,12 +106,12 @@
 }
 
 .dialog-option.crisis {
-    border-left: 5px solid #8b4726;
-    background: #faf0e6;
+    border-left: 8px solid #7b3716;
+    background: #fdf5ed;
 }
 
-.dialog-option.state-changer {
-    border-left: 5px solid #8b7355;
+.dialog-option.state {
+    border-left: 8px solid #7b6345;
 }
 
 .dialog-option.opportunity::before {
@@ -178,6 +180,9 @@
 
 .option-content {
     padding: 15px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .option-text {
@@ -367,6 +372,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    margin: 0;
 }
 
 .card-identity {

@@ -12,6 +12,16 @@ public enum CardType
 }
 
 /// <summary>
+/// Mechanical categories that determine how cards function
+/// </summary>
+public enum CardCategory
+{
+    COMFORT,  // Build comfort, can combine with other comfort cards
+    STATE,    // Change emotional state, must play alone
+    CRISIS    // Emergency actions, free in DESPERATE state
+}
+
+/// <summary>
 /// Persistence behavior when LISTEN action taken
 /// </summary>
 public enum PersistenceType
@@ -65,24 +75,19 @@ public class ConversationCard
     public int BaseComfort { get; init; }
 
     /// <summary>
-    /// Whether this is a state-changing card (must play alone)
+    /// Mechanical category determining how card functions
     /// </summary>
-    public bool IsStateCard { get; init; }
+    public CardCategory Category { get; init; }
 
     /// <summary>
-    /// State to transition to on success (state cards only)
+    /// State to transition to on success (STATE cards only)
     /// </summary>
     public EmotionalState? SuccessState { get; init; }
 
     /// <summary>
-    /// State to transition to on failure (state cards only)
+    /// State to transition to on failure (STATE cards only)
     /// </summary>
     public EmotionalState? FailureState { get; init; }
-
-    /// <summary>
-    /// Whether this is a crisis card (must play alone, free in DESPERATE)
-    /// </summary>
-    public bool IsCrisis { get; init; }
 
     /// <summary>
     /// Whether this card came from an observation
@@ -110,7 +115,7 @@ public class ConversationCard
     public int GetEffectiveWeight(EmotionalState state)
     {
         // Crisis cards are free in DESPERATE state
-        if (IsCrisis && state == EmotionalState.DESPERATE)
+        if (Category == CardCategory.CRISIS && state == EmotionalState.DESPERATE)
             return 0;
         return Weight;
     }
@@ -154,6 +159,20 @@ public class ConversationCard
             CardType.Status => ConnectionType.Status,
             CardType.Shadow => ConnectionType.Shadow,
             _ => ConnectionType.Trust
+        };
+    }
+
+    /// <summary>
+    /// Get CSS class for card category
+    /// </summary>
+    public string GetCategoryClass()
+    {
+        return Category switch
+        {
+            CardCategory.COMFORT => "comfort",
+            CardCategory.STATE => "state",
+            CardCategory.CRISIS => "crisis",
+            _ => "comfort"
         };
     }
 }

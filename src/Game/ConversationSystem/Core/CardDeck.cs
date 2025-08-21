@@ -371,7 +371,7 @@ public class CardDeck
             Persistence = PersistenceType.Crisis,
             Weight = 5, // Heavy but free in DESPERATE
             BaseComfort = 8,
-            IsCrisis = true
+            Category = CardCategory.CRISIS
         };
     }
 
@@ -391,7 +391,7 @@ public class CardDeck
                 Persistence = PersistenceType.Persistent,
                 Weight = 1,
                 BaseComfort = 2,
-                IsStateCard = true,
+                Category = CardCategory.STATE,
                 SuccessState = EmotionalState.TENSE,
                 FailureState = currentState
             },
@@ -404,7 +404,7 @@ public class CardDeck
                 Persistence = PersistenceType.Persistent,
                 Weight = 1,
                 BaseComfort = 2,
-                IsStateCard = true,
+                Category = CardCategory.STATE,
                 SuccessState = EmotionalState.NEUTRAL,
                 FailureState = currentState
             },

@@ -46,7 +46,8 @@ public class NPCDeckFactory
             Type = CardType.Trust,
             Persistence = PersistenceType.Persistent,
             Weight = 1,
-            BaseComfort = 2
+            BaseComfort = 2,
+            Category = CardCategory.COMFORT
         });
         
         cards.Add(new ConversationCard
@@ -57,7 +58,8 @@ public class NPCDeckFactory
             Type = CardType.Status,
             Persistence = PersistenceType.Persistent,
             Weight = 1,
-            BaseComfort = 3
+            BaseComfort = 3,
+            Category = CardCategory.COMFORT
         });
         
         // Personality-specific cards
@@ -91,7 +93,7 @@ public class NPCDeckFactory
             Persistence = PersistenceType.Persistent,
             Weight = 2,
             BaseComfort = 1,
-            IsStateCard = true,
+            Category = CardCategory.STATE,
             SuccessState = EmotionalState.OPEN,
             FailureState = EmotionalState.GUARDED
         });
@@ -111,7 +113,8 @@ public class NPCDeckFactory
                 Type = CardType.Commerce,
                 Persistence = PersistenceType.Opportunity,
                 Weight = 1,
-                BaseComfort = 2
+                BaseComfort = 2,
+                Category = CardCategory.COMFORT
             },
             new ConversationCard
             {
@@ -122,7 +125,37 @@ public class NPCDeckFactory
                 Persistence = PersistenceType.OneShot,
                 Weight = 2,
                 BaseComfort = 4,
+                Category = CardCategory.COMFORT,
                 CanDeliverLetter = true
+            },
+            // Add STATE card for testing
+            new ConversationCard
+            {
+                Id = Guid.NewGuid().ToString(),
+                Template = CardTemplateType.PressForUrgency,
+                Context = new CardContext { Personality = PersonalityType.MERCANTILE },
+                Type = CardType.Commerce,
+                Persistence = PersistenceType.OneShot,
+                Weight = 2,
+                BaseComfort = 0,
+                Category = CardCategory.STATE,
+                SuccessState = EmotionalState.TENSE,
+                FailureState = EmotionalState.GUARDED
+            },
+            // Add CRISIS card for testing
+            new ConversationCard
+            {
+                Id = Guid.NewGuid().ToString(),
+                Template = CardTemplateType.DesperateRequest,
+                Context = new CardContext { 
+                    Personality = PersonalityType.MERCANTILE,
+                    EmotionalState = EmotionalState.DESPERATE
+                },
+                Type = CardType.Trust,
+                Persistence = PersistenceType.Crisis,
+                Weight = 3,
+                BaseComfort = 8,
+                Category = CardCategory.CRISIS
             }
         };
     }
@@ -139,7 +172,8 @@ public class NPCDeckFactory
                 Type = CardType.Status,
                 Persistence = PersistenceType.Persistent,
                 Weight = 2,
-                BaseComfort = 3
+                BaseComfort = 3,
+                Category = CardCategory.COMFORT
             },
             new ConversationCard
             {
@@ -150,6 +184,7 @@ public class NPCDeckFactory
                 Persistence = PersistenceType.OneShot,
                 Weight = 3,
                 BaseComfort = 5,
+                Category = CardCategory.COMFORT,
                 CanDeliverLetter = true
             }
         };
@@ -167,7 +202,8 @@ public class NPCDeckFactory
                 Type = CardType.Commerce,
                 Persistence = PersistenceType.Persistent,
                 Weight = 1,
-                BaseComfort = 1
+                BaseComfort = 1,
+                Category = CardCategory.COMFORT
             },
             new ConversationCard
             {
@@ -177,7 +213,8 @@ public class NPCDeckFactory
                 Type = CardType.Status,
                 Persistence = PersistenceType.Opportunity,
                 Weight = 2,
-                BaseComfort = 3
+                BaseComfort = 3,
+                Category = CardCategory.COMFORT
             }
         };
     }
@@ -194,7 +231,8 @@ public class NPCDeckFactory
                 Type = CardType.Shadow,
                 Persistence = PersistenceType.Opportunity,
                 Weight = 2,
-                BaseComfort = 4
+                BaseComfort = 4,
+                Category = CardCategory.COMFORT
             },
             new ConversationCard
             {
@@ -204,7 +242,8 @@ public class NPCDeckFactory
                 Type = CardType.Shadow,
                 Persistence = PersistenceType.Persistent,
                 Weight = 1,
-                BaseComfort = 3
+                BaseComfort = 3,
+                Category = CardCategory.COMFORT
             }
         };
     }
@@ -221,7 +260,8 @@ public class NPCDeckFactory
                 Type = CardType.Trust,
                 Persistence = PersistenceType.Persistent,
                 Weight = 1,
-                BaseComfort = 2
+                BaseComfort = 2,
+                Category = CardCategory.COMFORT
             }
         };
     }
@@ -243,7 +283,7 @@ public class NPCDeckFactory
             Persistence = PersistenceType.Crisis,
             Weight = 3,
             BaseComfort = 10,
-            IsCrisis = true,
+            Category = CardCategory.CRISIS,
             CanDeliverLetter = true
         };
     }
@@ -269,6 +309,7 @@ public class NPCDeckFactory
             Persistence = PersistenceType.Persistent,
             Weight = 2,
             BaseComfort = 1,
+            Category = CardCategory.COMFORT,
             ManipulatesObligations = true
         });
         
@@ -282,6 +323,7 @@ public class NPCDeckFactory
             Persistence = PersistenceType.OneShot,
             Weight = 1,
             BaseComfort = 5,
+            Category = CardCategory.COMFORT,
             CanDeliverLetter = true
         });
         

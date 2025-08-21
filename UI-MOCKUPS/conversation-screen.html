@@ -32,6 +32,24 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         }
 
+        /* World Context Header */
+        .world-context {
+            background: #1a1612;
+            color: #d4a76a;
+            padding: 8px 20px;
+            border-bottom: 1px solid #3d3429;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .world-events {
+            color: #8b7355;
+            font-style: italic;
+        }
+
         /* Time and Deadline Header */
         .header {
             background: #2c241a;
@@ -47,13 +65,42 @@
             letter-spacing: 0.5px;
         }
 
+        .time-details {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .time-period {
+            padding: 2px 8px;
+            background: #3d3429;
+            border-radius: 2px;
+            color: #d4a76a;
+        }
+
         .current-time {
             text-transform: uppercase;
+        }
+
+        .deadline-list {
+            display: flex;
+            gap: 20px;
         }
 
         .deadline-warning {
             color: #d4a76a;
             font-weight: bold;
+        }
+
+        .deadline-critical {
+            color: #d4704a;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
 
         /* Location Context */
@@ -63,7 +110,7 @@
             border-bottom: 1px solid #c4a684;
         }
 
-        .location-path {
+        .location-hierarchy {
             display: flex;
             align-items: center;
             gap: 8px;
@@ -74,10 +121,39 @@
             margin-bottom: 4px;
         }
 
+        .hierarchy-level {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hierarchy-tag {
+            font-size: 9px;
+            padding: 1px 4px;
+            background: #e8dcc4;
+            border-radius: 2px;
+            color: #5c4a3a;
+        }
+
         .location-spot {
             font-size: 14px;
             color: #5c4a3a;
             font-style: italic;
+        }
+
+        .spot-properties {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .spot-trait {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: #f4e8d0;
+            border: 1px solid #d4c5a0;
+            border-radius: 2px;
+            color: #7a6250;
         }
 
         /* Top Section - NPC and Status */
@@ -88,6 +164,9 @@
         }
 
         .npc-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 20px;
         }
 
@@ -99,6 +178,22 @@
             letter-spacing: 1px;
         }
 
+        .npc-info {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .npc-trait {
+            font-size: 11px;
+            padding: 3px 8px;
+            background: #faf4ea;
+            border: 1px solid #c4a684;
+            border-radius: 2px;
+            color: #7a6250;
+        }
+
         .npc-state {
             font-size: 14px;
             color: #7a6250;
@@ -107,6 +202,32 @@
 
         .npc-state.desperate {
             color: #8b4726;
+            font-weight: bold;
+        }
+
+        .npc-schedule {
+            background: #f9f3e9;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #d4c5a0;
+            font-size: 11px;
+            color: #7a6250;
+            max-width: 200px;
+        }
+
+        .schedule-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .schedule-entry {
+            margin: 2px 0;
+        }
+
+        .schedule-current {
+            color: #5c4a3a;
             font-weight: bold;
         }
 
@@ -200,11 +321,68 @@
             font-style: italic;
         }
 
+        .relationship-info {
+            display: flex;
+            gap: 20px;
+        }
+
+        .relationship-stat {
+            font-size: 12px;
+            color: #5c4a3a;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #7a8b5a;
+        }
+
+        /* Token Display */
+        .token-section {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f4e8d0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .token-display {
+            text-align: center;
+        }
+
+        .token-count {
+            font-size: 18px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .token-name {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7a6250;
+        }
+
+        .token-effect {
+            font-size: 9px;
+            color: #8b7355;
+            font-style: italic;
+            margin-top: 2px;
+        }
+
         /* Narrative Section */
         .narrative-section {
             padding: 25px;
             background: #f4e8d0;
             border-bottom: 2px solid #a68b6f;
+        }
+
+        .narrative-context {
+            font-size: 12px;
+            color: #7a6250;
+            margin-bottom: 10px;
+            font-style: italic;
+            text-align: center;
         }
 
         .narrative-text {
@@ -266,6 +444,11 @@
             background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
             border-color: #8b7355;
             transform: translateY(-2px);
+        }
+
+        .action-details {
+            font-size: 12px;
+            margin-top: 5px;
         }
 
         /* Dialog Options */
@@ -581,32 +764,72 @@
 </head>
 <body>
     <div class="game-container">
+        <!-- World Context -->
+        <div class="world-context">
+            <span>Market District • Modest Wealth • Crowded</span>
+            <span class="world-events">Active Event: Guard Checkpoint Increased</span>
+        </div>
+
         <!-- Time and Deadline Header -->
         <div class="header">
             <div class="time-bar">
-                <span class="current-time">Tuesday, Third Bell Past Noon</span>
-                <span class="deadline-warning">Elena's letter: 2 hours remain</span>
+                <div class="time-details">
+                    <span class="current-time">Tuesday, 3:47 PM</span>
+                    <span class="time-period">Afternoon</span>
+                </div>
+                <div class="deadline-list">
+                    <span class="deadline-critical">Elena's letter: 1h 13m</span>
+                    <span class="deadline-warning">Marcus payment: 4h 30m</span>
+                </div>
             </div>
         </div>
 
         <!-- Location Context -->
         <div class="location-context">
-            <div class="location-path">
-                <span>Market Square</span>
+            <div class="location-hierarchy">
+                <div class="hierarchy-level">
+                    <span>Lower Wards</span>
+                    <span class="hierarchy-tag">Declining</span>
+                </div>
                 <span>→</span>
-                <span>West Side</span>
+                <div class="hierarchy-level">
+                    <span>Market District</span>
+                    <span class="hierarchy-tag">Modest</span>
+                </div>
                 <span>→</span>
-                <span>Copper Kettle Tavern</span>
+                <div class="hierarchy-level">
+                    <span>Copper Kettle</span>
+                    <span class="hierarchy-tag">Tavern</span>
+                </div>
             </div>
             <div class="location-spot">Corner Booth</div>
+            <div class="spot-properties">
+                <span class="spot-trait">Private</span>
+                <span class="spot-trait">ViewsMainEntrance</span>
+                <span class="spot-trait">+1 Comfort</span>
+            </div>
         </div>
 
         <!-- Conversation Header -->
         <div class="conversation-header">
             <div class="npc-section">
-                <div class="npc-details">
-                    <h2>Elena</h2>
-                    <div class="npc-state desperate">DESPERATE • Letter deadline in 2 hours!</div>
+                <div class="npc-left">
+                    <div class="npc-details">
+                        <h2>Elena</h2>
+                        <div class="npc-state desperate">DESPERATE • Letter deadline imminent!</div>
+                    </div>
+                    <div class="npc-info">
+                        <span class="npc-trait">Devoted Type</span>
+                        <span class="npc-trait">Trust Primary</span>
+                        <span class="npc-trait">Works: Temple</span>
+                        <span class="npc-trait">Lives: Noble District</span>
+                    </div>
+                </div>
+                <div class="npc-schedule">
+                    <div class="schedule-title">Daily Schedule</div>
+                    <div class="schedule-entry">Morning: Temple</div>
+                    <div class="schedule-entry schedule-current">Afternoon: Tavern</div>
+                    <div class="schedule-entry">Evening: Home</div>
                 </div>
             </div>
 
@@ -645,16 +868,47 @@
                     <span class="state-name">Desperate</span>
                     <span class="state-effects">Draw 2 + crisis • Crisis free • Listen worsens</span>
                 </div>
+                <div class="relationship-info">
+                    <div class="relationship-stat">Level: <span class="stat-value">3</span></div>
+                    <div class="relationship-stat">Stakes: <span class="stat-value">Safety</span></div>
+                </div>
+            </div>
+
+            <!-- Token Display -->
+            <div class="token-section">
+                <div class="token-display">
+                    <div class="token-count">2</div>
+                    <div class="token-name">Trust</div>
+                    <div class="token-effect">+1 patience/2</div>
+                </div>
+                <div class="token-display">
+                    <div class="token-count">0</div>
+                    <div class="token-name">Commerce</div>
+                    <div class="token-effect">+1 set bonus</div>
+                </div>
+                <div class="token-display">
+                    <div class="token-count">1</div>
+                    <div class="token-name">Status</div>
+                    <div class="token-effect">+3% success</div>
+                </div>
+                <div class="token-display">
+                    <div class="token-count">0</div>
+                    <div class="token-name">Shadow</div>
+                    <div class="token-effect">Preview draws</div>
+                </div>
             </div>
         </div>
 
         <!-- Narrative Section -->
         <div class="narrative-section">
+            <div class="narrative-context">
+                [Generated: Afternoon at modest tavern, private booth, Elena desperate due to 1h deadline]
+            </div>
             <div class="narrative-text">
-                Time is running short. Elena's desperation fills the space between you, making every word carry weight.
+                The afternoon crowd provides cover for urgent whispers. Your corner booth shields Elena from curious eyes, though her rigid posture betrays her desperation to any observer.
             </div>
             <div class="npc-dialogue desperate">
-                "Please, I need to know - will you help me? The letter to Lord Blackwood... if he doesn't receive my refusal by tonight, my father will finalize the arrangement."
+                "There's no time for pleasantries. Lord Blackwood departs within two bells. If my refusal doesn't reach him before he leaves for the capital, my father's arrangement stands. Please - I've nowhere else to turn."
             </div>
         </div>
 
@@ -664,11 +918,11 @@
             <div class="action-choices">
                 <div class="action-button">
                     <div>👂 LISTEN</div>
-                    <div style="font-size: 12px; margin-top: 5px;">Draw 2 + Crisis • State worsens</div>
+                    <div class="action-details">Draw 2 + Crisis • State worsens</div>
                 </div>
                 <div class="action-button">
-                    <div>💭 SPEAK</div>
-                    <div style="font-size: 12px; margin-top: 5px;">Weight limit: 3 • Crisis free</div>
+                    <div>💬 SPEAK</div>
+                    <div class="action-details">Weight limit: 3 • Crisis free</div>
                 </div>
             </div>
         </div>
@@ -702,7 +956,7 @@
                         </div>
                     </div>
                     <div class="card-text">
-                        "I promise I'll help you, Elena. We'll get your letter to Lord Blackwood before the deadline. Your father won't force this marriage on you."
+                        [Generated: Trust comfort card, weight 2, promise assistance with urgency]
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
@@ -738,7 +992,7 @@
                     <div class="card-special-marker combinable">Can Combine</div>
                     <div class="card-header">
                         <div class="card-identity">
-                            <div class="card-name">Mention the Guards</div>
+                            <div class="card-name">Guard Checkpoint Warning</div>
                             <div class="card-tags">
                                 <span class="tag type-comfort">COMFORT</span>
                                 <span class="tag">Shadow</span>
@@ -752,7 +1006,7 @@
                         </div>
                     </div>
                     <div class="card-text">
-                        "I saw Lord Blackwood's guards at the tavern earlier. They mentioned he's leaving for the capital at dawn. We need to reach him tonight."
+                        [Generated: Authority observation from Market Square, creates urgency]
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
@@ -801,7 +1055,7 @@
                         </div>
                     </div>
                     <div class="card-text">
-                        "Elena, breathe. We have time. I'm here to help you. Let's think through this together - there's always a way."
+                        [Generated: Trust state card to de-escalate emotional tension]
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
@@ -854,7 +1108,7 @@
                         </div>
                     </div>
                     <div class="card-text">
-                        "Elena, I swear on my life - I will get this letter to Lord Blackwood. Even if I have to fight through his guards, even if it costs me everything!"
+                        [Generated: Crisis promise with extreme commitment, Elena desperate state]
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
@@ -902,7 +1156,7 @@
                 Select LISTEN or SPEAK
             </button>
             <div class="play-info">
-                5 turns remaining • State affects all actions
+                5 turns remaining • State affects all actions • Location comfort +1
             </div>
         </div>
     </div>

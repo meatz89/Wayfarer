@@ -242,12 +242,6 @@ Effects:
 - Negative cards from failures or broken promises
 - Clogs hand until played and resolved
 
-### Crisis
-- Only appears when NPC is Desperate/Hostile
-- Ignores weight limit completely
-- Often ends conversation immediately
-- FREE to play in Desperate/Hostile states
-
 ## Weight System
 
 ### Weight Limits by State

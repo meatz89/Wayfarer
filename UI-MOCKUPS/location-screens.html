@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wayfarer - Location Screens</title>
+    <title>Wayfarer - Enhanced Location System</title>
     <style>
         * {
             margin: 0;
@@ -26,7 +26,34 @@
             box-shadow: 0 0 40px rgba(0,0,0,0.5);
         }
 
-        /* Header */
+        /* World Context Header */
+        .world-context {
+            background: #1a1612;
+            color: #d4a76a;
+            padding: 8px 20px;
+            border-bottom: 1px solid #3d3429;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .region-info {
+            display: flex;
+            gap: 15px;
+        }
+
+        .region-tag {
+            color: #8b7355;
+        }
+
+        .world-events {
+            color: #d4704a;
+            font-style: italic;
+        }
+
+        /* Time Header */
         .header {
             background: #2c241a;
             color: #e8dcc4;
@@ -42,10 +69,36 @@
             justify-content: space-between;
             font-size: 13px;
             letter-spacing: 0.5px;
+            align-items: center;
+        }
+
+        .time-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
         }
 
         .current-time {
             text-transform: uppercase;
+        }
+
+        .time-period {
+            padding: 2px 8px;
+            background: #3d3429;
+            border-radius: 2px;
+            color: #d4a76a;
+            font-weight: bold;
+        }
+
+        .time-effect {
+            font-size: 11px;
+            color: #8b7355;
+            font-style: italic;
+        }
+
+        .deadlines {
+            display: flex;
+            gap: 20px;
         }
 
         .deadline-warning {
@@ -53,22 +106,51 @@
             font-weight: bold;
         }
 
-        /* Location Header */
+        .deadline-critical {
+            color: #d4704a;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Location Hierarchy Header */
         .location-header {
             background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
             border-bottom: 2px solid #a68b6f;
             padding: 20px;
         }
 
-        .location-path {
+        .hierarchy-path {
             display: flex;
             align-items: center;
             gap: 8px;
             font-size: 12px;
             color: #7a6250;
             margin-bottom: 12px;
+        }
+
+        .hierarchy-level {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hierarchy-name {
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        .hierarchy-tag {
+            font-size: 9px;
+            padding: 1px 4px;
+            background: #faf4ea;
+            border: 1px solid #c4a684;
+            border-radius: 2px;
+            color: #5c4a3a;
         }
 
         .location-name {
@@ -95,18 +177,34 @@
             letter-spacing: 0.5px;
         }
 
+        .trait.time-specific {
+            background: #f4e8d0;
+            border-color: #d4a76a;
+        }
+
         /* Content Area */
         .content-area {
             padding: 20px;
         }
 
         /* Atmosphere Text */
+        .atmosphere-section {
+            margin-bottom: 20px;
+        }
+
+        .atmosphere-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
         .atmosphere-text {
             font-style: italic;
             color: #5c4a3a;
             font-size: 14px;
             line-height: 1.6;
-            margin-bottom: 20px;
             padding: 12px;
             background: #f9f3e9;
             border-left: 3px solid #c4a684;
@@ -122,49 +220,75 @@
             margin: 20px 0 12px 0;
             padding-bottom: 4px;
             border-bottom: 1px solid #d4c5a0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* Main Actions */
-        .main-actions {
+        .section-info {
+            font-size: 10px;
+            font-style: italic;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        /* Location Spots */
+        .spots-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
             margin-bottom: 24px;
         }
 
-        .action-button {
-            background: #faf4ea;
-            border: 2px solid #c4a684;
+        .spot-card {
+            background: #f9f3e9;
+            border: 1px solid #c4a684;
             border-radius: 4px;
             padding: 12px;
             cursor: pointer;
             transition: all 0.2s;
-            text-align: center;
         }
 
-        .action-button:hover {
+        .spot-card:hover {
             background: #e8dcc4;
             border-color: #a68b6f;
             transform: translateY(-2px);
         }
 
-        .action-name {
+        .spot-card.occupied {
+            border-color: #d4a76a;
+            background: #faf4ea;
+        }
+
+        .spot-name {
             font-size: 14px;
             color: #5c4a3a;
             font-weight: bold;
             margin-bottom: 4px;
         }
 
-        .action-detail {
-            font-size: 11px;
+        .spot-properties {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+
+        .spot-prop {
+            font-size: 9px;
+            padding: 1px 4px;
+            background: #e8dcc4;
+            border-radius: 2px;
             color: #7a6250;
         }
 
-        .action-cost {
-            font-size: 10px;
-            color: #8b4726;
+        .spot-occupant {
+            font-size: 11px;
+            color: #8b7355;
+            font-style: italic;
             margin-top: 4px;
-            font-weight: bold;
+            padding-top: 4px;
+            border-top: 1px solid #e8dcc4;
         }
 
         /* NPCs Present */
@@ -177,10 +301,8 @@
             transition: all 0.2s;
         }
 
-        .npc-card.locked {
-            opacity: 0.7;
-            border-style: dashed;
-            background: #f4e8d0;
+        .npc-card.scheduled-leave {
+            border-left: 3px solid #d4a76a;
         }
 
         .npc-header {
@@ -216,52 +338,30 @@
             margin-bottom: 12px;
         }
 
-        .npc-requirement {
-            font-size: 11px;
-            color: #8b4726;
-            padding: 4px 8px;
-            background: #faf0e6;
-            border-left: 2px solid #d4a76a;
-            border-radius: 2px;
+        .npc-metadata {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
         }
 
-        .npc-conversation-preview {
+        .npc-meta-item {
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        .meta-value {
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .npc-schedule-info {
             font-size: 11px;
             padding: 6px 10px;
             background: #fefaf0;
             border-left: 2px solid #d4a76a;
             border-radius: 2px;
             margin-bottom: 8px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            align-items: center;
-        }
-
-        .preview-label {
-            color: #7a6250;
-            font-weight: bold;
-        }
-
-        .preview-state {
-            color: #8b4726;
-            font-weight: bold;
-        }
-
-        .preview-effect {
-            color: #7a6250;
-            font-style: italic;
-        }
-
-        .npc-observations {
-            font-size: 11px;
-            color: #7a8b5a;
-            padding: 6px 10px;
-            background: #f4e8d0;
-            border-left: 2px solid #7a8b5a;
-            border-radius: 2px;
-            margin-bottom: 10px;
-            font-style: italic;
         }
 
         .npc-action {
@@ -282,7 +382,7 @@
             transform: translateX(4px);
         }
 
-        /* Observations */
+        /* Dynamic Observations */
         .observations {
             background: #f9f3e9;
             border: 1px dashed #c4a684;
@@ -291,13 +391,26 @@
             margin: 20px 0;
         }
 
+        .observation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8dcc4;
+        }
+
         .observation-note {
             font-size: 11px;
             color: #7a6250;
             font-style: italic;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #e8dcc4;
+        }
+
+        .observation-refresh {
+            font-size: 10px;
+            color: #8b7355;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .observation-item {
@@ -327,10 +440,21 @@
             border-radius: 2px;
         }
 
+        .observation-content {
+            flex: 1;
+        }
+
         .observation-text {
             font-size: 13px;
             color: #5c4a3a;
-            flex: 1;
+        }
+
+        .observation-type {
+            font-size: 10px;
+            color: #8b7355;
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .observation-details {
@@ -351,106 +475,25 @@
             font-style: italic;
         }
 
-        .observation-status {
-            font-size: 11px;
-            color: #7a8b5a;
-            font-weight: bold;
-        }
-
-        /* Location Areas */
-        .area-list {
+        /* Routes Section */
+        .routes-list {
             display: grid;
-            gap: 8px;
-        }
-
-        .area-option {
-            background: #faf4ea;
-            border: 1px solid #c4a684;
-            padding: 12px;
-            border-radius: 2px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .area-option:hover {
-            background: #e8dcc4;
-            border-color: #a68b6f;
-            transform: translateX(4px);
-        }
-
-        .area-name {
-            font-size: 14px;
-            color: #5c4a3a;
-            font-weight: bold;
-        }
-
-        .area-detail {
-            font-size: 11px;
-            color: #7a6250;
-        }
-
-        /* Travel Selection Screen */
-        .travel-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
-        }
-
-        .travel-modal {
-            background: #faf4ea;
-            border: 3px solid #8b7355;
-            border-radius: 8px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .travel-header {
-            background: #e8dcc4;
-            padding: 16px 20px;
-            border-bottom: 2px solid #a68b6f;
-        }
-
-        .travel-title {
-            font-size: 18px;
-            color: #5c4a3a;
-            margin-bottom: 4px;
-        }
-
-        .travel-subtitle {
-            font-size: 12px;
-            color: #7a6250;
-        }
-
-        .route-list {
-            padding: 20px;
-            display: grid;
-            gap: 12px;
+            gap: 10px;
         }
 
         .route-card {
-            background: white;
-            border: 2px solid #d4c5a0;
+            background: #faf4ea;
+            border: 2px solid #c4a684;
             border-radius: 4px;
-            padding: 16px;
+            padding: 14px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .route-card:hover {
+            background: #e8dcc4;
             border-color: #a68b6f;
-            background: #fefaf0;
+            transform: translateX(4px);
         }
 
         .route-card.locked {
@@ -459,17 +502,38 @@
             border-style: dashed;
         }
 
-        .route-destination {
-            font-size: 16px;
-            color: #5c4a3a;
-            font-weight: bold;
+        .route-card.dangerous {
+            border-color: #d4704a;
+        }
+
+        .route-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 8px;
         }
 
-        .route-info {
+        .route-destination {
+            font-size: 15px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .transport-type {
+            font-size: 11px;
+            padding: 2px 6px;
+            background: #e8dcc4;
+            border: 1px solid #a68b6f;
+            border-radius: 2px;
+            color: #5c4a3a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .route-details {
             display: flex;
-            gap: 20px;
-            margin-bottom: 8px;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .route-detail {
@@ -477,55 +541,27 @@
             color: #7a6250;
         }
 
+        .detail-value {
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
         .route-familiarity {
             font-size: 11px;
             color: #8b7355;
             font-style: italic;
-        }
-
-        .transport-options {
-            display: flex;
-            gap: 12px;
-            margin-top: 12px;
-            padding-top: 12px;
+            margin-top: 6px;
+            padding-top: 6px;
             border-top: 1px solid #e8dcc4;
-        }
-
-        .transport-option {
-            flex: 1;
-            padding: 8px;
-            background: #f9f3e9;
-            border: 1px solid #c4a684;
-            border-radius: 2px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .transport-option:hover {
-            background: #e8dcc4;
-            border-color: #a68b6f;
-        }
-
-        .transport-type {
-            font-size: 12px;
-            font-weight: bold;
-            color: #5c4a3a;
-        }
-
-        .transport-cost {
-            font-size: 11px;
-            color: #7a6250;
-        }
-
-        .transport-time {
-            font-size: 11px;
-            color: #8b7355;
         }
 
         /* Travel Encounter Screen */
         .travel-encounter {
             padding: 20px;
+            background: #f4e8d0;
+            margin: 20px 0;
+            border-radius: 4px;
+            border: 2px solid #a68b6f;
         }
 
         .encounter-header {
@@ -552,10 +588,18 @@
             font-size: 14px;
             line-height: 1.6;
             padding: 16px;
-            background: #f9f3e9;
+            background: #faf4ea;
             border-left: 3px solid #c4a684;
             border-radius: 2px;
             margin-bottom: 20px;
+        }
+
+        .encounter-generation-info {
+            font-size: 10px;
+            color: #7a6250;
+            text-align: center;
+            margin-bottom: 15px;
+            font-style: italic;
         }
 
         .encounter-options {
@@ -563,7 +607,7 @@
             gap: 12px;
         }
 
-        .encounter-card {
+        .encounter-choice {
             background: #faf4ea;
             border: 2px solid #c4a684;
             border-radius: 4px;
@@ -572,20 +616,20 @@
             transition: all 0.2s;
         }
 
-        .encounter-card:hover {
+        .encounter-choice:hover {
             background: #e8dcc4;
             border-color: #a68b6f;
             transform: translateX(5px);
         }
 
-        .encounter-card-title {
+        .encounter-choice-title {
             font-size: 15px;
             color: #5c4a3a;
             font-weight: bold;
             margin-bottom: 8px;
         }
 
-        .encounter-card-text {
+        .encounter-choice-text {
             font-size: 13px;
             color: #7a6250;
             line-height: 1.4;
@@ -607,37 +651,49 @@
             color: #5c4a3a;
         }
 
-        .effect-tag.positive {
-            background: #e8f5e9;
-            border-color: #7a8b5a;
-            color: #5a7a3a;
-        }
-
-        .effect-tag.negative {
+        .effect-tag.cost {
             background: #faf0e6;
             border-color: #d4a76a;
             color: #8b4726;
         }
 
-        .effect-tag.requirement {
+        .effect-tag.gain {
+            background: #e8f5e9;
+            border-color: #7a8b5a;
+            color: #5a7a3a;
+        }
+
+        /* District Summary */
+        .district-summary {
             background: #f9f3e9;
-            border-color: #c4a684;
-            font-style: italic;
+            padding: 16px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border: 1px solid #c4a684;
         }
 
-        /* Close button */
-        .close-button {
-            position: absolute;
-            top: 16px;
-            right: 20px;
-            font-size: 24px;
+        .district-title {
+            font-size: 14px;
+            color: #5c4a3a;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .district-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .district-stat {
+            font-size: 12px;
             color: #7a6250;
-            cursor: pointer;
-            background: none;
-            border: none;
         }
 
-        .close-button:hover {
+        .stat-label {
+            font-weight: bold;
             color: #5c4a3a;
         }
 
@@ -665,372 +721,391 @@
 </head>
 <body>
     <div class="main-container">
-        <!-- Header -->
+        <!-- World Context -->
+        <div class="world-context">
+            <div class="region-info">
+                <span>Lower Wards</span>
+                <span class="region-tag">Declining</span>
+                <span class="region-tag">Military Authority</span>
+            </div>
+            <span class="world-events">Event: Guard Checkpoint Increased (4h remain)</span>
+        </div>
+
+        <!-- Time Header -->
         <div class="header">
             <div class="time-bar">
-                <span class="current-time">Tuesday, Third Bell Past Noon</span>
-                <span class="deadline-warning">Elena's letter: 2 hours remain</span>
+                <div class="time-section">
+                    <span class="current-time">Tuesday, 3:47 PM</span>
+                    <span class="time-period">Afternoon</span>
+                    <span class="time-effect">Crowds moderate, shops open</span>
+                </div>
+                <div class="deadlines">
+                    <span class="deadline-critical">Elena: 1h 13m</span>
+                    <span class="deadline-warning">Marcus: 4h 30m</span>
+                </div>
             </div>
         </div>
 
-        <!-- EXAMPLE 1: Market Square Hub Location -->
+        <!-- EXAMPLE 1: Market Square Location -->
         <div class="location-header">
-            <div class="location-path">
-                <span>City Center</span>
+            <div class="hierarchy-path">
+                <div class="hierarchy-level">
+                    <span class="hierarchy-name">Lower Wards</span>
+                    <span class="hierarchy-tag">Region</span>
+                </div>
                 <span>→</span>
-                <span>Market Square</span>
+                <div class="hierarchy-level">
+                    <span class="hierarchy-name">Market District</span>
+                    <span class="hierarchy-tag">Modest</span>
+                </div>
+                <span>→</span>
+                <div class="hierarchy-level">
+                    <span class="hierarchy-name">Central Square</span>
+                    <span class="hierarchy-tag">Market</span>
+                </div>
             </div>
             <div class="location-name">The Central Fountain</div>
             <div class="location-traits">
                 <span class="trait">Public Square</span>
-                <span class="trait">Crowded</span>
+                <span class="trait time-specific">Moderate Crowd</span>
                 <span class="trait">Crossroads</span>
+                <span class="trait time-specific">Afternoon Activity</span>
             </div>
         </div>
 
         <div class="content-area">
-            <div class="atmosphere-text">
-                Merchant calls echo across cobblestones. The fountain's spray catches afternoon light. Crowds flow between stalls like water finding its course.
-            </div>
-
-            <div class="section-header">Actions</div>
-            <div class="main-actions">
-                <div class="action-button">
-                    <div class="action-name">Rest at Fountain</div>
-                    <div class="action-detail">Clear your thoughts</div>
-                    <div class="action-cost">5 minutes</div>
-                </div>
-                
-                <div class="action-button">
-                    <div class="action-name">Purchase Provisions</div>
-                    <div class="action-detail">Food and supplies</div>
-                    <div class="action-cost">1-5 coins</div>
-                </div>
-                
-                <div class="action-button">
-                    <div class="action-name">Listen to Town Crier</div>
-                    <div class="action-detail">Hear proclamations</div>
-                    <div class="action-cost">10 minutes</div>
-                </div>
-                
-                <div class="action-button" onclick="openTravelModal()">
-                    <div class="action-name">Travel</div>
-                    <div class="action-detail">Leave for another district</div>
-                    <div class="action-cost">Various times</div>
+            <div class="atmosphere-section">
+                <div class="atmosphere-label">[Generated: Afternoon at modest market, moderate crowd, guard event active]</div>
+                <div class="atmosphere-text">
+                    The afternoon sun casts long shadows between merchant stalls. Guards cluster at the north checkpoint, papers rustling as they inspect each traveler. The fountain's spray offers relief from dust kicked up by moderate foot traffic.
                 </div>
             </div>
 
-            <div class="section-header">People of Note</div>
+            <div class="section-header">
+                <span>Location Spots</span>
+                <span class="section-info">Interaction points within area</span>
+            </div>
+            <div class="spots-grid">
+                <div class="spot-card">
+                    <div class="spot-name">Fountain Edge</div>
+                    <div class="spot-properties">
+                        <span class="spot-prop">Public</span>
+                        <span class="spot-prop">+0 Comfort</span>
+                        <span class="spot-prop">Capacity: 4</span>
+                    </div>
+                </div>
+                <div class="spot-card occupied">
+                    <div class="spot-name">Northern Alcove</div>
+                    <div class="spot-properties">
+                        <span class="spot-prop">Discrete</span>
+                        <span class="spot-prop">+1 Comfort</span>
+                        <span class="spot-prop">ViewsCheckpoint</span>
+                    </div>
+                    <div class="spot-occupant">Currently: Town Crier preparing</div>
+                </div>
+                <div class="spot-card">
+                    <div class="spot-name">Merchant Row</div>
+                    <div class="spot-properties">
+                        <span class="spot-prop">Exposed</span>
+                        <span class="spot-prop">-1 Comfort</span>
+                        <span class="spot-prop">Loud</span>
+                    </div>
+                </div>
+                <div class="spot-card">
+                    <div class="spot-name">Stone Bench</div>
+                    <div class="spot-properties">
+                        <span class="spot-prop">Public</span>
+                        <span class="spot-prop">+0 Comfort</span>
+                        <span class="spot-prop">Shaded</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <span>People Present</span>
+                <span class="section-info">Afternoon schedule (3-6 PM)</span>
+            </div>
             
-            <div class="npc-card">
+            <div class="npc-card scheduled-leave">
                 <div class="npc-header">
                     <div class="npc-name">Marcus the Cloth Merchant</div>
                     <div class="npc-state">Calculating</div>
                 </div>
                 <div class="npc-description">
-                    Arranging bolts of fabric with practiced efficiency, occasionally glancing at his ledger with a furrowed brow.
+                    Checking his ledger against remaining stock, occasionally glancing at the sun's position.
+                </div>
+                <div class="npc-metadata">
+                    <span class="npc-meta-item">Type: <span class="meta-value">Mercantile</span></span>
+                    <span class="npc-meta-item">Primary: <span class="meta-value">Commerce</span></span>
+                    <span class="npc-meta-item">Location: <span class="meta-value">Merchant Row</span></span>
+                </div>
+                <div class="npc-schedule-info">
+                    Leaves for Warehouse District at Evening (6 PM) - 2h 13m remaining
                 </div>
                 <div class="npc-action">Begin Conversation</div>
             </div>
 
-            <div class="npc-card locked">
+            <div class="npc-card">
                 <div class="npc-header">
-                    <div class="npc-name">Lord Aldric's Herald</div>
-                    <div class="npc-state">Aloof</div>
+                    <div class="npc-name">Town Crier</div>
+                    <div class="npc-state">Preparing</div>
                 </div>
                 <div class="npc-description">
-                    Standing apart from the common crowd, nose raised as if the very air offends him.
+                    Reviewing proclamations, clearing throat repeatedly.
                 </div>
-                <div class="npc-requirement">Requires: Introduction from a Noble (Status 5+)</div>
+                <div class="npc-metadata">
+                    <span class="npc-meta-item">Type: <span class="meta-value">Steadfast</span></span>
+                    <span class="npc-meta-item">Primary: <span class="meta-value">Status</span></span>
+                    <span class="npc-meta-item">Location: <span class="meta-value">Northern Alcove</span></span>
+                </div>
+                <div class="npc-schedule-info">
+                    Proclamation at top of hour (4 PM) - 13m remaining
+                </div>
+                <div class="npc-action">Listen to Early Preview (1 Status token)</div>
             </div>
 
             <div class="observations">
-                <div class="section-header">Observations Available</div>
-                <div class="observation-note">Knowledge gained here becomes conversation ammunition. Each observation converts to an Opportunity card when talking to relevant NPCs.</div>
+                <div class="observation-header">
+                    <div class="observation-note">Dynamic observations for Afternoon period at Market</div>
+                    <div class="observation-refresh">Refreshes: Evening (6 PM)</div>
+                </div>
                 <div class="observation-item">
-                    <span class="observation-text">Notice guard checkpoint ahead</span>
+                    <div class="observation-content">
+                        <span class="observation-text">Guards doubling checkpoint inspections</span>
+                        <span class="observation-type">Authority • Event-Generated</span>
+                    </div>
                     <span class="observation-details">
                         <span class="observation-cost">1 attention</span>
-                        <span class="observation-relevance">→ Elena (Tense)</span>
+                        <span class="observation-relevance">→ Creates Tense</span>
                     </span>
                 </div>
                 <div class="observation-item">
-                    <span class="observation-text">Eavesdrop on merchant negotiations</span>
+                    <span class="observation-content">
+                        <span class="observation-text">Merchant arguing about new tariffs</span>
+                        <span class="observation-type">Commercial • Time-Generated</span>
+                    </span>
                     <span class="observation-details">
                         <span class="observation-cost">1 attention</span>
-                        <span class="observation-relevance">→ Marcus, Bertram</span>
+                        <span class="observation-relevance">→ Mercantile NPCs</span>
                     </span>
                 </div>
                 <div class="observation-item observed">
-                    <span class="observation-text">✓ Guards blocking north road</span>
+                    <span class="observation-content">
+                        <span class="observation-text">✓ Noble carriage avoiding checkpoint</span>
+                        <span class="observation-type">Secret • Location-Generated</span>
+                    </span>
                     <span class="observation-details">
-                        <span class="observation-status">Ready: Elena (creates Tense)</span>
+                        <span class="observation-relevance">Ready for conversations</span>
                     </span>
                 </div>
             </div>
 
-            <div class="section-header">Areas Within Market Square</div>
-            <div class="area-list">
-                <div class="area-option">
-                    <div>
-                        <div class="area-name">Western Stalls</div>
-                        <div class="area-detail">Food vendors and bakers</div>
+            <div class="section-header">
+                <span>Available Routes</span>
+                <span class="section-info">From Central Square</span>
+            </div>
+            <div class="routes-list">
+                <div class="route-card">
+                    <div class="route-header">
+                        <div class="route-destination">Copper Kettle Tavern</div>
+                        <span class="transport-type">Walk</span>
                     </div>
-                    <span style="font-size: 11px; color: #7a6250;">No travel time</span>
+                    <div class="route-details">
+                        <span class="route-detail">Time: <span class="detail-value">15 minutes</span></span>
+                        <span class="route-detail">Cost: <span class="detail-value">Free</span></span>
+                        <span class="route-detail">Via: <span class="detail-value">West Alley</span></span>
+                    </div>
+                    <div class="route-familiarity">
+                        Familiarity: Known (no encounters)
+                    </div>
                 </div>
-                <div class="area-option">
-                    <div>
-                        <div class="area-name">Eastern Arcade</div>
-                        <div class="area-detail">Craftsmen and tools</div>
+
+                <div class="route-card dangerous">
+                    <div class="route-header">
+                        <div class="route-destination">Noble District Gate</div>
+                        <span class="transport-type">Walk</span>
                     </div>
-                    <span style="font-size: 11px; color: #7a6250;">No travel time</span>
+                    <div class="route-details">
+                        <span class="route-detail">Time: <span class="detail-value">25 minutes</span></span>
+                        <span class="route-detail">Cost: <span class="detail-value">Free</span></span>
+                        <span class="route-detail">Via: <span class="detail-value">Guard Checkpoint</span></span>
+                    </div>
+                    <div class="route-familiarity">
+                        Familiarity: Learning (draw 2 encounters, choose 1) • Event: Guards active!
+                    </div>
                 </div>
-                <div class="area-option">
-                    <div>
-                        <div class="area-name">Fountain Plaza</div>
-                        <div class="area-detail">Current location</div>
+
+                <div class="route-card">
+                    <div class="route-header">
+                        <div class="route-destination">Temple of Bells</div>
+                        <span class="transport-type">Cart</span>
                     </div>
-                    <span style="font-size: 11px; color: #8b7355;">You are here</span>
+                    <div class="route-details">
+                        <span class="route-detail">Time: <span class="detail-value">10 minutes</span></span>
+                        <span class="route-detail">Cost: <span class="detail-value">2 coins</span></span>
+                        <span class="route-detail">Driver: <span class="detail-value">Brother Francis</span></span>
+                    </div>
+                    <div class="route-familiarity">
+                        Familiarity: Known (no encounters) • Leaves every half hour
+                    </div>
+                </div>
+
+                <div class="route-card locked">
+                    <div class="route-header">
+                        <div class="route-destination">Shadow Market</div>
+                        <span class="transport-type">???</span>
+                    </div>
+                    <div class="route-details">
+                        <span class="route-detail">Location unknown</span>
+                    </div>
+                    <div class="route-familiarity">
+                        Requires: Shadow Contact or Discovery through observation
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="section-divider">
-            <span class="divider-text">Example 2: Tavern Location</span>
+            <span class="divider-text">Example 2: Travel Encounter</span>
         </div>
 
-        <!-- EXAMPLE 2: Copper Kettle Tavern -->
+        <!-- Travel Encounter -->
+        <div class="travel-encounter">
+            <div class="encounter-header">
+                <div class="encounter-title">Noble District Checkpoint</div>
+                <div class="encounter-subtitle">Route: Market → Noble Gate • Afternoon • Guard Event Active</div>
+            </div>
+
+            <div class="encounter-generation-info">
+                [Generated: Authority encounter on Patrolled route during Guard Event + Afternoon]
+            </div>
+
+            <div class="encounter-text">
+                The checkpoint line stretches longer than usual. Guards scrutinize papers with unusual thoroughness. A merchant ahead argues about his expired permit while the queue grows restless.
+            </div>
+
+            <div class="section-header">Choose Your Response</div>
+            <div class="encounter-options">
+                <div class="encounter-choice">
+                    <div class="encounter-choice-title">Present Papers Properly</div>
+                    <div class="encounter-choice-text">
+                        Show your courier credentials and Elena's urgent seal. The guard recognizes official business.
+                    </div>
+                    <div class="encounter-effects">
+                        <span class="effect-tag cost">Status 3+ required</span>
+                        <span class="effect-tag gain">Pass immediately</span>
+                        <span class="effect-tag gain">+1 Authority observation</span>
+                    </div>
+                </div>
+
+                <div class="encounter-choice">
+                    <div class="encounter-choice-title">Pay the "Express Fee"</div>
+                    <div class="encounter-choice-text">
+                        The guard's eyes light up at the clink of coins. "Ah yes, urgent business. Right through."
+                    </div>
+                    <div class="encounter-effects">
+                        <span class="effect-tag cost">3 coins</span>
+                        <span class="effect-tag gain">5 minutes saved</span>
+                        <span class="effect-tag">Normal passage</span>
+                    </div>
+                </div>
+
+                <div class="encounter-choice">
+                    <div class="encounter-choice-title">Wait in Line</div>
+                    <div class="encounter-choice-text">
+                        Join the queue with everyone else. The afternoon sun beats down as the line crawls forward.
+                    </div>
+                    <div class="encounter-effects">
+                        <span class="effect-tag cost">+20 minutes</span>
+                        <span class="effect-tag gain">Overhear merchant gossip</span>
+                        <span class="effect-tag">Creates fatigue</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider">
+            <span class="divider-text">Example 3: Tavern at Evening</span>
+        </div>
+
+        <!-- Different Time Period Example -->
         <div class="location-header">
-            <div class="location-path">
-                <span>Market Square</span>
+            <div class="hierarchy-path">
+                <div class="hierarchy-level">
+                    <span class="hierarchy-name">Lower Wards</span>
+                    <span class="hierarchy-tag">Region</span>
+                </div>
                 <span>→</span>
-                <span>West Side</span>
+                <div class="hierarchy-level">
+                    <span class="hierarchy-name">Market District</span>
+                    <span class="hierarchy-tag">Modest</span>
+                </div>
                 <span>→</span>
-                <span>Copper Kettle</span>
+                <div class="hierarchy-level">
+                    <span class="hierarchy-name">Copper Kettle</span>
+                    <span class="hierarchy-tag">Tavern</span>
+                </div>
             </div>
             <div class="location-name">The Common Room</div>
             <div class="location-traits">
                 <span class="trait">Warm Hearth</span>
-                <span class="trait">Low Voices</span>
+                <span class="trait time-specific">Busy Evening</span>
                 <span class="trait">Ale-scented</span>
+                <span class="trait time-specific">Workers Gathering</span>
             </div>
         </div>
 
         <div class="content-area">
-            <div class="atmosphere-text">
-                Firelight dances on worn wooden beams. The clink of pottery mingles with hushed conversations. Shadows pool in corners where secrets are traded.
+            <div class="atmosphere-section">
+                <div class="atmosphere-label">[Generated: Evening at modest tavern, busy crowd, workers present]</div>
+                <div class="atmosphere-text">
+                    Evening transforms the common room. Workers fill every table, day's dust still on their clothes. Laughter mingles with complaints about the checkpoint delays. The fire crackles higher as night approaches.
+                </div>
             </div>
 
-            <div class="section-header">People of Note</div>
-            
-            <div class="npc-card">
-                <div class="npc-header">
-                    <div class="npc-name">Elena</div>
-                    <div class="npc-state desperate">Desperate</div>
+            <div class="district-summary">
+                <div class="district-title">Market District Status</div>
+                <div class="district-stats">
+                    <div class="district-stat"><span class="stat-label">Wealth:</span> Modest</div>
+                    <div class="district-stat"><span class="stat-label">Authority:</span> Increased patrols</div>
+                    <div class="district-stat"><span class="stat-label">Crowd:</span> Busy (evening)</div>
+                    <div class="district-stat"><span class="stat-label">Danger:</span> Level 2/5</div>
+                    <div class="district-stat"><span class="stat-label">Active Event:</span> Guard checkpoint</div>
+                    <div class="district-stat"><span class="stat-label">Price Modifier:</span> +10%</div>
                 </div>
-                <div class="npc-description">
-                    Clutching a sealed letter with white knuckles, her eyes darting to the door with each patron's entrance.
-                </div>
-                <div class="npc-conversation-preview">
-                    <span class="preview-label">If approached:</span>
-                    <span class="preview-state">Desperate state</span>
-                    <span class="preview-effect">• Crisis cards free • Draw 2 + crisis • Listen worsens</span>
-                </div>
-                <div class="npc-observations">
-                    Your observation ready: Guards blocking north (creates Tense)
-                </div>
-                <div class="npc-action">Approach Her Table</div>
             </div>
 
-            <div class="npc-card">
-                <div class="npc-header">
-                    <div class="npc-name">Bertram the Innkeeper</div>
-                    <div class="npc-state">Welcoming</div>
-                </div>
-                <div class="npc-description">
-                    Polishing the same mug for the third time while surveying his domain with practiced ease.
-                </div>
-                <div class="npc-action">Order a Drink (2 coins)</div>
+            <div class="section-header">
+                <span>Evening Observations</span>
+                <span class="section-info">Different from afternoon!</span>
             </div>
-
-            <div class="section-header">Areas Within Tavern</div>
-            <div class="area-list">
-                <div class="area-option">
-                    <div>
-                        <div class="area-name">The Bar</div>
-                        <div class="area-detail">Bertram's domain</div>
+            <div class="observations">
+                <div class="observation-header">
+                    <div class="observation-note">Dynamic observations for Evening period at Tavern</div>
+                    <div class="observation-refresh">Refreshes: Night (10 PM)</div>
+                </div>
+                <div class="observation-item">
+                    <div class="observation-content">
+                        <span class="observation-text">Workers discussing tomorrow's strike</span>
+                        <span class="observation-type">Social • Evening-Generated</span>
                     </div>
-                    <span style="font-size: 11px; color: #7a6250;">No travel time</span>
+                    <span class="observation-details">
+                        <span class="observation-cost">1 attention</span>
+                        <span class="observation-relevance">→ Creates Eager</span>
+                    </span>
                 </div>
-                <div class="area-option">
-                    <div>
-                        <div class="area-name">Corner Booths</div>
-                        <div class="area-detail">Private conversations</div>
+                <div class="observation-item">
+                    <div class="observation-content">
+                        <span class="observation-text">Guard captain drinking off-duty</span>
+                        <span class="observation-type">Secret • Location+Time</span>
                     </div>
-                    <span style="font-size: 11px; color: #7a6250;">No travel time</span>
-                </div>
-                <div class="area-option">
-                    <div>
-                        <div class="area-name">Upper Rooms</div>
-                        <div class="area-detail">Lodging available</div>
-                    </div>
-                    <span style="font-size: 11px; color: #7a6250;">No travel time</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="section-divider">
-            <span class="divider-text">Example 3: Travel Encounter</span>
-        </div>
-
-        <!-- EXAMPLE 3: Travel Encounter -->
-        <div class="location-header">
-            <div class="location-path">
-                <span>Market Square</span>
-                <span>→</span>
-                <span>North Road</span>
-                <span>→</span>
-                <span>Noble District</span>
-            </div>
-            <div class="location-name">The King's Highway</div>
-            <div class="location-traits">
-                <span class="trait">Main Road</span>
-                <span class="trait">Well-Patrolled</span>
-                <span class="trait">Stone-Paved</span>
-            </div>
-        </div>
-
-        <div class="travel-encounter">
-            <div class="encounter-header">
-                <div class="encounter-title">Journey to Noble District</div>
-                <div class="encounter-subtitle">Route Familiarity: Learning (Draw 2, Choose 1)</div>
-            </div>
-
-            <div class="encounter-text">
-                The road rises toward the hilltop manors. A checkpoint stands ahead, guards inspecting papers. The afternoon sun glints off their spears.
-            </div>
-
-            <div class="section-header">Choose Your Approach</div>
-            <div class="encounter-options">
-                <div class="encounter-card">
-                    <div class="encounter-card-title">Guard Checkpoint</div>
-                    <div class="encounter-card-text">
-                        The guards wave you forward. "State your business in the Noble District, citizen."
-                    </div>
-                    <div class="encounter-effects">
-                        <span class="effect-tag requirement">Status 3+: Pass freely</span>
-                        <span class="effect-tag">Pay 2 coins: Normal passage</span>
-                        <span class="effect-tag negative">Refuse: +30 minutes arguing</span>
-                    </div>
-                </div>
-
-                <div class="encounter-card">
-                    <div class="encounter-card-title">Fellow Messenger</div>
-                    <div class="encounter-card-text">
-                        A courier heading the same direction offers to share what he knows about the nobles' schedules today.
-                    </div>
-                    <div class="encounter-effects">
-                        <span class="effect-tag">1 attention: Learn NPC states</span>
-                        <span class="effect-tag positive">2 coins: Deliver secondary letter</span>
-                        <span class="effect-tag">Ignore: Normal travel</span>
-                    </div>
+                    <span class="observation-details">
+                        <span class="observation-cost">2 attention</span>
+                        <span class="observation-relevance">→ Authority types</span>
+                    </span>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Travel Selection Modal (Hidden by default) -->
-    <div class="travel-overlay" id="travelModal" style="display: none;">
-        <div class="travel-modal">
-            <button class="close-button" onclick="closeTravelModal()">×</button>
-            <div class="travel-header">
-                <div class="travel-title">Select Destination</div>
-                <div class="travel-subtitle">From: Market Square - Central Fountain</div>
-            </div>
-            
-            <div class="route-list">
-                <div class="route-card">
-                    <div class="route-destination">Noble District</div>
-                    <div class="route-info">
-                        <span class="route-detail">Uphill climb</span>
-                        <span class="route-detail">Main road</span>
-                    </div>
-                    <div class="route-familiarity">Familiarity: Learning (2 cards drawn)</div>
-                    <div class="transport-options">
-                        <div class="transport-option">
-                            <div class="transport-type">Walk</div>
-                            <div class="transport-cost">Free</div>
-                            <div class="transport-time">45 minutes</div>
-                        </div>
-                        <div class="transport-option">
-                            <div class="transport-type">Cart</div>
-                            <div class="transport-cost">2 coins</div>
-                            <div class="transport-time">20 minutes</div>
-                        </div>
-                        <div class="transport-option">
-                            <div class="transport-type">Carriage</div>
-                            <div class="transport-cost">5 coins</div>
-                            <div class="transport-time">15 minutes</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="route-card">
-                    <div class="route-destination">Riverside Docks</div>
-                    <div class="route-info">
-                        <span class="route-detail">Through alleys</span>
-                        <span class="route-detail">Back paths</span>
-                    </div>
-                    <div class="route-familiarity">Familiarity: Unfamiliar (1 card drawn)</div>
-                    <div class="transport-options">
-                        <div class="transport-option">
-                            <div class="transport-type">Walk</div>
-                            <div class="transport-cost">Free</div>
-                            <div class="transport-time">30 minutes</div>
-                        </div>
-                        <div class="transport-option">
-                            <div class="transport-type">Cart</div>
-                            <div class="transport-cost">Not available</div>
-                            <div class="transport-time">Too narrow</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="route-card locked">
-                    <div class="route-destination">Castle Grounds</div>
-                    <div class="route-info">
-                        <span class="route-detail">Royal bridge</span>
-                        <span class="route-detail">Restricted</span>
-                    </div>
-                    <div class="route-familiarity">Requires: Castle Access Permit</div>
-                </div>
-
-                <div class="route-card locked">
-                    <div class="route-destination">Shadow Market</div>
-                    <div class="route-info">
-                        <span class="route-detail">Location unknown</span>
-                    </div>
-                    <div class="route-familiarity">Requires: Shadow Contact or Discovery</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function openTravelModal() {
-            document.getElementById('travelModal').style.display = 'flex';
-        }
-
-        function closeTravelModal() {
-            document.getElementById('travelModal').style.display = 'none';
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('travelModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeTravelModal();
-            }
-        });
-    </script>
 </body>
 </html>

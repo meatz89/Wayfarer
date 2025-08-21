@@ -265,7 +265,7 @@ namespace Wayfarer.Pages
 
         protected bool HasCrisisSelected()
         {
-            return SelectedCards.Any(c => c.IsCrisis);
+            return SelectedCards.Any(c => c.Category == CardCategory.CRISIS);
         }
 
         protected string GetCardClasses(ConversationCard card)
@@ -275,8 +275,12 @@ namespace Wayfarer.Pages
             classes.Add(card.Type.ToString().ToLower());
             classes.Add(card.Persistence.ToString().ToLower());
             
-            if (card.IsCrisis) classes.Add("crisis");
-            if (card.IsStateCard) classes.Add("state-changer");
+            // Add card category class for visual styling
+            classes.Add(card.GetCategoryClass());
+            
+            // Legacy classes for backward compatibility
+            if (card.Category == CardCategory.CRISIS) classes.Add("crisis");
+            if (card.Category == CardCategory.STATE) classes.Add("state-changer");
             if (card.IsObservation) classes.Add("observation-card");
             if (card.CanDeliverLetter) classes.Add("letter-delivery");
             
@@ -285,7 +289,7 @@ namespace Wayfarer.Pages
 
         protected string GetStateChangeText(ConversationCard card)
         {
-            if (!card.IsStateCard) return "";
+            if (card.Category != CardCategory.STATE) return "";
             
             if (card.SuccessState.HasValue)
             {
@@ -302,7 +306,7 @@ namespace Wayfarer.Pages
 
         protected string GetSuccessEffect(ConversationCard card)
         {
-            if (card.IsStateCard && card.SuccessState.HasValue)
+            if (card.Category == CardCategory.STATE && card.SuccessState.HasValue)
             {
                 return $"{Session.CurrentState} → {card.SuccessState.Value}";
             }
@@ -315,7 +319,7 @@ namespace Wayfarer.Pages
 
         protected string GetFailureEffect(ConversationCard card)
         {
-            if (card.IsStateCard && card.FailureState.HasValue)
+            if (card.Category == CardCategory.STATE && card.FailureState.HasValue)
             {
                 return $"{Session.CurrentState} → {card.FailureState.Value}";
             }
@@ -378,6 +382,31 @@ namespace Wayfarer.Pages
             }
             
             return $"{Session.CurrentPatience} turns remaining • Each turn advances time";
+        }
+
+        protected string GetCardDisplayName(ConversationCard card)
+        {
+            // Generate a display name based on the template type
+            return card.Template switch
+            {
+                CardTemplateType.OfferHelp => "Offer Assistance",
+                CardTemplateType.ActiveListening => "Listen Actively",
+                CardTemplateType.DiscussBusiness => "Discuss Commerce",
+                CardTemplateType.OfferWork => "Propose Work",
+                CardTemplateType.DiscussPolitics => "Political Discussion",
+                CardTemplateType.MakePromise => "Make Promise",
+                CardTemplateType.ShowRespect => "Show Respect",
+                CardTemplateType.ShareInformation => "Share Information",
+                CardTemplateType.ImplyKnowledge => "Hint at Knowledge",
+                CardTemplateType.RequestDiscretion => "Request Discretion",
+                CardTemplateType.SimpleGreeting => "Simple Greeting",
+                CardTemplateType.DesperateRequest => "DESPERATE PLEA",
+                CardTemplateType.OpeningUp => "Open Up",
+                CardTemplateType.CalmnessAttempt => "Calm Reassurance",
+                CardTemplateType.DiscussObligation => "Discuss Obligations",
+                CardTemplateType.DeliverLetter => "Deliver Letter",
+                _ => "Conversation Option"
+            };
         }
 
         protected bool ShowOpportunityWarning()
