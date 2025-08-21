@@ -363,56 +363,14 @@
     opacity: 0.5;
 }
 
-/* Card Header Styling */
-.card-header {
-    padding: 12px 15px;
-    background: #f9f3e9;
-    border-bottom: 1px solid #e8dcc4;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin: 0;
-}
+/* Card Header Styling - moved to conversation.css */
 
-.card-identity {
-    flex: 1;
-}
-
-.card-name {
-    font-size: 14px;
-    font-weight: bold;
-    color: #5c4a3a;
-    margin-bottom: 4px;
-}
-
-.card-tags {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-/* Card Body */
+/* Card Body - moved to conversation.css */
 .card-body {
     padding: 15px;
 }
 
-.card-text {
-    font-size: 14px;
-    line-height: 1.5;
-    color: #2c241a;
-    font-style: italic;
-    margin-bottom: 12px;
-}
-
-/* Card Effects */
-.card-effects {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #e8dcc4;
-}
+/* Card Effects - moved to conversation.css */
 
 .effect-row {
     display: flex;
