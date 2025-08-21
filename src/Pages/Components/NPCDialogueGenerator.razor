@@ -1,0 +1,150 @@
+@using System.Linq
+
+@code {
+    [Parameter] public EmotionalState State { get; set; }
+    [Parameter] public NPC NPC { get; set; }
+    [Parameter] public MeetingObligation MeetingObligation { get; set; }
+    [Parameter] public int TurnNumber { get; set; }
+    [Inject] public ObligationQueueManager QueueManager { get; set; }
+
+    private string GetDialogueText()
+    {
+        // Check for MeetingObligation urgency first
+        if (MeetingObligation != null && State == EmotionalState.DESPERATE)
+        {
+            return GenerateMeetingObligationDialogue();
+        }
+
+        // Check for delivery obligations from this NPC
+        var obligations = QueueManager?.GetActiveObligations()?.ToList() ?? new List<DeliveryObligation>();
+        var npcObligation = obligations.FirstOrDefault(o => o.SenderId == NPC.ID || o.SenderName == NPC.Name);
+        
+        if (npcObligation != null && State == EmotionalState.DESPERATE)
+        {
+            return GenerateDeliveryObligationDialogue(npcObligation);
+        }
+
+        // Default state-based dialogue
+        return GenerateStateDialogue();
+    }
+
+    private string GenerateMeetingObligationDialogue()
+    {
+        // Map MeetingObligation properties to dialogue
+        var hours = MeetingObligation.DeadlineInMinutes / 60;
+        var urgencyLevel = hours <= 2 ? "critical" : hours <= 6 ? "urgent" : "pressing";
+        
+        return (MeetingObligation.Stakes, urgencyLevel, TurnNumber) switch
+        {
+            (StakeType.SAFETY, "critical", 0) => $"Thank the gods you're here! I have {hours} hours - my father plans to force me into marriage at dawn. Lord Blackwood is my only hope to stop this!",
+            (StakeType.SAFETY, "critical", _) => $"Please, there's no time! In {hours} hours, everything I fear will come to pass. This letter must reach Lord Blackwood before my father's deadline!",
+            (StakeType.SAFETY, "urgent", 0) => $"You came! I desperately need your help. My family's safety depends on getting this letter delivered within {hours} hours.",
+            (StakeType.SAFETY, "urgent", _) => $"Every moment we delay puts my family at greater risk. We have only {hours} hours left!",
+            
+            (StakeType.REPUTATION, "critical", 0) => $"Finally! My reputation will be ruined if this doesn't arrive in {hours} hours. Everything I've built depends on this!",
+            (StakeType.REPUTATION, "urgent", _) => $"Please understand - if this isn't delivered within {hours} hours, my standing in society will be destroyed.",
+            
+            (StakeType.WEALTH, "critical", 0) => $"Thank goodness you're here! The trade deal expires in {hours} hours - I'll lose everything if this doesn't arrive!",
+            (StakeType.WEALTH, "urgent", _) => $"The merchants are waiting. If this doesn't arrive in {hours} hours, the opportunity is lost forever.",
+            
+            (StakeType.SECRET, "critical", 0) => $"You're here... I can trust you, can't I? This must be delivered in {hours} hours or dangerous secrets will be exposed.",
+            (StakeType.SECRET, "urgent", _) => $"Time is running out. {hours} hours remain before everything hidden comes to light.",
+            
+            _ => $"I urgently need your help. This must be delivered within {hours} hours!"
+        };
+    }
+
+    private string GenerateDeliveryObligationDialogue(DeliveryObligation obligation)
+    {
+        var hours = obligation.DeadlineInMinutes / 60;
+        
+        return (obligation.Stakes, TurnNumber) switch
+        {
+            (StakeType.SAFETY, 0) => $"My letter to {obligation.RecipientName} - lives depend on it arriving within {hours} hours!",
+            (StakeType.REPUTATION, 0) => $"That letter you're carrying for me - my reputation hangs on it reaching {obligation.RecipientName} in time.",
+            (StakeType.WEALTH, 0) => $"The trade correspondence to {obligation.RecipientName} - fortunes will be lost if it's late!",
+            (StakeType.SECRET, 0) => $"You have my... sensitive package. {obligation.RecipientName} must receive it discretely.",
+            _ => $"Please, my letter must reach {obligation.RecipientName} soon!"
+        };
+    }
+
+    private string GenerateStateDialogue()
+    {
+        return (State, NPC.PersonalityType, TurnNumber) switch
+        {
+            // DESPERATE state dialogues
+            (EmotionalState.DESPERATE, PersonalityType.DEVOTED, 0) => "Please, you have to help me! My family's safety depends on this!",
+            (EmotionalState.DESPERATE, PersonalityType.CUNNING, 0) => "I... I need help. I can't believe I'm asking, but I'm desperate.",
+            (EmotionalState.DESPERATE, PersonalityType.MERCANTILE, 0) => "This is urgent! My entire business will collapse without your help!",
+            (EmotionalState.DESPERATE, PersonalityType.PROUD, 0) => "This is urgent. I require immediate assistance with a time-sensitive matter.",
+            (EmotionalState.DESPERATE, PersonalityType.STEADFAST, 0) => "By my honor, I desperately need your aid. Lives depend on this!",
+            (EmotionalState.DESPERATE, _, _) => "I'm running out of time! Please, I need your help!",
+            
+            // TENSE state dialogues
+            (EmotionalState.TENSE, PersonalityType.DEVOTED, _) => "I... this is difficult. My family's troubles weigh heavily on me.",
+            (EmotionalState.TENSE, PersonalityType.CUNNING, _) => "I shouldn't be telling you this, but... no, forget it.",
+            (EmotionalState.TENSE, PersonalityType.MERCANTILE, _) => "Business has been... complicated. There are pressing concerns.",
+            (EmotionalState.TENSE, PersonalityType.PROUD, _) => "There are matters of importance that require attention.",
+            (EmotionalState.TENSE, PersonalityType.STEADFAST, _) => "My duty weighs heavy. Something's not right.",
+            (EmotionalState.TENSE, _, _) => "Something's not right. I can feel it.",
+            
+            // GUARDED state dialogues
+            (EmotionalState.GUARDED, PersonalityType.DEVOTED, _) => "Oh, it's you. I'm not sure I should be talking to anyone right now.",
+            (EmotionalState.GUARDED, PersonalityType.CUNNING, _) => "State your business. And choose your words carefully.",
+            (EmotionalState.GUARDED, PersonalityType.MERCANTILE, _) => "Time is money. What do you want?",
+            (EmotionalState.GUARDED, PersonalityType.PROUD, _) => "I have limited time for commoners. What brings you here?",
+            (EmotionalState.GUARDED, PersonalityType.STEADFAST, _) => "State your business plainly.",
+            (EmotionalState.GUARDED, _, _) => "What do you want?",
+            
+            // NEUTRAL state dialogues
+            (EmotionalState.NEUTRAL, PersonalityType.DEVOTED, _) => "Blessings upon you. How can I help?",
+            (EmotionalState.NEUTRAL, PersonalityType.CUNNING, _) => "You're back. What information do you seek?",
+            (EmotionalState.NEUTRAL, PersonalityType.MERCANTILE, _) => "Good day! Looking to do business?",
+            (EmotionalState.NEUTRAL, PersonalityType.PROUD, _) => "Greetings. How may I assist you today?",
+            (EmotionalState.NEUTRAL, PersonalityType.STEADFAST, _) => "Well met. What brings you here?",
+            (EmotionalState.NEUTRAL, _, _) => "Hello. What can I do for you?",
+            
+            // OPEN state dialogues
+            (EmotionalState.OPEN, PersonalityType.DEVOTED, _) => "I'm glad you're here. I feel I can share my burdens with you.",
+            (EmotionalState.OPEN, PersonalityType.CUNNING, _) => "You know... I'm starting to see you as someone I can trust with secrets.",
+            (EmotionalState.OPEN, PersonalityType.MERCANTILE, _) => "Good to see a reliable partner! Let's talk business.",
+            (EmotionalState.OPEN, PersonalityType.PROUD, _) => "I appreciate your presence. Let us speak as equals.",
+            (EmotionalState.OPEN, PersonalityType.STEADFAST, _) => "Your honor speaks well of you. I'm listening.",
+            (EmotionalState.OPEN, _, _) => "I'm listening. What would you like to talk about?",
+            
+            // CONNECTED state dialogues
+            (EmotionalState.CONNECTED, PersonalityType.DEVOTED, _) => "With you here, I feel my family's prayers have been answered.",
+            (EmotionalState.CONNECTED, PersonalityType.CUNNING, _) => "I never thought I'd trust someone with my secrets this much.",
+            (EmotionalState.CONNECTED, PersonalityType.MERCANTILE, _) => "You've become my most valued business partner.",
+            (EmotionalState.CONNECTED, PersonalityType.PROUD, _) => "You've earned my complete respect - a rare achievement.",
+            (EmotionalState.CONNECTED, PersonalityType.STEADFAST, _) => "You've proven yourself a true companion. I'm honored.",
+            (EmotionalState.CONNECTED, _, _) => "I feel like we truly understand each other.",
+            
+            // EAGER state dialogues
+            (EmotionalState.EAGER, PersonalityType.DEVOTED, _) => "Oh blessed day! Please, tell me more! This gives me hope!",
+            (EmotionalState.EAGER, PersonalityType.CUNNING, _) => "Interesting... very interesting. Continue.",
+            (EmotionalState.EAGER, PersonalityType.MERCANTILE, _) => "Excellent! This could be profitable for us both! Tell me more!",
+            (EmotionalState.EAGER, PersonalityType.PROUD, _) => "You have my complete attention. Continue.",
+            (EmotionalState.EAGER, PersonalityType.STEADFAST, _) => "By my honor, this is exactly what I needed to hear!",
+            (EmotionalState.EAGER, _, _) => "Yes! Tell me more!",
+            
+            // OVERWHELMED state dialogues
+            (EmotionalState.OVERWHELMED, PersonalityType.DEVOTED, _) => "I... this is too much. I need to pray on this.",
+            (EmotionalState.OVERWHELMED, PersonalityType.CUNNING, _) => "Stop. I need to process this information.",
+            (EmotionalState.OVERWHELMED, PersonalityType.MERCANTILE, _) => "Wait. These numbers don't add up. Give me a moment.",
+            (EmotionalState.OVERWHELMED, PersonalityType.PROUD, _) => "Enough. I need time to consider your words.",
+            (EmotionalState.OVERWHELMED, PersonalityType.STEADFAST, _) => "Hold. I must think on my duty here.",
+            (EmotionalState.OVERWHELMED, _, _) => "This is... a lot to take in.",
+            
+            // HOSTILE state dialogues
+            (EmotionalState.HOSTILE, _, _) => "Get out. Now.",
+            
+            // Default fallback
+            _ => "..."
+        };
+    }
+}
+
+<div class="npc-dialogue @State.ToString().ToLower()">
+    "@GetDialogueText()"
+</div>

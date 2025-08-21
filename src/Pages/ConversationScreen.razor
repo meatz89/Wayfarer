@@ -41,7 +41,7 @@
 
                 <!-- Token Display -->
                 <div class="relationship-tokens">
-                    @foreach (var tokenType in Enum.GetValues<ConnectionType>())
+                    @foreach (var tokenType in Enum.GetValues<ConnectionType>().Where(t => t != ConnectionType.None))
                     {
                         <div class="token-type">
                             <span class="token-label">@tokenType</span>
@@ -112,12 +112,11 @@
                 MinutesUntilDeadline="@GetMinutesUntilDeadline()"
                 NPCName="@Session.NPC.Name" />
             
-            @if (!string.IsNullOrEmpty(NPCDialogue))
-            {
-                <div class="npc-dialogue @GetStateClass()">
-                    "@NPCDialogue"
-                </div>
-            }
+            <NPCDialogueGenerator
+                State="@Session.CurrentState"
+                NPC="@Session.NPC"
+                MeetingObligation="@GetMeetingObligation()"
+                TurnNumber="@Session.TurnNumber" />
         </div>
 
         <!-- Action Choice -->

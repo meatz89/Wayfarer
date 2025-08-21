@@ -23,8 +23,6 @@ namespace Wayfarer.Pages
         protected ConversationSession Session { get; set; }
         protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
         protected ActionType SelectedAction { get; set; } = ActionType.None;
-        protected string CurrentNarrative { get; set; } = "";
-        protected string NPCDialogue { get; set; } = "";
         protected CardPlayResult LastResult { get; set; }
 
         protected override async Task OnInitializedAsync()
@@ -36,9 +34,6 @@ namespace Wayfarer.Pages
                 
                 // Start the conversation
                 Session = ConversationManager.StartConversation(NpcId, observationCards);
-                
-                // Generate initial narrative
-                UpdateNarrative();
             }
             catch (Exception ex)
             {
@@ -97,19 +92,11 @@ namespace Wayfarer.Pages
             {
                 ConversationManager.ExecuteListen();
                 SelectedCards.Clear();
-                UpdateNarrative();
             }
             else if (SelectedAction == ActionType.Speak && SelectedCards.Any())
             {
                 LastResult = ConversationManager.ExecuteSpeak(SelectedCards);
                 SelectedCards.Clear();
-                UpdateNarrative();
-                
-                // Check for letter generation
-                if (ConversationManager.TryGenerateLetter())
-                {
-                    NPCDialogue += " I have something I need delivered...";
-                }
             }
 
             SelectedAction = ActionType.None;
@@ -405,39 +392,6 @@ namespace Wayfarer.Pages
             return new List<ConversationCard>();
         }
 
-        private void UpdateNarrative()
-        {
-            // Generate narrative based on current state
-            CurrentNarrative = Session.CurrentState switch
-            {
-                EmotionalState.DESPERATE => $"Time is running short. {Session.NPC.Name}'s desperation has made them vulnerable.",
-                EmotionalState.TENSE => $"The air is thick with tension. {Session.NPC.Name} seems on edge.",
-                EmotionalState.GUARDED => $"{Session.NPC.Name} watches you carefully, keeping their guard up.",
-                EmotionalState.OPEN => $"{Session.NPC.Name} seems receptive to what you have to say.",
-                EmotionalState.CONNECTED => $"You feel a deep connection with {Session.NPC.Name}.",
-                _ => $"The conversation continues with {Session.NPC.Name}."
-            };
-
-            // Generate NPC dialogue
-            NPCDialogue = GenerateNPCDialogue();
-        }
-
-        private string GenerateNPCDialogue()
-        {
-            // This would generate contextual dialogue based on state and recent actions
-            return Session.CurrentState switch
-            {
-                EmotionalState.DESPERATE => "Please, I need your help. Time is running out!",
-                EmotionalState.TENSE => "I... I'm not sure how to say this.",
-                EmotionalState.GUARDED => "What do you want?",
-                EmotionalState.OPEN => "I'm listening. What's on your mind?",
-                EmotionalState.CONNECTED => "I feel like I can trust you with anything.",
-                EmotionalState.EAGER => "Yes! Tell me more!",
-                EmotionalState.OVERWHELMED => "This is... a lot to process.",
-                _ => "..."
-            };
-        }
-
         protected EmotionalState GetNPCStartingState()
         {
             if (Session?.NPC == null) return EmotionalState.NEUTRAL;
@@ -462,11 +416,24 @@ namespace Wayfarer.Pages
         {
             if (Session?.NPC == null) return null;
             
+            // Check for meeting obligation first
+            var meeting = GetMeetingObligation();
+            if (meeting != null)
+            {
+                return meeting.DeadlineInMinutes;
+            }
+            
             var obligations = LetterQueueManager.GetActiveObligations();
             var npcLetters = obligations.Where(o => o.SenderId == Session.NPC.ID || o.SenderName == Session.NPC.Name);
             var mostUrgent = npcLetters.OrderBy(o => o.DeadlineInMinutes).FirstOrDefault();
             
             return mostUrgent?.DeadlineInMinutes;
+        }
+
+        protected MeetingObligation GetMeetingObligation()
+        {
+            if (Session?.NPC == null) return null;
+            return LetterQueueManager.GetMeetingWithNPC(Session.NPC.ID);
         }
     }
 }

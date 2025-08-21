@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 public class ObligationQueueManager
@@ -61,6 +62,41 @@ public class ObligationQueueManager
         }
 
         return activeObligations;
+    }
+    
+    // Get active meeting obligations
+    public List<MeetingObligation> GetActiveMeetingObligations()
+    {
+        Player player = _gameWorld.GetPlayer();
+        return player.MeetingObligations
+            .Where(m => m.DeadlineInMinutes > 0)
+            .ToList();
+    }
+    
+    // Get meeting obligation with specific NPC
+    public MeetingObligation GetMeetingWithNPC(string npcId)
+    {
+        return GetActiveMeetingObligations()
+            .FirstOrDefault(m => m.RequesterId == npcId);
+    }
+    
+    // Add a meeting obligation
+    public void AddMeetingObligation(MeetingObligation meeting)
+    {
+        _gameWorld.GetPlayer().MeetingObligations.Add(meeting);
+        _messageSystem.AddSystemMessage($"{meeting.RequesterName} urgently requests to meet you!", SystemMessageTypes.Warning);
+    }
+    
+    // Complete a meeting obligation
+    public void CompleteMeeting(string meetingId)
+    {
+        var meeting = _gameWorld.GetPlayer().MeetingObligations
+            .FirstOrDefault(m => m.Id == meetingId);
+        if (meeting != null)
+        {
+            _gameWorld.GetPlayer().MeetingObligations.Remove(meeting);
+            _messageSystem.AddSystemMessage($"Met with {meeting.RequesterName}", SystemMessageTypes.Success);
+        }
     }
     
     // Get the queue position of an obligation (1-based)

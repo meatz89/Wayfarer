@@ -185,6 +185,19 @@ public static class ConversationRules
                 return EmotionalState.DESPERATE;
             return EmotionalState.TENSE;
         }
+        
+        // Check for meeting obligations
+        var meeting = queueManager.GetMeetingWithNPC(npc.ID);
+        if (meeting != null)
+        {
+            // Apply urgency rules based on deadline and stakes
+            if (meeting.Stakes == StakeType.SAFETY && meeting.DeadlineInMinutes < 360) // <6 hours
+                return EmotionalState.DESPERATE;
+            if (meeting.DeadlineInMinutes < 180) // <3 hours
+                return EmotionalState.DESPERATE;
+            if (meeting.DeadlineInMinutes < 720) // <12 hours
+                return EmotionalState.TENSE;
+        }
 
         // Check relationship for hostility
         if (npc.PlayerRelationship == NPCRelationship.Betrayed)

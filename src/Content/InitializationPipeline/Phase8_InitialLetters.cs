@@ -23,23 +23,26 @@ public class Phase8_InitialLetters : IInitializationPhase
         // Create the 5 delivery obligations from the mockup
         List<DeliveryObligation> obligations = new System.Collections.Generic.List<DeliveryObligation>();
 
-        // 1. Elena's marriage refusal (URGENT - 2h 15m)
-        DeliveryObligation elenaObligation = new DeliveryObligation
+        // 1. Elena has a MEETING OBLIGATION instead of a delivery obligation
+        // She summons the player urgently, and will give them the letter during conversation
+        MeetingObligation elenaMeeting = new MeetingObligation
         {
-            Id = Guid.NewGuid().ToString(),
-            SenderId = "elena",
-            SenderName = "Elena",
-            RecipientId = "lord_aldwin",
-            RecipientName = "Lord Aldwin",
-            Description = "Elena's refusal of Lord Aldwin's marriage proposal",
-            TokenType = ConnectionType.Trust,
-            Stakes = StakeType.SAFETY, // Changed to SAFETY to trigger DESPERATE state
-            DeadlineInMinutes = 1, // URGENT! Less than 2 hours makes Elena DESPERATE
-            QueuePosition = 1,
-            // State is only for physical Letters, not abstract DeliveryObligations
-            Payment = 0
+            Id = "elena_urgent_meeting",
+            RequesterId = "elena",
+            RequesterName = "Elena",
+            DeadlineInMinutes = 120,  // 2 hours - URGENT!
+            Stakes = StakeType.SAFETY,
+            Reason = "Family safety matter - urgent letter delivery needed"
         };
-        obligations.Add(elenaObligation);
+        
+        // Add Elena's meeting obligation to player
+        if (gameWorld.GetPlayer() != null)
+        {
+            gameWorld.GetPlayer().MeetingObligations.Add(elenaMeeting);
+            Console.WriteLine($"  Added Elena's urgent meeting request (2 hour deadline)");
+        }
+        
+        // Elena's actual letter will be given during conversation, not in queue initially
 
         // 2. Lord Blackwood's urgent letter (position 2)
         DeliveryObligation lordBDeliveryObligation = new DeliveryObligation
@@ -127,7 +130,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             }
 
             Console.WriteLine($"  Added {obligations.Count} initial obligations to player's queue");
-            Console.WriteLine($"  - Elena's marriage refusal (pos 1)");
+            Console.WriteLine($"  - Elena's meeting request (urgent - not in queue)");
             Console.WriteLine($"  - Lord Blackwood's urgent letter (pos 2)");
             Console.WriteLine($"  - Marcus's trade deal (pos 3-4)");
             Console.WriteLine($"  - Viktor's security report (pos 5)");

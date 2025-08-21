@@ -67,6 +67,7 @@
     public Dictionary<string, List<RouteOption>> KnownRoutes { get; private set; } = new Dictionary<string, List<RouteOption>>();
 
     public DeliveryObligation[] ObligationQueue { get; private set; } = new DeliveryObligation[8];
+    public List<MeetingObligation> MeetingObligations { get; set; } = new List<MeetingObligation>();
     public Dictionary<ConnectionType, int> ConnectionTokens { get; private set; } = new Dictionary<ConnectionType, int>();
     public Dictionary<string, Dictionary<ConnectionType, int>> NPCTokens { get; private set; } = new Dictionary<string, Dictionary<ConnectionType, int>>();
 
