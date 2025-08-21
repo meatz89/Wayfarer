@@ -53,12 +53,6 @@ NPC emotional state is THE core system element. Each state defines:
 - SPEAK: Weight limit 3
 - LISTEN→ Stays Open
 
-**CONNECTED** (Pinnacle state)
-- LISTEN: Draw 3 cards
-- SPEAK: Weight limit 4
-- LISTEN→ Stays Connected
-- Special: Depth advances automatically at turn end
-
 **TENSE**
 - LISTEN: Draw 1 card
 - SPEAK: Weight limit 1
@@ -74,14 +68,21 @@ NPC emotional state is THE core system element. Each state defines:
 - SPEAK: Maximum 1 card only
 - LISTEN→ Neutral
 
-**Desperate** (Crisis state)
+**CONNECTED** (Pinnacle state)
+- LISTEN: Draw 3 cards
+- SPEAK: Weight limit 4
+- LISTEN→ Stays Connected
+- Special: Depth advances automatically at turn end
+
+**DESPERATE** (Crisis state)
 - LISTEN: Draw 2 cards + inject 1 crisis card
 - SPEAK: Crisis cards cost 0 weight
 - LISTEN→ Hostile (escalates!)
 
-**HOSTILE** 
-- Cannot converse until resolved
-- Requires special action or time to clear
+**HOSTILE** (Escalated crisis)
+- LISTEN: Draw 1 card + inject 2 crisis cards
+- SPEAK: Only crisis cards playable
+- LISTEN→ Conversation ends (breakdown)
 
 ### State Paths
 States form emotional journeys:
@@ -171,7 +172,7 @@ Market Square: Observe "Guards blocking north road" (-1 attention)
 - Emergency actions
 - MUST be played alone
 - Ignore weight limits
-- Free to play in Desperate/Overwhelmed states
+- Free to play in Desperate/Hostile states
 - Often end conversation
 
 ### Why This Separation Works
@@ -225,7 +226,7 @@ Effects:
 - Basic conversation options (Small Talk, Listen, Nod)
 - Always available fallbacks
 
-### Opportunity (fleeting)
+### Opportunity
 - **Vanishes if you LISTEN** (ALL Opportunities in hand disappear)
 - Time-sensitive topics, emotional openings, observations
 - Creates tension between drawing and playing
@@ -242,21 +243,21 @@ Effects:
 - Clogs hand until played and resolved
 
 ### Crisis
-- Only appears when NPC is Desperate/Overwhelmed
+- Only appears when NPC is Desperate/Hostile
 - Ignores weight limit completely
 - Often ends conversation immediately
-- FREE to play in Desperate/Overwhelmed states
+- FREE to play in Desperate/Hostile states
 
 ## Weight System
 
 ### Weight Limits by State
 Weight represents emotional bandwidth. Total weight per SPEAK action cannot exceed state limit:
-- **Tense/Guarded**: Weight limit 1
-- **Neutral**: Weight limit 2
-- **Open**: Weight limit 3
+- **Tense**: Weight limit 1
+- **Guarded**: Weight limit 2
+- **Neutral/Open**: Weight limit 3
 - **Connected**: Weight limit 4 (exceptional)
 - **Overwhelmed**: Maximum 1 card regardless of weight
-- **Desperate**: Crisis cards cost 0 weight
+- **Desperate/Hostile**: Crisis cards cost 0 weight
 
 ### Weight Values
 - **Weight 0**: Trivial (nod, small talk)
@@ -293,11 +294,12 @@ Simple, clear, no hidden modifiers. States don't affect success rates - they aff
 ### Depth Progression
 Depth can ONLY advance in positive states:
 - **Neutral**: Can advance with breakthrough (10+ comfort single turn)
-- **Open**: Can advance normally (5+ comfort single turn)
+- **Open**: Can advance normally
 - **Connected**: Advances automatically each turn
 
 Depth decreases when:
-- Card Failures (-5 comfort single Turn)
+- Conversation ends below 5 comfort
+- Major failures on heavy cards
 - Certain state transitions
 
 ### No Depth Requirements
@@ -359,13 +361,58 @@ Playing multiple cards of the SAME type in one SPEAK action:
 1. Build comfort to threshold (usually 10+)
 2. Letter cards appear in draws at relationship milestones
 3. Successfully play letter card when drawn
-4. Letter enters queue system
+4. Physical letter enters inventory (satchel)
+5. New delivery obligation created in queue
 
 ### Letter Card Requirements
 - Added to deck at Trust/Commerce/Status 3, 5, 7
 - Must achieve comfort threshold in conversation
 - One letter maximum per conversation
 - Letter cards are Persistent (don't vanish)
+
+### Physical Letters vs Obligations
+- **Physical Letter**: Item in satchel with sender/recipient
+- **Delivery Obligation**: Deadline and stakes in queue
+- **Separation**: Letter doesn't expire, obligation does
+
+## Obligation System and NPC States
+
+### Two Types of Obligations
+
+**Meeting Obligations**
+```
+"Meet Elena at Tavern"
+Deadline: 2 hours
+Stakes: SAFETY (her marriage)
+Effect: Determines NPC emotional state
+```
+
+**Delivery Obligations**
+```
+"Deliver Elena's letter to Lord Blackwood"  
+Deadline: 6 hours (set when letter received)
+Stakes: REPUTATION
+Requires: Physical letter in satchel
+```
+
+### Physical Letters vs Obligations
+- **Physical Letters**: Inventory items in your satchel
+- **Obligations**: Time pressure tracked in queue
+- **NPCs**: Don't track deadlines, react to YOUR meeting obligations
+- **Emotional States**: Derived from how late you are to meet them
+
+### How Meeting Obligations Work
+
+1. **NPC sends urgent word** → Meeting obligation enters queue
+2. **Time remaining determines emotional state**:
+   - <2 hours: Desperate
+   - 2-6 hours: Tense
+   - 6+ hours: Neutral
+   - Expired: Hostile (cannot converse)
+3. **During conversation** → May receive physical letter
+4. **New delivery obligation** → Created when letter received
+
+This means Elena's desperation isn't because her letter is expiring - it's because YOU'RE almost too late to meet her!
 
 ## NPC Personalities
 
@@ -376,12 +423,11 @@ Playing multiple cards of the SAME type in one SPEAK action:
 - **Cunning** (spies): 10-12 patience, Shadow-focused
 - **Steadfast** (workers): 11-13 patience, balanced
 
-### Emotional Conditions
-Based on letter deadlines:
-- **Desperate** (<6 hours): Starts in Desperate state
-- **Tense** (6-12 hours): Starts in Tense state
-- **Hostile** (failed letter): Cannot converse
-- **Neutral** (no urgency): Starts in personality default
+### Emotional States Based on Meeting Obligations
+- **Desperate** (<2 hours on meeting): Starts in Desperate state
+- **Tense** (2-6 hours on meeting): Starts in Tense state
+- **Hostile** (failed to meet): Cannot converse
+- **Neutral** (no urgent meeting): Starts in personality default
 
 ## Deck Evolution
 
@@ -393,16 +439,17 @@ Based on letter deadlines:
 
 ### Deck Growth (max 25 cards)
 - Letter delivery adds powerful cards
-- Only special "state changer" cards manipulate states
-- Most cards just provide weight + comfort + type
+- Only special "state cards" manipulate emotions (rare)
+- Most cards are comfort cards (weight + comfort + type)
 - Failures add Burden cards
 - Perfect conversations transform negatives
 
 ### Card Design Philosophy
-- **Most cards are simple**: Weight, comfort, type only
-- **State changers are rare**: Clear markers, specific effects
-- **No complex requirements**: All cards always playable
-- **No percentages on cards**: Just weight and comfort
+- **Most cards are comfort cards**: Weight, comfort, type only
+- **State cards are rare**: Clear markers, must be played alone
+- **Crisis cards are special**: Ignore weight limits, end conversations
+- **No complex requirements**: All cards always playable (weight permitting)
+- **Clear separation**: Each card type has distinct purpose
 
 ## Drawing and Card Generation
 
@@ -415,7 +462,7 @@ When choosing LISTEN:
 
 ### Special Card Injection
 - **Desperate state**: Injects 1 crisis card when listening
-- **Overwhelmed state**: Injects 2 crisis cards when listening
+- **Hostile state**: Injects 2 crisis cards when listening
 - **Observations**: Added to starting hand only
 
 ### Deck Management
@@ -452,11 +499,11 @@ Only STATE CARDS can change states when speaking
 Example State Cards:
 ```
 "Calm Reassurance" [STATE CARD]
-Success: → Tense
+Success: Desperate → Tense
 Failure: No change
 
 "Break the Ice" [STATE CARD]
-Success: → Neutral
+Success: Guarded → Neutral
 Failure: No change
 
 "Share Vulnerability" [STATE CARD]
@@ -478,45 +525,37 @@ This prevents conflicts - you either:
 
 ## Example Turn Flow
 
-**Elena Conversation (Desperate state, 3 cards in hand)**
+**Elena Conversation (Meeting obligation: 2 hours left → Desperate state)**
 
 Starting patience: 5 turns
 Starting state: Desperate (draw 2 + crisis, crisis free, listen worsens)
 
 **Hand**: 
-- "Promise to Help" - Trust Comfort Card (weight 2)
-- "Calm Reassurance" - Trust State Card (weight 1)
-- "Desperate Promise" - Trust Crisis Card (weight 5, but FREE in Desperate)
+- "Promise to Help" - Trust Comfort card (weight 2)
+- "Mention Guards" - Shadow Comfort card from observation (weight 1)
+- "Calm Reassurance" - Trust State card (weight 1)
+- "Desperate Promise" - Trust Crisis card (weight 5, but FREE in Desperate)
 
 **Turn 1 Decision**:
-- **Listen**: Draw 2 + crisis injection, state → Hostile (worsens!)
-- **Speak**: Choose card type strategy
+- **Listen**: Lose both comfort cards (Opportunities), draw 2 + crisis card, state → Hostile
+- **Speak**: Play within weight limit (crisis free in this state)
 
 **Option A - Crisis Resolution**:
-Play "Desperate Promise" alone (crisis card, free in Desperate):
-- Success (43%): Letter generated, conversation ends
-- Failure (57%): +5 comfort, state → Hostile
+Play "Desperate Promise" alone (free in Desperate state):
+- 43% success → Generates letter, ends conversation
+- 57% failure → +5 comfort, state → Overwhelmed
 
 **Option B - State Management**:
-Play "Calm Reassurance" alone (state card):
-- Success (63%): State → Tense (improved!)
-- Failure (37%): State stays Desperate
+Play "Calm Reassurance" alone (state card, must be solo):
+- 63% success → State → Tense (improved!)
+- 37% failure → State stays Desperate
 
 **Option C - Comfort Building**:
-Play "Promise to Help" alone (comfort card):
-- Success (53%): +4 comfort
-- Failure (47%): +1 comfort
-- State remains Desperate
-
-**Cannot Combine**:
-- State cards must be alone (no combining)
-- Crisis cards must be alone (no combining)
-- Only comfort cards can combine with each other
-
-**Strategic Consideration**:
-- Crisis card is risky but immediate solution
-- State card improves situation for future turns
-- Comfort card builds toward threshold but doesn't address crisis
+Play "Promise" + "Mention Guards" (both comfort cards, weight 3 total):
+- No state change possible when combining
+- Promise: 53% → +4 comfort on success
+- Guards: 63% → +2 comfort on success
+- Total if both succeed: 6 comfort
 
 ## Design Philosophy
 
@@ -545,11 +584,12 @@ Play "Promise to Help" alone (comfort card):
 
 ### What Makes This Unique
 1. **Card Type Separation**: Comfort cards build rapport, state cards shift emotions, crisis cards handle emergencies - never mixing purposes
-2. **State-Based Everything**: 9 distinct emotional states that affect all aspects of conversation
+2. **Emotional States as Core**: 9 distinct states affect all aspects of conversation
 3. **Listen as State Management**: Not just drawing cards but managing emotional space through defined transitions
 4. **No State Conflicts**: State cards must be played alone, structurally preventing conflicts
-5. **Crisis Escalation**: Ignoring Desperate situations makes them worse (Desperate → Hostile)
-6. **Binary Effects Only**: No percentages or modifiers, just clear state-based rules
+5. **Observation Integration**: World knowledge becomes conversation ammunition
+6. **Crisis Escalation**: Ignoring desperate situations makes them worse (Desperate → Hostile)
+7. **Meeting Obligations**: NPC emotional states derived from YOUR punctuality, not their own deadlines
 
 ### Why It Works
-The system models real conversation through mechanical state. You either work within the current emotional context (comfort cards) OR carefully shift the mood (state cards) - never both simultaneously. Emotional states create complete conversational dynamics - someone Guarded shares less (draw 1) and handles less (weight limit 2). Managing emotional space through listening is as strategic as what you say. Crisis situations demand singular focus. Every conversation becomes a unique emotional journey with clear, predictable rules.
+The system models real conversation through mechanical state. You either work within the current emotional context (comfort cards) OR carefully shift the mood (state cards) - never both simultaneously. Emotional states create complete conversational dynamics - someone Guarded shares less (draw 1) and handles less (weight limit 2). Managing emotional space through listening is as strategic as what you say. NPCs react to how late you are to meet them, creating natural urgency. Crisis situations demand singular focus. Every conversation becomes a unique emotional journey with clear, predictable rules.
