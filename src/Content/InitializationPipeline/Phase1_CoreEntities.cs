@@ -101,6 +101,7 @@ public class Phase1_CoreEntities : IInitializationPhase
                         dto.ConnectedTo ?? new List<string>(),
                         dto.LocationSpots ?? new List<string>(),
                         dto.DomainTags ?? new List<string>(),
+                        dto.TravelHubSpotId,
                         null, // environmentalProperties - TODO: convert from DTO
                         null, // availableProfessionsByTime - TODO: convert from DTO
                         dto.Tier

@@ -105,7 +105,7 @@
 
     public void AddKnownRoute(RouteOption route)
     {
-        string originName = route.Origin;
+        string originName = route.OriginLocationSpot;
 
         if (!KnownRoutes.ContainsKey(originName))
         {
@@ -113,7 +113,7 @@
         }
 
         // Only add if not already known
-        if (!KnownRoutes[originName].Any(r => r.Destination == route.Destination))
+        if (!KnownRoutes[originName].Any(r => r.DestinationLocationSpot == route.DestinationLocationSpot))
         {
             KnownRoutes[originName].Add(route);
         }

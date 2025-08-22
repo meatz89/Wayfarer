@@ -6,7 +6,12 @@
 		"initialState": "Unmade bed, papers scattered on desk. The morning's letters await your attention.",
 		"locationId": "courier_office",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "REST", "PRIVATE", "HOME" ]
+		"domainTags": [ "REST", "PRIVATE", "HOME" ],
+		"spotProperties": [ "Private", "Quiet", "Safe", "PersonalSpace" ],
+		"timeSpecificProperties": {
+			"Morning": [ "WellLit", "Peaceful" ],
+			"Night": [ "Dark", "Restful" ]
+		}
 	},
 	{
 		"id": "office_desk",
@@ -15,7 +20,13 @@
 		"initialState": "Letters sorted into piles. Sealing wax and quill at the ready. Official courier business.",
 		"locationId": "courier_office",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "WORK", "ORGANIZATION", "OFFICIAL" ]
+		"domainTags": [ "WORK", "ORGANIZATION", "OFFICIAL" ],
+		"spotProperties": [ "Professional", "Organized", "ViewsMarket" ],
+		"timeSpecificProperties": {
+			"Morning": [ "Busy", "WellLit" ],
+			"Afternoon": [ "Busy" ],
+			"Evening": [ "Quiet" ]
+		}
 	},
 	{
 		"id": "window_view",
@@ -24,7 +35,13 @@
 		"initialState": "Morning light streams through. The sounds of the waking market drift up from below.",
 		"locationId": "courier_office",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "OBSERVATION", "VANTAGE" ]
+		"domainTags": [ "OBSERVATION", "VANTAGE" ],
+		"spotProperties": [ "ViewsMarket", "Elevated", "WellLit" ],
+		"timeSpecificProperties": {
+			"Morning": [ "ViewsMainEntrance", "QuietMorning" ],
+			"Afternoon": [ "ViewsCommerce" ],
+			"Evening": [ "ViewsTavern" ]
+		}
 	},
 	{
 		"id": "main_hall",
@@ -33,7 +50,14 @@
 		"initialState": "Warm firelight flickers. The copper kettle hangs over glowing embers. Conversations drift from various tables.",
 		"locationId": "copper_kettle_tavern",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "SOCIAL", "GATHERING", "WARM" ]
+		"domainTags": [ "SOCIAL", "GATHERING", "WARM" ],
+		"spotProperties": [ "Social", "Warm", "Public", "CommonerHaunt" ],
+		"timeSpecificProperties": {
+			"Morning": [ "Quiet", "WellLit" ],
+			"Afternoon": [ "Busy" ],
+			"Evening": [ "Crowded", "Loud" ],
+			"Night": [ "Quiet", "Shadowy" ]
+		}
 	},
 	{
 		"id": "bar_counter",
@@ -42,7 +66,11 @@
 		"initialState": "Bertram polishes glasses behind the counter. Bottles and mugs line the shelves.",
 		"locationId": "copper_kettle_tavern",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "COMMERCE", "SERVICE", "SOCIAL" ]
+		"domainTags": [ "COMMERCE", "SERVICE", "SOCIAL" ],
+		"spotProperties": [ "Social", "MerchantHub", "CommonerHaunt", "ViewsMainEntrance" ],
+		"timeSpecificProperties": {
+			"Evening": [ "Busy", "Loud" ]
+		}
 	},
 	{
 		"id": "corner_table",
@@ -65,7 +93,8 @@
 		"initialState": "A narrow bed with clean sheets. A washbasin and small table complete the modest furnishings.",
 		"locationId": "copper_kettle_tavern",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "REST", "PRIVATE", "LODGING" ]
+		"domainTags": [ "REST", "PRIVATE", "LODGING" ],
+		"spotProperties": [ "Private", "Quiet", "Isolated" ]
 	},
 	{
 		"id": "central_fountain",
@@ -75,10 +104,10 @@
 		"locationId": "market_square",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
 		"domainTags": [ "PUBLIC_SQUARE", "CROWDED", "CROSSROADS", "COMMERCE" ],
-		"spotProperties": [ "Public", "Crossroads" ],
+		"spotProperties": [ "Public", "Crossroads", "Exposed", "Central" ],
 		"timeSpecificProperties": {
-			"Morning": [ "QuietMorning" ],
-			"Afternoon": [ "Loud", "BusyEvening" ],
+			"Morning": [ "QuietMorning", "WellLit" ],
+			"Afternoon": [ "Loud", "BusyEvening", "Crowded" ],
 			"Evening": [ "BusyEvening", "Loud" ]
 		}
 	},
@@ -90,7 +119,7 @@
 		"locationId": "market_square",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
 		"domainTags": [ "COMMERCE", "TRADE", "GOODS" ],
-		"spotProperties": [ "Public", "MerchantHub", "ViewsMarket" ],
+		"spotProperties": [ "Public", "MerchantHub", "ViewsMarket", "Commerce" ],
 		"timeSpecificProperties": {
 			"Afternoon": [ "Loud", "BusyEvening" ]
 		}
@@ -102,7 +131,12 @@
 		"initialState": "Guards in uniform stand watch. Travelers queue to have their documents inspected.",
 		"locationId": "market_square",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "TRAVEL", "GUARDED", "CHECKPOINT" ]
+		"domainTags": [ "TRAVEL", "GUARDED", "CHECKPOINT" ],
+		"spotProperties": [ "Guarded", "Official", "ViewsMainEntrance", "Checkpoint" ],
+		"timeSpecificProperties": {
+			"Morning": [ "Busy" ],
+			"Evening": [ "Quiet" ]
+		}
 	},
 	{
 		"id": "aldwin_manor",
@@ -111,7 +145,13 @@
 		"initialState": "Pristine gardens and marble steps leading to an ornate door. Guards patrol the perimeter.",
 		"locationId": "noble_district",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-		"domainTags": [ "NOBLE", "EXCLUSIVE", "WEALTHY" ]
+		"domainTags": [ "NOBLE", "EXCLUSIVE", "WEALTHY" ],
+		"spotProperties": [ "Private", "Guarded", "NobleHaunt", "Prestigious" ],
+		"timeSpecificProperties": {
+			"Morning": [ "Quiet", "WellLit" ],
+			"Afternoon": [ "Formal" ],
+			"Evening": [ "Exclusive" ]
+		}
 	},
 	{
 		"id": "blackwood_estate",
@@ -120,7 +160,13 @@
 		"initialState": "Impressive architecture with tall windows. The sound of a fountain echoes from within.",
 		"locationId": "noble_district",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-		"domainTags": [ "NOBLE", "EXCLUSIVE", "WEALTHY" ]
+		"domainTags": [ "NOBLE", "EXCLUSIVE", "WEALTHY" ],
+		"spotProperties": [ "Private", "Prestigious", "NobleHaunt", "Political" ],
+		"timeSpecificProperties": {
+			"Morning": [ "Quiet" ],
+			"Afternoon": [ "Busy" ],
+			"Evening": [ "Social", "Exclusive" ]
+		}
 	},
 	{
 		"id": "shops",
@@ -129,7 +175,12 @@
 		"initialState": "Busy shopkeepers calling out their wares. The smell of various goods mingles in the air.",
 		"locationId": "merchant_row",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
-		"domainTags": [ "COMMERCE", "SHOPPING", "TRADE" ]
+		"domainTags": [ "COMMERCE", "SHOPPING", "TRADE" ],
+		"spotProperties": [ "Public", "MerchantHub", "Commerce", "Crowded" ],
+		"timeSpecificProperties": {
+			"Morning": [ "Busy" ],
+			"Afternoon": [ "Loud", "Crowded" ]
+		}
 	},
 	{
 		"id": "willow_bend",
@@ -138,7 +189,13 @@
 		"initialState": "Dappled sunlight filters through hanging willow branches. The river flows quietly nearby.",
 		"locationId": "riverside_path",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-		"domainTags": [ "NATURE", "PEACEFUL", "SCENIC" ]
+		"domainTags": [ "NATURE", "PEACEFUL", "SCENIC" ],
+		"spotProperties": [ "Isolated", "Peaceful", "Natural", "Shaded" ],
+		"timeSpecificProperties": {
+			"Morning": [ "QuietMorning", "Serene" ],
+			"Afternoon": [ "Warm" ],
+			"Evening": [ "Shadowy", "Romantic" ]
+		}
 	},
 	{
 		"id": "river_crossing",
@@ -147,7 +204,12 @@
 		"initialState": "Clear water flows over smooth stones. The crossing looks manageable on foot.",
 		"locationId": "riverside_path",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-		"domainTags": [ "CROSSING", "WATER", "PASSAGE" ]
+		"domainTags": [ "CROSSING", "WATER", "PASSAGE" ],
+		"spotProperties": [ "Exposed", "Natural", "Crossroads" ],
+		"timeSpecificProperties": {
+			"Morning": [ "QuietMorning" ],
+			"Afternoon": [ "WellLit" ]
+		}
 	},
 	{
 		"id": "path_junction",
@@ -156,7 +218,13 @@
 		"initialState": "Wooden signs point in different directions. Well-worn paths diverge from this point.",
 		"locationId": "riverside_path",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "JUNCTION", "NAVIGATION", "CHOICE" ]
+		"domainTags": [ "JUNCTION", "NAVIGATION", "CHOICE" ],
+		"spotProperties": [ "Crossroads", "Exposed", "Signposted" ],
+		"timeSpecificProperties": {
+			"Morning": [ "QuietMorning" ],
+			"Evening": [ "Shadowy" ],
+			"Night": [ "Dark" ]
+		}
 	},
 	{
 		"id": "gate_entrance",
@@ -165,7 +233,14 @@
 		"initialState": "Guards in uniform stand at attention. A steady stream of people pass through the gates.",
 		"locationId": "city_gates",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "TRAVEL", "OFFICIAL", "EDGE" ]
+		"domainTags": [ "TRAVEL", "OFFICIAL", "EDGE" ],
+		"spotProperties": [ "Guarded", "Official", "Checkpoint", "ViewsMainEntrance" ],
+		"timeSpecificProperties": {
+			"Morning": [ "Busy", "WellLit" ],
+			"Afternoon": [ "Crowded" ],
+			"Evening": [ "Quiet" ],
+			"Night": [ "Isolated", "Dark" ]
+		}
 	},
 	{
 		"id": "traveler_rest",
@@ -174,7 +249,13 @@
 		"initialState": "Travelers checking supplies. Horses being watered. The bustle of preparation.",
 		"locationId": "city_gates",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-		"domainTags": [ "TRAVEL", "REST", "TRANSITION" ]
+		"domainTags": [ "TRAVEL", "REST", "TRANSITION" ],
+		"spotProperties": [ "Public", "RestArea", "TransitHub" ],
+		"timeSpecificProperties": {
+			"Morning": [ "Busy" ],
+			"Afternoon": [ "Crowded" ],
+			"Evening": [ "Quiet" ]
+		}
 	},
 	{
 		"id": "main_desk",
@@ -183,7 +264,12 @@
 		"initialState": "Charts and schedules cover the desk surface. Captain Thorne reviews manifests and coordinates river traffic.",
 		"locationId": "harbor_office",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-		"domainTags": [ "TRANSPORT", "OFFICIAL", "BUSINESS" ]
+		"domainTags": [ "TRANSPORT", "OFFICIAL", "BUSINESS" ],
+		"spotProperties": [ "Professional", "Official", "ViewsDocks" ],
+		"timeSpecificProperties": {
+			"Morning": [ "Busy" ],
+			"Afternoon": [ "Busy" ]
+		}
 	},
 	{
 		"id": "waiting_area",
@@ -192,7 +278,12 @@
 		"initialState": "Wooden benches line the wall. A few travelers sit patiently, documents in hand.",
 		"locationId": "harbor_office",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-		"domainTags": [ "WAITING", "PUBLIC", "FUNCTIONAL" ]
+		"domainTags": [ "WAITING", "PUBLIC", "FUNCTIONAL" ],
+		"spotProperties": [ "Public", "Quiet", "Functional" ],
+		"timeSpecificProperties": {
+			"Morning": [ "QuietMorning" ],
+			"Afternoon": [ "Busy" ]
+		}
 	},
 	{
 		"id": "charts_room",
@@ -201,7 +292,12 @@
 		"initialState": "Detailed maps cover every wall. Navigation instruments and route schedules fill the shelves.",
 		"locationId": "harbor_office",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-		"domainTags": [ "NAVIGATION", "REFERENCE", "RESTRICTED" ]
+		"domainTags": [ "NAVIGATION", "REFERENCE", "RESTRICTED" ],
+		"spotProperties": [ "Private", "Professional", "Restricted", "Organized" ],
+		"timeSpecificProperties": {
+			"Morning": [ "WellLit" ],
+			"Evening": [ "Shadowy" ]
+		}
 	},
 	{
 		"id": "dock_view",
@@ -210,7 +306,13 @@
 		"initialState": "Through the window, boats bob at their moorings. River traffic flows past in both directions.",
 		"locationId": "harbor_office",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-		"domainTags": [ "OBSERVATION", "OVERSIGHT", "VANTAGE" ]
+		"domainTags": [ "OBSERVATION", "OVERSIGHT", "VANTAGE" ],
+		"spotProperties": [ "ViewsDocks", "Elevated", "WellLit" ],
+		"timeSpecificProperties": {
+			"Morning": [ "ViewsCommerce" ],
+			"Afternoon": [ "ViewsTransport" ],
+			"Evening": [ "ViewsRiver", "Peaceful" ]
+		}
 	},
 	{
 		"id": "ferry_dock",
@@ -219,6 +321,12 @@
 		"initialState": "The ferry bobs at the dock. Passengers wait with their belongings while the ferryman prepares.",
 		"locationId": "city_gates",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-		"domainTags": [ "TRANSPORT", "WATER", "CROSSING" ]
+		"domainTags": [ "TRANSPORT", "WATER", "CROSSING" ],
+		"spotProperties": [ "Public", "TransitHub", "ViewsRiver", "Exposed" ],
+		"timeSpecificProperties": {
+			"Morning": [ "Busy", "WellLit" ],
+			"Afternoon": [ "Crowded" ],
+			"Evening": [ "Quiet", "Peaceful" ]
+		}
 	}
 ]

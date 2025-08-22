@@ -37,8 +37,20 @@
     border: 1px solid #c4a684;
     border-radius: 3px;
     padding: 6px 10px;
-    white-space: nowrap;
     font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.obligation-action {
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.obligation-time {
+    font-size: 11px;
+    color: #8b7355;
 }
 
 .obligation-item.critical {

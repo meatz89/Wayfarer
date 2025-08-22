@@ -7,8 +7,8 @@ public class RouteDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string Origin { get; set; }
-    public string Destination { get; set; }
+    public string OriginLocationSpot { get; set; }
+    public string DestinationLocationSpot { get; set; }
     public string Method { get; set; }
     public int BaseCoinCost { get; set; }
     public int BaseStaminaCost { get; set; }

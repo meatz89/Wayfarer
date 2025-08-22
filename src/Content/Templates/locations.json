@@ -10,6 +10,7 @@
 			"night": [ "DARK", "QUIET", "PRIVATE" ]
 		},
 		"domainTags": [ "HOME", "REST", "PRIVATE" ],
+		"travelHubSpotId": "office_desk",
 		"locationSpots": [ "your_room", "office_desk", "window_view" ],
 		"connectedTo": [ "market_square" ],
 		"socialExpectation": "Any",
@@ -33,6 +34,7 @@
 			"night": [ "DARK", "QUIET", "URBAN" ]
 		},
 		"domainTags": [ "COMMERCE", "SOCIAL", "PUBLIC" ],
+		"travelHubSpotId": "central_fountain",
 		"locationSpots": [ "central_fountain", "marcus_stall", "north_entrance" ],
 		"connectedTo": [ "courier_office", "copper_kettle_tavern", "noble_district", "merchant_row", "city_gates" ],
 		"socialExpectation": "Any",
@@ -56,6 +58,7 @@
 			"night": [ "DIM", "QUIET", "COZY" ]
 		},
 		"domainTags": [ "SOCIAL", "COMMERCE", "REST", "CROSSROADS" ],
+		"travelHubSpotId": "main_hall",
 		"locationSpots": [ "main_hall", "bar_counter", "corner_table", "upstairs_room" ],
 		"connectedTo": [ "market_square" ],
 		"socialExpectation": "Any",
@@ -79,6 +82,7 @@
 			"night": [ "DARK", "GUARDED", "WEALTHY" ]
 		},
 		"domainTags": [ "NOBLE", "WEALTH", "EXCLUSIVE" ],
+		"travelHubSpotId": "aldwin_manor",
 		"locationSpots": [ "aldwin_manor", "blackwood_estate" ],
 		"connectedTo": [ "market_square" ],
 		"socialExpectation": "Noble",
@@ -102,6 +106,7 @@
 			"night": [ "DARK", "CLOSED", "COMMERCIAL" ]
 		},
 		"domainTags": [ "COMMERCE", "TRADE", "SHOPPING" ],
+		"travelHubSpotId": "shops",
 		"locationSpots": [ "shops" ],
 		"connectedTo": [ "market_square" ],
 		"socialExpectation": "Any",
@@ -125,6 +130,7 @@
 			"night": [ "DARK", "GUARDED", "EDGE" ]
 		},
 		"domainTags": [ "TRAVEL", "EDGE", "TRANSITION" ],
+		"travelHubSpotId": "gate_entrance",
 		"locationSpots": [ "gate_entrance", "traveler_rest" ],
 		"connectedTo": [ "market_square", "merchant_row" ],
 		"socialExpectation": "Any",
@@ -148,6 +154,7 @@
 			"night": [ "DARK", "DANGEROUS", "NATURAL" ]
 		},
 		"domainTags": [ "TRAVEL", "NATURE", "ISOLATED" ],
+		"travelHubSpotId": "path_junction",
 		"locationSpots": [ "willow_bend", "river_crossing", "path_junction" ],
 		"connectedTo": [ "market_square", "harbor_office", "city_gates" ],
 		"socialExpectation": "Any",
@@ -171,6 +178,7 @@
 			"night": [ "DARK", "CLOSED", "OFFICIAL" ]
 		},
 		"domainTags": [ "TRANSPORT", "OFFICIAL", "COMMERCE" ],
+		"travelHubSpotId": "main_desk",
 		"locationSpots": [ "main_desk", "waiting_area", "charts_room", "dock_view" ],
 		"connectedTo": [ "riverside_path" ],
 		"socialExpectation": "Any",

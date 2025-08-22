@@ -56,6 +56,7 @@ public class LocationFactory
         List<string> connectedLocationIds,
         List<string> locationSpotIds,
         List<string> domainTags,
+        string travelHubSpotId = null,
         Dictionary<TimeBlocks, List<string>> environmentalProperties = null,
         Dictionary<TimeBlocks, List<Professions>> availableProfessionsByTime = null,
         int tier = 1)
@@ -71,6 +72,7 @@ public class LocationFactory
             ConnectedLocationIds = connectedLocationIds ?? new List<string>(),
             LocationSpotIds = locationSpotIds ?? new List<string>(),
             DomainTags = domainTags ?? new List<string>(),
+            TravelHubSpotId = travelHubSpotId,
             Tier = tier
         };
 

@@ -107,26 +107,30 @@ public partial class LocationScreen : ComponentBase
 
     private async Task TravelTo(RouteOptionViewModel route)
     {
+        Console.WriteLine($"[LocationScreen.TravelTo] Starting travel to {route.Destination}");
+        
         // Routes represent actual inter-location travel paths
         if (string.IsNullOrEmpty(route.RouteId))
         {
-            Console.WriteLine($"[LocationScreen] Route ID missing for travel to {route.Destination}");
+            Console.WriteLine($"[LocationScreen.TravelTo] ERROR: Route ID missing for travel to {route.Destination}");
             return;
         }
 
+        Console.WriteLine($"[LocationScreen.TravelTo] Using RouteId: {route.RouteId}");
+        
         // Use TravelIntent for inter-location movement
         TravelIntent travelIntent = new TravelIntent(route.RouteId);
         bool success = await GameFacade.ExecuteIntent(travelIntent);
 
         if (success)
         {
-            Console.WriteLine($"[LocationScreen] Successfully traveled to {route.Destination}");
+            Console.WriteLine($"[LocationScreen.TravelTo] Successfully traveled to {route.Destination}");
             // Reload location to show new location
             await LoadLocation();
         }
         else
         {
-            Console.WriteLine($"[LocationScreen] Failed to travel to {route.Destination}");
+            Console.WriteLine($"[LocationScreen.TravelTo] Failed to travel to {route.Destination}");
         }
 
         await HandleActionExecuted();

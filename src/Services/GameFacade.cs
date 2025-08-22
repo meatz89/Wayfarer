@@ -1560,7 +1560,6 @@ public class GameFacade
             _messageSystem.AddSystemMessage("Route not found", SystemMessageTypes.Danger);
             return false;
         }
-
         // Check if route is discovered
         if (!route.IsDiscovered)
         {
@@ -1596,27 +1595,37 @@ public class GameFacade
         player.SpendMoney(route.CoinCost);
         ProcessTimeAdvancement(timeCost);
 
-        // Move to destination
-        Location destination = _locationRepository.GetLocation(route.Destination);
+        // Get the destination spot
+        LocationSpot targetSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == route.DestinationLocationSpot);
+        if (targetSpot == null)
+        {
+            _messageSystem.AddSystemMessage($"Destination spot '{route.DestinationLocationSpot}' not found", SystemMessageTypes.Danger);
+            return false;
+        }
+        
+        // Get the location from the spot
+        Location destination = _locationRepository.GetLocation(targetSpot.LocationId);
         if (destination == null)
         {
-            _messageSystem.AddSystemMessage($"Destination '{route.Destination}' not found", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"Destination location '{targetSpot.LocationId}' not found", SystemMessageTypes.Danger);
             return false;
         }
-
-        List<LocationSpot> destinationSpots = _locationRepository.GetSpotsForLocation(destination.Id);
-        if (!destinationSpots.Any())
+        
+        // Use the travel hub spot if specified, otherwise use the route's destination spot
+        if (!string.IsNullOrEmpty(destination.TravelHubSpotId))
         {
-            _messageSystem.AddSystemMessage($"No spots found at destination '{destination.Name}'", SystemMessageTypes.Danger);
-            return false;
+            LocationSpot hubSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == destination.TravelHubSpotId);
+            if (hubSpot != null)
+            {
+                targetSpot = hubSpot;
+            }
         }
-
-        _locationRepository.SetCurrentLocation(destination, destinationSpots.First());
+        
+        _locationRepository.SetCurrentLocation(destination, targetSpot);
         _messageSystem.AddSystemMessage($"Traveled to {destination.Name}", SystemMessageTypes.Success);
 
         // Record the visit
         _locationRepository.RecordLocationVisit(destination.Id);
-
         return true;
     }
 

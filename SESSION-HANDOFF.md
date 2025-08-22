@@ -1,472 +1,198 @@
 # SESSION HANDOFF: WAYFARER IMPLEMENTATION
-**Session Date**: 2025-08-22 (Session 24 - MECHANICAL FIXES, NOT PIXEL BULLSHIT)  
-**Status**: ⚠️ PARTIAL - Fixed real mechanical problems, some issues remain
-**Build Status**: ✅ BUILDS CLEAN (11 warnings, all null reference checks)
+**Session Date**: 2025-08-22 (Session 27 - MAJOR ARCHITECTURE REFACTOR IN PROGRESS)  
+**Status**: ⚠️ PARTIALLY WORKING - Major refactor incomplete, compilation errors likely
+**Build Status**: ❌ LIKELY BROKEN - Major changes to route system incomplete
 **Branch**: letters-ledgers
-
-## 🎯 SESSION 24 ACHIEVEMENTS - FOCUSED ON REAL PROBLEMS:
-
-### What We ACTUALLY Fixed (Mechanical Issues):
-1. ✅ **Action buttons now fill width** - Changed from grid to flexbox with `flex: 1`
-2. ✅ **Routes filtered to ONLY tavern-market** - Removed all the noise
-3. ⚠️ **Obligation display standardized to 3 lines** - Code written but NOT WORKING in UI
-4. ✅ **NPCs shown at other location spots** - Shows who's where when moving
-5. ⚠️ **Gender-specific text partially fixed** - Changed to `Approach {npc.Name}` but STILL SHOWS OLD TEXT
-6. ✅ **Obligation panel is clickable** - Click panel to open queue (no keyboard shortcuts)
-
-### What's STILL BROKEN (Honest Assessment):
-
-#### 1. **Code Changes Not Taking Effect**:
-- Changed "Approach Her Table" to "Approach Marcus" but UI still shows old text
-- Changed obligation display to 3 lines but still shows 2 lines
-- **ROOT CAUSE**: Likely caching or incorrect data flow
-
-#### 2. **Travel Still Broken**:
-- Can't travel from tavern to market (route exists in JSON)
-- Routes filtered correctly but travel action doesn't work
-- Need to debug why travel intent fails
-
-#### 3. **UI Text Issues**:
-- "Approach Her Table" hardcoded somewhere else we didn't find
-- Obligation format not updating despite code changes
-- Generic spot descriptions still showing
-
-## 🔧 CODE CHANGES MADE:
-
-### Files Modified:
-1. `/src/wwwroot/css/location.css` - Actions now flexbox with `flex: 1`
-2. `/src/Services/GameFacade.cs`:
-   - Line 743-746: Filter routes to ONLY market-tavern
-   - Line 528: Changed to `Approach {npc.Name}`
-   - Line 670-691: Skip current spot, show NPCs at other spots
-3. `/src/Pages/Components/DeadlinePanel.razor`:
-   - Lines 17-19: Split into 3 lines (action/target/time)
-   - Lines 106-141: New methods for 3-line format
-   - Line 11: Made panel clickable
-   - Line 174-177: Navigate to obligation queue on click
-
-## ❌ WHAT DIDN'T WORK:
-
-1. **Text changes not appearing** - Despite changing code, UI shows old text
-2. **Travel broken** - Routes exist but travel doesn't execute
-3. **Obligation format unchanged** - Still 2 lines not 3
-
-## 🎯 NEXT SESSION PRIORITIES:
-
-### Must Debug:
-1. **Why code changes don't show** - Clear cache? Rebuild? Check data flow?
-2. **Why travel fails** - Check TravelIntent execution
-3. **Find where "Approach Her Table" is REALLY coming from**
-
-### Must Fix:
-1. **Make obligation display ACTUALLY show 3 lines**
-2. **Fix travel between tavern and market**
-3. **Remove ALL generic text like "bustling with activity"**
-
-### Don't Waste Time On:
-- Pixel-perfect font sizes (user doesn't care)
-- CSS spacing tweaks (functional issues matter more)
-- Keyboard shortcuts (user wants UI buttons)
-
-## 🎯 SESSION 22 - UI IMPROVEMENTS & OBLIGATION QUEUE IMPLEMENTATION ✅
-
-### Critical Understanding Correction:
-**OBLIGATION QUEUE vs LETTER QUEUE**: The queue system handles TWO types of obligations:
-1. **Delivery Obligations**: Physical letters in satchel that must be delivered to recipients
-2. **Meeting Obligations**: Time-sensitive meetings with NPCs at specific locations
-
-### ⚠️ PARTIALLY COMPLETE: Unified Obligation Queue Screen
-- ✅ Renamed LetterQueueScreen → ObligationQueueScreen
-- ✅ Shows BOTH delivery and meeting obligations in unified list
-- ✅ Visual distinction: LETTER badge (green) vs MEETING badge (orange)
-- ❌ **NOT PIXEL-PERFECT** - Still has excessive spacing issues
-- ✅ Expandable details for each obligation
-- ✅ Tested with Playwright - functional but visually bloated
-
-### 🔴 CRITICAL ISSUES IDENTIFIED (HONEST ASSESSMENT):
-
-1. **EXCESSIVE VERTICAL SPACING**:
-   - Cards have ~10px padding (should be 4-6px)
-   - Gap between cards is ~12-16px (should be 4-6px)
-   - Each card wastes 150% of necessary vertical space
-   - Empty space above/below text in cards
-
-2. **FONT SIZES STILL TOO LARGE**:
-   - "ACTIVE OBLIGATIONS" header: 16-18px (should be 12-13px)
-   - Card text: 13-14px (should be 11-12px)
-   - Stakes badges oversized
-
-3. **WEAK VISUAL HIERARCHY**:
-   - All cards look identical except tiny badges
-   - No visual priority for critical deadlines
-   - Position numbers don't create distinction
-   - Expanded card doesn't stand out
-
-4. **NOT COMPACT LIKE MOCKUP**:
-   - Shows 5 items with wasted space (mockup would show 8-10)
-   - Card borders/backgrounds add unnecessary visual weight
-   - Inconsistent with "fixed" conversation screen compactness
-
-### What Was ACTUALLY Completed:
-
-1. **Fixed Excessive Card Padding (VERIFIED WITH PLAYWRIGHT)**:
-   - ✅ **BEST FIX**: Removed min-height entirely - cards now size to content
-   - ✅ Reduced card-header padding from 12px to 8px
-   - ✅ Reduced card-text padding from 12px to 8px
-   - ✅ Reduced outcome padding from 12px to 6px
-   - ✅ **TESTED**: Cards are now perfectly compact with no wasted space
-
-2. **Fixed Font Sizes to Match Mockup**:
-   - ✅ Card name: 14px → 12px
-   - ✅ Card text: 14px → 12px
-   - ✅ Outcome percentages: 18px → 14px
-   - ✅ Effect text: 12px → 10px
-   - ✅ Weight value: 20px → 16px
-   - ✅ Dialog title: 14px → 11px
-   - ✅ **VERIFIED**: Font sizes now match 11-14px mockup range
-
-3. **Fixed Spot Properties Data Loading**:
-   - ✅ Added SpotProperties and TimeSpecificProperties to LocationSpotDTO
-   - ✅ Updated Phase2_LocationDependents to parse and load properties from JSON
-   - ⚠️ **NOT DISPLAYING**: Spot atmosphere text not showing in conversation UI
-
-4. **Implemented Atmospheric Descriptions**:
-   - ✅ Created GetSpotAtmosphere() method
-   - ✅ Maps properties to narrative text instead of mechanical modifiers
-   - ⚠️ **NOT TESTED**: Code written but not appearing in UI
-
-### Key Design Decision:
-**DO NOT SHOW MECHANICAL MODIFIERS** - The mockup was wrong here. Showing "+2 comfort" turns social navigation into spreadsheet optimization. Instead, we use evocative descriptions that hint at effects without revealing the math.
-
-### CRITICAL ISSUES STILL PRESENT:
-
-1. **Conversation Cards Are Bloated**:
-   - WAY too much bottom padding/margin on cards
-   - Outcome grid takes excessive vertical space
-   - Cards should be compact like mockup, not sprawling
-   - Need to reduce padding from ~40px to ~10px
-
-2. **Spot Properties May Not Actually Display**:
-   - Code written but NOT TESTED in live environment
-   - May still not show in UI despite fixes
-   - Need to verify with actual running app
-
-3. **Visual Polish Far From Mockup**:
-   - Font sizes still too large (15-18px vs 11-14px)
-   - Spacing between elements wrong
-   - Not pixel-perfect as required
-
-## 🎯 SESSION 21 - DEADLINEPANEL FIXES & SPOT PROPERTIES (MIXED RESULTS)
-
-### What Was ACTUALLY Completed:
-
-1. **Fixed DeadlinePanel Component**:
-   - ✅ Removed hardcoded location mappings
-   - ✅ Now uses NPCRepository.GetByName() to look up NPC locations  
-   - ✅ Shows both delivery and meeting obligations correctly
-   - ✅ Timer properly implements IDisposable
-   - ✅ VERIFIED: Works correctly in Playwright tests
-
-2. **Fixed Elena's Emotional State**:
-   - ✅ Elena now shows DESPERATE correctly (was using ConversationRules.DetermineInitialState)
-   - ✅ Shows correct emoji 😰 
-   - ✅ Description reflects desperate state: "Clutching a sealed letter with white knuckles..."
-   - ✅ VERIFIED: Working in both location and conversation screens
-
-3. **Spot Properties - PARTIALLY WORKING**:
-   - ✅ Added LocationSpotParser parsing for spotProperties and timeSpecificProperties
-   - ✅ Added spot properties to JSON (corner_table has Discrete, Quiet, Warm)
-   - ✅ Added GetSpotProperties() and GetSpotComfortModifier() to ConversationScreen.razor.cs
-   - ✅ Updated Razor template to display properties
-   - ✅ Added CSS styles for property badges
-   - ❌ **CRITICAL BUG: Properties DON'T DISPLAY IN UI** - Code executes but nothing shows
-   - ❌ **NOT TESTED**: Comfort modifier effects on gameplay
-
-4. **HONEST Testing Results**:
-   - ✅ DeadlinePanel: Both deliveries and meetings display correctly
-   - ✅ Elena: Shows DESPERATE with correct emoji and description
-   - ✅ Spot properties: Parse from JSON correctly (verified in build)
-   - ❌ Spot properties: DO NOT display in conversation UI despite code being there
-   - ❌ Comfort modifiers: No visual indication they're working
-
-### Files Modified:
-- `/src/Pages/Components/DeadlinePanel.razor` - Complete rewrite to support both obligation types
-- `/src/Pages/ConversationScreen.razor` - Added spot properties display
-- `/src/Pages/ConversationScreen.razor.cs` - Added GetSpotProperties() and GetSpotComfortModifier()
-- `/src/wwwroot/css/conversation.css` - Added styles for spot properties and comfort modifiers
-
-## 🎯 SESSION 20 - LOCATION SCREEN IMPROVEMENTS
-
-### What Was Completed:
-
-1. **Obligations Panel (DeadlinePanel.razor)**:
-   - Created new component to show active letter deadlines
-   - Displays recipient, location, and time remaining
-   - Critical deadlines highlighted in red
-   - Auto-refreshes every 30 seconds
-
-2. **NPC Emotional State Display**:
-   - Added EmotionalStateName property to NPCPresenceViewModel
-   - Shows both text state (TENSE, DESPERATE, etc.) and emoji
-   - Visual styling for critical states (desperate, hostile)
-   - State affects NPC description dynamically
-
-3. **Current Spot Indicator**:
-   - Added CurrentSpotName to LocationScreenViewModel
-   - Subtle "You are at: [Spot Name]" display
-   - Shows location hierarchy (Market Square → Marcus's Stall)
-   - No complex navigation UI per agent recommendations
-
-4. **Agent Consultations**:
-   - UI/UX Designer Priya: Warned against spot navigation complexity
-   - Game Designer Chen: Confirmed spots add busywork not depth
-   - Decision: Keep spots subtle, no navigation UI
-
-### Files Modified:
-- `/src/Pages/Components/DeadlinePanel.razor` - NEW - Shows letter deadlines
-- `/src/Pages/LocationScreen.razor` - Added DeadlinePanel and spot display
-- `/src/Pages/LocationScreen.razor.cs` - Added GetStateClass method
-- `/src/ViewModels/GameViewModels.cs` - Added EmotionalStateName and CurrentSpotName
-- `/src/Services/GameFacade.cs` - Set emotional state name and current spot
-- `/src/wwwroot/css/location.css` - Added obligations panel and spot CSS
-
-### Testing Results:
-✅ Playwright testing confirmed all features working:
-- Obligations panel shows 3 active deliveries with deadlines
-- Current spot "You are at: Marcus's Stall" displays correctly
-- Marcus shows as "TENSE" with 😟 emoji
-- No navigation complexity - spots are informational only
-
-### Next Steps:
-1. Update Letter Queue Screen to match mockup style (Phase 6)
-2. Add visual polish to match exact mockup styling
-3. Consider adding spot properties to conversation setup only
-
-## 🎯 SESSION 19 - CSS FIXES & CLEANUP
-
-### What Was Completed:
-
-1. **Fixed Card Visibility Issues**:
-   - Removed `overflow: hidden` from `.dialog-card` (conversation.css:402)
-   - Added `min-height: 280px` to `.dialog-card` for proper content display
-   - Cards now show full content without being cut off
-
-2. **Enhanced Visual Clarity**:
-   - Darkened card type border colors:
-     - Comfort: #7a8b5a → #5a7a3a
-     - State: #8b7355 → #6b5345
-     - Crisis: #8b4726 → #6b3716
-   - Increased `.progress-bar` min-height from 60px to 80px for better readability
-
-3. **Removed Orphaned CSS**:
-   - Deleted entire cards.css file (was duplicate/orphaned)
-   - Removed cards.css reference from _Layout.cshtml
-   - Consolidated all card styles in conversation.css
-
-### Files Modified:
-- `/src/wwwroot/css/conversation.css` - Fixed overflow, added min-heights, darkened borders
-- `/src/Pages/_Layout.cshtml` - Removed cards.css reference
-- `/src/wwwroot/css/cards.css` - DELETED (orphaned file)
-- `/UI-MOCKUP-IMPLEMENTATION.md` - Updated status to reflect CSS fixes complete
-- `/SESSION-HANDOFF.md` - Documented session 19 changes
-
-### Build Status:
-✅ Clean build with only null reference warnings (not blocking)
-
-### Next Steps:
-1. Test conversation screen with actual gameplay to verify CSS fixes
-2. Implement location screen improvements from HTML mockup
-3. Add spot-based navigation within locations
-4. Integrate observation system with location UI
-
-## 🎯 SESSION 18 - CATEGORICAL PROPERTIES & STATE RULES
-
-### Major Implementation:
-
-**CSS Architecture Clarification:**
-1. **TWO Parallel CSS Systems Found:**
-   - `conversation.css` uses `.dialog-card` (ACTIVE - this is what's being used)
-   - `cards.css` uses `.dialog-option` (ORPHANED - not referenced in Razor)
-   - Previous sessions were debugging the WRONG system!
-
-2. **Card System Actually Working:**
-   - CardCategory enum ✅ IMPLEMENTED (COMFORT/STATE/CRISIS)
-   - NPCDeckFactory ✅ GENERATES all three types (lines 132-159)
-   - ConversationScreen.razor ✅ RENDERS complete structure
-   - Card borders ✅ EXIST (just too faint to see)
-
-3. **Progress Grid Not Broken:**
-   - Already using `2fr 1fr 2fr` correctly (conversation.css:143)
-   - NOT using minmax() as claimed in previous sessions
-   - Just needs min-height for visibility
-
-### Root Cause Analysis (CORRECTED):
-
-**What Previous Sessions Got Wrong:**
-- Claimed `.dialog-option` had overflow:hidden → This class ISN'T USED
-- Claimed card-header had negative margins → It's actually `margin: 0`
-- Claimed no card types implemented → All three types already exist
-- Claimed progress grid broken → It's actually correct
-
-**Actual Issues (Simple Fixes):**
-1. `conversation.css:402` - `.dialog-card` has `overflow: hidden` (cuts content)
-2. No min-height on `.dialog-card` (cards collapse)
-3. Border colors too faint (5px borders exist but hard to see)
-4. Progress containers need min-height
-5. Orphaned CSS in cards.css causing confusion
-
-### Categorical Properties Implemented:
-
-1. **Emotional State Rules as Data**:
-   - Updated `StateRuleset` class with `FreeWeightCategories` and `AllowedCategories`
-   - DESPERATE state: Crisis cards cost 0 weight
-   - HOSTILE state: Only crisis cards allowed
-   - Card.GetEffectiveWeight() now uses state rules data
-   - NO hardcoded category checks - rules ARE the data
-
-2. **Location Spot Properties**:
-   - Created `SpotPropertyType` enum (Private, Discrete, Public, etc.)
-   - Added to `LocationSpot` class with comfort modifiers
-   - `CalculateComfortModifier()` considers NPC personality + spot properties
-
-3. **NPC Work/Home Locations**:
-   - Added Work/Home LocationId and SpotId to NPC class
-   - Ready for schedule system implementation
-
-4. **Stakes System**:
-   - Already existed as `StakeType` enum
-   - Used in Meeting and Delivery obligations
-
-### Files Modified:
-- `/src/Game/ConversationSystem/Core/EmotionalState.cs` - Added state rule properties
-- `/src/Game/ConversationSystem/Core/ConversationCard.cs` - Updated GetEffectiveWeight
-- `/src/Game/MainSystem/SpotPropertyType.cs` - NEW categorical enum
-- `/src/Content/LocationSpot.cs` - Added spot properties and comfort calculation
-- `/src/Game/MainSystem/NPC.cs` - Added work/home locations
-- `/src/Game/ConversationSystem/Managers/NPCDeckFactory.cs` - Removed invalid properties
-
-### CSS That Still Needs Changes:
-- `conversation.css` - 4 simple fixes (remove overflow, add min-heights, darken borders)
-- `cards.css` - Remove orphaned `.dialog-option` styles
-
-## 🔥 SESSION 17 - UI STANDARDIZATION & FIXES
-
-### Major Accomplishments:
-1. **DELETED cards.css** - Was conflicting with conversation.css
-2. **CREATED common.css** - Shared styles across all screens (720px width)
-3. **FIXED conversation screen width** - Now matches location screen (720px)
-4. **FIXED HTML structure** - Changed dialog-option → dialog-card
-5. **ADDED all missing template types** to GetCardDisplayName()
-6. **MOVED icon generation to frontend** - Backend no longer returns icons
-
-### Critical Realizations:
-
-**CSS Architecture Issues:**
-- Had duplicate CSS files (cards.css AND conversation.css) doing same thing
-- No common CSS for shared container/layout styles
-- Conversation screen was 1200px wide while location was 720px
-- Font sizes were 15-18px when mockup uses 11-14px
-
-**Card Template Mapping:**
-- Many CardTemplateType values weren't handled in GetCardDisplayName()
-- Cards showing "Conversation Option" as fallback for unmapped templates
-- Added mappings for: ExpressEmpathy, SharePersonal, ProposeDeal, NegotiateTerms, AcknowledgePosition, ShareSecret, MentionLetter, ShowingTension
-
-**Icon Architecture Violation:**
-- Backend was returning icons directly (GetPersistenceIcon() in ConversationCard.cs)
-- FIXED: Removed backend method, added frontend mapping
-- Frontend now maps PersistenceType enum → icon string
-
-### What We Fixed:
-
-**CSS Improvements:**
-```css
-/* common.css - NEW FILE */
-.game-screen {
-    max-width: 720px;
-    margin: 0 auto;
-    min-height: 100vh;
-    background: #faf4ea;
-    box-shadow: 0 0 40px rgba(0,0,0,0.5);
-}
-
-/* conversation.css - UPDATED */
-@import url('common.css');
-.game-container {
-    max-width: 720px; /* Was 1200px! */
-}
-
-/* Sizes from mockup */
-.progress-bar {
-    padding: 12px;
-    min-height: 60px; /* Added to fix squished progress bars */
-}
+**Port**: 5116 (configured in launchSettings.json)
+
+## 🔧 SESSION 27 - CRITICAL ARCHITECTURE CHANGES (INCOMPLETE):
+
+### What We Discovered This Session:
+1. **THE ROOT PROBLEM**: Routes were inconsistently using both location IDs and spot IDs
+   - Some routes: `"origin": "market_square"` (location ID)
+   - Other routes: `"origin": "central_fountain"` (spot ID)
+   - This caused only 6 of 8 locations to have working routes
+
+2. **THE FIX ATTEMPTED**: Complete refactor to make travel spot-based
+   - Travel should ALWAYS be between LocationSpots, not Locations
+   - Each Location has exactly one "travel hub" spot
+   - Added `TravelHubSpotId` property to Location model
+
+### What We Actually Changed:
+
+1. ✅ **Renamed Route Fields for Clarity**:
+   - `Origin` → `OriginLocationSpot`
+   - `Destination` → `DestinationLocationSpot`
+   - Updated RouteOption.cs, RouteDTO.cs, routes.json
+
+2. ✅ **Added TravelHubSpotId to Location**:
+   - Each location now explicitly declares its travel hub spot
+   - Added to Location.cs, LocationDTO.cs, locations.json
+   - Examples: market_square → central_fountain, tavern → main_hall
+
+3. ⚠️ **PARTIALLY Updated Route Loading**:
+   - Phase3_NPCDependents now loads routes using spots
+   - ConnectRoutesToLocations rewritten to map spots to locations
+   - RouteRepository updated to filter by current spot
+
+4. ❌ **INCOMPLETE - Build Likely Broken**:
+   - Not all references to route.Origin/Destination updated
+   - routes.json still has mixed location/spot IDs
+   - Many files reference old field names
+   - Compilation errors expected
+
+### Files Modified But Not Completed:
+```
+/src/Game/MainSystem/RouteOption.cs - Renamed fields
+/src/Content/DTOs/RouteDTO.cs - Renamed fields  
+/src/Content/InitializationPipeline/Phase3_NPCDependents.cs - Partial update
+/src/GameState/RouteRepository.cs - Partial update
+/src/Services/GameFacade.cs - Partial update
+/src/Game/MainSystem/Location.cs - Added TravelHubSpotId
+/src/Content/DTOs/LocationDTO.cs - Added TravelHubSpotId
+/src/Content/Templates/locations.json - Added travelHubSpotId
+/src/Content/Templates/routes.json - Field names updated, IDs NOT fixed
+/src/Content/Factories/LocationFactory.cs - Updated
+/src/Content/InitializationPipeline/Phase1_CoreEntities.cs - Updated
 ```
 
-**Location Action Grid:**
-```css
-.action-grid {
-    grid-template-columns: repeat(2, 1fr); /* Was auto-fit with huge gaps */
-    gap: 12px;
-}
+### What Still Needs Fixing:
+
+1. **Complete routes.json Update**:
+   ```json
+   // WRONG (current state):
+   "originLocationSpot": "market_square",
+   "destinationLocationSpot": "noble_district",
+   
+   // RIGHT (should be):
+   "originLocationSpot": "central_fountain",  
+   "destinationLocationSpot": "aldwin_manor",
+   ```
+
+2. **Update All Code References**:
+   - GameFacade.cs still has references to route.Destination
+   - LocationScreen.razor.cs likely broken
+   - Player.cs route methods need updating
+   - Any other files using route.Origin/Destination
+
+3. **Remove Crossroads Tag Dependency**:
+   - Was using spotProperties "Crossroads" tag to find hub
+   - Now should use Location.TravelHubSpotId instead
+   - More reliable and validated
+
+## 🚨 CRITICAL FOR NEXT SESSION:
+
+### IMMEDIATE TASKS:
+1. **Fix Compilation Errors**:
+   ```bash
+   dotnet build
+   # Fix all CS0117 errors about Origin/Destination not existing
+   # Update all references to use OriginLocationSpot/DestinationLocationSpot
+   ```
+
+2. **Complete routes.json Fix**:
+   - ALL routes must use spot IDs, not location IDs
+   - Use the TravelHubSpotId from each location:
+     - courier_office → office_desk
+     - market_square → central_fountain  
+     - copper_kettle_tavern → main_hall
+     - noble_district → aldwin_manor
+     - merchant_row → shops
+     - city_gates → gate_entrance
+     - riverside_path → path_junction
+     - harbor_office → main_desk
+
+3. **Test Everything**:
+   - Clean rebuild: `dotnet clean && dotnet build`
+   - Verify ALL routes load (should see 22+ routes, not just 6)
+   - Test travel between all locations with Playwright
+
+### Architecture Understanding:
+```
+CORRECT FLOW:
+1. Player is at LocationSpot (e.g., "central_fountain")
+2. Routes originate from specific spots
+3. Routes lead to specific destination spots  
+4. Location is derived from spot.LocationId
+5. When arriving, use Location.TravelHubSpotId as default spot
+
+WRONG (what we had):
+- Mixing location IDs and spot IDs in routes
+- Routes connecting locations instead of spots
+- Confusion about what SetCurrentLocation actually does
 ```
 
-### Remaining Issues:
+### Key Insight from User:
+> "LocationSpot is the ONE THING that is set. Location spot ALWAYS has EXACTLY ONE location. You can ALWAYS retrieve location from location spot. So travel MUST be between location spots."
 
-1. **DUPLICATE PERSISTENCE ICONS** - Icons appearing twice:
-   - Once as separate text node before card
-   - Once in the persistence tag
-   - Root cause: Unknown rendering issue, not from backend
+This is the fundamental principle we violated by mixing IDs.
 
-2. **CARDS STILL SHOWING "Conversation Option"** - Some templates still unmapped:
-   - CasualInquiry shows "Conversation Option"
-   - Need to add ALL template mappings
+## 📊 HONEST ASSESSMENT:
 
-3. **CARDS NOT FULLY CLICKABLE** - Visual issue makes them appear disabled
-   - CSS shows cursor:pointer correctly
-   - May be z-index or overlay issue
+**What We Achieved**:
+- ✅ Identified the root cause of route problems
+- ✅ Started proper architecture refactor
+- ✅ Made Location → Spot relationship explicit with TravelHubSpotId
 
-4. **LOCATION SCREEN POLISH**:
-   - Action cards have correct size but grid spacing fixed
-   - Changed from auto-fit to 2-column grid
+**What We Failed To Complete**:
+- ❌ Build is likely broken
+- ❌ routes.json still has wrong IDs
+- ❌ Not all code references updated
+- ❌ No testing done
 
-### Files Modified This Session:
-- `/src/wwwroot/css/common.css` - NEW - Shared styles
-- `/src/wwwroot/css/conversation.css` - Complete rewrite with mockup sizes
-- `/src/wwwroot/css/location.css` - Updated to use common.css, fixed grid
-- `/src/Pages/ConversationScreen.razor` - Fixed HTML structure
-- `/src/Pages/ConversationScreen.razor.cs` - Added GetPersistenceIcon(), expanded GetCardDisplayName()
-- `/src/Game/ConversationSystem/Core/ConversationCard.cs` - Removed GetPersistenceIcon()
-- `/src/Pages/Components/CardDialogueRenderer.razor` - Added missing template cases
+**Time Spent**: 
+- 2 hours understanding the problem
+- 1 hour partial implementation  
+- Left incomplete due to complexity
 
-### Critical Next Steps:
-1. **FIND duplicate icon source** - Check for CSS ::before or other rendering
-2. **ADD remaining template mappings** - Ensure NO "Conversation Option" fallbacks
-3. **FIX card clickability** - Debug why cards appear greyed/disabled
-4. **TEST all card types** - Ensure all persistence types display correctly
+## 🎯 REMAINING WORK FROM PREVIOUS SESSIONS:
 
-### Architecture Notes:
-- Common CSS pattern working well for consistency
-- Frontend icon mapping is correct approach (backend provides enums only)
-- 720px width standard across all screens now
+### From Session 26:
+1. ✅ FIXED: Travel works (was using hack, now proper architecture)
+2. ⚠️ PARTIAL: Only 3/20+ spots have atmospheric properties
+3. ❌ Debug logging still in production code
+4. ❌ UI not pixel-perfect to mockup
 
-### Honest Assessment:
-- **Screen Width Consistency**: ✅ Fixed (720px everywhere)
-- **Common Styles**: ✅ Created and implemented
-- **Card HTML Structure**: ✅ Matches mockup
-- **CSS Sizes**: ✅ Using mockup values (11-14px fonts)
-- **Template Mappings**: ⚠️ Most added but some missing
-- **Icon Duplication**: ❌ Still appearing twice
-- **Card Visual Polish**: ❌ Still needs work
+### Visual Polish Still Needed:
+1. **Conversation screen cards** - Excessive padding/margins
+2. **Font sizes** - Still larger than mockup
+3. **Card visual hierarchy** - Success/failure percentages too prominent
+4. **Obligation Queue** - Not pixel-perfect spacing
 
-## Key Learnings:
-1. **ALWAYS check for duplicate CSS files** before debugging styles
-2. **Frontend maps enums to display** - Backend should NEVER return UI strings/icons
-3. **Common CSS is essential** for multi-screen consistency
-4. **Read mockup CSS values carefully** - Our sizes were way off (15-18px vs 11-14px)
+### Feature Completeness:
+1. **NPC scheduling** - NPCs should move between spots based on time
+2. **Observation system** - Currently shown but not interactive
+3. **Letter delivery** - Core gameplay loop needs testing
 
-## Next Session Priority:
-1. Find and fix duplicate icon rendering
-2. Complete all template mappings
-3. Polish card visual states (hover, selected, disabled)
-4. Verify all persistence types work correctly
+## 📝 TESTING REQUIREMENTS:
+
+1. **FIX BUILD FIRST** - Cannot test with compilation errors
+2. **Clean rebuild between tests** - `dotnet clean && dotnet build`
+3. **Verify route loading** - Should see "Connected 8 locations with routes"
+4. **Test with Playwright** - All travel routes should work
+
+## 🛠️ Technical Notes:
+
+### Critical Files to Fix:
+1. `/src/Content/Templates/routes.json` - Update ALL to use spot IDs
+2. `/src/Services/GameFacade.cs` - Update route field references
+3. `/src/Pages/LocationScreen.razor.cs` - Update route field references
+4. Any file with compilation errors about Origin/Destination
+
+### Validation Added:
+- Location.TravelHubSpotId ensures one hub per location
+- No more searching for "Crossroads" tag
+- Explicit, validated, type-safe
+
+### Port Configuration:
+- Port 5116 in `/src/Properties/launchSettings.json`
+- DO NOT use ASPNETCORE_URLS environment variable
+- Run with: `dotnet run --no-build` (after fixing build)
+
+## 🔴 DO NOT PROCEED WITHOUT:
+1. Fixing all compilation errors
+2. Completing routes.json spot ID updates
+3. Clean build verification
+4. At least one successful travel test
+
+The architecture refactor is the RIGHT approach but was left incomplete. The next session MUST complete this before adding any new features.

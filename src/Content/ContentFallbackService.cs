@@ -126,13 +126,13 @@ public ContentFallbackReport ValidateAndPatchContent(
     // Validate route location references
     foreach (RouteOption route in routes)
     {
-        if (!string.IsNullOrEmpty(route.Origin))
+        if (!string.IsNullOrEmpty(route.OriginLocationSpot))
         {
-            GetOrCreateFallbackLocation(route.Origin);
+            GetOrCreateFallbackLocation(route.OriginLocationSpot);
         }
-        if (!string.IsNullOrEmpty(route.Destination))
+        if (!string.IsNullOrEmpty(route.DestinationLocationSpot))
         {
-            GetOrCreateFallbackLocation(route.Destination);
+            GetOrCreateFallbackLocation(route.DestinationLocationSpot);
         }
     }
 

@@ -124,48 +124,5 @@ public void AddKnownRoute(RouteOption route)
 
 
 
-
-
-public RouteOption GetSecretRoute()
-{
-    // Return a secret route this NPC knows
-    // In full implementation, would be based on NPC's knowledge
-    return new RouteOption
-    {
-        Id = $"secret_route_{Location}_{new Random().Next(1, 3)}",
-        Name = $"Secret path from {Location}",
-        Description = "A hidden route known only to locals",
-        Destination = "MarketSquare",
-        TravelTimeMinutes = 1,
-        Method = TravelMethods.Walking
-    };
-}
-
-public List<RouteOption> KnownRoutes()
-{
-    // Return list of routes this NPC knows
-    // In full implementation, would be based on NPC's profession and tier
-    return new List<RouteOption>
-    {
-        new RouteOption
-        {
-            Id = $"route_{Location}_common",
-            Name = $"Common route from {Location}",
-            Description = "The usual path",
-            Destination = "TownGate",
-            TravelTimeMinutes = 2,
-            Method = TravelMethods.Walking
-        },
-        new RouteOption
-        {
-            Id = $"route_{Location}_trade",
-            Name = $"Trade route from {Location}",
-            Description = "The merchant's path",
-            Destination = "MerchantQuarter",
-            TravelTimeMinutes = 3,
-            Method = TravelMethods.Carriage
-        }
-    };
-}
 }
 

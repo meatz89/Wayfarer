@@ -2,314 +2,319 @@
 
 ## Core Design Philosophy
 
-This system generates all narrative through mechanical causality and contextual AI interpretation. Every description, observation, and story element emerges from mechanical relationships, temporal states, and hierarchical world organization. The AI translates mechanical configurations into appropriate narrative, but the underlying system is purely deterministic.
+This system generates all narrative through mechanical card exchanges and resource management. NPCs are deck containers whose cards determine all possible interactions. Observations provide cards as conversation ammunition. Every mechanic has immediate, visible effects with no hidden state tracking.
 
-## World Hierarchy
+## Player Resources
 
-### Region (Thematic Container)
+The player manages these trackable resources:
+
+**Core Resources:**
+- `coins`: Integer (0-999) - Currency for exchanges and travel
+- `health`: Integer (0-100) - Physical condition, 0 = death
+- `hunger`: Integer (0-100) - Increases by 20 per time period, 100 = starving
+- `attention`: Integer (0-10) - Daily action points, refreshes each morning
+- `currentLocation`: Location ID - Where player currently is
+- `currentSpot`: Spot ID - Specific spot within location
+- `currentPeriod`: Enum (Morning/Midday/Afternoon/Evening/Night)
+
+**Token Resources:**
+- `trustTokens`: Integer - Affects patience with Trust-focused NPCs
+- `commerceTokens`: Integer - Improves set bonuses
+- `statusTokens`: Integer - Improves success rates
+- `shadowTokens`: Integer - Provides conversation advantages
+
+## Entity Definitions
+
+### NPC (Deck Container)
 
 **Properties:**
 - `id`: Unique identifier
-- `prosperityLevel`: Enum (Thriving/Stable/Declining/Desperate)
-- `authorityType`: Enum (Royal/Military/Merchant/Criminal/Religious)
-- `culturalTags`: List of strings (architectural style, customs, dress)
-- `currentEvents`: List of active event IDs
-- `basePriceModifier`: Integer percentage (affects all commerce)
-- `narrativeThemes`: List of strings for AI tone
+- `personalityType`: Enum (Devoted/Mercantile/Proud/Cunning/Steadfast)
+- `locationId`: String (where they permanently reside)
+- `spotId`: String (specific spot at location)
+- `exchangeDeck`: List of exchange cards (5-10 cards)
+- `conversationDeck`: List of conversation cards (20-25 cards)
+- `crisisDeck`: List of crisis cards (starts empty)
+- `basePatienceRange`: [min, max] integers (8-15 typically)
+- `primaryTokenType`: TokenTypes enum
+- `relationshipLevel`: Integer (0-10)
+- `narrativeTags`: List of strings for AI generation
+
+**Conversation Options:**
+Each NPC offers different conversation types based on state and decks:
+- Quick Exchange: If exchange deck has cards (0 attention)
+- Crisis Resolution: If crisis deck has cards (1 attention, 3 patience)
+- Standard Conversation: Always available (2 attention, 8 patience)
+- Deep Conversation: If relationship ≥ 3 (3 attention, 12 patience)
 
 **Implementation Notes:**
-Regions set the overall tone and economic reality. A Declining region with Military authority generates different narrative than a Thriving region with Merchant authority. These tags affect all AI-generated content within the region.
+NPCs don't move between locations. Their decks determine what interactions are possible. Crisis cards force crisis conversations until resolved. The same NPC becomes different puzzles based on deck state.
 
-### District (Neighborhood)
+### Card Types
+
+#### Exchange Card (Quick Trades)
+**Properties:**
+- `id`: Unique identifier
+- `cardType`: "Exchange"
+- `tokenType`: Enum (Trust/Commerce/Status/Shadow)
+- `cost`: Resource requirement
+- `reward`: Resource provided
+- `narrativeTags`: List of strings
+
+**Cost/Reward Structure:**
+- `resourceType`: Enum (Coins/Health/Hunger/Attention/Time)
+- `amount`: Integer or special value
+
+**Example Exchange Cards:**
+```
+Baker's Commerce: Cost: 2 coins → Reward: Hunger = 0
+Doctor's Commerce: Cost: 5 coins → Reward: Health +30
+Laborer's Trust: Cost: 3 attention → Reward: 8 coins
+Innkeeper's Commerce: Cost: 3 coins → Reward: Skip to Morning, Attention = 10
+```
+
+#### Conversation Card (Standard System)
+**Properties:**
+- `id`: Unique identifier
+- `cardType`: Enum (Comfort/State/Crisis)
+- `weight`: Integer (0-3 normal, 5+ crisis)
+- `tokenType`: Enum (Trust/Commerce/Status/Shadow)
+- `persistenceType`: Enum (Persistent/Opportunity/OneShot/Burden/Crisis)
+- `successEffect`: Comfort value or state transition
+- `failureEffect`: Reduced comfort or no change
+- `combineRestriction`: Enum (Combinable/SoloOnly)
+
+#### Observation Card (Player Ammunition)
+**Properties:**
+- `id`: Unique identifier
+- `cardType`: "Observation"
+- `weight`: Integer (typically 1-2)
+- `tokenType`: Enum (matches observation context)
+- `persistenceType`: Always "OneShot"
+- `conversationEffect`: Mechanical effect when played
+- `validTargets`: List of NPC types or specific NPCs
+- `narrativeTags`: List of strings
+
+**Example Observation Cards:**
+```
+"Merchant's Ledger": Weight 2, Commerce, +5 comfort with merchants
+"Guard Schedule": Weight 1, Shadow, Creates Open state with guards
+"Noble's Secret": Weight 3, Status, +8 comfort but adds Burden
+```
+
+### Observation (Knowledge Opportunity)
 
 **Properties:**
 - `id`: Unique identifier
-- `parentRegionId`: String
-- `wealthLevel`: Enum (Opulent/Wealthy/Modest/Poor/Destitute)
-- `populationDensity`: Enum (Packed/Crowded/Busy/Sparse/Empty)
-- `primaryFunction`: Enum (Residential/Commercial/Industrial/Administrative/Religious)
-- `dangerLevel`: Integer (0-5, affects encounter probability)
-- `architecturalTags`: List of strings
-- `districtTraits`: List of mechanical modifiers
-
-**District Trait Entry:**
-- `traitType`: Enum (GuardPresence/BlackMarket/SafeHaven/Lawless)
-- `intensity`: Integer (1-3)
-- `timeRestriction`: Time period or null
+- `locationId`: String (where observation available)
+- `spotId`: String or null (specific spot requirement)
+- `timePeriods`: List of periods when available
+- `attentionCost`: Integer (usually 1)
+- `observationCard`: Card player receives
+- `narrativeScene`: Description template for AI
 
 **Implementation Notes:**
-Districts create local flavor within regions. Wealth level affects NPC dress descriptions, available services, and building conditions. Population density affects crowd descriptions and observation availability. The AI uses these tags to generate appropriate atmosphere.
+Observations give players specific cards they can use in conversations. Each observation is available only during certain time periods at specific spots. Once taken, the observation is consumed for that day. The card received is added to the player's hand for use in any conversation.
 
-### Location (Actual Places)
+### Letter (Obligation Package)
+
+**Properties:**
+- `id`: Unique identifier
+- `senderNpcId`: String
+- `recipientNpcId`: String
+- `urgencyLevel`: Enum (Routine/Important/Urgent/Critical)
+- `deadlineHours`: Integer (based on urgency: Critical=2, Urgent=6, Important=12, Routine=24)
+- `coinReward`: Integer (higher for tighter deadlines)
+- `successEffect`: Deck modifications for sender/recipient
+- `failureEffect`: Relationship damage
+- `letterCategory`: Enum (Love/Business/Plea/Warning/Contract/News)
+
+**Deck Modification Structure:**
+- `targetNpcId`: String
+- `cardsToAdd`: List of cards to add to conversation deck
+- `cardsToRemove`: List of card IDs to remove
+- `crisisCardsToAdd`: List of crisis cards if failure
+
+**Implementation Notes:**
+Letters are generated through successful conversations reaching comfort thresholds. Delivery modifies NPC decks permanently, changing future conversations. Failed deliveries add burden cards to sender's deck.
+
+### Location (Spatial Container)
 
 **Properties:**
 - `id`: Unique identifier
 - `parentDistrictId`: String
 - `locationType`: Enum (Market/Tavern/Temple/Palace/Street/Square/Shop/Home)
-- `operatingSchedule`: List of time periods when accessible
-- `ownerNpcId`: String or null
-- `baseCapacity`: Integer (how many people fit)
 - `locationSpots`: List of spot IDs
-- `connectedRoutes`: List of route IDs
-- `mechanicalTraits`: List of traits
-- `ambienceTags`: List of strings per time period
+- `narrativeTags`: List of strings for AI description
 
-**Mechanical Trait Entry:**
-- `trait`: Enum (Public/Private/Sacred/Commercial/Dangerous/Safe/Loud/Quiet)
-- `timePeriods`: List of periods when active
+**Time-Based Availability:**
+- `periodSchedules`: List of period configurations
 
-**Time-Based Configuration:**
-- `timeSchedules`: List of schedule entries
-
-**Schedule Entry:**
-- `timePeriod`: Enum (Morning/Midday/Afternoon/Evening/Night/DeepNight)
-- `presentNpcs`: List of NPC IDs
+**Period Configuration:**
+- `timePeriod`: Enum
+- `availableNpcs`: List of NPC IDs present
+- `availableObservations`: List of observation IDs
 - `crowdLevel`: Enum (Empty/Sparse/Moderate/Busy/Packed)
-- `availableObservations`: List of observation templates
-- `atmosphereTags`: List of strings for this time period
 
-**Implementation Notes:**
-Locations change dramatically by time. A market is Packed at Morning with merchant NPCs and commerce observations, but Empty at Night with only guard NPCs and danger observations. The AI generates different descriptions for each time period using the atmospheric tags.
-
-### Location Spot (Interaction Points)
+### Location Spot (Interaction Point)
 
 **Properties:**
 - `id`: Unique identifier
 - `parentLocationId`: String
-- `spotType`: Enum (Table/Corner/Bar/Stage/Altar/Counter/Booth/Alcove)
-- `privacyLevel`: Enum (Exposed/Public/Discrete/Private/Hidden)
-- `capacity`: Integer (1-4 typically)
-- `comfortModifier`: Integer (-2 to +2, affects patience)
-- `specialProperties`: List of strings
-- `narrativeTags`: List of strings
+- `spotType`: Enum (Table/Corner/Bar/Stage/Altar/Counter/Booth/Alcove/Entrance)
+- `spotTraits`: List of traits
+- `capacity`: Integer (how many can occupy)
+- `comfortModifier`: Integer (-2 to +2, affects patience in conversations)
 
-**Special Property Examples:**
-- "OverhearsBarConversations"
-- "ViewsMainEntrance"
-- "NearFireplace"
-- "DarkCorner"
+**Spot Traits:**
+- `Crossroads`: Enables travel action
+- `Private`: +1 comfort, better for intimate conversations
+- `Public`: -1 comfort, exposed
+- `Commercial`: Enables work action
 
-**Implementation Notes:**
-Spots enable specific interactions. A Private booth allows sensitive conversations. An Exposed table might limit what NPCs will discuss. The AI uses tags to describe the specific area within the location.
-
-## Travel System
-
-### Route (Direct Path)
+### Route (Travel Path)
 
 **Properties:**
 - `id`: Unique identifier
 - `originLocationId`: String
 - `destinationLocationId`: String
-- `transportType`: Enum (Walk/Cart/Horse/Boat/Carriage)
-- `baseMinutes`: Integer
-- `costCoins`: Integer
-- `familiarityLevel`: Enum (Known/Learning/Unfamiliar/Dangerous)
-- `statusRequirement`: Integer or null
-- `routeTraits`: List of traits
-- `narrativeTags`: List of strings
+- `timeCost`: Integer (periods consumed)
+- `coinCost`: Integer (0 for walking)
+- `requirements`: List of conditions
+- `dangerLevel`: Integer (0-5, affects encounters)
 
-**Route Trait Entry:**
-- `trait`: Enum (Scenic/Direct/Dangerous/Patrolled/Hidden/Public)
-- `effect`: Mechanical modifier
+**Route Requirements:**
+- `minStatusTokens`: Integer or null
+- `timePeriods`: List of when available
+- `discovered`: Boolean (hidden routes need discovery)
 
-**Familiarity Effects:**
-- Known: No encounter
-- Learning: Draw 2 encounters, choose 1
-- Unfamiliar: Draw 1 encounter, must face
-- Dangerous: Draw 1 encounter, must face, negative weight
+## System Rules
 
-**Implementation Notes:**
-Each route is a single transport option between two specific locations. You cannot travel directly between districts - only between connected locations. A cart route from Market to Docks is different from a boat route between the same locations. Travel time is always in minutes or hours, never days.
+### Daily Attention Economy
 
-### Encounter (Travel Event)
+**Attention Allocation:**
+- Start each day with 10 attention (modified by health/hunger)
+- Quick Exchange: 0 attention
+- Observation: 1 attention
+- Crisis Conversation: 1 attention
+- Standard Conversation: 2 attention
+- Deep Conversation: 3 attention
+- Work Action: 2 attention
 
-**Properties:**
-- `id`: Unique identifier
-- `encounterTemplate`: Enum (GuardCheckpoint/Merchant/Beggar/Accident/Discovery)
-- `validRouteTraits`: List of traits where this can occur
-- `validTimePerods`: List of when this can occur
-- `mechanicalChoice`: Choice structure
-- `contextualTags`: List of strings for AI generation
+**Resource Depletion:**
+- Hunger increases by 20 each time period
+- Health only decreases from events/injuries
+- Attention refreshes to 10 each morning (if rested)
 
-**Choice Structure:**
-- `option1`: {cost: Resource object, outcome: Effect object, narrativeTags: List}
-- `option2`: {cost: Resource object, outcome: Effect object, narrativeTags: List}
-- `option3`: Optional third choice
+### Conversation Configurations
 
-**Resource Object:**
-- `type`: Enum (Coins/Minutes/Attention/Status/Health)
-- `amount`: Integer
+All use the same emotional state system, different patience allocations:
 
-**Effect Object:**
-- `type`: Enum (Nothing/Observation/StateChange/RouteUnlock/ItemGain)
-- `value`: Appropriate value for type
+**Quick Exchange** (0 attention, instant):
+- Draw 1 card from NPC's exchange deck
+- Show cost and reward
+- Player accepts or refuses
+- No emotional states, no patience
 
-**Implementation Notes:**
-Encounters are generated based on route traits and time. A Patrolled route at Night might generate guard encounters. A Hidden route at Morning might generate discovery encounters. The AI creates specific narrative from templates and context.
+**Crisis Resolution** (1 attention, 3 patience):
+- Available only when crisis deck has cards
+- Uses only crisis deck
+- All other conversations locked until resolved
+- Successfully playing crisis cards removes them
 
-## Temporal System
+**Standard Conversation** (2 attention, 8 patience):
+- Full emotional state system
+- Normal Listen/Speak mechanics
+- Can generate letters at comfort thresholds
+- Uses conversation deck
 
-### Time Period (Clock Segments)
+**Deep Conversation** (3 attention, 12 patience):
+- Extended emotional navigation
+- Higher comfort thresholds
+- Better letter rewards
+- Requires relationship level 3+
 
-**Properties:**
-- `periodName`: Enum (Morning/Midday/Afternoon/Evening/Night/DeepNight)
-- `hourRange`: [start, end] in 24-hour format
-- `globalModifiers`: List of mechanical effects
-- `narrativeTone`: List of strings
+### Emotional States (For Conversations Only)
 
-**Period Definitions:**
-- Morning: 6:00-10:00 (busy, fresh, merchants opening)
-- Midday: 10:00-14:00 (peak activity, hot, crowded)
-- Afternoon: 14:00-18:00 (winding down, golden light)
-- Evening: 18:00-22:00 (social time, taverns busy, shops closing)
-- Night: 22:00-2:00 (quiet, dangerous, illicit)
-- DeepNight: 2:00-6:00 (empty, very dangerous, secret)
+The 9 states apply only to Standard and Deep conversations:
 
-**Implementation Notes:**
-Time periods globally affect the world. All locations reference these periods for their schedules. NPCs move between locations at period boundaries. Observations refresh each period.
+**NEUTRAL**: Draw 2, weight limit 3
+**GUARDED**: Draw 1, weight limit 2, Listen→Neutral
+**OPEN**: Draw 3, weight limit 3
+**TENSE**: Draw 1, weight limit 1, Listen→Guarded
+**EAGER**: Draw 3, weight limit 3, +3 bonus for 2+ same type
+**OVERWHELMED**: Draw 1, max 1 card, Listen→Neutral
+**CONNECTED**: Draw 3, weight limit 4, depth advances
+**DESPERATE**: Draw 2 + crisis, crisis free, Listen→Hostile
+**HOSTILE**: Draw 1 + 2 crisis, only crisis playable
 
-### World Event (Dynamic Modifiers)
+### Observation System
 
-**Properties:**
-- `id`: Unique identifier
-- `eventType`: Enum (Festival/Raid/Storm/Curfew/Market/Funeral/Arrival)
-- `affectedRegions`: List of region IDs
-- `affectedDistricts`: List of district IDs
-- `duration`: Integer hours
-- `mechanicalEffects`: List of effects
-- `narrativeImpact`: List of strings
+**How Observations Work:**
+1. Spend 1 attention at specific spot
+2. Receive observation card to hand
+3. Card is one-shot, removed after playing
+4. Different observations available each time period
+5. Can use observation cards in any conversation
 
-**Mechanical Effect Entry:**
-- `effectType`: Enum (CrowdIncrease/PriceChange/RouteBlock/NPCMood)
-- `magnitude`: Integer
-- `targetIds`: List of affected entity IDs
+**Observation Refresh:**
+- New observations each time period
+- Location type determines observation types
+- Cannot repeat same observation in one day
 
-**Implementation Notes:**
-Events temporarily modify the world state. A Festival increases crowds and improves NPC moods. A Guard Raid makes certain NPCs unavailable and increases tension. The AI incorporates active events into all generated narrative.
+### Letter Generation
 
-## Dynamic Content Generation
+**Through Conversations:**
+- 5-9 comfort: Simple Letter (24h deadline, 5 coins)
+- 10-14 comfort: Important Letter (12h deadline, 10 coins)
+- 15-19 comfort: Urgent Letter (6h deadline, 15 coins)
+- 20+ comfort: Critical Letter (2h deadline, 20 coins)
 
-### Observation (Generated Knowledge)
+**Letter Effects:**
+- Delivery modifies recipient's conversation deck
+- Failed delivery adds burden cards to sender
+- Some letters trigger reply letter generation
 
-**Properties:**
-- `templateId`: Unique identifier
-- `generationType`: Enum (Social/Environmental/Commercial/Authority/Secret)
-- `validLocationTypes`: List of location types where applicable
-- `validTimePeriods`: List of when it can appear
-- `requiredTraits`: List of location traits needed
-- `cardWeight`: Integer (1-2)
-- `cardPersistence`: Always "Opportunity"
-- `attentionCost`: Integer
-- `mechanicalTrigger`: State modification or null
-- `relevanceFilters`: List of NPC filters
-- `generationTags`: List of strings for AI
+## Content Generation Pipeline
 
-**Relevance Filter Entry:**
-- `filterType`: Enum (NPCType/TokenType/RelationshipLevel/State)
-- `value`: Appropriate value
+### Exchange Generation
+1. NPC type determines exchange deck composition
+2. Each exchange card has mechanical cost/reward
+3. AI translates based on NPC context:
+   - Baker + "2 coins → Hunger = 0" = "Fresh bread for sale"
+   - Guard + "5 coins → Pass" = "Checkpoint fee"
+   - Doctor + "5 coins → Health +30" = "Medical treatment"
 
-**Generation Rules:**
-- Each location + time period can generate 3-5 observations
-- Observations cannot repeat within 3 time periods
-- Player's past observations influence future generation
-- Current world events modify available observations
+### Observation Generation
+1. Location type determines observation types available
+2. Time period affects which observations appear
+3. Each observation provides specific card as reward
+4. AI generates scene describing how knowledge was gained
 
-**Implementation Notes:**
-Observations are generated fresh each time period based on location, time, events, and history. The same market might offer "merchant arguing about prices" at Morning but "guards changing shift" at Evening. The AI creates specific narrative from generation tags and context.
+### Conversation Generation
+1. Check which conversation types available (based on decks/state)
+2. Display options with patience and attention costs
+3. Player chooses depth of engagement
+4. Use appropriate deck and rules for chosen type
 
-### NPC Schedule (Movement Patterns)
+## Implementation Priority
 
-**Properties:**
-- `npcId`: String
-- `scheduleType`: Enum (Fixed/Flexible/Random/Event-driven)
-- `scheduleEntries`: List of entries
+1. **Core resource system** (coins, health, hunger, attention)
+2. **Exchange cards** and quick exchange mechanics
+3. **Observation cards** as player ammunition
+4. **Multiple conversation depths** with clear costs
+5. **Crisis deck** forcing urgent conversations
+6. **Letter deck modifications** from delivery
+7. **Time period** observation refresh
 
-**Schedule Entry:**
-- `timePeriod`: Enum
-- `locationId`: String
-- `spotPreference`: String or null
-- `alternativeLocationId`: String (if primary unavailable)
-- `activityTags`: List of strings
+## Design Principles
 
-**Implementation Notes:**
-NPCs move through the world on schedules. A merchant is at Market during Morning, Tavern during Evening. This affects where conversations can happen and what states NPCs are in based on player punctuality.
+**No Hidden State**: Every effect is immediate and visible. No "tomorrow you get X" or "influences future Y."
 
-## Conversation Integration
+**Everything Is Cards**: NPCs are deck containers. Observations give cards. Letters modify decks. Relationships are deck evolution.
 
-### NPC (Expanded for World Integration)
+**Clear Trades**: Every exchange shows exact cost and reward. Every conversation shows patience and attention cost upfront.
 
-All previous NPC properties plus:
+**One Purpose Per Element**: Observations give cards. Exchanges trade resources. Conversations generate letters. No element does multiple things.
 
-**Additional Properties:**
-- `homeLocationId`: String (where they live)
-- `workLocationId`: String (where they work)
-- `scheduleId`: String
-- `currentLocationId`: String (dynamic)
-- `currentSpotId`: String or null (dynamic)
-- `mobilityType`: Enum (Stationary/Local/District/Regional)
-
-**Implementation Notes:**
-NPCs exist in the world beyond conversations. Their location affects their emotional state (comfortable at home, tense at work). Their schedule determines availability. Missing them at expected locations might trigger obligations.
-
-### Letter (Expanded for World Context)
-
-All previous Letter properties plus:
-
-**Additional Properties:**
-- `pickupLocationId`: String (where letter originates)
-- `deliveryLocationId`: String (where recipient will be)
-- `routeRestrictions`: List of route IDs that cannot be used
-- `weatherSensitive`: Boolean (storm affects deadline)
-- `eventSensitive`: List of event types that affect urgency
-
-**Implementation Notes:**
-Letters exist in the world geography. Pickup and delivery locations matter for route planning. World events can affect urgency (military letters during raids become Critical).
-
-## AI Narrative Generation
-
-### Context Assembly
-
-When generating narrative, the AI receives:
-
-**For Location Descriptions:**
-- Region prosperity and authority
-- District wealth and density
-- Location type and traits
-- Current time period
-- Current weather
-- Active events
-- Crowd level
-- Present NPCs
-- Player's familiarity level
-
-**For Observations:**
-- All location context above
-- Observation template type
-- Mechanical relevance filters
-- Recent player observations (avoid repetition)
-- NPC states that would care
-
-**For NPC Dialogue:**
-- Current emotional state
-- Location context (comfortable/uncomfortable)
-- Time pressure from obligations
-- Recent world events
-- Relationship history with player
-
-**For Travel Narrative:**
-- Route traits
-- Time of day
-- Weather conditions
-- Origin and destination context
-- Familiarity level
-- Transport type
-
-### Tagging Philosophy
-
-Tags are mechanical, not literary. Instead of "mysterious" use mechanical tags like:
-- LowVisibility
-- InfrequentVisitors
-- HiddenPurpose
-- UnknownOwner
-
-The AI interprets these mechanical states into appropriate narrative. A location with LowVisibility + InfrequentVisitors + Night generates different narrative than the same tags + Morning.
+**Mechanical Clarity**: The same card creates different narrative through AI translation, but the mechanical effect never changes.

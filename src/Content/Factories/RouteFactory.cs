@@ -29,8 +29,8 @@ public RouteOption CreateMinimalRoute(string id, string originId = null, string 
     {
         Id = id,
         Name = name,
-        Origin = originId ?? "unknown_origin",
-        Destination = destinationId ?? "unknown_destination",
+        OriginLocationSpot = originId ?? "unknown_origin",
+        DestinationLocationSpot = destinationId ?? "unknown_destination",
         Method = TravelMethods.Walking, // Most basic method
         TravelTimeMinutes = 480, // Standard day travel (8 hours in minutes)
         BaseStaminaCost = 2, // Minimal cost
@@ -79,8 +79,8 @@ public RouteOption CreateRoute(
     {
         Id = id,
         Name = name,
-        Origin = origin.Id,           // Extract ID from validated object
-        Destination = destination.Id, // Extract ID from validated object
+        OriginLocationSpot = origin.Id,           // Extract ID from validated object
+        DestinationLocationSpot = destination.Id, // Extract ID from validated object
         Method = method,
         TravelTimeMinutes = travelTimeMinutes,
         BaseStaminaCost = baseStaminaCost,

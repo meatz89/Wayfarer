@@ -178,7 +178,9 @@ public class TravelManager
         // Time advancement handled by GameFacade to ensure letter deadlines are updated
 
         // Update location
-        Location targetLocation = LocationSystem.GetLocation(selectedRoute.Destination);
+        // Get the spot from the route, then get its location
+        LocationSpot targetSpot = LocationSystem.GetAllLocationSpots().FirstOrDefault(s => s.SpotID == selectedRoute.DestinationLocationSpot);
+        Location targetLocation = targetSpot != null ? LocationSystem.GetLocation(targetSpot.LocationId) : null;
 
         List<LocationSpot> spots = LocationSystem.GetLocationSpots(targetLocation.Id);
         LocationSpot locSpot = null;
@@ -240,8 +242,8 @@ public class TravelManager
                 RouteOption walkingRoute = new RouteOption
                 {
                     Id = $"walk_{fromLocationId}_to_{toLocationId}",
-                    Origin = fromLocationId,
-                    Destination = toLocationId,
+                    OriginLocationSpot = fromLocationId,
+                    DestinationLocationSpot = toLocationId,
                     Method = TravelMethods.Walking,
                     TravelTimeMinutes = travelTime, // Direct minutes from TravelTimeMatrix
                     BaseStaminaCost = Math.Max(1, travelTime / 30), // 1 stamina per 30 minutes

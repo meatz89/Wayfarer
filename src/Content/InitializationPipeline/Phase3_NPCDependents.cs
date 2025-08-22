@@ -57,19 +57,19 @@ public class Phase3_NPCDependents : IInitializationPhase
             }
 
             RouteFactory routeFactory = new RouteFactory();
-            List<Location> locations = context.GameWorld.WorldState.locations;
+            List<LocationSpot> spots = context.GameWorld.WorldState.locationSpots;
 
             foreach (RouteDTO dto in routeDTOs)
             {
                 try
                 {
-                    // Verify locations exist
-                    Location? origin = locations.FirstOrDefault(l => l.Id == dto.Origin);
-                    Location? destination = locations.FirstOrDefault(l => l.Id == dto.Destination);
+                    // Verify spots exist
+                    LocationSpot? originSpot = spots.FirstOrDefault(s => s.SpotID == dto.OriginLocationSpot);
+                    LocationSpot? destinationSpot = spots.FirstOrDefault(s => s.SpotID == dto.DestinationLocationSpot);
 
-                    if (origin == null || destination == null)
+                    if (originSpot == null || destinationSpot == null)
                     {
-                        context.Warnings.Add($"Route {dto.Id} has invalid locations: {dto.Origin} -> {dto.Destination}");
+                        context.Warnings.Add($"Route {dto.Id} has invalid spots: {dto.OriginLocationSpot} -> {dto.DestinationLocationSpot}");
                         continue;
                     }
 
@@ -98,20 +98,20 @@ public class Phase3_NPCDependents : IInitializationPhase
                     {
                         Id = dto.Id,
                         Name = dto.Name,
-                        Origin = origin.Id,
-                        Destination = destination.Id,
+                        OriginLocationSpot = originSpot.SpotID,
+                        DestinationLocationSpot = destinationSpot.SpotID,
                         TravelTimeMinutes = dto.TravelTimeMinutes,
                         BaseStaminaCost = dto.BaseStaminaCost,
                         BaseCoinCost = dto.BaseCoinCost,
                         Method = method,
                         IsDiscovered = dto.IsDiscovered,
                         DepartureTime = departureTime,
-                        Description = dto.Description ?? $"Route from {origin.Name} to {destination.Name}",
+                        Description = dto.Description ?? $"Route from {originSpot.Name} to {destinationSpot.Name}",
                         TierRequired = ParseTierLevel(dto.TierRequired)
                     };
 
                     context.GameWorld.WorldState.Routes.Add(route);
-                    Console.WriteLine($"  Loaded route: {route.Name} ({route.Origin} -> {route.Destination})");
+                    Console.WriteLine($"  Loaded route: {route.Name} ({route.OriginLocationSpot} -> {route.DestinationLocationSpot})");
                 }
                 catch (Exception ex)
                 {
@@ -313,6 +313,7 @@ public class Phase3_NPCDependents : IInitializationPhase
         Console.WriteLine("Connecting routes to locations...");
 
         List<Location> locations = context.GameWorld.WorldState.locations;
+        List<LocationSpot> spots = context.GameWorld.WorldState.locationSpots;
         List<RouteOption> routes = context.GameWorld.WorldState.Routes;
 
         // Clear any existing connections first
@@ -321,10 +322,14 @@ public class Phase3_NPCDependents : IInitializationPhase
             location.Connections.Clear();
         }
 
-        // Group routes by origin location
-        IEnumerable<IGrouping<string, RouteOption>> routesByOrigin = routes.GroupBy(r => r.Origin);
+        // Group routes by origin spot's location
+        var routesByOriginLocation = routes.GroupBy(r => 
+        {
+            var originSpot = spots.FirstOrDefault(s => s.SpotID == r.OriginLocationSpot);
+            return originSpot?.LocationId;
+        }).Where(g => g.Key != null);
 
-        foreach (IGrouping<string, RouteOption> group in routesByOrigin)
+        foreach (var group in routesByOriginLocation)
         {
             Location? originLocation = locations.FirstOrDefault(l => l.Id == group.Key);
             if (originLocation == null)
@@ -333,10 +338,14 @@ public class Phase3_NPCDependents : IInitializationPhase
                 continue;
             }
 
-            // Group by destination
-            IEnumerable<IGrouping<string, RouteOption>> routesByDestination = group.GroupBy(r => r.Destination);
+            // Group by destination spot's location
+            var routesByDestinationLocation = group.GroupBy(r => 
+            {
+                var destSpot = spots.FirstOrDefault(s => s.SpotID == r.DestinationLocationSpot);
+                return destSpot?.LocationId;
+            }).Where(g => g.Key != null);
 
-            foreach (IGrouping<string, RouteOption> destGroup in routesByDestination)
+            foreach (var destGroup in routesByDestinationLocation)
             {
                 LocationConnection connection = new LocationConnection
                 {
@@ -349,6 +358,6 @@ public class Phase3_NPCDependents : IInitializationPhase
             }
         }
 
-        Console.WriteLine($"Connected {routesByOrigin.Count()} locations with routes");
+        Console.WriteLine($"Connected {routesByOriginLocation.Count()} locations with routes");
     }
 }

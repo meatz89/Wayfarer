@@ -16,8 +16,8 @@ public static class RouteOptionParser
         {
             Id = GetStringProperty(root, "id", ""),
             Name = GetStringProperty(root, "name", ""),
-            Origin = GetStringProperty(root, "origin", ""),
-            Destination = GetStringProperty(root, "destination", ""),
+            OriginLocationSpot = GetStringProperty(root, "originLocationSpot", ""),
+            DestinationLocationSpot = GetStringProperty(root, "destinationLocationSpot", ""),
             BaseCoinCost = GetIntProperty(root, "baseCoinCost", 0),
             BaseStaminaCost = GetIntProperty(root, "baseStaminaCost", 1),
             TravelTimeMinutes = GetIntProperty(root, "travelTimeMinutes", 180),

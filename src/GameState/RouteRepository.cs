@@ -22,7 +22,7 @@ public class RouteRepository : IRouteRepository
         return _gameWorld.WorldState.CurrentWeather;
     }
 
-    // Get routes from a specific location
+    // Get routes from a specific location (by checking all spots in that location)
     public IEnumerable<RouteOption> GetRoutesFromLocation(string locationId)
     {
         List<RouteOption> allRoutes = new List<RouteOption>();
@@ -78,10 +78,15 @@ public class RouteRepository : IRouteRepository
         return allRoutes.FirstOrDefault(r => r.Id == routeId);
     }
 
-    // Get available routes considering player tier and conditions
+    // Get available routes from the player's current spot
     public IEnumerable<RouteOption> GetAvailableRoutes(string fromLocationId, Player player)
     {
-        IEnumerable<RouteOption> allRoutes = GetRoutesFromLocation(fromLocationId);
+        // Get routes from the player's current spot
+        var currentSpot = player.CurrentLocationSpot;
+        if (currentSpot == null) return new List<RouteOption>();
+        
+        // Get all routes that start from the current spot
+        var allRoutes = GetAll().Where(r => r.OriginLocationSpot == currentSpot.SpotID);
         List<RouteOption> availableRoutes = new List<RouteOption>();
 
         foreach (RouteOption route in allRoutes)

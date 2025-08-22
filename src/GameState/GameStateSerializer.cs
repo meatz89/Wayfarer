@@ -619,8 +619,8 @@ public static class GameWorldSerializer
         {
             id = route.Id,
             name = route.Name,
-            origin = route.Origin,
-            destination = route.Destination,
+            origin = route.OriginLocationSpot,
+            destination = route.DestinationLocationSpot,
             method = route.Method.ToString(),
             baseCoinCost = route.BaseCoinCost,
             baseStaminaCost = route.BaseStaminaCost,

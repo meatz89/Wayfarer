@@ -9,6 +9,10 @@ public string Description { get; set; }
 // Tier system (1-5) for difficulty/content progression
 public int Tier { get; set; } = 1;
 
+// The spot ID that serves as the travel hub for this location
+// All routes to/from this location should use this spot
+public string TravelHubSpotId { get; set; }
+
 public List<LocationConnection> Connections { get; set; } = new List<LocationConnection>();
 public List<string> LocationSpotIds { get; set; } = new List<string>();
 

@@ -72,8 +72,8 @@ public class RouteOption
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string Origin { get; set; }
-    public string Destination { get; set; }
+    public string OriginLocationSpot { get; set; }
+    public string DestinationLocationSpot { get; set; }
 
     // Tier system for route accessibility (T1: Basic, T2: Restricted, T3: Secret)
     public TierLevel TierRequired { get; set; } = TierLevel.T1;
