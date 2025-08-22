@@ -543,7 +543,6 @@ public class GameFacade
                 {
                     Id = npc.ID,
                     Name = npc.Name,
-                    MoodEmoji = GetEmotionalStateEmoji(emotionalState),
                     EmotionalStateName = emotionalState.ToString(),
                     Description = GetNPCDescription(npc, emotionalState),
                     Interactions = interactions
@@ -652,22 +651,6 @@ public class GameFacade
     {
         // Use the same logic as the conversation system for consistency
         return ConversationRules.DetermineInitialState(npc, _letterQueueManager);
-    }
-    
-    private string GetEmotionalStateEmoji(EmotionalState state)
-    {
-        return state switch
-        {
-            EmotionalState.DESPERATE => "😰",
-            EmotionalState.TENSE => "😟",
-            EmotionalState.HOSTILE => "😠",
-            EmotionalState.GUARDED => "🤨",
-            EmotionalState.OPEN => "😊",
-            EmotionalState.CONNECTED => "🤝",
-            EmotionalState.EAGER => "😃",
-            EmotionalState.OVERWHELMED => "😵",
-            _ => "😐"
-        };
     }
     
     private string GetNPCDescription(NPC npc, EmotionalState state)

@@ -40,7 +40,6 @@ public class NPCPresenceViewModel
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string MoodEmoji { get; set; }
     public string EmotionalStateName { get; set; }
     public string Description { get; set; }
     public List<InteractionOptionViewModel> Interactions { get; set; } = new();

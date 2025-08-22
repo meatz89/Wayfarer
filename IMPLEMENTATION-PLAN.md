@@ -322,13 +322,29 @@ Overall:                     [████████░░] 85% (core system e
 - Deck empty scenarios
 - Save/load with active conversation
 
+## 🔴 BUILD ERRORS TO FIX (Session 31 Priority)
+
+1. **ConversationSession.StartConversation** - Missing overload with 6 arguments
+2. **TokenMechanicsManager.GetRelationshipLevel** - Method doesn't exist
+3. **ConversationSession.StartExchange** - Method doesn't exist
+4. **GameWorld.GetPlayerResourceState** - Method doesn't exist
+5. **ConversationSession.StartCrisis** - Method doesn't exist
+6. **ConversationScreen.razor.cs** - Wrong argument type (needs ConversationType)
+7. **GameFacade line 1257** - Missing conversationType parameter
+
+These errors show we need to:
+- Create the missing ConversationSession methods for different types
+- Add helper methods to TokenMechanicsManager and GameWorld
+- Fix the ConversationScreen to pass conversation type
+- Update all StartConversation calls to include type
+
 ## 🚀 NEXT STEPS
 
-1. **Immediate**: Start Phase 1 - Create ExchangeCard class
-2. **Today**: Complete Phase 1 implementation
-3. **Tomorrow**: Test Phase 1, start Phase 2
-3. **This Week**: Complete Phases 1-3
-5. **Next Week**: Polish and testing
+1. **Session 31 Priority**: Fix all 7 build errors
+2. **Then**: Complete ConversationSession implementation
+3. **Then**: Test basic Exchange conversation flow
+4. **Then**: Implement Crisis conversation flow
+5. **Finally**: Add UI adaptations for each type
 
 ## 📊 RISK ASSESSMENT
 
