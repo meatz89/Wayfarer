@@ -215,7 +215,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5118\" dotnet run)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5118\" dotnet run --no-build)",
       "mcp__playwright__browser_navigate_back",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5119\" timeout 10 dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5119\" timeout 10 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5400\" dotnet run --no-build)"
     ],
     "deny": []
   }
