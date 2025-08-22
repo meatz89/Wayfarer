@@ -93,7 +93,7 @@ public class Phase7_FinalValidation : IInitializationPhase
             string targetLocationId = gameWorld.WorldState.locations.First().Id;
             LocationSpotFactory spotFactory = new LocationSpotFactory();
             LocationSpot dummySpot = spotFactory.CreateMinimalSpot($"{targetLocationId}_square", targetLocationId);
-            dummySpot.Description = "The central square of the village.";
+            // Description removed - generated from SpotPropertyType combinations
             dummySpot.InitialState = "A quiet village square with a few people going about their day.";
             dummySpot.DomainTags = new List<string> { "SOCIAL", "SAFE" };
 

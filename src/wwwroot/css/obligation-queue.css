@@ -1,0 +1,374 @@
+/* Obligation Queue Screen CSS - Extends common.css */
+@import url('common.css');
+
+/* Container matching other screens */
+.obligation-queue-container {
+    max-width: 720px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #faf4ea;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
+
+/* Header matching conversation screen */
+.queue-header {
+    background: #2c241a;
+    color: #e8dcc4;
+    padding: 8px 16px;
+    border-bottom: 2px solid #5c4a3a;
+}
+
+.queue-time-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.critical-deadline-alert {
+    background: #8b4726;
+    color: #faf4ea;
+    padding: 4px 8px;
+    margin-top: 4px;
+    font-size: 11px;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Navigation */
+.queue-navigation {
+    background: #1a1612;
+    padding: 6px 12px;
+    border-bottom: 1px solid #5c4a3a;
+}
+
+.exit-queue-btn {
+    background: transparent;
+    color: #d4a76a;
+    border: 1px solid #5c4a3a;
+    padding: 4px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.exit-queue-btn:hover {
+    background: #2c241a;
+    border-color: #d4a76a;
+}
+
+/* Main Content Area */
+.queue-content {
+    padding: 8px;
+}
+
+/* Section Headers */
+.section-header {
+    font-size: 11px;
+    color: #5c4a3a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid #c4a684;
+}
+
+/* Obligation Cards - Compact like conversation cards */
+.obligation-card {
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.obligation-card:hover {
+    background: #fefaf0;
+    border-color: #a68b6f;
+    transform: translateX(2px);
+}
+
+.obligation-card.selected {
+    background: #e8f5e9;
+    border-color: #7a8b5a;
+}
+
+/* Obligation Type Indicators */
+.obligation-card.delivery {
+    border-left: 5px solid #7a8b5a;
+}
+
+.obligation-card.meeting {
+    border-left: 5px solid #8b4726;
+}
+
+/* Card Header */
+.obligation-header {
+    padding: 4px 6px;
+    background: #f9f3e9;
+    border-bottom: 1px solid #e8dcc4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.obligation-type-badge {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 2px;
+}
+
+.type-delivery {
+    background: #e8f5e9;
+    color: #5a7a3a;
+    border: 1px solid #7a8b5a;
+}
+
+.type-meeting {
+    background: #faf0e6;
+    color: #8b4726;
+    border: 1px solid #8b4726;
+}
+
+.obligation-position {
+    font-size: 11px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+/* Card Body */
+.obligation-body {
+    padding: 4px 6px;
+    font-size: 11px;
+}
+
+.obligation-target {
+    font-weight: bold;
+    color: #5c4a3a;
+    margin-bottom: 2px;
+}
+
+.obligation-location {
+    color: #7a6250;
+    font-size: 10px;
+    font-style: italic;
+}
+
+/* Deadline Display */
+.obligation-deadline {
+    padding: 3px 6px;
+    background: #f9f3e9;
+    border-top: 1px solid #e8dcc4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+}
+
+.deadline-time {
+    font-weight: bold;
+}
+
+.deadline-time.critical {
+    color: #8b4726;
+    animation: pulse 2s infinite;
+}
+
+.deadline-time.urgent {
+    color: #d4a76a;
+}
+
+.deadline-time.normal {
+    color: #7a6250;
+}
+
+.deadline-icon {
+    font-size: 14px;
+}
+
+/* Stakes Display */
+.obligation-stakes {
+    display: inline-block;
+    padding: 2px 6px;
+    background: #e8dcc4;
+    border: 1px solid #c4a684;
+    border-radius: 2px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stakes-reputation {
+    background: #f4e8d0;
+    border-color: #8b7355;
+    color: #6b5d4f;
+}
+
+.stakes-safety {
+    background: #faf0e6;
+    border-color: #8b4726;
+    color: #8b4726;
+}
+
+.stakes-wealth {
+    background: #fff8dc;
+    border-color: #d4a76a;
+    color: #8b7a5a;
+}
+
+.stakes-secret {
+    background: #2a2520;
+    border-color: #5c4a3a;
+    color: #b8956a;
+}
+
+/* Expanded Details */
+.obligation-details {
+    padding: 8px;
+    background: #f9f3e9;
+    border-top: 1px solid #e8dcc4;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.detail-description {
+    color: #5c4a3a;
+    margin-bottom: 6px;
+    font-style: italic;
+}
+
+.detail-consequences {
+    margin-top: 6px;
+}
+
+.consequence-success {
+    color: #5a7a3a;
+    margin-bottom: 4px;
+}
+
+.consequence-failure {
+    color: #8b4726;
+}
+
+/* Action Buttons */
+.obligation-actions {
+    padding: 6px 8px;
+    background: #f4e8d0;
+    border-top: 1px solid #c4a684;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.action-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    border: 1px solid #c4a684;
+    background: #faf4ea;
+    color: #5c4a3a;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background: #fefaf0;
+    border-color: #a68b6f;
+}
+
+.action-btn.primary {
+    background: #7a8b5a;
+    color: #faf4ea;
+    border-color: #5a7a3a;
+}
+
+.action-btn.primary:hover {
+    background: #8a9b6a;
+}
+
+/* Queue Status */
+.queue-status {
+    padding: 8px;
+    background: #f9f3e9;
+    border: 1px solid #c4a684;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    font-size: 12px;
+}
+
+.queue-capacity {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.capacity-label {
+    color: #7a6250;
+}
+
+.capacity-value {
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.capacity-value.overweight {
+    color: #8b4726;
+}
+
+/* Empty State */
+.empty-obligations {
+    text-align: center;
+    padding: 20px;
+    color: #7a6250;
+    font-style: italic;
+    font-size: 12px;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Responsive Queue Grid */
+.obligations-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Position Indicators for Queue */
+.queue-position {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: #5c4a3a;
+    color: #faf4ea;
+    text-align: center;
+    line-height: 20px;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 2px;
+    margin-right: 4px;
+}
+
+/* Reorder Mode */
+.reorder-mode .obligation-card {
+    opacity: 0.6;
+}
+
+.reorder-mode .obligation-card.reorder-target {
+    opacity: 1;
+    border: 2px dashed #7a8b5a;
+    background: #e8f5e9;
+}
+
+.reorder-mode .obligation-card.selected-for-reorder {
+    opacity: 1;
+    border: 2px solid #8b4726;
+    transform: scale(1.02);
+}

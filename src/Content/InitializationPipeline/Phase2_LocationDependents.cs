@@ -77,7 +77,6 @@ public class Phase2_LocationDependents : IInitializationPhase
                         dto.Name,
                         dto.LocationId,
                         locations, // Pass available locations
-                        dto.Description,
                         dto.InitialState,
                         timeBlocks,
                         dto.DomainTags?.ToList() ?? new List<string>()

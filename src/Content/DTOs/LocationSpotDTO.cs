@@ -8,7 +8,7 @@ public class LocationSpotDTO
     public string Id { get; set; }
     public string Name { get; set; }
     public string Type { get; set; }
-    public string Description { get; set; }
+    // Description removed - generated from SpotProperties
     public string InitialState { get; set; }
     public string LocationId { get; set; }
     public List<string> CurrentTimeBlocks { get; set; } = new List<string>();

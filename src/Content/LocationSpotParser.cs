@@ -22,7 +22,7 @@ public static class LocationSpotParser
 
         LocationSpot spot = new LocationSpot(id, name)
         {
-            Description = GetStringProperty(root, "description", ""),
+            // Description removed - generated from SpotPropertyType combinations
             InitialState = GetStringProperty(root, "initialState", ""),
             LocationId = locationId,
             DomainTags = GetStringArrayFromProperty(root, "domainTags"),

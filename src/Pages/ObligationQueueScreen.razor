@@ -1,0 +1,145 @@
+@page "/queue"
+@inherits MainGameplayViewBase
+
+<link href="css/obligation-queue.css" rel="stylesheet" />
+
+<div class="obligation-queue-container">
+    <!-- Navigation -->
+    <div class="queue-navigation">
+        <button class="exit-queue-btn" @onclick="HandleExitQueue">
+            ← Back
+        </button>
+    </div>
+    
+    <!-- Header -->
+    <div class="queue-header">
+        <div class="queue-time-bar">
+            <span>@GetCurrentTime()</span>
+            <span class="deadline-timer">@GetNextDeadline()</span>
+        </div>
+        @if (HasCriticalDeadlines())
+        {
+            <div class="critical-deadline-alert">
+                @GetCriticalWarning()
+            </div>
+        }
+    </div>
+
+    <div class="queue-content">
+        <!-- Queue Status -->
+        <div class="queue-status">
+            <div class="queue-capacity">
+                <span class="capacity-label">Satchel:</span>
+                <span class="capacity-value @(IsOverweight() ? "overweight" : "")">
+                    @GetTotalSize()/@GetMaxSize() weight
+                </span>
+            </div>
+            <div class="queue-capacity">
+                <span class="capacity-label">Active Obligations:</span>
+                <span class="capacity-value">@GetTotalObligations()</span>
+            </div>
+        </div>
+
+        <!-- Combined Obligations List -->
+        <div class="obligations-section">
+            <h3 class="section-header">Active Obligations</h3>
+            
+            @if (!HasAnyObligations())
+            {
+                <div class="empty-obligations">
+                    No active obligations. Explore the world to find letters and meetings.
+                </div>
+            }
+            else
+            {
+                <div class="obligations-grid">
+                    @foreach (var obligation in GetAllObligationsSorted())
+                    {
+                        <div class="obligation-card @GetObligationType(obligation) @(selectedObligationId == obligation.Id ? "selected" : "")"
+                             @onclick="() => SelectObligation(obligation.Id)">
+                            
+                            <!-- Card Header -->
+                            <div class="obligation-header">
+                                <div>
+                                    @if (obligation.Position > 0)
+                                    {
+                                        <span class="queue-position">@obligation.Position</span>
+                                    }
+                                    <span class="obligation-type-badge @GetTypeBadgeClass(obligation)">
+                                        @GetObligationTypeText(obligation)
+                                    </span>
+                                </div>
+                                <div class="deadline-icon">
+                                    @GetDeadlineIcon(obligation)
+                                </div>
+                            </div>
+                            
+                            <!-- Card Body -->
+                            <div class="obligation-body">
+                                <div class="obligation-target">
+                                    @GetObligationTarget(obligation)
+                                </div>
+                                <div class="obligation-location">
+                                    @GetObligationLocation(obligation)
+                                </div>
+                            </div>
+                            
+                            <!-- Deadline -->
+                            <div class="obligation-deadline">
+                                <span class="deadline-time @GetDeadlineClass(obligation)">
+                                    @GetDeadlineDisplay(obligation)
+                                </span>
+                                <span class="obligation-stakes @GetStakesClass(obligation)">
+                                    @GetStakesText(obligation)
+                                </span>
+                            </div>
+                            
+                            <!-- Expanded Details (if selected) -->
+                            @if (selectedObligationId == obligation.Id)
+                            {
+                                <div class="obligation-details">
+                                    <div class="detail-description">
+                                        @GetObligationDescription(obligation)
+                                    </div>
+                                    @if (HasConsequences(obligation))
+                                    {
+                                        <div class="detail-consequences">
+                                            @if (!string.IsNullOrEmpty(GetSuccessConsequence(obligation)))
+                                            {
+                                                <div class="consequence-success">
+                                                    ✓ @GetSuccessConsequence(obligation)
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(GetFailureConsequence(obligation)))
+                                            {
+                                                <div class="consequence-failure">
+                                                    ✗ @GetFailureConsequence(obligation)
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                                
+                                <!-- Actions (if selected) -->
+                                <div class="obligation-actions">
+                                    @if (CanActOnObligation(obligation))
+                                    {
+                                        <button class="action-btn primary" @onclick="() => ActOnObligation(obligation)">
+                                            @GetPrimaryActionText(obligation)
+                                        </button>
+                                    }
+                                    @if (CanReorderObligation(obligation))
+                                    {
+                                        <button class="action-btn" @onclick="() => StartReorder(obligation)">
+                                            Reorder
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

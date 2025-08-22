@@ -586,7 +586,7 @@ public static class GameWorldSerializer
         {
             id = spot.SpotID,
             name = spot.Name,
-            description = spot.Description,
+            // Description removed - generated from SpotPropertyType combinations
             locationId = spot.LocationId,
             currentLevel = spot.CurrentLevel,
             currentXP = spot.CurrentSpotXP,

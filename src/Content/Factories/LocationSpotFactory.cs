@@ -29,7 +29,6 @@ public class LocationSpotFactory
         return new LocationSpot(spotId, name)
         {
             LocationId = locationId,
-            Description = $"A spot called {name}",
             InitialState = "A quiet spot.",
             CurrentTimeBlocks = new List<TimeBlocks>
             {
@@ -58,7 +57,6 @@ public class LocationSpotFactory
         string spotId,
         string name,
         Location parentLocation,  // Not string - actual Location object
-        string description = null,
         string initialState = null,
         List<TimeBlocks> availableTimeBlocks = null,
         List<string> domainTags = null)
@@ -73,7 +71,6 @@ public class LocationSpotFactory
         LocationSpot spot = new LocationSpot(spotId, name)
         {
             LocationId = parentLocation.Id,  // Extract ID from validated object
-            Description = description ?? $"A place in {parentLocation.Name}",
             InitialState = initialState ?? $"The {name} is in its usual state.",
             CurrentTimeBlocks = availableTimeBlocks ?? new List<TimeBlocks>(),
             DomainTags = domainTags ?? new List<string>()
@@ -90,7 +87,6 @@ public class LocationSpotFactory
         string name,
         string locationId,
         IEnumerable<Location> availableLocations,
-        string description = null,
         string initialState = null,
         List<TimeBlocks> availableTimeBlocks = null,
         List<string> domainTags = null)
@@ -100,7 +96,7 @@ public class LocationSpotFactory
         if (location == null)
             throw new InvalidOperationException($"Cannot create location spot: parent location '{locationId}' not found");
 
-        return CreateLocationSpot(spotId, name, location, description, initialState, availableTimeBlocks, domainTags);
+        return CreateLocationSpot(spotId, name, location, initialState, availableTimeBlocks, domainTags);
     }
 
     /// <summary>

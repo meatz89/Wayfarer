@@ -494,7 +494,7 @@ public class GameFacade
             LocationName = location?.Name ?? "Unknown Location",
             CurrentSpotName = spot?.Name,
             LocationTraits = GetLocationTraits(location, spot),
-            AtmosphereText = spot?.Description ?? location?.Description ?? "A quiet place.",
+            AtmosphereText = GenerateAtmosphereText(spot, location),
             QuickActions = new List<LocationActionViewModel>(),
             NPCsPresent = new List<NPCPresenceViewModel>(),
             Observations = new List<ObservationViewModel>(),
@@ -691,8 +691,45 @@ public class GameFacade
             "main_hall" => "Common room",
             "bar_counter" => "Bertram's domain",
             "corner_table" => "Private conversations",
-            _ => spot.Description ?? ""
+            _ => GenerateSpotDetail(spot)
         };
+    }
+    
+    private string GenerateSpotDetail(LocationSpot spot)
+    {
+        if (spot == null) return "";
+        
+        var descGenerator = new Wayfarer.Game.MainSystem.SpotDescriptionGenerator();
+        var activeProperties = spot.GetActiveProperties(_timeManager.GetCurrentTimeBlock());
+        return descGenerator.GenerateBriefDescription(activeProperties);
+    }
+    
+    private string GenerateAtmosphereText(LocationSpot spot, Location location)
+    {
+        if (spot != null)
+        {
+            var descGenerator = new Wayfarer.Game.MainSystem.SpotDescriptionGenerator();
+            var activeProperties = spot.GetActiveProperties(_timeManager.GetCurrentTimeBlock());
+            var urgentObligations = _letterQueueManager.GetActiveObligations()
+                .Count(o => o.DeadlineInMinutes < 360);
+            var npcsPresent = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, _timeManager.GetCurrentTimeBlock()).Count();
+            
+            // Debug log
+            Console.WriteLine($"[GenerateAtmosphereText] Spot: {spot.SpotID}, Properties: {string.Join(", ", activeProperties)}, Time: {_timeManager.GetCurrentTimeBlock()}");
+            
+            return descGenerator.GenerateDescription(
+                activeProperties,
+                _timeManager.GetCurrentTimeBlock(),
+                urgentObligations,
+                npcsPresent
+            );
+        }
+        else if (location != null)
+        {
+            return location.Description ?? "An undefined location.";
+        }
+        
+        return "An undefined location.";
     }
     
     private List<RouteOptionViewModel> GetRoutesFromLocation(Location location)
@@ -1370,10 +1407,12 @@ public class GameFacade
             messages.Add("No one else is here right now.");
         }
 
-        // Location properties
-        if (!string.IsNullOrEmpty(currentSpot.Description))
+        // Generate location description from properties
+        var currentLocation = _locationRepository.GetLocation(currentSpot.LocationId);
+        var atmosphereText = GenerateAtmosphereText(currentSpot, currentLocation);
+        if (!string.IsNullOrEmpty(atmosphereText))
         {
-            messages.Add(currentSpot.Description);
+            messages.Add(atmosphereText);
         }
 
         // Display all messages

@@ -4,9 +4,9 @@ using System.Collections.Generic;
 public class LocationSpot
 {
     public string SpotID { get; set; }
-public string Name { get; set; }
-public string Description { get; set; }
-public string LocationId { get; set; }
+    public string Name { get; set; }
+    // Description removed - generated from SpotPropertyType combinations
+    public string LocationId { get; set; }
 
 // Tier system (1-5) for difficulty/content progression
 public int Tier { get; set; } = 1;
@@ -48,9 +48,19 @@ public LocationSpot(string id, string name)
     Name = name;
 }
 
-public string GetCurrentDescription()
+/// <summary>
+/// Get active properties for the current time, combining base and time-specific
+/// </summary>
+public List<SpotPropertyType> GetActiveProperties(TimeBlocks currentTime)
 {
-    return "location description"; // Placeholder for actual description logic  
+    var activeProperties = new List<SpotPropertyType>(SpotProperties ?? new List<SpotPropertyType>());
+    
+    if (TimeSpecificProperties?.ContainsKey(currentTime) == true)
+    {
+        activeProperties.AddRange(TimeSpecificProperties[currentTime]);
+    }
+    
+    return activeProperties;
 }
 
 public List<string> GetCurrentProperties()

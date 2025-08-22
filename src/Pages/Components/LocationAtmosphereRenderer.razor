@@ -1,61 +1,38 @@
 @* Maps location atmosphere categories to descriptive text *@
+@using Wayfarer.Game.MainSystem
 
 @inject ObligationQueueManager LetterQueueManager
 
 @code {
-    [Parameter] public string LocationName { get; set; }
-    [Parameter] public List<string> DomainTags { get; set; }
+    [Parameter] public LocationSpot CurrentSpot { get; set; }
     [Parameter] public TimeBlocks CurrentTime { get; set; }
     [Parameter] public List<NPC> NPCsPresent { get; set; }
 
+    private SpotDescriptionGenerator _descriptionGenerator = new SpotDescriptionGenerator();
+
     private string GetAtmosphereText()
     {
-        // Generate atmosphere based on location and context
-        if (LocationName?.Contains("Market") == true)
+        if (CurrentSpot == null)
+            return "An undefined location.";
+
+        // Get active properties including time-specific ones
+        var activeProperties = new List<SpotPropertyType>(CurrentSpot.SpotProperties ?? new List<SpotPropertyType>());
+        if (CurrentSpot.TimeSpecificProperties?.ContainsKey(CurrentTime) == true)
         {
-            return CurrentTime switch
-            {
-                TimeBlocks.Morning => "Merchant calls echo across cobblestones. The fountain's spray catches morning light. Early shoppers browse the stalls.",
-                TimeBlocks.Afternoon => "The market bustles at its peak. Crowds flow between stalls like water finding its course. The air fills with haggling voices.",
-                TimeBlocks.Evening => "Vendors pack their wares as shadows lengthen. The square empties slowly, leaving only the dedicated traders.",
-                TimeBlocks.Night => "The market lies quiet under moonlight. Only the fountain's gentle splash breaks the silence.",
-                _ => "The market square stretches before you."
-            };
+            activeProperties.AddRange(CurrentSpot.TimeSpecificProperties[CurrentTime]);
         }
 
-        if (LocationName?.Contains("Tavern") == true)
-        {
-            // Generate based on NPCs present, not specific names
-            if (NPCsPresent?.Any() == true)
-            {
-                return "Firelight dances on worn wooden beams. The clink of pottery mingles with hushed conversations.";
-            }
-            return "Warm hearth-light fills the common room. Low voices share the day's gossip over ale and bread.";
-        }
+        // Count urgent obligations for tension
+        var urgentObligations = LetterQueueManager?.GetActiveObligations()
+            ?.Count(o => o.DeadlineInMinutes < 360) ?? 0;
 
-        if (LocationName?.Contains("Noble") == true)
-        {
-            return CurrentTime switch
-            {
-                TimeBlocks.Morning => "Manicured gardens glisten with dew. Servants hurry about their morning duties.",
-                TimeBlocks.Afternoon => "The district radiates quiet wealth. Guards stand at attention, their armor gleaming.",
-                TimeBlocks.Evening => "Lamp-lighters begin their rounds. Noble carriages rattle over cobblestones.",
-                _ => "The noble district maintains its austere grandeur."
-            };
-        }
-
-        // Default atmospheric text based on tags
-        if (DomainTags?.Contains("CROWDED") == true)
-        {
-            return "People press in from all sides. The air buzzes with countless conversations.";
-        }
-
-        if (DomainTags?.Contains("QUIET") == true)
-        {
-            return "A peaceful quiet settles over the area. You can hear your own footsteps clearly.";
-        }
-
-        return "The location has its own distinct character.";
+        // Generate description from categorical properties
+        return _descriptionGenerator.GenerateDescription(
+            activeProperties,
+            CurrentTime,
+            urgentObligations,
+            NPCsPresent?.Count ?? 0
+        );
     }
 
     private string GetNPCPresenceDescription(NPC npc)
@@ -152,16 +129,30 @@
 
     private string GetObservationHint()
     {
-        // Hint at available observations
-        if (LocationName?.Contains("Market") == true)
+        if (CurrentSpot == null)
+            return null;
+
+        var activeProperties = new List<SpotPropertyType>(CurrentSpot.SpotProperties ?? new List<SpotPropertyType>());
+        if (CurrentSpot.TimeSpecificProperties?.ContainsKey(CurrentTime) == true)
         {
-            return "You notice guard movements, merchant negotiations, and cart schedules.";
+            activeProperties.AddRange(CurrentSpot.TimeSpecificProperties[CurrentTime]);
         }
 
-        if (LocationName?.Contains("Tavern") == true)
-        {
-            return "The notice board catches your eye. Someone's distress is palpable.";
-        }
+        // Generate hints based on view properties
+        if (activeProperties.Contains(SpotPropertyType.ViewsMarket))
+            return "Commerce flows visibly. Merchant patterns emerge.";
+        
+        if (activeProperties.Contains(SpotPropertyType.ViewsMainEntrance))
+            return "Guard rotations and arrivals draw your attention.";
+        
+        if (activeProperties.Contains(SpotPropertyType.ViewsBackAlley))
+            return "Discrete movements catch your eye.";
+        
+        if (activeProperties.Contains(SpotPropertyType.ViewsTemple))
+            return "Devotional patterns become apparent.";
+
+        if (activeProperties.Contains(SpotPropertyType.Crossroads))
+            return "Multiple paths of activity intersect here.";
 
         return null;
     }

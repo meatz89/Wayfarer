@@ -119,7 +119,7 @@ public string FormatLocationSpots(Location location)
 
     foreach (LocationSpot spot in locationSpots)
     {
-        sb.AppendLine($"- {spot.SpotID}: {spot.Description}");
+        sb.AppendLine($"- {spot.SpotID}: {spot.Name}");
     }
 
     return sb.ToString();
