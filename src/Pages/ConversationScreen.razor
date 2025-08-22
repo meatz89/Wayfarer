@@ -30,25 +30,16 @@
             </div>
             <div class="location-spot">
                 <span>@GetCurrentSpot()</span>
-                @if (GetSpotProperties().Any())
-                {
-                    <span class="spot-properties">
-                        @foreach (var prop in GetSpotProperties())
-                        {
-                            <span class="spot-property">@prop</span>
-                        }
-                    </span>
-                }
-                @{
-                    var comfortMod = GetSpotComfortModifier();
-                    if (comfortMod != 0)
-                    {
-                        <span class="comfort-modifier @(comfortMod > 0 ? "positive" : "negative")">
-                            @(comfortMod > 0 ? "+" : "")@comfortMod comfort
-                        </span>
-                    }
-                }
             </div>
+            @{
+                var atmosphereDescription = GetSpotAtmosphere();
+                if (!string.IsNullOrEmpty(atmosphereDescription))
+                {
+                    <div class="spot-atmosphere">
+                        @atmosphereDescription
+                    </div>
+                }
+            }
         </div>
 
         <!-- NPC Header with State -->

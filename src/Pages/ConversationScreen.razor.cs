@@ -160,6 +160,67 @@ namespace Wayfarer.Pages
             return spot?.Name ?? "Somewhere";
         }
 
+        protected string GetSpotAtmosphere()
+        {
+            var (_, spot) = GameFacade.GetCurrentLocation();
+            if (spot == null) 
+            {
+                return "";
+            }
+
+            var currentTime = TimeManager.GetCurrentTimeBlock();
+            
+            // Get all active properties (base + time-specific)
+            var activeProperties = new List<SpotPropertyType>(spot.SpotProperties);
+            if (spot.TimeSpecificProperties.ContainsKey(currentTime))
+            {
+                activeProperties.AddRange(spot.TimeSpecificProperties[currentTime]);
+            }
+
+            // Create immersive descriptions based on properties
+            var descriptions = new List<string>();
+            
+            // Privacy descriptions
+            if (activeProperties.Contains(SpotPropertyType.Private))
+                descriptions.Add("away from prying eyes");
+            else if (activeProperties.Contains(SpotPropertyType.Discrete))
+                descriptions.Add("tucked into a quiet corner");
+            else if (activeProperties.Contains(SpotPropertyType.Exposed))
+                descriptions.Add("in full view of everyone");
+                
+            // Atmosphere descriptions
+            if (activeProperties.Contains(SpotPropertyType.Quiet))
+                descriptions.Add("peaceful and undisturbed");
+            else if (activeProperties.Contains(SpotPropertyType.Loud))
+                descriptions.Add("bustling with activity");
+                
+            // Comfort descriptions
+            if (activeProperties.Contains(SpotPropertyType.Warm))
+                descriptions.Add("warmed by the nearby hearth");
+            else if (activeProperties.Contains(SpotPropertyType.Shaded))
+                descriptions.Add("cool in the shade");
+                
+            // Social descriptions
+            if (activeProperties.Contains(SpotPropertyType.Crossroads))
+                descriptions.Add("where paths cross");
+            else if (activeProperties.Contains(SpotPropertyType.Isolated))
+                descriptions.Add("removed from the crowds");
+                
+            // Build final description
+            if (descriptions.Count == 0)
+                return "";
+                
+            if (descriptions.Count == 1)
+                return $"A spot {descriptions[0]}.";
+                
+            if (descriptions.Count == 2)
+                return $"A spot {descriptions[0]} and {descriptions[1]}.";
+                
+            // More than 2 descriptions
+            var allButLast = string.Join(", ", descriptions.Take(descriptions.Count - 1));
+            return $"A spot {allButLast}, and {descriptions.Last()}.";
+        }
+        
         protected List<string> GetSpotProperties()
         {
             var (_, spot) = GameFacade.GetCurrentLocation();

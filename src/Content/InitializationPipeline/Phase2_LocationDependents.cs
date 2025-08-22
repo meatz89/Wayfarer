@@ -83,6 +83,53 @@ public class Phase2_LocationDependents : IInitializationPhase
                         dto.DomainTags?.ToList() ?? new List<string>()
                     );
 
+                    // Parse and add spot properties from DTO
+                    if (dto.SpotProperties != null && dto.SpotProperties.Any())
+                    {
+                        foreach (string propStr in dto.SpotProperties)
+                        {
+                            if (Enum.TryParse<SpotPropertyType>(propStr, true, out SpotPropertyType prop))
+                            {
+                                spot.SpotProperties.Add(prop);
+                            }
+                            else
+                            {
+                                context.Warnings.Add($"Invalid spot property '{propStr}' for spot {dto.Id}");
+                            }
+                        }
+                    }
+
+                    // Parse and add time-specific properties from DTO
+                    if (dto.TimeSpecificProperties != null && dto.TimeSpecificProperties.Any())
+                    {
+                        foreach (var kvp in dto.TimeSpecificProperties)
+                        {
+                            if (Enum.TryParse<TimeBlocks>(kvp.Key, true, out TimeBlocks timeBlock))
+                            {
+                                List<SpotPropertyType> properties = new List<SpotPropertyType>();
+                                foreach (string propStr in kvp.Value)
+                                {
+                                    if (Enum.TryParse<SpotPropertyType>(propStr, true, out SpotPropertyType prop))
+                                    {
+                                        properties.Add(prop);
+                                    }
+                                    else
+                                    {
+                                        context.Warnings.Add($"Invalid time-specific property '{propStr}' for spot {dto.Id} at {kvp.Key}");
+                                    }
+                                }
+                                if (properties.Any())
+                                {
+                                    spot.TimeSpecificProperties[timeBlock] = properties;
+                                }
+                            }
+                            else
+                            {
+                                context.Warnings.Add($"Invalid time block '{kvp.Key}' for time-specific properties in spot {dto.Id}");
+                            }
+                        }
+                    }
+
                     context.GameWorld.WorldState.locationSpots.Add(spot);
 
                     // Also add spot to the location's AvailableSpots list
