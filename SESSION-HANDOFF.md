@@ -1,9 +1,91 @@
 # SESSION HANDOFF: WAYFARER IMPLEMENTATION
-**Session Date**: 2025-08-22 (Session 29 - Attempted Fixes, Core Issues Remain)  
-**Status**: ❌ STILL BROKEN - Fixed time bug but travel system fundamentally broken
-**Build Status**: ✅ Builds clean (but doesn't mean it works)
+**Session Date**: 2025-08-22 (Session 30 - Conversation System Overhaul)  
+**Status**: 🚧 IN PROGRESS - Implementing complete conversation system based on design doc
+**Build Status**: ⚠️ Not yet tested
 **Branch**: letters-ledgers
 **Port**: 5116 (configured in launchSettings.json)
+
+## 📋 CONVERSATION SYSTEM IMPLEMENTATION PLAN
+
+### Based on: conversation-system.md and UI mockups
+### Status: 🚧 Starting implementation
+
+## Current System Analysis:
+- ✅ 85% of core mechanics implemented
+- ✅ Emotional states working 
+- ✅ Card mechanics functional
+- ✅ UI components exist
+- ❌ Missing: Exchange system
+- ❌ Missing: Multiple deck types
+- ❌ Missing: Deep/Crisis conversation types
+
+## Implementation Phases:
+
+### Phase 1: Exchange System ⏳ IN PROGRESS
+- [ ] Create ExchangeCard class with cost/reward pairs
+- [ ] Implement QuickExchange conversation type (0 attention)
+- [ ] Add Exchange deck to NPC deck management
+- [ ] Create Exchange UI screen for instant trades
+- [ ] Integrate with attention economy
+
+### Phase 2: Multiple Deck Types 🔜 PENDING
+- [ ] Extend CardDeck to support 3 types: Exchange, Conversation, Crisis
+- [ ] Modify NPCDeckFactory to initialize all three decks
+- [ ] Update ConversationManager to select appropriate deck
+- [ ] Implement Crisis-only conversations
+
+### Phase 3: Missing Conversation Types 🔜 PENDING
+- [ ] Implement Deep Conversation (3 attention, 12 patience)
+- [ ] Complete Crisis Conversation flow (1 attention, 3 patience)
+- [ ] Add conversation type selection UI
+
+### Phase 4: Enhanced Features 🔜 PENDING
+- [ ] Letter delivery through conversation
+- [ ] Set bonus visual feedback
+- [ ] Obligation manipulation through cards
+- [ ] Enhanced depth advancement
+
+## Critical Design Decisions (from agent feedback):
+
+### From Systems Architect:
+1. **Exchange Refresh**: Cards refresh at start of each day (not per time block)
+2. **Exchange Limit**: Each card usable once per day to prevent exploits
+3. **Crisis Priority**: Crisis > Exchange > Deep > Standard
+4. **Attention Refund**: No refunds - attention spent on attempt
+5. **Deep Requirements**: Relationship level 3+ required
+
+### From UI/UX Designer:
+1. **Reduce cognitive load**: Max 3 visible data points per card
+2. **Progressive disclosure**: Hide non-essential info by default
+3. **Visual weight system**: Use blocks not numbers
+4. **State as visual mode**: Color/animation not text
+5. **Exchange as slide-out panel**: Not separate screen
+
+## Progress Tracking:
+
+### Session 30 (Current):
+- ⏳ Documenting implementation plan
+- ⏳ Starting Phase 1: Exchange System
+- [ ] Testing with Playwright
+
+### Files to Modify:
+1. `/src/Models/Cards/ExchangeCard.cs` - NEW
+2. `/src/Models/ConversationType.cs` - NEW
+3. `/src/Services/NPCDeckFactory.cs` - MODIFY
+4. `/src/Services/ConversationManager.cs` - MODIFY
+5. `/src/Pages/ExchangeScreen.razor` - NEW
+6. `/src/Pages/ConversationScreen.razor` - MODIFY
+7. `/Content/NPCs/*.json` - ADD exchange decks
+
+## Testing Checklist:
+- [ ] Build project successfully
+- [ ] Launch game and verify no crashes
+- [ ] Test Quick Exchange (0 attention cost)
+- [ ] Test Crisis Conversation (forced when crisis cards present)
+- [ ] Test Deep Conversation (3 attention, relationship gate)
+- [ ] Test deck switching logic
+- [ ] Test exchange refresh at day boundary
+- [ ] Verify no infinite resource exploits
 
 ## 🔴 BRUTAL HONESTY - SESSION 29:
 
