@@ -5,17 +5,18 @@
 @inject ITimeManager TimeManager
 @inject NPCRepository NPCRepository
 @inject LocationRepository LocationRepository
+@inject NavigationCoordinator NavigationCoordinator
 
 @if (HasActiveObligations())
 {
-    <div class="obligations-panel">
+    <div class="obligations-panel" @onclick="OpenObligationQueue" style="cursor: pointer;">
         <div class="obligations-header">Active Obligations</div>
         <div class="obligation-list">
             @foreach (var item in GetTopObligations())
             {
                 <div class="obligation-item @GetObligationClass(item)">
-                    <div class="obligation-target">@GetObligationTarget(item)</div>
-                    <div class="obligation-location">@GetObligationLocation(item)</div>
+                    <div class="obligation-action">@GetObligationAction(item)</div>
+                    <div class="obligation-target">@GetObligationTargetOnly(item)</div>
                     <div class="obligation-time">@GetObligationTime(item)</div>
                 </div>
             }
@@ -103,15 +104,40 @@
         return "normal";
     }
 
-    private string GetObligationTarget(ObligationItem item)
+    private string GetObligationAction(ObligationItem item)
+    {
+        return item.Type == "delivery" ? "Deliver" : "Meet";
+    }
+    
+    private string GetObligationTargetOnly(ObligationItem item)
     {
         if (item.Type == "delivery")
         {
-            return $"Deliver to {item.TargetName}";
+            // For delivery, show the location
+            var npc = NPCRepository.GetByName(item.TargetName);
+            if (npc != null)
+            {
+                var location = LocationRepository.GetLocation(npc.Location);
+                if (location != null)
+                {
+                    return location.Name;
+                }
+            }
+            return item.TargetName; // Fallback to NPC name
         }
         else // meeting
         {
-            return $"Meet with {item.TargetName}";
+            // For meeting, show the NPC name and location
+            var npc = NPCRepository.GetByName(item.TargetName);
+            if (npc != null)
+            {
+                var location = LocationRepository.GetLocation(npc.Location);
+                if (location != null)
+                {
+                    return $"{item.TargetName} • {location.Name}";
+                }
+            }
+            return item.TargetName;
         }
     }
 
@@ -145,6 +171,11 @@
         return days == 1 ? "Tomorrow" : $"{days} days";
     }
 
+    private async Task OpenObligationQueue()
+    {
+        await NavigationCoordinator.NavigateToAsync(CurrentViews.LetterQueueScreen);
+    }
+    
     public void Dispose()
     {
         _refreshTimer?.Dispose();

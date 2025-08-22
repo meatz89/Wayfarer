@@ -525,9 +525,7 @@ public class GameFacade
                     {
                         new InteractionOptionViewModel
                         {
-                            Text = emotionalState == EmotionalState.DESPERATE 
-                                ? "Approach Her Table" 
-                                : $"Begin Conversation",
+                            Text = $"Approach {npc.Name}",
                             Cost = "1 attention"
                         }
                     }
@@ -665,15 +663,31 @@ public class GameFacade
         
         // Get all spots in the same location
         var spots = _locationSpotRepository.GetSpotsForLocation(location.Id);
+        var currentTime = _timeManager.GetCurrentTimeBlock();
         
         foreach (var spot in spots)
         {
+            // Skip the current spot - don't show it in the list
+            if (spot.SpotID == currentSpot?.SpotID)
+                continue;
+                
+            // Get NPCs at this spot
+            var npcsAtSpot = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
+            var npcNames = npcsAtSpot.Select(n => n.Name).ToList();
+            
+            // Build detail string with NPCs if present
+            var detail = GetSpotDetail(spot);
+            if (npcNames.Any())
+            {
+                detail = $"{detail} • {string.Join(", ", npcNames)}";
+            }
+            
             areas.Add(new AreaWithinLocationViewModel
             {
                 Name = spot.Name,
-                Detail = GetSpotDetail(spot),
+                Detail = detail,
                 SpotId = spot.SpotID,
-                IsCurrent = spot.SpotID == currentSpot?.SpotID
+                IsCurrent = false // Never current since we skip the current spot
             });
         }
         
@@ -739,7 +753,13 @@ public class GameFacade
         // Get available routes
         var availableRoutes = _routeRepository.GetRoutesFromLocation(location.Id);
         
-        foreach (var route in availableRoutes)
+        // ONLY show routes between market and tavern
+        var filteredRoutes = availableRoutes.Where(r => 
+            (location.Id == "market_square" && r.Destination == "copper_kettle_tavern") ||
+            (location.Id == "copper_kettle_tavern" && r.Destination == "market_square")
+        );
+        
+        foreach (var route in filteredRoutes)
         {
             var destination = _locationRepository.GetLocation(route.Destination);
             if (destination != null)

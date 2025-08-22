@@ -143,9 +143,8 @@
 
 /* Main Actions */
 .main-actions {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    display: flex;
+    gap: 8px;
     margin-bottom: 24px;
 }
 
@@ -157,6 +156,7 @@
     cursor: pointer;
     transition: all 0.2s;
     text-align: center;
+    flex: 1;
 }
 
 .action-button:hover {
