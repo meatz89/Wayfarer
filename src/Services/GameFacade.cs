@@ -532,8 +532,8 @@ public class GameFacade
                 });
             }
             
-            // Add observations
-            viewModel.Observations = GetLocationObservations(location.Id);
+            // Add observations (filtered by current spot)
+            viewModel.Observations = GetLocationObservations(location.Id, spot.SpotID);
             
             // Add areas within location
             viewModel.AreasWithinLocation = GetAreasWithinLocation(location, spot);
@@ -617,7 +617,7 @@ public class GameFacade
         return baseActivity;
     }
     
-    private List<ObservationViewModel> GetLocationObservations(string locationId)
+    private List<ObservationViewModel> GetLocationObservations(string locationId, string currentSpotId)
     {
         var observations = new List<ObservationViewModel>();
         
@@ -626,8 +626,24 @@ public class GameFacade
         
         if (locationObservations != null)
         {
+            // Get NPCs at current spot
+            var currentTime = _timeManager.GetCurrentTimeBlock();
+            var npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpotId, currentTime);
+            var npcIdsAtCurrentSpot = npcsAtCurrentSpot.Select(n => n.ID).ToHashSet();
+            
             foreach (var obs in locationObservations)
             {
+                // Filter out observations about NPCs not at current spot
+                if (obs.RelevantNPCs?.Any() == true)
+                {
+                    // Check if any of the relevant NPCs are at the current spot
+                    bool hasNpcAtSpot = obs.RelevantNPCs.Any(npcId => npcIdsAtCurrentSpot.Contains(npcId));
+                    if (!hasNpcAtSpot)
+                    {
+                        continue; // Skip observations about NPCs at other spots
+                    }
+                }
+                
                 observations.Add(new ObservationViewModel
                 {
                     Text = obs.Text,
@@ -687,7 +703,8 @@ public class GameFacade
                 Name = spot.Name,
                 Detail = detail,
                 SpotId = spot.SpotID,
-                IsCurrent = false // Never current since we skip the current spot
+                IsCurrent = false, // Never current since we skip the current spot
+                IsTravelHub = spot.SpotID == location.TravelHubSpotId || spot.DomainTags?.Contains("Crossroads") == true
             });
         }
         
@@ -753,13 +770,7 @@ public class GameFacade
         // Get available routes
         var availableRoutes = _routeRepository.GetRoutesFromLocation(location.Id);
         
-        // ONLY show routes between market and tavern
-        var filteredRoutes = availableRoutes.Where(r => 
-            (location.Id == "market_square" && r.DestinationLocationSpot == "main_hall") ||
-            (location.Id == "copper_kettle_tavern" && r.DestinationLocationSpot == "central_fountain")
-        );
-        
-        foreach (var route in filteredRoutes)
+        foreach (var route in availableRoutes)
         {
             // Get destination location from the spot
             var destSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == route.DestinationLocationSpot);
@@ -1549,13 +1560,16 @@ public class GameFacade
     private async Task<bool> ExecuteTravel(TravelIntent intent)
     {
         Player player = _gameWorld.GetPlayer();
+        Console.WriteLine($"[ExecuteTravel] Looking for route: {intent.RouteId}");
         RouteOption route = _routeRepository.GetRouteById(intent.RouteId);
 
         if (route == null)
         {
+            Console.WriteLine($"[ExecuteTravel] Route {intent.RouteId} not found!");
             _messageSystem.AddSystemMessage("Route not found", SystemMessageTypes.Danger);
             return false;
         }
+        Console.WriteLine($"[ExecuteTravel] Found route: {route.Id} from {route.OriginLocationSpot} to {route.DestinationLocationSpot}");
         // Check if route is discovered
         if (!route.IsDiscovered)
         {
@@ -1574,9 +1588,9 @@ public class GameFacade
             return false;
         }
 
-        if (_timeManager.HoursRemaining < timeCost)
+        if (_timeManager.HoursRemaining * 60 < timeCost) // Convert hours to minutes for comparison
         {
-            _messageSystem.AddSystemMessage($"Not enough time (need {timeCost} hours)", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"Not enough time (need {timeCost} minutes)", SystemMessageTypes.Warning);
             return false;
         }
 
@@ -1589,15 +1603,19 @@ public class GameFacade
         // Execute travel
         player.SpendStamina(staminaCost);
         player.SpendMoney(route.CoinCost);
-        ProcessTimeAdvancement(timeCost);
+        ProcessTimeAdvancementMinutes(timeCost); // timeCost is in MINUTES from route.TravelTimeMinutes
 
         // Get the destination spot
+        Console.WriteLine($"[ExecuteTravel] Looking for destination spot: {route.DestinationLocationSpot}");
         LocationSpot targetSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == route.DestinationLocationSpot);
         if (targetSpot == null)
         {
+            Console.WriteLine($"[ExecuteTravel] Destination spot '{route.DestinationLocationSpot}' not found!");
+            Console.WriteLine($"[ExecuteTravel] Available spots: {string.Join(", ", _gameWorld.WorldState.locationSpots.Select(s => s.SpotID))}");
             _messageSystem.AddSystemMessage($"Destination spot '{route.DestinationLocationSpot}' not found", SystemMessageTypes.Danger);
             return false;
         }
+        Console.WriteLine($"[ExecuteTravel] Found destination spot: {targetSpot.SpotID} in location {targetSpot.LocationId}");
         
         // Get the location from the spot
         Location destination = _locationRepository.GetLocation(targetSpot.LocationId);

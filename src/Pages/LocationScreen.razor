@@ -145,8 +145,20 @@
                     {
                         <div class="area-option @(area.IsCurrent ? "current" : "")" @onclick="() => NavigateToArea(area)">
                             <div>
-                                <div class="area-name">@area.Name</div>
-                                <div class="area-detail">@area.Detail</div>
+                                <div class="area-name">
+                                    @area.Name
+                                    @if (area.IsTravelHub)
+                                    {
+                                        <span style="margin-left: 5px; color: #8b7355;">🚶</span>
+                                    }
+                                </div>
+                                <div class="area-detail">
+                                    @area.Detail
+                                    @if (area.IsTravelHub)
+                                    {
+                                        <span style="color: #8b7355;"> • Travel Hub</span>
+                                    }
+                                </div>
                             </div>
                             <span style="font-size: 11px; color: @(area.IsCurrent ? "#8b7355" : "#7a6250");">
                                 @(area.IsCurrent ? "You are here" : "No travel time")

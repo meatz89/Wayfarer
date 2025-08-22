@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wayfarer - Living World Navigation</title>
+    <title>Wayfarer - Location System</title>
     <style>
         * {
             margin: 0;
@@ -26,22 +26,74 @@
             box-shadow: 0 0 40px rgba(0,0,0,0.5);
         }
 
-        /* Simplified Time Header */
+        /* Player Resources Bar */
+        .resources-bar {
+            background: #1a1612;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #3d3429;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .resource-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .resource-icon {
+            width: 18px;
+            height: 18px;
+            background: #3d3429;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        .resource-value {
+            font-weight: bold;
+            color: #d4a76a;
+        }
+
+        .resource.low {
+            color: #d4704a;
+        }
+
+        .resource.critical {
+            color: #ff6b6b;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Time Header */
         .header {
             background: #2c241a;
             color: #e8dcc4;
             padding: 8px 20px;
             border-bottom: 2px solid #5c4a3a;
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
 
         .time-bar {
             display: flex;
             justify-content: space-between;
             font-size: 12px;
-            letter-spacing: 0.5px;
             align-items: center;
         }
 
@@ -49,10 +101,6 @@
             display: flex;
             gap: 12px;
             align-items: center;
-        }
-
-        .current-time {
-            text-transform: uppercase;
         }
 
         .time-period {
@@ -66,15 +114,9 @@
         .most-urgent {
             color: #d4704a;
             font-weight: bold;
-            animation: pulse 2s infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        /* Active Obligations Panel */
+        /* Active Obligations */
         .obligations-panel {
             background: #f4e8d0;
             border-bottom: 2px solid #a68b6f;
@@ -107,21 +149,6 @@
         .obligation-item.critical {
             border-color: #d4704a;
             background: #faf0e6;
-        }
-
-        .obligation-target {
-            color: #5c4a3a;
-            font-weight: bold;
-        }
-
-        .obligation-location {
-            color: #7a6250;
-            font-size: 11px;
-        }
-
-        .obligation-time {
-            color: #8b4726;
-            font-weight: bold;
         }
 
         /* Location Header */
@@ -166,7 +193,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* Current Spot Indicator */
+        /* Current Spot Banner */
         .current-spot-banner {
             background: #e8dcc4;
             padding: 10px 20px;
@@ -174,13 +201,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .current-spot-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #7a6250;
         }
 
         .current-spot-name {
@@ -238,7 +258,7 @@
             border-bottom: 1px solid #d4c5a0;
         }
 
-        /* Actions Available at Current Spot */
+        /* Actions Grid */
         .actions-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -246,7 +266,7 @@
             margin-bottom: 20px;
         }
 
-        .action-button {
+        .action-card {
             background: #faf4ea;
             border: 2px solid #c4a684;
             border-radius: 4px;
@@ -256,13 +276,13 @@
             text-align: center;
         }
 
-        .action-button:hover {
+        .action-card:hover {
             background: #e8dcc4;
             border-color: #a68b6f;
             transform: translateY(-2px);
         }
 
-        .action-button.travel {
+        .action-card.travel {
             border-color: #7a8b5a;
             background: #f4f9e9;
         }
@@ -274,12 +294,17 @@
             margin-bottom: 4px;
         }
 
-        .action-detail {
+        .action-cost {
             font-size: 11px;
             color: #7a6250;
         }
 
-        /* NPCs at Current Spot */
+        .cost-value {
+            color: #8b4726;
+            font-weight: bold;
+        }
+
+        /* NPCs Section */
         .npc-card {
             background: #f9f3e9;
             border: 1px solid #c4a684;
@@ -292,7 +317,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .npc-name {
@@ -318,19 +343,26 @@
             color: #7a6250;
             font-size: 13px;
             line-height: 1.4;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
+        /* NPC Actions */
+        .npc-actions {
+            display: grid;
+            gap: 8px;
         }
 
         .npc-action {
             background: white;
             border: 1px solid #d4c5a0;
-            padding: 8px;
             border-radius: 2px;
+            padding: 8px 12px;
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 13px;
-            color: #5c4a3a;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
         }
 
         .npc-action:hover {
@@ -339,7 +371,86 @@
             transform: translateX(4px);
         }
 
-        /* Other Spots in Location */
+        .npc-action.exchange {
+            background: #f0faf0;
+            border-color: #7a8b5a;
+        }
+
+        .npc-action.crisis {
+            background: #faf0e6;
+            border-color: #d4704a;
+        }
+
+        .action-type {
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .action-details {
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        .action-reward {
+            color: #5a7a3a;
+        }
+
+        /* Observations */
+        .observations {
+            background: #f9f3e9;
+            border: 1px dashed #c4a684;
+            padding: 14px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+
+        .observation-note {
+            font-size: 11px;
+            color: #7a6250;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .observation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e8dcc4;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .observation-item:last-child {
+            border-bottom: none;
+        }
+
+        .observation-item:hover {
+            padding-left: 8px;
+        }
+
+        .observation-text {
+            font-size: 12px;
+            color: #5c4a3a;
+        }
+
+        .observation-reward {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        .reward-card {
+            padding: 2px 6px;
+            background: #e8f5e9;
+            border: 1px solid #7a8b5a;
+            border-radius: 2px;
+            color: #5a7a3a;
+            font-weight: bold;
+        }
+
+        /* Spots Grid */
         .spots-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -368,10 +479,6 @@
             cursor: default;
         }
 
-        .spot-card.current:hover {
-            transform: none;
-        }
-
         .spot-card-name {
             font-size: 13px;
             color: #5c4a3a;
@@ -379,33 +486,11 @@
             margin-bottom: 4px;
         }
 
-        .spot-properties {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-bottom: 6px;
-        }
-
-        .spot-prop {
-            font-size: 9px;
-            padding: 1px 4px;
-            background: #e8dcc4;
-            border-radius: 2px;
-            color: #7a6250;
-        }
-
         .spot-occupants {
             font-size: 11px;
             color: #8b7355;
             font-style: italic;
             margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px solid #e8dcc4;
-        }
-
-        .occupant-state {
-            color: #8b4726;
-            font-weight: bold;
         }
 
         .spot-move-action {
@@ -417,10 +502,6 @@
             text-align: center;
             font-size: 11px;
             color: #7a6250;
-        }
-
-        .spot-card.current .spot-move-action {
-            display: none;
         }
 
         /* Travel Modal */
@@ -457,17 +538,6 @@
             border-bottom: 2px solid #a68b6f;
         }
 
-        .travel-title {
-            font-size: 16px;
-            color: #5c4a3a;
-            margin-bottom: 4px;
-        }
-
-        .travel-subtitle {
-            font-size: 11px;
-            color: #7a6250;
-        }
-
         .route-list {
             padding: 15px;
             display: grid;
@@ -488,25 +558,6 @@
             background: #fefaf0;
         }
 
-        .route-destination {
-            font-size: 14px;
-            color: #5c4a3a;
-            font-weight: bold;
-            margin-bottom: 6px;
-        }
-
-        .route-info {
-            display: flex;
-            gap: 15px;
-            font-size: 12px;
-            color: #7a6250;
-        }
-
-        .route-detail {
-            color: #5c4a3a;
-            font-weight: bold;
-        }
-
         .close-button {
             position: absolute;
             top: 14px;
@@ -518,64 +569,7 @@
             border: none;
         }
 
-        .close-button:hover {
-            color: #5c4a3a;
-        }
-
-        /* Observations Available at Current Spot */
-        .observations {
-            background: #f9f3e9;
-            border: 1px dashed #c4a684;
-            padding: 14px;
-            border-radius: 4px;
-            margin: 20px 0;
-        }
-
-        .observation-note {
-            font-size: 11px;
-            color: #7a6250;
-            font-style: italic;
-            margin-bottom: 10px;
-        }
-
-        .observation-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid #e8dcc4;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .observation-item:last-child {
-            border-bottom: none;
-        }
-
-        .observation-item:hover {
-            padding-left: 8px;
-        }
-
-        .observation-text {
-            font-size: 12px;
-            color: #5c4a3a;
-        }
-
-        .observation-cost {
-            font-size: 11px;
-            color: #8b4726;
-            font-weight: bold;
-        }
-
-        /* Empty State */
-        .empty-message {
-            text-align: center;
-            padding: 20px;
-            color: #7a6250;
-            font-style: italic;
-            font-size: 13px;
-        }
-
-        /* Divider */
+        /* Section Divider */
         .section-divider {
             border-top: 2px solid #c4a684;
             margin: 30px 0;
@@ -599,11 +593,40 @@
 </head>
 <body>
     <div class="main-container">
-        <!-- Simplified Time Header -->
+        <!-- Player Resources -->
+        <div class="resources-bar">
+            <div class="resource-group">
+                <div class="resource">
+                    <div class="resource-icon">💰</div>
+                    <div class="resource-value">23</div>
+                    <span>Coins</span>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">❤️</div>
+                    <div class="resource-value">75</div>
+                    <span>Health</span>
+                </div>
+                <div class="resource low">
+                    <div class="resource-icon">🍞</div>
+                    <div class="resource-value">60</div>
+                    <span>Hunger</span>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">👁️</div>
+                    <div class="resource-value">7/10</div>
+                    <span>Attention</span>
+                </div>
+            </div>
+            <div class="resource">
+                <span>Afternoon</span>
+            </div>
+        </div>
+
+        <!-- Time Header -->
         <div class="header">
             <div class="time-bar">
                 <div class="time-display">
-                    <span class="current-time">Tuesday, 3:47 PM</span>
+                    <span>Tuesday, 3:47 PM</span>
                     <span class="time-period">Afternoon</span>
                 </div>
                 <span class="most-urgent">⚠ Elena: 1h 13m</span>
@@ -615,24 +638,15 @@
             <div class="obligations-header">Active Obligations</div>
             <div class="obligation-list">
                 <div class="obligation-item critical">
-                    <div class="obligation-target">Meet Elena</div>
-                    <div class="obligation-location">Copper Kettle → Corner Table</div>
-                    <div class="obligation-time">1h 13m</div>
+                    Meet Elena → Copper Kettle → Corner Table (1h 13m)
                 </div>
                 <div class="obligation-item">
-                    <div class="obligation-target">Deliver to Marcus</div>
-                    <div class="obligation-location">Warehouse District → Office</div>
-                    <div class="obligation-time">4h 30m</div>
-                </div>
-                <div class="obligation-item">
-                    <div class="obligation-target">Temple Notice</div>
-                    <div class="obligation-location">Temple of Bells → Notice Board</div>
-                    <div class="obligation-time">Tomorrow</div>
+                    Deliver to Marcus → Warehouse → Office (4h 30m)
                 </div>
             </div>
         </div>
 
-        <!-- SCREEN 1: Market Square Fountain -->
+        <!-- SCREEN 1: Market Square -->
         <div class="location-header">
             <div class="location-path">
                 <span>Lower Wards</span>
@@ -644,109 +658,137 @@
             <div class="location-name">Central Market Square</div>
             <div class="location-traits">
                 <span class="trait">Public</span>
-                <span class="trait">Afternoon: Moderate</span>
-                <span class="trait">Merchant Hub</span>
+                <span class="trait">Afternoon: Moderate Crowd</span>
+                <span class="trait">Commerce Hub</span>
             </div>
         </div>
 
         <!-- Current Spot -->
         <div class="current-spot-banner">
-            <div>
-                <div class="current-spot-label">You are at:</div>
-                <div class="current-spot-name">The Fountain</div>
-            </div>
+            <div class="current-spot-name">The Fountain</div>
             <div class="spot-traits">
                 <span class="spot-trait crossroads">Crossroads</span>
                 <span class="spot-trait">Public</span>
-                <span class="spot-trait">Central</span>
             </div>
         </div>
 
         <div class="content-area">
             <div class="atmosphere-text">
-                The fountain's spray catches afternoon light. Merchants hawk wares while guards inspect papers at the northern checkpoint. The crowd flows steadily between stalls.
+                The fountain's spray catches afternoon light. Merchants hawk their wares while guards patrol the northern checkpoint.
             </div>
 
             <div class="section-header">Actions Available Here</div>
             <div class="actions-grid">
-                <div class="action-button travel" onclick="openTravelModal()">
+                <div class="action-card travel" onclick="openTravelModal()">
                     <div class="action-name">🗺️ Travel</div>
-                    <div class="action-detail">To another location</div>
+                    <div class="action-cost">To another location</div>
                 </div>
-                <div class="action-button">
-                    <div class="action-name">💧 Rest</div>
-                    <div class="action-detail">5 minutes</div>
-                </div>
-                <div class="action-button">
-                    <div class="action-name">👀 Observe</div>
-                    <div class="action-detail">1 attention</div>
-                </div>
-                <div class="action-button">
-                    <div class="action-name">🪙 Toss Coin</div>
-                    <div class="action-detail">Make a wish</div>
+                <div class="action-card">
+                    <div class="action-name">💼 Work: Haul Goods</div>
+                    <div class="action-cost"><span class="cost-value">2 attention</span> → 8 coins</div>
                 </div>
             </div>
 
             <div class="section-header">People at This Spot</div>
-            <div class="empty-message">
-                No one of note at the fountain currently. The crowd flows past without stopping.
+            <div class="npc-card">
+                <div class="npc-header">
+                    <div class="npc-name">Town Crier</div>
+                    <div class="npc-state">Proclaiming</div>
+                </div>
+                <div class="npc-description">
+                    Announcing the day's news with theatrical flair.
+                </div>
+                <div class="npc-actions">
+                    <div class="npc-action exchange">
+                        <span class="action-type">Quick Exchange</span>
+                        <span class="action-details">Free • <span class="action-reward">Hear news</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="observations">
+                <div class="observation-note">Spend 1 attention to observe, gain a card for conversations:</div>
+                <div class="observation-item">
+                    <span class="observation-text">Guards discussing checkpoint bribes</span>
+                    <span class="observation-reward">
+                        <span class="cost-value">1 attention</span>
+                        <span class="reward-card">Shadow Card +3</span>
+                    </span>
+                </div>
+                <div class="observation-item">
+                    <span class="observation-text">Merchant's heated argument</span>
+                    <span class="observation-reward">
+                        <span class="cost-value">1 attention</span>
+                        <span class="reward-card">Commerce Card +5</span>
+                    </span>
+                </div>
             </div>
 
             <div class="section-header">Other Spots in Central Square</div>
             <div class="spots-grid">
                 <div class="spot-card current">
                     <div class="spot-card-name">The Fountain</div>
-                    <div class="spot-properties">
-                        <span class="spot-prop">Crossroads</span>
-                        <span class="spot-prop">Public</span>
-                    </div>
                     <div class="spot-occupants">You are here</div>
                 </div>
                 
-                <div class="spot-card" onclick="moveToSpot('merchant-row')">
+                <div class="spot-card">
                     <div class="spot-card-name">Merchant Row</div>
-                    <div class="spot-properties">
-                        <span class="spot-prop">Commercial</span>
-                        <span class="spot-prop">Loud</span>
-                    </div>
-                    <div class="spot-occupants">
-                        Marcus (Calculating)<br>
-                        3 other merchants
-                    </div>
-                    <div class="spot-move-action">Move here (instant)</div>
-                </div>
-                
-                <div class="spot-card" onclick="moveToSpot('north-alcove')">
-                    <div class="spot-card-name">North Alcove</div>
-                    <div class="spot-properties">
-                        <span class="spot-prop">Discrete</span>
-                        <span class="spot-prop">+1 Comfort</span>
-                    </div>
-                    <div class="spot-occupants">
-                        Town Crier (Preparing)
-                    </div>
-                    <div class="spot-move-action">Move here (instant)</div>
-                </div>
-                
-                <div class="spot-card" onclick="moveToSpot('guard-post')">
-                    <div class="spot-card-name">Guard Post</div>
-                    <div class="spot-properties">
-                        <span class="spot-prop">Authority</span>
-                        <span class="spot-prop">Tense</span>
-                    </div>
-                    <div class="spot-occupants">
-                        2 guards on duty
-                    </div>
+                    <div class="spot-occupants">Marcus (Calculating)</div>
                     <div class="spot-move-action">Move here (instant)</div>
                 </div>
             </div>
         </div>
 
         <div class="section-divider">
-            <span class="divider-text">After Selecting Travel</span>
+            <span class="divider-text">After Moving to Merchant Row</span>
         </div>
 
-        <!-- SCREEN 2: Copper Kettle Common Room -->
+        <!-- SCREEN 2: At Merchant Row with Marcus -->
+        <div class="current-spot-banner">
+            <div class="current-spot-name">Merchant Row</div>
+            <div class="spot-traits">
+                <span class="spot-trait">Commercial</span>
+                <span class="spot-trait">Loud</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="atmosphere-text">
+                Cloth and spices create a riot of color and scent. Marcus arranges his wares with meticulous care.
+            </div>
+
+            <div class="section-header">People at This Spot</div>
+            
+            <div class="npc-card">
+                <div class="npc-header">
+                    <div class="npc-name">Marcus the Cloth Merchant</div>
+                    <div class="npc-state">Calculating</div>
+                </div>
+                <div class="npc-description">
+                    Checking inventory against his ledger, occasionally frowning at the numbers.
+                </div>
+                <div class="npc-actions">
+                    <div class="npc-action exchange">
+                        <span class="action-type">Quick Exchange</span>
+                        <span class="action-details">Free • <span class="action-reward">10 coins → Fine Cloth</span></span>
+                    </div>
+                    <div class="npc-action">
+                        <span class="action-type">Standard Conversation</span>
+                        <span class="action-details"><span class="cost-value">2 attention</span> • 8 patience</span>
+                    </div>
+                    <div class="npc-action">
+                        <span class="action-type">Deep Conversation</span>
+                        <span class="action-details"><span class="cost-value">3 attention</span> • 12 patience • Req: Level 3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider">
+            <span class="divider-text">After Traveling to Copper Kettle</span>
+        </div>
+
+        <!-- SCREEN 3: At Copper Kettle -->
         <div class="location-header">
             <div class="location-path">
                 <span>Lower Wards</span>
@@ -759,16 +801,11 @@
             <div class="location-traits">
                 <span class="trait">Tavern</span>
                 <span class="trait">Afternoon: Quiet</span>
-                <span class="trait">Warm</span>
             </div>
         </div>
 
-        <!-- Current Spot -->
         <div class="current-spot-banner">
-            <div>
-                <div class="current-spot-label">You are at:</div>
-                <div class="current-spot-name">Common Room Entrance</div>
-            </div>
+            <div class="current-spot-name">Common Room Entrance</div>
             <div class="spot-traits">
                 <span class="spot-trait crossroads">Crossroads</span>
                 <span class="spot-trait">Public</span>
@@ -777,70 +814,25 @@
 
         <div class="content-area">
             <div class="atmosphere-text">
-                The afternoon tavern is nearly empty. Sunlight streams through dusty windows. In the corner, a woman clutches a sealed letter, her knuckles white with tension.
-            </div>
-
-            <div class="section-header">Actions Available Here</div>
-            <div class="actions-grid">
-                <div class="action-button travel" onclick="openTravelModal()">
-                    <div class="action-name">🗺️ Travel</div>
-                    <div class="action-detail">Leave tavern</div>
-                </div>
-                <div class="action-button">
-                    <div class="action-name">👀 Observe</div>
-                    <div class="action-detail">1 attention</div>
-                </div>
-            </div>
-
-            <div class="section-header">People at This Spot</div>
-            <div class="empty-message">
-                The entrance is empty. You can see other patrons at various spots within the tavern.
+                The afternoon tavern is nearly empty. In the corner, Elena clutches a sealed letter.
             </div>
 
             <div class="section-header">Other Spots in Copper Kettle</div>
             <div class="spots-grid">
                 <div class="spot-card current">
                     <div class="spot-card-name">Common Room Entrance</div>
-                    <div class="spot-properties">
-                        <span class="spot-prop">Crossroads</span>
-                        <span class="spot-prop">Public</span>
-                    </div>
                     <div class="spot-occupants">You are here</div>
                 </div>
                 
-                <div class="spot-card" onclick="moveToSpot('corner-table')">
+                <div class="spot-card">
                     <div class="spot-card-name">Corner Table</div>
-                    <div class="spot-properties">
-                        <span class="spot-prop">Private</span>
-                        <span class="spot-prop">+1 Comfort</span>
-                    </div>
-                    <div class="spot-occupants">
-                        Elena <span class="occupant-state">(Desperate)</span>
-                    </div>
+                    <div class="spot-occupants">Elena (Desperate)</div>
                     <div class="spot-move-action">Move here (instant)</div>
                 </div>
                 
-                <div class="spot-card" onclick="moveToSpot('bar')">
+                <div class="spot-card">
                     <div class="spot-card-name">The Bar</div>
-                    <div class="spot-properties">
-                        <span class="spot-prop">Commercial</span>
-                        <span class="spot-prop">Social</span>
-                    </div>
-                    <div class="spot-occupants">
-                        Bertram (Working)
-                    </div>
-                    <div class="spot-move-action">Move here (instant)</div>
-                </div>
-                
-                <div class="spot-card" onclick="moveToSpot('hearth')">
-                    <div class="spot-card-name">Hearthside</div>
-                    <div class="spot-properties">
-                        <span class="spot-prop">Warm</span>
-                        <span class="spot-prop">+2 Comfort</span>
-                    </div>
-                    <div class="spot-occupants">
-                        Old sailor (Dozing)
-                    </div>
+                    <div class="spot-occupants">Bertram (Working)</div>
                     <div class="spot-move-action">Move here (instant)</div>
                 </div>
             </div>
@@ -850,39 +842,18 @@
             <span class="divider-text">After Moving to Corner Table</span>
         </div>
 
-        <!-- SCREEN 3: At Elena's Table -->
-        <div class="location-header">
-            <div class="location-path">
-                <span>Lower Wards</span>
-                <span>→</span>
-                <span>Market District</span>
-                <span>→</span>
-                <span>Copper Kettle</span>
-            </div>
-            <div class="location-name">Copper Kettle Tavern</div>
-            <div class="location-traits">
-                <span class="trait">Tavern</span>
-                <span class="trait">Afternoon: Quiet</span>
-                <span class="trait">Warm</span>
-            </div>
-        </div>
-
-        <!-- Current Spot -->
+        <!-- SCREEN 4: At Elena's Table -->
         <div class="current-spot-banner">
-            <div>
-                <div class="current-spot-label">You are at:</div>
-                <div class="current-spot-name">Corner Table</div>
-            </div>
+            <div class="current-spot-name">Corner Table</div>
             <div class="spot-traits">
                 <span class="spot-trait">Private</span>
-                <span class="spot-trait">Quiet</span>
                 <span class="spot-trait">+1 Comfort</span>
             </div>
         </div>
 
         <div class="content-area">
             <div class="atmosphere-text">
-                The corner offers privacy from the main room. Elena's eyes dart between you and the door, her sealed letter trembling in her grip.
+                The corner offers privacy. Elena's white knuckles betray her desperation.
             </div>
 
             <div class="section-header">People at This Spot</div>
@@ -893,117 +864,54 @@
                     <div class="npc-state desperate">DESPERATE</div>
                 </div>
                 <div class="npc-description">
-                    Clutching a sealed letter with white knuckles, her breathing shallow and quick. The deadline weighs visibly upon her.
+                    Clutching her sealed letter, eyes darting to the door with each sound.
                 </div>
-                <div class="npc-action" onclick="startConversation('elena')">
-                    Begin Conversation
+                <div class="npc-actions">
+                    <div class="npc-action crisis">
+                        <span class="action-type">Crisis Resolution</span>
+                        <span class="action-details"><span class="cost-value">1 attention</span> • 3 patience • URGENT</span>
+                    </div>
+                    <div class="npc-action">
+                        <span class="action-type">Standard Conversation</span>
+                        <span class="action-details"><span class="cost-value">2 attention</span> • 8 patience</span>
+                    </div>
                 </div>
             </div>
 
             <div class="observations">
-                <div class="observation-note">You can observe details at this spot:</div>
+                <div class="observation-note">Observations at this private spot:</div>
                 <div class="observation-item">
                     <span class="observation-text">Elena's family seal on letter</span>
-                    <span class="observation-cost">1 attention</span>
-                </div>
-                <div class="observation-item">
-                    <span class="observation-text">Escape route through kitchen</span>
-                    <span class="observation-cost">1 attention</span>
-                </div>
-            </div>
-
-            <div class="section-header">Other Spots in Copper Kettle</div>
-            <div class="spots-grid">
-                <div class="spot-card" onclick="moveToSpot('entrance')">
-                    <div class="spot-card-name">Common Room Entrance</div>
-                    <div class="spot-properties">
-                        <span class="spot-prop">Crossroads</span>
-                        <span class="spot-prop">Public</span>
-                    </div>
-                    <div class="spot-occupants">Empty</div>
-                    <div class="spot-move-action">Move here (instant)</div>
-                </div>
-                
-                <div class="spot-card current">
-                    <div class="spot-card-name">Corner Table</div>
-                    <div class="spot-properties">
-                        <span class="spot-prop">Private</span>
-                        <span class="spot-prop">+1 Comfort</span>
-                    </div>
-                    <div class="spot-occupants">You and Elena are here</div>
-                </div>
-                
-                <div class="spot-card" onclick="moveToSpot('bar')">
-                    <div class="spot-card-name">The Bar</div>
-                    <div class="spot-properties">
-                        <span class="spot-prop">Commercial</span>
-                        <span class="spot-prop">Social</span>
-                    </div>
-                    <div class="spot-occupants">
-                        Bertram (Working)
-                    </div>
-                    <div class="spot-move-action">Move here (instant)</div>
-                </div>
-                
-                <div class="spot-card" onclick="moveToSpot('hearth')">
-                    <div class="spot-card-name">Hearthside</div>
-                    <div class="spot-properties">
-                        <span class="spot-prop">Warm</span>
-                        <span class="spot-prop">+2 Comfort</span>
-                    </div>
-                    <div class="spot-occupants">
-                        Old sailor (Dozing)
-                    </div>
-                    <div class="spot-move-action">Move here (instant)</div>
+                    <span class="observation-reward">
+                        <span class="cost-value">1 attention</span>
+                        <span class="reward-card">Status Card +8</span>
+                    </span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Travel Modal (Hidden by default) -->
+    <!-- Travel Modal -->
     <div class="travel-overlay" id="travelModal">
         <div class="travel-modal">
             <button class="close-button" onclick="closeTravelModal()">×</button>
             <div class="travel-header">
-                <div class="travel-title">Select Destination</div>
-                <div class="travel-subtitle">From: Central Market Square (Fountain)</div>
+                <div>Select Destination</div>
+                <div style="font-size: 11px; color: #7a6250;">From: Central Market Square</div>
             </div>
             
             <div class="route-list">
-                <div class="route-card" onclick="travelTo('copper-kettle')">
-                    <div class="route-destination">Copper Kettle Tavern</div>
-                    <div class="route-info">
-                        <span>Walk: <span class="route-detail">15 min</span></span>
-                        <span>Via: <span class="route-detail">West Alley</span></span>
-                        <span>Cost: <span class="route-detail">Free</span></span>
-                    </div>
+                <div class="route-card">
+                    <div>Copper Kettle Tavern</div>
+                    <div style="font-size: 11px; color: #7a6250;">15 min walk • Free</div>
                 </div>
-
-                <div class="route-card" onclick="travelTo('noble-gate')">
-                    <div class="route-destination">Noble District Gate</div>
-                    <div class="route-info">
-                        <span>Walk: <span class="route-detail">25 min</span></span>
-                        <span>Via: <span class="route-detail">Guard Checkpoint</span></span>
-                        <span>Cost: <span class="route-detail">Free</span></span>
-                    </div>
+                <div class="route-card">
+                    <div>Noble District Gate</div>
+                    <div style="font-size: 11px; color: #7a6250;">25 min walk • Free • Checkpoint</div>
                 </div>
-
-                <div class="route-card" onclick="travelTo('temple')">
-                    <div class="route-destination">Temple of Bells</div>
-                    <div class="route-info">
-                        <span>Cart: <span class="route-detail">10 min</span></span>
-                        <span>Driver: <span class="route-detail">Brother Francis</span></span>
-                        <span>Cost: <span class="route-detail">2 coins</span></span>
-                    </div>
-                </div>
-
-                <div class="route-card" onclick="travelTo('warehouse')">
-                    <div class="route-destination">Warehouse District</div>
-                    <div class="route-info">
-                        <span>Walk: <span class="route-detail">35 min</span></span>
-                        <span>Via: <span class="route-detail">Dock Road</span></span>
-                        <span>Cost: <span class="route-detail">Free</span></span>
-                    </div>
+                <div class="route-card">
+                    <div>Temple of Bells</div>
+                    <div style="font-size: 11px; color: #7a6250;">30 min walk • Free</div>
                 </div>
             </div>
         </div>
@@ -1017,29 +925,6 @@
         function closeTravelModal() {
             document.getElementById('travelModal').classList.remove('active');
         }
-
-        function travelTo(destination) {
-            console.log('Traveling to:', destination);
-            closeTravelModal();
-            // Handle travel logic
-        }
-
-        function moveToSpot(spot) {
-            console.log('Moving to spot:', spot);
-            // Instant movement within location
-        }
-
-        function startConversation(npc) {
-            console.log('Starting conversation with:', npc);
-            // Load conversation screen
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('travelModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeTravelModal();
-            }
-        });
     </script>
 </body>
 </html>

@@ -65,6 +65,19 @@ public List<LocationActionViewModel> GenerateActionsForLocation(Location locatio
     if (spot != null)
     {
         actions.AddRange(GenerateSpotActions(spot, currentTime));
+        
+        // Add Travel action if this is the location's hub spot
+        if (spot.SpotID == location.TravelHubSpotId)
+        {
+            TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
+            var travelAction = CreateActionWithTierCheck(
+                "🗺️", "Travel", "Leave for another district", "Various times",
+                TierLevel.T1, playerTier, "travel");
+            if (travelAction != null && !actions.Any(a => a.Title == "Travel"))
+            {
+                actions.Add(travelAction);
+            }
+        }
     }
 
     // Generate location-level domain tag actions

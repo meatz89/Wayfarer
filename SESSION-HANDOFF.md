@@ -1,140 +1,140 @@
 # SESSION HANDOFF: WAYFARER IMPLEMENTATION
-**Session Date**: 2025-08-22 (Session 28 - ROUTE SYSTEM SUCCESSFULLY FIXED)  
-**Status**: ✅ WORKING - Major refactor COMPLETED, travel system fully functional
-**Build Status**: ✅ BUILDS CLEAN - All compilation errors fixed
+**Session Date**: 2025-08-22 (Session 29 - Route System Simplified, Major Bugs Found)  
+**Status**: ⚠️ BROKEN - Multiple critical bugs prevent gameplay
+**Build Status**: ✅ Builds clean  
 **Branch**: letters-ledgers
 **Port**: 5116 (configured in launchSettings.json)
 
-## 🎉 SESSION 28 - ROUTE SYSTEM FIXED SUCCESSFULLY:
+## 🔧 SESSION 29 - WHAT WE LEARNED:
 
-### What Was Completed This Session:
+### What We Did:
+1. **Simplified routes.json** - Removed ALL routes except market↔tavern (only 2 routes now)
+2. **Removed hardcoded filter** - Deleted lines 757-759 in GameFacade that were filtering routes
+3. **Clean rebuild** - Fixed the 500 error with clean/build cycle
 
-1. ✅ **Fixed routes.json to use spot IDs**:
-   - ALL routes now correctly use spot IDs instead of location IDs
-   - Mapping: courier_office → office_desk, market_square → central_fountain, etc.
-   - All 24 routes properly configured
+### Testing Results:
+✅ **Market → Tavern works** - Successfully traveled from central_fountain to main_hall
+❌ **Tavern → Market FAILS** - Return journey doesn't work (route exists but travel fails)
+❌ **Time bug SEVERE** - 10-minute walk advances 10 HOURS (6 AM → 4 PM)
 
-2. ✅ **Fixed ALL compilation errors**:
-   - Updated all references from Origin/Destination to OriginLocationSpot/DestinationLocationSpot
-   - Fixed RouteFactory.cs, ContentFallbackService.cs, RouteOptionParser.cs
-   - Deleted legacy NPC route methods (GetSecretRoute, KnownRoutes)
-   - Fixed Player.cs, TravelManager.cs, GameStateSerializer.cs, MainGameplayView.razor.cs
-   - Fixed GameFacade.cs route references
+## 🚨 CRITICAL BUGS FOUND:
 
-3. ✅ **Removed fallback logic**:
-   - Deleted the fallback in GameFacade.ExecuteTravel (lines 1614-1622)
-   - Routes now use exact destination spots with NO FALLBACKS
-   - Pure logic as demanded by user
+### 1. **RETURN TRAVEL BROKEN**:
+   - `tavern_to_market` route exists in routes.json
+   - Route loads successfully (confirmed in logs)
+   - But ExecuteTravel FAILS when trying to use it
+   - Error: `[LocationScreen.TravelTo] Failed to travel to Market Square`
+   - Likely issue with spot/location ID resolution
 
-4. ✅ **Fixed RouteValidator**:
-   - Updated to look for "originLocationSpot" and "destinationLocationSpot"
-   - Was causing validation errors that prevented routes from loading
-   - Now all 24 routes load successfully
+### 2. **TIME SYSTEM CATASTROPHICALLY BROKEN**:
+   - 10 minutes = 10 HOURS advancement
+   - Dawn (6 AM) → Evening (4 PM) in one travel
+   - Makes game completely unplayable
+   - Bug location: Likely in TimeManager.AdvanceTime or GameFacade.ProcessTimeAdvancement
+   - TravelTimeMinutes is probably being added as hours
 
-5. ✅ **Verified with Playwright testing**:
-   - Routes load: "Loaded 24 routes" confirmed in console
-   - Travel UI works: Shows "Copper Kettle Tavern" as destination
-   - Travel executes: Successfully traveled from Market Square to Tavern
-   - Location updates correctly to "Main Hall" at Copper Kettle Tavern
+### 3. **TRAVEL AVAILABLE FROM WRONG SPOTS**:
+   - Travel action shows at EVERY spot in a location
+   - Should ONLY show at hub spots (location.TravelHubSpotId)
+   - Currently: Can travel from Main Hall, Bar Counter, Corner Table, etc.
+   - Should be: Can only travel from designated hub spot
+   - User requirement: "only crossroad tag location spots should get travel action"
 
-### Architecture Now Correct:
-```
-TRAVEL FLOW:
-1. Player is at LocationSpot (e.g., "central_fountain")
-2. Routes originate from specific spots (OriginLocationSpot)
-3. Routes lead to specific destination spots (DestinationLocationSpot)
-4. Location is derived from spot.LocationId
-5. Each location has TravelHubSpotId for its main travel point
-```
+### 4. **HUB SPOTS NOT MARKED IN UI**:
+   - Players can't tell which spot allows travel
+   - "Areas Within" panel should mark the hub spot
+   - No visual indicator for travel-enabled spots
+   - User requirement: "hub spot should be marked so player knows where to go"
 
-### Files Modified and Fixed:
-```
-/src/Game/MainSystem/RouteOption.cs - Fields renamed
-/src/Content/DTOs/RouteDTO.cs - Fields renamed
-/src/Content/Templates/routes.json - ALL IDs fixed to use spots
-/src/Content/Validation/Validators/RouteValidator.cs - Updated field names
-/src/Content/InitializationPipeline/Phase3_NPCDependents.cs - Fully updated
-/src/Content/Factories/RouteFactory.cs - Updated
-/src/Content/ContentFallbackService.cs - Updated
-/src/Content/RouteOptionParser.cs - Updated
-/src/Game/MainSystem/NPC.cs - Deleted legacy methods
-/src/GameState/RouteDiscoveryManager.cs - Updated
-/src/GameState/Player.cs - Updated (also fixed XP constant)
-/src/GameState/TravelManager.cs - Updated
-/src/GameState/GameStateSerializer.cs - Updated
-/src/Pages/MainGameplayView.razor.cs - Updated
-/src/Services/GameFacade.cs - Updated and fallback removed
-/src/ServiceConfiguration.cs - Removed missing LocationPropertyManager
-```
+### 5. **OBSERVATIONS SHOW AT WRONG SPOTS**:
+   - "Elena's visible distress" shows at Main Hall
+   - But Elena is at Corner Table (different spot)
+   - Observations about NPCs should only show when at SAME spot
+   - Currently: All observations for entire location show everywhere
+   - Should be: Only show observations for NPCs at current spot
 
-## 📊 TESTING RESULTS:
+## 📊 ARCHITECTURE CLARIFICATIONS:
 
-**Server Output Confirms Success**:
-```
-=== PHASE 3: NPC-Dependent Entities ===
-[LoadRoutes] Looking for routes at: Content/Templates/routes.json
-[LoadRoutes] File exists: True
-[LoadRoutes] About to load routes from Content/Templates/routes.json
-[LoadRoutes] Loaded 24 route DTOs
-Loaded 24 routes
-Phase 3 completed successfully
+### Travel System Design:
+- Routes connect SPOTS not locations (central_fountain → main_hall)
+- Location is derived from spot.LocationId
+- NO FALLBACKS - use exact spots from routes
+- Travel should only be available from hub spots
+
+### Current routes.json (ONLY 2 ROUTES):
+```json
+market_to_tavern: central_fountain → main_hall
+tavern_to_market: main_hall → central_fountain
 ```
 
-**Playwright Test Results**:
-- ✅ Travel dialog opens with destinations
-- ✅ "Copper Kettle Tavern" shown as available destination
-- ✅ Walk option available (Free, 10 min)
-- ✅ Click to travel works
-- ✅ Location changes to "Main Hall" at tavern
-- ✅ Time advances (though seems excessive - balance issue)
+## 🎯 WORK REMAINING (PRIORITY ORDER):
 
-## 🎯 REMAINING WORK:
+### MUST FIX IMMEDIATELY:
 
-### From Previous Sessions:
-1. ✅ FIXED: Travel system now works properly with correct architecture
-2. ⚠️ Only 3/20+ spots have atmospheric properties (not critical)
-3. ⚠️ Time advancement seems excessive (10 hours for 10-minute walk)
-4. ✅ Debug logging removed from critical path
+1. **Fix Return Travel**:
+   - Debug why tavern_to_market fails in ExecuteTravel
+   - Check spot/location resolution
+   - Files: GameFacade.cs (ExecuteTravel method)
 
-### Next Priorities:
-1. **Time System Balance**: 10-minute walk shouldn't take 10 hours
-2. **Complete atmospheric properties** for all location spots
-3. **Test letter delivery** with the working travel system
-4. **UI Polish** to match mockups pixel-perfect
+2. **Fix Time Bug**:
+   ```csharp
+   // Find where TravelTimeMinutes gets used
+   // Should advance MINUTES not HOURS
+   // Check: TimeManager.AdvanceTime(minutes)
+   // Check: GameFacade.ProcessTimeAdvancement
+   ```
 
-## 🛠️ Technical Notes:
+3. **Restrict Travel to Hub Spots**:
+   - Only show Travel action when: currentSpot == location.TravelHubSpotId
+   - Or when spot has "Crossroads" tag
+   - Files: GameFacade.cs (action generation)
 
-### Key Architectural Decision:
-- Routes MUST use LocationSpot IDs, not Location IDs
-- Each Location has exactly ONE TravelHubSpotId
-- NO FALLBACKS - pure spot-to-spot travel
-- Location is always derived from spot.LocationId
+4. **Mark Hub Spots in UI**:
+   - Add "🚶 Travel Hub" indicator in Areas Within panel
+   - Show which spot enables travel
+   - Files: LocationScreen.razor
 
-### Critical Validation:
-- RouteValidator must check for "originLocationSpot" and "destinationLocationSpot"
-- JSON field names must match DTO property names (case-insensitive)
-- All 24 routes must load for full gameplay
+5. **Fix Observation Filtering**:
+   - Only show observations for NPCs at current spot
+   - Filter by player's current LocationSpot
+   - Files: GameFacade.GetLocationObservations()
 
-### Running the Game:
-```bash
-dotnet run  # Uses launchSettings.json for port 5116
-# DO NOT use ASPNETCORE_URLS environment variable
+## 🛠️ Key Files to Modify:
+
+```
+/src/Services/GameFacade.cs - ExecuteTravel, time advancement, action generation, observations
+/src/GameState/TimeManager.cs - AdvanceTime method (probable time bug location)
+/src/Pages/LocationScreen.razor - UI for hub spot marking
+/src/Content/Templates/routes.json - Only has 2 routes now
+/src/Content/Templates/locations.json - Has TravelHubSpotId for each location
 ```
 
-## 🔴 KNOWN ISSUES:
+## ⚠️ SESSION 29 HONEST ASSESSMENT:
 
-1. **Time advancement excessive**: 10-minute walk takes 10 hours game time
-2. **Limited atmospheric properties**: Most spots missing time-based descriptions
-3. **UI not pixel-perfect**: Still needs polish to match mockups exactly
+**What We Achieved**:
+- Simplified route system to minimal test case
+- Removed hardcoded filters
+- Identified 5 critical bugs through testing
 
-## ✅ SESSION SUMMARY:
+**What Failed**:
+- Bidirectional travel doesn't work
+- Time system completely broken
+- Travel restrictions not implemented
+- Observations not filtered by spot
+- UI doesn't guide players
 
-**Major Achievement**: Successfully completed the route system refactor that was left incomplete in Session 27. The architecture is now correct with pure spot-based travel, no fallbacks, and all 24 routes loading and working properly. Travel has been verified working through Playwright testing.
+**Testing Coverage**:
+- ✅ Tested Market → Tavern
+- ✅ Tested Tavern → Market (failed)
+- ❌ Time system not fixed
+- ❌ Hub spot restrictions not tested
+- ❌ Observation filtering not tested
 
-**Technical Debt Cleared**: 
-- Removed all legacy code
-- Fixed all compilation errors  
-- Eliminated fallback logic
-- Corrected validation issues
+## DO NOT CLAIM SUCCESS UNTIL:
+1. Both travel directions work
+2. 10 minutes = 10 minutes (not 10 hours)
+3. Travel only available from hub spots
+4. Hub spots marked in UI
+5. Observations filtered by spot
 
-The game's travel system is now architecturally sound and fully functional.
+The game is NOT playable in current state.
