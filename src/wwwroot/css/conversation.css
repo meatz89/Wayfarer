@@ -447,7 +447,6 @@
     background: #faf4ea;
     border: 2px solid #c4a684;
     border-radius: 4px;
-    min-height: 180px;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
