@@ -1,0 +1,336 @@
+# WAYFARER CONVERSATION SYSTEM - COMPLETE IMPLEMENTATION PLAN
+
+**Created**: 2025-08-22  
+**Status**: 🚧 IN PROGRESS  
+**Design Doc**: /docs/conversation-system.md  
+**UI Mockup**: /UI-MOCKUPS/conversation-screen.html
+
+## 📊 EXECUTIVE SUMMARY
+
+Implementing a complete conversation system with 4 conversation types, 3 deck types per NPC, and full emotional state mechanics. System is 85% complete with core mechanics working. Need to add exchange system, multiple deck types, and missing conversation types.
+
+## 🎯 SUCCESS CRITERIA
+
+- [ ] All 4 conversation types functional (Quick Exchange, Crisis, Standard, Deep)
+- [ ] 3 deck types per NPC (Exchange, Conversation, Crisis)
+- [ ] Perfect information display - all costs/effects visible
+- [ ] No infinite resource exploits
+- [ ] Letter generation through conversations
+- [ ] Full emotional state transitions working
+- [ ] Playwright tests passing
+
+## 📋 PHASE 1: EXCHANGE SYSTEM (Priority: HIGH)
+
+### Goals
+Implement instant resource trading system with 0 attention cost
+
+### Tasks
+- [ ] **1.1 Create ExchangeCard class**
+  - Resource cost structure (coins, tokens, health, stamina)
+  - Resource reward structure
+  - Daily usage tracking
+  - Narrative context mapping
+  
+- [ ] **1.2 Implement QuickExchange conversation type**
+  - 0 attention cost
+  - No patience system
+  - Instant accept/refuse
+  - No emotional states
+  
+- [ ] **1.3 Add Exchange deck to NPCs**
+  - 5-10 cards per NPC
+  - Personality-based card selection
+  - Daily refresh at dawn
+  
+- [ ] **1.4 Create Exchange UI**
+  - Slide-out panel (not separate screen)
+  - Clear cost/reward display
+  - Accept/Decline buttons
+  - Visual feedback
+  
+- [ ] **1.5 Integration**
+  - Attention economy (free exchanges)
+  - Daily refresh mechanism
+  - Usage tracking per card
+
+### Files to Create/Modify
+```
+NEW: /src/Game/ConversationSystem/Core/ExchangeCard.cs
+NEW: /src/Game/ConversationSystem/Core/ResourceExchange.cs
+MOD: /src/Services/NPCDeckFactory.cs
+MOD: /src/Services/ConversationManager.cs
+NEW: /src/Pages/Components/ExchangePanel.razor
+MOD: /src/Pages/LocationScreen.razor
+```
+
+### Design Decisions
+- **Refresh**: Cards refresh at dawn (start of day)
+- **Limit**: Each card usable once per day
+- **Priority**: Exchange available if no crisis
+
+## 📋 PHASE 2: MULTIPLE DECK TYPES (Priority: HIGH)
+
+### Goals
+Support 3 separate decks per NPC with proper selection logic
+
+### Tasks
+- [ ] **2.1 Extend CardDeck class**
+  - Support deck type enum (Exchange, Conversation, Crisis)
+  - Lazy initialization for memory efficiency
+  - Deck switching logic
+  
+- [ ] **2.2 Modify NPCDeckFactory**
+  - Initialize 3 decks per NPC
+  - Load from JSON content
+  - Personality-based generation
+  
+- [ ] **2.3 Update ConversationManager**
+  - Deck selection by conversation type
+  - Priority system (Crisis > Exchange > Deep > Standard)
+  - State-based availability
+  
+- [ ] **2.4 Crisis conversation flow**
+  - 1 attention cost
+  - 3 patience only
+  - Crisis deck exclusive
+  - Forces resolution
+
+### Files to Modify
+```
+MOD: /src/Game/ConversationSystem/Core/CardDeck.cs
+MOD: /src/Services/NPCDeckFactory.cs
+MOD: /src/Game/ConversationSystem/Managers/ConversationManager.cs
+NEW: /src/Game/ConversationSystem/Core/DeckType.cs
+MOD: /Content/NPCs/*.json (add deck definitions)
+```
+
+### Design Decisions
+- **Priority**: Crisis > Exchange > Deep > Standard
+- **Memory**: Lazy deck initialization
+- **Crisis timeout**: Crisis cards expire after 3 time blocks
+
+## 📋 PHASE 3: MISSING CONVERSATION TYPES (Priority: MEDIUM)
+
+### Goals
+Implement Deep and Crisis conversation types with proper gating
+
+### Tasks
+- [ ] **3.1 Deep Conversation**
+  - 3 attention cost
+  - 12 patience
+  - Relationship level 3+ gate
+  - Better comfort/letter rewards
+  
+- [ ] **3.2 Crisis Resolution**
+  - 1 attention cost
+  - 3 patience
+  - Forced when crisis cards present
+  - Blocks other conversations
+  
+- [ ] **3.3 Conversation selection UI**
+  - Show available types
+  - Display requirements/costs
+  - Visual indicators for locked types
+  - Clear mechanical information
+
+### Files to Create/Modify
+```
+NEW: /src/Game/ConversationSystem/Core/ConversationType.cs
+MOD: /src/Game/ConversationSystem/Managers/ConversationManager.cs
+MOD: /src/Pages/ConversationScreen.razor
+NEW: /src/Pages/Components/ConversationTypeSelector.razor
+MOD: /src/Services/GameFacade.cs
+```
+
+### Design Decisions
+- **Deep gate**: Relationship level 3+ required
+- **Crisis force**: Cannot start other conversations if crisis present
+- **Attention refund**: No refunds - spent on attempt
+
+## 📋 PHASE 4: ENHANCED FEATURES (Priority: LOW)
+
+### Goals
+Polish and enhance the conversation experience
+
+### Tasks
+- [ ] **4.1 Letter delivery integration**
+  - Deliver letters through conversation cards
+  - Visual feedback for delivery
+  - Obligation updates
+  
+- [ ] **4.2 Set bonus visualization**
+  - Show potential bonuses
+  - Highlight matching types
+  - Animate bonus application
+  
+- [ ] **4.3 Obligation manipulation**
+  - Cards that extend/reduce deadlines
+  - Visual preview of changes
+  - Confirmation required
+  
+- [ ] **4.4 Depth advancement**
+  - Visual depth indicator
+  - Unlock notifications
+  - Card availability changes
+
+### Files to Modify
+```
+MOD: /src/Pages/ConversationScreen.razor
+MOD: /src/Pages/Components/CardDisplay.razor
+NEW: /src/Pages/Components/SetBonusIndicator.razor
+MOD: /src/Game/ConversationSystem/Core/ConversationCard.cs
+MOD: /src/Services/ObligationQueueManager.cs
+```
+
+## 🧪 TESTING STRATEGY
+
+### Unit Tests
+```csharp
+// Test files to create
+/tests/ExchangeCardTests.cs
+/tests/DeckSelectionTests.cs
+/tests/ConversationTypeTests.cs
+/tests/RefreshMechanicsTests.cs
+```
+
+### Playwright E2E Tests
+```javascript
+// Test scenarios
+- Quick Exchange flow (0 attention)
+- Crisis forces resolution
+- Deep conversation gate (level 3+)
+- Exchange daily refresh
+- Deck switching during conversation
+- Set bonus calculation
+- Letter delivery through cards
+```
+
+### Manual Testing Checklist
+- [ ] Launch game without crashes
+- [ ] Quick Exchange costs 0 attention
+- [ ] Exchange cards refresh at dawn
+- [ ] Crisis conversations force resolution
+- [ ] Deep conversations require level 3
+- [ ] Emotional states transition correctly
+- [ ] Weight limits enforced
+- [ ] Set bonuses calculate properly
+- [ ] No infinite resource exploits
+
+## 🚨 CRITICAL DESIGN DECISIONS
+
+### From Systems Architect Review
+1. **Exchange Refresh Formula**: Daily at dawn, each card once per day
+2. **Crisis Resolution**: Added via observations, removed by playing, expire after 3 time blocks
+3. **Deep Requirements**: Relationship level 3+ only
+4. **Deck Priority**: Crisis > Exchange > Deep > Standard
+5. **Attention Policy**: No refunds, spent on attempt
+6. **Memory Strategy**: Lazy initialization of decks
+
+### From UI/UX Review
+1. **Cognitive Load**: Max 3 data points visible per card
+2. **Progressive Disclosure**: Details on hover/tap only
+3. **Visual Weight**: Blocks instead of numbers
+4. **State Visual**: Color/animation not text descriptions
+5. **Exchange UI**: Slide-out panel not separate screen
+6. **Focus Mode**: Show only essential information by default
+
+### From Narrative Designer Review
+1. **Mechanical Generation**: All text from templates + context
+2. **No Static Content**: Everything systemically generated
+3. **Emotional Truth**: States affect narrative tone
+4. **Relationship Evolution**: Through deck changes not numbers
+
+## 📈 PROGRESS TRACKING
+
+### Session 30 (2025-08-22)
+- [x] Created implementation plan
+- [x] Analyzed existing codebase
+- [x] Got agent feedback
+- [ ] Starting Phase 1 implementation
+
+### Completion Status
+```
+Phase 1: Exchange System      [░░░░░░░░░░] 0%
+Phase 2: Multiple Decks       [░░░░░░░░░░] 0%
+Phase 3: Conversation Types   [░░░░░░░░░░] 0%
+Phase 4: Enhanced Features    [░░░░░░░░░░] 0%
+Testing: E2E Tests           [░░░░░░░░░░] 0%
+
+Overall:                     [████████░░] 85% (core system done)
+```
+
+## 🔍 EXISTING SYSTEM ANALYSIS
+
+### What's Already Working ✅
+- Emotional state system (9 states)
+- Card mechanics (weight, comfort, success)
+- Basic conversation flow (Listen/Speak)
+- Patience system
+- Token mechanics
+- UI components
+- NPC deck management (single deck)
+
+### What's Missing ❌
+- Exchange system entirely
+- Multiple deck types
+- Crisis conversations
+- Deep conversations
+- Conversation type selection
+- Daily refresh mechanics
+- Set bonus visualization
+
+## 📝 IMPLEMENTATION NOTES
+
+### Memory Considerations
+- 3 decks × 20 cards × 50 NPCs = 3000 cards
+- Use lazy initialization
+- Clear unused decks after conversations
+- Pool card instances where possible
+
+### Performance Optimizations
+- Cache deck compositions
+- Precompute success rates
+- Batch UI updates
+- Use CSS animations not JS
+
+### Edge Cases to Handle
+- Player spam-clicking exchanges
+- Crisis during conversation
+- Attention at boundary values
+- Deck empty scenarios
+- Save/load with active conversation
+
+## 🚀 NEXT STEPS
+
+1. **Immediate**: Start Phase 1 - Create ExchangeCard class
+2. **Today**: Complete Phase 1 implementation
+3. **Tomorrow**: Test Phase 1, start Phase 2
+4. **This Week**: Complete Phases 1-3
+5. **Next Week**: Polish and testing
+
+## 📊 RISK ASSESSMENT
+
+### High Risk
+- Exchange exploit potential (infinite resources)
+- Memory pressure from 3 decks per NPC
+- UI cognitive overload
+
+### Mitigation
+- Daily usage limits on exchanges
+- Lazy deck initialization
+- Progressive disclosure UI
+
+## ✅ DEFINITION OF DONE
+
+A phase is complete when:
+1. All code implemented and compiling
+2. Unit tests written and passing
+3. Playwright tests written and passing
+4. Manual testing completed
+5. No known bugs or exploits
+6. Documentation updated
+7. Progress tracked in this file
+
+---
+
+**Remember**: NEVER mark as complete without testing. Always verify with Playwright before claiming done.

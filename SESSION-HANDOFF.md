@@ -49,17 +49,14 @@
 
 ### From Systems Architect:
 1. **Exchange Refresh**: Cards refresh at start of each day (not per time block)
-2. **Exchange Limit**: Each card usable once per day to prevent exploits
 3. **Crisis Priority**: Crisis > Exchange > Deep > Standard
 4. **Attention Refund**: No refunds - attention spent on attempt
 5. **Deep Requirements**: Relationship level 3+ required
 
 ### From UI/UX Designer:
-1. **Reduce cognitive load**: Max 3 visible data points per card
 2. **Progressive disclosure**: Hide non-essential info by default
 3. **Visual weight system**: Use blocks not numbers
 4. **State as visual mode**: Color/animation not text
-5. **Exchange as slide-out panel**: Not separate screen
 
 ## Progress Tracking:
 
