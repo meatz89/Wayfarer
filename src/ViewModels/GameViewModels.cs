@@ -49,6 +49,7 @@ public class InteractionOptionViewModel
 {
     public string Text { get; set; }
     public string Cost { get; set; }
+    public ConversationType ConversationType { get; set; } = ConversationType.Standard;
 }
 
 public class ObservationViewModel

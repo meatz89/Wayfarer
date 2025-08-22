@@ -56,6 +56,10 @@ public CardDeck ConversationDeck { get; set; }  // Standard conversation cards
 public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // Quick exchange cards
 public CardDeck CrisisDeck { get; set; }  // Crisis resolution cards
 
+// Daily exchange selection
+public ExchangeCard TodaysExchangeCard { get; set; }
+public int LastExchangeSelectionDay { get; set; } = -1;
+
 // Initialize all decks when NPC is created
 public void InitializeConversationDeck(NPCDeckFactory deckFactory)
 {
@@ -81,6 +85,27 @@ public void InitializeCrisisDeck()
 public bool HasCrisisCards()
 {
     return CrisisDeck != null && CrisisDeck.RemainingCards > 0;
+}
+
+// Get today's exchange card (selected randomly at dawn)
+public ExchangeCard GetTodaysExchange(int currentDay)
+{
+    // If it's a new day, select a new card
+    if (LastExchangeSelectionDay != currentDay)
+    {
+        if (ExchangeDeck?.Any() == true)
+        {
+            // Use deterministic random based on day and NPC ID
+            var random = new Random(currentDay * ID.GetHashCode());
+            TodaysExchangeCard = ExchangeDeck[random.Next(ExchangeDeck.Count)];
+            LastExchangeSelectionDay = currentDay;
+        }
+        else
+        {
+            TodaysExchangeCard = null;
+        }
+    }
+    return TodaysExchangeCard;
 }
 
 // Helper methods for UI display

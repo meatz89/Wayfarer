@@ -355,6 +355,7 @@ public class GameFacade
         
         // Generate the interaction option
         var interaction = new InteractionOptionViewModel();
+        interaction.ConversationType = conversationType;
         
         switch (conversationType)
         {
@@ -1929,7 +1930,7 @@ public class GameFacade
 
     // ========== CONVERSATIONS ==========
 
-    public async Task<ConversationViewModel> StartConversationAsync(string npcId)
+    public async Task<ConversationViewModel> StartConversationAsync(string npcId, ConversationType conversationType = ConversationType.Standard)
     {
         // New card-based conversation system
         // Conversations are now handled directly by ConversationScreen component
@@ -1978,6 +1979,120 @@ public class GameFacade
         };
         
         return viewModel;
+    }
+
+    public async Task<bool> ExecuteExchange(string npcId, ExchangeCard exchange)
+    {
+        // Validate inputs
+        if (string.IsNullOrEmpty(npcId) || exchange == null)
+        {
+            Console.WriteLine("[ExecuteExchange] Invalid parameters");
+            return false;
+        }
+        
+        // Get NPC
+        var npc = _npcRepository.GetById(npcId);
+        if (npc == null)
+        {
+            Console.WriteLine($"[ExecuteExchange] NPC {npcId} not found");
+            return false;
+        }
+        
+        // Get player resources
+        var player = _gameWorld.GetPlayer();
+        var playerResources = _gameWorld.GetPlayerResourceState();
+        
+        // Check if player can afford
+        if (!exchange.CanAfford(playerResources, _connectionTokenManager))
+        {
+            Console.WriteLine("[ExecuteExchange] Player cannot afford exchange");
+            _messageSystem.AddSystemMessage("You don't have enough resources for this exchange", SystemMessageTypes.Warning);
+            return false;
+        }
+        
+        // Apply costs
+        foreach (var cost in exchange.Cost)
+        {
+            switch (cost.Type)
+            {
+                case ResourceType.Coins:
+                    player.Coins -= cost.Amount;
+                    break;
+                case ResourceType.Health:
+                    player.Health -= cost.Amount;
+                    break;
+                case ResourceType.Stamina:
+                    player.Stamina -= cost.Amount;
+                    break;
+                case ResourceType.Concentration:
+                    // Concentration is managed by attention system
+                    break;
+                case ResourceType.TrustToken:
+                    _connectionTokenManager.SpendTokens(ConnectionType.Trust, cost.Amount);
+                    break;
+                case ResourceType.CommerceToken:
+                    _connectionTokenManager.SpendTokens(ConnectionType.Commerce, cost.Amount);
+                    break;
+                case ResourceType.StatusToken:
+                    _connectionTokenManager.SpendTokens(ConnectionType.Status, cost.Amount);
+                    break;
+                case ResourceType.ShadowToken:
+                    _connectionTokenManager.SpendTokens(ConnectionType.Shadow, cost.Amount);
+                    break;
+            }
+        }
+        
+        // Apply rewards
+        foreach (var reward in exchange.Reward)
+        {
+            switch (reward.Type)
+            {
+                case ResourceType.Coins:
+                    player.Coins += reward.Amount;
+                    break;
+                case ResourceType.Health:
+                    if (reward.IsAbsolute)
+                        player.Health = reward.Amount;
+                    else
+                        player.Health = Math.Min(100, player.Health + reward.Amount);
+                    break;
+                case ResourceType.Stamina:
+                    if (reward.IsAbsolute)
+                        player.Stamina = reward.Amount;
+                    else
+                        player.ModifyStamina(reward.Amount);
+                    break;
+                case ResourceType.Hunger:
+                    // Hunger maps to Food (0 = not hungry, 100 = very hungry)
+                    // So setting Hunger to 0 means setting Food to max
+                    if (reward.IsAbsolute)
+                        player.Food = reward.Amount == 0 ? 100 : (100 - reward.Amount);
+                    else
+                        player.Food = Math.Max(0, Math.Min(100, player.Food - reward.Amount));
+                    break;
+                case ResourceType.TrustToken:
+                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Amount, npcId);
+                    break;
+                case ResourceType.CommerceToken:
+                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Commerce, reward.Amount, npcId);
+                    break;
+                case ResourceType.StatusToken:
+                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Status, reward.Amount, npcId);
+                    break;
+                case ResourceType.ShadowToken:
+                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Amount, npcId);
+                    break;
+            }
+        }
+        
+        // Generate narrative message
+        var narrativeContext = exchange.GetNarrativeContext();
+        _messageSystem.AddSystemMessage($"You {narrativeContext} with {npc.Name}", SystemMessageTypes.Success);
+        
+        // Log for debugging
+        Console.WriteLine($"[ExecuteExchange] Completed exchange {exchange.Id} with {npc.Name}");
+        
+        return true;
     }
 
 

@@ -20,6 +20,7 @@ namespace Wayfarer.Pages
         [Inject] protected NPCRelationshipTracker RelationshipTracker { get; set; }
         [Inject] protected NavigationManager Navigation { get; set; }
         [Inject] protected ObligationQueueManager LetterQueueManager { get; set; }
+        [Inject] protected NavigationCoordinator NavigationCoordinator { get; set; }
 
         protected ConversationSession Session { get; set; }
         protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
@@ -31,6 +32,12 @@ namespace Wayfarer.Pages
         {
             try
             {
+                // Get conversation type from NavigationCoordinator if not set
+                if (ConversationType == ConversationType.Standard && NavigationCoordinator != null)
+                {
+                    ConversationType = NavigationCoordinator.GetConversationType();
+                }
+                
                 // Get any observation cards from GameFacade
                 var observationCards = GetObservationCards();
                 
@@ -453,14 +460,9 @@ namespace Wayfarer.Pages
             if (Session?.NPC == null || ConversationType != ConversationType.QuickExchange)
                 return null;
                 
-            // Get first available exchange from NPC's exchange deck
-            if (Session.NPC.ExchangeDeck != null && Session.NPC.ExchangeDeck.Any())
-            {
-                var currentDay = TimeManager.GetCurrentDay();
-                return Session.NPC.ExchangeDeck.FirstOrDefault(e => e.IsAvailable(currentDay));
-            }
-            
-            return null;
+            // Get today's selected exchange card
+            var currentDay = TimeManager.GetCurrentDay();
+            return Session.NPC.GetTodaysExchange(currentDay);
         }
 
         protected async Task AcceptExchange()
@@ -469,11 +471,16 @@ namespace Wayfarer.Pages
             if (exchange == null) return;
             
             // Execute the exchange through GameFacade
-            // TODO: Implement exchange execution logic
-            Console.WriteLine($"Accepting exchange: {exchange.Id}");
+            bool success = await GameFacade.ExecuteExchange(NpcId, exchange);
             
-            // Mark as used for today
-            exchange.MarkUsed(TimeManager.GetCurrentDay());
+            if (success)
+            {
+                Console.WriteLine($"Exchange {exchange.Id} completed successfully");
+            }
+            else
+            {
+                Console.WriteLine($"Exchange {exchange.Id} failed");
+            }
             
             // End conversation
             await OnConversationEnd.InvokeAsync();

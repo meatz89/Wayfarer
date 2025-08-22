@@ -82,12 +82,13 @@ public partial class LocationScreen : ComponentBase
     private async Task StartInteraction(NPCPresenceViewModel npc, InteractionOptionViewModel interaction)
     {
         // Start the conversation with the NPC through GameFacade
-        ConversationViewModel conversationStarted = await GameFacade.StartConversationAsync(npc.Id);
+        ConversationViewModel conversationStarted = await GameFacade.StartConversationAsync(npc.Id, interaction.ConversationType);
 
         if (conversationStarted != null)
         {
-            // Store the NPC ID in NavigationCoordinator for the conversation screen
+            // Store the NPC ID and conversation type in NavigationCoordinator for the conversation screen
             NavigationCoordinator.SetConversationNpcId(npc.Id);
+            NavigationCoordinator.SetConversationType(interaction.ConversationType);
             
             // Only navigate if conversation was successfully started
             await OnNavigate.InvokeAsync(CurrentViews.ConversationScreen);

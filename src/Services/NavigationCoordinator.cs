@@ -213,6 +213,18 @@ public class NavigationCoordinator
     {
         return _currentNpcId;
     }
+    
+    private ConversationType _currentConversationType = ConversationType.Standard;
+    
+    public void SetConversationType(ConversationType conversationType)
+    {
+        _currentConversationType = conversationType;
+    }
+    
+    public ConversationType GetConversationType()
+    {
+        return _currentConversationType;
+    }
 
     public async Task<bool> OpenTravelSelectionAsync(string targetLocationId = null)
     {
