@@ -50,7 +50,9 @@ public class Phase3_NPCDependents : IInitializationPhase
 
         try
         {
+            Console.WriteLine($"[LoadRoutes] About to load routes from {routesPath}");
             List<RouteDTO> routeDTOs = context.ContentLoader.LoadValidatedContent<List<RouteDTO>>(routesPath);
+            Console.WriteLine($"[LoadRoutes] Loaded {routeDTOs?.Count ?? 0} route DTOs");
 
             if (routeDTOs == null || !routeDTOs.Any())
             {
@@ -128,13 +130,17 @@ public class Phase3_NPCDependents : IInitializationPhase
         }
         catch (ContentValidationException ex)
         {
+            Console.WriteLine($"[LoadRoutes] ContentValidationException: {ex.Message}");
             foreach (ValidationError error in ex.Errors)
             {
+                Console.WriteLine($"[LoadRoutes] Validation error: {error.Message}");
                 context.Warnings.Add($"Route validation: {error.Message}");
             }
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"[LoadRoutes] Exception: {ex.Message}");
+            Console.WriteLine($"[LoadRoutes] Stack trace: {ex.StackTrace}");
             context.Warnings.Add($"Failed to load routes: {ex.Message}");
         }
     }

@@ -60,7 +60,6 @@
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<DebugLogger>();
 
-        services.AddSingleton<LocationPropertyManager>();
         services.AddTimeSystem();
 
         // Managers that depend on TimeManager

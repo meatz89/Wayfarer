@@ -9,7 +9,7 @@ public class RouteValidator : BaseValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
-            "id", "origin", "destination", "method", "travelTimeMinutes", "baseCoinCost", "baseStaminaCost"
+            "id", "originLocationSpot", "destinationLocationSpot", "method", "travelTimeMinutes", "baseCoinCost", "baseStaminaCost"
         };
 
     public override bool CanValidate(string fileName)
@@ -139,8 +139,8 @@ public class RouteValidator : BaseValidator
         }
 
         // Validate route consistency
-        string fromId = GetStringProperty(route, "Origin");
-        string toId = GetStringProperty(route, "Destination");
+        string fromId = GetStringProperty(route, "originLocationSpot");
+        string toId = GetStringProperty(route, "destinationLocationSpot");
 
         if (!string.IsNullOrEmpty(fromId) && !string.IsNullOrEmpty(toId) && fromId == toId)
         {
