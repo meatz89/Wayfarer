@@ -11,6 +11,7 @@ namespace Wayfarer.Pages
     public class ConversationScreenBase : ComponentBase
     {
         [Parameter] public string NpcId { get; set; }
+        [Parameter] public ConversationType ConversationType { get; set; } = ConversationType.Standard;
         [Parameter] public EventCallback OnConversationEnd { get; set; }
 
         [Inject] protected ConversationManager ConversationManager { get; set; }
@@ -32,8 +33,8 @@ namespace Wayfarer.Pages
                 // Get any observation cards from GameFacade
                 var observationCards = GetObservationCards();
                 
-                // Start the conversation
-                Session = ConversationManager.StartConversation(NpcId, observationCards);
+                // Start the conversation with the specified type
+                Session = ConversationManager.StartConversation(NpcId, ConversationType, observationCards);
             }
             catch (Exception ex)
             {

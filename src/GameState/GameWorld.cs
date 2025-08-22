@@ -73,6 +73,17 @@ public Player GetPlayer()
     return Player;
 }
 
+public PlayerResourceState GetPlayerResourceState()
+{
+    // Create a resource state from current player values
+    return new PlayerResourceState(
+        coins: PlayerCoins,
+        stamina: PlayerStamina,
+        health: 10, // Default health for now
+        concentration: 10 // Default concentration for now
+    );
+}
+
 public Guid GetGameInstanceId()
 {
     return GameInstanceId;

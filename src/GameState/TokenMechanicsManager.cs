@@ -45,6 +45,31 @@ public class TokenMechanicsManager
         return emptyTokens;
     }
 
+    // Get relationship level based on total tokens with NPC
+    public int GetRelationshipLevel(string npcId)
+    {
+        var tokens = GetTokensWithNPC(npcId);
+        int totalTokens = 0;
+        foreach (var kvp in tokens)
+        {
+            totalTokens += kvp.Value;
+        }
+        
+        // Relationship levels based on total tokens
+        // Level 0: 0 tokens (stranger)
+        // Level 1: 1-2 tokens (acquaintance)  
+        // Level 2: 3-4 tokens (friend)
+        // Level 3: 5-7 tokens (close friend) - unlocks Deep conversations
+        // Level 4: 8-11 tokens (trusted)
+        // Level 5: 12+ tokens (intimate)
+        if (totalTokens == 0) return 0;
+        if (totalTokens <= 2) return 1;
+        if (totalTokens <= 4) return 2;
+        if (totalTokens <= 7) return 3;
+        if (totalTokens <= 11) return 4;
+        return 5;
+    }
+
     // Get tokens with specific NPC as strongly typed object
     public NPCTokenBalance GetNPCTokenBalance(string npcId)
     {

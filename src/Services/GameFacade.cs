@@ -768,7 +768,8 @@ public class GameFacade
         try
         {
             // Start conversation with the new card-based system
-            var session = _conversationManager.StartConversation(npc.ID);
+            // Default to Standard conversation type for now (should be passed from UI)
+            var session = _conversationManager.StartConversation(npc.ID, ConversationType.Standard, null);
             if (session == null)
             {
                 _messageSystem.AddSystemMessage($"Cannot talk to {npc.Name} right now", SystemMessageTypes.Warning);

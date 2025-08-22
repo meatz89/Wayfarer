@@ -71,7 +71,8 @@ public class ConversationSession
         ObligationQueueManager queueManager,
         NPCRelationshipTracker relationshipTracker,
         TokenMechanicsManager tokenManager,
-        List<ConversationCard> observationCards = null)
+        List<ConversationCard> observationCards,
+        ConversationType conversationType)
     {
         // Determine initial state based on NPC condition
         var initialState = ConversationRules.DetermineInitialState(npc, queueManager);
@@ -113,6 +114,71 @@ public class ConversationSession
             Deck = deck,
             CurrentPatience = totalPatience,
             MaxPatience = totalPatience,
+            CurrentComfort = 0,
+            CurrentDepth = 0,
+            TurnNumber = 0,
+            LetterGenerated = false,
+            ObservationCards = observationCards ?? new List<ConversationCard>()
+        };
+    }
+
+    /// <summary>
+    /// Start a Quick Exchange conversation (simplified, no emotional states)
+    /// </summary>
+    public static ConversationSession StartExchange(NPC npc, PlayerResourceState resourceState, TokenMechanicsManager tokenManager)
+    {
+        // Initialize exchange deck if not already done
+        npc.InitializeExchangeDeck();
+        
+        // Create simplified session for exchanges
+        return new ConversationSession
+        {
+            NPC = npc,
+            CurrentState = EmotionalState.NEUTRAL, // No emotional states in exchanges
+            HandCards = new List<ConversationCard>(), // Exchange cards are drawn on demand
+            Deck = new CardDeck(), // Empty deck - exchanges use ExchangeDeck instead
+            CurrentPatience = 1, // Single turn exchange
+            MaxPatience = 1,
+            CurrentComfort = 0, // No comfort in exchanges
+            CurrentDepth = 0,
+            TurnNumber = 0,
+            LetterGenerated = false,
+            ObservationCards = new List<ConversationCard>()
+        };
+    }
+
+    /// <summary>
+    /// Start a Crisis conversation (forced resolution)
+    /// </summary>
+    public static ConversationSession StartCrisis(NPC npc, ObligationQueueManager queueManager, NPCRelationshipTracker relationshipTracker, TokenMechanicsManager tokenManager, List<ConversationCard> observationCards)
+    {
+        // Crisis conversations always start in DESPERATE state
+        var initialState = EmotionalState.DESPERATE;
+        
+        // Crisis conversations have limited patience
+        var basePatience = 3; // Fixed 3 patience for crisis
+        
+        // Create crisis deck if needed
+        var deck = npc.CrisisDeck ?? new CardDeck();
+        
+        // Draw initial hand
+        var handCards = new List<ConversationCard>();
+        handCards.AddRange(deck.Draw(2)); // Start with 2 cards
+        
+        // Add observation cards if any
+        if (observationCards != null && observationCards.Any())
+        {
+            handCards.AddRange(observationCards);
+        }
+
+        return new ConversationSession
+        {
+            NPC = npc,
+            CurrentState = initialState,
+            HandCards = handCards,
+            Deck = deck,
+            CurrentPatience = basePatience,
+            MaxPatience = basePatience,
             CurrentComfort = 0,
             CurrentDepth = 0,
             TurnNumber = 0,
