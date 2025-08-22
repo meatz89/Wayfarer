@@ -51,13 +51,36 @@ public string HomeSpotId { get; set; }
 // Known routes (for HELP verb sharing)
 private List<RouteOption> _knownRoutes = new List<RouteOption>();
 
-// Conversation deck - each NPC has unique cards representing shared history
-public CardDeck ConversationDeck { get; set; }
+// Multiple deck types for different conversation modes
+public CardDeck ConversationDeck { get; set; }  // Standard conversation cards
+public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // Quick exchange cards
+public CardDeck CrisisDeck { get; set; }  // Crisis resolution cards
 
-// Initialize deck when NPC is created
+// Initialize all decks when NPC is created
 public void InitializeConversationDeck(NPCDeckFactory deckFactory)
 {
     ConversationDeck ??= deckFactory.CreateDeckForNPC(this);
+}
+
+// Initialize exchange deck (lazy initialization for memory efficiency)
+public void InitializeExchangeDeck()
+{
+    if (ExchangeDeck == null || !ExchangeDeck.Any())
+    {
+        ExchangeDeck = ExchangeCardFactory.CreateExchangeDeck(PersonalityType, ID);
+    }
+}
+
+// Initialize crisis deck (only when crisis cards are added)
+public void InitializeCrisisDeck()
+{
+    CrisisDeck ??= new CardDeck();
+}
+
+// Check if NPC has crisis cards
+public bool HasCrisisCards()
+{
+    return CrisisDeck != null && CrisisDeck.RemainingCards > 0;
 }
 
 // Helper methods for UI display

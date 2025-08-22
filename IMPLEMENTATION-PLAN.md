@@ -7,11 +7,11 @@
 
 ## 📊 EXECUTIVE SUMMARY
 
-Implementing a complete conversation system with 4 conversation types, 3 deck types per NPC, and full emotional state mechanics. System is 85% complete with core mechanics working. Need to add exchange system, multiple deck types, and missing conversation types.
+Implementing a complete conversation system with 3 conversation types, 3 deck types per NPC, and full emotional state mechanics. System is 85% complete with core mechanics working. Need to add exchange system, multiple deck types, and missing conversation types.
 
 ## 🎯 SUCCESS CRITERIA
 
-- [ ] All 4 conversation types functional (Quick Exchange, Crisis, Standard, Deep)
+- [ ] All 3 conversation types functional (Quick Exchange, Crisis, Standard)
 - [ ] 3 deck types per NPC (Exchange, Conversation, Crisis)
 - [ ] Perfect information display - all costs/effects visible
 - [ ] No infinite resource exploits
@@ -42,7 +42,7 @@ Implement instant resource trading system with 0 attention cost
   - Personality-based card selection
   - Daily refresh at dawn
   
-- [ ] **1.4 Create Exchange UI**
+- [ ] **1.3 Create Exchange UI**
   - Slide-out panel (not separate screen)
   - Clear cost/reward display
   - Accept/Decline buttons
@@ -86,10 +86,10 @@ Support 3 separate decks per NPC with proper selection logic
   
 - [ ] **2.3 Update ConversationManager**
   - Deck selection by conversation type
-  - Priority system (Crisis > Exchange > Deep > Standard)
+  - Priority system (Crisis > Exchange > Standard)
   - State-based availability
   
-- [ ] **2.4 Crisis conversation flow**
+- [ ] **2.3 Crisis conversation flow**
   - 1 attention cost
   - 3 patience only
   - Crisis deck exclusive
@@ -105,17 +105,17 @@ MOD: /Content/NPCs/*.json (add deck definitions)
 ```
 
 ### Design Decisions
-- **Priority**: Crisis > Exchange > Deep > Standard
+- **Priority**: Crisis > Exchange > Standard
 - **Memory**: Lazy deck initialization
 - **Crisis timeout**: Crisis cards expire after 3 time blocks
 
 ## 📋 PHASE 3: MISSING CONVERSATION TYPES (Priority: MEDIUM)
 
 ### Goals
-Implement Deep and Crisis conversation types with proper gating
+Implement Standard and Crisis conversation types with proper gating
 
 ### Tasks
-- [ ] **3.1 Deep Conversation**
+- [ ] **3.1 Standard Conversation**
   - 3 attention cost
   - 12 patience
   - Relationship level 3+ gate
@@ -143,32 +143,31 @@ MOD: /src/Services/GameFacade.cs
 ```
 
 ### Design Decisions
-- **Deep gate**: Relationship level 3+ required
 - **Crisis force**: Cannot start other conversations if crisis present
 - **Attention refund**: No refunds - spent on attempt
 
-## 📋 PHASE 4: ENHANCED FEATURES (Priority: LOW)
+## 📋 PHASE 3: ENHANCED FEATURES (Priority: LOW)
 
 ### Goals
 Polish and enhance the conversation experience
 
 ### Tasks
-- [ ] **4.1 Letter delivery integration**
+- [ ] **3.1 Letter delivery integration**
   - Deliver letters through conversation cards
   - Visual feedback for delivery
   - Obligation updates
   
-- [ ] **4.2 Set bonus visualization**
+- [ ] **3.2 Set bonus visualization**
   - Show potential bonuses
   - Highlight matching types
   - Animate bonus application
   
-- [ ] **4.3 Obligation manipulation**
+- [ ] **3.3 Obligation manipulation**
   - Cards that extend/reduce deadlines
   - Visual preview of changes
   - Confirmation required
   
-- [ ] **4.4 Depth advancement**
+- [ ] **3.3 Depth advancement**
   - Visual depth indicator
   - Unlock notifications
   - Card availability changes
@@ -198,7 +197,6 @@ MOD: /src/Services/ObligationQueueManager.cs
 // Test scenarios
 - Quick Exchange flow (0 attention)
 - Crisis forces resolution
-- Deep conversation gate (level 3+)
 - Exchange daily refresh
 - Deck switching during conversation
 - Set bonus calculation
@@ -210,7 +208,6 @@ MOD: /src/Services/ObligationQueueManager.cs
 - [ ] Quick Exchange costs 0 attention
 - [ ] Exchange cards refresh at dawn
 - [ ] Crisis conversations force resolution
-- [ ] Deep conversations require level 3
 - [ ] Emotional states transition correctly
 - [ ] Weight limits enforced
 - [ ] Set bonuses calculate properly
@@ -221,8 +218,7 @@ MOD: /src/Services/ObligationQueueManager.cs
 ### From Systems Architect Review
 1. **Exchange Refresh Formula**: Daily at dawn, each card once per day
 2. **Crisis Resolution**: Added via observations, removed by playing, expire after 3 time blocks
-3. **Deep Requirements**: Relationship level 3+ only
-4. **Deck Priority**: Crisis > Exchange > Deep > Standard
+3. **Deck Priority**: Crisis > Exchange > Standard
 5. **Attention Policy**: No refunds, spent on attempt
 6. **Memory Strategy**: Lazy initialization of decks
 
@@ -230,7 +226,7 @@ MOD: /src/Services/ObligationQueueManager.cs
 1. **Cognitive Load**: Max 3 data points visible per card
 2. **Progressive Disclosure**: Details on hover/tap only
 3. **Visual Weight**: Blocks instead of numbers
-4. **State Visual**: Color/animation not text descriptions
+3. **State Visual**: Color/animation not text descriptions
 5. **Exchange UI**: Slide-out panel not separate screen
 6. **Focus Mode**: Show only essential information by default
 
@@ -238,7 +234,7 @@ MOD: /src/Services/ObligationQueueManager.cs
 1. **Mechanical Generation**: All text from templates + context
 2. **No Static Content**: Everything systemically generated
 3. **Emotional Truth**: States affect narrative tone
-4. **Relationship Evolution**: Through deck changes not numbers
+3. **Relationship Evolution**: Through deck changes not numbers
 
 ## 📈 PROGRESS TRACKING
 
@@ -250,7 +246,7 @@ MOD: /src/Services/ObligationQueueManager.cs
 
 ### Completion Status
 ```
-Phase 1: Exchange System      [░░░░░░░░░░] 0%
+Phase 1: Exchange System      [██████░░░░] 60% (3/5 tasks done)
 Phase 2: Multiple Decks       [░░░░░░░░░░] 0%
 Phase 3: Conversation Types   [░░░░░░░░░░] 0%
 Phase 4: Enhanced Features    [░░░░░░░░░░] 0%
@@ -269,12 +265,12 @@ Overall:                     [████████░░] 85% (core system d
 - Token mechanics
 - UI components
 - NPC deck management (single deck)
+- Deep (Standard) conversations
 
 ### What's Missing ❌
 - Exchange system entirely
 - Multiple deck types
 - Crisis conversations
-- Deep conversations
 - Conversation type selection
 - Daily refresh mechanics
 - Set bonus visualization
@@ -305,7 +301,7 @@ Overall:                     [████████░░] 85% (core system d
 1. **Immediate**: Start Phase 1 - Create ExchangeCard class
 2. **Today**: Complete Phase 1 implementation
 3. **Tomorrow**: Test Phase 1, start Phase 2
-4. **This Week**: Complete Phases 1-3
+3. **This Week**: Complete Phases 1-3
 5. **Next Week**: Polish and testing
 
 ## 📊 RISK ASSESSMENT
@@ -326,7 +322,7 @@ A phase is complete when:
 1. All code implemented and compiling
 2. Unit tests written and passing
 3. Playwright tests written and passing
-4. Manual testing completed
+3. Manual testing completed
 5. No known bugs or exploits
 6. Documentation updated
 7. Progress tracked in this file
