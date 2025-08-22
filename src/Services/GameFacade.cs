@@ -436,11 +436,6 @@ public class GameFacade
                 _gameWorld.CurrentDay);
     }
 
-    public int GetCurrentDay()
-    {
-        return _gameWorld.CurrentDay;
-    }
-
     /// <summary>
     /// Record a significant event for environmental storytelling
     /// </summary>

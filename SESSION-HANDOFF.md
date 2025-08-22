@@ -60,10 +60,34 @@
 
 ## Progress Tracking:
 
-### Session 30 (Current):
-- ⏳ Documenting implementation plan
-- ⏳ Starting Phase 1: Exchange System
-- [ ] Testing with Playwright
+### Session 30 Summary (COMPLETED):
+- ✅ Created comprehensive implementation plan
+- ✅ Learned critical architecture patterns from user
+- ⚠️ Partially implemented Exchange system
+- ⚠️ Partially implemented conversation type selection
+- ❌ Left with 7 build errors
+- ❌ No testing done
+
+### What We Actually Built:
+1. **ExchangeCard.cs** - Complete resource exchange card system
+2. **ConversationType.cs** - All conversation types defined
+3. **NPC.cs modifications** - Added 3 deck types support
+4. **ConversationManager modifications** - Added type selection logic
+5. **GameFacade modifications** - Added conversation type generation
+
+### What's Broken:
+1. ConversationSession needs new methods (StartExchange, StartCrisis)
+2. Missing helper methods in TokenMechanicsManager
+3. Missing helper methods in GameWorld
+4. ConversationScreen needs to pass conversation type
+5. All conversation starts need type parameter
+
+### Session 31 Must Do:
+1. **FIX THE BUILD FIRST** - Cannot proceed with broken build
+2. Implement missing ConversationSession methods
+3. Add missing helper methods
+4. Update ConversationScreen to handle types
+5. Test at least one exchange conversation
 
 ### Files to Modify:
 1. `/src/Models/Cards/ExchangeCard.cs` - NEW
@@ -83,6 +107,28 @@
 - [ ] Test deck switching logic
 - [ ] Test exchange refresh at day boundary
 - [ ] Verify no infinite resource exploits
+
+## 🎓 KEY LEARNINGS FROM SESSION 30:
+
+### Architecture Insights:
+1. **Conversation types are PLAYER CHOICES** - Not forced by NPC state
+2. **Crisis LOCKS other options** - Doesn't auto-select, just disables others
+3. **Exchange uses SAME UI** - ConversationScreen adapts, not separate screen
+4. **Deck availability determines options** - NPCs offer what decks they have
+5. **HIGHLANDER principle violation** - Found and fixed duplicate PersonalityType/Archetype
+
+### Implementation Reality Check:
+- **What we thought**: "Just add exchange cards and it'll work"
+- **What we learned**: Need to modify ConversationSession, add helper methods, fix type passing
+- **Complexity discovered**: Each conversation type needs its own session initialization
+- **UI complexity**: ConversationScreen needs major adaptation logic for different types
+
+### Common Pitfalls to Avoid:
+1. Don't create duplicate enums/types (HIGHLANDER)
+2. Don't assume NPCs force conversation types
+3. Don't create separate UI screens for each type
+4. Don't forget to pass conversation type through the chain
+5. Don't implement without understanding the full flow
 
 ## 🔴 BRUTAL HONESTY - SESSION 29:
 
