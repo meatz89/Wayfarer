@@ -3,7 +3,49 @@
 **Status**: ✅ LOCATION SCREEN COMPLETE - All UI improvements implemented
 **Build Status**: ✅ BUILDS CLEAN - All warnings are null reference checks
 **Branch**: letters-ledgers
-**Next Session**: Update Letter Queue Screen to match mockup style (Phase 6)
+**Next Session**: 
+1. FIX: Add spot property data to JSON files so feature actually works
+2. FIX: Investigate why Elena shows NEUTRAL instead of DESPERATE  
+3. THEN: Update Letter Queue Screen to match mockup style (Phase 6)
+
+## 🎯 SESSION 21 - DEADLINEPANEL FIXES & SPOT PROPERTIES (MIXED RESULTS)
+
+### What Was ACTUALLY Completed:
+
+1. **Fixed DeadlinePanel Component**:
+   - ✅ Removed hardcoded location mappings
+   - ✅ Now uses NPCRepository.GetByName() to look up NPC locations  
+   - ✅ Shows both delivery and meeting obligations correctly
+   - ✅ Timer properly implements IDisposable
+   - ✅ VERIFIED: Works correctly in Playwright tests
+
+2. **Fixed Elena's Emotional State**:
+   - ✅ Elena now shows DESPERATE correctly (was using ConversationRules.DetermineInitialState)
+   - ✅ Shows correct emoji 😰 
+   - ✅ Description reflects desperate state: "Clutching a sealed letter with white knuckles..."
+   - ✅ VERIFIED: Working in both location and conversation screens
+
+3. **Spot Properties - PARTIALLY WORKING**:
+   - ✅ Added LocationSpotParser parsing for spotProperties and timeSpecificProperties
+   - ✅ Added spot properties to JSON (corner_table has Discrete, Quiet, Warm)
+   - ✅ Added GetSpotProperties() and GetSpotComfortModifier() to ConversationScreen.razor.cs
+   - ✅ Updated Razor template to display properties
+   - ✅ Added CSS styles for property badges
+   - ❌ **CRITICAL BUG: Properties DON'T DISPLAY IN UI** - Code executes but nothing shows
+   - ❌ **NOT TESTED**: Comfort modifier effects on gameplay
+
+4. **HONEST Testing Results**:
+   - ✅ DeadlinePanel: Both deliveries and meetings display correctly
+   - ✅ Elena: Shows DESPERATE with correct emoji and description
+   - ✅ Spot properties: Parse from JSON correctly (verified in build)
+   - ❌ Spot properties: DO NOT display in conversation UI despite code being there
+   - ❌ Comfort modifiers: No visual indication they're working
+
+### Files Modified:
+- `/src/Pages/Components/DeadlinePanel.razor` - Complete rewrite to support both obligation types
+- `/src/Pages/ConversationScreen.razor` - Added spot properties display
+- `/src/Pages/ConversationScreen.razor.cs` - Added GetSpotProperties() and GetSpotComfortModifier()
+- `/src/wwwroot/css/conversation.css` - Added styles for spot properties and comfort modifiers
 
 ## 🎯 SESSION 20 - LOCATION SCREEN IMPROVEMENTS
 

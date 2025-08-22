@@ -580,24 +580,8 @@ public class GameFacade
     
     private EmotionalState GetNPCEmotionalState(NPC npc)
     {
-        // Determine emotional state from letter deadlines
-        var obligations = _letterQueueManager?.GetActiveObligations() ?? new DeliveryObligation[0];
-        var npcLetters = obligations.Where(o => o.SenderId == npc.ID || o.SenderName == npc.Name);
-        var mostUrgent = npcLetters.OrderBy(o => o.DeadlineInMinutes).FirstOrDefault();
-        
-        if (mostUrgent == null) return EmotionalState.NEUTRAL;
-        
-        // Apply conversation-system.md rules
-        if (mostUrgent.Stakes == StakeType.SAFETY && mostUrgent.DeadlineInMinutes < 360)
-            return EmotionalState.DESPERATE;
-        if (mostUrgent.DeadlineInMinutes < 720)
-            return EmotionalState.TENSE;
-            
-        // Check personality-based states
-        if (npc.PersonalityType == PersonalityType.MERCANTILE)
-            return EmotionalState.NEUTRAL; // Calculating maps to NEUTRAL with business focus
-            
-        return EmotionalState.NEUTRAL;
+        // Use the same logic as the conversation system for consistency
+        return ConversationRules.DetermineInitialState(npc, _letterQueueManager);
     }
     
     private string GetEmotionalStateEmoji(EmotionalState state)

@@ -163,7 +163,18 @@ namespace Wayfarer.Pages
         protected List<string> GetSpotProperties()
         {
             var (_, spot) = GameFacade.GetCurrentLocation();
-            if (spot == null) return new List<string>();
+            if (spot == null) 
+            {
+                Console.WriteLine("[GetSpotProperties] Spot is null");
+                return new List<string>();
+            }
+
+            Console.WriteLine($"[GetSpotProperties] Spot: {spot.Name}, ID: {spot.SpotID}");
+            Console.WriteLine($"[GetSpotProperties] Base properties count: {spot.SpotProperties.Count}");
+            foreach (var prop in spot.SpotProperties)
+            {
+                Console.WriteLine($"[GetSpotProperties] Base property: {prop}");
+            }
 
             var properties = new List<string>();
             var currentTime = TimeManager.GetCurrentTimeBlock();
@@ -176,8 +187,10 @@ namespace Wayfarer.Pages
             }
 
             // Map relevant properties to display strings
+            Console.WriteLine($"[GetSpotProperties] Active properties count: {activeProperties.Count}");
             foreach (var prop in activeProperties)
             {
+                Console.WriteLine($"[GetSpotProperties] Processing property: {prop}");
                 switch (prop)
                 {
                     case SpotPropertyType.Private:
@@ -201,6 +214,7 @@ namespace Wayfarer.Pages
                 }
             }
 
+            Console.WriteLine($"[GetSpotProperties] Returning {properties.Count} properties: {string.Join(", ", properties)}");
             return properties;
         }
 

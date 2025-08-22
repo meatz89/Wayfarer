@@ -51,6 +51,8 @@ public static class LocationSpotParser
             spot.CurrentTimeBlocks.Add(TimeBlocks.Night);
         }
 
+        ParseSpotProperties(root, spot);
+
         // Parse access requirements
         if (root.TryGetProperty("accessRequirement", out JsonElement accessReqElement) &&
             accessReqElement.ValueKind == JsonValueKind.Object)
@@ -59,6 +61,58 @@ public static class LocationSpotParser
         }
 
         return spot;
+    }
+
+    private static void ParseSpotProperties(JsonElement root, LocationSpot spot)
+    {
+        // Parse spot properties
+        List<string> spotPropertyStrings = GetStringArrayFromProperty(root, "spotProperties");
+        Console.WriteLine($"[LocationSpotParser] Parsing spot {spot.SpotID}, found {spotPropertyStrings.Count} property strings");
+        foreach (string propString in spotPropertyStrings)
+        {
+            Console.WriteLine($"[LocationSpotParser] Trying to parse property: {propString}");
+            if (EnumParser.TryParse<SpotPropertyType>(propString, out SpotPropertyType prop))
+            {
+                Console.WriteLine($"[LocationSpotParser] Successfully parsed: {prop}");
+                spot.SpotProperties.Add(prop);
+            }
+            else
+            {
+                Console.WriteLine($"[LocationSpotParser] Failed to parse property: {propString}");
+            }
+        }
+
+        // Parse time-specific spot properties
+        if (root.TryGetProperty("timeSpecificProperties", out JsonElement timePropsElement) &&
+            timePropsElement.ValueKind == JsonValueKind.Object)
+        {
+            foreach (JsonProperty timeProp in timePropsElement.EnumerateObject())
+            {
+                if (EnumParser.TryParse<TimeBlocks>(timeProp.Name, out TimeBlocks timeBlock))
+                {
+                    List<SpotPropertyType> properties = new List<SpotPropertyType>();
+                    if (timeProp.Value.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (JsonElement propElement in timeProp.Value.EnumerateArray())
+                        {
+                            if (propElement.ValueKind == JsonValueKind.String)
+                            {
+                                string propString = propElement.GetString();
+                                if (!string.IsNullOrEmpty(propString) &&
+                                    EnumParser.TryParse<SpotPropertyType>(propString, out SpotPropertyType prop))
+                                {
+                                    properties.Add(prop);
+                                }
+                            }
+                        }
+                    }
+                    if (properties.Count > 0)
+                    {
+                        spot.TimeSpecificProperties[timeBlock] = properties;
+                    }
+                }
+            }
+        }
     }
 
     private static List<string> GetStringArrayFromProperty(JsonElement element, string propertyName)

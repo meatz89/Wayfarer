@@ -130,13 +130,14 @@ Found **TWO parallel CSS systems** trying to style the same cards:
 - [x] Removed cards.css reference from _Layout.cshtml
 - [x] Kept only the active `.dialog-card` system in conversation.css
 
-## Phase 5: Location Screen ✅ COMPLETE (Session 20)
-- Actions display correctly
-- Observations work
-- NPCs show emotional states with text and emoji
-- Obligations panel shows active deadlines
-- Current spot name displayed subtly
-- Spot properties reserved for conversation context
+## Phase 5: Location Screen ⚠️ MOSTLY COMPLETE (Session 20-21)
+- ✅ Actions display correctly
+- ✅ Observations work
+- ⚠️ NPCs show states but sometimes wrong (Elena was NEUTRAL not DESPERATE)
+- ✅ Obligations panel shows both delivery and meeting deadlines
+- ✅ Current spot name displayed
+- ❌ **Spot properties NOT WORKING** - Code written but no data in JSON
+- ✅ DeadlinePanel uses repositories (verified no hardcoded strings)
 
 ## Phase 6: Letter Queue Screen ⚠️ NEEDS UPDATE
 - Basic functionality works
