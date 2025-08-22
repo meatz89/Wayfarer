@@ -514,6 +514,31 @@ public class GameFacade
             foreach (var npc in npcs)
             {
                 var emotionalState = GetNPCEmotionalState(npc);
+                
+                // Get available conversation types for this NPC
+                var availableConversationTypes = _conversationManager.GetAvailableConversationTypes(npc);
+                var interactions = new List<InteractionOptionViewModel>();
+                
+                // Generate interaction options based on available conversation types
+                foreach (var conversationType in availableConversationTypes)
+                {
+                    var interaction = GenerateConversationInteraction(npc, conversationType, emotionalState);
+                    if (interaction != null)
+                    {
+                        interactions.Add(interaction);
+                    }
+                }
+                
+                // If no interactions available (e.g., hostile NPC), show why
+                if (!interactions.Any())
+                {
+                    interactions.Add(new InteractionOptionViewModel
+                    {
+                        Text = emotionalState == EmotionalState.HOSTILE ? "Too hostile to approach" : "No interactions available",
+                        Cost = "—"
+                    });
+                }
+                
                 viewModel.NPCsPresent.Add(new NPCPresenceViewModel
                 {
                     Id = npc.ID,
@@ -521,14 +546,7 @@ public class GameFacade
                     MoodEmoji = GetEmotionalStateEmoji(emotionalState),
                     EmotionalStateName = emotionalState.ToString(),
                     Description = GetNPCDescription(npc, emotionalState),
-                    Interactions = new List<InteractionOptionViewModel>
-                    {
-                        new InteractionOptionViewModel
-                        {
-                            Text = $"Approach {npc.Name}",
-                            Cost = "1 attention"
-                        }
-                    }
+                    Interactions = interactions
                 });
             }
             
@@ -543,6 +561,60 @@ public class GameFacade
         }
         
         return viewModel;
+    }
+    
+    private InteractionOptionViewModel GenerateConversationInteraction(NPC npc, ConversationType conversationType, EmotionalState emotionalState)
+    {
+        // Get attention cost for this conversation type
+        int attentionCost = ConversationTypeConfig.GetAttentionCost(conversationType);
+        
+        // Check if player has enough attention
+        var attentionState = _timeBlockAttentionManager.GetAttentionState();
+        bool hasEnoughAttention = attentionState.current >= attentionCost;
+        
+        // Check if conversation type is locked due to crisis
+        bool isLockedByCrisis = npc.HasCrisisCards() && conversationType != ConversationType.Crisis;
+        
+        // Generate the interaction option
+        var interaction = new InteractionOptionViewModel();
+        
+        switch (conversationType)
+        {
+            case ConversationType.QuickExchange:
+                interaction.Text = "Quick Exchange";
+                interaction.Cost = "Free";
+                break;
+                
+            case ConversationType.Crisis:
+                interaction.Text = "⚠ Address Crisis";
+                interaction.Cost = "1 attention";
+                break;
+                
+            case ConversationType.Standard:
+                interaction.Text = "Have Conversation";
+                interaction.Cost = "2 attention";
+                break;
+                
+            case ConversationType.Deep:
+                interaction.Text = "Deep Conversation";
+                interaction.Cost = "3 attention";
+                break;
+        }
+        
+        // Mark as locked if crisis is active and this isn't the crisis conversation
+        if (isLockedByCrisis)
+        {
+            interaction.Text = $"[LOCKED] {interaction.Text}";
+            interaction.Cost = "Crisis must be resolved";
+        }
+        // Mark as unavailable if not enough attention
+        else if (!hasEnoughAttention && attentionCost > 0)
+        {
+            interaction.Text = $"[TIRED] {interaction.Text}";
+            interaction.Cost = $"Need {attentionCost} attention";
+        }
+        
+        return interaction;
     }
     
     private List<string> BuildLocationPath(Location location, LocationSpot spot)
