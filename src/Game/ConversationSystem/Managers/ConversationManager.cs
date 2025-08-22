@@ -40,9 +40,10 @@ public class ConversationManager
     public bool IsConversationActive => currentSession != null;
 
     /// <summary>
-    /// Start a new conversation with an NPC
+    /// Start a new conversation with an NPC of a specific type
+    /// The type must be explicitly chosen by the player from available options
     /// </summary>
-    public ConversationSession StartConversation(string npcId, List<ConversationCard> observationCards = null)
+    public ConversationSession StartConversation(string npcId, ConversationType conversationType, List<ConversationCard> observationCards = null)
     {
         if (IsConversationActive)
         {
@@ -57,7 +58,26 @@ public class ConversationManager
             throw new ArgumentException($"NPC with ID {npcId} not found");
         }
 
-        // Check if NPC can converse
+        // Validate that the requested conversation type is available
+        var availableTypes = GetAvailableConversationTypes(npc);
+        if (!availableTypes.Contains(conversationType))
+        {
+            throw new InvalidOperationException($"Conversation type {conversationType} is not available for {npc.Name}");
+        }
+        
+        // For Quick Exchange, use simplified session
+        if (conversationType == ConversationType.QuickExchange)
+        {
+            return StartExchangeConversation(npc);
+        }
+
+        // For Crisis conversation, use crisis deck
+        if (conversationType == ConversationType.Crisis)
+        {
+            return StartCrisisConversation(npc, observationCards);
+        }
+
+        // Check if NPC can converse (for standard conversations)
         var initialState = ConversationRules.DetermineInitialState(npc, queueManager);
         if (initialState == EmotionalState.HOSTILE)
         {
@@ -69,9 +89,71 @@ public class ConversationManager
             queueManager,
             relationshipTracker,
             tokenManager,
-            observationCards
+            observationCards,
+            conversationType
         );
 
+        return currentSession;
+    }
+    
+    /// <summary>
+    /// Get available conversation types for an NPC
+    /// This determines what options appear on the location screen
+    /// </summary>
+    public List<ConversationType> GetAvailableConversationTypes(NPC npc)
+    {
+        var available = new List<ConversationType>();
+        
+        // If NPC has crisis cards, ONLY crisis conversation is available
+        if (npc.HasCrisisCards())
+        {
+            available.Add(ConversationType.Crisis);
+            return available; // Other types are LOCKED
+        }
+        
+        // Check for exchange deck
+        npc.InitializeExchangeDeck();
+        if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
+        {
+            available.Add(ConversationType.QuickExchange);
+        }
+        
+        // Check for standard conversation deck
+        if (npc.ConversationDeck != null && npc.ConversationDeck.RemainingCards > 0)
+        {
+            available.Add(ConversationType.Standard);
+            
+            // Check if Deep conversation is available (requires relationship level 3+)
+            var relationshipLevel = tokenManager.GetRelationshipLevel(npc.ID);
+            if (relationshipLevel >= 3)
+            {
+                available.Add(ConversationType.Deep);
+            }
+        }
+        
+        return available;
+    }
+    
+    /// <summary>
+    /// Start a quick exchange conversation (simplified, no emotional states)
+    /// </summary>
+    private ConversationSession StartExchangeConversation(NPC npc)
+    {
+        // Initialize exchange deck if not already done
+        npc.InitializeExchangeDeck();
+        
+        // Create a simplified session for exchanges
+        currentSession = ConversationSession.StartExchange(npc, gameWorld.GetPlayerResourceState(), tokenManager);
+        return currentSession;
+    }
+    
+    /// <summary>
+    /// Start a crisis conversation
+    /// </summary>
+    private ConversationSession StartCrisisConversation(NPC npc, List<ConversationCard> observationCards)
+    {
+        // Crisis conversations use crisis deck exclusively
+        currentSession = ConversationSession.StartCrisis(npc, queueManager, relationshipTracker, tokenManager, observationCards);
         return currentSession;
     }
 

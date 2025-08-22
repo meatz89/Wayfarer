@@ -42,11 +42,12 @@ Implement instant resource trading system with 0 attention cost
   - Personality-based card selection
   - Daily refresh at dawn
   
-- [ ] **1.3 Create Exchange UI**
-  - Slide-out panel (not separate screen)
-  - Clear cost/reward display
-  - Accept/Decline buttons
-  - Visual feedback
+- [ ] **1.4 Modify ConversationScreen for Exchange mode**
+  - Use same ConversationScreen.razor
+  - Hide emotional state elements when in Exchange mode
+  - Hide patience/comfort bars for exchanges
+  - Show simple cost/reward cards
+  - Accept/Decline instead of Listen/Speak
   
 - [ ] **1.5 Integration**
   - Attention economy (free exchanges)
@@ -59,7 +60,7 @@ NEW: /src/Game/ConversationSystem/Core/ExchangeCard.cs
 NEW: /src/Game/ConversationSystem/Core/ResourceExchange.cs
 MOD: /src/Services/NPCDeckFactory.cs
 MOD: /src/Services/ConversationManager.cs
-NEW: /src/Pages/Components/ExchangePanel.razor
+MOD: /src/Pages/ConversationScreen.razor (support Exchange mode)
 MOD: /src/Pages/LocationScreen.razor
 ```
 
@@ -215,10 +216,17 @@ MOD: /src/Services/ObligationQueueManager.cs
 
 ## 🚨 CRITICAL DESIGN DECISIONS
 
+### User Clarifications (IMPORTANT)
+1. **Conversation Type Selection**: Player CHOOSES conversation type from location screen - NPCs don't force types
+2. **Crisis Behavior**: Crisis state LOCKS other conversation options (they become unclickable) but doesn't auto-start
+3. **Available Actions**: Location screen shows available conversation types based on NPC's deck composition
+4. **Exchange UI**: NOT a separate screen - uses ConversationScreen with simplified display (no emotional states/patience)
+5. **Deck-Based Actions**: NPCs might offer only exchange, only standard, or both based on their decks
+
 ### From Systems Architect Review
 1. **Exchange Refresh Formula**: Daily at dawn, each card once per day
 2. **Crisis Resolution**: Added via observations, removed by playing, expire after 3 time blocks
-3. **Deck Priority**: Crisis > Exchange > Standard
+3. **Deck Priority**: Crisis locks other options, not auto-selected
 5. **Attention Policy**: No refunds, spent on attempt
 6. **Memory Strategy**: Lazy initialization of decks
 
@@ -276,6 +284,13 @@ Overall:                     [████████░░] 85% (core system d
 - Set bonus visualization
 
 ## 📝 IMPLEMENTATION NOTES
+
+### Architecture Clarifications
+- **Location Screen**: Generates conversation actions based on NPC deck availability
+- **Action Generation**: Check which decks NPC has, offer those conversation types
+- **Crisis Locking**: When crisis deck has cards, other action buttons are disabled/grayed
+- **Conversation Screen**: Single screen that adapts based on conversation type
+- **Exchange Display**: Hide emotional states, patience, comfort bars for QuickExchange
 
 ### Memory Considerations
 - 3 decks × 20 cards × 50 NPCs = 3000 cards
