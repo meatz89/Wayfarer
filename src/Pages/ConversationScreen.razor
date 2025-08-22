@@ -77,51 +77,54 @@
                 </div>
             </div>
 
-            <!-- Progress Display -->
-            <div class="progress-section">
-                <div class="progress-bar">
-                    <div class="progress-label">
-                        <span>Comfort Built</span>
-                        <span>@Session.CurrentComfort/@GetComfortTarget()</span>
+            @if (ConversationType != ConversationType.QuickExchange)
+            {
+                <!-- Progress Display -->
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-label">
+                            <span>Comfort Built</span>
+                            <span>@Session.CurrentComfort/@GetComfortTarget()</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: @GetComfortPercent()%"></div>
+                            <div class="progress-thresholds">
+                                <div class="threshold-marker" style="left: 25%">
+                                    <span class="threshold-label">5</span>
+                                </div>
+                                <div class="threshold-marker" style="left: 50%">
+                                    <span class="threshold-label">10 (Letter)</span>
+                                </div>
+                                <div class="threshold-marker" style="left: 75%">
+                                    <span class="threshold-label">15</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" style="width: @GetComfortPercent()%"></div>
-                        <div class="progress-thresholds">
-                            <div class="threshold-marker" style="left: 25%">
-                                <span class="threshold-label">5</span>
-                            </div>
-                            <div class="threshold-marker" style="left: 50%">
-                                <span class="threshold-label">10 (Letter)</span>
-                            </div>
-                            <div class="threshold-marker" style="left: 75%">
-                                <span class="threshold-label">15</span>
-                            </div>
+
+                    <div class="turns-remaining @(Session.CurrentPatience <= 3 ? "low" : "")">
+                        <div class="turns-display @(Session.CurrentPatience <= 3 ? "low" : "")">@Session.CurrentPatience</div>
+                        <div class="turns-label">Turns Left</div>
+                    </div>
+
+                    <div class="progress-bar">
+                        <div class="progress-label">
+                            <span>Current Depth</span>
+                            <span>@Session.CurrentDepth @GetDepthName()</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: @(Session.CurrentDepth * 33)%"></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="turns-remaining @(Session.CurrentPatience <= 3 ? "low" : "")">
-                    <div class="turns-display @(Session.CurrentPatience <= 3 ? "low" : "")">@Session.CurrentPatience</div>
-                    <div class="turns-label">Turns Left</div>
+                <!-- State Rules Display -->
+                <div class="state-indicator">
+                    <span class="state-label">Emotional State:</span>
+                    <span class="state-name">@Session.CurrentState</span>
+                    <span class="state-effects">@ConversationRules.GetStateEffects(Session.CurrentState)</span>
                 </div>
-
-                <div class="progress-bar">
-                    <div class="progress-label">
-                        <span>Current Depth</span>
-                        <span>@Session.CurrentDepth @GetDepthName()</span>
-                    </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" style="width: @(Session.CurrentDepth * 33)%"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- State Rules Display -->
-            <div class="state-indicator">
-                <span class="state-label">Emotional State:</span>
-                <span class="state-name">@Session.CurrentState</span>
-                <span class="state-effects">@ConversationRules.GetStateEffects(Session.CurrentState)</span>
-            </div>
+            }
         </div>
 
         <!-- Narrative Section -->
@@ -141,38 +144,82 @@
 
         <!-- Action Choice -->
         <div class="action-section">
-            <div class="turn-indicator">
-                Turn @Session.TurnNumber of @Session.MaxPatience • Each choice uses 1 turn
-            </div>
-
-            @if (Session.IsHandOverflowing())
+            @if (ConversationType == ConversationType.QuickExchange)
             {
-                <div class="hand-overflow-warning">
-                    <span>⚠ Hand full! You have too much to share - must SPEAK first</span>
+                <!-- Exchange Mode: Simple Accept/Decline -->
+                <div class="exchange-offer">
+                    @if (GetCurrentExchangeCard() != null)
+                    {
+                        var exchange = GetCurrentExchangeCard();
+                        <div class="exchange-card">
+                            <div class="exchange-cost">
+                                <span class="exchange-label">You Give:</span>
+                                @foreach (var cost in exchange.Cost)
+                                {
+                                    <span class="resource-cost">@cost.Amount @cost.Type</span>
+                                }
+                            </div>
+                            <div class="exchange-arrow">↓</div>
+                            <div class="exchange-reward">
+                                <span class="exchange-label">You Receive:</span>
+                                @foreach (var reward in exchange.Reward)
+                                {
+                                    <span class="resource-reward">@reward.Amount @reward.Type</span>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="action-choices">
+                            <div class="action-button accept" @onclick="AcceptExchange">
+                                ✓ ACCEPT
+                            </div>
+                            <div class="action-button decline" @onclick="DeclineExchange">
+                                ✗ DECLINE
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-exchanges">No exchanges available right now</div>
+                    }
                 </div>
             }
-
-            <div class="action-choices">
-                <div class="action-button @(SelectedAction == ActionType.Listen ? "selected" : "")"
-                     @onclick="() => SelectAction(ActionType.Listen)">
-                    @if (HasOpportunities())
-                    {
-                        <div class="action-warning">⚠ Fleeting moments vanish!</div>
-                    }
-                    <div>👂 LISTEN</div>
-                    <div class="action-description">
-                        Let them continue • Draw @GetDrawCount() thoughts
-                    </div>
+            else
+            {
+                <!-- Standard Conversation Mode -->
+                <div class="turn-indicator">
+                    Turn @Session.TurnNumber of @Session.MaxPatience • Each choice uses 1 turn
                 </div>
 
-                <div class="action-button @(SelectedAction == ActionType.Speak ? "selected" : "")"
-                     @onclick="() => SelectAction(ActionType.Speak)">
-                    <div>💭 SPEAK</div>
-                    <div class="action-description">
-                        Respond now • Use cards
+                @if (Session.IsHandOverflowing())
+                {
+                    <div class="hand-overflow-warning">
+                        <span>⚠ Hand full! You have too much to share - must SPEAK first</span>
+                    </div>
+                }
+
+                <div class="action-choices">
+                    <div class="action-button @(SelectedAction == ActionType.Listen ? "selected" : "")"
+                         @onclick="() => SelectAction(ActionType.Listen)">
+                        @if (HasOpportunities())
+                        {
+                            <div class="action-warning">⚠ Fleeting moments vanish!</div>
+                        }
+                        <div>👂 LISTEN</div>
+                        <div class="action-description">
+                            Let them continue • Draw @GetDrawCount() thoughts
+                        </div>
+                    </div>
+
+                    <div class="action-button @(SelectedAction == ActionType.Speak ? "selected" : "")"
+                         @onclick="() => SelectAction(ActionType.Speak)">
+                        <div>💭 SPEAK</div>
+                        <div class="action-description">
+                            Respond now • Use cards
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         </div>
 
         <!-- Card Hand -->

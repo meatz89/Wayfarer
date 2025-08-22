@@ -25,6 +25,7 @@ namespace Wayfarer.Pages
         protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
         protected ActionType SelectedAction { get; set; } = ActionType.None;
         protected CardPlayResult LastResult { get; set; }
+        protected ExchangeCard CurrentExchangeCard { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -444,6 +445,45 @@ namespace Wayfarer.Pages
                 return $"+{card.BaseComfort} comfort + deliver";
             }
             return $"+{card.BaseComfort} comfort";
+        }
+
+        // Exchange Mode Methods
+        protected ExchangeCard GetCurrentExchangeCard()
+        {
+            if (Session?.NPC == null || ConversationType != ConversationType.QuickExchange)
+                return null;
+                
+            // Get first available exchange from NPC's exchange deck
+            if (Session.NPC.ExchangeDeck != null && Session.NPC.ExchangeDeck.Any())
+            {
+                var currentDay = TimeManager.GetCurrentDay();
+                return Session.NPC.ExchangeDeck.FirstOrDefault(e => e.IsAvailable(currentDay));
+            }
+            
+            return null;
+        }
+
+        protected async Task AcceptExchange()
+        {
+            var exchange = GetCurrentExchangeCard();
+            if (exchange == null) return;
+            
+            // Execute the exchange through GameFacade
+            // TODO: Implement exchange execution logic
+            Console.WriteLine($"Accepting exchange: {exchange.Id}");
+            
+            // Mark as used for today
+            exchange.MarkUsed(TimeManager.GetCurrentDay());
+            
+            // End conversation
+            await OnConversationEnd.InvokeAsync();
+        }
+
+        protected async Task DeclineExchange()
+        {
+            // Simply end the conversation without executing
+            Console.WriteLine("Declining exchange");
+            await OnConversationEnd.InvokeAsync();
         }
 
         protected string GetFailureEffect(ConversationCard card)

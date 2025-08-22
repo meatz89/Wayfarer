@@ -94,6 +94,24 @@ public class ExchangeCard
     public int LastUsedDay { get; set; } = -1;
     
     /// <summary>
+    /// Mark this exchange as used for today
+    /// </summary>
+    public void MarkUsed(int currentDay)
+    {
+        if (currentDay > LastUsedDay)
+        {
+            // New day, reset counter
+            LastUsedDay = currentDay;
+            UsesToday = 1;
+        }
+        else
+        {
+            // Same day, increment counter
+            UsesToday++;
+        }
+    }
+    
+    /// <summary>
     /// Whether this exchange is currently available
     /// </summary>
     public bool IsAvailable(int currentDay)

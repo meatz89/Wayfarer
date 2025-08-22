@@ -1,9 +1,10 @@
 # SESSION HANDOFF: WAYFARER IMPLEMENTATION
-**Session Date**: 2025-08-22 (Session 30 - Conversation System Partial Implementation)  
-**Status**: ❌ BUILD BROKEN - 7 compilation errors need fixing
-**Build Status**: ❌ 7 errors preventing compilation
+**Session Date**: 2025-08-22 (Session 31 - Build Fixed, Exchange System Partial)  
+**Status**: ⚠️ BUILD COMPILES but NO TESTING DONE
+**Build Status**: ✅ Compiles with 8 warnings
 **Branch**: letters-ledgers
 **Port**: 5116 (configured in launchSettings.json)
+**WARNING**: Code compiles but NOTHING has been tested in browser
 
 ## 📋 CONVERSATION SYSTEM IMPLEMENTATION PLAN
 
@@ -68,6 +69,16 @@
 - ❌ Left with 7 build errors
 - ❌ No testing done
 
+### Session 31 Summary (CURRENT):
+- ✅ Fixed ALL 7 build errors - project compiles
+- ✅ Added missing methods: StartExchange, StartCrisis, GetRelationshipLevel, GetPlayerResourceState
+- ✅ Fixed parameter passing in ConversationScreen and GameFacade
+- ⚠️ Partially implemented Exchange UI (Accept/Decline buttons, resource display)
+- ❌ LEFT MAJOR TODO: Exchange execution logic not implemented
+- ❌ NO TESTING DONE - haven't launched game once
+- ❌ No exchange data in npcs.json
+- ❌ No crisis card templates
+
 ### What We Actually Built:
 1. **ExchangeCard.cs** - Complete resource exchange card system
 2. **ConversationType.cs** - All conversation types defined
@@ -75,19 +86,19 @@
 4. **ConversationManager modifications** - Added type selection logic
 5. **GameFacade modifications** - Added conversation type generation
 
-### What's Broken:
-1. ConversationSession needs new methods (StartExchange, StartCrisis)
-2. Missing helper methods in TokenMechanicsManager
-3. Missing helper methods in GameWorld
-4. ConversationScreen needs to pass conversation type
-5. All conversation starts need type parameter
+### What's Still Broken/Missing:
+1. **Exchange execution TODO** - AcceptExchange has TODO, no resources actually change
+2. **No daily exchange selection** - NPCs don't pick their daily exchange card
+3. **No exchange data** - npcs.json has no exchange definitions
+4. **No crisis cards** - Crisis deck mechanics not implemented
+5. **ZERO TESTING** - Don't know if any UI actually works
 
-### Session 31 Must Do:
-1. **FIX THE BUILD FIRST** - Cannot proceed with broken build
-2. Implement missing ConversationSession methods
-3. Add missing helper methods
-4. Update ConversationScreen to handle types
-5. Test at least one exchange conversation
+### Session 32 ABSOLUTELY MUST DO:
+1. **LAUNCH THE GAME FIRST** - Test if basic functionality even works
+2. **Implement ExecuteExchange** - Complete the TODO in GameFacade
+3. **Add TodaysExchangeCard to NPC** - Daily exchange selection
+4. **Add exchange data to npcs.json** - Define actual exchanges
+5. **TEST WITH PLAYWRIGHT** - Verify conversations actually work
 
 ### Files to Modify:
 1. `/src/Models/Cards/ExchangeCard.cs` - NEW
@@ -108,14 +119,21 @@
 - [ ] Test exchange refresh at day boundary
 - [ ] Verify no infinite resource exploits
 
-## 🎓 KEY LEARNINGS FROM SESSION 30:
+## 🎓 KEY LEARNINGS FROM SESSIONS 30-31:
 
-### Architecture Insights:
+### Architecture Insights (Session 30):
 1. **Conversation types are PLAYER CHOICES** - Not forced by NPC state
 2. **Crisis LOCKS other options** - Doesn't auto-select, just disables others
 3. **Exchange uses SAME UI** - ConversationScreen adapts, not separate screen
 4. **Deck availability determines options** - NPCs offer what decks they have
 5. **HIGHLANDER principle violation** - Found and fixed duplicate PersonalityType/Archetype
+
+### Exchange System Learnings (Session 31):
+1. **ONE exchange card per NPC per day** - Randomly selected at dawn, not a full deck
+2. **Cards shown even if unaffordable** - Appear "locked" if player can't pay
+3. **No usage limits** - Can use same exchange unlimited times per day
+4. **Exchange cards ARE conversation cards** - Not a separate system
+5. **Must validate costs** - Check if player can afford before allowing play
 
 ### Implementation Reality Check:
 - **What we thought**: "Just add exchange cards and it'll work"

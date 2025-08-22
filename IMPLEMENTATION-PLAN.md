@@ -24,35 +24,39 @@ Implementing a complete conversation system with 3 conversation types, 3 deck ty
 ### Goals
 Implement instant resource trading system with 0 attention cost
 
-### Tasks
-- [ ] **1.1 Create ExchangeCard class**
+### ✅ COMPLETED Tasks (Session 31)
+- [x] **1.1 Create ExchangeCard class**
   - Resource cost structure (coins, tokens, health, stamina)
   - Resource reward structure
-  - Daily usage tracking
+  - ~~Daily usage tracking~~ NO LIMITS - unlimited use
   - Narrative context mapping
   
-- [ ] **1.2 Implement QuickExchange conversation type**
-  - 0 attention cost
-  - No patience system
-  - Instant accept/refuse
-  - No emotional states
+- [x] **1.2 Implement QuickExchange conversation type**
+  - 0 attention cost ✅
+  - No patience system ✅
+  - Instant accept/refuse ✅
+  - No emotional states ✅
   
-- [ ] **1.3 Add Exchange deck to NPCs**
-  - 5-10 cards per NPC
-  - Personality-based card selection
-  - Daily refresh at dawn
+- [ ] **1.3 Exchange Implementation (CRITICAL - NOT DONE)**
+  - **ONE card per NPC per day** (randomly selected)
+  - Card shows even if unaffordable (locked state)
+  - No usage limits - unlimited use
+  - Need: `TodaysExchangeCard` property on NPC
+  - Need: Daily refresh logic at dawn
+  - Need: Exchange data in npcs.json
   
-- [ ] **1.4 Modify ConversationScreen for Exchange mode**
-  - Use same ConversationScreen.razor
-  - Hide emotional state elements when in Exchange mode
-  - Hide patience/comfort bars for exchanges
-  - Show simple cost/reward cards
-  - Accept/Decline instead of Listen/Speak
+- [x] **1.4 Modify ConversationScreen for Exchange mode**
+  - Use same ConversationScreen.razor ✅
+  - Hide emotional state elements when in Exchange mode ✅
+  - Hide patience/comfort bars for exchanges ✅
+  - Show simple cost/reward cards ✅
+  - Accept/Decline instead of Listen/Speak ✅
   
-- [ ] **1.5 Integration**
-  - Attention economy (free exchanges)
-  - Daily refresh mechanism
-  - Usage tracking per card
+- [ ] **1.5 Exchange Execution (TODO LEFT IN CODE)**
+  - Need: ExecuteExchange method in GameFacade
+  - Resource validation (can player afford?)
+  - Resource deduction and rewards
+  - No tracking needed (unlimited use)
 
 ### Files to Create/Modify
 ```
@@ -261,18 +265,36 @@ MOD: /src/Services/ObligationQueueManager.cs
   - Modified NPC.cs to support 3 deck types
   - Modified ConversationManager for type selection
   - Modified GameFacade to generate conversation type options
-- [⚠️] CURRENT STATE: Build has 7 errors - needs fixing before proceeding
+- [⚠️] Left with 7 build errors
+
+### Session 31 (2025-08-22) - BUILD FIXED, EXCHANGE PARTIAL
+- [x] Fixed ALL 7 build errors - project now compiles
+- [x] Added missing methods:
+  - ConversationSession.StartExchange()
+  - ConversationSession.StartCrisis()
+  - TokenMechanicsManager.GetRelationshipLevel()
+  - GameWorld.GetPlayerResourceState()
+- [x] Fixed parameter passing issues
+- [x] Implemented Exchange UI in ConversationScreen
+- [⚠️] LEFT MAJOR TODO: Exchange execution logic
+- [❌] NO TESTING DONE - game never launched
+- [❌] No exchange data added to npcs.json
+- [❌] No crisis templates created
 
 ### Completion Status
 ```
-Phase 1: Exchange System      [████░░░░░░] 40% (partial implementation, build errors)
-Phase 2: Multiple Decks       [██░░░░░░░░] 20% (structure added, not functional)
-Phase 3: Conversation Types   [█░░░░░░░░░] 10% (types defined, not integrated)
+Phase 1: Exchange System      [██████░░░░] 60% (UI done, execution TODO left)
+Phase 2: Multiple Decks       [███░░░░░░░] 30% (structure exists, no data)
+Phase 3: Conversation Types   [██░░░░░░░░] 20% (types defined, not tested)
 Phase 4: Enhanced Features    [░░░░░░░░░░] 0%
-Testing: E2E Tests           [░░░░░░░░░░] 0%
+Testing: E2E Tests           [░░░░░░░░░░] 0% (ZERO TESTING DONE)
 
-Overall:                     [████████░░] 85% (core system exists, new features partial)
+Overall:                     [████████░░] 85% (core system exists, new features untested)
 ```
+
+### ⚠️ CRITICAL: What's Actually Working
+- ✅ Build compiles
+- ❓ Everything else is unknown (NO TESTING)
 
 ## 🔍 EXISTING SYSTEM ANALYSIS
 
@@ -322,29 +344,38 @@ Overall:                     [████████░░] 85% (core system e
 - Deck empty scenarios
 - Save/load with active conversation
 
-## 🔴 BUILD ERRORS TO FIX (Session 31 Priority)
+## 🔴 CRITICAL TODO LEFT IN CODE (Session 32 Priority)
 
-1. **ConversationSession.StartConversation** - Missing overload with 6 arguments
-2. **TokenMechanicsManager.GetRelationshipLevel** - Method doesn't exist
-3. **ConversationSession.StartExchange** - Method doesn't exist
-4. **GameWorld.GetPlayerResourceState** - Method doesn't exist
-5. **ConversationSession.StartCrisis** - Method doesn't exist
-6. **ConversationScreen.razor.cs** - Wrong argument type (needs ConversationType)
-7. **GameFacade line 1257** - Missing conversationType parameter
+### Exchange Execution (ConversationScreen.razor.cs line 472)
+```csharp
+// TODO: Implement exchange execution logic
+```
 
-These errors show we need to:
-- Create the missing ConversationSession methods for different types
-- Add helper methods to TokenMechanicsManager and GameWorld
-- Fix the ConversationScreen to pass conversation type
-- Update all StartConversation calls to include type
+This TODO needs:
+1. **ExecuteExchange method in GameFacade**:
+   - Validate player has resources for costs
+   - Deduct costs from player
+   - Apply rewards to player
+   - Handle token rewards via TokenMechanicsManager
+   - Return success/failure
 
-## 🚀 NEXT STEPS
+2. **Daily Exchange Selection in NPC**:
+   - Add `TodaysExchangeCard` property
+   - Refresh at dawn (pick random exchange)
+   - Show as locked if unaffordable
 
-1. **Session 31 Priority**: Fix all 7 build errors
-2. **Then**: Complete ConversationSession implementation
-3. **Then**: Test basic Exchange conversation flow
-4. **Then**: Implement Crisis conversation flow
-5. **Finally**: Add UI adaptations for each type
+3. **Exchange Data in npcs.json**:
+   - Define actual exchange cards per NPC
+   - Cost/reward pairs
+   - Template types for narrative generation
+
+## 🚀 NEXT STEPS (Session 32)
+
+1. **FIRST**: Launch game and test if it even runs
+2. **Implement ExecuteExchange**: Complete the TODO
+3. **Add TodaysExchangeCard**: Daily selection logic
+4. **Add exchange data**: Define in npcs.json
+5. **TEST WITH PLAYWRIGHT**: Finally verify it works
 
 ## 📊 RISK ASSESSMENT
 
