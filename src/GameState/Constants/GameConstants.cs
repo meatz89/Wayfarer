@@ -91,7 +91,6 @@ public static class GameConstants
     /// </summary>
     public static class Game
     {
-        public const int XP_TO_NEXT_LEVEL_BASE = 100;
         public const int MINUTES_PER_HOUR = 60;
         public const float DEFAULT_ENCOUNTER_CHANCE = 0.3f;
     }

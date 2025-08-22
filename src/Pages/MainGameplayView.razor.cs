@@ -239,7 +239,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
         // Use the route's ID property
         string routeId = route.Id;
-        bool success = await GameFacade.TravelToDestinationAsync(route.Destination, routeId);
+        bool success = await GameFacade.TravelToDestinationAsync(route.DestinationLocationSpot, routeId);
 
         if (success)
         {

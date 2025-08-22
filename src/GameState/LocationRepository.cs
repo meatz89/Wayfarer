@@ -79,30 +79,6 @@ public List<Location> GetConnectedLocations(string currentLocation)
         .ToList();
 }
 
-// Additional methods remain largely unchanged, just using __gameWorld.WorldState instead
-public bool CanLocationSpotLevelUp(string locationName, string spotName)
-{
-    LocationSpot spot = GetSpot(locationName, spotName);
-    return spot.CurrentSpotXP >= spot.XPToNextLevel;
-}
-
-public void ApplyLocationSpotLevelUp(string locationName, string spotName)
-{
-    LocationSpot spot = GetSpot(locationName, spotName);
-    spot.CurrentLevel++;
-    spot.CurrentSpotXP = 0;
-    // Handle level-specific action changes
-}
-
-public List<LocationSpot> GetSpotsReadyToLevelUp()
-{
-    return _gameWorld.WorldState.locationSpots
-        .Where(spot =>
-        {
-            return spot.CurrentSpotXP >= spot.XPToNextLevel;
-        })
-        .ToList();
-}
 
 // Add a location to the world
 public void AddLocation(Location location)

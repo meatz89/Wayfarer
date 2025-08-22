@@ -26,9 +26,6 @@ public static class LocationSpotParser
             InitialState = GetStringProperty(root, "initialState", ""),
             LocationId = locationId,
             DomainTags = GetStringArrayFromProperty(root, "domainTags"),
-            PreferredApproach = GetStringProperty(root, "preferredApproach", null),
-            DislikedApproach = GetStringProperty(root, "dislikedApproach", null),
-            DomainExpertise = GetStringProperty(root, "domainExpertise", null)
         };
 
         // Parse time windows

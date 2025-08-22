@@ -39,6 +39,8 @@ public class Phase3_NPCDependents : IInitializationPhase
     private void LoadRoutes(InitializationContext context)
     {
         string routesPath = Path.Combine(context.ContentPath, "routes.json");
+        Console.WriteLine($"[LoadRoutes] Looking for routes at: {routesPath}");
+        Console.WriteLine($"[LoadRoutes] File exists: {File.Exists(routesPath)}");
 
         if (!File.Exists(routesPath))
         {

@@ -586,11 +586,7 @@ public static class GameWorldSerializer
         {
             id = spot.SpotID,
             name = spot.Name,
-            // Description removed - generated from SpotPropertyType combinations
             locationId = spot.LocationId,
-            currentLevel = spot.CurrentLevel,
-            currentXP = spot.CurrentSpotXP,
-            xpToNextLevel = spot.XPToNextLevel
         }).ToList();
 
         return JsonSerializer.Serialize(serializableSpots, _jsonOptions);

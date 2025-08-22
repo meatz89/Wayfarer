@@ -11,7 +11,7 @@
     // Progression systems
     public int Level { get; set; } = 1;
     public int CurrentXP { get; set; } = 0;
-    public int XPToNextLevel { get; set; } = GameConstants.Game.XP_TO_NEXT_LEVEL_BASE;
+    public int XPToNextLevel { get; set; } = 100; // Base XP required for next level
 
     // Tier system (T1: Stranger, T2: Associate, T3: Confidant)
     public TierLevel CurrentTier { get; set; } = TierLevel.T1;
@@ -22,7 +22,6 @@
     public int Concentration { get; set; } = 10; // Starting concentration - intentionally kept as literal
     public int Health { get; set; }
     public int Food { get; set; }
-    // Patron system removed - deleted all patron-related properties
 
     public int MaxStamina { get; set; } = 10;  // From GameConfiguration.MaxStamina
     public int MaxConcentration { get; set; }

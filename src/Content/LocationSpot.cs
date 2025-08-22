@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-
 public class LocationSpot
 {
     public string SpotID { get; set; }
@@ -20,24 +19,11 @@ public class LocationSpot
     // Time-specific properties that activate only during certain time blocks
     public Dictionary<TimeBlocks, List<SpotPropertyType>> TimeSpecificProperties { get; set; } = new Dictionary<TimeBlocks, List<SpotPropertyType>>();
 
-    public int CurrentLevel { get; set; } = 1;
-    public int CurrentSpotXP { get; set; } = 0;
-    public int XPToNextLevel { get; set; } = GameConstants.Game.XP_TO_NEXT_LEVEL_BASE;
     public List<TimeBlocks> CurrentTimeBlocks { get; set; } = new List<TimeBlocks>();
     public string InitialState { get; set; }
     public bool PlayerKnowledge { get; set; }
 
-    // Tag Resonance System
     public List<string> DomainTags { get; set; } = new List<string>();
-    public string PreferredApproach { get; set; }
-    public string DislikedApproach { get; set; }
-    public string DomainExpertise { get; set; }
-
-    // Requirements
-    public Dictionary<SkillTypes, int> SkillRequirements { get; set; } = new Dictionary<SkillTypes, int>();
-    public Dictionary<string, int> RelationshipRequirements { get; set; } = new Dictionary<string, int>();
-    public NPC PrimaryNPC { get; set; }
-    public bool IsClosed { get; set; }
 
     // Access Requirements for this spot
     public AccessRequirement AccessRequirement { get; set; }
@@ -61,11 +47,6 @@ public class LocationSpot
         }
 
         return activeProperties;
-    }
-
-    public List<string> GetCurrentProperties()
-    {
-        return new List<string>();
     }
 
     /// <summary>
@@ -127,19 +108,5 @@ public class LocationSpot
         }
 
         return modifier;
-    }
-
-    /// <summary>
-    /// Check if this spot has a specific property active at the current time
-    /// </summary>
-    public bool HasActiveProperty(SpotPropertyType property, TimeBlocks currentTime)
-    {
-        if (SpotProperties.Contains(property))
-            return true;
-
-        if (TimeSpecificProperties.ContainsKey(currentTime))
-            return TimeSpecificProperties[currentTime].Contains(property);
-
-        return false;
     }
 }

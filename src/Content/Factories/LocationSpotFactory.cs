@@ -98,25 +98,4 @@ public class LocationSpotFactory
 
         return CreateLocationSpot(spotId, name, location, initialState, availableTimeBlocks, domainTags);
     }
-
-    /// <summary>
-    /// Connect an NPC to a location spot.
-    /// This should be called after NPCs are loaded.
-    /// </summary>
-    public void ConnectNPCToSpot(LocationSpot spot, NPC npc)
-    {
-        if (spot == null)
-            throw new ArgumentNullException(nameof(spot));
-        if (npc == null)
-            throw new ArgumentNullException(nameof(npc));
-
-        // Validate NPC is in the same location as the spot
-        if (npc.Location != spot.LocationId)
-        {
-            Console.WriteLine($"WARNING: NPC '{npc.Name}' (location: {npc.Location}) cannot be connected to spot '{spot.SpotID}' (location: {spot.LocationId})");
-            return;
-        }
-
-        spot.PrimaryNPC = npc;
-    }
 }

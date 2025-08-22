@@ -755,13 +755,15 @@ public class GameFacade
         
         // ONLY show routes between market and tavern
         var filteredRoutes = availableRoutes.Where(r => 
-            (location.Id == "market_square" && r.Destination == "copper_kettle_tavern") ||
-            (location.Id == "copper_kettle_tavern" && r.Destination == "market_square")
+            (location.Id == "market_square" && r.DestinationLocationSpot == "main_hall") ||
+            (location.Id == "copper_kettle_tavern" && r.DestinationLocationSpot == "central_fountain")
         );
         
         foreach (var route in filteredRoutes)
         {
-            var destination = _locationRepository.GetLocation(route.Destination);
+            // Get destination location from the spot
+            var destSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == route.DestinationLocationSpot);
+            var destination = destSpot != null ? _locationRepository.GetLocation(destSpot.LocationId) : null;
             if (destination != null)
             {
                 // Each route is ONE specific transport method - no multiple options
@@ -1123,12 +1125,6 @@ public class GameFacade
         if (targetSpot == null)
         {
             _messageSystem.AddSystemMessage("Target location does not exist", SystemMessageTypes.Danger);
-            return false;
-        }
-
-        if (targetSpot.IsClosed)
-        {
-            _messageSystem.AddSystemMessage($"{targetSpot.Name} is closed", SystemMessageTypes.Warning);
             return false;
         }
 
@@ -1611,16 +1607,7 @@ public class GameFacade
             return false;
         }
         
-        // Use the travel hub spot if specified, otherwise use the route's destination spot
-        if (!string.IsNullOrEmpty(destination.TravelHubSpotId))
-        {
-            LocationSpot hubSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == destination.TravelHubSpotId);
-            if (hubSpot != null)
-            {
-                targetSpot = hubSpot;
-            }
-        }
-        
+        // NO FALLBACKS - use the exact spot the route specifies
         _locationRepository.SetCurrentLocation(destination, targetSpot);
         _messageSystem.AddSystemMessage($"Traveled to {destination.Name}", SystemMessageTypes.Success);
 
@@ -2168,7 +2155,11 @@ public class GameFacade
 
             // Get all routes to this destination
             List<RouteOption> allRoutes = _routeRepository.GetRoutesFromLocation(currentLocation.Id)
-                .Where(r => r.Destination == location.Id)
+                .Where(r => 
+                {
+                    var spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == r.DestinationLocationSpot);
+                    return spot != null && spot.LocationId == location.Id;
+                })
                 .ToList();
 
             if (!allRoutes.Any()) continue;

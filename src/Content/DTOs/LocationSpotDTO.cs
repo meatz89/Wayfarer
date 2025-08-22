@@ -15,8 +15,5 @@ public class LocationSpotDTO
     public List<string> DomainTags { get; set; } = new List<string>();
     public List<string> SpotProperties { get; set; } = new List<string>();
     public Dictionary<string, List<string>> TimeSpecificProperties { get; set; } = new Dictionary<string, List<string>>();
-    public int CurrentLevel { get; set; } = 1;
-    public int CurrentXP { get; set; } = 0;
-    public int XPToNextLevel { get; set; } = 100;
     public AccessRequirementDTO AccessRequirement { get; set; }
 }

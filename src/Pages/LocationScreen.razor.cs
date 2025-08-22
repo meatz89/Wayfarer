@@ -46,14 +46,7 @@ public partial class LocationScreen : ComponentBase
 
     private string GetStateClass(string stateName)
     {
-        return stateName?.ToUpper() switch
-        {
-            "DESPERATE" => "desperate",
-            "HOSTILE" => "hostile",
-            "TENSE" => "tense",
-            "OVERWHELMED" => "overwhelmed",
-            _ => ""
-        };
+        return stateName?.ToLower() ?? "";
     }
 
     private async Task ExecuteAction(LocationActionViewModel action)
@@ -177,120 +170,6 @@ public partial class LocationScreen : ComponentBase
         TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
         return NPCRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
     }
-
-    private bool IsCurrentSpot(LocationSpot spot)
-    {
-        return spot.SpotID == CurrentSpot?.SpotID;
-    }
-
-    private async Task MoveToSpot(LocationSpot spot)
-    {
-        if (spot.IsClosed || IsCurrentSpot(spot)) return;
-
-        // Use MoveIntent to move to the spot
-        MoveIntent moveIntent = new MoveIntent(spot.SpotID);
-        bool success = await GameFacade.ExecuteIntent(moveIntent);
-
-        if (success)
-        {
-            // Clear selected NPC when moving
-            SelectedNPC = null;
-            StateHasChanged();
-        }
-    }
-
-    private void SelectNPC(NPC npc)
-    {
-        SelectedNPC = npc;
-        StateHasChanged();
-    }
-
-    private Dictionary<ConnectionType, int> GetTokensWithNPC(string npcId)
-    {
-        NPCTokenBalance tokenBalance = GameFacade.GetTokensWithNPC(npcId);
-        Dictionary<ConnectionType, int> result = new Dictionary<ConnectionType, int>();
-
-        if (tokenBalance?.Balances != null)
-        {
-            foreach (TokenBalance balance in tokenBalance.Balances)
-            {
-                result[balance.TokenType] = balance.Amount;
-            }
-        }
-
-        return result;
-    }
-
-    private bool CanRest()
-    {
-        // Check if current location has rest options
-        Location location = GetCurrentLocation();
-        return location?.RestOptions?.Any() ?? false;
-    }
-
-    private bool HasMarket()
-    {
-        // Check if current location has a market
-        Location location = GetCurrentLocation();
-        return location?.AvailableServices?.Contains(ServiceTypes.Trade) ?? false;
-    }
-
-    private async Task NavigateToRest()
-    {
-        if (OnNavigate.HasDelegate)
-        {
-            await OnNavigate.InvokeAsync(CurrentViews.RestScreen);
-        }
-    }
-
-    private async Task NavigateToMarket()
-    {
-        if (OnNavigate.HasDelegate)
-        {
-            await OnNavigate.InvokeAsync(CurrentViews.MarketScreen);
-        }
-    }
-
-    private async Task NavigateToTravel()
-    {
-        if (OnNavigate.HasDelegate)
-        {
-            await OnNavigate.InvokeAsync(CurrentViews.TravelScreen);
-        }
-    }
-
-    private async Task NavigateToQueue()
-    {
-        if (OnNavigate.HasDelegate)
-        {
-            await OnNavigate.InvokeAsync(CurrentViews.LetterQueueScreen);
-        }
-    }
-
-    private string GetQueueDisplay()
-    {
-        try
-        {
-            LetterQueueViewModel queueVM = GameFacade.GetLetterQueue();
-            if (queueVM?.Status != null)
-            {
-                // Show count/max and urgent indicator if needed
-                bool hasUrgent = queueVM.QueueSlots?.Any(s => s.IsOccupied && s.DeliveryObligation?.DeadlineInHours <= 6) ?? false;
-                string display = $"{queueVM.Status.LetterCount}/8";
-                if (hasUrgent)
-                {
-                    return $"⚠️ {display}";
-                }
-                return display;
-            }
-            return "0/8";
-        }
-        catch
-        {
-            return "QUEUE";
-        }
-    }
-
     private async Task HandleActionExecuted()
     {
         // Refresh UI after action

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+
 public class StandingObligationManager
 {
     private readonly GameWorld _gameWorld;
@@ -163,18 +164,6 @@ public class StandingObligationManager
         return null;
     }
 
-    // REMOVED - Letters are only created through conversation choices
-
-    // REMOVED - Letters are only created through conversation choices
-
-    // Record that forced letters were generated for obligations
-    public void RecordForcedLettersGenerated(List<StandingObligation> obligations)
-    {
-        foreach (StandingObligation obligation in obligations)
-        {
-            obligation.RecordForcedLetterGenerated();
-        }
-    }
 
     // Advance time for all obligations (called daily)
     public void AdvanceDailyTime()
@@ -187,144 +176,6 @@ public class StandingObligationManager
         }
     }
 
-    // Calculate total coin bonus for a letter delivery
-    public int CalculateTotalCoinBonus(DeliveryObligation letter)
-    {
-        int totalBonus = 0;
-        List<StandingObligation> activeObligations = GetActiveObligations();
-
-        foreach (StandingObligation obligation in activeObligations)
-        {
-            // Static bonuses
-            totalBonus += obligation.CalculateCoinBonus(letter, letter.Payment);
-
-            // Dynamic payment bonuses that scale with tokens
-            if (obligation.HasEffect(ObligationEffect.DynamicPaymentBonus))
-            {
-                string senderId = GetNPCIdByName(letter.SenderName);
-                if (!string.IsNullOrEmpty(senderId))
-                {
-                    int tokenCount = GetRelevantTokenCountForLetter(obligation, letter, senderId);
-                    totalBonus += obligation.CalculateDynamicPaymentBonus(letter, letter.Payment, tokenCount);
-                }
-            }
-        }
-
-        return totalBonus;
-    }
-
-    // Calculate the best entry position for a new letter
-    public int CalculateBestEntryPosition(DeliveryObligation letter, int basePosition)
-    {
-        int bestPosition = basePosition;
-        List<StandingObligation> activeObligations = GetActiveObligations();
-
-        foreach (StandingObligation obligation in activeObligations)
-        {
-            int obligationPosition = obligation.CalculateEntryPosition(letter, bestPosition);
-            bestPosition = Math.Min(bestPosition, obligationPosition);
-        }
-
-        return bestPosition;
-    }
-
-    // Apply leverage modifiers from standing obligations
-    public int ApplyLeverageModifiers(DeliveryObligation letter, int currentPosition)
-    {
-        List<StandingObligation> activeObligations = GetActiveObligations();
-        int modifiedPosition = currentPosition;
-
-        foreach (StandingObligation obligation in activeObligations)
-        {
-            modifiedPosition = ApplySingleObligationLeverage(obligation, letter, modifiedPosition);
-        }
-
-        return modifiedPosition;
-    }
-
-    // Apply leverage modifier from a single obligation
-    private int ApplySingleObligationLeverage(StandingObligation obligation, DeliveryObligation letter, int currentPosition)
-    {
-        if (obligation.HasEffect(ObligationEffect.ShadowEqualsStatus))
-        {
-            return ApplyShadowStatusEffect(letter, currentPosition);
-        }
-
-        if (obligation.HasEffect(ObligationEffect.DebtSpiral))
-        {
-            return ApplyDebtSpiralEffect(letter, currentPosition);
-        }
-
-        if (obligation.HasEffect(ObligationEffect.MerchantRespect))
-        {
-            return ApplyMerchantRespectEffect(letter, currentPosition);
-        }
-
-        if (obligation.HasEffect(ObligationEffect.DynamicLeverageModifier))
-        {
-            return ApplyDynamicLeverageEffect(obligation, letter, currentPosition);
-        }
-
-        return currentPosition;
-    }
-
-    // Apply shadow equals status leverage effect
-    private int ApplyShadowStatusEffect(DeliveryObligation letter, int currentPosition)
-    {
-        if (letter.TokenType == ConnectionType.Shadow)
-        {
-            return Math.Min(currentPosition, 3); // Status base position
-        }
-        return currentPosition;
-    }
-
-
-    // Apply debt spiral effect - all negative positions get extra leverage
-    private int ApplyDebtSpiralEffect(DeliveryObligation letter, int currentPosition)
-    {
-        string senderId = GetNPCIdByName(letter.SenderName);
-        if (string.IsNullOrEmpty(senderId))
-            return currentPosition;
-
-        int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[letter.TokenType];
-        if (tokenBalance < 0)
-        {
-            return currentPosition - 1; // Additional leverage from debt
-        }
-
-        return currentPosition;
-    }
-
-    // Apply merchant respect effect - trade letters with 5+ tokens get less leverage
-    private int ApplyMerchantRespectEffect(DeliveryObligation letter, int currentPosition)
-    {
-        if (letter.TokenType != ConnectionType.Commerce)
-            return currentPosition;
-
-        string senderId = GetNPCIdByName(letter.SenderName);
-        if (string.IsNullOrEmpty(senderId))
-            return currentPosition;
-
-        int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[ConnectionType.Commerce];
-        if (tokenBalance >= 5)
-        {
-            return currentPosition + 1; // Less leverage due to respect
-        }
-
-        return currentPosition;
-    }
-
-    // Apply dynamic leverage effect - scales with token count
-    private int ApplyDynamicLeverageEffect(StandingObligation obligation, DeliveryObligation letter, int currentPosition)
-    {
-        string senderId = GetNPCIdByName(letter.SenderName);
-        if (string.IsNullOrEmpty(senderId))
-            return currentPosition;
-
-        int tokenCount = GetRelevantTokenCountForLetter(obligation, letter, senderId);
-        return obligation.CalculateDynamicLeverage(letter, currentPosition, tokenCount);
-    }
-
     // Helper to get NPC ID from name
     private string GetNPCIdByName(string npcName)
     {
@@ -333,12 +184,6 @@ public class StandingObligationManager
         return "";
     }
 
-    // Check if any obligation provides free deadline extension
-    public bool HasFreeDeadlineExtension(DeliveryObligation letter)
-    {
-        return GetActiveObligations()
-            .Any(o => o.IsFreeDeadlineExtension(letter));
-    }
 
     // Calculate total skip cost multiplier
     public int CalculateSkipCostMultiplier(DeliveryObligation letter)
@@ -371,34 +216,6 @@ public class StandingObligationManager
         }
 
         return false;
-    }
-
-
-    // Get obligations affecting a specific token type
-    public List<StandingObligation> GetObligationsForTokenType(ConnectionType tokenType)
-    {
-        return GetActiveObligations()
-            .Where(o => o.AppliesTo(tokenType))
-            .ToList();
-    }
-
-    // Get summary of all active obligation effects
-    public string GetObligationsSummary()
-    {
-        List<StandingObligation> activeObligations = GetActiveObligations();
-        if (!activeObligations.Any())
-        {
-            return "No active standing obligations";
-        }
-
-        List<string> lines = new List<string>();
-        foreach (StandingObligation obligation in activeObligations)
-        {
-            lines.Add($"• {obligation.Name} (Day {obligation.DaysSinceAccepted})");
-            lines.Add($"  {obligation.GetEffectsSummary()}");
-        }
-
-        return string.Join("\n", lines);
     }
 
     // Check for threshold-based obligations that should activate or deactivate
@@ -542,142 +359,6 @@ public class StandingObligationManager
             $"Your {obligation.RelatedTokenType} tokens{npcInfo} have {thresholdDirection} the required threshold.",
             SystemMessageTypes.Info
         );
-    }
-
-    // This should be called whenever tokens change
-    public void OnTokensChanged(string npcId, ConnectionType tokenType, int oldCount, int newCount)
-    {
-        // Only check if the token count actually changed
-        if (oldCount != newCount)
-        {
-            CheckThresholdActivations();
-
-            // Check for debt obligations
-            CheckDebtObligations(npcId, tokenType, oldCount, newCount);
-        }
-    }
-
-    // Check and create debt obligations when tokens go negative
-    private void CheckDebtObligations(string npcId, ConnectionType tokenType, int oldCount, int newCount)
-    {
-        // Only create debt obligation when crossing from positive/zero to negative
-        if (oldCount >= 0 && newCount < 0)
-        {
-            CreateDebtObligation(npcId, tokenType, newCount);
-        }
-        // Remove debt obligation when debt is paid off
-        else if (oldCount < 0 && newCount >= 0)
-        {
-            RemoveDebtObligation(npcId, tokenType);
-        }
-    }
-
-    // Create a debt obligation for a specific NPC and token type
-    private void CreateDebtObligation(string npcId, ConnectionType tokenType, int debtAmount)
-    {
-        NPC? npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
-        if (npc == null) return;
-
-        // Check if debt obligation already exists
-        StandingObligation? existingDebt = GetActiveObligations().FirstOrDefault(o =>
-            o.ID == $"debt_{npcId}_{tokenType}" && o.IsActive);
-        if (existingDebt != null) return;
-
-        // Create new debt obligation based on token type
-        StandingObligation debtObligation = CreateTokenTypeDebtObligation(npcId, npc.Name, tokenType, debtAmount);
-        if (debtObligation != null)
-        {
-            debtObligation.DayAccepted = _gameWorld.CurrentDay;
-            AddObligation(debtObligation);
-
-            _messageSystem.AddSystemMessage(
-                $"⚠️ You are now in debt to {npc.Name}! {GetDebtConsequenceMessage(tokenType)}",
-                SystemMessageTypes.Warning
-            );
-        }
-    }
-
-    // Remove debt obligation when debt is paid
-    private void RemoveDebtObligation(string npcId, ConnectionType tokenType)
-    {
-        StandingObligation? debtObligation = GetActiveObligations().FirstOrDefault(o =>
-            o.ID == $"debt_{npcId}_{tokenType}" && o.IsActive);
-
-        if (debtObligation != null)
-        {
-            RemoveObligation(debtObligation.ID, false);
-
-            NPC? npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
-            _messageSystem.AddSystemMessage(
-                $"✅ Debt to {npc?.Name ?? "unknown"} has been repaid!",
-                SystemMessageTypes.Success
-            );
-        }
-    }
-
-    // Create specific debt obligation based on token type
-    private StandingObligation CreateTokenTypeDebtObligation(string npcId, string npcName, ConnectionType tokenType, int debtAmount)
-    {
-        StandingObligation obligation = new StandingObligation
-        {
-            ID = $"debt_{npcId}_{tokenType}",
-            Source = npcId,
-            RelatedNPCId = npcId,
-            RelatedTokenType = tokenType,
-            IsActive = true,
-            IsThresholdBased = true,
-            ActivationThreshold = -1,
-            ActivatesAboveThreshold = false,
-            WasAutoActivated = true
-        };
-
-        switch (tokenType)
-        {
-            case ConnectionType.Trust:
-                obligation.Name = $"Personal Betrayal - {npcName}";
-                obligation.Description = $"You've betrayed {npcName}'s trust. Their letters demand immediate attention.";
-                obligation.ConstraintEffects.Add(ObligationEffect.TrustPriority);
-                break;
-
-            case ConnectionType.Commerce:
-                obligation.Name = $"Outstanding Payment - {npcName}";
-                obligation.Description = $"You owe {npcName} for business dealings. Work is scarce until debts are settled.";
-                obligation.ConstraintEffects.Add(ObligationEffect.NoCommercePurge);
-                obligation.BenefitEffects.Add(ObligationEffect.DynamicLeverageModifier);
-                obligation.ScalingType = ScalingType.Linear;
-                obligation.ScalingFactor = -1f; // Each debt point improves position by 1
-                obligation.BaseValue = 0f;
-                break;
-
-            case ConnectionType.Status:
-                obligation.Name = $"Social Disgrace - {npcName}";
-                obligation.Description = $"Your standing with {npcName} has fallen. Noble venues may refuse you.";
-                obligation.ConstraintEffects.Add(ObligationEffect.NoStatusRefusal);
-                obligation.BenefitEffects.Add(ObligationEffect.StatusPriority);
-                break;
-
-            case ConnectionType.Shadow:
-                obligation.Name = $"Dangerous Enemy - {npcName}";
-                obligation.Description = $"{npcName} considers you a liability. Expect unwelcome attention.";
-                obligation.ConstraintEffects.Add(ObligationEffect.ShadowForced);
-                obligation.BenefitEffects.Add(ObligationEffect.ShadowTriplePay);
-                break;
-        }
-
-        return obligation;
-    }
-
-    // Get consequence message for debt type
-    private string GetDebtConsequenceMessage(ConnectionType tokenType)
-    {
-        return tokenType switch
-        {
-            ConnectionType.Trust => "Personal requests cannot be refused.",
-            ConnectionType.Commerce => "Business opportunities will be limited.",
-            ConnectionType.Status => "Social obligations must be met.",
-            ConnectionType.Shadow => "Dangerous work will find you.",
-            _ => "Consequences will follow."
-        };
     }
 
     // Helper methods

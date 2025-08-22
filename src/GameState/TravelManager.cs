@@ -179,17 +179,20 @@ public class TravelManager
 
         // Update location
         // Get the spot from the route, then get its location
-        LocationSpot targetSpot = LocationSystem.GetAllLocationSpots().FirstOrDefault(s => s.SpotID == selectedRoute.DestinationLocationSpot);
-        Location targetLocation = targetSpot != null ? LocationSystem.GetLocation(targetSpot.LocationId) : null;
-
-        List<LocationSpot> spots = LocationSystem.GetLocationSpots(targetLocation.Id);
-        LocationSpot locSpot = null;
-        if (spots.Count > 0)
+        LocationSpot targetSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == selectedRoute.DestinationLocationSpot);
+        if (targetSpot == null)
         {
-            locSpot = spots[0];
+            return; // Invalid destination spot
+        }
+        
+        Location targetLocation = LocationSystem.GetLocation(targetSpot.LocationId);
+        if (targetLocation == null)
+        {
+            return; // Invalid location
         }
 
-        LocationRepository.SetCurrentLocation(targetLocation, locSpot);
+        // Use the exact spot from the route - NO FALLBACKS
+        LocationRepository.SetCurrentLocation(targetLocation, targetSpot);
 
         string? currentLocation = LocationRepository.GetCurrentLocation()?.Id;
 
