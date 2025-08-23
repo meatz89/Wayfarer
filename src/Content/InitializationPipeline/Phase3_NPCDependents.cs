@@ -51,6 +51,9 @@ public class Phase3_NPCDependents : IInitializationPhase
                 // Also initialize exchange deck (lazy init, but do it here for consistency)
                 npc.InitializeExchangeDeck();
                 
+                // Note: Crisis cards are added later in Phase8 when meeting obligations are created
+                // This ensures proper initialization order
+                
                 Console.WriteLine($"[Phase3] Initialized decks for NPC: {npc.Name} (ID: {npc.ID})");
             }
             catch (Exception ex)

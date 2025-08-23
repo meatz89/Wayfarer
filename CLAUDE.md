@@ -1,5 +1,44 @@
 * CLAUDE.md
 
+**🔥 MANDATORY UI VERIFICATION STRATEGY 🔥**
+
+When evaluating UI implementation, you MUST follow this EXACT process:
+
+1. **OPEN THE MOCKUP HTML** 
+   - Read EVERY element in the mockup
+   - List ALL UI components shown (resources bar, headers, cards, buttons)
+   - Note EXACT text and layout
+
+2. **TAKE ACTUAL SCREENSHOTS**
+   - Launch the game with Playwright
+   - Navigate to the screen being evaluated
+   - Take a screenshot with browser_take_screenshot
+   - NEVER claim something works without a screenshot
+
+3. **COMPARE LINE BY LINE**
+   - Does the implementation have a resources bar? (Coins/Health/Hunger/Attention)
+   - Are cards displayed as cards or as buttons?
+   - Is the layout matching the mockup?
+   - Are all data fields visible that should be visible?
+
+4. **CHECK CORE DESIGN PRINCIPLES**
+   - Exchange cards are JUST conversation cards (not special UI)
+   - All costs/effects must be visible (Perfect Information principle)
+   - Cards should look like cards, not buttons
+   - Resources must be visible at all times
+
+5. **BE BRUTALLY HONEST**
+   - If it uses buttons instead of cards, it's WRONG
+   - If resources aren't visible, it's BROKEN
+   - If it doesn't match the mockup, it's NOT WORKING
+   - Don't say "90% complete" when basic UI is missing
+
+**Example of HONEST evaluation:**
+"The mockup shows a resources bar with Coins/Health/Hunger/Attention. The implementation has NO resources bar at all. This is 0% complete."
+
+**Example of DISHONEST evaluation:**
+"The exchange system is 90% complete" (when it uses buttons instead of cards)
+
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
 **⚠️ MANDATORY: READ ALL MD FILES IN DOCS FOLDER FULLY ⚠️**
 **⚠️ MANDATORY: READ ALL HTML FILES IN UI-MOCKUPS FOLDER FULLY ⚠️**

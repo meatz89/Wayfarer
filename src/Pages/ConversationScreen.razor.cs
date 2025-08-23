@@ -492,6 +492,37 @@ namespace Wayfarer.Pages
             Console.WriteLine("Declining exchange");
             await OnConversationEnd.InvokeAsync();
         }
+        
+        // Player Resource Methods
+        protected int GetPlayerCoins()
+        {
+            return GameFacade?.GetPlayer()?.Coins ?? 0;
+        }
+        
+        protected int GetPlayerHealth()
+        {
+            return GameFacade?.GetPlayer()?.Health ?? 100;
+        }
+        
+        protected int GetPlayerHunger()
+        {
+            return GameFacade?.GetPlayer()?.Hunger ?? 0;
+        }
+        
+        protected int GetPlayerAttention()
+        {
+            return AttentionManager?.GetCurrentAttention() ?? 0;
+        }
+        
+        protected int GetMaxAttention()
+        {
+            return 10; // Base max attention
+        }
+        
+        protected string GetCurrentTimeBlock()
+        {
+            return TimeManager?.GetCurrentTimeBlock().ToString() ?? "Unknown";
+        }
 
         protected string GetFailureEffect(ConversationCard card)
         {

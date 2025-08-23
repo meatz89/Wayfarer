@@ -5,6 +5,35 @@
 <div class="game-container">
     @if (Session != null)
     {
+        <!-- Player Resources Bar -->
+        <div class="resources-bar">
+            <div class="resource-group">
+                <div class="resource">
+                    <div class="resource-icon coins"></div>
+                    <div class="resource-value">@GetPlayerCoins()</div>
+                    <span>Coins</span>
+                </div>
+                <div class="resource @(GetPlayerHealth() < 30 ? "low" : "") @(GetPlayerHealth() < 15 ? "critical" : "")">
+                    <div class="resource-icon health"></div>
+                    <div class="resource-value">@GetPlayerHealth()</div>
+                    <span>Health</span>
+                </div>
+                <div class="resource @(GetPlayerHunger() > 60 ? "low" : "") @(GetPlayerHunger() > 80 ? "critical" : "")">
+                    <div class="resource-icon hunger"></div>
+                    <div class="resource-value">@GetPlayerHunger()</div>
+                    <span>Hunger</span>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon attention"></div>
+                    <div class="resource-value">@GetPlayerAttention()/@GetMaxAttention()</div>
+                    <span>Attention</span>
+                </div>
+            </div>
+            <div class="resource-group">
+                <span>@GetCurrentTimeBlock()</span>
+            </div>
+        </div>
+
         <!-- Time and Deadline Header -->
         <div class="header">
             <div class="time-bar">

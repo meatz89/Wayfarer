@@ -40,6 +40,65 @@ public class Phase8_InitialLetters : IInitializationPhase
         {
             gameWorld.GetPlayer().MeetingObligations.Add(elenaMeeting);
             Console.WriteLine($"  Added Elena's urgent meeting request (2 hour deadline)");
+            
+            // Initialize Elena's crisis deck for the urgent meeting
+            var elena = gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == "elena");
+            if (elena != null)
+            {
+                elena.InitializeCrisisDeck();
+                if (elena.CrisisDeck != null)
+                {
+                    // Add crisis cards for the urgent meeting
+                    var crisisCard = new ConversationCard
+                    {
+                        Id = "elena_crisis_urgent",
+                        Template = CardTemplateType.UrgentPlea,
+                        Context = new CardContext 
+                        { 
+                            Personality = PersonalityType.DEVOTED,
+                            EmotionalState = EmotionalState.DESPERATE,
+                            UrgencyLevel = 3,
+                            HasDeadline = true,
+                            MinutesUntilDeadline = 120
+                        },
+                        Type = CardType.Trust,
+                        Persistence = PersistenceType.Crisis,
+                        Weight = 5,
+                        BaseComfort = 8,
+                        Category = CardCategory.CRISIS,
+                        IsObservation = false,
+                        CanDeliverLetter = false,
+                        ManipulatesObligations = false
+                    };
+                    elena.CrisisDeck.AddCard(crisisCard);
+                    
+                    // Add another crisis card
+                    var crisisCard2 = new ConversationCard
+                    {
+                        Id = "elena_crisis_plea",
+                        Template = CardTemplateType.DesperateRequest,
+                        Context = new CardContext 
+                        { 
+                            Personality = PersonalityType.DEVOTED,
+                            EmotionalState = EmotionalState.DESPERATE,
+                            UrgencyLevel = 3,
+                            HasDeadline = true,
+                            MinutesUntilDeadline = 120
+                        },
+                        Type = CardType.Trust,
+                        Persistence = PersistenceType.Crisis,
+                        Weight = 5,
+                        BaseComfort = 6,
+                        Category = CardCategory.CRISIS,
+                        IsObservation = false,
+                        CanDeliverLetter = false,
+                        ManipulatesObligations = false
+                    };
+                    elena.CrisisDeck.AddCard(crisisCard2);
+                    
+                    Console.WriteLine($"  Added crisis cards to Elena for urgent meeting");
+                }
+            }
         }
         
         // Elena's actual letter will be given during conversation, not in queue initially
