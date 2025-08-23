@@ -262,7 +262,7 @@
                                     <span class="tag persistence">@GetPersistenceIcon(card.Persistence) @card.Persistence</span>
                                     @if (card.IsObservation)
                                     {
-                                        <span class="tag observation">@card.ObservationSource</span>
+                                        <span class="tag observation">@GetObservationSourceDisplay(card.ObservationSource)</span>
                                     }
                                 </div>
                             </div>

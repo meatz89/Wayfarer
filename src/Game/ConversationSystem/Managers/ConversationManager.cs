@@ -340,6 +340,12 @@ public class ConversationManager
 
         var outcome = currentSession.CheckThresholds();
         
+        // Generate letter if comfort threshold reached
+        if (outcome.LetterUnlocked && currentSession.CurrentComfort >= 10)
+        {
+            TryGenerateLetter();
+        }
+        
         // Apply token changes
         if (outcome.TokensEarned != 0)
         {

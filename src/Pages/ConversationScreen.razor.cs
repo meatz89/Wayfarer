@@ -418,6 +418,21 @@ namespace Wayfarer.Pages
             
             return string.Join(" ", classes);
         }
+        
+        protected string GetObservationSourceDisplay(string source)
+        {
+            if (string.IsNullOrEmpty(source)) return "";
+            
+            // Convert internal IDs to human-readable text
+            return source switch
+            {
+                "merchant_negotiations" => "From Observation",
+                "guard_movements" => "From Observation", 
+                "noble_gossip" => "From Observation",
+                "worker_complaints" => "From Observation",
+                _ => "From Observation"
+            };
+        }
 
         protected string GetStateChangeText(ConversationCard card)
         {

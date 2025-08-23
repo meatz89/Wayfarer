@@ -10,6 +10,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
+    z-index: 2;
 }
 
 .resource-group {
@@ -105,19 +107,37 @@
 
 /* Location-specific container using common base */
 .location-screen {
-    /* Inherits from .game-screen in common.css */
-    max-width: 720px;
-    margin: 0 auto;
-    min-height: 100vh;
-    background: #faf4ea;
-    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    width: 100%;
+    max-width: 1200px;
+    background: #e8dcc4;
+    border: 3px solid #8b7355;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    position: relative;
+}
+
+/* Parchment texture overlay */
+.location-screen::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/images/subtle-texture.png');
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 1;
 }
 
 /* Obligations Panel */
 .obligations-panel {
-    background: #f4e8d0;
+    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
     border-bottom: 2px solid #a68b6f;
     padding: 10px 20px;
+    position: relative;
+    z-index: 2;
 }
 
 .obligation-panel-button {
@@ -146,7 +166,7 @@
 }
 
 .obligation-item {
-    background: #faf4ea;
+    background: linear-gradient(135deg, #faf4ea, #f9f3e9);
     border: 1px solid #c4a684;
     border-radius: 3px;
     padding: 6px 10px;
@@ -154,6 +174,7 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .obligation-action {
@@ -191,6 +212,8 @@
     background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
     border-bottom: 2px solid #a68b6f;
     padding: 20px;
+    position: relative;
+    z-index: 2;
 }
 
 .location-name {
@@ -198,6 +221,8 @@
     color: #5c4a3a;
     margin-bottom: 8px;
     font-weight: normal;
+    font-family: 'Garamond', 'Georgia', serif;
+    letter-spacing: 0.5px;
 }
 
 .current-spot-indicator {
@@ -251,19 +276,24 @@
 /* Content Area */
 .content-area {
     padding: 20px;
+    background: #faf4ea;
+    position: relative;
+    z-index: 2;
 }
 
 /* Atmosphere Text */
 .atmosphere-text {
     font-style: italic;
-    color: #5c4a3a;
+    color: #3d3429;
     font-size: 14px;
     line-height: 1.6;
     margin-bottom: 20px;
-    padding: 12px;
-    background: #f9f3e9;
-    border-left: 3px solid #c4a684;
+    padding: 15px;
+    background: linear-gradient(135deg, #f9f3e9, #f4e8d0);
+    border-left: 3px solid #a68b6f;
     border-radius: 2px;
+    font-family: 'Garamond', 'Georgia', serif;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 /* Main Actions */
@@ -274,20 +304,22 @@
 }
 
 .action-button {
-    background: #faf4ea;
-    border: 2px solid #c4a684;
+    background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+    border: 2px solid #a68b6f;
     border-radius: 4px;
     padding: 12px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     text-align: center;
     flex: 1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .action-button:hover {
-    background: #e8dcc4;
-    border-color: #a68b6f;
+    background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
+    border-color: #8b7355;
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 .action-name {
@@ -318,7 +350,7 @@
 }
 
 .action-card {
-    background: #faf4ea;
+    background: linear-gradient(135deg, #faf4ea, #f9f3e9);
     border: 2px solid #c4a684;
     border-radius: 4px;
     padding: 12px;
@@ -326,13 +358,14 @@
     transition: all 0.3s ease;
     position: relative;
     text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .action-card:hover {
-    background: #fefaf0;
+    background: linear-gradient(135deg, #fefaf0, #faf4ea);
     border-color: #a68b6f;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
 }
 
 .action-icon {
@@ -349,12 +382,26 @@
 
 /* NPCs Present */
 .npc-card {
-    background: #f9f3e9;
-    border: 1px solid #c4a684;
+    background: linear-gradient(135deg, #f9f3e9, #e8dcc4);
+    border: 2px solid #c4a684;
     border-radius: 4px;
     padding: 16px;
     margin-bottom: 12px;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    position: relative;
+}
+
+.npc-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/images/subtle-texture.png');
+    opacity: 0.05;
+    pointer-events: none;
 }
 
 .npc-card.locked {
@@ -364,11 +411,12 @@
 }
 
 .npc-present {
-    background: #faf4ea;
+    background: linear-gradient(135deg, #faf4ea, #f9f3e9);
     border: 2px solid #c4a684;
     border-radius: 4px;
     padding: 15px;
     margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .npc-header {
@@ -382,6 +430,7 @@
     font-size: 16px;
     color: #5c4a3a;
     font-weight: bold;
+    font-family: 'Garamond', 'Georgia', serif;
 }
 
 .npc-mood {
@@ -503,11 +552,12 @@
 
 /* Observations */
 .observations {
-    background: #f9f3e9;
-    border: 1px dashed #c4a684;
+    background: linear-gradient(135deg, #f9f3e9, #f4e8d0);
+    border: 2px dashed #c4a684;
     padding: 16px;
     border-radius: 4px;
     margin: 20px 0;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .observation-header {
@@ -621,21 +671,23 @@
 }
 
 .area-option {
-    background: #faf4ea;
-    border: 1px solid #c4a684;
+    background: linear-gradient(135deg, #faf4ea, #f9f3e9);
+    border: 2px solid #c4a684;
     padding: 12px;
-    border-radius: 2px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .area-option:hover {
-    background: #e8dcc4;
+    background: linear-gradient(135deg, #fefaf0, #faf4ea);
     border-color: #a68b6f;
     transform: translateX(4px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
 }
 
 .area-name {
@@ -658,18 +710,20 @@
 }
 
 .route-option {
-    background: #faf4ea;
+    background: linear-gradient(135deg, #faf4ea, #f9f3e9);
     border: 2px solid #c4a684;
     border-radius: 4px;
     padding: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .route-option:hover {
-    background: #fefaf0;
+    background: linear-gradient(135deg, #fefaf0, #faf4ea);
     border-color: #a68b6f;
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
 }
 
 .route-destination {
@@ -730,7 +784,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(29, 25, 20, 0.8);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -744,14 +798,14 @@
 }
 
 .travel-modal {
-    background: #faf4ea;
-    border: 3px solid #a68b6f;
+    background: #e8dcc4;
+    border: 3px solid #8b7355;
     border-radius: 8px;
     width: 90%;
     max-width: 600px;
     max-height: 80vh;
     overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     position: relative;
@@ -843,20 +897,21 @@
 }
 
 .route-card {
-    background: white;
+    background: linear-gradient(135deg, #faf4ea, #f9f3e9);
     border: 2px solid #c4a684;
     border-radius: 4px;
     padding: 16px;
     margin-bottom: 12px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .route-card:hover:not(.locked) {
-    background: #fefaf0;
+    background: linear-gradient(135deg, #fefaf0, #faf4ea);
     border-color: #a68b6f;
     transform: translateX(4px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
 }
 
 .route-card.locked {
