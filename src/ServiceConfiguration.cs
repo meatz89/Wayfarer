@@ -86,16 +86,8 @@ public static class ServiceConfiguration
 
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();
-        services.AddSingleton<EndingGenerator>();
-
-        // Relationship tracking for contextual conversations
-        services.AddSingleton<NPCRelationshipTracker>();
 
         // Environmental Storytelling Systems
-        services.AddSingleton<WorldMemorySystem>();
-        services.AddSingleton<AmbientDialogueSystem>();
-        services.AddSingleton<AtmosphereCalculator>();
-        services.AddSingleton<EnvironmentalHintSystem>();
         services.AddSingleton<ObservationSystem>();
         services.AddSingleton<BindingObligationSystem>();
 
@@ -106,13 +98,9 @@ public static class ServiceConfiguration
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<RouteDiscoveryManager>();
         services.AddSingleton<NetworkUnlockManager>();
-        services.AddSingleton<InformationDiscoveryManager>();
         services.AddSingleton<SpecialLetterHandler>();
         services.AddSingleton<NetworkReferralService>();
         services.AddSingleton<DailyActivitiesManager>();
-
-        // Context and tag calculation
-        services.AddSingleton<ContextTagCalculator>();
 
         // Attention management
         services.AddSingleton<TimeBlockAttentionManager>();

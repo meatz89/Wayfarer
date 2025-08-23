@@ -16,7 +16,6 @@ public class RouteDiscoveryManager
     private readonly ItemRepository _itemRepository;
     private readonly MessageSystem _messageSystem;
     private readonly NarrativeService _narrativeService;
-    private readonly InformationDiscoveryManager _informationManager;
 
     public RouteDiscoveryManager(
         GameWorld gameWorld,
@@ -26,8 +25,7 @@ public class RouteDiscoveryManager
         RouteDiscoveryRepository routeDiscoveryRepository,
         ItemRepository itemRepository,
         MessageSystem messageSystem,
-        NarrativeService narrativeService,
-        InformationDiscoveryManager informationManager)
+        NarrativeService narrativeService)
     {
         _gameWorld = gameWorld;
         _connectionTokenManager = connectionTokenManager;
@@ -37,7 +35,6 @@ public class RouteDiscoveryManager
         _itemRepository = itemRepository;
         _messageSystem = messageSystem;
         _narrativeService = narrativeService;
-        _informationManager = informationManager;
     }
 
     /// <summary>
@@ -173,10 +170,6 @@ public class RouteDiscoveryManager
 
         // Discover the route
         route.IsDiscovered = true;
-
-        // Also register in information discovery system
-        string infoId = $"route_{routeId}";
-        _informationManager.DiscoverInformation(infoId);
 
         // Show route details
         _messageSystem.AddSystemMessage($"🗺️ Route Discovered: {route.Name}!", SystemMessageTypes.Success);

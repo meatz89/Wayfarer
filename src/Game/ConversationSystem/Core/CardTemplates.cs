@@ -73,7 +73,10 @@ public enum CardTemplateType
     ProvideReassurance,
     AskDirectQuestion,
     RevealSecret,
-    ExpressVulnerability
+    ExpressVulnerability,
+    
+    // Exchange templates
+    Exchange
 }
 
 /// <summary>
@@ -120,4 +123,19 @@ public class CardContext
     /// Target NPC for observation/letter
     /// </summary>
     public string TargetNpcId { get; init; }
+    
+    /// <summary>
+    /// NPC name for display
+    /// </summary>
+    public string NPCName { get; init; }
+    
+    /// <summary>
+    /// NPC personality for exchange cards
+    /// </summary>
+    public PersonalityType NPCPersonality { get; init; }
+    
+    /// <summary>
+    /// Exchange card data for exchange cards
+    /// </summary>
+    public ExchangeCard ExchangeData { get; init; }
 }

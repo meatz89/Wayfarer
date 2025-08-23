@@ -88,6 +88,12 @@ public bool HasCrisisCards()
 }
 
 // Get today's exchange card (selected randomly at dawn)
+public ExchangeCard GetTodaysExchangeCard()
+{
+    return TodaysExchangeCard;
+}
+
+// Get today's exchange card (selected randomly at dawn)
 public ExchangeCard GetTodaysExchange(int currentDay)
 {
     // If it's a new day, select a new card

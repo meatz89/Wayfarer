@@ -14,7 +14,6 @@ public static class ExchangeNarrative
     public static ExchangeNarrativeText GenerateNarrative(
         ExchangeCard exchange,
         string npcName,
-        NPCRelationshipTracker relationshipTracker,
         string npcId,
         ExchangeMemory exchangeMemory,
         EmotionalState? currentEmotion = null)
@@ -24,7 +23,6 @@ public static class ExchangeNarrative
         // Build the opening based on relationship
         narrative.Opening = GenerateOpening(
             npcName, 
-            relationshipTracker.GetTrustPattern(npcId),
             currentEmotion
         );
         
@@ -38,21 +36,19 @@ public static class ExchangeNarrative
         // Add contextual flavor based on history
         narrative.ContextualFlavor = GenerateContextualFlavor(
             exchange,
-            relationshipTracker.GetLastInteractionOutcome(npcId),
             exchangeMemory?.GetMostSignificantExchange(npcId)
         );
         
         // Create the closing that hints at relationship impact
         narrative.Closing = GenerateClosing(
             exchange,
-            relationshipTracker.GetSuccessfulDeliveries(npcId),
             exchangeMemory?.HasGenerosityPattern(npcId) ?? false
         );
         
         return narrative;
     }
     
-    private static string GenerateOpening(string npcName, string trustPattern, EmotionalState? emotion)
+    private static string GenerateOpening(string npcName, EmotionalState? emotion)
     {
         var emotionalContext = emotion switch
         {
@@ -64,16 +60,7 @@ public static class ExchangeNarrative
             _ => $"{npcName} looks up as you approach. "
         };
         
-        var relationshipContext = trustPattern switch
-        {
-            "reliable" => "There's trust in their eyes - you've proven yourself before.",
-            "unreliable" => "Their expression is guarded, memories of past failures evident.",
-            "new_relationship" => "They regard you with polite curiosity.",
-            "mixed" => "Their expression is carefully neutral, unsure what to expect.",
-            _ => ""
-        };
-        
-        return emotionalContext + relationshipContext;
+        return emotionalContext;
     }
     
     private static string GenerateExchangeDescription(
@@ -113,27 +100,9 @@ public static class ExchangeNarrative
     
     private static string GenerateContextualFlavor(
         ExchangeCard exchange,
-        string lastOutcome,
         MemorableExchange significantMemory)
     {
         var contextLines = new List<string>();
-        
-        // Add reaction to last interaction
-        switch (lastOutcome)
-        {
-            case "failed_delivery":
-                contextLines.Add("Despite your recent failure, they're willing to deal.");
-                break;
-            case "successful_delivery":
-                contextLines.Add("Your recent success has earned this opportunity.");
-                break;
-            case "promise_broken":
-                contextLines.Add("Trust must be rebuilt, one exchange at a time.");
-                break;
-            case "promise_fulfilled":
-                contextLines.Add("Your kept promises have opened new doors.");
-                break;
-        }
         
         // Reference significant past exchange
         if (significantMemory != null && significantMemory.EmotionalContext == EmotionalState.DESPERATE)
@@ -168,24 +137,13 @@ public static class ExchangeNarrative
     
     private static string GenerateClosing(
         ExchangeCard exchange,
-        int successfulDeliveries,
         bool hasGenerosityPattern)
     {
         if (hasGenerosityPattern)
         {
             return "Your consistent generosity hasn't gone unnoticed.";
         }
-        
-        if (successfulDeliveries > 10)
-        {
-            return "Years of trust make this exchange feel like breathing.";
-        }
-        
-        if (successfulDeliveries > 5)
-        {
-            return "A foundation of trust underlies this simple exchange.";
-        }
-        
+
         if (exchange.Reward.Exists(r => r.Type == ResourceType.TrustToken))
         {
             return "This exchange deepens the connection between you.";

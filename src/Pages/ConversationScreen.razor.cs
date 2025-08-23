@@ -17,10 +17,11 @@ namespace Wayfarer.Pages
         [Inject] protected ConversationManager ConversationManager { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected ITimeManager TimeManager { get; set; }
-        [Inject] protected NPCRelationshipTracker RelationshipTracker { get; set; }
         [Inject] protected NavigationManager Navigation { get; set; }
         [Inject] protected ObligationQueueManager LetterQueueManager { get; set; }
         [Inject] protected NavigationCoordinator NavigationCoordinator { get; set; }
+        [Inject] protected TimeBlockAttentionManager AttentionManager { get; set; }
+        [Inject] protected TokenMechanicsManager TokenManager { get; set; }
 
         protected ConversationSession Session { get; set; }
         protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
@@ -321,19 +322,6 @@ namespace Wayfarer.Pages
             return description;
         }
 
-        protected int GetTokenCount(ConnectionType type)
-        {
-            var relationship = RelationshipTracker.GetRelationship(Session.NPC.ID);
-            return type switch
-            {
-                ConnectionType.Trust => relationship.Trust,
-                ConnectionType.Commerce => relationship.Commerce,
-                ConnectionType.Status => relationship.Status,
-                ConnectionType.Shadow => relationship.Shadow,
-                _ => 0
-            };
-        }
-
         protected string GetTokenEffect(ConnectionType type)
         {
             var count = GetTokenCount(type);
@@ -434,13 +422,7 @@ namespace Wayfarer.Pages
             }
             return "State change";
         }
-
-        protected int GetStatusTokens()
-        {
-            var relationship = RelationshipTracker.GetRelationship(Session.NPC.ID);
-            return relationship.Status;
-        }
-
+        
         protected string GetSuccessEffect(ConversationCard card)
         {
             if (card.Category == CardCategory.STATE && card.SuccessState.HasValue)
@@ -460,9 +442,14 @@ namespace Wayfarer.Pages
             if (Session?.NPC == null || ConversationType != ConversationType.QuickExchange)
                 return null;
                 
-            // Get today's selected exchange card
-            var currentDay = TimeManager.GetCurrentDay();
-            return Session.NPC.GetTodaysExchange(currentDay);
+            // The exchange card is stored in the first HandCard's context
+            if (Session.HandCards.Count > 0)
+            {
+                var card = Session.HandCards.First();
+                return card.Context?.ExchangeData;
+            }
+            
+            return null;
         }
 
         protected async Task AcceptExchange()
@@ -493,6 +480,26 @@ namespace Wayfarer.Pages
             await OnConversationEnd.InvokeAsync();
         }
         
+        protected bool CanAffordExchange()
+        {
+            var exchange = GetCurrentExchangeCard();
+            if (exchange == null) return false;
+            
+            var player = GameFacade?.GetPlayer();
+            if (player == null) return false;
+            
+            var currentTime = TimeManager?.GetCurrentTimeBlock() ?? TimeBlocks.Morning;
+            var attentionMgr = AttentionManager?.GetCurrentAttention(currentTime);
+            var resourceState = new PlayerResourceState(
+                coins: player.Coins,
+                health: player.Health,
+                stamina: player.Stamina,
+                concentration: attentionMgr?.Current ?? 0
+            );
+            
+            return exchange.CanAfford(resourceState, TokenManager);
+        }
+        
         // Player Resource Methods
         protected int GetPlayerCoins()
         {
@@ -506,12 +513,15 @@ namespace Wayfarer.Pages
         
         protected int GetPlayerHunger()
         {
-            return GameFacade?.GetPlayer()?.Hunger ?? 0;
+            // Hunger is tracked separately from Player in the game rules
+            return 0; // TODO: Get from hunger tracking system when implemented
         }
         
         protected int GetPlayerAttention()
         {
-            return AttentionManager?.GetCurrentAttention() ?? 0;
+            var currentTime = TimeManager?.GetCurrentTimeBlock() ?? TimeBlocks.Morning;
+            var attentionMgr = AttentionManager?.GetCurrentAttention(currentTime);
+            return attentionMgr?.Current ?? 0;
         }
         
         protected int GetMaxAttention()
@@ -591,6 +601,48 @@ namespace Wayfarer.Pages
             return $"{Session.CurrentPatience} turns remaining • Each turn advances time";
         }
 
+        protected string GetExchangeCardName(ConversationCard card)
+        {
+            if (card.Context?.ExchangeData == null)
+                return "Exchange";
+                
+            var exchange = card.Context.ExchangeData;
+            return exchange.TemplateType switch
+            {
+                "food" => "Food Exchange",
+                "healing" => "Healing Service",
+                "information" => "Information Trade",
+                "work" => "Labor Exchange",
+                "favor" => "Favor Trade",
+                _ => "Resource Exchange"
+            };
+        }
+        
+        protected string GetExchangeCostText(ConversationCard card)
+        {
+            if (card.Context?.ExchangeData == null)
+                return "";
+                
+            var exchange = card.Context.ExchangeData;
+            var costs = exchange.Cost.Select(c => c.GetDisplayText());
+            return string.Join(", ", costs);
+        }
+        
+        protected string GetExchangeRewardText(ConversationCard card)
+        {
+            if (card.Context?.ExchangeData == null)
+                return "";
+                
+            var exchange = card.Context.ExchangeData;
+            var rewards = exchange.Reward.Select(r => r.GetDisplayText());
+            return string.Join(", ", rewards);
+        }
+        
+        protected bool IsExchangeCard(ConversationCard card)
+        {
+            return card.Template == CardTemplateType.Exchange;
+        }
+        
         protected string GetCardDisplayName(ConversationCard card)
         {
             // Generate a display name based on the template type
@@ -621,6 +673,7 @@ namespace Wayfarer.Pages
                 CardTemplateType.AcknowledgePosition => "Acknowledge Position",
                 CardTemplateType.ShareSecret => "Share Secret",
                 CardTemplateType.MentionLetter => "Mention Letter",
+                CardTemplateType.Exchange => GetExchangeCardName(card),
                 _ => "Conversation Option"
             };
         }

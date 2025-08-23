@@ -11,8 +11,6 @@ using static DailyActivitiesManager;
 /// </summary>
 public class GameFacade
 {
-    // Queue operation lock to ensure atomicity
-    private readonly SemaphoreSlim _queueOperationLock = new(1, 1);
     // Core dependencies
     private readonly GameWorld _gameWorld;
     private readonly ITimeManager _timeManager;
@@ -22,7 +20,6 @@ public class GameFacade
 
     // Managers
     private readonly TravelManager _travelManager;
-    private readonly RestManager _restManager;
     private readonly ObligationQueueManager _letterQueueManager;
     private readonly RouteDiscoveryManager _routeDiscoveryManager;
 
@@ -36,22 +33,15 @@ public class GameFacade
     private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly ConversationManager _conversationManager;
     private readonly GameConfiguration _gameConfiguration;
-    private readonly InformationDiscoveryManager _informationDiscoveryManager;
     private readonly StandingObligationManager _standingObligationManager;
     private readonly StandingObligationRepository _standingObligationRepository;
     private readonly MarketManager _marketManager;
     private readonly DailyActivitiesManager _dailyActivitiesManager;
-    private readonly ContextTagCalculator _contextTagCalculator;
-    private readonly EnvironmentalHintSystem _environmentalHintSystem;
     private readonly ObservationSystem _observationSystem;
     private readonly ActionGenerator _actionGenerator;
     private readonly BindingObligationSystem _bindingObligationSystem;
-    private readonly AtmosphereCalculator _atmosphereCalculator;
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
     private readonly NPCDeckFactory _deckFactory;
-    private readonly WorldMemorySystem _worldMemorySystem;
-    private readonly AmbientDialogueSystem _ambientDialogueSystem;
-    private readonly EndingGenerator _endingGenerator;
     private readonly DialogueGenerationService _dialogueGenerator;
     private readonly NarrativeRenderer _narrativeRenderer;
 
@@ -71,24 +61,16 @@ public class GameFacade
         TokenMechanicsManager connectionTokenManager,
         ConversationManager conversationManager,
         GameConfiguration gameConfiguration,
-        InformationDiscoveryManager informationDiscoveryManager,
         StandingObligationManager standingObligationManager,
         StandingObligationRepository standingObligationRepository,
         MarketManager marketManager,
-        RestManager restManager,
         IGameRuleEngine ruleEngine,
         DailyActivitiesManager dailyActivitiesManager,
-        ContextTagCalculator contextTagCalculator,
         ActionGenerator actionGenerator,
-        EnvironmentalHintSystem environmentalHintSystem,
         ObservationSystem observationSystem,
         BindingObligationSystem bindingObligationSystem,
-        AtmosphereCalculator atmosphereCalculator,
-        WorldMemorySystem worldMemorySystem,
-        AmbientDialogueSystem ambientDialogueSystem,
         TimeBlockAttentionManager timeBlockAttentionManager,
         NPCDeckFactory deckFactory,
-        EndingGenerator endingGenerator,
         DialogueGenerationService dialogueGenerator,
         NarrativeRenderer narrativeRenderer
 )
@@ -108,26 +90,16 @@ public class GameFacade
         _connectionTokenManager = connectionTokenManager;
         _conversationManager = conversationManager;
         _gameConfiguration = gameConfiguration;
-        _informationDiscoveryManager = informationDiscoveryManager;
         _standingObligationManager = standingObligationManager;
         _standingObligationRepository = standingObligationRepository;
         _marketManager = marketManager;
-        _restManager = restManager;
         _ruleEngine = ruleEngine;
         _dailyActivitiesManager = dailyActivitiesManager;
-        _contextTagCalculator = contextTagCalculator;
         _actionGenerator = actionGenerator;
-        _environmentalHintSystem = environmentalHintSystem;
         _observationSystem = observationSystem;
         _bindingObligationSystem = bindingObligationSystem;
-        _atmosphereCalculator = atmosphereCalculator;
-        _worldMemorySystem = worldMemorySystem;
-        _ambientDialogueSystem = ambientDialogueSystem;
-
-        // Use injected TimeBlockAttentionManager
         _timeBlockAttentionManager = timeBlockAttentionManager;
         _deckFactory = deckFactory;
-        _endingGenerator = endingGenerator;
         _dialogueGenerator = dialogueGenerator;
         _narrativeRenderer = narrativeRenderer;
     }

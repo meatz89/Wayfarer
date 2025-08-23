@@ -11,7 +11,6 @@ public class SpecialLetterHandler
     private readonly MessageSystem _messageSystem;
     private readonly NPCRepository _npcRepository;
     private readonly LocationRepository _locationRepository;
-    private readonly InformationDiscoveryManager _informationManager;
     private readonly TokenMechanicsManager _tokenManager;
     // EndorsementManager removed - endorsements no longer exist
     private readonly RouteRepository _routeRepository;
@@ -21,7 +20,6 @@ public class SpecialLetterHandler
         MessageSystem messageSystem,
         NPCRepository npcRepository,
         LocationRepository locationRepository,
-        InformationDiscoveryManager informationManager,
         TokenMechanicsManager tokenManager,
         RouteRepository routeRepository)
     {
@@ -29,7 +27,6 @@ public class SpecialLetterHandler
         _messageSystem = messageSystem;
         _npcRepository = npcRepository;
         _locationRepository = locationRepository;
-        _informationManager = informationManager;
         _tokenManager = tokenManager;
         _routeRepository = routeRepository;
     }
@@ -128,9 +125,6 @@ public class SpecialLetterHandler
             TokenAmount = 1,
             Severity = NarrativeSeverity.Success
         });
-
-        // Discover any information this NPC might share with new contacts
-        _informationManager.TryDiscoverFromNPC(npc.ID, ConnectionType.Trust);
     }
 
     /// <summary>

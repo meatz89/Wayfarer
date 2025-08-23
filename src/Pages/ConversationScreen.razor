@@ -173,47 +173,7 @@
 
         <!-- Action Choice -->
         <div class="action-section">
-            @if (ConversationType == ConversationType.QuickExchange)
-            {
-                <!-- Exchange Mode: Simple Accept/Decline -->
-                <div class="exchange-offer">
-                    @if (GetCurrentExchangeCard() != null)
-                    {
-                        var exchange = GetCurrentExchangeCard();
-                        <div class="exchange-card">
-                            <div class="exchange-cost">
-                                <span class="exchange-label">You Give:</span>
-                                @foreach (var cost in exchange.Cost)
-                                {
-                                    <span class="resource-cost">@cost.Amount @cost.Type</span>
-                                }
-                            </div>
-                            <div class="exchange-arrow">↓</div>
-                            <div class="exchange-reward">
-                                <span class="exchange-label">You Receive:</span>
-                                @foreach (var reward in exchange.Reward)
-                                {
-                                    <span class="resource-reward">@reward.Amount @reward.Type</span>
-                                }
-                            </div>
-                        </div>
-                        
-                        <div class="action-choices">
-                            <div class="action-button accept" @onclick="AcceptExchange">
-                                ✓ ACCEPT
-                            </div>
-                            <div class="action-button decline" @onclick="DeclineExchange">
-                                ✗ DECLINE
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="no-exchanges">No exchanges available right now</div>
-                    }
-                </div>
-            }
-            else
+            @if (ConversationType != ConversationType.QuickExchange)
             {
                 <!-- Standard Conversation Mode -->
                 <div class="turn-indicator">
@@ -311,24 +271,41 @@
                         </div>
 
                         <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-header">
-                                    <span class="outcome-label">Success</span>
-                                    <span class="outcome-chance">@card.CalculateSuccessChance(GetStatusTokens())%</span>
+                            @if (IsExchangeCard(card))
+                            {
+                                <!-- Exchange cards show cost/reward instead of success/failure -->
+                                <div class="exchange-details">
+                                    <div class="exchange-cost">
+                                        <span class="outcome-label">Cost:</span>
+                                        <span class="effect">@GetExchangeCostText(card)</span>
+                                    </div>
+                                    <div class="exchange-reward">
+                                        <span class="outcome-label">Reward:</span>
+                                        <span class="effect success">@GetExchangeRewardText(card)</span>
+                                    </div>
                                 </div>
-                                <div class="outcome-effects">
-                                    <div class="effect">@GetSuccessEffect(card)</div>
+                            }
+                            else
+                            {
+                                <div class="outcome success">
+                                    <div class="outcome-header">
+                                        <span class="outcome-label">Success</span>
+                                        <span class="outcome-chance">@card.CalculateSuccessChance()%</span>
+                                    </div>
+                                    <div class="outcome-effects">
+                                        <div class="effect">@GetSuccessEffect(card)</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="outcome failure">
-                                <div class="outcome-header">
-                                    <span class="outcome-label">Failure</span>
-                                    <span class="outcome-chance">@(100 - card.CalculateSuccessChance(GetStatusTokens()))%</span>
+                                <div class="outcome failure">
+                                    <div class="outcome-header">
+                                        <span class="outcome-label">Failure</span>
+                                        <span class="outcome-chance">@(100 - card.CalculateSuccessChance())%</span>
+                                    </div>
+                                    <div class="outcome-effects">
+                                        <div class="effect">@GetFailureEffect(card)</div>
+                                    </div>
                                 </div>
-                                <div class="outcome-effects">
-                                    <div class="effect">@GetFailureEffect(card)</div>
-                                </div>
-                            </div>
+                            }
                         </div>
                     </div>
                 }
@@ -337,16 +314,36 @@
 
         <!-- Play Button -->
         <div class="play-section">
-            <button class="play-button" @onclick="ExecuteAction" disabled="@(!CanExecute())">
-                @GetPlayButtonText()
-            </button>
-            <div class="play-info">@GetPlayInfo()</div>
-
-            @if (ShowOpportunityWarning())
+            @if (ConversationType == ConversationType.QuickExchange)
             {
-                <div class="opportunity-warning active">
-                    ⚠ Warning: Listening will cause ALL fleeting opportunities to vanish forever
+                <!-- Exchange mode: Accept/Decline buttons -->
+                <div class="action-choices">
+                    <button class="play-button accept" @onclick="AcceptExchange" disabled="@(!CanAffordExchange())">
+                        ACCEPT EXCHANGE
+                    </button>
+                    <button class="play-button decline" @onclick="DeclineExchange">
+                        DECLINE
+                    </button>
                 </div>
+                @if (!CanAffordExchange())
+                {
+                    <div class="play-info">You cannot afford this exchange</div>
+                }
+            }
+            else
+            {
+                <!-- Standard mode play button -->
+                <button class="play-button" @onclick="ExecuteAction" disabled="@(!CanExecute())">
+                    @GetPlayButtonText()
+                </button>
+                <div class="play-info">@GetPlayInfo()</div>
+
+                @if (ShowOpportunityWarning())
+                {
+                    <div class="opportunity-warning active">
+                        ⚠ Warning: Listening will cause ALL fleeting opportunities to vanish forever
+                    </div>
+                }
             }
         </div>
     }

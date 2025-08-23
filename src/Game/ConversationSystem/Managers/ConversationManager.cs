@@ -10,7 +10,6 @@ public class ConversationManager
 {
     private readonly GameWorld gameWorld;
     private readonly ObligationQueueManager queueManager;
-    private readonly NPCRelationshipTracker relationshipTracker;
     private readonly ITimeManager timeManager;
     private readonly TokenMechanicsManager tokenManager;
     private ConversationSession currentSession;
@@ -18,13 +17,11 @@ public class ConversationManager
     public ConversationManager(
         GameWorld gameWorld,
         ObligationQueueManager queueManager,
-        NPCRelationshipTracker relationshipTracker,
         ITimeManager timeManager,
         TokenMechanicsManager tokenManager)
     {
         this.gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         this.queueManager = queueManager ?? throw new ArgumentNullException(nameof(queueManager));
-        this.relationshipTracker = relationshipTracker ?? throw new ArgumentNullException(nameof(relationshipTracker));
         this.timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         this.tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
     }
@@ -87,7 +84,6 @@ public class ConversationManager
         currentSession = ConversationSession.StartConversation(
             npc,
             queueManager,
-            relationshipTracker,
             tokenManager,
             observationCards,
             conversationType
@@ -153,7 +149,7 @@ public class ConversationManager
     private ConversationSession StartCrisisConversation(NPC npc, List<ConversationCard> observationCards)
     {
         // Crisis conversations use crisis deck exclusively
-        currentSession = ConversationSession.StartCrisis(npc, queueManager, relationshipTracker, tokenManager, observationCards);
+        currentSession = ConversationSession.StartCrisis(npc, queueManager, tokenManager, observationCards);
         return currentSession;
     }
 
@@ -185,10 +181,7 @@ public class ConversationManager
             throw new InvalidOperationException("No active conversation");
         }
 
-        var relationship = relationshipTracker.GetRelationship(currentSession.NPC.ID);
-        var statusTokens = relationship.Status;
-
-        var result = currentSession.ExecuteSpeak(selectedCards, statusTokens);
+        var result = currentSession.ExecuteSpeak(selectedCards);
 
         // Handle special card effects
         HandleSpecialCardEffects(selectedCards, result);
@@ -299,26 +292,8 @@ public class ConversationManager
     /// </summary>
     private DeliveryObligation CreateLetterObligation(NPC npc)
     {
-        var relationship = relationshipTracker.GetRelationship(npc.ID);
-        
         // Determine letter type based on highest relationship
         var connectionType = ConnectionType.Trust;
-        var highestValue = relationship.Trust;
-        
-        if (relationship.Commerce > highestValue)
-        {
-            connectionType = ConnectionType.Commerce;
-            highestValue = relationship.Commerce;
-        }
-        if (relationship.Status > highestValue)
-        {
-            connectionType = ConnectionType.Status;
-            highestValue = relationship.Status;
-        }
-        if (relationship.Shadow > highestValue)
-        {
-            connectionType = ConnectionType.Shadow;
-        }
 
         // Calculate deadline based on urgency
         var deadlineMinutes = currentSession.CurrentState switch
@@ -338,7 +313,7 @@ public class ConversationManager
             TokenType = connectionType,
             Stakes = DetermineStakes(connectionType),
             DeadlineInMinutes = deadlineMinutes,
-            Payment = 5 + highestValue * 2
+            Payment = 5
         };
     }
 
@@ -355,8 +330,6 @@ public class ConversationManager
         // Apply token changes
         if (outcome.TokensEarned != 0)
         {
-            var relationship = relationshipTracker.GetRelationship(currentSession.NPC.ID);
-            
             // Determine which type to modify based on conversation
             var primaryType = currentSession.HandCards
                 .GroupBy(c => c.Type)
@@ -371,12 +344,6 @@ public class ConversationManager
                 CardType.Shadow => ConnectionType.Shadow,
                 _ => ConnectionType.Trust
             };
-
-            relationshipTracker.ModifyTokens(
-                currentSession.NPC.ID,
-                connectionType,
-                outcome.TokensEarned
-            );
         }
 
         // Reset deck for next conversation

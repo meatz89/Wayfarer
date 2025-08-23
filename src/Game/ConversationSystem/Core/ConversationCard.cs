@@ -130,11 +130,10 @@ public class ConversationCard
     /// <summary>
     /// Calculate success chance based on weight and tokens
     /// </summary>
-    public int CalculateSuccessChance(int statusTokens)
+    public int CalculateSuccessChance()
     {
         var baseChance = 70;
         baseChance -= Weight * 10;
-        baseChance += statusTokens * 3;
         return Math.Clamp(baseChance, 10, 95);
     }
 

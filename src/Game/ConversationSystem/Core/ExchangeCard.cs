@@ -165,17 +165,9 @@ public static class ExchangeCardFactory
     /// </summary>
     public static List<ExchangeCard> CreateExchangeDeck(
         PersonalityType personality, 
-        string npcId,
-        NPCRelationshipTracker relationshipTracker = null,
-        WorldMemorySystem worldMemory = null)
+        string npcId)
     {
         var deck = new List<ExchangeCard>();
-        
-        // Check for contextual exchanges based on recent events
-        if (worldMemory != null && relationshipTracker != null)
-        {
-            deck.AddRange(CreateContextualExchanges(personality, npcId, relationshipTracker, worldMemory));
-        }
         
         // Add base personality exchanges
         switch (personality)
@@ -260,53 +252,4 @@ public static class ExchangeCardFactory
         return deck;
     }
     
-    /// <summary>
-    /// Create special exchanges based on recent events and relationship history
-    /// </summary>
-    private static List<ExchangeCard> CreateContextualExchanges(
-        PersonalityType personality,
-        string npcId,
-        NPCRelationshipTracker relationshipTracker,
-        WorldMemorySystem worldMemory)
-    {
-        var contextualCards = new List<ExchangeCard>();
-        
-        // If there was a recent failure, offer reconciliation exchanges
-        if (worldMemory.HasRecentFailureWith(npcId))
-        {
-            contextualCards.Add(new ExchangeCard
-            {
-                Id = $"{npcId}_reconciliation",
-                TemplateType = "reconciliation",
-                NPCPersonality = personality,
-                Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 10 } },
-                Reward = new() { new ResourceExchange { Type = ResourceType.TrustToken, Amount = 1 } },
-            });
-        }
-        
-        // If trust is high, offer special generous exchanges
-        if (relationshipTracker.GetSuccessfulDeliveries(npcId) > 5)
-        {
-            contextualCards.Add(new ExchangeCard
-            {
-                Id = $"{npcId}_trusted_exchange",
-                TemplateType = "trusted",
-                NPCPersonality = personality,
-                Cost = new() { new ResourceExchange { Type = ResourceType.Stamina, Amount = 1 } },
-                Reward = new() { 
-                    new ResourceExchange { Type = ResourceType.Health, Amount = 2 },
-                    new ResourceExchange { Type = ResourceType.Hunger, Amount = 0, IsAbsolute = true }
-                },
-            });
-        }
-        
-        // If promises were broken, require trust tokens for exchanges
-        if (relationshipTracker.HasBrokenPromisesBefore(npcId))
-        {
-            // Modify existing exchanges to require trust tokens
-            // This happens in the main deck creation
-        }
-        
-        return contextualCards;
-    }
 }

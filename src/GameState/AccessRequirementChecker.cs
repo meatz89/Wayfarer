@@ -12,22 +12,19 @@ public class AccessRequirementChecker
     private readonly TokenMechanicsManager _tokenManager;
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
-    private readonly InformationDiscoveryManager _informationManager;
 
     public AccessRequirementChecker(
         GameWorld gameWorld,
         ItemRepository itemRepository,
         TokenMechanicsManager tokenManager,
         NPCRepository npcRepository,
-        MessageSystem messageSystem,
-        InformationDiscoveryManager informationManager)
+        MessageSystem messageSystem)
     {
         _gameWorld = gameWorld;
         _itemRepository = itemRepository;
         _tokenManager = tokenManager;
         _npcRepository = npcRepository;
         _messageSystem = messageSystem;
-        _informationManager = informationManager;
     }
 
     /// <summary>
@@ -72,11 +69,10 @@ public class AccessRequirementChecker
         List<string> missingRequirements = new List<string>();
 
         // First check the triple-gate system
-        bool informationMet = CheckInformationRequirement(requirement, missingRequirements);
         bool tierMet = CheckTierRequirement(requirement, player, missingRequirements);
 
         // If information gate or tier gate fails, block access immediately
-        if (!informationMet || !tierMet)
+        if (!tierMet)
         {
             return AccessCheckResult.Blocked(
                 requirement.BlockedMessage,
@@ -346,22 +342,6 @@ public class AccessRequirementChecker
     {
         NPC npc = _npcRepository.GetById(npcId);
         return npc?.Name ?? npcId;
-    }
-
-    /// <summary>
-    /// Check if player has discovered required information (Knowledge Gate).
-    /// </summary>
-    private bool CheckInformationRequirement(AccessRequirement requirement, List<string> missing)
-    {
-        if (string.IsNullOrEmpty(requirement.RequiredInformationId))
-            return true;
-
-        bool hasDiscovered = _informationManager.IsInformationDiscovered(requirement.RequiredInformationId);
-        if (!hasDiscovered)
-        {
-            missing.Add("You haven't discovered the required information yet");
-        }
-        return hasDiscovered;
     }
 
     /// <summary>

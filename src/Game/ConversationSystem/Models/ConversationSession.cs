@@ -69,7 +69,6 @@ public class ConversationSession
     public static ConversationSession StartConversation(
         NPC npc,
         ObligationQueueManager queueManager,
-        NPCRelationshipTracker relationshipTracker,
         TokenMechanicsManager tokenManager,
         List<ConversationCard> observationCards,
         ConversationType conversationType)
@@ -79,8 +78,6 @@ public class ConversationSession
         
         // Calculate starting patience
         var basePatience = GetBasePatience(npc.PersonalityType);
-        var relationship = relationshipTracker.GetRelationship(npc.ID);
-        var trustBonus = relationship.Trust / 2; // +1 patience per 2 trust
         
         // Apply emotional state penalties
         var statepenalty = initialState switch
@@ -90,7 +87,7 @@ public class ConversationSession
             _ => 0
         };
         
-        var totalPatience = Math.Max(3, basePatience + trustBonus + statepenalty);
+        var totalPatience = Math.Max(3, basePatience + statepenalty);
 
         // Create and initialize deck
         var deck = new CardDeck();
@@ -130,12 +127,44 @@ public class ConversationSession
         // Initialize exchange deck if not already done
         npc.InitializeExchangeDeck();
         
+        // Select today's exchange card (if not already selected)
+        // TODO: Get current day from time system
+        var currentDay = 1; // Placeholder - should get from TimeManager
+        var exchangeCard = npc.GetTodaysExchange(currentDay);
+        var handCards = new List<ConversationCard>();
+        
+        // Convert ExchangeCard to ConversationCard for display
+        if (exchangeCard != null)
+        {
+            var conversationCard = new ConversationCard
+            {
+                Id = exchangeCard.Id,
+                Template = CardTemplateType.Exchange,
+                Context = new CardContext
+                {
+                    NPCName = npc.Name,
+                    NPCPersonality = exchangeCard.NPCPersonality,
+                    ExchangeData = exchangeCard // Store the exchange card for later use
+                },
+                Type = CardType.Commerce, // Default to commerce for exchanges
+                Persistence = PersistenceType.Persistent, // Exchanges don't vanish
+                Weight = 0, // Exchanges have no weight cost
+                BaseComfort = 0, // Exchanges don't build comfort
+                Category = CardCategory.COMFORT, // Use comfort category for display
+                IsObservation = false,
+                CanDeliverLetter = false,
+                ManipulatesObligations = false
+            };
+            
+            handCards.Add(conversationCard);
+        }
+        
         // Create simplified session for exchanges
         return new ConversationSession
         {
             NPC = npc,
             CurrentState = EmotionalState.NEUTRAL, // No emotional states in exchanges
-            HandCards = new List<ConversationCard>(), // Exchange cards are drawn on demand
+            HandCards = handCards, // Contains the exchange card as a ConversationCard
             Deck = new CardDeck(), // Empty deck - exchanges use ExchangeDeck instead
             CurrentPatience = 1, // Single turn exchange
             MaxPatience = 1,
@@ -150,7 +179,8 @@ public class ConversationSession
     /// <summary>
     /// Start a Crisis conversation (forced resolution)
     /// </summary>
-    public static ConversationSession StartCrisis(NPC npc, ObligationQueueManager queueManager, NPCRelationshipTracker relationshipTracker, TokenMechanicsManager tokenManager, List<ConversationCard> observationCards)
+    public static ConversationSession StartCrisis(NPC npc, ObligationQueueManager queueManager,
+        TokenMechanicsManager tokenManager, List<ConversationCard> observationCards)
     {
         // Crisis conversations always start in DESPERATE state
         var initialState = EmotionalState.DESPERATE;
@@ -222,7 +252,7 @@ public class ConversationSession
     /// <summary>
     /// Execute SPEAK action with selected cards
     /// </summary>
-    public CardPlayResult ExecuteSpeak(HashSet<ConversationCard> selectedCards, int statusTokens)
+    public CardPlayResult ExecuteSpeak(HashSet<ConversationCard> selectedCards)
     {
         TurnNumber++;
         CurrentPatience--;
@@ -233,7 +263,7 @@ public class ConversationSession
             manager.ToggleCard(card);
         }
 
-        var result = manager.PlaySelectedCards(statusTokens);
+        var result = manager.PlaySelectedCards();
 
         // Apply comfort
         CurrentComfort += result.TotalComfort;

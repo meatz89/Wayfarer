@@ -6,17 +6,11 @@ using System;
 /// </summary>
 public class ExchangeContext
 {
-    private readonly NPCRelationshipTracker _relationshipTracker;
-    private readonly WorldMemorySystem _worldMemory;
     private readonly ExchangeMemory _exchangeMemory;
     
     public ExchangeContext(
-        NPCRelationshipTracker relationshipTracker,
-        WorldMemorySystem worldMemory,
         ExchangeMemory exchangeMemory)
     {
-        _relationshipTracker = relationshipTracker;
-        _worldMemory = worldMemory;
         _exchangeMemory = exchangeMemory;
     }
     
@@ -25,27 +19,6 @@ public class ExchangeContext
     /// </summary>
     public bool ShouldOfferExchange(string npcId, ExchangeCard exchange)
     {
-        // Don't offer generous exchanges to someone who just betrayed us
-        if (_relationshipTracker.GetLastInteractionOutcome(npcId) == "promise_broken" &&
-            exchange.TemplateType == "trusted")
-        {
-            return false;
-        }
-        
-        // Crisis exchanges only during emotional moments
-        if (exchange.TemplateType == "reconciliation" &&
-            !_worldMemory.HasRecentFailureWith(npcId))
-        {
-            return false;
-        }
-        
-        // Some exchanges require minimum relationship
-        if (exchange.TemplateType == "trusted" &&
-            _relationshipTracker.GetSuccessfulDeliveries(npcId) < 5)
-        {
-            return false;
-        }
-        
         return true;
     }
     
@@ -54,24 +27,11 @@ public class ExchangeContext
     /// </summary>
     public ExchangeCard GetModifiedExchange(string npcId, ExchangeCard originalExchange)
     {
-        var trustPattern = _relationshipTracker.GetTrustPattern(npcId);
         var modifiedCosts = new List<ResourceExchange>();
         
         foreach (var cost in originalExchange.Cost)
         {
             var newAmount = cost.Amount;
-            
-            // Trusted partners give better rates
-            if (trustPattern == "reliable" && cost.Type == ResourceType.Coins)
-            {
-                newAmount = Math.Max(1, (int)(cost.Amount * 0.8));
-            }
-            
-            // Broken trust means higher costs
-            if (_relationshipTracker.HasBrokenPromisesBefore(npcId) && cost.Type == ResourceType.Coins)
-            {
-                newAmount = (int)(cost.Amount * 1.5);
-            }
             
             modifiedCosts.Add(new ResourceExchange
             {
@@ -103,12 +63,6 @@ public class ExchangeContext
         if (exchange.TemplateType == "reconciliation")
             weight += 3;
             
-        // Trusted exchanges with long relationships carry weight
-        if (exchange.TemplateType == "trusted" && 
-            _relationshipTracker.GetSuccessfulDeliveries(npcId) > 10)
-            weight += 2;
-            
-        // Crisis history adds weight
         if (_exchangeMemory.HasCrisisHistory(npcId, exchange.TemplateType))
             weight += 2;
             
@@ -126,25 +80,6 @@ public class ExchangeContext
     {
         // Record the exchange in memory
         _exchangeMemory.RecordExchange(npcId, exchange.TemplateType, npcState, wasGenerous);
-        
-        // Update world memory for significant exchanges
-        if (exchange.TemplateType == "reconciliation")
-        {
-            _worldMemory.RecordEvent(
-                WorldEventType.TrustGained,
-                npcId,
-                "player",
-                null
-            );
-        }
-        
-        // Track special moments
-        if (npcState == EmotionalState.DESPERATE && wasGenerous)
-        {
-            // This creates a powerful memory - helping in desperate times
-            _relationshipTracker.RecordPromise(npcId, "desperate_help");
-            _relationshipTracker.RecordPromiseFulfilled(npcId, "desperate_help");
-        }
     }
     
     /// <summary>
@@ -152,20 +87,6 @@ public class ExchangeContext
     /// </summary>
     public string GetSpecialMeaning(string npcId, ExchangeCard exchange)
     {
-        // First exchange ever
-        if (_relationshipTracker.GetSuccessfulDeliveries(npcId) == 0 &&
-            _relationshipTracker.GetFailedDeliveries(npcId) == 0)
-        {
-            return "The beginning of your relationship";
-        }
-        
-        // Exchange after betrayal
-        if (_relationshipTracker.GetLastInteractionOutcome(npcId) == "promise_broken" &&
-            exchange.TemplateType != "reconciliation")
-        {
-            return "A tentative step toward rebuilding trust";
-        }
-        
         // Generous exchange during crisis
         if (_exchangeMemory.GetMostSignificantExchange(npcId)?.EmotionalContext == EmotionalState.DESPERATE)
         {

@@ -94,7 +94,7 @@ public class CardSelectionManager
     /// <summary>
     /// Play the selected cards and calculate results
     /// </summary>
-    public CardPlayResult PlaySelectedCards(int statusTokens)
+    public CardPlayResult PlaySelectedCards()
     {
         if (!selectedCards.Any())
         {
@@ -108,7 +108,7 @@ public class CardSelectionManager
         // Roll for each card individually
         foreach (var card in selectedCards)
         {
-            var successChance = card.CalculateSuccessChance(statusTokens);
+            var successChance = card.CalculateSuccessChance();
             var roll = random.Next(100);
             var success = roll < successChance;
             
