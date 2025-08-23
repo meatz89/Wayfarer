@@ -322,6 +322,12 @@ namespace Wayfarer.Pages
             return description;
         }
 
+        protected int GetTokenCount(ConnectionType type)
+        {
+            if (TokenManager == null) return 0;
+            return TokenManager.GetTokenCount(type);
+        }
+
         protected string GetTokenEffect(ConnectionType type)
         {
             var count = GetTokenCount(type);

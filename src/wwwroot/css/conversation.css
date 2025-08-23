@@ -14,10 +14,10 @@
 
 /* Player Resources Bar */
 .resources-bar {
-    background: #1a1612;
-    color: #e8dcc4;
-    padding: 10px 20px;
-    border-bottom: 2px solid #3d3429;
+    background: #1a1612 !important;
+    color: #e8dcc4 !important;
+    padding: 10px 20px !important;
+    border-bottom: 2px solid #3d3429 !important;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -33,6 +33,13 @@
     align-items: center;
     gap: 6px;
     font-size: 13px;
+    color: #e8dcc4;
+}
+
+.resource span {
+    font-size: 11px;
+    color: #8b7355;
+    margin-left: 2px;
 }
 
 .resource-icon {
