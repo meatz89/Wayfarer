@@ -14,6 +14,9 @@ public class NavigationCoordinator
     private CurrentViews _currentView = CurrentViews.LocationScreen; // Default to Map Mode
     private CurrentViews _previousView = CurrentViews.LocationScreen;
     private bool _isTransitioning = false;
+    
+    // Event to notify components of navigation changes
+    public event Action OnNavigationChanged;
 
     // Modal state tracking
     public enum ModalState
@@ -44,12 +47,20 @@ public class NavigationCoordinator
     /// </summary>
     public async Task<bool> NavigateToAsync(CurrentViews targetView, object context = null)
     {
+        Console.WriteLine($"[NavigationCoordinator] NavigateToAsync called: {targetView}, current: {_currentView}");
+        
         if (_isTransitioning)
+        {
+            Console.WriteLine("[NavigationCoordinator] Already transitioning, rejecting");
             return false;
+        }
 
         // Validate transition
         if (!CanNavigateTo(targetView, context))
+        {
+            Console.WriteLine($"[NavigationCoordinator] Cannot navigate from {_currentView} to {targetView}");
             return false;
+        }
 
         _isTransitioning = true;
         try
@@ -75,10 +86,14 @@ public class NavigationCoordinator
 
             // Update state
             CurrentViews previousView = _currentView;
+            _previousView = previousView;
             _currentView = targetView;
 
             // Initialize new screen
             await OnEnteringScreen(targetView, context);
+            
+            // Notify listeners of navigation change
+            OnNavigationChanged?.Invoke();
 
             return true;
         }

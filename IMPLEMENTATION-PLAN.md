@@ -1,13 +1,128 @@
 # WAYFARER CONVERSATION SYSTEM - COMPLETE IMPLEMENTATION PLAN
 
 **Created**: 2025-08-22  
-**Status**: 🚧 IN PROGRESS  
+**Updated**: 2025-08-23 (Session 36)
+**Status**: 🔥 CRITICAL ISSUES - CORE LOOP BROKEN
 **Design Doc**: /docs/conversation-system.md  
 **UI Mockup**: /UI-MOCKUPS/conversation-screen.html
 
 ## 📊 EXECUTIVE SUMMARY
 
-Implementing a complete conversation system with 3 conversation types, 3 deck types per NPC, and full emotional state mechanics. System is 85% complete with core mechanics working. Need to add exchange system, multiple deck types, and missing conversation types.
+Core conversation mechanics work but critical UX issues make game unplayable. Observation system completely broken, conversations randomly terminate, no visual feedback for any actions. System is mechanically ~60% complete but UX is ~10% complete.
+
+## 🚨 CRITICAL FIXES NEEDED (Session 36)
+
+### Priority 1: Fix Observation System ❌
+**Problem**: Core game loop broken - observations don't work
+**Fix Steps**:
+1. Fix observation ID mapping in LocationScreen.razor.cs ExtractObservationId()
+2. Update observations.json with proper ID mappings
+3. Inject observation cards into ConversationSession on start
+4. Update UI to show "taken" state after clicking
+5. Test with Playwright that cards appear in hand
+
+### Priority 2: Fix Conversation Termination Bug ❌
+**Problem**: Conversations randomly end, kicking player back to location
+**Fix Steps**:
+1. Add comprehensive logging to track termination
+2. Check for unhandled exceptions in ExecuteListen/ExecuteSpeak
+3. Verify no background tasks are killing conversations
+4. Test conversation flow thoroughly
+
+### Priority 3: Add Visual Feedback ❌
+**Problem**: No visual indication of any actions
+**Fix Steps**:
+1. Add card selection highlighting (.selected CSS class)
+2. Show weight calculation in real-time
+3. Add actual progress bars for comfort/depth
+4. Add state transition animations
+5. Add toast messages for observations
+
+### Priority 4: Fix Card Visual Design ❌
+**Problem**: Cards look like debug text
+**Fix Steps**:
+1. Import card CSS from mockups
+2. Add colored borders by type
+3. Add persistence icons
+4. Emphasize "FREE!" for weight 0 cards
+
+### Priority 5: Fix Navigation ❌
+**Problem**: Can't access queue screen or navigate properly
+**Fix Steps**:
+1. Add BottomStatusBar to all screens
+2. Wire up navigation events
+3. Test all navigation paths
+
+## 🏗️ ARCHITECTURAL SOLUTIONS
+
+### Observation System Fix (Aligns with conversation-system.md)
+```csharp
+// In ConversationManager.StartConversationAsync
+public async Task<ConversationSession> StartConversationAsync(NPC npc, ConversationType type)
+{
+    var session = new ConversationSession(...);
+    
+    // INJECT OBSERVATION CARDS HERE
+    var observationCards = _observationManager.GetObservationCards();
+    foreach (var card in observationCards.Where(c => c.IsRelevantTo(npc.ID)))
+    {
+        session.HandCards.Add(card);
+    }
+    
+    return session;
+}
+```
+
+### Visual Feedback Architecture
+```css
+/* In conversation.css */
+.card.selected {
+    border: 2px solid var(--gold);
+    transform: translateY(-5px);
+}
+
+.weight-tracker.over-limit {
+    color: var(--danger-red);
+    animation: shake 0.3s;
+}
+
+.state-transition {
+    animation: flash 0.5s;
+}
+```
+
+### Attention System Clarification
+```razor
+<!-- In UnifiedAttentionBar.razor -->
+<div class="attention-display">
+    @if (IsInConversation)
+    {
+        <span class="label">Conversation Focus:</span>
+        <span class="value">@CurrentAttention/@MaxConversationAttention</span>
+    }
+    else
+    {
+        <span class="label">Daily Attention:</span>
+        <span class="value">@TimeBlockAttention/@MaxTimeBlockAttention</span>
+        <span class="hint">Refreshes at @NextTimeBlock</span>
+    }
+</div>
+```
+
+### Conversation Termination Logging
+```csharp
+// In ConversationManager
+public void EndConversation(string reason)
+{
+    Console.WriteLine($"[ConversationManager] Ending conversation: {reason}");
+    Console.WriteLine($"  - Current turn: {_currentSession?.CurrentTurn}");
+    Console.WriteLine($"  - NPC state: {_currentSession?.NPCState}");
+    Console.WriteLine($"  - Stack trace: {Environment.StackTrace}");
+    
+    _currentSession = null;
+    _navigationService.NavigateToLocation();
+}
+```
 
 ## 🎯 SUCCESS CRITERIA
 

@@ -12,18 +12,21 @@ public class ConversationManager
     private readonly ObligationQueueManager queueManager;
     private readonly ITimeManager timeManager;
     private readonly TokenMechanicsManager tokenManager;
+    private readonly ObservationManager observationManager;
     private ConversationSession currentSession;
 
     public ConversationManager(
         GameWorld gameWorld,
         ObligationQueueManager queueManager,
         ITimeManager timeManager,
-        TokenMechanicsManager tokenManager)
+        TokenMechanicsManager tokenManager,
+        ObservationManager observationManager)
     {
         this.gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         this.queueManager = queueManager ?? throw new ArgumentNullException(nameof(queueManager));
         this.timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         this.tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
+        this.observationManager = observationManager ?? throw new ArgumentNullException(nameof(observationManager));
     }
 
     /// <summary>
@@ -85,7 +88,7 @@ public class ConversationManager
             npc,
             queueManager,
             tokenManager,
-            observationCards,
+            observationCards,  // Pass observation cards to standard conversations too
             conversationType
         );
 
@@ -185,6 +188,16 @@ public class ConversationManager
 
         // Handle special card effects
         HandleSpecialCardEffects(selectedCards, result);
+
+        // Remove observation cards from ObservationManager after playing (they're OneShot)
+        foreach (var card in selectedCards)
+        {
+            if (card.IsObservation && card.Persistence == PersistenceType.OneShot)
+            {
+                observationManager.RemoveObservationCard(card);
+                Console.WriteLine($"[ConversationManager] Removed observation card {card.Id} from ObservationManager");
+            }
+        }
 
         if (currentSession.ShouldEnd())
         {

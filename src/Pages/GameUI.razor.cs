@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 namespace Wayfarer.Pages;
 
-public class GameUIBase : ComponentBase
+public class GameUIBase : ComponentBase, IDisposable
 {
     [Inject] public ContentValidator ContentValidator { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
@@ -48,6 +48,12 @@ public class GameUIBase : ComponentBase
         // IMPORTANT: For testing purposes, this ALWAYS starts a fresh game
         // No save/load functionality is implemented or desired
         // The game state is never persisted between sessions
+        
+        // Subscribe to navigation changes
+        if (NavigationCoordinator != null)
+        {
+            NavigationCoordinator.OnNavigationChanged += HandleNavigationChanged;
+        }
 
         try
         {
@@ -124,5 +130,21 @@ public class GameUIBase : ComponentBase
         await NavigationCoordinator.NavigateToAsync(CurrentViews.LocationScreen);
         StateHasChanged();
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] Navigation to LocationScreen completed.");
+    }
+    
+    private void HandleNavigationChanged()
+    {
+        // This is called by NavigationCoordinator when navigation changes
+        Console.WriteLine($"[GameUIBase.HandleNavigationChanged] Navigation changed to: {CurrentView}");
+        InvokeAsync(() => StateHasChanged());
+    }
+    
+    public void Dispose()
+    {
+        // Unsubscribe from navigation events
+        if (NavigationCoordinator != null)
+        {
+            NavigationCoordinator.OnNavigationChanged -= HandleNavigationChanged;
+        }
     }
 }

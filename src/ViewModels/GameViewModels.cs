@@ -54,6 +54,7 @@ public class InteractionOptionViewModel
 
 public class ObservationViewModel
 {
+    public string Id { get; set; }  // Unique identifier for the observation
     public string Icon { get; set; }
     public string Text { get; set; }
     public bool IsUnknown { get; set; }

@@ -458,6 +458,7 @@ public class GameFacade
                 
                 observations.Add(new ObservationViewModel
                 {
+                    Id = obs.Id,  // Pass the observation ID
                     Text = obs.Text,
                     Icon = obs.Type == ObservationType.Important ? "⚠️" : "👁️",
                     AttentionCost = obs.AttentionCost,
@@ -2012,6 +2013,31 @@ public class GameFacade
             Console.WriteLine($"[GameFacade] NPC spot mismatch - conversation blocked");
             return null;
         }
+        
+        // CRITICAL FIX: Check and deduct attention cost BEFORE starting conversation
+        int attentionCost = ConversationTypeConfig.GetAttentionCost(conversationType);
+        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        var currentAttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        
+        // Check if player has enough attention
+        if (!currentAttentionManager.CanAfford(attentionCost))
+        {
+            Console.WriteLine($"[GameFacade] Not enough attention for {conversationType} conversation. Cost: {attentionCost}, Available: {currentAttentionManager.GetAvailableAttention()}");
+            _messageSystem.AddSystemMessage($"You don't have enough attention for this conversation (need {attentionCost}, have {currentAttentionManager.GetAvailableAttention()})", SystemMessageTypes.Warning);
+            return null;
+        }
+        
+        // Deduct the attention cost
+        if (attentionCost > 0)
+        {
+            bool spendSuccess = currentAttentionManager.TrySpend(attentionCost);
+            if (!spendSuccess)
+            {
+                Console.WriteLine($"[GameFacade] Failed to spend attention for conversation");
+                return null;
+            }
+            Console.WriteLine($"[GameFacade] Spent {attentionCost} attention for {conversationType} conversation. Remaining: {currentAttentionManager.GetAvailableAttention()}");
+        }
             
         // Get observation cards for this conversation
         var observationCards = _observationManager.GetObservationCards();
@@ -2020,14 +2046,14 @@ public class GameFacade
         // Start the conversation session with observation cards
         var conversationSession = _conversationManager.StartConversation(npcId, conversationType, observationCards);
         
-        // Create conversation view model
+        // Create conversation view model with UPDATED attention state (after spending)
         var viewModel = new ConversationViewModel
         {
             NpcName = npc.Name,
             NpcId = npc.ID,
             LocationName = location.Name,
-            CurrentAttention = _timeBlockAttentionManager.GetAttentionState().current,
-            MaxAttention = _timeBlockAttentionManager.GetAttentionState().max,
+            CurrentAttention = currentAttentionManager.GetAvailableAttention(),  // Use the attention AFTER spending
+            MaxAttention = currentAttentionManager.GetMaxAttention(),
             CurrentTime = _timeManager.GetFormattedTimeDisplay(),
             QueueStatus = $"{player.ObligationQueue.Count(o => o != null)}/8",
             CoinStatus = $"{player.Coins}s"

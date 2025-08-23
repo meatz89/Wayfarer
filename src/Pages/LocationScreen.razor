@@ -43,7 +43,24 @@
         </div>
 
         <!-- Obligations Panel -->
-        <DeadlinePanel />
+        @if (HasActiveObligations())
+        {
+            <div class="obligations-panel" style="cursor: pointer;">
+                <a href="#" @onclick="OpenObligationQueue" @onclick:preventDefault="true" style="text-decoration: none; color: inherit; display: block;">
+                    <div class="obligations-header">Active Obligations</div>
+                    <div class="obligation-list">
+                        @foreach (var item in GetTopObligations())
+                        {
+                            <div class="obligation-item @GetObligationClass(item)">
+                                <div class="obligation-action">@item.Action</div>
+                                <div class="obligation-target">@item.Target</div>
+                                <div class="obligation-time">@item.Time</div>
+                            </div>
+                        }
+                    </div>
+                </a>
+            </div>
+        }
 
         <!-- Location Header -->
         <div class="location-header">
@@ -102,6 +119,15 @@
                     }
                 </div>
             }
+            
+            <!-- Letter Queue Navigation (Always visible) -->
+            <div class="main-actions" style="margin-top: 10px;">
+                <div class="action-button" @onclick="NavigateToLetterQueue" style="background: #f4e8d0; border: 2px solid #d4a76a;">
+                    <div class="action-name">📜 View Letter Queue</div>
+                    <div class="action-detail">Manage obligations</div>
+                    <div class="action-cost">FREE</div>
+                </div>
+            </div>
 
             <!-- NPCs Present -->
             @if (Model.NPCsPresent?.Any() == true)

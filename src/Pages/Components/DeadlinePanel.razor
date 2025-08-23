@@ -1,4 +1,5 @@
 @using Wayfarer.Pages.Components
+@inherits ComponentBase
 @implements IDisposable
 
 @inject ObligationQueueManager QueueManager
@@ -9,7 +10,7 @@
 
 @if (HasActiveObligations())
 {
-    <div class="obligations-panel" @onclick="OpenObligationQueue" style="cursor: pointer;">
+    <div class="obligations-panel" @onclick="OpenObligationQueue" @onclick:preventDefault="true" @onclick:stopPropagation="true" style="cursor: pointer;">
         <div class="obligations-header">Active Obligations</div>
         <div class="obligation-list">
             @foreach (var item in GetTopObligations())
@@ -25,6 +26,8 @@
 }
 
 @code {
+    [Parameter] public EventCallback OnOpenQueue { get; set; }
+    
     // Represents any obligation with a deadline
     private class ObligationItem
     {
@@ -173,7 +176,21 @@
 
     private async Task OpenObligationQueue()
     {
-        await NavigationCoordinator.NavigateToAsync(CurrentViews.LetterQueueScreen);
+        Console.WriteLine("[DeadlinePanel] OpenObligationQueue called");
+        
+        // If we have a callback from parent, use it
+        if (OnOpenQueue.HasDelegate)
+        {
+            Console.WriteLine("[DeadlinePanel] Using parent callback");
+            await OnOpenQueue.InvokeAsync();
+        }
+        else
+        {
+            // Otherwise try NavigationCoordinator directly
+            Console.WriteLine("[DeadlinePanel] Using NavigationCoordinator directly");
+            var success = await NavigationCoordinator.NavigateToAsync(CurrentViews.LetterQueueScreen);
+            Console.WriteLine($"[DeadlinePanel] Navigation result: {success}");
+        }
     }
     
     public void Dispose()

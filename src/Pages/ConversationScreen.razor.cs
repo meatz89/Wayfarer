@@ -22,6 +22,7 @@ namespace Wayfarer.Pages
         [Inject] protected NavigationCoordinator NavigationCoordinator { get; set; }
         [Inject] protected TimeBlockAttentionManager AttentionManager { get; set; }
         [Inject] protected TokenMechanicsManager TokenManager { get; set; }
+        [Inject] protected ObservationManager ObservationManager { get; set; }
 
         protected ConversationSession Session { get; set; }
         protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
@@ -659,9 +660,8 @@ namespace Wayfarer.Pages
 
         private List<ConversationCard> GetObservationCards()
         {
-            // This would get observation cards from the game state
-            // For now, return empty list
-            return new List<ConversationCard>();
+            // Get observation cards from the ObservationManager
+            return ObservationManager.GetObservationCards();
         }
 
         protected EmotionalState GetNPCStartingState()

@@ -94,6 +94,11 @@ public class StateRuleset
     /// Whether listening ends the conversation (HOSTILE breakdown)
     /// </summary>
     public bool ListenEndsConversation { get; init; }
+    
+    /// <summary>
+    /// Whether to allow one final turn after this state to play crisis cards
+    /// </summary>
+    public bool AllowOneFinalTurn { get; init; }
 }
 
 /// <summary>
@@ -184,7 +189,8 @@ public static class ConversationRules
             CrisisCardsInjected = 2,
             FreeWeightCategories = new() { CardCategory.CRISIS },  // Crisis cards cost 0 weight
             AllowedCategories = new() { CardCategory.CRISIS },  // ONLY crisis cards can be played
-            ListenEndsConversation = true,  // Listening causes breakdown
+            ListenEndsConversation = false,  // Allow one turn to play crisis cards
+            AllowOneFinalTurn = true,  // Give player chance to resolve with crisis cards
             SetBonuses = new() // Empty - crisis only, no bonuses
         }
     };

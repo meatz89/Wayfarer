@@ -8,8 +8,22 @@
 
 <div class="unified-attention-bar @GetFocusStateClass()">
     <div class="focus-container">
-        @* Label matching mockup *@
-        <span class="attention-label">Attention:</span>
+        @* Clear labeling for dual attention systems *@
+        @if (IsInConversation)
+        {
+            <span class="attention-label">Conversation Focus:</span>
+            <span class="attention-value">@CurrentAttention/@MaxAttention</span>
+            <span class="attention-hint">For this conversation only</span>
+        }
+        else
+        {
+            <span class="attention-label">@CurrentTimeBlock Attention:</span>
+            <span class="attention-value">@CurrentAttention/@MaxAttention</span>
+            @if (CurrentAttention < MaxAttention)
+            {
+                <span class="attention-hint">Refreshes at @GetNextRefreshBlock()</span>
+            }
+        }
         
         @* Visual representation as golden orbs that dim when spent *@
         <div class="focus-orbs">
@@ -24,6 +38,8 @@
 </div>
 
 @code {
+    [Parameter] public bool IsInConversation { get; set; }
+    
     private int CurrentAttention { get; set; }
     private int MaxAttention { get; set; }
     private TimeBlocks CurrentTimeBlock { get; set; }

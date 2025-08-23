@@ -13,6 +13,7 @@ public partial class LocationScreen : ComponentBase
     [Inject] private LocationRepository LocationRepository { get; set; }
     [Inject] private ITimeManager TimeManager { get; set; }
     [Inject] private NavigationCoordinator NavigationCoordinator { get; set; }
+    [Inject] private ObligationQueueManager QueueManager { get; set; }
 
     [Parameter] public EventCallback OnActionExecuted { get; set; }
     [Parameter] public EventCallback<CurrentViews> OnNavigate { get; set; }
@@ -232,27 +233,20 @@ public partial class LocationScreen : ComponentBase
         }
 
         // Debug the observation
-        Console.WriteLine($"[LocationScreen] Clicked observation with text: '{observation.Text}'");
+        Console.WriteLine($"[LocationScreen] Clicked observation with ID: '{observation.Id}'");
+        Console.WriteLine($"[LocationScreen] Text: '{observation.Text}'");
         Console.WriteLine($"[LocationScreen] Relevance: '{observation.Relevance}'");
         Console.WriteLine($"[LocationScreen] AttentionCost: {observation.AttentionCost}");
 
-        // Use the observation ID from the text - we need to parse it or store it properly
-        // For now, use the text as a simple identifier
-        string observationId = ExtractObservationId(observation.Text);
-        
-        if (string.IsNullOrEmpty(observationId))
+        // Use the observation ID directly from the ViewModel
+        if (string.IsNullOrEmpty(observation.Id))
         {
-            Console.WriteLine($"[LocationScreen] Could not determine observation ID from text: '{observation.Text}'");
-            Console.WriteLine("[LocationScreen] Available mappings:");
-            foreach (var mapping in GetAllObservationMappings())
-            {
-                Console.WriteLine($"  '{mapping.Key}' -> '{mapping.Value}'");
-            }
+            Console.WriteLine($"[LocationScreen] ERROR: Observation has no ID! Text: '{observation.Text}'");
             return;
         }
 
-        Console.WriteLine($"[LocationScreen] Taking observation: {observationId}");
-        bool success = await GameFacade.TakeObservationAsync(observationId);
+        Console.WriteLine($"[LocationScreen] Taking observation: {observation.Id}");
+        bool success = await GameFacade.TakeObservationAsync(observation.Id);
         
         if (success)
         {
@@ -260,42 +254,101 @@ public partial class LocationScreen : ComponentBase
             await HandleActionExecuted();
         }
     }
-
-    /// <summary>
-    /// Extract observation ID from observation text
-    /// This is a temporary solution - ideally the observation ID should be stored in the view model
-    /// </summary>
-    private string ExtractObservationId(string observationText)
+    
+    private async Task OpenObligationQueue()
     {
-        // Map common observation texts to their IDs from observations.json
-        var textToIdMap = new Dictionary<string, string>
-        {
-            { "Notice guard checkpoint ahead", "guards_north" },
-            { "Eavesdrop on merchant negotiations", "merchant_negotiations" },
-            { "Guards blocking north road", "guards_blocking" },
-            { "Notice board shows Noble District schedule", "noble_schedule" },
-            { "Elena's visible distress", "elena_distress" },
-            { "Lord preparing to leave", "lord_preparing" },
-            { "Guard patrol patterns", "guard_positions" }
-        };
-
-        return textToIdMap.GetValueOrDefault(observationText?.Trim(), null);
+        Console.WriteLine("[LocationScreen] OpenObligationQueue called");
+        // Navigate to the letter queue screen
+        await NavigationCoordinator.NavigateToAsync(CurrentViews.LetterQueueScreen);
     }
-
-    /// <summary>
-    /// Get all observation mappings for debugging
-    /// </summary>
-    private Dictionary<string, string> GetAllObservationMappings()
+    
+    // Obligation display helpers
+    private class ObligationItem
     {
-        return new Dictionary<string, string>
+        public string Action { get; set; }
+        public string Target { get; set; }
+        public string Time { get; set; }
+        public int DeadlineInMinutes { get; set; }
+    }
+    
+    private bool HasActiveObligations()
+    {
+        var deliveries = QueueManager?.GetPlayerQueue();
+        var meetings = QueueManager?.GetActiveMeetingObligations();
+        return (deliveries?.Any(d => d?.DeadlineInMinutes > 0) == true) ||
+               (meetings?.Any(m => m?.DeadlineInMinutes > 0) == true);
+    }
+    
+    private List<ObligationItem> GetTopObligations()
+    {
+        var obligations = new List<ObligationItem>();
+        
+        // Add delivery obligations
+        var deliveries = QueueManager?.GetPlayerQueue();
+        if (deliveries != null)
         {
-            { "Notice guard checkpoint ahead", "guards_north" },
-            { "Eavesdrop on merchant negotiations", "merchant_negotiations" },
-            { "Guards blocking north road", "guards_blocking" },
-            { "Notice board shows Noble District schedule", "noble_schedule" },
-            { "Elena's visible distress", "elena_distress" },
-            { "Lord preparing to leave", "lord_preparing" },
-            { "Guard patrol patterns", "guard_positions" }
-        };
+            foreach (var d in deliveries.Where(d => d?.DeadlineInMinutes > 0).Take(2))
+            {
+                var npc = NPCRepository.GetByName(d.RecipientName);
+                var location = npc != null ? LocationRepository.GetLocation(npc.Location) : null;
+                obligations.Add(new ObligationItem
+                {
+                    Action = "Deliver",
+                    Target = location?.Name ?? d.RecipientName,
+                    Time = FormatDeadlineTime(d.DeadlineInMinutes),
+                    DeadlineInMinutes = d.DeadlineInMinutes
+                });
+            }
+        }
+        
+        // Add meeting obligations
+        var meetings = QueueManager?.GetActiveMeetingObligations();
+        if (meetings != null)
+        {
+            foreach (var m in meetings.Where(m => m?.DeadlineInMinutes > 0).Take(1))
+            {
+                var npc = NPCRepository.GetByName(m.RequesterName);
+                var location = npc != null ? LocationRepository.GetLocation(npc.Location) : null;
+                obligations.Add(new ObligationItem
+                {
+                    Action = "Meet",
+                    Target = $"{m.RequesterName} • {location?.Name ?? "Unknown"}",
+                    Time = FormatDeadlineTime(m.DeadlineInMinutes),
+                    DeadlineInMinutes = m.DeadlineInMinutes
+                });
+            }
+        }
+        
+        // Sort by deadline and take top 3
+        return obligations
+            .OrderBy(o => o.DeadlineInMinutes)
+            .Take(3)
+            .ToList();
+    }
+    
+    private string GetObligationClass(ObligationItem item)
+    {
+        if (item.DeadlineInMinutes <= 120) return "critical"; // 2 hours
+        if (item.DeadlineInMinutes <= 480) return "urgent"; // 8 hours
+        return "normal";
+    }
+    
+    private string FormatDeadlineTime(int minutes)
+    {
+        if (minutes <= 0) return "EXPIRED";
+        if (minutes < 60) return $"{minutes}m";
+        if (minutes < 120) return $"1h {minutes - 60}m";
+        if (minutes < 1440) return $"{minutes / 60}h";
+        
+        int days = minutes / 1440;
+        return days == 1 ? "Tomorrow" : $"{days} days";
+    }
+    
+    private async Task NavigateToLetterQueue()
+    {
+        if (OnNavigate.HasDelegate)
+        {
+            await OnNavigate.InvokeAsync(CurrentViews.LetterQueueScreen);
+        }
     }
 }

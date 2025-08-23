@@ -57,6 +57,11 @@ public class ConversationSession
     /// Whether a letter has been generated this conversation
     /// </summary>
     public bool LetterGenerated { get; set; }
+    
+    /// <summary>
+    /// Whether we've had the final crisis turn in HOSTILE state
+    /// </summary>
+    public bool HadFinalCrisisTurn { get; set; }
 
     /// <summary>
     /// Observation cards added at start
@@ -268,7 +273,14 @@ public class ConversationSession
         }
 
         // Transition state
+        var previousState = CurrentState;
         CurrentState = rules.ListenTransition;
+        
+        // If we just transitioned to HOSTILE, mark that we're allowing a final turn
+        if (CurrentState == EmotionalState.HOSTILE && previousState != EmotionalState.HOSTILE)
+        {
+            HadFinalCrisisTurn = false; // Reset to allow one turn
+        }
 
         // Check depth advancement
         CheckDepthAdvancement();
@@ -297,6 +309,12 @@ public class ConversationSession
         if (result.NewState.HasValue)
         {
             CurrentState = result.NewState.Value;
+        }
+        
+        // If we're in HOSTILE state and played crisis cards, mark final turn as taken
+        if (CurrentState == EmotionalState.HOSTILE)
+        {
+            HadFinalCrisisTurn = true;
         }
 
         // Remove played cards from hand
@@ -408,9 +426,23 @@ public class ConversationSession
     /// </summary>
     public bool ShouldEnd()
     {
-        return CurrentPatience <= 0 || 
-               CurrentState == EmotionalState.HOSTILE ||
-               Deck.IsEmpty;
+        // Check if patience is gone or deck is empty
+        if (CurrentPatience <= 0 || Deck.IsEmpty)
+            return true;
+            
+        // HOSTILE state: Allow one final turn to play crisis cards
+        if (CurrentState == EmotionalState.HOSTILE)
+        {
+            // If we haven't had the final turn yet, don't end
+            if (!HadFinalCrisisTurn)
+            {
+                return false;
+            }
+            // If we've had the final turn, end the conversation
+            return true;
+        }
+        
+        return false;
     }
 
     /// <summary>

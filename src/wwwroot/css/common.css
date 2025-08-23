@@ -46,6 +46,27 @@
     align-items: center;
 }
 
+/* Attention Display Styles */
+.attention-label {
+    font-size: 13px;
+    color: #8b7355;
+    margin-right: 8px;
+}
+
+.attention-value {
+    font-size: 14px;
+    font-weight: bold;
+    color: #d4a76a;
+    margin-right: 12px;
+}
+
+.attention-hint {
+    font-size: 11px;
+    color: #7a6250;
+    font-style: italic;
+    margin-left: 8px;
+}
+
 /* Common progress bars */
 .progress-bar {
     background: #f9f3e9;
