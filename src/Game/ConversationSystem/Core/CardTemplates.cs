@@ -138,4 +138,19 @@ public class CardContext
     /// Exchange card data for exchange cards
     /// </summary>
     public ExchangeCard ExchangeData { get; init; }
+    
+    /// <summary>
+    /// Observation ID if observation card
+    /// </summary>
+    public string ObservationId { get; init; }
+    
+    /// <summary>
+    /// Observation text for display
+    /// </summary>
+    public string ObservationText { get; init; }
+    
+    /// <summary>
+    /// Observation description for narrative
+    /// </summary>
+    public string ObservationDescription { get; init; }
 }

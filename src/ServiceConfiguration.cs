@@ -87,6 +87,9 @@ public static class ServiceConfiguration
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();
 
+        // Observation management system
+        services.AddSingleton<ObservationManager>();
+
         // Environmental Storytelling Systems
         services.AddSingleton<ObservationSystem>();
         services.AddSingleton<BindingObligationSystem>();

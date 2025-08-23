@@ -562,6 +562,17 @@
     border-radius: 2px;
 }
 
+.observation-item.clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.observation-item.clickable:hover {
+    background: #fefaf0;
+    padding-left: 12px;
+    transform: translateX(2px);
+}
+
 .observation-text {
     font-size: 13px;
     color: #5c4a3a;

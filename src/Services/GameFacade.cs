@@ -38,6 +38,7 @@ public class GameFacade
     private readonly MarketManager _marketManager;
     private readonly DailyActivitiesManager _dailyActivitiesManager;
     private readonly ObservationSystem _observationSystem;
+    private readonly ObservationManager _observationManager;
     private readonly ActionGenerator _actionGenerator;
     private readonly BindingObligationSystem _bindingObligationSystem;
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
@@ -68,6 +69,7 @@ public class GameFacade
         DailyActivitiesManager dailyActivitiesManager,
         ActionGenerator actionGenerator,
         ObservationSystem observationSystem,
+        ObservationManager observationManager,
         BindingObligationSystem bindingObligationSystem,
         TimeBlockAttentionManager timeBlockAttentionManager,
         NPCDeckFactory deckFactory,
@@ -97,6 +99,7 @@ public class GameFacade
         _dailyActivitiesManager = dailyActivitiesManager;
         _actionGenerator = actionGenerator;
         _observationSystem = observationSystem;
+        _observationManager = observationManager;
         _bindingObligationSystem = bindingObligationSystem;
         _timeBlockAttentionManager = timeBlockAttentionManager;
         _deckFactory = deckFactory;
@@ -459,7 +462,7 @@ public class GameFacade
                     Icon = obs.Type == ObservationType.Important ? "⚠️" : "👁️",
                     AttentionCost = obs.AttentionCost,
                     Relevance = BuildRelevanceString(obs),
-                    IsObserved = _observationSystem.IsObserved(obs.Id)
+                    IsObserved = _observationManager.HasTakenObservation(obs.Id)
                 });
             }
         }
@@ -1600,6 +1603,77 @@ public class GameFacade
         return await ExecuteIntent(intent);
     }
 
+    /// <summary>
+    /// Take an observation and generate a conversation card for the player
+    /// Costs attention and can only be done once per time block
+    /// </summary>
+    public async Task<bool> TakeObservationAsync(string observationId)
+    {
+        try
+        {
+            // Get current attention state
+            TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+            AttentionManager attention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+            
+            // Find the observation
+            var (currentLocation, currentSpot) = GetCurrentLocation();
+            var availableObservations = _observationSystem.GetObservationsForLocation(currentLocation.Id);
+            var observation = availableObservations.FirstOrDefault(obs => obs.Id == observationId);
+            
+            if (observation == null)
+            {
+                _messageSystem.AddSystemMessage("That observation is no longer available.", SystemMessageTypes.Warning);
+                return false;
+            }
+
+            // Check if already taken this time block
+            if (_observationManager.HasTakenObservation(observationId))
+            {
+                _messageSystem.AddSystemMessage("You have already made that observation this time block.", SystemMessageTypes.Info);
+                return false;
+            }
+
+            // Check attention cost
+            if (attention.GetAvailableAttention() < observation.AttentionCost)
+            {
+                _messageSystem.AddSystemMessage($"Not enough attention (need {observation.AttentionCost})", SystemMessageTypes.Warning);
+                return false;
+            }
+
+            // Spend attention
+            if (!attention.TrySpend(observation.AttentionCost))
+            {
+                _messageSystem.AddSystemMessage("Failed to spend attention.", SystemMessageTypes.Warning);
+                return false;
+            }
+            Console.WriteLine($"[GameFacade.TakeObservation] Spent {observation.AttentionCost} attention for observation {observationId}");
+
+            // Generate observation card
+            var observationCard = _observationManager.TakeObservation(observation, _connectionTokenManager);
+            
+            if (observationCard != null)
+            {
+                // Add message about gaining the card
+                _messageSystem.AddSystemMessage($"Observed: {observation.Text}", SystemMessageTypes.Success);
+                _messageSystem.AddSystemMessage($"Gained conversation card: {observationCard.Template}", SystemMessageTypes.Info);
+                
+                Console.WriteLine($"[GameFacade.TakeObservation] Successfully generated observation card {observationCard.Id}");
+                return true;
+            }
+            else
+            {
+                _messageSystem.AddSystemMessage("Failed to process observation.", SystemMessageTypes.Warning);
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GameFacade.TakeObservation] Error taking observation {observationId}: {ex.Message}");
+            _messageSystem.AddSystemMessage("Failed to make observation.", SystemMessageTypes.Warning);
+            return false;
+        }
+    }
+
     public async Task<bool> TravelToDestinationAsync(string destinationId, string routeId)
     {
         // Find the route
@@ -1939,6 +2013,13 @@ public class GameFacade
             return null;
         }
             
+        // Get observation cards for this conversation
+        var observationCards = _observationManager.GetObservationCards();
+        Console.WriteLine($"[GameFacade.StartConversation] Including {observationCards.Count} observation cards in conversation");
+
+        // Start the conversation session with observation cards
+        var conversationSession = _conversationManager.StartConversation(npcId, conversationType, observationCards);
+        
         // Create conversation view model
         var viewModel = new ConversationViewModel
         {

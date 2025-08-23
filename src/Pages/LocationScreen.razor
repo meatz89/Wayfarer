@@ -146,7 +146,7 @@
                     <div class="observation-note">Knowledge gained here becomes conversation ammunition. Each observation converts to an Opportunity card when talking to relevant NPCs.</div>
                     @foreach (var obs in Model.Observations)
                     {
-                        <div class="observation-item @(obs.IsObserved ? "observed" : "")">
+                        <div class="observation-item @(obs.IsObserved ? "observed" : "clickable")" @onclick="() => TakeObservation(obs)">
                             <span class="observation-text">@(obs.IsObserved ? "✓ " : "")@obs.Text</span>
                             <span class="observation-details">
                                 @if (!obs.IsObserved)

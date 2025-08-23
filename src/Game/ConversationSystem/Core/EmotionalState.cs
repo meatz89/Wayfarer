@@ -76,6 +76,11 @@ public class StateRuleset
     public int SetBonus { get; init; }
 
     /// <summary>
+    /// Set bonuses based on number of cards played (card count -> bonus)
+    /// </summary>
+    public Dictionary<int, int> SetBonuses { get; init; } = new();
+
+    /// <summary>
     /// Card categories that cost 0 weight in this state
     /// </summary>
     public List<CardCategory> FreeWeightCategories { get; init; } = new();
@@ -103,21 +108,24 @@ public static class ConversationRules
         {
             CardsOnListen = 2,
             MaxWeight = 3,
-            ListenTransition = EmotionalState.NEUTRAL
+            ListenTransition = EmotionalState.NEUTRAL,
+            SetBonuses = new() { { 2, 2 }, { 3, 5 }, { 4, 8 } }
         },
 
         [EmotionalState.GUARDED] = new StateRuleset
         {
             CardsOnListen = 1,
             MaxWeight = 2,
-            ListenTransition = EmotionalState.NEUTRAL
+            ListenTransition = EmotionalState.NEUTRAL,
+            SetBonuses = new() { { 2, 1 }, { 3, 3 }, { 4, 5 } }
         },
 
         [EmotionalState.OPEN] = new StateRuleset
         {
             CardsOnListen = 3,
             MaxWeight = 3,
-            ListenTransition = EmotionalState.OPEN
+            ListenTransition = EmotionalState.OPEN,
+            SetBonuses = new() { { 2, 2 }, { 3, 5 }, { 4, 8 } }
         },
 
         [EmotionalState.CONNECTED] = new StateRuleset
@@ -125,14 +133,16 @@ public static class ConversationRules
             CardsOnListen = 3,
             MaxWeight = 4,
             ListenTransition = EmotionalState.CONNECTED,
-            AutoAdvanceDepth = true
+            AutoAdvanceDepth = true,
+            SetBonuses = new() { { 2, 3 }, { 3, 6 }, { 4, 10 } }
         },
 
         [EmotionalState.TENSE] = new StateRuleset
         {
             CardsOnListen = 1,
             MaxWeight = 1,
-            ListenTransition = EmotionalState.GUARDED
+            ListenTransition = EmotionalState.GUARDED,
+            SetBonuses = new() { { 2, 1 }, { 3, 2 }, { 4, 3 } }
         },
 
         [EmotionalState.EAGER] = new StateRuleset
@@ -141,7 +151,8 @@ public static class ConversationRules
             MaxWeight = 3,
             ListenTransition = EmotionalState.EAGER,
             RequiredCards = 2,
-            SetBonus = 3
+            SetBonus = 3,
+            SetBonuses = new() { { 2, 2 }, { 3, 5 }, { 4, 8 } }
         },
 
         [EmotionalState.OVERWHELMED] = new StateRuleset
@@ -149,7 +160,8 @@ public static class ConversationRules
             CardsOnListen = 1,
             MaxWeight = 3,
             ListenTransition = EmotionalState.NEUTRAL,
-            MaxCards = 1
+            MaxCards = 1,
+            SetBonuses = new() // Empty - no bonuses
         },
 
         [EmotionalState.DESPERATE] = new StateRuleset
@@ -159,7 +171,8 @@ public static class ConversationRules
             ListenTransition = EmotionalState.HOSTILE,
             InjectsCrisis = true,
             CrisisCardsInjected = 1,
-            FreeWeightCategories = new() { CardCategory.CRISIS }  // Crisis cards cost 0 weight
+            FreeWeightCategories = new() { CardCategory.CRISIS },  // Crisis cards cost 0 weight
+            SetBonuses = new() { { 2, 2 }, { 3, 5 }, { 4, 8 } }
         },
 
         [EmotionalState.HOSTILE] = new StateRuleset
@@ -171,7 +184,8 @@ public static class ConversationRules
             CrisisCardsInjected = 2,
             FreeWeightCategories = new() { CardCategory.CRISIS },  // Crisis cards cost 0 weight
             AllowedCategories = new() { CardCategory.CRISIS },  // ONLY crisis cards can be played
-            ListenEndsConversation = true  // Listening causes breakdown
+            ListenEndsConversation = true,  // Listening causes breakdown
+            SetBonuses = new() // Empty - crisis only, no bonuses
         }
     };
 

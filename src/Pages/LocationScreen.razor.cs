@@ -223,4 +223,79 @@ public partial class LocationScreen : ComponentBase
     protected string GetCurrentTimeDisplay() => Model?.CurrentTime ?? "";
     protected string GetCurrentTimeBlock() => TimeManager?.GetCurrentTimeBlock().ToString() ?? "";
     protected string GetUrgentDeadline() => Model?.DeadlineTimer;
+
+    private async Task TakeObservation(ObservationViewModel observation)
+    {
+        if (observation.IsObserved)
+        {
+            return; // Already taken
+        }
+
+        // Debug the observation
+        Console.WriteLine($"[LocationScreen] Clicked observation with text: '{observation.Text}'");
+        Console.WriteLine($"[LocationScreen] Relevance: '{observation.Relevance}'");
+        Console.WriteLine($"[LocationScreen] AttentionCost: {observation.AttentionCost}");
+
+        // Use the observation ID from the text - we need to parse it or store it properly
+        // For now, use the text as a simple identifier
+        string observationId = ExtractObservationId(observation.Text);
+        
+        if (string.IsNullOrEmpty(observationId))
+        {
+            Console.WriteLine($"[LocationScreen] Could not determine observation ID from text: '{observation.Text}'");
+            Console.WriteLine("[LocationScreen] Available mappings:");
+            foreach (var mapping in GetAllObservationMappings())
+            {
+                Console.WriteLine($"  '{mapping.Key}' -> '{mapping.Value}'");
+            }
+            return;
+        }
+
+        Console.WriteLine($"[LocationScreen] Taking observation: {observationId}");
+        bool success = await GameFacade.TakeObservationAsync(observationId);
+        
+        if (success)
+        {
+            await LoadLocation(); // Refresh the location to update observation status
+            await HandleActionExecuted();
+        }
+    }
+
+    /// <summary>
+    /// Extract observation ID from observation text
+    /// This is a temporary solution - ideally the observation ID should be stored in the view model
+    /// </summary>
+    private string ExtractObservationId(string observationText)
+    {
+        // Map common observation texts to their IDs from observations.json
+        var textToIdMap = new Dictionary<string, string>
+        {
+            { "Notice guard checkpoint ahead", "guards_north" },
+            { "Eavesdrop on merchant negotiations", "merchant_negotiations" },
+            { "Guards blocking north road", "guards_blocking" },
+            { "Notice board shows Noble District schedule", "noble_schedule" },
+            { "Elena's visible distress", "elena_distress" },
+            { "Lord preparing to leave", "lord_preparing" },
+            { "Guard patrol patterns", "guard_positions" }
+        };
+
+        return textToIdMap.GetValueOrDefault(observationText?.Trim(), null);
+    }
+
+    /// <summary>
+    /// Get all observation mappings for debugging
+    /// </summary>
+    private Dictionary<string, string> GetAllObservationMappings()
+    {
+        return new Dictionary<string, string>
+        {
+            { "Notice guard checkpoint ahead", "guards_north" },
+            { "Eavesdrop on merchant negotiations", "merchant_negotiations" },
+            { "Guards blocking north road", "guards_blocking" },
+            { "Notice board shows Noble District schedule", "noble_schedule" },
+            { "Elena's visible distress", "elena_distress" },
+            { "Lord preparing to leave", "lord_preparing" },
+            { "Guard patrol patterns", "guard_positions" }
+        };
+    }
 }

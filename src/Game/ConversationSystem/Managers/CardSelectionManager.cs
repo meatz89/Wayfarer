@@ -130,7 +130,7 @@ public class CardSelectionManager
         var types = selectedCards.Select(c => c.Type).Distinct();
         if (types.Count() == 1 && selectedCards.Count > 1)
         {
-            var setBonus = GetSetBonus(selectedCards.Count);
+            var setBonus = rules.SetBonuses.TryGetValue(selectedCards.Count, out var setBonusValue) ? setBonusValue : 0;
             totalComfort += setBonus;
 
             // EAGER state gives additional bonus
@@ -163,22 +163,10 @@ public class CardSelectionManager
             TotalComfort = totalComfort,
             NewState = newState,
             Results = results,
-            SetBonus = types.Count() == 1 && selectedCards.Count > 1 ? GetSetBonus(selectedCards.Count) : 0,
+            SetBonus = types.Count() == 1 && selectedCards.Count > 1 ? 
+                (rules.SetBonuses.TryGetValue(selectedCards.Count, out var resultBonus) ? resultBonus : 0) : 0,
             ConnectedBonus = currentState == EmotionalState.CONNECTED ? 2 : 0,
             EagerBonus = currentState == EmotionalState.EAGER && selectedCards.Count >= 2 ? rules.SetBonus : 0
-        };
-    }
-
-    /// <summary>
-    /// Calculate set bonus for playing multiple cards of same type
-    /// </summary>
-    private int GetSetBonus(int count)
-    {
-        return count switch
-        {
-            2 => 2,
-            3 => 5,
-            _ => 8 // 4+
         };
     }
 
