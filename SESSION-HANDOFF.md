@@ -58,49 +58,59 @@
    - EAGER state special completely broken
    - Core mechanic for building comfort missing
 
-## 🔥 PRIORITY FIXES REQUIRED:
+## 🔥 CRITICAL FIXES STATUS:
 
-### CRITICAL FIX 1: NPC Deck Initialization
+### ✅ CRITICAL FIX 1: Initialize NPC Conversation Decks - COMPLETED
 **Problem**: Conversation decks are NULL - crashes on standard conversations
-**Solution**: Add NPCDeckFactory.CreateDeckForNPC() call in Phase3_NPCDependents
-**Impact**: Blocks ALL non-exchange conversations
+**Solution**: Added NPCDeckFactory.CreateDeckForNPC() call in Phase3_NPCDependents
+**Status**: ✅ FIXED - NPCs now properly get decks initialized
+**Verification**: Tested with Playwright - standard conversations work
 
-### CRITICAL FIX 2: Observation System
+### CRITICAL FIX 2: Observation System - NOT STARTED
 **Problem**: Core game loop broken - can't get conversation ammunition
 **Solution**: 
 - Create ObservationCard class
 - Generate at location spots
 - Add to hand when observing
 - Refresh per time period
+**Status**: ❌ NOT IMPLEMENTED
 
-### CRITICAL FIX 3: Card Persistence Rules
+### ✅ CRITICAL FIX 3: Fix Card Persistence Rules - COMPLETED
 **Problem**: Listen/Speak dichotomy violated
 **Solution**:
 - Make ALL opportunity cards vanish on Listen
 - Implement burden cards (can't vanish)
 - Remove one-shot cards from deck after playing
+**Status**: ✅ FIXED - Opportunity cards correctly vanish, one-shot cards removed
+**Verification**: Tested with Playwright - cards properly removed after use
 
-### CRITICAL FIX 4: Depth System
+### ✅ CRITICAL FIX 4: Implement Depth System - COMPLETED
 **Problem**: No progression through conversation depth
 **Solution**:
 - Track depth level (0-3)
 - Advance in Open/Connected states
 - Filter cards by depth level
+**Status**: ✅ FIXED - Depth levels 0-3 working, cards filtered by depth
+**Verification**: Tested depth advancement at comfort thresholds (5, 10, 15)
 
-### CRITICAL FIX 5: Crisis Card Injection
+### ✅ CRITICAL FIX 5: Fix Crisis Card Injection - COMPLETED
 **Problem**: Crisis states don't inject crisis cards
 **Solution**:
 - DESPERATE: Draw 2 + inject 1 crisis
 - HOSTILE: Draw 1 + inject 2 crisis
 - Make crisis cards free in these states
+**Status**: ✅ FIXED - Crisis cards injected correctly in DESPERATE/HOSTILE states
+**Verification**: Tested crisis card injection with weight 0 (free to play)
 
-### CRITICAL FIX 6: Set Bonus Calculation
+### 🔄 CRITICAL FIX 6: Calculate Set Bonuses - IN PROGRESS
 **Problem**: No comfort bonuses for matching types
 **Solution**:
 - 2 same type = +2 comfort
 - 3 same type = +5 comfort
 - 4 same type = +8 comfort
 - Essential for EAGER state (+3 bonus)
+**Status**: 🔄 IN PROGRESS - Basic calculation working, need to move from global to state rules
+**Issue Found**: Set bonuses hardcoded globally instead of in individual emotional state rules
 
 ## What's Actually Working:
 - NOTHING works properly
@@ -553,3 +563,38 @@ GameState → (ignored) → Hardcoded Templates → Hardcoded Text
 5. **TEST** that changing game values changes dialogue
 5. Test all conversation types thoroughly
 6. Verify letter generation works
+
+## 🏗️ FUNDAMENTAL UI ARCHITECTURE PRINCIPLES (Session 35)
+
+### CSS ARCHITECTURE PRINCIPLE: CLEAN SPECIFICITY
+- **NEVER use !important** to fix CSS issues - it only hides deeper problems
+- Fix the root cascade issue by properly ordering stylesheets
+- Global reset must be in common.css, loaded first
+- Component-specific styles should never override global reset
+
+### UI COMPONENT PRINCIPLE: REFACTOR, DON'T CREATE
+- **NEVER create new components** when existing ones can be refactored
+- Delete/refactor existing components to serve new purposes
+- Avoid component proliferation and maintain simplicity
+- Example: Refactor header in both screens instead of creating UnifiedTopBar
+
+### CARD-BASED INTERACTION PRINCIPLE
+- **ALL player choices are cards**, NEVER buttons for game actions
+- Exchanges use TWO cards: Accept and Decline (not buttons)
+- Cards are selected, then played with SPEAK action
+- LISTEN is disabled for Exchange conversations
+- Unified interaction model across all conversation types
+
+### UNIFIED HEADER PRINCIPLE
+- Resources (coins, health, hunger, attention) are IN the header, not above
+- Same header component across LocationScreen and ConversationScreen
+- Time display and time period are part of the unified header
+- Consistent UI element positioning across all screens
+
+### EXCHANGE SYSTEM ARCHITECTURE
+- Exchanges generate TWO cards in hand: Accept and Decline
+- No special exchange buttons or UI logic
+- Uses standard ConversationScreen with SPEAK action only
+- Exchange cards have zero weight cost
+- Accept card contains ExchangeData for execution
+- Decline card is a simple "Pass on this offer" card

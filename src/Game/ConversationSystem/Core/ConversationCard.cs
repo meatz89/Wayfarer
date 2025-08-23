@@ -110,6 +110,11 @@ public class ConversationCard
     public bool ManipulatesObligations { get; init; }
 
     /// <summary>
+    /// Minimum depth level required to play this card (0-3)
+    /// </summary>
+    public int MinDepth { get; init; }
+
+    /// <summary>
     /// Get effective weight considering state rules
     /// </summary>
     public int GetEffectiveWeight(EmotionalState state)

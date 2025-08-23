@@ -6,14 +6,39 @@
 <div class="location-screen">
     @if (Model != null)
     {
-        <!-- Header -->
+        <!-- Unified Header with Resources and Time -->
         <div class="header">
-            <div class="time-bar">
-                <span class="current-time">@Model.CurrentTime</span>
-                @if (!string.IsNullOrEmpty(Model.DeadlineTimer))
+            <div class="resource-group">
+                <div class="resource">
+                    <div class="resource-icon coins"></div>
+                    <div class="resource-value">@GetPlayerCoins()</div>
+                    <span>Coins</span>
+                </div>
+                <div class="resource @(GetPlayerHealth() < 30 ? "low" : "") @(GetPlayerHealth() < 15 ? "critical" : "")">
+                    <div class="resource-icon health"></div>
+                    <div class="resource-value">@GetPlayerHealth()</div>
+                    <span>Health</span>
+                </div>
+                <div class="resource @(GetPlayerHunger() > 60 ? "low" : "") @(GetPlayerHunger() > 80 ? "critical" : "")">
+                    <div class="resource-icon hunger"></div>
+                    <div class="resource-value">@GetPlayerHunger()</div>
+                    <span>Hunger</span>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon attention"></div>
+                    <div class="resource-value">@GetPlayerAttention()/@GetMaxAttention()</div>
+                    <span>Attention</span>
+                </div>
+            </div>
+            <div class="time-display">
+                <span class="current-time">@GetCurrentTimeDisplay()</span>
+                @if (GetUrgentDeadline() != null)
                 {
-                    <span class="deadline-warning">@Model.DeadlineTimer</span>
+                    <span class="deadline-warning">@GetUrgentDeadline()</span>
                 }
+            </div>
+            <div class="time-period">
+                @GetCurrentTimeBlock()
             </div>
         </div>
 

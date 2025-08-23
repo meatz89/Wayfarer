@@ -202,4 +202,25 @@ public partial class LocationScreen : ComponentBase
         ShowTravelModal = false;
         await TravelTo(route);
     }
+
+    // Resource display methods for unified header
+    protected int GetPlayerCoins() => GameFacade?.GetPlayer()?.Coins ?? 0;
+    protected int GetPlayerHealth() => GameFacade?.GetPlayer()?.Health ?? 0;
+    protected int GetPlayerHunger() => GameFacade?.GetPlayer()?.Food ?? 0;
+    
+    protected int GetPlayerAttention()
+    {
+        var attentionState = GameFacade?.GetCurrentAttentionState();
+        return attentionState?.Current ?? 0;
+    }
+    
+    protected int GetMaxAttention()
+    {
+        var attentionState = GameFacade?.GetCurrentAttentionState();
+        return attentionState?.Max ?? 10;
+    }
+    
+    protected string GetCurrentTimeDisplay() => Model?.CurrentTime ?? "";
+    protected string GetCurrentTimeBlock() => TimeManager?.GetCurrentTimeBlock().ToString() ?? "";
+    protected string GetUrgentDeadline() => Model?.DeadlineTimer;
 }

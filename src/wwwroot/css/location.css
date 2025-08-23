@@ -1,6 +1,108 @@
 /* Location Screen Specific Styles - Extends common.css */
 @import url('common.css');
 
+/* Unified Header with Resources and Time */
+.header {
+    background: #1a1612;
+    color: #e8dcc4;
+    padding: 10px 20px;
+    border-bottom: 2px solid #3d3429;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resource-group {
+    display: flex;
+    gap: 20px;
+}
+
+.resource {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #e8dcc4;
+}
+
+.resource span {
+    font-size: 11px;
+    color: #8b7355;
+    margin-left: 2px;
+}
+
+.resource-icon {
+    width: 20px;
+    height: 20px;
+    background: #3d3429;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+}
+
+.resource-icon.coins::before {
+    content: "¢";
+    color: #d4a76a;
+    font-weight: bold;
+}
+
+.resource-icon.health::before {
+    content: "♥";
+    color: #ff6b6b;
+}
+
+.resource-icon.hunger::before {
+    content: "▣";
+    color: #8b7355;
+}
+
+.resource-icon.attention::before {
+    content: "◉";
+    color: #7a8b5a;
+}
+
+.resource-value {
+    font-weight: bold;
+    color: #d4a76a;
+}
+
+.resource.low {
+    color: #d4704a;
+}
+
+.resource.critical {
+    color: #ff6b6b;
+    animation: pulse 2s infinite;
+}
+
+.time-display {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    font-size: 13px;
+}
+
+.current-time {
+    text-transform: uppercase;
+}
+
+.deadline-warning {
+    color: #d4a76a;
+    font-weight: bold;
+}
+
+.time-period {
+    padding: 3px 10px;
+    background: #3d3429;
+    border-radius: 3px;
+    color: #d4a76a;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
 /* Location-specific container using common base */
 .location-screen {
     /* Inherits from .game-screen in common.css */

@@ -458,53 +458,8 @@ namespace Wayfarer.Pages
             return null;
         }
 
-        protected async Task AcceptExchange()
-        {
-            var exchange = GetCurrentExchangeCard();
-            if (exchange == null) return;
-            
-            // Execute the exchange through GameFacade
-            bool success = await GameFacade.ExecuteExchange(NpcId, exchange);
-            
-            if (success)
-            {
-                Console.WriteLine($"Exchange {exchange.Id} completed successfully");
-            }
-            else
-            {
-                Console.WriteLine($"Exchange {exchange.Id} failed");
-            }
-            
-            // End conversation
-            await OnConversationEnd.InvokeAsync();
-        }
-
-        protected async Task DeclineExchange()
-        {
-            // Simply end the conversation without executing
-            Console.WriteLine("Declining exchange");
-            await OnConversationEnd.InvokeAsync();
-        }
-        
-        protected bool CanAffordExchange()
-        {
-            var exchange = GetCurrentExchangeCard();
-            if (exchange == null) return false;
-            
-            var player = GameFacade?.GetPlayer();
-            if (player == null) return false;
-            
-            var currentTime = TimeManager?.GetCurrentTimeBlock() ?? TimeBlocks.Morning;
-            var attentionMgr = AttentionManager?.GetCurrentAttention(currentTime);
-            var resourceState = new PlayerResourceState(
-                coins: player.Coins,
-                health: player.Health,
-                stamina: player.Stamina,
-                concentration: attentionMgr?.Current ?? 0
-            );
-            
-            return exchange.CanAfford(resourceState, TokenManager);
-        }
+        // DELETED AcceptExchange, DeclineExchange, and CanAffordExchange methods
+        // Exchanges now use standard SPEAK action with card selection
         
         // Player Resource Methods
         protected int GetPlayerCoins()

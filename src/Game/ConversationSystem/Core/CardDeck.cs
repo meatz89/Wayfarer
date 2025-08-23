@@ -54,7 +54,8 @@ public class CardDeck
             Type = CardType.Trust,
             Persistence = PersistenceType.Persistent,
             Weight = 0,
-            BaseComfort = 1
+            BaseComfort = 1,
+            MinDepth = 0  // Surface level
         });
 
         cards.Add(new ConversationCard
@@ -65,7 +66,8 @@ public class CardDeck
             Type = CardType.Trust,
             Persistence = PersistenceType.Persistent,
             Weight = 0,
-            BaseComfort = 1
+            BaseComfort = 1,
+            MinDepth = 0  // Surface level
         });
 
         cards.Add(new ConversationCard
@@ -76,7 +78,8 @@ public class CardDeck
             Type = CardType.Status,
             Persistence = PersistenceType.Persistent,
             Weight = 1,
-            BaseComfort = 2
+            BaseComfort = 2,
+            MinDepth = 1  // Personal level
         });
 
         cards.Add(new ConversationCard
@@ -87,7 +90,8 @@ public class CardDeck
             Type = CardType.Trust,
             Persistence = PersistenceType.Persistent,
             Weight = 1,
-            BaseComfort = 3
+            BaseComfort = 3,
+            MinDepth = 2  // Intimate level
         });
 
         cards.Add(new ConversationCard
@@ -98,7 +102,8 @@ public class CardDeck
             Type = CardType.Trust,
             Persistence = PersistenceType.Persistent,
             Weight = 0,
-            BaseComfort = 1
+            BaseComfort = 1,
+            MinDepth = 0  // Surface level
         });
     }
 
@@ -116,7 +121,8 @@ public class CardDeck
                     Type = CardType.Trust,
                     Persistence = PersistenceType.Opportunity,
                     Weight = 2,
-                    BaseComfort = 4
+                    BaseComfort = 4,
+                    MinDepth = 1  // Personal level
                 });
                 cards.Add(new ConversationCard
                 {
@@ -126,7 +132,8 @@ public class CardDeck
                     Type = CardType.Trust,
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
-                    BaseComfort = 3
+                    BaseComfort = 3,
+                    MinDepth = 2  // Intimate level
                 });
                 break;
 
@@ -140,7 +147,8 @@ public class CardDeck
                     Type = CardType.Commerce,
                     Persistence = PersistenceType.Opportunity,
                     Weight = 2,
-                    BaseComfort = 4
+                    BaseComfort = 4,
+                    MinDepth = 1  // Personal level
                 });
                 cards.Add(new ConversationCard
                 {
@@ -150,7 +158,8 @@ public class CardDeck
                     Type = CardType.Commerce,
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
-                    BaseComfort = 3
+                    BaseComfort = 3,
+                    MinDepth = 2  // Intimate level
                 });
                 break;
 
@@ -164,7 +173,8 @@ public class CardDeck
                     Type = CardType.Status,
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
-                    BaseComfort = 3
+                    BaseComfort = 3,
+                    MinDepth = 1  // Personal level
                 });
                 cards.Add(new ConversationCard
                 {
@@ -174,7 +184,8 @@ public class CardDeck
                     Type = CardType.Status,
                     Persistence = PersistenceType.Opportunity,
                     Weight = 2,
-                    BaseComfort = 4
+                    BaseComfort = 4,
+                    MinDepth = 2  // Intimate level
                 });
                 break;
 
@@ -188,7 +199,8 @@ public class CardDeck
                     Type = CardType.Shadow,
                     Persistence = PersistenceType.Opportunity,
                     Weight = 1,
-                    BaseComfort = 3
+                    BaseComfort = 3,
+                    MinDepth = 1  // Personal level
                 });
                 cards.Add(new ConversationCard
                 {
@@ -198,7 +210,8 @@ public class CardDeck
                     Type = CardType.Shadow,
                     Persistence = PersistenceType.Opportunity,
                     Weight = 2,
-                    BaseComfort = 5
+                    BaseComfort = 5,
+                    MinDepth = 3  // Deep level - hidden knowledge
                 });
                 break;
 
@@ -212,7 +225,8 @@ public class CardDeck
                     Type = CardType.Trust,
                     Persistence = PersistenceType.Persistent,
                     Weight = 2,
-                    BaseComfort = 4
+                    BaseComfort = 4,
+                    MinDepth = 2  // Intimate level
                 });
                 cards.Add(new ConversationCard
                 {
@@ -222,7 +236,8 @@ public class CardDeck
                     Type = CardType.Commerce,
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
-                    BaseComfort = 3
+                    BaseComfort = 3,
+                    MinDepth = 1  // Personal level
                 });
                 break;
         }
@@ -242,7 +257,8 @@ public class CardDeck
                 Persistence = PersistenceType.Persistent,
                 Weight = 2,
                 BaseComfort = 5,
-                CanDeliverLetter = true
+                CanDeliverLetter = true,
+                MinDepth = 3  // Deep level - letter delivery
             });
         }
 
@@ -257,7 +273,8 @@ public class CardDeck
                 Persistence = PersistenceType.Persistent,
                 Weight = 2,
                 BaseComfort = 5,
-                CanDeliverLetter = true
+                CanDeliverLetter = true,
+                MinDepth = 3  // Deep level - letter delivery
             });
         }
 
@@ -271,7 +288,8 @@ public class CardDeck
             Persistence = PersistenceType.Opportunity,
             Weight = 1,
             BaseComfort = 2,
-            ManipulatesObligations = true
+            ManipulatesObligations = true,
+            MinDepth = 2  // Intimate level - discussing obligations
         });
     }
 
@@ -285,21 +303,26 @@ public class CardDeck
             Type = CardType.Trust,
             Persistence = PersistenceType.Burden,
             Weight = 1,
-            BaseComfort = 0
+            BaseComfort = 0,
+            MinDepth = 0  // Surface level - awkward silence
         });
     }
 
     /// <summary>
-    /// Draw cards based on emotional state rules
+    /// Draw cards based on emotional state rules, filtered by depth level
     /// </summary>
-    public List<ConversationCard> Draw(int count)
+    public List<ConversationCard> Draw(int count, int currentDepth = 0)
     {
         var drawn = new List<ConversationCard>();
         
-        for (int i = 0; i < count && cards.Any(); i++)
+        // Filter cards by depth level - only cards at or below current depth
+        var availableCards = cards.Where(c => c.MinDepth <= currentDepth).ToList();
+        
+        for (int i = 0; i < count && availableCards.Any(); i++)
         {
-            var card = cards.First();
-            cards.RemoveAt(0);
+            var card = availableCards.First();
+            availableCards.RemoveAt(0);
+            cards.Remove(card);
             drawn.Add(card);
         }
 
@@ -369,7 +392,7 @@ public class CardDeck
             },
             Type = CardType.Trust,
             Persistence = PersistenceType.Crisis,
-            Weight = 5, // Heavy but free in DESPERATE
+            Weight = 0, // Free to play in DESPERATE/HOSTILE states
             BaseComfort = 8,
             Category = CardCategory.CRISIS
         };

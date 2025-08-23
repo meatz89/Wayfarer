@@ -1,5 +1,12 @@
 /* Common styles shared across all screens */
 
+/* Global Reset - Must be first */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 /* Base container for all game screens */
 .game-screen {
     max-width: 720px;

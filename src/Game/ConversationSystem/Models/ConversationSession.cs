@@ -95,7 +95,7 @@ public class ConversationSession
 
         // Draw initial hand
         var handCards = new List<ConversationCard>();
-        handCards.AddRange(deck.Draw(3)); // Base 3 cards
+        handCards.AddRange(deck.Draw(3, 0)); // Base 3 cards at depth 0
         
         // Add observation cards if any
         if (observationCards != null && observationCards.Any())
@@ -133,30 +133,52 @@ public class ConversationSession
         var exchangeCard = npc.GetTodaysExchange(currentDay);
         var handCards = new List<ConversationCard>();
         
-        // Convert ExchangeCard to ConversationCard for display
+        // Create TWO cards: Accept and Decline
         if (exchangeCard != null)
         {
-            var conversationCard = new ConversationCard
+            // 1. ACCEPT CARD - The actual exchange offer
+            var acceptCard = new ConversationCard
             {
-                Id = exchangeCard.Id,
+                Id = exchangeCard.Id + "_accept",
                 Template = CardTemplateType.Exchange,
                 Context = new CardContext
                 {
                     NPCName = npc.Name,
                     NPCPersonality = exchangeCard.NPCPersonality,
-                    ExchangeData = exchangeCard // Store the exchange card for later use
+                    ExchangeData = exchangeCard // Store the exchange card for execution
                 },
-                Type = CardType.Commerce, // Default to commerce for exchanges
-                Persistence = PersistenceType.Persistent, // Exchanges don't vanish
+                Type = CardType.Commerce,
+                Persistence = PersistenceType.Persistent,
                 Weight = 0, // Exchanges have no weight cost
-                BaseComfort = 0, // Exchanges don't build comfort
-                Category = CardCategory.COMFORT, // Use comfort category for display
+                BaseComfort = 0,
+                Category = CardCategory.COMFORT,
                 IsObservation = false,
                 CanDeliverLetter = false,
                 ManipulatesObligations = false
             };
             
-            handCards.Add(conversationCard);
+            // 2. DECLINE CARD - Pass on the offer
+            var declineCard = new ConversationCard
+            {
+                Id = exchangeCard.Id + "_decline",
+                Template = CardTemplateType.SimpleGreeting,
+                Context = new CardContext
+                {
+                    NPCName = npc.Name,
+                    NPCPersonality = exchangeCard.NPCPersonality
+                },
+                Type = CardType.Commerce,
+                Persistence = PersistenceType.Persistent,
+                Weight = 0, // No weight cost
+                BaseComfort = 0,
+                Category = CardCategory.COMFORT,
+                IsObservation = false,
+                CanDeliverLetter = false,
+                ManipulatesObligations = false
+            };
+            
+            handCards.Add(acceptCard);
+            handCards.Add(declineCard);
         }
         
         // Create simplified session for exchanges
@@ -164,7 +186,7 @@ public class ConversationSession
         {
             NPC = npc,
             CurrentState = EmotionalState.NEUTRAL, // No emotional states in exchanges
-            HandCards = handCards, // Contains the exchange card as a ConversationCard
+            HandCards = handCards, // Contains both accept and decline cards
             Deck = new CardDeck(), // Empty deck - exchanges use ExchangeDeck instead
             CurrentPatience = 1, // Single turn exchange
             MaxPatience = 1,
@@ -193,7 +215,7 @@ public class ConversationSession
         
         // Draw initial hand
         var handCards = new List<ConversationCard>();
-        handCards.AddRange(deck.Draw(2)); // Start with 2 cards
+        handCards.AddRange(deck.Draw(2, 0)); // Start with 2 cards at depth 0
         
         // Add observation cards if any
         if (observationCards != null && observationCards.Any())
@@ -231,15 +253,18 @@ public class ConversationSession
         // Get state rules
         var rules = ConversationRules.States[CurrentState];
 
-        // Draw new cards
-        var newCards = Deck.Draw(rules.CardsOnListen);
+        // Draw new cards filtered by current depth
+        var newCards = Deck.Draw(rules.CardsOnListen, CurrentDepth);
         HandCards.AddRange(newCards);
 
-        // Inject crisis if needed
+        // Inject crisis cards if needed
         if (rules.InjectsCrisis)
         {
-            var crisisCard = Deck.GenerateCrisisCard(NPC);
-            HandCards.Add(crisisCard);
+            for (int i = 0; i < rules.CrisisCardsInjected; i++)
+            {
+                var crisisCard = Deck.GenerateCrisisCard(NPC);
+                HandCards.Add(crisisCard);
+            }
         }
 
         // Transition state
@@ -297,7 +322,7 @@ public class ConversationSession
     }
 
     /// <summary>
-    /// Check if depth should advance
+    /// Check if depth should advance based on comfort thresholds and current state
     /// </summary>
     private void CheckDepthAdvancement()
     {
@@ -306,17 +331,35 @@ public class ConversationSession
         // CONNECTED auto-advances depth
         if (rules.AutoAdvanceDepth)
         {
-            CurrentDepth = Math.Min(3, CurrentDepth + 1);
+            CurrentDepth = Math.Min(GameRules.MAX_CONVERSATION_DEPTH, CurrentDepth + 1);
             return;
         }
 
-        // Check for breakthrough advancement
-        if (CurrentState == EmotionalState.NEUTRAL || 
-            CurrentState == EmotionalState.OPEN)
+        // Depth can only advance in NEUTRAL, OPEN, or CONNECTED states
+        if (CurrentState != EmotionalState.NEUTRAL && 
+            CurrentState != EmotionalState.OPEN && 
+            CurrentState != EmotionalState.CONNECTED)
         {
-            // 10+ comfort in single turn advances depth
-            // (Would need to track per-turn comfort for this)
+            return;
         }
+
+        // Check comfort thresholds for depth advancement
+        int newDepth = CurrentDepth;
+        
+        if (CurrentComfort >= GameRules.DEPTH_ADVANCE_THRESHOLD_3 && CurrentDepth < 3)
+        {
+            newDepth = 3; // Intimate to Deep
+        }
+        else if (CurrentComfort >= GameRules.DEPTH_ADVANCE_THRESHOLD_2 && CurrentDepth < 2)
+        {
+            newDepth = 2; // Personal to Intimate
+        }
+        else if (CurrentComfort >= GameRules.DEPTH_ADVANCE_THRESHOLD_1 && CurrentDepth < 1)
+        {
+            newDepth = 1; // Surface to Personal
+        }
+
+        CurrentDepth = newDepth;
     }
 
     /// <summary>

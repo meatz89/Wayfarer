@@ -41,4 +41,10 @@
     public const int ATTENTION_REFRESH_QUICK_DRINK_POINTS = 1;
     public const int ATTENTION_REFRESH_FULL_MEAL_POINTS = 2;
     public const int ATTENTION_REFRESH_MAX_TOTAL = 7;         // Maximum attention possible (base 5 + 2 meal)
+
+    // Conversation Depth Progression
+    public const int DEPTH_ADVANCE_THRESHOLD_1 = 5;          // Surface to Personal (5 comfort)
+    public const int DEPTH_ADVANCE_THRESHOLD_2 = 10;         // Personal to Intimate (10 comfort)
+    public const int DEPTH_ADVANCE_THRESHOLD_3 = 15;         // Intimate to Deep (15 comfort)
+    public const int MAX_CONVERSATION_DEPTH = 3;             // Maximum depth level
 }

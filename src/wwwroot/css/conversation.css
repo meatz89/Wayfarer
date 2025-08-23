@@ -12,16 +12,7 @@
     box-shadow: 0 0 40px rgba(0,0,0,0.5);
 }
 
-/* Player Resources Bar */
-.resources-bar {
-    background: #1a1612 !important;
-    color: #e8dcc4 !important;
-    padding: 10px 20px !important;
-    border-bottom: 2px solid #3d3429 !important;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+/* Unified Header - DELETED separate resources-bar, now integrated into header */
 
 .resource-group {
     display: flex;
@@ -88,12 +79,15 @@
     animation: pulse 2s infinite;
 }
 
-/* Time and Deadline Header */
+/* Unified Header with Resources and Time */
 .header {
-    background: #2c241a;
+    background: #1a1612;
     color: #e8dcc4;
     padding: 10px 20px;
-    border-bottom: 2px solid #5c4a3a;
+    border-bottom: 2px solid #3d3429;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .time-bar {
@@ -110,6 +104,23 @@
 .deadline-warning {
     color: #d4a76a;
     font-weight: bold;
+}
+
+.time-display {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    font-size: 13px;
+}
+
+.time-period {
+    padding: 3px 10px;
+    background: #3d3429;
+    border-radius: 3px;
+    color: #d4a76a;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Location Context */

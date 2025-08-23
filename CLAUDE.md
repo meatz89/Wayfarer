@@ -85,6 +85,24 @@ When evaluating UI implementation, you MUST follow this EXACT process:
 **🚨 HIGHLANDER PRINCIPLE: THERE CAN BE ONLY ONE 🚨**
 - NEVER have duplicate enums, classes, or concepts for the same thing. If you find EmotionalState and NPCEmotionalState, DELETE ONE. If you find two ways to track the same state, DELETE ONE. No mapping, no conversion, no compatibility layers. ONE source of truth, ONE enum, ONE class per concept.
 
+**🚨 CSS ARCHITECTURE PRINCIPLE: CLEAN SPECIFICITY 🚨**
+- NEVER use !important to fix CSS issues - it only hides deeper problems
+- Global resets go in common.css FIRST, before any other styles
+- CSS loading order: common.css → game-base.css → screen-specific CSS
+- If styles aren't applying, check the cascade and specificity, don't hack with !important
+
+**🚨 UI COMPONENT PRINCIPLE: REFACTOR, DON'T CREATE 🚨**
+- NEVER create new components when existing ones can be refactored
+- Headers should be unified across all screens - same component, same styling
+- If you need similar functionality in multiple places, REFACTOR the existing component
+- Delete duplicate UI logic immediately - one component per purpose
+
+**🚨 CARD-BASED INTERACTION PRINCIPLE 🚨**
+- ALL player choices are cards, NEVER buttons for game actions
+- Exchange system: Generate accept/decline as CARDS, not buttons
+- Use SPEAK action to select cards, not custom button handlers
+- Conversations have different rules (e.g., no LISTEN in exchanges) but same UI
+
 **⚠️ CRITICAL: ALWAYS READ ALL FILES FULLY BEFORE MODIFYING IT ⚠️**
 **NEVER make changes to a file without reading it completely first. This is non-negotiable.**
 **DOUBLE-CHECK core architectural components (navigation, routing, service registration) - analyze ALL related files and dependencies before making ANY changes to avoid breaking the application architecture.**

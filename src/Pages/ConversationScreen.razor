@@ -5,8 +5,8 @@
 <div class="game-container">
     @if (Session != null)
     {
-        <!-- Player Resources Bar -->
-        <div class="resources-bar">
+        <!-- Unified Header with Resources and Time -->
+        <div class="header">
             <div class="resource-group">
                 <div class="resource">
                     <div class="resource-icon coins"></div>
@@ -29,19 +29,15 @@
                     <span>Attention</span>
                 </div>
             </div>
-            <div class="resource-group">
-                <span>@GetCurrentTimeBlock()</span>
-            </div>
-        </div>
-
-        <!-- Time and Deadline Header -->
-        <div class="header">
-            <div class="time-bar">
+            <div class="time-display">
                 <span class="current-time">@GetCurrentTimeDisplay()</span>
                 @if (GetUrgentDeadline() != null)
                 {
                     <span class="deadline-warning">@GetUrgentDeadline()</span>
                 }
+            </div>
+            <div class="time-period">
+                @GetCurrentTimeBlock()
             </div>
         </div>
 
@@ -173,21 +169,28 @@
 
         <!-- Action Choice -->
         <div class="action-section">
-            @if (ConversationType != ConversationType.QuickExchange)
-            {
-                <!-- Standard Conversation Mode -->
-                <div class="turn-indicator">
-                    Turn @Session.TurnNumber of @Session.MaxPatience • Each choice uses 1 turn
-                </div>
-
-                @if (Session.IsHandOverflowing())
+            <div class="turn-indicator">
+                @if (ConversationType == ConversationType.QuickExchange)
                 {
-                    <div class="hand-overflow-warning">
-                        <span>⚠ Hand full! You have too much to share - must SPEAK first</span>
-                    </div>
+                    <text>Choose one option • Exchange ends after this turn</text>
                 }
+                else
+                {
+                    <text>Turn @Session.TurnNumber of @Session.MaxPatience • Each choice uses 1 turn</text>
+                }
+            </div>
 
-                <div class="action-choices">
+            @if (Session.IsHandOverflowing())
+            {
+                <div class="hand-overflow-warning">
+                    <span>⚠ Hand full! You have too much to share - must SPEAK first</span>
+                </div>
+            }
+
+            <div class="action-choices">
+                @if (ConversationType != ConversationType.QuickExchange)
+                {
+                    <!-- LISTEN only available in non-exchange conversations -->
                     <div class="action-button @(SelectedAction == ActionType.Listen ? "selected" : "")"
                          @onclick="() => SelectAction(ActionType.Listen)">
                         @if (HasOpportunities())
@@ -199,16 +202,23 @@
                             Let them continue • Draw @GetDrawCount() thoughts
                         </div>
                     </div>
+                }
 
-                    <div class="action-button @(SelectedAction == ActionType.Speak ? "selected" : "")"
-                         @onclick="() => SelectAction(ActionType.Speak)">
-                        <div>💭 SPEAK</div>
-                        <div class="action-description">
-                            Respond now • Use cards
-                        </div>
+                <div class="action-button @(SelectedAction == ActionType.Speak ? "selected" : "")"
+                     @onclick="() => SelectAction(ActionType.Speak)">
+                    <div>💭 SPEAK</div>
+                    <div class="action-description">
+                        @if (ConversationType == ConversationType.QuickExchange)
+                        {
+                            <text>Select one card</text>
+                        }
+                        else
+                        {
+                            <text>Respond now • Use cards</text>
+                        }
                     </div>
                 </div>
-            }
+            </div>
         </div>
 
         <!-- Card Hand -->
@@ -258,7 +268,7 @@
                             </div>
                             <div class="card-weight">
                                 <span class="weight-label">Weight</span>
-                                <span class="weight-value">@card.Weight</span>
+                                <span class="weight-value">@card.GetEffectiveWeight(Session.CurrentState)</span>
                             </div>
                         </div>
 
@@ -314,36 +324,16 @@
 
         <!-- Play Button -->
         <div class="play-section">
-            @if (ConversationType == ConversationType.QuickExchange)
-            {
-                <!-- Exchange mode: Accept/Decline buttons -->
-                <div class="action-choices">
-                    <button class="play-button accept" @onclick="AcceptExchange" disabled="@(!CanAffordExchange())">
-                        ACCEPT EXCHANGE
-                    </button>
-                    <button class="play-button decline" @onclick="DeclineExchange">
-                        DECLINE
-                    </button>
-                </div>
-                @if (!CanAffordExchange())
-                {
-                    <div class="play-info">You cannot afford this exchange</div>
-                }
-            }
-            else
-            {
-                <!-- Standard mode play button -->
-                <button class="play-button" @onclick="ExecuteAction" disabled="@(!CanExecute())">
-                    @GetPlayButtonText()
-                </button>
-                <div class="play-info">@GetPlayInfo()</div>
+            <button class="play-button" @onclick="ExecuteAction" disabled="@(!CanExecute())">
+                @GetPlayButtonText()
+            </button>
+            <div class="play-info">@GetPlayInfo()</div>
 
-                @if (ShowOpportunityWarning())
-                {
-                    <div class="opportunity-warning active">
-                        ⚠ Warning: Listening will cause ALL fleeting opportunities to vanish forever
-                    </div>
-                }
+            @if (ShowOpportunityWarning())
+            {
+                <div class="opportunity-warning active">
+                    ⚠ Warning: Listening will cause ALL fleeting opportunities to vanish forever
+                </div>
             }
         </div>
     }
