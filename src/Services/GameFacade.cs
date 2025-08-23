@@ -52,6 +52,8 @@ public class GameFacade
     private readonly WorldMemorySystem _worldMemorySystem;
     private readonly AmbientDialogueSystem _ambientDialogueSystem;
     private readonly EndingGenerator _endingGenerator;
+    private readonly DialogueGenerationService _dialogueGenerator;
+    private readonly NarrativeRenderer _narrativeRenderer;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -86,7 +88,9 @@ public class GameFacade
         AmbientDialogueSystem ambientDialogueSystem,
         TimeBlockAttentionManager timeBlockAttentionManager,
         NPCDeckFactory deckFactory,
-        EndingGenerator endingGenerator
+        EndingGenerator endingGenerator,
+        DialogueGenerationService dialogueGenerator,
+        NarrativeRenderer narrativeRenderer
 )
     {
         _gameWorld = gameWorld;
@@ -124,6 +128,8 @@ public class GameFacade
         _timeBlockAttentionManager = timeBlockAttentionManager;
         _deckFactory = deckFactory;
         _endingGenerator = endingGenerator;
+        _dialogueGenerator = dialogueGenerator;
+        _narrativeRenderer = narrativeRenderer;
     }
 
     // ========== ATTENTION STATE ACCESS ==========
@@ -435,21 +441,17 @@ public class GameFacade
     
     private string GetNPCDescription(NPC npc, EmotionalState state)
     {
-        // Generate categorical description based on profession and state
-        var baseActivity = npc.Profession switch
-        {
-            Professions.Scribe => "Hunched over documents",
-            Professions.Merchant => "Arranging goods with practiced efficiency",
-            Professions.Innkeeper => "Polishing glasses behind the bar",
-            _ => npc.Description ?? "Going about their business"
-        };
+        // Check if NPC has urgent letter
+        var obligations = _letterQueueManager.GetActiveObligations();
+        var hasUrgentLetter = obligations.Any(o => 
+            (o.SenderId == npc.ID || o.SenderName == npc.Name) && 
+            o.DeadlineInMinutes < 360);
         
-        if (state == EmotionalState.DESPERATE)
-        {
-            return "Clutching a sealed letter with white knuckles, eyes darting to the door with each patron's entrance.";
-        }
+        // Generate categorical template
+        var template = _dialogueGenerator.GenerateNPCDescription(npc, state, hasUrgentLetter);
         
-        return baseActivity;
+        // Render to human-readable text
+        return _narrativeRenderer.RenderTemplate(template);
     }
     
     private List<ObservationViewModel> GetLocationObservations(string locationId, string currentSpotId)

@@ -293,18 +293,37 @@ MOD: /src/Services/ObligationQueueManager.cs
 
 ### Completion Status
 ```
-Phase 1: Exchange System      [██████████] 100% ✅ FULLY WORKING
+Phase 1: Exchange System      [███████░░░] 70% ⚠️ Works but violates requirements
 Phase 2: Multiple Decks       [████░░░░░░] 40% (structure exists, exchange deck working)
-Phase 3: Conversation Types   [███░░░░░░░] 30% (QuickExchange tested, others pending)
+Phase 3: Conversation Types   [██░░░░░░░░] 20% (QuickExchange works, others untested)
 Phase 4: Enhanced Features    [░░░░░░░░░░] 0%
-Testing: E2E Tests           [███░░░░░░░] 30% (Exchange system tested with Playwright)
+Testing: E2E Tests           [██░░░░░░░░] 20% (Only exchange tested, violates core reqs)
 
-Overall:                     [█████████░] 90% (Exchange system complete and tested!)
+Overall:                     [███░░░░░░░] 30% (Major violations found, needs rework)
 ```
+
+### ⚠️ CRITICAL VIOLATIONS & BUGS FOUND (Session 33)
+
+#### Core Requirement Violations:
+- ❌ **ALL DIALOGUE IS HARDCODED** - Not systemically generated
+- ❌ **NO JSON TEMPLATES FOR DIALOGUE** - Everything is in switch statements
+- ❌ **VIOLATES CORE REQUIREMENT** - "no static content" is completely violated
+
+#### Critical Bugs:
+- ❌ **NPC CONVERSATION DECKS NEVER INITIALIZED** - NPCDeckFactory never called during startup
+- ❌ **STANDARD CONVERSATIONS IMPOSSIBLE** - ConversationDeck is always null
+- ❌ **ONLY QUICKEXCHANGE WORKS** - Because ExchangeDeck has lazy initialization
+- ❌ **NO DECK INITIALIZATION IN CONTENT PIPELINE** - Phase3_NPCDependents doesn't initialize decks
+
+#### Untested Features:
+- ❌ **CRISIS CONVERSATIONS** - Code exists but can't be tested (no deck)
+- ❌ **DEEP CONVERSATIONS** - Code exists but can't be tested (no deck)
+- ❌ **STANDARD CONVERSATIONS** - Code exists but can't be tested (no deck)
+- ❌ **LETTER GENERATION** - Never tested if letters generate from conversations
 
 ### ⚠️ CRITICAL: What's Actually Working
 - ✅ Build compiles successfully
-- ✅ Exchange system FULLY FUNCTIONAL
+- ✅ Exchange system executes trades correctly
 - ✅ Quick Exchange conversations working
 - ✅ Resource trading verified (stamina → coins)
 - ✅ Daily exchange card selection working

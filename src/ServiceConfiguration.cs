@@ -1,4 +1,6 @@
-﻿public static class ServiceConfiguration
+﻿using System.IO;
+
+public static class ServiceConfiguration
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
@@ -76,6 +78,11 @@
         // New card-based conversation system
         services.AddSingleton<ConversationManager>();
         services.AddSingleton<NPCDeckFactory>();
+        
+        // Dialogue generation services (NO hardcoded text)
+        services.AddSingleton<DialogueGenerationService>(provider => 
+            new DialogueGenerationService(Path.Combine("Content", "Templates")));
+        services.AddSingleton<NarrativeRenderer>();
 
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();

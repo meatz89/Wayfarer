@@ -20,6 +20,46 @@ public class Phase3_NPCDependents : IInitializationPhase
 
         // 2. Load DeliveryObligation Templates (depends on NPCs for validation)
         LoadLetterTemplates(context);
+        
+        // 3. Initialize NPC Conversation Decks (CRITICAL - was missing!)
+        InitializeNPCDecks(context);
+    }
+    
+    private void InitializeNPCDecks(InitializationContext context)
+    {
+        Console.WriteLine("[Phase3] Initializing NPC conversation decks...");
+        
+        // Get NPCDeckFactory from context (should be registered in services)
+        var npcs = context.GameWorld.WorldState.NPCs;
+        
+        if (npcs == null || !npcs.Any())
+        {
+            Console.WriteLine("[Phase3] No NPCs found to initialize decks for");
+            return;
+        }
+        
+        // Create a deck factory instance
+        var deckFactory = new NPCDeckFactory();
+        
+        foreach (var npc in npcs)
+        {
+            try
+            {
+                // Initialize conversation deck for each NPC
+                npc.InitializeConversationDeck(deckFactory);
+                
+                // Also initialize exchange deck (lazy init, but do it here for consistency)
+                npc.InitializeExchangeDeck();
+                
+                Console.WriteLine($"[Phase3] Initialized decks for NPC: {npc.Name} (ID: {npc.ID})");
+            }
+            catch (Exception ex)
+            {
+                context.Warnings.Add($"Failed to initialize decks for NPC {npc.Name}: {ex.Message}");
+            }
+        }
+        
+        Console.WriteLine($"[Phase3] Initialized decks for {npcs.Count} NPCs");
     }
 
     private TierLevel ParseTierLevel(string tierString)

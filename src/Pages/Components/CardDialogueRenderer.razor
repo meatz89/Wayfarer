@@ -1,4 +1,6 @@
-@* Maps card templates and context to actual dialogue text *@
+@* Renders card dialogue from categorical templates - NO hardcoded text *@
+@inject DialogueGenerationService DialogueGenerator
+@inject NarrativeRenderer NarrativeRenderer
 
 @code {
     [Parameter] public CardTemplateType Template { get; set; }
@@ -8,66 +10,19 @@
 
     private string GetCardText()
     {
-        // Map template + context to actual dialogue
-        if (Context?.EmotionalState == EmotionalState.DESPERATE)
+        // Generate categorical template from card type
+        var template = DialogueGenerator.GenerateCardDialogue(Template, IsPlayerCard);
+        
+        // Render template to human-readable text
+        var text = NarrativeRenderer.RenderTemplate(template);
+        
+        // Add NPC name if contextually appropriate
+        if (!string.IsNullOrEmpty(NPCName) && Context?.EmotionalState == EmotionalState.DESPERATE)
         {
-            return Template switch
-            {
-                CardTemplateType.MakePromise => $"I promise I'll help you, {NPCName}. We'll get your letter to Lord Blackwood before the deadline. Your father won't force this marriage on you.",
-                CardTemplateType.MentionObservation => "I saw Lord Blackwood's guards at the tavern earlier. They mentioned he's leaving for the capital at dawn. We need to reach him tonight.",
-                CardTemplateType.ProvideReassurance => $"{NPCName}, breathe. We have time. I'm here to help you. Let's think through this together - there's always a way.",
-                CardTemplateType.MakeDesperatePromise => $"{NPCName}, I swear on my life - I will get this letter to Lord Blackwood. Even if I have to fight through his guards, even if it costs me everything!",
-                _ => GetDefaultCardText()
-            };
+            text = text.Replace("you", NPCName);
         }
-
-        return GetDefaultCardText();
-    }
-
-    private string GetDefaultCardText()
-    {
-        return Template switch
-        {
-            // Generic templates
-            CardTemplateType.SimpleGreeting => IsPlayerCard ? "Good day. How are things?" : $"Ah, it's you. What brings you here?",
-            CardTemplateType.ActiveListening => IsPlayerCard ? "Please, tell me more." : "You seem interested in what I have to say.",
-            CardTemplateType.CasualInquiry => IsPlayerCard ? "What's been happening lately?" : "Just the usual troubles, nothing special.",
-            
-            // Trust templates
-            CardTemplateType.OfferHelp => IsPlayerCard ? "Is there anything I can do to help?" : "Your offer is appreciated.",
-            CardTemplateType.SharePersonal => IsPlayerCard ? "Let me tell you something about myself..." : "I don't often share this, but...",
-            CardTemplateType.MakePromise => IsPlayerCard ? "You have my word on this." : "I'm counting on you to keep that promise.",
-            CardTemplateType.ExpressEmpathy => IsPlayerCard ? "I understand how difficult this must be." : "It's rare to find someone who truly understands.",
-            
-            // Commerce templates
-            CardTemplateType.DiscussBusiness => IsPlayerCard ? "How's business been treating you?" : "Trade has been slow lately.",
-            CardTemplateType.ProposeDeal => IsPlayerCard ? "I have a proposition that might interest you." : "I'm listening. What are the terms?",
-            CardTemplateType.NegotiateTerms => IsPlayerCard ? "Let's work out the details." : "These terms are acceptable.",
-            CardTemplateType.OfferWork => IsPlayerCard ? "Perhaps I could help with your deliveries?" : "I do need someone reliable.",
-            
-            // Status templates
-            CardTemplateType.ShowRespect => IsPlayerCard ? "Your reputation precedes you." : "It's good to be recognized.",
-            CardTemplateType.AcknowledgePosition => IsPlayerCard ? "I understand your position in this matter." : "At least someone appreciates the situation.",
-            CardTemplateType.ShareInformation => IsPlayerCard ? "I have some information that might interest you." : "Tell me what you know.",
-            
-            // Shadow templates
-            CardTemplateType.ShareSecret => IsPlayerCard ? "I've heard something you should know..." : "This stays between us.",
-            CardTemplateType.ImplyKnowledge => IsPlayerCard ? "I know more than I'm saying." : "You seem well-informed.",
-            
-            // State change templates
-            CardTemplateType.CalmnessAttempt => IsPlayerCard ? "Let's take a moment to breathe." : "Perhaps you're right. I should calm down.",
-            CardTemplateType.OpeningUp => IsPlayerCard ? "I feel like we can trust each other." : "Yes, I'm beginning to feel the same.",
-            
-            // Crisis templates
-            CardTemplateType.UrgentPlea => IsPlayerCard ? "This is urgent - I need your help now!" : "Please, you must help me immediately!",
-            CardTemplateType.DesperateRequest => IsPlayerCard ? "I'm desperate. Please!" : "I have nowhere else to turn!",
-            
-            // Letter/Obligation templates
-            CardTemplateType.DiscussObligation => IsPlayerCard ? "Let me tell you about my obligations." : "We all have our duties to fulfill.",
-            CardTemplateType.DeliverLetter => IsPlayerCard ? "I have a letter for you." : "Finally, I've been waiting for this.",
-            
-            _ => IsPlayerCard ? "..." : "Hmm."
-        };
+        
+        return text;
     }
 
     private string GetSuccessDescription()
@@ -79,6 +34,7 @@
 
     private int GetCardWeight()
     {
+        // Get weight from card template configuration
         return Template switch
         {
             CardTemplateType.SimpleGreeting => 0,
@@ -95,6 +51,7 @@
 
     private string GetCardTypeClass()
     {
+        // Determine card visual category from template
         if (Template.ToString().Contains("Calm") || Template.ToString().Contains("Opening"))
             return "state";
         if (Template.ToString().Contains("Desperate") || Template.ToString().Contains("Urgent"))
