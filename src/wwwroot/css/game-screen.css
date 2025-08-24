@@ -39,14 +39,39 @@
 }
 
 .resource-icon {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
     background: #3d3429;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #d4a76a;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+    border: 1px solid #4a3f30;
+}
+
+/* Define icons without emoji */
+.resource-icon.coins::before {
+    content: "C";
+    color: #d4a76a;
+}
+
+.resource-icon.health::before {
+    content: "H";
+    color: #ff6b6b;
+}
+
+.resource-icon.hunger::before {
+    content: "F";
+    color: #c4a684;
+}
+
+.resource-icon.attention::before {
+    content: "A";
+    color: #7a8b5a;
 }
 
 .resource-value {
@@ -487,7 +512,27 @@
 }
 
 .nav-icon {
-    font-size: 20px;
+    width: 24px;
+    height: 24px;
+    background: #5c4a3a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: #d4a76a;
+    margin: 0 auto 4px;
+}
+
+.nav-button:hover .nav-icon {
+    background: #7a6250;
+    color: #faf4ea;
+}
+
+.nav-button.active .nav-icon {
+    background: #d4a76a;
+    color: #2c241a;
 }
 
 .badge {
@@ -760,12 +805,14 @@
 }
 
 .card {
-    background: #faf4ea;
+    background: linear-gradient(135deg, #faf4ea, #f4e8d0);
     border: 2px solid #c4a684;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: visible;
 }
 
 .card:hover {
@@ -800,15 +847,17 @@
 
 .card-marker {
     position: absolute;
-    top: -8px;
+    top: 8px;
     right: 10px;
     background: #8b4726;
-    color: white;
+    color: #faf4ea;
     padding: 2px 8px;
     border-radius: 2px;
     font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-weight: bold;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 

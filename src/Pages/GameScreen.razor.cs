@@ -55,7 +55,7 @@ namespace Wayfarer.Pages
         protected string CurrentSpot { get; set; } = "";
 
         // Navigation State
-        protected string SelectedNpcId { get; set; }
+        protected ConversationContext CurrentConversationContext { get; set; }
         protected int PendingLetterCount { get; set; }
 
         protected override async Task OnInitializedAsync()
@@ -172,7 +172,7 @@ namespace Wayfarer.Pages
             switch (CurrentScreen)
             {
                 case ScreenMode.Conversation:
-                    state["NpcId"] = SelectedNpcId;
+                    state["NpcId"] = CurrentConversationContext?.NpcId;
                     break;
             }
             
@@ -194,7 +194,7 @@ namespace Wayfarer.Pages
             await RefreshTimeDisplay();
         }
 
-        protected async Task HandleNavigation(string target)
+        public async Task HandleNavigation(string target)
         {
             Console.WriteLine($"[GameScreen] HandleNavigation: {target}");
             
@@ -210,12 +210,22 @@ namespace Wayfarer.Pages
                 case "travel":
                     await NavigateToScreen(ScreenMode.Travel);
                     break;
-                case "conversation":
-                    // Get the NPC ID from NavigationCoordinator
-                    SelectedNpcId = NavigationCoordinator.GetCurrentNpcId();
-                    Console.WriteLine($"[GameScreen] Starting conversation with NPC: {SelectedNpcId}");
-                    await NavigateToScreen(ScreenMode.Conversation);
-                    break;
+            }
+        }
+
+        public async Task StartConversation(string npcId, ConversationType type)
+        {
+            CurrentConversationContext = await GameFacade.CreateConversationContext(npcId, type);
+            if (CurrentConversationContext != null && CurrentConversationContext.IsValid)
+            {
+                CurrentScreen = ScreenMode.Conversation;
+                ContentVersion++; // Force re-render
+                StateHasChanged();
+            }
+            else if (CurrentConversationContext != null)
+            {
+                // Show error message
+                Console.WriteLine($"[GameScreen] Cannot start conversation: {CurrentConversationContext.ErrorMessage}");
             }
         }
 
@@ -225,14 +235,6 @@ namespace Wayfarer.Pages
             
             switch (eventType)
             {
-                case "StartConversation":
-                    if (data is string npcId)
-                    {
-                        SelectedNpcId = npcId;
-                        _ = NavigateToScreen(ScreenMode.Conversation);
-                    }
-                    break;
-                    
                 case "ConversationEnded":
                     _ = NavigateToScreen(ScreenMode.Location);
                     break;
@@ -246,6 +248,7 @@ namespace Wayfarer.Pages
         protected async Task HandleConversationEnd()
         {
             Console.WriteLine("[GameScreen] Conversation ended");
+            CurrentConversationContext = null;
             await NavigateToScreen(ScreenMode.Location);
         }
 

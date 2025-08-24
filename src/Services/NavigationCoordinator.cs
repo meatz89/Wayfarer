@@ -28,7 +28,6 @@ public class NavigationCoordinator
     }
 
     // Context for certain screens
-    private string _currentNpcId = null;
     private string _targetLocationId = null;
 
     public CurrentViews CurrentView => _currentView;
@@ -66,17 +65,7 @@ public class NavigationCoordinator
         try
         {
             // Store context for certain transitions
-            if (targetView == CurrentViews.ConversationScreen)
-            {
-                // Only update NPC ID if context is provided
-                // This preserves NPC ID set by SetConversationNpcId() when context is null
-                if (context is string npcId)
-                {
-                    _currentNpcId = npcId;
-                }
-                // If context is null, keep the existing _currentNpcId value
-            }
-            else if (targetView == CurrentViews.TravelScreen && context is string locationId)
+            if (targetView == CurrentViews.TravelScreen && context is string locationId)
             {
                 _targetLocationId = locationId;
             }
@@ -169,11 +158,7 @@ public class NavigationCoordinator
         {
             case CurrentViews.ConversationScreen:
                 // End conversation if still active
-                if (_currentNpcId != null)
-                {
-                    await _gameFacade.EndConversationAsync();
-                    _currentNpcId = null;
-                }
+                await _gameFacade.EndConversationAsync();
                 break;
 
             case CurrentViews.TravelScreen:
@@ -190,7 +175,7 @@ public class NavigationCoordinator
                 // Start conversation if NPC provided
                 if (context is string npcId)
                 {
-                    await _gameFacade.StartConversationAsync(npcId);
+                    await _gameFacade.CreateConversationContext(npcId);
                 }
                 break;
 
@@ -219,29 +204,6 @@ public class NavigationCoordinator
         return await NavigateToAsync(CurrentViews.ConversationScreen, npcId);
     }
     
-    public void SetConversationNpcId(string npcId)
-    {
-        Console.WriteLine($"[NavigationCoordinator.SetConversationNpcId] Setting NPC ID: '{npcId}'");
-        _currentNpcId = npcId;
-    }
-    
-    public string GetCurrentNpcId()
-    {
-        Console.WriteLine($"[NavigationCoordinator.GetCurrentNpcId] Returning NPC ID: '{_currentNpcId}'");
-        return _currentNpcId;
-    }
-    
-    private ConversationType _currentConversationType = ConversationType.Standard;
-    
-    public void SetConversationType(ConversationType conversationType)
-    {
-        _currentConversationType = conversationType;
-    }
-    
-    public ConversationType GetConversationType()
-    {
-        return _currentConversationType;
-    }
 
     public async Task<bool> OpenTravelSelectionAsync(string targetLocationId = null)
     {

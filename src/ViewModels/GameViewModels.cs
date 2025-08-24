@@ -123,36 +123,6 @@ public class TravelProgressViewModel
     public string TimeRemaining { get; set; }
 }
 
-public class ConversationViewModel
-{
-    public string NpcName { get; set; }
-    public string NpcId { get; set; }
-    public string CurrentText { get; set; }
-    public bool IsComplete { get; set; }
-    public int CurrentAttention { get; set; }
-    public int MaxAttention { get; set; } = 3;
-    public string LocationName { get; set; }
-    public List<string> LocationPath { get; set; } = new();
-    public List<ConversationChoiceViewModel> Choices { get; set; } = new();
-    public string CurrentLocation { get; set; }
-    public string QueueStatus { get; set; }
-    public string CoinStatus { get; set; }
-    public string CurrentTime { get; set; }
-    public int MinutesUntilDeadline { get; set; }
-    public int LetterQueueSize { get; set; }
-}
-
-public class ConversationChoiceViewModel
-{
-    public string Id { get; set; }
-    public string Text { get; set; }
-    public int PatienceCost { get; set; }
-    public string PatienceDisplay { get; set; }
-    public bool IsLocked { get; set; }
-    public List<MechanicEffectViewModel> Mechanics { get; set; } = new();
-    public bool IsAvailable { get; set; } = true;
-    public string UnavailableReason { get; set; }
-}
 
 public class MechanicEffectViewModel
 {

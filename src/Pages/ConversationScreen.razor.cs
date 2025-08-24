@@ -34,11 +34,8 @@ namespace Wayfarer.Pages
         {
             try
             {
-                // Get conversation type from NavigationCoordinator if not set
-                if (ConversationType == ConversationType.Standard && NavigationCoordinator != null)
-                {
-                    ConversationType = NavigationCoordinator.GetConversationType();
-                }
+                // ConversationType is now passed directly as parameter
+                // No need to get from NavigationCoordinator
                 
                 // Get any observation cards from GameFacade
                 var observationCards = GetObservationCards();

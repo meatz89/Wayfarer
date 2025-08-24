@@ -223,7 +223,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5116\" timeout 10 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5116\" timeout 3 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5116\" timeout 5 dotnet run --no-build)",
-      "Bash(fuser:*)"
+      "Bash(fuser:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5050\" dotnet run --no-build)",
+      "Read(//tmp/**)"
     ],
     "deny": []
   }

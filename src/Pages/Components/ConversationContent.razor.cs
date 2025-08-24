@@ -8,13 +8,11 @@ namespace Wayfarer.Pages.Components
 {
     public class ConversationContentBase : ComponentBase
     {
-        [Parameter] public string NpcId { get; set; }
+        [Parameter] public ConversationContext Context { get; set; }
         [Parameter] public EventCallback OnConversationEnd { get; set; }
 
         [Inject] protected ConversationManager ConversationManager { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
-        [Inject] protected NavigationCoordinator NavigationCoordinator { get; set; }
-        [Inject] protected ObservationManager ObservationManager { get; set; }
 
         protected ConversationSession Session { get; set; }
         protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
@@ -28,54 +26,46 @@ namespace Wayfarer.Pages.Components
 
         protected override async Task OnInitializedAsync()
         {
-            await StartConversation();
+            await InitializeFromContext();
         }
 
         protected override async Task OnParametersSetAsync()
         {
-            Console.WriteLine($"[ConversationContent.OnParametersSetAsync] NpcId parameter: '{NpcId}'");
-            if (Session?.NPC?.ID != NpcId)
+            Console.WriteLine($"[ConversationContent.OnParametersSetAsync] Context parameter: '{Context?.NpcId}'");
+            if (Context != null && Session?.NPC?.ID != Context.NpcId)
             {
-                await StartConversation();
+                await InitializeFromContext();
             }
         }
 
-        private async Task StartConversation()
+        private async Task InitializeFromContext()
         {
             try
             {
-                Console.WriteLine($"[ConversationContent.StartConversation] Starting with NpcId: '{NpcId}'");
-                
-                var conversationType = NavigationCoordinator.GetConversationType();
-                
-                // Get observation cards from inventory
-                var observationCards = GetObservationCards();
-                
-                // Start conversation
-                Session = ConversationManager.StartConversation(NpcId, conversationType, observationCards);
-                
-                if (Session != null)
+                if (Context == null || !Context.IsValid)
                 {
-                    var npc = GameFacade.GetNPCById(NpcId);
-                    NpcName = npc?.Name ?? "Unknown";
-                    
-                    // Generate initial narrative
-                    LastNarrative = "The conversation begins...";
-                    LastDialogue = GetInitialDialogue();
+                    Console.WriteLine($"[ConversationContent.InitializeFromContext] Invalid context: {Context?.ErrorMessage}");
+                    await OnConversationEnd.InvokeAsync();
+                    return;
                 }
+
+                Console.WriteLine($"[ConversationContent.InitializeFromContext] Initializing with NpcId: '{Context.NpcId}'");
+                
+                // Use the conversation session from the context
+                Session = Context.Session;
+                NpcName = Context.Npc?.Name ?? "Unknown";
+                
+                // Generate initial narrative
+                LastNarrative = "The conversation begins...";
+                LastDialogue = GetInitialDialogue();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ConversationContent] Failed to start conversation: {ex.Message}");
+                Console.WriteLine($"[ConversationContent] Failed to initialize from context: {ex.Message}");
                 await OnConversationEnd.InvokeAsync();
             }
         }
 
-        private List<ConversationCard> GetObservationCards()
-        {
-            // Get observation cards from the observation manager
-            return ObservationManager?.GetObservationCards() ?? new List<ConversationCard>();
-        }
 
         protected async Task ExecuteListen()
         {
@@ -266,7 +256,7 @@ namespace Wayfarer.Pages.Components
             Session.LetterGenerated = true;
             
             // Log the letter generation
-            var npcName = GameFacade.GetNPCById(NpcId)?.Name ?? "The NPC";
+            var npcName = Context?.Npc?.Name ?? "The NPC";
             Console.WriteLine($"[ConversationContent] Letter generated from {npcName}!");
             Console.WriteLine($"   → Tier: {GetTierDescription(tier)}");
             Console.WriteLine($"   → Deadline: {obligation.DeadlineInMinutes / 60}h | Payment: {obligation.Payment} coins");
@@ -301,8 +291,8 @@ namespace Wayfarer.Pages.Components
             // Determine letter parameters based on tier
             var (deadline, payment, stakes, weight) = GetTierParameters(tier);
             
-            // Get the NPC
-            var npc = GameFacade.GetNPCById(NpcId);
+            // Get the NPC from context
+            var npc = Context?.Npc;
             if (npc == null) return null;
             
             // Determine token type from NPC's available types
@@ -396,7 +386,7 @@ namespace Wayfarer.Pages.Components
 
         protected void ToggleCardSelection(ConversationCard card)
         {
-            var conversationType = NavigationCoordinator.GetConversationType();
+            var conversationType = Context?.Type ?? ConversationType.Standard;
             if (conversationType == ConversationType.QuickExchange)
             {
                 // For exchanges, selecting a card immediately plays it
@@ -447,12 +437,13 @@ namespace Wayfarer.Pages.Components
         // UI Helper Methods
         protected string GetConversationModeTitle()
         {
-            var conversationType = NavigationCoordinator.GetConversationType();
+            var conversationType = Context?.Type ?? ConversationType.Standard;
             return conversationType switch
             {
                 ConversationType.QuickExchange => "Quick Exchange",
                 ConversationType.Crisis => "Crisis Resolution",
                 ConversationType.Standard => "Standard Conversation",
+                ConversationType.Deep => "Deep Conversation",
                 _ => "Conversation"
             };
         }

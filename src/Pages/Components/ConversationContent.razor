@@ -9,7 +9,7 @@
         <div class="conversation-mode">
             <div class="mode-title">@GetConversationModeTitle()</div>
             <div class="mode-cost">
-                @if (NavigationCoordinator.GetConversationType() != ConversationType.QuickExchange)
+                @if ((Context?.Type ?? ConversationType.Standard) != ConversationType.QuickExchange)
                 {
                     <span class="cost-item">@Session.TurnNumber/@Session.MaxPatience Patience</span>
                 }
@@ -20,14 +20,14 @@
         <div class="npc-header">
             <div class="npc-info">
                 <h2>@NpcName</h2>
-                @if (NavigationCoordinator.GetConversationType() != ConversationType.QuickExchange)
+                @if ((Context?.Type ?? ConversationType.Standard) != ConversationType.QuickExchange)
                 {
                     <div class="npc-state @GetStateClass()">@Session.CurrentState</div>
                 }
             </div>
         </div>
 
-        @if (NavigationCoordinator.GetConversationType() != ConversationType.QuickExchange)
+        @if ((Context?.Type ?? ConversationType.Standard) != ConversationType.QuickExchange)
         {
             <!-- Progress Section -->
             <div class="progress-section">
@@ -84,7 +84,7 @@
 
         <!-- Action Section -->
         <div class="action-section">
-            @if (NavigationCoordinator.GetConversationType() == ConversationType.QuickExchange)
+            @if ((Context?.Type ?? ConversationType.Standard) == ConversationType.QuickExchange)
             {
                 <!-- Exchange shows cards directly -->
                 <div class="turn-indicator">Choose Your Response</div>
@@ -116,7 +116,7 @@
         <div class="cards-section">
             <div class="cards-header">
                 <div class="cards-title">Your Hand</div>
-                @if (NavigationCoordinator.GetConversationType() != ConversationType.QuickExchange)
+                @if ((Context?.Type ?? ConversationType.Standard) != ConversationType.QuickExchange)
                 {
                     <div class="weight-tracker @(TotalSelectedWeight > GetWeightLimit() ? "over-limit" : "")">
                         <span>Weight Used:</span>

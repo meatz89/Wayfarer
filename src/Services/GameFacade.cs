@@ -2282,17 +2282,20 @@ public class GameFacade
 
     // ========== CONVERSATIONS ==========
 
-    public async Task<ConversationViewModel> StartConversationAsync(string npcId, ConversationType conversationType = ConversationType.Standard)
+    public async Task<ConversationContext> CreateConversationContext(string npcId, ConversationType conversationType = ConversationType.Standard)
     {
-        // New card-based conversation system
-        // Conversations are now handled directly by ConversationScreen component
-        // This method validates the NPC exists and creates the view model
+        // Create conversation context with all data needed atomically
+        // This prevents race conditions and ensures complete data before navigation
         
         NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) 
         {
             Console.WriteLine($"[GameFacade] NPC {npcId} not found in repository");
-            return null;
+            return new ConversationContext
+            {
+                IsValid = false,
+                ErrorMessage = $"NPC {npcId} not found"
+            };
         }
         
         Player player = _gameWorld.GetPlayer();
@@ -2303,7 +2306,11 @@ public class GameFacade
         if (worldNpc == null)
         {
             Console.WriteLine($"[GameFacade] NPC {npcId} not found in GameWorld.NPCs");
-            return null;
+            return new ConversationContext
+            {
+                IsValid = false,
+                ErrorMessage = $"NPC {npcId} not found in game world"
+            };
         }
             
         // Debug logging
@@ -2314,10 +2321,14 @@ public class GameFacade
         if (player.CurrentLocationSpot == null || worldNpc.SpotId != player.CurrentLocationSpot.SpotID)
         {
             Console.WriteLine($"[GameFacade] NPC spot mismatch - conversation blocked");
-            return null;
+            return new ConversationContext
+            {
+                IsValid = false,
+                ErrorMessage = "NPC is not at your current location"
+            };
         }
         
-        // CRITICAL FIX: Check and deduct attention cost BEFORE starting conversation
+        // Check and deduct attention cost BEFORE starting conversation
         int attentionCost = ConversationTypeConfig.GetAttentionCost(conversationType);
         var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
         var currentAttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
@@ -2327,7 +2338,11 @@ public class GameFacade
         {
             Console.WriteLine($"[GameFacade] Not enough attention for {conversationType} conversation. Cost: {attentionCost}, Available: {currentAttentionManager.GetAvailableAttention()}");
             _messageSystem.AddSystemMessage($"You don't have enough attention for this conversation (need {attentionCost}, have {currentAttentionManager.GetAvailableAttention()})", SystemMessageTypes.Warning);
-            return null;
+            return new ConversationContext
+            {
+                IsValid = false,
+                ErrorMessage = $"Not enough attention (need {attentionCost}, have {currentAttentionManager.GetAvailableAttention()})"
+            };
         }
         
         // Deduct the attention cost
@@ -2337,32 +2352,40 @@ public class GameFacade
             if (!spendSuccess)
             {
                 Console.WriteLine($"[GameFacade] Failed to spend attention for conversation");
-                return null;
+                return new ConversationContext
+                {
+                    IsValid = false,
+                    ErrorMessage = "Failed to spend attention for conversation"
+                };
             }
             Console.WriteLine($"[GameFacade] Spent {attentionCost} attention for {conversationType} conversation. Remaining: {currentAttentionManager.GetAvailableAttention()}");
         }
             
         // Get observation cards for this conversation
         var observationCards = _observationManager.GetObservationCards();
-        Console.WriteLine($"[GameFacade.StartConversation] Including {observationCards.Count} observation cards in conversation");
+        Console.WriteLine($"[GameFacade.CreateConversationContext] Including {observationCards.Count} observation cards in conversation");
 
         // Start the conversation session with observation cards
         var conversationSession = _conversationManager.StartConversation(npcId, conversationType, observationCards);
         
-        // Create conversation view model with UPDATED attention state (after spending)
-        var viewModel = new ConversationViewModel
+        // Create complete conversation context atomically
+        var context = new ConversationContext
         {
-            NpcName = npc.Name,
             NpcId = npc.ID,
+            Npc = npc,
+            Type = conversationType,
+            Session = conversationSession,
+            ObservationCards = observationCards,
+            AttentionSpent = attentionCost,
+            InitialState = ConversationRules.DetermineInitialState(worldNpc, _letterQueueManager),
+            PlayerResources = _gameWorld.GetPlayerResourceState(),
             LocationName = location.Name,
-            CurrentAttention = currentAttentionManager.GetAvailableAttention(),  // Use the attention AFTER spending
-            MaxAttention = currentAttentionManager.GetMaxAttention(),
-            CurrentTime = _timeManager.GetFormattedTimeDisplay(),
-            QueueStatus = $"{player.ObligationQueue.Count(o => o != null)}/8",
-            CoinStatus = $"{player.Coins}s"
+            TimeDisplay = _timeManager.GetFormattedTimeDisplay(),
+            IsValid = true,
+            ErrorMessage = null
         };
         
-        return viewModel;
+        return context;
     }
 
     public async Task<bool> ExecuteExchange(string npcId, ExchangeCard exchange)

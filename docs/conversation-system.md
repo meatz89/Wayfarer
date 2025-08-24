@@ -51,6 +51,7 @@ Daily allocation of 10 attention points:
 - **Observation**: 1 attention (gain conversation card)
 - **Crisis Conversation**: 1 attention (forced resolution)
 - **Standard Conversation**: 2 attention (full system)
+- **Deep Conversation**: 3 attention (extended interaction)
 - **Work Action**: 2 attention (convert to coins)
 
 Travel costs TIME (affecting deadlines), not attention. This creates natural tension between staying to maximize local interactions versus traveling to meet obligations.
@@ -94,6 +95,12 @@ All use the same system with different configurations:
 - Complete Listen/Speak mechanics
 - Can generate letters at comfort thresholds
 - Uses conversation deck
+
+**Deep Conversation** (3 attention, 12 patience)
+- Extended emotional navigation
+- Higher comfort requirements
+- Better letter rewards
+- Requires relationship level 3+
 
 ### Emotional States
 
@@ -197,6 +204,7 @@ Depth levels affect card availability and comfort requirements:
 - **Depth 0**: Surface (small talk)
 - **Depth 1**: Personal (experiences)
 - **Depth 2**: Intimate (connection)
+- **Depth 3**: Soul-deep (profound)
 
 Depth advances only in Neutral/Open/Connected states when reaching comfort thresholds.
 
@@ -427,7 +435,7 @@ Travel costs time, creating deadline pressure:
 - Letter generated, new obligation
 
 **Evening at Tavern**:
-- conversation with Bertram (3 attention)
+- Deep conversation with Bertram (3 attention)
 - Attention exhausted
 - Rest for night
 
@@ -445,7 +453,7 @@ Relationships aren't numbers but deck composition:
 
 - Early: Only Quick Exchange available
 - Level 1: Standard Conversations unlock
-- Level 3: conversations unlock
+- Level 3: Deep Conversations unlock
 - Level 5: Special conversation types
 
 ### Economic Progression

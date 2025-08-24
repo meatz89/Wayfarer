@@ -9,10 +9,10 @@ namespace Wayfarer.Pages.Components
     public class LocationContentBase : ComponentBase
     {
         [Inject] protected GameFacade GameFacade { get; set; }
-        [Inject] protected NavigationCoordinator NavigationCoordinator { get; set; }
         
         [Parameter] public EventCallback OnActionExecuted { get; set; }
-        [Parameter] public EventCallback<string> OnNavigate { get; set; }
+        
+        [CascadingParameter] protected GameScreenBase GameScreen { get; set; }
 
         protected LocationSpot CurrentSpot { get; set; }
         protected List<NpcViewModel> AvailableNpcs { get; set; } = new();
@@ -145,19 +145,13 @@ namespace Wayfarer.Pages.Components
         {
             Console.WriteLine($"[LocationContent] Starting {type} conversation with NPC ID: '{npcId}'");
             
-            var result = await GameFacade.StartConversationAsync(npcId, type);
-            if (result != null)
+            if (GameScreen != null)
             {
-                Console.WriteLine($"[LocationContent] Setting NPC ID in NavigationCoordinator: '{npcId}'");
-                NavigationCoordinator.SetConversationNpcId(npcId);
-                NavigationCoordinator.SetConversationType(type);
-                await NavigationCoordinator.StartConversationAsync(npcId);
-                Console.WriteLine($"[LocationContent] Invoking navigation to conversation screen");
-                await OnNavigate.InvokeAsync("conversation");
+                await GameScreen.StartConversation(npcId, type);
             }
             else
             {
-                Console.WriteLine($"[LocationContent] Failed to start conversation");
+                Console.WriteLine($"[LocationContent] GameScreen not available for conversation with NPC '{npcId}'");
             }
         }
 
@@ -212,7 +206,14 @@ namespace Wayfarer.Pages.Components
 
         protected async Task NavigateToTravel()
         {
-            await OnNavigate.InvokeAsync("travel");
+            if (GameScreen != null)
+            {
+                await GameScreen.HandleNavigation("travel");
+            }
+            else
+            {
+                Console.WriteLine("[LocationContent] GameScreen not available for travel navigation");
+            }
         }
 
         protected async Task PerformWork()

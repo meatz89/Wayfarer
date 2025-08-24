@@ -23,7 +23,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     // Navigation State
     public string SelectedLocation { get; set; }
-    public string SelectedNpcId => NavigationCoordinator?.GetCurrentNpcId();
+    public string SelectedNpcId => null; // NPC ID is now handled through ConversationContext
     public TimeBlocks CurrentTimeBlock { get; set; }
     public int Stamina { get; set; } = 0;
     public int Concentration { get; set; } = 0;

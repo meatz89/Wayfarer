@@ -32,6 +32,49 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         }
 
+        /* Player Resources Bar */
+        .resources-bar {
+            background: #1a1612;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #3d3429;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .resource-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .resource-icon {
+            width: 20px;
+            height: 20px;
+            background: #3d3429;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .resource-value {
+            font-weight: bold;
+            color: #d4a76a;
+        }
+
+        .resource.low {
+            color: #d4704a;
+        }
+
         /* Time and Deadline Header */
         .header {
             background: #2c241a;
@@ -52,7 +95,7 @@
         }
 
         .deadline-warning {
-            color: #d4a76a;
+            color: #d4704a;
             font-weight: bold;
         }
 
@@ -108,6 +151,64 @@
         .npc-state.desperate {
             color: #8b4726;
             font-weight: bold;
+        }
+
+        .burden-warning {
+            background: #faf0e6;
+            border: 1px solid #d4704a;
+            padding: 8px 12px;
+            border-radius: 3px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #8b4726;
+        }
+
+        /* Victory Conditions */
+        .victory-paths {
+            background: #f9f3e9;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border: 1px solid #c4a684;
+        }
+
+        .victory-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7a6250;
+            margin-bottom: 8px;
+        }
+
+        .path-list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .victory-path {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 4px 0;
+            border-bottom: 1px dotted #e8dcc4;
+        }
+
+        .victory-path:last-child {
+            border-bottom: none;
+        }
+
+        .path-condition {
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .path-reward {
+            color: #5a7a3a;
+        }
+
+        .path-cost {
+            color: #8b4726;
+            font-style: italic;
         }
 
         /* Progress Bars */
@@ -268,6 +369,12 @@
             transform: translateY(-2px);
         }
 
+        .action-details {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #7a6250;
+        }
+
         /* Dialog Options */
         .dialog-section {
             padding: 20px;
@@ -337,6 +444,17 @@
             background: #faf0e6;
         }
 
+        .dialog-card.burden {
+            border-left: 5px solid #4a3a2a;
+            background: #e8dcc4;
+            opacity: 0.9;
+        }
+
+        .dialog-card.observation {
+            border-left: 5px solid #5a7a8a;
+            background: #f0f4fa;
+        }
+
         /* Card Header */
         .card-header {
             padding: 12px 15px;
@@ -393,6 +511,13 @@
             background: #faf0e6;
             border-color: #8b4726;
             color: #8b4726;
+            font-weight: bold;
+        }
+
+        .tag.type-burden {
+            background: #d4c5a0;
+            border-color: #4a3a2a;
+            color: #4a3a2a;
             font-weight: bold;
         }
 
@@ -530,6 +655,11 @@
             font-size: 11px;
         }
 
+        .effect.obligation {
+            color: #d4704a;
+            font-weight: bold;
+        }
+
         /* Special Card Markers */
         .card-special-marker {
             position: absolute;
@@ -553,52 +683,73 @@
             background: #7a8b5a;
         }
 
-        /* Play Section */
-        .play-section {
-            padding: 20px;
-            text-align: center;
-            background: #e8dcc4;
-            border-top: 2px solid #a68b6f;
+        .card-special-marker.must-resolve {
+            background: #4a3a2a;
+            animation: pulse 2s infinite;
         }
 
-        .play-button {
-            padding: 12px 30px;
-            background: linear-gradient(to bottom, #8b9a6a, #7a8b5a);
-            border: 2px solid #5a6a3a;
-            border-radius: 4px;
-            color: #faf4ea;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .card-special-marker.instant-goal {
+            background: #d4704a;
+            animation: pulse 2s infinite;
         }
 
-        .play-info {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #7a6250;
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
     </style>
 </head>
 <body>
     <div class="game-container">
+        <!-- Player Resources -->
+        <div class="resources-bar">
+            <div class="resource-group">
+                <div class="resource">
+                    <div class="resource-icon">💰</div>
+                    <div class="resource-value">23</div>
+                    <span>Coins</span>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">❤️</div>
+                    <div class="resource-value">75</div>
+                    <span>Health</span>
+                </div>
+                <div class="resource low">
+                    <div class="resource-icon">🍞</div>
+                    <div class="resource-value">60</div>
+                    <span>Hunger</span>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">👁️</div>
+                    <div class="resource-value">6/10</div>
+                    <span>Attention</span>
+                </div>
+            </div>
+            <div class="resource-group">
+                <div class="resource">
+                    <span>Afternoon</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Time and Deadline Header -->
         <div class="header">
             <div class="time-bar">
-                <span class="current-time">Tuesday, Third Bell Past Noon</span>
-                <span class="deadline-warning">Elena's letter: 2 hours remain</span>
+                <span class="current-time">Tuesday, 3:47 PM</span>
+                <span class="deadline-warning">⚠ Elena's letter must be delivered: 1h 13m</span>
             </div>
         </div>
 
         <!-- Location Context -->
         <div class="location-context">
             <div class="location-path">
-                <span>Market Square</span>
+                <span>Lower Wards</span>
                 <span>→</span>
-                <span>West Side</span>
+                <span>Market District</span>
                 <span>→</span>
-                <span>Copper Kettle Tavern</span>
+                <span>Copper Kettle</span>
             </div>
-            <div class="location-spot">Corner Booth</div>
+            <div class="location-spot">Corner Table (Private, +1 comfort)</div>
         </div>
 
         <!-- Conversation Header -->
@@ -606,7 +757,33 @@
             <div class="npc-section">
                 <div class="npc-details">
                     <h2>Elena</h2>
-                    <div class="npc-state desperate">DESPERATE • Letter deadline in 2 hours!</div>
+                    <div class="npc-state desperate">DESPERATE • Meeting deadline missed creates crisis</div>
+                </div>
+                <div class="burden-warning">
+                    ⚠️ Elena has 1 burden card from your last failed promise
+                </div>
+            </div>
+
+            <!-- Victory Conditions -->
+            <div class="victory-paths">
+                <div class="victory-title">Ways to Generate Letter</div>
+                <div class="path-list">
+                    <div class="victory-path">
+                        <span class="path-condition">Reach 10 comfort</span>
+                        <span class="path-reward">Standard letter (12h deadline)</span>
+                    </div>
+                    <div class="victory-path">
+                        <span class="path-condition">Reach 15 comfort</span>
+                        <span class="path-reward">Urgent letter (6h deadline, 2x pay)</span>
+                    </div>
+                    <div class="victory-path">
+                        <span class="path-condition">Play Desperate Promise</span>
+                        <span class="path-cost">Creates 3 conflicting obligations!</span>
+                    </div>
+                    <div class="victory-path">
+                        <span class="path-condition">Reach Connected state</span>
+                        <span class="path-reward">Auto-generate perfect letter</span>
+                    </div>
                 </div>
             </div>
 
@@ -615,16 +792,16 @@
                 <div class="progress-bar">
                     <div class="progress-label">
                         <span>Comfort Built</span>
-                        <span>3/20</span>
+                        <span>3/10</span>
                     </div>
                     <div class="progress-track">
-                        <div class="progress-fill" style="width: 15%"></div>
+                        <div class="progress-fill" style="width: 30%"></div>
                     </div>
                 </div>
                 
                 <div class="turns-remaining">
-                    <div class="turns-display">5</div>
-                    <div class="turns-label">Turns Left</div>
+                    <div class="turns-display">6/8</div>
+                    <div class="turns-label">Patience</div>
                 </div>
                 
                 <div class="progress-bar">
@@ -643,7 +820,7 @@
                 <div class="state-indicator">
                     <span>Emotional State:</span>
                     <span class="state-name">Desperate</span>
-                    <span class="state-effects">Draw 2 + crisis • Crisis free • Listen worsens</span>
+                    <span class="state-effects">• Draw 2 + crisis • Weight limit 3 • Crisis free</span>
                 </div>
             </div>
         </div>
@@ -651,24 +828,24 @@
         <!-- Narrative Section -->
         <div class="narrative-section">
             <div class="narrative-text">
-                Time is running short. Elena's desperation fills the space between you, making every word carry weight.
+                Elena's breathing quickens. The deadline looms like a physical presence in the small booth.
             </div>
             <div class="npc-dialogue desperate">
-                "Please, I need to know - will you help me? The letter to Lord Blackwood... if he doesn't receive my refusal by tonight, my father will finalize the arrangement."
+                "You said you'd help. Please, I need more than words. Lord Blackwood leaves at sunset - if my refusal doesn't reach him, my life is decided."
             </div>
         </div>
 
         <!-- Action Choice -->
         <div class="action-section">
-            <div class="turn-indicator">Turn 1 of 5 • Each choice uses 1 turn</div>
+            <div class="turn-indicator">Turn 2 of 8 • Weight Limit: 3 • Crisis cards cost 0</div>
             <div class="action-choices">
                 <div class="action-button">
                     <div>👂 LISTEN</div>
-                    <div style="font-size: 12px; margin-top: 5px;">Draw 2 + Crisis • State worsens</div>
+                    <div class="action-details">Draw 2 + 1 crisis • State → Hostile</div>
                 </div>
                 <div class="action-button">
-                    <div>💭 SPEAK</div>
-                    <div style="font-size: 12px; margin-top: 5px;">Weight limit: 3 • Crisis free</div>
+                    <div>💬 SPEAK</div>
+                    <div class="action-details">Play cards up to weight 3</div>
                 </div>
             </div>
         </div>
@@ -676,24 +853,24 @@
         <!-- Dialog Options -->
         <div class="dialog-section">
             <div class="dialog-header">
-                <div class="dialog-title">Your Thoughts</div>
+                <div class="dialog-title">Your Hand (5 cards)</div>
                 <div class="weight-tracker">
-                    <span>Weight Used:</span>
-                    <span style="font-weight: bold;">0/3</span>
+                    <span>Weight Available:</span>
+                    <span style="font-weight: bold;">3</span>
                 </div>
             </div>
             
             <div class="dialog-options">
-                <!-- Comfort Card - Promise to Help -->
-                <div class="dialog-card comfort">
-                    <div class="card-special-marker combinable">Can Combine</div>
+                <!-- Burden Card - Must be resolved -->
+                <div class="dialog-card burden">
+                    <div class="card-special-marker must-resolve">BLOCKS SLOT</div>
                     <div class="card-header">
                         <div class="card-identity">
-                            <div class="card-name">Promise to Help</div>
+                            <div class="card-name">Broken Promise</div>
                             <div class="card-tags">
-                                <span class="tag type-comfort">COMFORT</span>
+                                <span class="tag type-burden">BURDEN</span>
                                 <span class="tag">Trust</span>
-                                <span class="tag persistence">⏱ Opportunity</span>
+                                <span class="tag persistence">⚡ Must Resolve</span>
                             </div>
                         </div>
                         <div class="card-weight">
@@ -702,27 +879,133 @@
                         </div>
                     </div>
                     <div class="card-text">
-                        "I promise I'll help you, Elena. We'll get your letter to Lord Blackwood before the deadline. Your father won't force this marriage on you."
+                        "I'm sorry about last time. I know I failed you before, but this time will be different."
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
                             <div class="outcome-header">
                                 <span class="outcome-label">Success</span>
-                                <span class="outcome-chance chance-medium">53%</span>
+                                <span class="outcome-chance chance-low">40%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect comfort">
-                                    <span class="effect-value">+4</span> comfort
+                                <div class="effect">
+                                    <span class="effect-value">-2</span> comfort
                                 </div>
                                 <div class="effect special">
-                                    Creates obligation
+                                    Removes burden
                                 </div>
                             </div>
                         </div>
                         <div class="outcome failure">
                             <div class="outcome-header">
                                 <span class="outcome-label">Failure</span>
-                                <span class="outcome-chance chance-medium">47%</span>
+                                <span class="outcome-chance chance-high">60%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect">
+                                    <span class="effect-value">-4</span> comfort
+                                </div>
+                                <div class="effect special">
+                                    Burden remains
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Observation Card (not yet played) -->
+                <div class="dialog-card observation">
+                    <div class="card-special-marker combinable">+3 Comfort Bonus</div>
+                    <div class="card-header">
+                        <div class="card-identity">
+                            <div class="card-name">Guard Checkpoint Warning</div>
+                            <div class="card-tags">
+                                <span class="tag type-comfort">COMFORT</span>
+                                <span class="tag">Shadow</span>
+                                <span class="tag persistence">⏱ Opportunity</span>
+                                <span class="tag observation">Observation</span>
+                                <span class="tag">One-Shot</span>
+                            </div>
+                        </div>
+                        <div class="card-weight">
+                            <span class="weight-label">Weight</span>
+                            <span class="weight-value">1</span>
+                        </div>
+                    </div>
+                    <div class="card-text">
+                        "The north checkpoint is doubling inspections. We'll need to use the merchant's route to reach Lord Blackwood."
+                    </div>
+                    <div class="card-outcomes">
+                        <div class="outcome success">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Success</span>
+                                <span class="outcome-chance chance-high">60%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect comfort">
+                                    <span class="effect-value">+3</span> comfort
+                                </div>
+                                <div class="effect special">
+                                    Opens route discussion
+                                </div>
+                            </div>
+                        </div>
+                        <div class="outcome failure">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Failure</span>
+                                <span class="outcome-chance chance-low">40%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect">
+                                    <span class="effect-value">+0</span> comfort
+                                </div>
+                                <div class="effect special">
+                                    Card lost
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trust Comfort Card -->
+                <div class="dialog-card comfort">
+                    <div class="card-special-marker combinable">Can Combine</div>
+                    <div class="card-header">
+                        <div class="card-identity">
+                            <div class="card-name">Promise to Help</div>
+                            <div class="card-tags">
+                                <span class="tag type-comfort">COMFORT</span>
+                                <span class="tag">Trust</span>
+                                <span class="tag persistence">♻ Persistent</span>
+                            </div>
+                        </div>
+                        <div class="card-weight">
+                            <span class="weight-label">Weight</span>
+                            <span class="weight-value">2</span>
+                        </div>
+                    </div>
+                    <div class="card-text">
+                        "Elena, I promise I'll get your letter to Lord Blackwood. We have time if we move quickly."
+                    </div>
+                    <div class="card-outcomes">
+                        <div class="outcome success">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Success</span>
+                                <span class="outcome-chance chance-medium">50%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect comfort">
+                                    <span class="effect-value">+4</span> comfort
+                                </div>
+                                <div class="effect obligation">
+                                    Creates minor obligation
+                                </div>
+                            </div>
+                        </div>
+                        <div class="outcome failure">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Failure</span>
+                                <span class="outcome-chance chance-medium">50%</span>
                             </div>
                             <div class="outcome-effects">
                                 <div class="effect">
@@ -733,59 +1016,9 @@
                     </div>
                 </div>
 
-                <!-- Comfort Card from Observation -->
-                <div class="dialog-card comfort">
-                    <div class="card-special-marker combinable">Can Combine</div>
-                    <div class="card-header">
-                        <div class="card-identity">
-                            <div class="card-name">Mention the Guards</div>
-                            <div class="card-tags">
-                                <span class="tag type-comfort">COMFORT</span>
-                                <span class="tag">Shadow</span>
-                                <span class="tag persistence">⏱ Opportunity</span>
-                                <span class="tag observation">Observation</span>
-                            </div>
-                        </div>
-                        <div class="card-weight">
-                            <span class="weight-label">Weight</span>
-                            <span class="weight-value">1</span>
-                        </div>
-                    </div>
-                    <div class="card-text">
-                        "I saw Lord Blackwood's guards at the tavern earlier. They mentioned he's leaving for the capital at dawn. We need to reach him tonight."
-                    </div>
-                    <div class="card-outcomes">
-                        <div class="outcome success">
-                            <div class="outcome-header">
-                                <span class="outcome-label">Success</span>
-                                <span class="outcome-chance chance-high">63%</span>
-                            </div>
-                            <div class="outcome-effects">
-                                <div class="effect comfort">
-                                    <span class="effect-value">+2</span> comfort
-                                </div>
-                            </div>
-                        </div>
-                        <div class="outcome failure">
-                            <div class="outcome-header">
-                                <span class="outcome-label">Failure</span>
-                                <span class="outcome-chance chance-low">37%</span>
-                            </div>
-                            <div class="outcome-effects">
-                                <div class="effect">
-                                    <span class="effect-value">+0</span> comfort
-                                </div>
-                                <div class="effect special">
-                                    Creates worry
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- State Card - Must be played alone -->
+                <!-- State Card -->
                 <div class="dialog-card state">
-                    <div class="card-special-marker solo-only">Solo Only</div>
+                    <div class="card-special-marker solo-only">Must Play Alone</div>
                     <div class="card-header">
                         <div class="card-identity">
                             <div class="card-name">Calm Reassurance</div>
@@ -793,6 +1026,7 @@
                                 <span class="tag type-state">STATE</span>
                                 <span class="tag">Trust</span>
                                 <span class="tag persistence">♻ Persistent</span>
+                                <span class="tag">Solo Only</span>
                             </div>
                         </div>
                         <div class="card-weight">
@@ -801,34 +1035,37 @@
                         </div>
                     </div>
                     <div class="card-text">
-                        "Elena, breathe. We have time. I'm here to help you. Let's think through this together - there's always a way."
+                        "Breathe, Elena. We'll solve this together. Let me help you think clearly."
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
                             <div class="outcome-header">
                                 <span class="outcome-label">Success</span>
-                                <span class="outcome-chance chance-high">63%</span>
+                                <span class="outcome-chance chance-high">60%</span>
                             </div>
                             <div class="outcome-effects">
                                 <div class="effect state-change">
-                                    State: Desperate → Tense
+                                    Desperate → Tense
                                 </div>
                                 <div class="effect">
-                                    Calms emotions
+                                    Weight limit becomes 1
+                                </div>
+                                <div class="effect">
+                                    Crisis cards cost weight
                                 </div>
                             </div>
                         </div>
                         <div class="outcome failure">
                             <div class="outcome-header">
                                 <span class="outcome-label">Failure</span>
-                                <span class="outcome-chance chance-low">37%</span>
+                                <span class="outcome-chance chance-low">40%</span>
                             </div>
                             <div class="outcome-effects">
                                 <div class="effect state-change">
                                     State unchanged
                                 </div>
-                                <div class="effect special">
-                                    She needs more
+                                <div class="effect">
+                                    Must try different approach
                                 </div>
                             </div>
                         </div>
@@ -837,7 +1074,7 @@
 
                 <!-- Crisis Card -->
                 <div class="dialog-card crisis">
-                    <div class="card-special-marker">FREE IN DESPERATE!</div>
+                    <div class="card-special-marker instant-goal">INSTANT LETTER!</div>
                     <div class="card-header">
                         <div class="card-identity">
                             <div class="card-name">Desperate Promise</div>
@@ -845,6 +1082,7 @@
                                 <span class="tag type-crisis">CRISIS</span>
                                 <span class="tag">Trust</span>
                                 <span class="tag persistence">🔥 Crisis</span>
+                                <span class="tag">Free in Desperate</span>
                             </div>
                         </div>
                         <div class="card-weight">
@@ -854,55 +1092,57 @@
                         </div>
                     </div>
                     <div class="card-text">
-                        "Elena, I swear on my life - I will get this letter to Lord Blackwood. Even if I have to fight through his guards, even if it costs me everything!"
+                        "I swear on my life - I'll deliver this immediately, whatever it takes, whoever I must promise!"
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
                             <div class="outcome-header">
                                 <span class="outcome-label">Success</span>
-                                <span class="outcome-chance chance-medium">43%</span>
+                                <span class="outcome-chance chance-low">40%</span>
                             </div>
                             <div class="outcome-effects">
                                 <div class="effect comfort">
-                                    <span class="effect-value">+10</span> comfort
-                                </div>
-                                <div class="effect state-change">
-                                    Generates letter
+                                    Generate letter instantly
                                 </div>
                                 <div class="effect special">
-                                    Ends conversation
+                                    End conversation
+                                </div>
+                                <div class="effect obligation">
+                                    +3 conflicting obligations:
+                                </div>
+                                <div class="effect obligation">
+                                    • Deliver to Lord (30 min)
+                                </div>
+                                <div class="effect obligation">
+                                    • Report to Guards (45 min)
+                                </div>
+                                <div class="effect obligation">
+                                    • Inform Father (1 hour)
                                 </div>
                             </div>
                         </div>
                         <div class="outcome failure">
                             <div class="outcome-header">
                                 <span class="outcome-label">Failure</span>
-                                <span class="outcome-chance chance-high">57%</span>
+                                <span class="outcome-chance chance-high">60%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect comfort">
-                                    <span class="effect-value">+5</span> comfort
-                                </div>
                                 <div class="effect state-change">
-                                    State: → Overwhelmed
+                                    State → Hostile
                                 </div>
                                 <div class="effect special">
-                                    Too much pressure
+                                    Add 2 burden cards
+                                </div>
+                                <div class="effect special">
+                                    Conversation ends
+                                </div>
+                                <div class="effect special">
+                                    Elena locked 24 hours
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Play Button Section -->
-        <div class="play-section">
-            <button class="play-button">
-                Select LISTEN or SPEAK
-            </button>
-            <div class="play-info">
-                5 turns remaining • State affects all actions
             </div>
         </div>
     </div>

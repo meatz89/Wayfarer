@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Exchange with Marcus</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 1200px;
+            background: #e8dcc4;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        /* Player Resources Bar */
+        .resources-bar {
+            background: #1a1612;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #3d3429;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .resource-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .resource-icon {
+            width: 20px;
+            height: 20px;
+            background: #3d3429;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .resource-value {
+            font-weight: bold;
+            color: #d4a76a;
+        }
+
+        .resource.low {
+            color: #d4704a;
+        }
+
+        /* Time and Location Header */
+        .header {
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #5c4a3a;
+        }
+
+        .time-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        .current-time {
+            text-transform: uppercase;
+        }
+
+        /* Location Context */
+        .location-context {
+            background: #f9f3e9;
+            padding: 12px 20px;
+            border-bottom: 1px solid #c4a684;
+        }
+
+        .location-path {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .location-spot {
+            font-size: 14px;
+            color: #5c4a3a;
+            font-style: italic;
+        }
+
+        /* Exchange Mode Banner */
+        .exchange-mode {
+            background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
+            color: #faf4ea;
+            padding: 12px 20px;
+            text-align: center;
+            border-bottom: 2px solid #5a6a3a;
+        }
+
+        .mode-title {
+            font-size: 18px;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+
+        .mode-description {
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        /* NPC Header */
+        .conversation-header {
+            background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+            padding: 20px;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .npc-section {
+            margin-bottom: 15px;
+        }
+
+        .npc-details h2 {
+            color: #5c4a3a;
+            font-size: 26px;
+            margin-bottom: 5px;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        .npc-state {
+            font-size: 14px;
+            color: #7a6250;
+            font-style: italic;
+        }
+
+        .npc-state.calculating {
+            color: #8b7355;
+            font-weight: bold;
+        }
+
+        /* Exchange Status */
+        .exchange-status {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f9f3e9;
+            border-radius: 4px;
+            border: 1px solid #c4a684;
+        }
+
+        .status-item {
+            text-align: center;
+        }
+
+        .status-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .status-value {
+            font-size: 20px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        /* Narrative Section */
+        .narrative-section {
+            padding: 25px;
+            background: #f4e8d0;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .narrative-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #3d3429;
+            font-style: italic;
+        }
+
+        .npc-dialogue {
+            margin-top: 15px;
+            padding: 15px;
+            background: #faf4ea;
+            border-left: 3px solid #a68b6f;
+            border-radius: 2px;
+        }
+
+        .npc-dialogue.merchant {
+            border-left-color: #7a8b5a;
+            background: #f4f9e9;
+        }
+
+        /* Exchange Cards Section */
+        .exchange-section {
+            padding: 20px;
+            background: #e8dcc4;
+        }
+
+        .exchange-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .exchange-title {
+            font-size: 14px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .refresh-note {
+            font-size: 11px;
+            color: #8b7355;
+            font-style: italic;
+        }
+
+        /* Exchange Cards */
+        .exchange-options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .exchange-card {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 5px solid #7a8b5a;
+        }
+
+        .exchange-card:hover {
+            background: #fefaf0;
+            border-color: #a68b6f;
+            transform: translateX(5px);
+        }
+
+        .exchange-card.service {
+            border-left-color: #8b7355;
+        }
+
+        .exchange-card.special {
+            border-left-color: #8b4726;
+            background: #faf0e6;
+        }
+
+        /* Card Header */
+        .card-header {
+            padding: 12px 15px;
+            background: #f9f3e9;
+            border-bottom: 1px solid #e8dcc4;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .card-identity {
+            flex: 1;
+        }
+
+        .card-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #5c4a3a;
+            margin-bottom: 4px;
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 2px 6px;
+            background: #e8dcc4;
+            border: 1px solid #c4a684;
+            border-radius: 2px;
+            font-size: 9px;
+            color: #5c4a3a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tag.type-exchange {
+            background: #e8f5e9;
+            border-color: #7a8b5a;
+            color: #5a7a3a;
+            font-weight: bold;
+        }
+
+        .tag.commerce {
+            background: #f4e8d0;
+            border-color: #8b7355;
+            color: #6b5d4f;
+        }
+
+        /* Exchange Details */
+        .exchange-details {
+            padding: 15px;
+            background: #fefaf0;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .exchange-cost {
+            text-align: center;
+        }
+
+        .exchange-arrow {
+            font-size: 24px;
+            color: #8b7355;
+        }
+
+        .exchange-reward {
+            text-align: center;
+        }
+
+        .exchange-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #7a6250;
+            margin-bottom: 4px;
+        }
+
+        .exchange-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .cost-value {
+            color: #8b4726;
+        }
+
+        .reward-value {
+            color: #5a7a3a;
+        }
+
+        /* Special Effects */
+        .special-effects {
+            padding: 10px 15px;
+            background: #f9f3e9;
+            border-top: 1px solid #e8dcc4;
+            font-size: 12px;
+            color: #8b7355;
+            font-style: italic;
+        }
+
+        /* Card Marker */
+        .card-marker {
+            position: absolute;
+            top: -8px;
+            right: 15px;
+            background: #7a8b5a;
+            color: #faf4ea;
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+        }
+
+        .card-marker.limited {
+            background: #8b4726;
+        }
+
+        .card-marker.repeatable {
+            background: #5a7a8a;
+        }
+
+        /* Action Section */
+        .action-section {
+            padding: 20px;
+            background: #f4e8d0;
+            text-align: center;
+            border-top: 2px solid #a68b6f;
+        }
+
+        .action-button {
+            padding: 12px 30px;
+            background: linear-gradient(to bottom, #8b9a6a, #7a8b5a);
+            border: 2px solid #5a6a3a;
+            border-radius: 4px;
+            color: #faf4ea;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .action-button:hover {
+            background: linear-gradient(to bottom, #9aaa7a, #8a9b6a);
+            transform: translateY(-2px);
+        }
+
+        .action-button.decline {
+            background: linear-gradient(to bottom, #8b7355, #7b6345);
+            border-color: #6b5345;
+        }
+
+        .action-button.decline:hover {
+            background: linear-gradient(to bottom, #9b8365, #8b7355);
+        }
+
+        .action-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #7a6250;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Player Resources -->
+        <div class="resources-bar">
+            <div class="resource-group">
+                <div class="resource">
+                    <div class="resource-icon">💰</div>
+                    <div class="resource-value">23</div>
+                    <span>Coins</span>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">❤️</div>
+                    <div class="resource-value">75</div>
+                    <span>Health</span>
+                </div>
+                <div class="resource low">
+                    <div class="resource-icon">🍞</div>
+                    <div class="resource-value">60</div>
+                    <span>Hunger</span>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">👁️</div>
+                    <div class="resource-value">7/10</div>
+                    <span>Attention</span>
+                </div>
+            </div>
+            <div class="resource-group">
+                <div class="resource">
+                    <span>Afternoon</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time and Location Header -->
+        <div class="header">
+            <div class="time-bar">
+                <span class="current-time">Tuesday, 3:32 PM</span>
+                <span style="color: #d4a76a;">Elena's letter: 1h 28m</span>
+            </div>
+        </div>
+
+        <!-- Location Context -->
+        <div class="location-context">
+            <div class="location-path">
+                <span>Lower Wards</span>
+                <span>→</span>
+                <span>Market District</span>
+                <span>→</span>
+                <span>Central Square</span>
+            </div>
+            <div class="location-spot">Merchant Row</div>
+        </div>
+
+        <!-- Exchange Mode Banner -->
+        <div class="exchange-mode">
+            <div class="mode-title">Quick Exchange</div>
+            <div class="mode-description">Choose one trade • No patience cost • Instant resolution</div>
+        </div>
+
+        <!-- NPC Header -->
+        <div class="conversation-header">
+            <div class="npc-section">
+                <div class="npc-details">
+                    <h2>Marcus the Cloth Merchant</h2>
+                    <div class="npc-state calculating">CALCULATING • Always seeking profit</div>
+                </div>
+            </div>
+
+            <!-- Exchange Status -->
+            <div class="exchange-status">
+                <div class="status-item">
+                    <div class="status-label">Exchange Type</div>
+                    <div class="status-value">Commerce</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Offers Available</div>
+                    <div class="status-value">4</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Relationship</div>
+                    <div class="status-value">Tier 1</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Narrative Section -->
+        <div class="narrative-section">
+            <div class="narrative-text">
+                Marcus eyes you with merchant's calculation, already assessing what you might need and what you can afford.
+            </div>
+            <div class="npc-dialogue merchant">
+                "Ah, courier! Always on the move, yes? I have goods that might interest you - practical things for practical people. Or perhaps you're looking to earn some quick coin?"
+            </div>
+        </div>
+
+        <!-- Exchange Cards Section -->
+        <div class="exchange-section">
+            <div class="exchange-header">
+                <div class="exchange-title">Available Exchanges</div>
+                <div class="refresh-note">New offers next time period</div>
+            </div>
+            
+            <div class="exchange-options">
+                <!-- Buy Provisions -->
+                <div class="exchange-card">
+                    <div class="card-marker repeatable">Repeatable</div>
+                    <div class="card-header">
+                        <div class="card-identity">
+                            <div class="card-name">Buy Travel Provisions</div>
+                            <div class="card-tags">
+                                <span class="tag type-exchange">EXCHANGE</span>
+                                <span class="tag commerce">Commerce</span>
+                                <span class="tag">Goods</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="exchange-details">
+                        <div class="exchange-cost">
+                            <div class="exchange-label">You Pay</div>
+                            <div class="exchange-value cost-value">3 Coins</div>
+                        </div>
+                        <div class="exchange-arrow">→</div>
+                        <div class="exchange-reward">
+                            <div class="exchange-label">You Receive</div>
+                            <div class="exchange-value reward-value">Hunger = 0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buy Fine Cloth -->
+                <div class="exchange-card">
+                    <div class="card-marker limited">One-Time</div>
+                    <div class="card-header">
+                        <div class="card-identity">
+                            <div class="card-name">Purchase Fine Silk</div>
+                            <div class="card-tags">
+                                <span class="tag type-exchange">EXCHANGE</span>
+                                <span class="tag commerce">Commerce</span>
+                                <span class="tag">Luxury</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="exchange-details">
+                        <div class="exchange-cost">
+                            <div class="exchange-label">You Pay</div>
+                            <div class="exchange-value cost-value">15 Coins</div>
+                        </div>
+                        <div class="exchange-arrow">→</div>
+                        <div class="exchange-reward">
+                            <div class="exchange-label">You Receive</div>
+                            <div class="exchange-value reward-value">Fine Silk</div>
+                        </div>
+                    </div>
+                    <div class="special-effects">
+                        Item: Can be gifted to nobles for relationship bonus
+                    </div>
+                </div>
+
+                <!-- Work for Marcus -->
+                <div class="exchange-card service">
+                    <div class="card-marker">Service</div>
+                    <div class="card-header">
+                        <div class="card-identity">
+                            <div class="card-name">Help Inventory Stock</div>
+                            <div class="card-tags">
+                                <span class="tag type-exchange">EXCHANGE</span>
+                                <span class="tag commerce">Commerce</span>
+                                <span class="tag">Labor</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="exchange-details">
+                        <div class="exchange-cost">
+                            <div class="exchange-label">You Spend</div>
+                            <div class="exchange-value cost-value">3 Attention</div>
+                        </div>
+                        <div class="exchange-arrow">→</div>
+                        <div class="exchange-reward">
+                            <div class="exchange-label">You Earn</div>
+                            <div class="exchange-value reward-value">8 Coins</div>
+                        </div>
+                    </div>
+                    <div class="special-effects">
+                        Time passes: Advances to Evening period
+                    </div>
+                </div>
+
+                <!-- Special Trade -->
+                <div class="exchange-card special">
+                    <div class="card-marker limited">Exclusive</div>
+                    <div class="card-header">
+                        <div class="card-identity">
+                            <div class="card-name">Information Trade</div>
+                            <div class="card-tags">
+                                <span class="tag type-exchange">EXCHANGE</span>
+                                <span class="tag commerce">Shadow</span>
+                                <span class="tag">Secret</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="exchange-details">
+                        <div class="exchange-cost">
+                            <div class="exchange-label">You Share</div>
+                            <div class="exchange-value">Guard Info</div>
+                        </div>
+                        <div class="exchange-arrow">→</div>
+                        <div class="exchange-reward">
+                            <div class="exchange-label">Marcus Shares</div>
+                            <div class="exchange-value reward-value">Noble Route</div>
+                        </div>
+                    </div>
+                    <div class="special-effects">
+                        Unlocks: Hidden route to Noble District (avoids checkpoint)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Section -->
+        <div class="action-section">
+            <div>
+                <button class="action-button">
+                    Accept Exchange
+                </button>
+                <button class="action-button decline">
+                    Leave
+                </button>
+            </div>
+            <div class="action-info">
+                Quick exchanges cost no attention • Choose one trade only
+            </div>
+        </div>
+    </div>
+</body>
+</html>
