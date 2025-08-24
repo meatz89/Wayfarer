@@ -2,51 +2,50 @@
 
 @namespace Wayfarer.Pages.Components
 
-<div class="location-content">
-    <!-- Current Spot Display -->
+<div class="location-content content-area">
+    <!-- Atmospheric Description -->
     @if (CurrentSpot != null)
     {
-        <div class="current-spot">
-            <h3>@CurrentSpot.Name</h3>
-            @if (CurrentSpot.Properties.Any())
-            {
-                <div class="spot-properties">
-                    @foreach (var prop in CurrentSpot.Properties)
-                    {
-                        <span class="property-tag">@prop</span>
-                    }
-                </div>
-            }
-        </div>
+        <LocationAtmosphereRenderer CurrentSpot="CurrentSpot" 
+                                     CurrentTime="CurrentTime" 
+                                     NPCsPresent="NPCsAtSpot" />
     }
 
     <!-- Available NPCs -->
     @if (AvailableNpcs.Any())
     {
         <div class="npcs-section">
-            <h4>People Here</h4>
+            <h4 class="section-header">People Here</h4>
             <div class="npc-list">
                 @foreach (var npc in AvailableNpcs)
                 {
-                    <div class="npc-card" @onclick="() => StartConversation(npc.Id)">
+                    <div class="npc-card">
                         <div class="npc-header">
-                            <h5>@npc.Name</h5>
-                            <span class="npc-type">@npc.PersonalityType</span>
+                            <div class="npc-name">@npc.Name</div>
+                            <div class="npc-state @GetStateClass(npc.EmotionalState)">@npc.EmotionalState</div>
                         </div>
-                        <div class="npc-state">@npc.EmotionalState</div>
+                        <div class="npc-description">@GetNPCDescription(npc)</div>
                         @if (npc.HasCrisis)
                         {
                             <div class="crisis-indicator">⚠ Crisis</div>
                         }
-                        <div class="conversation-options">
+                        <div class="npc-actions">
                             @foreach (var option in npc.ConversationOptions)
                             {
-                                <button class="conversation-type-btn" 
-                                        @onclick:stopPropagation="true"
-                                        @onclick="() => StartTypedConversation(npc.Id, option.Type)">
-                                    @option.Label
-                                    <span class="cost">@option.AttentionCost attention</span>
-                                </button>
+                                <div class="npc-action @GetActionClass(option.Type)" 
+                                     @onclick="() => StartTypedConversation(npc.Id, option.Type)">
+                                    <span class="action-type">@option.Label</span>
+                                    <span class="action-details">
+                                        @if (option.AttentionCost == 0)
+                                        {
+                                            <span class="action-reward">Free!</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@option.AttentionCost attention</span>
+                                        }
+                                    </span>
+                                </div>
                             }
                         </div>
                     </div>
@@ -58,15 +57,17 @@
     <!-- Available Observations -->
     @if (AvailableObservations.Any())
     {
-        <div class="observations-section">
-            <h4>Things to Observe</h4>
+        <div class="observations">
+            <div class="observation-note">You notice some interesting details about this place...</div>
             <div class="observation-list">
                 @foreach (var obs in AvailableObservations)
                 {
-                    <div class="observation-card" @onclick="() => TakeObservation(obs.Id)">
-                        <div class="observation-name">@obs.Name</div>
-                        <div class="observation-type">@obs.Type</div>
-                        <div class="observation-cost">1 attention</div>
+                    <div class="observation-item" @onclick="() => TakeObservation(obs.Id)">
+                        <div class="observation-text">@obs.Name</div>
+                        <div class="observation-reward">
+                            <span class="reward-card">+Card</span>
+                            <span class="action-details">1 attention</span>
+                        </div>
                     </div>
                 }
             </div>
@@ -77,19 +78,33 @@
     @if (AvailableSpots.Any())
     {
         <div class="spots-section">
-            <h4>Move Within Location</h4>
-            <div class="spot-list">
+            <h4 class="section-header">Move Within Location</h4>
+            <div class="spots-grid">
                 @foreach (var spot in AvailableSpots)
                 {
-                    <button class="spot-button" @onclick="() => MoveToSpot(spot.Id)">
-                        @spot.Name
+                    <div class="spot-card" @onclick="() => MoveToSpot(spot.Id)">
+                        <div class="spot-card-name">@spot.Name</div>
                         @if (spot.Properties.Any())
                         {
-                            <span class="spot-props">(@string.Join(", ", spot.Properties))</span>
+                            <div class="spot-traits">
+                                @foreach (var prop in spot.Properties)
+                                {
+                                    <span class="spot-trait">@prop</span>
+                                }
+                            </div>
                         }
-                    </button>
+                        <div class="spot-move-action">Move here (free)</div>
+                    </div>
                 }
             </div>
+        </div>
+    }
+
+    <!-- Section Divider -->
+    @if (CanTravel || CanWork)
+    {
+        <div class="section-divider">
+            <span class="divider-text">Actions</span>
         </div>
     }
 
@@ -107,12 +122,14 @@
     <!-- Work Action -->
     @if (CanWork)
     {
-        <div class="work-section">
-            <button class="work-button" @onclick="PerformWork">
-                <span class="work-icon">💪</span>
-                <span>Work for Coins</span>
-                <span class="work-cost">2 attention → 8 coins</span>
-            </button>
+        <div class="actions-grid">
+            <div class="action-card" @onclick="PerformWork">
+                <div class="action-name">Work for Coins</div>
+                <div class="action-cost">
+                    <span class="cost-value">2</span> attention → 
+                    <span class="cost-value">8</span> coins
+                </div>
+            </div>
         </div>
     }
 </div>

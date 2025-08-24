@@ -48,7 +48,7 @@ namespace Wayfarer.Pages.Components
             if (!CanDeliver(letter)) return;
             
             // Use the ExecuteIntent system to deliver the letter
-            var deliverIntent = new DeliverLetterIntent { LetterId = letter.Id };
+            var deliverIntent = new DeliverLetterIntent(letter.Id);
             var result = await GameFacade.ExecuteIntent(deliverIntent);
             if (result)
             {
@@ -71,9 +71,9 @@ namespace Wayfarer.Pages.Components
         protected bool CanDeliver(DeliveryObligation letter)
         {
             // Check if we're at the recipient's location
-            var currentLocationTuple = GameFacade.GetCurrentLocation();
+            var currentLocation = GameFacade.GetCurrentLocation();
             var recipientLocation = GetRecipientLocation(letter);
-            return currentLocationTuple.location?.Name == recipientLocation;
+            return currentLocation?.Name == recipientLocation;
         }
 
         protected bool CanDisplace(DeliveryObligation letter)

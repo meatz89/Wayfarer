@@ -250,7 +250,7 @@ namespace Wayfarer.Pages
         {
             Console.WriteLine($"[GameScreen] Travel route selected: {routeId}");
             // Execute travel via intent system
-            var travelIntent = new TravelIntent { RouteId = routeId };
+            var travelIntent = new TravelIntent(routeId);
             await GameFacade.ExecuteIntent(travelIntent);
             await NavigateToScreen(ScreenMode.Location);
         }

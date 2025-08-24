@@ -20,6 +20,8 @@ namespace Wayfarer.Pages.Components
         protected List<SpotViewModel> AvailableSpots { get; set; } = new();
         protected bool CanTravel { get; set; }
         protected bool CanWork { get; set; }
+        protected TimeBlocks CurrentTime { get; set; }
+        protected List<NPC> NPCsAtSpot { get; set; } = new();
 
         protected override async Task OnInitializedAsync()
         {
@@ -36,18 +38,23 @@ namespace Wayfarer.Pages.Components
             var location = GameFacade.GetCurrentLocation();
             var spot = GameFacade.GetCurrentLocationSpot();
             CurrentSpot = spot;
+            var timeInfo = GameFacade.GetTimeInfo();
+            CurrentTime = timeInfo.timeBlock;
             
-            // Get NPCs at current location
+            // Get NPCs at current spot
             AvailableNpcs.Clear();
-            if (location != null)
+            NPCsAtSpot.Clear();
+            if (CurrentSpot != null)
             {
-                var npcs = location.NPCsPresent ?? new List<NPC>();
-                foreach (var npc in npcs)
+                // Get NPCs at the current spot for the current time
+                var npcsAtSpot = GameFacade.GetNPCsAtCurrentSpot();
+                NPCsAtSpot = npcsAtSpot ?? new List<NPC>();
+                foreach (var npc in NPCsAtSpot)
                 {
                     var options = new List<ConversationOptionViewModel>();
                     
                     // Add available conversation types
-                    if (npc.ExchangeDeck != null && npc.ExchangeDeck.Cards.Any())
+                    if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
                     {
                         options.Add(new ConversationOptionViewModel
                         {
@@ -58,7 +65,7 @@ namespace Wayfarer.Pages.Components
                         });
                     }
                     
-                    if (npc.CrisisDeck != null && npc.CrisisDeck.Cards.Any())
+                    if (npc.HasCrisisCards())
                     {
                         options.Add(new ConversationOptionViewModel
                         {
@@ -80,15 +87,15 @@ namespace Wayfarer.Pages.Components
                     }
                     
                     // Get actual emotional state using the same logic as conversations
-                    var emotionalState = GameFacade.GetNPCEmotionalState(npc.Id);
+                    var emotionalState = GameFacade.GetNPCEmotionalState(npc.ID);
                     
                     AvailableNpcs.Add(new NpcViewModel
                     {
-                        Id = npc.Id,
+                        Id = npc.ID,
                         Name = npc.Name,
                         PersonalityType = npc.PersonalityType.ToString(),
                         EmotionalState = emotionalState.ToString(),
-                        HasCrisis = npc.CrisisDeck?.Cards.Any() ?? false,
+                        HasCrisis = npc.HasCrisisCards(),
                         ConversationOptions = options
                     });
                 }
@@ -138,15 +145,17 @@ namespace Wayfarer.Pages.Components
         {
             Console.WriteLine($"[LocationContent] Starting {type} conversation with {npcId}");
             
-            var result = await GameFacade.StartInteractionAsync(npcId, type);
-            if (result.IsSuccess)
+            var result = await GameFacade.StartConversationAsync(npcId, type);
+            if (result != null)
             {
-                await NavigationCoordinator.StartConversation(npcId, type);
+                NavigationCoordinator.SetConversationNpcId(npcId);
+                NavigationCoordinator.SetConversationType(type);
+                await NavigationCoordinator.StartConversationAsync(npcId);
                 await OnNavigate.InvokeAsync("conversation");
             }
             else
             {
-                Console.WriteLine($"[LocationContent] Failed to start conversation: {result.Message}");
+                Console.WriteLine($"[LocationContent] Failed to start conversation");
             }
         }
 
@@ -244,6 +253,55 @@ namespace Wayfarer.Pages.Components
                 ConversationType.Standard => 2,
                 _ => 0
             };
+        }
+
+        protected string GetStateClass(string emotionalState)
+        {
+            return emotionalState?.ToLower() switch
+            {
+                "desperate" => "desperate",
+                "hostile" => "hostile",
+                "crisis" => "crisis",
+                _ => ""
+            };
+        }
+
+        protected string GetActionClass(ConversationType type)
+        {
+            return type switch
+            {
+                ConversationType.QuickExchange => "exchange",
+                ConversationType.Crisis => "crisis",
+                _ => ""
+            };
+        }
+
+        protected string GetNPCDescription(NpcViewModel npc)
+        {
+            // Generate contextual descriptions based on NPC state
+            var state = npc.EmotionalState?.ToLower();
+            var personality = npc.PersonalityType?.ToLower();
+            
+            if (state == "desperate" && npc.HasCrisis)
+            {
+                return "Clutching a sealed letter with white knuckles, eyes darting nervously.";
+            }
+            else if (state == "hostile")
+            {
+                return "Glaring at anyone who approaches, clearly not in a talking mood.";
+            }
+            else if (personality == "gruff")
+            {
+                return "Arranging goods with practiced efficiency, occasionally grunting.";
+            }
+            else if (personality == "friendly")
+            {
+                return "Going about their business with a welcoming demeanor.";
+            }
+            else
+            {
+                return "Focused on the task at hand.";
+            }
         }
     }
 

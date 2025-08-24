@@ -421,9 +421,11 @@ public class GameFacade
 
     public LocationScreenViewModel GetLocationScreen()
     {
+        Console.WriteLine("[GameFacade.GetLocationScreen] Starting...");
         Player player = _gameWorld.GetPlayer();
         Location location = GetCurrentLocation();
         LocationSpot spot = GetCurrentLocationSpot();
+        Console.WriteLine($"[GameFacade.GetLocationScreen] Location: {location?.Name}, Spot: {spot?.Name} ({spot?.SpotID})");
         
         var viewModel = new LocationScreenViewModel
         {
@@ -448,7 +450,9 @@ public class GameFacade
             
             // Add NPCs with emotional states
             TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+            Console.WriteLine($"[GameFacade.GetLocationScreen] Looking for NPCs at {spot.SpotID} during {currentTime}");
             var npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
+            Console.WriteLine($"[GameFacade.GetLocationScreen] Found {npcs.Count} NPCs");
             
             foreach (var npc in npcs)
             {
@@ -498,6 +502,7 @@ public class GameFacade
             viewModel.Routes = GetRoutesFromLocation(location);
         }
         
+        Console.WriteLine($"[GameFacade.GetLocationScreen] Returning viewModel with {viewModel.NPCsPresent.Count} NPCs");
         return viewModel;
     }
     
@@ -595,7 +600,7 @@ public class GameFacade
     
     public EmotionalState GetNPCEmotionalState(string npcId)
     {
-        var npc = _npcRepository.GetNPCById(npcId);
+        var npc = _npcRepository.GetById(npcId);
         if (npc == null) return EmotionalState.NEUTRAL;
         return GetNPCEmotionalState(npc);
     }
@@ -637,12 +642,9 @@ public class GameFacade
             return false;
             
         // Check token requirements if any
-        if (route.AccessRequirement != null)
-        {
-            var accessCheck = _accessChecker.CheckRequirement(route.AccessRequirement);
-            if (!accessCheck.IsAllowed)
-                return false;
-        }
+        var accessCheck = _accessChecker.CheckRouteAccess(route);
+        if (!accessCheck.IsAllowed)
+            return false;
         
         return true;
     }
@@ -654,12 +656,9 @@ public class GameFacade
         if (route.TierRequired > player.CurrentTier)
             return $"Requires Tier {route.TierRequired}";
             
-        if (route.AccessRequirement != null)
-        {
-            var accessCheck = _accessChecker.CheckRequirement(route.AccessRequirement);
-            if (!accessCheck.IsAllowed)
-                return accessCheck.Reason ?? "Requirements not met";
-        }
+        var accessCheck = _accessChecker.CheckRouteAccess(route);
+        if (!accessCheck.IsAllowed)
+            return accessCheck.BlockedMessage ?? "Requirements not met";
         
         return "";
     }
@@ -1878,7 +1877,8 @@ public class GameFacade
             AttentionManager attention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
             
             // Find the observation
-            var (currentLocation, currentSpot) = GetCurrentLocation();
+            var currentLocation = GetCurrentLocation();
+            var currentSpot = GetCurrentLocationSpot();
             var availableObservations = _observationSystem.GetObservationsForLocation(currentLocation.Id);
             var observation = availableObservations.FirstOrDefault(obs => obs.Id == observationId);
             
@@ -3199,6 +3199,15 @@ public class GameFacade
     public NPC GetNPCById(string npcId)
     {
         return _npcRepository?.GetById(npcId);
+    }
+
+    public List<NPC> GetNPCsAtCurrentSpot()
+    {
+        var player = _gameWorld.GetPlayer();
+        if (player?.CurrentLocationSpot == null) return new List<NPC>();
+        
+        var currentTime = _timeManager.GetCurrentTimeBlock();
+        return _npcRepository.GetNPCsForLocationSpotAndTime(player.CurrentLocationSpot.SpotID, currentTime);
     }
 
     // ========== LETTER QUEUE MANAGEMENT ==========

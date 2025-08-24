@@ -153,14 +153,12 @@ public partial class LocationScreen : ComponentBase
 
     private Location GetCurrentLocation()
     {
-        (Location location, LocationSpot _) = GameFacade.GetCurrentLocation();
-        return location;
+        return GameFacade.GetCurrentLocation();
     }
 
     private LocationSpot GetCurrentSpot()
     {
-        (Location _, LocationSpot spot) = GameFacade.GetCurrentLocation();
-        return spot;
+        return GameFacade.GetCurrentLocationSpot();
     }
 
     private List<NPC> GetNPCsAtCurrentSpot()

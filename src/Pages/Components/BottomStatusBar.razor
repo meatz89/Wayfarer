@@ -50,7 +50,8 @@
     {
         try
         {
-            var (location, spot) = GameFacade.GetCurrentLocation();
+            var location = GameFacade.GetCurrentLocation();
+            var spot = GameFacade.GetCurrentLocationSpot();
             if (spot != null && !string.IsNullOrEmpty(spot.Name))
             {
                 return spot.Name;

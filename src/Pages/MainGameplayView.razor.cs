@@ -144,9 +144,8 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         CurrentWeather = WeatherCondition.Clear; // Weather should come from facade in future
 
         // Update location
-        (Location location, LocationSpot spot) = GameFacade.GetCurrentLocation();
-        CurrentLocation = location;
-        CurrentSpot = spot;
+        CurrentLocation = GameFacade.GetCurrentLocation();
+        CurrentSpot = GameFacade.GetCurrentLocationSpot();
 
         // Pull system messages
         SystemMessages = GameFacade.GetSystemMessages().Where(m => !m.IsExpired).ToList();
@@ -264,8 +263,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public Location GetCurrentLocation()
     {
-        (Location location, LocationSpot _) = GameFacade.GetCurrentLocation();
-        return location;
+        return GameFacade.GetCurrentLocation();
     }
 
     /// <summary>
@@ -282,7 +280,8 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
                 return false;
 
             // Check current location
-            (Location location, LocationSpot spot) = GameFacade.GetCurrentLocation();
+            Location location = GameFacade.GetCurrentLocation();
+            LocationSpot spot = GameFacade.GetCurrentLocationSpot();
             if (location == null || string.IsNullOrEmpty(location.Id) || string.IsNullOrEmpty(location.Name))
                 return false;
 

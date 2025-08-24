@@ -71,7 +71,7 @@ namespace Wayfarer.Pages.Components
         private List<ConversationCard> GetObservationCards()
         {
             // Get observation cards from the observation manager
-            return ObservationManager?.GetCollectedObservationCards() ?? new List<ConversationCard>();
+            return ObservationManager?.GetObservationCards() ?? new List<ConversationCard>();
         }
 
         protected async Task ExecuteListen()
@@ -83,10 +83,13 @@ namespace Wayfarer.Pages.Components
             
             try
             {
-                var result = ConversationManager.ExecuteListen();
-                ProcessResult(result);
+                // ExecuteListen is void, updates Session directly
+                Session.ExecuteListen();
                 
-                if (Session.IsComplete)
+                // Generate narrative for the action
+                GenerateListenNarrative();
+                
+                if (Session.ShouldEnd())
                 {
                     await Task.Delay(1000);
                     await OnConversationEnd.InvokeAsync();
@@ -107,11 +110,12 @@ namespace Wayfarer.Pages.Components
             
             try
             {
-                var result = ConversationManager.ExecuteSpeak(SelectedCards.ToList());
-                ProcessResult(result);
+                // ExecuteSpeak expects HashSet<ConversationCard>
+                var result = Session.ExecuteSpeak(SelectedCards);
+                ProcessSpeakResult(result);
                 SelectedCards.Clear();
                 
-                if (Session.IsComplete)
+                if (Session.ShouldEnd())
                 {
                     await Task.Delay(1000);
                     await OnConversationEnd.InvokeAsync();
@@ -124,18 +128,118 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        private void ProcessResult(CardPlayResult result)
+        private void ProcessSpeakResult(CardPlayResult result)
         {
             if (result != null)
             {
-                LastNarrative = result.NarrativeText;
-                LastDialogue = result.DialogueText;
+                // Generate narrative based on the result
+                GenerateSpeakNarrative(result);
                 
                 // Check for letter generation
                 if (Session.CurrentComfort >= ComfortThreshold)
                 {
                     GenerateLetter();
                 }
+            }
+        }
+        
+        private void GenerateListenNarrative()
+        {
+            // Generate narrative for listen action based on state
+            var stateRules = ConversationRules.States[Session.CurrentState];
+            
+            LastNarrative = Session.CurrentState switch
+            {
+                EmotionalState.DESPERATE => "You listen intently as their desperation becomes apparent...",
+                EmotionalState.HOSTILE => "Their hostility is palpable as they speak...",
+                EmotionalState.TENSE => "There's tension in their voice...",
+                EmotionalState.GUARDED => "They speak carefully, choosing their words...",
+                EmotionalState.OPEN => "They seem more comfortable talking now...",
+                EmotionalState.EAGER => "They lean in, eager to share more...",
+                EmotionalState.CONNECTED => "There's a real connection forming...",
+                _ => "You listen attentively..."
+            };
+            
+            LastDialogue = GetStateTransitionDialogue(Session.CurrentState);
+        }
+        
+        private void GenerateSpeakNarrative(CardPlayResult result)
+        {
+            // Generate narrative based on cards played and result
+            if (result.Results != null && result.Results.Any())
+            {
+                var successCount = result.Results.Count(r => r.Success);
+                var totalCards = result.Results.Count;
+                
+                if (successCount == totalCards)
+                {
+                    LastNarrative = "Your words resonate perfectly...";
+                }
+                else if (successCount > 0)
+                {
+                    LastNarrative = "Some of your words find their mark...";
+                }
+                else
+                {
+                    LastNarrative = "Your words fall flat...";
+                }
+                
+                // Add comfort gained info
+                if (result.TotalComfort > 0)
+                {
+                    LastNarrative += $" (Comfort +{result.TotalComfort})";
+                }
+            }
+            else
+            {
+                LastNarrative = "You speak your mind...";
+            }
+            
+            // Update dialogue based on new state if changed
+            if (result.NewState.HasValue)
+            {
+                LastDialogue = GetStateTransitionDialogue(result.NewState.Value);
+            }
+            else
+            {
+                LastDialogue = GetResponseDialogue();
+            }
+        }
+        
+        private string GetStateTransitionDialogue(EmotionalState newState)
+        {
+            return newState switch
+            {
+                EmotionalState.DESPERATE => "Please, I need your help urgently!",
+                EmotionalState.HOSTILE => "I don't want to talk anymore!",
+                EmotionalState.TENSE => "This is making me uncomfortable...",
+                EmotionalState.GUARDED => "I suppose I can spare a moment...",
+                EmotionalState.NEUTRAL => "Alright, let's talk.",
+                EmotionalState.OPEN => "I'm glad we're having this conversation.",
+                EmotionalState.EAGER => "Yes, yes! Tell me more!",
+                EmotionalState.CONNECTED => "I feel like you really understand me.",
+                _ => "Hmm..."
+            };
+        }
+        
+        private string GetResponseDialogue()
+        {
+            // Generate response based on current comfort level
+            if (Session.CurrentComfort >= 15)
+            {
+                return "This conversation has been wonderful!";
+            }
+            else if (Session.CurrentComfort >= 10)
+            {
+                return "I appreciate you taking the time to talk.";
+            }
+            else if (Session.CurrentComfort >= 5)
+            {
+                return "I see what you mean...";
+            }
+            else
+            {
+                return "I'm not sure about this...";
             }
         }
 
@@ -289,7 +393,8 @@ namespace Wayfarer.Pages.Components
 
         protected void ToggleCardSelection(ConversationCard card)
         {
-            if (Session.ConversationType == ConversationType.QuickExchange)
+            var conversationType = NavigationCoordinator.GetConversationType();
+            if (conversationType == ConversationType.QuickExchange)
             {
                 // For exchanges, selecting a card immediately plays it
                 SelectedCards.Clear();
@@ -331,14 +436,16 @@ namespace Wayfarer.Pages.Components
 
         protected async Task EndConversation()
         {
-            ConversationManager.EndConversation();
+            // EndConversation doesn't exist on ConversationManager, just clear the session
+            Session = null;
             await OnConversationEnd.InvokeAsync();
         }
 
         // UI Helper Methods
         protected string GetConversationModeTitle()
         {
-            return Session?.ConversationType switch
+            var conversationType = NavigationCoordinator.GetConversationType();
+            return conversationType switch
             {
                 ConversationType.QuickExchange => "Quick Exchange",
                 ConversationType.Crisis => "Crisis Resolution",
@@ -349,11 +456,11 @@ namespace Wayfarer.Pages.Components
 
         protected string GetStateClass()
         {
-            return Session?.NPCState switch
+            return Session?.CurrentState switch
             {
-                EmotionalState.Desperate => "desperate",
-                EmotionalState.Hostile => "hostile",
-                EmotionalState.Tense => "tense",
+                EmotionalState.DESPERATE => "desperate",
+                EmotionalState.HOSTILE => "hostile",
+                EmotionalState.TENSE => "tense",
                 _ => ""
             };
         }
@@ -362,13 +469,13 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return 3;
             
-            return Session.NPCState switch
+            return Session.CurrentState switch
             {
-                EmotionalState.Guarded => 2,
-                EmotionalState.Tense => 1,
-                EmotionalState.Overwhelmed => 1,
-                EmotionalState.Connected => 4,
-                EmotionalState.Hostile => 0,
+                EmotionalState.GUARDED => 2,
+                EmotionalState.TENSE => 1,
+                EmotionalState.OVERWHELMED => 1,
+                EmotionalState.CONNECTED => 4,
+                EmotionalState.HOSTILE => 0,
                 _ => 3
             };
         }
@@ -377,13 +484,13 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return "";
             
-            return Session.NPCState switch
+            return Session.CurrentState switch
             {
-                EmotionalState.Desperate => "Draw 2 + Crisis • State → Hostile",
-                EmotionalState.Hostile => "Draw 1 + 2 Crisis • Ends conversation",
-                EmotionalState.Guarded => "Draw 1 • State → Neutral",
-                EmotionalState.Open => "Draw 3 • State unchanged",
-                EmotionalState.Eager => "Draw 3 • State unchanged",
+                EmotionalState.DESPERATE => "Draw 2 + Crisis • State → Hostile",
+                EmotionalState.HOSTILE => "Draw 1 + 2 Crisis • Ends conversation",
+                EmotionalState.GUARDED => "Draw 1 • State → Neutral",
+                EmotionalState.OPEN => "Draw 3 • State unchanged",
+                EmotionalState.EAGER => "Draw 3 • State unchanged",
                 _ => "Draw 2 • State unchanged"
             };
         }
@@ -397,12 +504,12 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return "";
             
-            return Session.NPCState switch
+            return Session.CurrentState switch
             {
-                EmotionalState.Desperate => "• Draw 2 + crisis • Crisis free • Listen worsens",
-                EmotionalState.Hostile => "• Only crisis cards playable",
-                EmotionalState.Connected => "• Weight limit 4 • All comfort +2",
-                EmotionalState.Eager => "• 2+ same type → +3 comfort",
+                EmotionalState.DESPERATE => "• Draw 2 + crisis • Crisis free • Listen worsens",
+                EmotionalState.HOSTILE => "• Only crisis cards playable",
+                EmotionalState.CONNECTED => "• Weight limit 4 • All comfort +2",
+                EmotionalState.EAGER => "• 2+ same type → +3 comfort",
                 _ => ""
             };
         }
@@ -432,9 +539,10 @@ namespace Wayfarer.Pages.Components
 
         protected string GetCardClass(ConversationCard card)
         {
-            if (card.Template == CardTemplateType.Crisis)
+            // Map categories to CSS classes
+            if (card.Category == CardCategory.CRISIS)
                 return "crisis";
-            if (card.Template == CardTemplateType.State)
+            if (card.Category == CardCategory.STATE)
                 return "state";
             if (card.Persistence == PersistenceType.OneShot)
                 return "observation";
@@ -443,44 +551,54 @@ namespace Wayfarer.Pages.Components
 
         protected string GetCardName(ConversationCard card)
         {
-            return card.Context?.SimpleText ?? card.Template.ToString();
+            // Generate name from template and context
+            if (card.Context?.NPCName != null)
+                return $"{card.Template} ({card.Context.NPCName})";
+            return card.Template.ToString();
         }
 
         protected List<string> GetCardTags(ConversationCard card)
         {
             var tags = new List<string>();
             
-            tags.Add(card.Template.ToString());
+            // Add card type
+            tags.Add(card.Type.ToString());
             
-            if (card.TokenType != TokenType.None)
-                tags.Add(card.TokenType.ToString());
-                
+            // Add persistence type
             tags.Add(card.Persistence.ToString());
+            
+            // Add category
+            tags.Add(card.Category.ToString());
             
             return tags;
         }
 
         protected string GetSuccessEffect(ConversationCard card)
         {
-            if (card.Template == CardTemplateType.State)
+            if (card.Category == CardCategory.STATE)
                 return "Change state";
-            return $"Success: +{card.ComfortOnSuccess} comfort";
+            
+            // Calculate comfort from success
+            var successChance = card.CalculateSuccessChance();
+            return $"Success ({successChance}%): +{card.BaseComfort} comfort";
         }
 
         protected string GetFailureEffect(ConversationCard card)
         {
-            if (card.Template == CardTemplateType.State)
+            if (card.Category == CardCategory.STATE)
                 return "No change";
-            return $"Fail: +{card.ComfortOnFailure} comfort";
+            
+            // Failure typically gives 0 comfort
+            return "Fail: +0 comfort";
         }
 
         private string GetInitialDialogue()
         {
-            return Session?.NPCState switch
+            return Session?.CurrentState switch
             {
-                EmotionalState.Desperate => "Please, I need your help urgently!",
-                EmotionalState.Hostile => "What do you want?!",
-                EmotionalState.Tense => "I don't have much time...",
+                EmotionalState.DESPERATE => "Please, I need your help urgently!",
+                EmotionalState.HOSTILE => "What do you want?!",
+                EmotionalState.TENSE => "I don't have much time...",
                 _ => "Hello, what brings you here?"
             };
         }

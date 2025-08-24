@@ -9,9 +9,9 @@
         <div class="conversation-mode">
             <div class="mode-title">@GetConversationModeTitle()</div>
             <div class="mode-cost">
-                @if (Session.ConversationType != ConversationType.QuickExchange)
+                @if (NavigationCoordinator.GetConversationType() != ConversationType.QuickExchange)
                 {
-                    <span class="cost-item">@Session.CurrentTurn/@Session.MaxPatience Patience</span>
+                    <span class="cost-item">@Session.TurnNumber/@Session.MaxPatience Patience</span>
                 }
             </div>
         </div>
@@ -20,21 +20,21 @@
         <div class="npc-header">
             <div class="npc-info">
                 <h2>@NpcName</h2>
-                @if (Session.ConversationType != ConversationType.QuickExchange)
+                @if (NavigationCoordinator.GetConversationType() != ConversationType.QuickExchange)
                 {
-                    <div class="npc-state @GetStateClass()">@Session.NPCState</div>
+                    <div class="npc-state @GetStateClass()">@Session.CurrentState</div>
                 }
             </div>
         </div>
 
-        @if (Session.ConversationType != ConversationType.QuickExchange)
+        @if (NavigationCoordinator.GetConversationType() != ConversationType.QuickExchange)
         {
             <!-- Progress Section -->
             <div class="progress-section">
                 <div class="progress-bar">
                     <div class="progress-label">
                         <span>Comfort Built</span>
-                        <span>@Session.ComfortBuilt/@ComfortThreshold</span>
+                        <span>@Session.CurrentComfort/@ComfortThreshold</span>
                     </div>
                     <div class="progress-track">
                         <div class="progress-fill" style="width: @GetComfortProgress()%"></div>
@@ -42,7 +42,7 @@
                 </div>
                 
                 <div class="patience-display">
-                    <div class="patience-value">@Session.CurrentTurn/@Session.MaxPatience</div>
+                    <div class="patience-value">@Session.TurnNumber/@Session.MaxPatience</div>
                     <div class="patience-label">Patience</div>
                 </div>
                 
@@ -61,7 +61,7 @@
             <div class="state-section">
                 <div class="state-info">
                     <span>Emotional State:</span>
-                    <span class="state-name">@Session.NPCState</span>
+                    <span class="state-name">@Session.CurrentState</span>
                     <span class="state-effects">@GetStateEffects()</span>
                 </div>
                 <TokenDisplay />
@@ -84,14 +84,14 @@
 
         <!-- Action Section -->
         <div class="action-section">
-            @if (Session.ConversationType == ConversationType.QuickExchange)
+            @if (NavigationCoordinator.GetConversationType() == ConversationType.QuickExchange)
             {
                 <!-- Exchange shows cards directly -->
                 <div class="turn-indicator">Choose Your Response</div>
             }
-            else if (!Session.IsComplete)
+            else if (!Session.ShouldEnd())
             {
-                <div class="turn-indicator">Turn @Session.CurrentTurn of @Session.MaxPatience</div>
+                <div class="turn-indicator">Turn @Session.TurnNumber of @Session.MaxPatience</div>
                 <div class="action-choices">
                     <button class="action-button" @onclick="ExecuteListen" disabled="@IsProcessing">
                         <div>👂 LISTEN</div>
@@ -116,7 +116,7 @@
         <div class="cards-section">
             <div class="cards-header">
                 <div class="cards-title">Your Hand</div>
-                @if (Session.ConversationType != ConversationType.QuickExchange)
+                @if (NavigationCoordinator.GetConversationType() != ConversationType.QuickExchange)
                 {
                     <div class="weight-tracker @(TotalSelectedWeight > GetWeightLimit() ? "over-limit" : "")">
                         <span>Weight Used:</span>
