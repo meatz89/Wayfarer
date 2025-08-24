@@ -28,6 +28,15 @@ public class LocationSpot
     // Access Requirements for this spot
     public AccessRequirement AccessRequirement { get; set; }
 
+    // UI compatibility - converts SpotPropertyType enum to string list
+    public List<string> Properties 
+    { 
+        get 
+        { 
+            return SpotProperties?.Select(p => p.ToString()).ToList() ?? new List<string>(); 
+        } 
+    }
+
     public LocationSpot(string id, string name)
     {
         SpotID = id;

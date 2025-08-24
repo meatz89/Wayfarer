@@ -161,19 +161,20 @@ namespace Wayfarer.Pages
 
         protected List<string> GetLocationPath()
         {
-            var (location, spot) = GameFacade.GetCurrentLocation();
+            var location = GameFacade.GetCurrentLocation();
+            var spot = GameFacade.GetCurrentLocationSpot();
             return new List<string> { location?.Name ?? "Unknown", spot?.Name ?? "Somewhere" };
         }
 
         protected string GetCurrentSpot()
         {
-            var (_, spot) = GameFacade.GetCurrentLocation();
+            var spot = GameFacade.GetCurrentLocationSpot();
             return spot?.Name ?? "Somewhere";
         }
 
         protected string GetSpotAtmosphere()
         {
-            var (_, spot) = GameFacade.GetCurrentLocation();
+            var spot = GameFacade.GetCurrentLocationSpot();
             if (spot == null) 
             {
                 return "";
@@ -234,7 +235,7 @@ namespace Wayfarer.Pages
         
         protected List<string> GetSpotProperties()
         {
-            var (_, spot) = GameFacade.GetCurrentLocation();
+            var spot = GameFacade.GetCurrentLocationSpot();
             if (spot == null) 
             {
                 Console.WriteLine("[GetSpotProperties] Spot is null");
@@ -292,7 +293,7 @@ namespace Wayfarer.Pages
 
         protected int GetSpotComfortModifier()
         {
-            var (_, spot) = GameFacade.GetCurrentLocation();
+            var spot = GameFacade.GetCurrentLocationSpot();
             if (spot == null || Session == null) return 0;
             
             var currentTime = TimeManager.GetCurrentTimeBlock();

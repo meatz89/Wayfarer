@@ -63,6 +63,20 @@ public class ObservationViewModel
     public bool IsObserved { get; set; }
 }
 
+// View model for the GetObservationsViewModel method
+public class ObservationsViewModel
+{
+    public List<ObservationSummaryViewModel> AvailableObservations { get; set; } = new();
+}
+
+// Summary view model for UI display of observations
+public class ObservationSummaryViewModel  
+{
+    public string Id { get; set; }
+    public string Title { get; set; }
+    public string Type { get; set; }
+}
+
 public class AreaWithinLocationViewModel
 {
     public string Name { get; set; }
@@ -88,6 +102,17 @@ public class RouteOptionViewModel
     public bool SupportsCart { get; set; } = true;
     public bool SupportsCarriage { get; set; } = true;
     public string TransportMethod { get; set; } = "walk";
+}
+
+// Simplified route view model for TravelContent component
+public class SimpleRouteViewModel
+{
+    public string Id { get; set; }
+    public string Destination { get; set; }
+    public string TransportType { get; set; }
+    public int TravelTimeInMinutes { get; set; }
+    public int Cost { get; set; }
+    public string FamiliarityLevel { get; set; }
 }
 
 public class TravelProgressViewModel

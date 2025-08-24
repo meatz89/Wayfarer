@@ -42,6 +42,12 @@ public int VisitCount { get; set; }
 public bool PlayerKnowledge { get; set; }
 public List<LocationSpot> AvailableSpots { get; set; } = new List<LocationSpot>();
 
+// UI compatibility alias
+public List<LocationSpot> Spots => AvailableSpots;
+
+// NPCs currently present at this location (populated at runtime)
+public List<NPC> NPCsPresent { get; set; } = new List<NPC>();
+
 // Categorical Properties for NPC-Location Logical System Interactions
 public Dictionary<TimeBlocks, List<Professions>> AvailableProfessionsByTime { get; set; } = new Dictionary<TimeBlocks, List<Professions>>();
 

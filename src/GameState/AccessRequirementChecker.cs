@@ -50,6 +50,14 @@ public class AccessRequirementChecker
     }
 
     /// <summary>
+    /// Alias for CheckLocationSpotAccess for cleaner API.
+    /// </summary>
+    public AccessCheckResult CheckSpotAccess(LocationSpot spot)
+    {
+        return CheckLocationSpotAccess(spot);
+    }
+
+    /// <summary>
     /// Check if player meets access requirements for a route (in addition to terrain checks).
     /// </summary>
     public AccessCheckResult CheckRouteAccess(RouteOption route)

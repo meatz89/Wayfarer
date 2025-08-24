@@ -33,7 +33,8 @@ namespace Wayfarer.Pages.Components
 
         private async Task RefreshLocationData()
         {
-            var (location, spot) = GameFacade.GetCurrentLocation();
+            var location = GameFacade.GetCurrentLocation();
+            var spot = GameFacade.GetCurrentLocationSpot();
             CurrentSpot = spot;
             
             // Get NPCs at current location
@@ -78,12 +79,15 @@ namespace Wayfarer.Pages.Components
                         });
                     }
                     
+                    // Get actual emotional state using the same logic as conversations
+                    var emotionalState = GameFacade.GetNPCEmotionalState(npc.Id);
+                    
                     AvailableNpcs.Add(new NpcViewModel
                     {
                         Id = npc.Id,
                         Name = npc.Name,
                         PersonalityType = npc.PersonalityType.ToString(),
-                        EmotionalState = "Neutral", // TODO: Get actual state
+                        EmotionalState = emotionalState.ToString(),
                         HasCrisis = npc.CrisisDeck?.Cards.Any() ?? false,
                         ConversationOptions = options
                     });
@@ -150,7 +154,7 @@ namespace Wayfarer.Pages.Components
         {
             Console.WriteLine($"[LocationContent] Taking observation: {observationId}");
             
-            // Check attention first
+            // Check attention first (quick check before calling facade)
             var attentionState = GameFacade.GetCurrentAttentionState();
             if (attentionState.Current < 1)
             {
@@ -158,14 +162,20 @@ namespace Wayfarer.Pages.Components
                 return;
             }
             
-            // TODO: Implement observation taking in GameFacade
-            // For now just spend attention
-            var player = GameFacade.GetPlayer();
-            if (player != null)
+            // Call GameFacade to take the observation
+            // This will handle attention spending, card generation, and adding to hand
+            var success = await GameFacade.TakeObservationAsync(observationId);
+            
+            if (success)
             {
-                // Spend attention through proper manager
+                Console.WriteLine($"[LocationContent] Successfully took observation {observationId}");
+                // Refresh the UI to show the observation is now taken
                 await RefreshLocationData();
                 await OnActionExecuted.InvokeAsync();
+            }
+            else
+            {
+                Console.WriteLine($"[LocationContent] Failed to take observation {observationId}");
             }
         }
 
@@ -173,9 +183,20 @@ namespace Wayfarer.Pages.Components
         {
             Console.WriteLine($"[LocationContent] Moving to spot: {spotId}");
             
-            // TODO: Implement spot movement in GameFacade
-            await RefreshLocationData();
-            await OnActionExecuted.InvokeAsync();
+            // Call GameFacade to move to the spot (free movement within location)
+            bool success = GameFacade.MoveToSpot(spotId);
+            
+            if (success)
+            {
+                Console.WriteLine($"[LocationContent] Successfully moved to spot {spotId}");
+                // Refresh the UI to show the new spot
+                await RefreshLocationData();
+                await OnActionExecuted.InvokeAsync();
+            }
+            else
+            {
+                Console.WriteLine($"[LocationContent] Failed to move to spot {spotId}");
+            }
         }
 
         protected async Task NavigateToTravel()
@@ -187,13 +208,19 @@ namespace Wayfarer.Pages.Components
         {
             Console.WriteLine("[LocationContent] Performing work action");
             
-            // Check attention
-            var attentionState = GameFacade.GetCurrentAttentionState();
-            if (attentionState.Current >= 2)
+            var result = await GameFacade.PerformWork();
+            
+            if (result.Success)
             {
-                // TODO: Implement work action in GameFacade
-                // Work costs 2 attention, gives 8 coins
+                Console.WriteLine($"[LocationContent] Work successful: {result.Message}");
+                // Refresh UI to show updated coins and attention
+                await RefreshLocationData();
                 await OnActionExecuted.InvokeAsync();
+            }
+            else
+            {
+                // Error is already logged via MessageSystem
+                Console.WriteLine($"[LocationContent] Work failed: {result.Message}");
             }
         }
 

@@ -20,14 +20,14 @@
                 {
                     <div class="letter-card @GetLetterUrgencyClass(letter)">
                         <div class="letter-header">
-                            <h4>@letter.Title</h4>
-                            <div class="letter-type">@letter.Type</div>
+                            <h4>Letter from @letter.SenderName</h4>
+                            <div class="letter-type">@letter.TokenType Token</div>
                         </div>
                         
                         <div class="letter-details">
                             <div class="letter-route">
-                                <span class="from">From: @letter.SenderId</span>
-                                <span class="to">To: @letter.RecipientId</span>
+                                <span class="from">From: @letter.SenderName</span>
+                                <span class="to">To: @letter.RecipientName</span>
                             </div>
                             
                             <div class="letter-deadline">
@@ -39,7 +39,7 @@
                             
                             <div class="letter-reward">
                                 <span class="reward-label">Reward:</span>
-                                <span class="reward-amount">@letter.CoinReward coins</span>
+                                <span class="reward-amount">@letter.Payment coins</span>
                             </div>
                         </div>
                         

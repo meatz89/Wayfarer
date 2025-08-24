@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test MoveToSpot Functionality</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .test-scenario {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #2196F3;
+            border-radius: 4px;
+        }
+        .test-scenario h2 {
+            color: #2196F3;
+            margin-top: 0;
+        }
+        .test-case {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+        }
+        .expected {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .code {
+            background: #263238;
+            color: #aed581;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MoveToSpot Test Scenarios</h1>
+        
+        <div class="test-scenario">
+            <h2>Test 1: Valid Movement Within Location</h2>
+            <div class="test-case">
+                <strong>Setup:</strong> Player at "millbrook_square" spot in Millbrook<br>
+                <strong>Action:</strong> Call <code>GameFacade.MoveToSpot("millbrook_docks")</code><br>
+                <div class="expected">Expected Result: Returns true, player location updated to millbrook_docks</div>
+                <div class="code">
+// Test code
+var result = GameFacade.MoveToSpot("millbrook_docks");
+Assert.IsTrue(result);
+Assert.AreEqual("millbrook_docks", player.CurrentLocationSpot.SpotID);
+                </div>
+            </div>
+        </div>
+
+        <div class="test-scenario">
+            <h2>Test 2: Invalid Spot Name</h2>
+            <div class="test-case">
+                <strong>Setup:</strong> Player at any valid location<br>
+                <strong>Action:</strong> Call <code>GameFacade.MoveToSpot("nonexistent_spot")</code><br>
+                <div class="expected">Expected Result: Returns false, message "Spot 'nonexistent_spot' not found"</div>
+                <div class="code">
+// Test code
+var result = GameFacade.MoveToSpot("nonexistent_spot");
+Assert.IsFalse(result);
+// Check message system contains warning
+                </div>
+            </div>
+        </div>
+
+        <div class="test-scenario">
+            <h2>Test 3: Move to Current Spot (No-op)</h2>
+            <div class="test-case">
+                <strong>Setup:</strong> Player at "millbrook_square"<br>
+                <strong>Action:</strong> Call <code>GameFacade.MoveToSpot("millbrook_square")</code><br>
+                <div class="expected">Expected Result: Returns true (no-op success), no state change</div>
+                <div class="code">
+// Test code
+var currentSpot = player.CurrentLocationSpot.SpotID;
+var result = GameFacade.MoveToSpot(currentSpot);
+Assert.IsTrue(result);
+Assert.AreEqual(currentSpot, player.CurrentLocationSpot.SpotID);
+                </div>
+            </div>
+        </div>
+
+        <div class="test-scenario">
+            <h2>Test 4: Access-Restricted Spot</h2>
+            <div class="test-case">
+                <strong>Setup:</strong> Player without required tokens/items for restricted spot<br>
+                <strong>Action:</strong> Call <code>GameFacade.MoveToSpot("noble_quarter")</code><br>
+                <div class="expected">Expected Result: Returns false, access denied message</div>
+                <div class="code">
+// Test code (assuming noble_quarter has AccessRequirement)
+var result = GameFacade.MoveToSpot("noble_quarter");
+Assert.IsFalse(result);
+// Player remains at original spot
+                </div>
+            </div>
+        </div>
+
+        <div class="test-scenario">
+            <h2>Test 5: Null/Empty Spot Name</h2>
+            <div class="test-case">
+                <strong>Setup:</strong> Player at any location<br>
+                <strong>Action:</strong> Call <code>GameFacade.MoveToSpot(null)</code> or <code>GameFacade.MoveToSpot("")</code><br>
+                <div class="expected">Expected Result: Returns false, "Invalid spot name" message</div>
+                <div class="code">
+// Test code
+var result1 = GameFacade.MoveToSpot(null);
+var result2 = GameFacade.MoveToSpot("");
+Assert.IsFalse(result1);
+Assert.IsFalse(result2);
+                </div>
+            </div>
+        </div>
+
+        <div class="test-scenario">
+            <h2>Implementation Summary</h2>
+            <div class="test-case">
+                <strong>Method Signature:</strong> <code>public bool MoveToSpot(string spotName)</code><br><br>
+                <strong>Key Features:</strong>
+                <ul>
+                    <li>✅ FREE movement (no attention cost) within same location</li>
+                    <li>✅ Validates spot exists in current location</li>
+                    <li>✅ Checks access requirements if present</li>
+                    <li>✅ Updates player.CurrentLocationSpot on success</li>
+                    <li>✅ Tracks spot discovery via AddKnownLocationSpot</li>
+                    <li>✅ Returns true on success, false on failure</li>
+                    <li>✅ Provides user feedback via MessageSystem</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

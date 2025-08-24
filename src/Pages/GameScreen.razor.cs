@@ -41,7 +41,7 @@ namespace Wayfarer.Pages
         // Resources Display
         protected int Coins { get; set; }
         protected int Health { get; set; }
-        protected int Hunger { get; set; }
+        protected int Food { get; set; }
         protected int Attention { get; set; }
         protected int MaxAttention { get; set; } = 10;
 
@@ -77,7 +77,7 @@ namespace Wayfarer.Pages
             {
                 Coins = player.Coins;
                 Health = player.Health;
-                Hunger = player.Hunger;
+                Food = player.Food;
             }
             
             var attentionState = GameFacade.GetCurrentAttentionState();
@@ -107,15 +107,17 @@ namespace Wayfarer.Pages
 
         protected async Task RefreshLocationDisplay()
         {
-            var (location, spot) = GameFacade.GetCurrentLocation();
+            var location = GameFacade.GetCurrentLocation();
+            var spot = GameFacade.GetCurrentLocationSpot();
+            
             if (location != null)
             {
-                CurrentLocationPath = $"{location.District} → {location.Name}";
+                CurrentLocationPath = location.Name;
                 
                 if (spot != null)
                 {
                     CurrentSpot = spot.Name;
-                    if (spot.Properties.Any())
+                    if (spot.Properties != null && spot.Properties.Any())
                     {
                         CurrentSpot += $" • {string.Join(", ", spot.Properties)}";
                     }
@@ -247,13 +249,16 @@ namespace Wayfarer.Pages
         protected async Task HandleTravelRoute(string routeId)
         {
             Console.WriteLine($"[GameScreen] Travel route selected: {routeId}");
-            await GameFacade.ExecuteTravelAsync(routeId);
+            // Execute travel via intent system
+            var travelIntent = new TravelIntent { RouteId = routeId };
+            await GameFacade.ExecuteIntent(travelIntent);
             await NavigateToScreen(ScreenMode.Location);
         }
 
         protected string GetCurrentLocation()
         {
-            return GameFacade.GetCurrentLocation()?.Name ?? "Unknown";
+            var location = GameFacade.GetCurrentLocation();
+            return location?.Name ?? "Unknown";
         }
 
         protected async Task RefreshUI()

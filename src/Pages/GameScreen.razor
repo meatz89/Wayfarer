@@ -18,10 +18,10 @@
                     <div class="resource-value">@Health</div>
                     <span>Health</span>
                 </div>
-                <div class="resource @(Hunger > 60 ? "low" : Hunger > 80 ? "critical" : "")">
+                <div class="resource @(Food < 3 ? "low" : Food < 1 ? "critical" : "")">
                     <div class="resource-icon">🍞</div>
-                    <div class="resource-value">@Hunger</div>
-                    <span>Hunger</span>
+                    <div class="resource-value">@Food</div>
+                    <span>Food</span>
                 </div>
                 <div class="resource">
                     <div class="resource-icon">👁️</div>

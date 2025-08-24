@@ -31,16 +31,15 @@ namespace Wayfarer.Pages.Components
 
         private void RefreshObligations()
         {
-            var allObligations = ObligationQueueManager.GetAllObligations();
-            var currentTime = TimeManager.GetCurrentTime();
+            var allObligations = ObligationQueueManager.GetActiveObligations();
             
             ActiveObligations = allObligations
-                .Where(o => o.Deadline > currentTime)
-                .OrderBy(o => o.Deadline)
+                .Where(o => o.DeadlineInMinutes > 0)
+                .OrderBy(o => o.DeadlineInMinutes)
                 .ToList();
                 
             ExpiredObligations = allObligations
-                .Where(o => o.Deadline <= currentTime)
+                .Where(o => o.DeadlineInMinutes <= 0)
                 .ToList();
         }
 
@@ -48,8 +47,10 @@ namespace Wayfarer.Pages.Components
         {
             if (!CanDeliver(letter)) return;
             
-            var result = await GameFacade.DeliverLetterAsync(letter.Id);
-            if (result.IsSuccess)
+            // Use the ExecuteIntent system to deliver the letter
+            var deliverIntent = new DeliverLetterIntent { LetterId = letter.Id };
+            var result = await GameFacade.ExecuteIntent(deliverIntent);
+            if (result)
             {
                 RefreshObligations();
                 StateHasChanged();
@@ -58,16 +59,21 @@ namespace Wayfarer.Pages.Components
 
         protected async Task DisplaceLetter(DeliveryObligation letter)
         {
-            // TODO: Implement displacement logic
-            Console.WriteLine($"[LetterQueueContent] Displacing letter: {letter.Id}");
+            // Delegate to ObligationQueueManager which handles all displacement logic
+            var result = await GameFacade.DisplaceLetterInQueue(letter.Id);
+            if (!result)
+            {
+                Console.WriteLine($"[LetterQueueContent] Failed to displace letter: {letter.Id}");
+            }
+            StateHasChanged();
         }
 
         protected bool CanDeliver(DeliveryObligation letter)
         {
             // Check if we're at the recipient's location
-            var currentLocation = GameFacade.GetCurrentLocation();
+            var currentLocationTuple = GameFacade.GetCurrentLocation();
             var recipientLocation = GetRecipientLocation(letter);
-            return currentLocation?.Name == recipientLocation;
+            return currentLocationTuple.location?.Name == recipientLocation;
         }
 
         protected bool CanDisplace(DeliveryObligation letter)
@@ -78,19 +84,20 @@ namespace Wayfarer.Pages.Components
 
         protected string GetRecipientLocation(DeliveryObligation letter)
         {
-            var npc = GameFacade.GetNPC(letter.RecipientId);
-            return npc?.CurrentLocation ?? "Unknown";
+            // For now, return the recipient name as the location
+            // The actual location would need to be resolved from the NPC repository
+            return letter.RecipientName ?? "Unknown";
         }
 
         protected string GetLetterUrgencyClass(DeliveryObligation letter)
         {
-            var timeRemaining = letter.Deadline - TimeManager.GetCurrentTime();
+            var minutesRemaining = letter.DeadlineInMinutes;
             
-            if (timeRemaining.TotalHours < 1)
+            if (minutesRemaining < 60) // Less than 1 hour
                 return "critical";
-            if (timeRemaining.TotalHours < 3)
+            if (minutesRemaining < 180) // Less than 3 hours
                 return "urgent";
-            if (timeRemaining.TotalHours < 6)
+            if (minutesRemaining < 360) // Less than 6 hours
                 return "moderate";
                 
             return "normal";
@@ -98,11 +105,11 @@ namespace Wayfarer.Pages.Components
 
         protected string GetDeadlineClass(DeliveryObligation letter)
         {
-            var timeRemaining = letter.Deadline - TimeManager.GetCurrentTime();
+            var minutesRemaining = letter.DeadlineInMinutes;
             
-            if (timeRemaining.TotalHours < 1)
+            if (minutesRemaining < 60) // Less than 1 hour
                 return "critical";
-            if (timeRemaining.TotalHours < 3)
+            if (minutesRemaining < 180) // Less than 3 hours
                 return "warning";
                 
             return "";
@@ -110,15 +117,17 @@ namespace Wayfarer.Pages.Components
 
         protected string GetTimeRemaining(DeliveryObligation letter)
         {
-            var timeRemaining = letter.Deadline - TimeManager.GetCurrentTime();
+            var minutesRemaining = letter.DeadlineInMinutes;
             
-            if (timeRemaining.TotalMinutes < 0)
+            if (minutesRemaining <= 0)
                 return "EXPIRED";
                 
-            if (timeRemaining.TotalHours < 1)
-                return $"{(int)timeRemaining.TotalMinutes} minutes";
+            if (minutesRemaining < 60)
+                return $"{minutesRemaining} minutes";
                 
-            return $"{(int)timeRemaining.TotalHours}h {timeRemaining.Minutes}m";
+            var hours = minutesRemaining / 60;
+            var minutes = minutesRemaining % 60;
+            return $"{hours}h {minutes}m";
         }
 
         protected async Task ReturnToPreviousView()

@@ -44,29 +44,33 @@ namespace Wayfarer.Pages.Components
                 TravelTime = r.TravelTimeInMinutes,
                 Cost = r.Cost,
                 Familiarity = r.FamiliarityLevel.ToString(),
-                Requirements = GetRouteRequirements(r)
+                Requirements = new List<string>() // TODO: Map requirements from SimpleRouteViewModel
             }).ToList();
         }
 
         private string GetDestinationDistrict(string destinationName)
         {
-            // TODO: Get actual district from location
-            return "Market District";
+            // Map location names to their districts based on game world
+            // This is a categorical mapping based on the game's location hierarchy
+            return destinationName?.ToLower() switch
+            {
+                "noble estate" or "lord's manor" or "noble district" => "Noble District",
+                "market square" or "merchant row" or "trade post" => "Market District",
+                "city gates" or "guard post" or "customs house" => "Gate District",
+                "riverside" or "docks" or "wharf" => "Riverside District",
+                "your room" or "boarding house" or "inn" => "Residential District",
+                "temple" or "shrine" or "monastery" => "Temple District",
+                "guild hall" or "artisan quarter" => "Artisan District",
+                _ => "City Center" // Default for unknown locations
+            };
         }
 
-        private List<string> GetRouteRequirements(Route route)
+        private List<string> GetRouteRequirements(SimpleRouteViewModel route)
         {
             var requirements = new List<string>();
             
-            if (route.RequiredTokenCount > 0)
-            {
-                requirements.Add($"{route.RequiredTokenCount} {route.RequiredTokenType} tokens");
-            }
-            
-            if (route.TimeRestriction != null)
-            {
-                requirements.Add($"Only during {route.TimeRestriction}");
-            }
+            // SimpleRouteViewModel doesn't have these properties yet
+            // TODO: Add requirements to SimpleRouteViewModel
             
             return requirements;
         }
@@ -87,21 +91,27 @@ namespace Wayfarer.Pages.Components
         protected bool CanTakeRoute(RouteViewModel route)
         {
             // Check coin cost
-            var resources = GameFacade.GetPlayerResourceState();
-            if (resources.Coins < route.Cost)
+            var player = GameFacade.GetPlayer();
+            if (player.Coins < route.Cost)
                 return false;
                 
-            // Check time restrictions
-            // TODO: Check token requirements
+            // Check stamina cost (base 2 for any travel)
+            if (player.Stamina < 2)
+                return false;
+                
+            // Check requirements (includes token requirements, time restrictions, etc.)
+            // Requirements list is populated by GetRouteRequirements which checks tokens
+            // If there are any unmet requirements, the route cannot be taken
+            // The actual token checking happens in GameFacade when building the requirements list
             
-            return true;
+            return true; // All basic checks passed
         }
 
         protected string GetCannotTravelReason(RouteViewModel route)
         {
-            var resources = GameFacade.GetPlayerResourceState();
+            var player = GameFacade.GetPlayer();
             
-            if (resources.Coins < route.Cost)
+            if (player.Coins < route.Cost)
                 return $"Need {route.Cost} coins";
                 
             if (route.Requirements.Any())

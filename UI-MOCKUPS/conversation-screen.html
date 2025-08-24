@@ -32,60 +32,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         }
 
-        /* Player Resources Bar */
-        .resources-bar {
-            background: #1a1612;
-            color: #e8dcc4;
-            padding: 10px 20px;
-            border-bottom: 2px solid #3d3429;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .resource-group {
-            display: flex;
-            gap: 20px;
-        }
-
-        .resource {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-        }
-
-        .resource-icon {
-            width: 20px;
-            height: 20px;
-            background: #3d3429;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-        }
-
-        .resource-value {
-            font-weight: bold;
-            color: #d4a76a;
-        }
-
-        .resource.low {
-            color: #d4704a;
-        }
-
-        .resource.critical {
-            color: #ff6b6b;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        /* Time and Location Header */
+        /* Time and Deadline Header */
         .header {
             background: #2c241a;
             color: #e8dcc4;
@@ -93,104 +40,67 @@
             border-bottom: 2px solid #5c4a3a;
         }
 
-        .header-content {
+        .time-bar {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            font-size: 13px;
+            letter-spacing: 0.5px;
         }
 
-        .time-location {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            font-size: 12px;
+        .current-time {
+            text-transform: uppercase;
         }
 
-        .time-period {
-            padding: 2px 8px;
-            background: #3d3429;
-            border-radius: 2px;
+        .deadline-warning {
             color: #d4a76a;
-        }
-
-        .deadline {
-            color: #d4704a;
             font-weight: bold;
         }
 
         /* Location Context */
         .location-context {
             background: #f9f3e9;
-            padding: 10px 20px;
+            padding: 12px 20px;
             border-bottom: 1px solid #c4a684;
-            font-size: 11px;
-            color: #7a6250;
         }
 
         .location-path {
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 11px;
+            color: #7a6250;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .spot-info {
-            margin-top: 4px;
-            font-style: italic;
-            color: #5c4a3a;
-        }
-
-        /* Conversation Mode Indicator */
-        .conversation-mode {
-            background: #e8dcc4;
-            padding: 12px 20px;
-            border-bottom: 2px solid #a68b6f;
-            text-align: center;
-        }
-
-        .mode-title {
-            font-size: 18px;
-            color: #5c4a3a;
+            letter-spacing: 1px;
             margin-bottom: 4px;
         }
 
-        .mode-cost {
-            font-size: 12px;
-            color: #7a6250;
+        .location-spot {
+            font-size: 14px;
+            color: #5c4a3a;
+            font-style: italic;
         }
 
-        .cost-item {
-            display: inline-block;
-            margin: 0 10px;
-            padding: 2px 8px;
-            background: #faf4ea;
-            border: 1px solid #c4a684;
-            border-radius: 2px;
-        }
-
-        /* NPC Section */
-        .npc-header {
+        /* Top Section - NPC and Status */
+        .conversation-header {
             background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
-            padding: 15px 20px;
+            padding: 20px;
             border-bottom: 2px solid #a68b6f;
         }
 
-        .npc-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+        .npc-section {
+            margin-bottom: 20px;
         }
 
         .npc-details h2 {
             color: #5c4a3a;
-            font-size: 24px;
+            font-size: 26px;
             margin-bottom: 5px;
             font-weight: normal;
+            letter-spacing: 1px;
         }
 
         .npc-state {
-            font-size: 13px;
+            font-size: 14px;
             color: #7a6250;
             font-style: italic;
         }
@@ -200,30 +110,35 @@
             font-weight: bold;
         }
 
-        .npc-traits {
-            display: flex;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .trait-tag {
-            font-size: 10px;
-            padding: 2px 6px;
-            background: #faf4ea;
-            border: 1px solid #c4a684;
-            border-radius: 2px;
-            color: #7a6250;
-        }
-
-        /* Progress Section */
+        /* Progress Bars */
         .progress-section {
-            padding: 15px 20px;
-            background: #f4e8d0;
-            border-bottom: 1px solid #c4a684;
             display: grid;
             grid-template-columns: 2fr 1fr 2fr;
             gap: 15px;
             align-items: center;
+            margin-top: 15px;
+        }
+
+        .turns-remaining {
+            text-align: center;
+            padding: 15px;
+            background: #f9f3e9;
+            border-radius: 4px;
+            border: 2px solid #c4a684;
+        }
+
+        .turns-display {
+            font-size: 32px;
+            font-weight: normal;
+            color: #5c4a3a;
+            margin-bottom: 5px;
+        }
+
+        .turns-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .progress-bar {
@@ -256,39 +171,18 @@
             transition: width 0.3s ease;
         }
 
-        .patience-display {
-            text-align: center;
-            padding: 12px;
-            background: #f9f3e9;
-            border-radius: 4px;
-            border: 2px solid #c4a684;
-        }
-
-        .patience-value {
-            font-size: 28px;
-            font-weight: normal;
-            color: #5c4a3a;
-            margin-bottom: 4px;
-        }
-
-        .patience-label {
-            font-size: 11px;
-            color: #7a6250;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* State Display */
-        .state-section {
-            padding: 12px 20px;
-            background: #f9f3e9;
-            border-bottom: 2px solid #a68b6f;
+        /* State and Depth */
+        .state-depth-section {
+            margin-top: 15px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            padding: 10px;
+            background: #f9f3e9;
+            border-radius: 4px;
+            border: 1px solid #c4a684;
         }
 
-        .state-info {
+        .state-indicator {
             font-size: 13px;
             color: #5c4a3a;
         }
@@ -302,37 +196,19 @@
         .state-effects {
             font-size: 11px;
             color: #7a6250;
+            margin-left: 8px;
             font-style: italic;
-        }
-
-        /* Token Display */
-        .token-row {
-            display: flex;
-            gap: 15px;
-        }
-
-        .token {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: #5c4a3a;
-        }
-
-        .token-count {
-            font-weight: bold;
-            color: #7a8b5a;
         }
 
         /* Narrative Section */
         .narrative-section {
-            padding: 20px;
+            padding: 25px;
             background: #f4e8d0;
             border-bottom: 2px solid #a68b6f;
         }
 
         .narrative-text {
-            font-size: 14px;
+            font-size: 15px;
             line-height: 1.6;
             color: #3d3429;
             font-style: italic;
@@ -392,26 +268,22 @@
             transform: translateY(-2px);
         }
 
-        .action-details {
-            font-size: 12px;
-            margin-top: 5px;
-            color: #7a6250;
-        }
-
-        /* Cards Section */
-        .cards-section {
+        /* Dialog Options */
+        .dialog-section {
             padding: 20px;
             background: #f4e8d0;
         }
 
-        .cards-header {
+        .dialog-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .cards-title {
+        .dialog-title {
             font-size: 14px;
             color: #7a6250;
             text-transform: uppercase;
@@ -426,16 +298,16 @@
             background: #faf4ea;
             border: 1px solid #c4a684;
             border-radius: 4px;
-            font-size: 12px;
         }
 
-        /* Card Display */
-        .card-grid {
-            display: grid;
+        /* Dialog Cards */
+        .dialog-options {
+            display: flex;
+            flex-direction: column;
             gap: 12px;
         }
 
-        .card {
+        .dialog-card {
             background: #faf4ea;
             border: 2px solid #c4a684;
             border-radius: 4px;
@@ -445,32 +317,29 @@
             position: relative;
         }
 
-        .card:hover {
+        .dialog-card:hover {
             background: #fefaf0;
             border-color: #a68b6f;
             transform: translateX(5px);
         }
 
-        .card.comfort {
+        /* Card Type Borders */
+        .dialog-card.comfort {
             border-left: 5px solid #7a8b5a;
         }
 
-        .card.state {
+        .dialog-card.state {
             border-left: 5px solid #8b7355;
         }
 
-        .card.crisis {
+        .dialog-card.crisis {
             border-left: 5px solid #8b4726;
             background: #faf0e6;
         }
 
-        .card.observation {
-            border-left: 5px solid #5a7a8a;
-            background: #f0f4fa;
-        }
-
+        /* Card Header */
         .card-header {
-            padding: 10px 12px;
+            padding: 12px 15px;
             background: #f9f3e9;
             border-bottom: 1px solid #e8dcc4;
             display: flex;
@@ -478,57 +347,194 @@
             align-items: flex-start;
         }
 
-        .card-name {
-            font-size: 13px;
-            font-weight: bold;
-            color: #5c4a3a;
+        .card-identity {
+            flex: 1;
         }
 
-        .card-weight {
-            font-size: 16px;
+        .card-name {
+            font-size: 14px;
             font-weight: bold;
             color: #5c4a3a;
+            margin-bottom: 4px;
         }
 
         .card-tags {
-            padding: 8px 12px;
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
         }
 
-        .card-tag {
-            font-size: 9px;
+        .tag {
             padding: 2px 6px;
             background: #e8dcc4;
             border: 1px solid #c4a684;
             border-radius: 2px;
+            font-size: 9px;
             color: #5c4a3a;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .card-effects {
-            padding: 10px 12px;
-            font-size: 12px;
-            color: #5c4a3a;
-            display: flex;
-            justify-content: space-between;
+        .tag.type-comfort {
+            background: #e8f5e9;
+            border-color: #7a8b5a;
+            color: #5a7a3a;
+            font-weight: bold;
         }
 
-        .effect-success {
+        .tag.type-state {
+            background: #f4e8d0;
+            border-color: #8b7355;
+            color: #6b5d4f;
+            font-weight: bold;
+        }
+
+        .tag.type-crisis {
+            background: #faf0e6;
+            border-color: #8b4726;
+            color: #8b4726;
+            font-weight: bold;
+        }
+
+        .tag.persistence {
+            font-style: italic;
+        }
+
+        .tag.observation {
+            background: #7a8b5a;
+            color: #faf4ea;
+            border: none;
+        }
+
+        .card-weight {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .weight-label {
+            font-size: 9px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .weight-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        /* Card Text */
+        .card-text {
+            padding: 12px 15px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #2c241a;
+            font-style: italic;
+            background: #fefaf0;
+        }
+
+        /* Outcomes Section */
+        .card-outcomes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 2px solid #c4a684;
+        }
+
+        .outcome {
+            padding: 12px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .outcome.success {
+            background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+            border-right: 1px solid #c4a684;
+        }
+
+        .outcome.failure {
+            background: linear-gradient(to bottom, #faf0e6, #f9ede0);
+        }
+
+        .outcome-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .outcome-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .outcome.success .outcome-label {
             color: #5a7a3a;
         }
 
-        .effect-failure {
+        .outcome.failure .outcome-label {
             color: #8b4726;
         }
 
-        /* Special Marker */
-        .card-marker {
+        .outcome-chance {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .chance-high {
+            color: #5a7a3a;
+        }
+
+        .chance-medium {
+            color: #7a6250;
+        }
+
+        .chance-low {
+            color: #8b4726;
+        }
+
+        .outcome-effects {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .effect {
+            font-size: 12px;
+            color: #5c4a3a;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .effect-value {
+            font-weight: bold;
+        }
+
+        .effect.comfort {
+            color: #5a7a3a;
+        }
+
+        .effect.state-change {
+            color: #8b7355;
+            font-style: italic;
+        }
+
+        .effect.special {
+            color: #8b4726;
+            font-size: 11px;
+        }
+
+        /* Special Card Markers */
+        .card-special-marker {
             position: absolute;
             top: -8px;
-            right: 10px;
+            right: 15px;
             background: #8b4726;
             color: #faf4ea;
             padding: 2px 8px;
@@ -539,151 +545,105 @@
             font-weight: bold;
         }
 
-        .card-marker.combinable {
+        .card-special-marker.solo-only {
+            background: #8b7355;
+        }
+
+        .card-special-marker.combinable {
             background: #7a8b5a;
         }
 
-        .card-marker.observation-bonus {
-            background: #5a7a8a;
+        /* Play Section */
+        .play-section {
+            padding: 20px;
+            text-align: center;
+            background: #e8dcc4;
+            border-top: 2px solid #a68b6f;
+        }
+
+        .play-button {
+            padding: 12px 30px;
+            background: linear-gradient(to bottom, #8b9a6a, #7a8b5a);
+            border: 2px solid #5a6a3a;
+            border-radius: 4px;
+            color: #faf4ea;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .play-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #7a6250;
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <!-- Player Resources -->
-        <div class="resources-bar">
-            <div class="resource-group">
-                <div class="resource">
-                    <div class="resource-icon">💰</div>
-                    <div class="resource-value">23</div>
-                    <span>Coins</span>
-                </div>
-                <div class="resource">
-                    <div class="resource-icon">❤️</div>
-                    <div class="resource-value">75</div>
-                    <span>Health</span>
-                </div>
-                <div class="resource low">
-                    <div class="resource-icon">🍞</div>
-                    <div class="resource-value">60</div>
-                    <span>Hunger</span>
-                </div>
-                <div class="resource">
-                    <div class="resource-icon">👁️</div>
-                    <div class="resource-value">7/10</div>
-                    <span>Attention</span>
-                </div>
-            </div>
-            <div class="resource-group">
-                <div class="resource">
-                    <span>Afternoon</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Time and Location Header -->
+        <!-- Time and Deadline Header -->
         <div class="header">
-            <div class="header-content">
-                <div class="time-location">
-                    <span>Tuesday, 3:47 PM</span>
-                    <span class="time-period">Afternoon</span>
-                </div>
-                <div class="deadline">⚠ Elena's letter: 1h 13m</div>
+            <div class="time-bar">
+                <span class="current-time">Tuesday, Third Bell Past Noon</span>
+                <span class="deadline-warning">Elena's letter: 2 hours remain</span>
             </div>
         </div>
 
         <!-- Location Context -->
         <div class="location-context">
             <div class="location-path">
-                <span>Lower Wards</span>
+                <span>Market Square</span>
                 <span>→</span>
-                <span>Market District</span>
+                <span>West Side</span>
                 <span>→</span>
-                <span>Copper Kettle</span>
-                <span>→</span>
-                <span>Corner Table</span>
+                <span>Copper Kettle Tavern</span>
             </div>
-            <div class="spot-info">Private booth, +1 comfort modifier</div>
+            <div class="location-spot">Corner Booth</div>
         </div>
 
-        <!-- Conversation Mode -->
-        <div class="conversation-mode">
-            <div class="mode-title">Standard Conversation</div>
-            <div class="mode-cost">
-                <span class="cost-item">2 Attention</span>
-                <span class="cost-item">8 Patience</span>
-                <span class="cost-item">~5 minutes</span>
+        <!-- Conversation Header -->
+        <div class="conversation-header">
+            <div class="npc-section">
+                <div class="npc-details">
+                    <h2>Elena</h2>
+                    <div class="npc-state desperate">DESPERATE • Letter deadline in 2 hours!</div>
+                </div>
             </div>
-        </div>
 
-        <!-- NPC Header -->
-        <div class="npc-header">
-            <div class="npc-info">
-                <div>
-                    <div class="npc-details">
-                        <h2>Elena</h2>
-                        <div class="npc-state desperate">DESPERATE • Crisis imminent</div>
+            <!-- Progress bars -->
+            <div class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-label">
+                        <span>Comfort Built</span>
+                        <span>3/20</span>
                     </div>
-                    <div class="npc-traits">
-                        <span class="trait-tag">Devoted</span>
-                        <span class="trait-tag">Trust Primary</span>
-                        <span class="trait-tag">Letter Sender</span>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: 15%"></div>
                     </div>
                 </div>
+                
+                <div class="turns-remaining">
+                    <div class="turns-display">5</div>
+                    <div class="turns-label">Turns Left</div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-label">
+                        <span>Current Depth</span>
+                        <span>0 (Surface)</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Progress Section -->
-        <div class="progress-section">
-            <div class="progress-bar">
-                <div class="progress-label">
-                    <span>Comfort Built</span>
-                    <span>3/10</span>
-                </div>
-                <div class="progress-track">
-                    <div class="progress-fill" style="width: 30%"></div>
-                </div>
-            </div>
-            
-            <div class="patience-display">
-                <div class="patience-value">5/8</div>
-                <div class="patience-label">Patience</div>
-            </div>
-            
-            <div class="progress-bar">
-                <div class="progress-label">
-                    <span>Depth</span>
-                    <span>Surface</span>
-                </div>
-                <div class="progress-track">
-                    <div class="progress-fill" style="width: 0%"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- State Section -->
-        <div class="state-section">
-            <div class="state-info">
-                <span>Emotional State:</span>
-                <span class="state-name">Desperate</span>
-                <span class="state-effects">• Draw 2 + crisis • Crisis free • Listen worsens</span>
-            </div>
-            <div class="token-row">
-                <div class="token">
-                    <span class="token-count">2</span>
-                    <span>Trust</span>
-                </div>
-                <div class="token">
-                    <span class="token-count">0</span>
-                    <span>Commerce</span>
-                </div>
-                <div class="token">
-                    <span class="token-count">1</span>
-                    <span>Status</span>
-                </div>
-                <div class="token">
-                    <span class="token-count">0</span>
-                    <span>Shadow</span>
+            <!-- State and Depth -->
+            <div class="state-depth-section">
+                <div class="state-indicator">
+                    <span>Emotional State:</span>
+                    <span class="state-name">Desperate</span>
+                    <span class="state-effects">Draw 2 + crisis • Crisis free • Listen worsens</span>
                 </div>
             </div>
         </div>
@@ -691,109 +651,258 @@
         <!-- Narrative Section -->
         <div class="narrative-section">
             <div class="narrative-text">
-                The private booth shields your conversation from prying ears. Elena's desperation fills the small space like smoke.
+                Time is running short. Elena's desperation fills the space between you, making every word carry weight.
             </div>
             <div class="npc-dialogue desperate">
-                "Please, I have nowhere else to turn. Lord Blackwood must receive my refusal before he departs. My father will finalize everything if this letter doesn't reach him in time."
+                "Please, I need to know - will you help me? The letter to Lord Blackwood... if he doesn't receive my refusal by tonight, my father will finalize the arrangement."
             </div>
         </div>
 
         <!-- Action Choice -->
         <div class="action-section">
-            <div class="turn-indicator">Turn 3 of 8 • Current Patience: 5</div>
+            <div class="turn-indicator">Turn 1 of 5 • Each choice uses 1 turn</div>
             <div class="action-choices">
                 <div class="action-button">
                     <div>👂 LISTEN</div>
-                    <div class="action-details">Draw 2 + Crisis • State → Hostile</div>
+                    <div style="font-size: 12px; margin-top: 5px;">Draw 2 + Crisis • State worsens</div>
                 </div>
                 <div class="action-button">
-                    <div>💬 SPEAK</div>
-                    <div class="action-details">Weight limit: 3 • Crisis cards free</div>
+                    <div>💭 SPEAK</div>
+                    <div style="font-size: 12px; margin-top: 5px;">Weight limit: 3 • Crisis free</div>
                 </div>
             </div>
         </div>
 
-        <!-- Cards Section -->
-        <div class="cards-section">
-            <div class="cards-header">
-                <div class="cards-title">Your Hand</div>
+        <!-- Dialog Options -->
+        <div class="dialog-section">
+            <div class="dialog-header">
+                <div class="dialog-title">Your Thoughts</div>
                 <div class="weight-tracker">
                     <span>Weight Used:</span>
                     <span style="font-weight: bold;">0/3</span>
                 </div>
             </div>
             
-            <div class="card-grid">
-                <!-- Observation Card -->
-                <div class="card observation">
-                    <div class="card-marker observation-bonus">From Observation</div>
+            <div class="dialog-options">
+                <!-- Comfort Card - Promise to Help -->
+                <div class="dialog-card comfort">
+                    <div class="card-special-marker combinable">Can Combine</div>
                     <div class="card-header">
-                        <div class="card-name">Guard Checkpoint Warning</div>
-                        <div class="card-weight">1</div>
+                        <div class="card-identity">
+                            <div class="card-name">Promise to Help</div>
+                            <div class="card-tags">
+                                <span class="tag type-comfort">COMFORT</span>
+                                <span class="tag">Trust</span>
+                                <span class="tag persistence">⏱ Opportunity</span>
+                            </div>
+                        </div>
+                        <div class="card-weight">
+                            <span class="weight-label">Weight</span>
+                            <span class="weight-value">2</span>
+                        </div>
                     </div>
-                    <div class="card-tags">
-                        <span class="card-tag">Observation</span>
-                        <span class="card-tag">Shadow</span>
-                        <span class="card-tag">One-Shot</span>
+                    <div class="card-text">
+                        "I promise I'll help you, Elena. We'll get your letter to Lord Blackwood before the deadline. Your father won't force this marriage on you."
                     </div>
-                    <div class="card-effects">
-                        <span class="effect-success">Success: +5 comfort</span>
-                        <span class="effect-failure">Fail: +1 comfort</span>
+                    <div class="card-outcomes">
+                        <div class="outcome success">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Success</span>
+                                <span class="outcome-chance chance-medium">53%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect comfort">
+                                    <span class="effect-value">+4</span> comfort
+                                </div>
+                                <div class="effect special">
+                                    Creates obligation
+                                </div>
+                            </div>
+                        </div>
+                        <div class="outcome failure">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Failure</span>
+                                <span class="outcome-chance chance-medium">47%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect">
+                                    <span class="effect-value">+1</span> comfort
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Comfort Card -->
-                <div class="card comfort">
-                    <div class="card-marker combinable">Can Combine</div>
+                <!-- Comfort Card from Observation -->
+                <div class="dialog-card comfort">
+                    <div class="card-special-marker combinable">Can Combine</div>
                     <div class="card-header">
-                        <div class="card-name">Promise to Help</div>
-                        <div class="card-weight">2</div>
+                        <div class="card-identity">
+                            <div class="card-name">Mention the Guards</div>
+                            <div class="card-tags">
+                                <span class="tag type-comfort">COMFORT</span>
+                                <span class="tag">Shadow</span>
+                                <span class="tag persistence">⏱ Opportunity</span>
+                                <span class="tag observation">Observation</span>
+                            </div>
+                        </div>
+                        <div class="card-weight">
+                            <span class="weight-label">Weight</span>
+                            <span class="weight-value">1</span>
+                        </div>
                     </div>
-                    <div class="card-tags">
-                        <span class="card-tag">Comfort</span>
-                        <span class="card-tag">Trust</span>
-                        <span class="card-tag">Opportunity</span>
+                    <div class="card-text">
+                        "I saw Lord Blackwood's guards at the tavern earlier. They mentioned he's leaving for the capital at dawn. We need to reach him tonight."
                     </div>
-                    <div class="card-effects">
-                        <span class="effect-success">Success: +4 comfort</span>
-                        <span class="effect-failure">Fail: +1 comfort</span>
+                    <div class="card-outcomes">
+                        <div class="outcome success">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Success</span>
+                                <span class="outcome-chance chance-high">63%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect comfort">
+                                    <span class="effect-value">+2</span> comfort
+                                </div>
+                            </div>
+                        </div>
+                        <div class="outcome failure">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Failure</span>
+                                <span class="outcome-chance chance-low">37%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect">
+                                    <span class="effect-value">+0</span> comfort
+                                </div>
+                                <div class="effect special">
+                                    Creates worry
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- State Card -->
-                <div class="card state">
+                <!-- State Card - Must be played alone -->
+                <div class="dialog-card state">
+                    <div class="card-special-marker solo-only">Solo Only</div>
                     <div class="card-header">
-                        <div class="card-name">Calm Reassurance</div>
-                        <div class="card-weight">1</div>
+                        <div class="card-identity">
+                            <div class="card-name">Calm Reassurance</div>
+                            <div class="card-tags">
+                                <span class="tag type-state">STATE</span>
+                                <span class="tag">Trust</span>
+                                <span class="tag persistence">♻ Persistent</span>
+                            </div>
+                        </div>
+                        <div class="card-weight">
+                            <span class="weight-label">Weight</span>
+                            <span class="weight-value">1</span>
+                        </div>
                     </div>
-                    <div class="card-tags">
-                        <span class="card-tag">State</span>
-                        <span class="card-tag">Trust</span>
-                        <span class="card-tag">Solo Only</span>
+                    <div class="card-text">
+                        "Elena, breathe. We have time. I'm here to help you. Let's think through this together - there's always a way."
                     </div>
-                    <div class="card-effects">
-                        <span class="effect-success">Desperate → Tense</span>
-                        <span class="effect-failure">No change</span>
+                    <div class="card-outcomes">
+                        <div class="outcome success">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Success</span>
+                                <span class="outcome-chance chance-high">63%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect state-change">
+                                    State: Desperate → Tense
+                                </div>
+                                <div class="effect">
+                                    Calms emotions
+                                </div>
+                            </div>
+                        </div>
+                        <div class="outcome failure">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Failure</span>
+                                <span class="outcome-chance chance-low">37%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect state-change">
+                                    State unchanged
+                                </div>
+                                <div class="effect special">
+                                    She needs more
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Crisis Card -->
-                <div class="card crisis">
-                    <div class="card-marker">FREE!</div>
+                <div class="dialog-card crisis">
+                    <div class="card-special-marker">FREE IN DESPERATE!</div>
                     <div class="card-header">
-                        <div class="card-name">Desperate Promise</div>
-                        <div class="card-weight">0</div>
+                        <div class="card-identity">
+                            <div class="card-name">Desperate Promise</div>
+                            <div class="card-tags">
+                                <span class="tag type-crisis">CRISIS</span>
+                                <span class="tag">Trust</span>
+                                <span class="tag persistence">🔥 Crisis</span>
+                            </div>
+                        </div>
+                        <div class="card-weight">
+                            <span class="weight-label">Weight</span>
+                            <span class="weight-value">0</span>
+                            <span style="font-size: 9px; color: #8b4726;">(Free!)</span>
+                        </div>
                     </div>
-                    <div class="card-tags">
-                        <span class="card-tag">Crisis</span>
-                        <span class="card-tag">Trust</span>
-                        <span class="card-tag">Free in Desperate</span>
+                    <div class="card-text">
+                        "Elena, I swear on my life - I will get this letter to Lord Blackwood. Even if I have to fight through his guards, even if it costs me everything!"
                     </div>
-                    <div class="card-effects">
-                        <span class="effect-success">+10 comfort, Letter</span>
-                        <span class="effect-failure">+5 comfort, → Overwhelmed</span>
+                    <div class="card-outcomes">
+                        <div class="outcome success">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Success</span>
+                                <span class="outcome-chance chance-medium">43%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect comfort">
+                                    <span class="effect-value">+10</span> comfort
+                                </div>
+                                <div class="effect state-change">
+                                    Generates letter
+                                </div>
+                                <div class="effect special">
+                                    Ends conversation
+                                </div>
+                            </div>
+                        </div>
+                        <div class="outcome failure">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Failure</span>
+                                <span class="outcome-chance chance-high">57%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect comfort">
+                                    <span class="effect-value">+5</span> comfort
+                                </div>
+                                <div class="effect state-change">
+                                    State: → Overwhelmed
+                                </div>
+                                <div class="effect special">
+                                    Too much pressure
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Play Button Section -->
+        <div class="play-section">
+            <button class="play-button">
+                Select LISTEN or SPEAK
+            </button>
+            <div class="play-info">
+                5 turns remaining • State affects all actions
             </div>
         </div>
     </div>

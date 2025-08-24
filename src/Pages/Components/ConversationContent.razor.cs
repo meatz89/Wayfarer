@@ -33,7 +33,7 @@ namespace Wayfarer.Pages.Components
 
         protected override async Task OnParametersSetAsync()
         {
-            if (Session?.NpcId != NpcId)
+            if (Session?.NPC?.ID != NpcId)
             {
                 await StartConversation();
             }
@@ -53,7 +53,7 @@ namespace Wayfarer.Pages.Components
                 
                 if (Session != null)
                 {
-                    var npc = GameFacade.GetNPC(NpcId);
+                    var npc = GameFacade.GetNPCById(NpcId);
                     NpcName = npc?.Name ?? "Unknown";
                     
                     // Generate initial narrative
@@ -132,7 +132,7 @@ namespace Wayfarer.Pages.Components
                 LastDialogue = result.DialogueText;
                 
                 // Check for letter generation
-                if (Session.ComfortBuilt >= ComfortThreshold)
+                if (Session.CurrentComfort >= ComfortThreshold)
                 {
                     GenerateLetter();
                 }
@@ -141,8 +141,150 @@ namespace Wayfarer.Pages.Components
 
         private void GenerateLetter()
         {
-            // TODO: Implement letter generation
-            Console.WriteLine($"[ConversationContent] Letter generation triggered at comfort {Session.ComfortBuilt}");
+            // Prevent duplicate generation in same conversation
+            if (Session == null || Session.LetterGenerated) return;
+            
+            // Determine letter tier based on comfort level
+            LetterTier tier = DetermineLetterTier(Session.CurrentComfort);
+            
+            // Create the delivery obligation
+            var obligation = CreateLetterFromComfort(tier);
+            if (obligation == null)
+            {
+                Console.WriteLine("[ConversationContent] Failed to create letter - no valid recipients");
+                return;
+            }
+            
+            // Mark as generated to prevent duplicates
+            Session.LetterGenerated = true;
+            
+            // Log the letter generation
+            var npcName = GameFacade.GetNPCById(NpcId)?.Name ?? "The NPC";
+            Console.WriteLine($"[ConversationContent] Letter generated from {npcName}!");
+            Console.WriteLine($"   → Tier: {GetTierDescription(tier)}");
+            Console.WriteLine($"   → Deadline: {obligation.DeadlineInMinutes / 60}h | Payment: {obligation.Payment} coins");
+            Console.WriteLine($"   → Comfort Level: {Session.CurrentComfort}");
+            
+            // Store the obligation for later processing
+            // In a real implementation, this would be added to the queue
+            // For now, we just mark it as generated
+        }
+        
+        private LetterTier DetermineLetterTier(int comfort)
+        {
+            // Algorithm: Tier = Floor((Comfort - 5) / 5)
+            // 5-9: Simple (T1)
+            // 10-14: Important (T2)  
+            // 15-19: Urgent (T3)
+            // 20+: Critical (T4)
+            
+            if (comfort >= 20) return LetterTier.Critical;
+            if (comfort >= 15) return LetterTier.Urgent;
+            if (comfort >= 10) return LetterTier.Important;
+            return LetterTier.Simple;
+        }
+        
+        private DeliveryObligation CreateLetterFromComfort(LetterTier tier)
+        {
+            // For now, hardcode a recipient since we don't have access to all NPCs
+            // In a real implementation, this would select from available NPCs
+            var recipientId = "merchant_thomas"; // Default recipient
+            var recipientName = "Thomas the Merchant";
+            
+            // Determine letter parameters based on tier
+            var (deadline, payment, stakes, weight) = GetTierParameters(tier);
+            
+            // Get the NPC
+            var npc = GameFacade.GetNPCById(NpcId);
+            if (npc == null) return null;
+            
+            // Determine token type from NPC's available types
+            var tokenType = DetermineTokenType(npc);
+            
+            return new DeliveryObligation
+            {
+                Id = Guid.NewGuid().ToString(),
+                SenderId = npc.ID,
+                SenderName = npc.Name,
+                RecipientId = recipientId,
+                RecipientName = recipientName,
+                TokenType = tokenType,
+                DeadlineInMinutes = deadline,
+                Payment = payment,
+                Stakes = stakes,
+                EmotionalWeight = weight,
+                Tier = ConvertToTierLevel(tier),
+                Description = GenerateLetterDescription(npc.Name, recipientName, tier),
+                GenerationReason = $"Generated from {Session.CurrentComfort} comfort in conversation"
+            };
+        }
+        
+        private (int deadline, int payment, StakeType stakes, EmotionalWeight weight) GetTierParameters(LetterTier tier)
+        {
+            // EXACT specifications as requested
+            return tier switch
+            {
+                LetterTier.Simple => (1440, 5, StakeType.REPUTATION, EmotionalWeight.LOW),      // 24h, 5 coins
+                LetterTier.Important => (720, 10, StakeType.WEALTH, EmotionalWeight.MEDIUM),    // 12h, 10 coins
+                LetterTier.Urgent => (360, 15, StakeType.STATUS, EmotionalWeight.HIGH),         // 6h, 15 coins
+                LetterTier.Critical => (120, 20, StakeType.SAFETY, EmotionalWeight.CRITICAL),   // 2h, 20 coins
+                _ => (1440, 5, StakeType.REPUTATION, EmotionalWeight.LOW)
+            };
+        }
+        
+        private ConnectionType DetermineTokenType(NPC npc)
+        {
+            // Use NPC's primary letter token type, or default to Trust
+            if (npc.LetterTokenTypes != null && npc.LetterTokenTypes.Any())
+            {
+                return npc.LetterTokenTypes.First();
+            }
+            return ConnectionType.Trust;
+        }
+        
+        private TierLevel ConvertToTierLevel(LetterTier tier)
+        {
+            return tier switch
+            {
+                LetterTier.Simple => TierLevel.T1,
+                LetterTier.Important => TierLevel.T2,
+                LetterTier.Urgent => TierLevel.T3,
+                LetterTier.Critical => TierLevel.T3, // Map Critical to T3 as there's no T4
+                _ => TierLevel.T1
+            };
+        }
+        
+        private string GenerateLetterDescription(string senderName, string recipientName, LetterTier tier)
+        {
+            return tier switch
+            {
+                LetterTier.Simple => $"A routine message from {senderName} to {recipientName}",
+                LetterTier.Important => $"Important correspondence requiring timely delivery",
+                LetterTier.Urgent => $"Urgent matter that cannot wait",
+                LetterTier.Critical => $"CRITICAL: Lives may depend on this delivery",
+                _ => $"Letter from {senderName}"
+            };
+        }
+        
+        private string GetTierDescription(LetterTier tier)
+        {
+            return tier switch
+            {
+                LetterTier.Simple => "simple",
+                LetterTier.Important => "important",
+                LetterTier.Urgent => "urgent",
+                LetterTier.Critical => "CRITICAL",
+                _ => "standard"
+            };
+        }
+        
+        // Internal enum for letter tiers
+        private enum LetterTier
+        {
+            Simple,    // 5-9 comfort
+            Important, // 10-14 comfort
+            Urgent,    // 15-19 comfort
+            Critical   // 20+ comfort
         }
 
         protected void ToggleCardSelection(ConversationCard card)
@@ -268,7 +410,7 @@ namespace Wayfarer.Pages.Components
         protected int GetComfortProgress()
         {
             if (Session == null) return 0;
-            return Math.Min(100, (Session.ComfortBuilt * 100) / ComfortThreshold);
+            return Math.Min(100, (Session.CurrentComfort * 100) / ComfortThreshold);
         }
 
         protected string GetDepthLabel()

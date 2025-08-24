@@ -45,6 +45,7 @@ public class GameFacade
     private readonly NPCDeckFactory _deckFactory;
     private readonly DialogueGenerationService _dialogueGenerator;
     private readonly NarrativeRenderer _narrativeRenderer;
+    private readonly AccessRequirementChecker _accessChecker;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -74,7 +75,8 @@ public class GameFacade
         TimeBlockAttentionManager timeBlockAttentionManager,
         NPCDeckFactory deckFactory,
         DialogueGenerationService dialogueGenerator,
-        NarrativeRenderer narrativeRenderer
+        NarrativeRenderer narrativeRenderer,
+        AccessRequirementChecker accessChecker
 )
     {
         _gameWorld = gameWorld;
@@ -105,6 +107,7 @@ public class GameFacade
         _deckFactory = deckFactory;
         _dialogueGenerator = dialogueGenerator;
         _narrativeRenderer = narrativeRenderer;
+        _accessChecker = accessChecker;
     }
 
     // ========== ATTENTION STATE ACCESS ==========
@@ -206,13 +209,188 @@ public class GameFacade
         return _gameWorld.GetPlayer();
     }
 
-    public (Location location, LocationSpot spot) GetCurrentLocation()
+    public Location GetCurrentLocation()
     {
         Player player = _gameWorld.GetPlayer();
-        Location? location = player.CurrentLocationSpot != null
-            ? _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId)
-            : null;
-        return (location, player.CurrentLocationSpot);
+        if (player.CurrentLocationSpot == null) return null;
+        return _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
+    }
+    
+    public LocationSpot GetCurrentLocationSpot()
+    {
+        return _gameWorld.GetPlayer().CurrentLocationSpot;
+    }
+
+    /// <summary>
+    /// Move player to a different spot within the current location.
+    /// Movement between spots within a location is FREE (no attention cost).
+    /// </summary>
+    /// <param name="spotName">The name or ID of the target spot</param>
+    /// <returns>True if movement successful, false otherwise</returns>
+    public bool MoveToSpot(string spotName)
+    {
+        // VALIDATION: Check inputs
+        if (string.IsNullOrEmpty(spotName))
+        {
+            _messageSystem.AddSystemMessage("Invalid spot name", SystemMessageTypes.Warning);
+            return false;
+        }
+
+        // STATE CHECK: Get current location and player
+        Player player = _gameWorld.GetPlayer();
+        if (player.CurrentLocationSpot == null)
+        {
+            _messageSystem.AddSystemMessage("Cannot determine current location", SystemMessageTypes.Danger);
+            return false;
+        }
+
+        Location currentLocation = _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
+        if (currentLocation == null)
+        {
+            _messageSystem.AddSystemMessage("Current location not found", SystemMessageTypes.Danger);
+            return false;
+        }
+
+        // EDGE CASE: Check if already at target spot
+        if (player.CurrentLocationSpot.Name == spotName || player.CurrentLocationSpot.SpotID == spotName)
+        {
+            // Already at this spot - no-op success
+            return true;
+        }
+
+        // SPOT RESOLUTION: Find target spot in current location
+        LocationSpot targetSpot = null;
+        
+        // First check AvailableSpots in the Location object
+        if (currentLocation.AvailableSpots != null)
+        {
+            targetSpot = currentLocation.AvailableSpots.FirstOrDefault(s => 
+                s.Name == spotName || s.SpotID == spotName);
+        }
+        
+        // If not found, check the location spot repository for spots in this location
+        if (targetSpot == null)
+        {
+            List<LocationSpot> spotsInLocation = _locationSpotRepository.GetSpotsForLocation(currentLocation.Id);
+            targetSpot = spotsInLocation?.FirstOrDefault(s => 
+                s.Name == spotName || s.SpotID == spotName);
+        }
+
+        // VALIDATION: Target spot must exist and be in current location
+        if (targetSpot == null)
+        {
+            _messageSystem.AddSystemMessage($"Spot '{spotName}' not found in {currentLocation.Name}", SystemMessageTypes.Warning);
+            return false;
+        }
+
+        // VALIDATION: Verify spot belongs to current location
+        if (targetSpot.LocationId != currentLocation.Id)
+        {
+            _messageSystem.AddSystemMessage($"Spot '{spotName}' is not in current location", SystemMessageTypes.Warning);
+            return false;
+        }
+
+        // ACCESS CHECK: Check if spot has access requirements
+        if (targetSpot.AccessRequirement != null)
+        {
+            AccessCheckResult accessCheck = _accessChecker.CheckSpotAccess(targetSpot);
+            if (!accessCheck.IsAllowed)
+            {
+                _messageSystem.AddSystemMessage(accessCheck.BlockedMessage ?? "Cannot access this spot", SystemMessageTypes.Warning);
+                return false;
+            }
+        }
+
+        // STATE TRANSITION: Update player location
+        player.CurrentLocationSpot = targetSpot;
+        
+        // NOTIFICATION: Inform player of successful movement
+        _messageSystem.AddSystemMessage($"Moved to {targetSpot.Name}", SystemMessageTypes.Info);
+        
+        // DISCOVERY: Track that player has visited this spot
+        player.AddKnownLocationSpot(targetSpot.SpotID);
+        
+        return true;
+    }
+
+    /// <summary>
+    /// Perform work at a Commercial location spot.
+    /// Costs 2 attention, rewards 8 coins.
+    /// </summary>
+    public async Task<WorkResult> PerformWork()
+    {
+        // CONSTANTS (should be in GameRules but using literals as per requirements)
+        const int WORK_ATTENTION_COST = 2;
+        const int WORK_COIN_REWARD = 8;
+        
+        // STATE CHECK: Get player and current spot
+        Player player = _gameWorld.GetPlayer();
+        LocationSpot currentSpot = player.CurrentLocationSpot;
+        
+        if (currentSpot == null)
+        {
+            return new WorkResult
+            {
+                Success = false,
+                Message = "Cannot determine current location",
+                RemainingAttention = 0
+            };
+        }
+        
+        // VALIDATION: Check if spot is Commercial
+        bool isCommercial = currentSpot.Properties?.Contains("Commercial") ?? false;
+        if (!isCommercial)
+        {
+            return new WorkResult
+            {
+                Success = false,
+                Message = "You can only work at Commercial locations",
+                RemainingAttention = _timeBlockAttentionManager.GetCurrentAttention(_timeManager.GetCurrentTimeBlock()).GetAvailableAttention()
+            };
+        }
+        
+        // RESOURCE CHECK: Get current attention
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        AttentionManager currentAttention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        int availableAttention = currentAttention.GetAvailableAttention();
+        
+        if (availableAttention < WORK_ATTENTION_COST)
+        {
+            return new WorkResult
+            {
+                Success = false,
+                Message = $"Not enough attention to work (need {WORK_ATTENTION_COST}, have {availableAttention})",
+                RemainingAttention = availableAttention
+            };
+        }
+        
+        // TRANSACTION: Spend attention
+        bool attentionSpent = currentAttention.TrySpend(WORK_ATTENTION_COST);
+        if (!attentionSpent)
+        {
+            return new WorkResult
+            {
+                Success = false,
+                Message = "Failed to spend attention",
+                RemainingAttention = availableAttention
+            };
+        }
+        
+        // TRANSACTION: Award coins
+        player.Coins += WORK_COIN_REWARD;
+        
+        // NOTIFICATION: Log the work action
+        _messageSystem.AddSystemMessage($"You worked hard and earned {WORK_COIN_REWARD} coins", SystemMessageTypes.Success);
+        
+        // RETURN: Success result
+        return new WorkResult
+        {
+            Success = true,
+            Message = $"Earned {WORK_COIN_REWARD} coins from working",
+            CoinsEarned = WORK_COIN_REWARD,
+            AttentionSpent = WORK_ATTENTION_COST,
+            RemainingAttention = currentAttention.GetAvailableAttention()
+        };
     }
 
     public (TimeBlocks timeBlock, int hoursRemaining, int currentDay) GetTimeInfo()
@@ -244,7 +422,8 @@ public class GameFacade
     public LocationScreenViewModel GetLocationScreen()
     {
         Player player = _gameWorld.GetPlayer();
-        (Location location, LocationSpot spot) = GetCurrentLocation();
+        Location location = GetCurrentLocation();
+        LocationSpot spot = GetCurrentLocationSpot();
         
         var viewModel = new LocationScreenViewModel
         {
@@ -408,10 +587,92 @@ public class GameFacade
         return _actionGenerator.GenerateActionsForLocation(location, spot);
     }
     
-    private EmotionalState GetNPCEmotionalState(NPC npc)
+    public EmotionalState GetNPCEmotionalState(NPC npc)
     {
         // Use the same logic as the conversation system for consistency
         return ConversationRules.DetermineInitialState(npc, _letterQueueManager);
+    }
+    
+    public EmotionalState GetNPCEmotionalState(string npcId)
+    {
+        var npc = _npcRepository.GetNPCById(npcId);
+        if (npc == null) return EmotionalState.NEUTRAL;
+        return GetNPCEmotionalState(npc);
+    }
+    
+    public List<SimpleRouteViewModel> GetAvailableRoutes()
+    {
+        var currentLocation = GetCurrentLocation();
+        if (currentLocation == null) return new List<SimpleRouteViewModel>();
+        
+        // Get all routes from current location
+        var routes = _routeRepository.GetRoutesFromLocation(currentLocation.Id);
+        
+        return routes.Select(r => new SimpleRouteViewModel
+        {
+            Id = r.Id,
+            Destination = GetDestinationName(r.DestinationLocationSpot),
+            TransportType = r.Method.ToString().ToLower(),
+            TravelTimeInMinutes = r.TravelTimeMinutes,
+            Cost = r.BaseCoinCost,
+            FamiliarityLevel = r.IsDiscovered ? "Known" : "Unknown"
+        }).ToList();
+    }
+    
+    private string GetDestinationName(string spotId)
+    {
+        var spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
+        if (spot == null) return "Unknown";
+        
+        var location = _locationRepository.GetLocation(spot.LocationId);
+        return location?.Name ?? "Unknown";
+    }
+    
+    private bool IsRouteAvailable(RouteOption route)
+    {
+        var player = _gameWorld.GetPlayer();
+        
+        // Check tier requirement
+        if (route.TierRequired > player.CurrentTier)
+            return false;
+            
+        // Check token requirements if any
+        if (route.AccessRequirement != null)
+        {
+            var accessCheck = _accessChecker.CheckRequirement(route.AccessRequirement);
+            if (!accessCheck.IsAllowed)
+                return false;
+        }
+        
+        return true;
+    }
+    
+    private string GetRouteLockReason(RouteOption route)
+    {
+        var player = _gameWorld.GetPlayer();
+        
+        if (route.TierRequired > player.CurrentTier)
+            return $"Requires Tier {route.TierRequired}";
+            
+        if (route.AccessRequirement != null)
+        {
+            var accessCheck = _accessChecker.CheckRequirement(route.AccessRequirement);
+            if (!accessCheck.IsAllowed)
+                return accessCheck.Reason ?? "Requirements not met";
+        }
+        
+        return "";
+    }
+    
+    public async Task<bool> DisplaceLetterInQueue(string letterId)
+    {
+        // For now, displacement is a no-op as the system handles it automatically via leverage
+        // Manual displacement would require implementing a swap or reorder system
+        _messageSystem.AddSystemMessage(
+            "Letter displacement is handled automatically based on leverage and debt relationships.",
+            SystemMessageTypes.Info
+        );
+        return false;
     }
     
     private string GetNPCDescription(NPC npc, EmotionalState state)
@@ -1673,6 +1934,48 @@ public class GameFacade
             _messageSystem.AddSystemMessage("Failed to make observation.", SystemMessageTypes.Warning);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Get available observations for the current location
+    /// Returns a view model suitable for UI display
+    /// </summary>
+    public ObservationsViewModel GetObservationsViewModel()
+    {
+        var viewModel = new ObservationsViewModel
+        {
+            AvailableObservations = new List<ObservationSummaryViewModel>()
+        };
+
+        // Get current location and spot
+        var location = GetCurrentLocation();
+        var spot = GetCurrentLocationSpot();
+        if (location == null || spot == null)
+        {
+            return viewModel;
+        }
+
+        // Get observations for current location
+        var observations = GetLocationObservations(location.Id, spot.SpotID);
+        
+        // Transform to summary view model for UI
+        foreach (var obs in observations)
+        {
+            // Skip already observed items
+            if (obs.IsObserved)
+            {
+                continue;
+            }
+
+            viewModel.AvailableObservations.Add(new ObservationSummaryViewModel
+            {
+                Id = obs.Id,
+                Title = obs.Text, // Use Text as Title for display
+                Type = obs.Relevance ?? "Observation" // Use Relevance as Type, or default
+            });
+        }
+
+        return viewModel;
     }
 
     public async Task<bool> TravelToDestinationAsync(string destinationId, string routeId)
