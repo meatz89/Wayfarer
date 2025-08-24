@@ -33,6 +33,9 @@ public class CardDeck
         // Add personality-specific cards
         AddPersonalityCards(npc.PersonalityType);
 
+        // Add state transition cards for emotional dynamics
+        AddStateTransitionCards(npc.PersonalityType);
+
         // Add relationship cards based on current tokens
         var tokens = tokenManager.GetTokensWithNPC(npc.ID);
         AddRelationshipCards(tokens);
@@ -304,8 +307,81 @@ public class CardDeck
             Persistence = PersistenceType.Burden,
             Weight = 1,
             BaseComfort = 0,
+            Category = CardCategory.COMFORT,  // Burden cards are comfort cards with negative effects
             MinDepth = 0  // Surface level - awkward silence
         });
+    }
+
+    private void AddStateTransitionCards(PersonalityType personality)
+    {
+        // Add state cards based on personality tendencies
+        
+        // Calming card - for moving from negative states
+        cards.Add(new ConversationCard
+        {
+            Id = "calm_reassurance",
+            Template = CardTemplateType.CalmnessAttempt,
+            Context = new CardContext { Personality = personality },
+            Type = CardType.Trust,
+            Persistence = PersistenceType.Persistent,
+            Weight = 1,
+            BaseComfort = 0,
+            Category = CardCategory.STATE,
+            SuccessState = EmotionalState.NEUTRAL,
+            FailureState = null,  // Stay in current state
+            MinDepth = 0  // Available at surface
+        });
+
+        // Opening up card - for building rapport
+        cards.Add(new ConversationCard
+        {
+            Id = "opening_up",
+            Template = CardTemplateType.OpeningUp,
+            Context = new CardContext { Personality = personality },
+            Type = CardType.Trust,
+            Persistence = PersistenceType.Persistent,
+            Weight = 2,
+            BaseComfort = 0,
+            Category = CardCategory.STATE,
+            SuccessState = EmotionalState.OPEN,
+            FailureState = EmotionalState.GUARDED,
+            MinDepth = 1  // Requires some depth
+        });
+
+        // Eagerness card - for high energy engagement
+        cards.Add(new ConversationCard
+        {
+            Id = "becoming_eager",
+            Template = CardTemplateType.BecomingEager,
+            Context = new CardContext { Personality = personality },
+            Type = CardType.Trust,
+            Persistence = PersistenceType.Opportunity,
+            Weight = 2,
+            BaseComfort = 0,
+            Category = CardCategory.STATE,
+            SuccessState = EmotionalState.EAGER,
+            FailureState = EmotionalState.NEUTRAL,
+            MinDepth = 1  // Requires engagement
+        });
+
+        // Connection card - for deep rapport (rare)
+        if (personality == PersonalityType.DEVOTED || personality == PersonalityType.STEADFAST)
+        {
+            cards.Add(new ConversationCard
+            {
+                Id = "deep_connection",
+                Template = CardTemplateType.ExpressVulnerability,
+                Context = new CardContext { Personality = personality },
+                Type = CardType.Trust,
+                Persistence = PersistenceType.OneShot,
+                Weight = 3,
+                BaseComfort = 0,
+                Category = CardCategory.STATE,
+                SuccessState = EmotionalState.CONNECTED,
+                FailureState = EmotionalState.OPEN,
+                MinDepth = 3  // Only at deepest level
+            });
+        }
     }
 
     /// <summary>

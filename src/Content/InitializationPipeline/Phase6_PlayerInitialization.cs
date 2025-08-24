@@ -135,6 +135,24 @@ public class Phase6_PlayerInitialization : IInitializationPhase
                 player.MaxStamina = (int)playerConfig.MaxStamina;
                 Console.WriteLine($"  Set stamina: {player.Stamina}/{player.MaxStamina}");
             }
+
+            if (playerConfig.Health != null)
+            {
+                player.Health = (int)playerConfig.Health;
+                Console.WriteLine($"  Set starting health: {player.Health}");
+            }
+
+            if (playerConfig.MaxHealth != null)
+            {
+                player.MaxHealth = (int)playerConfig.MaxHealth;
+                Console.WriteLine($"  Set max health: {player.MaxHealth}");
+            }
+
+            if (playerConfig.Food != null)
+            {
+                player.Food = (int)playerConfig.Food;
+                Console.WriteLine($"  Set starting food: {player.Food}");
+            }
         }
 
         // Ensure player has basic resources (fallback if not set)
@@ -149,6 +167,24 @@ public class Phase6_PlayerInitialization : IInitializationPhase
             player.MaxStamina = 10;
             player.Stamina = 6;
             Console.WriteLine("  Set stamina: 6/10");
+        }
+
+        if (player.MaxHealth == 0)
+        {
+            player.MaxHealth = 100;
+            Console.WriteLine("  Set default max health: 100");
+        }
+
+        if (player.Health == 0)
+        {
+            player.Health = player.MaxHealth;
+            Console.WriteLine($"  Set starting health: {player.Health}");
+        }
+
+        if (player.Food == 0)
+        {
+            player.Food = 30;
+            Console.WriteLine("  Set starting food: 30");
         }
 
         // Location is now derived from CurrentLocationSpot, no need for separate validation
