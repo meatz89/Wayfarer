@@ -1,0 +1,107 @@
+@inherits LetterQueueContentBase
+
+@namespace Wayfarer.Pages.Components
+
+<div class="letter-queue-content">
+    <div class="queue-header">
+        <h2>Letter Queue</h2>
+        <div class="queue-stats">
+            <span>@ActiveObligations.Count active letters</span>
+            <span>@ExpiredObligations.Count expired</span>
+        </div>
+    </div>
+
+    @if (ActiveObligations.Any())
+    {
+        <div class="active-letters">
+            <h3>Active Letters</h3>
+            <div class="letter-list">
+                @foreach (var letter in ActiveObligations)
+                {
+                    <div class="letter-card @GetLetterUrgencyClass(letter)">
+                        <div class="letter-header">
+                            <h4>@letter.Title</h4>
+                            <div class="letter-type">@letter.Type</div>
+                        </div>
+                        
+                        <div class="letter-details">
+                            <div class="letter-route">
+                                <span class="from">From: @letter.SenderId</span>
+                                <span class="to">To: @letter.RecipientId</span>
+                            </div>
+                            
+                            <div class="letter-deadline">
+                                <span class="deadline-label">Deadline:</span>
+                                <span class="deadline-time @GetDeadlineClass(letter)">
+                                    @GetTimeRemaining(letter)
+                                </span>
+                            </div>
+                            
+                            <div class="letter-reward">
+                                <span class="reward-label">Reward:</span>
+                                <span class="reward-amount">@letter.CoinReward coins</span>
+                            </div>
+                        </div>
+                        
+                        <div class="letter-actions">
+                            <button class="deliver-button" 
+                                    @onclick="() => DeliverLetter(letter)"
+                                    disabled="@(!CanDeliver(letter))">
+                                @if (CanDeliver(letter))
+                                {
+                                    <span>Deliver Now</span>
+                                }
+                                else
+                                {
+                                    <span>Travel to @GetRecipientLocation(letter)</span>
+                                }
+                            </button>
+                            
+                            @if (CanDisplace(letter))
+                            {
+                                <button class="displace-button" 
+                                        @onclick="() => DisplaceLetter(letter)">
+                                    Displace
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="empty-queue">
+            <p>No active letters in your queue.</p>
+            <p>Have conversations with NPCs to generate letters!</p>
+        </div>
+    }
+
+    @if (ExpiredObligations.Any())
+    {
+        <div class="expired-letters">
+            <h3>Expired Letters</h3>
+            <div class="letter-list expired">
+                @foreach (var letter in ExpiredObligations)
+                {
+                    <div class="letter-card expired">
+                        <div class="letter-header">
+                            <h4>@letter.Title</h4>
+                            <span class="expired-tag">EXPIRED</span>
+                        </div>
+                        <div class="letter-consequences">
+                            <p>Failed to deliver on time. Relationship damaged.</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="queue-footer">
+        <button class="back-button" @onclick="ReturnToPreviousView">
+            Back to @PreviousViewName
+        </button>
+    </div>
+</div>

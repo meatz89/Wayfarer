@@ -1,0 +1,255 @@
+using Microsoft.AspNetCore.Components;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Wayfarer.Pages.Components
+{
+    public class LocationContentBase : ComponentBase
+    {
+        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected NavigationCoordinator NavigationCoordinator { get; set; }
+        
+        [Parameter] public EventCallback OnActionExecuted { get; set; }
+        [Parameter] public EventCallback<string> OnNavigate { get; set; }
+
+        protected LocationSpot CurrentSpot { get; set; }
+        protected List<NpcViewModel> AvailableNpcs { get; set; } = new();
+        protected List<LocationObservationViewModel> AvailableObservations { get; set; } = new();
+        protected List<SpotViewModel> AvailableSpots { get; set; } = new();
+        protected bool CanTravel { get; set; }
+        protected bool CanWork { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            await RefreshLocationData();
+        }
+
+        protected override async Task OnParametersSetAsync()
+        {
+            await RefreshLocationData();
+        }
+
+        private async Task RefreshLocationData()
+        {
+            var (location, spot) = GameFacade.GetCurrentLocation();
+            CurrentSpot = spot;
+            
+            // Get NPCs at current location
+            AvailableNpcs.Clear();
+            if (location != null)
+            {
+                var npcs = location.NPCsPresent ?? new List<NPC>();
+                foreach (var npc in npcs)
+                {
+                    var options = new List<ConversationOptionViewModel>();
+                    
+                    // Add available conversation types
+                    if (npc.ExchangeDeck != null && npc.ExchangeDeck.Cards.Any())
+                    {
+                        options.Add(new ConversationOptionViewModel
+                        {
+                            Type = ConversationType.QuickExchange,
+                            Label = "Quick Exchange",
+                            AttentionCost = 0,
+                            IsAvailable = true
+                        });
+                    }
+                    
+                    if (npc.CrisisDeck != null && npc.CrisisDeck.Cards.Any())
+                    {
+                        options.Add(new ConversationOptionViewModel
+                        {
+                            Type = ConversationType.Crisis,
+                            Label = "Crisis Resolution",
+                            AttentionCost = 1,
+                            IsAvailable = true
+                        });
+                    }
+                    else if (npc.ConversationDeck != null)
+                    {
+                        options.Add(new ConversationOptionViewModel
+                        {
+                            Type = ConversationType.Standard,
+                            Label = "Standard Conversation",
+                            AttentionCost = 2,
+                            IsAvailable = true
+                        });
+                    }
+                    
+                    AvailableNpcs.Add(new NpcViewModel
+                    {
+                        Id = npc.Id,
+                        Name = npc.Name,
+                        PersonalityType = npc.PersonalityType.ToString(),
+                        EmotionalState = "Neutral", // TODO: Get actual state
+                        HasCrisis = npc.CrisisDeck?.Cards.Any() ?? false,
+                        ConversationOptions = options
+                    });
+                }
+            }
+            
+            // Get available observations
+            AvailableObservations.Clear();
+            var allObservations = GameFacade.GetObservationsViewModel();
+            if (allObservations?.AvailableObservations != null)
+            {
+                AvailableObservations = allObservations.AvailableObservations
+                    .Select(obs => new LocationObservationViewModel
+                    {
+                        Id = obs.Id,
+                        Name = obs.Title,
+                        Type = obs.Type
+                    }).ToList();
+            }
+            
+            // Get other spots in this location
+            AvailableSpots.Clear();
+            if (location != null && location.Spots != null)
+            {
+                AvailableSpots = location.Spots
+                    .Where(s => s != spot)
+                    .Select(s => new SpotViewModel
+                    {
+                        Id = s.Name, // Use name as ID
+                        Name = s.Name,
+                        Properties = s.Properties ?? new List<string>()
+                    }).ToList();
+            }
+            
+            // Check if can travel from this spot
+            CanTravel = spot?.Properties?.Contains("Crossroads") ?? false;
+            
+            // Check if can work at this spot
+            CanWork = spot?.Properties?.Contains("Commercial") ?? false;
+        }
+
+        protected async Task StartConversation(string npcId)
+        {
+            await StartTypedConversation(npcId, ConversationType.Standard);
+        }
+
+        protected async Task StartTypedConversation(string npcId, ConversationType type)
+        {
+            Console.WriteLine($"[LocationContent] Starting {type} conversation with {npcId}");
+            
+            var result = await GameFacade.StartInteractionAsync(npcId, type);
+            if (result.IsSuccess)
+            {
+                await NavigationCoordinator.StartConversation(npcId, type);
+                await OnNavigate.InvokeAsync("conversation");
+            }
+            else
+            {
+                Console.WriteLine($"[LocationContent] Failed to start conversation: {result.Message}");
+            }
+        }
+
+        protected async Task TakeObservation(string observationId)
+        {
+            Console.WriteLine($"[LocationContent] Taking observation: {observationId}");
+            
+            // Check attention first
+            var attentionState = GameFacade.GetCurrentAttentionState();
+            if (attentionState.Current < 1)
+            {
+                Console.WriteLine("[LocationContent] Not enough attention for observation");
+                return;
+            }
+            
+            // TODO: Implement observation taking in GameFacade
+            // For now just spend attention
+            var player = GameFacade.GetPlayer();
+            if (player != null)
+            {
+                // Spend attention through proper manager
+                await RefreshLocationData();
+                await OnActionExecuted.InvokeAsync();
+            }
+        }
+
+        protected async Task MoveToSpot(string spotId)
+        {
+            Console.WriteLine($"[LocationContent] Moving to spot: {spotId}");
+            
+            // TODO: Implement spot movement in GameFacade
+            await RefreshLocationData();
+            await OnActionExecuted.InvokeAsync();
+        }
+
+        protected async Task NavigateToTravel()
+        {
+            await OnNavigate.InvokeAsync("travel");
+        }
+
+        protected async Task PerformWork()
+        {
+            Console.WriteLine("[LocationContent] Performing work action");
+            
+            // Check attention
+            var attentionState = GameFacade.GetCurrentAttentionState();
+            if (attentionState.Current >= 2)
+            {
+                // TODO: Implement work action in GameFacade
+                // Work costs 2 attention, gives 8 coins
+                await OnActionExecuted.InvokeAsync();
+            }
+        }
+
+        private string GetConversationLabel(ConversationType type)
+        {
+            return type switch
+            {
+                ConversationType.QuickExchange => "Quick Exchange",
+                ConversationType.Crisis => "Crisis Resolution",
+                ConversationType.Standard => "Standard Conversation",
+                _ => type.ToString()
+            };
+        }
+
+        private int GetAttentionCost(ConversationType type)
+        {
+            return type switch
+            {
+                ConversationType.QuickExchange => 0,
+                ConversationType.Crisis => 1,
+                ConversationType.Standard => 2,
+                _ => 0
+            };
+        }
+    }
+
+    // View Models
+    public class NpcViewModel
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string PersonalityType { get; set; }
+        public string EmotionalState { get; set; }
+        public bool HasCrisis { get; set; }
+        public List<ConversationOptionViewModel> ConversationOptions { get; set; } = new();
+    }
+
+    public class ConversationOptionViewModel
+    {
+        public ConversationType Type { get; set; }
+        public string Label { get; set; }
+        public int AttentionCost { get; set; }
+        public bool IsAvailable { get; set; }
+    }
+
+    public class LocationObservationViewModel
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Type { get; set; }
+    }
+
+    public class SpotViewModel
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public List<string> Properties { get; set; } = new();
+    }
+}

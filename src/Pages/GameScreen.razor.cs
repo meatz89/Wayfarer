@@ -1,0 +1,277 @@
+using Microsoft.AspNetCore.Components;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Threading;
+
+namespace Wayfarer.Pages
+{
+    public enum ScreenMode
+    {
+        Location,
+        Conversation,
+        LetterQueue,
+        Travel
+    }
+
+    public class ScreenContext
+    {
+        public ScreenMode Mode { get; set; }
+        public Dictionary<string, object> StateData { get; set; } = new();
+        public DateTime EnteredAt { get; set; }
+    }
+
+    public partial class GameScreenBase : ComponentBase, IAsyncDisposable
+    {
+        [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected NavigationCoordinator NavigationCoordinator { get; set; }
+        [Inject] protected LoadingStateService LoadingStateService { get; set; }
+        [Inject] protected TimeBlockAttentionManager AttentionManager { get; set; }
+        [Inject] protected ObligationQueueManager ObligationQueueManager { get; set; }
+
+        // Screen Management
+        protected ScreenMode CurrentScreen { get; set; } = ScreenMode.Location;
+        protected ScreenMode PreviousScreen { get; set; } = ScreenMode.Location;
+        protected int ContentVersion { get; set; } = 0;
+        
+        private Stack<ScreenContext> _navigationStack = new(10);
+        private SemaphoreSlim _stateLock = new(1, 1);
+        private HashSet<IDisposable> _subscriptions = new();
+
+        // Resources Display
+        protected int Coins { get; set; }
+        protected int Health { get; set; }
+        protected int Hunger { get; set; }
+        protected int Attention { get; set; }
+        protected int MaxAttention { get; set; } = 10;
+
+        // Time Display
+        protected string CurrentTime { get; set; } = "";
+        protected string TimePeriod { get; set; } = "";
+        protected string MostUrgentDeadline { get; set; } = "";
+
+        // Location Display
+        protected string CurrentLocationPath { get; set; } = "";
+        protected string CurrentSpot { get; set; } = "";
+
+        // Navigation State
+        protected string SelectedNpcId { get; set; }
+        protected int PendingLetterCount { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            Console.WriteLine("[GameScreen] Initializing unified game screen");
+            
+            // Initialize resources
+            await RefreshResourceDisplay();
+            await RefreshTimeDisplay();
+            await RefreshLocationDisplay();
+            
+            await base.OnInitializedAsync();
+        }
+
+        protected async Task RefreshResourceDisplay()
+        {
+            var player = GameFacade.GetPlayer();
+            if (player != null)
+            {
+                Coins = player.Coins;
+                Health = player.Health;
+                Hunger = player.Hunger;
+            }
+            
+            var attentionState = GameFacade.GetCurrentAttentionState();
+            Attention = attentionState.Current;
+            MaxAttention = attentionState.Max;
+        }
+
+        protected async Task RefreshTimeDisplay()
+        {
+            var hour = GameFacade.GetCurrentHour();
+            var period = hour switch
+            {
+                >= 6 and < 10 => "Morning",
+                >= 10 and < 14 => "Midday",
+                >= 14 and < 18 => "Afternoon",
+                >= 18 and < 22 => "Evening",
+                >= 22 or < 2 => "Night",
+                _ => "Deep Night"
+            };
+            
+            CurrentTime = $"{hour % 12:00}:00 {(hour >= 12 ? "PM" : "AM")}";
+            TimePeriod = period;
+            
+            // TODO: Get most urgent deadline from queue
+            MostUrgentDeadline = "";
+        }
+
+        protected async Task RefreshLocationDisplay()
+        {
+            var (location, spot) = GameFacade.GetCurrentLocation();
+            if (location != null)
+            {
+                CurrentLocationPath = $"{location.District} → {location.Name}";
+                
+                if (spot != null)
+                {
+                    CurrentSpot = spot.Name;
+                    if (spot.Properties.Any())
+                    {
+                        CurrentSpot += $" • {string.Join(", ", spot.Properties)}";
+                    }
+                }
+            }
+        }
+
+        protected async Task NavigateToScreen(ScreenMode newMode)
+        {
+            if (!await _stateLock.WaitAsync(5000))
+            {
+                Console.WriteLine("[GameScreen] State transition timeout");
+                return;
+            }
+
+            try
+            {
+                Console.WriteLine($"[GameScreen] Navigating from {CurrentScreen} to {newMode}");
+                
+                // Save current state
+                var currentContext = new ScreenContext
+                {
+                    Mode = CurrentScreen,
+                    StateData = SerializeCurrentState(),
+                    EnteredAt = DateTime.UtcNow
+                };
+
+                if (_navigationStack.Count >= 10)
+                    _navigationStack.TryPop(out _);
+
+                _navigationStack.Push(currentContext);
+
+                // Transition
+                PreviousScreen = CurrentScreen;
+                CurrentScreen = newMode;
+                ContentVersion++;
+
+                await LoadStateForMode(newMode);
+                await InvokeAsync(StateHasChanged);
+            }
+            finally
+            {
+                _stateLock.Release();
+            }
+        }
+
+        private Dictionary<string, object> SerializeCurrentState()
+        {
+            var state = new Dictionary<string, object>();
+            
+            // Save screen-specific state
+            switch (CurrentScreen)
+            {
+                case ScreenMode.Conversation:
+                    state["NpcId"] = SelectedNpcId;
+                    break;
+            }
+            
+            return state;
+        }
+
+        private async Task LoadStateForMode(ScreenMode mode)
+        {
+            // Load screen-specific state
+            switch (mode)
+            {
+                case ScreenMode.Location:
+                    await RefreshLocationDisplay();
+                    break;
+            }
+            
+            // Always refresh resources
+            await RefreshResourceDisplay();
+            await RefreshTimeDisplay();
+        }
+
+        protected async Task HandleNavigation(string target)
+        {
+            Console.WriteLine($"[GameScreen] HandleNavigation: {target}");
+            
+            switch (target.ToLower())
+            {
+                case "location":
+                    await NavigateToScreen(ScreenMode.Location);
+                    break;
+                case "letterqueue":
+                case "queue":
+                    await NavigateToScreen(ScreenMode.LetterQueue);
+                    break;
+                case "travel":
+                    await NavigateToScreen(ScreenMode.Travel);
+                    break;
+                case "conversation":
+                    await NavigateToScreen(ScreenMode.Conversation);
+                    break;
+            }
+        }
+
+        protected void HandleNavigationEvent(string eventType, object data)
+        {
+            Console.WriteLine($"[GameScreen] Navigation event: {eventType}");
+            
+            switch (eventType)
+            {
+                case "StartConversation":
+                    if (data is string npcId)
+                    {
+                        SelectedNpcId = npcId;
+                        _ = NavigateToScreen(ScreenMode.Conversation);
+                    }
+                    break;
+                    
+                case "ConversationEnded":
+                    _ = NavigateToScreen(ScreenMode.Location);
+                    break;
+                    
+                case "TravelCompleted":
+                    _ = NavigateToScreen(ScreenMode.Location);
+                    break;
+            }
+        }
+
+        protected async Task HandleConversationEnd()
+        {
+            Console.WriteLine("[GameScreen] Conversation ended");
+            await NavigateToScreen(ScreenMode.Location);
+        }
+
+        protected async Task HandleTravelRoute(string routeId)
+        {
+            Console.WriteLine($"[GameScreen] Travel route selected: {routeId}");
+            await GameFacade.ExecuteTravelAsync(routeId);
+            await NavigateToScreen(ScreenMode.Location);
+        }
+
+        protected string GetCurrentLocation()
+        {
+            return GameFacade.GetCurrentLocation()?.Name ?? "Unknown";
+        }
+
+        protected async Task RefreshUI()
+        {
+            await RefreshResourceDisplay();
+            await RefreshTimeDisplay();
+            await RefreshLocationDisplay();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            foreach (var subscription in _subscriptions)
+            {
+                subscription?.Dispose();
+            }
+            
+            _stateLock?.Dispose();
+        }
+    }
+}

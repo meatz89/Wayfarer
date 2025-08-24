@@ -1,0 +1,160 @@
+@inherits ConversationContentBase
+
+@namespace Wayfarer.Pages.Components
+
+<div class="conversation-content">
+    @if (Session != null)
+    {
+        <!-- Conversation Mode Indicator -->
+        <div class="conversation-mode">
+            <div class="mode-title">@GetConversationModeTitle()</div>
+            <div class="mode-cost">
+                @if (Session.ConversationType != ConversationType.QuickExchange)
+                {
+                    <span class="cost-item">@Session.CurrentTurn/@Session.MaxPatience Patience</span>
+                }
+            </div>
+        </div>
+
+        <!-- NPC Info -->
+        <div class="npc-header">
+            <div class="npc-info">
+                <h2>@NpcName</h2>
+                @if (Session.ConversationType != ConversationType.QuickExchange)
+                {
+                    <div class="npc-state @GetStateClass()">@Session.NPCState</div>
+                }
+            </div>
+        </div>
+
+        @if (Session.ConversationType != ConversationType.QuickExchange)
+        {
+            <!-- Progress Section -->
+            <div class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-label">
+                        <span>Comfort Built</span>
+                        <span>@Session.ComfortBuilt/@ComfortThreshold</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: @GetComfortProgress()%"></div>
+                    </div>
+                </div>
+                
+                <div class="patience-display">
+                    <div class="patience-value">@Session.CurrentTurn/@Session.MaxPatience</div>
+                    <div class="patience-label">Patience</div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-label">
+                        <span>Depth</span>
+                        <span>@GetDepthLabel()</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: @GetDepthProgress()%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- State Section -->
+            <div class="state-section">
+                <div class="state-info">
+                    <span>Emotional State:</span>
+                    <span class="state-name">@Session.NPCState</span>
+                    <span class="state-effects">@GetStateEffects()</span>
+                </div>
+                <TokenDisplay />
+            </div>
+        }
+
+        <!-- Narrative Section -->
+        <div class="narrative-section">
+            @if (!string.IsNullOrEmpty(LastNarrative))
+            {
+                <div class="narrative-text">@LastNarrative</div>
+            }
+            @if (!string.IsNullOrEmpty(LastDialogue))
+            {
+                <div class="npc-dialogue @GetStateClass()">
+                    "@LastDialogue"
+                </div>
+            }
+        </div>
+
+        <!-- Action Section -->
+        <div class="action-section">
+            @if (Session.ConversationType == ConversationType.QuickExchange)
+            {
+                <!-- Exchange shows cards directly -->
+                <div class="turn-indicator">Choose Your Response</div>
+            }
+            else if (!Session.IsComplete)
+            {
+                <div class="turn-indicator">Turn @Session.CurrentTurn of @Session.MaxPatience</div>
+                <div class="action-choices">
+                    <button class="action-button" @onclick="ExecuteListen" disabled="@IsProcessing">
+                        <div>👂 LISTEN</div>
+                        <div class="action-details">@GetListenDetails()</div>
+                    </button>
+                    <button class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsProcessing)">
+                        <div>💬 SPEAK</div>
+                        <div class="action-details">@GetSpeakDetails()</div>
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="conversation-complete">
+                    <p>Conversation Complete</p>
+                    <button @onclick="EndConversation">Return to Location</button>
+                </div>
+            }
+        </div>
+
+        <!-- Cards Section -->
+        <div class="cards-section">
+            <div class="cards-header">
+                <div class="cards-title">Your Hand</div>
+                @if (Session.ConversationType != ConversationType.QuickExchange)
+                {
+                    <div class="weight-tracker @(TotalSelectedWeight > GetWeightLimit() ? "over-limit" : "")">
+                        <span>Weight Used:</span>
+                        <span style="font-weight: bold;">@TotalSelectedWeight/@GetWeightLimit()</span>
+                    </div>
+                }
+            </div>
+            
+            <div class="card-grid">
+                @foreach (var card in Session.HandCards)
+                {
+                    <div class="card @GetCardClass(card) @(IsCardSelected(card) ? "selected" : "")" 
+                         @onclick="() => ToggleCardSelection(card)">
+                        @if (card.Weight == 0)
+                        {
+                            <div class="card-marker">FREE!</div>
+                        }
+                        <div class="card-header">
+                            <div class="card-name">@GetCardName(card)</div>
+                            <div class="card-weight">@card.Weight</div>
+                        </div>
+                        <div class="card-tags">
+                            @foreach (var tag in GetCardTags(card))
+                            {
+                                <span class="card-tag">@tag</span>
+                            }
+                        </div>
+                        <div class="card-effects">
+                            <span class="effect-success">@GetSuccessEffect(card)</span>
+                            <span class="effect-failure">@GetFailureEffect(card)</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="loading">Loading conversation...</div>
+    }
+</div>

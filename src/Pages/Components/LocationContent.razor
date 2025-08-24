@@ -1,0 +1,118 @@
+@inherits LocationContentBase
+
+@namespace Wayfarer.Pages.Components
+
+<div class="location-content">
+    <!-- Current Spot Display -->
+    @if (CurrentSpot != null)
+    {
+        <div class="current-spot">
+            <h3>@CurrentSpot.Name</h3>
+            @if (CurrentSpot.Properties.Any())
+            {
+                <div class="spot-properties">
+                    @foreach (var prop in CurrentSpot.Properties)
+                    {
+                        <span class="property-tag">@prop</span>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Available NPCs -->
+    @if (AvailableNpcs.Any())
+    {
+        <div class="npcs-section">
+            <h4>People Here</h4>
+            <div class="npc-list">
+                @foreach (var npc in AvailableNpcs)
+                {
+                    <div class="npc-card" @onclick="() => StartConversation(npc.Id)">
+                        <div class="npc-header">
+                            <h5>@npc.Name</h5>
+                            <span class="npc-type">@npc.PersonalityType</span>
+                        </div>
+                        <div class="npc-state">@npc.EmotionalState</div>
+                        @if (npc.HasCrisis)
+                        {
+                            <div class="crisis-indicator">⚠ Crisis</div>
+                        }
+                        <div class="conversation-options">
+                            @foreach (var option in npc.ConversationOptions)
+                            {
+                                <button class="conversation-type-btn" 
+                                        @onclick:stopPropagation="true"
+                                        @onclick="() => StartTypedConversation(npc.Id, option.Type)">
+                                    @option.Label
+                                    <span class="cost">@option.AttentionCost attention</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Available Observations -->
+    @if (AvailableObservations.Any())
+    {
+        <div class="observations-section">
+            <h4>Things to Observe</h4>
+            <div class="observation-list">
+                @foreach (var obs in AvailableObservations)
+                {
+                    <div class="observation-card" @onclick="() => TakeObservation(obs.Id)">
+                        <div class="observation-name">@obs.Name</div>
+                        <div class="observation-type">@obs.Type</div>
+                        <div class="observation-cost">1 attention</div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Available Spots -->
+    @if (AvailableSpots.Any())
+    {
+        <div class="spots-section">
+            <h4>Move Within Location</h4>
+            <div class="spot-list">
+                @foreach (var spot in AvailableSpots)
+                {
+                    <button class="spot-button" @onclick="() => MoveToSpot(spot.Id)">
+                        @spot.Name
+                        @if (spot.Properties.Any())
+                        {
+                            <span class="spot-props">(@string.Join(", ", spot.Properties))</span>
+                        }
+                    </button>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Travel Option -->
+    @if (CanTravel)
+    {
+        <div class="travel-section">
+            <button class="travel-button" @onclick="NavigateToTravel">
+                <span class="travel-icon">🗺️</span>
+                <span>Travel to Another Location</span>
+            </button>
+        </div>
+    }
+
+    <!-- Work Action -->
+    @if (CanWork)
+    {
+        <div class="work-section">
+            <button class="work-button" @onclick="PerformWork">
+                <span class="work-icon">💪</span>
+                <span>Work for Coins</span>
+                <span class="work-cost">2 attention → 8 coins</span>
+            </button>
+        </div>
+    }
+</div>

@@ -103,6 +103,13 @@ When evaluating UI implementation, you MUST follow this EXACT process:
 - Use SPEAK action to select cards, not custom button handlers
 - Conversations have different rules (e.g., no LISTEN in exchanges) but same UI
 
+**🚨 UNIFIED SCREEN ARCHITECTURE 🚨**
+- ONE GameScreen.razor component contains all UI
+- Fixed header with resources (coins/health/hunger/attention) ALWAYS visible
+- Fixed footer with navigation ALWAYS accessible
+- Only center content changes between Location/Conversation/Queue/Travel
+- Resources are ALWAYS visible for tension (not contextual)
+
 **⚠️ CRITICAL: ALWAYS READ ALL FILES FULLY BEFORE MODIFYING IT ⚠️**
 **NEVER make changes to a file without reading it completely first. This is non-negotiable.**
 **DOUBLE-CHECK core architectural components (navigation, routing, service registration) - analyze ALL related files and dependencies before making ANY changes to avoid breaking the application architecture.**

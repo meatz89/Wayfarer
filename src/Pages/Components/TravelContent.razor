@@ -1,0 +1,98 @@
+@inherits TravelContentBase
+
+@namespace Wayfarer.Pages.Components
+
+<div class="travel-content">
+    <div class="travel-header">
+        <h2>Travel</h2>
+        <div class="current-location">
+            <span>Currently at:</span>
+            <strong>@CurrentLocation</strong>
+        </div>
+    </div>
+
+    @if (AvailableRoutes.Any())
+    {
+        <div class="routes-section">
+            <h3>Available Routes</h3>
+            <div class="route-list">
+                @foreach (var route in AvailableRoutes)
+                {
+                    <div class="route-card @GetRouteClass(route)" 
+                         @onclick="() => SelectRoute(route)">
+                        <div class="route-header">
+                            <h4>@route.DestinationName</h4>
+                            <div class="route-distance">@route.District</div>
+                        </div>
+                        
+                        <div class="route-details">
+                            <div class="transport-type">
+                                <span class="transport-icon">@GetTransportIcon(route.TransportType)</span>
+                                <span>@route.TransportType</span>
+                            </div>
+                            
+                            <div class="route-time">
+                                <span class="time-label">Travel Time:</span>
+                                <span class="time-value">@GetTravelTimeDisplay(route.TravelTime)</span>
+                            </div>
+                            
+                            @if (route.Cost > 0)
+                            {
+                                <div class="route-cost">
+                                    <span class="cost-label">Cost:</span>
+                                    <span class="cost-value">@route.Cost coins</span>
+                                </div>
+                            }
+                            
+                            <div class="route-familiarity">
+                                <span class="familiarity-label">Familiarity:</span>
+                                <span class="familiarity-value">@route.Familiarity</span>
+                            </div>
+                        </div>
+                        
+                        @if (route.Requirements.Any())
+                        {
+                            <div class="route-requirements">
+                                <span class="req-label">Requires:</span>
+                                @foreach (var req in route.Requirements)
+                                {
+                                    <span class="requirement">@req</span>
+                                }
+                            </div>
+                        }
+                        
+                        <div class="route-action">
+                            @if (CanTakeRoute(route))
+                            {
+                                <button class="travel-button" 
+                                        @onclick:stopPropagation="true"
+                                        @onclick="() => TravelRoute(route)">
+                                    Travel Now
+                                </button>
+                            }
+                            else
+                            {
+                                <div class="cannot-travel">
+                                    @GetCannotTravelReason(route)
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="no-routes">
+            <p>No travel routes available from this location.</p>
+            <p>Move to a Crossroads spot to access travel options.</p>
+        </div>
+    }
+
+    <div class="travel-footer">
+        <button class="back-button" @onclick="ReturnToLocation">
+            Back to Location
+        </button>
+    </div>
+</div>
