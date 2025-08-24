@@ -686,6 +686,64 @@ if (sameTypeCount >= 3) comfort += 5;
 8. **❌ TEST FULL CONVERSATION FLOW** - End-to-end testing needed
 9. **❌ VERIFY LETTER GENERATION** - Untested system
 
+## 🏗️ CONVERSATION CONTEXT ARCHITECTURE (Session 41)
+
+### ARCHITECTURAL PATTERN: Direct Parent-Child Communication
+**Status**: IN PROGRESS
+**Principle**: GameScreen as authoritative page managing all child components directly
+
+#### The Problem
+- NPC ID gets lost between LocationContent → NavigationCoordinator → GameScreen → ConversationContent
+- Multiple services holding pieces of conversation state
+- Race conditions from async navigation
+- Complex event chains with unclear data flow
+
+#### The Solution: Context Objects + Direct Communication
+1. **ConversationContext** holds ALL conversation data
+2. **GameScreen** manages conversations directly
+3. **Child components** call parent methods via CascadingValue
+4. **NO sideways data passing** through services
+
+#### Implementation Steps
+
+##### Step 1: Create ConversationContext Class ✅ IN PROGRESS
+```csharp
+public class ConversationContext
+{
+    public string NpcId { get; set; }
+    public NPC Npc { get; set; }
+    public ConversationType Type { get; set; }
+    public ConversationSession Session { get; set; }
+    public List<ConversationCard> ObservationCards { get; set; }
+    public int AttentionSpent { get; set; }
+    public EmotionalState InitialState { get; set; }
+}
+```
+
+##### Step 2: Update GameFacade ⏳ PENDING
+- Rename StartConversationAsync → CreateConversationContext
+- Return ConversationContext instead of ConversationViewModel
+- Include observation cards in context
+
+##### Step 3: Update GameScreen ⏳ PENDING
+- Add ConversationContext property
+- Add StartConversation public method
+- Use CascadingValue for child access
+
+##### Step 4: Update LocationContent ⏳ PENDING
+- Add CascadingParameter for GameScreen
+- Call GameScreen.StartConversation directly
+- Remove NavigationCoordinator usage
+
+##### Step 5: Update ConversationContent ⏳ PENDING
+- Accept ConversationContext parameter
+- Use context.Session directly
+- Remove service dependencies
+
+##### Step 6: Clean NavigationCoordinator ⏳ PENDING
+- DELETE all conversation state fields
+- Keep only navigation logic
+
 ## 🏗️ UNIFIED SCREEN ARCHITECTURE (Session 40)
 
 ### COMPLETED WORK

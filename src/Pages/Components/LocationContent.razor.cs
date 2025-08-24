@@ -143,14 +143,16 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartTypedConversation(string npcId, ConversationType type)
         {
-            Console.WriteLine($"[LocationContent] Starting {type} conversation with {npcId}");
+            Console.WriteLine($"[LocationContent] Starting {type} conversation with NPC ID: '{npcId}'");
             
             var result = await GameFacade.StartConversationAsync(npcId, type);
             if (result != null)
             {
+                Console.WriteLine($"[LocationContent] Setting NPC ID in NavigationCoordinator: '{npcId}'");
                 NavigationCoordinator.SetConversationNpcId(npcId);
                 NavigationCoordinator.SetConversationType(type);
                 await NavigationCoordinator.StartConversationAsync(npcId);
+                Console.WriteLine($"[LocationContent] Invoking navigation to conversation screen");
                 await OnNavigate.InvokeAsync("conversation");
             }
             else

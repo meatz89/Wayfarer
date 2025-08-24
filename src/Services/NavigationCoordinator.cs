@@ -221,11 +221,13 @@ public class NavigationCoordinator
     
     public void SetConversationNpcId(string npcId)
     {
+        Console.WriteLine($"[NavigationCoordinator.SetConversationNpcId] Setting NPC ID: '{npcId}'");
         _currentNpcId = npcId;
     }
     
     public string GetCurrentNpcId()
     {
+        Console.WriteLine($"[NavigationCoordinator.GetCurrentNpcId] Returning NPC ID: '{_currentNpcId}'");
         return _currentNpcId;
     }
     

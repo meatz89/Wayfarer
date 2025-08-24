@@ -130,6 +130,72 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **NEVER CREATE DUPLICATE MARKDOWN FILES** - ALWAYS check for existing .md files in root directory first. Update existing documentation files instead of creating new ones. If IMPLEMENTATION-PLAN.md exists, UPDATE IT. If SESSION-HANDOFF.md exists, UPDATE IT. Creating duplicate files is unacceptable.
 - **ALWAYS UPDATE GITHUB AFTER CHANGES** - After making significant changes or completing tasks, ALWAYS update the GitHub issues and kanban board to reflect current progress. Use `gh issue comment` to add progress updates and `gh project` commands to update the kanban board status.
 
+*** SPA ARCHITECTURE PRINCIPLES (CRITICAL) ***
+
+**AUTHORITATIVE PAGE PATTERN**: In our SPA architecture, GameScreen is the authoritative page that owns all screen state and manages child components directly. This pattern should be used everywhere:
+
+1. **Direct Parent-Child Communication**: 
+   - Child components receive parent reference via CascadingValue
+   - Children call parent methods directly (e.g., `GameScreen.StartConversation()`)
+   - NO complex event chains or sideways data passing
+   - NO services holding UI state between components
+
+2. **Context Objects for Complex State**:
+   - Create dedicated Context classes for complex operations (e.g., ConversationContext)
+   - Context contains ALL data needed for the operation
+   - Context created atomically BEFORE navigation
+   - Context passed as single Parameter to child components
+
+3. **No Shared Mutable State in Services**:
+   - Services provide operations, NOT state storage
+   - NavigationCoordinator handles navigation ONLY, not data passing
+   - GameFacade creates contexts but doesn't store them
+   - State lives in components, not services
+
+4. **Clear Component Hierarchy**:
+   ```
+   GameScreen (Authoritative)
+   ├── LocationContent (calls parent.StartConversation)
+   ├── ConversationContent (receives ConversationContext)
+   ├── LetterQueueContent (calls parent methods)
+   └── TravelContent (calls parent methods)
+   ```
+
+5. **Method Patterns**:
+   - Parent exposes public methods for state changes
+   - Children call parent methods with required data
+   - Parent creates contexts, switches screens, manages state
+   - NO callbacks with complex signatures like `EventCallback<(string, object)>`
+
+**Example Pattern**:
+```csharp
+// Parent (GameScreen)
+public async Task StartConversation(string npcId, ConversationType type)
+{
+    CurrentConversationContext = await GameFacade.CreateConversationContext(npcId, type);
+    if (CurrentConversationContext != null)
+    {
+        CurrentScreen = ScreenMode.Conversation;
+        StateHasChanged();
+    }
+}
+
+// Child (LocationContent)
+[CascadingParameter] public GameScreenBase GameScreen { get; set; }
+
+protected async Task OnNpcClick(string npcId)
+{
+    await GameScreen.StartConversation(npcId, ConversationType.Standard);
+}
+```
+
+This architecture ensures:
+- Simple, traceable data flow
+- No race conditions
+- Clear ownership of state
+- Easy testing with mock contexts
+- No complex event marshalling
+
 *** CODE WRITING PRINCIPLES ***
 
 *** Async/Await Philosophy (CRITICAL) ***

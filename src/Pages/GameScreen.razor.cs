@@ -211,6 +211,9 @@ namespace Wayfarer.Pages
                     await NavigateToScreen(ScreenMode.Travel);
                     break;
                 case "conversation":
+                    // Get the NPC ID from NavigationCoordinator
+                    SelectedNpcId = NavigationCoordinator.GetCurrentNpcId();
+                    Console.WriteLine($"[GameScreen] Starting conversation with NPC: {SelectedNpcId}");
                     await NavigateToScreen(ScreenMode.Conversation);
                     break;
             }

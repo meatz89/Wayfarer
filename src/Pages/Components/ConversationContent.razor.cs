@@ -33,6 +33,7 @@ namespace Wayfarer.Pages.Components
 
         protected override async Task OnParametersSetAsync()
         {
+            Console.WriteLine($"[ConversationContent.OnParametersSetAsync] NpcId parameter: '{NpcId}'");
             if (Session?.NPC?.ID != NpcId)
             {
                 await StartConversation();
@@ -43,6 +44,8 @@ namespace Wayfarer.Pages.Components
         {
             try
             {
+                Console.WriteLine($"[ConversationContent.StartConversation] Starting with NpcId: '{NpcId}'");
+                
                 var conversationType = NavigationCoordinator.GetConversationType();
                 
                 // Get observation cards from inventory
