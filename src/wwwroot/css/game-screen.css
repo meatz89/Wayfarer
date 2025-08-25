@@ -6,6 +6,8 @@
     min-height: 100vh;
     background: #faf4ea;
     box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
 }
 
 /* Fixed game header section */
@@ -477,8 +479,7 @@
 
 /* Game footer navigation */
 .game-footer {
-    position: sticky;
-    bottom: 0;
+    margin-top: auto;
     background: #2c241a;
     border-top: 2px solid #5c4a3a;
     z-index: 100;

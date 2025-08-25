@@ -2,8 +2,8 @@
 
 /* Container maintains consistent layout */
 .letter-queue-container {
-    max-width: 720px;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
     background: #faf4ea;
     min-height: 100vh;
 }
