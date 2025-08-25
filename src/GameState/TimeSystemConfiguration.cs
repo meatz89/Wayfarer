@@ -20,7 +20,6 @@ public static class TimeSystemConfiguration
 
         // Register the TimeManager
         services.AddSingleton<TimeManager>();
-        services.AddSingleton<TimeManager>(sp => sp.GetRequiredService<TimeManager>());
 
         return services;
     }

@@ -28,6 +28,11 @@ namespace Wayfarer.Pages
         [Inject] protected LoadingStateService LoadingStateService { get; set; }
         [Inject] protected TimeBlockAttentionManager AttentionManager { get; set; }
         [Inject] protected ObligationQueueManager ObligationQueueManager { get; set; }
+        
+        public GameScreenBase()
+        {
+            Console.WriteLine("[GameScreenBase] Constructor called");
+        }
 
         // Screen Management
         protected ScreenMode CurrentScreen { get; set; } = ScreenMode.Location;
@@ -60,29 +65,66 @@ namespace Wayfarer.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            Console.WriteLine("[GameScreen] Initializing unified game screen");
+            Console.WriteLine("[GameScreen] OnInitializedAsync started");
             
-            // Initialize resources
-            await RefreshResourceDisplay();
-            await RefreshTimeDisplay();
-            await RefreshLocationDisplay();
+            try
+            {
+                Console.WriteLine("[GameScreen] Calling RefreshResourceDisplay...");
+                await RefreshResourceDisplay();
+                Console.WriteLine("[GameScreen] RefreshResourceDisplay completed");
+                
+                Console.WriteLine("[GameScreen] Calling RefreshTimeDisplay...");
+                await RefreshTimeDisplay();
+                Console.WriteLine("[GameScreen] RefreshTimeDisplay completed");
+                
+                Console.WriteLine("[GameScreen] Calling RefreshLocationDisplay...");
+                await RefreshLocationDisplay();
+                Console.WriteLine("[GameScreen] RefreshLocationDisplay completed");
+                
+                Console.WriteLine("[GameScreen] Calling base.OnInitializedAsync...");
+                await base.OnInitializedAsync();
+                Console.WriteLine("[GameScreen] base.OnInitializedAsync completed");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GameScreen] ERROR in OnInitializedAsync: {ex.Message}");
+                Console.WriteLine($"[GameScreen] Stack trace: {ex.StackTrace}");
+                throw;
+            }
             
-            await base.OnInitializedAsync();
+            Console.WriteLine("[GameScreen] OnInitializedAsync completed");
         }
 
         protected async Task RefreshResourceDisplay()
         {
+            Console.WriteLine("[GameScreen.RefreshResourceDisplay] Starting...");
+            Console.WriteLine($"[GameScreen.RefreshResourceDisplay] GameFacade null? {GameFacade == null}");
+            
+            if (GameFacade == null)
+            {
+                Console.WriteLine("[GameScreen.RefreshResourceDisplay] GameFacade is null, skipping");
+                return;
+            }
+            
+            Console.WriteLine("[GameScreen.RefreshResourceDisplay] Getting player...");
             var player = GameFacade.GetPlayer();
+            Console.WriteLine($"[GameScreen.RefreshResourceDisplay] Player null? {player == null}");
+            
             if (player != null)
             {
                 Coins = player.Coins;
                 Health = player.Health;
                 Food = player.Food;
+                Console.WriteLine($"[GameScreen.RefreshResourceDisplay] Player resources: Coins={Coins}, Health={Health}, Food={Food}");
             }
             
+            Console.WriteLine("[GameScreen.RefreshResourceDisplay] Getting attention state...");
             var attentionState = GameFacade.GetCurrentAttentionState();
             Attention = attentionState.Current;
             MaxAttention = attentionState.Max;
+            Console.WriteLine($"[GameScreen.RefreshResourceDisplay] Attention: {Attention}/{MaxAttention}");
+            
+            Console.WriteLine("[GameScreen.RefreshResourceDisplay] Completed");
         }
 
         protected async Task RefreshTimeDisplay()

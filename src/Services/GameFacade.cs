@@ -612,14 +612,21 @@ public class GameFacade
     
     public EmotionalState GetNPCEmotionalState(NPC npc)
     {
+        Console.WriteLine($"[GameFacade.GetNPCEmotionalState(NPC)] Called for NPC: {npc?.Name ?? "null"}");
         // Use the same logic as the conversation system for consistency
         return ConversationRules.DetermineInitialState(npc, _letterQueueManager);
     }
     
     public EmotionalState GetNPCEmotionalState(string npcId)
     {
+        Console.WriteLine($"[GameFacade.GetNPCEmotionalState(string)] Called for NPC ID: {npcId}");
         var npc = _npcRepository.GetById(npcId);
-        if (npc == null) return EmotionalState.NEUTRAL;
+        if (npc == null) 
+        {
+            Console.WriteLine($"[GameFacade.GetNPCEmotionalState(string)] NPC not found, returning NEUTRAL");
+            return EmotionalState.NEUTRAL;
+        }
+        Console.WriteLine($"[GameFacade.GetNPCEmotionalState(string)] Found NPC: {npc.Name}, calling NPC overload");
         return GetNPCEmotionalState(npc);
     }
     

@@ -2,362 +2,438 @@
 
 ## POC Scenario Flow
 
-Player completes this exact sequence:
+Player completes this sequence:
 1. Starts at Market Square Fountain spot
-2. Moves to Merchant Row spot (instant)
-3. Quick Exchange with Marcus (buy provisions: 3 coins → Hunger = 0)
-4. Returns to Fountain spot
-5. Observes "Guards blocking north road" 
-6. Receives observation card "Guard Checkpoint Warning"
-7. Travels to Copper Kettle Tavern (15 minutes)
-8. Moves to Corner Table spot (instant)
-9. Initiates Standard Conversation with Elena
-10. Must reach 10 comfort OR play crisis card to generate letter
+2. Optional: Observe to gain conversation cards (1 attention each)
+3. Optional: Exchange with Marcus (free, instant)
+4. Travel to Copper Kettle Tavern (15 minutes time cost)
+5. Move to Corner Table spot (instant within location)
+6. Initiate Standard Conversation with Elena (2 attention)
+7. Navigate emotional states to build 10 comfort
+8. Generate letter through comfort or crisis path
+9. Deliver to Lord Blackwood before deadline
 
-## World Construction Rules
+---
 
-### Location Creation
+## CORE RESOURCE SYSTEM
 
-**Market Square** contains spots:
-- Fountain (traits: Crossroads, Public)
-- Merchant Row (traits: Commercial, Loud)
-- North Alcove (traits: Discrete)
-- Guard Post (traits: Authority, Tense)
+### Primary Resources
 
-**Copper Kettle Tavern** contains spots:
-- Common Room Entrance (traits: Crossroads, Public)
-- Corner Table (traits: Private, +1 comfort → +1 patience)
-- The Bar (traits: Commercial, Social)
-- Hearthside (traits: Warm, +2 comfort → +2 patience)
+**Health (0-100)** - Affects tomorrow's attention
+- 76-100: No penalty
+- 51-75: -1 attention tomorrow
+- 26-50: -2 attention tomorrow  
+- 0-25: -3 attention tomorrow
 
-Rule: Each location must have exactly one spot with Crossroads trait for travel.
+**Hunger (0-100)** - Affects tomorrow's attention
+- 0-25: No penalty
+- 26-50: -1 attention tomorrow
+- 51-75: -2 attention tomorrow
+- 76-100: -3 attention tomorrow
 
-### Spot Movement
+**Attention Refresh Formula**:
+```
+Tomorrow's Attention = 10 - Health Penalty - Hunger Penalty
+```
 
-Within a location, movement between any spots is:
-- Instant (no time cost)
-- Free (no attention cost)
-- Always available
+**Coins (0-999)** - Currency for exchanges and bribes
 
-Rule: Player can only interact with NPCs at their current spot.
+### Token System (Consumable Resources)
 
-### Route Creation
+**Generation**: Successfully playing a card of that type grants +1 token
 
-Routes connect Crossroads spots between locations:
+**Token Uses in Conversations** (ONE effect each):
+- **Trust**: +1 card from Comfort deck when Listening
+- **Commerce**: +1 weight limit when Speaking
+- **Status**: +10% success rate (stackable)
+- **Shadow**: See top card before drawing
 
-**Market Square Fountain → Copper Kettle Entrance**
-- Transport: Walk
-- Time: 15 minutes
-- Cost: 0 coins
-- Always available
+**Token Uses in Exchanges**: 5 tokens of any type unlock special trades
 
-**Market Square Fountain → Noble District Gate**
-- Transport: Walk
-- Time: 25 minutes
-- Cost: 0 coins
-- Requires: Pass checkpoint
+---
 
-Rule: Routes only exist between spots with Crossroads trait.
+## CONVERSATION SYSTEM
 
-## NPC Placement Rules
+### Core Principle
 
-### NPC to Spot Assignment
+**NPCs have thoughts (cards in decks). Players have observations (cards from world). Conversations emerge from managing emotional states to access the right thoughts.**
 
-**Marcus** permanently at:
-- Location: Market Square
-- Spot: Merchant Row
-- Present Morning through Evening
+### NPC Deck Structure
 
-**Elena** permanently at:
-- Location: Copper Kettle Tavern
-- Spot: Corner Table
-- Always present during Afternoon period
+Every NPC has THREE decks:
 
-**Town Crier** permanently at:
-- Location: Market Square
-- Spot: Fountain (sometimes North Alcove)
-- Present Midday and Evening for proclamations
+**1. Comfort Deck (15-20 cards)**
+- Normal thoughts, pleasant interactions
+- Mostly Comfort cards, few State cards
+- Exhaustible during conversation (no reshuffle)
 
-Rule: NPCs never move between spots or locations.
+**2. Crisis Deck (5-10 cards)**
+- Fears, problems, urgent needs
+- Crisis and Burden cards
+- Successfully resolved cards are REMOVED
 
-### NPC State Determination
+**3. State Deck (5 cards)**
+- Emotional regulation capacity
+- ONLY State change cards
+- Cycles - played cards return to bottom
 
-Elena's state determined by obligation timer:
-- 1h 13m remaining = under 2 hours = **Desperate** state
+### Player Cards
 
-Marcus's state:
-- No active obligations = **Neutral** state always
-- Mercantile types rarely show strong emotions
+**Players have ONLY**:
+- Observation cards gathered from world (0-5 typically)
+- One-shot Opportunity type
+- Vanish if Listen chosen
+- No personal conversation deck
 
-Desperate state rules:
-- Listen: Draw 2 cards + inject 1 crisis card
-- Speak: Weight limit 3, crisis cards cost 0 weight
-- Listen transitions to Hostile
+### Conversation Flow
 
-Neutral state rules:
-- Listen: Draw 2 cards, state unchanged
-- Speak: Weight limit 3
-- Standard baseline state
+1. **Initiation** (2 attention cost)
+   - Player enters with observation cards (if any)
+   - NPC in emotional state based on deadlines/history
+   
+2. **First Turn - Mandatory Listen**
+   - No choice - must Listen first
+   - Draw cards based on NPC's starting state
+   - Establishes opening emotional context
 
-## Deck Construction Rules
+3. **Subsequent Turns** (each costs 1 patience)
+   - Choose: Listen or Speak
+   - Listen: Draw based on state, lose Opportunity cards
+   - Speak: Play cards up to weight limit
 
-### Three Deck System
+4. **End Conditions**
+   - Patience exhausted
+   - Letter generated (comfort threshold reached)
+   - State makes continuation impossible
+   - Natural Conclusion (decks exhausted)
 
-Each NPC maintains:
-1. **Conversation Deck** - Normal cards for standard conversations
-2. **Exchange Deck** - Trade cards for quick exchanges
-3. **Burden Deck** - Negative cards from failed obligations
-4. **Crisis Deck** - Emergency cards that inject in crisis states
+---
 
-### Marcus's Exchange Deck (Mercantile Type)
+## EMOTIONAL STATE RULES
 
-**Exchange cards (4 drawn per exchange)**:
+Each state modifies BOTH Listen draws AND Speak rules:
 
-Commerce trades:
-- Buy Travel Provisions: 3 coins → Hunger = 0 (Repeatable)
-- Purchase Fine Silk: 15 coins → Fine Silk item (One-time)
-- Buy Medicine: 5 coins → Health +20 (Repeatable)
+| State | LISTEN: Draw From | SPEAK: Special Rules | Weight Limit |
+|-------|------------------|---------------------|--------------|
+| **NEUTRAL** | 2 Comfort + 1 State | Normal play | 3 |
+| **GUARDED** | 1 Comfort + 1 State | Persistent cards stay if not played | 2 |
+| **OPEN** | 3 Comfort + 1 State | Can play combinations | 3 |
+| **TENSE** | 1 Comfort + 1 Crisis + 1 State | One-shots vanish if not played | 1 |
+| **EAGER** | 2 Comfort + 2 State | Same-type cards get +1 comfort | 3 |
+| **OVERWHELMED** | 1 Crisis + 1 State | Can only play 1 card total | 1 |
+| **CONNECTED** | 2 Comfort + 1 Crisis + 1 State | All cards persistent this turn | 4 |
+| **DESPERATE** | 1 Comfort + 2 Crisis + 1 State | Crisis cards cost 0 weight | 3 |
+| **HOSTILE** | 3 Crisis + 1 State | Can ONLY play Crisis or State cards | 2 |
 
-Service trades:
-- Help Inventory: 3 attention → 8 coins (advances time period)
-- Quick Delivery: Accept package → Creates delivery obligation
+**Key**: Every state draws at least 1 State card (prevents deadlock)
 
-Special trades:
-- Information Trade: Guard observation → Hidden route unlock
+---
 
-### Elena's Base Conversation Deck (Devoted Type)
+## EMPTY DECK RESOLUTION
 
-**Starting 20 cards**:
+### State Deck - NEVER EMPTIES
+- After playing, card returns to BOTTOM of State deck
+- Always cycles, always available
+- Represents persistent emotional flexibility
 
-Trust cards (8):
-- Small Talk (Weight 1, 70% success, +1 comfort)
-- Listen Actively (Weight 1, 60% success, +2 comfort) 
-- Share Memory (Weight 2, 50% success, +3 comfort)
-- Promise to Help (Weight 2, 50% success, +4 comfort, fail: +1) ×2
-- Deep Empathy (Weight 3, 40% success, +5 comfort)
-- Solemn Vow (Weight 3, 30% success, +8 comfort)
-- Calm Reassurance [STATE] (Weight 1, 60% success, Desperate→Tense)
+### Comfort Deck - CAN EMPTY
+- When empty: Required Comfort draws = 0 cards
+- Still counts toward total cards drawn
+- Represents exhausting pleasant topics
 
-Commerce cards (4):
-- Mention Trade (Weight 1, 60% success, +1 comfort)
-- Discuss Prices (Weight 2, 50% success, +2 comfort) ×2
-- Negotiate Terms (Weight 2, 40% success, +3 comfort)
+### Crisis Deck - CAN EMPTY
+- When empty: Required Crisis draws = 0 cards
+- Successfully resolved Crisis cards are REMOVED
+- Represents problems being solved
 
-Status cards (3):
-- Formal Greeting (Weight 1, 70% success, +1 comfort)
-- Show Respect (Weight 2, 50% success, +2 comfort)
-- Acknowledge Position (Weight 2, 50% success, +3 comfort)
+### Edge Case Prevention
+- If Listen would draw 0 total cards: Draw 1 extra State card
+- If only State cards cycling with ≤2 patience: Can end gracefully
+- Natural conversation conclusion when topics exhausted
 
-Shadow cards (2):
-- Hint at Secrets (Weight 2, 40% success, +3 comfort)
-- Share Rumor (Weight 1, 50% success, +2 comfort)
+---
 
-Universal cards (3):
-- Nod (Weight 0, 90% success, +0 comfort)
-- Smile (Weight 0, 80% success, +1 comfort)
-- Wait Patiently (Weight 1, 70% success, +1 comfort)
+## CARD MECHANICS
 
-### Elena's Burden Deck
+### Card Types
 
-Starts empty. Burden cards added when:
-- Player fails to meet Elena on time
-- Player fails to deliver her letter on time
-- Player makes promises they don't keep
+**Comfort Cards**
+- Build comfort value toward letter generation
+- Can combine with other Comfort cards
+- Success rate: 70% - (Weight × 10%) + (Status tokens × 3%)
 
-Burden cards:
-- "Broken Trust" (Weight 2, Burden type, -2 comfort when played to resolve)
-- "Bitter Memory" (Weight 3, Burden type, blocks hand slot until resolved)
-- "Lost Faith" (Weight 2, Burden type, all cards -10% success while in hand)
+**State Cards**
+- Change emotional state on success
+- Must be played alone (cannot combine)
+- Low weight (0-1), moderate success (50-70%)
+- No comfort gain
 
-Burden cards:
-- Persist in hand until played
-- Playing them "resolves" them (removes from deck)
-- Resolution has negative effects but clears the burden
+**Crisis Cards**
+- High weight normally (3-5)
+- Free (0 weight) in Desperate state
+- Often end conversation or create obligations
 
-### Elena's Crisis Deck
+**Burden Cards**
+- Occupy hand slots
+- Cannot be discarded except by playing
+- Cost comfort to clear (usually -2)
+- ONE PURPOSE: Take up mental space
 
-Contains one card when Desperate:
-- "Desperate Promise" [CRISIS]
-  - Weight: 5 (but 0 in Desperate state)
-  - Success (40%): Generate letter immediately, Add 3 burden cards to Elena
-  - Failure (60%): No letter, Add 1 burden card, Elena→Overwhelmed
+### Persistence Types
 
-## Observation System Rules
+- **Persistent**: Stays in hand if not played
+- **Opportunity**: ALL vanish if Listen chosen
+- **One-shot**: Removed after playing (all observation cards)
+- **Burden**: Never vanishes except by resolution
 
-### Observation Creation at Spots
-
-**Market Square Fountain** observations (Afternoon):
-- "Guards blocking north road" 
-  - Cost: 1 attention
-  - Creates: "Guard Checkpoint Warning" card
-  - Effect: Weight 1, Shadow type, 60% success, +3 comfort
-  - One-shot, Opportunity type
-
-Rule: Observations refresh each time period. Once taken, unavailable until next period.
-
-### Observation Card Properties
-
-Observation cards:
-- Enter player's hand as ammunition
-- Are Opportunity type (vanish if Listen chosen)
-- One-shot (removed after playing)
-- Generally beneficial (+2 to +5 comfort)
-- Success rate follows standard calculation
-
-## Conversation Flow Rules
-
-### Starting Hand
-
-**Turn 1 Hand** for Elena conversation:
-1. "Guard Checkpoint Warning" (observation, unplayed)
-2. "Promise to Help" (drawn from deck)
-3. "Calm Reassurance" (drawn from deck)
-4. "Small Talk" (drawn from deck)
-
-Total weight available: 1 + 2 + 1 + 1 = 5 (limit 3 in Desperate)
-
-### Patience Calculation
-
-Elena's base patience (Devoted type): 12
-Current state (Desperate): -4 patience
-Spot modifier (Corner Table, Private): +1 patience
-**Total: 9 patience for conversation**
-
-Each turn costs 1 patience.
-
-### Success Rate Calculation
-
-Base success = 70%
+### Success Calculation
+```
+Base Rate = 70%
 - (Weight × 10%)
-+ (Status tokens × 3%) [Player has 0]
-= Final %
++ (Status tokens × 3%)
+Range: 10% to 95%
+```
 
-Examples:
-- Weight 0: 70% success
-- Weight 1: 60% success
-- Weight 2: 50% success
-- Weight 3: 40% success
+### Combination Rules
+- Only Comfort cards can combine
+- State cards must be played alone
+- Same token type: +2 comfort (2 cards), +5 (3 cards)
 
-### Multiple Paths to Goal
+---
 
-**Standard Path**: Reach 10+ comfort
-- Turn 1: Play Observation (W1) + Promise (W2) = potential +7 comfort
-- Turn 2: Play Calm Reassurance to change state
-- Turn 3-5: Continue building comfort in Tense state
+## LETTER GENERATION
 
-**Crisis Path**: Play crisis card
-- Immediate letter generation if successful (40%)
-- No comfort requirement
-- Severe consequence: 3 burden cards added
+### Comfort Thresholds
+- 5-9 comfort: Simple Letter (24h deadline, 5 coins)
+- 10-14 comfort: Standard Letter (12h deadline, 10 coins)
+- 15-19 comfort: Important Letter (6h deadline, 15 coins)
+- 20+ comfort: Urgent Letter (2h deadline, 20 coins)
 
-**Strategic Considerations**:
-- Observation card beneficial but not essential
-- State change reduces crisis risk but limits options
-- Weight management crucial for combinations
-- Average 2+ comfort per turn needed for standard success
+### Delivery Effects
 
-### Card Effect Types
+**Successful Delivery** transforms recipient's decks:
+- REPLACE 3 Comfort cards with 3 relationship-specific cards
+- REMOVE 1 Crisis card (crisis resolved)
+- State deck unchanged
 
-Cards can have various mechanical effects:
-- **Add Comfort**: Primary goal-reaching mechanism
-- **Change State**: Alters conversation rules
-- **Generate Letter**: Creates deliverable + obligation
-- **Add Burden**: Makes future conversations harder
-- **Create Obligation**: Adds deadline to queue
-- **End Conversation**: Immediate termination
-- **Resource Change**: Modify coins/health/hunger
-- **Unlock Content**: Open routes/NPCs/locations
+**Failed Delivery** damages sender's decks:
+- ADD 2 Burden cards to Comfort deck
+- MOVE 1 Comfort card to Crisis deck
+- State deck unchanged
 
-### Turn Structure
+---
 
-**Each turn costs 1 patience**
+## STATE CONSEQUENCES
 
-Player chooses:
-- **Listen**: 
-  - All Opportunities vanish (including observation)
-  - Draw 2 cards + 1 crisis (Desperate state)
-  - State transitions to Hostile (conversation ends next turn)
-  
-- **Speak**: 
-  - Play cards up to weight limit (3 in Desperate)
-  - Crisis cards cost 0 weight in Desperate
-  - Each card resolves individually
-  - Accumulate comfort from successes
+How you leave an NPC affects next conversation:
 
-### Crisis Decision Point
+- End in **Desperate** → Next starts **Guarded**
+- End in **Hostile** → Next starts **Hostile**
+- End in **Connected** → Next starts **Open**
+- End in **Overwhelmed** → Next starts **Tense**
+- End in **Neutral/Open** → Next starts **Neutral**
 
-The crisis card presents a devil's bargain:
-- **Success (40%)**: Instant letter, but 3 burden cards
-- **Failure (60%)**: No letter, 1 burden card, state worsens
+ONE RULE: Ending state determines starting state.
 
-Players should only choose this when:
-- Patience running low (1-2 turns left)
-- Comfort far from goal (<5 accumulated)
-- Deadline pressure extreme
-- Willing to sacrifice future relationship
+---
 
-### Win Conditions
+## ELENA SCENARIO SPECIFICS
 
-**Standard Victory**: Reach 10+ comfort
-- Generates Important Letter (12h deadline, 10 coins)
-- Creates delivery obligation
-- No burden cards added
+### Starting Conditions
 
-**Crisis Victory**: Successfully play Desperate Promise
-- Generates Urgent Letter (2h deadline, 15 coins)
-- Creates urgent delivery obligation
-- Adds 3 burden cards to Elena's deck
+**Player State**:
+- Health: 75 (yesterday's state)
+- Hunger: 60 (yesterday's state)
+- Current Attention: 6 (from yesterday: 10 - 1 - 2 = 7, spent 1 observing)
+- Observation Card: "Guard Checkpoint Warning" (Shadow, W1, +3 comfort)
 
-**Failure**: Run out of patience without 10 comfort
-- No letter generated
-- Add 1 burden card to Elena
-- Must return later to try again
+**Elena's State**:
+- Emotional State: **Desperate** (deadline 1h 13m, under 2 hours)
+- Base Patience: 12 (Devoted personality)
+- Spot Modifier: +1 (Private corner table)
+- Total Patience: 13
+- Comfort Target: 10 for letter
 
-## Card Upgrade System
+### Elena's Deck Composition
 
-Cards upgrade through successful use:
-- Play successfully 3 times → Tier 2
-- Play successfully 6 times → Tier 3
+**Comfort Deck (20 cards)**:
+- Small Talk (W1, 70%, +1 comfort) ×3
+- Listen Actively (W1, 60%, +2 comfort) ×3
+- Share Memory (W2, 50%, +3 comfort) ×2
+- Promise to Help (W2, 50%, +4 comfort) ×2
+- Deep Empathy (W3, 40%, +5 comfort) ×1
+- Pleasant Chat (W1, 60%, +1 comfort) ×3
+- Offer Support (W2, 50%, +3 comfort) ×2
+- Mention Plans (W1, 60%, +1 comfort) ×2
+- Show Respect (W2, 50%, +2 comfort) ×2
 
-**Upgrade Options** (player chooses):
-- Path A: Reduce difficulty (+20% success rate)
-- Path B: Increase reward (+2 comfort)
+**Crisis Deck (8 cards)**:
+- Help Me Please (W3, 40%, +2 comfort) ×2
+- Time Running Out (W4, 30%, creates urgency)
+- Family Pressure (W3, 40%, +1 comfort)
+- Desperate Promise (W5/0 in Desperate, 40%, instant letter)
+- Breaking Point (W4, 30%, ends conversation)
+- Lost Hope (W3, 40%, state → Hostile)
+- Father's Debt (Burden, W2, -2 comfort to clear)
 
-Example:
-- "Promise to Help" Tier 1: Weight 2, 50% success, +4 comfort
-- "Promise to Help" Tier 2A: Weight 2, 70% success, +4 comfort
-- "Promise to Help" Tier 2B: Weight 2, 50% success, +6 comfort
+**State Deck (5 cards, cycling)**:
+- Take a Breath (W1, 60%, Desperate → Tense)
+- Open Up (W1, 50%, Any → Open)  
+- Pull Back (W0, 70%, Any → Guarded)
+- Find Balance (W1, 60%, Any → Neutral)
+- Make Connection (W2, 40%, Open → Connected)
 
-Weight NEVER changes through upgrades. Letter delivery adds NEW cards to decks.
+### Turn-by-Turn Example
 
-## Exchange Conversation Flow
+**Turn 1 - Mandatory Listen**
+- Desperate: Draw 1 Comfort + 2 Crisis + 1 State
+- Draws: "Small Talk", "Help Me Please", "Time Running Out", "Take a Breath"
+- Observation card remains (didn't choose to Listen)
+- 12 patience remaining
 
-1. Player initiates Quick Exchange (0 attention)
-2. Draw 4 cards from Marcus's exchange deck
-3. Display all cards with cost→reward clearly shown
-4. Player selects one card or declines
-5. If accepted, immediate resource exchange
-6. Conversation ends
+**Turn 2 Options**
+- SPEAK: Play observation (W1) + state card (W1) = manage crisis
+- SPEAK: Play crisis cards (free in Desperate) = embrace urgency
+- LISTEN: Draw more but lose observation
 
-No emotional states, no patience, no turns. Pure mechanical trade.
+**If choosing manage crisis**:
+- Play "Guard Checkpoint Warning" + "Take a Breath"
+- Success: +3 comfort, Elena → Tense
+- New state changes future draws
 
-## Content Generation
+**Turn 3 in Tense**
+- Tense: Draw 1 Comfort + 1 Crisis + 1 State
+- One-shots vanish if not played this turn
+- Weight limit now 1 (Tense restriction)
 
-All text is template-generated from mechanical properties:
+### Multiple Paths
 
-**Location atmosphere**: [Time period] + [Location type] + [Crowd level]
-"The afternoon tavern is nearly empty."
+**Standard Path**: 
+- Manage emotional states
+- Build to 10+ comfort steadily
+- 4-5 turns typical
 
-**NPC description**: [Emotional state] + [Personality type] + [Current obligation]
-"Elena clutches letter, white knuckles, desperate."
+**Crisis Embrace**:
+- Stay in Desperate
+- Play "Desperate Promise" (40% success)
+- Instant letter but adds 3 burdens to Elena
 
-**Card dialogue**: [Card type] + [Weight] + [NPC relationship]
-Weight 2 Trust card = "I promise I'll help you, Elena."
+**State Navigation**:
+- Desperate → Tense → Neutral → Open
+- Each state change affects available cards
+- Longer but more controlled
 
-**Exchange offers**: [Cost type] + [Reward type] + [NPC personality]
-"3 coins → Hunger = 0" = "Buy fresh bread" (baker) or "Purchase provisions" (merchant)
+---
 
-**Burden resolution**: [Burden type] + [NPC history]
-"Broken Trust" = "I need to apologize for failing you before."
+## OBSERVATION SYSTEM
 
-No pre-written content. Every element generates from mechanical state.
+### Market Square Observations (Afternoon)
+
+**Available Observations**:
+1. "Guard Checkpoint Warning" - 1 attention → Shadow card (W1, +3)
+2. "Noble's Departure" - 1 attention → Status card (W2, +5)
+3. "Merchant Shortage" - 1 attention → Commerce card (W1, +2)
+
+**Observation Rules**:
+- Each costs 1 attention
+- Grants one-shot Opportunity card
+- Card vanishes if Listen chosen
+- Refreshes each time period
+
+---
+
+## EXCHANGE SYSTEM
+
+### Marcus's Exchange Options
+
+**Simple Exchanges**:
+- "Buy Provisions": 3 coins → Hunger = 0
+- "Buy Medicine": 5 coins → Health +20
+- "Quick Work": 2 attention → 8 coins
+
+**Token Exchanges** (require 5 tokens):
+- "Merchant Route": 5 Shadow tokens → Unlock hidden path
+- "Bulk Deal": 5 Commerce tokens → All items half price
+
+---
+
+## PROGRESSION SYSTEM
+
+### Relationship Milestones
+
+**3 Letters Delivered**:
+- All Comfort cards gain +1 base comfort
+- Replace 3 generic cards with relationship cards
+- Base patience -1 (higher expectations)
+
+**5 Letters Delivered**:
+- Generic cards evolve to relationship versions
+- "Small Talk" → "Our Usual Chat" (same weight, +1 comfort)
+- Comfort threshold +2
+
+**10 Letters Delivered**:
+- Deck is 75% relationship-specific
+- Can start conversations in Open state
+- Access to unique letter types
+
+---
+
+## SUCCESS METRICS
+
+### Optimal Elena Path
+1. Turn 1: Mandatory Listen (Desperate draw)
+2. Turn 2: Play observation + state card (change to Tense)
+3. Turn 3-5: Build comfort in manageable state
+4. Turn 6: Reach 10 comfort
+5. Generate Standard Letter (12h, 10 coins)
+6. Deliver with time to spare
+
+### Crisis Path
+1. Turn 1: Mandatory Listen
+2. Turn 2: Play "Desperate Promise" (40% chance)
+3. Success: Instant letter generation
+4. Rush delivery (30 minutes)
+5. Elena gains 3 burden cards
+
+### Failure State
+- Patience exhausted at <10 comfort
+- Elena remains Desperate
+- Next conversation starts Guarded
+- Deadline passes, obligation failed
+
+---
+
+## KEY DESIGN PRINCIPLES
+
+**No Hidden State**: All information visible
+**One Purpose Per Mechanic**: Each system does one thing
+**Natural Difficulty**: Success creates complexity
+**Conversation Flow**: Must Listen before Speaking
+**Deck Psychology**: Different states access different mental spaces
+**Prevention of Deadlocks**: State cards always available
+**Resource Conversion**: Clear chain of inputs/outputs
+
+---
+
+## IMPLEMENTATION PRIORITIES
+
+### Phase 1: Core Conversation Loop
+- Three-deck NPC structure
+- Emotional state rules
+- Listen/Speak dichotomy
+- Empty deck handling
+
+### Phase 2: Resource Integration  
+- Health/Hunger → Attention
+- Token generation and use
+- State consequences
+
+### Phase 3: Progression
+- Letter generation
+- Deck transformation
+- Relationship milestones
+
+### Phase 4: Full System
+- Multiple NPCs
+- Complete locations
+- Full obligation system

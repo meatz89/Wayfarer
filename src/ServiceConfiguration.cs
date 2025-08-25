@@ -32,8 +32,11 @@ public static class ServiceConfiguration
         Console.WriteLine("[SERVICE] Registering GameWorld...");
         services.AddSingleton<GameWorld>(_ =>
         {
+            Console.WriteLine("[SERVICE] Creating GameWorld instance...");
             // Call GameWorldInitializer statically - no DI dependencies needed
-            return GameWorldInitializer.CreateGameWorld();
+            var gameWorld = GameWorldInitializer.CreateGameWorld();
+            Console.WriteLine("[SERVICE] GameWorld instance created");
+            return gameWorld;
         });
         Console.WriteLine("[SERVICE] GameWorld registered");
 

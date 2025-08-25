@@ -61,7 +61,9 @@ public class GameWorldInitializationPipeline
         Console.WriteLine($"=== GAME WORLD INITIALIZATION PIPELINE ({gameMode}) ===");
 
         // Create empty GameWorld
+        Console.WriteLine("[PIPELINE] Creating new GameWorld instance...");
         GameWorld gameWorld = new GameWorld();
+        Console.WriteLine("[PIPELINE] GameWorld instance created");
         InitializationContext context = new InitializationContext
         {
             GameWorld = gameWorld,

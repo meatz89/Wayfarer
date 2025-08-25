@@ -12,7 +12,21 @@ public class GameUIBase : ComponentBase, IDisposable
     [Inject] public NavigationCoordinator NavigationCoordinator { get; set; }
 
     // Navigation state now managed by NavigationCoordinator
-    public CurrentViews CurrentView => NavigationCoordinator?.CurrentView ?? CurrentViews.LocationScreen;
+    public CurrentViews CurrentView
+    {
+        get
+        {
+            Console.WriteLine($"[GameUIBase.CurrentView.get] NavigationCoordinator null? {NavigationCoordinator == null}");
+            if (NavigationCoordinator == null)
+            {
+                Console.WriteLine("[GameUIBase.CurrentView.get] Returning default LocationScreen");
+                return CurrentViews.LocationScreen;
+            }
+            var view = NavigationCoordinator.CurrentView;
+            Console.WriteLine($"[GameUIBase.CurrentView.get] Returning {view}");
+            return view;
+        }
+    }
 
     // Navigation method for child components to use
     public async void NavigateTo(CurrentViews view)
