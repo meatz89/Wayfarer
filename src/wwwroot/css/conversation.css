@@ -552,19 +552,19 @@
 
 /* Dialog Cards */
 .dialog-options {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 12px;
 }
 
 .dialog-card {
-    background: linear-gradient(135deg, #f9f3e9, #e8dcc4);
+    background: #faf4ea;
     border: 2px solid #c4a684;
     border-radius: 4px;
+    overflow: hidden;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    overflow: hidden;
 }
 
 .dialog-card::before {
@@ -580,10 +580,9 @@
 }
 
 .dialog-card:hover {
-    background: linear-gradient(135deg, #fefaf0, #f9f3e9);
+    background: #fefaf0;
     border-color: #a68b6f;
     transform: translateX(5px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
 }
 
 .dialog-card.selected {
@@ -594,7 +593,7 @@
     transform: translateY(-5px);
 }
 
-/* Card Type Borders */
+/* Card Type Borders - Match mockup exactly */
 .dialog-card.comfort {
     border-left: 5px solid #7a8b5a;
 }
@@ -605,7 +604,66 @@
 
 .dialog-card.crisis {
     border-left: 5px solid #8b4726;
-    background: linear-gradient(135deg, #faf0e6, #f9ede0);
+    background: #faf0e6;
+}
+
+.dialog-card.burden {
+    border-left: 5px solid #4a3a2a;
+    background: #e8dcc4;
+    opacity: 0.9;
+}
+
+.dialog-card.observation {
+    border-left: 5px solid #5a7a8a;
+    background: #f0f4fa;
+}
+
+.dialog-card.exchange {
+    border-left: 5px solid #7a8b5a;
+    background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
+}
+
+/* Exchange card specific styling */
+.exchange-details {
+    padding: 15px;
+    background: #fefaf0;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.exchange-cost,
+.exchange-reward {
+    text-align: center;
+}
+
+.exchange-arrow {
+    font-size: 24px;
+    color: #8b7355;
+}
+
+.exchange-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #7a6250;
+    margin-bottom: 4px;
+}
+
+.exchange-value {
+    font-size: 16px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.cost-value {
+    color: #8b4726;
+}
+
+.reward-value {
+    color: #5a7a3a;
 }
 
 /* Set Bonus Highlighting */
@@ -724,15 +782,14 @@
     100% { background: #faf4ea; }
 }
 
-/* Card Header */
+/* Card Header - Match mockup exactly */
 .card-header {
-    padding: 10px 12px;
+    padding: 12px 15px;
     background: #f9f3e9;
     border-bottom: 1px solid #e8dcc4;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    position: relative;
 }
 
 .card-identity {
@@ -740,10 +797,10 @@
 }
 
 .card-name {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: bold;
     color: #5c4a3a;
-    font-family: 'Garamond', 'Georgia', serif;
+    margin-bottom: 4px;
 }
 
 .card-tags {
@@ -753,12 +810,12 @@
     flex-wrap: wrap;
 }
 
-.card-tag {
-    font-size: 9px;
+.tag {
     padding: 2px 6px;
     background: #e8dcc4;
     border: 1px solid #c4a684;
     border-radius: 2px;
+    font-size: 9px;
     color: #5c4a3a;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -796,20 +853,33 @@
 }
 
 .card-weight {
-    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 10px;
+}
+
+.weight-label {
+    font-size: 9px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.weight-value {
+    font-size: 20px;
     font-weight: bold;
     color: #5c4a3a;
 }
 
 /* Card Text */
 .card-text {
-    padding: 10px 12px;
-    font-size: 12px;
-    line-height: 1.4;
-    color: #5c4a3a;
+    padding: 12px 15px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #2c241a;
     font-style: italic;
-    background: transparent;
-    font-family: 'Garamond', 'Georgia', serif;
+    background: #fefaf0;
 }
 
 /* Card Effects */
@@ -829,7 +899,7 @@
     color: #8b4726;
 }
 
-/* Outcomes Section */
+/* Outcomes Section - Match mockup exactly */
 .card-outcomes {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -837,10 +907,10 @@
 }
 
 .outcome {
-    padding: 6px 10px;
+    padding: 12px 15px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 6px;
 }
 
 .outcome.success {

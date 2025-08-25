@@ -94,11 +94,11 @@
                 <div class="turn-indicator">Turn @Session.TurnNumber of @Session.MaxPatience</div>
                 <div class="action-choices">
                     <button class="action-button" @onclick="ExecuteListen" disabled="@IsProcessing">
-                        <div>👂 LISTEN</div>
+                        <div>LISTEN</div>
                         <div class="action-details">@GetListenDetails()</div>
                     </button>
                     <button class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsProcessing)">
-                        <div>💬 SPEAK</div>
+                        <div>SPEAK</div>
                         <div class="action-details">@GetSpeakDetails()</div>
                     </button>
                 </div>
@@ -128,25 +128,66 @@
             <div class="card-grid">
                 @foreach (var card in Session.HandCards)
                 {
-                    <div class="card @GetCardClass(card) @(IsCardSelected(card) ? "selected" : "")" 
+                    <div class="dialog-card @GetCardClass(card) @(IsCardSelected(card) ? "selected" : "")" 
                          @onclick="() => ToggleCardSelection(card)">
                         @if (card.Weight == 0)
                         {
-                            <div class="card-marker">FREE!</div>
+                            <div class="card-marker free">FREE!</div>
                         }
                         <div class="card-header">
-                            <div class="card-name">@GetCardName(card)</div>
-                            <div class="card-weight">@card.Weight</div>
+                            <div class="card-identity">
+                                <div class="card-name">@GetCardName(card)</div>
+                                <div class="card-tags">
+                                    @foreach (var tag in GetCardTags(card))
+                                    {
+                                        <span class="tag @GetTagClass(tag)">@tag</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="card-weight">
+                                <span class="weight-label">Weight</span>
+                                <span class="weight-value">@card.Weight</span>
+                            </div>
                         </div>
-                        <div class="card-tags">
-                            @foreach (var tag in GetCardTags(card))
-                            {
-                                <span class="card-tag">@tag</span>
-                            }
-                        </div>
-                        <div class="card-effects">
-                            <span class="effect-success">@GetSuccessEffect(card)</span>
-                            <span class="effect-failure">@GetFailureEffect(card)</span>
+                        @if (card.Category == CardCategory.EXCHANGE && card.Context != null)
+                        {
+                            <div class="exchange-details">
+                                <div class="exchange-cost">
+                                    <div class="exchange-label">You Pay</div>
+                                    <div class="exchange-value cost-value">@(card.Context.ExchangeCost ?? "Nothing")</div>
+                                </div>
+                                <div class="exchange-arrow">→</div>
+                                <div class="exchange-reward">
+                                    <div class="exchange-label">You Receive</div>
+                                    <div class="exchange-value reward-value">@(card.Context.ExchangeReward ?? "Nothing")</div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="card-text">
+                                @GetCardText(card)
+                            </div>
+                        }
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-header">
+                                    <span class="outcome-label">Success</span>
+                                    <span class="outcome-chance">@GetSuccessChance(card)%</span>
+                                </div>
+                                <div class="outcome-effects">
+                                    <div class="effect">@GetSuccessEffect(card)</div>
+                                </div>
+                            </div>
+                            <div class="outcome failure">
+                                <div class="outcome-header">
+                                    <span class="outcome-label">Failure</span>
+                                    <span class="outcome-chance">@GetFailureChance(card)%</span>
+                                </div>
+                                <div class="outcome-effects">
+                                    <div class="effect">@GetFailureEffect(card)</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 }

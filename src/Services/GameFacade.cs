@@ -209,6 +209,11 @@ public class GameFacade
         return _gameWorld.GetPlayer();
     }
 
+    public ObligationQueueManager GetObligationQueueManager()
+    {
+        return _letterQueueManager;
+    }
+
     public Location GetCurrentLocation()
     {
         Player player = _gameWorld.GetPlayer();

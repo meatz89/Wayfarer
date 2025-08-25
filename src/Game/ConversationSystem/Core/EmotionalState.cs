@@ -221,20 +221,23 @@ public static class ConversationRules
     public static EmotionalState DetermineInitialState(NPC npc, ObligationQueueManager queueManager)
     {
         // Check for urgent letters creating desperate state
-        var obligations = queueManager.GetActiveObligations();
-        var urgentLetter = obligations
-            .Where(o => o.SenderId == npc.ID && o.MinutesUntilDeadline < 360) // <6 hours
-            .FirstOrDefault();
-
-        if (urgentLetter != null)
+        var obligations = queueManager?.GetActiveObligations();
+        if (obligations != null && obligations.Any())
         {
-            if (urgentLetter.MinutesUntilDeadline < 180) // <3 hours
-                return EmotionalState.DESPERATE;
-            return EmotionalState.TENSE;
+            var urgentLetter = obligations
+                .Where(o => o.SenderId == npc.ID && o.MinutesUntilDeadline < 360) // <6 hours
+                .FirstOrDefault();
+
+            if (urgentLetter != null)
+            {
+                if (urgentLetter.MinutesUntilDeadline < 180) // <3 hours
+                    return EmotionalState.DESPERATE;
+                return EmotionalState.TENSE;
+            }
         }
         
         // Check for meeting obligations
-        var meeting = queueManager.GetMeetingWithNPC(npc.ID);
+        var meeting = queueManager?.GetMeetingWithNPC(npc.ID);
         if (meeting != null)
         {
             // Apply urgency rules based on deadline and stakes

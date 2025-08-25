@@ -34,7 +34,7 @@
                 <span class="time-period">@TimePeriod</span>
                 @if (!string.IsNullOrEmpty(MostUrgentDeadline))
                 {
-                    <span class="deadline">⚠ @MostUrgentDeadline</span>
+                    <span class="deadline">@MostUrgentDeadline</span>
                 }
             </div>
         </div>
@@ -90,12 +90,12 @@
         <div class="navigation-bar">
             <button class="nav-button @(CurrentScreen == ScreenMode.Location ? "active" : "")" 
                     @onclick="() => NavigateToScreen(ScreenMode.Location)">
-                <span class="nav-icon">L</span>
+                <span class="nav-icon location"></span>
                 <span>Location</span>
             </button>
             <button class="nav-button @(CurrentScreen == ScreenMode.LetterQueue ? "active" : "")" 
                     @onclick="() => NavigateToScreen(ScreenMode.LetterQueue)">
-                <span class="nav-icon">M</span>
+                <span class="nav-icon letters"></span>
                 <span>Letters</span>
                 @if (PendingLetterCount > 0)
                 {
@@ -104,7 +104,7 @@
             </button>
             <button class="nav-button @(CurrentScreen == ScreenMode.Travel ? "active" : "")" 
                     @onclick="() => NavigateToScreen(ScreenMode.Travel)">
-                <span class="nav-icon">T</span>
+                <span class="nav-icon travel"></span>
                 <span>Travel</span>
             </button>
         </div>

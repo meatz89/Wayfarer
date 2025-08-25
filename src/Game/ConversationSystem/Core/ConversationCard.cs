@@ -18,7 +18,8 @@ public enum CardCategory
 {
     COMFORT,  // Build comfort, can combine with other comfort cards
     STATE,    // Change emotional state, must play alone
-    CRISIS    // Emergency actions, free in DESPERATE state
+    CRISIS,   // Emergency actions, free in DESPERATE state
+    EXCHANGE  // Exchange cards for Quick Exchange conversations
 }
 
 /// <summary>
@@ -167,6 +168,7 @@ public class ConversationCard
             CardCategory.COMFORT => "comfort",
             CardCategory.STATE => "state",
             CardCategory.CRISIS => "crisis",
+            CardCategory.EXCHANGE => "exchange",
             _ => "comfort"
         };
     }

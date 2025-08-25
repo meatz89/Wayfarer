@@ -276,8 +276,9 @@ public class ConversationManager
         if (!IsConversationActive || currentSession.LetterGenerated)
             return false;
 
-        var outcome = currentSession.CheckThresholds();
-        if (outcome.LetterUnlocked)
+        // Check comfort thresholds for letter generation
+        // Design doc specifies: 5+ comfort unlocks letters
+        if (currentSession.CurrentComfort >= 5)
         {
             // Create a new delivery obligation
             var obligation = CreateLetterObligation(currentSession.NPC);
@@ -308,13 +309,47 @@ public class ConversationManager
         // Determine letter type based on highest relationship
         var connectionType = ConnectionType.Trust;
 
-        // Calculate deadline based on urgency
-        var deadlineMinutes = currentSession.CurrentState switch
+        // Determine letter tier and properties based on comfort level
+        // Design doc: Higher comfort = tighter deadline but better pay
+        int deadlineMinutes;
+        int payment;
+        TierLevel tier;
+        EmotionalWeight weight;
+        
+        var comfort = currentSession.CurrentComfort;
+        
+        if (comfort >= 20)
         {
-            EmotionalState.DESPERATE => 180, // 3 hours
-            EmotionalState.TENSE => 360, // 6 hours
-            _ => 720 // 12 hours
-        };
+            // Critical Letter: 2h deadline, 20 coins
+            deadlineMinutes = 120; // 2 hours
+            payment = 20;
+            tier = TierLevel.T3;
+            weight = EmotionalWeight.CRITICAL;
+        }
+        else if (comfort >= 15)
+        {
+            // Urgent Letter: 6h deadline, 15 coins
+            deadlineMinutes = 360; // 6 hours
+            payment = 15;
+            tier = TierLevel.T3;
+            weight = EmotionalWeight.HIGH;
+        }
+        else if (comfort >= 10)
+        {
+            // Important Letter: 12h deadline, 10 coins
+            deadlineMinutes = 720; // 12 hours
+            payment = 10;
+            tier = TierLevel.T2;
+            weight = EmotionalWeight.MEDIUM;
+        }
+        else // comfort >= 5
+        {
+            // Simple Letter: 24h deadline, 5 coins
+            deadlineMinutes = 1440; // 24 hours
+            payment = 5;
+            tier = TierLevel.T1;
+            weight = EmotionalWeight.LOW;
+        }
 
         return new DeliveryObligation
         {
@@ -326,7 +361,10 @@ public class ConversationManager
             TokenType = connectionType,
             Stakes = DetermineStakes(connectionType),
             DeadlineInMinutes = deadlineMinutes,
-            Payment = 5
+            Payment = payment,
+            Tier = tier,
+            EmotionalWeight = weight,
+            Description = $"Letter from {npc.Name} ({comfort} comfort)"
         };
     }
 
@@ -341,7 +379,8 @@ public class ConversationManager
         var outcome = currentSession.CheckThresholds();
         
         // Generate letter if comfort threshold reached
-        if (outcome.LetterUnlocked && currentSession.CurrentComfort >= 10)
+        // Design doc: 5+ comfort generates a letter
+        if (currentSession.CurrentComfort >= 5)
         {
             TryGenerateLetter();
         }

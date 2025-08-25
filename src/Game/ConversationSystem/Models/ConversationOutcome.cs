@@ -50,6 +50,11 @@ public class ConversationOutcome
     public bool ObligationsManipulated { get; set; }
 
     /// <summary>
+    /// The tier of letter unlocked (Simple/Important/Urgent/Critical)
+    /// </summary>
+    public string LetterTier { get; set; }
+
+    /// <summary>
     /// Get summary text for the outcome
     /// </summary>
     public string GetSummary()

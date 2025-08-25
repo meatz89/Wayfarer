@@ -150,13 +150,17 @@ public class ConversationSession
                 {
                     NPCName = npc.Name,
                     NPCPersonality = exchangeCard.NPCPersonality,
-                    ExchangeData = exchangeCard // Store the exchange card for execution
+                    ExchangeData = exchangeCard, // Store the exchange card for execution
+                    // Add exchange display info
+                    ExchangeName = GetExchangeName(exchangeCard),
+                    ExchangeCost = GetExchangeCostDisplay(exchangeCard),
+                    ExchangeReward = GetExchangeRewardDisplay(exchangeCard)
                 },
                 Type = CardType.Commerce,
                 Persistence = PersistenceType.Persistent,
                 Weight = 0, // Exchanges have no weight cost
                 BaseComfort = 0,
-                Category = CardCategory.COMFORT,
+                Category = CardCategory.EXCHANGE, // Use EXCHANGE category for proper styling
                 IsObservation = false,
                 CanDeliverLetter = false,
                 ManipulatesObligations = false
@@ -166,17 +170,20 @@ public class ConversationSession
             var declineCard = new ConversationCard
             {
                 Id = exchangeCard.Id + "_decline",
-                Template = CardTemplateType.SimpleGreeting,
+                Template = CardTemplateType.Exchange, // Use Exchange template for consistency
                 Context = new CardContext
                 {
                     NPCName = npc.Name,
-                    NPCPersonality = exchangeCard.NPCPersonality
+                    NPCPersonality = exchangeCard.NPCPersonality,
+                    ExchangeName = "Pass on this offer",
+                    ExchangeCost = "Nothing",
+                    ExchangeReward = "Walk away"
                 },
                 Type = CardType.Commerce,
                 Persistence = PersistenceType.Persistent,
                 Weight = 0, // No weight cost
                 BaseComfort = 0,
-                Category = CardCategory.COMFORT,
+                Category = CardCategory.EXCHANGE,
                 IsObservation = false,
                 CanDeliverLetter = false,
                 ManipulatesObligations = false
@@ -393,29 +400,38 @@ public class ConversationSession
             TurnsUsed = TurnNumber
         };
 
+        // Letter generation thresholds from design doc:
+        // 5+ comfort: Letters become available
+        // Higher comfort = better letters (handled in ConversationManager)
         if (CurrentComfort >= 20)
         {
             outcome.TokensEarned = 3;
             outcome.LetterUnlocked = true;
             outcome.PerfectConversation = true;
+            outcome.LetterTier = "Critical"; // 2h deadline, 20 coins
         }
         else if (CurrentComfort >= 15)
         {
             outcome.TokensEarned = 2;
             outcome.LetterUnlocked = true;
+            outcome.LetterTier = "Urgent"; // 6h deadline, 15 coins
         }
         else if (CurrentComfort >= 10)
         {
             outcome.TokensEarned = 1;
             outcome.LetterUnlocked = true;
+            outcome.LetterTier = "Important"; // 12h deadline, 10 coins
         }
         else if (CurrentComfort >= 5)
         {
             outcome.TokensEarned = 1;
+            outcome.LetterUnlocked = true;
+            outcome.LetterTier = "Simple"; // 24h deadline, 5 coins
         }
         else
         {
             outcome.TokensEarned = -1; // Relationship damage
+            outcome.LetterUnlocked = false;
         }
 
         return outcome;
@@ -464,5 +480,37 @@ public class ConversationSession
             PersonalityType.STEADFAST => 11,
             _ => 10
         };
+    }
+    
+    private static string GetExchangeName(ExchangeCard exchange)
+    {
+        // Generate proper exchange names based on template type
+        return exchange.TemplateType switch
+        {
+            "food" => "Buy Travel Provisions",
+            "healing" => "Purchase Medicine",
+            "information" => "Information Trade",
+            "work" => "Help Inventory Stock",
+            "favor" => "Noble Favor",
+            _ => "Make Exchange"
+        };
+    }
+    
+    private static string GetExchangeCostDisplay(ExchangeCard exchange)
+    {
+        if (exchange.Cost == null || !exchange.Cost.Any())
+            return "Free";
+            
+        var costParts = exchange.Cost.Select(c => c.GetDisplayText());
+        return string.Join(", ", costParts);
+    }
+    
+    private static string GetExchangeRewardDisplay(ExchangeCard exchange)
+    {
+        if (exchange.Reward == null || !exchange.Reward.Any())
+            return "Nothing";
+            
+        var rewardParts = exchange.Reward.Select(r => r.GetDisplayText());
+        return string.Join(", ", rewardParts);
     }
 }

@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Streamlined UI System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .screen-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 40px;
+            background: #e8dcc4;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .screen-label {
+            background: #8b4726;
+            color: #faf4ea;
+            padding: 8px 20px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Shared Styles */
+        .resources-bar {
+            background: #1a1612;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #3d3429;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .resource-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .resource-icon {
+            width: 20px;
+            height: 20px;
+            background: #3d3429;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .resource-value {
+            font-weight: bold;
+            color: #d4a76a;
+        }
+
+        .resource.low {
+            color: #d4704a;
+        }
+
+        .header {
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #5c4a3a;
+        }
+
+        .time-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        .deadline-warning {
+            color: #d4704a;
+            font-weight: bold;
+        }
+
+        .location-context {
+            background: #f9f3e9;
+            padding: 10px 20px;
+            border-bottom: 1px solid #c4a684;
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        .location-path {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Conversation Screen */
+        .conversation-header {
+            background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+            padding: 20px;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .npc-details h2 {
+            color: #5c4a3a;
+            font-size: 26px;
+            margin-bottom: 5px;
+            font-weight: normal;
+        }
+
+        .npc-state {
+            font-size: 14px;
+            color: #7a6250;
+            font-style: italic;
+        }
+
+        .npc-state.desperate {
+            color: #8b4726;
+            font-weight: bold;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr 2fr;
+            gap: 15px;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            background: #f9f3e9;
+            border: 1px solid #c4a684;
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #7a6250;
+        }
+
+        .progress-track {
+            height: 8px;
+            background: #e8dcc4;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #c4a684;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #7a8b5a, #8b9a6a);
+            transition: width 0.3s ease;
+        }
+
+        .patience-display {
+            text-align: center;
+            padding: 15px;
+            background: #f9f3e9;
+            border-radius: 4px;
+            border: 2px solid #c4a684;
+        }
+
+        .patience-value {
+            font-size: 32px;
+            font-weight: normal;
+            color: #5c4a3a;
+            margin-bottom: 5px;
+        }
+
+        .patience-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Streamlined Narrative Section */
+        .narrative-section {
+            padding: 20px;
+            background: #f4e8d0;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .narrative-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #3d3429;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        .npc-dialogue {
+            padding: 15px;
+            background: #faf4ea;
+            border-left: 3px solid #a68b6f;
+            border-radius: 2px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .npc-dialogue.desperate {
+            border-left-color: #8b4726;
+            background: #faf0e6;
+        }
+
+        /* Action Section */
+        .action-section {
+            padding: 20px;
+            background: #e8dcc4;
+            text-align: center;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .turn-indicator {
+            font-size: 12px;
+            color: #7a6250;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .action-choices {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .action-button {
+            padding: 15px 40px;
+            background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+            border: 2px solid #a68b6f;
+            border-radius: 4px;
+            color: #5c4a3a;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .action-button:hover {
+            background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
+            border-color: #8b7355;
+            transform: translateY(-2px);
+        }
+
+        .action-details {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #7a6250;
+        }
+
+        /* Streamlined Card Display */
+        .dialog-section {
+            padding: 20px;
+            background: #f4e8d0;
+        }
+
+        .dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .dialog-title {
+            font-size: 14px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .weight-tracker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 10px;
+            background: #faf4ea;
+            border: 1px solid #c4a684;
+            border-radius: 4px;
+        }
+
+        .dialog-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .dialog-card {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .dialog-card:hover {
+            background: #fefaf0;
+            border-color: #a68b6f;
+            transform: translateX(5px);
+        }
+
+        .dialog-card.comfort {
+            border-left: 5px solid #7a8b5a;
+        }
+
+        .dialog-card.state {
+            border-left: 5px solid #8b7355;
+        }
+
+        .dialog-card.crisis {
+            border-left: 5px solid #8b4726;
+            background: #faf0e6;
+        }
+
+        .card-header {
+            padding: 12px 15px;
+            background: #f9f3e9;
+            border-bottom: 1px solid #e8dcc4;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .card-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #5c4a3a;
+            margin-bottom: 4px;
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 2px 6px;
+            background: #e8dcc4;
+            border: 1px solid #c4a684;
+            border-radius: 2px;
+            font-size: 9px;
+            color: #5c4a3a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-weight {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .weight-label {
+            font-size: 9px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .weight-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        /* Dynamic Card Text */
+        .card-text {
+            padding: 12px 15px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #2c241a;
+            font-style: italic;
+            background: #fefaf0;
+        }
+
+        /* Simplified Card Outcomes */
+        .card-outcomes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid #c4a684;
+            font-size: 12px;
+        }
+
+        .outcome {
+            padding: 8px 12px;
+            text-align: center;
+        }
+
+        .outcome.success {
+            background: #f9f3e9;
+            border-right: 1px solid #c4a684;
+        }
+
+        .outcome.failure {
+            background: #faf0e6;
+        }
+
+        .outcome-chance {
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .outcome-effect {
+            color: #7a6250;
+            font-size: 11px;
+        }
+
+        /* Exchange Screen */
+        .exchange-mode {
+            background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
+            color: #faf4ea;
+            padding: 12px 20px;
+            text-align: center;
+            border-bottom: 2px solid #5a6a3a;
+        }
+
+        .mode-title {
+            font-size: 18px;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+
+        .exchange-section {
+            padding: 20px;
+            background: #e8dcc4;
+        }
+
+        .exchange-options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .exchange-card {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 5px solid #7a8b5a;
+        }
+
+        .exchange-card:hover {
+            background: #fefaf0;
+            border-color: #a68b6f;
+            transform: translateX(5px);
+        }
+
+        /* Simplified Exchange Display */
+        .exchange-details {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .exchange-cost {
+            color: #8b4726;
+            font-weight: bold;
+        }
+
+        .exchange-arrow {
+            color: #7a6250;
+        }
+
+        .exchange-reward {
+            color: #5a7a3a;
+            font-weight: bold;
+        }
+
+        /* Location Screen */
+        .location-header {
+            background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+            border-bottom: 2px solid #a68b6f;
+            padding: 15px 20px;
+        }
+
+        .location-name {
+            font-size: 22px;
+            color: #5c4a3a;
+            margin-bottom: 6px;
+            font-weight: normal;
+        }
+
+        .current-spot-banner {
+            background: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 1px solid #c4a684;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .current-spot-name {
+            font-size: 15px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .content-area {
+            padding: 20px;
+            background: #faf4ea;
+        }
+
+        /* Simplified Atmosphere */
+        .atmosphere-text {
+            font-style: italic;
+            color: #5c4a3a;
+            font-size: 14px;
+            line-height: 1.6;
+            padding: 12px;
+            background: #f9f3e9;
+            border-left: 3px solid #c4a684;
+            border-radius: 2px;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7a6250;
+            margin: 20px 0 12px 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #d4c5a0;
+        }
+
+        /* Streamlined Actions */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .action-card {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .action-card:hover {
+            background: #e8dcc4;
+            border-color: #a68b6f;
+            transform: translateY(-2px);
+        }
+
+        .action-name {
+            font-size: 13px;
+            color: #5c4a3a;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .action-cost {
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        /* Minimalist Observations */
+        .observations {
+            background: #f9f3e9;
+            border: 1px dashed #c4a684;
+            padding: 14px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+
+        .observation-item {
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #e8dcc4;
+            border-radius: 2px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .observation-item:hover {
+            background: #fefaf0;
+            border-color: #c4a684;
+            transform: translateX(3px);
+        }
+
+        .observation-title {
+            font-size: 12px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .observation-cost {
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        .observation-reward {
+            color: #5a7a3a;
+            font-weight: bold;
+        }
+
+        /* Revealed observation */
+        .observation-item.revealed {
+            background: #faf4ea;
+            padding: 12px;
+            cursor: default;
+        }
+
+        .observation-item.revealed:hover {
+            transform: none;
+        }
+
+        .observation-narrative {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #3d3429;
+            font-style: italic;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e8dcc4;
+        }
+
+        /* Simplified NPCs */
+        .npc-card {
+            background: #f9f3e9;
+            border: 1px solid #c4a684;
+            border-radius: 4px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .npc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .npc-name {
+            font-size: 14px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .npc-state-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: #e8dcc4;
+            border: 1px solid #c4a684;
+            border-radius: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .npc-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .npc-action {
+            padding: 6px 10px;
+            background: white;
+            border: 1px solid #d4c5a0;
+            border-radius: 2px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .npc-action:hover {
+            background: #faf4ea;
+            border-color: #a68b6f;
+        }
+
+        /* Simplified Spots */
+        .spots-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .spot-card {
+            background: #f9f3e9;
+            border: 1px solid #c4a684;
+            border-radius: 4px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .spot-card:hover {
+            background: #e8dcc4;
+            border-color: #a68b6f;
+            transform: translateY(-2px);
+        }
+
+        .spot-card.current {
+            background: #e8dcc4;
+            border: 2px solid #7a8b5a;
+            cursor: default;
+        }
+
+        .spot-card-name {
+            font-size: 13px;
+            color: #5c4a3a;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .spot-occupants {
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        .urgent-marker {
+            display: inline-block;
+            background: #8b4726;
+            color: #faf4ea;
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-size: 9px;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SCREEN 1: CONVERSATION WITH ELENA - FOCUSED NARRATIVE -->
+<div class="screen-container">
+    <div class="screen-label">Conversation - Streamlined Dynamic Narrative</div>
+    
+    <!-- Resources Bar - STATIC -->
+    <div class="resources-bar">
+        <div class="resource-group">
+            <div class="resource">
+                <div class="resource-icon">💰</div>
+                <div class="resource-value">20</div>
+                <span>Coins</span>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">❤️</div>
+                <div class="resource-value">75</div>
+                <span>Health</span>
+            </div>
+            <div class="resource low">
+                <div class="resource-icon">🍞</div>
+                <div class="resource-value">60</div>
+                <span>Hunger</span>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">👁️</div>
+                <div class="resource-value">5/10</div>
+                <span>Attention</span>
+            </div>
+        </div>
+        <div class="resource-group">
+            <div class="resource">
+                <span>Afternoon</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Header - STATIC except deadline -->
+    <div class="header">
+        <div class="time-bar">
+            <span>Tuesday, 3:47 PM</span>
+            <span class="deadline-warning">⚠ Elena: 58 minutes</span>
+        </div>
+    </div>
+
+    <!-- Location - STATIC -->
+    <div class="location-context">
+        <div class="location-path">
+            <span>Lower Wards</span>
+            <span>→</span>
+            <span>Market District</span>
+            <span>→</span>
+            <span>Copper Kettle</span>
+            <span>→</span>
+            <span>Corner Table</span>
+        </div>
+    </div>
+
+    <!-- NPC Header - MINIMAL -->
+    <div class="conversation-header">
+        <div class="npc-details">
+            <h2>Elena</h2>
+            <div class="npc-state desperate">DESPERATE • Deadline creates crisis</div>
+        </div>
+
+        <!-- Progress - STATIC display -->
+        <div class="progress-section">
+            <div class="progress-bar">
+                <div class="progress-label">
+                    <span>Comfort</span>
+                    <span>3/10</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: 30%"></div>
+                </div>
+            </div>
+            
+            <div class="patience-display">
+                <div class="patience-value">7/9</div>
+                <div class="patience-label">Patience</div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-label">
+                    <span>Goal</span>
+                    <span>30%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: 30%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Narrative Section - DYNAMIC but concise -->
+    <div class="narrative-section">
+        <div class="narrative-text">
+            Elena's breathing has steadied slightly. The merchant route plan gives her first real hope.
+        </div>
+        <div class="npc-dialogue desperate">
+            "Fifty-eight minutes. The merchant route could work, but can I trust you? Show me you understand what this means."
+        </div>
+    </div>
+
+    <!-- Action Choice - STATIC -->
+    <div class="action-section">
+        <div class="turn-indicator">Turn 3 of 9 • Weight Limit: 3</div>
+        <div class="action-choices">
+            <div class="action-button">
+                <div>👂 LISTEN</div>
+                <div class="action-details">Draw 2 + crisis</div>
+            </div>
+            <div class="action-button">
+                <div>💬 SPEAK</div>
+                <div class="action-details">Play cards</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dialog Cards - DYNAMIC text only -->
+    <div class="dialog-section">
+        <div class="dialog-header">
+            <div class="dialog-title">Your Hand</div>
+            <div class="weight-tracker">
+                <span>Weight:</span>
+                <span style="font-weight: bold;">0/3</span>
+            </div>
+        </div>
+        
+        <div class="dialog-options">
+            <!-- Cards with dynamic narrative text -->
+            <div class="dialog-card comfort">
+                <div class="card-header">
+                    <div>
+                        <div class="card-name">Promise to Help</div>
+                        <div class="card-tags">
+                            <span class="tag">Trust</span>
+                            <span class="tag">W2</span>
+                        </div>
+                    </div>
+                    <div class="card-weight">
+                        <span class="weight-value">2</span>
+                    </div>
+                </div>
+                <div class="card-text">
+                    "The merchant route avoids checkpoints. I promise your letter reaches Lord Blackwood within the hour."
+                </div>
+                <div class="card-outcomes">
+                    <div class="outcome success">
+                        <div class="outcome-chance">50%</div>
+                        <div class="outcome-effect">+4 comfort</div>
+                    </div>
+                    <div class="outcome failure">
+                        <div class="outcome-chance">50%</div>
+                        <div class="outcome-effect">+1 comfort</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dialog-card state">
+                <div class="card-header">
+                    <div>
+                        <div class="card-name">Calm Reassurance</div>
+                        <div class="card-tags">
+                            <span class="tag">State</span>
+                            <span class="tag">W1</span>
+                        </div>
+                    </div>
+                    <div class="card-weight">
+                        <span class="weight-value">1</span>
+                    </div>
+                </div>
+                <div class="card-text">
+                    "Elena, breathe. Fifty-eight minutes is enough. The merchant route takes twenty."
+                </div>
+                <div class="card-outcomes">
+                    <div class="outcome success">
+                        <div class="outcome-chance">60%</div>
+                        <div class="outcome-effect">→ Tense</div>
+                    </div>
+                    <div class="outcome failure">
+                        <div class="outcome-chance">40%</div>
+                        <div class="outcome-effect">No change</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dialog-card crisis">
+                <div class="card-header">
+                    <div>
+                        <div class="card-name">Desperate Promise</div>
+                        <div class="card-tags">
+                            <span class="tag">Crisis</span>
+                            <span class="tag">W0</span>
+                        </div>
+                    </div>
+                    <div class="card-weight">
+                        <span class="weight-value">0</span>
+                    </div>
+                </div>
+                <div class="card-text">
+                    "I'll take your letter RIGHT NOW and run! Whatever it takes!"
+                </div>
+                <div class="card-outcomes">
+                    <div class="outcome success">
+                        <div class="outcome-chance">40%</div>
+                        <div class="outcome-effect">Letter!</div>
+                    </div>
+                    <div class="outcome failure">
+                        <div class="outcome-chance">60%</div>
+                        <div class="outcome-effect">Hostile</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCREEN 2: EXCHANGE WITH MARCUS - MINIMAL TEXT -->
+<div class="screen-container">
+    <div class="screen-label">Quick Exchange - Streamlined</div>
+    
+    <!-- Resources Bar - STATIC -->
+    <div class="resources-bar">
+        <div class="resource-group">
+            <div class="resource">
+                <div class="resource-icon">💰</div>
+                <div class="resource-value">20</div>
+                <span>Coins</span>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">❤️</div>
+                <div class="resource-value">75</div>
+                <span>Health</span>
+            </div>
+            <div class="resource low">
+                <div class="resource-icon">🍞</div>
+                <div class="resource-value">60</div>
+                <span>Hunger</span>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">👁️</div>
+                <div class="resource-value">7/10</div>
+                <span>Attention</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="header">
+        <div class="time-bar">
+            <span>Tuesday, 3:32 PM</span>
+            <span style="color: #d4a76a;">Elena: 1h 28m</span>
+        </div>
+    </div>
+
+    <div class="location-context">
+        <div class="location-path">
+            <span>Market District</span>
+            <span>→</span>
+            <span>Central Square</span>
+            <span>→</span>
+            <span>Merchant Row</span>
+        </div>
+    </div>
+
+    <div class="exchange-mode">
+        <div class="mode-title">Quick Exchange with Marcus</div>
+    </div>
+
+    <div class="conversation-header">
+        <div class="npc-details">
+            <h2>Marcus the Cloth Merchant</h2>
+            <div class="npc-state">Calculating • Tier 1 Relationship</div>
+        </div>
+    </div>
+
+    <!-- Brief dynamic narrative -->
+    <div class="narrative-section">
+        <div class="npc-dialogue">
+            "You look hungry, courier. I have bread, or work if you need coins. Choose quickly - the afternoon crowd approaches."
+        </div>
+    </div>
+
+    <!-- Simplified exchange cards -->
+    <div class="exchange-section">
+        <div class="exchange-options">
+            <div class="exchange-card">
+                <div class="card-header">
+                    <div class="card-name">Buy Provisions</div>
+                </div>
+                <div class="exchange-details">
+                    <span class="exchange-cost">3 Coins</span>
+                    <span class="exchange-arrow">→</span>
+                    <span class="exchange-reward">Full Stomach</span>
+                </div>
+            </div>
+
+            <div class="exchange-card">
+                <div class="card-header">
+                    <div class="card-name">Quick Work</div>
+                </div>
+                <div class="exchange-details">
+                    <span class="exchange-cost">30 minutes</span>
+                    <span class="exchange-arrow">→</span>
+                    <span class="exchange-reward">8 Coins</span>
+                </div>
+            </div>
+
+            <div class="exchange-card">
+                <div class="card-header">
+                    <div class="card-name">Trade Information</div>
+                </div>
+                <div class="exchange-details">
+                    <span class="exchange-cost">Guard Intel</span>
+                    <span class="exchange-arrow">→</span>
+                    <span class="exchange-reward">Merchant Route</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCREEN 3: LOCATION - MINIMAL WITH PROGRESSIVE DISCLOSURE -->
+<div class="screen-container">
+    <div class="screen-label">Location - Progressive Disclosure</div>
+    
+    <div class="resources-bar">
+        <div class="resource-group">
+            <div class="resource">
+                <div class="resource-icon">💰</div>
+                <div class="resource-value">17</div>
+                <span>Coins</span>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">❤️</div>
+                <div class="resource-value">75</div>
+                <span>Health</span>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">🍞</div>
+                <div class="resource-value">0</div>
+                <span>Hunger</span>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">👁️</div>
+                <div class="resource-value">7/10</div>
+                <span>Attention</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="header">
+        <div class="time-bar">
+            <span>Tuesday, 3:47 PM</span>
+            <span class="deadline-warning">⚠ Elena: 1h 13m</span>
+        </div>
+    </div>
+
+    <div class="location-header">
+        <div class="location-path">
+            <span>Lower Wards</span>
+            <span>→</span>
+            <span>Market District</span>
+            <span>→</span>
+            <span>Central Square</span>
+        </div>
+        <div class="location-name">Central Market Square</div>
+    </div>
+
+    <div class="current-spot-banner">
+        <div class="current-spot-name">The Fountain</div>
+        <div>Crossroads • Public</div>
+    </div>
+
+    <div class="content-area">
+        <!-- Brief atmospheric text -->
+        <div class="atmosphere-text">
+            Afternoon sun on crowded square. Merchants hawking wares. Your deadline with Elena approaches.
+        </div>
+
+        <div class="section-header">Actions</div>
+        <div class="actions-grid">
+            <div class="action-card">
+                <div class="action-name">🗺️ Travel</div>
+                <div class="action-cost">Choose destination</div>
+            </div>
+            <div class="action-card">
+                <div class="action-name">💼 Work</div>
+                <div class="action-cost">2 att → 8 coins</div>
+            </div>
+            <div class="action-card">
+                <div class="action-name">🍺 Rest</div>
+                <div class="action-cost">Skip time period</div>
+            </div>
+        </div>
+
+        <div class="section-header">Observations</div>
+        <div class="observations">
+            <!-- Before spending attention -->
+            <div class="observation-item">
+                <div class="observation-title">Guard Checkpoint Activity</div>
+                <div>
+                    <span class="observation-cost">1 attention</span>
+                    <span> • </span>
+                    <span class="observation-reward">Shadow +3</span>
+                </div>
+            </div>
+            
+            <!-- After spending attention - reveals narrative -->
+            <div class="observation-item revealed">
+                <div>
+                    <div class="observation-title">Lord Blackwood's Carriage</div>
+                    <div>
+                        <span class="observation-cost">Observed</span>
+                        <span> • </span>
+                        <span class="observation-reward">Trust +5</span>
+                    </div>
+                </div>
+                <div class="observation-narrative">
+                    The noble's carriage bears Lord Blackwood's crest. The driver shouts about departing for the summer estate within two hours - confirming Elena's timeline.
+                </div>
+            </div>
+        </div>
+
+        <div class="section-header">People Here</div>
+        
+        <div class="npc-card">
+            <div class="npc-header">
+                <div class="npc-name">Town Crier</div>
+                <div class="npc-state-tag">Working</div>
+            </div>
+            <div class="npc-actions">
+                <div class="npc-action">Exchange</div>
+                <div class="npc-action">Talk (2 att)</div>
+            </div>
+        </div>
+
+        <div class="section-header">Move to Another Spot</div>
+        <div class="spots-grid">
+            <div class="spot-card current">
+                <div class="spot-card-name">The Fountain</div>
+                <div class="spot-occupants">You are here</div>
+            </div>
+            
+            <div class="spot-card">
+                <div class="spot-card-name">Merchant Row</div>
+                <div class="spot-occupants">Marcus (Calculating)</div>
+            </div>
+
+            <div class="spot-card">
+                <div class="spot-card-name">North Alcove</div>
+                <div class="spot-occupants">Empty</div>
+            </div>
+
+            <div class="spot-card">
+                <div class="spot-card-name">Guard Post <span class="urgent-marker">!</span></div>
+                <div class="spot-occupants">Captain (Frustrated)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -53,25 +53,29 @@
     border: 1px solid #4a3f30;
 }
 
-/* Define icons without emoji */
+/* Define icons without emoji - using pseudo-elements properly */
 .resource-icon.coins::before {
     content: "C";
     color: #d4a76a;
+    font-weight: bold;
 }
 
 .resource-icon.health::before {
-    content: "H";
+    content: "♥";
     color: #ff6b6b;
+    font-size: 14px;
 }
 
 .resource-icon.hunger::before {
-    content: "F";
+    content: "B";
     color: #c4a684;
+    font-weight: bold;
 }
 
 .resource-icon.attention::before {
-    content: "A";
+    content: "◉";
     color: #7a8b5a;
+    font-size: 14px;
 }
 
 .resource-value {
@@ -523,6 +527,23 @@
     font-weight: bold;
     color: #d4a76a;
     margin: 0 auto 4px;
+    position: relative;
+}
+
+/* Navigation icon styles */
+.nav-icon.location::before {
+    content: "L";
+    font-weight: bold;
+}
+
+.nav-icon.letters::before {
+    content: "M";
+    font-weight: bold;
+}
+
+.nav-icon.travel::before {
+    content: "T";
+    font-weight: bold;
 }
 
 .nav-button:hover .nav-icon {
@@ -859,5 +880,11 @@
     font-weight: bold;
     z-index: 10;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Special marker for FREE cards */
+.card-marker.free {
+    background: #7a8b5a;
+    animation: pulse 2s infinite;
 }
 

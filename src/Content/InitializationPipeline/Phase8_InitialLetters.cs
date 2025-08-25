@@ -114,7 +114,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             Description = "Lord Blackwood's urgent correspondence",
             TokenType = ConnectionType.Status,
             Stakes = StakeType.REPUTATION,
-            DeadlineInMinutes = 48, // ~2 days (the one with deadline warning)
+            DeadlineInMinutes = 2880, // ~2 days (48 hours) (the one with deadline warning)
             QueuePosition = 2,
             // State is only for physical Letters, not abstract DeliveryObligations
             Payment = 10
@@ -132,7 +132,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             Description = "Marcus's urgent trade correspondence",
             TokenType = ConnectionType.Commerce,
             Stakes = StakeType.WEALTH,
-            DeadlineInMinutes = 72, // ~3 days
+            DeadlineInMinutes = 4320, // ~3 days (72 hours)
             QueuePosition = 3,
             // State is only for physical Letters, not abstract DeliveryObligations
             Payment = 5
@@ -150,7 +150,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             Description = "Guard Captain Viktor's security report",
             TokenType = ConnectionType.Status,
             Stakes = StakeType.SAFETY,
-            DeadlineInMinutes = 144, // ~6 days
+            DeadlineInMinutes = 8640, // ~6 days (144 hours)
             QueuePosition = 5,
             // State is only for physical Letters, not abstract DeliveryObligations
             Payment = 3
@@ -168,7 +168,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             Description = "Garrett's mysterious package",
             TokenType = ConnectionType.Shadow,
             Stakes = StakeType.SECRET,
-            DeadlineInMinutes = 288, // ~12 days
+            DeadlineInMinutes = 17280, // ~12 days (288 hours)
             QueuePosition = 6,
             // State is only for physical Letters, not abstract DeliveryObligations
             Payment = 15

@@ -153,4 +153,19 @@ public class CardContext
     /// Observation description for narrative
     /// </summary>
     public string ObservationDescription { get; init; }
+    
+    /// <summary>
+    /// Exchange name for display (e.g., "Buy Travel Provisions")
+    /// </summary>
+    public string ExchangeName { get; init; }
+    
+    /// <summary>
+    /// Exchange cost display (e.g., "3 Coins")
+    /// </summary>
+    public string ExchangeCost { get; init; }
+    
+    /// <summary>
+    /// Exchange reward display (e.g., "Hunger = 0")
+    /// </summary>
+    public string ExchangeReward { get; init; }
 }

@@ -1,320 +1,527 @@
-# Wayfarer Mechanical Content Contracts
+# Wayfarer - Refined Game Design Document
 
-## Core Design Philosophy
+## Core Concept
+A letter carrier navigates medieval city relationships through card-based conversations where emotional states define rules. Every delivery permanently reshapes NPC decks. The innovation: conversation cards generate contextual dialogue each turn while maintaining mechanical consistency.
 
-This system generates all narrative through mechanical card exchanges and resource management. NPCs are deck containers whose cards determine all possible interactions. Observations provide cards as conversation ammunition. Every mechanic has immediate, visible effects with no hidden state tracking.
+## Design Pillars (Refined)
 
-## Player Resources
+**1. Mechanical Clarity First**
+Every mechanic is immediately visible. Narrative enhances but never obscures function.
 
-The player manages these trackable resources:
+**2. Dynamic Restraint**  
+Only conversation cards generate fresh narrative. Everything else uses minimal static text.
 
-**Core Resources:**
-- `coins`: Integer (0-999) - Currency for exchanges and travel
-- `health`: Integer (0-100) - Physical condition, 0 = death
-- `hunger`: Integer (0-100) - Increases by 20 per time period, 100 = starving
-- `attention`: Integer (0-10) - Daily action points, refreshes each morning
-- `currentLocation`: Location ID - Where player currently is
-- `currentSpot`: Spot ID - Specific spot within location
-- `currentPeriod`: Enum (Morning/Midday/Afternoon/Evening/Night)
+**3. Progressive Disclosure**
+Information reveals through player action, not passive display.
 
-**Token Resources:**
-- `trustTokens`: Integer - Affects patience with Trust-focused NPCs
-- `commerceTokens`: Integer - Improves set bonuses
-- `statusTokens`: Integer - Improves success rates
-- `shadowTokens`: Integer - Provides conversation advantages
+**4. Elegant Simplicity**
+One card system configured differently creates depth without complexity.
 
-## Entity Definitions
+---
 
-### NPC (Deck Container)
+## CORE MECHANICS
 
-**Properties:**
-- `id`: Unique identifier
-- `personalityType`: Enum (Devoted/Mercantile/Proud/Cunning/Steadfast)
-- `locationId`: String (where they permanently reside)
-- `spotId`: String (specific spot at location)
-- `exchangeDeck`: List of exchange cards (5-10 cards)
-- `conversationDeck`: List of conversation cards (20-25 cards)
-- `crisisDeck`: List of crisis cards (starts empty)
-- `basePatienceRange`: [min, max] integers (8-15 typically)
-- `primaryTokenType`: TokenTypes enum
-- `relationshipLevel`: Integer (0-10)
-- `narrativeTags`: List of strings for AI generation
+### Resource System
 
-**Conversation Options:**
-Each NPC offers different conversation types based on state and decks:
-- Quick Exchange: If exchange deck has cards (0 attention)
-- Crisis Resolution: If crisis deck has cards (1 attention, 3 patience)
-- Standard Conversation: Always available (2 attention, 8 patience)
-- Deep Conversation: If relationship ≥ 3 (3 attention, 12 patience)
+**Primary Resources** (Always Visible)
+- **Coins** (0-999): Currency for exchanges
+- **Health** (0-100): Physical condition, 0 = death
+- **Hunger** (0-100): +20 per period, affects attention
+- **Attention** (0-10): Daily action points
 
-**Implementation Notes:**
-NPCs don't move between locations. Their decks determine what interactions are possible. Crisis cards force crisis conversations until resolved. The same NPC becomes different puzzles based on deck state.
+**Token Resources** (Affect Conversations)
+- **Trust**: +1 patience per 2 tokens
+- **Commerce**: Improves set bonuses
+- **Status**: +3% success per token
+- **Shadow**: Preview next card draw
+
+**Design Principle**: Resources display as numbers only. No narrative description.
+
+### Time System
+
+**Six Daily Periods**
+- Morning (6-10)
+- Midday (10-14)
+- Afternoon (14-18)
+- Evening (18-22)
+- Night (22-2)
+- Deep Night (2-6)
+
+**Deadline Pressure Tiers**
+- **>12 hours**: Normal display
+- **6-12 hours**: Yellow warning
+- **2-6 hours**: Orange warning
+- **<2 hours**: Red pulsing warning → NPC Desperate state
+- **<30 min**: Critical animations
+
+**Design Principle**: Deadline pressure shows visually, not through narrative flooding.
+
+---
+
+## CONVERSATION SYSTEM
+
+### The Core Innovation
+
+**Dynamic Card Narrative**: Each conversation card displays contextually generated dialogue based on:
+- Current turn number
+- Conversation history
+- Emotional state
+- Deadline pressure
+- Previous cards played
+- Relationship level
+
+**Mechanical Constants**: While narrative changes, these never change:
+- Card name (label only)
+- Weight value
+- Success percentage  
+- Comfort/effect values
+- Card type
+
+### Conversation Types
+
+**1. Quick Exchange** (0 attention, instant)
+- No emotional states
+- Single card draw from exchange deck
+- Shows cost → reward
+- Accept or decline
+
+**2. Crisis Resolution** (1 attention, 3 patience)
+- Only when crisis deck has cards
+- Forces immediate resolution
+- Crisis cards cost 0 weight
+- Other conversations locked
+
+**3. Standard Conversation** (2 attention, 8 patience base)
+- Full emotional state system
+- Listen/Speak each turn
+- Weight limits apply
+- Generates letters at thresholds
+
+**4. Deep Conversation** (3 attention, 12 patience base)
+- Requires relationship level 3+
+- Higher comfort thresholds
+- Better rewards
+- More complex states
+
+### Emotional State Rules
+
+| State | Draw | Weight Limit | Special Rules |
+|-------|------|-------------|---------------|
+| **Neutral** | 2 | 3 | Default state |
+| **Guarded** | 1 | 2 | Listen→Neutral |
+| **Open** | 3 | 3 | Can advance depth |
+| **Tense** | 1 | 1 | Listen→Guarded |
+| **Eager** | 3 | 3 | +3 comfort for 2+ same type |
+| **Overwhelmed** | 1 | 1 max cards | Listen→Neutral |
+| **Connected** | 3 | 4 | Auto-advance depth |
+| **Desperate** | 2+crisis | 3 | Crisis cards free |
+| **Hostile** | 1+2 crisis | Crisis only | Ends next turn |
+
+### The Listen/Speak Dichotomy
+
+**LISTEN Action**
+- All Opportunity cards vanish immediately
+- Draw X cards based on state
+- May trigger state transition
+- Costs 1 patience
+
+**SPEAK Action**  
+- Play cards up to weight limit
+- Each card resolves individually
+- Accumulate comfort from successes
+- Costs 1 patience
 
 ### Card Types
 
-#### Exchange Card (Quick Trades)
-**Properties:**
-- `id`: Unique identifier
-- `cardType`: "Exchange"
-- `tokenType`: Enum (Trust/Commerce/Status/Shadow)
-- `cost`: Resource requirement
-- `reward`: Resource provided
-- `narrativeTags`: List of strings
+**Comfort Cards** (Most common)
+- Build toward letter generation
+- Can combine with others
+- Success rate: 70% - (Weight × 10%)
 
-**Cost/Reward Structure:**
-- `resourceType`: Enum (Coins/Health/Hunger/Attention/Time)
-- `amount`: Integer or special value
+**State Cards** (Rare)
+- Change emotional state
+- Must play alone
+- Success changes state
 
-**Example Exchange Cards:**
+**Crisis Cards** (Emergency)
+- Appear in crisis states
+- Free in Desperate/Hostile
+- Often end conversation
+
+**Burden Cards** (Negative)
+- Block hand slots
+- Must resolve to remove
+- Created by failures
+
+### Card Persistence Types
+
+- **Persistent**: Stays if not played
+- **Opportunity**: Vanishes if Listen chosen
+- **One-shot**: Removed after playing
+- **Burden**: Cannot vanish until resolved
+- **Crisis**: Only in crisis states
+
+### Success Calculation
+
 ```
-Baker's Commerce: Cost: 2 coins → Reward: Hunger = 0
-Doctor's Commerce: Cost: 5 coins → Reward: Health +30
-Laborer's Trust: Cost: 3 attention → Reward: 8 coins
-Innkeeper's Commerce: Cost: 3 coins → Reward: Skip to Morning, Attention = 10
-```
-
-#### Conversation Card (Standard System)
-**Properties:**
-- `id`: Unique identifier
-- `cardType`: Enum (Comfort/State/Crisis)
-- `weight`: Integer (0-3 normal, 5+ crisis)
-- `tokenType`: Enum (Trust/Commerce/Status/Shadow)
-- `persistenceType`: Enum (Persistent/Opportunity/OneShot/Burden/Crisis)
-- `successEffect`: Comfort value or state transition
-- `failureEffect`: Reduced comfort or no change
-- `combineRestriction`: Enum (Combinable/SoloOnly)
-
-#### Observation Card (Player Ammunition)
-**Properties:**
-- `id`: Unique identifier
-- `cardType`: "Observation"
-- `weight`: Integer (typically 1-2)
-- `tokenType`: Enum (matches observation context)
-- `persistenceType`: Always "OneShot"
-- `conversationEffect`: Mechanical effect when played
-- `validTargets`: List of NPC types or specific NPCs
-- `narrativeTags`: List of strings
-
-**Example Observation Cards:**
-```
-"Merchant's Ledger": Weight 2, Commerce, +5 comfort with merchants
-"Guard Schedule": Weight 1, Shadow, Creates Open state with guards
-"Noble's Secret": Weight 3, Status, +8 comfort but adds Burden
+Base Rate = 70%
+- (Weight × 10%)
++ (Status tokens × 3%)
+Range: 10% to 95%
 ```
 
-### Observation (Knowledge Opportunity)
+### Set Bonuses (Same Token Type)
+- 1 card: Base comfort
+- 2 cards: +2 comfort
+- 3 cards: +5 comfort
+- 4+ cards: +8 comfort
 
-**Properties:**
-- `id`: Unique identifier
-- `locationId`: String (where observation available)
-- `spotId`: String or null (specific spot requirement)
-- `timePeriods`: List of periods when available
-- `attentionCost`: Integer (usually 1)
-- `observationCard`: Card player receives
-- `narrativeScene`: Description template for AI
+### Letter Generation Thresholds
+- 5-9 comfort: Simple (24h deadline, 5 coins)
+- 10-14 comfort: Important (12h, 10 coins)
+- 15-19 comfort: Urgent (6h, 15 coins)
+- 20+ comfort: Critical (2h, 20 coins)
 
-**Implementation Notes:**
-Observations give players specific cards they can use in conversations. Each observation is available only during certain time periods at specific spots. Once taken, the observation is consumed for that day. The card received is added to the player's hand for use in any conversation.
+---
 
-### Letter (Obligation Package)
+## UI DISPLAY PRINCIPLES
 
-**Properties:**
-- `id`: Unique identifier
-- `senderNpcId`: String
-- `recipientNpcId`: String
-- `urgencyLevel`: Enum (Routine/Important/Urgent/Critical)
-- `deadlineHours`: Integer (based on urgency: Critical=2, Urgent=6, Important=12, Routine=24)
-- `coinReward`: Integer (higher for tighter deadlines)
-- `successEffect`: Deck modifications for sender/recipient
-- `failureEffect`: Relationship damage
-- `letterCategory`: Enum (Love/Business/Plea/Warning/Contract/News)
+### Three-Tier Information Hierarchy
 
-**Deck Modification Structure:**
-- `targetNpcId`: String
-- `cardsToAdd`: List of cards to add to conversation deck
-- `cardsToRemove`: List of card IDs to remove
-- `crisisCardsToAdd`: List of crisis cards if failure
+**Tier 1: Always Visible** (Static)
+- Resource numbers
+- Progress bars
+- State indicators
+- Card mechanics
+- Location names
 
-**Implementation Notes:**
-Letters are generated through successful conversations reaching comfort thresholds. Delivery modifies NPC decks permanently, changing future conversations. Failed deliveries add burden cards to sender's deck.
+**Tier 2: Discoverable** (Costs Action)
+- Observation details (pay attention first)
+- NPC conversations (initiate first)
+- Exchange specifics (engage first)
+- Travel routes (select first)
 
-### Location (Spatial Container)
+**Tier 3: Contextually Generated** (Dynamic)
+- Conversation card dialogue
+- NPC responses
+- Critical narrative moments
+- Letter content
 
-**Properties:**
-- `id`: Unique identifier
-- `parentDistrictId`: String
-- `locationType`: Enum (Market/Tavern/Temple/Palace/Street/Square/Shop/Home)
-- `locationSpots`: List of spot IDs
-- `narrativeTags`: List of strings for AI description
+### Progressive Disclosure Pattern
 
-**Time-Based Availability:**
-- `periodSchedules`: List of period configurations
+**Observations Example**:
+```
+Before: "Guard Checkpoint Activity" [1 attention] [Shadow +3]
+After paying: Full narrative about checkpoint delays and alternate routes
+```
 
-**Period Configuration:**
-- `timePeriod`: Enum
-- `availableNpcs`: List of NPC IDs present
-- `availableObservations`: List of observation IDs
-- `crowdLevel`: Enum (Empty/Sparse/Moderate/Busy/Packed)
+**Design Principle**: Generate narrative only when player commits resources.
 
-### Location Spot (Interaction Point)
+### Visual Communication Priority
 
-**Properties:**
-- `id`: Unique identifier
-- `parentLocationId`: String
-- `spotType`: Enum (Table/Corner/Bar/Stage/Altar/Counter/Booth/Alcove/Entrance)
-- `spotTraits`: List of traits
-- `capacity`: Integer (how many can occupy)
-- `comfortModifier`: Integer (-2 to +2, affects patience in conversations)
+Instead of narrative descriptions, use:
+- Color coding for urgency (green→yellow→red)
+- Icons for resource types
+- Progress bars for goals
+- Badges for urgent elements
+- Animations for critical states
 
-**Spot Traits:**
-- `Crossroads`: Enables travel action
-- `Private`: +1 comfort, better for intimate conversations
-- `Public`: -1 comfort, exposed
-- `Commercial`: Enables work action
+---
 
-### Route (Travel Path)
+## NPC SYSTEM
 
-**Properties:**
-- `id`: Unique identifier
-- `originLocationId`: String
-- `destinationLocationId`: String
-- `timeCost`: Integer (periods consumed)
-- `coinCost`: Integer (0 for walking)
-- `requirements`: List of conditions
-- `dangerLevel`: Integer (0-5, affects encounters)
+### NPCs as Deck Containers
 
-**Route Requirements:**
-- `minStatusTokens`: Integer or null
-- `timePeriods`: List of when available
-- `discovered`: Boolean (hidden routes need discovery)
+Each NPC maintains:
+- **Exchange Deck** (5-10 cards): Simple trades
+- **Conversation Deck** (20-25 cards): Standard cards
+- **Crisis Deck** (0+): Emergency cards
+- **Burden Deck** (0+): Failed obligations
 
-## System Rules
+### Personality Archetypes
 
-### Daily Attention Economy
+| Type | Patience | Focus | Never Says |
+|------|----------|-------|------------|
+| **Devoted** | 12-15 | Trust, family, duty | Cynical calculations |
+| **Mercantile** | 10-12 | Profit, trade | Emotional over practical |
+| **Proud** | 8-10 | Status, dignity | Begging, weakness |
+| **Cunning** | 10-12 | Secrets, leverage | Full transparency |
+| **Steadfast** | 11-13 | Reliability | Deception |
 
-**Attention Allocation:**
-- Start each day with 10 attention (modified by health/hunger)
-- Quick Exchange: 0 attention
-- Observation: 1 attention
-- Crisis Conversation: 1 attention
-- Standard Conversation: 2 attention
-- Deep Conversation: 3 attention
-- Work Action: 2 attention
+### State Determination by Deadline
+- No obligation: Neutral
+- 12+ hours: Neutral
+- 6-12 hours: Guarded
+- 2-6 hours: Tense
+- <2 hours: Desperate
+- Expired: Locked (cannot converse)
 
-**Resource Depletion:**
-- Hunger increases by 20 each time period
-- Health only decreases from events/injuries
-- Attention refreshes to 10 each morning (if rested)
+---
 
-### Conversation Configurations
+## OBSERVATION SYSTEM
 
-All use the same emotional state system, different patience allocations:
+### Observation Mechanics
 
-**Quick Exchange** (0 attention, instant):
-- Draw 1 card from NPC's exchange deck
-- Show cost and reward
-- Player accepts or refuses
-- No emotional states, no patience
+**Cost**: 1 attention
+**Reward**: One-shot conversation card
+**Availability**: Refreshes each time period
+**Display**: Title only until purchased
 
-**Crisis Resolution** (1 attention, 3 patience):
-- Available only when crisis deck has cards
-- Uses only crisis deck
-- All other conversations locked until resolved
-- Successfully playing crisis cards removes them
+### Observation Types by Location
 
-**Standard Conversation** (2 attention, 8 patience):
-- Full emotional state system
-- Normal Listen/Speak mechanics
-- Can generate letters at comfort thresholds
-- Uses conversation deck
+| Location | Observation Types | Card Rewards |
+|----------|------------------|--------------|
+| Markets | Commerce, shortage info | Commerce cards +3-5 |
+| Taverns | Personal secrets, gossip | Trust cards +2-4 |
+| Temples | Spiritual insights | Trust cards +3-5 |
+| Streets | Authority movements | Shadow cards +2-4 |
+| Noble Areas | Status information | Status cards +4-6 |
 
-**Deep Conversation** (3 attention, 12 patience):
-- Extended emotional navigation
-- Higher comfort thresholds
-- Better letter rewards
-- Requires relationship level 3+
+**Design Principle**: Observations are ammunition for conversations, not story beats.
 
-### Emotional States (For Conversations Only)
+---
 
-The 9 states apply only to Standard and Deep conversations:
+## EXCHANGE SYSTEM
 
-**NEUTRAL**: Draw 2, weight limit 3
-**GUARDED**: Draw 1, weight limit 2, Listen→Neutral
-**OPEN**: Draw 3, weight limit 3
-**TENSE**: Draw 1, weight limit 1, Listen→Guarded
-**EAGER**: Draw 3, weight limit 3, +3 bonus for 2+ same type
-**OVERWHELMED**: Draw 1, max 1 card, Listen→Neutral
-**CONNECTED**: Draw 3, weight limit 4, depth advances
-**DESPERATE**: Draw 2 + crisis, crisis free, Listen→Hostile
-**HOSTILE**: Draw 1 + 2 crisis, only crisis playable
+### Exchange Display
 
-### Observation System
+**Minimal Format**:
+```
+[Exchange Name]
+Cost → Reward
+```
 
-**How Observations Work:**
-1. Spend 1 attention at specific spot
-2. Receive observation card to hand
-3. Card is one-shot, removed after playing
-4. Different observations available each time period
-5. Can use observation cards in any conversation
+**Examples**:
+- "Buy Food": 3 coins → Hunger = 0
+- "Quick Work": 30 minutes → 8 coins
+- "Trade Info": Guard intel → Hidden route
 
-**Observation Refresh:**
-- New observations each time period
-- Location type determines observation types
-- Cannot repeat same observation in one day
+**Design Principle**: Same mechanical exchange generates different NPC dialogue based on context, but card shows only mechanics.
 
-### Letter Generation
+---
 
-**Through Conversations:**
-- 5-9 comfort: Simple Letter (24h deadline, 5 coins)
-- 10-14 comfort: Important Letter (12h deadline, 10 coins)
-- 15-19 comfort: Urgent Letter (6h deadline, 15 coins)
-- 20+ comfort: Critical Letter (2h deadline, 20 coins)
+## LOCATION SYSTEM
 
-**Letter Effects:**
-- Delivery modifies recipient's conversation deck
-- Failed delivery adds burden cards to sender
-- Some letters trigger reply letter generation
+### Spatial Hierarchy
+Region → District → Location → Spot
 
-## Content Generation Pipeline
+### Location Display
 
-### Exchange Generation
-1. NPC type determines exchange deck composition
-2. Each exchange card has mechanical cost/reward
-3. AI translates based on NPC context:
-   - Baker + "2 coins → Hunger = 0" = "Fresh bread for sale"
-   - Guard + "5 coins → Pass" = "Checkpoint fee"
-   - Doctor + "5 coins → Health +30" = "Medical treatment"
+**Always Visible**:
+- Location name
+- Current spot
+- Available NPCs (names only)
+- Basic actions
 
-### Observation Generation
-1. Location type determines observation types available
-2. Time period affects which observations appear
-3. Each observation provides specific card as reward
-4. AI generates scene describing how knowledge was gained
+**On Interaction**:
+- Spot descriptions
+- NPC emotional states
+- Available observations
 
-### Conversation Generation
-1. Check which conversation types available (based on decks/state)
-2. Display options with patience and attention costs
-3. Player chooses depth of engagement
-4. Use appropriate deck and rules for chosen type
+### Spot Properties
+- **Crossroads**: Enables travel
+- **Commercial**: Enables work
+- **Private**: +1 comfort modifier
+- **Public**: -1 comfort modifier
 
-## Implementation Priority
+**Design Principle**: Spots display as simple lists until player engages.
 
-1. **Core resource system** (coins, health, hunger, attention)
-2. **Exchange cards** and quick exchange mechanics
-3. **Observation cards** as player ammunition
-4. **Multiple conversation depths** with clear costs
-5. **Crisis deck** forcing urgent conversations
-6. **Letter deck modifications** from delivery
-7. **Time period** observation refresh
+---
 
-## Design Principles
+## LETTER SYSTEM
 
-**No Hidden State**: Every effect is immediate and visible. No "tomorrow you get X" or "influences future Y."
+### Letter Properties
+- Sender/Recipient
+- Urgency level
+- Deadline hours
+- Coin reward
+- Category (love/business/plea/warning)
 
-**Everything Is Cards**: NPCs are deck containers. Observations give cards. Letters modify decks. Relationships are deck evolution.
+### Delivery Effects
+**Success**: Modifies recipient's conversation deck
+**Failure**: Adds burden cards to sender
 
-**Clear Trades**: Every exchange shows exact cost and reward. Every conversation shows patience and attention cost upfront.
+**Design Principle**: Letter content generates only when created, not displayed constantly.
 
-**One Purpose Per Element**: Observations give cards. Exchanges trade resources. Conversations generate letters. No element does multiple things.
+---
 
-**Mechanical Clarity**: The same card creates different narrative through AI translation, but the mechanical effect never changes.
+## CONTENT GENERATION RULES
+
+### What Generates Dynamically
+
+**Always**:
+1. Conversation card dialogue (per turn)
+2. NPC responses to card plays
+3. Letter content when generated
+
+**On Trigger**:
+1. Observation narratives (when purchased)
+2. Exchange resolutions (when accepted)
+3. Major state transitions
+
+### What Remains Static
+
+**Always**:
+1. UI labels and buttons
+2. Resource displays
+3. Location/spot names
+4. Progress indicators
+5. Basic action descriptions
+
+### Context Object for Generation
+
+Required context for each generation:
+```
+{
+  current_turn: number,
+  conversation_history: array,
+  emotional_state: enum,
+  deadline_remaining: minutes,
+  recent_cards_played: array,
+  relationship_level: number,
+  active_obligations: array,
+  environmental_context: {
+    time_period: enum,
+    weather: string,
+    season: string
+  }
+}
+```
+
+---
+
+## NARRATIVE GENERATION PRINCIPLES
+
+### Dynamic Card Example
+
+**"Promise to Help" Evolution**:
+- Turn 1: "I know I failed before, but I promise I'll help."
+- Turn 3: "The merchant route avoids checkpoints. I promise."
+- Turn 5: "We're close. I promise to see this through."
+- Turn 7: "One final push. I promise."
+
+### Restraint Guidelines
+
+**Maximum Text Per Element**:
+- Card dialogue: 2 sentences
+- NPC response: 3 sentences
+- Atmosphere: 1 sentence
+- Observation: 1 paragraph (after purchase)
+
+**Never Generate**:
+- Descriptions of UI elements
+- Explanations of mechanics
+- Redundant information
+- Purple prose
+
+---
+
+## TECHNICAL IMPLEMENTATION
+
+### Generation Triggers
+
+**Per Turn**:
+- Conversation cards in hand (batch request)
+- NPC response to plays
+
+**Per Action**:
+- Observation purchase
+- Exchange acceptance
+- Letter generation
+
+**Caching Strategy**:
+- Cache generated card text for current turn
+- Invalidate on state change
+- Preserve conversation history
+
+### Performance Targets
+- Card text generation: <1 second
+- NPC response: <1 second  
+- Full hand refresh: <2 seconds
+
+---
+
+## PROGRESSION SYSTEM
+
+### Relationship Evolution
+Not a number but deck composition:
+- Successful deliveries add better cards
+- Failed obligations add burden cards
+- Shared experiences create unique cards
+
+### Unlock Path
+1. Start: Only Quick Exchanges
+2. Level 1: Standard Conversations
+3. Level 3: Deep Conversations
+4. Level 5: Special interactions
+
+---
+
+## VICTORY CONDITIONS
+
+### 10-Minute Demo
+Successfully navigate Elena's desperate conversation:
+- Build 10 comfort or play crisis card
+- Generate letter
+- Deliver before deadline
+
+### Full Game
+- Develop relationship network
+- Manage competing obligations
+- Achieve economic stability
+- Unlock all districts
+
+---
+
+## CORE INNOVATIONS SUMMARY
+
+1. **Dynamic Card Narrative**: Same mechanics, different story each turn
+2. **Progressive Disclosure**: Information reveals through action
+3. **Emotional States as Rules**: States change game rules, not just tone
+4. **Deck Evolution**: Relationships are deck composition changes
+5. **Visual Over Verbal**: Urgency through color/animation, not text
+
+---
+
+## DESIGN CONSTRAINTS
+
+### Cognitive Load Management
+- Maximum 3-5 text blocks visible
+- Core action in center screen
+- Secondary info in periphery
+- Details on demand only
+
+### Narrative Restraint
+- One dynamic element per interaction
+- Static text for navigation
+- Generated text only for emotional beats
+- Mechanics always visible
+
+### Player Agency
+- All costs visible upfront
+- Consequences clear before action
+- No hidden information
+- Strategic depth through simplicity
+
+---
+
+## WHAT THIS GAME IS NOT
+
+- Not a visual novel with cards
+- Not a card battler with story
+- Not a dating sim
+- Not a text adventure
+- Not a deck builder
+
+## WHAT THIS GAME IS
+
+**Wayfarer is a conversation engine where mechanical card play generates contextual narrative. Every conversation is unique because the same cards mean different things at different moments. The city lives through systematic time and deadline pressure. Stories emerge from deck evolution and successful deliveries.**
+
+The core loop is elegant:
+1. Observe to gain information (observation cards into deck)
+2. Converse using contextual cards (combination of npc deck and player deck)
+3. Generate letters through conversation (at certain cards played / game state achieved)
+4. Deliver against deadlines (determined by the obligation queue)
+5. Permanently reshape relationships (through letter delivery + conversation)
+
+Everything else supports this loop.

@@ -173,22 +173,33 @@ public static class ExchangeCardFactory
         switch (personality)
         {
             case PersonalityType.MERCANTILE:
-                // Traders focus on coin exchanges
+                // Marcus's specific exchanges from POC plan
+                // Buy Travel Provisions: 3 coins → Hunger = 0 (Repeatable)
                 deck.Add(new ExchangeCard
                 {
                     Id = $"{npcId}_food_trade",
                     TemplateType = "food",
                     NPCPersonality = personality,
-                    Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 2 } },
+                    Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 3 } },
                     Reward = new() { new ResourceExchange { Type = ResourceType.Hunger, Amount = 0, IsAbsolute = true } }
                 });
+                // Purchase Medicine: 5 coins → Health +20 (Repeatable)
                 deck.Add(new ExchangeCard
                 {
                     Id = $"{npcId}_health_trade",
                     TemplateType = "healing",
                     NPCPersonality = personality,
                     Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 5 } },
-                    Reward = new() { new ResourceExchange { Type = ResourceType.Health, Amount = 3 } }
+                    Reward = new() { new ResourceExchange { Type = ResourceType.Health, Amount = 20 } }
+                });
+                // Help Inventory Stock: 3 attention → 8 coins (advances time)
+                deck.Add(new ExchangeCard
+                {
+                    Id = $"{npcId}_work_trade",
+                    TemplateType = "work",
+                    NPCPersonality = personality,
+                    Cost = new() { new ResourceExchange { Type = ResourceType.Concentration, Amount = 3 } },
+                    Reward = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 8 } }
                 });
                 break;
                 

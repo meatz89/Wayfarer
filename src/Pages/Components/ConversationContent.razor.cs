@@ -22,7 +22,7 @@ namespace Wayfarer.Pages.Components
         protected string NpcName { get; set; }
         protected string LastNarrative { get; set; }
         protected string LastDialogue { get; set; }
-        protected int ComfortThreshold => 10; // For letter generation
+        protected int ComfortThreshold => 5; // For letter generation (design doc: 5+ comfort unlocks letters)
 
         protected override async Task OnInitializedAsync()
         {
@@ -262,9 +262,17 @@ namespace Wayfarer.Pages.Components
             Console.WriteLine($"   → Deadline: {obligation.DeadlineInMinutes / 60}h | Payment: {obligation.Payment} coins");
             Console.WriteLine($"   → Comfort Level: {Session.CurrentComfort}");
             
-            // Store the obligation for later processing
-            // In a real implementation, this would be added to the queue
-            // For now, we just mark it as generated
+            // Add the letter to the obligation queue
+            var queueManager = GameFacade.GetObligationQueueManager();
+            if (queueManager != null)
+            {
+                queueManager.AddObligation(obligation);
+                Console.WriteLine($"[ConversationContent] Letter added to queue successfully!");
+            }
+            else
+            {
+                Console.WriteLine($"[ConversationContent] ERROR: Could not get ObligationQueueManager!");
+            }
         }
         
         private LetterTier DetermineLetterTier(int comfort)
@@ -538,6 +546,8 @@ namespace Wayfarer.Pages.Components
                 return "crisis";
             if (card.Category == CardCategory.STATE)
                 return "state";
+            if (card.Category == CardCategory.EXCHANGE)
+                return "exchange";
             if (card.Persistence == PersistenceType.OneShot)
                 return "observation";
             return "comfort";
@@ -545,6 +555,10 @@ namespace Wayfarer.Pages.Components
 
         protected string GetCardName(ConversationCard card)
         {
+            // For exchange cards, use the exchange name
+            if (card.Category == CardCategory.EXCHANGE && card.Context?.ExchangeName != null)
+                return card.Context.ExchangeName;
+                
             // Generate name from template and context
             if (card.Context?.NPCName != null)
                 return $"{card.Template} ({card.Context.NPCName})";
@@ -569,6 +583,12 @@ namespace Wayfarer.Pages.Components
 
         protected string GetSuccessEffect(ConversationCard card)
         {
+            // For exchange cards, show the reward
+            if (card.Category == CardCategory.EXCHANGE && card.Context?.ExchangeReward != null)
+            {
+                return $"Complete exchange: {card.Context.ExchangeReward}";
+            }
+            
             if (card.Category == CardCategory.STATE)
                 return "Change state";
             
@@ -579,11 +599,65 @@ namespace Wayfarer.Pages.Components
 
         protected string GetFailureEffect(ConversationCard card)
         {
+            // For exchange cards, no failure - it's a choice
+            if (card.Category == CardCategory.EXCHANGE)
+            {
+                if (card.Context?.ExchangeName == "Pass on this offer")
+                    return "Leave without trading";
+                return "Execute trade";
+            }
+            
             if (card.Category == CardCategory.STATE)
                 return "No change";
             
             // Failure typically gives 0 comfort
             return "Fail: +0 comfort";
+        }
+        
+        protected string GetTagClass(string tag)
+        {
+            // Apply special classes to certain tags
+            if (tag.Contains("COMFORT", StringComparison.OrdinalIgnoreCase))
+                return "type-comfort";
+            if (tag.Contains("STATE", StringComparison.OrdinalIgnoreCase))
+                return "type-state";
+            if (tag.Contains("CRISIS", StringComparison.OrdinalIgnoreCase))
+                return "type-crisis";
+            if (tag.Contains("BURDEN", StringComparison.OrdinalIgnoreCase))
+                return "type-burden";
+            if (tag.Contains("OneShot", StringComparison.OrdinalIgnoreCase))
+                return "observation";
+            if (tag.Contains("Persistent", StringComparison.OrdinalIgnoreCase))
+                return "persistence";
+            return "";
+        }
+        
+        protected string GetCardText(ConversationCard card)
+        {
+            // For exchange cards, show the exchange details
+            if (card.Category == CardCategory.EXCHANGE && card.Context != null)
+            {
+                if (card.Context.ExchangeCost != null && card.Context.ExchangeReward != null)
+                {
+                    return $"{card.Context.ExchangeCost} → {card.Context.ExchangeReward}";
+                }
+            }
+            
+            // Get the narrative text for the card - use template as the text
+            return card.Template.ToString().Replace("_", " ");
+        }
+        
+        protected string GetSuccessChance(ConversationCard card)
+        {
+            // Calculate success chance based on card type and state
+            return card.CalculateSuccessChance().ToString();
+        }
+        
+        protected string GetFailureChance(ConversationCard card)
+        {
+            // Calculate failure chance (inverse of success)
+            var success = card.CalculateSuccessChance();
+            return (100 - success).ToString();
         }
 
         private string GetInitialDialogue()
