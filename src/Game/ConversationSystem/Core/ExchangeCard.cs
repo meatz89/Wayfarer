@@ -8,8 +8,7 @@ public enum ResourceType
 {
     Coins,
     Health,
-    Stamina,
-    Concentration,
+    Attention,  // Daily attention points (replaces both Stamina and Concentration)
     Hunger,  // Setting hunger to specific value (e.g., 0 for "full")
     TrustToken,
     CommerceToken,
@@ -82,7 +81,7 @@ public class ExchangeCard
     /// <summary>
     /// Check if player can afford the cost
     /// </summary>
-    public bool CanAfford(PlayerResourceState resources, TokenMechanicsManager tokens)
+    public bool CanAfford(PlayerResourceState resources, TokenMechanicsManager tokens, AttentionManager currentAttention = null)
     {
         foreach (var cost in Cost)
         {
@@ -94,11 +93,10 @@ public class ExchangeCard
                 case ResourceType.Health:
                     if (resources.Health < cost.Amount) return false;
                     break;
-                case ResourceType.Stamina:
-                    if (resources.Stamina < cost.Amount) return false;
-                    break;
-                case ResourceType.Concentration:
-                    if (resources.Concentration < cost.Amount) return false;
+                case ResourceType.Attention:
+                    // Attention is managed by TimeBlockAttentionManager
+                    if (currentAttention == null || !currentAttention.CanAfford(cost.Amount))
+                        return false;
                     break;
                 case ResourceType.TrustToken:
                     if (tokens.GetTokenCount(ConnectionType.Trust) < cost.Amount) return false;
@@ -198,7 +196,7 @@ public static class ExchangeCardFactory
                     Id = $"{npcId}_work_trade",
                     TemplateType = "work",
                     NPCPersonality = personality,
-                    Cost = new() { new ResourceExchange { Type = ResourceType.Concentration, Amount = 3 } },
+                    Cost = new() { new ResourceExchange { Type = ResourceType.Attention, Amount = 3 } },
                     Reward = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 8 } }
                 });
                 break;
@@ -230,7 +228,7 @@ public static class ExchangeCardFactory
                     Id = $"{npcId}_labor",
                     TemplateType = "work",
                     NPCPersonality = personality,
-                    Cost = new() { new ResourceExchange { Type = ResourceType.Stamina, Amount = 3 } },
+                    Cost = new() { new ResourceExchange { Type = ResourceType.Attention, Amount = 3 } },
                     Reward = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 8 } }
                 });
                 break;

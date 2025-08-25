@@ -2415,7 +2415,9 @@ public class GameFacade
         var playerResources = _gameWorld.GetPlayerResourceState();
         
         // Check if player can afford
-        if (!exchange.CanAfford(playerResources, _connectionTokenManager))
+        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        var currentAttention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        if (!exchange.CanAfford(playerResources, _connectionTokenManager, currentAttention))
         {
             Console.WriteLine("[ExecuteExchange] Player cannot afford exchange");
             _messageSystem.AddSystemMessage("You don't have enough resources for this exchange", SystemMessageTypes.Warning);
@@ -2433,11 +2435,15 @@ public class GameFacade
                 case ResourceType.Health:
                     player.Health -= cost.Amount;
                     break;
-                case ResourceType.Stamina:
-                    player.Stamina -= cost.Amount;
-                    break;
-                case ResourceType.Concentration:
-                    // Concentration is managed by attention system
+                case ResourceType.Attention:
+                    // Attention is managed by TimeBlockAttentionManager
+                    var costTimeBlock = _timeManager.GetCurrentTimeBlock();
+                    var attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(costTimeBlock);
+                    if (!attentionMgr.TrySpend(cost.Amount))
+                    {
+                        Console.WriteLine($"[ExecuteExchange] Failed to spend {cost.Amount} attention");
+                        return false;
+                    }
                     break;
                 case ResourceType.TrustToken:
                     _connectionTokenManager.SpendTokens(ConnectionType.Trust, cost.Amount);
@@ -2468,11 +2474,11 @@ public class GameFacade
                     else
                         player.Health = Math.Min(100, player.Health + reward.Amount);
                     break;
-                case ResourceType.Stamina:
-                    if (reward.IsAbsolute)
-                        player.Stamina = reward.Amount;
-                    else
-                        player.ModifyStamina(reward.Amount);
+                case ResourceType.Attention:
+                    // Attention rewards add to current time block's attention
+                    var rewardTimeBlock = _timeManager.GetCurrentTimeBlock();
+                    var rewardAttentionMgr = _timeBlockAttentionManager.GetCurrentAttention(rewardTimeBlock);
+                    rewardAttentionMgr.AddAttention(reward.Amount);
                     break;
                 case ResourceType.Hunger:
                     // Hunger maps to Food (0 = not hungry, 100 = very hungry)
