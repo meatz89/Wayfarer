@@ -256,7 +256,7 @@ public partial class LocationScreen : ComponentBase
     {
         Console.WriteLine("[LocationScreen] OpenObligationQueue called");
         // Navigate to the letter queue screen
-        await NavigationCoordinator.NavigateToAsync(CurrentViews.LetterQueueScreen);
+        await NavigationCoordinator.NavigateToAsync(CurrentViews.ObligationQueueScreen);
     }
     
     // Obligation display helpers
@@ -345,7 +345,7 @@ public partial class LocationScreen : ComponentBase
     {
         if (OnNavigate.HasDelegate)
         {
-            await OnNavigate.InvokeAsync(CurrentViews.LetterQueueScreen);
+            await OnNavigate.InvokeAsync(CurrentViews.ObligationQueueScreen);
         }
     }
 }

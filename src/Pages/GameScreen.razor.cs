@@ -10,7 +10,7 @@ namespace Wayfarer.Pages
     {
         Location,
         Conversation,
-        LetterQueue,
+        ObligationQueue,
         Travel
     }
 
@@ -203,9 +203,10 @@ namespace Wayfarer.Pages
                 case "location":
                     await NavigateToScreen(ScreenMode.Location);
                     break;
-                case "letterqueue":
+                case "obligationqueue":
+                case "obligations":
                 case "queue":
-                    await NavigateToScreen(ScreenMode.LetterQueue);
+                    await NavigateToScreen(ScreenMode.ObligationQueue);
                     break;
                 case "travel":
                     await NavigateToScreen(ScreenMode.Travel);

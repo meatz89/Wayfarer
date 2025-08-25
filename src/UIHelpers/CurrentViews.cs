@@ -3,7 +3,7 @@
     // CORE MODAL STATES (Four-Modal Focus System)
     LocationScreen,         // MAP MODE - City overview with NPC locations (default)
     ConversationScreen,     // CONVERSATION MODE - NPC interactions
-    LetterQueueScreen,      // QUEUE MODE - DeliveryObligation management interface
+    ObligationQueueScreen,  // QUEUE MODE - Obligation management interface
     TravelScreen,           // ROUTE PLANNING MODE - Travel decision interface
     
     // ADDITIONAL SCREENS (Not part of core modal system)

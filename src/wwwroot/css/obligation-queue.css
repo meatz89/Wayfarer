@@ -439,8 +439,8 @@
     font-style: italic;
 }
 
-/* Letter/Obligation preview */
-.letter-preview {
+/* Obligation preview */
+.obligation-preview {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -484,8 +484,8 @@
     margin-left: 4px;
 }
 
-/* Expanded Letter/Obligation Details */
-.letter-details-compact {
+/* Expanded Obligation Details */
+.obligation-details-compact {
     grid-column: span 2;
     background: #f9f3e9;
     border: 1px solid #c4a684;
@@ -502,15 +502,15 @@
     font-weight: bold;
 }
 
-/* Letter actions - Inline, minimal */
-.letter-actions-compact {
+/* Obligation actions - Inline, minimal */
+.obligation-actions-compact {
     display: flex;
     gap: 8px;
     margin-top: 6px;
     justify-content: flex-end;
 }
 
-.letter-action-btn {
+.obligation-action-btn {
     padding: 4px 8px;
     font-size: 10px;
     background: #faf4ea;
@@ -522,18 +522,18 @@
     letter-spacing: 0.3px;
 }
 
-.letter-action-btn:hover {
+.obligation-action-btn:hover {
     background: #f4e8d0;
     border-color: #8b7355;
 }
 
-.letter-action-btn.primary {
+.obligation-action-btn.primary {
     background: #7a8b5a;
     color: #faf4ea;
     border-color: #5a7a3a;
 }
 
-.letter-action-btn.primary:hover {
+.obligation-action-btn.primary:hover {
     background: #5a7a3a;
 }
 

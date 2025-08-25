@@ -23,7 +23,7 @@ public class NavigationCoordinator
     {
         MapMode,           // LocationScreen - city overview with NPCs
         ConversationMode,  // ConversationScreen - NPC interactions
-        QueueMode,         // LetterQueueScreen - letter management
+        QueueMode,         // ObligationQueueScreen - obligation management
         RoutePlanningMode  // TravelScreen - travel decisions
     }
 
@@ -107,7 +107,7 @@ public class NavigationCoordinator
             case CurrentViews.LocationScreen:
                 // From location, can go to conversation, queue, travel, or letter board
                 return targetView == CurrentViews.ConversationScreen ||
-                       targetView == CurrentViews.LetterQueueScreen ||
+                       targetView == CurrentViews.ObligationQueueScreen ||
                        targetView == CurrentViews.TravelScreen ||
                        (targetView == CurrentViews.LetterBoardScreen && _timeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn);
 
@@ -115,7 +115,7 @@ public class NavigationCoordinator
                 // From conversation, can only return to location
                 return targetView == CurrentViews.LocationScreen;
 
-            case CurrentViews.LetterQueueScreen:
+            case CurrentViews.ObligationQueueScreen:
                 // From queue, can return to location
                 return targetView == CurrentViews.LocationScreen;
 
@@ -194,9 +194,9 @@ public class NavigationCoordinator
         return await NavigateToAsync(CurrentViews.LocationScreen);
     }
 
-    public async Task<bool> OpenLetterQueueAsync()
+    public async Task<bool> OpenObligationQueueAsync()
     {
-        return await NavigateToAsync(CurrentViews.LetterQueueScreen);
+        return await NavigateToAsync(CurrentViews.ObligationQueueScreen);
     }
 
     public async Task<bool> StartConversationAsync(string npcId)
@@ -219,7 +219,7 @@ public class NavigationCoordinator
         {
             CurrentViews.LocationScreen => ModalState.MapMode,
             CurrentViews.ConversationScreen => ModalState.ConversationMode,
-            CurrentViews.LetterQueueScreen => ModalState.QueueMode,
+            CurrentViews.ObligationQueueScreen => ModalState.QueueMode,
             CurrentViews.TravelScreen => ModalState.RoutePlanningMode,
             // All other screens default to map mode
             _ => ModalState.MapMode
@@ -233,7 +233,7 @@ public class NavigationCoordinator
     {
         return _currentView == CurrentViews.LocationScreen ||
                _currentView == CurrentViews.ConversationScreen ||
-               _currentView == CurrentViews.LetterQueueScreen ||
+               _currentView == CurrentViews.ObligationQueueScreen ||
                _currentView == CurrentViews.TravelScreen;
     }
 }

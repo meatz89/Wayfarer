@@ -4,17 +4,17 @@
 
 <div class="obligation-queue-content">
     <div class="queue-header">
-        <h2>Letter Queue</h2>
+        <h2>Obligation Queue</h2>
         <div class="queue-stats">
-            <span>@ActiveObligations.Count active letters</span>
+            <span>@ActiveObligations.Count active obligations</span>
             <span>@ExpiredObligations.Count expired</span>
         </div>
     </div>
 
     @if (ActiveObligations.Any())
     {
-        <div class="active-letters">
-            <h3>Active Letters</h3>
+        <div class="active-obligations">
+            <h3>Active Obligations</h3>
             <div class="letter-list">
                 @foreach (var letter in ActiveObligations)
                 {
@@ -80,8 +80,8 @@
 
     @if (ExpiredObligations.Any())
     {
-        <div class="expired-letters">
-            <h3>Expired Letters</h3>
+        <div class="expired-obligations">
+            <h3>Expired Obligations</h3>
             <div class="letter-list expired">
                 @foreach (var letter in ExpiredObligations)
                 {

@@ -67,7 +67,7 @@
                     <ConversationContent Context="@CurrentConversationContext" OnConversationEnd="HandleConversationEnd" />
                     break;
                     
-                case ScreenMode.LetterQueue:
+                case ScreenMode.ObligationQueue:
                     <LetterQueueContent OnNavigate="HandleNavigation" ReturnView="@PreviousScreen" />
                     break;
                     
@@ -93,10 +93,10 @@
                 <span class="nav-icon location"></span>
                 <span>Location</span>
             </button>
-            <button class="nav-button @(CurrentScreen == ScreenMode.LetterQueue ? "active" : "")" 
-                    @onclick="() => NavigateToScreen(ScreenMode.LetterQueue)">
-                <span class="nav-icon letters"></span>
-                <span>Letters</span>
+            <button class="nav-button @(CurrentScreen == ScreenMode.ObligationQueue ? "active" : "")" 
+                    @onclick="() => NavigateToScreen(ScreenMode.ObligationQueue)">
+                <span class="nav-icon obligations"></span>
+                <span>Obligations</span>
                 @if (PendingLetterCount > 0)
                 {
                     <span class="badge">@PendingLetterCount</span>
