@@ -232,21 +232,6 @@ public class TravelEventManager
             result.Messages.Add($"{coinText} coins");
         }
         
-        // Information reveals
-        if (effect.RevealsNPCStates)
-        {
-            // This would reveal NPC emotional states at destination
-            result.Messages.Add("Learned about NPCs at destination");
-            result.RevealedInformation.Add("npc_states");
-        }
-        
-        if (effect.RevealsMarketInfo)
-        {
-            // This would reveal market prices or opportunities
-            result.Messages.Add("Discovered market information");
-            result.RevealedInformation.Add("market_info");
-        }
-        
         // Route unlocking
         if (!string.IsNullOrEmpty(effect.UnlockedRouteId))
         {

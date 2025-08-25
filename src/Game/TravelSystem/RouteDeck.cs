@@ -73,7 +73,6 @@ private List<TravelEventCard> GenerateCardsForPersonality(RoutePersonality perso
             // Main roads: Guards, merchants, fellow travelers
             cards.AddRange(CreateGuardCheckpointCards());
             cards.AddRange(CreateMerchantCaravanCards());
-            cards.AddRange(CreateFellowTravelerCards());
             cards.Add(CreateSafeDelayCard());
             break;
             
@@ -123,7 +122,6 @@ private List<TravelEventCard> CreateGuardCheckpointCards()
                 {
                     Description = "Show status (requires Status 3+)",
                     RequiredTokenType = ConnectionType.Status,
-                    RequiredTokenAmount = 3,
                     Effect = new TravelEventEffect { TimeChangeMinutes = 0 }
                 },
                 new TravelEventOption
@@ -164,49 +162,8 @@ private List<TravelEventCard> CreateMerchantCaravanCards()
                 },
                 new TravelEventOption
                 {
-                    Description = "Learn market rumors",
-                    RequiredAttention = 1,
-                    Effect = new TravelEventEffect { AttentionSpent = 1, RevealsMarketInfo = true }
-                },
-                new TravelEventOption
-                {
                     Description = "Pass by",
                     Effect = new TravelEventEffect { TimeChangeMinutes = 0 }
-                }
-            }
-        }
-    };
-}
-
-private List<TravelEventCard> CreateFellowTravelerCards()
-{
-    return new List<TravelEventCard>
-    {
-        new TravelEventCard
-        {
-            Id = $"{_routeId}_fellow_messenger",
-            Title = "Fellow Messenger",
-            Description = "Another letter carrier is traveling this route.",
-            CardType = TravelEventType.FellowTravelers,
-            IsNegative = false,
-            Options = new List<TravelEventOption>
-            {
-                new TravelEventOption
-                {
-                    Description = "Share route information",
-                    RequiredAttention = 1,
-                    Effect = new TravelEventEffect { AttentionSpent = 1, RevealsNPCStates = true }
-                },
-                new TravelEventOption
-                {
-                    Description = "Hire to deliver secondary letter",
-                    RequiredCoins = 2,
-                    Effect = new TravelEventEffect { CoinChange = -2 } // Hiring courier costs money
-                },
-                new TravelEventOption
-                {
-                    Description = "Travel together safely",
-                    Effect = new TravelEventEffect { TimeChangeMinutes = -10 }
                 }
             }
         }
@@ -317,13 +274,6 @@ private List<TravelEventCard> CreateSuspiciousFigureCards()
             {
                 new TravelEventOption
                 {
-                    Description = "Approach (Shadow 3+ protects)",
-                    RequiredTokenType = ConnectionType.Shadow,
-                    RequiredTokenAmount = 3,
-                    Effect = new TravelEventEffect { RevealsNPCStates = true }
-                },
-                new TravelEventOption
-                {
                     Description = "Approach cautiously",
                     Effect = new TravelEventEffect { TimeChangeMinutes = 15, CoinChange = -2 }
                 },
@@ -386,7 +336,6 @@ private List<TravelEventCard> CreateBanditEncounterCards()
                 {
                     Description = "Shadow connections help",
                     RequiredTokenType = ConnectionType.Shadow,
-                    RequiredTokenAmount = 5,
                     Effect = new TravelEventEffect { TimeChangeMinutes = 0 }
                 },
                 new TravelEventOption
@@ -531,11 +480,6 @@ private List<TravelEventCard> CreateCrowdCards()
                     Description = "Take side streets",
                     Effect = new TravelEventEffect { TimeChangeMinutes = 10 }
                 },
-                new TravelEventOption
-                {
-                    Description = "Wait for clearing",
-                    Effect = new TravelEventEffect { TimeChangeMinutes = 30, RevealsMarketInfo = true }
-                }
             }
         }
     };
@@ -564,7 +508,6 @@ private List<TravelEventCard> CreatePickpocketCards()
                 {
                     Description = "Shadow allies intervene",
                     RequiredTokenType = ConnectionType.Shadow,
-                    RequiredTokenAmount = 2,
                     Effect = new TravelEventEffect { TimeChangeMinutes = 0 }
                 },
                 new TravelEventOption
@@ -593,19 +536,6 @@ private List<TravelEventCard> CreateUsefulContactCards()
             {
                 new TravelEventOption
                 {
-                    Description = "Buy NPC information",
-                    RequiredCoins = 3,
-                    Effect = new TravelEventEffect { CoinChange = -3, RevealsNPCStates = true }
-                },
-                new TravelEventOption
-                {
-                    Description = "Trade information",
-                    RequiredTokenType = ConnectionType.Commerce,
-                    RequiredTokenAmount = 2,
-                    Effect = new TravelEventEffect { RevealsMarketInfo = true }
-                },
-                new TravelEventOption
-                {
                     Description = "Politely decline",
                     Effect = new TravelEventEffect { TimeChangeMinutes = 0 }
                 }
@@ -630,11 +560,6 @@ private TravelEventCard CreateMarketDelayCard()
                 Description = "Buy something small",
                 RequiredCoins = 1,
                 Effect = new TravelEventEffect { CoinChange = -1, TimeChangeMinutes = 5 }
-            },
-            new TravelEventOption
-            {
-                Description = "Listen to pitch",
-                Effect = new TravelEventEffect { TimeChangeMinutes = 10, RevealsMarketInfo = true }
             },
             new TravelEventOption
             {
@@ -694,7 +619,6 @@ public string Description { get; set; }
 public int? RequiredCoins { get; set; }
 public int? RequiredAttention { get; set; }
 public ConnectionType? RequiredTokenType { get; set; }
-public int? RequiredTokenAmount { get; set; }
 
 // Effects
 public TravelEventEffect Effect { get; set; }
@@ -703,16 +627,6 @@ public bool CanChoose(Player player, TokenMechanicsManager tokenManager)
 {
     if (RequiredCoins.HasValue && player.Coins < RequiredCoins.Value)
         return false;
-        
-    // Attention checking would go through TimeBlockAttentionManager
-    // Token checking would go through TokenMechanicsManager
-    
-    if (RequiredTokenType.HasValue && RequiredTokenAmount.HasValue)
-    {
-        // Check tokens with all NPCs for now
-        // This would ideally check tokens for the specific route context
-        return true; // Simplified for now - proper token checking would be route-specific
-    }
     
     return true;
 }
@@ -731,8 +645,6 @@ public int CoinChange { get; set; }
 public int AttentionSpent { get; set; }
 
 // Discovery effects
-public bool RevealsNPCStates { get; set; }
-public bool RevealsMarketInfo { get; set; }
 public string UnlockedRouteId { get; set; }
 
 // DeliveryObligation effects
