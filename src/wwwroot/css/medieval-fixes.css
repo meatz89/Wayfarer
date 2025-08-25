@@ -1,4 +1,5 @@
 /* Medieval UI Fixes - Comprehensive overhaul for proper medieval aesthetic */
+@import url('unified-cards.css');
 
 /* ===============================================
    RESOURCE ICONS - Replace emoji with styled circles
@@ -100,23 +101,13 @@
 }
 
 /* ===============================================
-   CARD STYLING - Proper medieval parchment aesthetic
+   CARD STYLING - Enhanced medieval parchment texture
    =============================================== */
 
-.dialog-card,
-.card {
-    background: linear-gradient(135deg, #faf4ea, #f4e8d0) !important;
-    border: 2px solid #c4a684 !important;
-    border-radius: 4px !important;
-    position: relative !important;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.15) !important;
-    overflow: visible !important;
-    transition: all 0.3s ease !important;
-}
+/* Cards now inherit from unified-cards.css - only add texture overlay */
 
-/* Add parchment texture effect */
-.dialog-card::before,
-.card::before {
+/* Add parchment texture effect to all card types */
+.card-base::before {
     content: "";
     position: absolute;
     top: 0;
@@ -142,34 +133,7 @@
     border-radius: 4px;
 }
 
-.dialog-card:hover,
-.card:hover {
-    background: linear-gradient(135deg, #fefaf0, #f9f3e9) !important;
-    transform: translateX(5px) translateY(-2px) !important;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.2) !important;
-}
-
-/* Card type borders - thicker and more prominent */
-.dialog-card.comfort,
-.card.comfort {
-    border-left: 6px solid #7a8b5a !important;
-}
-
-.dialog-card.state,
-.card.state {
-    border-left: 6px solid #8b7355 !important;
-}
-
-.dialog-card.crisis,
-.card.crisis {
-    border-left: 6px solid #8b4726 !important;
-    background: linear-gradient(135deg, #faf0e6, #f9ede0) !important;
-}
-
-.dialog-card.observation,
-.card.observation {
-    border-left: 6px solid #5a7a8a !important;
-}
+/* Card type enhancements - now handled by unified-cards.css */
 
 /* ===============================================
    FREE! MARKER - Correctly positioned inside cards

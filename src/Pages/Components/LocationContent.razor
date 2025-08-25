@@ -19,7 +19,7 @@
             <div class="npc-list">
                 @foreach (var npc in AvailableNpcs)
                 {
-                    <div class="npc-card">
+                    <div class="card-base card-standard npc-card">
                         <div class="npc-header">
                             <div class="npc-name">@npc.Name</div>
                             <div class="npc-state @GetStateClass(npc.EmotionalState)">@npc.EmotionalState</div>
@@ -62,7 +62,7 @@
             <div class="observation-list">
                 @foreach (var obs in AvailableObservations)
                 {
-                    <div class="observation-item" @onclick="() => TakeObservation(obs.Id)">
+                    <div class="observation-item card-base card-compact" @onclick="() => TakeObservation(obs.Id)">
                         <div class="observation-text">@obs.Name</div>
                         <div class="observation-reward">
                             <span class="reward-card">+Card</span>
@@ -79,10 +79,10 @@
     {
         <div class="spots-section">
             <h4 class="section-header">Move Within Location</h4>
-            <div class="spots-grid">
+            <div class="cards-grid-2col">
                 @foreach (var spot in AvailableSpots)
                 {
-                    <div class="spot-card" @onclick="() => MoveToSpot(spot.Id)">
+                    <div class="card-base card-compact spot-card" @onclick="() => MoveToSpot(spot.Id)">
                         <div class="spot-card-name">@spot.Name</div>
                         @if (spot.Properties.Any())
                         {
@@ -122,8 +122,8 @@
     <!-- Work Action -->
     @if (CanWork)
     {
-        <div class="actions-grid">
-            <div class="action-card" @onclick="PerformWork">
+        <div class="cards-grid">
+            <div class="card-base card-standard action-card" @onclick="PerformWork">
                 <div class="action-name">Work for Coins</div>
                 <div class="action-cost">
                     <span class="cost-value">2</span> attention → 

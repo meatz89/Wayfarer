@@ -1,5 +1,6 @@
 /* Location Screen Specific Styles - Extends common.css */
 @import url('common.css');
+@import url('unified-cards.css');
 
 /* Unified Header with Resources and Time */
 .header {
@@ -350,22 +351,8 @@
 }
 
 .action-card {
-    background: linear-gradient(135deg, #faf4ea, #f9f3e9);
-    border: 2px solid #c4a684;
-    border-radius: 4px;
-    padding: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
+    /* Now inherits from card-base card-standard via unified-cards.css */
     text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
-
-.action-card:hover {
-    background: linear-gradient(135deg, #fefaf0, #faf4ea);
-    border-color: #a68b6f;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
 }
 
 .action-icon {
@@ -382,14 +369,8 @@
 
 /* NPCs Present */
 .npc-card {
-    background: linear-gradient(135deg, #f9f3e9, #e8dcc4);
-    border: 2px solid #c4a684;
-    border-radius: 4px;
-    padding: 16px;
+    /* Now inherits from card-base card-standard via unified-cards.css */
     margin-bottom: 12px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    position: relative;
 }
 
 .npc-card::before {
@@ -510,21 +491,13 @@
 }
 
 .npc-action {
-    background: white;
-    border: 1px solid #d4c5a0;
-    padding: 10px;
-    border-radius: 2px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 13px;
+    /* Now inherits from card-base card-compact via unified-cards.css */
     color: #5c4a3a;
     text-align: center;
 }
 
 .npc-action:hover {
-    background: #faf4ea;
-    border-color: #a68b6f;
-    transform: translateX(4px);
+    transform: translateX(4px) translateY(-2px);
 }
 
 .interaction-options {
@@ -671,23 +644,14 @@
 }
 
 .area-option {
-    background: linear-gradient(135deg, #faf4ea, #f9f3e9);
-    border: 2px solid #c4a684;
-    padding: 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    /* Now inherits from card-base card-standard via unified-cards.css */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .area-option:hover {
-    background: linear-gradient(135deg, #fefaf0, #faf4ea);
-    border-color: #a68b6f;
-    transform: translateX(4px);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    transform: translateX(4px) translateY(-2px);
 }
 
 .area-name {
@@ -897,21 +861,12 @@
 }
 
 .route-card {
-    background: linear-gradient(135deg, #faf4ea, #f9f3e9);
-    border: 2px solid #c4a684;
-    border-radius: 4px;
-    padding: 16px;
+    /* Now inherits from card-base card-large via unified-cards.css */
     margin-bottom: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .route-card:hover:not(.locked) {
-    background: linear-gradient(135deg, #fefaf0, #faf4ea);
-    border-color: #a68b6f;
-    transform: translateX(4px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+    transform: translateX(4px) translateY(-2px);
 }
 
 .route-card.locked {
@@ -984,19 +939,8 @@
 
 .transport-option {
     flex: 1;
-    background: #f9f3e9;
-    border: 1px solid #c4a684;
-    border-radius: 3px;
-    padding: 8px;
+    /* Now inherits from card-base card-compact via unified-cards.css */
     text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.transport-option:hover {
-    background: #e8dcc4;
-    border-color: #a68b6f;
-    transform: translateY(-2px);
 }
 
 .transport-type {

@@ -1,6 +1,7 @@
 /* Conversation Screen CSS - Extends common.css */
 /* Import common styles first */
 @import url('common.css');
+@import url('unified-cards.css');
 
 /* Conversation-specific container using common base */
 .game-container {
@@ -576,13 +577,9 @@
 }
 
 .dialog-card {
-    background: linear-gradient(135deg, #faf4ea 0%, #f4e8d0 100%);
-    border: 2px solid #c4a684;
+    /* Now inherits from card-base card-standard via unified-cards.css */
     border-radius: 6px;
     overflow: hidden;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3);
 }
 
@@ -599,53 +596,52 @@
 }
 
 .dialog-card:hover {
-    background: linear-gradient(135deg, #fefaf0 0%, #f9f3e9 100%);
-    border-color: #a68b6f;
     transform: translateX(5px) translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4);
 }
 
 .dialog-card.selected {
     background: linear-gradient(135deg, #f4f9e9, #e8f5e9);
-    border-color: #d4a76a;
-    border-width: 3px;
     box-shadow: 0 5px 15px rgba(212, 167, 106, 0.4);
     transform: translateY(-5px);
 }
 
-/* Card Type Borders - Match mockup exactly */
+/* Card Type Borders - Enhanced for dialog cards */
 .dialog-card.comfort {
-    border-left: 6px solid #7a8b5a;
+    border-left-width: 6px;
+    padding-left: 11px; /* Adjust for thicker border */
     box-shadow: 0 2px 6px rgba(122, 139, 90, 0.2);
 }
 
 .dialog-card.state {
-    border-left: 6px solid #8b7355;
+    border-left-width: 6px;
+    padding-left: 11px;
     box-shadow: 0 2px 6px rgba(139, 115, 85, 0.2);
 }
 
 .dialog-card.crisis {
-    border-left: 6px solid #8b4726;
-    background: linear-gradient(135deg, #faf0e6 0%, #f9ede0 100%);
+    border-left-width: 6px;
+    padding-left: 11px;
     box-shadow: 0 2px 6px rgba(139, 71, 38, 0.2);
 }
 
 .dialog-card.burden {
-    border-left: 6px solid #4a3a2a;
-    background: linear-gradient(135deg, #e8dcc4 0%, #d4c5a0 100%);
+    border-left-width: 6px;
+    padding-left: 11px;
     opacity: 0.9;
     box-shadow: 0 2px 6px rgba(74, 58, 42, 0.2);
 }
 
 .dialog-card.observation {
-    border-left: 6px solid #5a7a8a;
+    border-left-width: 6px;
+    padding-left: 11px;
     background: linear-gradient(135deg, #f0f4fa 0%, #e8f0f9 100%);
     box-shadow: 0 2px 6px rgba(90, 122, 138, 0.2);
 }
 
 .dialog-card.exchange {
-    border-left: 6px solid #7a8b5a;
-    background: linear-gradient(135deg, #faf4ea 0%, #f9f3e9 100%);
+    border-left-width: 6px;
+    padding-left: 11px;
     box-shadow: 0 2px 6px rgba(122, 139, 90, 0.2);
 }
 

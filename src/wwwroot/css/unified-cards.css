@@ -1,0 +1,319 @@
+/* ===================================
+   UNIFIED CARD SYSTEM
+   Single source of truth for ALL card styling
+   =================================== */
+
+/* Base card styles - ALL cards inherit this */
+.card-base {
+    /* Structure */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 100%;
+    min-height: 60px; /* Ensures minimum height for all cards */
+    
+    /* Visual */
+    background: linear-gradient(135deg, #faf4ea, #f9f3e9);
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    
+    /* Interaction */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    /* Typography */
+    font-family: 'Garamond', 'Georgia', serif;
+}
+
+/* Size Variants */
+.card-compact {
+    padding: 10px;
+    min-height: 50px;
+}
+
+.card-standard {
+    padding: 14px; /* Unified padding for standard cards */
+    min-height: 60px;
+}
+
+.card-large {
+    padding: 18px;
+    min-height: 80px;
+}
+
+/* Hover state - consistent for all cards */
+.card-base:hover:not(.disabled):not(.current) {
+    background: linear-gradient(135deg, #fefaf0, #faf4ea);
+    border-color: #a68b6f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+}
+
+/* Selected/Active state */
+.card-base.selected,
+.card-base.active {
+    background: linear-gradient(135deg, #e8dcc4, #dcc4a8);
+    border-color: #8b7355;
+    border-width: 3px;
+    padding: 13px; /* Compensate for thicker border */
+}
+
+/* Disabled state */
+.card-base.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f4e8d0;
+    border-style: dashed;
+}
+
+/* Current location/state indicator */
+.card-base.current {
+    background: #e8dcc4;
+    border: 2px solid #7a8b5a;
+    cursor: default;
+}
+
+/* ===================================
+   GRID LAYOUTS - Ensure equal sizing
+   =================================== */
+
+/* Standard card grid */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+    align-items: stretch; /* Forces equal height */
+}
+
+/* Two-column grid for spots/actions */
+.cards-grid-2col {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    align-items: stretch;
+}
+
+/* Three-column grid */
+.cards-grid-3col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    align-items: stretch;
+}
+
+/* Flexible grid that adapts to content */
+.cards-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.cards-flex > * {
+    flex: 1 1 250px; /* Grow and shrink, min 250px */
+    max-width: 400px; /* Prevent cards from getting too wide */
+}
+
+/* ===================================
+   SPECIFIC CARD TYPES
+   Inherit base + add specific styling
+   =================================== */
+
+/* Location spot cards */
+.spot-card {
+    /* Inherits from card-base card-standard */
+}
+
+.spot-card .spot-card-name {
+    font-size: 14px;
+    color: #5c4a3a;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.spot-card .spot-traits {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.spot-card .spot-trait {
+    font-size: 10px;
+    color: #7a6250;
+    padding: 2px 6px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 2px;
+    text-transform: uppercase;
+}
+
+.spot-card .spot-move-action {
+    margin-top: auto; /* Push to bottom */
+    padding-top: 8px;
+    font-size: 11px;
+    color: #7a8b5a;
+    font-style: italic;
+    border-top: 1px dotted #e8dcc4;
+}
+
+/* NPC cards */
+.npc-card {
+    /* Inherits from card-base card-standard */
+}
+
+.npc-card .npc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.npc-card .npc-name {
+    font-size: 16px;
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.npc-card .npc-state {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* NPC action buttons within cards */
+.npc-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.npc-action {
+    /* Sub-cards within NPC cards */
+    background: white;
+    border: 1px solid #d4c5a0;
+    border-radius: 3px;
+    padding: 8px;
+    font-size: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.npc-action:hover {
+    background: #faf4ea;
+    border-color: #a68b6f;
+    transform: translateX(2px);
+}
+
+/* Action cards (work, travel, etc) */
+.action-card {
+    /* Inherits from card-base card-standard */
+    text-align: center;
+}
+
+.action-card .action-name {
+    font-size: 14px;
+    color: #5c4a3a;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.action-card .action-cost {
+    font-size: 11px;
+    color: #8b4726;
+    margin-top: 8px;
+}
+
+/* Observation cards */
+.observation-item {
+    /* Inherits from card-base card-compact */
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.observation-item.observed {
+    opacity: 0.7;
+    background: #f4e8d0;
+}
+
+/* ===================================
+   CARD TYPE INDICATORS
+   Visual hints for card categories
+   =================================== */
+
+/* Crisis cards */
+.card-crisis {
+    border-left: 4px solid #d4704a;
+}
+
+/* Commerce/Exchange cards */
+.card-commerce {
+    border-left: 4px solid #d4a76a;
+}
+
+/* Social cards */
+.card-social {
+    border-left: 4px solid #7a8b5a;
+}
+
+/* Travel cards */
+.card-travel {
+    border-left: 4px solid #5c7a8b;
+}
+
+/* ===================================
+   RESPONSIVE BEHAVIOR
+   =================================== */
+
+@media (max-width: 768px) {
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cards-grid-2col {
+        grid-template-columns: 1fr;
+    }
+    
+    .cards-grid-3col {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .cards-grid-3col {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===================================
+   ANIMATION STATES
+   =================================== */
+
+@keyframes card-pulse {
+    0% { box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+    50% { box-shadow: 0 4px 12px rgba(212, 112, 74, 0.4); }
+    100% { box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+}
+
+.card-urgent {
+    animation: card-pulse 2s infinite;
+}
+
+/* ===================================
+   UTILITY CLASSES
+   =================================== */
+
+.card-clickable {
+    cursor: pointer;
+}
+
+.card-static {
+    cursor: default;
+}
+
+.card-static:hover {
+    transform: none;
+}
