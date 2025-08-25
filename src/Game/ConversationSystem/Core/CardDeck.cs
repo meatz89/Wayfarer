@@ -332,7 +332,108 @@ public class CardDeck
             MinDepth = 0  // Available at surface
         });
 
-        // Opening up card - for building rapport
+        // DEPTH 0 STATE CARDS - Essential for state variety from the start
+        
+        // Guarded approach - available immediately for cautious interactions
+        cards.Add(new ConversationCard
+        {
+            Id = "guarded_approach",
+            Template = CardTemplateType.GuardedApproach,
+            Context = new CardContext { Personality = personality },
+            Type = CardType.Trust,
+            Persistence = PersistenceType.Persistent,
+            Weight = 1,
+            BaseComfort = 0,
+            Category = CardCategory.STATE,
+            SuccessState = EmotionalState.GUARDED,
+            FailureState = null,  // Stay in current state
+            MinDepth = 0  // Available at surface
+        });
+        
+        // Warm greeting - for moving to OPEN state early
+        cards.Add(new ConversationCard
+        {
+            Id = "warm_greeting",
+            Template = CardTemplateType.WarmGreeting,
+            Context = new CardContext { Personality = personality },
+            Type = CardType.Trust,
+            Persistence = PersistenceType.Persistent,
+            Weight = 1,
+            BaseComfort = 0,
+            Category = CardCategory.STATE,
+            SuccessState = EmotionalState.OPEN,
+            FailureState = EmotionalState.NEUTRAL,
+            MinDepth = 0  // Available at surface
+        });
+        
+        // Tense comment - can create tension immediately
+        cards.Add(new ConversationCard
+        {
+            Id = "tense_comment",
+            Template = CardTemplateType.TenseComment,
+            Context = new CardContext { Personality = personality },
+            Type = CardType.Trust,
+            Persistence = PersistenceType.Persistent,
+            Weight = 1,
+            BaseComfort = 0,
+            Category = CardCategory.STATE,
+            SuccessState = EmotionalState.TENSE,
+            FailureState = null,
+            MinDepth = 0  // Available at surface
+        });
+        
+        // Eager engagement - available early for enthusiastic starts
+        cards.Add(new ConversationCard
+        {
+            Id = "eager_engagement",
+            Template = CardTemplateType.EagerEngagement,
+            Context = new CardContext { Personality = personality },
+            Type = CardType.Trust,
+            Persistence = PersistenceType.Opportunity,
+            Weight = 1,
+            BaseComfort = 0,
+            Category = CardCategory.STATE,
+            SuccessState = EmotionalState.EAGER,
+            FailureState = EmotionalState.NEUTRAL,
+            MinDepth = 0  // Available at surface
+        });
+        
+        // Overwhelmed response - when things get too much
+        cards.Add(new ConversationCard
+        {
+            Id = "overwhelmed_response",
+            Template = CardTemplateType.OverwhelmedResponse,
+            Context = new CardContext { Personality = personality },
+            Type = CardType.Trust,
+            Persistence = PersistenceType.Persistent,
+            Weight = 1,
+            BaseComfort = 0,
+            Category = CardCategory.STATE,
+            SuccessState = EmotionalState.OVERWHELMED,
+            FailureState = null,
+            MinDepth = 0  // Can happen at any depth
+        });
+        
+        // Desperate plea - for crisis situations
+        if (personality == PersonalityType.DEVOTED || personality == PersonalityType.CUNNING)
+        {
+            cards.Add(new ConversationCard
+            {
+                Id = "desperate_plea",
+                Template = CardTemplateType.DesperatePlea,
+                Context = new CardContext { Personality = personality },
+                Type = CardType.Trust,
+                Persistence = PersistenceType.Opportunity,
+                Weight = 2,
+                BaseComfort = 0,
+                Category = CardCategory.STATE,
+                SuccessState = EmotionalState.DESPERATE,
+                FailureState = EmotionalState.TENSE,
+                MinDepth = 0  // Crisis can happen anytime
+            });
+        }
+
+        // Opening up card - for building rapport (DEPTH 1)
         cards.Add(new ConversationCard
         {
             Id = "opening_up",

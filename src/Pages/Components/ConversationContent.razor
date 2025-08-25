@@ -130,7 +130,7 @@
                 {
                     <div class="dialog-card @GetCardClass(card) @(IsCardSelected(card) ? "selected" : "")" 
                          @onclick="() => ToggleCardSelection(card)">
-                        @if (card.Weight == 0)
+                        @if (card.GetEffectiveWeight(Context.Session.CurrentState) == 0)
                         {
                             <div class="card-marker free">FREE!</div>
                         }
@@ -146,7 +146,7 @@
                             </div>
                             <div class="card-weight">
                                 <span class="weight-label">Weight</span>
-                                <span class="weight-value">@card.Weight</span>
+                                <span class="weight-value">@card.GetEffectiveWeight(Context.Session.CurrentState)</span>
                             </div>
                         </div>
                         @if (card.Category == CardCategory.EXCHANGE && card.Context != null)

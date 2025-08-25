@@ -39,6 +39,12 @@ public enum CardTemplateType
     OpeningUp,
     ShowingTension,
     BecomingEager,
+    GuardedApproach,
+    WarmGreeting,
+    TenseComment,
+    EagerEngagement,
+    OverwhelmedResponse,
+    DesperatePlea,
     
     // Crisis templates
     DesperateRequest,
