@@ -85,6 +85,11 @@ public static class ExchangeNarrative
             },
             "work" => $"They mention work that needs doing {frequencyFlavor}",
             "information" => $"They lean in conspiratorially {frequencyFlavor}",
+            "lodging" => exchange.NPCPersonality switch
+            {
+                PersonalityType.STEADFAST => $"They gesture to the rooms upstairs {frequencyFlavor}",
+                _ => $"They offer you a place to rest {frequencyFlavor}"
+            },
             "reconciliation" => "They extend a tentative offer of reconciliation",
             "trusted" => "They offer something special, reserved for trusted friends",
             _ => $"They propose an exchange {frequencyFlavor}"

@@ -8,11 +8,11 @@ using System.Linq;
 /// </summary>
 public class ObservationManager
 {
-    private readonly ITimeManager _timeManager;
+    private readonly TimeManager _timeManager;
     private readonly Dictionary<string, HashSet<string>> _takenObservationsByTimeBlock;
     private readonly List<ConversationCard> _currentObservationCards;
 
-    public ObservationManager(ITimeManager timeManager)
+    public ObservationManager(TimeManager timeManager)
     {
         _timeManager = timeManager;
         _takenObservationsByTimeBlock = new Dictionary<string, HashSet<string>>();

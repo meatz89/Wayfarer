@@ -9,7 +9,7 @@ namespace Wayfarer.Pages
     public partial class ObligationQueueScreen : MainGameplayViewBase
     {
         [Inject] private NPCRepository NPCRepository { get; set; }
-        [Inject] private ITimeManager TimeManager { get; set; }
+        [Inject] private TimeManager TimeManager { get; set; }
         [Inject] private GameFacade GameFacade { get; set; }
         [Inject] private NavigationCoordinator NavigationCoordinator { get; set; }
         [Inject] private ObligationQueueManager QueueManager { get; set; }

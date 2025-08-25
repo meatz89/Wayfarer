@@ -8,7 +8,7 @@ public static class TimeDisplayHelper
     /// <summary>
     /// Gets the formatted time display from TimeManager
     /// </summary>
-    public static string GetFormattedTime(ITimeManager timeManager)
+    public static string GetFormattedTime(TimeManager timeManager)
     {
         if (timeManager == null)
             return "Time Unknown";

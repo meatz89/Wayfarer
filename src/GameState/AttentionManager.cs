@@ -70,7 +70,11 @@ public class AttentionManager
     public void ResetForNewScene()
     {
         _atmosphereModifier = 0;
-        _maxAttentionThisScene = CalculateMaxAttention();
+        // Don't recalculate max if it's already been explicitly set (e.g., by TimeBlockAttentionManager)
+        if (_maxAttentionThisScene == 0)
+        {
+            _maxAttentionThisScene = CalculateMaxAttention();
+        }
         _currentAttention = _maxAttentionThisScene;
         _totalSpentThisScene = 0;
     }
@@ -140,6 +144,16 @@ public class AttentionManager
         // Allow exceeding normal maximum for coin-based refresh
         int newAttention = _currentAttention + amount;
         _currentAttention = Math.Min(newAttention, GameRules.ATTENTION_REFRESH_MAX_TOTAL);
+    }
+    
+    /// <summary>
+    /// Set attention to a specific value (e.g., from lodging/rest).
+    /// Used for absolute attention refresh like buying lodging at an inn.
+    /// </summary>
+    public void SetAttention(int value)
+    {
+        // Set to specific value, capped at maximum
+        _currentAttention = Math.Min(value, GameRules.ATTENTION_REFRESH_MAX_TOTAL);
     }
 
     /// <summary>

@@ -16,6 +16,7 @@ public class Observation
     public ObservationInfoType? ProvidesInfo { get; set; }
     public bool CreatesUrgency { get; set; }
     public bool Automatic { get; set; }
+    public string SpotId { get; set; } // Which spot this observation is associated with
 }
 
 public enum ObservationType

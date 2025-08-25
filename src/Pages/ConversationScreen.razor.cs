@@ -16,7 +16,7 @@ namespace Wayfarer.Pages
 
         [Inject] protected ConversationManager ConversationManager { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
-        [Inject] protected ITimeManager TimeManager { get; set; }
+        [Inject] protected TimeManager TimeManager { get; set; }
         [Inject] protected NavigationManager Navigation { get; set; }
         [Inject] protected ObligationQueueManager LetterQueueManager { get; set; }
         [Inject] protected NavigationCoordinator NavigationCoordinator { get; set; }

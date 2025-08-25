@@ -506,6 +506,7 @@ public class ConversationSession
             "information" => "Information Trade",
             "work" => "Help Inventory Stock",
             "favor" => "Noble Favor",
+            "lodging" => "Rest at the Inn",
             _ => "Make Exchange"
         };
     }

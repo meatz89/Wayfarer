@@ -9,7 +9,7 @@ using Wayfarer.Pages;
 public class NavigationCoordinator
 {
     private readonly GameFacade _gameFacade;
-    private readonly ITimeManager _timeManager;
+    private readonly TimeManager _timeManager;
 
     private CurrentViews _currentView = CurrentViews.LocationScreen; // Default to Map Mode
     private CurrentViews _previousView = CurrentViews.LocationScreen;
@@ -35,7 +35,7 @@ public class NavigationCoordinator
     
     public ModalState CurrentModalState => GetModalState(_currentView);
 
-    public NavigationCoordinator(GameFacade gameFacade, ITimeManager timeManager)
+    public NavigationCoordinator(GameFacade gameFacade, TimeManager timeManager)
     {
         _gameFacade = gameFacade;
         _timeManager = timeManager;

@@ -13,7 +13,7 @@ namespace Wayfarer.Pages.Components
         [Parameter] public EventCallback<string> OnNavigate { get; set; }
 
         [Inject] protected GameFacade GameFacade { get; set; }
-        [Inject] protected ITimeManager TimeManager { get; set; }
+        [Inject] protected TimeManager TimeManager { get; set; }
 
         protected List<RouteViewModel> AvailableRoutes { get; set; } = new();
         protected RouteViewModel SelectedRoute { get; set; }

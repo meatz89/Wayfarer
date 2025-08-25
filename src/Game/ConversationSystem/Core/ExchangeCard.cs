@@ -13,7 +13,8 @@ public enum ResourceType
     TrustToken,
     CommerceToken,
     StatusToken,
-    ShadowToken
+    ShadowToken,
+    Item  // For item exchanges (uses ItemId field)
 }
 
 /// <summary>
@@ -24,13 +25,18 @@ public class ResourceExchange
     public ResourceType Type { get; init; }
     public int Amount { get; init; }
     public bool IsAbsolute { get; init; }  // true = set to value, false = modify by value
+    public string ItemId { get; init; }  // For ResourceType.Item - specifies which item
     
     /// <summary>
     /// Get display text for this exchange
     /// </summary>
     public string GetDisplayText()
     {
-        if (IsAbsolute)
+        if (Type == ResourceType.Item)
+        {
+            return Amount > 1 ? $"{Amount}x {ItemId}" : ItemId;
+        }
+        else if (IsAbsolute)
         {
             return Type switch
             {
@@ -110,6 +116,11 @@ public class ExchangeCard
                 case ResourceType.ShadowToken:
                     if (tokens.GetTokenCount(ConnectionType.Shadow) < cost.Amount) return false;
                     break;
+                case ResourceType.Item:
+                    // For items as cost, check if player has the item
+                    // This would need player inventory reference
+                    // Currently item exchanges only use items as rewards, not costs
+                    break;
             }
         }
         return true;
@@ -137,6 +148,11 @@ public class ExchangeCard
                 PersonalityType.MERCANTILE => "buy medical supplies",
                 _ => "seek treatment"
             },
+            "luxury" => NPCPersonality switch
+            {
+                PersonalityType.MERCANTILE => "purchase luxury goods",
+                _ => "acquire fine items"
+            },
             "information" => NPCPersonality switch
             {
                 PersonalityType.CUNNING => "trade secrets",
@@ -147,6 +163,11 @@ public class ExchangeCard
                 PersonalityType.STEADFAST => "offer honest labor",
                 PersonalityType.MERCANTILE => "negotiate a job",
                 _ => "work for coins"
+            },
+            "lodging" => NPCPersonality switch
+            {
+                PersonalityType.STEADFAST => "rest at the inn",
+                _ => "purchase lodging"
             },
             _ => "make an exchange"
         };
@@ -182,7 +203,7 @@ public static class ExchangeCardFactory
                     Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 3 } },
                     Reward = new() { new ResourceExchange { Type = ResourceType.Hunger, Amount = 0, IsAbsolute = true } }
                 });
-                // Purchase Medicine: 5 coins → Health +20 (Repeatable)
+                // Buy Medicine: 5 coins → Health +20 (Repeatable)
                 deck.Add(new ExchangeCard
                 {
                     Id = $"{npcId}_health_trade",
@@ -190,6 +211,15 @@ public static class ExchangeCardFactory
                     NPCPersonality = personality,
                     Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 5 } },
                     Reward = new() { new ResourceExchange { Type = ResourceType.Health, Amount = 20 } }
+                });
+                // Purchase Fine Silk: 15 coins → Fine Silk item
+                deck.Add(new ExchangeCard
+                {
+                    Id = $"{npcId}_silk_trade",
+                    TemplateType = "luxury",
+                    NPCPersonality = personality,
+                    Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 15 } },
+                    Reward = new() { new ResourceExchange { Type = ResourceType.Item, Amount = 1, ItemId = "fine_silk" } }
                 });
                 // Help Inventory Stock: 3 attention → 8 coins (advances time)
                 deck.Add(new ExchangeCard
@@ -224,15 +254,41 @@ public static class ExchangeCardFactory
                 break;
                 
             case PersonalityType.STEADFAST:
-                // Workers offer labor exchanges
-                deck.Add(new ExchangeCard
+                // Check if this is an innkeeper (special case for Bertram)
+                if (npcId == "bertram")
                 {
-                    Id = $"{npcId}_labor",
-                    TemplateType = "work",
-                    NPCPersonality = personality,
-                    Cost = new() { new ResourceExchange { Type = ResourceType.Attention, Amount = 3 } },
-                    Reward = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 8 } }
-                });
+                    // Innkeeper offers lodging/rest exchange
+                    deck.Add(new ExchangeCard
+                    {
+                        Id = $"{npcId}_lodging",
+                        TemplateType = "lodging",
+                        NPCPersonality = personality,
+                        Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 5 } },
+                        Reward = new() { new ResourceExchange { Type = ResourceType.Attention, Amount = 7, IsAbsolute = true } }
+                    });
+                    
+                    // Innkeepers can also offer simple food
+                    deck.Add(new ExchangeCard
+                    {
+                        Id = $"{npcId}_meal",
+                        TemplateType = "food",
+                        NPCPersonality = personality,
+                        Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 2 } },
+                        Reward = new() { new ResourceExchange { Type = ResourceType.Hunger, Amount = 0, IsAbsolute = true } }
+                    });
+                }
+                else
+                {
+                    // Regular workers offer labor exchanges
+                    deck.Add(new ExchangeCard
+                    {
+                        Id = $"{npcId}_labor",
+                        TemplateType = "work",
+                        NPCPersonality = personality,
+                        Cost = new() { new ResourceExchange { Type = ResourceType.Attention, Amount = 3 } },
+                        Reward = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 8 } }
+                    });
+                }
                 break;
                 
             case PersonalityType.CUNNING:

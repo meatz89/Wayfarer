@@ -10,7 +10,7 @@ public class ConversationManager
 {
     private readonly GameWorld gameWorld;
     private readonly ObligationQueueManager queueManager;
-    private readonly ITimeManager timeManager;
+    private readonly TimeManager timeManager;
     private readonly TokenMechanicsManager tokenManager;
     private readonly ObservationManager observationManager;
     private readonly MessageSystem messageSystem;
@@ -20,7 +20,7 @@ public class ConversationManager
     public ConversationManager(
         GameWorld gameWorld,
         ObligationQueueManager queueManager,
-        ITimeManager timeManager,
+        TimeManager timeManager,
         TokenMechanicsManager tokenManager,
         ObservationManager observationManager,
         MessageSystem messageSystem,

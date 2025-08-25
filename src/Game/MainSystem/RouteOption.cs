@@ -91,9 +91,6 @@ public class RouteOption
     public Dictionary<WeatherCondition, RouteModification> WeatherModifications { get; set; } = new Dictionary<WeatherCondition, RouteModification>();
     public RouteUnlockCondition? UnlockCondition { get; set; }
 
-    // Alias for BaseCoinCost for backward compatibility
-    public int CoinCost => BaseCoinCost;
-
     // Enhanced Access Requirements (in addition to terrain categories)
     public AccessRequirement AccessRequirement { get; set; }
     public RouteType RouteType { get; set; }

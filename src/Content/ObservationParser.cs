@@ -28,14 +28,26 @@ public static class ObservationParser
                 string locationId = locationProp.Name;
                 List<Observation> observations = new List<Observation>();
 
-                if (locationProp.Value.ValueKind == JsonValueKind.Array)
+                // The structure is locations > location_id > spot_id > [observations]
+                // So we need to iterate through spots within each location
+                if (locationProp.Value.ValueKind == JsonValueKind.Object)
                 {
-                    foreach (JsonElement obsElement in locationProp.Value.EnumerateArray())
+                    foreach (JsonProperty spotProp in locationProp.Value.EnumerateObject())
                     {
-                        Observation obs = ParseObservation(obsElement);
-                        if (obs != null)
+                        string spotId = spotProp.Name;
+                        
+                        if (spotProp.Value.ValueKind == JsonValueKind.Array)
                         {
-                            observations.Add(obs);
+                            foreach (JsonElement obsElement in spotProp.Value.EnumerateArray())
+                            {
+                                Observation obs = ParseObservation(obsElement);
+                                if (obs != null)
+                                {
+                                    // Store which spot this observation is for
+                                    obs.SpotId = spotId;
+                                    observations.Add(obs);
+                                }
+                            }
                         }
                     }
                 }

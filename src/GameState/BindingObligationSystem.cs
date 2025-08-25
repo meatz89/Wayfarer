@@ -10,13 +10,13 @@ public class BindingObligationSystem
 {
     private readonly GameWorld _gameWorld;
     private readonly TokenMechanicsManager _tokenManager;
-    private readonly ITimeManager _timeManager;
+    private readonly TimeManager _timeManager;
     private readonly List<BindingObligation> _activeObligations;
 
     public BindingObligationSystem(
         GameWorld gameWorld,
         TokenMechanicsManager tokenManager,
-        ITimeManager timeManager)
+        TimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _tokenManager = tokenManager;

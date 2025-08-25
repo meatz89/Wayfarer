@@ -32,5 +32,8 @@ public enum SpotPropertyType
     NobleFavored,   // +1 comfort for proud personalities
     CommonerHaunt,  // +1 comfort for steadfast personalities
     MerchantHub,    // +1 comfort for mercantile personalities
-    SacredGround    // +1 comfort for devoted personalities
+    SacredGround,   // +1 comfort for devoted personalities
+    
+    // Work properties
+    Commercial      // Enables work actions for earning coins
 }

@@ -17,5 +17,5 @@ public class NPCDTO
     public List<string> LetterTokenTypes { get; set; } = new List<string>();
     public string Role { get; set; }
     public string AvailabilitySchedule { get; set; }
-    public int Tier { get; set; } = 1; // Default to tier 1 for backwards compatibility
+    public int Tier { get; set; }
 }

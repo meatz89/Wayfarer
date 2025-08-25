@@ -11,10 +11,10 @@ public class ObligationQueueManager
     private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly GameConfiguration _config;
     private readonly IGameRuleEngine _ruleEngine;
-    private readonly ITimeManager _timeManager;
+    private readonly TimeManager _timeManager;
     private readonly Random _random = new Random();
 
-    public ObligationQueueManager(GameWorld gameWorld, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, TokenMechanicsManager connectionTokenManager, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager)
+    public ObligationQueueManager(GameWorld gameWorld, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, TokenMechanicsManager connectionTokenManager, GameConfiguration config, IGameRuleEngine ruleEngine, TimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _npcRepository = npcRepository;

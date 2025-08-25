@@ -13,7 +13,7 @@ private readonly NPCRepository _npcRepository;
 private readonly ObligationQueueManager _letterQueueManager;
 private readonly TokenMechanicsManager _connectionTokenManager;
 private readonly MessageSystem _messageSystem;
-private readonly ITimeManager _timeManager;
+private readonly TimeManager _timeManager;
 private readonly Random _random = new Random();
 
 // Track active referrals
@@ -25,7 +25,7 @@ public NetworkReferralService(
     ObligationQueueManager letterQueueManager,
     TokenMechanicsManager connectionTokenManager,
     MessageSystem messageSystem,
-    ITimeManager timeManager)
+    TimeManager timeManager)
 {
     _gameWorld = gameWorld;
     _npcRepository = npcRepository;

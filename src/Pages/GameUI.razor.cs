@@ -6,7 +6,7 @@ public class GameUIBase : ComponentBase, IDisposable
     [Inject] public ContentValidator ContentValidator { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public GameFacade GameFacade { get; set; }
-    [Inject] public ITimeManager TimeManager { get; set; }
+    [Inject] public TimeManager TimeManager { get; set; }
     [Inject] public LoadingStateService LoadingStateService { get; set; }
     [Inject] public FlagService FlagService { get; set; }
     [Inject] public NavigationCoordinator NavigationCoordinator { get; set; }

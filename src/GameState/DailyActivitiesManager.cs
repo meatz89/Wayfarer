@@ -9,7 +9,7 @@ private readonly ObligationQueueManager _letterQueueManager;
 private readonly StandingObligationManager _obligationManager;
 private readonly MessageSystem _messageSystem;
 // PatronLetterService removed - patron system deleted
-private readonly ITimeManager _timeManager;
+private readonly TimeManager _timeManager;
 
 // Track daily events for display
 public List<DailyEvent> DailyEvents { get; private set; } = new List<DailyEvent>();
@@ -22,7 +22,7 @@ public DailyActivitiesManager(
     ObligationQueueManager letterQueueManager,
     StandingObligationManager obligationManager,
     MessageSystem messageSystem,
-    ITimeManager timeManager)
+    TimeManager timeManager)
     // PatronLetterService parameter removed - patron system deleted
 {
     _gameWorld = gameWorld;

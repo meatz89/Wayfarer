@@ -3,12 +3,12 @@
 /// </summary>
 public class TimeImpactCalculator
 {
-    private readonly ITimeManager _timeManager;
+    private readonly TimeManager _timeManager;
     private readonly GameWorld _gameWorld;
     private readonly ObligationQueueManager _letterQueueManager;
 
     public TimeImpactCalculator(
-        ITimeManager timeManager,
+        TimeManager timeManager,
         GameWorld gameWorld,
         ObligationQueueManager letterQueueManager)
     {

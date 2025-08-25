@@ -7,9 +7,9 @@ public class StandingObligationManager
     private readonly MessageSystem _messageSystem;
     private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly StandingObligationRepository _obligationRepository;
-    private readonly ITimeManager _timeManager;
+    private readonly TimeManager _timeManager;
 
-    public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, TokenMechanicsManager connectionTokenManager, StandingObligationRepository obligationRepository, ITimeManager timeManager)
+    public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, TokenMechanicsManager connectionTokenManager, StandingObligationRepository obligationRepository, TimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;

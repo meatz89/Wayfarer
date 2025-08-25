@@ -10,7 +10,7 @@ using System.IO;
 public class ObservationSystem
 {
     private readonly GameWorld _gameWorld;
-    private readonly ITimeManager _timeManager;
+    private readonly TimeManager _timeManager;
     private readonly NPCRepository _npcRepository;
     private readonly IContentDirectory _contentDirectory;
     private readonly Dictionary<string, List<Observable>> _locationObservables;
@@ -19,10 +19,16 @@ public class ObservationSystem
 
     public ObservationSystem(
         GameWorld gameWorld,
-        ITimeManager timeManager,
+        TimeManager timeManager,
         NPCRepository npcRepository,
         IContentDirectory contentDirectory)
     {
+        Console.WriteLine("[ObservationSystem] Constructor called");
+        Console.WriteLine($"[ObservationSystem] GameWorld null? {gameWorld == null}");
+        Console.WriteLine($"[ObservationSystem] TimeManager null? {timeManager == null}");
+        Console.WriteLine($"[ObservationSystem] NPCRepository null? {npcRepository == null}");
+        Console.WriteLine($"[ObservationSystem] ContentDirectory null? {contentDirectory == null}");
+        
         _gameWorld = gameWorld;
         _timeManager = timeManager;
         _npcRepository = npcRepository;
@@ -30,6 +36,8 @@ public class ObservationSystem
         _revealedObservations = new HashSet<string>();
         _locationObservables = InitializeObservables();
         _observationsByLocation = LoadObservationsFromJson();
+        
+        Console.WriteLine("[ObservationSystem] Constructor completed");
     }
 
     private Dictionary<string, List<Observation>> LoadObservationsFromJson()
@@ -39,8 +47,11 @@ public class ObservationSystem
         try
         {
             string filePath = Path.Combine(_contentDirectory.Path, "Templates", "observations.json");
+            Console.WriteLine($"[ObservationSystem] Looking for observations at: {filePath}");
+            
             if (File.Exists(filePath))
             {
+                Console.WriteLine($"[ObservationSystem] Found observations.json, loading...");
                 string json = File.ReadAllText(filePath);
                 var data = ObservationParser.ParseObservations(json);
                 
@@ -49,8 +60,17 @@ public class ObservationSystem
                     foreach (var kvp in data.locations)
                     {
                         observations[kvp.Key] = kvp.Value;
+                        Console.WriteLine($"[ObservationSystem] Loaded {kvp.Value.Count} observations for location {kvp.Key}");
                     }
                 }
+                else
+                {
+                    Console.WriteLine("[ObservationSystem] No observations data found in JSON");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"[ObservationSystem] observations.json not found at {filePath}");
             }
         }
         catch (Exception ex)
@@ -58,6 +78,7 @@ public class ObservationSystem
             Console.WriteLine($"[ObservationSystem] Error loading observations.json: {ex.Message}");
         }
         
+        Console.WriteLine($"[ObservationSystem] Total locations with observations: {observations.Count}");
         return observations;
     }
 
@@ -66,11 +87,16 @@ public class ObservationSystem
     /// </summary>
     public List<Observation> GetObservationsForLocation(string locationId)
     {
+        Console.WriteLine($"[ObservationSystem.GetObservationsForLocation] Looking for observations for location: {locationId}");
+        Console.WriteLine($"[ObservationSystem.GetObservationsForLocation] Available locations: {string.Join(", ", _observationsByLocation.Keys)}");
+        
         if (_observationsByLocation.TryGetValue(locationId, out var observations))
         {
+            Console.WriteLine($"[ObservationSystem.GetObservationsForLocation] Found {observations.Count} observations for {locationId}");
             return observations;
         }
         
+        Console.WriteLine($"[ObservationSystem.GetObservationsForLocation] No observations found for {locationId}");
         return new List<Observation>();
     }
     

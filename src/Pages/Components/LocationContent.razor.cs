@@ -103,7 +103,10 @@ namespace Wayfarer.Pages.Components
             
             // Get available observations
             AvailableObservations.Clear();
+            Console.WriteLine("[LocationContent] Getting observations from GameFacade...");
             var allObservations = GameFacade.GetObservationsViewModel();
+            Console.WriteLine($"[LocationContent] Got ObservationsViewModel, AvailableObservations count: {allObservations?.AvailableObservations?.Count ?? 0}");
+            
             if (allObservations?.AvailableObservations != null)
             {
                 AvailableObservations = allObservations.AvailableObservations
@@ -113,6 +116,11 @@ namespace Wayfarer.Pages.Components
                         Name = obs.Title,
                         Type = obs.Type
                     }).ToList();
+                Console.WriteLine($"[LocationContent] Final AvailableObservations count: {AvailableObservations.Count}");
+            }
+            else
+            {
+                Console.WriteLine("[LocationContent] No observations available or null");
             }
             
             // Get other spots in this location

@@ -90,7 +90,7 @@ public static class TravelTimeMatrix
 public class TravelManager
 {
     private readonly GameWorld _gameWorld;
-    private readonly ITimeManager _timeManager;
+    private readonly TimeManager _timeManager;
     private readonly TransportCompatibilityValidator _transportValidator;
     private readonly RouteRepository _routeRepository;
     private readonly AccessRequirementChecker _accessChecker;
@@ -108,7 +108,7 @@ public class TravelManager
         TransportCompatibilityValidator transportValidator,
         RouteRepository routeRepository,
         AccessRequirementChecker accessChecker,
-        ITimeManager timeManager,
+        TimeManager timeManager,
         FlagService flagService,
         TravelEventManager travelEventManager
         )
@@ -434,14 +434,6 @@ public class TravelManager
         string transportInfo = transport.HasValue ? $" with {transport}" : "";
         return $"Inventory: {usedSlots}/{maxSlots} slots used{transportInfo}";
     }
-
-    // REMOVED: RecordRouteUsage violated NO USAGE COUNTERS principle
-    // Routes are discovered through NPC relationships and token spending, not usage counting
-
-    // REMOVED: CheckForRouteUnlocks violated NO USAGE COUNTERS principle
-    // Routes are discovered through RouteDiscoveryManager and NPC relationships
-
-
 }
 
 

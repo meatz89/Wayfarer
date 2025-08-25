@@ -20,6 +20,4 @@ public class MeetingObligation
     // For UI display
     public int DeadlineInHours => (int)Math.Ceiling(DeadlineInMinutes / 60.0);
     
-    // Calculate minutes remaining (for compatibility with existing systems)
-    public int MinutesUntilDeadline => DeadlineInMinutes;
 }

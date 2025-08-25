@@ -9,10 +9,10 @@ using System.Linq;
 public class NPCService
 {
     private readonly NPCRepository _repository;
-    private readonly ITimeManager _timeManager;
+    private readonly TimeManager _timeManager;
     private readonly ILogger<NPCService> _logger;
 
-    public NPCService(NPCRepository repository, ITimeManager timeManager, ILogger<NPCService> logger)
+    public NPCService(NPCRepository repository, TimeManager timeManager, ILogger<NPCService> logger)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));

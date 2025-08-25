@@ -13,7 +13,7 @@ namespace Wayfarer.Pages.Components
 
         [Inject] protected ObligationQueueManager ObligationQueueManager { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
-        [Inject] protected ITimeManager TimeManager { get; set; }
+        [Inject] protected TimeManager TimeManager { get; set; }
 
         protected List<DeliveryObligation> ActiveObligations { get; set; } = new();
         protected List<DeliveryObligation> ExpiredObligations { get; set; } = new();

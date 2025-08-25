@@ -211,7 +211,6 @@ public class WorkReward
     public int Stamina { get; set; }
     public string Bonus { get; set; }
 
-    // For backward compatibility or simplified usage
     public int Coins
     {
         get

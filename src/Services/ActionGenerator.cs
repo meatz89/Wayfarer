@@ -5,7 +5,7 @@ using System.Linq;
 
 public class ActionGenerator
 {
-private readonly ITimeManager _timeManager;
+private readonly TimeManager _timeManager;
 private readonly LocationRepository _locationRepository;
 private readonly NPCRepository _npcRepository;
 private readonly TokenMechanicsManager _tokenManager;
@@ -13,7 +13,7 @@ private readonly GameWorld _gameWorld;
 private readonly TimeBlockAttentionManager _timeBlockAttention;
 
 public ActionGenerator(
-    ITimeManager timeManager,
+    TimeManager timeManager,
     LocationRepository locationRepository,
     NPCRepository npcRepository,
     TokenMechanicsManager tokenManager,

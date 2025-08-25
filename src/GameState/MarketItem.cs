@@ -10,7 +10,6 @@ public class MarketItem
     public string TraderId { get; set; }
     public string ItemId { get; set; }
 
-    // Additional properties for compatibility
     public int BuyPrice => Price;
     public int SellPrice => (int)(Price * 0.7); // 70% of buy price
     public List<ItemCategory> Categories { get; set; } = new List<ItemCategory>();

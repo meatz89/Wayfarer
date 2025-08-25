@@ -12,7 +12,7 @@ public class TravelEventManager
     private readonly TokenMechanicsManager _tokenManager;
     private readonly TimeBlockAttentionManager _attentionManager;
     private readonly MessageSystem _messageSystem;
-    private readonly ITimeManager _timeManager;
+    private readonly TimeManager _timeManager;
     private readonly Dictionary<string, RouteDeck> _routeDecks;
     
     public TravelEventManager(
@@ -20,7 +20,7 @@ public class TravelEventManager
         TokenMechanicsManager tokenManager,
         TimeBlockAttentionManager attentionManager,
         MessageSystem messageSystem,
-        ITimeManager timeManager)
+        TimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _tokenManager = tokenManager;

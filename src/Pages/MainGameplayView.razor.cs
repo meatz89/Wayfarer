@@ -409,20 +409,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     }
 
     /// <summary>
-    /// Get current equipment categories owned by player
-    /// </summary>
-    private List<ItemCategory> GetCurrentEquipmentCategories()
-    {
-        InventoryViewModel inventory = GameFacade.GetInventory();
-        List<ItemCategory> categories = new List<ItemCategory>();
-
-        // This requires extending the facade or ViewModels to include item categories
-        // For now, returning empty list for compatibility
-
-        return categories.Distinct().ToList();
-    }
-
-    /// <summary>
     /// Get icon for time block display
     /// </summary>
     public string GetTimeBlockIcon(TimeBlocks timeBlock)

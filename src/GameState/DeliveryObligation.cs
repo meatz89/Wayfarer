@@ -109,7 +109,7 @@ public class DeliveryObligation
     // Helper properties
     public bool IsExpired => DeadlineInMinutes <= 0;
     // DeliveryObligations are abstract - they don't have special types (only physical Letters do)
-    public int HoursUntilDeadline => DeadlineInMinutes / 60; // Convert for legacy compatibility
+    public int HoursUntilDeadline => DeadlineInMinutes / 60;
     public int MinutesUntilDeadline => DeadlineInMinutes;
     public string SenderNPC => SenderName;
 

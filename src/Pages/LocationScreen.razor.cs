@@ -11,7 +11,7 @@ public partial class LocationScreen : ComponentBase
     [Inject] private GameFacade GameFacade { get; set; }
     [Inject] private NPCRepository NPCRepository { get; set; }
     [Inject] private LocationRepository LocationRepository { get; set; }
-    [Inject] private ITimeManager TimeManager { get; set; }
+    [Inject] private TimeManager TimeManager { get; set; }
     [Inject] private NavigationCoordinator NavigationCoordinator { get; set; }
     [Inject] private ObligationQueueManager QueueManager { get; set; }
 

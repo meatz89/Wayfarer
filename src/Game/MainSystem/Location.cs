@@ -36,7 +36,6 @@ public int Difficulty { get; set; }
 public int Depth { get; set; }
 public LocationTypes LocationType { get; set; } = LocationTypes.Connective;
 public List<ServiceTypes> AvailableServices { get; set; } = new List<ServiceTypes>();
-// Discovery bonuses removed - new locations provide natural market opportunities instead
 public bool HasBeenVisited { get; set; }
 public int VisitCount { get; set; }
 public bool PlayerKnowledge { get; set; }
@@ -52,7 +51,6 @@ public List<NPC> NPCsPresent { get; set; } = new List<NPC>();
 public Dictionary<TimeBlocks, List<Professions>> AvailableProfessionsByTime { get; set; } = new Dictionary<TimeBlocks, List<Professions>>();
 
 // Time-based properties
-// Flag system removed - using connection tokens instead
 public Dictionary<TimeBlocks, List<string>> AvailableActions { get; private set; }
 public Dictionary<TimeBlocks, string> TimeSpecificDescription { get; private set; }
 public Dictionary<TimeBlocks, List<ILocationProperty>> TimeProperties { get; private set; }
@@ -63,8 +61,6 @@ public List<RestOption> RestOptions { get; internal set; }
 // Access Requirements for this location
 public AccessRequirement AccessRequirement { get; set; }
 
-
-// Flag system removed - using connection tokens instead
 
 public Location(string id, string name)
 {

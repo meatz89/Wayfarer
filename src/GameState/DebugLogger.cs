@@ -10,9 +10,9 @@ public class DebugLogger
     private readonly List<DebugLogEntry> _logs = new List<DebugLogEntry>();
     private readonly int _maxLogs = 1000;
     private bool _enabled = true;
-    private readonly ITimeManager _timeManager;
+    private readonly TimeManager _timeManager;
 
-    public DebugLogger(ITimeManager timeManager)
+    public DebugLogger(TimeManager timeManager)
     {
         _timeManager = timeManager;
     }

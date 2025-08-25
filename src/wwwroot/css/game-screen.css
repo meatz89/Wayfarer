@@ -767,8 +767,6 @@
     gap: 12px;
 }
 
-/* Generic card styles now handled by unified-cards.css */
-/* Type-specific card styles preserved for backwards compatibility */
 .card {
     /* Inherits from card-base card-standard */
     overflow: visible;

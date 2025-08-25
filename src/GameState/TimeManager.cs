@@ -2,7 +2,7 @@
 /// Manages all time-related operations in the game.
 /// Single source of truth for time state and progression.
 /// </summary>
-public class TimeManager : ITimeManager
+public class TimeManager
 {
     private readonly TimeModel _timeModel;
     private readonly ILogger<TimeManager> _logger;
@@ -15,12 +15,7 @@ public class TimeManager : ITimeManager
     public int CurrentDay => _timeModel.CurrentDay;
 
     public TimeBlocks CurrentTimeBlock => _timeModel.CurrentTimeBlock;
-
-    public int ActiveHoursRemaining => _timeModel.ActiveHoursRemaining;
-
-    // ITimeManager compatibility properties
-    public int HoursRemaining => ActiveHoursRemaining;
-
+    public int HoursRemaining => _timeModel.ActiveHoursRemaining;
     public int CurrentTimeHours => CurrentHour;
 
     public TimeManager(
@@ -43,7 +38,6 @@ public class TimeManager : ITimeManager
         return _timeModel.CanPerformAction(hoursRequired);
     }
 
-    // ITimeManager implementation methods
     public int GetCurrentTimeHours()
     {
         return CurrentTimeHours;
@@ -62,17 +56,6 @@ public class TimeManager : ITimeManager
     public TimeBlocks GetCurrentTimeBlock()
     {
         return CurrentTimeBlock;
-    }
-
-    // Compatibility method from old TimeManager
-    public bool SpendHours(int hours)
-    {
-        if (hours <= 0) return false;
-        if (!CanPerformAction(hours)) return false;
-
-        Task<bool> task = SpendTime(hours, "Action");
-        task.Wait(); // Synchronous for compatibility
-        return task.Result;
     }
 
     public void AdvanceTime(int hours)
@@ -149,7 +132,7 @@ public class TimeManager : ITimeManager
         if (!CanPerformAction(hours))
         {
             _messageSystem.AddSystemMessage(
-                $"Not enough time remaining. Need {hours} hours, have {ActiveHoursRemaining}.",
+                $"Not enough time remaining. Need {hours} hours, have {HoursRemaining}.",
                 SystemMessageTypes.Warning);
             return false;
         }

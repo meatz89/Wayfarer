@@ -14,7 +14,7 @@ public class MarketManager
     private readonly ItemRepository _itemRepository;
     private readonly NPCRepository _npcRepository;
     private readonly LocationRepository _locationRepository;
-    private readonly ITimeManager _timeManager;
+    private readonly TimeManager _timeManager;
     private readonly MessageSystem _messageSystem;
 
     /// <summary>
@@ -85,7 +85,7 @@ public class MarketManager
 
     public MarketManager(GameWorld gameWorld, LocationSystem locationSystem, ItemRepository itemRepository,
                         NPCRepository npcRepository, LocationRepository locationRepository, MessageSystem messageSystem,
-                        ITimeManager timeManager)
+                        TimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _locationSystem = locationSystem;

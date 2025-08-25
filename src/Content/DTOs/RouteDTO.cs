@@ -19,6 +19,6 @@ public class RouteDTO
     public int MaxItemCapacity { get; set; }
     public string Description { get; set; }
     public AccessRequirementDTO AccessRequirement { get; set; }
-    public string TierRequired { get; set; } = "T1"; // Default to T1 for backwards compatibility
+    public string TierRequired { get; set; }
 
 }

@@ -35,7 +35,18 @@ public static class NPCParser
     // Parse personality - preserve authentic description and map to categorical type
     string personalityDescription = GetStringProperty(root, "personality", "");
     npc.PersonalityDescription = personalityDescription;
-    npc.PersonalityType = PersonalityMappingService.GetPersonalityType(personalityDescription);
+    
+    // Parse personalityType directly from JSON if available
+    string personalityTypeStr = GetStringProperty(root, "personalityType", "");
+    if (!string.IsNullOrEmpty(personalityTypeStr) && Enum.TryParse<PersonalityType>(personalityTypeStr, true, out PersonalityType parsedType))
+    {
+        npc.PersonalityType = parsedType;
+    }
+    else
+    {
+        // Fall back to mapping service if not explicitly specified
+        npc.PersonalityType = PersonalityMappingService.GetPersonalityType(personalityDescription);
+    }
 
     // NPCs are always available - no schedule parsing needed
 
