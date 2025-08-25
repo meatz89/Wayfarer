@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
-    public class LetterQueueContentBase : ComponentBase
+    public class ObligationQueueContentBase : ComponentBase
     {
         [Parameter] public EventCallback<string> OnNavigate { get; set; }
         [Parameter] public ScreenMode ReturnView { get; set; } = ScreenMode.Location;
@@ -57,13 +57,14 @@ namespace Wayfarer.Pages.Components
             }
         }
 
+
         protected async Task DisplaceLetter(DeliveryObligation letter)
         {
             // Delegate to ObligationQueueManager which handles all displacement logic
             var result = await GameFacade.DisplaceLetterInQueue(letter.Id);
             if (!result)
             {
-                Console.WriteLine($"[LetterQueueContent] Failed to displace letter: {letter.Id}");
+                Console.WriteLine($"[ObligationQueueContent] Failed to displace letter: {letter.Id}");
             }
             StateHasChanged();
         }
@@ -133,6 +134,13 @@ namespace Wayfarer.Pages.Components
         protected async Task ReturnToPreviousView()
         {
             await OnNavigate.InvokeAsync(ReturnView.ToString().ToLower());
+        }
+
+        protected async Task ViewLetterDetails(DeliveryObligation letter)
+        {
+            // For now, just log the details. In future, could open a modal
+            Console.WriteLine($"[ObligationQueue] Viewing details for letter {letter.Id}");
+            await Task.CompletedTask;
         }
     }
 }

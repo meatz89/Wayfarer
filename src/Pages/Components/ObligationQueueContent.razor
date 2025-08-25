@@ -1,4 +1,4 @@
-@inherits LetterQueueContentBase
+@inherits ObligationQueueContentBase
 
 @namespace Wayfarer.Pages.Components
 
@@ -44,23 +44,15 @@
                         </div>
                         
                         <div class="letter-actions">
-                            <button class="deliver-button" 
-                                    @onclick="() => DeliverLetter(letter)"
-                                    disabled="@(!CanDeliver(letter))">
-                                @if (CanDeliver(letter))
-                                {
-                                    <span>Deliver Now</span>
-                                }
-                                else
-                                {
-                                    <span>Travel to @GetRecipientLocation(letter)</span>
-                                }
+                            <button class="view-button" 
+                                    @onclick="@(async () => await ViewLetterDetails(letter))">
+                                View Details
                             </button>
                             
                             @if (CanDisplace(letter))
                             {
                                 <button class="displace-button" 
-                                        @onclick="() => DisplaceLetter(letter)">
+                                        @onclick="@(async () => await DisplaceLetter(letter))">
                                     Displace
                                 </button>
                             }

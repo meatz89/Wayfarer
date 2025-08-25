@@ -690,13 +690,70 @@ public class GameFacade
     
     public async Task<bool> DisplaceLetterInQueue(string letterId)
     {
-        // For now, displacement is a no-op as the system handles it automatically via leverage
-        // Manual displacement would require implementing a swap or reorder system
-        _messageSystem.AddSystemMessage(
-            "Letter displacement is handled automatically based on leverage and debt relationships.",
-            SystemMessageTypes.Info
-        );
-        return false;
+        try
+        {
+            // Find the letter in the queue
+            var obligations = _letterQueueManager.GetActiveObligations();
+            var obligation = obligations.FirstOrDefault(o => o.Id == letterId);
+            
+            if (obligation == null)
+            {
+                _messageSystem.AddSystemMessage("Letter not found in queue", SystemMessageTypes.Warning);
+                return false;
+            }
+            
+            // Get current position
+            int currentPosition = _letterQueueManager.GetQueuePosition(obligation);
+            if (currentPosition <= 0)
+            {
+                _messageSystem.AddSystemMessage("Unable to determine letter position", SystemMessageTypes.Warning);
+                return false;
+            }
+            
+            // Can't displace if already at the back
+            if (currentPosition >= 8)
+            {
+                _messageSystem.AddSystemMessage("Letter is already at the back of the queue", SystemMessageTypes.Info);
+                return false;
+            }
+            
+            // Move the letter one position back (lower priority)
+            int newPosition = currentPosition + 1;
+            
+            // Find what's in the target position
+            var queue = _letterQueueManager.GetPlayerQueue();
+            var letterAtTarget = queue[newPosition - 1];
+            
+            if (letterAtTarget != null)
+            {
+                // Swap the two letters
+                _letterQueueManager.MoveLetterToPosition(obligation, newPosition);
+                _letterQueueManager.MoveLetterToPosition(letterAtTarget, currentPosition);
+                
+                _messageSystem.AddSystemMessage(
+                    $"Displaced {obligation.SenderName}'s letter from position {currentPosition} to {newPosition}",
+                    SystemMessageTypes.Success
+                );
+            }
+            else
+            {
+                // Just move to the empty position
+                _letterQueueManager.MoveLetterToPosition(obligation, newPosition);
+                
+                _messageSystem.AddSystemMessage(
+                    $"Moved {obligation.SenderName}'s letter to position {newPosition}",
+                    SystemMessageTypes.Success
+                );
+            }
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DisplaceLetterInQueue] Exception: {ex}");
+            _messageSystem.AddSystemMessage("Failed to displace letter", SystemMessageTypes.Danger);
+            return false;
+        }
     }
     
     private string GetNPCDescription(NPC npc, EmotionalState state)

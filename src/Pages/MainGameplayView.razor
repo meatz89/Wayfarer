@@ -10,7 +10,8 @@
 @switch (CurrentScreen)
 {
     case CurrentViews.ObligationQueueScreen:
-        <ObligationQueueScreen OnNavigate="HandleNavigation" ReturnView="@PreviousView" />
+        @* ObligationQueueScreen was deleted - queue is shown in GameScreen *@
+        <div class="error-message">Queue screen should be shown in GameScreen</div>
         break;
 
     case CurrentViews.ConversationScreen:

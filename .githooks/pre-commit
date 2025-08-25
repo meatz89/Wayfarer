@@ -1,0 +1,41 @@
+#!/bin/bash
+# Wayfarer Pre-Commit Hook
+# Prevents committing broken code
+
+echo "🔍 Running pre-commit checks..."
+
+# Run smoke tests (fast checks)
+./run-smoke-tests.sh
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ COMMIT BLOCKED: Smoke tests failed!"
+    echo "Fix the issues and try again."
+    exit 1
+fi
+
+# Check for common issues
+echo "Checking for common problems..."
+
+# Check for console.log/WriteLine left in code
+if grep -r "Console\.WriteLine\|console\.log" src/ --include="*.cs" --include="*.razor" | grep -v "// DEBUG\|// TODO"; then
+    echo "⚠️  Warning: Found debug output in code"
+    echo "Remove or mark with // DEBUG comment"
+fi
+
+# Check for TODO comments
+TODO_COUNT=$(grep -r "TODO" src/ --include="*.cs" --include="*.razor" | wc -l)
+if [ $TODO_COUNT -gt 0 ]; then
+    echo "📝 Found $TODO_COUNT TODO comments"
+fi
+
+# Check for !important in CSS
+if grep -r "!important" src/wwwroot/css/ --include="*.css"; then
+    echo "⚠️  Warning: Found !important in CSS"
+    echo "Fix CSS specificity instead of using !important"
+fi
+
+echo ""
+echo "✅ Pre-commit checks passed!"
+echo "Proceeding with commit..."
+
+exit 0
