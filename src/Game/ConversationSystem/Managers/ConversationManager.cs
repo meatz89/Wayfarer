@@ -13,6 +13,8 @@ public class ConversationManager
     private readonly ITimeManager timeManager;
     private readonly TokenMechanicsManager tokenManager;
     private readonly ObservationManager observationManager;
+    private readonly MessageSystem messageSystem;
+    private readonly TimeBlockAttentionManager timeBlockAttentionManager;
     private ConversationSession currentSession;
 
     public ConversationManager(
@@ -20,13 +22,17 @@ public class ConversationManager
         ObligationQueueManager queueManager,
         ITimeManager timeManager,
         TokenMechanicsManager tokenManager,
-        ObservationManager observationManager)
+        ObservationManager observationManager,
+        MessageSystem messageSystem,
+        TimeBlockAttentionManager timeBlockAttentionManager)
     {
         this.gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         this.queueManager = queueManager ?? throw new ArgumentNullException(nameof(queueManager));
         this.timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         this.tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         this.observationManager = observationManager ?? throw new ArgumentNullException(nameof(observationManager));
+        this.messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+        this.timeBlockAttentionManager = timeBlockAttentionManager ?? throw new ArgumentNullException(nameof(timeBlockAttentionManager));
     }
 
     /// <summary>
@@ -177,7 +183,7 @@ public class ConversationManager
     /// <summary>
     /// Execute SPEAK action with selected cards
     /// </summary>
-    public CardPlayResult ExecuteSpeak(HashSet<ConversationCard> selectedCards)
+    public async Task<CardPlayResult> ExecuteSpeak(HashSet<ConversationCard> selectedCards)
     {
         if (!IsConversationActive)
         {
@@ -187,7 +193,7 @@ public class ConversationManager
         var result = currentSession.ExecuteSpeak(selectedCards);
 
         // Handle special card effects
-        HandleSpecialCardEffects(selectedCards, result);
+        await HandleSpecialCardEffectsAsync(selectedCards, result);
 
         // Remove observation cards from ObservationManager after playing (they're OneShot)
         foreach (var card in selectedCards)
@@ -208,12 +214,37 @@ public class ConversationManager
     }
 
     /// <summary>
-    /// Handle letter delivery and obligation manipulation
+    /// Handle letter delivery, obligation manipulation, and exchanges
     /// </summary>
-    private void HandleSpecialCardEffects(HashSet<ConversationCard> playedCards, CardPlayResult result)
+    private async Task HandleSpecialCardEffectsAsync(HashSet<ConversationCard> playedCards, CardPlayResult result)
     {
         foreach (var card in playedCards)
         {
+            // Handle exchange cards
+            if (card.Category == CardCategory.EXCHANGE && card.Context?.ExchangeData != null)
+            {
+                // Check for decline card
+                if (card.Id == "decline_exchange")
+                {
+                    // Decline card just ends the conversation
+                    Console.WriteLine("[ConversationManager] Player declined all exchange offers");
+                    messageSystem.AddSystemMessage("You politely decline the offers", SystemMessageTypes.Info);
+                    continue;
+                }
+                
+                // Execute the actual exchange directly
+                var exchangeSuccess = await ExecuteExchangeAsync(card.Context.ExchangeData);
+                if (!exchangeSuccess)
+                {
+                    Console.WriteLine($"[ConversationManager] Failed to execute exchange {card.Id}");
+                    messageSystem.AddSystemMessage("Exchange failed - insufficient resources", SystemMessageTypes.Warning);
+                }
+                else
+                {
+                    Console.WriteLine($"[ConversationManager] Successfully executed exchange {card.Id}");
+                }
+            }
+            
             // Handle letter delivery
             if (card.CanDeliverLetter && result.Results.First(r => r.Card == card).Success)
             {
@@ -368,6 +399,122 @@ public class ConversationManager
         };
     }
 
+    /// <summary>
+    /// Execute an exchange card's resource trade
+    /// </summary>
+    private async Task<bool> ExecuteExchangeAsync(ExchangeCard exchange)
+    {
+        if (exchange == null)
+        {
+            Console.WriteLine("[ExecuteExchangeAsync] Exchange is null");
+            return false;
+        }
+        
+        // Get player and resources
+        var player = gameWorld.GetPlayer();
+        var playerResources = gameWorld.GetPlayerResourceState();
+        
+        // Check if player can afford
+        var currentTimeBlock = timeManager.GetCurrentTimeBlock();
+        var currentAttention = timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        if (!exchange.CanAfford(playerResources, tokenManager, currentAttention))
+        {
+            Console.WriteLine("[ExecuteExchangeAsync] Player cannot afford exchange");
+            messageSystem.AddSystemMessage("You don't have enough resources for this exchange", SystemMessageTypes.Warning);
+            return false;
+        }
+        
+        // Apply costs
+        foreach (var cost in exchange.Cost)
+        {
+            switch (cost.Type)
+            {
+                case ResourceType.Coins:
+                    player.Coins -= cost.Amount;
+                    break;
+                case ResourceType.Health:
+                    player.Health -= cost.Amount;
+                    break;
+                case ResourceType.Attention:
+                    // Attention is managed by TimeBlockAttentionManager
+                    var costTimeBlock = timeManager.GetCurrentTimeBlock();
+                    var attentionMgr = timeBlockAttentionManager.GetCurrentAttention(costTimeBlock);
+                    if (!attentionMgr.TrySpend(cost.Amount))
+                    {
+                        Console.WriteLine($"[ExecuteExchangeAsync] Failed to spend {cost.Amount} attention");
+                        return false;
+                    }
+                    break;
+                case ResourceType.TrustToken:
+                    tokenManager.SpendTokens(ConnectionType.Trust, cost.Amount);
+                    break;
+                case ResourceType.CommerceToken:
+                    tokenManager.SpendTokens(ConnectionType.Commerce, cost.Amount);
+                    break;
+                case ResourceType.StatusToken:
+                    tokenManager.SpendTokens(ConnectionType.Status, cost.Amount);
+                    break;
+                case ResourceType.ShadowToken:
+                    tokenManager.SpendTokens(ConnectionType.Shadow, cost.Amount);
+                    break;
+            }
+        }
+        
+        // Apply rewards
+        foreach (var reward in exchange.Reward)
+        {
+            switch (reward.Type)
+            {
+                case ResourceType.Coins:
+                    player.Coins += reward.Amount;
+                    break;
+                case ResourceType.Health:
+                    if (reward.IsAbsolute)
+                        player.Health = reward.Amount;
+                    else
+                        player.Health += reward.Amount;
+                    break;
+                case ResourceType.Hunger:
+                    // Hunger maps to Food (0 = not hungry, 100 = very hungry)
+                    // So setting Hunger to 0 means setting Food to max
+                    if (reward.IsAbsolute)
+                        player.Food = reward.Amount == 0 ? 100 : (100 - reward.Amount);
+                    else
+                        player.Food = Math.Max(0, Math.Min(100, player.Food - reward.Amount));
+                    break;
+                case ResourceType.TrustToken:
+                    tokenManager.AddTokens(ConnectionType.Trust, reward.Amount);
+                    break;
+                case ResourceType.CommerceToken:
+                    tokenManager.AddTokens(ConnectionType.Commerce, reward.Amount);
+                    break;
+                case ResourceType.StatusToken:
+                    tokenManager.AddTokens(ConnectionType.Status, reward.Amount);
+                    break;
+                case ResourceType.ShadowToken:
+                    tokenManager.AddTokens(ConnectionType.Shadow, reward.Amount);
+                    break;
+            }
+        }
+        
+        // Generate narrative message
+        var narrativeContext = exchange.GetNarrativeContext();
+        messageSystem.AddSystemMessage($"You {narrativeContext} with {currentSession.NPC.Name}", SystemMessageTypes.Success);
+        
+        // Log for debugging
+        Console.WriteLine($"[ExecuteExchangeAsync] Completed exchange {exchange.Id} with {currentSession.NPC.Name}");
+        
+        // Exchange cards that cost attention should advance time
+        if (exchange.Cost.Any(c => c.Type == ResourceType.Attention && c.Amount >= 3))
+        {
+            // This is a work exchange that advances time
+            timeManager.AdvanceTime(1);
+            messageSystem.AddSystemMessage("Time passes as you work...", SystemMessageTypes.Info);
+        }
+        
+        return await Task.FromResult(true);
+    }
+    
     /// <summary>
     /// End the current conversation
     /// </summary>

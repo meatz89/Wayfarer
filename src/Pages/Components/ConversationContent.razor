@@ -169,26 +169,29 @@
                                 @GetCardText(card)
                             </div>
                         }
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-header">
-                                    <span class="outcome-label">Success</span>
-                                    <span class="outcome-chance">@GetSuccessChance(card)%</span>
+                        @if (card.Category != CardCategory.EXCHANGE)
+                        {
+                            <div class="card-outcomes">
+                                <div class="outcome success">
+                                    <div class="outcome-header">
+                                        <span class="outcome-label">Success</span>
+                                        <span class="outcome-chance">@GetSuccessChance(card)%</span>
+                                    </div>
+                                    <div class="outcome-effects">
+                                        <div class="effect">@GetSuccessEffect(card)</div>
+                                    </div>
                                 </div>
-                                <div class="outcome-effects">
-                                    <div class="effect">@GetSuccessEffect(card)</div>
+                                <div class="outcome failure">
+                                    <div class="outcome-header">
+                                        <span class="outcome-label">Failure</span>
+                                        <span class="outcome-chance">@GetFailureChance(card)%</span>
+                                    </div>
+                                    <div class="outcome-effects">
+                                        <div class="effect">@GetFailureEffect(card)</div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="outcome failure">
-                                <div class="outcome-header">
-                                    <span class="outcome-label">Failure</span>
-                                    <span class="outcome-chance">@GetFailureChance(card)%</span>
-                                </div>
-                                <div class="outcome-effects">
-                                    <div class="effect">@GetFailureEffect(card)</div>
-                                </div>
-                            </div>
-                        </div>
+                        }
                     </div>
                 }
             </div>

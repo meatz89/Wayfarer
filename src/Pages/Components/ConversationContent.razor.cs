@@ -22,7 +22,7 @@ namespace Wayfarer.Pages.Components
         protected string NpcName { get; set; }
         protected string LastNarrative { get; set; }
         protected string LastDialogue { get; set; }
-        protected int ComfortThreshold => 5; // For letter generation (design doc: 5+ comfort unlocks letters)
+        protected int ComfortThreshold => 10; // For letter generation (POC: 10+ comfort unlocks letters)
 
         protected override async Task OnInitializedAsync()
         {
@@ -128,8 +128,15 @@ namespace Wayfarer.Pages.Components
                 // Generate narrative based on the result
                 GenerateSpeakNarrative(result);
                 
-                // Check for letter generation
-                if (Session.CurrentComfort >= ComfortThreshold)
+                // Check if any played card can generate a letter and succeeded
+                var letterCard = result.Results?.FirstOrDefault(r => r.Card.CanDeliverLetter && r.Success);
+                if (letterCard != null)
+                {
+                    // Crisis cards and special cards that generate letters immediately
+                    GenerateLetter();
+                }
+                // Normal letter generation at comfort threshold
+                else if (Session.CurrentComfort >= ComfortThreshold)
                 {
                     GenerateLetter();
                 }

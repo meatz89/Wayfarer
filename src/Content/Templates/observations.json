@@ -1,6 +1,7 @@
 {
 	"locations": {
-		"market_square": [
+		"market_square": {
+			"central_fountain": [
 			{
 				"id": "guards_north",
 				"text": "Notice guard checkpoint ahead",
@@ -28,10 +29,25 @@
 				"relevantNPCs": ["elena"],
 				"createsState": "TENSE",
 				"cardTemplate": "MentionGuards",
-				"description": "The north road is completely blocked by guards"
+				"description": "The north road is completely blocked by guards",
+				"generatesCard": {
+					"name": "Guard Checkpoint Warning",
+					"weight": 1,
+					"type": "Shadow",
+					"successRate": 60,
+					"comfortBonus": 3,
+					"oneShot": true,
+					"opportunityType": true
+				}
 			}
-		],
-		"copper_kettle_tavern": [
+			],
+			"merchant_row": [],
+			"north_entrance": [],
+			"north_alcove": [],
+			"guard_post": []
+		},
+		"copper_kettle_tavern": {
+			"main_hall": [
 			{
 				"id": "noble_schedule",
 				"text": "Notice board shows Noble District schedule",
@@ -50,8 +66,13 @@
 				"automatic": true,
 				"description": "She's clutching a letter with white knuckles"
 			}
-		],
-		"noble_district": [
+			],
+			"corner_table": [],
+			"bar_counter": [],
+			"upstairs_room": []
+		},
+		"noble_district": {
+			"aldwin_manor": [
 			{
 				"id": "lord_preparing",
 				"text": "Lord preparing to leave",
@@ -70,7 +91,9 @@
 				"cardTemplate": "ShareSecret",
 				"description": "Guards change shifts every hour, leaving brief gaps"
 			}
-		]
+			],
+			"blackwood_estate": []
+		}
 	},
 	"observationTypes": {
 		"Important": {

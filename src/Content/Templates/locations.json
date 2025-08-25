@@ -35,7 +35,7 @@
 		},
 		"domainTags": [ "COMMERCE", "SOCIAL", "PUBLIC" ],
 		"travelHubSpotId": "central_fountain",
-		"locationSpots": [ "central_fountain", "marcus_stall", "north_entrance" ],
+		"locationSpots": [ "central_fountain", "merchant_row", "north_entrance", "north_alcove", "guard_post" ],
 		"connectedTo": [ "courier_office", "copper_kettle_tavern", "noble_district", "merchant_row", "city_gates" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",

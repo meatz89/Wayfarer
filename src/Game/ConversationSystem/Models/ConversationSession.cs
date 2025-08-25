@@ -132,19 +132,29 @@ public class ConversationSession
         // Initialize exchange deck if not already done
         npc.InitializeExchangeDeck();
         
-        // Select today's exchange card (if not already selected)
-        // TODO: Get current day from time system
-        var currentDay = 1; // Placeholder - should get from TimeManager
-        var exchangeCard = npc.GetTodaysExchange(currentDay);
+        // Draw 4 exchange cards from the NPC's exchange deck (as per POC spec)
         var handCards = new List<ConversationCard>();
+        var exchangeCards = new List<ExchangeCard>();
         
-        // Create TWO cards: Accept and Decline
-        if (exchangeCard != null)
+        // Get all available exchange cards from the NPC's deck
+        if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
         {
-            // 1. ACCEPT CARD - The actual exchange offer
-            var acceptCard = new ConversationCard
+            // Take up to 4 cards from the deck
+            exchangeCards = npc.ExchangeDeck.Take(4).ToList();
+            Console.WriteLine($"[DEBUG] Found {npc.ExchangeDeck.Count} exchange cards in {npc.Name}'s deck");
+            foreach (var ec in exchangeCards)
             {
-                Id = exchangeCard.Id + "_accept",
+                Console.WriteLine($"[DEBUG] Exchange: {ec.TemplateType} - Cost: {string.Join(", ", ec.Cost.Select(c => c.GetDisplayText()))} -> Reward: {string.Join(", ", ec.Reward.Select(r => r.GetDisplayText()))}");
+            }
+        }
+        
+        // Create cards for each exchange option
+        foreach (var exchangeCard in exchangeCards)
+        {
+            // Create an exchange card for each option
+            var card = new ConversationCard
+            {
+                Id = exchangeCard.Id,
                 Template = CardTemplateType.Exchange,
                 Context = new CardContext
                 {
@@ -166,18 +176,23 @@ public class ConversationSession
                 ManipulatesObligations = false
             };
             
-            // 2. DECLINE CARD - Pass on the offer
+            handCards.Add(card);
+        }
+        
+        // Always add a DECLINE CARD - Pass on the offer
+        if (exchangeCards.Any())
+        {
             var declineCard = new ConversationCard
             {
-                Id = exchangeCard.Id + "_decline",
+                Id = "decline_exchange",
                 Template = CardTemplateType.Exchange, // Use Exchange template for consistency
                 Context = new CardContext
                 {
                     NPCName = npc.Name,
-                    NPCPersonality = exchangeCard.NPCPersonality,
-                    ExchangeName = "Pass on this offer",
+                    NPCPersonality = npc.PersonalityType,
+                    ExchangeName = "Decline all offers",
                     ExchangeCost = "Nothing",
-                    ExchangeReward = "Walk away"
+                    ExchangeReward = "End exchange"
                 },
                 Type = CardType.Commerce,
                 Persistence = PersistenceType.Persistent,
@@ -189,7 +204,6 @@ public class ConversationSession
                 ManipulatesObligations = false
             };
             
-            handCards.Add(acceptCard);
             handCards.Add(declineCard);
         }
         

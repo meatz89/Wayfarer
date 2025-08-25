@@ -112,16 +112,31 @@
 		}
 	},
 	{
-		"id": "marcus_stall",
-		"name": "Marcus's Stall",
-		"description": "A well-organized merchant stall with goods from across the region.",
+		"id": "merchant_row",
+		"name": "Merchant Row",
+		"description": "A row of merchant stalls with goods from across the region.",
 		"initialState": "Neat rows of merchandise. Marcus arranges his wares with practiced efficiency.",
 		"locationId": "market_square",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
 		"domainTags": [ "COMMERCE", "TRADE", "GOODS" ],
-		"spotProperties": [ "Public", "MerchantHub", "ViewsMarket", "Commerce" ],
+		"spotProperties": [ "Public", "MerchantHub", "Commercial", "Loud" ],
 		"timeSpecificProperties": {
 			"Afternoon": [ "Loud", "BusyEvening" ]
+		}
+	},
+	{
+		"id": "north_alcove",
+		"name": "North Alcove",
+		"description": "A shaded alcove near the north entrance, perfect for discrete conversations.",
+		"initialState": "A quiet corner away from the main square bustle. Stone benches offer rest.",
+		"locationId": "market_square",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "PRIVATE", "DISCRETE", "QUIET" ],
+		"spotProperties": [ "Discrete", "Quiet", "Shaded" ],
+		"timeSpecificProperties": {
+			"Morning": [ "QuietMorning" ],
+			"Afternoon": [ "Shaded" ],
+			"Evening": [ "Shadowy" ]
 		}
 	},
 	{
@@ -135,6 +150,21 @@
 		"spotProperties": [ "Guarded", "Official", "ViewsMainEntrance", "Checkpoint" ],
 		"timeSpecificProperties": {
 			"Morning": [ "Busy" ],
+			"Evening": [ "Quiet" ]
+		}
+	},
+	{
+		"id": "guard_post",
+		"name": "Guard Post",
+		"description": "The official guard post near the north entrance. Guards monitor traffic here.",
+		"initialState": "Guards in uniform stand watch. Papers are checked methodically.",
+		"locationId": "market_square",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "AUTHORITY", "OFFICIAL", "TENSE" ],
+		"spotProperties": [ "Authority", "Tense", "Guarded", "Official" ],
+		"timeSpecificProperties": {
+			"Morning": [ "Busy" ],
+			"Afternoon": [ "Tense" ],
 			"Evening": [ "Quiet" ]
 		}
 	},

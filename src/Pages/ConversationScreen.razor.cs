@@ -103,7 +103,7 @@ namespace Wayfarer.Pages
             }
             else if (SelectedAction == ActionType.Speak && SelectedCards.Any())
             {
-                LastResult = ConversationManager.ExecuteSpeak(SelectedCards);
+                LastResult = await ConversationManager.ExecuteSpeak(SelectedCards);
                 SelectedCards.Clear();
             }
 

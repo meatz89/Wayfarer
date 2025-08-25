@@ -11,13 +11,13 @@
 		"services": ["Information"],
 		"letterTokenTypes": ["Trust"],
 		"currentState": "DESPERATE",
-		"letterDeadline": 120,
+		"letterDeadline": 73,
 		"urgentLetter": {
 			"id": "elena_refusal",
 			"sender": "elena",
 			"recipient": "lord_blackwood",
 			"weight": 3,
-			"deadlineInMinutes": 120,
+			"deadlineInMinutes": 73,
 			"stakes": "SAFETY",
 			"description": "Marriage refusal to Lord Blackwood"
 		}
@@ -27,7 +27,7 @@
 		"name": "Marcus",
 		"profession": "Merchant",
 		"locationId": "market_square",
-		"spotId": "marcus_stall",
+		"spotId": "merchant_row",
 		"description": "A merchant heading to his stall",
 		"personality": "Businesslike and hurried",
 		"personalityType": "MERCANTILE",

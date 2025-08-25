@@ -166,6 +166,7 @@ public static class ExchangeCardFactory
         string npcId)
     {
         var deck = new List<ExchangeCard>();
+        Console.WriteLine($"[DEBUG ExchangeCardFactory] Creating exchange deck for {npcId} with personality {personality}");
         
         // Add base personality exchanges
         switch (personality)
@@ -199,6 +200,7 @@ public static class ExchangeCardFactory
                     Cost = new() { new ResourceExchange { Type = ResourceType.Attention, Amount = 3 } },
                     Reward = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 8 } }
                 });
+                Console.WriteLine($"[DEBUG ExchangeCardFactory] Added {deck.Count} cards for MERCANTILE personality");
                 break;
                 
             case PersonalityType.DEVOTED:
@@ -258,6 +260,7 @@ public static class ExchangeCardFactory
                 break;
         }
         
+        Console.WriteLine($"[DEBUG ExchangeCardFactory] Final deck for {npcId} has {deck.Count} cards");
         return deck;
     }
     

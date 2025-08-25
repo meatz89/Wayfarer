@@ -116,6 +116,21 @@ public class ConversationCard
     public int MinDepth { get; init; }
 
     /// <summary>
+    /// Override success rate for special cards (null uses calculated rate)
+    /// </summary>
+    public int? SuccessRate { get; init; }
+
+    /// <summary>
+    /// Display name for special cards (null uses template-generated name)
+    /// </summary>
+    public string DisplayName { get; init; }
+
+    /// <summary>
+    /// Description for special cards
+    /// </summary>
+    public string Description { get; init; }
+
+    /// <summary>
     /// Get effective weight considering state rules
     /// </summary>
     public int GetEffectiveWeight(EmotionalState state)
@@ -138,6 +153,14 @@ public class ConversationCard
     /// </summary>
     public int CalculateSuccessChance()
     {
+        // Use override if specified (for special cards like crisis cards)
+        if (SuccessRate.HasValue)
+            return SuccessRate.Value;
+            
+        // Exchange cards always succeed if affordable
+        if (Category == CardCategory.EXCHANGE)
+            return 100;
+            
         var baseChance = 70;
         baseChance -= Weight * 10;
         return Math.Clamp(baseChance, 10, 95);

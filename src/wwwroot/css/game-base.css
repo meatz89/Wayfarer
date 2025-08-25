@@ -5,11 +5,13 @@ body {
     background: linear-gradient(to bottom, #3d3429, #2e2720);
     color: #2c241a;
     min-height: 100vh;
+    font-size: 14px; /* Base font size from mockup */
+    line-height: 1.6;
 }
 
 .main-container, .game-container {
-    width: 100%;
-    margin: 0;
+    max-width: 720px; /* From mockup */
+    margin: 0 auto;
     min-height: 100vh;
     background: #faf4ea;
     box-shadow: 0 0 40px rgba(0,0,0,0.5);
@@ -17,10 +19,10 @@ body {
 
 /* Header */
 .header {
-    background: #2c241a;
+    background: #1a1612; /* Darker header from mockup */
     color: #e8dcc4;
     padding: 10px 20px;
-    border-bottom: 2px solid #5c4a3a;
+    border-bottom: 2px solid #3d3429;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -29,8 +31,9 @@ body {
 .time-bar {
     display: flex;
     justify-content: space-between;
-    font-size: 13px;
+    font-size: 12px; /* Slightly smaller for time bar */
     letter-spacing: 0.5px;
+    align-items: center;
 }
 
 .current-time {
@@ -38,7 +41,7 @@ body {
 }
 
 .deadline-warning {
-    color: #d4a76a;
+    color: #d4704a; /* More urgent color from mockup */
     font-weight: bold;
 }
 
@@ -106,6 +109,8 @@ body {
 /* Content Area */
 .content-area {
     padding: 20px;
+    max-width: 720px;
+    margin: 0 auto;
 }
 
 /* Close button */

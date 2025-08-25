@@ -112,7 +112,8 @@ namespace Wayfarer.Pages
             
             if (location != null)
             {
-                CurrentLocationPath = location.Name;
+                // Build location breadcrumb path based on location name
+                CurrentLocationPath = BuildLocationPath(location.Name);
                 
                 if (spot != null)
                 {
@@ -123,6 +124,49 @@ namespace Wayfarer.Pages
                     }
                 }
             }
+        }
+        
+        private string BuildLocationPath(string locationName)
+        {
+            // Build breadcrumb path based on location patterns
+            var path = new List<string>();
+            
+            // Determine district from location name
+            var locationLower = locationName?.ToLower() ?? "";
+            
+            // Add city/ward level
+            path.Add("Lower Wards");
+            
+            // Add district based on location
+            if (locationLower.Contains("market") || locationLower.Contains("merchant"))
+            {
+                path.Add("Market District");
+            }
+            else if (locationLower.Contains("noble") || locationLower.Contains("lord"))
+            {
+                path.Add("Noble District");
+            }
+            else if (locationLower.Contains("temple") || locationLower.Contains("shrine"))
+            {
+                path.Add("Temple District");
+            }
+            else if (locationLower.Contains("gate") || locationLower.Contains("guard"))
+            {
+                path.Add("Gate District");
+            }
+            else if (locationLower.Contains("river") || locationLower.Contains("dock"))
+            {
+                path.Add("Riverside District");
+            }
+            else if (locationLower.Contains("tavern") || locationLower.Contains("kettle"))
+            {
+                path.Add("Market District"); // Taverns are often in market areas
+            }
+            
+            // Add the specific location
+            path.Add(locationName);
+            
+            return string.Join(" → ", path);
         }
 
         protected async Task NavigateToScreen(ScreenMode newMode)

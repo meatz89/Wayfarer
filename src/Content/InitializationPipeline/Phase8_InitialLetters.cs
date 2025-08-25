@@ -30,7 +30,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             Id = "elena_urgent_meeting",
             RequesterId = "elena",
             RequesterName = "Elena",
-            DeadlineInMinutes = 120,  // 2 hours - URGENT!
+            DeadlineInMinutes = 73,  // 1h 13m - DESPERATE state (< 2 hours with SAFETY stakes)
             Stakes = StakeType.SAFETY,
             Reason = "Family safety matter - urgent letter delivery needed"
         };
@@ -48,34 +48,10 @@ public class Phase8_InitialLetters : IInitializationPhase
                 elena.InitializeCrisisDeck();
                 if (elena.CrisisDeck != null)
                 {
-                    // Add crisis cards for the urgent meeting
-                    var crisisCard = new ConversationCard
+                    // Add the Desperate Promise crisis card per POC requirements
+                    var desperatePromiseCard = new ConversationCard
                     {
-                        Id = "elena_crisis_urgent",
-                        Template = CardTemplateType.UrgentPlea,
-                        Context = new CardContext 
-                        { 
-                            Personality = PersonalityType.DEVOTED,
-                            EmotionalState = EmotionalState.DESPERATE,
-                            UrgencyLevel = 3,
-                            HasDeadline = true,
-                            MinutesUntilDeadline = 120
-                        },
-                        Type = CardType.Trust,
-                        Persistence = PersistenceType.Crisis,
-                        Weight = 5,
-                        BaseComfort = 8,
-                        Category = CardCategory.CRISIS,
-                        IsObservation = false,
-                        CanDeliverLetter = false,
-                        ManipulatesObligations = false
-                    };
-                    elena.CrisisDeck.AddCard(crisisCard);
-                    
-                    // Add another crisis card
-                    var crisisCard2 = new ConversationCard
-                    {
-                        Id = "elena_crisis_plea",
+                        Id = "elena_desperate_promise",
                         Template = CardTemplateType.DesperateRequest,
                         Context = new CardContext 
                         { 
@@ -83,20 +59,24 @@ public class Phase8_InitialLetters : IInitializationPhase
                             EmotionalState = EmotionalState.DESPERATE,
                             UrgencyLevel = 3,
                             HasDeadline = true,
-                            MinutesUntilDeadline = 120
+                            MinutesUntilDeadline = 73
                         },
                         Type = CardType.Trust,
                         Persistence = PersistenceType.Crisis,
-                        Weight = 5,
-                        BaseComfort = 6,
+                        Weight = 5,  // Weight is 5 but costs 0 in DESPERATE state
+                        BaseComfort = 10,  // High comfort value to help reach threshold
                         Category = CardCategory.CRISIS,
                         IsObservation = false,
-                        CanDeliverLetter = false,
-                        ManipulatesObligations = false
+                        // 40% success rate to generate letter immediately per POC
+                        CanDeliverLetter = true,  // This card can generate a letter
+                        ManipulatesObligations = false,
+                        SuccessRate = 40,  // 40% chance to generate letter immediately
+                        DisplayName = "Desperate Promise",
+                        Description = "A desperate plea that might generate a letter immediately"
                     };
-                    elena.CrisisDeck.AddCard(crisisCard2);
+                    elena.CrisisDeck.AddCard(desperatePromiseCard);
                     
-                    Console.WriteLine($"  Added crisis cards to Elena for urgent meeting");
+                    Console.WriteLine($"  Added 'Desperate Promise' crisis card to Elena (40% success for instant letter)");
                 }
             }
         }
@@ -189,7 +169,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             }
 
             Console.WriteLine($"  Added {obligations.Count} initial obligations to player's queue");
-            Console.WriteLine($"  - Elena's meeting request (urgent - not in queue)");
+            Console.WriteLine($"  - Elena's meeting request (73 min deadline - DESPERATE state)");
             Console.WriteLine($"  - Lord Blackwood's urgent letter (pos 2)");
             Console.WriteLine($"  - Marcus's trade deal (pos 3-4)");
             Console.WriteLine($"  - Viktor's security report (pos 5)");

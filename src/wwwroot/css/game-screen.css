@@ -1,9 +1,19 @@
 /* Game Screen - Unified Layout */
 @import url('unified-cards.css');
 
-.game-screen, .main-container {
-    width: 100%;
-    margin: 0;
+.game-screen {
+    max-width: 720px; /* From mockup */
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #faf4ea;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+.main-container {
+    max-width: 720px; /* From mockup */
+    margin: 0 auto;
     min-height: 100vh;
     background: #faf4ea;
     box-shadow: 0 0 40px rgba(0,0,0,0.5);
@@ -20,7 +30,7 @@
 
 /* Player Resources Bar - from mockup */
 .resources-bar {
-    background: #1a1612;
+    background: #1a1612; /* Dark header from mockup */
     color: #e8dcc4;
     padding: 10px 20px;
     border-bottom: 2px solid #3d3429;
@@ -38,59 +48,23 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
+    font-size: 13px; /* Slightly larger for readability */
+}
+
+.resource span {
+    font-size: 11px;
+    color: #a68b6f;
 }
 
 .resource-icon {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     background: #3d3429;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
-    color: #d4a76a;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
-    border: 1px solid #4a3f30;
-}
-
-/* Medieval-styled CSS icons - no Unicode */
-.resource-icon.coins::before {
-    content: "C";
-    color: #d4a76a;
-    font-weight: bold;
-    font-family: 'Georgia', serif;
-    font-size: 13px;
-}
-
-.resource-icon.health {
-    position: relative;
-}
-
-.resource-icon.health::before {
-    content: "+";
-    color: #ff6b6b;
-    font-size: 16px;
-    font-weight: bold;
-    line-height: 1;
-}
-
-.resource-icon.hunger::before {
-    content: "H";
-    color: #c4a684;
-    font-weight: bold;
-    font-family: 'Georgia', serif;
-    font-size: 12px;
-}
-
-.resource-icon.attention::before {
-    content: "A";
-    color: #7a8b5a;
-    font-weight: bold;
-    font-family: 'Georgia', serif;
-    font-size: 12px;
+    font-size: 12px; /* For emoji display */
 }
 
 .resource-value {
@@ -139,7 +113,13 @@
     color: #e8dcc4;
     padding: 8px 20px;
     border-bottom: 2px solid #5c4a3a;
-    font-size: 11px;
+}
+
+.spot-info {
+    font-size: 12px;
+    color: #d4a76a;
+    margin-top: 4px;
+    font-style: italic;
 }
 
 /* Location Header - from mockup */
@@ -157,6 +137,12 @@
     color: #7a6250;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+.location-path span:not(:last-child)::after {
+    content: " →";
+    margin: 0 8px;
+    color: #a68b6f;
 }
 
 .location-name {
@@ -499,41 +485,17 @@
 }
 
 .nav-icon {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     background: #5c4a3a;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
+    font-size: 14px; /* For emoji display */
     color: #d4a76a;
     margin: 0 auto 4px;
     position: relative;
-}
-
-/* Navigation icon styles */
-/* Navigation icons - Medieval styled without Unicode */
-.nav-icon.location::before {
-    content: "L";
-    font-family: 'Georgia', serif;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.nav-icon.obligations::before {
-    content: "O";
-    font-family: 'Georgia', serif;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.nav-icon.travel::before {
-    content: "T";
-    font-family: 'Georgia', serif;
-    font-weight: bold;
-    font-size: 14px;
 }
 
 .nav-button:hover .nav-icon {

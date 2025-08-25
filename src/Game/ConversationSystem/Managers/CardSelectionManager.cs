@@ -108,6 +108,22 @@ public class CardSelectionManager
         // Roll for each card individually
         foreach (var card in selectedCards)
         {
+            // Exchange cards ALWAYS succeed - they're simple trades
+            if (card.Category == CardCategory.EXCHANGE)
+            {
+                results.Add(new SingleCardResult
+                {
+                    Card = card,
+                    Success = true, // Exchanges always succeed if affordable
+                    Comfort = 0, // Exchanges don't generate comfort
+                    Roll = 100, // Not used for exchanges
+                    SuccessChance = 100 // 100% success rate
+                });
+                // Exchanges don't contribute to comfort
+                continue;
+            }
+            
+            // Normal cards use success/failure mechanics
             var successChance = card.CalculateSuccessChance();
             var roll = random.Next(100);
             var success = roll < successChance;
