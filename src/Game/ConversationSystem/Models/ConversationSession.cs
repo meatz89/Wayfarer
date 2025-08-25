@@ -236,17 +236,36 @@ public class ConversationSession
         // Crisis conversations have limited patience
         var basePatience = 3; // Fixed 3 patience for crisis
         
-        // Create crisis deck if needed
-        var deck = npc.CrisisDeck ?? new CardDeck();
+        // Use existing crisis deck or fail if none exists
+        if (npc.CrisisDeck == null || npc.CrisisDeck.RemainingCards == 0)
+        {
+            Console.WriteLine($"[ERROR] StartCrisis: {npc.Name} has no crisis deck or no crisis cards!");
+            // Initialize an empty deck to prevent null reference, but conversation will end immediately
+            npc.CrisisDeck = new CardDeck();
+        }
         
-        // Draw initial hand
+        var deck = npc.CrisisDeck;
+        
+        // Draw initial hand - for crisis, we should draw ALL crisis cards available
         var handCards = new List<ConversationCard>();
-        handCards.AddRange(deck.Draw(2, 0)); // Start with 2 cards at depth 0
+        
+        // Draw all available crisis cards (typically just 1-2)
+        var availableCount = Math.Min(deck.RemainingCards, 5); // Cap at 5 to prevent overflow
+        if (availableCount > 0)
+        {
+            handCards.AddRange(deck.Draw(availableCount, 0)); // Draw all crisis cards
+            Console.WriteLine($"[StartCrisis] Drew {availableCount} crisis cards for {npc.Name}");
+        }
+        else
+        {
+            Console.WriteLine($"[WARNING] StartCrisis: No cards available in {npc.Name}'s crisis deck!");
+        }
         
         // Add observation cards if any
         if (observationCards != null && observationCards.Any())
         {
             handCards.AddRange(observationCards);
+            Console.WriteLine($"[StartCrisis] Added {observationCards.Count} observation cards");
         }
 
         return new ConversationSession
@@ -456,9 +475,23 @@ public class ConversationSession
     /// </summary>
     public bool ShouldEnd()
     {
-        // Check if patience is gone or deck is empty
-        if (CurrentPatience <= 0 || Deck.IsEmpty)
+        // Check if patience is gone
+        if (CurrentPatience <= 0)
             return true;
+            
+        // For crisis conversations (which draw all cards upfront), only check if hand is empty
+        if (Deck.IsCrisis())
+        {
+            // End if no cards left to play
+            if (!HandCards.Any())
+                return true;
+        }
+        else
+        {
+            // For normal conversations, check if deck is empty
+            if (Deck.IsEmpty)
+                return true;
+        }
             
         // HOSTILE state: Allow one final turn to play crisis cards
         if (CurrentState == EmotionalState.HOSTILE)

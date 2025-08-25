@@ -59,7 +59,10 @@ public class Phase8_InitialLetters : IInitializationPhase
                             EmotionalState = EmotionalState.DESPERATE,
                             UrgencyLevel = 3,
                             HasDeadline = true,
-                            MinutesUntilDeadline = 73
+                            MinutesUntilDeadline = 73,
+                            NPCName = "Elena",
+                            // Special context for letter generation
+                            GeneratesLetterOnSuccess = true
                         },
                         Type = CardType.Trust,
                         Persistence = PersistenceType.Crisis,
@@ -67,12 +70,13 @@ public class Phase8_InitialLetters : IInitializationPhase
                         BaseComfort = 10,  // High comfort value to help reach threshold
                         Category = CardCategory.CRISIS,
                         IsObservation = false,
-                        // 40% success rate to generate letter immediately per POC
-                        CanDeliverLetter = true,  // This card can generate a letter
+                        // Note: CanDeliverLetter is for delivering existing letters from queue
+                        // We'll handle letter generation through a special check
+                        CanDeliverLetter = false,  
                         ManipulatesObligations = false,
                         SuccessRate = 40,  // 40% chance to generate letter immediately
                         DisplayName = "Desperate Promise",
-                        Description = "A desperate plea that might generate a letter immediately"
+                        Description = "Elena desperately needs you to deliver a letter to her family"
                     };
                     elena.CrisisDeck.AddCard(desperatePromiseCard);
                     

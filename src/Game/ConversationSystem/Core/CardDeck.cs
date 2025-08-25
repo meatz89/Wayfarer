@@ -625,4 +625,13 @@ public class CardDeck
 
     public int RemainingCards => cards.Count;
     public bool IsEmpty => !cards.Any();
+    
+    /// <summary>
+    /// Check if this is a crisis deck (contains only crisis cards)
+    /// </summary>
+    public bool IsCrisis()
+    {
+        // A crisis deck contains cards with Crisis category or Crisis persistence
+        return cards.Any() && cards.All(c => c.Category == CardCategory.CRISIS || c.Persistence == PersistenceType.Crisis);
+    }
 }

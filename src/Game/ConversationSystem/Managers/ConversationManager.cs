@@ -245,6 +245,39 @@ public class ConversationManager
                 }
             }
             
+            // Handle special crisis card that generates letter on success (e.g., Elena's Desperate Promise)
+            if (card.Context?.GeneratesLetterOnSuccess == true && result.Results.First(r => r.Card == card).Success)
+            {
+                Console.WriteLine($"[ConversationManager] Crisis card {card.Id} succeeded - generating letter!");
+                
+                // Create Elena's urgent letter
+                var urgentLetter = new DeliveryObligation
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    SenderId = currentSession.NPC.ID,
+                    SenderName = currentSession.NPC.Name,
+                    RecipientId = "elena_family", // Elena's family
+                    RecipientName = "Elena's Family",
+                    TokenType = ConnectionType.Trust,
+                    Stakes = StakeType.SAFETY,
+                    DeadlineInMinutes = 120, // 2 hour urgent deadline
+                    Payment = 15, // Good payment for urgent delivery
+                    Tier = TierLevel.T3,
+                    EmotionalWeight = EmotionalWeight.CRITICAL,
+                    Description = $"Urgent letter from {currentSession.NPC.Name} to her family"
+                };
+                
+                // Add to queue
+                queueManager.AddObligation(urgentLetter);
+                messageSystem.AddSystemMessage($"{currentSession.NPC.Name} desperately hands you a letter for her family!", SystemMessageTypes.Success);
+                
+                // Also grant bonus comfort for helping
+                currentSession.CurrentComfort += 5;
+                
+                // Mark letter as generated
+                currentSession.LetterGenerated = true;
+            }
+            
             // Handle letter delivery
             if (card.CanDeliverLetter && result.Results.First(r => r.Card == card).Success)
             {

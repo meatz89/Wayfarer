@@ -102,6 +102,7 @@ public class GameFacade
         _actionGenerator = actionGenerator;
         _observationSystem = observationSystem;
         _observationManager = observationManager;
+        Console.WriteLine($"[GameFacade] Constructor - ObservationSystem null? {observationSystem == null}");
         _bindingObligationSystem = bindingObligationSystem;
         _timeBlockAttentionManager = timeBlockAttentionManager;
         _deckFactory = deckFactory;
@@ -151,10 +152,19 @@ public class GameFacade
 
     private void ProcessTimeAdvancementMinutes(int minutes)
     {
+        Console.WriteLine($"[ProcessTimeAdvancementMinutes] Starting time advancement: {minutes} minutes");
+        
         // Convert to hours for deadline processing
         int hours = minutes / 60;
 
+        // Get time before advancement
+        var timeBefore = _timeManager.GetFormattedTimeDisplay();
+        
         _timeManager.AdvanceTimeMinutes(minutes);
+        
+        // Get time after advancement
+        var timeAfter = _timeManager.GetFormattedTimeDisplay();
+        Console.WriteLine($"[ProcessTimeAdvancementMinutes] Time changed from {timeBefore} to {timeAfter}");
 
         // Update letter deadlines when time advances (even partial hours)
         if (hours > 0)
@@ -704,58 +714,29 @@ public class GameFacade
         Console.WriteLine($"[GetLocationObservations] Looking for observations at {locationId}, spot {currentSpotId}");
         Console.WriteLine($"[GetLocationObservations] ObservationSystem null? {_observationSystem == null}");
         
-        // TEMPORARY FIX: Load observations directly if ObservationSystem is null
-        if (_observationSystem == null)
-        {
-            Console.WriteLine("[GetLocationObservations] ObservationSystem is null, loading observations directly");
-            
-            // Hardcode some observations for testing
-            if (locationId == "market_square" && currentSpotId == "central_fountain")
-            {
-                observations.Add(new ObservationViewModel
-                {
-                    Id = "guards_blocking",
-                    Text = "Guards blocking north road",
-                    Icon = "⚠️",
-                    AttentionCost = 1,
-                    Relevance = "Important",
-                    IsObserved = false
-                });
-                
-                observations.Add(new ObservationViewModel
-                {
-                    Id = "merchant_negotiations",
-                    Text = "Eavesdrop on merchant negotiations",
-                    Icon = "👁️",
-                    AttentionCost = 1,
-                    Relevance = "Normal",
-                    IsObserved = false
-                });
-                
-                Console.WriteLine($"[GetLocationObservations] Added {observations.Count} hardcoded observations");
-            }
-            
-            return observations;
-        }
-        
         // Get observations from ObservationSystem
-        var locationObservations = _observationSystem?.GetObservationsForLocation(locationId);
+        var locationObservations = _observationSystem?.GetObservationsForLocationSpot(locationId, currentSpotId);
         
         Console.WriteLine($"[GetLocationObservations] Got {locationObservations?.Count ?? 0} observations from ObservationSystem");
         
         if (locationObservations != null)
         {
+            // Get current time for filtering
+            var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+            var currentHour = _timeManager.GetCurrentTimeHours();
+            
             // Get NPCs at current spot
-            var currentTime = _timeManager.GetCurrentTimeBlock();
-            var npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpotId, currentTime);
+            var npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpotId, currentTimeBlock);
             var npcIdsAtCurrentSpot = npcsAtCurrentSpot.Select(n => n.ID).ToHashSet();
             
             foreach (var obs in locationObservations)
             {
-                // Filter by spot - only show observations for the current spot
-                if (!string.IsNullOrEmpty(obs.SpotId) && obs.SpotId != currentSpotId)
+                // Apply time-based filtering for specific observations
+                bool shouldDisplay = ShouldDisplayObservation(obs, currentTimeBlock, currentHour);
+                if (!shouldDisplay)
                 {
-                    continue; // Skip observations for other spots
+                    Console.WriteLine($"[GetLocationObservations] Skipping observation {obs.Id} - not visible at current time");
+                    continue;
                 }
                 
                 // Filter out observations about NPCs not at current spot
@@ -797,6 +778,18 @@ public class GameFacade
                 return $"→ {npcs}";
         }
         return "";
+    }
+    
+    private bool ShouldDisplayObservation(Observation obs, TimeBlocks currentTimeBlock, int currentHour)
+    {
+        // Special handling for "guards_blocking" observation - only show in Afternoon
+        if (obs.Id == "guards_blocking" || obs.Id == "guards_north")
+        {
+            return currentTimeBlock == TimeBlocks.Afternoon;
+        }
+        
+        // For other observations, always display them (unless we add more time-based logic)
+        return true;
     }
     
     private List<AreaWithinLocationViewModel> GetAreasWithinLocation(Location location, LocationSpot currentSpot)
@@ -1459,6 +1452,7 @@ public class GameFacade
         // Calculate costs
         int staminaCost = _travelManager.CalculateStaminaCost(route);
         int timeCost = route.GetActualTimeCost();
+        Console.WriteLine($"[ExecuteTravel] Time cost for route {route.Id}: {timeCost} minutes (TravelTimeMinutes: {route.TravelTimeMinutes})");
 
         // Check resources
         if (player.Stamina < staminaCost)
@@ -1482,7 +1476,9 @@ public class GameFacade
         // Execute travel
         player.SpendStamina(staminaCost);
         player.SpendMoney(route.BaseCoinCost);
+        Console.WriteLine($"[ExecuteTravel] About to advance time by {timeCost} minutes");
         ProcessTimeAdvancementMinutes(timeCost); // timeCost is in MINUTES from route.TravelTimeMinutes
+        Console.WriteLine($"[ExecuteTravel] Time advancement complete");
 
         // Get the destination spot
         Console.WriteLine($"[ExecuteTravel] Looking for destination spot: {route.DestinationLocationSpot}");
@@ -1932,7 +1928,7 @@ public class GameFacade
             // Find the observation
             var currentLocation = GetCurrentLocation();
             var currentSpot = GetCurrentLocationSpot();
-            var availableObservations = _observationSystem.GetObservationsForLocation(currentLocation.Id);
+            var availableObservations = _observationSystem.GetObservationsForLocationSpot(currentLocation.Id, currentSpot.SpotID);
             var observation = availableObservations.FirstOrDefault(obs => obs.Id == observationId);
             
             if (observation == null)
