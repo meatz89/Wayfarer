@@ -109,12 +109,12 @@
             </button>
         </div>
     </div>
+    
+    @if (LoadingStateService != null)
+    {
+        <LoadingIndicator IsVisible="@LoadingStateService.IsLoading"
+                          Message="@LoadingStateService.Message"
+                          ShowProgress="true"
+                          Progress="@LoadingStateService.Progress" />
+    }
 </div>
-
-@if (LoadingStateService != null)
-{
-    <LoadingIndicator IsVisible="@LoadingStateService.IsLoading"
-                      Message="@LoadingStateService.Message"
-                      ShowProgress="true"
-                      Progress="@LoadingStateService.Progress" />
-}
