@@ -55,29 +55,41 @@
     border: 1px solid #4a3f30;
 }
 
-/* Define icons without emoji - using pseudo-elements properly */
+/* Medieval-styled CSS icons - no Unicode */
 .resource-icon.coins::before {
     content: "C";
     color: #d4a76a;
     font-weight: bold;
+    font-family: 'Georgia', serif;
+    font-size: 13px;
+}
+
+.resource-icon.health {
+    position: relative;
 }
 
 .resource-icon.health::before {
-    content: "♥";
+    content: "+";
     color: #ff6b6b;
-    font-size: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1;
 }
 
 .resource-icon.hunger::before {
-    content: "B";
+    content: "H";
     color: #c4a684;
     font-weight: bold;
+    font-family: 'Georgia', serif;
+    font-size: 12px;
 }
 
 .resource-icon.attention::before {
-    content: "◉";
+    content: "A";
     color: #7a8b5a;
-    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Georgia', serif;
+    font-size: 12px;
 }
 
 .resource-value {
@@ -532,19 +544,26 @@
 }
 
 /* Navigation icon styles */
+/* Navigation icons - Medieval styled without Unicode */
 .nav-icon.location::before {
     content: "L";
+    font-family: 'Georgia', serif;
     font-weight: bold;
+    font-size: 14px;
 }
 
-.nav-icon.letters::before {
-    content: "M";
+.nav-icon.obligations::before {
+    content: "O";
+    font-family: 'Georgia', serif;
     font-weight: bold;
+    font-size: 14px;
 }
 
 .nav-icon.travel::before {
     content: "T";
+    font-family: 'Georgia', serif;
     font-weight: bold;
+    font-size: 14px;
 }
 
 .nav-button:hover .nav-icon {
