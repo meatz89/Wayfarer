@@ -48,8 +48,21 @@ public class Phase3_NPCDependents : IInitializationPhase
                 // Initialize conversation deck for each NPC
                 npc.InitializeConversationDeck(deckFactory);
                 
+                // Debug: Check personality BEFORE initializing exchange deck
+                Console.WriteLine($"[Phase3] NPC {npc.Name} (ID: {npc.ID}) has PersonalityType: {npc.PersonalityType}");
+                
                 // Also initialize exchange deck (lazy init, but do it here for consistency)
                 npc.InitializeExchangeDeck();
+                
+                // Debug: Check exchange deck contents
+                if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
+                {
+                    Console.WriteLine($"[Phase3] Exchange deck for {npc.Name} contains {npc.ExchangeDeck.Count} cards:");
+                    foreach (var card in npc.ExchangeDeck)
+                    {
+                        Console.WriteLine($"  - {card.TemplateType} (Personality: {card.NPCPersonality})");
+                    }
+                }
                 
                 // Note: Crisis cards are added later in Phase8 when meeting obligations are created
                 // This ensures proper initialization order

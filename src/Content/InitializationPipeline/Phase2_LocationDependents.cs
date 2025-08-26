@@ -163,8 +163,8 @@ public class Phase2_LocationDependents : IInitializationPhase
 
         if (!File.Exists(npcsPath))
         {
-            Console.WriteLine("INFO: npcs.json not found, creating default NPCs");
-            return;
+            // NO FALLBACKS - crash if NPCs file is missing
+            throw new FileNotFoundException($"npcs.json is required but not found at {npcsPath}");
         }
 
         try
@@ -173,63 +173,55 @@ public class Phase2_LocationDependents : IInitializationPhase
 
             if (npcDTOs == null || !npcDTOs.Any())
             {
-                Console.WriteLine("WARNING: No NPCs found in npcs.json, creating defaults");
-                return;
+                // NO FALLBACKS - crash if no NPCs found
+                throw new InvalidOperationException("npcs.json exists but contains no NPCs - NPCs are required for game initialization");
             }
 
-            NPCFactory npcFactory = new NPCFactory();
             List<Location> locations = context.GameWorld.WorldState.locations;
 
             foreach (NPCDTO dto in npcDTOs)
             {
-                // Verify location exists
-                Location? location = locations.FirstOrDefault(l => l.Id == dto.LocationId);
-                if (location == null)
+                try
                 {
-                    context.Warnings.Add($"NPC {dto.Id} references unknown location {dto.LocationId}");
-                    continue;
-                }
-
-                // Parse profession
-                if (!Enum.TryParse<Professions>(dto.Profession, true, out Professions profession))
-                {
-                    profession = Professions.Merchant;
-                    context.Warnings.Add($"Invalid profession '{dto.Profession}' for {dto.Id}, defaulting to Merchant");
-                }
-
-                // Parse letter token types
-                List<ConnectionType> tokenTypes = new List<ConnectionType>();
-                foreach (string tokenStr in dto.LetterTokenTypes ?? new List<string> { "Common" })
-                {
-                    if (Enum.TryParse<ConnectionType>(tokenStr, true, out ConnectionType tokenType))
+                    // Verify location exists - CRASH if invalid
+                    Location? location = locations.FirstOrDefault(l => l.Id == dto.LocationId);
+                    if (location == null)
                     {
-                        tokenTypes.Add(tokenType);
+                        throw new InvalidOperationException($"NPC {dto.Id} references unknown location {dto.LocationId} - fix npcs.json");
                     }
+
+                    // Convert DTO to JSON string for NPCParser
+                    string npcJson = System.Text.Json.JsonSerializer.Serialize(dto, new System.Text.Json.JsonSerializerOptions 
+                    { 
+                        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                        WriteIndented = true
+                    });
+
+                    Console.WriteLine($"[LoadNPCs] Parsing NPC {dto.Id} with JSON: {npcJson}");
+
+                    // Use NPCParser to create NPC - will crash if PersonalityType missing
+                    NPC npc = NPCParser.ParseNPC(npcJson);
+
+                    // Validate parsed NPC has valid location reference
+                    if (npc.Location != dto.LocationId)
+                    {
+                        throw new InvalidOperationException($"NPCParser returned NPC with mismatched location: expected {dto.LocationId}, got {npc.Location}");
+                    }
+
+                    // Add to both collections
+                    context.GameWorld.WorldState.NPCs.Add(npc);
+                    context.GameWorld.NPCs.Add(npc); // Also add to GameWorld.NPCs for conversation system
+                    
+                    Console.WriteLine($"  Loaded NPC: {npc.Name} ({npc.ID}) at {npc.Location} with PersonalityType: {npc.PersonalityType}");
                 }
-
-                // Create NPC using ID-based method
-                NPC npc = npcFactory.CreateNPCFromIds(
-                    dto.Id,
-                    dto.Name,
-                    dto.LocationId,
-                    locations,
-                    profession,
-                    dto.SpotId,
-                    dto.Role ?? profession.ToString(),
-                    dto.Description ?? $"A {profession} in {location.Name}",
-                    new List<ServiceTypes>(), // Services can be added later
-                    tokenTypes,
-                    dto.Tier
-                );
-
-                // Token types already set during creation
-
-                context.GameWorld.WorldState.NPCs.Add(npc);
-                context.GameWorld.NPCs.Add(npc); // Also add to GameWorld.NPCs for conversation system
-                Console.WriteLine($"  Loaded NPC: {npc.Name} ({npc.ID}) at {npc.Location}");
+                catch (Exception ex)
+                {
+                    // DON'T CATCH - let individual NPC failures crash the entire loading
+                    throw new InvalidOperationException($"Failed to load NPC {dto.Id}: {ex.Message}", ex);
+                }
             }
 
-            Console.WriteLine($"Loaded {context.GameWorld.WorldState.NPCs.Count} NPCs");
+            Console.WriteLine($"Successfully loaded {context.GameWorld.WorldState.NPCs.Count} NPCs using NPCParser");
         }
         catch (ContentValidationException ex)
         {
@@ -237,13 +229,15 @@ public class Phase2_LocationDependents : IInitializationPhase
             foreach (ValidationError error in ex.Errors)
             {
                 Console.WriteLine($"  - {error.Message}");
-                context.Errors.Add($"NPC validation: {error.Message}");
             }
+            // DON'T ADD TO CONTEXT.ERRORS - let it crash
+            throw new InvalidOperationException($"NPC validation failed - fix npcs.json", ex);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Failed to load NPCs: {ex.Message}");
-            context.Errors.Add($"Failed to load NPCs: {ex.Message}");
+            // DON'T ADD TO CONTEXT.ERRORS - let it crash  
+            throw;
         }
     }
 }

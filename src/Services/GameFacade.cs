@@ -2992,27 +2992,6 @@ public class GameFacade
     // ========== NPC & RELATIONSHIPS ==========
 
 
-    public List<NPCWithOffersViewModel> GetNPCsWithOffers()
-    {
-        Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocationSpot == null) return new List<NPCWithOffersViewModel>();
-
-        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        Location location = _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
-        List<NPC> currentNPCs = _npcRepository.GetNPCsForLocationAndTime(location.Id, currentTime);
-
-        return currentNPCs.Select(npc => new NPCWithOffersViewModel
-        {
-            NPCId = npc.ID,
-            NPCName = npc.Name,
-            Role = npc.Role,
-            HasDirectOfferAvailable = _connectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID),
-            PendingOfferCount = 0, // Legacy offer system removed
-            IsAvailable = npc.IsAvailable(currentTime)
-        })
-        .Where(npc => npc.HasDirectOfferAvailable || npc.PendingOfferCount > 0)
-        .ToList();
-    }
 
     private bool CheckForConflicts(StandingObligation obligation, List<StandingObligation> allObligations)
     {

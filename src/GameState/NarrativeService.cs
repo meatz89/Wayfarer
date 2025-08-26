@@ -236,23 +236,6 @@ public class NarrativeService
 
 
     /// <summary>
-    /// Generate narrative for network unlock (NPC introduction)
-    /// Returns: array of narrative messages for the introduction scene
-    /// </summary>
-    public string[] GenerateNetworkUnlockNarrative(string unlockerNpcId, string unlockedNpcId, string introductionText)
-    {
-        NPC unlocker = _npcRepository.GetById(unlockerNpcId);
-        NPC unlocked = _npcRepository.GetById(unlockedNpcId);
-
-        if (unlocker == null || unlocked == null) return new string[0];
-
-        return new[]
-        {
-                $"{unlocker.Name} pulls you aside for a private conversation.",
-                $"\"{introductionText}\"",
-                $"🤝 You've been introduced to {unlocked.Name}!"
-            };
-    }
 
     // Helper methods
 

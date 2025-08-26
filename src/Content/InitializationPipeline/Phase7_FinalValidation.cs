@@ -133,23 +133,10 @@ public class Phase7_FinalValidation : IInitializationPhase
         }
 
 
-        // Create missing NPCs
-        NPCFactory npcFactory = new NPCFactory();
+        // NO FALLBACKS - crash if NPCs are missing
         foreach (string missingId in missingNPCs)
         {
-            // Determine a reasonable location for the NPC
-            Location? location = gameWorld.WorldState.locations.FirstOrDefault();
-            if (location == null) continue;
-
-            NPC dummyNPC = npcFactory.CreateMinimalNPC(missingId, location.Id);
-            dummyNPC.Profession = Professions.Merchant;
-            dummyNPC.LetterTokenTypes = new List<ConnectionType> { ConnectionType.Trust, ConnectionType.Trust };
-
-            gameWorld.WorldState.NPCs.Add(dummyNPC);
-            npcIds.Add(missingId);
-            createdDummies.Add($"NPC: {missingId} at {location.Id} - REFERENCED BUT NOT DEFINED IN JSON");
-            Console.WriteLine($"  ⚠️ Created dummy NPC: {missingId} at {location.Id}");
-            Console.Error.WriteLine($"CONTENT ERROR: Missing NPC definition for '{missingId}'");
+            throw new InvalidOperationException($"NPC '{missingId}' is referenced but not defined in npcs.json - add NPC definition to content files");
         }
     }
 

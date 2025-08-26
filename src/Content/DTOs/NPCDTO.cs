@@ -13,6 +13,7 @@ public class NPCDTO
     public string SpotId { get; set; }
     public string Description { get; set; }
     public string Personality { get; set; }
+    public string PersonalityType { get; set; }
     public List<string> Services { get; set; } = new List<string>();
     public List<string> LetterTokenTypes { get; set; } = new List<string>();
     public string Role { get; set; }

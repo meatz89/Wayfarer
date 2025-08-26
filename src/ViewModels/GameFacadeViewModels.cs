@@ -227,15 +227,6 @@ public List<ServiceTypes> AvailableServices { get; set; }
 public List<string> AvailableNPCs { get; set; }
 }
 
-public class NPCWithOffersViewModel
-{
-public string NPCId { get; set; }
-public string NPCName { get; set; }
-public string Role { get; set; }
-public bool HasDirectOfferAvailable { get; set; }
-public int PendingOfferCount { get; set; }
-public bool IsAvailable { get; set; }
-}
 
 public class NPCRelationshipViewModel
 {

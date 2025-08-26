@@ -21,11 +21,9 @@ public static class ServiceConfiguration
         // Register factories for reference-safe content creation
         services.AddSingleton<LocationFactory>();
         services.AddSingleton<LocationSpotFactory>();
-        services.AddSingleton<NPCFactory>();
         services.AddSingleton<ItemFactory>();
         services.AddSingleton<RouteFactory>();
         services.AddSingleton<RouteDiscoveryFactory>();
-        services.AddSingleton<NetworkUnlockFactory>();
         services.AddSingleton<StandingObligationFactory>();
 
         // Register GameWorld using static GameWorldInitializer
@@ -54,7 +52,6 @@ public static class ServiceConfiguration
         services.AddSingleton<RouteRepository>();
         services.AddSingleton<StandingObligationRepository>();
         services.AddSingleton<RouteDiscoveryRepository>();
-        services.AddSingleton<NetworkUnlockRepository>();
 
 
         services.AddSingleton<LocationSystem>();
@@ -103,9 +100,7 @@ public static class ServiceConfiguration
         services.AddSingleton<AccessRequirementChecker>();
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<RouteDiscoveryManager>();
-        services.AddSingleton<NetworkUnlockManager>();
         services.AddSingleton<SpecialLetterHandler>();
-        services.AddSingleton<NetworkReferralService>();
         services.AddSingleton<DailyActivitiesManager>();
 
         // Attention management

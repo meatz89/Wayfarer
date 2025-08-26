@@ -116,11 +116,14 @@ public class ConversationManager
             return available; // Other types are LOCKED
         }
         
-        // Check for exchange deck
-        npc.InitializeExchangeDeck();
-        if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
+        // Check for exchange deck - ONLY MERCANTILE NPCs have exchanges
+        if (npc.PersonalityType == PersonalityType.MERCANTILE)
         {
-            available.Add(ConversationType.QuickExchange);
+            npc.InitializeExchangeDeck();
+            if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
+            {
+                available.Add(ConversationType.QuickExchange);
+            }
         }
         
         // Check for standard conversation deck

@@ -238,7 +238,12 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5007\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5008\" dotnet run)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5008\" dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://127.0.0.1:5051\" dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://127.0.0.1:5051\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://127.0.0.1:5052\" dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://127.0.0.1:5053\" timeout 20 dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://127.0.0.1:5054\" dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://127.0.0.1:5055\" dotnet run --no-build)",
+      "Bash(/mnt/c/git/wayfarer/test-exchange-availability.sh:*)"
     ],
     "deny": []
   }

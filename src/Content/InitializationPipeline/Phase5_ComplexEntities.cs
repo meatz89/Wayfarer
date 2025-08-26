@@ -5,7 +5,7 @@ using System.Linq;
 
 /// <summary>
 /// Phase 5: Load complex entities that may have multiple dependencies.
-/// This includes: Standing Obligations, Network Unlocks, Route Discovery
+/// This includes: Standing Obligations, Route Discovery
 /// </summary>
 public class Phase5_ComplexEntities : IInitializationPhase
 {
@@ -18,10 +18,7 @@ public class Phase5_ComplexEntities : IInitializationPhase
         // 1. Load Standing Obligations (depends on NPCs)
         LoadStandingObligations(context);
 
-        // 2. Load Network Unlocks (depends on NPCs)
-        LoadNetworkUnlocks(context);
-
-        // 3. Load Route Discovery (depends on Routes and NPCs)
+        // 2. Load Route Discovery (depends on Routes and NPCs)
         LoadRouteDiscovery(context);
     }
 
@@ -88,71 +85,6 @@ public class Phase5_ComplexEntities : IInitializationPhase
     }
 
 
-    private void LoadNetworkUnlocks(InitializationContext context)
-    {
-        string unlocksPath = Path.Combine(context.ContentPath, "Progression", "progression_unlocks.json");
-
-        if (!File.Exists(unlocksPath))
-        {
-            Console.WriteLine("INFO: progression_unlocks.json not found, no network unlocks loaded");
-            return;
-        }
-
-        List<NetworkUnlockDTO> unlockDTOs = context.ContentLoader.LoadValidatedContent<List<NetworkUnlockDTO>>(unlocksPath);
-
-        if (unlockDTOs == null || !unlockDTOs.Any())
-        {
-            Console.WriteLine("INFO: No network unlocks found");
-            return;
-        }
-
-        NetworkUnlockFactory unlockFactory = new NetworkUnlockFactory();
-
-        foreach (NetworkUnlockDTO dto in unlockDTOs)
-        {
-            try
-            {
-                // Store references for Phase 6
-                context.SharedData[$"unlock_{dto.Id}_unlocker"] = dto.UnlockerNpcId;
-                foreach (NetworkUnlockTargetDTO target in dto.Unlocks ?? new List<NetworkUnlockTargetDTO>())
-                {
-                    context.SharedData[$"unlock_{dto.Id}_target_{target.NpcId}"] = target.NpcId;
-                }
-
-                // Create unlock targets
-                List<NetworkUnlockTarget> targets = new List<NetworkUnlockTarget>();
-                foreach (NetworkUnlockTargetDTO targetDTO in dto.Unlocks ?? new List<NetworkUnlockTargetDTO>())
-                {
-                    NetworkUnlockTarget target = new NetworkUnlockTarget
-                    {
-                        NpcId = targetDTO.NpcId,
-                        IntroductionText = targetDTO.IntroductionText ?? "You've been introduced."
-                    };
-                    targets.Add(target);
-                }
-
-                // Create network unlock
-                List<(string NpcId, string IntroductionText)> targetDefinitions = targets.Select(t => (t.NpcId, t.IntroductionText)).ToList();
-                NetworkUnlock unlock = unlockFactory.CreateNetworkUnlockFromIds(
-                    dto.Id,
-                    dto.UnlockerNpcId,
-                    dto.TokensRequired,
-                    dto.UnlockDescription ?? $"Unlock connections through {dto.UnlockerNpcId}",
-                    targetDefinitions,
-                    context.GameWorld.WorldState.NPCs
-                );
-
-                context.GameWorld.WorldState.NetworkUnlocks.Add(unlock);
-                Console.WriteLine($"  Loaded network unlock: {unlock.Id} via {dto.UnlockerNpcId}");
-            }
-            catch (Exception ex)
-            {
-                context.Warnings.Add($"Failed to create network unlock {dto.Id}: {ex.Message}");
-            }
-        }
-
-        Console.WriteLine($"Loaded {context.GameWorld.WorldState.NetworkUnlocks.Count} network unlocks");
-    }
 
     private void LoadRouteDiscovery(InitializationContext context)
     {

@@ -44,8 +44,6 @@
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
 
-    // Network tracking
-    public List<string> UnlockedNPCIds { get; set; } = new List<string>();
 
     public bool IsInitialized { get; set; } = false;
 

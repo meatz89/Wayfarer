@@ -442,28 +442,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         };
     }
 
-    /// <summary>
-    /// Show a direct letter offer from an NPC
-    /// </summary>
-    public void ShowLetterOfferForNPC(string npcId)
-    {
-        // Get letter board offers and find the one from this NPC
-        LetterBoardViewModel letterBoard = GameFacade.GetLetterBoard();
-        List<NPCWithOffersViewModel> npcsWithOffers = GameFacade.GetNPCsWithOffers();
-        NPCWithOffersViewModel? npcWithOffer = npcsWithOffers.FirstOrDefault(n => n.NPCId == npcId);
-
-        if (npcWithOffer != null && letterBoard.IsAvailable && letterBoard.Offers != null)
-        {
-            LetterOfferViewModel? offer = letterBoard.Offers.FirstOrDefault(o => o.SenderName == npcWithOffer.NPCName);
-            if (offer != null)
-            {
-                CurrentLetterOffer = offer;
-                CurrentNPCOfferId = npcId;
-                ShowLetterOfferDialog = true;
-                StateHasChanged();
-            }
-        }
-    }
 
     /// <summary>
     /// Accept a letter offer from an NPC by offer ID
@@ -598,32 +576,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         };
     }
 
-    // Helper method to get NPC by ID for backward compatibility
-    public NPC GetNPCById(string npcId)
-    {
-        // Create a stub NPC for the dialog using data from facade
-        List<NPCWithOffersViewModel> npcsWithOffers = GameFacade.GetNPCsWithOffers();
-        NPCWithOffersViewModel? npcData = npcsWithOffers.FirstOrDefault(n => n.NPCId == npcId);
-
-        if (npcData != null)
-        {
-            return new NPC
-            {
-                ID = npcId,
-                Name = npcData.NPCName,
-                Role = npcData.Role,
-                SpotId = CurrentSpot?.SpotID
-            };
-        }
-
-        // Fallback
-        return new NPC
-        {
-            ID = npcId,
-            Name = CurrentLetterOffer?.SenderName ?? "Unknown",
-            SpotId = CurrentSpot?.SpotID
-        };
-    }
 
     public void Dispose()
     {

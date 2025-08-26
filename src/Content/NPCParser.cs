@@ -36,7 +36,7 @@ public static class NPCParser
     string personalityDescription = GetStringProperty(root, "personality", "");
     npc.PersonalityDescription = personalityDescription;
     
-    // Parse personalityType directly from JSON if available
+    // Parse personalityType directly from JSON - NO FALLBACKS
     string personalityTypeStr = GetStringProperty(root, "personalityType", "");
     Console.WriteLine($"[NPCParser] Parsing NPC '{npc.Name}' - personalityType from JSON: '{personalityTypeStr}'");
     
@@ -47,9 +47,8 @@ public static class NPCParser
     }
     else
     {
-        // Fall back to mapping service if not explicitly specified
-        npc.PersonalityType = PersonalityMappingService.GetPersonalityType(personalityDescription);
-        Console.WriteLine($"[NPCParser] Using mapping service fallback for {npc.Name}: {npc.PersonalityType}");
+        // NO FALLBACKS - crash if personalityType not in JSON
+        throw new InvalidOperationException($"NPC '{npc.Name}' (ID: {npc.ID}) is missing 'personalityType' in JSON or has invalid value '{personalityTypeStr}' - add valid personalityType to npcs.json");
     }
 
     // NPCs are always available - no schedule parsing needed
@@ -91,6 +90,8 @@ private static Professions MapProfessionFromJson(string jsonProfession)
         "Innkeeper" => Professions.Innkeeper,
         "Soldier" => Professions.Soldier,
         "Scholar" => Professions.Scholar,
+        "Scribe" => Professions.Scribe,
+        "Noble" => Professions.Noble,
         _ => throw new ArgumentException($"Unknown profession in JSON: '{jsonProfession}' - add to profession mapping")
     };
 }

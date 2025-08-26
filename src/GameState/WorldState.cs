@@ -27,7 +27,6 @@ public class WorldState
 
     // Progression tracking
     public List<RouteDiscovery> RouteDiscoveries { get; set; } = new List<RouteDiscovery>();
-    public List<NetworkUnlock> NetworkUnlocks { get; set; } = new List<NetworkUnlock>();
 
 
 

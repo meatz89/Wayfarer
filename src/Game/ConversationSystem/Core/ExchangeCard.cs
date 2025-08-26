@@ -180,7 +180,7 @@ public class ExchangeCard
 public static class ExchangeCardFactory
 {
     /// <summary>
-    /// Create exchange deck considering NPC personality and relationship context
+    /// Create exchange deck - ONLY for MERCANTILE personality NPCs
     /// </summary>
     public static List<ExchangeCard> CreateExchangeDeck(
         PersonalityType personality, 
@@ -189,7 +189,7 @@ public static class ExchangeCardFactory
         var deck = new List<ExchangeCard>();
         Console.WriteLine($"[DEBUG ExchangeCardFactory] Creating exchange deck for {npcId} with personality {personality}");
         
-        // Add base personality exchanges
+        // ONLY MERCANTILE NPCs have exchange decks
         switch (personality)
         {
             case PersonalityType.MERCANTILE:
@@ -233,87 +233,10 @@ public static class ExchangeCardFactory
                 Console.WriteLine($"[DEBUG ExchangeCardFactory] Added {deck.Count} cards for MERCANTILE personality");
                 break;
                 
-            case PersonalityType.DEVOTED:
-                // Clergy focus on trust and healing
-                deck.Add(new ExchangeCard
-                {
-                    Id = $"{npcId}_blessing",
-                    TemplateType = "healing",
-                    NPCPersonality = personality,
-                    Cost = new() { new ResourceExchange { Type = ResourceType.TrustToken, Amount = 1 } },
-                    Reward = new() { new ResourceExchange { Type = ResourceType.Health, Amount = 2 } }
-                });
-                deck.Add(new ExchangeCard
-                {
-                    Id = $"{npcId}_charity",
-                    TemplateType = "food",
-                    NPCPersonality = personality,
-                    Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 1 } },
-                    Reward = new() { new ResourceExchange { Type = ResourceType.Hunger, Amount = 0, IsAbsolute = true } }
-                });
-                break;
-                
-            case PersonalityType.STEADFAST:
-                // Check if this is an innkeeper (special case for Bertram)
-                if (npcId == "bertram")
-                {
-                    // Innkeeper offers lodging/rest exchange
-                    deck.Add(new ExchangeCard
-                    {
-                        Id = $"{npcId}_lodging",
-                        TemplateType = "lodging",
-                        NPCPersonality = personality,
-                        Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 5 } },
-                        Reward = new() { new ResourceExchange { Type = ResourceType.Attention, Amount = 7, IsAbsolute = true } }
-                    });
-                    
-                    // Innkeepers can also offer simple food
-                    deck.Add(new ExchangeCard
-                    {
-                        Id = $"{npcId}_meal",
-                        TemplateType = "food",
-                        NPCPersonality = personality,
-                        Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 2 } },
-                        Reward = new() { new ResourceExchange { Type = ResourceType.Hunger, Amount = 0, IsAbsolute = true } }
-                    });
-                }
-                else
-                {
-                    // Regular workers offer labor exchanges
-                    deck.Add(new ExchangeCard
-                    {
-                        Id = $"{npcId}_labor",
-                        TemplateType = "work",
-                        NPCPersonality = personality,
-                        Cost = new() { new ResourceExchange { Type = ResourceType.Attention, Amount = 3 } },
-                        Reward = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 8 } }
-                    });
-                }
-                break;
-                
-            case PersonalityType.CUNNING:
-                // Spies trade information
-                deck.Add(new ExchangeCard
-                {
-                    Id = $"{npcId}_information",
-                    TemplateType = "information",
-                    NPCPersonality = personality,
-                    Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 3 } },
-                    Reward = new() { new ResourceExchange { Type = ResourceType.ShadowToken, Amount = 1 } }
-                });
-                break;
-                
-            case PersonalityType.PROUD:
-                // Nobles have expensive but powerful exchanges
-                deck.Add(new ExchangeCard
-                {
-                    Id = $"{npcId}_favor",
-                    TemplateType = "favor",
-                    NPCPersonality = personality,
-                    Cost = new() { new ResourceExchange { Type = ResourceType.StatusToken, Amount = 2 } },
-                    Reward = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 20 } }
-                });
-                break;
+            default:
+                // Only MERCANTILE NPCs have exchange decks - return empty list for all others
+                Console.WriteLine($"[DEBUG ExchangeCardFactory] NPC {npcId} with personality {personality} has no exchange deck (only MERCANTILE has exchanges)");
+                return new List<ExchangeCard>();
         }
         
         Console.WriteLine($"[DEBUG ExchangeCardFactory] Final deck for {npcId} has {deck.Count} cards");
