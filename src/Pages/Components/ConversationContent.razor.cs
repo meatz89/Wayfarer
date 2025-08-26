@@ -10,6 +10,7 @@ namespace Wayfarer.Pages.Components
     {
         [Parameter] public ConversationContext Context { get; set; }
         [Parameter] public EventCallback OnConversationEnd { get; set; }
+        [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 
         [Inject] protected ConversationManager ConversationManager { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
@@ -82,9 +83,15 @@ namespace Wayfarer.Pages.Components
                 // Generate narrative for the action
                 GenerateListenNarrative();
                 
+                // Refresh resources after listen action
+                if (GameScreen != null)
+                {
+                    await GameScreen.RefreshResourceDisplay();
+                }
+                
                 if (Session.ShouldEnd())
                 {
-                    await Task.Delay(1000);
+                    // Remove delay - conversations should end immediately
                     await OnConversationEnd.InvokeAsync();
                 }
             }
@@ -108,9 +115,15 @@ namespace Wayfarer.Pages.Components
                 ProcessSpeakResult(result);
                 SelectedCards.Clear();
                 
+                // Refresh resources after exchange/card play
+                if (GameScreen != null)
+                {
+                    await GameScreen.RefreshResourceDisplay();
+                }
+                
                 if (Session.ShouldEnd())
                 {
-                    await Task.Delay(1000);
+                    // Remove delay - conversations should end immediately
                     await OnConversationEnd.InvokeAsync();
                 }
             }
@@ -445,6 +458,14 @@ namespace Wayfarer.Pages.Components
         protected async Task EndConversation()
         {
             // EndConversation doesn't exist on ConversationManager, just clear the session
+            Session = null;
+            await OnConversationEnd.InvokeAsync();
+        }
+        
+        protected async Task ExitConversation()
+        {
+            // Allow player to manually exit conversation
+            Console.WriteLine("[ConversationContent] Player manually exiting conversation");
             Session = null;
             await OnConversationEnd.InvokeAsync();
         }

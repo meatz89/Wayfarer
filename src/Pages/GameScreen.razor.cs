@@ -95,7 +95,7 @@ namespace Wayfarer.Pages
             Console.WriteLine("[GameScreen] OnInitializedAsync completed");
         }
 
-        protected async Task RefreshResourceDisplay()
+        public async Task RefreshResourceDisplay()
         {
             Console.WriteLine("[GameScreen.RefreshResourceDisplay] Starting...");
             Console.WriteLine($"[GameScreen.RefreshResourceDisplay] GameFacade null? {GameFacade == null}");
@@ -336,6 +336,7 @@ namespace Wayfarer.Pages
         {
             Console.WriteLine("[GameScreen] Conversation ended");
             CurrentConversationContext = null;
+            await RefreshResourceDisplay(); // Refresh resources after conversation
             await NavigateToScreen(ScreenMode.Location);
         }
 
