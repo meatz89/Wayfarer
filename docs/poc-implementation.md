@@ -29,6 +29,26 @@ Player must deliver Elena's urgent letter to Lord Blackwood before he leaves the
 
 Rule: Each location must have exactly one spot with Crossroads trait for travel.
 
+## Work Action Mechanics
+
+Available at Commercial spots only:
+- **Market Square - Merchant Row**: Haul goods for merchants
+- **Copper Kettle - The Bar**: Serve drinks to patrons
+
+Mechanics:
+- Cost: 2 attention
+- Reward: 8 coins
+- Time: Advances one full period (4 hours)
+- Availability: Morning through Evening only
+
+Strategic considerations:
+- Each work action consumes significant time
+- Morning work → Midday (Elena still unavailable)
+- Midday work → Afternoon (Elena now available)
+- Afternoon work → Evening (limited time remains)
+
+With Lord Blackwood leaving at 5 PM, maximum 2 work actions possible while still completing delivery.# Wayfarer POC Implementation - Refined Mechanics
+
 ### Work and Rest Locations
 
 **Work Actions** available at Commercial spots:
@@ -101,21 +121,21 @@ Rule: NPCs never move between spots or locations. Unavailable NPCs cannot be int
 
 ### NPC State Determination
 
-Elena's state determined by deadline:
-- 1h 13m remaining = under 2 hours = **Desperate** state
+Elena's state:
+- **Always Desperate** when facing forced marriage (narrative situation)
+- Deadline approaching intensifies desperation but doesn't create it
+- She's desperate at 2 PM when you meet her, not just at <2 hours
 
 Marcus's state:
-- No active obligations = **Neutral** state always
+- **Eager** during business hours (Morning-Afternoon)
+- **Neutral** during slow hours (Evening)
+- No active crisis = emotionally stable
 
-Desperate state rules:
-- Listen: Draw 2 from conversation deck, inject 1 from crisis deck
-- Speak: Weight limit 3, crisis cards cost 0 weight
-- Listen transitions to Hostile (ends conversation next turn)
+Guard Captain's state:
+- **Tense** during day shift (strict duty hours)
+- **Neutral** during night shift (relaxed patrol)
 
-Neutral state rules:
-- Listen: Draw 2 from conversation deck
-- Speak: Weight limit 3
-- Standard baseline state
+Emotional states reflect narrative reality, not arbitrary timers.
 
 ## Deck Construction Rules
 
@@ -148,38 +168,48 @@ Rest and hospitality services:
 ### Elena's Conversation Deck (20 cards)
 
 **Depth 0-5 cards** (accessible at start):
-- "I understand" - Comfort/Trust, Depth 3, Weight 1, Success: +3 comfort
+- "I understand" - Comfort/Trust, Depth 3, Weight 1, Success: +3 comfort, +1 Trust token
 - "Gentle nod" - Comfort/Trust, Depth 2, Weight 0, Success: +2 comfort
+- "Share sympathy" - Comfort/Trust, Depth 4, Weight 1, Success: +3 comfort, +1 Trust token
 - "Listen actively" - Comfort/Trust, Depth 5, Weight 1, Success: +4 comfort, +1 Trust token
 - "Suggest we wait" - State/Trust, Depth 4, Weight 1, Success: Desperate→Tense
 - "Address past failure" - Burden/Trust, Depth 1, Weight 2, Success: Remove burden, -2 comfort
 
 **Depth 6-10 cards**:
-- "Promise to help" - Comfort/Trust, Depth 7, Weight 2, Success: +5 comfort, +1 Trust token
-- "Share experience" - Comfort/Trust, Depth 8, Weight 2, Success: +6 comfort
+- "Promise to help" - Comfort/Trust, Depth 7, Weight 2, Success: +5 comfort, +2 Trust tokens
+- "Share experience" - Comfort/Trust, Depth 8, Weight 2, Success: +6 comfort, +1 Trust token
 - "Calm reassurance" - State/Trust, Depth 9, Weight 2, Success: Desperate→Neutral
-- "Offer solution" - Comfort/Trust, Depth 10, Weight 2, Success: +7 comfort, +1 Trust token
+- "Offer solution" - Comfort/Trust, Depth 10, Weight 2, Success: +7 comfort, +2 Trust tokens
 
 **Depth 11-15 cards**:
-- "Deep empathy" - Comfort/Trust, Depth 12, Weight 3, Success: +8 comfort, +2 Trust tokens
-- "Solemn vow" - Comfort/Trust, Depth 14, Weight 3, Success: +10 comfort, +2 Trust tokens
+- "Deep empathy" - Comfort/Trust, Depth 12, Weight 3, Success: +8 comfort, +3 Trust tokens
+- "Solemn vow" - Comfort/Trust, Depth 14, Weight 3, Success: +10 comfort, +3 Trust tokens
 - "Open connection" - State/Trust, Depth 13, Weight 2, Success: Any state→Open
 
 **Depth 16-20 cards**:
-- "Perfect understanding" - Comfort/Trust, Depth 17, Weight 3, Success: +12 comfort, +3 Trust tokens
+- "Perfect understanding" - Comfort/Trust, Depth 17, Weight 3, Success: +12 comfort, +4 Trust tokens
 - "Soul connection" - State/Trust, Depth 18, Weight 3, Success: Any state→Connected
+
+Note: Token generation available at all depth levels, increasing with depth.
 
 ### Elena's Letter Deck
 
-- "Urgent Refusal to Lord Blackwood" - Letter/Trust, Depth 8
-  - Eligible: Trust tokens ≥ 1, Desperate state
+- "Desperate Plea to Lord Blackwood" - Letter/Trust, Depth 5
+  - Eligible: Trust tokens ≥ 1, states: Desperate, Tense, or Neutral
   - Success: 4-hour deadline, queue position 2, 10 coins payment
   - Failure: 1-hour deadline, forces queue position 1, 15 coins payment
 
-- "Formal Refusal to Lord Blackwood" - Letter/Trust, Depth 12
-  - Eligible: Trust tokens ≥ 3, Open/Connected state
-  - Success: 8-hour deadline, queue position 3, 8 coins payment
-  - Failure: 2-hour deadline, queue position 2, 10 coins payment
+- "Formal Refusal to Lord Blackwood" - Letter/Trust, Depth 10
+  - Eligible: Trust tokens ≥ 2, states: Open, Connected, or Neutral
+  - Success: 6-hour deadline, queue position 3, 12 coins payment
+  - Failure: 2-hour deadline, queue position 2, 12 coins payment
+
+- "Personal Letter to Lord Blackwood" - Letter/Trust, Depth 15
+  - Eligible: Trust tokens ≥ 4, states: Connected or Open
+  - Success: 8-hour deadline, flexible position, 20 coins payment
+  - Failure: 4-hour deadline, queue position 2, 20 coins payment
+
+Note: Letters available in multiple emotional states for flexibility.
 
 ### Elena's Crisis Deck
 
@@ -205,10 +235,12 @@ Rule: Observations refresh each time period. Once taken, unavailable until next 
 
 ### Observation Decay
 
-Observation cards decay in hand:
-- Fresh (0-2 hours): Full effect
-- Stale (2-6 hours): Half comfort value
+Observation cards have Opportunity persistence:
+- Fresh (0-2 hours): Full effect as written
+- Stale (2-6 hours): Half comfort value, tokens still work
 - Expired (6+ hours): Must discard, unplayable
+
+**Critical Change**: Observation cards do NOT vanish when choosing Listen. They remain in hand and decay naturally over time. This makes observations worth their 1 attention cost as they provide lasting value across multiple conversation turns.
 
 ## Conversation Flow Rules
 
@@ -420,25 +452,5 @@ All text is template-generated from mechanical properties:
 
 **Exchange offers**: [Cost] + [Reward] + [NPC type]
 "3 coins → Hunger = 0" = "Buy fresh bread" (Marcus the merchant)
-
-## Work Action Mechanics
-
-Available at Commercial spots only:
-- **Market Square - Merchant Row**: Haul goods for merchants
-- **Copper Kettle - The Bar**: Serve drinks to patrons
-
-Mechanics:
-- Cost: 2 attention
-- Reward: 8 coins
-- Time: Advances one full period (4 hours)
-- Availability: Morning through Evening only
-
-Strategic considerations:
-- Each work action consumes significant time
-- Morning work → Midday (Elena still unavailable)
-- Midday work → Afternoon (Elena now available)
-- Afternoon work → Evening (limited time remains)
-
-With Lord Blackwood leaving at 5 PM, maximum 2 work actions possible while still completing delivery.# Wayfarer POC Implementation - Refined Mechanics
 
 No pre-written content. Every element generates from mechanical state.

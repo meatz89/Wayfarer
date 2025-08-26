@@ -104,40 +104,65 @@ Nine states that modify Listen/Speak mechanics:
 **NEUTRAL**
 - Listen: Draw 2 from conversation deck
 - Speak: Weight limit 3
+- Letters available: Commerce, routine correspondence
 
 **GUARDED**  
 - Listen: Draw 1 from conversation deck, state→Neutral
 - Speak: Weight limit 2
+- Letters available: None (too suspicious)
 
 **OPEN**
-- Listen: Draw 3 from conversation deck, check letter deck for trust letters
+- Listen: Draw 3 from conversation deck
 - Speak: Weight limit 3
+- Letters available: Trust, Commerce, Status
 
 **TENSE**
 - Listen: Draw 1 from conversation deck, state→Guarded
 - Speak: Weight limit 1
+- Letters available: Shadow, urgent correspondence
 
 **EAGER**
 - Listen: Draw 3 from conversation deck
 - Speak: Weight limit 3
+- Letters available: Commerce, opportunity letters
 
 **OVERWHELMED**
 - Listen: Draw 1 from conversation deck, state→Neutral
 - Speak: Maximum 1 card regardless of weight
+- Letters available: None (can't focus)
 
 **CONNECTED**
-- Listen: Draw 3 from conversation deck, check letter deck for any letters
+- Listen: Draw 3 from conversation deck
 - Speak: Weight limit 4
+- Letters available: ALL letter types
 
 **DESPERATE**
-- Listen: Draw 2 from conversation deck + inject 1 from crisis deck, state→Hostile
+- Listen: Draw 2 from conversation deck + inject 1 from crisis deck
 - Speak: Weight limit 3, crisis cards cost 0 weight
+- Letters available: Trust, Crisis letters
 
 **HOSTILE**
 - Listen: Draw 1 from conversation deck + inject 2 from crisis deck, conversation ends
 - Speak: Only crisis cards playable
+- Letters available: None (conversation ending)
 
-Letter deck "checking" means eligible letters are offered as additional draws if token and state requirements are met.
+Note: NPCs start in states based on their narrative situation, not mechanical timers. A character facing forced marriage would naturally be Desperate or Tense, not Neutral.
+
+### NPC State Determination
+
+Emotional states are determined by:
+- **Narrative Situation**: Primary factor (facing crisis, celebration, loss)
+- **Deadline Pressure**: Intensifies existing state
+- **Relationship Status**: Modified by tokens and past interactions
+- **Time of Day**: Some NPCs have different states at different times
+
+Examples:
+- Character facing forced marriage: Desperate or Tense (regardless of deadline)
+- Merchant during busy hours: Eager
+- Guard on duty: Tense or Neutral depending on shift
+- Character after good news: Open
+
+Deadlines intensify but don't create emotional states. A desperate character becomes more desperate as deadline approaches, but isn't calm just because deadline is hours away.# Wayfarer: Complete Integrated Game Design
 
 ### Patience Calculation
 
@@ -213,9 +238,11 @@ No card type can have effects from another type's pool. A comfort card NEVER cha
 ### Persistence Types
 
 - **Persistent**: Remains in hand if not played
-- **Opportunity**: ALL vanish if Listen chosen
+- **Opportunity**: Remains in hand but gains "Stale" status after 2 hours, unplayable after 6 hours
 - **One-shot**: Removed from deck after playing
 - **Burden**: Cannot vanish, must be resolved
+
+Note: Observation cards are Opportunity type but don't vanish on Listen - they decay over time instead. This makes observations worth their attention cost.
 
 ### Weight System
 
