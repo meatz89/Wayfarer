@@ -36,6 +36,17 @@ public enum PersistenceType
 }
 
 /// <summary>
+/// Card power levels for token-based progression
+/// </summary>
+public enum CardPowerLevel
+{
+    Basic = 0,       // 0 tokens required
+    Intermediate = 3, // 3 tokens required
+    Advanced = 5,    // 5 tokens required  
+    Master = 10      // 10 tokens required
+}
+
+/// <summary>
 /// A single conversation card representing something to say or do.
 /// Cards are the atomic units of conversation.
 /// </summary>
@@ -130,6 +141,16 @@ public class ConversationCard
     /// Description for special cards
     /// </summary>
     public string Description { get; init; }
+    
+    /// <summary>
+    /// Power level determines token requirement for unlocking
+    /// </summary>
+    public CardPowerLevel PowerLevel { get; init; } = CardPowerLevel.Basic;
+    
+    /// <summary>
+    /// Minimum tokens of matching type required to unlock this card
+    /// </summary>
+    public int RequiredTokens => (int)PowerLevel;
 
     /// <summary>
     /// Get effective weight considering state rules
@@ -152,7 +173,7 @@ public class ConversationCard
     /// <summary>
     /// Calculate success chance based on weight and tokens
     /// </summary>
-    public int CalculateSuccessChance()
+    public int CalculateSuccessChance(Dictionary<ConnectionType, int> tokens = null)
     {
         // Use override if specified (for special cards like crisis cards)
         if (SuccessRate.HasValue)
@@ -164,6 +185,14 @@ public class ConversationCard
             
         var baseChance = 70;
         baseChance -= Weight * 10;
+        
+        // Apply linear token bonus: +5% per token of matching type
+        if (tokens != null)
+        {
+            var tokenBonus = tokens.GetValueOrDefault(GetConnectionType(), 0) * 5;
+            baseChance += tokenBonus;
+        }
+        
         return Math.Clamp(baseChance, 10, 95);
     }
 
@@ -196,5 +225,16 @@ public class ConversationCard
             CardCategory.LETTER => "letter",
             _ => "comfort"
         };
+    }
+    
+    /// <summary>
+    /// Check if player has enough tokens to unlock this card
+    /// </summary>
+    public bool IsUnlocked(Dictionary<ConnectionType, int> tokens)
+    {
+        if (tokens == null) return PowerLevel == CardPowerLevel.Basic;
+        
+        var relevantTokens = tokens.GetValueOrDefault(GetConnectionType(), 0);
+        return relevantTokens >= RequiredTokens;
     }
 }

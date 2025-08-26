@@ -54,11 +54,15 @@ Tokens only decrease through explicit betrayal:
 
 ## Attention Economy
 
+Daily allocation of 10 attention (modified by hunger/health):
 - **Observation**: 1 attention - gain temporary conversation card
 - **Standard Conversation**: 2 attention - full emotional system
 - **Quick Exchange**: 0 attention - instant resource trade (merchants only)
-- **Work Action**: 2 attention - convert time to coins
-- **Travel**: 0 attention - costs time periods instead
+- **Work Action**: 2 attention - earn 8 coins, advances one time period
+- **Travel**: 0 attention - costs time based on route
+- **Wait**: 0 attention - pass time strategically
+
+Morning attention refresh = 10 - (hunger/20) - ((100-health)/25)
 
 ## Conversation System
 
@@ -106,7 +110,7 @@ Nine states that modify Listen/Speak mechanics:
 - Speak: Weight limit 2
 
 **OPEN**
-- Listen: Draw 3 from conversation deck, check letter deck for letters
+- Listen: Draw 3 from conversation deck, check letter deck for trust letters
 - Speak: Weight limit 3
 
 **TENSE**
@@ -143,6 +147,11 @@ Base patience determined by NPC personality:
 - Proud: 8 patience base
 - Cunning: 10 patience base
 - Steadfast: 11 patience base
+
+Modified by:
+- Player hunger: -1 patience per 20 hunger
+- Location spot traits: +1 for Private spots, -1 for Public spots
+- Burden cards in NPC deck: -1 per burden card
 
 Each conversation turn costs 1 patience. At 0 patience, conversation ends.
 
@@ -340,7 +349,7 @@ Queue position negotiation:
 ### Letter Properties
 
 Each letter represents an NPC trusting you with their correspondence:
-- **Type**: Trust/Commerce/Status/Shadow/Special Letters (Route Access Permits)
+- **Type**: Trust/Commerce/Status/Shadow/Crisis/Access
 - **Sender**: NPC who trusts you with the letter
 - **Recipient**: NPC to deliver to
 - **Deadline**: Hours until delivery required
@@ -407,13 +416,14 @@ This permanently damages relationships.
 
 - Cost 1 attention at specific spot
 - Receive observation card to hand
-- Card has deadline (observation ages)
+- Card has three decay states
 - Different observations per time period
 
 ### Decay States
 
-(0-5 hours): Full effect as written
-(6+ hours): Must discard, unplayable
+**Fresh** (0-2 hours): Full effect as written
+**Stale** (2-6 hours): Half comfort value
+**Expired** (6+ hours): Must discard, unplayable
 
 Models information becoming outdated.
 
@@ -451,13 +461,15 @@ Six daily periods:
 - Midday (10-14): Peak activity
 - Afternoon (14-18): Social time
 - Evening (18-22): Taverns active
-- Night (22-2): Dangerous
-- Deep Night (2-6): Very dangerous
+- Night (22-2): Dangerous, most shops closed
+- Deep Night (2-6): Very dangerous, city sleeps
 
 Time advances through:
-- Travel (costs periods)
-- Work actions (advance one period)
-- Rest (skip to morning)
+- Travel: Each route costs specific time
+- Work actions: Advance one full period (4 hours)
+- Rest actions: Skip to next morning
+- Wait actions: Choose duration (30 min to full period)
+- Natural progression: Time passes during lengthy activities
 
 ## Location Structure
 
@@ -467,13 +479,57 @@ Region → District → Location → Spot
 
 ### Spot Properties
 
-- **Crossroads**: Enables travel
-- **Commercial**: Enables work
-- **Private**: +1 patience modifier
-- **Public**: -1 patience modifier
+- **Crossroads**: Enables travel to other locations
+- **Commercial**: Enables work actions
+- **Private**: +1 patience modifier in conversations
+- **Public**: -1 patience modifier in conversations  
 - **Discrete**: Hidden from authority
+- **Hospitality**: Offers rest exchanges
 
-Movement between spots is instant and free within a location.
+Movement between spots within a location is instant and free.
+
+## Work and Rest System
+
+### Work Actions
+
+Available at Commercial spots:
+- Cost: 2 attention
+- Reward: 8 coins
+- Time cost: Advances one full period (4 hours)
+- Availability: Morning through Evening only
+
+Creates time→money conversion, allowing recovery from low funds at the cost of deadline pressure.
+
+### Rest Options
+
+**Full Rest** (Hospitality spots):
+- "Stay at Inn" exchange: 5 coins → Sleep until morning
+- Effects: Attention = 10, Hunger = 20, Health +20
+- Time advances to next Morning period
+
+**Quick Rest** (Hospitality spots):
+- "Short Nap" exchange: 2 coins → Rest 2 hours
+- Effects: +3 attention immediately
+- Time advances 2 hours
+
+Creates money→attention conversion, allowing extended play at cost.
+
+### Wait Actions
+
+Strategic time advancement:
+- Cost: 0 attention
+- Options: 30 min, 1 hour, 2 hours, or until next period
+- Use: Waiting for NPC availability or time-specific events
+
+## NPC Availability
+
+NPCs have specific availability windows:
+- **Merchants**: Morning through Evening (shops closed at night)
+- **Tavern NPCs**: Afternoon through Deep Night
+- **Guards**: Always available but different shifts affect state
+- **Nobles**: Midday through Evening only
+
+Missing an NPC's window requires waiting or finding alternatives.
 
 ## Victory Conditions
 
@@ -515,6 +571,6 @@ Every token provides +5% success to its card type with no thresholds or breakpoi
 Each card type and mechanic has exactly one purpose. Comfort cards never change states. State cards never give tokens. Perfect mechanical clarity.
 
 ### Information Decay
-Observations naturally expire through deadline, modeling how information becomes outdated over time.
+Observations naturally expire through three stages (Fresh/Stale/Expired), modeling how information becomes outdated over time.
 
 This is Wayfarer: Where comfort unlocks deeper conversations, trust is earned token by token, and every letter negotiation shapes your journey through a world of mechanical poetry.

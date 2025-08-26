@@ -11,6 +11,7 @@ public class CardDeck
     private readonly List<ConversationCard> cards;
     private readonly List<ConversationCard> discardPile;
     private readonly Random random;
+    private Dictionary<ConnectionType, int> currentTokens;
 
     public CardDeck()
     {
@@ -27,6 +28,9 @@ public class CardDeck
         cards.Clear();
         discardPile.Clear();
 
+        // Store tokens for filtering during draw
+        currentTokens = tokenManager.GetTokensWithNPC(npc.ID);
+
         // Add universal basic cards (always Persistent)
         AddUniversalCards();
 
@@ -37,8 +41,7 @@ public class CardDeck
         AddStateTransitionCards(npc.PersonalityType);
 
         // Add relationship cards based on current tokens
-        var tokens = tokenManager.GetTokensWithNPC(npc.ID);
-        AddRelationshipCards(tokens);
+        AddRelationshipCards(currentTokens);
 
         // Add one mild burden for narrative tension
         AddInitialBurden();
@@ -200,7 +203,8 @@ public class CardDeck
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
                     BaseComfort = 3,
-                    Depth = 8  // Decent level
+                    Depth = 8,  // Decent level
+                    PowerLevel = CardPowerLevel.Basic
                 });
                 cards.Add(new ConversationCard
                 {
@@ -226,7 +230,8 @@ public class CardDeck
                     Persistence = PersistenceType.Opportunity,
                     Weight = 1,
                     BaseComfort = 3,
-                    Depth = 8  // Decent level
+                    Depth = 8,  // Decent level
+                    PowerLevel = CardPowerLevel.Basic
                 });
                 cards.Add(new ConversationCard
                 {
@@ -263,7 +268,8 @@ public class CardDeck
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
                     BaseComfort = 3,
-                    Depth = 8  // Decent level
+                    Depth = 8,  // Decent level
+                    PowerLevel = CardPowerLevel.Basic
                 });
                 break;
         }
@@ -271,8 +277,12 @@ public class CardDeck
 
     private void AddRelationshipCards(Dictionary<ConnectionType, int> tokens)
     {
+        // Get token counts
+        int trustTokens = tokens?.GetValueOrDefault(ConnectionType.Trust, 0) ?? 0;
+        int commerceTokens = tokens?.GetValueOrDefault(ConnectionType.Commerce, 0) ?? 0;
+        
         // Add cards based on relationship depth
-        if (tokens != null && tokens.TryGetValue(ConnectionType.Trust, out int trustTokens) && trustTokens >= 3)
+        if (trustTokens >= 3)
         {
             cards.Add(new ConversationCard
             {
@@ -284,11 +294,46 @@ public class CardDeck
                 Weight = 2,
                 BaseComfort = 5,
                 CanDeliverLetter = true,
-                Depth = 17  // Excellent level - letter delivery
+                Depth = 17,  // Excellent level - letter delivery
+                PowerLevel = CardPowerLevel.Intermediate  // Unlocked at 3 tokens
+            });
+        }
+        
+        // Add advanced cards (5+ tokens)
+        if (trustTokens >= 5)
+        {
+            cards.Add(new ConversationCard
+            {
+                Id = "deep_trust",
+                Template = CardTemplateType.ExpressVulnerability,
+                Context = new CardContext { },
+                Type = CardType.Trust,
+                Persistence = PersistenceType.Opportunity,
+                Weight = 2,
+                BaseComfort = 6,
+                Depth = 15,
+                PowerLevel = CardPowerLevel.Advanced  // Advanced trust card
+            });
+        }
+        
+        // Add master cards (10+ tokens)
+        if (trustTokens >= 10)
+        {
+            cards.Add(new ConversationCard
+            {
+                Id = "unbreakable_bond",
+                Template = CardTemplateType.ExpressVulnerability,
+                Context = new CardContext { },
+                Type = CardType.Trust,
+                Persistence = PersistenceType.OneShot,
+                Weight = 3,
+                BaseComfort = 10,
+                Depth = 20,
+                PowerLevel = CardPowerLevel.Master  // Master trust card
             });
         }
 
-        if (tokens != null && tokens.TryGetValue(ConnectionType.Commerce, out int commerceTokens) && commerceTokens >= 3)
+        if (commerceTokens >= 3)
         {
             cards.Add(new ConversationCard
             {
@@ -300,7 +345,25 @@ public class CardDeck
                 Weight = 2,
                 BaseComfort = 5,
                 CanDeliverLetter = true,
-                Depth = 17  // Excellent level - letter delivery
+                Depth = 17,  // Excellent level - letter delivery
+                PowerLevel = CardPowerLevel.Intermediate  // Unlocked at 3 tokens
+            });
+        }
+        
+        // Add advanced Commerce cards (5+ tokens)
+        if (commerceTokens >= 5)
+        {
+            cards.Add(new ConversationCard
+            {
+                Id = "lucrative_deal",
+                Template = CardTemplateType.ProposeDeal,
+                Context = new CardContext { },
+                Type = CardType.Commerce,
+                Persistence = PersistenceType.Opportunity,
+                Weight = 2,
+                BaseComfort = 7,
+                Depth = 16,
+                PowerLevel = CardPowerLevel.Advanced
             });
         }
 
@@ -509,14 +572,27 @@ public class CardDeck
     }
 
     /// <summary>
-    /// Draw cards based on emotional state rules, filtered by comfort level
+    /// Draw cards based on emotional state rules, filtered by comfort level and token requirements
     /// </summary>
     public List<ConversationCard> Draw(int count, int currentComfort = 5)
     {
         var drawn = new List<ConversationCard>();
         
-        // Filter cards by depth level - only cards at or below current comfort
-        var availableCards = cards.Where(c => c.Depth <= currentComfort).ToList();
+        // Filter cards by:
+        // 1. Depth level - only cards at or below current comfort
+        // 2. Token requirements - only cards player has unlocked
+        var availableCards = cards
+            .Where(c => c.Depth <= currentComfort)
+            .Where(c => c.IsUnlocked(currentTokens))
+            .ToList();
+        
+        // Ensure at least some basic cards are available
+        if (!availableCards.Any())
+        {
+            availableCards = cards
+                .Where(c => c.PowerLevel == CardPowerLevel.Basic && c.Depth <= currentComfort)
+                .ToList();
+        }
         
         for (int i = 0; i < count && availableCards.Any(); i++)
         {

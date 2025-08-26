@@ -63,6 +63,11 @@ public class ConversationSession
     /// Observation cards added at start
     /// </summary>
     public List<ConversationCard> ObservationCards { get; set; }
+    
+    /// <summary>
+    /// Token manager for calculating success bonuses
+    /// </summary>
+    public TokenMechanicsManager TokenManager { get; init; }
 
     /// <summary>
     /// Initialize a new conversation session
@@ -242,7 +247,8 @@ public class ConversationSession
             CurrentComfort = 0, // No comfort in exchanges
             TurnNumber = 0,
             LetterGenerated = false,
-            ObservationCards = new List<ConversationCard>()
+            ObservationCards = new List<ConversationCard>(),
+            TokenManager = tokenManager
         };
     }
 
@@ -301,7 +307,8 @@ public class ConversationSession
             CurrentComfort = 0,
             TurnNumber = 0,
             LetterGenerated = false,
-            ObservationCards = observationCards ?? new List<ConversationCard>()
+            ObservationCards = observationCards ?? new List<ConversationCard>(),
+            TokenManager = tokenManager
         };
     }
 
@@ -409,7 +416,10 @@ public class ConversationSession
         TurnNumber++;
         CurrentPatience--;
 
-        var manager = new CardSelectionManager(CurrentState);
+        // Get current tokens for success calculation
+        var npcTokens = TokenManager?.GetTokensWithNPC(NPC.ID) ?? new Dictionary<ConnectionType, int>();
+        
+        var manager = new CardSelectionManager(CurrentState, npcTokens);
         foreach (var card in selectedCards)
         {
             manager.ToggleCard(card);

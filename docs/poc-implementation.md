@@ -1,18 +1,15 @@
-# Wayfarer POC Implementation Rules
+# Wayfarer POC Implementation - Refined Mechanics
 
 ## POC Scenario Flow
 
-Player completes this exact sequence:
-1. Starts at Market Square Fountain spot
-2. Moves to Merchant Row spot (instant)
-3. Quick Exchange with Marcus (buy provisions: 3 coins → Hunger = 0)
-4. Returns to Fountain spot
-5. Observes "Guards blocking north road" 
-6. Receives observation card "Guard Checkpoint Warning"
-7. Travels to Copper Kettle Tavern (15 minutes)
-8. Moves to Corner Table spot (instant)
-9. Initiates Standard Conversation with Elena
-10. Must negotiate letter terms through card play
+Player must deliver Elena's urgent letter to Lord Blackwood before he leaves the city. The challenge: balancing resource management, time pressure, and relationship building with meaningful recovery options through work and rest.
+
+**Starting Conditions**:
+- Time: Tuesday 9:00 AM (Morning period)
+- Location: Market Square Fountain
+- Resources: 10 coins, 75 health, 80 hunger, 5 attention
+- Elena's deadline: Available at tavern starting Afternoon (6 hours)
+- Lord Blackwood: Leaving at sunset (5:00 PM, 8 hours)
 
 ## World Construction Rules
 
@@ -25,12 +22,24 @@ Player completes this exact sequence:
 - Guard Post (traits: Authority, Tense)
 
 **Copper Kettle Tavern** contains spots:
-- Common Room Entrance (traits: Crossroads, Public)
+- Common Room Entrance (traits: Crossroads, Public, Hospitality)
 - Corner Table (traits: Private, +1 patience)
-- The Bar (traits: Commercial, Social)
+- The Bar (traits: Commercial, Social, Hospitality)
 - Hearthside (traits: Warm, +2 patience)
 
 Rule: Each location must have exactly one spot with Crossroads trait for travel.
+
+### Work and Rest Locations
+
+**Work Actions** available at Commercial spots:
+- Market Square: Merchant Row (haul goods)
+- Copper Kettle: The Bar (serve drinks)
+- Cost: 2 attention → 8 coins, advance one period
+
+**Rest Exchanges** available at Hospitality spots:
+- Copper Kettle: Common Room or Bar
+- "Stay the Night": 5 coins → Full rest until morning
+- "Quick Nap": 2 coins → +3 attention, advance 2 hours
 
 ### Spot Movement
 
@@ -61,27 +70,34 @@ Rule: Routes only exist between spots with Crossroads trait.
 
 ## NPC Placement Rules
 
-### NPC to Spot Assignment
+### NPC Placement and Availability
 
 **Marcus** permanently at:
 - Location: Market Square
 - Spot: Merchant Row
-- Present: Morning through Evening
+- **Available**: Morning through Evening only (shop closed at Night)
 - Type: Mercantile (has exchange deck)
 
 **Elena** permanently at:
 - Location: Copper Kettle Tavern
 - Spot: Corner Table
-- Present: Always during Afternoon period
+- **Available**: Afternoon through Evening only
 - Type: Devoted (no exchange deck)
+- **Special**: Deadline creates Desperate state when under 2 hours
 
 **Town Crier** permanently at:
 - Location: Market Square
 - Spot: Fountain
-- Present: Midday and Evening
+- **Available**: Midday and Evening only (announces news twice daily)
 - Type: Steadfast (no exchange deck)
 
-Rule: NPCs never move between spots or locations.
+**Bertram (Innkeeper)** permanently at:
+- Location: Copper Kettle Tavern
+- Spot: The Bar
+- **Available**: Always (lives upstairs)
+- Type: Mercantile (has exchange deck for rest options)
+
+Rule: NPCs never move between spots or locations. Unavailable NPCs cannot be interacted with - requires waiting or returning later.
 
 ### NPC State Determination
 
@@ -118,6 +134,16 @@ Exchange cards (draw 1 per exchange):
 - "Purchase Fine Cloth" - 15 coins → Fine Cloth item
 - "Buy Medicine" - 5 coins → Health +20
 - "Quick Delivery Job" - Accept → Delivery obligation (5 coins reward)
+
+### Bertram's Exchange Deck (Innkeeper)
+
+Rest and hospitality services:
+
+- "Stay the Night" - 5 coins → Rest until morning (Attention = 10, Hunger = 20, Health +20)
+- "Quick Nap" - 2 coins → +3 attention, advance 2 hours
+- "Hot Meal" - 2 coins → Hunger = 0
+- "Rent Private Room" - 8 coins → Rest with full health restoration
+- "Information Trade" - 3 coins → Learn about noble schedules
 
 ### Elena's Conversation Deck (20 cards)
 
@@ -213,11 +239,34 @@ Modified by tokens:
 
 ### Patience Calculation
 
-Elena's patience (Desperate conversation):
+Elena's patience (when encountered):
 - Base (Devoted type): 12
-- Player hunger 60: -3 (one per 20 hunger)
+- Player hunger 80: -4 (one per 20 hunger) - unless resolved
 - Corner Table (Private): +1
-- **Total: 10 patience/turns**
+- **Total**: 9 patience if hungry, 13 if fed
+
+This makes the hunger resolution decision critical - spending 3 coins on food gains 4 patience turns.
+
+### Resource Decision Tree
+
+**Morning Start (5 attention, 10 coins, 80 hunger)**:
+
+Option 1 - Immediate food:
+- Exchange with Marcus (3 coins → hunger=0)
+- Now have 7 coins, full patience for conversations
+- Risk: May not afford checkpoint bribe
+
+Option 2 - Work first:
+- Work at Merchant Row (2 attention → 8 coins)
+- Now have 18 coins but only 3 attention
+- Time advances to Midday
+
+Option 3 - Endure hunger:
+- Keep all resources
+- Accept -4 patience penalty
+- More coins and attention for other uses
+
+Each choice cascades through the entire POC experience.
 
 ### Turn Structure
 
@@ -286,6 +335,27 @@ With Marcus (Mercantile NPC):
 
 No emotional states, no patience, no turns. Pure mechanical trade.
 
+With Bertram (Innkeeper):
+1. Same Quick Exchange mechanics
+2. Rest options provide attention recovery
+3. "Stay the Night" advances time to next morning
+4. "Quick Nap" advances 2 hours but gives immediate attention
+
+## Wait Action Mechanics
+
+Available anywhere, costs 0 attention:
+- Wait 30 minutes
+- Wait 1 hour
+- Wait 2 hours  
+- Wait until next time period
+
+Strategic uses:
+- Elena unavailable until Afternoon? Wait 5 hours
+- Guards change shift at 4 PM? Wait for night shift
+- Need specific NPC? Wait for their availability window
+
+Time advancement without resource cost, but opportunity cost of not using that time productively.
+
 ## Obligation Queue Rules
 
 ### Queue Management
@@ -329,3 +399,4 @@ All text is template-generated from mechanical properties:
 "3 coins → Hunger = 0" = "Buy fresh bread" (Marcus the merchant)
 
 No pre-written content. Every element generates from mechanical state.
+

@@ -551,10 +551,17 @@
 }
 
 .dialog-card {
-    /* Now inherits from card-base card-standard via unified-cards.css */
-    border-radius: 6px;
+    /* Card structure with proper depth */
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15), 
+                0 1px 2px rgba(0,0,0,0.1);
 }
 
 .dialog-card::before {
@@ -570,53 +577,60 @@
 }
 
 .dialog-card:hover {
+    background: #fefaf0;
+    border-color: #a68b6f;
     transform: translateX(5px) translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2), 
+                0 2px 4px rgba(0,0,0,0.15);
 }
 
 .dialog-card.selected {
     background: linear-gradient(135deg, #f4f9e9, #e8f5e9);
-    box-shadow: 0 5px 15px rgba(212, 167, 106, 0.4);
-    transform: translateY(-5px);
+    border-color: #7a8b5a;
+    box-shadow: 0 6px 16px rgba(122, 139, 90, 0.3),
+                0 2px 8px rgba(122, 139, 90, 0.2);
+    transform: translateY(-3px);
 }
 
-/* Card Type Borders - Enhanced for dialog cards */
+/* Card Type Borders - Visual category indicators */
 .dialog-card.comfort {
-    border-left-width: 6px;
-    padding-left: 11px; /* Adjust for thicker border */
-    box-shadow: 0 2px 6px rgba(122, 139, 90, 0.2);
+    border-left: 5px solid #7a8b5a;
 }
 
 .dialog-card.state {
-    border-left-width: 6px;
-    padding-left: 11px;
-    box-shadow: 0 2px 6px rgba(139, 115, 85, 0.2);
+    border-left: 5px solid #8b7355;
 }
 
 .dialog-card.crisis {
-    border-left-width: 6px;
-    padding-left: 11px;
-    box-shadow: 0 2px 6px rgba(139, 71, 38, 0.2);
+    border-left: 5px solid #8b4726;
+    background: #faf0e6;
 }
 
 .dialog-card.burden {
-    border-left-width: 6px;
-    padding-left: 11px;
+    border-left: 5px solid #4a3a2a;
+    background: #e8dcc4;
     opacity: 0.9;
-    box-shadow: 0 2px 6px rgba(74, 58, 42, 0.2);
 }
 
 .dialog-card.observation {
-    border-left-width: 6px;
-    padding-left: 11px;
-    background: linear-gradient(135deg, #f0f4fa 0%, #e8f0f9 100%);
-    box-shadow: 0 2px 6px rgba(90, 122, 138, 0.2);
+    border-left: 5px solid #5a7a8a;
+    background: #f0f4fa;
 }
 
 .dialog-card.exchange {
-    border-left-width: 6px;
-    padding-left: 11px;
-    box-shadow: 0 2px 6px rgba(122, 139, 90, 0.2);
+    border-left: 5px solid #d4a76a;
+    background: #fff9f0;
+}
+
+.dialog-card.letter {
+    border-left: 5px solid #d4a76a;
+    background: #fff9f0;
+}
+
+.dialog-card.unavailable {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #d4c5a0;
 }
 
 /* Exchange card specific styling */
@@ -781,12 +795,13 @@
 /* Card Header - Match mockup exactly */
 .card-header {
     padding: 12px 15px;
-    background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
-    border-bottom: 2px solid #e8dcc4;
+    background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+    border-bottom: 1px solid #e8dcc4;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    position: relative;
+    z-index: 1;
 }
 
 .card-identity {
@@ -798,10 +813,10 @@
     font-weight: bold;
     color: #5c4a3a;
     margin-bottom: 4px;
+    letter-spacing: 0.3px;
 }
 
 .card-tags {
-    padding: 8px 12px;
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
@@ -855,6 +870,35 @@
     border: none;
 }
 
+.card-stats {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 9px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.depth-value {
+    color: #5a7a3a;
+}
+
 .card-weight {
     display: flex;
     flex-direction: column;
@@ -883,6 +927,7 @@
     color: #2c241a;
     font-style: italic;
     background: #fefaf0;
+    border-bottom: 1px solid #f4e8d0;
 }
 
 /* Card Effects */
@@ -907,6 +952,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     border-top: 2px solid #c4a684;
+    background: #f9f3e9;
 }
 
 .outcome {
@@ -948,7 +994,7 @@
 }
 
 .outcome-chance {
-    font-size: 14px;
+    font-size: 18px;
     font-weight: bold;
 }
 
@@ -967,8 +1013,12 @@
 }
 
 .effect {
-    font-size: 10px;
+    font-size: 12px;
     color: #5c4a3a;
+}
+
+.effect-value {
+    font-weight: bold;
 }
 
 /* Play Section */
@@ -1032,27 +1082,47 @@
     50% { opacity: 0.6; }
 }
 
-/* Card Special Markers - Beautiful wax seal effect */
+/* Card Special Markers - Beautiful badge effect */
 .card-marker {
     position: absolute;
     top: -8px;
     right: 15px;
-    background: radial-gradient(circle at 30% 30%, #8b4726, #6b3716);
+    background: #8b4726;
     color: #faf4ea;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 9px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     font-weight: bold;
-    box-shadow: 
-        inset 1px 1px 2px rgba(255,255,255,0.3),
-        2px 2px 4px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 2;
 }
 
 .card-marker.free {
-    background: radial-gradient(circle at 30% 30%, #7a8b5a, #5a7a3a);
+    background: #7a8b5a;
     animation: pulse 2s infinite;
+}
+
+.card-marker.opportunity {
+    background: #5a7a8a;
+}
+
+.card-marker.must-play {
+    background: #4a3a2a;
+    animation: pulse 2s infinite;
+}
+
+.card-marker.negotiate {
+    background: #d4a76a;
+}
+
+.card-marker.free-weight {
+    background: #7a8b5a;
+}
+
+.card-marker.too-deep {
+    background: #8b4726;
 }
 
 /* Loading State */

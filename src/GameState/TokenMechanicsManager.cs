@@ -698,4 +698,28 @@ public class TokenMechanicsManager
 
         return false;
     }
+    
+    /// <summary>
+    /// Check if a card is unlocked based on token requirements
+    /// </summary>
+    public bool IsCardUnlocked(string npcId, CardPowerLevel powerLevel, ConnectionType cardType)
+    {
+        var tokens = GetTokensWithNPC(npcId);
+        var relevantTokens = tokens.GetValueOrDefault(cardType, 0);
+        return relevantTokens >= (int)powerLevel;
+    }
+    
+    /// <summary>
+    /// Get card power level based on current tokens
+    /// </summary>
+    public CardPowerLevel GetMaxUnlockedPowerLevel(string npcId, ConnectionType cardType)
+    {
+        var tokens = GetTokensWithNPC(npcId);
+        var relevantTokens = tokens.GetValueOrDefault(cardType, 0);
+        
+        if (relevantTokens >= 10) return CardPowerLevel.Master;
+        if (relevantTokens >= 5) return CardPowerLevel.Advanced;
+        if (relevantTokens >= 3) return CardPowerLevel.Intermediate;
+        return CardPowerLevel.Basic;
+    }
 }

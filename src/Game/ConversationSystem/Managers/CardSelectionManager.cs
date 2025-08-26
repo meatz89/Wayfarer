@@ -12,13 +12,15 @@ public class CardSelectionManager
     private readonly StateRuleset rules;
     private readonly HashSet<ConversationCard> selectedCards;
     private readonly Random random;
+    private Dictionary<ConnectionType, int> npcTokens;
 
-    public CardSelectionManager(EmotionalState state)
+    public CardSelectionManager(EmotionalState state, Dictionary<ConnectionType, int> tokens = null)
     {
         currentState = state;
         rules = ConversationRules.States[state];
         selectedCards = new HashSet<ConversationCard>();
         random = new Random();
+        npcTokens = tokens ?? new Dictionary<ConnectionType, int>();
     }
 
     /// <summary>
@@ -123,8 +125,8 @@ public class CardSelectionManager
                 continue;
             }
             
-            // Normal cards use success/failure mechanics
-            var successChance = card.CalculateSuccessChance();
+            // Normal cards use success/failure mechanics with token bonuses
+            var successChance = card.CalculateSuccessChance(npcTokens);
             var roll = random.Next(100);
             var success = roll < successChance;
             
