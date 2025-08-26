@@ -2981,6 +2981,11 @@ public class GameFacade
         // MessageSystem doesn't store messages, they're in GameWorld
         return _gameWorld.SystemMessages ?? new List<SystemMessage>();
     }
+    
+    public MessageSystem GetMessageSystem()
+    {
+        return _messageSystem;
+    }
 
     public void ClearSystemMessages()
     {

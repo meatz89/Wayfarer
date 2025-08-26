@@ -11,7 +11,7 @@
             <div class="mode-cost">
                 @if ((Context?.Type ?? ConversationType.Standard) != ConversationType.QuickExchange)
                 {
-                    <span class="cost-item">@Session.TurnNumber/@Session.MaxPatience Patience</span>
+                    <span class="cost-item">@Session.CurrentPatience/@Session.MaxPatience Patience</span>
                 }
             </div>
         </div>
@@ -42,7 +42,7 @@
                 </div>
                 
                 <div class="patience-display">
-                    <div class="patience-value">@Session.TurnNumber/@Session.MaxPatience</div>
+                    <div class="patience-value">@Session.CurrentPatience/@Session.MaxPatience</div>
                     <div class="patience-label">Patience</div>
                 </div>
                 
@@ -91,7 +91,7 @@
             }
             else if (!Session.ShouldEnd())
             {
-                <div class="turn-indicator">Turn @Session.TurnNumber of @Session.MaxPatience</div>
+                <div class="turn-indicator">Turn @(Session.TurnNumber + 1) • @Session.CurrentPatience patience remaining</div>
                 <div class="action-choices">
                     <button class="action-button" @onclick="ExecuteListen" disabled="@IsProcessing">
                         <div>LISTEN</div>

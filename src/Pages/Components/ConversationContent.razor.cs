@@ -77,11 +77,24 @@ namespace Wayfarer.Pages.Components
             
             try
             {
+                // Add notification for listening
+                var messageSystem = GameFacade?.GetMessageSystem();
+                if (messageSystem != null)
+                {
+                    messageSystem.AddSystemMessage("You listen carefully...", SystemMessageTypes.Info);
+                }
+                
                 // ExecuteListen is void, updates Session directly
                 Session.ExecuteListen();
                 
                 // Generate narrative for the action
                 GenerateListenNarrative();
+                
+                // Notify about cards drawn
+                if (messageSystem != null && Session.HandCards.Any())
+                {
+                    messageSystem.AddSystemMessage($"Drew {Session.HandCards.Count} cards", SystemMessageTypes.Success);
+                }
                 
                 // Refresh resources after listen action
                 if (GameScreen != null)
@@ -91,6 +104,13 @@ namespace Wayfarer.Pages.Components
                 
                 if (Session.ShouldEnd())
                 {
+                    // Add notification about conversation ending
+                    if (messageSystem != null)
+                    {
+                        var reason = GetConversationEndReason();
+                        messageSystem.AddSystemMessage(reason, SystemMessageTypes.Info);
+                    }
+                    
                     // Remove delay - conversations should end immediately
                     await OnConversationEnd.InvokeAsync();
                 }
@@ -110,9 +130,74 @@ namespace Wayfarer.Pages.Components
             
             try
             {
+                // Add notification for speaking
+                var messageSystem = GameFacade?.GetMessageSystem();
+                
+                // Check if this is an exchange card
+                var exchangeCard = SelectedCards.FirstOrDefault(c => c.Category == CardCategory.EXCHANGE);
+                if (exchangeCard != null && messageSystem != null)
+                {
+                    // For exchanges, show what's being traded
+                    if (exchangeCard.Context?.ExchangeCost != null && exchangeCard.Context?.ExchangeReward != null)
+                    {
+                        if (exchangeCard.Context.ExchangeName == "Pass on this offer")
+                        {
+                            messageSystem.AddSystemMessage("Declining the exchange...", SystemMessageTypes.Info);
+                        }
+                        else
+                        {
+                            messageSystem.AddSystemMessage($"Trading: {exchangeCard.Context.ExchangeCost} for {exchangeCard.Context.ExchangeReward}", SystemMessageTypes.Info);
+                        }
+                    }
+                }
+                else if (messageSystem != null)
+                {
+                    messageSystem.AddSystemMessage($"Playing {SelectedCards.Count} card(s)...", SystemMessageTypes.Info);
+                }
+                
                 // ExecuteSpeak expects HashSet<ConversationCard>
                 var result = Session.ExecuteSpeak(SelectedCards);
                 ProcessSpeakResult(result);
+                
+                // Add detailed notification for result
+                if (messageSystem != null && result != null)
+                {
+                    // Check if this was an exchange
+                    if (exchangeCard != null)
+                    {
+                        if (result.Results?.Any(r => r.Success) == true)
+                        {
+                            if (exchangeCard.Context?.ExchangeName == "Pass on this offer")
+                            {
+                                messageSystem.AddSystemMessage("Exchange declined", SystemMessageTypes.Info);
+                            }
+                            else
+                            {
+                                messageSystem.AddSystemMessage($"Exchange successful! Received {exchangeCard.Context?.ExchangeReward}", SystemMessageTypes.Success);
+                            }
+                        }
+                        else if (result.Results?.Any(r => !r.Success) == true)
+                        {
+                            // Exchange failed - likely insufficient resources
+                            messageSystem.AddSystemMessage("Exchange failed: Insufficient resources", SystemMessageTypes.Warning);
+                        }
+                    }
+                    else if (result.Results?.Any() == true)
+                    {
+                        var successes = result.Results.Count(r => r.Success);
+                        var failures = result.Results.Count(r => !r.Success);
+                        
+                        if (successes > 0)
+                        {
+                            messageSystem.AddSystemMessage($"{successes} card(s) succeeded! +{result.TotalComfort} comfort", SystemMessageTypes.Success);
+                        }
+                        if (failures > 0)
+                        {
+                            messageSystem.AddSystemMessage($"{failures} card(s) failed", SystemMessageTypes.Warning);
+                        }
+                    }
+                }
+                
                 SelectedCards.Clear();
                 
                 // Refresh resources after exchange/card play
@@ -123,6 +208,13 @@ namespace Wayfarer.Pages.Components
                 
                 if (Session.ShouldEnd())
                 {
+                    // Add notification about conversation ending
+                    if (messageSystem != null)
+                    {
+                        var reason = GetConversationEndReason();
+                        messageSystem.AddSystemMessage(reason, SystemMessageTypes.Info);
+                    }
+                    
                     // Remove delay - conversations should end immediately
                     await OnConversationEnd.InvokeAsync();
                 }
@@ -697,6 +789,33 @@ namespace Wayfarer.Pages.Components
                 EmotionalState.TENSE => "I don't have much time...",
                 _ => "Hello, what brings you here?"
             };
+        }
+        
+        protected string GetConversationEndReason()
+        {
+            if (Session == null) return "Conversation ended";
+            
+            // Check various end conditions in priority order
+            if (Session.LetterGenerated)
+                return $"Letter obtained! Check your queue. (Comfort: {Session.CurrentComfort})";
+                
+            if (Session.CurrentPatience <= 0)
+                return "NPC's patience exhausted - conversation ended";
+                
+            if (Session.CurrentState == EmotionalState.HOSTILE)
+                return $"{NpcName} became hostile and ended the conversation";
+                
+            if (Context?.Type == ConversationType.QuickExchange)
+                return "Exchange completed - conversation ended";
+                
+            if (!Session.HandCards.Any() && Session.Deck.RemainingCards == 0)
+                return "No more cards available - conversation ended";
+                
+            // Default reason based on comfort level
+            if (Session.CurrentComfort >= 10)
+                return $"Conversation ended naturally (Comfort reached: {Session.CurrentComfort})";
+            else
+                return "Conversation ended";
         }
     }
 }

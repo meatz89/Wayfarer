@@ -87,6 +87,9 @@
             }
         </div>
     </CascadingValue>
+    
+    <!-- Toast Notifications -->
+    <MessageDisplay />
 
     <!-- Fixed Navigation Footer -->
     <div class="game-footer">
@@ -104,11 +107,6 @@
                 {
                     <span class="badge">@PendingLetterCount</span>
                 }
-            </button>
-            <button class="nav-button @(CurrentScreen == ScreenMode.Travel ? "active" : "")" 
-                    @onclick="() => NavigateToScreen(ScreenMode.Travel)">
-                <span class="nav-icon travel"><span class="icon-emoji">🗺️</span></span>
-                <span>Travel</span>
             </button>
         </div>
     </div>

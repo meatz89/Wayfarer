@@ -44,3 +44,65 @@ body {
     50% { opacity: 0.7; }
 }
 
+/* Toast Message Display */
+.message-display {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.message-display .message {
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: #2c241a;
+    color: #faf4ea;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-size: 14px;
+    min-width: 250px;
+    max-width: 400px;
+    animation: slideIn 0.3s ease-out;
+    pointer-events: auto;
+    border-left: 4px solid;
+}
+
+.message-display .message.success {
+    background: #2d4a2b;
+    border-left-color: #5cb85c;
+}
+
+.message-display .message.warning {
+    background: #5a4a3a;
+    border-left-color: #f0ad4e;
+}
+
+.message-display .message.danger {
+    background: #4a2d2d;
+    border-left-color: #d9534f;
+}
+
+.message-display .message.info {
+    background: #2c3e50;
+    border-left-color: #5bc0de;
+}
+
+.message-display .message.tutorial {
+    background: #3a3a5a;
+    border-left-color: #9b59b6;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
