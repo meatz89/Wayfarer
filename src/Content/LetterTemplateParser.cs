@@ -59,7 +59,7 @@ public static class LetterTemplateParser
             "Noble" => ConnectionType.Status,
             "Common" => ConnectionType.Trust,
             "Shadow" => ConnectionType.Shadow,
-            _ => ConnectionType.Trust // Default fallback
+            _ => throw new ArgumentException($"Unknown connection type in JSON: '{connectionTypeStr}' - add to connection type mapping")
         };
     }
 
@@ -70,7 +70,7 @@ public static class LetterTemplateParser
             "Introduction" => LetterSpecialType.Introduction,
             "AccessPermit" => LetterSpecialType.AccessPermit,
             "None" => LetterSpecialType.None,
-            _ => LetterSpecialType.None // Default fallback
+            _ => throw new ArgumentException($"Unknown special type in JSON: '{specialTypeStr}' - add to special type mapping")
         };
     }
 
@@ -82,7 +82,7 @@ public static class LetterTemplateParser
             "MEDIUM" => EmotionalWeight.MEDIUM,
             "HIGH" => EmotionalWeight.HIGH,
             "CRITICAL" => EmotionalWeight.CRITICAL,
-            _ => EmotionalWeight.MEDIUM // Default fallback
+            _ => throw new ArgumentException($"Unknown emotional weight in JSON: '{weightStr}' - add to emotional weight mapping")
         };
     }
 
@@ -94,7 +94,7 @@ public static class LetterTemplateParser
             "WEALTH" => StakeType.WEALTH,
             "SAFETY" => StakeType.SAFETY,
             "SECRET" => StakeType.SECRET,
-            _ => StakeType.REPUTATION // Default fallback
+            _ => throw new ArgumentException($"Unknown stake type in JSON: '{stakeStr}' - add to stake type mapping")
         };
     }
 

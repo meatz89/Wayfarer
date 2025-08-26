@@ -74,7 +74,7 @@ public class PersonalityMappingService
     {
         if (string.IsNullOrWhiteSpace(personalityDescription))
         {
-            return PersonalityType.STEADFAST; // Default fallback
+            throw new ArgumentException("Personality description cannot be null or empty - fix content files");
         }
 
         // Normalize input for comparison
@@ -95,9 +95,8 @@ public class PersonalityMappingService
             }
         }
 
-        // Log unmapped personalities for content team review
-        Console.WriteLine($"[PersonalityMapping] Unknown personality: '{personalityDescription}' - defaulting to STEADFAST");
-        return PersonalityType.STEADFAST;
+        // No fallback - force fix of content
+        throw new ArgumentException($"Unknown personality: '{personalityDescription}' - must be added to PersonalityMappings");
     }
 
     /// <summary>

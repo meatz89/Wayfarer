@@ -6,7 +6,6 @@ public class NPCRepository
 private readonly GameWorld _gameWorld;
 private readonly DebugLogger _debugLogger;
 private readonly NPCVisibilityService _visibilityService;
-private ContentFallbackService _fallbackService;
 
 public NPCRepository(
     GameWorld gameWorld, 
@@ -51,12 +50,6 @@ public NPC GetById(string id)
     NPC? npc = _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.ID == id);
     if (npc != null && !IsNPCVisible(npc))
         return null;
-
-    // If NPC not found and we have a fallback service, try to get/create a fallback
-    if (npc == null && _fallbackService != null)
-    {
-        npc = _fallbackService.GetOrCreateFallbackNPC(id);
-    }
 
     return npc;
 }

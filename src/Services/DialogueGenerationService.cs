@@ -74,39 +74,13 @@ public class DialogueGenerationService
     {
         if (!File.Exists(path))
         {
-            // Fallback to minimal templates if file doesn't exist
-            _templates = CreateMinimalTemplates();
-            return;
+            throw new FileNotFoundException($"Dialogue templates file not found: {path} - create the required JSON file");
         }
         
         var json = File.ReadAllText(path);
         _templates = JsonSerializer.Deserialize<DialogueTemplates>(json);
     }
     
-    private DialogueTemplates CreateMinimalTemplates()
-    {
-        // Minimal fallback - all categorical, no English text
-        return new DialogueTemplates
-        {
-            EmotionalStateDialogue = new Dictionary<string, EmotionalStateTemplate>
-            {
-                ["NEUTRAL"] = new EmotionalStateTemplate
-                {
-                    Default = new List<string> { "greeting:simple query:purpose" }
-                }
-            },
-            CardDialogue = new CardDialogueTemplate
-            {
-                Categories = new Dictionary<string, CardCategoryDialogue>()
-            },
-            NpcDescriptions = new NpcDescriptionTemplate
-            {
-                ProfessionBase = new Dictionary<string, List<string>>(),
-                EmotionalModifiers = new Dictionary<string, Dictionary<string, List<string>>>()
-            },
-            NarrativeElements = new Dictionary<string, Dictionary<string, string>>()
-        };
-    }
     
     /// <summary>
     /// Generate NPC dialogue from emotional state and context

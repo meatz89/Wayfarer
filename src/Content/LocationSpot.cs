@@ -33,7 +33,7 @@ public class LocationSpot
     { 
         get 
         { 
-            return SpotProperties?.Select(p => p.ToString()).ToList() ?? new List<string>(); 
+            return SpotProperties.Select(p => p.ToString()).ToList(); 
         } 
     }
 
@@ -48,9 +48,9 @@ public class LocationSpot
     /// </summary>
     public List<SpotPropertyType> GetActiveProperties(TimeBlocks currentTime)
     {
-        var activeProperties = new List<SpotPropertyType>(SpotProperties ?? new List<SpotPropertyType>());
+        var activeProperties = new List<SpotPropertyType>(SpotProperties);
 
-        if (TimeSpecificProperties?.ContainsKey(currentTime) == true)
+        if (TimeSpecificProperties.ContainsKey(currentTime))
         {
             activeProperties.AddRange(TimeSpecificProperties[currentTime]);
         }

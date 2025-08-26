@@ -67,8 +67,8 @@ public static class TravelTimeMatrix
         if (travelTimes.TryGetValue(key, out int time))
             return time;
 
-        // Default fallback for undefined routes
-        return 60;
+        // No fallback - route must be defined
+        throw new ArgumentException($"Travel time not defined for route {fromLocationId} -> {toLocationId} - add to travelTimes configuration");
     }
 
     public static Dictionary<string, int> GetTravelTimesFrom(string locationId)

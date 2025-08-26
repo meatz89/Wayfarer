@@ -1531,7 +1531,7 @@ public class ObligationQueueManager
         {
             return sender.LetterTokenTypes[_random.Next(sender.LetterTokenTypes.Count)];
         }
-        return ConnectionType.Trust; // Default fallback
+        throw new InvalidOperationException($"NPC {sender.Name} has no LetterTokenTypes defined - add token types to NPC definition");
     }
 
     // Generate a letter from the selected sender

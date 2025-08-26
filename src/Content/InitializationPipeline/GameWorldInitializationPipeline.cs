@@ -39,9 +39,6 @@ public class GameWorldInitializationPipeline
             // Phase 3: Entities that depend on NPCs and locations
             new Phase3_NPCDependents(),
             
-            // Phase 4.5: Apply content fallbacks for missing references
-            new Phase4_5_ContentFallbacks(),
-            
             // Phase 5: Complex entities with multiple dependencies
             new Phase5_ComplexEntities(),
             

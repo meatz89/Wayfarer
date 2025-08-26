@@ -56,8 +56,6 @@ public static class ServiceConfiguration
         services.AddSingleton<RouteDiscoveryRepository>();
         services.AddSingleton<NetworkUnlockRepository>();
 
-        // Register content fallback service for resilience
-        services.AddSingleton<ContentFallbackService>();
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<CharacterSystem>();
