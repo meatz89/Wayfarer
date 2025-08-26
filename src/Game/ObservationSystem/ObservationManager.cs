@@ -146,7 +146,7 @@ public class ObservationManager
             ObservationSource = observation.Id,
             CanDeliverLetter = false,
             ManipulatesObligations = false,
-            MinDepth = 0 // Observations can be played at any depth
+            Depth = 0 // Observations can be played at any comfort level
         };
     }
 

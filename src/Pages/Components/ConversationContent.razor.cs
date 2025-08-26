@@ -84,8 +84,11 @@ namespace Wayfarer.Pages.Components
                     messageSystem.AddSystemMessage("You listen carefully...", SystemMessageTypes.Info);
                 }
                 
+                // Get TokenMechanicsManager for letter deck checking
+                var tokenManager = GameFacade?.GetTokenMechanicsManager();
+                
                 // ExecuteListen is void, updates Session directly
-                Session.ExecuteListen();
+                Session.ExecuteListen(tokenManager);
                 
                 // Generate narrative for the action
                 GenerateListenNarrative();
@@ -636,27 +639,24 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected int GetComfortProgress()
-        {
-            if (Session == null) return 0;
-            return Math.Min(100, (Session.CurrentComfort * 100) / ComfortThreshold);
-        }
 
-        protected string GetDepthLabel()
+        protected string GetComfortLabel()
         {
-            return Session?.CurrentDepth switch
+            if (Session == null) return "None";
+            return Session.CurrentComfort switch
             {
-                0 => "Surface",
-                1 => "Personal",
-                2 => "Intimate",
-                _ => "Surface"
+                >= 20 => "Perfect Understanding",
+                >= 15 => "Deep Connection",
+                >= 10 => "Good Rapport",
+                >= 5 => "Basic Trust",
+                _ => "Tentative"
             };
         }
 
-        protected int GetDepthProgress()
+        protected int GetComfortProgress()
         {
             if (Session == null) return 0;
-            return (Session.CurrentDepth * 100) / 3;
+            return Math.Min(100, (Session.CurrentComfort * 100) / 20); // Scale to 20 max comfort for full bar
         }
 
         protected string GetCardClass(ConversationCard card)

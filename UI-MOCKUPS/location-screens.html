@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wayfarer - Location System</title>
+    <title>Wayfarer - Location System (Refined)</title>
     <style>
         * {
             margin: 0;
@@ -72,14 +72,10 @@
             color: #d4704a;
         }
 
-        .resource.critical {
-            color: #ff6b6b;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+        .resource-effect {
+            font-size: 10px;
+            color: #8b7355;
+            margin-left: 2px;
         }
 
         /* Time Header */
@@ -111,12 +107,7 @@
             font-size: 11px;
         }
 
-        .most-urgent {
-            color: #d4704a;
-            font-weight: bold;
-        }
-
-        /* Active Obligations */
+        /* Active Obligations Queue */
         .obligations-panel {
             background: #f4e8d0;
             border-bottom: 2px solid #a68b6f;
@@ -129,12 +120,19 @@
             letter-spacing: 1px;
             color: #7a6250;
             margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .queue-rule {
+            color: #8b4726;
+            font-weight: bold;
         }
 
         .obligation-list {
             display: flex;
-            gap: 15px;
-            overflow-x: auto;
+            gap: 10px;
+            align-items: center;
         }
 
         .obligation-item {
@@ -142,13 +140,36 @@
             border: 1px solid #c4a684;
             border-radius: 3px;
             padding: 6px 10px;
-            white-space: nowrap;
             font-size: 12px;
+            position: relative;
         }
 
-        .obligation-item.critical {
-            border-color: #d4704a;
+        .obligation-item.position-1 {
+            border-color: #8b4726;
             background: #faf0e6;
+            border-width: 2px;
+        }
+
+        .queue-position {
+            position: absolute;
+            top: -8px;
+            left: 4px;
+            background: #8b4726;
+            color: #faf4ea;
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .deadline {
+            color: #8b4726;
+            font-weight: bold;
+        }
+
+        .queue-arrow {
+            color: #7a6250;
+            font-size: 16px;
         }
 
         /* Location Header */
@@ -225,6 +246,12 @@
 
         .spot-trait.crossroads {
             background: #7a8b5a;
+            color: #faf4ea;
+            border: none;
+        }
+
+        .spot-trait.private {
+            background: #5a7a8a;
             color: #faf4ea;
             border: none;
         }
@@ -338,6 +365,36 @@
             font-weight: bold;
         }
 
+        .npc-type {
+            font-size: 10px;
+            color: #7a6250;
+            font-style: italic;
+        }
+
+        .npc-tokens {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+            padding: 6px;
+            background: #faf4ea;
+            border-radius: 2px;
+        }
+
+        .token-display {
+            font-size: 11px;
+            color: #5c4a3a;
+        }
+
+        .token-count {
+            font-weight: bold;
+            color: #5a7a3a;
+        }
+
+        .token-effect {
+            font-size: 10px;
+            color: #7a6250;
+        }
+
         .npc-description {
             font-style: italic;
             color: #7a6250;
@@ -376,9 +433,13 @@
             border-color: #7a8b5a;
         }
 
-        .npc-action.crisis {
-            background: #faf0e6;
-            border-color: #d4704a;
+        .npc-action.conversation {
+            border-color: #5a7a8a;
+        }
+
+        .npc-action.unavailable {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
 
         .action-type {
@@ -391,8 +452,9 @@
             color: #7a6250;
         }
 
-        .action-reward {
-            color: #5a7a3a;
+        .patience-calculation {
+            font-size: 10px;
+            color: #8b7355;
         }
 
         /* Observations */
@@ -415,8 +477,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #e8dcc4;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #e8dcc4;
+            border-radius: 2px;
+            margin-bottom: 8px;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -426,7 +491,9 @@
         }
 
         .observation-item:hover {
-            padding-left: 8px;
+            background: #fefaf0;
+            border-color: #c4a684;
+            transform: translateX(3px);
         }
 
         .observation-text {
@@ -448,6 +515,40 @@
             border-radius: 2px;
             color: #5a7a3a;
             font-weight: bold;
+        }
+
+        .card-depth {
+            font-size: 10px;
+            color: #7a6250;
+        }
+
+        /* Revealed observation */
+        .observation-item.revealed {
+            background: #faf4ea;
+            padding: 12px;
+            cursor: default;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .observation-item.revealed:hover {
+            transform: none;
+        }
+
+        .observation-narrative {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #3d3429;
+            font-style: italic;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e8dcc4;
+        }
+
+        .observation-decay {
+            font-size: 10px;
+            color: #8b4726;
+            margin-top: 6px;
         }
 
         /* Spots Grid */
@@ -558,6 +659,29 @@
             background: #fefaf0;
         }
 
+        .route-card.blocked {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #e8dcc4;
+        }
+
+        .route-destination {
+            font-size: 14px;
+            font-weight: bold;
+            color: #5c4a3a;
+            margin-bottom: 6px;
+        }
+
+        .route-details {
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        .route-requirement {
+            color: #8b4726;
+            font-weight: bold;
+        }
+
         .close-button {
             position: absolute;
             top: 14px;
@@ -605,11 +729,13 @@
                     <div class="resource-icon">❤️</div>
                     <div class="resource-value">75</div>
                     <span>Health</span>
+                    <span class="resource-effect">(-1 weight at 50)</span>
                 </div>
                 <div class="resource low">
                     <div class="resource-icon">🍞</div>
                     <div class="resource-value">60</div>
                     <span>Hunger</span>
+                    <span class="resource-effect">(-3 patience)</span>
                 </div>
                 <div class="resource">
                     <div class="resource-icon">👁️</div>
@@ -629,19 +755,29 @@
                     <span>Tuesday, 3:47 PM</span>
                     <span class="time-period">Afternoon</span>
                 </div>
-                <span class="most-urgent">⚠ Elena: 1h 13m</span>
             </div>
         </div>
 
-        <!-- Active Obligations -->
+        <!-- Active Obligations Queue -->
         <div class="obligations-panel">
-            <div class="obligations-header">Active Obligations</div>
+            <div class="obligations-header">
+                <span>Active Obligations</span>
+                <span class="queue-rule">Must complete Position 1 first!</span>
+            </div>
             <div class="obligation-list">
-                <div class="obligation-item critical">
-                    Meet Elena → Copper Kettle → Corner Table (1h 13m)
+                <div class="obligation-item position-1">
+                    <span class="queue-position">1</span>
+                    Elena's letter → Lord Blackwood <span class="deadline">(1h 13m)</span>
                 </div>
+                <span class="queue-arrow">→</span>
                 <div class="obligation-item">
-                    Deliver to Marcus → Warehouse → Office (4h 30m)
+                    <span class="queue-position">2</span>
+                    Marcus's package → Warehouse (4h 30m)
+                </div>
+                <span class="queue-arrow">→</span>
+                <div class="obligation-item">
+                    <span class="queue-position">3</span>
+                    Thomas's reply → Maria (6h 00m)
                 </div>
             </div>
         </div>
@@ -668,7 +804,7 @@
             <div class="current-spot-name">The Fountain</div>
             <div class="spot-traits">
                 <span class="spot-trait crossroads">Crossroads</span>
-                <span class="spot-trait">Public</span>
+                <span class="spot-trait">Public (-1 patience)</span>
             </div>
         </div>
 
@@ -681,7 +817,7 @@
             <div class="actions-grid">
                 <div class="action-card travel" onclick="openTravelModal()">
                     <div class="action-name">🗺️ Travel</div>
-                    <div class="action-cost">To another location</div>
+                    <div class="action-cost">From Crossroads spot</div>
                 </div>
                 <div class="action-card">
                     <div class="action-name">💼 Work: Haul Goods</div>
@@ -692,16 +828,28 @@
             <div class="section-header">People at This Spot</div>
             <div class="npc-card">
                 <div class="npc-header">
-                    <div class="npc-name">Town Crier</div>
+                    <div>
+                        <div class="npc-name">Town Crier</div>
+                        <div class="npc-type">Steadfast (11 base patience)</div>
+                    </div>
                     <div class="npc-state">Proclaiming</div>
                 </div>
+                <div class="npc-tokens">
+                    <div class="token-display">Trust: <span class="token-count">0</span> <span class="token-effect">(+0%)</span></div>
+                    <div class="token-display">Commerce: <span class="token-count">0</span></div>
+                    <div class="token-display">Status: <span class="token-count">0</span></div>
+                    <div class="token-display">Shadow: <span class="token-count">0</span></div>
+                </div>
                 <div class="npc-description">
-                    Announcing the day's news with theatrical flair.
+                    Announcing the day's news with theatrical flair. No exchange deck available.
                 </div>
                 <div class="npc-actions">
-                    <div class="npc-action exchange">
-                        <span class="action-type">Quick Exchange</span>
-                        <span class="action-details">Free • <span class="action-reward">Hear news</span></span>
+                    <div class="npc-action conversation">
+                        <span class="action-type">Standard Conversation</span>
+                        <span class="action-details">
+                            <span class="cost-value">2 attention</span> • 
+                            <span class="patience-calculation">8 patience (11-3 hunger)</span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -712,14 +860,14 @@
                     <span class="observation-text">Guards discussing checkpoint bribes</span>
                     <span class="observation-reward">
                         <span class="cost-value">1 attention</span>
-                        <span class="reward-card">Shadow Card +3</span>
+                        <span class="reward-card">Shadow Card +3 <span class="card-depth">(Depth 0)</span></span>
                     </span>
                 </div>
                 <div class="observation-item">
                     <span class="observation-text">Merchant's heated argument</span>
                     <span class="observation-reward">
                         <span class="cost-value">1 attention</span>
-                        <span class="reward-card">Commerce Card +5</span>
+                        <span class="reward-card">Commerce Card +5 <span class="card-depth">(Depth 2)</span></span>
                     </span>
                 </div>
             </div>
@@ -734,7 +882,7 @@
                 <div class="spot-card">
                     <div class="spot-card-name">Merchant Row</div>
                     <div class="spot-occupants">Marcus (Calculating)</div>
-                    <div class="spot-move-action">Move here (instant)</div>
+                    <div class="spot-move-action">Move here (instant, free)</div>
                 </div>
             </div>
         </div>
@@ -761,24 +909,32 @@
             
             <div class="npc-card">
                 <div class="npc-header">
-                    <div class="npc-name">Marcus the Cloth Merchant</div>
+                    <div>
+                        <div class="npc-name">Marcus the Cloth Merchant</div>
+                        <div class="npc-type">Mercantile (10 base patience, HAS EXCHANGE DECK)</div>
+                    </div>
                     <div class="npc-state">Calculating</div>
                 </div>
+                <div class="npc-tokens">
+                    <div class="token-display">Trust: <span class="token-count">0</span></div>
+                    <div class="token-display">Commerce: <span class="token-count">2</span> <span class="token-effect">(+10% Commerce cards)</span></div>
+                    <div class="token-display">Status: <span class="token-count">0</span></div>
+                    <div class="token-display">Shadow: <span class="token-count">1</span> <span class="token-effect">(+5% Shadow cards)</span></div>
+                </div>
                 <div class="npc-description">
-                    Checking inventory against his ledger, occasionally frowning at the numbers.
+                    Checking inventory against his ledger, occasionally frowning at the numbers. Has exchange deck for trades.
                 </div>
                 <div class="npc-actions">
                     <div class="npc-action exchange">
                         <span class="action-type">Quick Exchange</span>
-                        <span class="action-details">Free • <span class="action-reward">10 coins → Fine Cloth</span></span>
+                        <span class="action-details">Free • <span style="color: #5a7a3a;">Trade resources instantly</span></span>
                     </div>
-                    <div class="npc-action">
+                    <div class="npc-action conversation">
                         <span class="action-type">Standard Conversation</span>
-                        <span class="action-details"><span class="cost-value">2 attention</span> • 8 patience</span>
-                    </div>
-                    <div class="npc-action">
-                        <span class="action-type">Deep Conversation</span>
-                        <span class="action-details"><span class="cost-value">3 attention</span> • 12 patience • Req: Level 3</span>
+                        <span class="action-details">
+                            <span class="cost-value">2 attention</span> • 
+                            <span class="patience-calculation">7 patience (10-3 hunger)</span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -808,7 +964,7 @@
             <div class="current-spot-name">Common Room Entrance</div>
             <div class="spot-traits">
                 <span class="spot-trait crossroads">Crossroads</span>
-                <span class="spot-trait">Public</span>
+                <span class="spot-trait">Public (-1 patience)</span>
             </div>
         </div>
 
@@ -827,13 +983,13 @@
                 <div class="spot-card">
                     <div class="spot-card-name">Corner Table</div>
                     <div class="spot-occupants">Elena (Desperate)</div>
-                    <div class="spot-move-action">Move here (instant)</div>
+                    <div class="spot-move-action">Move here (instant, free)</div>
                 </div>
                 
                 <div class="spot-card">
                     <div class="spot-card-name">The Bar</div>
                     <div class="spot-occupants">Bertram (Working)</div>
-                    <div class="spot-move-action">Move here (instant)</div>
+                    <div class="spot-move-action">Move here (instant, free)</div>
                 </div>
             </div>
         </div>
@@ -846,8 +1002,7 @@
         <div class="current-spot-banner">
             <div class="current-spot-name">Corner Table</div>
             <div class="spot-traits">
-                <span class="spot-trait">Private</span>
-                <span class="spot-trait">+1 Comfort</span>
+                <span class="spot-trait private">Private (+1 patience)</span>
             </div>
         </div>
 
@@ -860,31 +1015,58 @@
             
             <div class="npc-card">
                 <div class="npc-header">
-                    <div class="npc-name">Elena</div>
+                    <div>
+                        <div class="npc-name">Elena</div>
+                        <div class="npc-type">Devoted (12 base patience, NO EXCHANGE DECK)</div>
+                    </div>
                     <div class="npc-state desperate">DESPERATE</div>
                 </div>
+                <div class="npc-tokens">
+                    <div class="token-display">Trust: <span class="token-count">1</span> <span class="token-effect">(+5% Trust cards)</span></div>
+                    <div class="token-display">Commerce: <span class="token-count">0</span></div>
+                    <div class="token-display">Status: <span class="token-count">0</span></div>
+                    <div class="token-display">Shadow: <span class="token-count">0</span></div>
+                </div>
                 <div class="npc-description">
-                    Clutching her sealed letter, eyes darting to the door with each sound.
+                    Clutching her sealed letter, eyes darting to the door with each sound. Deadline under 2 hours triggers desperate state.
                 </div>
                 <div class="npc-actions">
-                    <div class="npc-action crisis">
-                        <span class="action-type">Crisis Resolution</span>
-                        <span class="action-details"><span class="cost-value">1 attention</span> • 3 patience • URGENT</span>
-                    </div>
-                    <div class="npc-action">
+                    <div class="npc-action conversation">
                         <span class="action-type">Standard Conversation</span>
-                        <span class="action-details"><span class="cost-value">2 attention</span> • 8 patience</span>
+                        <span class="action-details">
+                            <span class="cost-value">2 attention</span> • 
+                            <span class="patience-calculation">10 patience (12-3+1)</span> •
+                            <span style="color: #8b4726;">Crisis cards inject!</span>
+                        </span>
+                    </div>
+                    <div class="npc-action unavailable">
+                        <span class="action-type">Quick Exchange</span>
+                        <span class="action-details">Not available - Elena not merchant</span>
                     </div>
                 </div>
             </div>
 
             <div class="observations">
                 <div class="observation-note">Observations at this private spot:</div>
+                <div class="observation-item revealed">
+                    <div style="display: flex; justify-content: space-between; width: 100%;">
+                        <div class="observation-text">Guard Checkpoint Warning</div>
+                        <div>
+                            <span>Observed</span>
+                            <span> • </span>
+                            <span class="reward-card">Shadow Card +4 <span class="card-depth">(Depth 0)</span></span>
+                        </div>
+                    </div>
+                    <div class="observation-narrative">
+                        The north checkpoint is doubling inspections today. Guards are looking for someone specific - probably related to the noble district unrest. The merchant route through the warehouses avoids it entirely.
+                    </div>
+                    <div class="observation-decay">Card freshness: Fresh (expires in 1h 45m)</div>
+                </div>
                 <div class="observation-item">
                     <span class="observation-text">Elena's family seal on letter</span>
                     <span class="observation-reward">
                         <span class="cost-value">1 attention</span>
-                        <span class="reward-card">Status Card +8</span>
+                        <span class="reward-card">Status Card +8 <span class="card-depth">(Depth 4)</span></span>
                     </span>
                 </div>
             </div>
@@ -897,21 +1079,25 @@
             <button class="close-button" onclick="closeTravelModal()">×</button>
             <div class="travel-header">
                 <div>Select Destination</div>
-                <div style="font-size: 11px; color: #7a6250;">From: Central Market Square</div>
+                <div style="font-size: 11px; color: #7a6250;">From: Central Market Square (Fountain)</div>
             </div>
             
             <div class="route-list">
                 <div class="route-card">
-                    <div>Copper Kettle Tavern</div>
-                    <div style="font-size: 11px; color: #7a6250;">15 min walk • Free</div>
+                    <div class="route-destination">Copper Kettle Tavern</div>
+                    <div class="route-details">15 min walk • Free • Available</div>
+                </div>
+                <div class="route-card blocked">
+                    <div class="route-destination">Noble District Gate</div>
+                    <div class="route-details">25 min walk • Free • <span class="route-requirement">Requires: Access Permit</span></div>
                 </div>
                 <div class="route-card">
-                    <div>Noble District Gate</div>
-                    <div style="font-size: 11px; color: #7a6250;">25 min walk • Free • Checkpoint</div>
+                    <div class="route-destination">Temple of Bells</div>
+                    <div class="route-details">30 min walk • Free • Available</div>
                 </div>
                 <div class="route-card">
-                    <div>Temple of Bells</div>
-                    <div style="font-size: 11px; color: #7a6250;">30 min walk • Free</div>
+                    <div class="route-destination">Warehouse District</div>
+                    <div class="route-details">20 min walk • 2 coins (toll) • Available</div>
                 </div>
             </div>
         </div>

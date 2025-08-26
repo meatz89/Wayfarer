@@ -43,10 +43,6 @@ public class ConversationSession
     /// </summary>
     public int CurrentComfort { get; set; }
 
-    /// <summary>
-    /// Current conversation depth (0-3)
-    /// </summary>
-    public int CurrentDepth { get; set; }
 
     /// <summary>
     /// Turn number
@@ -76,31 +72,54 @@ public class ConversationSession
         ObligationQueueManager queueManager,
         TokenMechanicsManager tokenManager,
         List<ConversationCard> observationCards,
-        ConversationType conversationType)
+        ConversationType conversationType,
+        PlayerResourceState playerResourceState = null)
     {
         // Determine initial state based on NPC condition
         var initialState = ConversationRules.DetermineInitialState(npc, queueManager);
         
-        // Calculate starting patience
+        // Calculate starting patience (POC exact formula)
         var basePatience = GetBasePatience(npc.PersonalityType);
         
-        // Apply emotional state penalties
-        var statepenalty = initialState switch
+        // Apply stamina penalty: Low stamina reduces patience
+        // Assume stamina 0-10, where lower stamina = more "hunger"/fatigue
+        // Formula: penalty = (10 - stamina) * 3 / 10 (max 3 penalty at 0 stamina)
+        var staminaPenalty = 0;
+        if (playerResourceState != null)
         {
-            EmotionalState.DESPERATE => -3,
-            EmotionalState.TENSE => -1,
-            _ => 0
-        };
+            var staminaDeficit = Math.Max(0, 10 - playerResourceState.Stamina);
+            staminaPenalty = staminaDeficit * 3 / 10;  // 0 stamina = -3 patience
+        }
         
-        var totalPatience = Math.Max(3, basePatience + statepenalty);
+        // Apply spot modifiers (TODO: Add when spots are implemented)
+        var spotModifier = 0;  // Private: +1, etc.
+        
+        var totalPatience = Math.Max(3, basePatience - staminaPenalty + spotModifier);
 
-        // Create and initialize deck
-        var deck = new CardDeck();
-        deck.InitializeForNPC(npc, tokenManager);
+        // Initialize conversation deck if needed
+        if (npc.ConversationDeck == null)
+        {
+            npc.InitializeConversationDeck(new NPCDeckFactory(tokenManager));
+        }
+        
+        // Initialize letter deck for Elena (POC character)
+        if (npc.ID == "elena_merchant" && (npc.LetterDeck == null || !npc.LetterDeck.Any()))
+        {
+            npc.LetterDeck = LetterCardFactory.CreateElenaLetterDeck(npc.ID);
+        }
+        
+        // Initialize crisis deck if needed (usually empty)
+        if (npc.CrisisDeck == null)
+        {
+            npc.InitializeCrisisDeck();
+        }
 
-        // Draw initial hand
+        // CRITICAL: Comfort always starts at 5 for new conversations
+        var startingComfort = 5;
+        
+        // Draw initial hand (3 cards at comfort 5)
         var handCards = new List<ConversationCard>();
-        handCards.AddRange(deck.Draw(3, 0)); // Base 3 cards at depth 0
+        handCards.AddRange(npc.ConversationDeck.Draw(3, startingComfort));
         
         // Add observation cards if any
         if (observationCards != null && observationCards.Any())
@@ -108,20 +127,24 @@ public class ConversationSession
             handCards.AddRange(observationCards);
         }
 
-        return new ConversationSession
+        var session = new ConversationSession
         {
             NPC = npc,
             CurrentState = initialState,
             HandCards = handCards,
-            Deck = deck,
+            Deck = npc.ConversationDeck,  // Use the NPC's actual deck
             CurrentPatience = totalPatience,
             MaxPatience = totalPatience,
-            CurrentComfort = 0,
-            CurrentDepth = 0,
+            CurrentComfort = startingComfort,  // ALWAYS starts at 5
             TurnNumber = 0,
             LetterGenerated = false,
             ObservationCards = observationCards ?? new List<ConversationCard>()
         };
+        
+        Console.WriteLine($"[StartConversation] Created session with comfort: {session.CurrentComfort} (expected: {startingComfort})");
+        Console.WriteLine($"[StartConversation] Initial state: {initialState}, Patience: {totalPatience}, Hand size: {handCards.Count}");
+        
+        return session;
     }
 
     /// <summary>
@@ -217,7 +240,6 @@ public class ConversationSession
             CurrentPatience = 1, // Single turn exchange
             MaxPatience = 1,
             CurrentComfort = 0, // No comfort in exchanges
-            CurrentDepth = 0,
             TurnNumber = 0,
             LetterGenerated = false,
             ObservationCards = new List<ConversationCard>()
@@ -253,7 +275,7 @@ public class ConversationSession
         var availableCount = Math.Min(deck.RemainingCards, 5); // Cap at 5 to prevent overflow
         if (availableCount > 0)
         {
-            handCards.AddRange(deck.Draw(availableCount, 0)); // Draw all crisis cards
+            handCards.AddRange(deck.Draw(availableCount, 0)); // Draw crisis cards (usually depth 0)
             Console.WriteLine($"[StartCrisis] Drew {availableCount} crisis cards for {npc.Name}");
         }
         else
@@ -277,7 +299,6 @@ public class ConversationSession
             CurrentPatience = basePatience,
             MaxPatience = basePatience,
             CurrentComfort = 0,
-            CurrentDepth = 0,
             TurnNumber = 0,
             LetterGenerated = false,
             ObservationCards = observationCards ?? new List<ConversationCard>()
@@ -285,9 +306,9 @@ public class ConversationSession
     }
 
     /// <summary>
-    /// Execute LISTEN action
+    /// Execute LISTEN action according to exact POC rules
     /// </summary>
-    public void ExecuteListen()
+    public void ExecuteListen(TokenMechanicsManager tokenManager = null)
     {
         TurnNumber++;
         CurrentPatience--;
@@ -298,32 +319,90 @@ public class ConversationSession
         // Get state rules
         var rules = ConversationRules.States[CurrentState];
 
-        // Draw new cards filtered by current depth
-        var newCards = Deck.Draw(rules.CardsOnListen, CurrentDepth);
+        // Draw new conversation cards filtered by current comfort level
+        var newCards = Deck.Draw(rules.CardsOnListen, CurrentComfort);
         HandCards.AddRange(newCards);
 
-        // Inject crisis cards if needed
-        if (rules.InjectsCrisis)
+        // Check letter deck if state requires it (OPEN checks trust, CONNECTED checks all)
+        if (rules.ChecksLetterDeck && tokenManager != null && NPC.LetterDeck != null && NPC.LetterDeck.Any())
         {
-            for (int i = 0; i < rules.CrisisCardsInjected; i++)
+            var npcTokens = tokenManager.GetTokensWithNPC(NPC.ID);
+            
+            foreach (var letterCard in NPC.LetterDeck)
             {
-                var crisisCard = Deck.GenerateCrisisCard(NPC);
-                HandCards.Add(crisisCard);
+                // Filter by letter type if in OPEN state (trust only)
+                if (rules.ChecksTrustLettersOnly && letterCard.ConnectionType != ConnectionType.Trust)
+                    continue;
+                    
+                // Check if letter is eligible with current tokens and state
+                if (letterCard.IsEligible(npcTokens, CurrentState))
+                {
+                    // Convert letter card to conversation card for negotiation
+                    var conversationCard = letterCard.ToConversationCard(NPC.ID, NPC.Name);
+                    
+                    // Calculate success rate with linear token progression (+5% per token)
+                    var relevantTokens = npcTokens.GetValueOrDefault(letterCard.ConnectionType, 0);
+                    var successRate = letterCard.BaseSuccessRate + (relevantTokens * 5);
+                    successRate = Math.Clamp(successRate, 10, 95);
+                    
+                    // Create new card with calculated success rate (init-only property)
+                    conversationCard = new ConversationCard
+                    {
+                        Id = conversationCard.Id,
+                        Template = conversationCard.Template,
+                        Context = conversationCard.Context,
+                        Type = conversationCard.Type,
+                        Persistence = conversationCard.Persistence,
+                        Weight = conversationCard.Weight,
+                        BaseComfort = conversationCard.BaseComfort,
+                        Category = conversationCard.Category,
+                        Depth = conversationCard.Depth,
+                        DisplayName = conversationCard.DisplayName,
+                        Description = conversationCard.Description,
+                        CanDeliverLetter = conversationCard.CanDeliverLetter,
+                        ManipulatesObligations = conversationCard.ManipulatesObligations,
+                        SuccessRate = successRate  // Set during initialization
+                    };
+                    
+                    HandCards.Add(conversationCard);
+                    Console.WriteLine($"[ExecuteListen] Added eligible letter: {letterCard.Title} (Success: {successRate}%)");
+                }
             }
         }
 
-        // Transition state
+        // Inject crisis cards if state requires it (DESPERATE/HOSTILE)
+        if (rules.InjectsCrisis && rules.CrisisCardsInjected > 0)
+        {
+            // Check if we have crisis cards in the crisis deck
+            if (NPC.CrisisDeck != null && NPC.CrisisDeck.RemainingCards > 0)
+            {
+                // Draw from crisis deck
+                var crisisCards = NPC.CrisisDeck.Draw(rules.CrisisCardsInjected, 0);
+                HandCards.AddRange(crisisCards);
+                Console.WriteLine($"[ExecuteListen] Injected {crisisCards.Count} crisis cards from deck");
+            }
+            else
+            {
+                // Generate crisis cards if deck is empty
+                for (int i = 0; i < rules.CrisisCardsInjected; i++)
+                {
+                    var crisisCard = Deck.GenerateCrisisCard(NPC);
+                    HandCards.Add(crisisCard);
+                }
+                Console.WriteLine($"[ExecuteListen] Generated {rules.CrisisCardsInjected} crisis cards");
+            }
+        }
+
+        // Transition state according to rules
         var previousState = CurrentState;
         CurrentState = rules.ListenTransition;
         
-        // If we just transitioned to HOSTILE, mark that we're allowing a final turn
-        if (CurrentState == EmotionalState.HOSTILE && previousState != EmotionalState.HOSTILE)
+        // Check if conversation should end (HOSTILE state after listen)
+        if (rules.ListenEndsConversation)
         {
-            HadFinalCrisisTurn = false; // Reset to allow one turn
+            HadFinalCrisisTurn = true;  // Mark conversation as ending
+            Console.WriteLine($"[ExecuteListen] HOSTILE state - conversation will end");
         }
-
-        // Check depth advancement
-        CheckDepthAdvancement();
     }
 
     /// <summary>
@@ -373,52 +452,11 @@ public class ConversationSession
             }
         }
 
-        // Check depth advancement
-        CheckDepthAdvancement();
+        // Note: No depth advancement needed - comfort directly enables cards
 
         return result;
     }
 
-    /// <summary>
-    /// Check if depth should advance based on comfort thresholds and current state
-    /// </summary>
-    private void CheckDepthAdvancement()
-    {
-        var rules = ConversationRules.States[CurrentState];
-        
-        // CONNECTED auto-advances depth
-        if (rules.AutoAdvanceDepth)
-        {
-            CurrentDepth = Math.Min(GameRules.MAX_CONVERSATION_DEPTH, CurrentDepth + 1);
-            return;
-        }
-
-        // Depth can only advance in NEUTRAL, OPEN, or CONNECTED states
-        if (CurrentState != EmotionalState.NEUTRAL && 
-            CurrentState != EmotionalState.OPEN && 
-            CurrentState != EmotionalState.CONNECTED)
-        {
-            return;
-        }
-
-        // Check comfort thresholds for depth advancement
-        int newDepth = CurrentDepth;
-        
-        if (CurrentComfort >= GameRules.DEPTH_ADVANCE_THRESHOLD_3 && CurrentDepth < 3)
-        {
-            newDepth = 3; // Intimate to Deep
-        }
-        else if (CurrentComfort >= GameRules.DEPTH_ADVANCE_THRESHOLD_2 && CurrentDepth < 2)
-        {
-            newDepth = 2; // Personal to Intimate
-        }
-        else if (CurrentComfort >= GameRules.DEPTH_ADVANCE_THRESHOLD_1 && CurrentDepth < 1)
-        {
-            newDepth = 1; // Surface to Personal
-        }
-
-        CurrentDepth = newDepth;
-    }
 
     /// <summary>
     /// Check comfort thresholds for rewards
@@ -428,7 +466,6 @@ public class ConversationSession
         var outcome = new ConversationOutcome
         {
             TotalComfort = CurrentComfort,
-            FinalDepth = CurrentDepth,
             FinalState = CurrentState,
             TurnsUsed = TurnNumber
         };
@@ -517,6 +554,7 @@ public class ConversationSession
 
     private static int GetBasePatience(PersonalityType personality)
     {
+        // EXACT POC patience values by personality
         return personality switch
         {
             PersonalityType.DEVOTED => 12,

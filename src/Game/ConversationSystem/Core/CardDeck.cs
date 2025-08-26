@@ -48,7 +48,7 @@ public class CardDeck
 
     private void AddUniversalCards()
     {
-        // Basic persistent cards everyone has
+        // Basic persistent cards everyone has - depth 0-5 accessible at start
         cards.Add(new ConversationCard
         {
             Id = "small_talk",
@@ -58,7 +58,7 @@ public class CardDeck
             Persistence = PersistenceType.Persistent,
             Weight = 0,
             BaseComfort = 1,
-            MinDepth = 0  // Surface level
+            Depth = 2  // Basic level, accessible at start (comfort 5)
         });
 
         cards.Add(new ConversationCard
@@ -70,7 +70,7 @@ public class CardDeck
             Persistence = PersistenceType.Persistent,
             Weight = 0,
             BaseComfort = 1,
-            MinDepth = 0  // Surface level
+            Depth = 3  // Basic level, accessible at start
         });
 
         cards.Add(new ConversationCard
@@ -82,7 +82,7 @@ public class CardDeck
             Persistence = PersistenceType.Persistent,
             Weight = 1,
             BaseComfort = 2,
-            MinDepth = 1  // Personal level
+            Depth = 7  // Decent level (6-10 range)
         });
 
         cards.Add(new ConversationCard
@@ -94,7 +94,7 @@ public class CardDeck
             Persistence = PersistenceType.Persistent,
             Weight = 1,
             BaseComfort = 3,
-            MinDepth = 2  // Intimate level
+            Depth = 12  // Good level (11-15 range)
         });
 
         cards.Add(new ConversationCard
@@ -106,7 +106,7 @@ public class CardDeck
             Persistence = PersistenceType.Persistent,
             Weight = 0,
             BaseComfort = 1,
-            MinDepth = 0  // Surface level
+            Depth = 1  // Very basic level
         });
     }
 
@@ -115,7 +115,7 @@ public class CardDeck
         switch (personality)
         {
             case PersonalityType.DEVOTED:
-                // Trust-focused cards
+                // Trust-focused cards across depth ranges
                 cards.Add(new ConversationCard
                 {
                     Id = "share_concern",
@@ -125,7 +125,7 @@ public class CardDeck
                     Persistence = PersistenceType.Opportunity,
                     Weight = 2,
                     BaseComfort = 4,
-                    MinDepth = 1  // Personal level
+                    Depth = 8  // Decent level (6-10 range)
                 });
                 cards.Add(new ConversationCard
                 {
@@ -136,7 +136,30 @@ public class CardDeck
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
                     BaseComfort = 3,
-                    MinDepth = 2  // Intimate level
+                    Depth = 14  // Good level (11-15 range)
+                });
+                // Add more devoted cards to fill depth ranges
+                cards.Add(new ConversationCard
+                {
+                    Id = "gentle_understanding",
+                    Template = CardTemplateType.ExpressEmpathy,
+                    Context = new CardContext { Personality = PersonalityType.DEVOTED },
+                    Type = CardType.Trust,
+                    Persistence = PersistenceType.Persistent,
+                    Weight = 1,
+                    BaseComfort = 2,
+                    Depth = 4  // Basic level, accessible at start
+                });
+                cards.Add(new ConversationCard
+                {
+                    Id = "deep_empathy",
+                    Template = CardTemplateType.ExpressEmpathy,
+                    Context = new CardContext { Personality = PersonalityType.DEVOTED },
+                    Type = CardType.Trust,
+                    Persistence = PersistenceType.Persistent,
+                    Weight = 3,
+                    BaseComfort = 8,
+                    Depth = 18  // Excellent level (16-20 range)
                 });
                 break;
 
@@ -151,7 +174,7 @@ public class CardDeck
                     Persistence = PersistenceType.Opportunity,
                     Weight = 2,
                     BaseComfort = 4,
-                    MinDepth = 1  // Personal level
+                    Depth = 8  // Decent level
                 });
                 cards.Add(new ConversationCard
                 {
@@ -162,7 +185,7 @@ public class CardDeck
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
                     BaseComfort = 3,
-                    MinDepth = 2  // Intimate level
+                    Depth = 14  // Good level
                 });
                 break;
 
@@ -177,7 +200,7 @@ public class CardDeck
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
                     BaseComfort = 3,
-                    MinDepth = 1  // Personal level
+                    Depth = 8  // Decent level
                 });
                 cards.Add(new ConversationCard
                 {
@@ -188,7 +211,7 @@ public class CardDeck
                     Persistence = PersistenceType.Opportunity,
                     Weight = 2,
                     BaseComfort = 4,
-                    MinDepth = 2  // Intimate level
+                    Depth = 14  // Good level
                 });
                 break;
 
@@ -203,7 +226,7 @@ public class CardDeck
                     Persistence = PersistenceType.Opportunity,
                     Weight = 1,
                     BaseComfort = 3,
-                    MinDepth = 1  // Personal level
+                    Depth = 8  // Decent level
                 });
                 cards.Add(new ConversationCard
                 {
@@ -214,7 +237,7 @@ public class CardDeck
                     Persistence = PersistenceType.Opportunity,
                     Weight = 2,
                     BaseComfort = 5,
-                    MinDepth = 3  // Deep level - hidden knowledge
+                    Depth = 17  // Excellent level - hidden knowledge
                 });
                 break;
 
@@ -229,7 +252,7 @@ public class CardDeck
                     Persistence = PersistenceType.Persistent,
                     Weight = 2,
                     BaseComfort = 4,
-                    MinDepth = 2  // Intimate level
+                    Depth = 14  // Good level
                 });
                 cards.Add(new ConversationCard
                 {
@@ -240,7 +263,7 @@ public class CardDeck
                     Persistence = PersistenceType.Persistent,
                     Weight = 1,
                     BaseComfort = 3,
-                    MinDepth = 1  // Personal level
+                    Depth = 8  // Decent level
                 });
                 break;
         }
@@ -261,7 +284,7 @@ public class CardDeck
                 Weight = 2,
                 BaseComfort = 5,
                 CanDeliverLetter = true,
-                MinDepth = 3  // Deep level - letter delivery
+                Depth = 17  // Excellent level - letter delivery
             });
         }
 
@@ -277,7 +300,7 @@ public class CardDeck
                 Weight = 2,
                 BaseComfort = 5,
                 CanDeliverLetter = true,
-                MinDepth = 3  // Deep level - letter delivery
+                Depth = 17  // Excellent level - letter delivery
             });
         }
 
@@ -292,7 +315,7 @@ public class CardDeck
             Weight = 1,
             BaseComfort = 2,
             ManipulatesObligations = true,
-            MinDepth = 2  // Intimate level - discussing obligations
+            Depth = 13  // Good level - discussing obligations
         });
     }
 
@@ -308,7 +331,7 @@ public class CardDeck
             Weight = 1,
             BaseComfort = 0,
             Category = CardCategory.COMFORT,  // Burden cards are comfort cards with negative effects
-            MinDepth = 0  // Surface level - awkward silence
+            Depth = 0  // Always accessible
         });
     }
 
@@ -329,7 +352,7 @@ public class CardDeck
             Category = CardCategory.STATE,
             SuccessState = EmotionalState.NEUTRAL,
             FailureState = null,  // Stay in current state
-            MinDepth = 0  // Available at surface
+            Depth = 0  // Always available
         });
 
         // DEPTH 0 STATE CARDS - Essential for state variety from the start
@@ -347,7 +370,7 @@ public class CardDeck
             Category = CardCategory.STATE,
             SuccessState = EmotionalState.GUARDED,
             FailureState = null,  // Stay in current state
-            MinDepth = 0  // Available at surface
+            Depth = 0  // Always available
         });
         
         // Warm greeting - for moving to OPEN state early
@@ -363,7 +386,7 @@ public class CardDeck
             Category = CardCategory.STATE,
             SuccessState = EmotionalState.OPEN,
             FailureState = EmotionalState.NEUTRAL,
-            MinDepth = 0  // Available at surface
+            Depth = 0  // Always available
         });
         
         // Tense comment - can create tension immediately
@@ -379,7 +402,7 @@ public class CardDeck
             Category = CardCategory.STATE,
             SuccessState = EmotionalState.TENSE,
             FailureState = null,
-            MinDepth = 0  // Available at surface
+            Depth = 0  // Always available
         });
         
         // Eager engagement - available early for enthusiastic starts
@@ -395,7 +418,7 @@ public class CardDeck
             Category = CardCategory.STATE,
             SuccessState = EmotionalState.EAGER,
             FailureState = EmotionalState.NEUTRAL,
-            MinDepth = 0  // Available at surface
+            Depth = 0  // Always available
         });
         
         // Overwhelmed response - when things get too much
@@ -411,7 +434,7 @@ public class CardDeck
             Category = CardCategory.STATE,
             SuccessState = EmotionalState.OVERWHELMED,
             FailureState = null,
-            MinDepth = 0  // Can happen at any depth
+            Depth = 0  // Can happen at any comfort level
         });
         
         // Desperate plea - for crisis situations
@@ -429,7 +452,7 @@ public class CardDeck
                 Category = CardCategory.STATE,
                 SuccessState = EmotionalState.DESPERATE,
                 FailureState = EmotionalState.TENSE,
-                MinDepth = 0  // Crisis can happen anytime
+                Depth = 0  // Crisis can happen anytime
             });
         }
 
@@ -446,7 +469,7 @@ public class CardDeck
             Category = CardCategory.STATE,
             SuccessState = EmotionalState.OPEN,
             FailureState = EmotionalState.GUARDED,
-            MinDepth = 1  // Requires some depth
+            Depth = 6  // Requires some comfort
         });
 
         // Eagerness card - for high energy engagement
@@ -462,7 +485,7 @@ public class CardDeck
             Category = CardCategory.STATE,
             SuccessState = EmotionalState.EAGER,
             FailureState = EmotionalState.NEUTRAL,
-            MinDepth = 1  // Requires engagement
+            Depth = 7  // Requires engagement
         });
 
         // Connection card - for deep rapport (rare)
@@ -480,20 +503,20 @@ public class CardDeck
                 Category = CardCategory.STATE,
                 SuccessState = EmotionalState.CONNECTED,
                 FailureState = EmotionalState.OPEN,
-                MinDepth = 3  // Only at deepest level
+                Depth = 19  // Only at highest comfort level
             });
         }
     }
 
     /// <summary>
-    /// Draw cards based on emotional state rules, filtered by depth level
+    /// Draw cards based on emotional state rules, filtered by comfort level
     /// </summary>
-    public List<ConversationCard> Draw(int count, int currentDepth = 0)
+    public List<ConversationCard> Draw(int count, int currentComfort = 5)
     {
         var drawn = new List<ConversationCard>();
         
-        // Filter cards by depth level - only cards at or below current depth
-        var availableCards = cards.Where(c => c.MinDepth <= currentDepth).ToList();
+        // Filter cards by depth level - only cards at or below current comfort
+        var availableCards = cards.Where(c => c.Depth <= currentComfort).ToList();
         
         for (int i = 0; i < count && availableCards.Any(); i++)
         {

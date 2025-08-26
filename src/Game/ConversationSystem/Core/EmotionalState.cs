@@ -99,6 +99,16 @@ public class StateRuleset
     /// Whether to allow one final turn after this state to play crisis cards
     /// </summary>
     public bool AllowOneFinalTurn { get; init; }
+    
+    /// <summary>
+    /// Whether to check letter deck during Listen (OPEN/CONNECTED)
+    /// </summary>
+    public bool ChecksLetterDeck { get; init; }
+    
+    /// <summary>
+    /// Whether to check only trust letters (true) or all letters (false)
+    /// </summary>
+    public bool ChecksTrustLettersOnly { get; init; }
 }
 
 /// <summary>
@@ -109,89 +119,100 @@ public static class ConversationRules
 {
     public static readonly Dictionary<EmotionalState, StateRuleset> States = new()
     {
+        // EXACT POC SPECIFICATIONS
         [EmotionalState.NEUTRAL] = new StateRuleset
         {
-            CardsOnListen = 2,
-            MaxWeight = 3,
-            ListenTransition = EmotionalState.NEUTRAL,
+            CardsOnListen = 2,  // Listen draws 2 conversation cards
+            MaxWeight = 3,      // Speak weight limit 3
+            ListenTransition = EmotionalState.NEUTRAL,  // Stays NEUTRAL
+            ChecksLetterDeck = false,  // No letter checking
             SetBonuses = new() { { 2, 2 }, { 3, 5 }, { 4, 8 } }
         },
 
         [EmotionalState.GUARDED] = new StateRuleset
         {
-            CardsOnListen = 1,
-            MaxWeight = 2,
-            ListenTransition = EmotionalState.NEUTRAL,
+            CardsOnListen = 1,  // Listen draws 1 conversation card
+            MaxWeight = 2,      // Speak weight limit 2
+            ListenTransition = EmotionalState.NEUTRAL,  // Transitions to NEUTRAL
+            ChecksLetterDeck = false,
             SetBonuses = new() { { 2, 1 }, { 3, 3 }, { 4, 5 } }
         },
 
         [EmotionalState.OPEN] = new StateRuleset
         {
-            CardsOnListen = 3,
-            MaxWeight = 3,
-            ListenTransition = EmotionalState.OPEN,
+            CardsOnListen = 3,  // Listen draws 3 conversation cards
+            MaxWeight = 3,      // Speak weight limit 3
+            ListenTransition = EmotionalState.OPEN,  // Stays OPEN
+            ChecksLetterDeck = true,  // CHECK letter deck for trust letters
+            ChecksTrustLettersOnly = true,  // Only trust letters eligible
             SetBonuses = new() { { 2, 2 }, { 3, 5 }, { 4, 8 } }
         },
 
         [EmotionalState.CONNECTED] = new StateRuleset
         {
-            CardsOnListen = 3,
-            MaxWeight = 4,
-            ListenTransition = EmotionalState.CONNECTED,
-            AutoAdvanceDepth = true,
+            CardsOnListen = 3,  // Listen draws 3 conversation cards
+            MaxWeight = 4,      // Speak weight limit 4
+            ListenTransition = EmotionalState.CONNECTED,  // Stays CONNECTED
+            ChecksLetterDeck = true,  // CHECK letter deck for ANY letters
+            ChecksTrustLettersOnly = false,  // All letter types eligible
+            AutoAdvanceDepth = false,  // No depth advancement (comfort gates)
             SetBonuses = new() { { 2, 3 }, { 3, 6 }, { 4, 10 } }
         },
 
         [EmotionalState.TENSE] = new StateRuleset
         {
-            CardsOnListen = 1,
-            MaxWeight = 1,
-            ListenTransition = EmotionalState.GUARDED,
+            CardsOnListen = 1,  // Listen draws 1 conversation card
+            MaxWeight = 1,      // Speak weight limit 1
+            ListenTransition = EmotionalState.GUARDED,  // Transitions to GUARDED
+            ChecksLetterDeck = false,
             SetBonuses = new() { { 2, 1 }, { 3, 2 }, { 4, 3 } }
         },
 
         [EmotionalState.EAGER] = new StateRuleset
         {
-            CardsOnListen = 3,
-            MaxWeight = 3,
-            ListenTransition = EmotionalState.EAGER,
-            RequiredCards = 2,
+            CardsOnListen = 3,  // Listen draws 3 conversation cards
+            MaxWeight = 3,      // Speak weight limit 3
+            ListenTransition = EmotionalState.EAGER,  // Stays EAGER
+            ChecksLetterDeck = false,
+            RequiredCards = 2,  // Must play at least 2 cards
             SetBonus = 3,
             SetBonuses = new() { { 2, 2 }, { 3, 5 }, { 4, 8 } }
         },
 
         [EmotionalState.OVERWHELMED] = new StateRuleset
         {
-            CardsOnListen = 1,
-            MaxWeight = 3,
-            ListenTransition = EmotionalState.NEUTRAL,
-            MaxCards = 1,
-            SetBonuses = new() // Empty - no bonuses
+            CardsOnListen = 1,  // Listen draws 1 conversation card
+            MaxWeight = 3,      // Speak weight limit 3 (but max 1 card)
+            ListenTransition = EmotionalState.NEUTRAL,  // Transitions to NEUTRAL
+            ChecksLetterDeck = false,
+            MaxCards = 1,  // Can only speak 1 card max
+            SetBonuses = new()  // No set bonuses
         },
 
         [EmotionalState.DESPERATE] = new StateRuleset
         {
-            CardsOnListen = 2,
-            MaxWeight = 3,
-            ListenTransition = EmotionalState.HOSTILE,
-            InjectsCrisis = true,
+            CardsOnListen = 2,  // Listen draws 2 conversation cards
+            MaxWeight = 3,      // Speak weight limit 3 (crisis free)
+            ListenTransition = EmotionalState.HOSTILE,  // Transitions to HOSTILE
+            InjectsCrisis = true,  // INJECT 1 crisis card
             CrisisCardsInjected = 1,
             FreeWeightCategories = new() { CardCategory.CRISIS },  // Crisis cards cost 0 weight
+            ChecksLetterDeck = false,
             SetBonuses = new() { { 2, 2 }, { 3, 5 }, { 4, 8 } }
         },
 
         [EmotionalState.HOSTILE] = new StateRuleset
         {
-            CardsOnListen = 1,
-            MaxWeight = 3,
-            ListenTransition = EmotionalState.HOSTILE,
-            InjectsCrisis = true,
+            CardsOnListen = 1,  // Listen draws 1 conversation card
+            MaxWeight = 3,      // Speak weight limit 3 (crisis only)
+            ListenTransition = EmotionalState.HOSTILE,  // Stays HOSTILE
+            InjectsCrisis = true,  // INJECT 2 crisis cards
             CrisisCardsInjected = 2,
-            FreeWeightCategories = new() { CardCategory.CRISIS },  // Crisis cards cost 0 weight
-            AllowedCategories = new() { CardCategory.CRISIS },  // ONLY crisis cards can be played
-            ListenEndsConversation = false,  // Allow one turn to play crisis cards
-            AllowOneFinalTurn = true,  // Give player chance to resolve with crisis cards
-            SetBonuses = new() // Empty - crisis only, no bonuses
+            FreeWeightCategories = new() { CardCategory.CRISIS },
+            AllowedCategories = new() { CardCategory.CRISIS },  // ONLY crisis cards allowed
+            ListenEndsConversation = true,  // END conversation after listen
+            ChecksLetterDeck = false,
+            SetBonuses = new()  // No set bonuses
         }
     };
 

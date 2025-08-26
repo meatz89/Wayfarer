@@ -19,7 +19,8 @@ public enum CardCategory
     COMFORT,  // Build comfort, can combine with other comfort cards
     STATE,    // Change emotional state, must play alone
     CRISIS,   // Emergency actions, free in DESPERATE state
-    EXCHANGE  // Exchange cards for Quick Exchange conversations
+    EXCHANGE, // Exchange cards for Quick Exchange conversations
+    LETTER    // Letter negotiation cards for creating obligations
 }
 
 /// <summary>
@@ -111,9 +112,9 @@ public class ConversationCard
     public bool ManipulatesObligations { get; init; }
 
     /// <summary>
-    /// Minimum depth level required to play this card (0-3)
+    /// Card depth/power level (0-20, deeper cards require more comfort)
     /// </summary>
-    public int MinDepth { get; init; }
+    public int Depth { get; init; }
 
     /// <summary>
     /// Override success rate for special cards (null uses calculated rate)
@@ -192,6 +193,7 @@ public class ConversationCard
             CardCategory.STATE => "state",
             CardCategory.CRISIS => "crisis",
             CardCategory.EXCHANGE => "exchange",
+            CardCategory.LETTER => "letter",
             _ => "comfort"
         };
     }

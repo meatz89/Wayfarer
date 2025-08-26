@@ -9,10 +9,6 @@ public class ConversationOutcome
     /// </summary>
     public int TotalComfort { get; set; }
 
-    /// <summary>
-    /// Final depth reached
-    /// </summary>
-    public int FinalDepth { get; set; }
 
     /// <summary>
     /// Final emotional state

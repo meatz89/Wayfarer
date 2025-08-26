@@ -51,34 +51,76 @@ public class NPC
     // Known routes (for HELP verb sharing)
     private List<RouteOption> _knownRoutes = new List<RouteOption>();
 
-    // Multiple deck types for different conversation modes
-    public CardDeck ConversationDeck { get; set; }  // Standard conversation cards
-    public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // Quick exchange cards
-    public CardDeck CrisisDeck { get; set; }  // Crisis resolution cards
+    // FOUR DECK ARCHITECTURE (POC EXACT)
+    public CardDeck ConversationDeck { get; set; }  // Comfort/State/Burden cards (depth 0-20)
+    public List<LetterCard> LetterDeck { get; set; } = new();  // Letter cards with eligibility (tokens + state)
+    public CardDeck CrisisDeck { get; set; }  // Crisis cards (usually empty unless crisis)
+    public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // Exchange cards (Mercantile NPCs only)
 
     // Daily exchange selection
     public ExchangeCard TodaysExchangeCard { get; set; }
     public int LastExchangeSelectionDay { get; set; } = -1;
 
-    // Initialize all decks when NPC is created
+    // Initialize conversation deck with proper cards
     public void InitializeConversationDeck(NPCDeckFactory deckFactory)
     {
         ConversationDeck ??= deckFactory.CreateDeckForNPC(this);
     }
+    
+    // Initialize letter deck with eligibility-based cards
+    public void InitializeLetterDeck()
+    {
+        // Only initialize if not already done
+        if (LetterDeck == null || !LetterDeck.Any())
+        {
+            // For POC, only Elena has letters
+            if (ID == "elena_merchant")
+            {
+                LetterDeck = LetterCardFactory.CreateElenaLetterDeck(ID);
+            }
+            else
+            {
+                LetterDeck = new List<LetterCard>();
+            }
+        }
+    }
 
-    // Initialize exchange deck (lazy initialization for memory efficiency)
+    // Initialize exchange deck (only for Mercantile NPCs)
     public void InitializeExchangeDeck()
     {
         if (ExchangeDeck == null || !ExchangeDeck.Any())
         {
-            ExchangeDeck = ExchangeCardFactory.CreateExchangeDeck(PersonalityType, ID);
+            // Only Mercantile NPCs have exchange cards
+            if (PersonalityType == PersonalityType.MERCANTILE)
+            {
+                ExchangeDeck = ExchangeCardFactory.CreateExchangeDeck(PersonalityType, ID);
+            }
+            else
+            {
+                ExchangeDeck = new List<ExchangeCard>();
+            }
         }
     }
 
-    // Initialize crisis deck (only when crisis cards are added)
+    // Initialize crisis deck (usually empty unless crisis active)
     public void InitializeCrisisDeck()
     {
+        // Crisis deck starts empty and cards are added during crisis events
         CrisisDeck ??= new CardDeck();
+    }
+    
+    // Add crisis cards to the crisis deck
+    public void AddCrisisCards(List<ConversationCard> crisisCards)
+    {
+        if (CrisisDeck == null)
+        {
+            InitializeCrisisDeck();
+        }
+        
+        foreach (var card in crisisCards)
+        {
+            CrisisDeck.AddCard(card);
+        }
     }
 
     // Check if NPC has crisis cards

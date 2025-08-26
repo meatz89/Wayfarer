@@ -354,15 +354,15 @@ namespace Wayfarer.Pages
             return Math.Min(100, (Session.CurrentComfort * 100) / target);
         }
 
-        protected string GetDepthName()
+        protected string GetComfortName()
         {
-            return Session.CurrentDepth switch
+            return Session.CurrentComfort switch
             {
-                0 => "(Surface)",
-                1 => "(Personal)",
-                2 => "(Intimate)",
-                3 => "(Soul-deep)",
-                _ => ""
+                >= 20 => "(Perfect)",
+                >= 15 => "(Deep)",
+                >= 10 => "(Good)",
+                >= 5 => "(Basic)",
+                _ => "(Tentative)"
             };
         }
 

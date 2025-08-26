@@ -95,7 +95,8 @@ public class ConversationManager
             queueManager,
             tokenManager,
             observationCards,  // Pass observation cards to standard conversations too
-            conversationType
+            conversationType,
+            gameWorld.GetPlayerResourceState()  // Pass player resource state for hunger penalty
         );
 
         return currentSession;

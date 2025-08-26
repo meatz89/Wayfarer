@@ -38,8 +38,8 @@ public class Phase3_NPCDependents : IInitializationPhase
             return;
         }
         
-        // Create a deck factory instance
-        var deckFactory = new NPCDeckFactory();
+        // Create a deck factory instance (no token manager during initialization)
+        var deckFactory = new NPCDeckFactory(null);
         
         foreach (var npc in npcs)
         {
@@ -64,6 +64,9 @@ public class Phase3_NPCDependents : IInitializationPhase
                     }
                 }
                 
+                // Initialize letter deck for specific NPCs
+                InitializeLetterDeckForNPC(npc);
+                
                 // Note: Crisis cards are added later in Phase8 when meeting obligations are created
                 // This ensures proper initialization order
                 
@@ -76,6 +79,22 @@ public class Phase3_NPCDependents : IInitializationPhase
         }
         
         Console.WriteLine($"[Phase3] Initialized decks for {npcs.Count} NPCs");
+    }
+    
+    private void InitializeLetterDeckForNPC(NPC npc)
+    {
+        // Initialize letter deck for specific NPCs based on POC specification
+        if (npc.ID.ToLower() == "elena")
+        {
+            npc.LetterDeck = LetterCardFactory.CreateElenaLetterDeck(npc.ID);
+            Console.WriteLine($"[Phase3] Initialized letter deck for Elena with {npc.LetterDeck.Count} cards");
+            
+            foreach (var letterCard in npc.LetterDeck)
+            {
+                Console.WriteLine($"  - {letterCard.Title} (Requires: {string.Join(", ", letterCard.Eligibility.RequiredTokens.Select(t => $"{t.Value} {t.Key}"))}, States: {string.Join(", ", letterCard.Eligibility.RequiredStates)})");
+            }
+        }
+        // Add other NPCs with letter decks here as needed
     }
 
     private TierLevel ParseTierLevel(string tierString)

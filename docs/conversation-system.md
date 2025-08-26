@@ -106,7 +106,7 @@ Nine states that modify Listen/Speak mechanics:
 - Speak: Weight limit 2
 
 **OPEN**
-- Listen: Draw 3 from conversation deck, check letter deck for trust letters
+- Listen: Draw 3 from conversation deck, check letter deck for letters
 - Speak: Weight limit 3
 
 **TENSE**

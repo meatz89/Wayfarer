@@ -3401,6 +3401,10 @@ public class GameFacade
         return balance;
     }
 
+    public TokenMechanicsManager GetTokenMechanicsManager()
+    {
+        return _connectionTokenManager;
+    }
 
     // ========== NPC & LOCATION QUERIES ==========
 
