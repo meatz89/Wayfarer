@@ -57,7 +57,7 @@ body {
 }
 
 .message-display .message {
-    padding: 12px 20px;
+    padding: 12px 40px 12px 20px;
     border-radius: 8px;
     background: #2c241a;
     color: #faf4ea;
@@ -68,6 +68,37 @@ body {
     animation: slideIn 0.3s ease-out;
     pointer-events: auto;
     border-left: 4px solid;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.message-display .message-text {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.message-display .message-close {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #faf4ea;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    line-height: 20px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.message-display .message-close:hover {
+    opacity: 1;
 }
 
 .message-display .message.success {

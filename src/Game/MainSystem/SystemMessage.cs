@@ -17,5 +17,5 @@
         ExpiresAt = Timestamp.AddMilliseconds(durationMs);
     }
 
-    public bool IsExpired => DateTime.Now > ExpiresAt;
+    public bool IsExpired { get; set; } = false; // Now manually controlled, not time-based
 }

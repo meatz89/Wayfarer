@@ -10,6 +10,7 @@ public class MessageDisplayBase : ComponentBase, IDisposable
     protected bool HasMessages => Messages.Any();
     
     private System.Threading.Timer _refreshTimer;
+    private int _lastActionCount = 0;
 
     protected override void OnInitialized()
     {
@@ -26,11 +27,32 @@ public class MessageDisplayBase : ComponentBase, IDisposable
 
     private void RefreshMessages()
     {
-        Messages = GameFacade.GetSystemMessages()
+        var allMessages = GameFacade.GetSystemMessages();
+        
+        // Check if player has taken a new action (more messages added)
+        if (allMessages.Count > _lastActionCount && _lastActionCount > 0)
+        {
+            // Clear old messages when new action is taken
+            foreach (var oldMessage in Messages)
+            {
+                oldMessage.IsExpired = true;
+            }
+        }
+        _lastActionCount = allMessages.Count;
+        
+        // Get active (non-expired) messages
+        Messages = allMessages
             .Where(m => !m.IsExpired)
             .OrderByDescending(m => m.Timestamp)
-            .Take(3)
+            .Take(5) // Show up to 5 messages
             .ToList();
+    }
+    
+    protected void DismissMessage(SystemMessage message)
+    {
+        message.IsExpired = true;
+        RefreshMessages();
+        StateHasChanged();
     }
 
     protected string GetMessageClass(SystemMessageTypes type)

@@ -6,7 +6,8 @@
         @foreach (var message in Messages)
         {
             <div class="message @GetMessageClass(message.Type)">
-                @message.Message
+                <span class="message-text">@message.Message</span>
+                <button class="message-close" @onclick="() => DismissMessage(message)">×</button>
             </div>
         }
     }

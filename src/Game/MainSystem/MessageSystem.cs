@@ -12,12 +12,12 @@
         // Different durations based on message importance
         int duration = type switch
         {
-            SystemMessageTypes.Danger => 8000,   // 8 seconds for critical messages
-            SystemMessageTypes.Warning => 6000,  // 6 seconds for warnings
-            SystemMessageTypes.Success => 5000,  // 5 seconds for success
-            SystemMessageTypes.Tutorial => 6000, // 6 seconds for tutorial
-            SystemMessageTypes.Info => 4000,     // 4 seconds for info
-            _ => 5000
+            SystemMessageTypes.Danger => 15000,   // 15 seconds for critical messages
+            SystemMessageTypes.Warning => 12000,  // 12 seconds for warnings
+            SystemMessageTypes.Success => 10000,  // 10 seconds for success
+            SystemMessageTypes.Tutorial => 12000, // 12 seconds for tutorial
+            SystemMessageTypes.Info => 8000,     // 8 seconds for info
+            _ => 10000
         };
 
         SystemMessage systemMessage = new SystemMessage(message, type, duration);
