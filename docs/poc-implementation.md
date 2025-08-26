@@ -313,15 +313,38 @@ Example with "Urgent Refusal":
 
 ### Win Conditions
 
-**Success**: Negotiate letter with manageable terms
-- Good negotiation: 4+ hour deadline, position 2+
-- Acceptable: 2-hour deadline, any position
-- Poor but survivable: 1-hour deadline, position 1
+**Success**: Deliver Elena's letter to Lord Blackwood before 5 PM
+- Perfect: Negotiated 4+ hour deadline, maintained relationships, profit earned
+- Good: Delivered with decent terms, resources remaining
+- Acceptable: Delivered by any means, even with poor terms
 
-**Failure**: Run out of patience without letter
-- No letter obtained
-- Add 1 burden card to Elena's deck
-- Elena unavailable for 4 hours
+**Failure**: Lord Blackwood leaves without receiving letter
+- Elena permanently hostile
+- Lose all Trust tokens
+- Add 3 burden cards to Elena's deck
+- Locks out Elena content for 24 hours
+
+## Strategic Depth
+
+The POC demonstrates how simple mechanics create complex decisions:
+
+**Resource Conversion Loop**:
+- Time → Money (work actions)
+- Money → Attention (rest at inn)
+- Attention → Progress (conversations)
+- Progress → Rewards (complete obligations)
+
+**Scheduling Puzzle**:
+- Elena unavailable mornings
+- Marcus closed nights
+- Guard shifts affect difficulty
+
+**Deadline Pressure**:
+- Can't infinitely grind due to 5 PM hard deadline
+- Each work action costs 4 hours
+- Rest to morning would miss deadline entirely
+
+The player has agency to recover from mistakes but at meaningful cost in time, creating engaging resource management rather than punishing optimization.
 
 ## Exchange Conversation Flow
 
@@ -398,5 +421,24 @@ All text is template-generated from mechanical properties:
 **Exchange offers**: [Cost] + [Reward] + [NPC type]
 "3 coins → Hunger = 0" = "Buy fresh bread" (Marcus the merchant)
 
-No pre-written content. Every element generates from mechanical state.
+## Work Action Mechanics
 
+Available at Commercial spots only:
+- **Market Square - Merchant Row**: Haul goods for merchants
+- **Copper Kettle - The Bar**: Serve drinks to patrons
+
+Mechanics:
+- Cost: 2 attention
+- Reward: 8 coins
+- Time: Advances one full period (4 hours)
+- Availability: Morning through Evening only
+
+Strategic considerations:
+- Each work action consumes significant time
+- Morning work → Midday (Elena still unavailable)
+- Midday work → Afternoon (Elena now available)
+- Afternoon work → Evening (limited time remains)
+
+With Lord Blackwood leaving at 5 PM, maximum 2 work actions possible while still completing delivery.# Wayfarer POC Implementation - Refined Mechanics
+
+No pre-written content. Every element generates from mechanical state.
