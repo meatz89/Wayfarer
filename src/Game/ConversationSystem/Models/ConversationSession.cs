@@ -330,10 +330,6 @@ public class ConversationSession
             
             foreach (var letterCard in NPC.LetterDeck)
             {
-                // Filter by letter type if in OPEN state (trust only)
-                if (rules.ChecksTrustLettersOnly && letterCard.ConnectionType != ConnectionType.Trust)
-                    continue;
-                    
                 // Check if letter is eligible with current tokens and state
                 if (letterCard.IsEligible(npcTokens, CurrentState))
                 {

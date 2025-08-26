@@ -104,11 +104,6 @@ public class StateRuleset
     /// Whether to check letter deck during Listen (OPEN/CONNECTED)
     /// </summary>
     public bool ChecksLetterDeck { get; init; }
-    
-    /// <summary>
-    /// Whether to check only trust letters (true) or all letters (false)
-    /// </summary>
-    public bool ChecksTrustLettersOnly { get; init; }
 }
 
 /// <summary>
@@ -144,7 +139,6 @@ public static class ConversationRules
             MaxWeight = 3,      // Speak weight limit 3
             ListenTransition = EmotionalState.OPEN,  // Stays OPEN
             ChecksLetterDeck = true,  // CHECK letter deck for trust letters
-            ChecksTrustLettersOnly = true,  // Only trust letters eligible
             SetBonuses = new() { { 2, 2 }, { 3, 5 }, { 4, 8 } }
         },
 
@@ -154,7 +148,6 @@ public static class ConversationRules
             MaxWeight = 4,      // Speak weight limit 4
             ListenTransition = EmotionalState.CONNECTED,  // Stays CONNECTED
             ChecksLetterDeck = true,  // CHECK letter deck for ANY letters
-            ChecksTrustLettersOnly = false,  // All letter types eligible
             AutoAdvanceDepth = false,  // No depth advancement (comfort gates)
             SetBonuses = new() { { 2, 3 }, { 3, 6 }, { 4, 10 } }
         },
