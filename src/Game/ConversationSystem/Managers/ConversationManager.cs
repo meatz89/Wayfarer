@@ -117,8 +117,9 @@ public class ConversationManager
             return available; // Other types are LOCKED
         }
         
-        // Check for exchange deck - ONLY MERCANTILE NPCs have exchanges
-        if (npc.PersonalityType == PersonalityType.MERCANTILE)
+        // Check for exchange deck - NPCs that offer exchanges (MERCANTILE traders, STEADFAST innkeepers)
+        if (npc.PersonalityType == PersonalityType.MERCANTILE || 
+            (npc.PersonalityType == PersonalityType.STEADFAST && npc.ID.ToLower() == "bertram"))
         {
             npc.InitializeExchangeDeck();
             if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())

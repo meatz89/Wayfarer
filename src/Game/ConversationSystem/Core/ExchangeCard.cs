@@ -180,7 +180,7 @@ public class ExchangeCard
 public static class ExchangeCardFactory
 {
     /// <summary>
-    /// Create exchange deck - ONLY for MERCANTILE personality NPCs
+    /// Create exchange deck based on NPC personality and location spot properties
     /// </summary>
     public static List<ExchangeCard> CreateExchangeDeck(
         PersonalityType personality, 
@@ -189,7 +189,7 @@ public static class ExchangeCardFactory
         var deck = new List<ExchangeCard>();
         Console.WriteLine($"[DEBUG ExchangeCardFactory] Creating exchange deck for {npcId} with personality {personality}");
         
-        // ONLY MERCANTILE NPCs have exchange decks
+        // Different personalities offer different types of exchanges
         switch (personality)
         {
             case PersonalityType.MERCANTILE:
@@ -233,9 +233,45 @@ public static class ExchangeCardFactory
                 Console.WriteLine($"[DEBUG ExchangeCardFactory] Added {deck.Count} cards for MERCANTILE personality");
                 break;
                 
+            case PersonalityType.STEADFAST:
+                // STEADFAST NPCs at Hospitality locations offer rest exchanges (like innkeepers)
+                if (npcId.ToLower() == "bertram")  // Bertram the innkeeper at Hospitality spot
+                {
+                    // Stay the Night: 5 coins → Full rest (Attention=7, Hunger=0, Health+20, advance to morning)
+                    deck.Add(new ExchangeCard
+                    {
+                        Id = $"{npcId}_stay_night",
+                        TemplateType = "lodging",
+                        NPCPersonality = personality,
+                        Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 5 } },
+                        Reward = new() { 
+                            new ResourceExchange { Type = ResourceType.Attention, Amount = 7, IsAbsolute = true },
+                            new ResourceExchange { Type = ResourceType.Hunger, Amount = 0, IsAbsolute = true },
+                            new ResourceExchange { Type = ResourceType.Health, Amount = 20 }
+                        }
+                    });
+                    
+                    // Quick Nap: 2 coins → +3 attention
+                    deck.Add(new ExchangeCard
+                    {
+                        Id = $"{npcId}_quick_nap",
+                        TemplateType = "lodging",
+                        NPCPersonality = personality,
+                        Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 2 } },
+                        Reward = new() { new ResourceExchange { Type = ResourceType.Attention, Amount = 3 } }
+                    });
+                    
+                    Console.WriteLine($"[DEBUG ExchangeCardFactory] Added {deck.Count} rest exchange cards for STEADFAST innkeeper");
+                }
+                else
+                {
+                    Console.WriteLine($"[DEBUG ExchangeCardFactory] STEADFAST NPC {npcId} is not an innkeeper - no exchanges");
+                }
+                break;
+                
             default:
-                // Only MERCANTILE NPCs have exchange decks - return empty list for all others
-                Console.WriteLine($"[DEBUG ExchangeCardFactory] NPC {npcId} with personality {personality} has no exchange deck (only MERCANTILE has exchanges)");
+                // Other personality types have no exchange decks
+                Console.WriteLine($"[DEBUG ExchangeCardFactory] NPC {npcId} with personality {personality} has no exchange deck");
                 return new List<ExchangeCard>();
         }
         

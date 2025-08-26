@@ -85,13 +85,14 @@ public class NPC
         }
     }
 
-    // Initialize exchange deck (only for Mercantile NPCs)
+    // Initialize exchange deck (for NPCs that offer exchanges)
     public void InitializeExchangeDeck()
     {
         if (ExchangeDeck == null || !ExchangeDeck.Any())
         {
-            // Only Mercantile NPCs have exchange cards
-            if (PersonalityType == PersonalityType.MERCANTILE)
+            // NPCs with exchange capabilities: MERCANTILE (trade) and STEADFAST innkeepers (rest)
+            if (PersonalityType == PersonalityType.MERCANTILE || 
+                (PersonalityType == PersonalityType.STEADFAST && ID.ToLower() == "bertram"))
             {
                 ExchangeDeck = ExchangeCardFactory.CreateExchangeDeck(PersonalityType, ID);
             }

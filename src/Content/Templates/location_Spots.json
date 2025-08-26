@@ -67,7 +67,7 @@
 		"locationId": "copper_kettle_tavern",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
 		"domainTags": [ "COMMERCE", "SERVICE", "SOCIAL" ],
-		"spotProperties": [ "Social", "MerchantHub", "CommonerHaunt", "ViewsMainEntrance" ],
+		"spotProperties": [ "Social", "MerchantHub", "CommonerHaunt", "ViewsMainEntrance", "Hospitality" ],
 		"timeSpecificProperties": {
 			"Evening": [ "Busy", "Loud" ]
 		}
