@@ -137,10 +137,18 @@ public class GameFacade
         _timeManager.AdvanceTime(hours);
         TimeBlocks newTimeBlock = _timeManager.GetCurrentTimeBlock();
 
-        // Check if we've moved to a new time block - this triggers attention refresh
+        // Handle time block transitions - increase hunger by 20 per period
         if (oldTimeBlock != newTimeBlock)
         {
-            Console.WriteLine($"[GameFacade] Time block changed from {oldTimeBlock} to {newTimeBlock} - attention will refresh on next use");
+            Player player = _gameWorld.GetPlayer();
+            int newHunger = Math.Min(100, player.Food + 20); // Hunger increases by 20 per time period
+            player.Food = newHunger;
+            
+            _messageSystem.AddSystemMessage(
+                $"🍞 Your hunger increases as time passes (now {newHunger}/100)",
+                SystemMessageTypes.Info);
+            
+            Console.WriteLine($"[GameFacade] Time block changed from {oldTimeBlock} to {newTimeBlock} - hunger increased to {newHunger}");
         }
 
         // Update letter deadlines when time advances
@@ -159,12 +167,28 @@ public class GameFacade
 
         // Get time before advancement
         var timeBefore = _timeManager.GetFormattedTimeDisplay();
+        TimeBlocks oldTimeBlock = _timeManager.CurrentTimeBlock;
         
         _timeManager.AdvanceTimeMinutes(minutes);
         
         // Get time after advancement
         var timeAfter = _timeManager.GetFormattedTimeDisplay();
+        TimeBlocks newTimeBlock = _timeManager.CurrentTimeBlock;
         Console.WriteLine($"[ProcessTimeAdvancementMinutes] Time changed from {timeBefore} to {timeAfter}");
+
+        // Handle time block transitions - increase hunger by 20 per period
+        if (oldTimeBlock != newTimeBlock)
+        {
+            Player player = _gameWorld.GetPlayer();
+            int newHunger = Math.Min(100, player.Food + 20); // Hunger increases by 20 per time period
+            player.Food = newHunger;
+            
+            _messageSystem.AddSystemMessage(
+                $"🍞 Your hunger increases as time passes (now {newHunger}/100)",
+                SystemMessageTypes.Info);
+            
+            Console.WriteLine($"[ProcessTimeAdvancementMinutes] Time block changed from {oldTimeBlock} to {newTimeBlock}, hunger increased to {newHunger}");
+        }
 
         // Update letter deadlines when time advances (even partial hours)
         if (hours > 0)

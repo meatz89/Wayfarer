@@ -62,33 +62,7 @@
     font-size: 11px;
 }
 
-.resource-icon.coins::before {
-    content: "C";
-    color: #d4a76a;
-    font-weight: bold;
-    font-family: 'Georgia', serif;
-}
-
-.resource-icon.health::before {
-    content: "+";
-    color: #ff6b6b;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.resource-icon.hunger::before {
-    content: "H";
-    color: #c4a684;
-    font-weight: bold;
-    font-family: 'Georgia', serif;
-}
-
-.resource-icon.attention::before {
-    content: "A";
-    color: #7a8b5a;
-    font-weight: bold;
-    font-family: 'Georgia', serif;
-}
+/* Removed ::before content - using emoji directly in HTML instead */
 
 .resource-value {
     font-weight: bold;

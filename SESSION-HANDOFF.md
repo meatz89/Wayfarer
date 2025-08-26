@@ -1,17 +1,23 @@
 # SESSION HANDOFF: WAYFARER IMPLEMENTATION
-**Session Date**: 2025-08-25 (Session 44 - POC READY FOR TESTING)  
-**Status**: ✅ 70-80% FUNCTIONAL - Core systems working, ready for POC testing
-**Build Status**: ✅ Compiles and runs without hanging
+**Session Date**: 2025-08-26 (Session 46 - SCREENSHOT VERIFICATION)  
+**Status**: ❌ 30% FUNCTIONAL - Many fixes attempted but not working, verified with screenshots
+**Build Status**: ✅ Compiles and runs
 **Branch**: letters-ledgers
-**Port**: 5005 (ASPNETCORE_URLS="http://localhost:5005" dotnet run)
+**Port**: 5127 (ASPNETCORE_URLS="http://localhost:5127" dotnet run)
 
-## 🟢 SESSION 44 - ALL CRITICAL ISSUES FIXED
+## ❌ SESSION 46 - SCREENSHOT VERIFICATION RESULTS
 
-### WHAT GOT FIXED TODAY:
-1. **✅ INFINITE LOOP**: Fixed circular DI registration in TimeSystemConfiguration
-2. **✅ OBSERVATION SYSTEM**: Removed circular dependency, now loads from JSON properly
-3. **✅ CRISIS CONVERSATIONS**: Fixed premature completion, crisis cards now playable
-4. **✅ TRAVEL TIME**: Debug logging added (system was already working)
+### WHAT WAS ATTEMPTED:
+1. **❌ ATTENTION BASE 10**: Code changed but still shows 7/7 in UI
+2. **❌ HUNGER +20/PERIOD**: Code added but not verified working
+3. **⚠️ TRAVEL TIME**: Shows "15 minutes pass..." message but time stays at 06:00 AM
+4. **❌ UI COMPLIANCE**: Resources still show letters (C, H, A) despite CSS fixes
+5. **✅ TOAST NOTIFICATIONS**: Working correctly with X dismiss buttons
+
+### VERIFIED WITH SCREENSHOTS:
+- `initial-state-attention-7.png`: Shows attention as 7/7 instead of 10/10
+- `after-fixes-still-broken.png`: Shows UI issues persist after fixes
+- `travel-time-not-updating.png`: Shows "15 minutes pass..." but clock still at 06:00 AM
 
 ### PREVIOUSLY FIXED (Session 43):
 1. **✅ STARTING ATTENTION**: Player starts with 5 attention
@@ -143,7 +149,7 @@ ASPNETCORE_URLS="http://localhost:5005" dotnet run
 
 ## 💀 REAL IMPLEMENTATION STATUS
 
-**What percentage actually works: ~30-40%**
+**What percentage actually works: ~20-30%** (DOWN from previous estimate after screenshot verification)
 
 The core data structures exist but the gameplay loop is completely broken:
 - Can't get attention → Can't have conversations → Can't test anything
@@ -163,42 +169,120 @@ The core data structures exist but the gameplay loop is completely broken:
 4. ❌ No observations (can't get cards)
 5. ❌ Can't test conversations or letters
 
-### MISSING FROM MOCKUPS (After reviewing ALL UI-MOCKUPS/*.html):
-1. **Location Breadcrumbs** - Should show: "Lower Wards → Market District → Central Square"
-2. **Max container width** - Mockup uses 720px, we have full width
-3. **Proper font sizes** - Mockup uses 14px base, we have 11-12px
-4. **Color scheme** - Dark header (#1a1612), parchment body (#faf4ea)
-5. **Victory Conditions** - "Ways to Generate Letter" panel in conversations
-6. **Burden warnings** - "⚠️ Elena has 1 burden card"
-7. **Spot traits** - Should show benefits like "(Private, +1 comfort)"
-8. **Resources in header** - Should be integrated, not separate
-9. **Obligation types** - Visual distinction between Delivery/Meeting
-10. **Medieval styling** - Gradients, borders, shadows per mockup
+### CRITICAL BUGS VERIFIED WITH SCREENSHOTS:
 
-## ✅ POC READY FOR TESTING
+1. **❌ ATTENTION SHOWS 7/7 INSTEAD OF 10/10**
+   - TimeBlockAttentionManager.CreateFreshAttention() sets to 10
+   - But UI displays 7/7
+   - Something is overriding the value
 
-**All Critical Issues Have Been Fixed**:
+2. **❌ TIME DOESN'T UPDATE WHEN TRAVELING**
+   - Travel shows "15 minutes pass..." toast
+   - But clock stays at 06:00 AM
+   - ProcessTimeAdvancementMinutes() not working
 
-1. **✅ OBSERVATION SYSTEM** - Fixed, loads from JSON
-2. **✅ CRISIS CONVERSATIONS** - Fixed, cards playable  
-3. **✅ INFINITE LOOP** - Fixed DI registration
-4. **✅ ECONOMIC LOOP** - Work→Coins→Rest→Attention working
+3. **❌ RESOURCE ICONS STILL SHOW LETTERS**
+   - CSS fixes were applied to remove ::before content
+   - But "C", "H", "A" still appear before icons
+   - Possible CSS caching or other file overriding
 
-**POC Test Flow** (from poc-implementation.md):
-1. Start at Market Square Fountain (✅ Player starts here)
-2. Move to Merchant Row (✅ Instant movement)
-3. Quick Exchange with Marcus (✅ "Buy Travel Provisions": 3 coins → Hunger = 0)
-4. Return to Fountain (✅)
-5. Observe "Guards blocking north road" (✅ Loads from JSON)
-6. Travel to Copper Kettle Tavern (✅ 15 minutes travel time)
-7. Move to Corner Table (✅)
-8. Conversation with Elena in DESPERATE (✅ Crisis state working)
-9. Generate letter at 10 comfort or crisis card (✅ Both paths implemented)
+4. **❌ HUNGER NOT INCREASING**
+   - Code added to increase +20 per period
+   - But no verification it works
+   - Likely tied to time system not advancing
+
+## ❌ POC NOT READY - CRITICAL BUGS REMAIN
+
+**Major Blockers Preventing POC**:
+
+1. **❌ ATTENTION SYSTEM BROKEN**
+   - Shows 7/7 instead of 10/10
+   - Can't do proper conversations with wrong attention
+
+2. **❌ TIME SYSTEM BROKEN**  
+   - Travel doesn't advance time
+   - Hunger won't increase without time advancing
+   - Deadlines meaningless without working time
+
+3. **❌ UI NOT MATCHING MOCKUPS**
+   - Resource icons still show letters (C, H, A)
+   - Container width not constrained
+   - Missing medieval styling
+
+**POC Test Flow Status**:
+1. Start at Market Square Fountain (✅ Works)
+2. Move to Merchant Row (✅ Works)
+3. Quick Exchange with Marcus (❓ Not tested)
+4. Return to Fountain (✅ Works)
+5. Observe "Guards blocking north road" (❓ Not tested)
+6. Travel to Copper Kettle Tavern (⚠️ Travel works but time doesn't update)
+7. Move to Corner Table (✅ Works)
+8. Conversation with Elena in DESPERATE (❓ Can't test with broken attention)
+9. Generate letter at 10 comfort (❌ Can't reach without proper attention)
 
 **Quick Start**:
 ```bash
 cd /mnt/c/git/wayfarer/src
-ASPNETCORE_URLS="http://localhost:5005" dotnet run
+dotnet clean && dotnet build --no-incremental
+ASPNETCORE_URLS="http://localhost:5127" dotnet run
 ```
 
-Navigate to http://localhost:5005 to play the POC.
+**DO NOT CLAIM POC IS READY - IT IS NOT**
+
+## 📚 LESSONS LEARNED FROM SESSION 46
+
+### WHAT WENT WRONG:
+
+1. **AGENTS CLAIMED SUCCESS WITHOUT VERIFICATION**
+   - Systems-architect-kai said crisis conversations were fixed
+   - General-purpose agent said attention/hunger/time were fixed
+   - UI-UX-designer-priya said travel button was fixed
+   - ALL were wrong when tested with screenshots
+
+2. **CODE CHANGES DON'T ALWAYS WORK**
+   - Changed CreateFreshAttention() to 10 but UI shows 7
+   - Added hunger increase code but time doesn't advance
+   - Removed CSS ::before content but letters still appear
+   - Toast shows "15 minutes pass" but clock stays at 06:00 AM
+
+3. **MUST VERIFY WITH SCREENSHOTS**
+   - Code that compiles doesn't mean it works
+   - Agents saying "fixed" doesn't mean it's fixed
+   - Only screenshots prove actual functionality
+   - User was right: "verify using screenshots, not only code"
+
+### TECHNICAL DEBT:
+
+1. **ATTENTION SYSTEM**
+   - Something overrides the 10 value set in TimeBlockAttentionManager
+   - Need to trace where 7 comes from
+   - Possibly hardcoded elsewhere
+
+2. **TIME SYSTEM**
+   - ProcessTimeAdvancementMinutes() not updating UI
+   - Toast messages work but actual time doesn't change
+   - Time block transitions not triggering hunger increase
+
+3. **CSS ISSUES**
+   - Letters (C, H, A) still appear despite removing ::before
+   - Possibly another CSS file overriding
+   - Or browser cache issue
+
+### NEXT SESSION PRIORITIES:
+
+1. **FIX WITH VERIFICATION**
+   - Make change → Rebuild → Test with Playwright → Screenshot
+   - Don't trust code changes without visual proof
+   - Don't mark tasks complete without screenshot verification
+
+2. **DEBUG SYSTEMATICALLY**
+   - Add console logging to trace values
+   - Find where attention 7 comes from
+   - Find why time doesn't update in UI
+   - Find which CSS file adds the letters
+
+3. **BE HONEST ABOUT STATUS**
+   - Current state: 20-30% functional
+   - Major systems broken
+   - POC not playable
+   - Need fundamental fixes before claiming progress

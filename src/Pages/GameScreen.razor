@@ -9,22 +9,22 @@
         <div class="resources-bar">
             <div class="resource-group">
                 <div class="resource @(Coins < 5 ? "low" : "")">
-                    <div class="resource-icon coins"><span class="icon-emoji">💰</span></div>
+                    <div class="resource-icon coins">💰</div>
                     <div class="resource-value">@Coins</div>
                     <span>Coins</span>
                 </div>
                 <div class="resource @(Health < 30 ? "critical" : Health < 50 ? "low" : "")">
-                    <div class="resource-icon health"><span class="icon-emoji">❤️</span></div>
+                    <div class="resource-icon health">❤️</div>
                     <div class="resource-value">@Health</div>
                     <span>Health</span>
                 </div>
                 <div class="resource @(Food > 80 ? "critical" : Food > 60 ? "low" : "")">
-                    <div class="resource-icon hunger"><span class="icon-emoji">🍞</span></div>
+                    <div class="resource-icon hunger">🍞</div>
                     <div class="resource-value">@Food</div>
                     <span>Hunger</span>
                 </div>
                 <div class="resource">
-                    <div class="resource-icon attention"><span class="icon-emoji">👁️</span></div>
+                    <div class="resource-icon attention">👁️</div>
                     <div class="resource-value">@Attention/@MaxAttention</div>
                     <span>Attention</span>
                 </div>
@@ -96,12 +96,12 @@
         <div class="navigation-bar">
             <button class="nav-button @(CurrentScreen == ScreenMode.Location ? "active" : "")" 
                     @onclick="() => NavigateToScreen(ScreenMode.Location)">
-                <span class="nav-icon location"><span class="icon-emoji">🏠</span></span>
+                <span class="nav-icon location">🏠</span>
                 <span>Location</span>
             </button>
             <button class="nav-button @(CurrentScreen == ScreenMode.ObligationQueue ? "active" : "")" 
                     @onclick="() => NavigateToScreen(ScreenMode.ObligationQueue)">
-                <span class="nav-icon obligations"><span class="icon-emoji">📜</span></span>
+                <span class="nav-icon obligations">📜</span>
                 <span>Obligations</span>
                 @if (PendingLetterCount > 0)
                 {

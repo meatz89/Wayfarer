@@ -139,6 +139,7 @@ namespace Wayfarer.Pages.Components
             
             // Check if can travel from this spot
             CanTravel = spot?.Properties?.Contains("Crossroads") ?? false;
+            Console.WriteLine($"[LocationContent] Spot: {spot?.Name}, Properties: {string.Join(", ", spot?.Properties ?? new List<string>())}, CanTravel: {CanTravel}");
             
             // Check if can work at this spot
             CanWork = spot?.Properties?.Contains("Commercial") ?? false;

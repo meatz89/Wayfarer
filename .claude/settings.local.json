@@ -244,7 +244,8 @@
       "Bash(ASPNETCORE_URLS=\"http://127.0.0.1:5054\" dotnet run)",
       "Bash(ASPNETCORE_URLS=\"http://127.0.0.1:5055\" dotnet run --no-build)",
       "Bash(/mnt/c/git/wayfarer/test-exchange-availability.sh:*)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5127\" dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5127\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5127\" dotnet run)"
     ],
     "deny": []
   }

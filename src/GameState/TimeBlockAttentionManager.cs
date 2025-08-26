@@ -72,7 +72,7 @@ public class TimeBlockAttentionManager
     public (int current, int max) GetAttentionState()
     {
         if (_currentAttention == null)
-            return (0, 5);
+            return (0, 10);
 
         return (_currentAttention.GetAvailableAttention(), _currentAttention.GetMaxAttention());
     }
@@ -80,8 +80,8 @@ public class TimeBlockAttentionManager
     private AttentionManager CreateFreshAttention()
     {
         AttentionManager attention = new AttentionManager();
-        // Set to 5 base attention (can be modified by location/state)
-        attention.SetMaxAttention(5);
+        // Set to 10 base attention (can be modified by location/state)
+        attention.SetMaxAttention(10);
         attention.ResetForNewScene(); // This now means "reset for new time block"
         return attention;
     }

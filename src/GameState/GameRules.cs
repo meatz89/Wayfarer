@@ -40,7 +40,7 @@
     public const int ATTENTION_REFRESH_FULL_MEAL_COST = 3;    // Full meal: 3 coins = +2 attention  
     public const int ATTENTION_REFRESH_QUICK_DRINK_POINTS = 1;
     public const int ATTENTION_REFRESH_FULL_MEAL_POINTS = 2;
-    public const int ATTENTION_REFRESH_MAX_TOTAL = 7;         // Maximum attention possible (base 5 + 2 meal)
+    public const int ATTENTION_REFRESH_MAX_TOTAL = 12;        // Maximum attention possible (base 10 + 2 meal)
 
     // Conversation Depth Progression
     public const int DEPTH_ADVANCE_THRESHOLD_1 = 5;          // Surface to Personal (5 comfort)

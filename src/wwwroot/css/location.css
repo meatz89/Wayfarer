@@ -45,26 +45,7 @@
     font-size: 11px;
 }
 
-.resource-icon.coins::before {
-    content: "¢";
-    color: #d4a76a;
-    font-weight: bold;
-}
-
-.resource-icon.health::before {
-    content: "♥";
-    color: #ff6b6b;
-}
-
-.resource-icon.hunger::before {
-    content: "▣";
-    color: #8b7355;
-}
-
-.resource-icon.attention::before {
-    content: "◉";
-    color: #7a8b5a;
-}
+/* Removed ::before content - using emoji directly in HTML instead */
 
 .resource-value {
     font-weight: bold;

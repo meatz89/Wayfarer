@@ -479,14 +479,13 @@ public class ConversationSession
         if (CurrentPatience <= 0)
             return true;
             
-        // For crisis conversations (which draw all cards upfront), only check if hand is empty
-        if (Deck.IsCrisis())
-        {
-            // End if no cards left to play
-            if (!HandCards.Any())
-                return true;
-        }
-        else
+        // Check if a letter has been generated (successful resolution)
+        if (LetterGenerated)
+            return true;
+            
+        // For crisis conversations, we don't end just because cards are empty
+        // The player still gets their patience turns to try to resolve the crisis
+        if (!Deck.IsCrisis())
         {
             // For normal conversations, check if deck is empty
             if (Deck.IsEmpty)
