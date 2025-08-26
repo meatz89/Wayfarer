@@ -108,6 +108,8 @@ public class CardSelectionManager
         EmotionalState? newState = null;
 
         // Roll for each card individually
+        var letterNegotiations = new List<LetterNegotiationResult>();
+        
         foreach (var card in selectedCards)
         {
             // Exchange cards ALWAYS succeed - they're simple trades
@@ -122,6 +124,40 @@ public class CardSelectionManager
                     SuccessChance = 100 // 100% success rate
                 });
                 // Exchanges don't contribute to comfort
+                continue;
+            }
+            
+            // Letter cards create negotiation results and obligations
+            if (card.Category == CardCategory.LETTER)
+            {
+                var letterSuccessChance = card.CalculateSuccessChance(npcTokens);
+                var letterRoll = random.Next(100);
+                var letterSuccess = letterRoll < letterSuccessChance;
+                
+                // Extract letter card ID from the conversation card context
+                var letterCardId = card.Context?.LetterId ?? card.Id;
+                
+                // Create a basic negotiation result - will be completed by ConversationSession
+                var negotiationResult = new LetterNegotiationResult
+                {
+                    LetterCardId = letterCardId,
+                    NegotiationSuccess = letterSuccess,
+                    FinalTerms = null,        // Will be set by ConversationSession
+                    SourceLetterCard = null,  // Will be set by ConversationSession
+                    CreatedObligation = null  // Will be set by ConversationSession
+                };
+                letterNegotiations.Add(negotiationResult);
+                
+                results.Add(new SingleCardResult
+                {
+                    Card = card,
+                    Success = letterSuccess,
+                    Comfort = 0, // Letter cards don't generate comfort, they create obligations
+                    Roll = letterRoll,
+                    SuccessChance = letterSuccessChance
+                });
+                
+                // Letter cards don't contribute to comfort
                 continue;
             }
             
@@ -184,7 +220,9 @@ public class CardSelectionManager
             SetBonus = types.Count() == 1 && selectedCards.Count > 1 ? 
                 (rules.SetBonuses.TryGetValue(selectedCards.Count, out var resultBonus) ? resultBonus : 0) : 0,
             ConnectedBonus = currentState == EmotionalState.CONNECTED ? 2 : 0,
-            EagerBonus = currentState == EmotionalState.EAGER && selectedCards.Count >= 2 ? rules.SetBonus : 0
+            EagerBonus = currentState == EmotionalState.EAGER && selectedCards.Count >= 2 ? rules.SetBonus : 0,
+            LetterNegotiations = letterNegotiations,
+            ManipulatedObligations = letterNegotiations.Any()
         };
     }
 

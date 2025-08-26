@@ -712,73 +712,74 @@ public class GameFacade
         return "";
     }
     
-    public async Task<bool> DisplaceLetterInQueue(string letterId)
+    #region Queue Displacement with Token Burning
+
+    /// <summary>
+    /// Preview the cost of displacing an obligation to a target position
+    /// </summary>
+    public QueueDisplacementPreview GetDisplacementPreview(string obligationId, int targetPosition)
     {
+        return _letterQueueManager.GetDisplacementPreview(obligationId, targetPosition);
+    }
+
+    /// <summary>
+    /// Displace an obligation by burning tokens with displaced NPCs
+    /// </summary>
+    public async Task<bool> DisplaceObligation(string obligationId, int targetPosition)
+    {
+        await Task.Yield(); // Maintain async signature
+        
         try
         {
-            // Find the letter in the queue
-            var obligations = _letterQueueManager.GetActiveObligations();
-            var obligation = obligations.FirstOrDefault(o => o.Id == letterId);
+            var displacementResult = _letterQueueManager.TryDisplaceObligation(obligationId, targetPosition);
             
-            if (obligation == null)
+            if (!displacementResult.CanExecute)
             {
-                _messageSystem.AddSystemMessage("Letter not found in queue", SystemMessageTypes.Warning);
-                return false;
-            }
-            
-            // Get current position
-            int currentPosition = _letterQueueManager.GetQueuePosition(obligation);
-            if (currentPosition <= 0)
-            {
-                _messageSystem.AddSystemMessage("Unable to determine letter position", SystemMessageTypes.Warning);
-                return false;
-            }
-            
-            // Can't displace if already at the back
-            if (currentPosition >= 8)
-            {
-                _messageSystem.AddSystemMessage("Letter is already at the back of the queue", SystemMessageTypes.Info);
-                return false;
-            }
-            
-            // Move the letter one position back (lower priority)
-            int newPosition = currentPosition + 1;
-            
-            // Find what's in the target position
-            var queue = _letterQueueManager.GetPlayerQueue();
-            var letterAtTarget = queue[newPosition - 1];
-            
-            if (letterAtTarget != null)
-            {
-                // Swap the two letters
-                _letterQueueManager.MoveLetterToPosition(obligation, newPosition);
-                _letterQueueManager.MoveLetterToPosition(letterAtTarget, currentPosition);
-                
                 _messageSystem.AddSystemMessage(
-                    $"Displaced {obligation.SenderName}'s letter from position {currentPosition} to {newPosition}",
-                    SystemMessageTypes.Success
+                    $"❌ Cannot displace: {displacementResult.ErrorMessage}",
+                    SystemMessageTypes.Danger
                 );
+                return false;
             }
-            else
-            {
-                // Just move to the empty position
-                _letterQueueManager.MoveLetterToPosition(obligation, newPosition);
-                
-                _messageSystem.AddSystemMessage(
-                    $"Moved {obligation.SenderName}'s letter to position {newPosition}",
-                    SystemMessageTypes.Success
-                );
-            }
-            
-            return true;
+
+            return _letterQueueManager.ExecuteDisplacement(displacementResult);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[DisplaceLetterInQueue] Exception: {ex}");
-            _messageSystem.AddSystemMessage("Failed to displace letter", SystemMessageTypes.Danger);
+            Console.WriteLine($"[DisplaceObligation] Exception: {ex}");
+            _messageSystem.AddSystemMessage("Failed to displace obligation", SystemMessageTypes.Danger);
             return false;
         }
     }
+
+    /// <summary>
+    /// Legacy method - redirects to new displacement system
+    /// </summary>
+    public async Task<bool> DisplaceLetterInQueue(string letterId)
+    {
+        // Get current position and displace to end of queue
+        var obligations = _letterQueueManager.GetActiveObligations();
+        var obligation = obligations.FirstOrDefault(o => o.Id == letterId);
+        
+        if (obligation == null)
+        {
+            _messageSystem.AddSystemMessage("Letter not found in queue", SystemMessageTypes.Warning);
+            return false;
+        }
+
+        int currentPosition = _letterQueueManager.GetQueuePosition(obligation);
+        if (currentPosition <= 0)
+        {
+            _messageSystem.AddSystemMessage("Unable to determine letter position", SystemMessageTypes.Warning);
+            return false;
+        }
+
+        // Move to end of queue (back of line)
+        int targetPosition = Math.Min(currentPosition + 1, 8);
+        return await DisplaceObligation(letterId, targetPosition);
+    }
+
+    #endregion
     
     private string GetNPCDescription(NPC npc, EmotionalState state)
     {
@@ -2054,7 +2055,7 @@ public class GameFacade
             {
                 // Add message about gaining the card
                 _messageSystem.AddSystemMessage($"Observed: {observation.Text}", SystemMessageTypes.Success);
-                _messageSystem.AddSystemMessage($"Gained conversation card: {observationCard.Template}", SystemMessageTypes.Info);
+                _messageSystem.AddSystemMessage($"Gained conversation card: {observationCard.ConversationCard.Template}", SystemMessageTypes.Info);
                 
                 Console.WriteLine($"[GameFacade.TakeObservation] Successfully generated observation card {observationCard.Id}");
                 return true;
@@ -2505,8 +2506,8 @@ public class GameFacade
             Console.WriteLine($"[GameFacade] Spent {attentionCost} attention for {conversationType} conversation. Remaining: {currentAttentionManager.GetAvailableAttention()}");
         }
             
-        // Get observation cards for this conversation
-        var observationCards = _observationManager.GetObservationCards();
+        // Get observation cards for this conversation (as conversation cards with decay applied)
+        var observationCards = _observationManager.GetObservationCardsAsConversationCards();
         Console.WriteLine($"[GameFacade.CreateConversationContext] Including {observationCards.Count} observation cards in conversation");
 
         // Start the conversation session with observation cards

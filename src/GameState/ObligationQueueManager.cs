@@ -2226,4 +2226,249 @@ public class ObligationQueueManager
         return false;
     }
 
+    #region Queue Displacement with Token Burning
+
+    /// <summary>
+    /// Displace an obligation by burning tokens with displaced NPCs
+    /// Implements the core queue displacement system from POC requirements
+    /// </summary>
+    public QueueDisplacementResult TryDisplaceObligation(string obligationId, int targetPosition)
+    {
+        var result = new QueueDisplacementResult();
+        
+        // Find the obligation
+        var obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
+        if (obligation == null)
+        {
+            result.ErrorMessage = "Obligation not found in queue";
+            return result;
+        }
+
+        int currentPosition = GetQueuePosition(obligation);
+        if (currentPosition <= 0)
+        {
+            result.ErrorMessage = "Unable to determine obligation position";
+            return result;
+        }
+
+        // Can't displace backwards (position must be lower number = earlier in queue)
+        if (targetPosition >= currentPosition)
+        {
+            result.ErrorMessage = $"Cannot displace backwards from position {currentPosition} to {targetPosition}";
+            return result;
+        }
+
+        // Can't displace to position 1 or beyond valid range
+        if (targetPosition < 1 || targetPosition > _config.LetterQueue.MaxQueueSize)
+        {
+            result.ErrorMessage = $"Invalid target position {targetPosition}";
+            return result;
+        }
+
+        // Calculate displacement plan
+        var displacementPlan = CalculateDisplacementCost(obligation, currentPosition, targetPosition);
+        if (displacementPlan.TotalTokenCost == 0)
+        {
+            result.ErrorMessage = "No displacement needed";
+            return result;
+        }
+
+        result.DisplacementPlan = displacementPlan;
+        result.CanExecute = ValidateTokenAvailability(displacementPlan);
+        
+        if (!result.CanExecute)
+        {
+            result.ErrorMessage = "Insufficient tokens for displacement";
+            return result;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Execute the displacement by burning tokens and moving obligations
+    /// </summary>
+    public bool ExecuteDisplacement(QueueDisplacementResult displacementResult)
+    {
+        if (!displacementResult.CanExecute || displacementResult.DisplacementPlan == null)
+        {
+            _messageSystem.AddSystemMessage("Cannot execute displacement", SystemMessageTypes.Danger);
+            return false;
+        }
+
+        var plan = displacementResult.DisplacementPlan;
+        var obligation = plan.ObligationToMove;
+        
+        _messageSystem.AddSystemMessage(
+            $"🔥 BURNING TOKENS: Moving {obligation.SenderName}'s letter from position {plan.OriginalPosition} to {plan.TargetPosition}",
+            SystemMessageTypes.Warning
+        );
+
+        // Burn tokens with each displaced NPC
+        foreach (var displacement in plan.Displacements)
+        {
+            var npcId = GetNPCIdByName(displacement.DisplacedObligation.SenderName);
+            if (!string.IsNullOrEmpty(npcId))
+            {
+                bool success = _connectionTokenManager.SpendTokensWithNPC(
+                    displacement.DisplacedObligation.TokenType, 
+                    displacement.TokenCost, 
+                    npcId
+                );
+
+                if (success)
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"💸 Burned {displacement.TokenCost} {displacement.DisplacedObligation.TokenType} tokens with {displacement.DisplacedObligation.SenderName}",
+                        SystemMessageTypes.Warning
+                    );
+                }
+                else
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"❌ Failed to burn tokens with {displacement.DisplacedObligation.SenderName}",
+                        SystemMessageTypes.Danger
+                    );
+                    return false;
+                }
+            }
+        }
+
+        // Execute the queue rearrangement
+        PerformQueueDisplacement(plan);
+
+        _messageSystem.AddSystemMessage(
+            $"✅ Successfully moved {obligation.SenderName}'s letter to position {plan.TargetPosition}!",
+            SystemMessageTypes.Success
+        );
+
+        _messageSystem.AddSystemMessage(
+            $"⚠️ Total relationship cost: {plan.TotalTokenCost} tokens burned permanently",
+            SystemMessageTypes.Warning
+        );
+
+        return true;
+    }
+
+    /// <summary>
+    /// Calculate the cost and plan for displacing an obligation
+    /// </summary>
+    private ObligationDisplacementPlan CalculateDisplacementCost(DeliveryObligation obligation, int currentPosition, int targetPosition)
+    {
+        var plan = new ObligationDisplacementPlan
+        {
+            ObligationToMove = obligation,
+            OriginalPosition = currentPosition,
+            TargetPosition = targetPosition
+        };
+
+        var queue = GetPlayerQueue();
+        
+        // Calculate jumps and affected obligations
+        int positionsJumped = currentPosition - targetPosition;
+        
+        // Each obligation that gets displaced costs tokens equal to the jump distance
+        for (int pos = targetPosition; pos < currentPosition; pos++)
+        {
+            var displacedObligation = queue[pos - 1];
+            if (displacedObligation != null)
+            {
+                var displacement = new ObligationDisplacement
+                {
+                    DisplacedObligation = displacedObligation,
+                    OriginalPosition = pos,
+                    NewPosition = pos + 1,
+                    TokenCost = positionsJumped // Cost equals positions jumped
+                };
+                
+                plan.Displacements.Add(displacement);
+                plan.TotalTokenCost += displacement.TokenCost;
+            }
+        }
+
+        return plan;
+    }
+
+    /// <summary>
+    /// Validate the player has enough tokens for the displacement
+    /// </summary>
+    private bool ValidateTokenAvailability(ObligationDisplacementPlan plan)
+    {
+        foreach (var displacement in plan.Displacements)
+        {
+            var npcId = GetNPCIdByName(displacement.DisplacedObligation.SenderName);
+            if (string.IsNullOrEmpty(npcId)) continue;
+
+            var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+            var availableTokens = tokens.GetValueOrDefault(displacement.DisplacedObligation.TokenType, 0);
+            
+            if (availableTokens < displacement.TokenCost)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Perform the actual queue rearrangement
+    /// </summary>
+    private void PerformQueueDisplacement(ObligationDisplacementPlan plan)
+    {
+        var queue = GetPlayerQueue();
+        
+        // Remove the obligation from its current position
+        queue[plan.OriginalPosition - 1] = null;
+        
+        // Shift affected obligations down by one position
+        for (int pos = plan.TargetPosition; pos < plan.OriginalPosition; pos++)
+        {
+            if (queue[pos - 1] != null)
+            {
+                var shiftedObligation = queue[pos - 1];
+                queue[pos] = shiftedObligation; // Move to next position (pos + 1, 0-indexed)
+                shiftedObligation.QueuePosition = pos + 1;
+            }
+        }
+        
+        // Insert the displaced obligation at the target position
+        queue[plan.TargetPosition - 1] = plan.ObligationToMove;
+        plan.ObligationToMove.QueuePosition = plan.TargetPosition;
+    }
+
+    /// <summary>
+    /// Get displacement cost preview for UI
+    /// </summary>
+    public QueueDisplacementPreview GetDisplacementPreview(string obligationId, int targetPosition)
+    {
+        var result = TryDisplaceObligation(obligationId, targetPosition);
+        
+        var preview = new QueueDisplacementPreview
+        {
+            CanExecute = result.CanExecute,
+            ErrorMessage = result.ErrorMessage,
+            TotalTokenCost = result.DisplacementPlan?.TotalTokenCost ?? 0,
+            DisplacementDetails = new List<DisplacementDetail>()
+        };
+
+        if (result.DisplacementPlan != null)
+        {
+            foreach (var displacement in result.DisplacementPlan.Displacements)
+            {
+                preview.DisplacementDetails.Add(new DisplacementDetail
+                {
+                    NPCName = displacement.DisplacedObligation.SenderName,
+                    TokenType = displacement.DisplacedObligation.TokenType,
+                    TokenCost = displacement.TokenCost,
+                    FromPosition = displacement.OriginalPosition,
+                    ToPosition = displacement.NewPosition
+                });
+            }
+        }
+
+        return preview;
+    }
+
+    #endregion
+
 }

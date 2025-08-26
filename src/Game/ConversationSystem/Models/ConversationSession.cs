@@ -320,8 +320,9 @@ public class ConversationSession
         TurnNumber++;
         CurrentPatience--;
 
-        // Remove all opportunity cards
-        HandCards.RemoveAll(c => c.Persistence == PersistenceType.Opportunity);
+        // Remove all opportunity cards EXCEPT observation cards
+        // Observation cards are Opportunity type but DON'T vanish on Listen - they decay over time instead
+        HandCards.RemoveAll(c => c.Persistence == PersistenceType.Opportunity && !c.IsObservation);
 
         // Get state rules
         var rules = ConversationRules.States[CurrentState];
@@ -426,6 +427,12 @@ public class ConversationSession
         }
 
         var result = manager.PlaySelectedCards();
+
+        // Process letter negotiations and create delivery obligations
+        if (result.LetterNegotiations.Any())
+        {
+            ProcessLetterNegotiations(result);
+        }
 
         // Apply comfort
         CurrentComfort += result.TotalComfort;
@@ -603,5 +610,92 @@ public class ConversationSession
             
         var rewardParts = exchange.Reward.Select(r => r.GetDisplayText());
         return string.Join(", ", rewardParts);
+    }
+    
+    /// <summary>
+    /// Process letter negotiations and complete them with full obligation details
+    /// </summary>
+    private void ProcessLetterNegotiations(CardPlayResult result)
+    {
+        for (int i = 0; i < result.LetterNegotiations.Count; i++)
+        {
+            var negotiation = result.LetterNegotiations[i];
+            
+            // Find the source letter card from the NPC's letter deck
+            var sourceLetterCard = NPC.LetterDeck?.FirstOrDefault(lc => lc.Id == negotiation.LetterCardId);
+            if (sourceLetterCard == null)
+            {
+                Console.WriteLine($"[ProcessLetterNegotiations] WARNING: Could not find source letter card {negotiation.LetterCardId}");
+                continue;
+            }
+
+            // Determine which terms to use based on negotiation success
+            var terms = negotiation.NegotiationSuccess ? sourceLetterCard.SuccessTerms : sourceLetterCard.FailureTerms;
+
+            // Create the delivery obligation from the negotiated terms
+            var obligation = CreateDeliveryObligationFromTerms(sourceLetterCard, terms, NPC);
+
+            // Complete the negotiation result (replace the incomplete one)
+            var completedNegotiation = new LetterNegotiationResult
+            {
+                LetterCardId = negotiation.LetterCardId,
+                NegotiationSuccess = negotiation.NegotiationSuccess,
+                FinalTerms = terms,
+                SourceLetterCard = sourceLetterCard,
+                CreatedObligation = obligation
+            };
+
+            // Replace in the list
+            result.LetterNegotiations[i] = completedNegotiation;
+
+            Console.WriteLine($"[ProcessLetterNegotiations] Created letter obligation: {obligation.Id} - {terms.DeadlineHours}h deadline, {terms.Payment} coins");
+            LetterGenerated = true; // Mark that a letter was generated in this conversation
+        }
+    }
+
+    /// <summary>
+    /// Create a DeliveryObligation from negotiated letter terms
+    /// </summary>
+    private DeliveryObligation CreateDeliveryObligationFromTerms(LetterCard letterCard, LetterNegotiationTerms terms, NPC sender)
+    {
+        // Determine recipient based on letter template - for POC, assuming it's "Lord Blackwood"
+        var recipientName = "Lord Blackwood";  // TODO: Extract from letter template
+        var recipientId = "lord_blackwood";    // TODO: Extract from letter template
+
+        return new DeliveryObligation
+        {
+            Id = $"{sender.ID}_{letterCard.Id}_{DateTime.Now.Ticks}",
+            SenderName = sender.Name,
+            SenderId = sender.ID,
+            RecipientName = recipientName,
+            RecipientId = recipientId,
+            DeadlineInMinutes = terms.DeadlineHours * 60,
+            Payment = terms.Payment,
+            TokenType = letterCard.ConnectionType,
+            
+            // Letter-specific properties based on the template
+            Stakes = letterCard.TemplateType switch
+            {
+                "urgent_refusal" => StakeType.SAFETY,
+                "formal_refusal" => StakeType.REPUTATION,
+                _ => StakeType.REPUTATION
+            },
+            
+            EmotionalWeight = terms.DeadlineHours <= 2 ? EmotionalWeight.CRITICAL :
+                             terms.DeadlineHours <= 6 ? EmotionalWeight.HIGH :
+                             EmotionalWeight.MEDIUM,
+                             
+            Description = $"{letterCard.Title} for {sender.Name}",
+            Message = letterCard.Description,
+            
+            // Queue positioning based on terms
+            QueuePosition = terms.QueuePosition,
+            FinalQueuePosition = terms.ForcesPositionOne ? 1 : terms.QueuePosition,
+            PositioningReason = terms.ForcesPositionOne ? LetterPositioningReason.Obligation : LetterPositioningReason.Neutral,
+            
+            // Generation tracking
+            IsGenerated = true,
+            GenerationReason = $"Letter negotiation: {(terms == letterCard.SuccessTerms ? "success" : "failure")}"
+        };
     }
 }

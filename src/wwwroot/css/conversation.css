@@ -617,6 +617,55 @@
     background: #f0f4fa;
 }
 
+/* Observation Decay States */
+.dialog-card.observation.observation-fresh {
+    border-left: 5px solid #5a8a7a;
+    background: #f0faf4;
+    box-shadow: 0 0 8px rgba(90, 138, 122, 0.3);
+}
+
+.dialog-card.observation.observation-stale {
+    border-left: 5px solid #a68b6f;
+    background: #faf6f0;
+    opacity: 0.85;
+}
+
+.dialog-card.observation.observation-expired {
+    border-left: 5px solid #8b4726;
+    background: #faf0e6;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.observation-decay-indicator {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+    z-index: 3;
+}
+
+.observation-decay-indicator.fresh {
+    background: linear-gradient(135deg, #7a8b5a, #5a8a7a);
+    color: #faf4ea;
+}
+
+.observation-decay-indicator.stale {
+    background: linear-gradient(135deg, #a68b6f, #8b7355);
+    color: #faf4ea;
+}
+
+.observation-decay-indicator.expired {
+    background: linear-gradient(135deg, #8b4726, #6b3716);
+    color: #faf4ea;
+    animation: pulse 2s infinite;
+}
+
 .dialog-card.exchange {
     border-left: 5px solid #d4a76a;
     background: #fff9f0;

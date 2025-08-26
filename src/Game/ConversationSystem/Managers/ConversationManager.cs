@@ -204,7 +204,7 @@ public class ConversationManager
         {
             if (card.IsObservation && card.Persistence == PersistenceType.OneShot)
             {
-                observationManager.RemoveObservationCard(card);
+                observationManager.RemoveObservationCardByConversationId(card.Id);
                 Console.WriteLine($"[ConversationManager] Removed observation card {card.Id} from ObservationManager");
             }
         }

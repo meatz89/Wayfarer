@@ -4,19 +4,19 @@ using System.Linq;
 
 /// <summary>
 /// Manages observation tracking and card generation for the player
-/// Each observation can only be taken once per time block and generates a conversation card
+/// Each observation can only be taken once per time block and generates observation cards with decay
 /// </summary>
 public class ObservationManager
 {
     private readonly TimeManager _timeManager;
     private readonly Dictionary<string, HashSet<string>> _takenObservationsByTimeBlock;
-    private readonly List<ConversationCard> _currentObservationCards;
+    private readonly List<ObservationCard> _currentObservationCards;
 
     public ObservationManager(TimeManager timeManager)
     {
         _timeManager = timeManager;
         _takenObservationsByTimeBlock = new Dictionary<string, HashSet<string>>();
-        _currentObservationCards = new List<ConversationCard>();
+        _currentObservationCards = new List<ObservationCard>();
     }
 
     /// <summary>
@@ -30,10 +30,10 @@ public class ObservationManager
     }
 
     /// <summary>
-    /// Take an observation and generate a conversation card
-    /// Returns the generated card on success, null if already taken or invalid
+    /// Take an observation and generate an observation card with decay tracking
+    /// Returns the generated observation card on success, null if already taken or invalid
     /// </summary>
-    public ConversationCard TakeObservation(Observation observation, TokenMechanicsManager tokenManager)
+    public ObservationCard TakeObservation(Observation observation, TokenMechanicsManager tokenManager)
     {
         if (observation == null)
             return null;
@@ -54,35 +54,141 @@ public class ObservationManager
         }
         _takenObservationsByTimeBlock[currentTimeBlock].Add(observation.Id);
 
-        // Generate conversation card
-        var observationCard = GenerateObservationCard(observation, tokenManager);
+        // Generate conversation card first
+        var conversationCard = GenerateConversationCard(observation, tokenManager);
         
-        if (observationCard != null)
+        if (conversationCard != null)
         {
+            // Create observation card with decay tracking
+            var currentGameTime = GetCurrentGameTime();
+            var observationCard = ObservationCard.FromConversationCard(conversationCard, observation.Id, currentGameTime);
+            
             _currentObservationCards.Add(observationCard);
-            Console.WriteLine($"[ObservationManager] Generated observation card {observationCard.Id} from {observation.Id}");
+            Console.WriteLine($"[ObservationManager] Generated observation card {observationCard.Id} from {observation.Id} at {currentGameTime}");
+            
+            return observationCard;
         }
 
-        return observationCard;
+        return null;
     }
 
     /// <summary>
     /// Get all current observation cards in player's hand
+    /// Updates decay states and filters out expired cards
     /// </summary>
-    public List<ConversationCard> GetObservationCards()
+    public List<ObservationCard> GetObservationCards()
     {
+        var currentGameTime = GetCurrentGameTime();
+        
+        // Update decay states for all observation cards
+        foreach (var card in _currentObservationCards)
+        {
+            card.UpdateDecayState(currentGameTime);
+        }
+        
+        // Remove expired cards automatically
+        var expiredCards = _currentObservationCards.Where(c => c.DecayState == ObservationDecayState.Expired).ToList();
+        foreach (var expired in expiredCards)
+        {
+            _currentObservationCards.Remove(expired);
+            Console.WriteLine($"[ObservationManager] Automatically discarded expired observation card {expired.Id}");
+        }
+        
         return _currentObservationCards.ToList();
+    }
+    
+    /// <summary>
+    /// Get observation cards as conversation cards for use in conversation system
+    /// Only returns playable (non-expired) cards with adjusted comfort values
+    /// </summary>
+    public List<ConversationCard> GetObservationCardsAsConversationCards()
+    {
+        var currentGameTime = GetCurrentGameTime();
+        var observationCards = GetObservationCards(); // This updates decay states
+        var conversationCards = new List<ConversationCard>();
+        
+        foreach (var obsCard in observationCards.Where(c => c.IsPlayable))
+        {
+            // Create a modified conversation card with adjusted comfort value for stale cards
+            var originalCard = obsCard.ConversationCard;
+            
+            // Create updated context with decay information
+            var updatedContext = new CardContext
+            {
+                Personality = originalCard.Context?.Personality ?? PersonalityType.STEADFAST,
+                EmotionalState = originalCard.Context?.EmotionalState ?? EmotionalState.NEUTRAL,
+                UrgencyLevel = originalCard.Context?.UrgencyLevel ?? 0,
+                HasDeadline = originalCard.Context?.HasDeadline ?? false,
+                MinutesUntilDeadline = originalCard.Context?.MinutesUntilDeadline,
+                ObservationType = originalCard.Context?.ObservationType,
+                LetterId = originalCard.Context?.LetterId,
+                TargetNpcId = originalCard.Context?.TargetNpcId,
+                NPCName = originalCard.Context?.NPCName,
+                NPCPersonality = originalCard.Context?.NPCPersonality ?? PersonalityType.STEADFAST,
+                ExchangeData = originalCard.Context?.ExchangeData,
+                ObservationId = originalCard.Context?.ObservationId,
+                ObservationText = originalCard.Context?.ObservationText,
+                ObservationDescription = originalCard.Context?.ObservationDescription,
+                ExchangeName = originalCard.Context?.ExchangeName,
+                ExchangeCost = originalCard.Context?.ExchangeCost,
+                ExchangeReward = originalCard.Context?.ExchangeReward,
+                // Add decay state information
+                ObservationDecayState = obsCard.DecayState,
+                ObservationDecayDescription = obsCard.GetDecayStateDescription(currentGameTime)
+            };
+            
+            var adjustedCard = new ConversationCard
+            {
+                Id = originalCard.Id,
+                Template = originalCard.Template,
+                Context = updatedContext,
+                Type = originalCard.Type,
+                Persistence = PersistenceType.Opportunity, // Observations are Opportunity type but DON'T vanish on Listen - they decay over time
+                Weight = originalCard.Weight,
+                BaseComfort = obsCard.EffectiveComfortValue, // Use decay-adjusted comfort value
+                Category = originalCard.Category,
+                IsObservation = true,
+                ObservationSource = obsCard.SourceObservationId,
+                CanDeliverLetter = originalCard.CanDeliverLetter,
+                ManipulatesObligations = originalCard.ManipulatesObligations,
+                Depth = originalCard.Depth,
+                SuccessState = originalCard.SuccessState,
+                FailureState = originalCard.FailureState,
+                SuccessRate = originalCard.SuccessRate,
+                DisplayName = originalCard.DisplayName,
+                Description = originalCard.Description,
+                PowerLevel = originalCard.PowerLevel
+            };
+            
+            conversationCards.Add(adjustedCard);
+        }
+        
+        return conversationCards;
     }
 
     /// <summary>
-    /// Remove an observation card after it's been played (OneShot behavior)
+    /// Remove an observation card after it's been played or has expired
     /// </summary>
-    public void RemoveObservationCard(ConversationCard card)
+    public void RemoveObservationCard(string observationCardId)
     {
-        if (card != null && card.IsObservation)
+        var card = _currentObservationCards.FirstOrDefault(c => c.Id == observationCardId);
+        if (card != null)
         {
             _currentObservationCards.Remove(card);
-            Console.WriteLine($"[ObservationManager] Removed played observation card {card.Id}");
+            Console.WriteLine($"[ObservationManager] Removed observation card {card.Id}");
+        }
+    }
+    
+    /// <summary>
+    /// Remove observation card by conversation card ID (for backwards compatibility)
+    /// </summary>
+    public void RemoveObservationCardByConversationId(string conversationCardId)
+    {
+        var card = _currentObservationCards.FirstOrDefault(c => c.ConversationCard.Id == conversationCardId);
+        if (card != null)
+        {
+            _currentObservationCards.Remove(card);
+            Console.WriteLine($"[ObservationManager] Removed observation card {card.Id} by conversation ID {conversationCardId}");
         }
     }
 
@@ -115,7 +221,7 @@ public class ObservationManager
     /// <summary>
     /// Generate a conversation card from an observation
     /// </summary>
-    private ConversationCard GenerateObservationCard(Observation observation, TokenMechanicsManager tokenManager)
+    private ConversationCard GenerateConversationCard(Observation observation, TokenMechanicsManager tokenManager)
     {
         // Determine card type based on observation type and content
         var cardType = DetermineCardType(observation);
@@ -215,6 +321,21 @@ public class ObservationManager
         };
     }
 
+    /// <summary>
+    /// Get current game time for decay calculations
+    /// </summary>
+    private DateTime GetCurrentGameTime()
+    {
+        // Convert game time to a DateTime for decay calculations
+        // Day 1, Hour 0 = DateTime base, each game day = 24 real hours for decay purposes
+        var baseDate = new DateTime(2024, 1, 1, 0, 0, 0); // Arbitrary base date
+        var gameDay = _timeManager.GetCurrentDay();
+        var gameHour = _timeManager.GetCurrentTimeHours();
+        var gameMinutes = _timeManager.GetCurrentMinutes();
+        
+        return baseDate.AddDays(gameDay - 1).AddHours(gameHour).AddMinutes(gameMinutes);
+    }
+    
     /// <summary>
     /// Get the current time block as a string key
     /// </summary>

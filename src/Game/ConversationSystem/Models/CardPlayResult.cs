@@ -44,6 +44,11 @@ public class CardPlayResult
     /// Whether obligations were manipulated
     /// </summary>
     public bool ManipulatedObligations { get; init; }
+
+    /// <summary>
+    /// Letter negotiation results (if letter cards were played)
+    /// </summary>
+    public List<LetterNegotiationResult> LetterNegotiations { get; init; } = new List<LetterNegotiationResult>();
 }
 
 /// <summary>
@@ -75,4 +80,35 @@ public class SingleCardResult
     /// The success chance that was needed
     /// </summary>
     public int SuccessChance { get; init; }
+}
+
+/// <summary>
+/// Result of negotiating a letter through card play
+/// </summary>
+public class LetterNegotiationResult
+{
+    /// <summary>
+    /// The letter card that was played
+    /// </summary>
+    public string LetterCardId { get; init; }
+
+    /// <summary>
+    /// Whether the negotiation was successful
+    /// </summary>
+    public bool NegotiationSuccess { get; init; }
+
+    /// <summary>
+    /// Final terms after negotiation (success or failure terms)
+    /// </summary>
+    public LetterNegotiationTerms FinalTerms { get; init; }
+
+    /// <summary>
+    /// The letter card that generated this negotiation
+    /// </summary>
+    public LetterCard SourceLetterCard { get; init; }
+
+    /// <summary>
+    /// The delivery obligation that needs to be created
+    /// </summary>
+    public DeliveryObligation CreatedObligation { get; init; }
 }

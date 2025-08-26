@@ -132,11 +132,17 @@
             <div class="card-grid">
                 @foreach (var card in Session.HandCards)
                 {
-                    <div class="dialog-card @GetCardClass(card) @(IsCardSelected(card) ? "selected" : "")" 
+                    <div class="dialog-card @GetCardClass(card) @GetObservationDecayClass(card) @(IsCardSelected(card) ? "selected" : "") @(IsObservationExpired(card) ? "unavailable" : "")" 
                          @onclick="() => ToggleCardSelection(card)">
                         @if (card.GetEffectiveWeight(Context.Session.CurrentState) == 0)
                         {
                             <div class="card-marker free">FREE!</div>
+                        }
+                        @if (card.IsObservation)
+                        {
+                            <div class="observation-decay-indicator @GetObservationDecayClass(card)">
+                                @GetObservationDecayDescription(card)
+                            </div>
                         }
                         <div class="card-header">
                             <div class="card-identity">

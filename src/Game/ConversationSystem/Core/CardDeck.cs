@@ -29,7 +29,7 @@ public class CardDeck
         discardPile.Clear();
 
         // Store tokens for filtering during draw
-        currentTokens = tokenManager.GetTokensWithNPC(npc.ID);
+        currentTokens = tokenManager?.GetTokensWithNPC(npc.ID) ?? new Dictionary<ConnectionType, int>();
 
         // Add universal basic cards (always Persistent)
         AddUniversalCards();
@@ -204,7 +204,6 @@ public class CardDeck
                     Weight = 1,
                     BaseComfort = 3,
                     Depth = 8,  // Decent level
-                    PowerLevel = CardPowerLevel.Basic
                 });
                 cards.Add(new ConversationCard
                 {
@@ -231,7 +230,6 @@ public class CardDeck
                     Weight = 1,
                     BaseComfort = 3,
                     Depth = 8,  // Decent level
-                    PowerLevel = CardPowerLevel.Basic
                 });
                 cards.Add(new ConversationCard
                 {
@@ -269,7 +267,6 @@ public class CardDeck
                     Weight = 1,
                     BaseComfort = 3,
                     Depth = 8,  // Decent level
-                    PowerLevel = CardPowerLevel.Basic
                 });
                 break;
         }
@@ -295,7 +292,6 @@ public class CardDeck
                 BaseComfort = 5,
                 CanDeliverLetter = true,
                 Depth = 17,  // Excellent level - letter delivery
-                PowerLevel = CardPowerLevel.Intermediate  // Unlocked at 3 tokens
             });
         }
         
@@ -312,7 +308,6 @@ public class CardDeck
                 Weight = 2,
                 BaseComfort = 6,
                 Depth = 15,
-                PowerLevel = CardPowerLevel.Advanced  // Advanced trust card
             });
         }
         
@@ -329,7 +324,6 @@ public class CardDeck
                 Weight = 3,
                 BaseComfort = 10,
                 Depth = 20,
-                PowerLevel = CardPowerLevel.Master  // Master trust card
             });
         }
 
@@ -346,7 +340,6 @@ public class CardDeck
                 BaseComfort = 5,
                 CanDeliverLetter = true,
                 Depth = 17,  // Excellent level - letter delivery
-                PowerLevel = CardPowerLevel.Intermediate  // Unlocked at 3 tokens
             });
         }
         
@@ -363,7 +356,6 @@ public class CardDeck
                 Weight = 2,
                 BaseComfort = 7,
                 Depth = 16,
-                PowerLevel = CardPowerLevel.Advanced
             });
         }
 
@@ -572,27 +564,33 @@ public class CardDeck
     }
 
     /// <summary>
-    /// Draw cards based on emotional state rules, filtered by comfort level and token requirements
+    /// Draw cards based on emotional state rules, filtered by comfort level and token progression
     /// </summary>
     public List<ConversationCard> Draw(int count, int currentComfort = 5)
     {
         var drawn = new List<ConversationCard>();
         
+        // Calculate maximum depth unlocked by tokens across all connection types
+        int maxTokenDepth = CalculateMaxTokenDepth(currentTokens);
+        
         // Filter cards by:
-        // 1. Depth level - only cards at or below current comfort
-        // 2. Token requirements - only cards player has unlocked
+        // 1. Comfort level - only cards at or below current comfort (temporary within conversation)
+        // 2. Token progression - only cards at or below unlocked depth range (permanent progression)
         var availableCards = cards
             .Where(c => c.Depth <= currentComfort)
-            .Where(c => c.IsUnlocked(currentTokens))
+            .Where(c => c.Depth <= maxTokenDepth)
             .ToList();
         
-        // Ensure at least some basic cards are available
+        // Ensure at least basic depth cards are always available
         if (!availableCards.Any())
         {
             availableCards = cards
-                .Where(c => c.PowerLevel == CardPowerLevel.Basic && c.Depth <= currentComfort)
+                .Where(c => c.Depth <= GameRules.TOKENS_BASIC_DEPTH_MAX)
+                .Where(c => c.Depth <= currentComfort)
                 .ToList();
         }
+        
+        Console.WriteLine($"[CardDeck.Draw] Comfort: {currentComfort}, Max Token Depth: {maxTokenDepth}, Available: {availableCards.Count}");
         
         for (int i = 0; i < count && availableCards.Any(); i++)
         {
@@ -603,6 +601,27 @@ public class CardDeck
         }
 
         return drawn;
+    }
+    
+    /// <summary>
+    /// Calculate the maximum depth unlocked by the player's tokens
+    /// </summary>
+    private int CalculateMaxTokenDepth(Dictionary<ConnectionType, int> tokens)
+    {
+        if (tokens == null || !tokens.Any()) 
+            return GameRules.TOKENS_BASIC_DEPTH_MAX; // Only basic cards (depth 0-5)
+        
+        // Find the highest token count across all connection types
+        int maxTokens = tokens.Values.Max();
+        
+        // Determine depth range unlocked by token count
+        return maxTokens switch
+        {
+            >= 10 => GameRules.TOKENS_MASTER_DEPTH_MAX,       // 10+ tokens: Master cards (depth 0-20)
+            >= 5 => GameRules.TOKENS_ADVANCED_DEPTH_MAX,      // 5+ tokens: Advanced cards (depth 0-15)  
+            >= 3 => GameRules.TOKENS_INTERMEDIATE_DEPTH_MAX,  // 3+ tokens: Intermediate cards (depth 0-10)
+            _ => GameRules.TOKENS_BASIC_DEPTH_MAX              // 0-2 tokens: Basic cards only (depth 0-5)
+        };
     }
 
     /// <summary>

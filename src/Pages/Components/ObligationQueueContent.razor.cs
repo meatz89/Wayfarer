@@ -60,13 +60,47 @@ namespace Wayfarer.Pages.Components
 
         protected async Task DisplaceLetter(DeliveryObligation letter)
         {
-            // Delegate to ObligationQueueManager which handles all displacement logic
+            // Legacy method - use displacement to back of queue
             var result = await GameFacade.DisplaceLetterInQueue(letter.Id);
             if (!result)
             {
                 Console.WriteLine($"[ObligationQueueContent] Failed to displace letter: {letter.Id}");
             }
+            RefreshObligations();
             StateHasChanged();
+        }
+
+        protected async Task DisplaceLetterToPosition(DeliveryObligation letter, int targetPosition)
+        {
+            // Use the new token-burning displacement system
+            var result = await GameFacade.DisplaceObligation(letter.Id, targetPosition);
+            if (result)
+            {
+                RefreshObligations();
+                StateHasChanged();
+            }
+        }
+
+        protected QueueDisplacementPreview GetDisplacementPreview(DeliveryObligation letter, int targetPosition)
+        {
+            return GameFacade.GetDisplacementPreview(letter.Id, targetPosition);
+        }
+
+        protected int GetLetterPosition(DeliveryObligation letter)
+        {
+            return ObligationQueueManager.GetQueuePosition(letter);
+        }
+
+        protected string GetDisplacementButtonClass(QueueDisplacementPreview preview)
+        {
+            if (preview.TotalTokenCost == 0)
+                return "free-displacement";
+            else if (preview.TotalTokenCost <= 2)
+                return "low-cost-displacement";
+            else if (preview.TotalTokenCost <= 5)
+                return "medium-cost-displacement";
+            else
+                return "high-cost-displacement";
         }
 
         protected bool CanDeliver(DeliveryObligation letter)

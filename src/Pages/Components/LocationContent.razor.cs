@@ -75,16 +75,16 @@ namespace Wayfarer.Pages.Components
                             IsAvailable = true
                         });
                     }
-                    else if (npc.ConversationDeck != null)
+                    
+                    // Always show standard conversation option - NPCs should always be talkable
+                    // The deck will be created on demand if needed
+                    options.Add(new ConversationOptionViewModel
                     {
-                        options.Add(new ConversationOptionViewModel
-                        {
-                            Type = ConversationType.Standard,
-                            Label = "Standard Conversation",
-                            AttentionCost = 2,
-                            IsAvailable = true
-                        });
-                    }
+                        Type = ConversationType.Standard,
+                        Label = "Talk",
+                        AttentionCost = 2,
+                        IsAvailable = true
+                    });
                     
                     // Get actual emotional state using the same logic as conversations
                     var emotionalState = GameFacade.GetNPCEmotionalState(npc.ID);

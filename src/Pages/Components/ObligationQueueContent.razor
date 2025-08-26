@@ -49,12 +49,50 @@
                                 View Details
                             </button>
                             
+                            @if (CanDeliver(letter))
+                            {
+                                <button class="deliver-button" 
+                                        @onclick="@(async () => await DeliverLetter(letter))">
+                                    Deliver Now
+                                </button>
+                            }
+                            
                             @if (CanDisplace(letter))
                             {
-                                <button class="displace-button" 
-                                        @onclick="@(async () => await DisplaceLetter(letter))">
-                                    Displace
-                                </button>
+                                <div class="displacement-options">
+                                    <details class="displacement-menu">
+                                        <summary class="displacement-toggle">Displace Options</summary>
+                                        <div class="displacement-content">
+                                            @for (int targetPos = 1; targetPos <= 8; targetPos++)
+                                            {
+                                                var preview = GetDisplacementPreview(letter, targetPos);
+                                                if (preview != null && preview.CanExecute && targetPos < GetLetterPosition(letter))
+                                                {
+                                                    <div class="displacement-option">
+                                                        <button class="displace-to-button @GetDisplacementButtonClass(preview)" 
+                                                                @onclick="@(async () => await DisplaceLetterToPosition(letter, targetPos))">
+                                                            Move to Position @targetPos
+                                                        </button>
+                                                        <div class="token-cost">
+                                                            Cost: @preview.TotalTokenCost tokens
+                                                        </div>
+                                                        @if (preview.DisplacementDetails.Any())
+                                                        {
+                                                            <div class="displacement-details">
+                                                                @foreach (var detail in preview.DisplacementDetails)
+                                                                {
+                                                                    <div class="displacement-detail">
+                                                                        -@detail.TokenCost @detail.TokenType with @detail.NPCName
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                    </details>
+                                </div>
                             }
                         </div>
                     </div>

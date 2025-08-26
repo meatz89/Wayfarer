@@ -26,6 +26,12 @@
     public const int TOKENS_QUALITY_THRESHOLD = 3;     // Quality letters offered (3-4 tokens)
     public const int TOKENS_PREMIUM_THRESHOLD = 5;     // Premium letters & routes (5+ tokens)
 
+    // Token Progression: Depth Range Unlocking
+    public const int TOKENS_BASIC_DEPTH_MAX = 5;       // 0 tokens: depth 0-5 (basic cards)
+    public const int TOKENS_INTERMEDIATE_DEPTH_MAX = 10; // 3 tokens: depth 0-10 (intermediate cards)
+    public const int TOKENS_ADVANCED_DEPTH_MAX = 15;   // 5 tokens: depth 0-15 (advanced cards)
+    public const int TOKENS_MASTER_DEPTH_MAX = 20;     // 10 tokens: depth 0-20 (master cards)
+
     // Standing Obligations: Crisis Card Rewards
     public const int CRISIS_CARD_TOKEN_REWARD = 3;     // Immediate token gain from crisis cards (US-8.1)
     public const int OBLIGATION_BREAKING_PENALTY = 5;  // Token loss for breaking obligations (US-8.3)

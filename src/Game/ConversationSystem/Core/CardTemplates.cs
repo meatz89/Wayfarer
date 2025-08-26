@@ -176,6 +176,16 @@ public class CardContext
     public string ExchangeReward { get; init; }
     
     /// <summary>
+    /// Observation decay state (Fresh/Stale/Expired)
+    /// </summary>
+    public ObservationDecayState? ObservationDecayState { get; init; }
+    
+    /// <summary>
+    /// Observation decay description for UI (e.g., "Fresh (1.2h remaining)")
+    /// </summary>
+    public string ObservationDecayDescription { get; init; }
+    
+    /// <summary>
     /// Special flag for crisis cards that generate letters on success
     /// </summary>
     public bool GeneratesLetterOnSuccess { get; init; }

@@ -236,17 +236,26 @@ namespace Wayfarer.Pages.Components
                 // Generate narrative based on the result
                 GenerateSpeakNarrative(result);
                 
-                // Check if any played card can generate a letter and succeeded
-                var letterCard = result.Results?.FirstOrDefault(r => r.Card.CanDeliverLetter && r.Success);
-                if (letterCard != null)
+                // Process letter negotiations first (new system)
+                if (result.LetterNegotiations?.Any() == true)
                 {
-                    // Crisis cards and special cards that generate letters immediately
-                    GenerateLetter();
+                    ProcessLetterNegotiations(result.LetterNegotiations);
                 }
-                // Normal letter generation at comfort threshold
-                else if (Session.CurrentComfort >= ComfortThreshold)
+                // Legacy letter generation (keep for compatibility)
+                else
                 {
-                    GenerateLetter();
+                    // Check if any played card can generate a letter and succeeded
+                    var letterCard = result.Results?.FirstOrDefault(r => r.Card.CanDeliverLetter && r.Success);
+                    if (letterCard != null)
+                    {
+                        // Crisis cards and special cards that generate letters immediately
+                        GenerateLetter();
+                    }
+                    // Normal letter generation at comfort threshold
+                    else if (Session.CurrentComfort >= ComfortThreshold)
+                    {
+                        GenerateLetter();
+                    }
                 }
             }
         }
@@ -535,6 +544,9 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return false;
             
+            // Check if observation card is expired
+            if (IsObservationExpired(card)) return false;
+            
             // Check weight limit
             var newWeight = TotalSelectedWeight + card.Weight;
             return newWeight <= GetWeightLimit();
@@ -816,6 +828,89 @@ namespace Wayfarer.Pages.Components
                 return $"Conversation ended naturally (Comfort reached: {Session.CurrentComfort})";
             else
                 return "Conversation ended";
+        }
+        
+        /// <summary>
+        /// Process letter negotiations and add resulting obligations to the player's queue
+        /// </summary>
+        private void ProcessLetterNegotiations(List<LetterNegotiationResult> negotiations)
+        {
+            var messageSystem = GameFacade?.GetMessageSystem();
+            
+            foreach (var negotiation in negotiations)
+            {
+                if (negotiation.CreatedObligation != null)
+                {
+                    // Add the obligation to the player's queue through the GameFacade
+                    var queuePosition = GameFacade.AddLetterWithObligationEffects(negotiation.CreatedObligation);
+                    
+                    if (queuePosition > 0)
+                    {
+                        // Generate appropriate message based on negotiation success
+                        var negotiationOutcome = negotiation.NegotiationSuccess ? "Successfully negotiated" : "Failed to negotiate";
+                        var urgency = negotiation.FinalTerms.DeadlineHours <= 2 ? " - CRITICAL!" : 
+                                     negotiation.FinalTerms.DeadlineHours <= 6 ? " - URGENT" : "";
+                        
+                        messageSystem?.AddSystemMessage(
+                            $"{negotiationOutcome} letter: '{negotiation.SourceLetterCard.Title}' - {negotiation.FinalTerms.DeadlineHours}h deadline, {negotiation.FinalTerms.Payment} coins{urgency}",
+                            negotiation.FinalTerms.DeadlineHours <= 2 ? SystemMessageTypes.Danger : SystemMessageTypes.Success
+                        );
+                        
+                        // Mark the letter as generated in the session
+                        Session.LetterGenerated = true;
+                        
+                        Console.WriteLine($"[ProcessLetterNegotiations] Added letter obligation '{negotiation.CreatedObligation.Id}' to queue position {queuePosition}");
+                    }
+                    else
+                    {
+                        messageSystem?.AddSystemMessage(
+                            "Could not accept letter - queue may be full",
+                            SystemMessageTypes.Warning
+                        );
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"[ProcessLetterNegotiations] WARNING: No obligation created for negotiation {negotiation.LetterCardId}");
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Get decay state CSS class for observation cards
+        /// </summary>
+        protected string GetObservationDecayClass(ConversationCard card)
+        {
+            if (!card.IsObservation || card.Context?.ObservationDecayState == null)
+                return "";
+                
+            return card.Context.ObservationDecayState switch
+            {
+                ObservationDecayState.Fresh => "observation-fresh",
+                ObservationDecayState.Stale => "observation-stale",
+                ObservationDecayState.Expired => "observation-expired",
+                _ => ""
+            };
+        }
+        
+        /// <summary>
+        /// Get decay state description for observation cards
+        /// </summary>
+        protected string GetObservationDecayDescription(ConversationCard card)
+        {
+            if (!card.IsObservation)
+                return "";
+                
+            return card.Context?.ObservationDecayDescription ?? "";
+        }
+        
+        /// <summary>
+        /// Check if observation card is expired (should show as unplayable)
+        /// </summary>
+        protected bool IsObservationExpired(ConversationCard card)
+        {
+            return card.IsObservation && 
+                   card.Context?.ObservationDecayState == ObservationDecayState.Expired;
         }
     }
 }

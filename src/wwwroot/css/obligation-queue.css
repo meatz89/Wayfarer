@@ -679,3 +679,191 @@
 .queue-content::-webkit-scrollbar-thumb:hover {
     background: #a68b6f;
 }
+
+/* =================================================================
+   DISPLACEMENT OPTIONS - Token Burning System
+   ================================================================= */
+
+.displacement-options {
+    margin-top: 8px;
+}
+
+.displacement-menu {
+    background: #f9f3e9;
+    border: 1px solid #c4a684;
+    border-radius: 4px;
+    margin-top: 4px;
+}
+
+.displacement-toggle {
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #5c4a3a;
+    cursor: pointer;
+    user-select: none;
+    background: #f4e8d0;
+    list-style: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.displacement-toggle::marker {
+    content: '';
+}
+
+.displacement-toggle:hover {
+    background: #e8dcc4;
+}
+
+.displacement-content {
+    padding: 8px;
+    border-top: 1px solid #c4a684;
+    background: #fefcf8;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.displacement-option {
+    margin-bottom: 8px;
+    padding: 6px;
+    border: 1px solid #e8dcc4;
+    border-radius: 3px;
+    background: #ffffff;
+}
+
+.displacement-option:last-child {
+    margin-bottom: 0;
+}
+
+.displace-to-button {
+    width: 100%;
+    padding: 4px 8px;
+    font-size: 11px;
+    border: 1px solid #c4a684;
+    background: #faf4ea;
+    color: #5c4a3a;
+    cursor: pointer;
+    border-radius: 2px;
+    font-family: inherit;
+    margin-bottom: 4px;
+    transition: all 0.2s ease;
+}
+
+.displace-to-button:hover {
+    background: #f0e8d0;
+    border-color: #a68b6f;
+}
+
+/* Token cost styling based on expense */
+.displace-to-button.free-displacement {
+    background: #e8f5e9;
+    border-color: #7a8b5a;
+    color: #2c3e1a;
+}
+
+.displace-to-button.low-cost-displacement {
+    background: #fff8dc;
+    border-color: #d4a76a;
+    color: #6b4c28;
+}
+
+.displace-to-button.medium-cost-displacement {
+    background: #faf0e6;
+    border-color: #d4a76a;
+    color: #8b4726;
+}
+
+.displace-to-button.high-cost-displacement {
+    background: #f5e6e6;
+    border-color: #8b4726;
+    color: #6b2c1a;
+    font-weight: bold;
+}
+
+.displace-to-button.free-displacement:hover {
+    background: #d8ead9;
+}
+
+.displace-to-button.low-cost-displacement:hover {
+    background: #f0e8c0;
+}
+
+.displace-to-button.medium-cost-displacement:hover {
+    background: #e8dcc4;
+}
+
+.displace-to-button.high-cost-displacement:hover {
+    background: #e8d0d0;
+}
+
+.token-cost {
+    font-size: 10px;
+    color: #7a6250;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.displacement-details {
+    font-size: 9px;
+    color: #8b7355;
+    padding: 2px 4px;
+    background: #f4e8d0;
+    border-radius: 2px;
+}
+
+.displacement-detail {
+    margin: 1px 0;
+    display: block;
+}
+
+/* Hover effects for the displacement menu */
+.displacement-menu[open] .displacement-toggle {
+    background: #e8dcc4;
+    border-bottom: 1px solid #c4a684;
+}
+
+/* Accessibility and interaction improvements */
+.displacement-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.displacement-toggle::before {
+    content: "▼ ";
+    font-size: 10px;
+    transition: transform 0.2s ease;
+}
+
+.displacement-menu[open] .displacement-toggle::before {
+    transform: rotate(180deg);
+}
+
+/* Warning styling for high-cost displacements */
+.displacement-option.high-cost {
+    border-color: #8b4726;
+    background: #faf0e6;
+}
+
+.displacement-option.high-cost .token-cost {
+    color: #8b4726;
+    font-weight: bold;
+}
+
+/* View Details Button Updates */
+.view-button {
+    padding: 6px 14px;
+    font-size: 12px;
+    border: 1px solid #c4a684;
+    background: #f9f3e9;
+    color: #5c4a3a;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.view-button:hover {
+    background: #e8dcc4;
+    border-color: #a68b6f;
+}

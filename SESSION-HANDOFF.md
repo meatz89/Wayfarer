@@ -1,53 +1,184 @@
 # SESSION HANDOFF: WAYFARER IMPLEMENTATION
-**Session Date**: 2025-08-26 (Session 47 - POC FULL IMPLEMENTATION)  
-**Status**: 🔧 IN PROGRESS - Comprehensive POC implementation underway
+**Session Date**: 2025-12-26 (Session 47 - DEEP MECHANICS UNDERSTANDING)  
+**Status**: 📊 ~40% COMPLETE - Core mechanics understood, major systems still missing
 **Build Status**: ✅ Compiles and runs
 **Branch**: letters-ledgers
-**Port**: 5127 (ASPNETCORE_URLS="http://localhost:5127" dotnet run)
+**Port**: 5275 (ASPNETCORE_URLS="http://localhost:5275" dotnet run)
 
-## ✅ SESSION 47 - DEEP MECHANICS UNDERSTANDING & IMPLEMENTATION
+## 🎯 SESSION 47 - WHAT WE LEARNED
 
-### VISION CLARIFIED:
-**Three interconnected loops with cards unifying everything**
-1. **Conversations**: Skill-based challenge using cards
-2. **Obligations**: Forces travel and relationship building  
-3. **Travel**: World progression and exploration
+### MAJOR REVELATIONS:
+1. **Comfort is TEMPORARY** - Only for current conversation (starts at 5)
+2. **Tokens are PERMANENT** - The real progression system
+3. **Each mechanic does ONE thing** - No dual-purpose mechanics
+4. **Letters are NEGOTIATED** - Success/failure affects terms, not acquisition
+5. **Cards show PLAYER dialogue** - Not NPC speech
+6. **Observation cards DON'T vanish on Listen** - They decay over time (Fresh→Stale→Expired)
+7. **Letter deck checking in OPEN/CONNECTED only** - Not just "trust letters"
+8. **NPCs have emotional states from NARRATIVE** - Not mechanical timers
 
-**Key Principles**:
-- Each mechanic does ONE thing (no dual-purpose)
-- Tokens are permanent progression
-- Comfort is temporary tactical resource
-- Letters always given (negotiate terms, not acquisition)
+### DOCUMENTATION CREATED:
+- **MECHANICAL-DISCREPANCIES.md** - All differences from POC
+- **EMOTIONAL-STATE-RULES.md** - Correct state specifications
+- **CORE-GAME-ARCHITECTURE.md** - Full strategic vision 
+- **IMPLEMENTATION-GAPS.md** - Remaining systems needed
 
-### CORE MECHANICS FIXED (~40% of Full Vision)
+## ✅ WHAT'S ACTUALLY WORKING (~40%)
 
-#### ✅ COMPLETED:
-1. **Depth-Gated Card System** (CORE INNOVATION)
-   - Comfort starts at 5, gates depth 0-20 cards
-   - Comfort is TEMPORARY (per conversation only)
+### CORE MECHANICS IMPLEMENTED:
+1. **Depth-Gated System** ✅
+   - Cards have Depth 0-20 property
+   - CurrentComfort starts at 5
+   - Filter: card.Depth <= CurrentComfort
+   - Tested: Only depth 0-5 cards visible at start
 
-2. **Emotional State Rules** 
+2. **Emotional State Rules** ✅
    - All 9 states have correct Listen/Speak mechanics
-   - States ONLY modify Listen/Speak (no dual purpose)
+   - DESPERATE: Draw 2 + inject 1 crisis, state→HOSTILE
+   - HOSTILE: Weight 0, only crisis cards playable
+   - Crisis cards cost 0 weight in DESPERATE
+   - Tested: Elena conversation flow works
 
-3. **Four-Deck Architecture**
-   - Conversation/Letter/Crisis/Exchange decks separated
+3. **Four-Deck Architecture** ✅
+   - NPCs have Conversation/Letter/Crisis/Exchange decks
+   - Letter deck checked only in OPEN/CONNECTED
+   - Crisis deck injected in DESPERATE/HOSTILE
 
-4. **Letter Eligibility**
-   - Token requirements + state requirements
-   - Only checked in OPEN/CONNECTED states
+4. **Token Effects (Partial)** ⚠️
+   - +5% success per token implemented in code
+   - But tokens don't unlock new cards yet
 
-#### ❌ CRITICAL MISSING SYSTEMS:
-1. **Token Progression** - Tokens don't unlock cards or add +5% success
-2. **Queue Displacement** - Can't burn tokens to change order
-3. **Letter Negotiation** - Success/failure don't affect terms properly
-4. **Observation Decay** - Knowledge doesn't decay over time
-5. **Access Permits** - No route gating via special letters
-6. **Work/Rest Economy** - No way to earn coins or recover attention
+## ❌ WHAT'S COMPLETELY MISSING (~60%)
 
-### STRATEGIC DEPTH STATUS:
-**Current**: Button clicking to pick cards
-**Needed**: Deep puzzle where every choice cascades through systems
+### CRITICAL MISSING SYSTEMS:
+
+#### 1. UI DOESN'T MATCH MOCKUPS
+**Current**: Flat rectangles, no visual hierarchy
+**Needed**: Proper cards with:
+- Header with name/tags
+- Body with narrative text
+- Outcomes section (success/failure)
+- Visual depth (borders, shadows, gradients)
+- Special markers (FREE!, CRISIS, etc)
+
+#### 2. TOKEN PROGRESSION SYSTEM
+**Current**: Tokens exist but don't unlock cards
+**Needed**:
+- 0 tokens: Basic cards only
+- 3 tokens: Intermediate cards added
+- 5 tokens: Advanced cards added
+- 10 tokens: Master cards added
+- Token requirements gate letter availability
+
+#### 3. QUEUE DISPLACEMENT
+**Current**: Position 1 only, rigid queue
+**Needed**:
+- Burn tokens to deliver out of order
+- Burning tokens adds burden cards
+- Each obligation specifies burn cost type
+
+#### 4. LETTER NEGOTIATION
+**Current**: Fixed terms
+**Needed**:
+- Success: Better deadline, flexible position, standard pay
+- Failure: Tight deadline, forced position 1, higher pay
+- Crisis letters always try for position 1
+
+#### 5. OBSERVATION DECAY
+**Current**: Permanent cards
+**Needed**:
+- Fresh (0-2h): Full effect
+- Stale (2-6h): Half comfort
+- Expired (6+h): Must discard
+- Cost 1 attention to observe
+
+#### 6. WORK/REST ECONOMY
+**Current**: No way to earn coins or recover attention
+**Needed**:
+- Work: 2 attention → 8 coins (advances time)
+- Rest at Inn: 5 coins → Full attention
+- Quick Nap: 2 coins → +3 attention
+
+#### 7. ACCESS PERMITS
+**Current**: All routes freely accessible
+**Needed**:
+- Routes require permit letters
+- Permits take satchel space
+- Obtained via high-token cards
+
+#### 8. PATIENCE CALCULATION
+**Current**: Missing hunger modifier
+**Needed**: -1 patience per 20 hunger
+
+## 📋 PRIORITY TODO LIST
+
+### IMMEDIATE (Blocking POC):
+1. [ ] Fix UI to match mockups - cards must look like cards
+2. [ ] Implement work actions at Commercial spots
+3. [ ] Implement rest exchanges at Hospitality spots
+4. [ ] Fix patience calculation with hunger modifier
+
+### CORE SYSTEMS (Enable strategic depth):
+5. [ ] Token progression unlocking cards
+6. [ ] Queue displacement with token burning
+7. [ ] Letter negotiation variable terms
+8. [ ] Observation decay system
+
+### POLISH (Complete experience):
+9. [ ] Access permit system
+10. [ ] NPC availability windows
+11. [ ] Time period effects
+12. [ ] Route discovery mechanics
+
+## 🔍 TEST STATUS
+
+### Last Test (Elena DESPERATE):
+- ✅ Started in DESPERATE state
+- ✅ Listen drew 2 + 1 crisis card
+- ✅ State transitioned to HOSTILE
+- ✅ Crisis card showed 0 weight
+- ✅ Weight limit became 0 in HOSTILE
+- ✅ Comfort started at 5
+- ⚠️ UI doesn't match mockups at all
+- ❌ No way to earn coins (work actions missing)
+- ❌ No way to recover attention (rest missing)
+- ❌ Can't test full POC flow
+
+## 💡 KEY INSIGHTS FOR NEXT SESSION
+
+### Design Philosophy:
+1. **Resources have multiple uses** (coins→food/rest/bribes)
+2. **Multiple ways to acquire resources** (work/letters/exchanges)
+3. **But each mechanic does ONE thing** (work gives coins, not attention)
+
+### The Three Core Loops:
+1. **Conversations** - Challenge that requires growth
+2. **Obligations** - Forces travel and relationships
+3. **Travel** - World progression and exploration
+
+### Critical Understanding:
+- Comfort unlocks cards WITHIN a conversation (temporary)
+- Tokens unlock cards ACROSS conversations (permanent)
+- Letters are about negotiating terms, not getting permission
+- NPCs emotional states come from their situation, not timers
+
+## 🚨 HONEST ASSESSMENT
+
+**What works**: Core conversation loop with proper state transitions
+**What doesn't**: Everything else that makes it a game rather than a tech demo
+
+**Current state**: We have a conversation system that technically follows the rules but lacks:
+- Visual feedback (cards look terrible)
+- Economic systems (can't earn/spend resources)
+- Strategic choices (no token progression)
+- Time pressure (no work/rest/wait)
+
+**Next session priorities**:
+1. Make UI match mockups (CRITICAL per CLAUDE.md)
+2. Add work/rest to enable resource recovery
+3. Implement token progression for strategic depth
+
+Without these, we have mechanics without a game.
 
 ## ❌ SESSION 46 - SCREENSHOT VERIFICATION RESULTS
 

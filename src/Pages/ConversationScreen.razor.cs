@@ -673,8 +673,8 @@ namespace Wayfarer.Pages
 
         private List<ConversationCard> GetObservationCards()
         {
-            // Get observation cards from the ObservationManager
-            return ObservationManager.GetObservationCards();
+            // Get observation cards from the ObservationManager (as conversation cards with decay applied)
+            return ObservationManager.GetObservationCardsAsConversationCards();
         }
 
         protected EmotionalState GetNPCStartingState()
