@@ -33,14 +33,19 @@
    - ❌ FREE! badges on naturally 0-weight cards
    - ❌ Card tags not connected to mechanics
 
-2. **Core Systems (Same as Session 48)**
-   - ❌ NO TOKEN PROGRESSION
-   - ❌ NO LETTER GENERATION
-   - ❌ NO OBSERVATIONS
-   - ❌ NO DISPLACEMENT UI
-   - ❌ NO WORK BUTTON
+2. **Core Systems - CRITICAL BUGS IDENTIFIED**
+   - ❌ NO TOKEN PROGRESSION - ConversationManager calculates but never calls TokenManager.AddTokensToNPC()
+   - ❌ NO LETTER GENERATION - Should check Letter Deck for state-matching cards during LISTEN
+   - ❌ NO OBSERVATIONS - Created but never added to persistent hand
+   - ❌ DISPLACEMENT UI - Logic exists but needs feedback
+   - ❌ WORK BUTTON - UI exists but needs backend verification
+   - ❌ SPEAK SHOULD PLAY ONE CARD - May allow multiple (violates design)
 
 ### CRITICAL DESIGN DECISIONS FROM USER:
+- **SPEAK PLAYS ONE CARD** - Revolutionary change: one statement per turn, not multiple
+- **WEIGHT = EMOTIONAL INTENSITY** - Not cognitive load; states limit what weight can be processed
+- **NO THRESHOLDS** - Linear progression everywhere (+5% per token, no gates)
+- **LETTERS FROM EMOTIONAL STATE** - Not comfort; Letter Deck cards match emotional states
 - **ATTENTION IS SIMPLE** - Just a resource that depletes/restores
 - **NO MODIFIERS** - No atmosphere, location, or time-based changes
 - **NO BACKWARDS COMPATIBILITY** - Delete everything old

@@ -6,17 +6,17 @@
 
 **WORKING:**
 - Basic conversations with emotional states
-- Crisis card mechanics (after fixes)
-- Exchange system for resource trading (after fixes)
+- Crisis card mechanics
+- Exchange system for resource trading
 - Attention persistence within time blocks
+- Work button UI exists (needs backend verification)
 
 **NOT WORKING:**
-- Token progression (never earn tokens)
-- Letter generation (comfort doesn't trigger letters)
-- Observation cards (never appear)
-- Queue displacement (no UI, no tokens to burn)
-- Work action (no button exists)
-- Rest mechanics (only through exchanges)
+- Token progression (tokens calculated but never awarded - missing TokenManager.AddTokensToNPC call)
+- Letter generation (should check Letter Deck for state-matching cards during LISTEN)
+- Observation cards (created but never added to persistent hand)
+- Queue displacement (logic exists but needs UI feedback)
+- SPEAK should play ONE card (may allow multiple currently)
 
 ## POC Scenario Flow
 

@@ -1,6 +1,13 @@
 # Wayfarer POC Implementation Status - HONEST ASSESSMENT
-**Date**: 2025-01-27 (Updated after Session 49)
-**Status**: ⚠️ ~40-45% Complete - Core mechanics functional, UI needs polish, progression disconnected
+**Date**: 2025-01-27 (Updated after Session 51)
+**Status**: ⚠️ ~40-45% Complete - Core mechanics functional, critical bugs identified, design clarified
+
+## 🎯 CORE DESIGN PRINCIPLES (CLARIFIED):
+- **SPEAK PLAYS ONE CARD** - Not multiple; one statement per turn
+- **WEIGHT = EMOTIONAL INTENSITY** - Not cognitive load; states limit processable weight
+- **NO THRESHOLDS** - Linear progression (+5% per token, no gates)
+- **LETTERS FROM STATE** - Letter Deck cards match emotional states, NOT comfort
+- **CARDS DO BOTH** - Comfort cards can ALSO award tokens (not separate types)
 
 ## 🔴 CRITICAL HONESTY CHECK - SESSION 50
 
@@ -16,13 +23,14 @@
 - ✅ Added Crossroads to Copper Kettle for travel
 - ✅ Simplified attention to persist until rest (not per time block)
 
-### What Still Needs Work:
+### What Still Needs Work (WITH ROOT CAUSES IDENTIFIED):
+- ❌ Token progression - ConversationManager.cs calculates but NEVER calls TokenManager.AddTokensToNPC()
+- ❌ Letter generation - Should check Letter Deck for state-matching cards during LISTEN (NOT comfort)
+- ❌ Observation cards - Created but never added to persistent hand
+- ❌ SPEAK should play ONE card - May allow multiple (violates core design)
+- ❌ Work button - UI exists but needs backend verification
 - ❌ Card effects not colored (should be green/red)
-- ❌ FREE! badges appearing incorrectly on naturally 0-weight cards
-- ❌ Token progression system completely disconnected
-- ❌ Letter generation never triggers
-- ❌ Work button missing from UI
-- ❌ Observation cards never appear
+- ❌ Weight limits - Should be based on emotional state, not total weight
 
 ## 🔴 CRITICAL HONESTY CHECK - SESSION 48
 
