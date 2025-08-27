@@ -1299,17 +1299,20 @@
     padding: 1px 4px;
     background: rgba(255,255,255,0.4);
     border-radius: 2px;
+    color: #5c4a3a; /* Default neutral color */
 }
 
 /* Positive effects (comfort gains, successful state changes) */
-.outcome.success .effect-value,
+.outcome.success .outcome-effects .effect .effect-value,
+.outcome-effects .effect-positive .effect-value,
 .effect-positive {
     color: #5a7a3a;
     background: rgba(122, 139, 90, 0.1);
 }
 
 /* Negative effects (comfort losses, failures) */
-.outcome.failure .effect-value,
+.outcome.failure .outcome-effects .effect .effect-value,
+.outcome-effects .effect-negative .effect-value,
 .effect-negative {
     color: #8b4726;
     background: rgba(139, 71, 38, 0.1);

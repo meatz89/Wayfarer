@@ -648,7 +648,7 @@ namespace Wayfarer.Pages.Components
                 EmotionalState.TENSE => 1,
                 EmotionalState.OVERWHELMED => 1,
                 EmotionalState.CONNECTED => 4,
-                EmotionalState.HOSTILE => 0,
+                EmotionalState.HOSTILE => 3,
                 _ => 3
             };
         }
