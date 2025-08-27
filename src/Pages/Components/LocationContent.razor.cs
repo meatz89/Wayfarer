@@ -17,6 +17,7 @@ namespace Wayfarer.Pages.Components
         protected LocationSpot CurrentSpot { get; set; }
         protected List<NpcViewModel> AvailableNpcs { get; set; } = new();
         protected List<LocationObservationViewModel> AvailableObservations { get; set; } = new();
+        protected List<TakenObservation> TakenObservations { get; set; } = new();
         protected List<SpotViewModel> AvailableSpots { get; set; } = new();
         protected bool CanTravel { get; set; }
         protected bool CanWork { get; set; }
@@ -103,9 +104,12 @@ namespace Wayfarer.Pages.Components
             
             // Get available observations
             AvailableObservations.Clear();
+            TakenObservations.Clear();
             Console.WriteLine("[LocationContent] Getting observations from GameFacade...");
             var allObservations = GameFacade.GetObservationsViewModel();
+            var takenObservations = GameFacade.GetTakenObservations();
             Console.WriteLine($"[LocationContent] Got ObservationsViewModel, AvailableObservations count: {allObservations?.AvailableObservations?.Count ?? 0}");
+            Console.WriteLine($"[LocationContent] Got {takenObservations?.Count ?? 0} taken observations");
             
             if (allObservations?.AvailableObservations != null)
             {
@@ -121,6 +125,11 @@ namespace Wayfarer.Pages.Components
             else
             {
                 Console.WriteLine("[LocationContent] No observations available or null");
+            }
+            
+            if (takenObservations != null)
+            {
+                TakenObservations = takenObservations;
             }
             
             // Get other spots in this location

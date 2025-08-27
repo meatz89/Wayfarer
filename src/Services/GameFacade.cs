@@ -2077,6 +2077,14 @@ public class GameFacade
     }
 
     /// <summary>
+    /// Get taken observations for the current time block
+    /// </summary>
+    public List<TakenObservation> GetTakenObservations()
+    {
+        return _observationManager.GetTakenObservations();
+    }
+
+    /// <summary>
     /// Get available observations for the current location
     /// Returns a view model suitable for UI display
     /// </summary>

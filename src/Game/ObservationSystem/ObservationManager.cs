@@ -3,6 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
+/// Tracks an observation that has been taken with its details for display
+/// </summary>
+public class TakenObservation
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string NarrativeText { get; set; }
+    public ObservationCard GeneratedCard { get; set; }
+    public DateTime TimeTaken { get; set; }
+    public TimeBlocks TimeBlockTaken { get; set; }
+}
+
+/// <summary>
 /// Manages observation tracking and card generation for the player
 /// Each observation can only be taken once per time block and generates observation cards with decay
 /// </summary>
@@ -11,12 +25,14 @@ public class ObservationManager
     private readonly TimeManager _timeManager;
     private readonly Dictionary<string, HashSet<string>> _takenObservationsByTimeBlock;
     private readonly List<ObservationCard> _currentObservationCards;
+    private readonly Dictionary<string, TakenObservation> _takenObservations;
 
     public ObservationManager(TimeManager timeManager)
     {
         _timeManager = timeManager;
         _takenObservationsByTimeBlock = new Dictionary<string, HashSet<string>>();
         _currentObservationCards = new List<ObservationCard>();
+        _takenObservations = new Dictionary<string, TakenObservation>();
     }
 
     /// <summary>
@@ -65,6 +81,19 @@ public class ObservationManager
             
             _currentObservationCards.Add(observationCard);
             Console.WriteLine($"[ObservationManager] Generated observation card {observationCard.Id} from {observation.Id} at {currentGameTime}");
+            
+            // Store taken observation details for UI display
+            var takenObs = new TakenObservation
+            {
+                Id = observation.Id,
+                Name = observation.Text,
+                Description = observation.Description,
+                NarrativeText = observation.Description,  // Use description as narrative
+                GeneratedCard = observationCard,
+                TimeTaken = currentGameTime,
+                TimeBlockTaken = _timeManager.GetCurrentTimeBlock()
+            };
+            _takenObservations[observation.Id] = takenObs;
             
             return observationCard;
         }
@@ -193,18 +222,37 @@ public class ObservationManager
     }
 
     /// <summary>
+    /// Get all taken observations for the current time block
+    /// </summary>
+    public List<TakenObservation> GetTakenObservations()
+    {
+        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        return _takenObservations.Values
+            .Where(o => o.TimeBlockTaken == currentTimeBlock)
+            .ToList();
+    }
+
+    /// <summary>
     /// Clear observation cards for new time block
     /// Observations refresh each time block
     /// </summary>
     public void RefreshForNewTimeBlock()
     {
         var currentTimeBlock = GetCurrentTimeBlockKey();
+        var currentTimeBlockEnum = _timeManager.GetCurrentTimeBlock();
         Console.WriteLine($"[ObservationManager] Refreshing observations for time block {currentTimeBlock}");
         
         // Clear taken observations for this time block
         if (_takenObservationsByTimeBlock.ContainsKey(currentTimeBlock))
         {
             _takenObservationsByTimeBlock[currentTimeBlock].Clear();
+        }
+        
+        // Clear taken observations from previous time blocks
+        var toRemove = _takenObservations.Where(kvp => kvp.Value.TimeBlockTaken != currentTimeBlockEnum).Select(kvp => kvp.Key).ToList();
+        foreach (var id in toRemove)
+        {
+            _takenObservations.Remove(id);
         }
     }
 

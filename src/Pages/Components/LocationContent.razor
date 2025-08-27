@@ -55,11 +55,48 @@
     }
 
     <!-- Available Observations -->
-    @if (AvailableObservations.Any())
+    @if (AvailableObservations.Any() || TakenObservations.Any())
     {
         <div class="observations">
             <div class="observation-note">You notice some interesting details about this place...</div>
             <div class="observation-list">
+                @* Show taken observations first *@
+                @foreach (var taken in TakenObservations)
+                {
+                    <div class="observation-item revealed card-base card-compact">
+                        <div style="display: flex; justify-content: space-between; width: 100%;">
+                            <div class="observation-text">@taken.Name</div>
+                            <div>
+                                <span>Observed</span>
+                                <span> • </span>
+                                @if (taken.GeneratedCard != null)
+                                {
+                                    <span class="reward-card">
+                                        @taken.GeneratedCard.ConversationCard.Template Card
+                                        <span class="card-depth">(Depth @taken.GeneratedCard.ConversationCard.Depth)</span>
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(taken.NarrativeText))
+                        {
+                            <div class="observation-narrative">
+                                @taken.NarrativeText
+                            </div>
+                        }
+                        @if (taken.GeneratedCard != null)
+                        {
+                            var currentGameTime = DateTime.Now; // This should come from TimeManager ideally  
+                            var decayDescription = taken.GeneratedCard.GetDecayStateDescription(currentGameTime);
+                            if (!string.IsNullOrEmpty(decayDescription))
+                            {
+                                <div class="observation-decay">Card freshness: @decayDescription</div>
+                            }
+                        }
+                    </div>
+                }
+                
+                @* Show available observations *@
                 @foreach (var obs in AvailableObservations)
                 {
                     <div class="observation-item card-base card-compact" @onclick="() => TakeObservation(obs.Id)">

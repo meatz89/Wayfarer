@@ -576,6 +576,43 @@
     border-radius: 2px;
 }
 
+/* Revealed observation with narrative */
+.observation-item.revealed {
+    background: #faf4ea;
+    padding: 12px;
+    cursor: default;
+    flex-direction: column;
+    align-items: flex-start;
+    border: 1px solid #d4c5a0;
+    margin-bottom: 8px;
+}
+
+.observation-item.revealed:hover {
+    transform: none;
+    padding-left: 12px;
+}
+
+.observation-narrative {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #3d3429;
+    font-style: italic;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e8dcc4;
+}
+
+.observation-decay {
+    font-size: 10px;
+    color: #8b4726;
+    margin-top: 6px;
+}
+
+.card-depth {
+    font-size: 10px;
+    color: #7a6250;
+}
+
 .observation-item.clickable {
     cursor: pointer;
     transition: all 0.2s ease;
