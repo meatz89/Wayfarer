@@ -19,7 +19,6 @@ namespace Wayfarer.Pages
         [Inject] protected TimeManager TimeManager { get; set; }
         [Inject] protected NavigationManager Navigation { get; set; }
         [Inject] protected ObligationQueueManager LetterQueueManager { get; set; }
-        [Inject] protected NavigationCoordinator NavigationCoordinator { get; set; }
         [Inject] protected TimeBlockAttentionManager AttentionManager { get; set; }
         [Inject] protected TokenMechanicsManager TokenManager { get; set; }
         [Inject] protected ObservationManager ObservationManager { get; set; }

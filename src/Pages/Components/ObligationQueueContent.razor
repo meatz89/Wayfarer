@@ -60,8 +60,8 @@
                             @if (CanDisplace(letter))
                             {
                                 <div class="displacement-options">
-                                    <details class="displacement-menu">
-                                        <summary class="displacement-toggle">Displace Options</summary>
+                                    <div class="displacement-menu">
+                                        <div class="displacement-header">Displacement Options</div>
                                         <div class="displacement-content">
                                             @for (int targetPos = 1; targetPos <= 8; targetPos++)
                                             {
@@ -91,7 +91,7 @@
                                                 }
                                             }
                                         </div>
-                                    </details>
+                                    </div>
                                 </div>
                             }
                         </div>

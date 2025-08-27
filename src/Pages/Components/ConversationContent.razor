@@ -27,6 +27,24 @@
             </div>
         </div>
 
+        @* Display letter delivery indicators *@
+        @if (Context?.LettersCarriedForNpc?.Any() == true)
+        {
+            <div class="letter-delivery-indicators">
+                @foreach (var letter in Context.LettersCarriedForNpc)
+                {
+                    <div class="letter-indicator">
+                        <span class="icon icon-letter"></span>
+                        <span>Carrying letter from @letter.SenderName</span>
+                        @if (letter.DeadlineInMinutes <= 360)
+                        {
+                            <span class="deadline-urgent">(@(letter.DeadlineInMinutes / 60)h remaining!)</span>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
         @if ((Context?.Type ?? ConversationType.Standard) != ConversationType.QuickExchange)
         {
             <!-- Progress Section -->
@@ -238,6 +256,10 @@
                                     <div class="outcome-header">
                                         <span class="outcome-label">Success</span>
                                         <span class="outcome-chance">@GetSuccessChance(convCard)%</span>
+                                        @if (!string.IsNullOrEmpty(GetTokenBonusText(convCard)))
+                                        {
+                                            <span class="token-bonus">@GetTokenBonusText(convCard)</span>
+                                        }
                                     </div>
                                     <div class="outcome-effects">
                                         <div class="effect">

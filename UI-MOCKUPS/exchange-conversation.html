@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wayfarer - Quick Exchange (Refined)</title>
+    <title>Wayfarer - Quick Exchange with Marcus</title>
     <style>
         * {
             margin: 0;
@@ -75,12 +75,6 @@
             color: #d4704a;
         }
 
-        .resource-effect {
-            font-size: 10px;
-            color: #8b7355;
-            margin-left: 2px;
-        }
-
         /* Time and Location Header */
         .header {
             background: #2c241a;
@@ -96,12 +90,27 @@
             letter-spacing: 0.5px;
         }
 
-        .current-time {
-            text-transform: uppercase;
-        }
-
         .deadline {
             color: #d4a76a;
+        }
+
+        /* Queue Display */
+        .queue-display {
+            background: #f4e8d0;
+            padding: 8px 20px;
+            border-bottom: 1px solid #a68b6f;
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        .queue-item {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .position-1 {
+            color: #8b4726;
+            font-weight: bold;
         }
 
         /* Location Context */
@@ -173,11 +182,6 @@
             font-style: italic;
         }
 
-        .npc-state.calculating {
-            color: #8b7355;
-            font-weight: bold;
-        }
-
         .npc-type {
             font-size: 12px;
             color: #7a6250;
@@ -220,34 +224,6 @@
         .token-bonus {
             font-size: 10px;
             color: #5a7a3a;
-            font-weight: bold;
-        }
-
-        /* Exchange Status */
-        .exchange-status {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            background: #f9f3e9;
-            border-radius: 4px;
-            border: 1px solid #c4a684;
-        }
-
-        .status-item {
-            text-align: center;
-        }
-
-        .status-label {
-            font-size: 11px;
-            color: #7a6250;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-        }
-
-        .status-value {
-            font-size: 20px;
-            color: #5c4a3a;
             font-weight: bold;
         }
 
@@ -304,56 +280,52 @@
             font-style: italic;
         }
 
-        /* Current Exchange Card */
-        .current-exchange {
+        /* Exchange Card Display */
+        .exchange-options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .exchange-card {
             background: #faf4ea;
-            border: 3px solid #7a8b5a;
-            border-radius: 6px;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
             overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .exchange-card:hover {
+            background: #fefaf0;
+            border-color: #a68b6f;
+            transform: translateX(5px);
         }
 
         .exchange-card-header {
-            padding: 14px 16px;
-            background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
-            border-bottom: 2px solid #c4a684;
+            padding: 12px 15px;
+            background: #f9f3e9;
+            border-bottom: 1px solid #e8dcc4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .exchange-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .success-rate {
             font-size: 18px;
             font-weight: bold;
-            color: #5c4a3a;
-            margin-bottom: 6px;
-        }
-
-        .exchange-tags {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .tag {
-            padding: 2px 6px;
-            background: #e8dcc4;
-            border: 1px solid #c4a684;
-            border-radius: 2px;
-            font-size: 9px;
-            color: #5c4a3a;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .tag.type-exchange {
-            background: #e8f5e9;
-            border-color: #7a8b5a;
             color: #5a7a3a;
-            font-weight: bold;
         }
 
         /* Exchange Details */
         .exchange-visual {
-            padding: 30px;
+            padding: 20px;
             background: #fefaf0;
             text-align: center;
         }
@@ -406,111 +378,14 @@
             color: #8b7355;
         }
 
-        /* Card Outcomes */
-        .card-outcomes {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            border-top: 2px solid #c4a684;
-        }
-
-        .outcome {
-            padding: 16px;
-            text-align: center;
-        }
-
-        .outcome.success {
-            background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
-            border-right: 1px solid #c4a684;
-        }
-
-        .outcome.failure {
-            background: linear-gradient(to bottom, #faf0e6, #f9ede0);
-        }
-
-        .outcome-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .outcome-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: bold;
-        }
-
-        .outcome.success .outcome-label {
-            color: #5a7a3a;
-        }
-
-        .outcome.failure .outcome-label {
-            color: #8b4726;
-        }
-
-        .outcome-chance {
-            font-size: 20px;
-            font-weight: bold;
-            color: #5c4a3a;
-        }
-
-        .outcome-effect {
-            font-size: 14px;
-            color: #5c4a3a;
-            line-height: 1.4;
-        }
-
         /* Special Effects */
         .special-effects {
-            padding: 12px 16px;
+            padding: 10px 15px;
             background: #f9f3e9;
-            border-top: 1px solid #e8dcc4;
             font-size: 12px;
             color: #8b7355;
             font-style: italic;
             text-align: center;
-        }
-
-        /* Other Options */
-        .other-options {
-            background: #f4e8d0;
-            padding: 15px 20px;
-            border-top: 1px solid #c4a684;
-        }
-
-        .options-note {
-            font-size: 11px;
-            color: #7a6250;
-            font-style: italic;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-
-        .deck-preview {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        .preview-card {
-            background: #faf4ea;
-            border: 1px solid #c4a684;
-            border-radius: 3px;
-            padding: 8px;
-            font-size: 11px;
-            text-align: center;
-            opacity: 0.6;
-        }
-
-        .preview-card .card-name {
-            font-weight: bold;
-            color: #5c4a3a;
-            margin-bottom: 4px;
-        }
-
-        .preview-card .card-trade {
-            color: #7a6250;
         }
 
         /* Action Section */
@@ -553,11 +428,6 @@
             color: #faf4ea;
         }
 
-        .action-button.decline:hover {
-            background: linear-gradient(to bottom, #9b8365, #8b7355);
-            transform: translateY(-2px);
-        }
-
         .action-info {
             font-size: 12px;
             color: #7a6250;
@@ -566,6 +436,19 @@
         .attention-note {
             font-weight: bold;
             color: #5a7a3a;
+        }
+
+        .recommendation {
+            background: #7a8b5a;
+            color: #faf4ea;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
         }
     </style>
 </head>
@@ -576,7 +459,7 @@
             <div class="resource-group">
                 <div class="resource">
                     <div class="resource-icon">💰</div>
-                    <div class="resource-value">23</div>
+                    <div class="resource-value">10</div>
                     <span>Coins</span>
                 </div>
                 <div class="resource">
@@ -588,17 +471,16 @@
                     <div class="resource-icon">🍞</div>
                     <div class="resource-value">60</div>
                     <span>Hunger</span>
-                    <span class="resource-effect">(-3 patience)</span>
                 </div>
                 <div class="resource">
                     <div class="resource-icon">👁️</div>
-                    <div class="resource-value">7/10</div>
+                    <div class="resource-value">8/10</div>
                     <span>Attention</span>
                 </div>
             </div>
             <div class="resource-group">
                 <div class="resource">
-                    <span>Afternoon</span>
+                    <span>Morning</span>
                 </div>
             </div>
         </div>
@@ -606,27 +488,35 @@
         <!-- Time and Location Header -->
         <div class="header">
             <div class="time-bar">
-                <span class="current-time">Tuesday, 3:32 PM</span>
-                <span class="deadline">Elena's letter: 1h 28m</span>
+                <span class="current-time">Tuesday, 9:05 AM</span>
+                <span class="deadline">Marcus Package: 4h 55m • Elena available: 4h 55m</span>
             </div>
+        </div>
+
+        <!-- Queue Display -->
+        <div class="queue-display">
+            Queue: 
+            <span class="queue-item position-1">1. Marcus Package</span>
+            <span class="queue-item">2. Guard Report</span>
+            <span class="queue-item">3. [Elena's letter]</span>
         </div>
 
         <!-- Location Context -->
         <div class="location-context">
             <div class="location-path">
-                <span>Lower Wards</span>
-                <span>→</span>
                 <span>Market District</span>
                 <span>→</span>
                 <span>Central Square</span>
+                <span>→</span>
+                <span>Merchant Row</span>
             </div>
-            <div class="location-spot">Merchant Row (Commercial spot)</div>
+            <div class="location-spot">Commercial spot (Work available)</div>
         </div>
 
         <!-- Exchange Mode Banner -->
         <div class="exchange-mode">
             <div class="mode-title">Quick Exchange</div>
-            <div class="mode-description">Instant trade • No patience cost • No emotional states</div>
+            <div class="mode-description">0 Attention • No patience • No emotional states • Instant resolution</div>
         </div>
 
         <!-- NPC Header -->
@@ -634,7 +524,7 @@
             <div class="npc-section">
                 <div class="npc-details">
                     <h2>Marcus the Cloth Merchant</h2>
-                    <div class="npc-state calculating">CALCULATING • Always seeking profit</div>
+                    <div class="npc-state">NEUTRAL • Morning business hours</div>
                     <div class="npc-type">Personality Type: Mercantile • <span class="deck-note">Has Exchange Deck (5 cards)</span></div>
                 </div>
             </div>
@@ -662,115 +552,97 @@
                     <div class="token-bonus">+5%</div>
                 </div>
             </div>
-
-            <!-- Exchange Status -->
-            <div class="exchange-status">
-                <div class="status-item">
-                    <div class="status-label">Exchange Type</div>
-                    <div class="status-value">Resource</div>
-                </div>
-                <div class="status-item">
-                    <div class="status-label">Card Drawn</div>
-                    <div class="status-value">1 of 5</div>
-                </div>
-                <div class="status-item">
-                    <div class="status-label">Time Period</div>
-                    <div class="status-value">Afternoon</div>
-                </div>
-            </div>
         </div>
 
         <!-- Narrative Section -->
         <div class="narrative-section">
             <div class="narrative-text">
-                Marcus eyes you with merchant's calculation, already assessing what you might need and what you can afford.
+                Marcus glances at your queue marker showing his package in position 1. He notices your obvious hunger.
             </div>
             <div class="npc-dialogue merchant">
-                "Ah, courier! I see you're hungry - the way you glance at my bread stall tells me everything. Three coins for provisions that'll fill your belly, or perhaps you need something else?"
+                "Ah, courier! My package sits at position 1 - good. But you look famished. Can't deliver on an empty stomach, can you? Three coins for fresh bread, or perhaps something more interesting?"
             </div>
         </div>
 
         <!-- Exchange Cards Section -->
         <div class="exchange-section">
             <div class="exchange-header">
-                <div class="exchange-title">Current Exchange Offer</div>
-                <div class="draw-info">Drew 1 card from Marcus's Exchange Deck</div>
+                <div class="exchange-title">Choose One Exchange</div>
+                <div class="draw-info">Drew 1 random card from Marcus's Exchange Deck</div>
             </div>
             
-            <!-- Current Exchange Card -->
-            <div class="current-exchange">
-                <div class="exchange-card-header">
-                    <div class="exchange-name">Buy Travel Provisions</div>
-                    <div class="exchange-tags">
-                        <span class="tag type-exchange">EXCHANGE CARD</span>
-                        <span class="tag">Commerce</span>
-                        <span class="tag">Resource Trade</span>
-                        <span class="tag">From Exchange Deck</span>
+            <!-- Exchange Options -->
+            <div class="exchange-options">
+                <!-- Buy Provisions - Recommended -->
+                <div class="exchange-card">
+                    <div class="exchange-card-header">
+                        <div class="exchange-name">Buy Provisions</div>
+                        <div class="success-rate">75%</div>
                     </div>
-                </div>
-                
-                <div class="exchange-visual">
-                    <div class="exchange-flow">
-                        <div class="exchange-cost">
-                            <div class="exchange-label">You Pay</div>
-                            <div class="exchange-value cost-value">3 Coins</div>
-                        </div>
-                        <div class="exchange-arrow">→</div>
-                        <div class="exchange-reward">
-                            <div class="exchange-label">You Receive</div>
-                            <div class="exchange-value reward-value">Hunger = 0</div>
+                    <div class="exchange-visual">
+                        <div class="exchange-flow">
+                            <div class="exchange-cost">
+                                <div class="exchange-label">You Pay</div>
+                                <div class="exchange-value cost-value">3 Coins</div>
+                            </div>
+                            <div class="exchange-arrow">→</div>
+                            <div class="exchange-reward">
+                                <div class="exchange-label">You Receive</div>
+                                <div class="exchange-value reward-value">Hunger = 0</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="card-outcomes">
-                    <div class="outcome success">
-                        <div class="outcome-header">
-                            <span class="outcome-label">Success</span>
-                            <span class="outcome-chance">70%</span>
-                        </div>
-                        <div class="outcome-effect">
-                            Trade completes instantly.<br>
-                            Your hunger resets to 0.
-                        </div>
-                    </div>
-                    <div class="outcome failure">
-                        <div class="outcome-header">
-                            <span class="outcome-label">Failure</span>
-                            <span class="outcome-chance">30%</span>
-                        </div>
-                        <div class="outcome-effect">
-                            No trade occurs.<br>
-                            Exchange ends.
-                        </div>
+                    <div class="special-effects">
+                        Your 2 Commerce tokens with Marcus: +10% success bonus already applied
                     </div>
                 </div>
 
-                <div class="special-effects">
-                    Commerce tokens with Marcus: +10% success bonus already applied
+                <!-- Buy Access Permit -->
+                <div class="exchange-card">
+                    <div class="exchange-card-header">
+                        <div class="exchange-name">Buy Access Permit</div>
+                        <div class="success-rate">65%</div>
+                    </div>
+                    <div class="exchange-visual">
+                        <div class="exchange-flow">
+                            <div class="exchange-cost">
+                                <div class="exchange-label">You Pay</div>
+                                <div class="exchange-value cost-value">15 Coins</div>
+                            </div>
+                            <div class="exchange-arrow">→</div>
+                            <div class="exchange-reward">
+                                <div class="exchange-label">You Receive</div>
+                                <div class="exchange-value reward-value">Noble Permit</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="special-effects">
+                        You only have 10 coins - cannot afford this
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Other Options Preview -->
-        <div class="other-options">
-            <div class="options-note">Other cards in Marcus's Exchange Deck (not currently available):</div>
-            <div class="deck-preview">
-                <div class="preview-card">
-                    <div class="card-name">Purchase Fine Silk</div>
-                    <div class="card-trade">15 coins → Fine Silk</div>
-                </div>
-                <div class="preview-card">
-                    <div class="card-name">Buy Medicine</div>
-                    <div class="card-trade">5 coins → Health +20</div>
-                </div>
-                <div class="preview-card">
-                    <div class="card-name">Information Trade</div>
-                    <div class="card-trade">Guard Info → Route Access</div>
-                </div>
-                <div class="preview-card">
-                    <div class="card-name">Quick Delivery Job</div>
-                    <div class="card-trade">Accept → New Obligation</div>
+                <!-- Accept Quick Job -->
+                <div class="exchange-card">
+                    <div class="exchange-card-header">
+                        <div class="exchange-name">Accept Quick Delivery</div>
+                        <div class="success-rate">75%</div>
+                    </div>
+                    <div class="exchange-visual">
+                        <div class="exchange-flow">
+                            <div class="exchange-cost">
+                                <div class="exchange-label">You Accept</div>
+                                <div class="exchange-value cost-value">New Obligation</div>
+                            </div>
+                            <div class="exchange-arrow">→</div>
+                            <div class="exchange-reward">
+                                <div class="exchange-label">You'll Receive</div>
+                                <div class="exchange-value reward-value">8 Coins</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="special-effects">
+                        Adds to queue position 4 • 3 hour deadline • Queue getting full!
+                    </div>
                 </div>
             </div>
         </div>
@@ -787,8 +659,8 @@
             </div>
             <div class="action-info">
                 <span class="attention-note">Quick exchanges cost 0 attention</span> • 
-                One card draw per exchange • 
-                No emotional states or patience
+                One exchange per interaction • 
+                Success/failure resolved instantly
             </div>
         </div>
     </div>

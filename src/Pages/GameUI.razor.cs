@@ -9,53 +9,8 @@ public class GameUIBase : ComponentBase, IDisposable
     [Inject] public TimeManager TimeManager { get; set; }
     [Inject] public LoadingStateService LoadingStateService { get; set; }
     [Inject] public FlagService FlagService { get; set; }
-    [Inject] public NavigationCoordinator NavigationCoordinator { get; set; }
-
-    // Navigation state now managed by NavigationCoordinator
-    public CurrentViews CurrentView
-    {
-        get
-        {
-            Console.WriteLine($"[GameUIBase.CurrentView.get] NavigationCoordinator null? {NavigationCoordinator == null}");
-            if (NavigationCoordinator == null)
-            {
-                Console.WriteLine("[GameUIBase.CurrentView.get] Returning default LocationScreen");
-                return CurrentViews.LocationScreen;
-            }
-            var view = NavigationCoordinator.CurrentView;
-            Console.WriteLine($"[GameUIBase.CurrentView.get] Returning {view}");
-            return view;
-        }
-    }
-
-    // Navigation method for child components to use
-    public async void NavigateTo(CurrentViews view)
-    {
-        Console.WriteLine($"[GameUIBase.NavigateTo] Called with view: {view}");
-        Console.WriteLine($"[GameUIBase.NavigateTo] Current view before: {CurrentView}");
-
-        if (NavigationCoordinator == null)
-        {
-            Console.WriteLine($"[GameUIBase.NavigateTo] NavigationCoordinator is null, cannot navigate");
-            return;
-        }
-
-        // Use NavigationCoordinator for validation and transition
-        bool success = await NavigationCoordinator.NavigateToAsync(view);
-
-        if (!success)
-        {
-            string reason = NavigationCoordinator.GetBlockedReason(view);
-            Console.WriteLine($"[GameUIBase.NavigateTo] Navigation blocked: {reason}");
-            // Could show this to user via MessageSystem
-            return;
-        }
-
-        Console.WriteLine($"[GameUIBase.NavigateTo] Current view after: {CurrentView}");
-        Console.WriteLine($"[GameUIBase.NavigateTo] Calling StateHasChanged...");
-        StateHasChanged();
-        Console.WriteLine($"[GameUIBase.NavigateTo] StateHasChanged completed");
-    }
+    // Simple state management - GameScreen handles actual navigation
+    public CurrentViews CurrentView { get; set; } = CurrentViews.LocationScreen;
 
     protected override async Task OnInitializedAsync()
     {
@@ -63,12 +18,6 @@ public class GameUIBase : ComponentBase, IDisposable
         // No save/load functionality is implemented or desired
         // The game state is never persisted between sessions
         
-        // Subscribe to navigation changes
-        if (NavigationCoordinator != null)
-        {
-            NavigationCoordinator.OnNavigationChanged += HandleNavigationChanged;
-        }
-
         try
         {
             Console.WriteLine("[GameUIBase.OnInitializedAsync] Starting initialization...");
@@ -86,7 +35,8 @@ public class GameUIBase : ComponentBase, IDisposable
             if (missingReferences)
             {
                 Console.WriteLine("[GameUIBase.OnInitializedAsync] Missing references detected. Navigating to MissingReferences view...");
-                await NavigationCoordinator.NavigateToAsync(CurrentViews.MissingReferences);
+                CurrentView = CurrentViews.MissingReferences;
+                StateHasChanged();
             }
             else if (!GameWorld.GetPlayer().IsInitialized)
             {
@@ -96,12 +46,14 @@ public class GameUIBase : ComponentBase, IDisposable
                 player.Name = "Wayfarer";
                 player.IsInitialized = true;
                 Console.WriteLine("[GameUIBase.OnInitializedAsync] Default player created. Showing Location...");
-                await NavigationCoordinator.NavigateToAsync(CurrentViews.LocationScreen);
+                CurrentView = CurrentViews.LocationScreen;
+                StateHasChanged();
             }
             else
             {
                 Console.WriteLine("[GameUIBase.OnInitializedAsync] Player already initialized. Showing Location...");
-                await NavigationCoordinator.NavigateToAsync(CurrentViews.LocationScreen);
+                CurrentView = CurrentViews.LocationScreen;
+                StateHasChanged();
             }
 
             Console.WriteLine($"[GameUIBase.OnInitializedAsync] Initialization completed. CurrentView: {CurrentView}");
@@ -125,11 +77,13 @@ public class GameUIBase : ComponentBase, IDisposable
     {
         if (!GameWorld.GetPlayer().IsInitialized)
         {
-            await NavigationCoordinator.NavigateToAsync(CurrentViews.CharacterScreen);
+            CurrentView = CurrentViews.CharacterScreen;
+            StateHasChanged();
         }
         else
         {
-            await NavigationCoordinator.NavigateToAsync(GetDefaultView());
+            CurrentView = GetDefaultView();
+            StateHasChanged();
         }
         StateHasChanged();
     }
@@ -141,24 +95,13 @@ public class GameUIBase : ComponentBase, IDisposable
         await GameFacade.StartGameAsync();
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] GameFacade.StartGame() completed.");
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] Navigating to LocationScreen...");
-        await NavigationCoordinator.NavigateToAsync(CurrentViews.LocationScreen);
+        CurrentView = CurrentViews.LocationScreen;
         StateHasChanged();
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] Navigation to LocationScreen completed.");
     }
     
-    private void HandleNavigationChanged()
-    {
-        // This is called by NavigationCoordinator when navigation changes
-        Console.WriteLine($"[GameUIBase.HandleNavigationChanged] Navigation changed to: {CurrentView}");
-        InvokeAsync(() => StateHasChanged());
-    }
-    
     public void Dispose()
     {
-        // Unsubscribe from navigation events
-        if (NavigationCoordinator != null)
-        {
-            NavigationCoordinator.OnNavigationChanged -= HandleNavigationChanged;
-        }
+        // Cleanup if needed
     }
 }

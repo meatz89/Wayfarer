@@ -117,7 +117,6 @@ public static class ServiceConfiguration
 
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();
-        services.AddScoped<NavigationCoordinator>();
         services.AddSingleton<NPCService>();
         services.AddSingleton<LoadingStateService>();
 

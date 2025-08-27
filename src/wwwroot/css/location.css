@@ -47,6 +47,91 @@
 
 /* Removed ::before content - using emoji directly in HTML instead */
 
+/* Priority Obligation Display */
+.priority-obligation-display {
+    margin: 15px 0;
+    padding: 12px 16px;
+    background: linear-gradient(to right, rgba(139, 69, 19, 0.1), rgba(139, 69, 19, 0.05));
+    border: 2px solid #8b4513;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.priority-obligation-display:hover {
+    background: linear-gradient(to right, rgba(139, 69, 19, 0.15), rgba(139, 69, 19, 0.08));
+    transform: translateY(-1px);
+}
+
+.priority-obligation-display .obligation-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    color: #8b4513;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.priority-obligation-display .obligation-details {
+    margin-left: 24px;
+}
+
+.priority-obligation-display .obligation-route {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #5c4a3a;
+    margin-bottom: 4px;
+}
+
+.priority-obligation-display .sender,
+.priority-obligation-display .recipient {
+    font-weight: bold;
+}
+
+.priority-obligation-display .arrow {
+    color: #8b7355;
+}
+
+.priority-obligation-display .obligation-deadline {
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.priority-obligation-display .obligation-deadline.expired {
+    color: #d2691e;
+    font-weight: bold;
+}
+
+.priority-obligation-display .obligation-deadline.critical {
+    color: #ff6347;
+    font-weight: bold;
+}
+
+.priority-obligation-display .obligation-deadline.urgent {
+    color: #ff8c00;
+}
+
+.priority-obligation-display .obligation-deadline.normal {
+    color: #8b7355;
+}
+
+.priority-obligation-display .obligation-stakes {
+    font-size: 11px;
+    color: #7a6250;
+    font-style: italic;
+}
+
+.priority-obligation-display .click-hint {
+    font-size: 10px;
+    color: #a0937f;
+    text-align: right;
+    margin-top: 4px;
+    font-style: italic;
+}
+
 .resource-value {
     font-weight: bold;
     color: #d4a76a;

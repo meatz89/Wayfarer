@@ -203,10 +203,19 @@ public static class ExchangeCardFactory
     /// </summary>
     public static List<ExchangeCard> CreateExchangeDeck(
         PersonalityType personality, 
-        string npcId)
+        string npcId,
+        List<string> spotDomainTags = null)
     {
         var deck = new List<ExchangeCard>();
         Console.WriteLine($"[DEBUG ExchangeCardFactory] Creating exchange deck for {npcId} with personality {personality}");
+        if (spotDomainTags != null)
+        {
+            Console.WriteLine($"[DEBUG ExchangeCardFactory] SpotDomainTags: [{string.Join(", ", spotDomainTags)}]");
+        }
+        else
+        {
+            Console.WriteLine($"[DEBUG ExchangeCardFactory] SpotDomainTags: NULL");
+        }
         
         // Different personalities offer different types of exchanges
         switch (personality)
@@ -254,9 +263,11 @@ public static class ExchangeCardFactory
                 
             case PersonalityType.STEADFAST:
                 // STEADFAST NPCs at Hospitality locations offer rest exchanges (like innkeepers)
-                if (npcId.ToLower() == "bertram")  // Bertram the innkeeper at Hospitality spot
+                bool isHospitalitySpot = spotDomainTags?.Contains("Hospitality") ?? false;
+                
+                if (isHospitalitySpot)
                 {
-                    // Stay the Night: 5 coins → Full rest (Attention=7, Hunger=0, Health+20, advance to morning)
+                    // Stay the Night: 5 coins → Full rest (calculated by hunger formula)
                     deck.Add(new ExchangeCard
                     {
                         Id = $"{npcId}_stay_night",
@@ -280,11 +291,44 @@ public static class ExchangeCardFactory
                         Reward = new() { new ResourceExchange { Type = ResourceType.Attention, Amount = 3 } }
                     });
                     
-                    Console.WriteLine($"[DEBUG ExchangeCardFactory] Added {deck.Count} rest exchange cards for STEADFAST innkeeper");
+                    Console.WriteLine($"[DEBUG ExchangeCardFactory] Added {deck.Count} rest exchange cards for STEADFAST NPC at Hospitality location");
                 }
                 else
                 {
-                    Console.WriteLine($"[DEBUG ExchangeCardFactory] STEADFAST NPC {npcId} is not an innkeeper - no exchanges");
+                    Console.WriteLine($"[DEBUG ExchangeCardFactory] STEADFAST NPC {npcId} is not at a Hospitality location - no exchanges");
+                }
+                break;
+                
+            case PersonalityType.DEVOTED:
+                // DEVOTED NPCs at Hospitality locations might offer charitable rest/food
+                bool isHospitalityDevoted = spotDomainTags?.Contains("Hospitality") ?? false;
+                
+                if (isHospitalityDevoted)
+                {
+                    // Charitable Meal: 2 coins → Hunger = 0  
+                    deck.Add(new ExchangeCard
+                    {
+                        Id = $"{npcId}_charitable_meal",
+                        TemplateType = "food",
+                        NPCPersonality = personality,
+                        Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 2 } },
+                        Reward = new() { new ResourceExchange { Type = ResourceType.Hunger, Amount = 0, IsAbsolute = true } }
+                    });
+                    
+                    // Pilgrim's Rest: 3 coins → +5 attention + Hunger = 0
+                    deck.Add(new ExchangeCard
+                    {
+                        Id = $"{npcId}_pilgrim_rest",
+                        TemplateType = "lodging",
+                        NPCPersonality = personality,
+                        Cost = new() { new ResourceExchange { Type = ResourceType.Coins, Amount = 3 } },
+                        Reward = new() { 
+                            new ResourceExchange { Type = ResourceType.Attention, Amount = 5 },
+                            new ResourceExchange { Type = ResourceType.Hunger, Amount = 0, IsAbsolute = true }
+                        }
+                    });
+                    
+                    Console.WriteLine($"[DEBUG ExchangeCardFactory] Added {deck.Count} hospitality exchange cards for DEVOTED NPC");
                 }
                 break;
                 

@@ -117,15 +117,16 @@ public class ConversationManager
             return available; // Other types are LOCKED
         }
         
-        // Check for exchange deck - NPCs that offer exchanges (MERCANTILE traders, STEADFAST innkeepers)
-        if (npc.PersonalityType == PersonalityType.MERCANTILE || 
-            (npc.PersonalityType == PersonalityType.STEADFAST && npc.ID.ToLower() == "bertram"))
+        // Check for exchange deck - depends on personality and location
+        // Get current spot's domain tags for hospitality checks
+        var player = gameWorld.GetPlayer();
+        var spotDomainTags = player?.CurrentLocationSpot?.DomainTags;
+        
+        // Initialize exchange deck with spot information
+        npc.InitializeExchangeDeck(spotDomainTags);
+        if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
         {
-            npc.InitializeExchangeDeck();
-            if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
-            {
-                available.Add(ConversationType.QuickExchange);
-            }
+            available.Add(ConversationType.QuickExchange);
         }
         
         // Check for standard conversation deck
@@ -149,11 +150,13 @@ public class ConversationManager
     /// </summary>
     private ConversationSession StartExchangeConversation(NPC npc)
     {
-        // Initialize exchange deck if not already done
-        npc.InitializeExchangeDeck();
+        // Initialize exchange deck with spot domain tags
+        var player = gameWorld.GetPlayer();
+        var spotDomainTags = player?.CurrentLocationSpot?.DomainTags;
+        npc.InitializeExchangeDeck(spotDomainTags);
         
         // Create a simplified session for exchanges
-        currentSession = ConversationSession.StartExchange(npc, gameWorld.GetPlayerResourceState(), tokenManager);
+        currentSession = ConversationSession.StartExchange(npc, gameWorld.GetPlayerResourceState(), tokenManager, spotDomainTags, queueManager);
         return currentSession;
     }
     
@@ -177,7 +180,7 @@ public class ConversationManager
             throw new InvalidOperationException("No active conversation");
         }
 
-        currentSession.ExecuteListen();
+        currentSession.ExecuteListen(tokenManager, queueManager);
 
         if (currentSession.ShouldEnd())
         {

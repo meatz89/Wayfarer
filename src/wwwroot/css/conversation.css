@@ -276,6 +276,36 @@
     margin-bottom: 15px;
 }
 
+/* Letter Delivery Indicators */
+.letter-delivery-indicators {
+    margin: 10px 0;
+    padding: 8px 12px;
+    background: linear-gradient(to right, rgba(218, 165, 32, 0.1), rgba(218, 165, 32, 0.05));
+    border-left: 3px solid #daa520;
+    border-radius: 4px;
+}
+
+.letter-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #6b5d4f;
+    margin: 4px 0;
+}
+
+.letter-indicator .icon-letter {
+    color: #daa520;
+    font-size: 16px;
+}
+
+.letter-indicator .deadline-urgent {
+    color: #d2691e;
+    font-weight: bold;
+    font-size: 12px;
+    margin-left: auto;
+}
+
 .npc-state.desperate {
     color: #8b4726;
     font-weight: bold;
@@ -1576,3 +1606,20 @@
     font-weight: normal;
     margin-top: 4px;
 }
+
+/* Token Bonus Display */
+.token-bonus {
+    font-size: 0.85em;
+    color: #5a7a3a;
+    font-style: italic;
+    margin-left: 8px;
+    font-weight: normal;
+}
+
+.outcome-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+

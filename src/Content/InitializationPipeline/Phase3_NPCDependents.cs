@@ -51,8 +51,10 @@ public class Phase3_NPCDependents : IInitializationPhase
                 // Debug: Check personality BEFORE initializing exchange deck
                 Console.WriteLine($"[Phase3] NPC {npc.Name} (ID: {npc.ID}) has PersonalityType: {npc.PersonalityType}");
                 
-                // Also initialize exchange deck (lazy init, but do it here for consistency)
-                npc.InitializeExchangeDeck();
+                // Initialize exchange deck (without spot tags since we don't know location yet)
+                // MERCANTILE NPCs will get their exchanges initialized here
+                // Other personalities need spot information which comes at conversation time
+                npc.InitializeExchangeDeck(null);
                 
                 // Debug: Check exchange deck contents
                 if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())

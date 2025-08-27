@@ -867,3 +867,67 @@
     background: #e8dcc4;
     border-color: #a68b6f;
 }
+/* Queue Displacement UI - Make More Visible */
+.displacement-options {
+    margin-top: 10px;
+    padding: 12px;
+    background: rgba(139, 115, 85, 0.1);
+    border: 2px solid #8b7355;
+    border-radius: 4px;
+}
+
+.displacement-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #8b7355;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+.displacement-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.displacement-option {
+    padding: 8px;
+    background: rgba(232, 220, 196, 0.5);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.displace-to-button {
+    padding: 6px 12px;
+    background: #8b7355;
+    color: #e8dcc4;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.displace-to-button:hover {
+    background: #6b5a45;
+}
+
+.token-cost {
+    font-size: 0.9em;
+    color: #d4704a;
+    font-weight: bold;
+}
+
+.displacement-details {
+    font-size: 0.85em;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 2px;
+}
+
+.displacement-detail {
+    color: #5c4a3a;
+    padding: 2px 0;
+}
+

@@ -65,4 +65,9 @@ public class ConversationContext
     /// Error message if conversation cannot be started
     /// </summary>
     public string ErrorMessage { get; set; }
+    
+    /// <summary>
+    /// Letters the player is carrying for this NPC
+    /// </summary>
+    public List<DeliveryObligation> LettersCarriedForNpc { get; set; }
 }

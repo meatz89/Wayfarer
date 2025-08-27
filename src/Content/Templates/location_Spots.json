@@ -66,7 +66,7 @@
 		"initialState": "Bertram polishes glasses behind the counter. Bottles and mugs line the shelves.",
 		"locationId": "copper_kettle_tavern",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "COMMERCE", "SERVICE", "SOCIAL" ],
+		"domainTags": [ "COMMERCE", "SERVICE", "SOCIAL", "Hospitality" ],
 		"spotProperties": [ "Social", "MerchantHub", "CommonerHaunt", "ViewsMainEntrance", "Hospitality" ],
 		"timeSpecificProperties": {
 			"Evening": [ "Busy", "Loud" ]
@@ -93,7 +93,7 @@
 		"initialState": "A narrow bed with clean sheets. A washbasin and small table complete the modest furnishings.",
 		"locationId": "copper_kettle_tavern",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "REST", "PRIVATE", "LODGING" ],
+		"domainTags": [ "REST", "PRIVATE", "LODGING", "Hospitality" ],
 		"spotProperties": [ "Private", "Quiet", "Isolated" ]
 	},
 	{

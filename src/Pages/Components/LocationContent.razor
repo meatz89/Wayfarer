@@ -11,6 +11,42 @@
                                      NPCsPresent="NPCsAtSpot" />
     }
 
+    <!-- Priority Obligation Display -->
+    @if (FirstObligation != null)
+    {
+        <div class="priority-obligation-display" @onclick="() => GameScreen?.NavigateToQueue()">
+            <div class="obligation-header">
+                <span class="icon icon-letter-urgent"></span>
+                <span>Priority Delivery</span>
+            </div>
+            <div class="obligation-details">
+                <div class="obligation-route">
+                    <span class="sender">@FirstObligation.SenderName</span>
+                    <span class="arrow">→</span>
+                    <span class="recipient">@FirstObligation.RecipientName</span>
+                </div>
+                <div class="obligation-deadline @GetDeadlineClass(FirstObligation.DeadlineInMinutes)">
+                    @if (FirstObligation.DeadlineInMinutes <= 0)
+                    {
+                        <span>EXPIRED</span>
+                    }
+                    else if (FirstObligation.DeadlineInMinutes < 60)
+                    {
+                        <span>@FirstObligation.DeadlineInMinutes min remaining</span>
+                    }
+                    else
+                    {
+                        <span>@(FirstObligation.DeadlineInMinutes / 60)h remaining</span>
+                    }
+                </div>
+                <div class="obligation-stakes">
+                    @FirstObligation.Stakes stakes
+                </div>
+            </div>
+            <div class="click-hint">Click to manage queue</div>
+        </div>
+    }
+
     <!-- Available NPCs -->
     @if (AvailableNpcs.Any())
     {

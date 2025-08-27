@@ -86,19 +86,17 @@ public class NPC
     }
 
     // Initialize exchange deck (for NPCs that offer exchanges)
-    public void InitializeExchangeDeck()
+    public void InitializeExchangeDeck(List<string> spotDomainTags = null)
     {
         if (ExchangeDeck == null || !ExchangeDeck.Any())
         {
-            // NPCs with exchange capabilities: MERCANTILE (trade) and STEADFAST innkeepers (rest)
-            if (PersonalityType == PersonalityType.MERCANTILE || 
-                (PersonalityType == PersonalityType.STEADFAST && ID.ToLower() == "bertram"))
+            // NPCs with exchange capabilities: MERCANTILE always, others based on location
+            ExchangeDeck = ExchangeCardFactory.CreateExchangeDeck(PersonalityType, ID, spotDomainTags);
+            
+            // Log if exchanges were created
+            if (ExchangeDeck.Any())
             {
-                ExchangeDeck = ExchangeCardFactory.CreateExchangeDeck(PersonalityType, ID);
-            }
-            else
-            {
-                ExchangeDeck = new List<ExchangeCard>();
+                Console.WriteLine($"[NPC] Initialized {ExchangeDeck.Count} exchange cards for {Name} ({PersonalityType})");
             }
         }
     }

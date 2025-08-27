@@ -23,6 +23,7 @@ namespace Wayfarer.Pages.Components
         protected bool CanWork { get; set; }
         protected TimeBlocks CurrentTime { get; set; }
         protected List<NPC> NPCsAtSpot { get; set; } = new();
+        protected DeliveryObligation FirstObligation { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -152,6 +153,17 @@ namespace Wayfarer.Pages.Components
             
             // Check if can work at this spot
             CanWork = spot?.Properties?.Contains("Commercial") ?? false;
+            
+            // Get first obligation in queue  
+            var obligations = GameFacade.GetObligationQueueManager()?.GetActiveObligations();
+            if (obligations != null && obligations.Any())
+            {
+                FirstObligation = obligations.First();
+            }
+            else
+            {
+                FirstObligation = null;
+            }
         }
 
         protected async Task StartConversation(string npcId)
@@ -297,6 +309,18 @@ namespace Wayfarer.Pages.Components
             };
         }
 
+        protected string GetDeadlineClass(int deadlineInMinutes)
+        {
+            if (deadlineInMinutes <= 0)
+                return "expired";
+            else if (deadlineInMinutes <= 120)
+                return "critical";
+            else if (deadlineInMinutes <= 360)
+                return "urgent";
+            else
+                return "normal";
+        }
+        
         protected string GetNPCDescription(NpcViewModel npc)
         {
             // Generate contextual descriptions based on NPC state

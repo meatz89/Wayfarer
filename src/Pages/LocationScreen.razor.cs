@@ -12,7 +12,6 @@ public partial class LocationScreen : ComponentBase
     [Inject] private NPCRepository NPCRepository { get; set; }
     [Inject] private LocationRepository LocationRepository { get; set; }
     [Inject] private TimeManager TimeManager { get; set; }
-    [Inject] private NavigationCoordinator NavigationCoordinator { get; set; }
     [Inject] private ObligationQueueManager QueueManager { get; set; }
 
     [Parameter] public EventCallback OnActionExecuted { get; set; }
@@ -256,7 +255,10 @@ public partial class LocationScreen : ComponentBase
     {
         Console.WriteLine("[LocationScreen] OpenObligationQueue called");
         // Navigate to the letter queue screen
-        await NavigationCoordinator.NavigateToAsync(CurrentViews.ObligationQueueScreen);
+        if (OnNavigate.HasDelegate)
+        {
+            await OnNavigate.InvokeAsync(CurrentViews.ObligationQueueScreen);
+        }
     }
     
     // Obligation display helpers

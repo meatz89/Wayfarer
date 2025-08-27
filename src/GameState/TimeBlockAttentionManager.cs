@@ -1,3 +1,5 @@
+using System;
+
 /// <summary>
 /// Simple wrapper that manages a single persistent AttentionManager
 /// Attention only resets on rest, not on time blocks
@@ -30,6 +32,21 @@ public class TimeBlockAttentionManager
     {
         Console.WriteLine("[Attention] Forcing attention refresh to full");
         _attention.ResetToFull();
+    }
+
+    /// <summary>
+    /// Calculate the morning refresh amount based on hunger
+    /// Formula: 10 - (hunger ÷ 25), minimum 2
+    /// </summary>
+    public int GetMorningRefreshAmount(int hunger)
+    {
+        // Implement the formula from documentation: 10 - (hunger ÷ 25), minimum 2
+        int baseAttention = 10;
+        int hungerPenalty = hunger / 25;
+        int refreshAmount = Math.Max(2, baseAttention - hungerPenalty);
+        
+        Console.WriteLine($"[Attention] Morning refresh calculation: hunger={hunger}, penalty={hungerPenalty}, result={refreshAmount}");
+        return refreshAmount;
     }
 
     /// <summary>

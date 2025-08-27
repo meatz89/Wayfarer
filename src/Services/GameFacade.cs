@@ -2523,6 +2523,12 @@ public class GameFacade
         // Start the conversation session with observation cards
         var conversationSession = _conversationManager.StartConversation(npcId, conversationType, observationCards);
         
+        // Get letters the player is carrying for this NPC
+        var lettersForNpc = _letterQueueManager.GetActiveObligations()
+            .Where(o => o.RecipientId == npc.ID || o.RecipientName == npc.Name)
+            .ToList();
+        Console.WriteLine($"[GameFacade] Player is carrying {lettersForNpc.Count} letters for {npc.Name}");
+        
         // Create complete conversation context atomically
         var context = new ConversationContext
         {
@@ -2537,7 +2543,8 @@ public class GameFacade
             LocationName = location.Name,
             TimeDisplay = _timeManager.GetFormattedTimeDisplay(),
             IsValid = true,
-            ErrorMessage = null
+            ErrorMessage = null,
+            LettersCarriedForNpc = lettersForNpc
         };
         
         return context;
@@ -2630,8 +2637,15 @@ public class GameFacade
                     var rewardAttentionMgr = _timeBlockAttentionManager.GetCurrentAttention(rewardTimeBlock);
                     if (reward.IsAbsolute)
                     {
-                        // Set attention to specific value (for lodging/rest)
-                        rewardAttentionMgr.SetAttention(reward.Amount);
+                        // For rest/lodging, calculate attention based on hunger formula
+                        // Formula: 10 - (hunger ÷ 25), minimum 2
+                        int playerHunger = player.Food;
+                        int calculatedAttention = _timeBlockAttentionManager.GetMorningRefreshAmount(playerHunger);
+                        rewardAttentionMgr.SetAttention(calculatedAttention);
+                        
+                        _messageSystem.AddSystemMessage(
+                            $"🌅 You wake refreshed. Attention restored to {calculatedAttention} (affected by hunger level {playerHunger})",
+                            SystemMessageTypes.Success);
                     }
                     else
                     {

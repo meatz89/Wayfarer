@@ -898,6 +898,32 @@ namespace Wayfarer.Pages.Components
             return Math.Clamp(baseRate, 5, 95);
         }
         
+        protected string GetTokenBonusText(ConversationCard card)
+        {
+            if (card == null || CurrentTokens == null) 
+            {
+                Console.WriteLine($"[GetTokenBonusText] Card null: {card == null}, CurrentTokens null: {CurrentTokens == null}");
+                return "";
+            }
+            
+            // Get the relevant token type from the card using its built-in method
+            ConnectionType tokenType = card.GetConnectionType();
+            
+            // Get the token count
+            int tokenCount = CurrentTokens.GetValueOrDefault(tokenType, 0);
+            Console.WriteLine($"[GetTokenBonusText] Card: {card.Template}, TokenType: {tokenType}, Count: {tokenCount}");
+            
+            if (tokenCount > 0)
+            {
+                int bonus = tokenCount * 5;
+                var result = $"(+{bonus}% from {tokenCount} {tokenType})";
+                Console.WriteLine($"[GetTokenBonusText] Returning: {result}");
+                return result;
+            }
+            
+            return "";
+        }
+        
         protected string GetConversationEndReason()
         {
             if (Session == null) return "Conversation ended";

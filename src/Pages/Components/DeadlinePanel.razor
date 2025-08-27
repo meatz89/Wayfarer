@@ -6,7 +6,6 @@
 @inject TimeManager TimeManager
 @inject NPCRepository NPCRepository
 @inject LocationRepository LocationRepository
-@inject NavigationCoordinator NavigationCoordinator
 
 @if (HasActiveObligations())
 {
@@ -186,10 +185,8 @@
         }
         else
         {
-            // Otherwise try NavigationCoordinator directly
-            Console.WriteLine("[DeadlinePanel] Using NavigationCoordinator directly");
-            var success = await NavigationCoordinator.NavigateToAsync(CurrentViews.ObligationQueueScreen);
-            Console.WriteLine($"[DeadlinePanel] Navigation result: {success}");
+            // No parent callback available
+            Console.WriteLine("[DeadlinePanel] No navigation handler available");
         }
     }
     

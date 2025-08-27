@@ -24,7 +24,6 @@ namespace Wayfarer.Pages
     public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         [Inject] protected GameFacade GameFacade { get; set; }
-        [Inject] protected NavigationCoordinator NavigationCoordinator { get; set; }
         [Inject] protected LoadingStateService LoadingStateService { get; set; }
         [Inject] protected TimeBlockAttentionManager AttentionManager { get; set; }
         [Inject] protected ObligationQueueManager ObligationQueueManager { get; set; }
@@ -38,6 +37,7 @@ namespace Wayfarer.Pages
         protected ScreenMode CurrentScreen { get; set; } = ScreenMode.Location;
         protected ScreenMode PreviousScreen { get; set; } = ScreenMode.Location;
         protected int ContentVersion { get; set; } = 0;
+        protected bool IsTransitioning { get; set; } = false;
         
         private Stack<ScreenContext> _navigationStack = new(10);
         private SemaphoreSlim _stateLock = new(1, 1);
@@ -211,8 +211,41 @@ namespace Wayfarer.Pages
             return string.Join(" → ", path);
         }
 
+        protected bool CanNavigateTo(ScreenMode targetMode)
+        {
+            // Can't navigate while already transitioning
+            if (IsTransitioning) return false;
+            
+            // Can't navigate to same screen
+            if (CurrentScreen == targetMode) return false;
+            
+            // Conversation-specific rules
+            if (CurrentScreen == ScreenMode.Conversation)
+            {
+                // Can only exit conversation through proper ending
+                // This is handled by HandleConversationEnd
+                return false;
+            }
+            
+            // Travel screen rules
+            if (CurrentScreen == ScreenMode.Travel)
+            {
+                // Can cancel travel to go back to location
+                return targetMode == ScreenMode.Location;
+            }
+            
+            // All other transitions are allowed
+            return true;
+        }
+
         protected async Task NavigateToScreen(ScreenMode newMode)
         {
+            if (!CanNavigateTo(newMode))
+            {
+                Console.WriteLine($"[GameScreen] Cannot navigate from {CurrentScreen} to {newMode}");
+                return;
+            }
+            
             if (!await _stateLock.WaitAsync(5000))
             {
                 Console.WriteLine("[GameScreen] State transition timeout");
@@ -221,6 +254,7 @@ namespace Wayfarer.Pages
 
             try
             {
+                IsTransitioning = true;
                 Console.WriteLine($"[GameScreen] Navigating from {CurrentScreen} to {newMode}");
                 
                 // Save current state
@@ -246,6 +280,7 @@ namespace Wayfarer.Pages
             }
             finally
             {
+                IsTransitioning = false;
                 _stateLock.Release();
             }
         }
@@ -315,6 +350,11 @@ namespace Wayfarer.Pages
                 Console.WriteLine($"[GameScreen] Cannot start conversation: {CurrentConversationContext.ErrorMessage}");
             }
         }
+        
+        public async Task NavigateToQueue()
+        {
+            await NavigateToScreen(ScreenMode.ObligationQueue);
+        }
 
         protected void HandleNavigationEvent(string eventType, object data)
         {
@@ -337,7 +377,11 @@ namespace Wayfarer.Pages
             Console.WriteLine("[GameScreen] Conversation ended");
             CurrentConversationContext = null;
             await RefreshResourceDisplay(); // Refresh resources after conversation
-            await NavigateToScreen(ScreenMode.Location);
+            
+            // Special case: allow navigation from conversation when it ends properly
+            CurrentScreen = ScreenMode.Location;
+            ContentVersion++;
+            await InvokeAsync(StateHasChanged);
         }
 
         protected async Task HandleTravelRoute(string routeId)
