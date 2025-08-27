@@ -251,7 +251,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5000\" dotnet run --no-build)",
       "Bash(claude mcp:*)",
       "Bash(npx @anthropic/claude-mcp remove:*)",
-      "Read(/home/meatz/**)"
+      "Read(/home/meatz/**)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5001\" dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5001\" dotnet run --no-build)"
     ],
     "deny": []
   }

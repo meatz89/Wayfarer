@@ -290,7 +290,62 @@ public class ConversationManager
             // Handle letter delivery
             if (card.CanDeliverLetter && result.Results.First(r => r.Card == card).Success)
             {
-                DeliverLetterThroughConversation();
+                // Use the specific delivery obligation ID from the card
+                bool deliverySuccess = false;
+                if (!string.IsNullOrEmpty(card.DeliveryObligationId))
+                {
+                    // Get the obligation details BEFORE delivering (it will be removed from queue)
+                    var obligations = queueManager.GetActiveObligations();
+                    var deliveredObligation = obligations.FirstOrDefault(o => o.Id == card.DeliveryObligationId);
+                    
+                    if (deliveredObligation != null)
+                    {
+                        // Now deliver it
+                        deliverySuccess = queueManager.DeliverObligation(card.DeliveryObligationId);
+                        
+                        if (deliverySuccess)
+                        {
+                            // Grant payment to player
+                            gameWorld.GetPlayer().Coins += deliveredObligation.Payment;
+                            
+                            // Award tokens based on letter importance
+                            int tokenReward = deliveredObligation.EmotionalWeight switch
+                            {
+                                EmotionalWeight.CRITICAL => 3,
+                                EmotionalWeight.HIGH => 2,
+                                EmotionalWeight.MEDIUM => 1,
+                                _ => 1
+                            };
+                            
+                            // Award tokens with the recipient NPC
+                            tokenManager.AddTokensToNPC(deliveredObligation.TokenType, tokenReward, currentSession.NPC.ID);
+                            
+                            // Add system messages
+                            messageSystem.AddSystemMessage(
+                                $"📬 Successfully delivered {deliveredObligation.SenderName}'s letter to {currentSession.NPC.Name}!",
+                                SystemMessageTypes.Success
+                            );
+                            messageSystem.AddSystemMessage(
+                                $"💰 Earned {deliveredObligation.Payment} coins for the delivery",
+                                SystemMessageTypes.Success
+                            );
+                            messageSystem.AddSystemMessage(
+                                $"✨ Gained {tokenReward} {deliveredObligation.TokenType} tokens with {currentSession.NPC.Name}",
+                                SystemMessageTypes.Success
+                            );
+                            
+                            // Add bonus comfort for successful delivery
+                            currentSession.CurrentComfort += 5;
+                        }
+                    }
+                }
+                else
+                {
+                    // Fallback to old method if no specific ID (shouldn't happen)
+                    DeliverLetterThroughConversation();
+                    deliverySuccess = true;
+                }
+                
                 result = new CardPlayResult
                 {
                     TotalComfort = result.TotalComfort,
@@ -299,7 +354,7 @@ public class ConversationManager
                     SetBonus = result.SetBonus,
                     ConnectedBonus = result.ConnectedBonus,
                     EagerBonus = result.EagerBonus,
-                    DeliveredLetter = true,
+                    DeliveredLetter = deliverySuccess,
                     ManipulatedObligations = result.ManipulatedObligations
                 };
             }
@@ -342,16 +397,17 @@ public class ConversationManager
     }
 
     /// <summary>
-    /// Generate a letter request if threshold met
+    /// Generate a letter request if emotional state allows it
     /// </summary>
     public bool TryGenerateLetter()
     {
         if (!IsConversationActive || currentSession.LetterGenerated)
             return false;
 
-        // Check comfort thresholds for letter generation
-        // Design doc specifies: 5+ comfort unlocks letters
-        if (currentSession.CurrentComfort >= 5)
+        // Check if current emotional state allows letter generation
+        // Letters emerge from emotional state, not comfort thresholds
+        var stateRules = ConversationRules.States[currentSession.CurrentState];
+        if (stateRules.ChecksLetterDeck)
         {
             // Create a new delivery obligation
             var obligation = CreateLetterObligation(currentSession.NPC);
@@ -382,47 +438,40 @@ public class ConversationManager
         // Determine letter type based on highest relationship
         var connectionType = ConnectionType.Trust;
 
-        // Determine letter tier and properties based on comfort level
-        // Design doc: Higher comfort = tighter deadline but better pay
-        int deadlineMinutes;
-        int payment;
-        TierLevel tier;
-        EmotionalWeight weight;
-        
+        // Determine letter tier and properties based on linear calculation
+        // No artificial breakpoints - use linear scaling
         var comfort = currentSession.CurrentComfort;
         
-        if (comfort >= 20)
-        {
-            // Critical Letter: 2h deadline, 20 coins
-            deadlineMinutes = 120; // 2 hours
-            payment = 20;
+        // Linear scaling: tighter deadline and higher pay with more comfort
+        // Base: 24 hours at 0 comfort, down to 2 hours at 30+ comfort
+        // Formula: 1440 - (comfort * 45), clamped to [120, 1440]
+        int deadlineMinutes = Math.Max(120, 1440 - (comfort * 45));
+        
+        // Linear payment: 5 coins + 0.5 per comfort point
+        // Results in 5 coins at 0 comfort, up to 25 coins at 40 comfort
+        int payment = 5 + (comfort / 2);
+        
+        // Determine tier based on actual importance (using comfort as proxy)
+        // Linear progression: T1 for 0-10, T2 for 11-20, T3 for 21+
+        TierLevel tier;
+        if (comfort > 20)
             tier = TierLevel.T3;
-            weight = EmotionalWeight.CRITICAL;
-        }
-        else if (comfort >= 15)
-        {
-            // Urgent Letter: 6h deadline, 15 coins
-            deadlineMinutes = 360; // 6 hours
-            payment = 15;
-            tier = TierLevel.T3;
-            weight = EmotionalWeight.HIGH;
-        }
-        else if (comfort >= 10)
-        {
-            // Important Letter: 12h deadline, 10 coins
-            deadlineMinutes = 720; // 12 hours
-            payment = 10;
+        else if (comfort > 10) 
             tier = TierLevel.T2;
-            weight = EmotionalWeight.MEDIUM;
-        }
-        else // comfort >= 5
-        {
-            // Simple Letter: 24h deadline, 5 coins
-            deadlineMinutes = 1440; // 24 hours
-            payment = 5;
+        else
             tier = TierLevel.T1;
+        
+        // Emotional weight based on stakes and urgency
+        // Use deadline as proxy for urgency
+        EmotionalWeight weight;
+        if (deadlineMinutes <= 180) // 3 hours or less
+            weight = EmotionalWeight.CRITICAL;
+        else if (deadlineMinutes <= 360) // 6 hours or less
+            weight = EmotionalWeight.HIGH;
+        else if (deadlineMinutes <= 720) // 12 hours or less
+            weight = EmotionalWeight.MEDIUM;
+        else
             weight = EmotionalWeight.LOW;
-        }
 
         return new DeliveryObligation
         {
@@ -584,12 +633,9 @@ public class ConversationManager
 
         var outcome = currentSession.CheckThresholds();
         
-        // Generate letter if comfort threshold reached
-        // Design doc: 5+ comfort generates a letter
-        if (currentSession.CurrentComfort >= 5)
-        {
-            TryGenerateLetter();
-        }
+        // Generate letter if emotional state allows it
+        // Letters emerge from emotional state, not comfort thresholds
+        TryGenerateLetter();
         
         // Apply token changes
         if (outcome.TokensEarned != 0)

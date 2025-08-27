@@ -136,6 +136,28 @@ public class ConversationSession
         {
             handCards.AddRange(observationCards);
         }
+        
+        // Check for letters to deliver to this NPC
+        if (queueManager != null)
+        {
+            var activeObligations = queueManager.GetActiveObligations();
+            var lettersForNPC = activeObligations
+                .Where(o => o != null && o.RecipientId == npc.ID)
+                .ToList();
+            
+            if (lettersForNPC.Any())
+            {
+                Console.WriteLine($"[StartConversation] Found {lettersForNPC.Count} letters for {npc.Name}");
+                
+                // Create a delivery card for each letter
+                foreach (var letter in lettersForNPC)
+                {
+                    var deliveryCard = CreateLetterDeliveryCard(letter, npc, tokenManager);
+                    handCards.Add(deliveryCard);
+                    Console.WriteLine($"[StartConversation] Added delivery card for letter from {letter.SenderName}");
+                }
+            }
+        }
 
         var session = new ConversationSession
         {
@@ -166,15 +188,14 @@ public class ConversationSession
         // Initialize exchange deck if not already done
         npc.InitializeExchangeDeck();
         
-        // Draw 4 exchange cards from the NPC's exchange deck (as per POC spec)
         var handCards = new List<ConversationCard>();
         var exchangeCards = new List<ExchangeCard>();
         
         // Get all available exchange cards from the NPC's deck
         if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
         {
-            // Take up to 4 cards from the deck
-            exchangeCards = npc.ExchangeDeck.Take(4).ToList();
+            // Show ALL exchange options - player chooses one via SPEAK
+            exchangeCards = npc.ExchangeDeck.Take(4).ToList(); // Up to 4 exchange options
             Console.WriteLine($"[DEBUG] Found {npc.ExchangeDeck.Count} exchange cards in {npc.Name}'s deck");
             foreach (var ec in exchangeCards)
             {
@@ -182,10 +203,10 @@ public class ConversationSession
             }
         }
         
-        // Create cards for each exchange option
+        // Create a selectable card for each exchange option
         foreach (var exchangeCard in exchangeCards)
         {
-            // Create an exchange card for each option
+            // Each exchange is a card the player can select and SPEAK
             var card = new ConversationCard
             {
                 Id = exchangeCard.Id,
@@ -195,7 +216,6 @@ public class ConversationSession
                     NPCName = npc.Name,
                     NPCPersonality = exchangeCard.NPCPersonality,
                     ExchangeData = exchangeCard, // Store the exchange card for execution
-                    // Add exchange display info
                     ExchangeName = GetExchangeName(exchangeCard),
                     ExchangeCost = GetExchangeCostDisplay(exchangeCard),
                     ExchangeReward = GetExchangeRewardDisplay(exchangeCard)
@@ -213,33 +233,8 @@ public class ConversationSession
             handCards.Add(card);
         }
         
-        // Always add a DECLINE CARD - Pass on the offer
-        if (exchangeCards.Any())
-        {
-            var declineCard = new ConversationCard
-            {
-                Id = "decline_exchange",
-                Template = CardTemplateType.Exchange, // Use Exchange template for consistency
-                Context = new CardContext
-                {
-                    NPCName = npc.Name,
-                    NPCPersonality = npc.PersonalityType,
-                    ExchangeName = "Decline all offers",
-                    ExchangeCost = "Nothing",
-                    ExchangeReward = "End exchange"
-                },
-                Type = CardType.Commerce,
-                Persistence = PersistenceType.Persistent,
-                Weight = 0, // No weight cost
-                BaseComfort = 0,
-                Category = CardCategory.EXCHANGE,
-                IsObservation = false,
-                CanDeliverLetter = false,
-                ManipulatesObligations = false
-            };
-            
-            handCards.Add(declineCard);
-        }
+        // No special handling needed - if no exchanges available, hand will be empty
+        // Player can use DECLINE button to exit
         
         // Create simplified session for exchanges
         return new ConversationSession
@@ -247,7 +242,7 @@ public class ConversationSession
             NPC = npc,
             ConversationType = ConversationType.QuickExchange,
             CurrentState = EmotionalState.NEUTRAL, // No emotional states in exchanges
-            HandCards = handCards, // Contains both accept and decline cards
+            HandCards = handCards, // Contains offer + accept/decline response cards
             Deck = new CardDeck(), // Empty deck - exchanges use ExchangeDeck instead
             CurrentPatience = 1, // Single turn exchange
             MaxPatience = 1,
@@ -301,6 +296,28 @@ public class ConversationSession
         {
             handCards.AddRange(observationCards);
             Console.WriteLine($"[StartCrisis] Added {observationCards.Count} observation cards");
+        }
+        
+        // Check for letters to deliver to this NPC in crisis
+        if (queueManager != null)
+        {
+            var activeObligations = queueManager.GetActiveObligations();
+            var lettersForNPC = activeObligations
+                .Where(o => o != null && o.RecipientId == npc.ID)
+                .ToList();
+            
+            if (lettersForNPC.Any())
+            {
+                Console.WriteLine($"[StartCrisis] Found {lettersForNPC.Count} letters for {npc.Name}");
+                
+                // Create a delivery card for each letter
+                foreach (var letter in lettersForNPC)
+                {
+                    var deliveryCard = CreateLetterDeliveryCard(letter, npc, tokenManager);
+                    handCards.Add(deliveryCard);
+                    Console.WriteLine($"[StartCrisis] Added delivery card for letter from {letter.SenderName}");
+                }
+            }
         }
 
         return new ConversationSession
@@ -704,6 +721,48 @@ public class ConversationSession
             // Generation tracking
             IsGenerated = true,
             GenerationReason = $"Letter negotiation: {(terms == letterCard.SuccessTerms ? "success" : "failure")}"
+        };
+    }
+    
+    /// <summary>
+    /// Create a letter delivery card for an obligation
+    /// </summary>
+    private static ConversationCard CreateLetterDeliveryCard(DeliveryObligation obligation, NPC recipient, TokenMechanicsManager tokenManager)
+    {
+        // Calculate comfort reward based on letter importance
+        int comfortReward = obligation.EmotionalWeight switch
+        {
+            EmotionalWeight.CRITICAL => 10,
+            EmotionalWeight.HIGH => 7,
+            EmotionalWeight.MEDIUM => 5,
+            EmotionalWeight.LOW => 3,
+            _ => 5
+        };
+        
+        // Create context for the card
+        var context = new CardContext
+        {
+            NPCName = recipient.Name,
+            NPCPersonality = recipient.PersonalityType,
+            CustomText = $"Deliver {obligation.SenderName}'s letter",
+            LetterDetails = $"From: {obligation.SenderName}\nDeadline: {obligation.DeadlineInMinutes / 60} hours\nPayment: {obligation.Payment} coins"
+        };
+        
+        return new ConversationCard
+        {
+            Id = $"deliver_{obligation.Id}",
+            Template = CardTemplateType.DeliverLetter,
+            Context = context,
+            Type = CardType.Trust, // Delivery builds trust
+            Persistence = PersistenceType.Opportunity, // One chance to deliver
+            Weight = 0, // Free to play - delivering is always good
+            BaseComfort = comfortReward,
+            Category = CardCategory.COMFORT, // Uses comfort category for now
+            CanDeliverLetter = true,
+            DeliveryObligationId = obligation.Id,
+            DisplayName = $"Deliver letter from {obligation.SenderName}",
+            Description = $"Payment: {obligation.Payment} coins | Deadline: {obligation.DeadlineInMinutes / 60}h",
+            SuccessRate = 100 // Delivery always succeeds if you have the letter
         };
     }
 }

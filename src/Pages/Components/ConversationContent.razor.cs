@@ -23,7 +23,26 @@ namespace Wayfarer.Pages.Components
         protected string NpcName { get; set; }
         protected string LastNarrative { get; set; }
         protected string LastDialogue { get; set; }
-        protected int ComfortThreshold => 10; // For letter generation (POC: 10+ comfort unlocks letters)
+        // Letter generation is handled by ConversationManager based on emotional state
+        
+        // Get current token balances with this NPC
+        protected Dictionary<ConnectionType, int> CurrentTokens
+        {
+            get
+            {
+                if (Context?.NpcId != null && GameFacade != null)
+                {
+                    var tokenBalance = GameFacade.GetTokensWithNPC(Context.NpcId);
+                    var result = new Dictionary<ConnectionType, int>();
+                    foreach (var balance in tokenBalance.Balances)
+                    {
+                        result[balance.TokenType] = balance.Amount;
+                    }
+                    return result;
+                }
+                return new Dictionary<ConnectionType, int>();
+            }
+        }
 
         protected override async Task OnInitializedAsync()
         {
@@ -262,22 +281,8 @@ namespace Wayfarer.Pages.Components
                 {
                     ProcessLetterNegotiations(result.LetterNegotiations);
                 }
-                // Legacy letter generation (keep for compatibility)
-                else
-                {
-                    // Check if any played card can generate a letter and succeeded
-                    var letterCard = result.Results?.FirstOrDefault(r => r.Card.CanDeliverLetter && r.Success);
-                    if (letterCard != null)
-                    {
-                        // Crisis cards and special cards that generate letters immediately
-                        GenerateLetter();
-                    }
-                    // Normal letter generation at comfort threshold
-                    else if (Session.CurrentComfort >= ComfortThreshold)
-                    {
-                        GenerateLetter();
-                    }
-                }
+                // Letter generation is handled by ConversationManager based on emotional state
+                // Special cards that force letter generation are handled in ConversationManager.HandleSpecialCardEffectsAsync()
             }
         }
         
@@ -381,59 +386,22 @@ namespace Wayfarer.Pages.Components
             }
         }
 
+        // Letter generation removed - handled by ConversationManager.TryGenerateLetter()
+        // This avoids duplicate logic and ensures letters are generated based on emotional state
         private void GenerateLetter()
         {
-            // Prevent duplicate generation in same conversation
-            if (Session == null || Session.LetterGenerated) return;
-            
-            // Determine letter tier based on comfort level
-            LetterTier tier = DetermineLetterTier(Session.CurrentComfort);
-            
-            // Create the delivery obligation
-            var obligation = CreateLetterFromComfort(tier);
-            if (obligation == null)
-            {
-                Console.WriteLine("[ConversationContent] Failed to create letter - no valid recipients");
-                return;
-            }
-            
-            // Mark as generated to prevent duplicates
-            Session.LetterGenerated = true;
-            
-            // Log the letter generation
-            var npcName = Context?.Npc?.Name ?? "The NPC";
-            Console.WriteLine($"[ConversationContent] Letter generated from {npcName}!");
-            Console.WriteLine($"   → Tier: {GetTierDescription(tier)}");
-            Console.WriteLine($"   → Deadline: {obligation.DeadlineInMinutes / 60}h | Payment: {obligation.Payment} coins");
-            Console.WriteLine($"   → Comfort Level: {Session.CurrentComfort}");
-            
-            // Add the letter to the obligation queue
-            var queueManager = GameFacade.GetObligationQueueManager();
-            if (queueManager != null)
-            {
-                queueManager.AddObligation(obligation);
-                Console.WriteLine($"[ConversationContent] Letter added to queue successfully!");
-            }
-            else
-            {
-                Console.WriteLine($"[ConversationContent] ERROR: Could not get ObligationQueueManager!");
-            }
+            // This method is no longer used
+            // Letter generation is handled by ConversationManager based on emotional state
         }
         
+        // Letter tier determination removed - handled by ConversationManager
         private LetterTier DetermineLetterTier(int comfort)
         {
-            // Algorithm: Tier = Floor((Comfort - 5) / 5)
-            // 5-9: Simple (T1)
-            // 10-14: Important (T2)  
-            // 15-19: Urgent (T3)
-            // 20+: Critical (T4)
-            
-            if (comfort >= 20) return LetterTier.Critical;
-            if (comfort >= 15) return LetterTier.Urgent;
-            if (comfort >= 10) return LetterTier.Important;
+            // No longer used - ConversationManager determines letter properties based on linear scaling
             return LetterTier.Simple;
         }
         
+        // Letter creation removed - handled by ConversationManager
         private DeliveryObligation CreateLetterFromComfort(LetterTier tier)
         {
             // For now, hardcode a recipient since we don't have access to all NPCs
@@ -539,15 +507,8 @@ namespace Wayfarer.Pages.Components
 
         protected void ToggleCardSelection(ConversationCard card)
         {
-            var conversationType = Context?.Type ?? ConversationType.Standard;
-            if (conversationType == ConversationType.QuickExchange)
-            {
-                // For exchanges, selecting a card immediately plays it
-                SelectedCards.Clear();
-                SelectedCards.Add(card);
-                _ = ExecuteSpeak();
-                return;
-            }
+            // Remove auto-execute for exchanges - treat them like normal cards
+            // Player must select exchange card then click SPEAK to confirm
             
             if (SelectedCards.Contains(card))
             {
@@ -555,6 +516,12 @@ namespace Wayfarer.Pages.Components
             }
             else if (CanSelectCard(card))
             {
+                // For exchanges, enforce ONE card selection (matches SPEAK plays ONE card design)
+                var conversationType = Context?.Type ?? ConversationType.Standard;
+                if (conversationType == ConversationType.QuickExchange)
+                {
+                    SelectedCards.Clear(); // Only one exchange can be selected at a time
+                }
                 SelectedCards.Add(card);
             }
             
@@ -855,6 +822,18 @@ namespace Wayfarer.Pages.Components
         
         protected string GetCardText(ConversationCard card)
         {
+            // For decline cards, show simple message
+            if (card.Context?.IsDeclineCard == true)
+            {
+                return "Politely decline the offer and leave";
+            }
+            
+            // For accept cards, we handle details in the exchange-details div
+            if (card.Context?.IsAcceptCard == true)
+            {
+                return "Accept the merchant's offer";
+            }
+            
             // For exchange cards, show the exchange details
             if (card.Category == CardCategory.EXCHANGE && card.Context != null)
             {
@@ -890,6 +869,25 @@ namespace Wayfarer.Pages.Components
                 EmotionalState.TENSE => "I don't have much time...",
                 _ => "Hello, what brings you here?"
             };
+        }
+        
+        protected int GetExchangeSuccessRate(ConversationCard card)
+        {
+            if (card?.Context?.ExchangeData == null) return 0;
+            
+            var exchange = card.Context.ExchangeData;
+            var baseRate = exchange.BaseSuccessRate;
+            
+            // Add Commerce token bonus (+5% per token)
+            if (GameFacade != null && !string.IsNullOrEmpty(Context?.NpcId))
+            {
+                var tokenBalance = GameFacade.GetTokensWithNPC(Context.NpcId);
+                var commerceTokens = tokenBalance.GetBalance(ConnectionType.Commerce);
+                baseRate += commerceTokens * 5;
+            }
+            
+            // Clamp between 5% and 95%
+            return Math.Clamp(baseRate, 5, 95);
         }
         
         protected string GetConversationEndReason()

@@ -116,6 +116,11 @@ public class ConversationCard
     /// Whether this card can deliver a letter in the queue
     /// </summary>
     public bool CanDeliverLetter { get; init; }
+    
+    /// <summary>
+    /// The ID of the delivery obligation this card delivers (if CanDeliverLetter is true)
+    /// </summary>
+    public string DeliveryObligationId { get; init; }
 
     /// <summary>
     /// Whether this card manipulates obligations

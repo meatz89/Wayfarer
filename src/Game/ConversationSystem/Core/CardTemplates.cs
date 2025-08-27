@@ -82,7 +82,10 @@ public enum CardTemplateType
     ExpressVulnerability,
     
     // Exchange templates
-    Exchange
+    Exchange,
+    ExchangeOffer,      // The display-only offer card from NPC
+    ExchangeAccept,     // Player's accept response card
+    ExchangeDecline     // Player's decline response card
 }
 
 /// <summary>
@@ -189,4 +192,34 @@ public class CardContext
     /// Special flag for crisis cards that generate letters on success
     /// </summary>
     public bool GeneratesLetterOnSuccess { get; init; }
+    
+    /// <summary>
+    /// Flag for offer cards that can't be selected (display only)
+    /// </summary>
+    public bool IsOfferCard { get; init; }
+    
+    /// <summary>
+    /// Flag for accept response cards in exchanges
+    /// </summary>
+    public bool IsAcceptCard { get; init; }
+    
+    /// <summary>
+    /// Flag for decline response cards in exchanges
+    /// </summary>
+    public bool IsDeclineCard { get; init; }
+    
+    /// <summary>
+    /// Reference to the original offer card ID for response cards
+    /// </summary>
+    public string OfferCardId { get; init; }
+    
+    /// <summary>
+    /// Custom text for special cards
+    /// </summary>
+    public string CustomText { get; init; }
+    
+    /// <summary>
+    /// Letter details for delivery cards
+    /// </summary>
+    public string LetterDetails { get; init; }
 }

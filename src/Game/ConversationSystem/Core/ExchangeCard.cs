@@ -83,6 +83,25 @@ public class ExchangeCard
     /// </summary>
     public List<ResourceExchange> Reward { get; init; } = new();
     
+    /// <summary>
+    /// Base success rate for bartering (before token bonuses)
+    /// </summary>
+    public int BaseSuccessRate { get; init; } = 60;
+    
+    /// <summary>
+    /// Cost if bartering succeeds (discount)
+    /// </summary>
+    public List<ResourceExchange> SuccessCost { get; init; }
+    
+    /// <summary>
+    /// Cost if bartering fails (full price)
+    /// </summary>
+    public List<ResourceExchange> FailureCost { get; init; }
+    
+    /// <summary>
+    /// Whether this exchange can be bartered (has different success/failure costs)
+    /// </summary>
+    public bool CanBarter => SuccessCost != null && FailureCost != null;
     
     /// <summary>
     /// Check if player can afford the cost

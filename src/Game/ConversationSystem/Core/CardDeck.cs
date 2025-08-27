@@ -564,33 +564,19 @@ public class CardDeck
     }
 
     /// <summary>
-    /// Draw cards based on emotional state rules, filtered by comfort level and token progression
+    /// Draw cards based on emotional state rules, filtered by comfort level only
     /// </summary>
     public List<ConversationCard> Draw(int count, int currentComfort = 5)
     {
         var drawn = new List<ConversationCard>();
         
-        // Calculate maximum depth unlocked by tokens across all connection types
-        int maxTokenDepth = CalculateMaxTokenDepth(currentTokens);
-        
-        // Filter cards by:
-        // 1. Comfort level - only cards at or below current comfort (temporary within conversation)
-        // 2. Token progression - only cards at or below unlocked depth range (permanent progression)
+        // Filter cards by comfort level only - tokens affect success rates, not card availability
+        // This ensures linear progression without artificial breakpoints
         var availableCards = cards
             .Where(c => c.Depth <= currentComfort)
-            .Where(c => c.Depth <= maxTokenDepth)
             .ToList();
         
-        // Ensure at least basic depth cards are always available
-        if (!availableCards.Any())
-        {
-            availableCards = cards
-                .Where(c => c.Depth <= GameRules.TOKENS_BASIC_DEPTH_MAX)
-                .Where(c => c.Depth <= currentComfort)
-                .ToList();
-        }
-        
-        Console.WriteLine($"[CardDeck.Draw] Comfort: {currentComfort}, Max Token Depth: {maxTokenDepth}, Available: {availableCards.Count}");
+        Console.WriteLine($"[CardDeck.Draw] Comfort: {currentComfort}, Available: {availableCards.Count}");
         
         for (int i = 0; i < count && availableCards.Any(); i++)
         {
@@ -601,27 +587,6 @@ public class CardDeck
         }
 
         return drawn;
-    }
-    
-    /// <summary>
-    /// Calculate the maximum depth unlocked by the player's tokens
-    /// </summary>
-    private int CalculateMaxTokenDepth(Dictionary<ConnectionType, int> tokens)
-    {
-        if (tokens == null || !tokens.Any()) 
-            return GameRules.TOKENS_BASIC_DEPTH_MAX; // Only basic cards (depth 0-5)
-        
-        // Find the highest token count across all connection types
-        int maxTokens = tokens.Values.Max();
-        
-        // Determine depth range unlocked by token count
-        return maxTokens switch
-        {
-            >= 10 => GameRules.TOKENS_MASTER_DEPTH_MAX,       // 10+ tokens: Master cards (depth 0-20)
-            >= 5 => GameRules.TOKENS_ADVANCED_DEPTH_MAX,      // 5+ tokens: Advanced cards (depth 0-15)  
-            >= 3 => GameRules.TOKENS_INTERMEDIATE_DEPTH_MAX,  // 3+ tokens: Intermediate cards (depth 0-10)
-            _ => GameRules.TOKENS_BASIC_DEPTH_MAX              // 0-2 tokens: Basic cards only (depth 0-5)
-        };
     }
 
     /// <summary>
