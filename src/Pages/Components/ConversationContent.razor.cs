@@ -155,7 +155,12 @@ namespace Wayfarer.Pages.Components
                 }
                 else if (messageSystem != null)
                 {
-                    messageSystem.AddSystemMessage($"Playing {SelectedCards.Count} card(s)...", SystemMessageTypes.Info);
+                    // ONE-CARD RULE: Always exactly one card
+                    var selectedCard = SelectedCards.FirstOrDefault();
+                    if (selectedCard != null)
+                    {
+                        messageSystem.AddSystemMessage($"Playing {GetCardName(selectedCard)}...", SystemMessageTypes.Info);
+                    }
                 }
                 
                 // ExecuteSpeak expects HashSet<ConversationCard>

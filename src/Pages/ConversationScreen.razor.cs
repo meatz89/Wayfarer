@@ -128,10 +128,8 @@ namespace Wayfarer.Pages
             
             if (SelectedAction == ActionType.Speak)
             {
-                var rules = ConversationRules.States[Session.CurrentState];
-                if (rules.RequiredCards.HasValue)
-                    return SelectedCards.Count >= rules.RequiredCards.Value;
-                return SelectedCards.Any();
+                // ONE-CARD RULE: Must have exactly one card selected
+                return SelectedCards.Count == 1;
             }
             
             return false;

@@ -43,25 +43,22 @@ public class CardSelectionManager
     /// </summary>
     public bool CanSelectCard(ConversationCard card)
     {
-        // State cards must be played alone
-        if (card.Category == CardCategory.STATE && selectedCards.Any())
-            return false;
-        if (selectedCards.Any(c => c.Category == CardCategory.STATE))
+        // HARD RULE: SPEAK plays exactly ONE card - this is core design
+        if (selectedCards.Any())
             return false;
 
-        // Crisis cards must be played alone
-        if (card.Category == CardCategory.CRISIS && selectedCards.Any())
-            return false;
-        if (selectedCards.Any(c => c.Category == CardCategory.CRISIS))
-            return false;
+        // Check if individual card weight exceeds state's max weight
+        // (Weight represents emotional intensity the state can process)
+        var cardWeight = card.GetEffectiveWeight(currentState);
+        if (cardWeight > rules.MaxWeight)
+        {
+            // Exception: Crisis cards can override weight limits when forced
+            if (card.Category != CardCategory.CRISIS)
+                return false;
+        }
 
-        // OVERWHELMED state: max 1 card only
-        if (rules.MaxCards.HasValue && selectedCards.Count >= rules.MaxCards.Value)
-            return false;
-
-        // Check weight limit
-        var newWeight = TotalWeight + card.GetEffectiveWeight(currentState);
-        if (newWeight > rules.MaxWeight)
+        // Category restrictions (e.g., HOSTILE only allows crisis cards)
+        if (rules.AllowedCategories != null && !rules.AllowedCategories.Contains(card.Category))
             return false;
 
         return true;
@@ -180,36 +177,22 @@ public class CardSelectionManager
             totalComfort += comfort;
         }
 
-        // Apply set bonuses for same type
-        var types = selectedCards.Select(c => c.Type).Distinct();
-        if (types.Count() == 1 && selectedCards.Count > 1)
-        {
-            var setBonus = rules.SetBonuses.TryGetValue(selectedCards.Count, out var setBonusValue) ? setBonusValue : 0;
-            totalComfort += setBonus;
+        // NO SET BONUSES - ONE-CARD RULE means no sets possible
+        // Set bonus logic removed as it's irrelevant with single card play
 
-            // EAGER state gives additional bonus
-            if (currentState == EmotionalState.EAGER && selectedCards.Count >= 2)
-            {
-                totalComfort += rules.SetBonus;
-            }
-        }
-
-        // CONNECTED state gives bonus to all comfort
+        // CONNECTED state still gives bonus to all comfort (state bonus, not set bonus)
         if (currentState == EmotionalState.CONNECTED)
         {
             totalComfort += 2;
         }
 
-        // State changes ONLY for single cards
-        if (selectedCards.Count == 1)
-        {
-            var card = selectedCards.First();
-            var result = results.First();
+        // State changes work naturally with single card
+        var singleCard = selectedCards.First();
+        var singleResult = results.First();
 
-            if (card.Category == CardCategory.STATE)
-            {
-                newState = result.Success ? card.SuccessState : card.FailureState;
-            }
+        if (singleCard.Category == CardCategory.STATE)
+        {
+            newState = singleResult.Success ? singleCard.SuccessState : singleCard.FailureState;
         }
 
         return new CardPlayResult
@@ -217,10 +200,9 @@ public class CardSelectionManager
             TotalComfort = totalComfort,
             NewState = newState,
             Results = results,
-            SetBonus = types.Count() == 1 && selectedCards.Count > 1 ? 
-                (rules.SetBonuses.TryGetValue(selectedCards.Count, out var resultBonus) ? resultBonus : 0) : 0,
+            SetBonus = 0,  // No set bonuses possible with ONE-CARD RULE
             ConnectedBonus = currentState == EmotionalState.CONNECTED ? 2 : 0,
-            EagerBonus = currentState == EmotionalState.EAGER && selectedCards.Count >= 2 ? rules.SetBonus : 0,
+            EagerBonus = 0,  // No eager bonus possible with ONE-CARD RULE
             LetterNegotiations = letterNegotiations,
             ManipulatedObligations = letterNegotiations.Any()
         };
@@ -231,14 +213,8 @@ public class CardSelectionManager
     /// </summary>
     public bool CanPlaySelection()
     {
-        if (!selectedCards.Any())
-            return false;
-
-        // EAGER state requires playing 2+ cards
-        if (rules.RequiredCards.HasValue && selectedCards.Count < rules.RequiredCards.Value)
-            return false;
-
-        return true;
+        // ONE-CARD RULE: Must have exactly one card selected to play
+        return selectedCards.Count == 1;
     }
 
     /// <summary>
@@ -247,24 +223,24 @@ public class CardSelectionManager
     public string GetSelectionDescription()
     {
         if (!selectedCards.Any())
-            return "No cards selected";
+            return "No card selected";
 
-        var count = selectedCards.Count;
-        var types = selectedCards.Select(c => c.Type).Distinct();
+        // ONE-CARD RULE: Always exactly one card
+        var card = selectedCards.First();
         
-        if (selectedCards.Any(c => c.Category == CardCategory.CRISIS))
+        if (card.Category == CardCategory.CRISIS)
             return "DESPERATE ACTION";
         
-        if (selectedCards.Any(c => c.Category == CardCategory.STATE))
+        if (card.Category == CardCategory.STATE)
             return "Emotional Shift";
         
-        if (types.Count() == 1)
-        {
-            if (count == 1)
-                return "Simple Expression";
-            return $"Coherent Expression ({count} {types.First()})";
-        }
+        if (card.Category == CardCategory.EXCHANGE)
+            return "Exchange Offer";
+            
+        if (card.Category == CardCategory.LETTER)
+            return "Letter Negotiation";
         
-        return "Scattered Expression";
+        // Default for normal conversation cards
+        return $"{card.Type} Expression";
     }
 }

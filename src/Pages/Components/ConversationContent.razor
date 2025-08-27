@@ -113,7 +113,7 @@
                 @if ((Context?.Type ?? ConversationType.Standard) != ConversationType.QuickExchange)
                 {
                     <div class="weight-tracker @(TotalSelectedWeight > GetWeightLimit() ? "over-limit" : "")">
-                        <span>Weight Used:</span>
+                        <span>Card Weight:</span>
                         <span style="font-weight: bold;">@TotalSelectedWeight/@GetWeightLimit()</span>
                     </div>
                 }
