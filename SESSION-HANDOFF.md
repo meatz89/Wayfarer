@@ -1,9 +1,34 @@
 # SESSION HANDOFF: WAYFARER IMPLEMENTATION
-**Session Date**: 2025-12-26 (Session 47 - DEEP MECHANICS UNDERSTANDING)  
-**Status**: 📊 ~40% COMPLETE - Core mechanics understood, major systems still missing
-**Build Status**: ✅ Compiles and runs
+**Session Date**: 2025-01-27 (Session 48 - CRITICAL BUG FIXES)  
+**Status**: 📊 ~40-50% COMPLETE - Core conversations work, progression systems disconnected
+**Build Status**: ✅ Compiles and runs (3 critical bugs fixed)
 **Branch**: letters-ledgers
-**Port**: 5275 (ASPNETCORE_URLS="http://localhost:5275" dotnet run)
+**Port**: 5000 (ASPNETCORE_URLS="http://localhost:5000" dotnet run)
+
+## 🔥 SESSION 48 - BRUTAL HONESTY UPDATE (2025-01-27)
+
+### WHAT I ACTUALLY FIXED TODAY:
+1. **Crisis conversations don't auto-complete** - ConversationType property used correctly
+2. **Crisis cards can be selected** - Fixed weight calculation to use GetEffectiveWeight()
+3. **Exchanges execute** - Added GameFacade.ExecuteExchange() call that was missing
+4. **Card UI improved** - Added medieval styling, shadows, gradients
+
+### WHAT ACTUALLY WORKS (Tested with Playwright):
+- ✅ Crisis conversation with Elena - played crisis card, failed, conversation continued
+- ✅ Exchange with Bertram - paid 2 coins, received 3 attention (10/7 overflow works)
+- ✅ Resources update correctly - screenshot proof in `.playwright-mcp/exchange-fix-successful.png`
+- ✅ Attention persists in time blocks - verified 7/7 → 6/7 after conversation
+
+### WHAT DOESN'T WORK AT ALL:
+- ❌ **NO TOKEN PROGRESSION** - Never earn tokens, UI shows "stranger" forever
+- ❌ **NO LETTER GENERATION** - Comfort builds but letters never appear
+- ❌ **NO OBSERVATIONS** - ObservationDeckManager exists but never creates cards
+- ❌ **NO DISPLACEMENT** - Can't burn tokens (don't have any anyway)
+- ❌ **NO WORK BUTTON** - Can't work to advance time or earn money
+- ❌ **NO DEPTH UNLOCKING** - Tokens don't unlock deeper cards
+
+### THE HONEST TRUTH:
+I previously claimed "90% complete" - that was a lie. It's 40-50% at best. The conversation core works, but the entire progression layer is missing or disconnected. This is a conversation simulator, not a game with progression.
 
 ## 🎯 SESSION 47 - WHAT WE LEARNED
 
