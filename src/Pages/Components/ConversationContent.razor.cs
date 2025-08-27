@@ -739,11 +739,44 @@ namespace Wayfarer.Pages.Components
             }
             
             if (card.Category == CardCategory.STATE)
-                return "Change state";
+            {
+                // Use the actual SuccessState property from the card
+                if (card.SuccessState.HasValue)
+                {
+                    // Format the state name properly
+                    string stateName = card.SuccessState.Value switch
+                    {
+                        EmotionalState.NEUTRAL => "Neutral",
+                        EmotionalState.OPEN => "Open",
+                        EmotionalState.GUARDED => "Guarded",
+                        EmotionalState.TENSE => "Tense",
+                        EmotionalState.EAGER => "Eager",
+                        EmotionalState.OVERWHELMED => "Overwhelmed",
+                        EmotionalState.CONNECTED => "Connected",
+                        EmotionalState.DESPERATE => "Desperate",
+                        EmotionalState.HOSTILE => "Hostile",
+                        _ => card.SuccessState.Value.ToString()
+                    };
+                    return $"→ {stateName}";
+                }
+                else
+                {
+                    // Fallback to template name matching if SuccessState is not set
+                    if (card.Template.ToString().Contains("Warm") || card.Template.ToString().Contains("Open"))
+                        return "→ Open";
+                    else if (card.Template.ToString().Contains("Tense"))
+                        return "→ Tense";
+                    else if (card.Template.ToString().Contains("Overwhelmed"))
+                        return "→ Overwhelmed";
+                    else if (card.Template.ToString().Contains("Eager"))
+                        return "→ Eager";
+                    else
+                        return "Change state";
+                }
+            }
             
-            // Calculate comfort from success
-            var successChance = card.CalculateSuccessChance();
-            return $"Success ({successChance}%): +{card.BaseComfort} comfort";
+            // Show comfort gain without redundant success percentage
+            return $"+{card.BaseComfort} comfort";
         }
 
         protected string GetFailureEffect(ConversationCard card)
@@ -757,10 +790,30 @@ namespace Wayfarer.Pages.Components
             }
             
             if (card.Category == CardCategory.STATE)
-                return "No change";
+            {
+                // Check if card has a specific failure state
+                if (card.FailureState.HasValue)
+                {
+                    string stateName = card.FailureState.Value switch
+                    {
+                        EmotionalState.NEUTRAL => "Neutral",
+                        EmotionalState.OPEN => "Open",
+                        EmotionalState.GUARDED => "Guarded",
+                        EmotionalState.TENSE => "Tense",
+                        EmotionalState.EAGER => "Eager",
+                        EmotionalState.OVERWHELMED => "Overwhelmed",
+                        EmotionalState.CONNECTED => "Connected",
+                        EmotionalState.DESPERATE => "Desperate",
+                        EmotionalState.HOSTILE => "Hostile",
+                        _ => card.FailureState.Value.ToString()
+                    };
+                    return $"→ {stateName}";
+                }
+                return "State unchanged";
+            }
             
             // Failure typically gives 0 comfort
-            return "Fail: +0 comfort";
+            return "+0 comfort";
         }
         
         protected string GetTagClass(string tag)

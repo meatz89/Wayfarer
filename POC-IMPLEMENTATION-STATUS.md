@@ -1,6 +1,28 @@
 # Wayfarer POC Implementation Status - HONEST ASSESSMENT
-**Date**: 2025-01-27 (Updated after Session 48)
-**Status**: ⚠️ ~40-50% Complete - Core conversations work after fixes, progression systems disconnected
+**Date**: 2025-01-27 (Updated after Session 49)
+**Status**: ⚠️ ~40-45% Complete - Core mechanics functional, UI needs polish, progression disconnected
+
+## 🔴 CRITICAL HONESTY CHECK - SESSION 50
+
+### What I Actually Fixed Today (Session 50):
+- ✅ Travel time now properly displays minutes (06:00 → 06:15)
+- ✅ State cards show actual target states (→ Eager, → Tense)
+- ✅ State card mechanics verified - cards have proper SuccessState/FailureState
+
+### Previously Fixed (Session 49):
+- ✅ Attention system completely rewritten - starts at 7/7, no modifiers
+- ✅ Removed ALL backwards compatibility code
+- ✅ Fixed duplicate comfort/patience displays in UI
+- ✅ Added Crossroads to Copper Kettle for travel
+- ✅ Simplified attention to persist until rest (not per time block)
+
+### What Still Needs Work:
+- ❌ Card effects not colored (should be green/red)
+- ❌ FREE! badges appearing incorrectly on naturally 0-weight cards
+- ❌ Token progression system completely disconnected
+- ❌ Letter generation never triggers
+- ❌ Work button missing from UI
+- ❌ Observation cards never appear
 
 ## 🔴 CRITICAL HONESTY CHECK - SESSION 48
 

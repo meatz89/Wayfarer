@@ -33,7 +33,7 @@
             <div class="progress-section">
                 <div class="progress-bar">
                     <div class="progress-label">
-                        <span>Comfort Built</span>
+                        <span>Comfort</span>
                         <span>@Session.CurrentComfort/@ComfortThreshold</span>
                     </div>
                     <div class="progress-track">
@@ -44,16 +44,6 @@
                 <div class="patience-display">
                     <div class="patience-value">@Session.CurrentPatience/@Session.MaxPatience</div>
                     <div class="patience-label">Patience</div>
-                </div>
-                
-                <div class="progress-bar">
-                    <div class="progress-label">
-                        <span>Comfort</span>
-                        <span>@GetComfortLabel()</span>
-                    </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" style="width: @GetComfortProgress()%"></div>
-                    </div>
                 </div>
             </div>
 
@@ -134,7 +124,7 @@
                 {
                     <div class="dialog-card @GetCardClass(card) @GetObservationDecayClass(card) @(IsCardSelected(card) ? "selected" : "") @(IsObservationExpired(card) ? "unavailable" : "")" 
                          @onclick="() => ToggleCardSelection(card)">
-                        @if (card.GetEffectiveWeight(Context.Session.CurrentState) == 0)
+                        @if (card.GetEffectiveWeight(Context.Session.CurrentState) == 0 && card.Weight > 0)
                         {
                             <div class="card-marker free-weight">FREE!</div>
                         }
@@ -197,7 +187,7 @@
                                     </div>
                                     <div class="outcome-effects">
                                         <div class="effect">
-                                            <span class="effect-value">@GetSuccessEffect(card)</span>
+                                            <span class="effect-value effect-positive">@GetSuccessEffect(card)</span>
                                         </div>
                                     </div>
                                 </div>
@@ -208,7 +198,7 @@
                                     </div>
                                     <div class="outcome-effects">
                                         <div class="effect">
-                                            <span class="effect-value">@GetFailureEffect(card)</span>
+                                            <span class="effect-value effect-negative">@GetFailureEffect(card)</span>
                                         </div>
                                     </div>
                                 </div>

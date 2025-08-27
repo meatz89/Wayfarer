@@ -213,6 +213,39 @@
 }
 
 
+/* Conversation Mode Header - styled header for conversation type */
+.conversation-mode {
+    padding: 15px 20px;
+    background: linear-gradient(to bottom, #2c241a, #1a1612);
+    border-bottom: 2px solid #5c4a3a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.mode-title {
+    font-size: 16px;
+    color: #d4a76a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
+.mode-cost {
+    display: flex;
+    gap: 15px;
+}
+
+.cost-item {
+    font-size: 14px;
+    color: #e8dcc4;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
 /* Conversation Header */
 .conversation-header {
     padding: 20px;
@@ -222,12 +255,18 @@
     z-index: 2;
 }
 
-.npc-section h2 {
-    font-size: 24px;
+/* NPC Header styling */
+.npc-header {
+    margin-bottom: 15px;
+}
+
+.npc-info h2 {
+    font-size: 26px;
     color: #5c4a3a;
     margin-bottom: 5px;
     font-weight: normal;
     font-family: 'Garamond', 'Georgia', serif;
+    letter-spacing: 1px;
 }
 
 .npc-state {
@@ -291,12 +330,39 @@
 }
 
 /* Progress Section */
+/* Progress Section - Comfort and Patience display */
 .progress-section {
     display: grid;
-    grid-template-columns: 2fr 1fr 2fr;
+    grid-template-columns: 2fr 1fr;
     gap: 15px;
     align-items: center;
-    margin-top: 15px;
+    margin: 15px 0;
+    padding: 15px;
+    background: #f9f3e9;
+    border-radius: 4px;
+    border: 1px solid #c4a684;
+}
+
+.patience-display {
+    text-align: center;
+    padding: 10px;
+    background: #faf4ea;
+    border-radius: 4px;
+    border: 2px solid #c4a684;
+}
+
+.patience-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #5c4a3a;
+    margin-bottom: 3px;
+}
+
+.patience-label {
+    font-size: 10px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .turns-remaining {
@@ -380,14 +446,21 @@
 }
 
 /* State Indicator */
-.state-indicator {
+/* State Section with proper styling */
+.state-section {
     margin-top: 15px;
-    padding: 10px;
+    padding: 12px;
     background: #f9f3e9;
     border-radius: 4px;
     border: 1px solid #c4a684;
+}
+
+.state-info {
     font-size: 13px;
     color: #5c4a3a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .state-label {
@@ -409,19 +482,49 @@
 
 /* Narrative Section */
 .narrative-section {
-    padding: 20px;
+    padding: 25px;
     background: #f4e8d0;
     border-bottom: 2px solid #a68b6f;
     position: relative;
     z-index: 2;
+    min-height: 100px;
 }
 
 .narrative-text {
-    font-size: 14px;
-    line-height: 1.6;
+    font-size: 15px;
+    line-height: 1.8;
     color: #3d3429;
     font-style: italic;
     font-family: 'Garamond', 'Georgia', serif;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.npc-dialogue {
+    margin-top: 15px;
+    padding: 15px;
+    background: #faf4ea;
+    border-left: 3px solid #a68b6f;
+    border-radius: 2px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #3d3429;
+    font-style: italic;
+}
+
+.npc-dialogue.desperate {
+    border-left-color: #8b4726;
+    background: #faf0e6;
+}
+
+.npc-dialogue.hostile {
+    border-left-color: #8b4726;
+    background: #faf0e6;
+}
+
+.npc-dialogue.tense {
+    border-left-color: #a68b6f;
+    background: #faf4ea;
 }
 
 /* Action Section */
@@ -472,11 +575,30 @@
     min-width: 200px;
 }
 
-.action-button:hover {
+.action-button:hover:not(:disabled) {
     background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
     border-color: #8b7355;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.action-button:disabled {
+    background: #d4c5a0;
+    border-color: #a68b6f;
+    color: #8b7355;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.action-button.exit-button {
+    background: linear-gradient(to bottom, #f4e0d0, #e8d4c4);
+    border-color: #a68b6f;
+    min-width: 140px;
+}
+
+.action-button.exit-button:hover {
+    background: linear-gradient(to bottom, #e8d4c4, #ddc5a0);
+    border-color: #8b7355;
 }
 
 .action-button.selected {
@@ -1158,20 +1280,46 @@
     gap: 4px;
 }
 
+/* Remove redundant success percentage from effect text */
+.outcome-effects .effect {
+    font-size: 12px;
+}
+
 .effect {
     font-size: 12px;
-    color: #5c4a3a;
     display: flex;
     align-items: center;
     gap: 4px;
 }
 
+/* Color-coded effects based on value */
 .effect-value {
     font-weight: bold;
     font-size: 13px;
     padding: 1px 4px;
     background: rgba(255,255,255,0.4);
     border-radius: 2px;
+}
+
+/* Positive effects (comfort gains, successful state changes) */
+.outcome.success .effect-value,
+.effect-positive {
+    color: #5a7a3a;
+    background: rgba(122, 139, 90, 0.1);
+}
+
+/* Negative effects (comfort losses, failures) */
+.outcome.failure .effect-value,
+.effect-negative {
+    color: #8b4726;
+    background: rgba(139, 71, 38, 0.1);
+}
+
+/* State transition effects */
+.effect-state-change {
+    color: #8b7355;
+    font-weight: bold;
+    font-style: italic;
 }
 
 /* Play Section */
@@ -1282,6 +1430,7 @@
 
 .card-marker.free-weight {
     background: linear-gradient(to bottom, #7a8b5a, #5a7a3a);
+    animation: pulse 2s infinite;
 }
 
 .card-marker.too-deep {

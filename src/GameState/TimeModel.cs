@@ -166,9 +166,10 @@ public class TimeModel
     public string GetTimeString()
     {
         int hour = CurrentHour;
+        int minute = CurrentState.CurrentMinute;
         string period = hour >= 12 ? "PM" : "AM";
         int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-        return $"{displayHour}:00 {period}";
+        return $"{displayHour}:{minute:D2} {period}";
     }
 
     /// <summary>

@@ -50,8 +50,8 @@
 		"initialState": "Warm firelight flickers. The copper kettle hangs over glowing embers. Conversations drift from various tables.",
 		"locationId": "copper_kettle_tavern",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"domainTags": [ "SOCIAL", "GATHERING", "WARM" ],
-		"spotProperties": [ "Social", "Warm", "Public", "CommonerHaunt" ],
+		"domainTags": [ "SOCIAL", "GATHERING", "WARM", "CROSSROADS" ],
+		"spotProperties": [ "Social", "Warm", "Public", "CommonerHaunt", "Crossroads" ],
 		"timeSpecificProperties": {
 			"Morning": [ "Quiet", "WellLit" ],
 			"Afternoon": [ "Busy" ],

@@ -1,46 +1,35 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 /// <summary>
-/// Manages the attention point system for conversations and deep interactions.
-/// Players have 3 attention points per scene to spend on meaningful choices.
-/// Location tags dynamically modify available attention.
+/// Manages the attention point system for conversations and interactions.
+/// Attention is consumed by actions and restored by rest/food/drink.
 /// </summary>
 public class AttentionManager
 {
-    public const int BASE_ATTENTION = 3;
+    public const int BASE_ATTENTION = 7;
 
     private int _currentAttention;
-    private int _totalSpentThisScene;
-    private int _maxAttentionThisScene;
-    private int _atmosphereModifier = 0;
+    private int _maxAttention = BASE_ATTENTION;
 
     /// <summary>
     /// Current available attention points
     /// </summary>
     public int Current
     {
-        get
-        {
-            return _currentAttention;
-        }
-
-        private set
-        {
-            _currentAttention = Math.Max(0, Math.Min(value, _maxAttentionThisScene));
-        }
+        get => _currentAttention;
+        private set => _currentAttention = Math.Max(0, value);
     }
 
     /// <summary>
-    /// Maximum attention points available (dynamically calculated from location tags)
+    /// Maximum attention points available
     /// </summary>
-    public int Max => _maxAttentionThisScene;
+    public int Max => _maxAttention;
 
-    /// <summary>
-    /// Total attention spent in the current scene
-    /// </summary>
-    public int TotalSpentThisScene => _totalSpentThisScene;
+    public AttentionManager()
+    {
+        // Start at full attention
+        _currentAttention = _maxAttention;
+    }
 
     /// <summary>
     /// Check if player has enough attention for a choice
@@ -59,40 +48,19 @@ public class AttentionManager
             return false;
 
         _currentAttention -= cost;
-        _totalSpentThisScene += cost;
         return true;
     }
 
     /// <summary>
-    /// Reset attention for a new TIME BLOCK (not per conversation anymore!)
-    /// This should only be called when time advances to a new period
+    /// Reset attention to full (after rest/sleep)
     /// </summary>
-    public void ResetForNewScene()
+    public void ResetToFull()
     {
-        _atmosphereModifier = 0;
-        // Don't recalculate max if it's already been explicitly set (e.g., by TimeBlockAttentionManager)
-        if (_maxAttentionThisScene == 0)
-        {
-            _maxAttentionThisScene = CalculateMaxAttention();
-        }
-        _currentAttention = _maxAttentionThisScene;
-        _totalSpentThisScene = 0;
+        _currentAttention = _maxAttention;
     }
 
     /// <summary>
-    /// Reset attention with atmosphere modifier from NPC presence
-    /// Note: This should only happen on time block changes now
-    /// </summary>
-    public void ResetForNewScene(int atmosphereModifier)
-    {
-        _atmosphereModifier = atmosphereModifier;
-        _maxAttentionThisScene = CalculateMaxAttention();
-        _currentAttention = _maxAttentionThisScene;
-        _totalSpentThisScene = 0;
-    }
-
-    /// <summary>
-    /// Get current available attention without resetting
+    /// Get current available attention
     /// </summary>
     public int GetAvailableAttention()
     {
@@ -100,55 +68,43 @@ public class AttentionManager
     }
 
     /// <summary>
-    /// Get maximum attention for this time block
+    /// Get maximum attention
     /// </summary>
     public int GetMaxAttention()
     {
-        return _maxAttentionThisScene;
+        return _maxAttention;
     }
 
     /// <summary>
-    /// Set maximum attention (used by TimeBlockAttentionManager)
+    /// Set maximum attention
     /// </summary>
     public void SetMaxAttention(int max)
     {
-        _maxAttentionThisScene = Math.Clamp(max, 1, 7);
-        if (_currentAttention > _maxAttentionThisScene)
-            _currentAttention = _maxAttentionThisScene;
+        _maxAttention = max;
+        _currentAttention = max;  // Always start at full when setting max
     }
 
     /// <summary>
-    /// Calculate maximum attention based on atmosphere
-    /// </summary>
-    private int CalculateMaxAttention()
-    {
-        // Simple calculation: base attention + atmosphere modifier
-        // Clamped between 1 and 5 for game balance
-        return Math.Max(1, Math.Min(5, BASE_ATTENTION + _atmosphereModifier));
-    }
-
-    /// <summary>
-    /// Restore some attention (rare, for special circumstances)
+    /// Restore attention (from eating, drinking, etc)
     /// </summary>
     public void RestoreAttention(int amount)
     {
-        Current = _currentAttention + amount;
+        _currentAttention = Math.Min(_currentAttention + amount, _maxAttention);
     }
 
     /// <summary>
-    /// Epic 9: Add attention points (for coin-based refresh)
-    /// Unlike RestoreAttention, this can exceed the normal maximum
+    /// Add attention points (for coin-based refresh or special items)
+    /// Can exceed normal maximum
     /// </summary>
     public void AddAttention(int amount)
     {
-        // Allow exceeding normal maximum for coin-based refresh
+        // Allow exceeding normal maximum for special cases
         int newAttention = _currentAttention + amount;
         _currentAttention = Math.Min(newAttention, GameRules.ATTENTION_REFRESH_MAX_TOTAL);
     }
     
     /// <summary>
     /// Set attention to a specific value (e.g., from lodging/rest).
-    /// Used for absolute attention refresh like buying lodging at an inn.
     /// </summary>
     public void SetAttention(int value)
     {
@@ -163,10 +119,11 @@ public class AttentionManager
     {
         return _currentAttention switch
         {
-            3 => "Your mind is clear and focused, ready to absorb every detail.",
-            2 => "You remain attentive, though some of your focus has been spent.",
-            1 => "Your concentration wavers. You must choose your focus carefully.",
-            0 => "Mental fatigue clouds your thoughts. You can only respond simply.",
+            >= 6 => "Your mind is clear and focused, ready to absorb every detail.",
+            >= 4 => "You remain attentive, though some of your focus has been spent.",
+            >= 2 => "Your concentration wavers. You must choose your focus carefully.",
+            1 => "Mental fatigue clouds your thoughts. You can only respond simply.",
+            0 => "You are exhausted and cannot focus on anything complex.",
             _ => "Your attention drifts."
         };
     }
@@ -180,8 +137,8 @@ public class AttentionManager
         {
             0 => "A simple response",
             1 => "Requires focus",
-            2 => "Demands deep concentration",
-            3 => "Exhausts your full attention",
+            2 => "Demands concentration",
+            3 => "Requires deep thought",
             _ => "Unknown mental effort"
         };
     }
