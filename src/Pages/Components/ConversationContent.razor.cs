@@ -586,7 +586,13 @@ namespace Wayfarer.Pages.Components
 
         protected async Task EndConversation()
         {
-            // EndConversation doesn't exist on ConversationManager, just clear the session
+            // End the conversation properly to calculate and award tokens
+            if (Session != null && ConversationManager != null)
+            {
+                var outcome = ConversationManager.EndConversation();
+                Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Comfort={outcome.TotalComfort}, TokensEarned={outcome.TokensEarned}");
+            }
+            
             Session = null;
             await OnConversationEnd.InvokeAsync();
         }
@@ -595,6 +601,14 @@ namespace Wayfarer.Pages.Components
         {
             // Allow player to manually exit conversation
             Console.WriteLine("[ConversationContent] Player manually exiting conversation");
+            
+            // End the conversation properly to calculate and award tokens
+            if (Session != null && ConversationManager != null)
+            {
+                var outcome = ConversationManager.EndConversation();
+                Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Comfort={outcome.TotalComfort}, TokensEarned={outcome.TokensEarned}");
+            }
+            
             Session = null;
             await OnConversationEnd.InvokeAsync();
         }

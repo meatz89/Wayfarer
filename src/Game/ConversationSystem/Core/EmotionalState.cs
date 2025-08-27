@@ -112,7 +112,7 @@ public static class ConversationRules
             MaxWeight = 3,      // Speak weight limit 3
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.NEUTRAL,  // Stays NEUTRAL
-            ChecksLetterDeck = false  // No letter checking
+            ChecksLetterDeck = true  // Check letter deck for urgent letters
         },
 
         [EmotionalState.GUARDED] = new StateRuleset
@@ -149,7 +149,7 @@ public static class ConversationRules
             MaxWeight = 1,      // Speak weight limit 1
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.GUARDED,  // Transitions to GUARDED
-            ChecksLetterDeck = false
+            ChecksLetterDeck = true  // Check letter deck for urgent letters
         },
 
         [EmotionalState.EAGER] = new StateRuleset

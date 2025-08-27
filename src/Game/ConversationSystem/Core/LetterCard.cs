@@ -199,7 +199,7 @@ public static class LetterCardFactory
         var deck = new List<LetterCard>();
         
         // "Urgent Refusal to Lord Blackwood"
-        // Eligible: Trust tokens ≥ 1, Desperate state
+        // Eligible: Trust tokens ≥ 1, Desperate/Tense/Neutral state
         // Success: 4-hour deadline, queue position 2, 10 coins payment
         // Failure: 1-hour deadline, forces position 1, 15 coins payment
         deck.Add(new LetterCard
@@ -214,7 +214,7 @@ public static class LetterCardFactory
             Eligibility = new LetterEligibility
             {
                 RequiredTokens = new() { { ConnectionType.Trust, 1 } },
-                RequiredStates = new() { EmotionalState.DESPERATE }
+                RequiredStates = new() { EmotionalState.DESPERATE, EmotionalState.TENSE, EmotionalState.NEUTRAL }
             },
             SuccessTerms = new LetterNegotiationTerms
             {

@@ -1,402 +1,295 @@
-# Wayfarer POC - Complete Content Definition
+# Wayfarer POC - Elena's Letter Scenario
 
-## Strategic Challenge Overview
+## Scenario Overview
 
-Elena needs her urgent letter delivered to Lord Blackwood before he leaves at sunset (5 PM). The challenge: Elena isn't available until Afternoon, Lord Blackwood is behind the Noble District checkpoint, and you start with limited resources. Strategic use of work, rest, and wait actions creates multiple viable paths.
+Elena needs her urgent letter delivered to Lord Blackwood before he leaves the city at sunset (5 PM). She faces a forced marriage to him and this letter is her refusal. The challenge: Elena isn't available until Afternoon (2 PM), Lord Blackwood is behind the Noble District checkpoint, and you start with limited resources.
 
 ## Starting Conditions
 
-**Player Resources**:
-- Coins: 10 (barely enough for checkpoint bribe)
-- Health: 75 
-- Hunger: 80 (-4 patience penalty)
-- Attention: 5 (limited initial actions)
-- Satchel: Empty (5 slots)
-- Tokens: 1 Trust with Elena, 2 Commerce with Marcus, 1 Shadow with Guard Captain
+### Player State
+- **Coins**: 10 (exactly enough for checkpoint bribe)
+- **Health**: 75/100
+- **Hunger**: 60/100 
+- **Attention**: 6/10 
+- **Satchel**: Empty (5 slots max)
 
-**Time**: Tuesday 9:00 AM (Morning period)
-**Starting Location**: Market Square - Fountain
-**Critical Timeline**:
-- Elena available: 2 PM (Afternoon, 5 hours)
-- Lord Blackwood leaves: 5 PM (Sunset, 8 hours)
-- Actual letter deadline: ~3 hours from when received
+### Starting Tokens
+- **Trust**: 1 with Elena
+- **Commerce**: 2 with Marcus
+- **Status**: 0 with all
+- **Shadow**: 1 with Guard Captain
+
+### Time & Location
+- **Time**: Tuesday 9:00 AM (Morning period)
+- **Location**: Market Square - Fountain
+- **Critical Timeline**:
+  - Elena available: 2 PM (5 hours away)
+  - Lord Blackwood leaves: 5 PM (8 hours away)
 
 ## World Map
 
-### Locations & Routes
-
-**Market Square**
+### Market Square
+**Spots**:
 - Fountain (Crossroads, Public -1 patience)
 - Merchant Row (Commercial)
 - Guard Post (Authority)
 - North Alcove (Discrete)
 
-**Copper Kettle Tavern** 
+**Available Actions**:
+- Travel from Fountain (Crossroads)
+- Work at Merchant Row (2 attention → 8 coins, advance 4 hours)
+- Observe (1 attention → observation card)
+
+### Copper Kettle Tavern
+**Spots**:
 - Common Room (Crossroads, Public -1 patience)
 - Corner Table (Private +1 patience)
-- Bar (Commercial)
+- Bar (Commercial, Hospitality)
 
-**Noble District Gate**
+**Available Actions**:
+- Travel from Common Room
+- Work at Bar (2 attention → 8 coins, advance 4 hours)
+- Rest via Bertram's exchange deck
+
+### Noble District Gate
+**Spots**:
 - Checkpoint (Crossroads, Authority, Tense)
-- Side Entrance (Discrete, Locked)
+- Side Path (Discrete)
 
-**Blackwood Manor**
-- Main Gate (Crossroads, Status Required)
-- Servant Entrance (Discrete)
+**Access Options**:
+- Bribe guards: 10 coins (always available)
+- Checkpoint Pass: Letter from Guard Captain
+- Alternative route: Via Warehouse District (discoverable)
 
 ### Travel Routes
-
 From Market Square Fountain:
-- → Copper Kettle: 15 min walk, free
-- → Noble District Gate: 25 min walk, free
-- → Warehouse District: 30 min walk, 2 coin toll
+- → Copper Kettle: 15 minutes, free
+- → Noble District Gate: 25 minutes, free
+- → Warehouse District: 30 minutes, free
 
 From Noble District Gate:
-- → Blackwood Manor: 10 min walk, requires Access Permit OR checkpoint pass
+- → Blackwood Manor: 10 minutes, requires checkpoint pass
 
-Alternative Route (discoverable):
-- Warehouse District → Blackwood Manor Servant Entrance: 20 min, requires Shadow token with Marcus
-
-## NPCs & Their Decks
+## NPC Definitions
 
 ### Elena (Devoted, Corner Table)
 
-**Stats**: 12 base patience, **Desperate state** (facing forced marriage - narrative situation)
-**Availability**: Afternoon and Evening only (2 PM - 10 PM)
-**Starting State**: Desperate because of her situation, not because of deadline
+**Base Stats**:
+- Patience: 12 (Devoted) +1 (Private spot) = 13
+- Starting State: Desperate (forced marriage situation)
+- Available: Afternoon and Evening only (2 PM - 10 PM)
 
-**Why Desperate**: Elena faces a forced marriage to Lord Blackwood. This is inherently desperate regardless of timeline. The approaching deadline intensifies but doesn't create her desperation.
+**Why Desperate**: Elena faces forced marriage regardless of timeline. This creates her desperate emotional state, not the deadline.
 
-**Conversation Deck** (20 cards):
+**Conversation Deck** (20 cards total):
 
-*Depth 0-5 (Starting Access)*:
-- "Gentle Nod" - Comfort/Trust, D0, W0, Success: +1 comfort
-- "Simple Agreement" - Comfort/Trust, D2, W1, Success: +2 comfort, +1 Trust token
-- "I Understand" - Comfort/Trust, D3, W1, Success: +3 comfort, +1 Trust token
-- "Active Listening" - Comfort/Trust, D5, W1, Success: +4 comfort, +1 Trust token
-- "Suggest Patience" - State/Trust, D4, W1, Success: Desperate→Tense
-- "Past Failure Haunts" - Burden/Trust, D1, W2, Success: Remove, -2 comfort
+*Comfort Cards (12 cards)*:
+- "Gentle Nod" - Comfort/Trust, D0, W1, Success: +2 comfort
+- "Listen Quietly" - Comfort/Trust, D2, W1, Success: +3 comfort  
+- "Sympathetic Look" - Comfort/Trust, D4, W1, Success: +4 comfort
+- "Understanding Words" - Comfort/Trust, D6, W2, Success: +5 comfort
+- "Supportive Statement" - Comfort/Trust, D8, W2, Success: +6 comfort
+- "Deep Empathy" - Comfort/Trust, D10, W2, Success: +7 comfort
+- "Heartfelt Support" - Comfort/Trust, D12, W3, Success: +8 comfort
+- "Complete Understanding" - Comfort/Trust, D14, W3, Success: +9 comfort
+- "Perfect Resonance" - Comfort/Trust, D16, W3, Success: +10 comfort
+- "Soul Connection" - Comfort/Trust, D18, W3, Success: +12 comfort
+- (2 duplicates at various depths)
 
-*Depth 6-10*:
-- "Promise Support" - Comfort/Trust, D7, W2, Success: +5 comfort, +2 Trust tokens
-- "Share Sympathy" - Comfort/Trust, D8, W2, Success: +6 comfort, +1 Trust token
-- "Offer Comfort" - Comfort/Trust, D9, W1, Success: +4 comfort, +1 Trust token
-- "Calm Her Nerves" - State/Trust, D10, W2, Success: Desperate→Neutral
+*Token Cards (3 cards)*:
+- "Share Vulnerability" - Token/Trust, D5, W2, Success: +1 Trust token
+- "Promise Protection" - Token/Trust, D10, W2, Success: +1 Trust token
+- "Vow of Support" - Token/Trust, D15, W3, Success: +1 Trust token
 
-*Depth 11-15*:
-- "Deep Connection" - Comfort/Trust, D12, W3, Success: +8 comfort, +3 Trust tokens
-- "Heartfelt Promise" - Comfort/Trust, D14, W3, Success: +10 comfort, +3 Trust tokens
-- "Find Peace Together" - State/Trust, D13, W2, Success: Any→Open
+*State Cards (3 cards)*:
+- "Calm Reassurance" - State/Trust, D4, W1, Success: Desperate→Tense
+- "Find Peace" - State/Trust, D8, W2, Success: Tense→Neutral
+- "Open Heart" - State/Trust, D12, W2, Success: Any→Open
 
-*Depth 16-20*:
-- "Perfect Trust" - Comfort/Trust, D18, W3, Success: +12 comfort, +4 Trust tokens
-- "Soul Bond" - State/Trust, D19, W3, Success: Any→Connected
-
-Note: Token generation available at all depths, scaling with depth level.
+*Burden Cards (2 cards, start in deck from past failure)*:
+- "Broken Promise" - Burden/Trust, D1, W2, Success: Remove burden
+- "Lost Faith" - Burden/Trust, D3, W2, Success: Remove burden
 
 **Letter Deck** (3 letters):
 
-- "Desperate Refusal" - Letter/Trust, D5
-  - Requires: 1+ Trust, states: Desperate, Tense, or Neutral
-  - Success: 4h deadline, position 2, 10 coins
-  - Failure: 1h deadline, position 1, 15 coins
+- "Desperate Refusal" - Letter/Trust, D5, W2
+  - Available states: Desperate, Tense
+  - Success: 4h deadline, position 2, 10 coins payment
+  - Failure: 1h deadline, position 1, 15 coins payment
 
-- "Formal Refusal" - Letter/Trust, D10
-  - Requires: 2+ Trust, states: Open, Connected, or Neutral
-  - Success: 6h deadline, position 3, 12 coins
-  - Failure: 2h deadline, position 2, 14 coins
+- "Formal Refusal" - Letter/Trust, D10, W3
+  - Available states: Neutral, Open
+  - Success: 6h deadline, position 3, 12 coins payment
+  - Failure: 2h deadline, position 2, 12 coins payment
 
-- "Personal Letter" - Letter/Trust, D15
-  - Requires: 4+ Trust, states: Connected or Open
-  - Success: 8h deadline, flexible position, 20 coins
-  - Failure: 4h deadline, position 2, 20 coins
+- "Personal Letter" - Letter/Trust, D15, W3
+  - Available states: Open, Connected
+  - Success: 8h deadline, flexible position, 20 coins payment
+  - Failure: 4h deadline, position 2, 20 coins payment
 
-Note: Each letter available in multiple emotional states, with Elena starting in Desperate due to her forced marriage situation.
-
-**Crisis Deck** (1 card, injected in Desperate):
-- "Breaking Point" - Crisis/Trust, D0, W5 (0 in Desperate)
-  - Success (30%): Remove crisis, Desperate→Tense
+**Crisis Deck** (1 card, injected when Desperate):
+- "Breaking Point" - Crisis/Trust, D0, W5 (counts as W0 in Desperate)
+  - Success (30% + tokens): Remove crisis, Desperate→Tense
   - Failure (70%): Add 2 burden cards, conversation ends
 
 ### Marcus (Mercantile, Merchant Row)
 
-**Stats**: 10 base patience, Neutral state
-**Availability**: Morning through Evening (6 AM - 10 PM)
-**Shop Closed at Night**: Cannot trade or converse during Night/Deep Night
-
-**Conversation Deck** (20 cards):
-
-*Depth 0-5*:
-- "Fair Trade Talk" - Comfort/Commerce, D2, W1, Success: +2 comfort
-- "Market Wisdom" - Comfort/Commerce, D4, W1, Success: +3 comfort, +1 Commerce
-- "Profitable Ideas" - Comfort/Commerce, D5, W2, Success: +5 comfort
-
-*Depth 6-10*:
-- "Business Partnership" - Comfort/Commerce, D8, W2, Success: +6 comfort, +2 Commerce
-- "Share Routes" - Comfort/Shadow, D9, W2, Success: +5 comfort, +1 Shadow
-- "Trust in Trade" - State/Commerce, D7, W1, Success: Any→Eager
-
-*Depth 11-15*:
-- "Exclusive Deal" - Comfort/Commerce, D13, W3, Success: +9 comfort, +3 Commerce
-- "Secret Knowledge" - Comfort/Shadow, D14, W3, Success: +8 comfort, +2 Shadow
-
-**Letter Deck** (2 letters):
-
-- "Delivery Contract" - Letter/Commerce, D6
-  - Requires: 2+ Commerce, Eager state
-  - Success: 6h deadline, position 3, 12 coins
-  - Failure: 3h deadline, position 2, 12 coins
-
-- "Access Permit Request" - Letter/Shadow, D10
-  - Requires: 3+ Shadow, any state
-  - Success: Gain Noble District Access Permit
-  - Failure: Must pay 10 coins for permit
-
-**Exchange Deck** (5 cards):
-
-- "Buy Provisions" - 3 coins → Hunger = 0
-- "Purchase Access" - 15 coins → Noble District Permit  
-- "Trade Information" - Guard Intel → Alternative Route Knowledge
-- "Quick Delivery" - Accept → New obligation (8 coins, 3h deadline)
-- "Buy Medicine" - 5 coins → Health +20
-
-### Guard Captain (Steadfast, Guard Post)
-
-**Stats**: 11 base patience, Tense state (checkpoint duty)
-**Availability**: Always (different shifts affect state)
-- Day shift (6 AM - 6 PM): Tense state, strict
-- Night shift (6 PM - 6 AM): Neutral state, more lenient
+**Base Stats**:
+- Patience: 10 (Mercantile)
+- Starting State: Neutral
+- Available: Morning through Evening (6 AM - 10 PM)
 
 **Conversation Deck** (15 cards):
 
-*Depth 0-5*:
-- "Show Papers" - Comfort/Status, D1, W1, Success: +2 comfort
-- "Explain Purpose" - Comfort/Trust, D3, W1, Success: +3 comfort
-- "Official Business" - State/Status, D4, W2, Success: Tense→Neutral
+*Comfort Cards (10 cards)*:
+- Various Commerce comfort cards, depths 0-15
+- Success: +2 to +9 comfort based on depth
 
-*Depth 6-10*:
-- "Bribe Subtly" - Comfort/Shadow, D7, W2, Success: +5 comfort, +2 Shadow
-- "Name Drop" - Comfort/Status, D9, W2, Success: +6 comfort, +1 Status
+*Token Cards (2 cards)*:
+- "Profitable Partnership" - Token/Commerce, D6, W2, Success: +1 Commerce
+- "Trade Secret" - Token/Shadow, D10, W2, Success: +1 Shadow
+
+*State Cards (2 cards)*:
+- "Business Opportunity" - State/Commerce, D4, W1, Success: Neutral→Eager
+- "Calm Markets" - State/Commerce, D8, W2, Success: Any→Neutral
+
+*Observation Creation Card (1 card)*:
+- "Share Routes" - Observation/Shadow, D8, W2, Success: Create "Hidden Path" observation (2h expiration)
+
+**Letter Deck** (2 letters):
+
+- "Delivery Contract" - Letter/Commerce, D6, W2
+  - Available states: Eager, Neutral
+  - Success: 6h deadline, position 3, 8 coins
+  - Failure: 3h deadline, position 2, 8 coins
+
+- "Noble Permit Sale" - Letter/Commerce, D4, W2
+  - Available states: Eager
+  - Success: Pay 12 coins, get permit
+  - Failure: Pay 15 coins, get permit
+
+**Exchange Deck** (5 cards, accessed via Quick Exchange):
+- "Buy Food" - 3 coins → Hunger = 0
+- "Purchase Permit" - 15 coins → Noble District Permit
+- "Quick Job" - Accept → New obligation (8 coins, 3h)
+- "Buy Medicine" - 5 coins → Health +20
+- "Trade Information" - 1 Shadow token → Alternative route knowledge
+
+### Guard Captain (Steadfast, Guard Post)
+
+**Base Stats**:
+- Patience: 11 (Steadfast)
+- State: Tense (day shift) or Neutral (night shift after 6 PM)
+- Available: Always
+
+**Conversation Deck** (12 cards):
+- Comfort cards (Status/Shadow types)
+- State card: "Official Business" - State/Status, D4, W2, Success: Tense→Neutral
+- Token card: "Mutual Understanding" - Token/Shadow, D8, W2, Success: +1 Shadow
 
 **Letter Deck** (1 letter):
-
-- "Checkpoint Pass" - Letter/Shadow, D8
-  - Requires: 3+ Shadow, Neutral state
-  - Success: 24h Noble District access
-  - Failure: 2h access only
-
-**Crisis Deck** (if caught lying):
-- "Arrest Threat" - Crisis/Status, D0, W5
-  - Success (40%): Talk your way out
-  - Failure (60%): -10 coins bribe or conversation ends
-
-### Lord Blackwood (Proud, Blackwood Manor)
-
-**Stats**: 8 base patience, Dismissive state (not expecting courier)
-**Availability**: Until 5 PM (leaves at sunset)
-
-**Not fully implemented for POC - just receives letter**
+- "Checkpoint Pass" - Letter/Shadow, D8, W2
+  - Available states: Neutral
+  - Success: 24h access permit
+  - Failure: 2h access permit
 
 ### Bertram (Mercantile, Copper Kettle Bar)
 
-**Stats**: 10 base patience, Neutral state
-**Availability**: Always (lives above tavern)
+**Base Stats**:
+- No conversation deck - pure exchange NPC
+- Available: Always
 
 **Exchange Deck** (5 cards):
-- "Stay the Night" - 5 coins → Full rest (Attention=10, Hunger=20, Health+20, skip to morning)
-- "Quick Nap" - 2 coins → +3 attention, advance 2 hours  
-- "Hot Meal" - 2 coins → Hunger = 0
-- "Rent Private Room" - 8 coins → Full rest with complete health restoration
-- "Noble Gossip" - 3 coins → Learn Lord Blackwood's exact departure time
+- "Quick Meal" - 2 coins → Hunger = 0
+- "Short Rest" - 2 coins → +3 attention, advance 2 hours
+- "Room for Night" - 5 coins → Full rest (skip to morning, too late!)
+- "Gossip" - 3 coins → Create "Noble Schedule" observation
+- "Packed Lunch" - 4 coins → Item that sets Hunger = 0 when used
 
-**No conversation deck for POC** - purely exchange-based NPC
-
-## Observations Available
+## Observation Opportunities
 
 ### Market Square - Fountain
 
-**Morning**:
-- "Early Bird Merchants" (1 attention)
-  - Creates: Commerce card, D0, W1, Success: +3 comfort
-  - Type: Opportunity (doesn't vanish on Listen)
-  - Info: Best deals available at dawn
+**Morning Period**:
+- "Early Merchants" - 1 attention → Commerce observation card (D2, W1, expires 2h)
+  - Provides +3 comfort with merchant NPCs
 
-**Afternoon**:
-- "Guard Shift Schedule" (1 attention)
-  - Creates: Shadow card, D0, W1, Success: +4 comfort
-  - Type: Opportunity (doesn't vanish on Listen)
-  - Info: Guards change at 4pm, less strict night shift
-
-**Evening**:
-- "Noble Carriage Preparing" (1 attention)
-  - Creates: Status card, D2, W1, Success: +3 comfort, +1 Status
-  - Type: Opportunity (doesn't vanish on Listen)
-  - Info: Lord Blackwood leaving at sunset (5pm)
-
-### Market Square - Merchant Row
-
-**Any Time Period**:
-- "Hidden Route Gossip" (1 attention)
-  - Creates: Commerce card, D3, W1, Success: +4 comfort
-  - Type: Opportunity (doesn't vanish on Listen)
-  - Info: Warehouse workers know servant passages
+**Afternoon Period**:
+- "Guard Shift Change" - 1 attention → Shadow observation card (D0, W1, expires 2h)
+  - Provides +4 comfort, reveals night shift more lenient
 
 ### Copper Kettle - Corner Table
 
-**Afternoon/Evening** (when Elena present):
-- "Elena's Family Seal" (1 attention)  
-  - Creates: Status card, D4, W2, Success: +6 comfort
-  - Type: Opportunity (doesn't vanish on Listen)
-  - Info: High noble family, adds weight to letter
+**When Elena Present**:
+- "Family Seal" - 1 attention → Status observation card (D3, W1, expires 2h)
+  - Provides +5 comfort with nobles, shows letter importance
 
-### Noble District Gate - Checkpoint
+## Strategic Paths Analysis
 
-**Day Shift**:
-- "Strict Inspection" (1 attention)
-  - Creates: Shadow card, D2, W1, Success: +2 comfort
-  - Type: Opportunity (doesn't vanish on Listen)
-  - Info: Day guards check everything thoroughly
+### Path A: Morning Efficiency
+1. Work at Merchant Row (2 att, gain 8 coins, now Midday 1 PM)
+2. Quick Exchange with Marcus: Buy food (3 coins, Hunger→0)
+3. Observe guard shift (1 att, gain Shadow card)
+4. Wait 1 hour to Afternoon
+5. Talk to Elena with 13 patience, 3 attention remaining
+6. Build comfort to 5+ to access "Desperate Refusal"
+7. Use Shadow observation card for comfort boost
+8. Play letter card (65% success with +1 Trust token)
 
-**Night Shift**:
-- "Bribery in Action" (1 attention)
-  - Creates: Shadow card, D1, W1, Success: +3 comfort, +1 Shadow
-  - Type: Opportunity (doesn't vanish on Listen)
-  - Info: 10 coins standard bribe for passage
+**Risks**: Less time for delivery, but more resources
 
-**Critical**: Observation cards are Opportunity type but do NOT vanish when choosing Listen during conversations. They remain playable across multiple conversation turns, decaying naturally over time (Fresh 0-2h, Stale 2-6h, Expired 6+h). This makes observations worth their 1 attention cost.
+### Path B: Relationship Investment
+1. Don't work morning (preserve time)
+2. Quick Exchange: Buy food immediately (3 coins)
+3. Wait to Afternoon (still Morning, wait 5 hours)
+4. Full Elena conversation with 6 attention
+5. Focus on token cards at depths 5, 10, 15
+6. Build to "Formal Refusal" at depth 10
+7. Better success rate and terms
 
-## Strategic Paths
+**Risks**: Fewer coins, but better letter terms
 
-### Path A: Morning Optimization (Resource Building)
-1. Work at Merchant Row (2 attention → 8 coins, advances to Midday)
-2. Exchange with Marcus: Buy provisions (3 coins, hunger→0, removes -4 patience)
-3. Observe for cards (1 attention, cards don't vanish on Listen)
-4. Wait until Afternoon (0 attention)
-5. Converse with Elena - she's Desperate (13 patience without hunger)
-6. Build minimal comfort to reach "Desperate Refusal" at depth 5
-7. Negotiate letter terms (better chance with +1 Trust token)
-8. Travel and deliver
-Total: Balanced resource use, good letter terms possible
+### Path C: Speed Run
+1. Skip food (accept reduced patience from hunger)
+2. Wait to Afternoon
+3. Rush Elena conversation
+4. Accept first available letter at depth 5
+5. Take poor terms if needed
+6. Use all 10 coins for checkpoint bribe
+7. Deliver immediately
 
-### Path B: Token Rush (Relationship Investment)
-1. Exchange: Fix hunger immediately (3 coins)
-2. Wait until Afternoon
-3. Full Elena conversation focusing on token generation
-4. Depth 0-5 cards can give 3-4 tokens total if successful
-5. Use tokens for better success rates on letter negotiation
-6. Better terms mean more coins and time
-Total: Invests in relationship for better outcomes
+**Risks**: Poor terms, damaged relationships, but guaranteed completion
 
-### Path C: Rest and Grind (Maximum Resources)
-1. Work at Merchant Row (2 attention → 8 coins)
-2. Work at Tavern Bar (2 attention → 8 coins)
-3. Rest with Bertram (2 coins → +3 attention)
-4. Fix hunger (3 coins)
-5. Full Elena conversation with refreshed attention
-6. Can now reach depth 10+ for "Formal Refusal"
-7. Superior letter terms and payment
-Total: Time-intensive but optimal results
+## Success Metrics
 
-### Path D: Crisis Management (Speed Focus)
-1. Fix hunger (3 coins)
-2. Wait until Afternoon
-3. Quick Elena conversation
-4. Accept first available letter (depth 5 "Desperate Refusal")
-5. Take poor terms if necessary (position 1, tight deadline)
-6. Rush to checkpoint, bribe guards
-7. Deliver with minimal time remaining
-Total: Fastest completion, poorest rewards
+**Perfect Run**:
+- Obtain "Formal Refusal" or better
+- Negotiate 6+ hour deadline
+- Complete with 2+ hours to spare
+- Gain Trust tokens
+- 15+ coins profit
 
-## Resource Management Challenges
+**Good Run**:
+- Obtain any letter
+- Complete before 5 PM
+- Maintain positive tokens
+- Break even on coins
 
-**The Resource Conversion Loop**:
-- Time → Money (Work: 4 hours → 8 coins)
-- Money → Attention (Rest: 2 coins → 3 attention)
-- Attention → Progress (Conversations, observations)
-- Progress → Money (Complete obligations for payment)
+**Bare Success**:
+- Deliver letter by any means
+- Even with poor terms
+- Even burning tokens
 
-**Starting Scarcity**:
-- 10 coins: Exactly enough for checkpoint bribe OR food + rest
-- 5 attention: Only 2 conversations without rest
-- 80 hunger: -4 patience makes conversations brutal
-- Morning start: Elena unavailable for 5 hours
+## Failure States
 
-**Time Pressure Layers**:
-- Lord Blackwood leaves: 8 hours (hard deadline)
-- Elena available: 5 hours (soft deadline - waiting required)
-- Work advances time: Each work action costs 4 hours
-- Rest advances time: Full rest skips to next morning (too late!)
-
-**Strategic Decisions**:
-- Work early for resources but lose time?
-- Fix hunger immediately or endure penalty?
-- Wait for Elena or optimize morning time?
-- Rest for more attention or preserve coins?
-
-## Obligation Queue Complications
-
-If player accepts Marcus's "Quick Delivery" obligation:
-- Position 1: Marcus's delivery (3h deadline)
-- Position 2: Elena's letter (1h 13m)
-- Must burn tokens to reorder or complete Marcus first
-
-## Failure Conditions
-
-**Total Failure**: Lord Blackwood leaves before delivery (5 PM deadline)
-- Elena becomes Hostile (permanent)
-- Lose all Trust tokens with Elena
-- Add 3 burden cards to her deck
+**Total Failure**:
+- 5 PM passes without delivery
+- Elena→Hostile permanently
+- -3 Trust tokens with Elena
 - No payment
-- Cannot interact with Elena for 24 hours
 
-**Partial Failure**: Accept terrible letter terms
-- 1-hour deadline from receipt (extreme pressure)
-- Forces position 1 in queue (disrupts everything)
-- Must pay premium (15+ coins) for urgent service
-- Still counts as success if delivered
-
-**Resource Death Spiral**: 
-- Run out of attention with no coins to rest
-- Run out of coins with urgent obligations pending
-- Hunger reaches 100 (collapse, lose half health)
-
-## Success Conditions
-
-**Perfect Success**:
-- Get Elena's letter with excellent terms (6+ hour deadline)
-- Maintain flexible queue position
-- Complete delivery with 1+ hours to spare
-- Earn 15+ coins profit after expenses
-- Build tokens for future interactions
-
-**Good Success**:
-- Negotiate decent terms (3-4 hour deadline)
-- Deliver before Lord Blackwood leaves
-- Maintain positive coin balance
-- Keep all relationships intact
-
-**Acceptable Success**:
-- Deliver Elena's letter by any means necessary
-- Even with poor terms and damaged relationships
-- Proves you can complete the core obligation
-
-## Strategic Depth Demonstration
-
-The POC showcases how simple mechanics create complex decisions:
-
-**Work/Rest/Wait Trinity**:
-- Work converts time to money but risks deadlines
-- Rest converts money to attention but costs precious coins  
-- Wait costs nothing but pure opportunity
-
-**NPC Availability Creates Scheduling Puzzle**:
-- Elena unavailable mornings forces time management
-- Marcus closed at night limits trading windows
-- Guard shifts affect negotiation difficulty
-
-**Resource Conversion Prevents Soft-locks**:
-- Always have options (work, rest, wait)
-- But each option has meaningful cost
-- No single optimal path
-
-This transforms Wayfarer from a tight optimization puzzle into a strategic resource management game where player agency and deadline pressure create emergent challenge.
+**Partial Failures**:
+- Accept 1-hour deadline (extreme pressure)
+- Forced position 1 (disrupts other obligations)
+- Burn tokens for queue management
+- Health drops below 25 (weight capacity reduced)

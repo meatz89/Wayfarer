@@ -608,6 +608,9 @@ public class ConversationManager
                 CardType.Shadow => ConnectionType.Shadow,
                 _ => ConnectionType.Trust
             };
+
+            // Award the tokens to the NPC
+            tokenManager.AddTokensToNPC(connectionType, outcome.TokensEarned, currentSession.NPC.ID);
         }
 
         // Reset deck for next conversation

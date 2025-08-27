@@ -34,10 +34,11 @@ Routes between locations require access permits (no alternatives in route rules)
 - **Attention** (0-10): Daily action points
 
 ### Resource Interconnections
-- Hunger reduces patience: -1 patience per 20 hunger
+- Hunger affects morning attention: -1 per 20 hunger
 - Health affects weight capacity: Below 50 health, maximum weight -1
 - Low health reduces morning attention: -1 per 25 health missing
 - Morning refresh: 10 attention - (hunger÷20) - ((100-health)÷25)
+- At 100 hunger: Starvation begins, -5 health per period
 
 ### Connection Tokens
 Permanent relationship capital per NPC:
@@ -81,15 +82,16 @@ Daily allocation of 10 attention (modified by hunger/health):
 - Accept or refuse
 - No emotional states or patience
 
-
 ### The Core Choice
+
+Comfort starts at 5 every conversation.
 
 Each turn costs 1 patience. Choose:
 
 **LISTEN**: 
-- Draw X cards based on emotional state
+- Draw cards from depth 0 up to current comfort level
 - State transitions automatically (usually worsens)
-- Check letter deck for eligible letters (matching current state)
+- Check letter deck for eligible letters (matching current state AND depth ≤ comfort)
 - Observation cards remain in hand
 
 **SPEAK**:
@@ -166,8 +168,9 @@ Base patience by personality type:
 - Cunning: 10 (calculating)
 - Steadfast: 11 (reliable)
 
-Example Modifiers:
+Modifiers (NPC-specific only):
 - +1 for Private spot trait
+- -1 for Public spot trait
 - -1 per burden card in NPC deck
 
 ## Card System
@@ -184,12 +187,19 @@ Every card contains:
 
 ### Card Types (Strictly Separated Effects)
 
-**Comfort Cards**: Add comfort value
-- Depth 0-5: +2-3 comfort
-- Depth 6-10: +4-5 comfort
-- Depth 11-15: +6-7 comfort
-- Depth 16-20: +8-10 comfort
-- Failure: Always +1 comfort
+### Comfort Progression
+
+Comfort starts at 5 every conversation (allows access to depth 0-5 cards).
+
+**Comfort card success values by depth** (linear scaling):
+Examples:
+- Depth 3: +3 comfort
+- Depth 4: +4 comfort
+- Depth 8: +8 comfort
+
+**Comfort card failure**: Always -1 comfort regardless of depth
+
+Depth access: Current comfort determines maximum card depth drawable. At comfort 10, can draw any card depth 0-10.
 
 **Token Cards**: Add 1 token of specific type
 - Represent meaningful relationship moments
@@ -208,8 +218,10 @@ Every card contains:
 
 **Observation Cards**: Create knowledge
 - Gained from location observations or conversation cards
-- Provide comfort when contextually relevant
-- Decay over time (Fresh→Stale→Expired)
+- Provide comfort when contextually relevant  
+- Type: Fleeting (normally remain in hand when choosing LISTEN, but specific emotional states may have other rule about this)
+- Have expiration deadline (typically 12 hours)
+- After deadline expires: Must discard
 
 **Exchange Cards**: Simple resource trades
 - Mercantile NPCs only
@@ -269,17 +281,21 @@ Final rate = Base + (Tokens × 5%), clamped 5%-95%
 
 ### Letter Eligibility
 
-Letters exist based on narrative context:
-- Elena has "Marriage Refusal" because she faces forced marriage
-- Marcus has "Trade Contracts" because he's a merchant
-- Guard Captain has "Access Permits" because he controls checkpoints
+Letters exist in NPC letter decks based on narrative context:
+- Elena has "Marriage Refusal" (depth 5) because she faces forced marriage
+- Marcus has "Trade Contract" (depth 8) because he's a merchant
+- Guard Captain has "Access Permit" (depth 10) because he controls checkpoints
 
-Each letter tagged with emotional states when naturally offered:
+Each letter is tagged with emotional states when naturally offered:
 - "Marriage Refusal": Desperate, Tense (when urgent)
 - "Trade Contract": Eager, Neutral (when business-focused)
 - "Access Permit": Neutral, Open (when cooperative)
 
-No token requirements. Tokens only affect success chance.
+During LISTEN, letters are eligible if:
+1. Current emotional state matches letter's tags
+2. Current comfort ≥ letter's depth
+
+Tokens only affect success chance when playing the letter card, never gate access.
 
 ### Personality Types
 
@@ -372,10 +388,10 @@ Personality modifiers:
 To deliver out of order, burn tokens with displaced NPCs:
 - Jump 1 position: -1 token with each displaced NPC
 - Jump 2 positions: -2 tokens with each displaced NPC
-- Jump 3 positions: -3 tokens with each displaced NPC
+- Jump 3+ positions: -3 tokens with each displaced NPC
 
 Token type burned matches NPC personality.
-Each negative token with NPC adds burden card to their deck.
+Each negative token adds burden card to their deck.
 
 ## Observation System
 
@@ -487,7 +503,7 @@ Adds cards to recipient's deck:
 
 ### Failed Delivery
 Adds burden cards to sender's deck:
-- 1 burden cards per failure
+- 1 burden card per failure
 - Weight 2, blocks hand slot
 - Must be resolved through play
 

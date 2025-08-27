@@ -828,14 +828,16 @@ public class GameFacade
                     continue;
                 }
                 
-                // Filter out observations about NPCs not at current spot
-                if (obs.RelevantNPCs?.Any() == true)
+                // For observations that require specific NPCs, only show if NPC is present
+                // This is for observations like "Elena's visible distress" that require Elena
+                // But general observations about guard checkpoints etc. don't require NPCs
+                if (obs.Automatic == true && obs.RelevantNPCs?.Any() == true)
                 {
-                    // Check if any of the relevant NPCs are at the current spot
+                    // Automatic observations (like Elena's distress) require the NPC to be present
                     bool hasNpcAtSpot = obs.RelevantNPCs.Any(npcId => npcIdsAtCurrentSpot.Contains(npcId));
                     if (!hasNpcAtSpot)
                     {
-                        continue; // Skip observations about NPCs at other spots
+                        continue; // Skip automatic observations if NPC not present
                     }
                 }
                 
