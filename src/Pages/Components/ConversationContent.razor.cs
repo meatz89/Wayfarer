@@ -17,7 +17,7 @@ namespace Wayfarer.Pages.Components
 
         protected ConversationSession Session { get; set; }
         protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
-        protected int TotalSelectedWeight => SelectedCards.Sum(c => c.Weight);
+        protected int TotalSelectedWeight => SelectedCards.Sum(c => c.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.GUARDED));
         protected bool IsProcessing { get; set; }
         
         protected string NpcName { get; set; }
@@ -165,7 +165,7 @@ namespace Wayfarer.Pages.Components
                 // Add detailed notification for result
                 if (messageSystem != null && result != null)
                 {
-                    // Check if this was an exchange
+                    // Check if this was an exchange and execute it
                     if (exchangeCard != null)
                     {
                         if (result.Results?.Any(r => r.Success) == true)
@@ -176,7 +176,23 @@ namespace Wayfarer.Pages.Components
                             }
                             else
                             {
-                                messageSystem.AddSystemMessage($"Exchange successful! Received {exchangeCard.Context?.ExchangeReward}", SystemMessageTypes.Success);
+                                // Actually execute the exchange through GameFacade
+                                if (exchangeCard.Context?.ExchangeData != null && Context?.NpcId != null)
+                                {
+                                    var exchangeSuccess = await GameFacade.ExecuteExchange(Context.NpcId, exchangeCard.Context.ExchangeData);
+                                    if (exchangeSuccess)
+                                    {
+                                        messageSystem.AddSystemMessage($"Exchange successful! Received {exchangeCard.Context?.ExchangeReward}", SystemMessageTypes.Success);
+                                    }
+                                    else
+                                    {
+                                        messageSystem.AddSystemMessage("Exchange failed: Insufficient resources", SystemMessageTypes.Warning);
+                                    }
+                                }
+                                else
+                                {
+                                    messageSystem.AddSystemMessage($"Exchange successful! Received {exchangeCard.Context?.ExchangeReward}", SystemMessageTypes.Success);
+                                }
                             }
                         }
                         else if (result.Results?.Any(r => !r.Success) == true)
@@ -547,8 +563,9 @@ namespace Wayfarer.Pages.Components
             // Check if observation card is expired
             if (IsObservationExpired(card)) return false;
             
-            // Check weight limit
-            var newWeight = TotalSelectedWeight + card.Weight;
+            // Check weight limit - use effective weight which accounts for free categories in certain states
+            var effectiveWeight = card.GetEffectiveWeight(Session.CurrentState);
+            var newWeight = TotalSelectedWeight + effectiveWeight;
             return newWeight <= GetWeightLimit();
         }
 

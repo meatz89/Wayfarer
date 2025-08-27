@@ -247,7 +247,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5127\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5127\" dotnet run)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5275\" dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5275\" dotnet run)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5275\" dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5000\" dotnet run --no-build)"
     ],
     "deny": []
   }

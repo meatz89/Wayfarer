@@ -238,6 +238,10 @@ public class ConversationManager
                 }
                 
                 // Execute the actual exchange directly
+                Console.WriteLine($"[EXCHANGE DEBUG] About to execute exchange for card {card.Id}");
+                Console.WriteLine($"[EXCHANGE DEBUG] card.Context null? {card.Context == null}");
+                Console.WriteLine($"[EXCHANGE DEBUG] card.Context.ExchangeData null? {card.Context?.ExchangeData == null}");
+                
                 var exchangeSuccess = await ExecuteExchangeAsync(card.Context.ExchangeData);
                 if (!exchangeSuccess)
                 {
@@ -442,6 +446,8 @@ public class ConversationManager
     /// </summary>
     private async Task<bool> ExecuteExchangeAsync(ExchangeCard exchange)
     {
+        Console.WriteLine($"[EXCHANGE DEBUG] ExecuteExchangeAsync called with exchange: {exchange?.Id ?? "NULL"}");
+        
         if (exchange == null)
         {
             Console.WriteLine("[ExecuteExchangeAsync] Exchange is null");
@@ -531,6 +537,21 @@ public class ConversationManager
                     break;
                 case ResourceType.ShadowToken:
                     tokenManager.AddTokens(ConnectionType.Shadow, reward.Amount);
+                    break;
+                case ResourceType.Attention:
+                    // Attention rewards add to current time block's attention
+                    var rewardTimeBlock = timeManager.GetCurrentTimeBlock();
+                    var rewardAttentionMgr = timeBlockAttentionManager.GetCurrentAttention(rewardTimeBlock);
+                    if (reward.IsAbsolute)
+                    {
+                        // Set attention to specific value (for lodging/rest)
+                        rewardAttentionMgr.SetAttention(reward.Amount);
+                    }
+                    else
+                    {
+                        // Add to current attention
+                        rewardAttentionMgr.AddAttention(reward.Amount);
+                    }
                     break;
             }
         }

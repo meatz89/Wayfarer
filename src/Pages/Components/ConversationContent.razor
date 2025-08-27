@@ -136,13 +136,19 @@
                          @onclick="() => ToggleCardSelection(card)">
                         @if (card.GetEffectiveWeight(Context.Session.CurrentState) == 0)
                         {
-                            <div class="card-marker free">FREE!</div>
+                            <div class="card-marker free-weight">FREE!</div>
+                        }
+                        @if (card.Category == CardCategory.CRISIS)
+                        {
+                            <div class="card-marker crisis">CRISIS</div>
                         }
                         @if (card.IsObservation)
                         {
-                            <div class="observation-decay-indicator @GetObservationDecayClass(card)">
-                                @GetObservationDecayDescription(card)
-                            </div>
+                            <div class="card-marker opportunity">OBSERVATION</div>
+                        }
+                        @if (card.Category == CardCategory.EXCHANGE)
+                        {
+                            <div class="card-marker negotiate">EXCHANGE</div>
                         }
                         <div class="card-header">
                             <div class="card-identity">
@@ -154,9 +160,11 @@
                                     }
                                 </div>
                             </div>
-                            <div class="card-weight">
-                                <span class="weight-label">Weight</span>
-                                <span class="weight-value">@card.GetEffectiveWeight(Context.Session.CurrentState)</span>
+                            <div class="card-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Weight</span>
+                                    <span class="stat-value">@card.GetEffectiveWeight(Context.Session.CurrentState)</span>
+                                </div>
                             </div>
                         </div>
                         @if (card.Category == CardCategory.EXCHANGE && card.Context != null)
@@ -188,7 +196,9 @@
                                         <span class="outcome-chance">@GetSuccessChance(card)%</span>
                                     </div>
                                     <div class="outcome-effects">
-                                        <div class="effect">@GetSuccessEffect(card)</div>
+                                        <div class="effect">
+                                            <span class="effect-value">@GetSuccessEffect(card)</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="outcome failure">
@@ -197,7 +207,9 @@
                                         <span class="outcome-chance">@GetFailureChance(card)%</span>
                                     </div>
                                     <div class="outcome-effects">
-                                        <div class="effect">@GetFailureEffect(card)</div>
+                                        <div class="effect">
+                                            <span class="effect-value">@GetFailureEffect(card)</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

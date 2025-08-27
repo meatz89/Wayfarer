@@ -12,6 +12,11 @@ public class ConversationSession
     /// The NPC in conversation
     /// </summary>
     public NPC NPC { get; init; }
+    
+    /// <summary>
+    /// The type of conversation (Standard, Crisis, Exchange, etc.)
+    /// </summary>
+    public ConversationType ConversationType { get; init; }
 
     /// <summary>
     /// Current emotional state (changes through play)
@@ -135,6 +140,7 @@ public class ConversationSession
         var session = new ConversationSession
         {
             NPC = npc,
+            ConversationType = conversationType,
             CurrentState = initialState,
             HandCards = handCards,
             Deck = npc.ConversationDeck,  // Use the NPC's actual deck
@@ -239,6 +245,7 @@ public class ConversationSession
         return new ConversationSession
         {
             NPC = npc,
+            ConversationType = ConversationType.QuickExchange,
             CurrentState = EmotionalState.NEUTRAL, // No emotional states in exchanges
             HandCards = handCards, // Contains both accept and decline cards
             Deck = new CardDeck(), // Empty deck - exchanges use ExchangeDeck instead
@@ -299,6 +306,7 @@ public class ConversationSession
         return new ConversationSession
         {
             NPC = npc,
+            ConversationType = ConversationType.Crisis,
             CurrentState = initialState,
             HandCards = handCards,
             Deck = deck,
@@ -535,7 +543,7 @@ public class ConversationSession
             
         // For crisis conversations, we don't end just because cards are empty
         // The player still gets their patience turns to try to resolve the crisis
-        if (!Deck.IsCrisis())
+        if (ConversationType != ConversationType.Crisis)
         {
             // For normal conversations, check if deck is empty
             if (Deck.IsEmpty)
