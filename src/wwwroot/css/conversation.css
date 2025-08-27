@@ -1522,3 +1522,57 @@
     margin-top: 5px;
     font-weight: bold;
 }
+
+/* Exhaustion state styling */
+.conversation-exhausted {
+    text-align: center;
+    padding: 30px;
+    background: linear-gradient(135deg, #2a1810 0%, #1a1210 100%);
+    border: 2px solid #8b6936;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.exhaustion-message {
+    margin-bottom: 25px;
+}
+
+.exhaustion-message p {
+    color: #d4af37;
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin: 10px 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.exhaustion-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.exhaustion-actions .action-button {
+    background: linear-gradient(135deg, #5a4020 0%, #4a3515 100%);
+    border: 2px solid #8b6936;
+    padding: 12px 24px;
+    border-radius: 5px;
+    color: #faebd7;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.exhaustion-actions .action-button:hover {
+    background: linear-gradient(135deg, #6a5030 0%, #5a4525 100%);
+    border-color: #d4af37;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.exhaustion-actions .action-button .action-details {
+    font-size: 0.85em;
+    color: #c9b894;
+    font-weight: normal;
+    margin-top: 4px;
+}

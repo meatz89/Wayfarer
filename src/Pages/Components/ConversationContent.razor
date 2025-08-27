@@ -91,7 +91,7 @@
                     </button>
                 </div>
             }
-            else if (!Session.ShouldEnd())
+            else if (!IsConversationExhausted)
             {
                 <div class="turn-indicator">Turn @(Session.TurnNumber + 1) • @Session.CurrentPatience patience remaining</div>
                 <div class="action-choices">
@@ -111,9 +111,16 @@
             }
             else
             {
-                <div class="conversation-complete">
-                    <p>Conversation Complete</p>
-                    <button @onclick="EndConversation">Return to Location</button>
+                <div class="conversation-exhausted">
+                    <div class="exhaustion-message">
+                        <p>@ExhaustionReason</p>
+                    </div>
+                    <div class="exhaustion-actions">
+                        <button class="action-button primary" @onclick="ManuallyEndConversation">
+                            <div>END CONVERSATION</div>
+                            <div class="action-details">Return to location</div>
+                        </button>
+                    </div>
                 </div>
             }
         </div>

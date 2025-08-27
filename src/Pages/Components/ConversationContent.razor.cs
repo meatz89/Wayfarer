@@ -19,6 +19,8 @@ namespace Wayfarer.Pages.Components
         protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
         protected int TotalSelectedWeight => SelectedCards.Sum(c => c.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.GUARDED));
         protected bool IsProcessing { get; set; }
+        protected bool IsConversationExhausted { get; set; } = false;
+        protected string ExhaustionReason { get; set; } = "";
         
         protected string NpcName { get; set; }
         protected string LastNarrative { get; set; }
@@ -126,15 +128,18 @@ namespace Wayfarer.Pages.Components
                 
                 if (Session.ShouldEnd())
                 {
+                    // Don't auto-exit! Set exhaustion state instead
+                    IsConversationExhausted = true;
+                    ExhaustionReason = GetConversationEndReason();
+                    
                     // Add notification about conversation ending
                     if (messageSystem != null)
                     {
-                        var reason = GetConversationEndReason();
-                        messageSystem.AddSystemMessage(reason, SystemMessageTypes.Info);
+                        messageSystem.AddSystemMessage(ExhaustionReason, SystemMessageTypes.Info);
                     }
                     
-                    // Remove delay - conversations should end immediately
-                    await OnConversationEnd.InvokeAsync();
+                    // Don't invoke end - let player click button
+                    // await OnConversationEnd.InvokeAsync();
                 }
             }
             finally
@@ -251,15 +256,18 @@ namespace Wayfarer.Pages.Components
                 
                 if (Session.ShouldEnd())
                 {
+                    // Don't auto-exit! Set exhaustion state instead
+                    IsConversationExhausted = true;
+                    ExhaustionReason = GetConversationEndReason();
+                    
                     // Add notification about conversation ending
                     if (messageSystem != null)
                     {
-                        var reason = GetConversationEndReason();
-                        messageSystem.AddSystemMessage(reason, SystemMessageTypes.Info);
+                        messageSystem.AddSystemMessage(ExhaustionReason, SystemMessageTypes.Info);
                     }
                     
-                    // Remove delay - conversations should end immediately
-                    await OnConversationEnd.InvokeAsync();
+                    // Don't invoke end - let player click button
+                    // await OnConversationEnd.InvokeAsync();
                 }
             }
             finally
@@ -899,10 +907,10 @@ namespace Wayfarer.Pages.Components
                 return $"Letter obtained! Check your queue. (Comfort: {Session.CurrentComfort})";
                 
             if (Session.CurrentPatience <= 0)
-                return "NPC's patience exhausted - conversation ended";
+                return $"{NpcName}'s patience has been exhausted. They have no more time for you today.";
                 
             if (Session.CurrentState == EmotionalState.HOSTILE)
-                return $"{NpcName} became hostile and ended the conversation";
+                return $"{NpcName} has become hostile and refuses to continue speaking with you.";
                 
             if (Context?.Type == ConversationType.QuickExchange)
                 return "Exchange completed - conversation ended";
@@ -915,6 +923,12 @@ namespace Wayfarer.Pages.Components
                 return $"Conversation ended naturally (Comfort reached: {Session.CurrentComfort})";
             else
                 return "Conversation ended";
+        }
+        
+        protected async Task ManuallyEndConversation()
+        {
+            // Player clicked "End Conversation" button
+            await OnConversationEnd.InvokeAsync();
         }
         
         /// <summary>
