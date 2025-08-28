@@ -17,7 +17,7 @@ This scenario demonstrates all three core game loops working together to create 
 ### Strategic Layers
 - **Emotional State Navigation**: States filter drawable cards only
 - **Comfort Building**: Depth access requires careful accumulation within conversation
-- **Token Investment**: Linear +5% per token, also displacement currency
+- **Token Investment**: Linear +5% per token for all cards including negotiations
 - **Queue Management**: Position 1 must complete first, multiple obligations compete
 
 ## Starting Configuration
@@ -161,36 +161,37 @@ From Copper Kettle Common Room:
 - "Open Hearts" (D8): Neutral→Open, 65% base
 - "Soul Bond" (D14): Open→Connected, 65% base
 
-**Knowledge Cards** (2 total):
-- "Share Route" (D6): Creates "Noble Routes" observation
-- "Guard Info" (D9): Creates "Guard Timing" observation
-
 **Burden Cards** (2 starting - past failure):
 - "Broken Promise" (D1/W2): Remove on success, 55% base
 - "Lost Faith" (D3/W2): Remove on success, 55% base
 
-**Letter Deck** (State + Token + Depth Requirements):
+**Goal Deck** (Separate from conversation deck):
 
 - **"Crisis Refusal"** (Trust Letter)
-  - Required: 1+ Trust tokens ✓ (you have 1)
-  - State Tag: [Desperate/Tense]
+  - Valid States: [Desperate/Tense]
   - Depth: 3 (need comfort 3+ to draw)
-  - Negotiation Success: 4hr deadline, position 3, 10 coins
-  - Negotiation Failure: 1hr deadline, position 1, 5 coins
+  - Base Negotiation: 50% + (Trust tokens × 5%)
+  - Success Terms: 4hr deadline, position 3, 10 coins
+  - Failure Terms: 1hr deadline, position 1, 5 coins
 
 - **"Formal Refusal"** (Trust Letter)
-  - Required: 2+ Trust tokens ✗ (need 1 more)
-  - State Tag: [Neutral/Open]
+  - Valid States: [Neutral/Open]
   - Depth: 7 (need comfort 7+ to draw)
-  - Negotiation Success: 6hr deadline, lowest available, 15 coins
-  - Negotiation Failure: 3hr deadline, position 2, 10 coins
+  - Base Negotiation: 50% + (Trust tokens × 5%)
+  - Success Terms: 6hr deadline, lowest available, 15 coins
+  - Failure Terms: 3hr deadline, position 2, 10 coins
 
 - **"Personal Letter"** (Trust Letter)
-  - Required: 3+ Trust tokens ✗ (need 2 more)
-  - State Tag: [Open/Connected]
+  - Valid States: [Open/Connected]
   - Depth: 10 (need comfort 10+ to draw)
-  - Negotiation Success: 8hr deadline, flexible position, 20 coins
-  - Negotiation Failure: 4hr deadline, position 3, 15 coins
+  - Base Negotiation: 50% + (Trust tokens × 5%)
+  - Success Terms: 8hr deadline, flexible position, 20 coins
+  - Failure Terms: 4hr deadline, position 3, 15 coins
+
+- **"Clear the Air"** (Resolution Goal)
+  - Valid States: [Any]
+  - Depth: 5
+  - Effect: Remove burden cards on success
 
 **Crisis Deck**:
 - "Everything Falls Apart" (D0/W5→0 in Desperate)
@@ -213,21 +214,20 @@ From Copper Kettle Common Room:
   - 1 at W3: +8 comfort, 45% base
 - 2 Token cards: Commerce (D6), Shadow (D10)
 - 2 State cards: Neutral→Eager (D4), Any→Neutral (D8)
-- 1 Knowledge card: Creates "Hidden Path" observation (D8)
-- 1 Goal card (shuffled in based on conversation type)
+- 2 Burden cards (if relationship damaged)
 
-**Possible Goal Cards** (one chosen per conversation):
+**Goal Deck**:
 - "Package Delivery" (Commerce Promise)
-  - States: Eager, Neutral
+  - Valid States: Eager, Neutral
   - Depth: 6
-  - Base Success: 45% (+5% per Commerce token)
+  - Base Negotiation: 45% + (Commerce tokens × 5%)
   - Success: 6hr deadline, position 3, 8 coins
   - Failure: 3hr deadline, position 2, 8 coins
 
 - "Noble Permit Sale" (Commerce Promise)
-  - States: Eager only
+  - Valid States: Eager only
   - Depth: 4
-  - Base Success: 50% (+5% per Commerce token)
+  - Base Negotiation: 50% + (Commerce tokens × 5%)
   - Success: Pay 12 coins, get permit
   - Failure: Pay 15 coins, get permit
 
@@ -236,7 +236,7 @@ From Copper Kettle Common Room:
 - "Purchase Medicine": 5 coins → Health +20
 - "Buy Access Permit": 15 coins → Noble District Permit (you can't afford!)
 - "Accept Quick Job": Accept → New obligation (8 coins, 3hr deadline)
-- "Trade Information": 1 Shadow token → Alternative route knowledge
+- "Trade Information": Give observation card → Alternative route knowledge
 
 ### Guard Captain - The Gatekeeper
 
@@ -250,15 +250,14 @@ From Copper Kettle Common Room:
 - 6 Status comfort cards
 - 3 Shadow comfort cards  
 - 1 Token card: Shadow (D8)
-- 1 State card: Tense→Neutral (D4), Guarded→Open (D7)
-- 1 Knowledge card: Creates "Patrol Schedule" observation
-- 1 Goal card (conversation dependent)
+- 2 State cards: Tense→Neutral (D4), Guarded→Open (D7)
+- 1 Burden card (if damaged)
 
-**Goal Card**:
+**Goal Deck**:
 - "Checkpoint Pass" (Shadow Promise/Permit)
-  - States: Neutral only
+  - Valid States: Neutral only
   - Depth: 8
-  - Base Success: 35% (+5% per Shadow token)
+  - Base Negotiation: 35% + (Shadow tokens × 5%)
   - Success: 24hr access permit, no cost
   - Failure: 2hr access permit, 5 coin fee
 
@@ -274,7 +273,7 @@ From Copper Kettle Common Room:
 - "Quick Meal": 2 coins → Hunger = 0
 - "Short Rest": 2 coins → +3 attention, advance 2 hours
 - "Full Night": 5 coins → Morning refresh (loses entire day!)
-- "Noble Gossip": 3 coins → "Noble Schedule" observation
+- "Noble Gossip": 3 coins → Observation card for player deck
 - "Packed Lunch": 4 coins → Item: Reset hunger when used
 
 ### Lord Blackwood - The Recipient
@@ -290,13 +289,13 @@ From Copper Kettle Common Room:
 - Cannot converse (just delivery)
 - Proud personality affects queue negotiations
 
-## Observation System
+## Player Observation Deck System
 
-### Dynamic Knowledge System
-Observations are state change cards with expiration:
+### Building Your Deck
+The player maintains their own observation deck (max 20 cards):
 - Cost: 1 attention at specific locations
-- Effect: State change card added to hand
-- Weight: 0-2 (varies by observation)
+- Effect: State change card added to player deck
+- Weight: 1 (always playable)
 - Success rate: 85%
 - Expiration: 24-48 hours (no decay)
 
@@ -318,12 +317,10 @@ Observations are state change cards with expiration:
 - "Bribery Option" → Hostile to Neutral (expires 6hr)
 
 ### Conversation-Generated Observations
-Knowledge cards in NPC decks can create:
+NPCs can reward observation cards:
 - "Noble Routes" → Neutral to Open (travel context)
 - "Guard Timing" → Tense to Neutral (authority context)
 - "Hidden Path" → Any to Eager (commerce context)
-
-## Emotional State Effects
 
 ## Emotional State Effects
 
@@ -403,7 +400,7 @@ Perfect play: 2-3 turns to reach any letter depth
 
 ### Token Economics
 
-**Linear Benefits (ALL cards including letters)**:
+**Linear Benefits (ALL cards including negotiations)**:
 - 0 tokens: Base rates (35-65% depending on card)
 - 2 tokens: +10% success (45-75%)
 - 4 tokens: +20% success (55-85%)
@@ -414,7 +411,7 @@ Perfect play: 2-3 turns to reach any letter depth
 - Commerce tokens help Commerce letter negotiations
 - Each matching token type adds 5% to negotiation success
 - Better success = better deadlines, payment, queue position
-- No gates - letters accessible at 0 tokens, just harder negotiation
+- Letters accessible at any token level, just harder negotiation
 
 **Displacement Costs**:
 - Each token burned adds burden card
@@ -455,7 +452,7 @@ To deliver Elena immediately from position 3:
 **Morning** (8 attention, 10 coins, 60 hunger):
 1. Work at Merchant Row (-2 att, +8 coins, →Midday)
 2. Exchange: Buy food (-3 coins, hunger→0)
-3. Observe "Guard Routes" (-1 att, gain state card)
+3. Observe "Guard Routes" (-1 att, gain observation card)
 
 **Midday** (5 attention, 15 coins, 0 hunger):
 4. Complete Marcus delivery (-2 Commerce for displacement)
@@ -502,13 +499,13 @@ To deliver Elena immediately from position 3:
 
 ### Path D: Guard Captain Route
 **Morning**:
-1. Build Shadow tokens with Guard Captain (need 4 more!)
-2. Wait for night shift (6 PM)
+1. Build Shadow tokens with Guard Captain
+2. Multiple conversations to reach 5+ Shadow tokens
 
 **Evening**:
 3. Guard in Neutral state
 4. Build comfort to D8
-5. Get Checkpoint Pass letter (if had 5 Shadow tokens)
+5. Negotiate Checkpoint Pass letter
 6. Free access to Noble District
 
 **Results**: No bribe needed but requires heavy token investment
@@ -613,7 +610,7 @@ W3 card, 0 tokens:
 ### Context Changes Everything
 
 **Scenario 1**: Elena Desperate, You have 3 Trust tokens
-- +15% success on all cards (base + 15% from 3 tokens)
+- +15% success on all cards
 - Letter negotiations much more favorable
 - Crisis cards still risky but manageable
 - Can build momentum to reduce patience cost
@@ -664,6 +661,6 @@ The scenario demonstrates elegant complexity through simple rules:
 - **One Card Per Turn**: Authentic conversation rhythm
 - **Linear Progression**: Every token matters equally
 - **Queue Displacement**: Permanent sacrifice for flexibility
-- **Fleeting Cards**: Tactical hand management
+- **Player Observation Deck**: Built knowledge provides tactical advantages
 
 No thresholds, no hidden mechanics, no soft locks. Every mechanic serves one purpose while resources flow through multiple systems. The puzzle emerges from interaction, not complication.

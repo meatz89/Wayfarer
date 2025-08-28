@@ -80,17 +80,6 @@ public enum PersistenceType
 }
 
 /// <summary>
-/// Card power levels for token-based progression
-/// </summary>
-public enum CardPowerLevel
-{
-    Basic = 0,       // 0 tokens required
-    Intermediate = 3, // 3 tokens required
-    Advanced = 5,    // 5 tokens required  
-    Master = 10      // 10 tokens required
-}
-
-/// <summary>
 /// A single conversation card representing something to say or do.
 /// Cards are the atomic units of conversation.
 /// </summary>

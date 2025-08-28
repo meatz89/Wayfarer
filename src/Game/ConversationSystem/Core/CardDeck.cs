@@ -13,7 +13,6 @@ public class CardDeck : IEnumerable<ICard>
     private readonly List<ICard> cards;
     private readonly List<ICard> discardPile;
     private readonly Random random;
-    private Dictionary<ConnectionType, int> currentTokens;
     private static GameWorld _gameWorld;
 
     public CardDeck()
@@ -35,7 +34,7 @@ public class CardDeck : IEnumerable<ICard>
     /// <summary>
     /// Initialize deck for an NPC based on personality
     /// </summary>
-    public void InitializeForNPC(NPC npc, TokenMechanicsManager tokenManager)
+    public void InitializeForNPC(NPC npc)
     {
         cards.Clear();
         discardPile.Clear();
@@ -46,11 +45,8 @@ public class CardDeck : IEnumerable<ICard>
             return;
         }
 
-        // Store tokens for filtering during draw
-        currentTokens = tokenManager?.GetTokensWithNPC(npc.ID) ?? new Dictionary<ConnectionType, int>();
-
         // Load all cards for this NPC from GameWorld templates
-        var npcCards = GetCardsForNPC(npc, currentTokens);
+        var npcCards = GetCardsForNPC(npc);
         cards.AddRange(npcCards);
 
         // NPCs with burden history get additional burden cards
@@ -245,22 +241,6 @@ public class CardDeck : IEnumerable<ICard>
         Shuffle();
     }
 
-    /// <summary>
-    /// Get depth threshold for token count
-    /// </summary>
-    public static int GetDepthThresholdForTokens(ConnectionType type, int tokenCount)
-    {
-        // More tokens = access to deeper (higher depth) cards
-        return tokenCount switch
-        {
-            0 => 5,   // No tokens: only basic cards (depth 0-5)
-            1 => 10,  // 1 token: access to depth 6-10 cards
-            2 => 15,  // 2 tokens: access to depth 11-15 cards
-            3 => 20,  // 3 tokens: access to depth 16-20 cards
-            4 => 25,  // 4 tokens: access to depth 21-25 cards
-            _ => 30   // 5+ tokens: access to all cards
-        };
-    }
 
     /// <summary>
     /// Get all cards in the deck (for debugging)
@@ -479,7 +459,7 @@ public class CardDeck : IEnumerable<ICard>
     /// <summary>
     /// Get all cards for an NPC's personality from GameWorld templates
     /// </summary>
-    private List<ICard> GetCardsForNPC(NPC npc, Dictionary<ConnectionType, int> tokens)
+    private List<ICard> GetCardsForNPC(NPC npc)
     {
         var cards = new List<ICard>();
 
@@ -501,29 +481,6 @@ public class CardDeck : IEnumerable<ICard>
                 if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
                 {
                     cards.Add(card);
-                }
-            }
-        }
-
-        // Add token-unlocked cards if applicable
-        if (tokens != null && tokens.Any())
-        {
-            foreach (var kvp in _gameWorld.TokenUnlocks)
-            {
-                var requiredTokens = kvp.Key;
-                var unlockedCardIds = kvp.Value;
-                
-                // Check if player has enough tokens
-                var totalTokens = tokens.Values.Sum();
-                if (totalTokens >= requiredTokens)
-                {
-                    foreach (var cardId in unlockedCardIds)
-                    {
-                        if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
-                        {
-                            cards.Add(card);
-                        }
-                    }
                 }
             }
         }

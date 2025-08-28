@@ -11,7 +11,7 @@ Cards are the atomic unit of interaction in Wayfarer. Each card has exactly ONE 
 1. **Comfort**: Temporary depth access within current conversation
 2. **Tokens**: Permanent relationship capital (+5% success per token)
 3. **State Changes**: Reshaping the conversation landscape
-4. **Knowledge**: Gaining observations for world navigation
+4. **Observations**: Player's deck of world knowledge for tactical advantages
 
 Each track serves different strategic goals. The puzzle is recognizing which track matters most in the current context.
 
@@ -53,7 +53,7 @@ The same card has different strategic importance based on:
 
 Same pattern for Commerce, Status, Shadow tokens.
 
-**Strategic Role**: Build specific relationship types for promise access and future success rates. Investment in long-term relationship vs immediate needs.
+**Strategic Role**: Build specific relationship types for better negotiation outcomes and future success rates. Investment in long-term relationship vs immediate needs.
 
 ### State Cards
 **Single Effect**: Change emotional state
@@ -82,16 +82,14 @@ All Weight 1 for accessibility regardless of depth.
 ### Goal Cards (The Conversation Heart)
 **Single Effect**: Define conversation purpose and create obligations
 
-**Goal Types**:
-- **Letter Promise**: Accept delivery obligation (Trust/Commerce/Status/Shadow)
-- **Meeting Promise**: Accept time-specific appointment
-- **Escort Promise**: Accept NPC transport obligation
-- **Investigation Promise**: Accept information gathering task
-- **Resolution Goal**: Remove burden cards from deck
-- **Commerce Goal**: Complete special exchange
-- **Crisis Goal**: Resolve emergency situation
+**Goal Selection**: Based on conversation type player chooses:
+- **Letter Conversation**: Letter goal shuffled in
+- **Promise Conversation**: Meeting/Escort/Investigation goal
+- **Resolution Conversation**: Burden removal goal
+- **Commerce Conversation**: Special trade goal
+- **Crisis Conversation**: Emergency resolution goal
 
-**The Urgency Rule**: Once drawn, must be played within 3 turns or conversation fails. This creates authentic pressure - important matters can't be ignored.
+**The Urgency Rule**: Once drawn, gains Goal persistence - must be played within 3 turns or conversation fails. This creates authentic pressure - important matters can't be ignored.
 
 **Negotiation Mechanics**:
 - Base success varies by goal type (35-50%)
@@ -102,17 +100,21 @@ All Weight 1 for accessibility regardless of depth.
 
 **Strategic Role**: The culmination of conversation investment. Everything builds toward accessing and successfully negotiating the goal.
 
-### Knowledge Cards
-**Single Effect**: Create observation card
+### Observation Cards (Player's Deck)
+**Single Effect**: State change cards
 
-**Information Types**:
-- "Ask About Routes": Creates travel state change card
-- "Request Work": Creates work opportunity at location
-- "Probe Secrets": Creates shadow state change
-- "Learn Schedule": Creates NPC availability knowledge
-- "Gather Intel": Creates authority avoidance card
+**Acquisition Types**:
+- Location observations (1 attention at spots)
+- Conversation rewards (NPCs share knowledge)
+- Travel discoveries (route information)
 
-**Strategic Role**: Build options for future conversations and world navigation. Information as currency.
+**Properties**:
+- Weight 1 (always playable)
+- 85% success rate
+- Expire after 24-48 hours
+- Maximum 20 cards in player deck
+
+**Strategic Role**: Build tactical advantages for future conversations. Information as currency. Bypass normal state navigation with high-reliability state changes.
 
 ### Burden Cards
 **Single Effect**: Block hand slot until resolved
@@ -134,18 +136,6 @@ All Weight 1 for accessibility regardless of depth.
 - Failure (60%): +2 burden cards
 
 **Strategic Role**: Forced plays in crisis states. Low success rate creates tension - do you have tokens to improve odds?
-
-### Observation Cards (Not from deck)
-**Single Effect**: State change
-
-**World Knowledge**:
-- Gained from location observations (1 attention)
-- Or from knowledge cards
-- Weight 0-2 (varies by observation type)
-- 85% success rate
-- Expires after deadline (24-48 hours)
-
-**Strategic Role**: Bypass normal state navigation. Tactical advantage from world exploration. More reliable than deck state cards due to high success rate.
 
 ## Emotional State Strategy with Momentum
 
@@ -370,7 +360,7 @@ Every card type has different failure cost:
 - Token: No change (wasted turn)
 - State: No change (wasted turn)
 - Letter: Poor terms (still get letter)
-- Knowledge: No observation (wasted turn)
+- Observation: No effect (wasted turn)
 - Burden: Remains in deck (permanent problem)
 - Crisis: +2 burdens (major setback)
 
@@ -419,7 +409,7 @@ Observation cards as tactical tools:
 - Spend attention when entering location
 - Hold state changes for critical moments
 - Observations expire - use before deadline
-- Knowledge cards create observations mid-conversation
+- Build player deck for future flexibility
 
 ## Content Extensibility
 
@@ -429,7 +419,7 @@ Same mechanics, different puzzles:
 
 **Devoted NPC** (Elena):
 - 80% Trust cards
-- Deep Trust tokens required
+- Trust tokens improve negotiations
 - Patient (15 patience base)
 - Personal letter types
 
@@ -456,7 +446,7 @@ Same mechanics, different puzzles:
 Variables that create unique puzzles:
 - Starting emotional state
 - Deck composition (which cards at which depths)
-- Token requirements for letters
+- Token effects on negotiation success
 - Deadline pressure
 - Queue position competition
 - Burden cards from past failures
