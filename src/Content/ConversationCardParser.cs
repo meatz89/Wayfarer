@@ -117,7 +117,7 @@ public class ConversationCardParser
         // Add universal cards
         var universalCards = _cardTemplates.Values
             .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID)
-            .Where(c => c.Category != CardCategory.GOAL && c.Category != CardCategory.CRISIS);
+            .Where(c => c.IsGoalCard != true && c.Category != CardCategory.BURDEN);
 
         foreach (var cardDto in universalCards)
         {
@@ -205,7 +205,7 @@ public class ConversationCardParser
         var cards = new List<ConversationCard>();
         
         var crisisCards = _cardTemplates.Values
-            .Where(c => c.Category == CardCategory.CRISIS)
+            .Where(c => c.Category == CardCategory.BURDEN)
             .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID);
 
         foreach (var cardDto in crisisCards)

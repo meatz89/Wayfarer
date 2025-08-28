@@ -25,16 +25,18 @@ public enum GoalType
 
 /// <summary>
 /// Mechanical categories that determine how cards function
+/// Cards have categories based on what they DO, not where they come from
 /// </summary>
 public enum CardCategory
 {
-    COMFORT,    // Build comfort, can combine with other comfort cards
-    STATE,      // Change emotional state, must play alone
-    CRISIS,     // Emergency actions, free in DESPERATE state
-    EXCHANGE,   // Exchange cards for Quick Exchange conversations
-    LETTER,     // Letter negotiation cards for creating obligations
-    GOAL,       // Goal cards that end conversation when played
-    OBSERVATION // Observation cards from location observations (in the player deck)
+    COMFORT,    // Modify comfort value only
+    TOKEN,      // Add 1 token of specific type only  
+    STATE,      // Change emotional state only
+    BURDEN,     // Block hand slots until resolved
+    OBSERVATION, // State change cards gained from world (not deck)
+    CRISIS,     // Emergency cards with high stakes
+    PROMISE,    // Create obligations (includes letters and goals)
+    EXCHANGE    // Simple resource trades (mercantile NPCs only)
 }
 
 /// <summary>
@@ -260,11 +262,13 @@ public class ConversationCard
         return Category switch
         {
             CardCategory.COMFORT => "comfort",
+            CardCategory.TOKEN => "token",
             CardCategory.STATE => "state",
+            CardCategory.BURDEN => "burden",
+            CardCategory.OBSERVATION => "observation",
             CardCategory.CRISIS => "crisis",
+            CardCategory.PROMISE => "promise",
             CardCategory.EXCHANGE => "exchange",
-            CardCategory.LETTER => "letter",
-            CardCategory.GOAL => "goal",
             _ => "comfort"
         };
     }

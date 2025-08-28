@@ -649,7 +649,7 @@ namespace Wayfarer.Pages.Components
         protected string GetCardClass(ConversationCard card)
         {
             // Map categories to CSS classes
-            if (card.Category == CardCategory.CRISIS)
+            if (card.Category == CardCategory.BURDEN)
                 return "crisis";
             if (card.Category == CardCategory.STATE)
                 return "state";
@@ -879,8 +879,8 @@ namespace Wayfarer.Pages.Components
             
             if (tokenCount > 0)
             {
-                // Crisis and Goal cards get +10% per token, others get +5%
-                int bonusPerToken = (card.Category == CardCategory.CRISIS || card.Category == CardCategory.GOAL) ? 10 : 5;
+                // Crisis cards and Promise cards (including goals) get +10% per token, others get +5%
+                int bonusPerToken = (card.Category == CardCategory.CRISIS || card.Category == CardCategory.PROMISE) ? 10 : 5;
                 int bonus = tokenCount * bonusPerToken;
                 var result = $"(+{bonus}% from {tokenCount} {tokenType})";
                 Console.WriteLine($"[GetTokenBonusText] Returning: {result}");

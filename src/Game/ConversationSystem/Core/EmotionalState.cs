@@ -178,7 +178,7 @@ public static class ConversationRules
             ListenTransition = EmotionalState.HOSTILE,  // Transitions to HOSTILE
             InjectsCrisis = true,  // INJECT 1 Crisis letter
             CrisisCardsInjected = 1,
-            FreeWeightCategories = new() { CardCategory.CRISIS },  // Crisis letters cost 0 weight
+            FreeWeightCategories = new() { CardCategory.BURDEN },  // Crisis letters cost 0 weight
             ChecksLetterDeck = true  // Check for urgent letters in desperate state
         },
 
@@ -190,8 +190,8 @@ public static class ConversationRules
             ListenTransition = EmotionalState.HOSTILE,  // Stays HOSTILE
             InjectsCrisis = true,  // INJECT 2 Crisis letters
             CrisisCardsInjected = 2,
-            FreeWeightCategories = new() { CardCategory.CRISIS },
-            AllowedCategories = new() { CardCategory.CRISIS },  // ONLY Crisis letters allowed
+            FreeWeightCategories = new() { CardCategory.BURDEN },
+            AllowedCategories = new() { CardCategory.BURDEN },  // ONLY Crisis letters allowed
             ListenEndsConversation = true,  // END conversation after listen
             ChecksLetterDeck = false
         }

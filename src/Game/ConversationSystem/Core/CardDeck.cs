@@ -411,7 +411,7 @@ public class CardDeck
             Persistence = PersistenceType.Crisis,
             Weight = 0, // Free in crisis
             BaseComfort = 8,
-            Category = CardCategory.CRISIS,
+            Category = CardCategory.BURDEN,
             DisplayName = "Crisis Moment",
             Description = $"{npc.Name} needs immediate help!",
             SuccessRate = 35
@@ -428,7 +428,7 @@ public class CardDeck
         // Add universal cards from GameWorld
         var universalCards = _gameWorld.CardTemplates.Values
             .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID)
-            .Where(c => c.Category != CardCategory.GOAL && c.Category != CardCategory.CRISIS);
+            .Where(c => c.IsGoalCard != true && c.Category != CardCategory.BURDEN);
 
         foreach (var cardDto in universalCards)
         {
@@ -481,7 +481,7 @@ public class CardDeck
         var cards = new List<ConversationCard>();
         
         var crisisCards = _gameWorld.CardTemplates.Values
-            .Where(c => c.Category == CardCategory.CRISIS)
+            .Where(c => c.Category == CardCategory.BURDEN)
             .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID);
 
         foreach (var cardDto in crisisCards)

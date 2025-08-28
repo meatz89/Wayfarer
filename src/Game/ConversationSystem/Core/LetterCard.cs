@@ -175,7 +175,7 @@ public class LetterCard
             Persistence = PersistenceType.Fleeting, // Letters are opportunities that can be lost
             Weight = Weight,
             BaseComfort = 0, // Letters don't give comfort, they create obligations
-            Category = CardCategory.LETTER, // New category for letter cards
+            Category = CardCategory.PROMISE, // Letters are promises that create obligations
             Depth = Depth,
             DisplayName = Title,
             Description = Description,

@@ -156,7 +156,7 @@ public class NPC
         // Burden cards are identified by having negative comfort, state-changing templates, or crisis indicators
         return ConversationDeck.GetAllCards()
             .Count(card => card.BaseComfort < 0 ||  // Negative comfort indicates burden
-                          card.Category == CardCategory.CRISIS ||  // Crisis cards are burdens
+                          card.Category == CardCategory.BURDEN ||  // Crisis cards are burdens
                           card.Category == CardCategory.STATE ||   // State changes can be burdensome
                           card.Template == CardTemplateType.ShowingTension ||
                           card.Template == CardTemplateType.TenseComment ||

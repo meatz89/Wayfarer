@@ -53,7 +53,7 @@ public class CardSelectionManager
         if (cardWeight > rules.MaxWeight)
         {
             // Exception: Crisis letters can override weight limits when forced
-            if (card.Category != CardCategory.CRISIS)
+            if (card.Category != CardCategory.BURDEN)
                 return false;
         }
 
@@ -124,8 +124,8 @@ public class CardSelectionManager
                 continue;
             }
             
-            // Letter cards create negotiation results and obligations
-            if (card.Category == CardCategory.LETTER)
+            // Promise cards (including letters) create negotiation results and obligations
+            if (card.Category == CardCategory.PROMISE)
             {
                 var letterSuccessChance = card.CalculateSuccessChance(npcTokens);
                 var letterRoll = random.Next(100);
@@ -228,7 +228,7 @@ public class CardSelectionManager
         // ONE-CARD RULE: Always exactly one card
         var card = selectedCards.First();
         
-        if (card.Category == CardCategory.CRISIS)
+        if (card.Category == CardCategory.BURDEN)
             return "DESPERATE ACTION";
         
         if (card.Category == CardCategory.STATE)
@@ -237,8 +237,8 @@ public class CardSelectionManager
         if (card.Category == CardCategory.EXCHANGE)
             return "Exchange Offer";
             
-        if (card.Category == CardCategory.LETTER)
-            return "Letter Negotiation";
+        if (card.Category == CardCategory.PROMISE)
+            return card.IsGoalCard && card.GoalCardType == GoalType.Letter ? "Letter Negotiation" : "Promise Negotiation";
         
         // Default for normal conversation cards
         return $"{card.Type} Expression";

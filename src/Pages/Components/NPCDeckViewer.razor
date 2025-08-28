@@ -359,10 +359,13 @@
         return category switch
         {
             CardCategory.COMFORT => "comfort",
+            CardCategory.TOKEN => "token",
             CardCategory.STATE => "state",
+            CardCategory.BURDEN => "burden",
+            CardCategory.OBSERVATION => "observation",
             CardCategory.CRISIS => "crisis",
+            CardCategory.PROMISE => "promise",
             CardCategory.EXCHANGE => "exchange",
-            CardCategory.LETTER => "letter",
             _ => ""
         };
     }

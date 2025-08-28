@@ -820,7 +820,7 @@ public class ConversationSession
         if (state == EmotionalState.HOSTILE)
         {
             // HOSTILE draws crisis cards only
-            var crisisCards = Deck.DrawFilteredByCategory(baseCount, comfort, CardCategory.CRISIS);
+            var crisisCards = Deck.DrawFilteredByCategory(baseCount, comfort, CardCategory.BURDEN);
             return crisisCards;
         }
         

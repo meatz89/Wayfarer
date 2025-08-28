@@ -392,7 +392,7 @@ namespace Wayfarer.Pages
 
         protected bool HasCrisisSelected()
         {
-            return SelectedCards.Any(c => c.Category == CardCategory.CRISIS);
+            return SelectedCards.Any(c => c.Category == CardCategory.BURDEN);
         }
 
         protected string GetCardClasses(ConversationCard card)
@@ -406,7 +406,7 @@ namespace Wayfarer.Pages
             classes.Add(card.GetCategoryClass());
             
             // Legacy classes for backward compatibility
-            if (card.Category == CardCategory.CRISIS) classes.Add("crisis");
+            if (card.Category == CardCategory.BURDEN) classes.Add("crisis");
             if (card.Category == CardCategory.STATE) classes.Add("state-changer");
             if (card.IsObservation) classes.Add("observation-card");
             if (card.CanDeliverLetter) classes.Add("letter-delivery");
