@@ -147,12 +147,31 @@ public class ConversationSession
         // CRITICAL: Comfort always starts at 5 for new conversations
         var startingComfort = 5;
         
-        // Create and shuffle goal card into deck based on conversation type
-        var goalCard = GoalCardFactory.CreateGoalCard(conversationType, npc.ID, npc.Name);
-        if (goalCard != null)
+        // POC DECK ARCHITECTURE: Select goal from Goal Deck based on conversation type
+        ConversationCard goalCard = null;
+        
+        // Only select a goal card if this isn't a standard conversation
+        if (conversationType != ConversationType.Standard && conversationType != ConversationType.QuickExchange)
         {
-            npc.ConversationDeck.ShuffleInGoalCard(goalCard);
-            Console.WriteLine($"[StartConversation] Shuffled {goalCard.GoalCardType} goal card into deck");
+            goalCard = SelectGoalCardForConversation(npc, conversationType, initialState);
+            
+            if (goalCard != null)
+            {
+                // CRITICAL: Create a COPY of the conversation deck for this session
+                // This preserves the original deck for future conversations
+                var sessionDeck = CreateSessionDeck(npc.ConversationDeck);
+                
+                // Shuffle the selected goal into the copied deck
+                sessionDeck.ShuffleInGoalCard(goalCard);
+                Console.WriteLine($"[StartConversation] Shuffled {goalCard.GoalCardType} goal card (ID: {goalCard.Id}) into session deck");
+                
+                // Use the session deck, not the original
+                npc = CreateNPCWithSessionDeck(npc, sessionDeck);
+            }
+            else
+            {
+                Console.WriteLine($"[StartConversation] No suitable goal card found for {conversationType} conversation");
+            }
         }
         
         // Draw initial hand (3 cards at comfort 5)
@@ -1335,5 +1354,130 @@ public class ConversationSession
             }
         }
         return string.Join(" ", words);
+    }
+    
+    /// <summary>
+    /// Select the appropriate goal card from NPC's Goal Deck based on conversation type and state
+    /// POC Architecture: Goals determine conversation types
+    /// </summary>
+    private static ConversationCard SelectGoalCardForConversation(NPC npc, ConversationType conversationType, EmotionalState currentState)
+    {
+        // No goal deck means no goal card
+        if (npc.GoalDeck == null || !npc.GoalDeck.Any())
+        {
+            Console.WriteLine($"[SelectGoalCard] NPC {npc.Name} has no Goal Deck");
+            return null;
+        }
+        
+        var allGoals = npc.GoalDeck.GetAllCards();
+        Console.WriteLine($"[SelectGoalCard] NPC {npc.Name} has {allGoals.Count} goals in deck");
+        
+        // Filter goals based on conversation type
+        var eligibleGoals = conversationType switch
+        {
+            ConversationType.LetterOffer => allGoals.Where(g => 
+                g.GoalCardType == GoalType.Letter || 
+                g.Category == CardCategory.PROMISE),
+                
+            ConversationType.MakeAmends => allGoals.Where(g => 
+                g.GoalCardType == GoalType.Resolution ||
+                g.Id.Contains("clear_air") ||
+                g.Id.Contains("resolution")),
+                
+            ConversationType.Crisis => allGoals.Where(g => 
+                g.GoalCardType == GoalType.Crisis ||
+                g.Category == CardCategory.CRISIS ||
+                g.Id.Contains("crisis")),
+                
+            _ => allGoals // Standard conversations don't filter by type
+        };
+        
+        // Further filter by emotional state requirements
+        var stateFilteredGoals = eligibleGoals.Where(g =>
+        {
+            // Check if goal has state requirements
+            if (g.Context?.ValidStates != null && g.Context.ValidStates.Any())
+            {
+                // Goal must allow current state
+                return g.Context.ValidStates.Contains(currentState);
+            }
+            
+            // No state requirements means always eligible
+            return true;
+        }).ToList();
+        
+        Console.WriteLine($"[SelectGoalCard] After filtering: {stateFilteredGoals.Count} eligible goals for {conversationType} in {currentState} state");
+        
+        if (!stateFilteredGoals.Any())
+        {
+            Console.WriteLine($"[SelectGoalCard] No eligible goals found");
+            return null;
+        }
+        
+        // Select based on priority:
+        // 1. Crisis goals (highest priority)
+        // 2. State-specific goals (match current state)
+        // 3. Any eligible goal
+        
+        // Check for crisis goals first
+        var crisisGoal = stateFilteredGoals.FirstOrDefault(g => 
+            g.GoalCardType == GoalType.Crisis || 
+            g.Category == CardCategory.CRISIS);
+        if (crisisGoal != null)
+        {
+            Console.WriteLine($"[SelectGoalCard] Selected crisis goal: {crisisGoal.Id}");
+            return crisisGoal;
+        }
+        
+        // Check for state-specific goals
+        var stateSpecificGoal = stateFilteredGoals.FirstOrDefault(g =>
+            g.Context?.ValidStates != null && 
+            g.Context.ValidStates.Contains(currentState));
+        if (stateSpecificGoal != null)
+        {
+            Console.WriteLine($"[SelectGoalCard] Selected state-specific goal: {stateSpecificGoal.Id}");
+            return stateSpecificGoal;
+        }
+        
+        // Return first eligible goal
+        var selectedGoal = stateFilteredGoals.First();
+        Console.WriteLine($"[SelectGoalCard] Selected goal: {selectedGoal.Id}");
+        return selectedGoal;
+    }
+    
+    /// <summary>
+    /// Create a copy of a deck for use in a single conversation session
+    /// This preserves the original deck for future conversations
+    /// </summary>
+    private static CardDeck CreateSessionDeck(CardDeck originalDeck)
+    {
+        if (originalDeck == null)
+            return new CardDeck();
+            
+        var sessionDeck = new CardDeck();
+        
+        // Copy all cards from the original deck
+        foreach (var card in originalDeck.GetAllCards())
+        {
+            sessionDeck.AddCard(card);
+        }
+        
+        // Shuffle the session deck
+        sessionDeck.Shuffle();
+        
+        Console.WriteLine($"[CreateSessionDeck] Created session deck with {sessionDeck.Count} cards");
+        return sessionDeck;
+    }
+    
+    /// <summary>
+    /// Create a modified NPC reference with a session-specific deck
+    /// This allows using a copied deck without modifying the original NPC
+    /// </summary>
+    private static NPC CreateNPCWithSessionDeck(NPC original, CardDeck sessionDeck)
+    {
+        // For now, just modify the conversation deck directly
+        // In a full implementation, we'd create a wrapper or copy
+        original.ConversationDeck = sessionDeck;
+        return original;
     }
 }

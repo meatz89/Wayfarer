@@ -10,7 +10,6 @@ public static class ServiceConfiguration
         services.AddSingleton<DevModeService>();
         
         // Register configuration
-        Console.WriteLine("[SERVICE] Registering IContentDirectory...");
         services.AddSingleton<IContentDirectory>(_ => new ContentDirectory { Path = "Content" });
 
         // Register content validation
