@@ -86,7 +86,7 @@ public class Phase3_NPCDependents : IInitializationPhase
     private void InitializeLetterDeckForNPC(NPC npc)
     {
         // Initialize letter deck for specific NPCs based on POC specification
-        if (npc.ID.ToLower() == "elena")
+        if (npc.ID.ToLower() == "elena" || npc.ID.ToLower() == "elena_merchant")
         {
             npc.LetterDeck = LetterCardFactory.CreateElenaLetterDeck(npc.ID);
             Console.WriteLine($"[Phase3] Initialized letter deck for Elena with {npc.LetterDeck.Count} cards");

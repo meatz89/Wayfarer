@@ -74,7 +74,7 @@ public class NPC
         if (LetterDeck == null || !LetterDeck.Any())
         {
             // For POC, only Elena has letters
-            if (ID == "elena_merchant")
+            if (ID == "elena" || ID == "elena_merchant")
             {
                 LetterDeck = LetterCardFactory.CreateElenaLetterDeck(ID);
             }

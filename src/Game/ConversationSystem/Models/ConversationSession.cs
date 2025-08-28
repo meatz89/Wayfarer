@@ -138,7 +138,7 @@ public class ConversationSession
         }
         
         // Initialize letter deck for Elena (POC character)
-        if (npc.ID == "elena_merchant" && (npc.LetterDeck == null || !npc.LetterDeck.Any()))
+        if ((npc.ID == "elena" || npc.ID == "elena_merchant") && (npc.LetterDeck == null || !npc.LetterDeck.Any()))
         {
             npc.LetterDeck = LetterCardFactory.CreateElenaLetterDeck(npc.ID);
         }
