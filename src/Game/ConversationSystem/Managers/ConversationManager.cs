@@ -106,7 +106,7 @@ public class ConversationManager
             npc,
             queueManager,
             tokenManager,
-            observationCards?.Cast<ICard>().ToList(),  // Convert to List<ICard>
+            observationCards,
             conversationType,
             gameWorld.GetPlayerResourceState()  // Pass player resource state for hunger penalty
         );
@@ -195,7 +195,7 @@ public class ConversationManager
     private ConversationSession StartCrisisConversation(NPC npc, List<ConversationCard> observationCards)
     {
         // Crisis conversations use crisis deck exclusively
-        currentSession = ConversationSession.StartCrisis(npc, queueManager, tokenManager, observationCards?.Cast<ICard>().ToList());
+        currentSession = ConversationSession.StartCrisis(npc, queueManager, tokenManager, observationCards);
         return currentSession;
     }
     
@@ -216,7 +216,7 @@ public class ConversationManager
             npc,
             queueManager,
             tokenManager,
-            observationCards?.Cast<ICard>().ToList(),
+            observationCards,
             ConversationType.Promise,
             gameWorld.GetPlayerResourceState()
         );
@@ -241,7 +241,7 @@ public class ConversationManager
             npc,
             queueManager,
             tokenManager,
-            observationCards?.Cast<ICard>().ToList(),
+            observationCards,
             ConversationType.Resolution,
             gameWorld.GetPlayerResourceState()
         );
@@ -277,7 +277,7 @@ public class ConversationManager
             throw new InvalidOperationException("No active conversation");
         }
 
-        var result = currentSession.ExecuteSpeak(new HashSet<ICard>(selectedCards));
+        var result = currentSession.ExecuteSpeak(selectedCards);
 
         // Handle special card effects
         await HandleSpecialCardEffectsAsync(selectedCards, result);
@@ -566,9 +566,9 @@ public class ConversationManager
     /// <summary>
     /// Execute an exchange card's resource trade
     /// </summary>
-    private async Task<bool> ExecuteExchangeAsync(ConversationCard exchange)
+    private async Task<bool> ExecuteExchangeAsync(ExchangeData exchange)
     {
-        Console.WriteLine($"[EXCHANGE DEBUG] ExecuteExchangeAsync called with exchange: {exchange?.Id ?? "NULL"}");
+        Console.WriteLine($"[EXCHANGE DEBUG] ExecuteExchangeAsync called with exchange: {exchange?.ExchangeName ?? "NULL"}");
         
         if (exchange == null)
         {
@@ -593,7 +593,7 @@ public class ConversationManager
         // Apply costs
         foreach (var cost in exchange.Cost)
         {
-            switch (cost.Type)
+            switch (cost.ResourceType)
             {
                 case ResourceType.Coins:
                     player.Coins -= cost.Amount;
@@ -629,7 +629,7 @@ public class ConversationManager
         // Apply rewards
         foreach (var reward in exchange.Reward)
         {
-            switch (reward.Type)
+            switch (reward.ResourceType)
             {
                 case ResourceType.Coins:
                     player.Coins += reward.Amount;
@@ -681,21 +681,17 @@ public class ConversationManager
         // Generate narrative message
         var exchangeName = exchange.Template switch
         {
-            "food" => "bought travel provisions",
-            "healing" => "purchased medicine",
-            "information" => "traded information",
-            "work" => "helped with inventory",
-            "favor" => "received a noble favor",
-            "lodging" => "rested at the inn",
+            CardTemplateType.Exchange => "completed an exchange",
+            CardTemplateType.SimpleExchange => "made a quick trade",
             _ => "completed an exchange"
         };
         messageSystem.AddSystemMessage($"You {exchangeName} with {currentSession.NPC.Name}", SystemMessageTypes.Success);
         
         // Log for debugging
-        Console.WriteLine($"[ExecuteExchangeAsync] Completed exchange {exchange.Id} with {currentSession.NPC.Name}");
+        Console.WriteLine($"[ExecuteExchangeAsync] Completed exchange {exchange.ExchangeName} with {currentSession.NPC.Name}");
         
         // Exchange cards that cost attention should advance time
-        if (exchange.Cost.Any(c => c.Type == ResourceType.Attention && c.Amount >= 3))
+        if (exchange.Cost.Any(c => c.ResourceType == ResourceType.Attention && c.Amount >= 3))
         {
             // This is a work exchange that advances time
             timeManager.AdvanceTime(1);

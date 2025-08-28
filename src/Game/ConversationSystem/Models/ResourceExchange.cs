@@ -7,8 +7,11 @@ public enum ResourceType
     Health,
     Hunger,
     Attention,
-    Stamina,
-    Favor // For reputation/social exchanges
+    TrustToken,
+    CommerceToken,
+    StatusToken,
+    ShadowToken,
+    Item
 }
 
 /// <summary>
@@ -31,6 +34,11 @@ public class ResourceExchange
     /// For example: "Health = 10" vs "Health +3"
     /// </summary>
     public bool IsAbsolute { get; init; }
+    
+    /// <summary>
+    /// Item ID for Item resource type exchanges
+    /// </summary>
+    public string ItemId { get; init; }
     
     /// <summary>
     /// Display format for UI (e.g., "3 Coins", "Health = 10", "+2 Favor")

@@ -833,7 +833,7 @@ public class ConversationSession
         {
             Console.WriteLine($"[DrawCardsForState] GUARDED - Drawing STATE cards only");
             // GUARDED draws state cards only
-            var stateCards = Deck.DrawFilteredByCategory(baseCount, comfort, CardCategory.STATE);
+            var stateCards = Deck.DrawFilteredByCategory(baseCount, comfort, CardCategory.State);
             return stateCards;
         }
         
@@ -841,7 +841,7 @@ public class ConversationSession
         if (state == EmotionalState.HOSTILE)
         {
             // HOSTILE draws crisis cards only
-            var crisisCards = Deck.DrawFilteredByCategory(baseCount, comfort, CardCategory.BURDEN);
+            var crisisCards = Deck.DrawFilteredByCategory(baseCount, comfort, CardCategory.Burden);
             return crisisCards;
         }
         
@@ -889,7 +889,7 @@ public class ConversationSession
             // Add guaranteed state card
             if (guaranteeStateCard)
             {
-                var stateCard = Deck.DrawFilteredByCategory(1, comfort, CardCategory.STATE);
+                var stateCard = Deck.DrawFilteredByCategory(1, comfort, CardCategory.State);
                 drawnCards.AddRange(stateCard);
             }
             
@@ -920,7 +920,7 @@ public class ConversationSession
         if (guaranteeState)
         {
             Console.WriteLine($"[DrawCardsForState] Adding 1 guaranteed STATE card");
-            var stateCard = Deck.DrawFilteredByCategory(1, comfort, CardCategory.STATE);
+            var stateCard = Deck.DrawFilteredByCategory(1, comfort, CardCategory.State);
             drawnCards.AddRange(stateCard);
         }
         

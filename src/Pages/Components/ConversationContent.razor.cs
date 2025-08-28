@@ -159,7 +159,7 @@ namespace Wayfarer.Pages.Components
                 var messageSystem = GameFacade?.GetMessageSystem();
                 
                 // Check if this is an exchange card
-                var exchangeCard = SelectedCards.FirstOrDefault(c => c.Category == CardCategory.EXCHANGE);
+                var exchangeCard = SelectedCards.FirstOrDefault(c => c.Category == CardCategory.Exchange);
                 if (exchangeCard != null && messageSystem != null)
                 {
                     // For exchanges, show what's being traded
@@ -651,9 +651,9 @@ namespace Wayfarer.Pages.Components
             // Map categories to CSS classes
             if (card.Category == CardCategory.BURDEN)
                 return "crisis";
-            if (card.Category == CardCategory.STATE)
+            if (card.Category == CardCategory.State)
                 return "state";
-            if (card.Category == CardCategory.EXCHANGE)
+            if (card.Category == CardCategory.Exchange)
                 return "exchange";
             if (card.Persistence == PersistenceType.Fleeting)
                 return "observation";
@@ -663,7 +663,7 @@ namespace Wayfarer.Pages.Components
         protected string GetCardName(ConversationCard card)
         {
             // For exchange cards, use the exchange name
-            if (card.Category == CardCategory.EXCHANGE && card.Context?.ExchangeName != null)
+            if (card.Category == CardCategory.Exchange && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
                 
             // Generate name from template and context
@@ -691,12 +691,12 @@ namespace Wayfarer.Pages.Components
         protected string GetSuccessEffect(ConversationCard card)
         {
             // For exchange cards, show the reward
-            if (card.Category == CardCategory.EXCHANGE && card.Context?.ExchangeReward != null)
+            if (card.Category == CardCategory.Exchange && card.Context?.ExchangeReward != null)
             {
                 return $"Complete exchange: {card.Context.ExchangeReward}";
             }
             
-            if (card.Category == CardCategory.STATE)
+            if (card.Category == CardCategory.State)
             {
                 // Use the actual SuccessState property from the card
                 if (card.SuccessState.HasValue)
@@ -740,14 +740,14 @@ namespace Wayfarer.Pages.Components
         protected string GetFailureEffect(ConversationCard card)
         {
             // For exchange cards, no failure - it's a choice
-            if (card.Category == CardCategory.EXCHANGE)
+            if (card.Category == CardCategory.Exchange)
             {
                 if (card.Context?.ExchangeName == "Pass on this offer")
                     return "Leave without trading";
                 return "Execute trade";
             }
             
-            if (card.Category == CardCategory.STATE)
+            if (card.Category == CardCategory.State)
             {
                 // Check if card has a specific failure state
                 if (card.FailureState.HasValue)
@@ -807,7 +807,7 @@ namespace Wayfarer.Pages.Components
             }
             
             // For exchange cards, show the exchange details
-            if (card.Category == CardCategory.EXCHANGE && card.Context != null)
+            if (card.Category == CardCategory.Exchange && card.Context != null)
             {
                 if (card.Context.ExchangeCost != null && card.Context.ExchangeReward != null)
                 {

@@ -169,4 +169,9 @@ public class CardContext
     /// Resource rewards for exchange cards
     /// </summary>
     public List<ResourceExchange> Reward { get; init; } = new();
+    
+    /// <summary>
+    /// Exchange data for exchange cards (separate from ConversationCard)
+    /// </summary>
+    public ExchangeData ExchangeData { get; init; }
 }

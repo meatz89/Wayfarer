@@ -155,11 +155,6 @@ public static class ExchangeNarrative
         {
             return "Your consistent generosity hasn't gone unnoticed.";
         }
-
-        if (exchange.Context?.Reward?.Exists(r => r.ResourceType == ResourceType.Favor) == true)
-        {
-            return "This exchange deepens the connection between you.";
-        }
         
         return "The exchange completes with quiet understanding.";
     }

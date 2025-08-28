@@ -2505,7 +2505,7 @@ public class GameFacade
         return context;
     }
 
-    public async Task<bool> ExecuteExchange(string npcId, ConversationCard exchange)
+    public async Task<bool> ExecuteExchange(string npcId, ExchangeData exchange)
     {
         // Validate inputs
         if (string.IsNullOrEmpty(npcId) || exchange == null)
@@ -2539,7 +2539,7 @@ public class GameFacade
         // Apply costs
         foreach (var cost in exchange.Cost)
         {
-            switch (cost.Type)
+            switch (cost.ResourceType)
             {
                 case ResourceType.Coins:
                     player.Coins -= cost.Amount;
@@ -2575,7 +2575,7 @@ public class GameFacade
         // Apply rewards
         foreach (var reward in exchange.Reward)
         {
-            switch (reward.Type)
+            switch (reward.ResourceType)
             {
                 case ResourceType.Coins:
                     player.Coins += reward.Amount;
@@ -2678,7 +2678,7 @@ public class GameFacade
         _messageSystem.AddSystemMessage($"You {narrativeContext} with {npc.Name}", SystemMessageTypes.Success);
         
         // Log for debugging
-        Console.WriteLine($"[ExecuteExchange] Completed exchange {exchange.Id} with {npc.Name}");
+        Console.WriteLine($"[ExecuteExchange] Completed exchange {exchange.ExchangeName} with {npc.Name}");
         
         return true;
     }
