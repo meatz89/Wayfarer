@@ -72,7 +72,7 @@ public class ConversationManager
         }
         
         // For Quick Exchange, use simplified session
-        if (conversationType == ConversationType.QuickExchange)
+        if (conversationType == ConversationType.Commerce)
         {
             return StartExchangeConversation(npc);
         }
@@ -84,13 +84,13 @@ public class ConversationManager
         }
         
         // For Letter Offer conversation, mix in letter cards
-        if (conversationType == ConversationType.LetterOffer)
+        if (conversationType == ConversationType.Promise)
         {
             return StartLetterOfferConversation(npc, observationCards);
         }
         
         // For Make Amends conversation, focus on burden resolution
-        if (conversationType == ConversationType.MakeAmends)
+        if (conversationType == ConversationType.Resolution)
         {
             return StartMakeAmendsConversation(npc, observationCards);
         }
@@ -106,7 +106,7 @@ public class ConversationManager
             npc,
             queueManager,
             tokenManager,
-            observationCards,  // Pass observation cards to standard conversations too
+            observationCards?.Cast<ICard>().ToList(),  // Convert to List<ICard>
             conversationType,
             gameWorld.GetPlayerResourceState()  // Pass player resource state for hunger penalty
         );
@@ -132,33 +132,37 @@ public class ConversationManager
         
         // Check for exchange deck - depends on personality and location
         // Get current spot's domain tags for hospitality checks
-        var player = gameWorld.GetPlayer();
-        var spotDomainTags = player?.CurrentLocationSpot?.DomainTags;
-        
-        // Initialize exchange deck with spot information
-        npc.InitializeExchangeDeck(spotDomainTags);
+        // Initialize exchange deck from GameWorld if available
+        if (gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out var exchangeCards))
+        {
+            npc.InitializeExchangeDeck(exchangeCards);
+        }
+        else
+        {
+            npc.InitializeExchangeDeck(null);
+        }
         if (npc.HasExchangeCards())
         {
-            available.Add(ConversationType.QuickExchange);
+            available.Add(ConversationType.Commerce);
         }
         
         // Check for letter cards → Letter Offer conversation
         if (npc.HasPromiseCards())
         {
-            available.Add(ConversationType.LetterOffer);
+            available.Add(ConversationType.Promise);
         }
         
         // Check for burden cards → Make Amends conversation
         // Requires at least 2 burden cards to enable this type
         if (npc.CountBurdenCards() >= 2)
         {
-            available.Add(ConversationType.MakeAmends);
+            available.Add(ConversationType.Resolution);
         }
         
         // Standard conversation always available if conversation deck exists
         if (npc.ConversationDeck != null && npc.ConversationDeck.RemainingCards > 0)
         {
-            available.Add(ConversationType.Standard);
+            available.Add(ConversationType.FriendlyChat);
         }
         
         return available;
@@ -169,12 +173,18 @@ public class ConversationManager
     /// </summary>
     private ConversationSession StartExchangeConversation(NPC npc)
     {
-        // Initialize exchange deck with spot domain tags
-        var player = gameWorld.GetPlayer();
-        var spotDomainTags = player?.CurrentLocationSpot?.DomainTags;
-        npc.InitializeExchangeDeck(spotDomainTags);
+        // Initialize exchange deck from GameWorld if available  
+        if (gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out var exchangeCards))
+        {
+            npc.InitializeExchangeDeck(exchangeCards);
+        }
+        else
+        {
+            npc.InitializeExchangeDeck(null);
+        }
         
         // Create a simplified session for exchanges
+        var spotDomainTags = gameWorld.GetCurrentSpotDomainTags();
         currentSession = ConversationSession.StartExchange(npc, gameWorld.GetPlayerResourceState(), tokenManager, spotDomainTags, queueManager);
         return currentSession;
     }
@@ -185,7 +195,7 @@ public class ConversationManager
     private ConversationSession StartCrisisConversation(NPC npc, List<ConversationCard> observationCards)
     {
         // Crisis conversations use crisis deck exclusively
-        currentSession = ConversationSession.StartCrisis(npc, queueManager, tokenManager, observationCards);
+        currentSession = ConversationSession.StartCrisis(npc, queueManager, tokenManager, observationCards?.Cast<ICard>().ToList());
         return currentSession;
     }
     
@@ -206,8 +216,8 @@ public class ConversationManager
             npc,
             queueManager,
             tokenManager,
-            observationCards,
-            ConversationType.LetterOffer,
+            observationCards?.Cast<ICard>().ToList(),
+            ConversationType.Promise,
             gameWorld.GetPlayerResourceState()
         );
         
@@ -231,8 +241,8 @@ public class ConversationManager
             npc,
             queueManager,
             tokenManager,
-            observationCards,
-            ConversationType.MakeAmends,
+            observationCards?.Cast<ICard>().ToList(),
+            ConversationType.Resolution,
             gameWorld.GetPlayerResourceState()
         );
         
@@ -267,7 +277,7 @@ public class ConversationManager
             throw new InvalidOperationException("No active conversation");
         }
 
-        var result = currentSession.ExecuteSpeak(selectedCards);
+        var result = currentSession.ExecuteSpeak(new HashSet<ICard>(selectedCards));
 
         // Handle special card effects
         await HandleSpecialCardEffectsAsync(selectedCards, result);
@@ -678,8 +688,17 @@ public class ConversationManager
         }
         
         // Generate narrative message
-        var narrativeContext = exchange.GetNarrativeContext();
-        messageSystem.AddSystemMessage($"You {narrativeContext} with {currentSession.NPC.Name}", SystemMessageTypes.Success);
+        var exchangeName = exchange.TemplateType switch
+        {
+            "food" => "bought travel provisions",
+            "healing" => "purchased medicine",
+            "information" => "traded information",
+            "work" => "helped with inventory",
+            "favor" => "received a noble favor",
+            "lodging" => "rested at the inn",
+            _ => "completed an exchange"
+        };
+        messageSystem.AddSystemMessage($"You {exchangeName} with {currentSession.NPC.Name}", SystemMessageTypes.Success);
         
         // Log for debugging
         Console.WriteLine($"[ExecuteExchangeAsync] Completed exchange {exchange.Id} with {currentSession.NPC.Name}");
@@ -714,6 +733,7 @@ public class ConversationManager
         {
             // Determine which type to modify based on conversation
             var primaryType = currentSession.HandCards
+                .OfType<ConversationCard>()
                 .GroupBy(c => c.Type)
                 .OrderByDescending(g => g.Count())
                 .FirstOrDefault()?.Key ?? CardType.Trust;

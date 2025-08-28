@@ -30,7 +30,7 @@
             </div>
         }
 
-        @if ((Context?.Type ?? ConversationType.Standard) != ConversationType.QuickExchange)
+        @if ((Context?.Type ?? ConversationType.FriendlyChat) != ConversationType.Commerce)
         {
             <!-- Progress Section -->
             <div class="progress-section">
@@ -79,7 +79,7 @@
 
         <!-- Action Section -->
         <div class="action-section">
-            @if ((Context?.Type ?? ConversationType.Standard) == ConversationType.QuickExchange)
+            @if ((Context?.Type ?? ConversationType.FriendlyChat) == ConversationType.Commerce)
             {
                 <!-- Quick Exchanges: Select a card then SPEAK to accept it -->
                 <div class="turn-indicator">Select an exchange card to trade</div>
@@ -130,7 +130,7 @@
 
         <!-- Cards Section -->
         <div class="cards-section">
-            @if ((Context?.Type ?? ConversationType.Standard) == ConversationType.QuickExchange)
+            @if ((Context?.Type ?? ConversationType.FriendlyChat) == ConversationType.Commerce)
             {
                 @* For exchanges, show cards as full selectable cards like conversations *@
                 <div class="cards-header">

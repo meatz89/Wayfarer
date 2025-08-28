@@ -6,8 +6,7 @@ using System;
 /// </summary>
 public enum ObservationDecayState
 {
-    Fresh,    // 0-2 hours: Full effect
-    Stale,    // 2-6 hours: Half comfort value  
+    Active,
     Expired   // 6+ hours: Must discard, unplayable
 }
 
@@ -57,8 +56,7 @@ public class ObservationCard
     /// </summary>
     public int EffectiveComfortValue => DecayState switch
     {
-        ObservationDecayState.Fresh => BaseComfortValue,
-        ObservationDecayState.Stale => BaseComfortValue / 2, // Half comfort when stale
+        ObservationDecayState.Active => BaseComfortValue,
         ObservationDecayState.Expired => 0, // No comfort when expired
         _ => 0
     };
@@ -72,8 +70,7 @@ public class ObservationCard
         
         DecayState = hoursElapsed switch
         {
-            < 2.0 => ObservationDecayState.Fresh,
-            < 6.0 => ObservationDecayState.Stale,
+            < 6.0 => ObservationDecayState.Active,
             _ => ObservationDecayState.Expired
         };
     }
@@ -94,16 +91,14 @@ public class ObservationCard
         var hoursElapsed = GetHoursElapsed(currentGameTime);
         var hoursRemaining = DecayState switch
         {
-            ObservationDecayState.Fresh => 2.0 - hoursElapsed,
-            ObservationDecayState.Stale => 6.0 - hoursElapsed,
+            ObservationDecayState.Active => 6.0 - hoursElapsed,
             ObservationDecayState.Expired => 0.0,
             _ => 0.0
         };
         
         return DecayState switch
         {
-            ObservationDecayState.Fresh => $"Fresh ({Math.Max(0, hoursRemaining):F1}h remaining)",
-            ObservationDecayState.Stale => $"Stale (expires in {Math.Max(0, hoursRemaining):F1}h)",
+            ObservationDecayState.Active => $"Active (expires in {Math.Max(0, hoursRemaining):F1}h)",
             ObservationDecayState.Expired => "Expired",
             _ => "Unknown"
         };
@@ -116,8 +111,7 @@ public class ObservationCard
     {
         return DecayState switch
         {
-            ObservationDecayState.Fresh => "observation-fresh",
-            ObservationDecayState.Stale => "observation-stale", 
+            ObservationDecayState.Active => "observation-fresh",
             ObservationDecayState.Expired => "observation-expired",
             _ => "observation-unknown"
         };
@@ -135,7 +129,7 @@ public class ObservationCard
             CreatedAt = createdAt,
             SourceObservationId = sourceObservationId,
             BaseComfortValue = conversationCard.BaseComfort,
-            DecayState = ObservationDecayState.Fresh // Always starts fresh
+            DecayState = ObservationDecayState.Active // Always starts fresh
         };
     }
 }

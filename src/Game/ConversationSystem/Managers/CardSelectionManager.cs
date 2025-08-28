@@ -238,7 +238,7 @@ public class CardSelectionManager
             return "Exchange Offer";
             
         if (card.Category == CardCategory.PROMISE)
-            return card.IsGoalCard && card.GoalCardType == GoalType.Letter ? "Letter Negotiation" : "Promise Negotiation";
+            return card.IsGoalCard && card.GoalCardType == ConversationType.Letter ? "Letter Negotiation" : "Promise Negotiation";
         
         // Default for normal conversation cards
         return $"{card.Type} Expression";

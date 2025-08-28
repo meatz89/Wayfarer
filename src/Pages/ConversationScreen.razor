@@ -35,7 +35,7 @@
         <div class="conversation-header">
             <div class="npc-section">
                 <h2>@Session.NPC.Name</h2>
-                @if (ConversationType != ConversationType.QuickExchange)
+                @if (ConversationType != ConversationType.Commerce)
                 {
                     <div class="npc-state @GetStateClass()">
                         @GetStateDescription()
@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            @if (ConversationType != ConversationType.QuickExchange)
+            @if (ConversationType != ConversationType.Commerce)
             {
                 <!-- Progress Display -->
                 <div class="progress-section">
@@ -134,7 +134,7 @@
         <!-- Action Choice -->
         <div class="action-section">
             <div class="turn-indicator">
-                @if (ConversationType == ConversationType.QuickExchange)
+                @if (ConversationType == ConversationType.Commerce)
                 {
                     <text>Choose one option • Exchange ends after this turn</text>
                 }
@@ -152,7 +152,7 @@
             }
 
             <div class="action-choices">
-                @if (ConversationType != ConversationType.QuickExchange)
+                @if (ConversationType != ConversationType.Commerce)
                 {
                     <!-- LISTEN only available in non-exchange conversations -->
                     <div class="action-button @(SelectedAction == ActionType.Listen ? "selected" : "")"
@@ -172,7 +172,7 @@
                      @onclick="() => SelectAction(ActionType.Speak)">
                     <div>💭 SPEAK</div>
                     <div class="action-description">
-                        @if (ConversationType == ConversationType.QuickExchange)
+                        @if (ConversationType == ConversationType.Commerce)
                         {
                             <text>Select one card</text>
                         }

@@ -110,7 +110,36 @@ public class NPC
     public bool HasPromiseCards()
     {
         if (GoalDeck == null) return false;
-        return GoalDeck.GetAllCards().Any(c => c.Category == CardCategory.PROMISE);
+        return GoalDeck.GetAllCards().Any(c => c is ConversationCard conv && conv.Category == CardCategory.PROMISE);
+    }
+    
+    // Check if NPC has crisis cards in their goal deck
+    public bool HasCrisisCards()
+    {
+        if (GoalDeck == null) return false;
+        return GoalDeck.GetAllCards().Any(c => 
+            c is ConversationCard conv && conv.Category == CardCategory.CRISIS);
+    }
+    
+    // Crisis deck - subset of goal deck containing crisis cards
+    // This is a virtual deck created from goal cards
+    public CardDeck CrisisDeck
+    {
+        get
+        {
+            var crisisDeck = new CardDeck();
+            if (GoalDeck != null)
+            {
+                // CLEAN DESIGN: Check ONLY Category, which is the mechanical property
+                var crisisCards = GoalDeck.GetAllCards()
+                    .Where(c => c is ConversationCard conv && conv.Category == CardCategory.CRISIS);
+                foreach (var card in crisisCards)
+                {
+                    crisisDeck.AddCard(card);
+                }
+            }
+            return crisisDeck;
+        }
     }
     
     // Check if NPC has burden history (cards in conversation deck)
@@ -130,18 +159,10 @@ public class NPC
     {
         if (ConversationDeck == null) return 0;
         
-        // Burden cards are identified by having negative comfort, state-changing templates, or crisis indicators
+        // CLEAN DESIGN: Burden cards are identified ONLY by their Category
+        // Category determines what a card DOES mechanically
         return ConversationDeck.GetAllCards()
-            .Count(card => card.BaseComfort < 0 ||  // Negative comfort indicates burden
-                          card.Category == CardCategory.BURDEN ||  // Crisis cards are burdens
-                          card.Category == CardCategory.STATE ||   // State changes can be burdensome
-                          card.Template == CardTemplateType.ShowingTension ||
-                          card.Template == CardTemplateType.TenseComment ||
-                          card.Template == CardTemplateType.OverwhelmedResponse ||
-                          card.Template == CardTemplateType.DesperatePlea ||
-                          card.Id.ToLower().Contains("burden") ||
-                          card.Id.ToLower().Contains("conflict") ||
-                          card.Id.ToLower().Contains("problem"));
+            .Count(card => card is ConversationCard conv && conv.Category == CardCategory.BURDEN);
     }
     
     // Check if NPC has exchange cards available
@@ -151,7 +172,7 @@ public class NPC
     }
 
     // Get today's exchange card (selected deterministically at dawn)
-    public ConversationCard GetTodaysExchange(int currentDay)
+    public ICard GetTodaysExchange(int currentDay)
     {
         // Exchange cards only for Mercantile NPCs
         if (PersonalityType != PersonalityType.MERCANTILE || ExchangeDeck == null || !ExchangeDeck.Any())

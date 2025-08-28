@@ -60,15 +60,15 @@ public static class GoalCardFactory
         return null;
     }
     
-    private static GoalType? GetGoalTypeForConversation(ConversationType type)
+    private static ConversationType? GetGoalTypeForConversation(ConversationType type)
     {
         return type switch
         {
-            ConversationType.Standard => GoalType.Letter,
-            ConversationType.LetterOffer => GoalType.Letter,
-            ConversationType.MakeAmends => GoalType.Resolution,
-            ConversationType.QuickExchange => GoalType.Commerce,
-            ConversationType.Crisis => GoalType.Crisis,
+            ConversationType.FriendlyChat => ConversationType.Letter,
+            ConversationType.Promise => ConversationType.Letter,
+            ConversationType.Resolution => ConversationType.Resolution,
+            ConversationType.Commerce => ConversationType.Commerce,
+            ConversationType.Crisis => ConversationType.Crisis,
             _ => null
         };
     }
@@ -83,10 +83,10 @@ public static class GoalCardFactory
         }
 
         // Parse goal type
-        GoalType? goalType = null;
+        ConversationType? goalType = null;
         if (!string.IsNullOrEmpty(dto.GoalCardType))
         {
-            if (Enum.TryParse<GoalType>(dto.GoalCardType, true, out var parsed))
+            if (Enum.TryParse<ConversationType>(dto.GoalCardType, true, out var parsed))
             {
                 goalType = parsed;
             }

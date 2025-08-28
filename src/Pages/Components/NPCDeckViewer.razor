@@ -182,7 +182,7 @@
                 {
                     <h4 class="sub-deck-header">Letter Goals (@(CurrentNPC.GoalDeck.Count) cards)</h4>
                     <div class="card-list">
-                        @foreach (var card in CurrentNPC.GoalDeck)
+                        @foreach (var card in CurrentNPC.GoalDeck.GetAllCards())
                         {
                             <div class="debug-card letter-card goal-card">
                                 <div class="card-header">
@@ -259,7 +259,7 @@
                 @if (CurrentNPC.ExchangeDeck != null && CurrentNPC.ExchangeDeck.Any())
                 {
                     <div class="card-list">
-                        @foreach (var card in CurrentNPC.ExchangeDeck)
+                        @foreach (var card in CurrentNPC.ExchangeDeck.GetAllCards())
                         {
                             <div class="debug-card exchange-card">
                                 <div class="card-header">
@@ -285,10 +285,7 @@
                                         Success Rate: @card.BaseSuccessRate%
                                     </div>
                                 </div>
-                                @if (card == CurrentNPC.TodaysExchangeCard)
-                                {
-                                    <div class="today-marker">Today's Selected Exchange</div>
-                                }
+                                @* TodaysExchangeCard property was removed - exchanges are selected dynamically *@
                             </div>
                         }
                     </div>

@@ -68,7 +68,7 @@ public class LetterNegotiationTerms
 /// Promises become eligible based on token requirements and emotional state.
 /// Playing the card determines success/failure for negotiation terms.
 /// </summary>
-public class PromiseCard
+public class PromiseCard : ICard
 {
     /// <summary>
     /// Unique identifier for this letter

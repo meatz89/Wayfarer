@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,18 +8,18 @@ using System.Linq;
 /// Each NPC has a unique deck based on personality and relationship.
 /// All cards are loaded from conversations.json
 /// </summary>
-public class CardDeck
+public class CardDeck : IEnumerable<ICard>
 {
-    private readonly List<ConversationCard> cards;
-    private readonly List<ConversationCard> discardPile;
+    private readonly List<ICard> cards;
+    private readonly List<ICard> discardPile;
     private readonly Random random;
     private Dictionary<ConnectionType, int> currentTokens;
     private static GameWorld _gameWorld;
 
     public CardDeck()
     {
-        cards = new List<ConversationCard>();
-        discardPile = new List<ConversationCard>();
+        cards = new List<ICard>();
+        discardPile = new List<ICard>();
         random = new Random();
     }
 
@@ -71,7 +72,7 @@ public class CardDeck
     /// <summary>
     /// Add a card to the deck
     /// </summary>
-    public void AddCard(ConversationCard card)
+    public void AddCard(ICard card)
     {
         cards.Add(card);
     }
@@ -79,7 +80,7 @@ public class CardDeck
     /// <summary>
     /// Remove a card from the deck
     /// </summary>
-    public void RemoveCard(ConversationCard card)
+    public void RemoveCard(ICard card)
     {
         cards.Remove(card);
     }
@@ -87,13 +88,18 @@ public class CardDeck
     /// <summary>
     /// Draw cards from the deck
     /// </summary>
-    public List<ConversationCard> DrawCards(int count, int currentComfort)
+    public List<ICard> DrawCards(int count, int currentComfort)
     {
-        var drawn = new List<ConversationCard>();
+        var drawn = new List<ICard>();
 
         // Filter available cards by depth (comfort level requirement)
+        // Only ConversationCards have Depth property
         var availableCards = cards
-            .Where(c => c.Depth <= currentComfort || c.Depth == 0) // Depth 0 = always available
+            .Where(c => {
+                if (c is ConversationCard convCard)
+                    return convCard.Depth <= currentComfort || convCard.Depth == 0; // Depth 0 = always available
+                return true; // Non-ConversationCards are always available
+            })
             .ToList();
 
         if (!availableCards.Any())
@@ -111,7 +117,7 @@ public class CardDeck
             drawn.Add(card);
             
             // Remove non-persistent cards from deck after drawing
-            if (card.Persistence != PersistenceType.Persistent)
+            if (card is ConversationCard convCard && convCard.Persistence != PersistenceType.Persistent)
             {
                 cards.Remove(card);
                 availableCards.Remove(card);
@@ -124,21 +130,30 @@ public class CardDeck
     /// <summary>
     /// Discard a card
     /// </summary>
-    public void Discard(ConversationCard card)
+    public void Discard(ICard card)
     {
-        if (card.Persistence == PersistenceType.Opportunity)
+        // Only ConversationCards have Persistence property
+        if (card is ConversationCard convCard)
         {
-            // Opportunity cards are removed from play when discarded
-            cards.Remove(card);
-        }
-        else if (card.Persistence == PersistenceType.Burden)
-        {
-            // Burden cards stay in deck even when "discarded"
-            // They're only removed through specific mechanics
+            if (convCard.Persistence == PersistenceType.Opportunity)
+            {
+                // Opportunity cards are removed from play when discarded
+                cards.Remove(card);
+            }
+            else if (convCard.Persistence == PersistenceType.Burden)
+            {
+                // Burden cards stay in deck even when "discarded"
+                // They're only removed through specific mechanics
+            }
+            else
+            {
+                // Persistent cards go to discard pile
+                discardPile.Add(card);
+            }
         }
         else
         {
-            // Persistent cards go to discard pile
+            // Non-ConversationCards go to discard pile by default
             discardPile.Add(card);
         }
     }
@@ -193,15 +208,19 @@ public class CardDeck
     /// </summary>
     public bool HasCardsAtComfortLevel(int comfortLevel)
     {
-        return cards.Any(c => c.Depth <= comfortLevel || c.Depth == 0);
+        return cards.Any(c => {
+            if (c is ConversationCard convCard)
+                return convCard.Depth <= comfortLevel || convCard.Depth == 0;
+            return true; // Non-ConversationCards are always available
+        });
     }
 
     /// <summary>
     /// Get all burden cards in the deck
     /// </summary>
-    public List<ConversationCard> GetBurdenCards()
+    public List<ICard> GetBurdenCards()
     {
-        return cards.Where(c => c.Persistence == PersistenceType.Burden).ToList();
+        return cards.Where(c => c is ConversationCard convCard && convCard.Persistence == PersistenceType.Burden).ToList();
     }
 
     /// <summary>
@@ -220,7 +239,7 @@ public class CardDeck
     /// <summary>
     /// Add observation cards to the deck
     /// </summary>
-    public void AddObservationCards(List<ConversationCard> observationCards)
+    public void AddObservationCards(List<ICard> observationCards)
     {
         cards.AddRange(observationCards);
         Shuffle();
@@ -246,9 +265,9 @@ public class CardDeck
     /// <summary>
     /// Get all cards in the deck (for debugging)
     /// </summary>
-    public List<ConversationCard> GetAllCards()
+    public List<ICard> GetAllCards()
     {
-        return new List<ConversationCard>(cards);
+        return new List<ICard>(cards);
     }
 
     /// <summary>
@@ -268,15 +287,15 @@ public class CardDeck
         // Move all cards from discard back to deck
         cards.AddRange(discardPile);
         discardPile.Clear();
-        // Remove any temporary cards
-        cards.RemoveAll(c => c.Persistence == PersistenceType.Fleeting);
+        // Remove any temporary cards (only ConversationCards have Persistence)
+        cards.RemoveAll(c => c is ConversationCard convCard && convCard.Persistence == PersistenceType.Fleeting);
         Shuffle();
     }
     
     /// <summary>
     /// Shuffle a goal card into the deck
     /// </summary>
-    public void ShuffleInGoalCard(ConversationCard goalCard)
+    public void ShuffleInGoalCard(ICard goalCard)
     {
         if (goalCard != null)
         {
@@ -288,7 +307,7 @@ public class CardDeck
     /// <summary>
     /// Draw cards (alias for DrawCards for compatibility)
     /// </summary>
-    public List<ConversationCard> Draw(int count, int currentComfort)
+    public List<ICard> Draw(int count, int currentComfort)
     {
         return DrawCards(count, currentComfort);
     }
@@ -296,12 +315,17 @@ public class CardDeck
     /// <summary>
     /// Draw cards filtered by category
     /// </summary>
-    public List<ConversationCard> DrawFilteredByCategory(int count, int currentComfort, CardCategory category)
+    public List<ICard> DrawFilteredByCategory(int count, int currentComfort, CardCategory category)
     {
-        var drawn = new List<ConversationCard>();
+        var drawn = new List<ICard>();
         
+        // Only ConversationCards have Category and Depth
         var availableCards = cards
-            .Where(c => (c.Depth <= currentComfort || c.Depth == 0) && c.Category == category)
+            .Where(c => {
+                if (c is ConversationCard convCard)
+                    return (convCard.Depth <= currentComfort || convCard.Depth == 0) && convCard.Category == category;
+                return false;
+            })
             .ToList();
             
         for (int i = 0; i < count && availableCards.Any(); i++)
@@ -311,7 +335,7 @@ public class CardDeck
             
             drawn.Add(card);
             
-            if (card.Persistence != PersistenceType.Persistent)
+            if (card is ConversationCard convCard && convCard.Persistence != PersistenceType.Persistent)
             {
                 cards.Remove(card);
                 availableCards.Remove(card);
@@ -324,21 +348,28 @@ public class CardDeck
     /// <summary>
     /// Draw cards filtered by types
     /// </summary>
-    public List<ConversationCard> DrawFilteredByTypes(int count, int currentComfort, List<CardType> types, bool includeTokenCards)
+    public List<ICard> DrawFilteredByTypes(int count, int currentComfort, List<CardType> types, bool includeTokenCards)
     {
-        var drawn = new List<ConversationCard>();
+        var drawn = new List<ICard>();
         
-        // If types is null, allow all types
+        // Only ConversationCards have Type, Depth and GrantsToken
         var availableCards = cards
-            .Where(c => c.Depth <= currentComfort || c.Depth == 0)
-            .Where(c => types == null || types.Contains(c.Type))
+            .Where(c => {
+                if (c is ConversationCard convCard)
+                {
+                    var depthOk = convCard.Depth <= currentComfort || convCard.Depth == 0;
+                    var typeOk = types == null || types.Contains(convCard.Type);
+                    return depthOk && typeOk;
+                }
+                return false;
+            })
             .ToList();
             
         // Apply token card filter if needed
         if (includeTokenCards)
         {
             // Prefer cards that grant tokens
-            var tokenCards = availableCards.Where(c => c.GrantsToken).ToList();
+            var tokenCards = availableCards.Where(c => c is ConversationCard convCard && convCard.GrantsToken).ToList();
             if (tokenCards.Any())
                 availableCards = tokenCards;
         }
@@ -350,7 +381,7 @@ public class CardDeck
             
             drawn.Add(card);
             
-            if (card.Persistence != PersistenceType.Persistent)
+            if (card is ConversationCard convCard && convCard.Persistence != PersistenceType.Persistent)
             {
                 cards.Remove(card);
                 availableCards.Remove(card);
@@ -363,9 +394,57 @@ public class CardDeck
     /// <summary>
     /// Get all cards (alias for GetAllCards)
     /// </summary>
-    public List<ConversationCard> GetCards()
+    public List<ICard> GetCards()
     {
         return GetAllCards();
+    }
+    
+    /// <summary>
+    /// Check if deck has any cards
+    /// </summary>
+    public bool Any()
+    {
+        return cards.Any();
+    }
+    
+    /// <summary>
+    /// Check if deck has any cards matching a predicate
+    /// </summary>
+    public bool Any(Func<ICard, bool> predicate)
+    {
+        return cards.Any(predicate);
+    }
+    
+    /// <summary>
+    /// Get first card matching predicate or null
+    /// </summary>
+    public ICard FirstOrDefault(Func<ICard, bool> predicate)
+    {
+        return cards.FirstOrDefault(predicate);
+    }
+    
+    /// <summary>
+    /// Take a specific number of cards from the deck
+    /// </summary>
+    public IEnumerable<ICard> Take(int count)
+    {
+        return cards.Take(count);
+    }
+    
+    /// <summary>
+    /// Get enumerator for foreach support
+    /// </summary>
+    public IEnumerator<ICard> GetEnumerator()
+    {
+        return cards.GetEnumerator();
+    }
+    
+    /// <summary>
+    /// Non-generic enumerator
+    /// </summary>
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
     
     /// <summary>
@@ -387,7 +466,7 @@ public class CardDeck
                 HasDeadline = true
             },
             Type = CardType.Trust,
-            Persistence = PersistenceType.Crisis,
+            Persistence = PersistenceType.Goal,
             Weight = 0, // Free in crisis
             BaseComfort = 8,
             Category = CardCategory.BURDEN,
@@ -400,18 +479,18 @@ public class CardDeck
     /// <summary>
     /// Get all cards for an NPC's personality from GameWorld templates
     /// </summary>
-    private List<ConversationCard> GetCardsForNPC(NPC npc, Dictionary<ConnectionType, int> tokens)
+    private List<ICard> GetCardsForNPC(NPC npc, Dictionary<ConnectionType, int> tokens)
     {
-        var cards = new List<ConversationCard>();
+        var cards = new List<ICard>();
 
         // Add universal cards from GameWorld
-        var universalCards = _gameWorld.CardTemplates.Values
-            .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID)
+        var universalCards = _gameWorld.AllCardDefinitions.Values
+            .Where(c => string.IsNullOrEmpty(c.Context?.NPCName) || c.Id.Contains(npc.ID))
             .Where(c => c.IsGoalCard != true && c.Category != CardCategory.BURDEN);
 
-        foreach (var cardDto in universalCards)
+        foreach (var card in universalCards)
         {
-            cards.Add(ConvertDTOToCard(cardDto, npc));
+            cards.Add(card);
         }
 
         // Add personality-specific cards from GameWorld
@@ -419,9 +498,9 @@ public class CardDeck
         {
             foreach (var cardId in mapping.Cards)
             {
-                if (_gameWorld.CardTemplates.TryGetValue(cardId, out var cardDto))
+                if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
                 {
-                    cards.Add(ConvertDTOToCard(cardDto, npc));
+                    cards.Add(card);
                 }
             }
         }
@@ -440,9 +519,9 @@ public class CardDeck
                 {
                     foreach (var cardId in unlockedCardIds)
                     {
-                        if (_gameWorld.CardTemplates.TryGetValue(cardId, out var cardDto))
+                        if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
                         {
-                            cards.Add(ConvertDTOToCard(cardDto, npc));
+                            cards.Add(card);
                         }
                     }
                 }
@@ -455,78 +534,20 @@ public class CardDeck
     /// <summary>
     /// Get crisis cards for an NPC from GameWorld templates
     /// </summary>
-    private List<ConversationCard> GetCrisisCards(NPC npc)
+    private List<ICard> GetCrisisCards(NPC npc)
     {
-        var cards = new List<ConversationCard>();
+        var cards = new List<ICard>();
         
-        var crisisCards = _gameWorld.CardTemplates.Values
+        var crisisCards = _gameWorld.AllCardDefinitions.Values
             .Where(c => c.Category == CardCategory.BURDEN)
-            .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID);
+            .Where(c => string.IsNullOrEmpty(c.Context?.NPCName) || c.Id.Contains(npc.ID));
 
-        foreach (var cardDto in crisisCards)
+        foreach (var card in crisisCards)
         {
-            cards.Add(ConvertDTOToCard(cardDto, npc));
+            cards.Add(card);
         }
 
         return cards;
     }
 
-    /// <summary>
-    /// Convert a DTO from GameWorld into a ConversationCard
-    /// </summary>
-    private ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc)
-    {
-        // Parse template
-        CardTemplateType template = CardTemplateType.SimpleGreeting;
-        if (!string.IsNullOrEmpty(dto.Template))
-        {
-            Enum.TryParse<CardTemplateType>(dto.Template, true, out template);
-        }
-
-        // Parse goal type if goal card
-        GoalType? goalType = null;
-        if (dto.IsGoalCard == true && !string.IsNullOrEmpty(dto.GoalCardType))
-        {
-            if (Enum.TryParse<GoalType>(dto.GoalCardType, true, out var parsed))
-            {
-                goalType = parsed;
-            }
-        }
-
-        // Parse success state for state cards
-        EmotionalState? successState = null;
-        if (dto.IsStateCard == true && !string.IsNullOrEmpty(dto.SuccessState))
-        {
-            if (Enum.TryParse<EmotionalState>(dto.SuccessState, true, out var parsed))
-            {
-                successState = parsed;
-            }
-        }
-
-        // Create card with all init-only properties set at once
-        return new ConversationCard
-        {
-            Id = dto.Id,
-            Template = template,
-            Context = new CardContext
-            {
-                Personality = npc?.PersonalityType ?? PersonalityType.STEADFAST,
-                EmotionalState = npc?.CurrentEmotionalState ?? EmotionalState.NEUTRAL,
-                NPCName = npc?.Name,
-                GeneratesLetterOnSuccess = dto.GeneratesLetterOnSuccess ?? false
-            },
-            Type = Enum.Parse<CardType>(dto.Type, true),
-            Persistence = Enum.Parse<PersistenceType>(dto.Persistence, true),
-            Weight = dto.Weight,
-            BaseComfort = dto.BaseComfort,
-            Depth = dto.Depth ?? 0,
-            Category = dto.Category,
-            IsGoalCard = dto.IsGoalCard ?? false,
-            GoalCardType = goalType,
-            DisplayName = dto.DisplayName,
-            Description = dto.Description,
-            SuccessRate = dto.SuccessRate ?? 0,
-            SuccessState = successState
-        };
-    }
 }

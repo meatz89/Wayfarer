@@ -490,8 +490,8 @@ namespace Wayfarer.Pages.Components
             else if (CanSelectCard(card))
             {
                 // For exchanges, enforce ONE card selection (matches SPEAK plays ONE card design)
-                var conversationType = Context?.Type ?? ConversationType.Standard;
-                if (conversationType == ConversationType.QuickExchange)
+                var conversationType = Context?.Type ?? ConversationType.FriendlyChat;
+                if (conversationType == ConversationType.Commerce)
                 {
                     SelectedCards.Clear(); // Only one exchange can be selected at a time
                 }
@@ -556,12 +556,12 @@ namespace Wayfarer.Pages.Components
         // UI Helper Methods
         protected string GetConversationModeTitle()
         {
-            var conversationType = Context?.Type ?? ConversationType.Standard;
+            var conversationType = Context?.Type ?? ConversationType.FriendlyChat;
             return conversationType switch
             {
-                ConversationType.QuickExchange => "Quick Exchange",
+                ConversationType.Commerce => "Quick Exchange",
                 ConversationType.Crisis => "Crisis Resolution",
-                ConversationType.Standard => "Standard Conversation",
+                ConversationType.FriendlyChat => "Standard Conversation",
                 _ => "Conversation"
             };
         }
@@ -880,7 +880,7 @@ namespace Wayfarer.Pages.Components
             if (tokenCount > 0)
             {
                 // Crisis cards and Promise cards (including goals) get +10% per token, others get +5%
-                int bonusPerToken = (card.Category == CardCategory.CRISIS || card.Category == CardCategory.PROMISE) ? 10 : 5;
+                int bonusPerToken = 10;
                 int bonus = tokenCount * bonusPerToken;
                 var result = $"(+{bonus}% from {tokenCount} {tokenType})";
                 Console.WriteLine($"[GetTokenBonusText] Returning: {result}");
@@ -904,7 +904,7 @@ namespace Wayfarer.Pages.Components
             if (Session.CurrentState == EmotionalState.HOSTILE)
                 return $"{NpcName} has become hostile and refuses to continue speaking with you.";
                 
-            if (Context?.Type == ConversationType.QuickExchange)
+            if (Context?.Type == ConversationType.Commerce)
                 return "Exchange completed - conversation ended";
                 
             if (!Session.HandCards.Any() && Session.Deck.RemainingCards == 0)

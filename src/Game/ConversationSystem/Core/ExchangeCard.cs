@@ -56,7 +56,7 @@ public class ResourceExchange
 /// An exchange card represents a direct resource trade.
 /// Used in Quick Exchange conversations (0 attention cost).
 /// </summary>
-public class ExchangeCard
+public class ExchangeCard : ICard
 {
     /// <summary>
     /// Unique identifier for this exchange
@@ -89,7 +89,7 @@ public class ExchangeCard
     public int BaseSuccessRate { get; init; } = 60;
     
     /// <summary>
-    /// Cost if bartering succeeds (discount)
+    /// Cost if bartering succeeds (discounted price)
     /// </summary>
     public List<ResourceExchange> SuccessCost { get; init; }
     
@@ -120,25 +120,24 @@ public class ExchangeCard
                     break;
                 case ResourceType.Attention:
                     // Attention is managed by TimeBlockAttentionManager
-                    if (currentAttention == null || !currentAttention.CanAfford(cost.Amount))
+                    if (currentAttention != null && currentAttention.CurrentAttention < cost.Amount)
                         return false;
                     break;
                 case ResourceType.TrustToken:
-                    if (tokens.GetTokenCount(ConnectionType.Trust) < cost.Amount) return false;
-                    break;
                 case ResourceType.CommerceToken:
-                    if (tokens.GetTokenCount(ConnectionType.Commerce) < cost.Amount) return false;
-                    break;
                 case ResourceType.StatusToken:
-                    if (tokens.GetTokenCount(ConnectionType.Status) < cost.Amount) return false;
-                    break;
                 case ResourceType.ShadowToken:
-                    if (tokens.GetTokenCount(ConnectionType.Shadow) < cost.Amount) return false;
-                    break;
-                case ResourceType.Item:
-                    // For items as cost, check if player has the item
-                    // This would need player inventory reference
-                    // Currently item exchanges only use items as rewards, not costs
+                    var tokenType = cost.Type switch
+                    {
+                        ResourceType.TrustToken => ConnectionType.Trust,
+                        ResourceType.CommerceToken => ConnectionType.Commerce,
+                        ResourceType.StatusToken => ConnectionType.Status,
+                        ResourceType.ShadowToken => ConnectionType.Shadow,
+                        _ => ConnectionType.Trust
+                    };
+                    // Check if player has enough tokens of this type
+                    if (tokens?.GetTokenCount(tokenType) < cost.Amount)
+                        return false;
                     break;
             }
         }
@@ -146,50 +145,66 @@ public class ExchangeCard
     }
     
     /// <summary>
-    /// Get narrative context based on NPC type and template
+    /// Convert to ConversationCard for hand display
     /// </summary>
-    public string GetNarrativeContext()
+    public ConversationCard ToConversationCard()
     {
-        // This will be expanded based on NPC personality and template type
-        // For now, return a simple description
+        // Generate display text
+        var displayName = GetExchangeName();
+        var costText = GetExchangeCostDisplay();
+        var rewardText = GetExchangeRewardDisplay();
+        
+        return new ConversationCard
+        {
+            Id = Id,
+            Template = CardTemplateType.Exchange,
+            Context = new CardContext
+            {
+                NPCPersonality = NPCPersonality,
+                ExchangeData = this
+            },
+            Type = CardType.Commerce,
+            Persistence = PersistenceType.Fleeting,
+            Weight = 0, // Exchanges are free to play
+            BaseComfort = 0,
+            Category = CardCategory.EXCHANGE,
+            DisplayName = displayName,
+            Description = $"Cost: {costText} → Reward: {rewardText}",
+            SuccessRate = 100 // Exchanges always succeed if affordable
+        };
+    }
+    
+    private string GetExchangeName()
+    {
+        // Generate proper exchange names based on template type
         return TemplateType switch
         {
-            "food" => NPCPersonality switch
-            {
-                PersonalityType.MERCANTILE => "purchase provisions",
-                PersonalityType.DEVOTED => "share a meal",
-                PersonalityType.STEADFAST => "trade for rations",
-                _ => "exchange for food"
-            },
-            "healing" => NPCPersonality switch
-            {
-                PersonalityType.DEVOTED => "receive healing prayers",
-                PersonalityType.MERCANTILE => "buy medical supplies",
-                _ => "seek treatment"
-            },
-            "luxury" => NPCPersonality switch
-            {
-                PersonalityType.MERCANTILE => "purchase luxury goods",
-                _ => "acquire fine items"
-            },
-            "information" => NPCPersonality switch
-            {
-                PersonalityType.CUNNING => "trade secrets",
-                _ => "exchange information"
-            },
-            "work" => NPCPersonality switch
-            {
-                PersonalityType.STEADFAST => "offer honest labor",
-                PersonalityType.MERCANTILE => "negotiate a job",
-                _ => "work for coins"
-            },
-            "lodging" => NPCPersonality switch
-            {
-                PersonalityType.STEADFAST => "rest at the inn",
-                _ => "purchase lodging"
-            },
-            _ => "make an exchange"
+            "food" => "Buy Travel Provisions",
+            "healing" => "Purchase Medicine",
+            "information" => "Information Trade",
+            "work" => "Help Inventory Stock",
+            "favor" => "Noble Favor",
+            "lodging" => "Rest at the Inn",
+            _ => "Make Exchange"
         };
+    }
+    
+    private string GetExchangeCostDisplay()
+    {
+        if (Cost == null || !Cost.Any())
+            return "Free";
+            
+        var costParts = Cost.Select(c => c.GetDisplayText());
+        return string.Join(", ", costParts);
+    }
+    
+    private string GetExchangeRewardDisplay()
+    {
+        if (Reward == null || !Reward.Any())
+            return "Nothing";
+            
+        var rewardParts = Reward.Select(r => r.GetDisplayText());
+        return string.Join(", ", rewardParts);
     }
 }
 

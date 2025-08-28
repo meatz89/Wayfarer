@@ -61,7 +61,7 @@ namespace Wayfarer.Pages.Components
                     {
                         options.Add(new ConversationOptionViewModel
                         {
-                            Type = ConversationType.QuickExchange,
+                            Type = ConversationType.Commerce,
                             Label = "Quick Exchange",
                             AttentionCost = 0,
                             IsAvailable = true
@@ -83,7 +83,7 @@ namespace Wayfarer.Pages.Components
                     // The deck will be created on demand if needed
                     options.Add(new ConversationOptionViewModel
                     {
-                        Type = ConversationType.Standard,
+                        Type = ConversationType.FriendlyChat,
                         Label = "Talk",
                         AttentionCost = 2,
                         IsAvailable = true
@@ -169,7 +169,7 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartConversation(string npcId)
         {
-            await StartTypedConversation(npcId, ConversationType.Standard);
+            await StartTypedConversation(npcId, ConversationType.FriendlyChat);
         }
 
         protected async Task StartTypedConversation(string npcId, ConversationType type)
@@ -280,9 +280,9 @@ namespace Wayfarer.Pages.Components
         {
             return type switch
             {
-                ConversationType.QuickExchange => "Quick Exchange",
+                ConversationType.Commerce => "Quick Exchange",
                 ConversationType.Crisis => "Crisis Resolution",
-                ConversationType.Standard => "Standard Conversation",
+                ConversationType.FriendlyChat => "Standard Conversation",
                 _ => type.ToString()
             };
         }
@@ -291,9 +291,9 @@ namespace Wayfarer.Pages.Components
         {
             return type switch
             {
-                ConversationType.QuickExchange => 0,
+                ConversationType.Commerce => 0,
                 ConversationType.Crisis => 1,
-                ConversationType.Standard => 2,
+                ConversationType.FriendlyChat => 2,
                 _ => 0
             };
         }
@@ -313,7 +313,7 @@ namespace Wayfarer.Pages.Components
         {
             return type switch
             {
-                ConversationType.QuickExchange => "exchange",
+                ConversationType.Commerce => "exchange",
                 ConversationType.Crisis => "crisis",
                 _ => ""
             };

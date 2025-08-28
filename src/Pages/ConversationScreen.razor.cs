@@ -11,7 +11,7 @@ namespace Wayfarer.Pages
     public class ConversationScreenBase : ComponentBase
     {
         [Parameter] public string NpcId { get; set; }
-        [Parameter] public ConversationType ConversationType { get; set; } = ConversationType.Standard;
+        [Parameter] public ConversationType ConversationType { get; set; } = ConversationType.FriendlyChat;
         [Parameter] public EventCallback OnConversationEnd { get; set; }
 
         [Inject] protected ConversationManager ConversationManager { get; set; }
@@ -450,7 +450,7 @@ namespace Wayfarer.Pages
         // Exchange Mode Methods
         protected ExchangeCard GetCurrentExchangeCard()
         {
-            if (Session?.NPC == null || ConversationType != ConversationType.QuickExchange)
+            if (Session?.NPC == null || ConversationType != ConversationType.Commerce)
                 return null;
                 
             // The exchange card is stored in the first HandCard's context

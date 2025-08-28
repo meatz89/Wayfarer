@@ -566,7 +566,7 @@ public class GameFacade
         
         switch (conversationType)
         {
-            case ConversationType.QuickExchange:
+            case ConversationType.Commerce:
                 interaction.Text = "Quick Exchange";
                 interaction.Cost = "Free";
                 break;
@@ -576,7 +576,7 @@ public class GameFacade
                 interaction.Cost = "1 attention";
                 break;
                 
-            case ConversationType.Standard:
+            case ConversationType.FriendlyChat:
                 interaction.Text = "Have Conversation";
                 interaction.Cost = "2 attention";
                 break;
@@ -1111,7 +1111,7 @@ public class GameFacade
         {
             // Start conversation with the new card-based system
             // Default to Standard conversation type for now (should be passed from UI)
-            var session = _conversationManager.StartConversation(npc.ID, ConversationType.Standard, null);
+            var session = _conversationManager.StartConversation(npc.ID, ConversationType.FriendlyChat, null);
             if (session == null)
             {
                 _messageSystem.AddSystemMessage($"Cannot talk to {npc.Name} right now", SystemMessageTypes.Warning);
@@ -2392,7 +2392,7 @@ public class GameFacade
 
     // ========== CONVERSATIONS ==========
 
-    public async Task<ConversationContext> CreateConversationContext(string npcId, ConversationType conversationType = ConversationType.Standard)
+    public async Task<ConversationContext> CreateConversationContext(string npcId, ConversationType conversationType = ConversationType.FriendlyChat)
     {
         // Create conversation context with all data needed atomically
         // This prevents race conditions and ensures complete data before navigation

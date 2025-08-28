@@ -12,15 +12,44 @@ public enum CardType
 }
 
 /// <summary>
-/// Types of goal cards that can be shuffled into conversation deck
+/// Types of conversations available in the game.
+/// Each type has different attention costs, patience, and mechanics.
 /// </summary>
-public enum GoalType
+public enum ConversationType
 {
-    Letter,     // Creates delivery obligation (Elena's main use case)
-    Promise,    // Creates meeting/escort/investigation obligation
-    Resolution, // Removes burden cards from deck
-    Commerce,   // Enables special trades
-    Crisis      // Resolves emergency situations
+    /// <summary>
+    /// Quick resource exchange (0 attention, no patience, instant)
+    /// </summary>
+    Commerce,
+
+    /// <summary>
+    /// Trust building conversation (2 attention, 8 patience, full mechanics)
+    /// </summary>
+    FriendlyChat,
+
+    /// <summary>
+    /// Letter offer conversation (2 attention, 6 patience, comfort, tokens and promise card)
+    /// Enabled when NPC has letter cards in their Goal deck
+    /// </summary>
+    Promise,
+
+    /// <summary>
+    /// Letter delivery conversation (2 attention, 6 patience, comfort, tokens and letter delivery card)
+    /// Enabled when Player has letter for the NPC recipient in his Obligation Queue 
+    /// </summary>
+    Delivery,
+
+    /// <summary>
+    /// Make amends conversation (2 attention, 6 patience, comfort, tokens and burden resolution card)
+    /// Enabled when NPC has 1+ burden cards in their conversation deck
+    /// </summary>
+    Resolution,
+
+    /// <summary>
+    /// Crisis conversation (1 attention, 3 patience, forced resolution)
+    /// Forced when NPC has crisis cards in their goal deck
+    /// </summary>
+    Crisis,
 }
 
 /// <summary>
@@ -47,8 +76,7 @@ public enum PersistenceType
     Persistent,  // Stays in hand when listening
     Fleeting,    // Vanishes when listening (fleeting moments)
     Opportunity, // Removed from deck when discarded
-    Burden,      // Stays in deck even when discarded, only removed by special mechanics
-    Crisis       // Crisis cards that must be resolved
+    Goal         // Goal cards must be played, must be played in same turn, ends conversation
 }
 
 /// <summary>
@@ -66,7 +94,7 @@ public enum CardPowerLevel
 /// A single conversation card representing something to say or do.
 /// Cards are the atomic units of conversation.
 /// </summary>
-public class ConversationCard
+public class ConversationCard : ICard
 {
     /// <summary>
     /// Unique identifier for this card
@@ -181,7 +209,7 @@ public class ConversationCard
     /// <summary>
     /// The type of goal this card represents (if IsGoalCard is true)
     /// </summary>
-    public GoalType? GoalCardType { get; init; }
+    public ConversationType? GoalCardType { get; init; }
     
     /// <summary>
     /// Power level determines token requirement for unlocking
@@ -266,7 +294,6 @@ public class ConversationCard
             CardCategory.STATE => "state",
             CardCategory.BURDEN => "burden",
             CardCategory.OBSERVATION => "observation",
-            CardCategory.CRISIS => "crisis",
             CardCategory.PROMISE => "promise",
             CardCategory.EXCHANGE => "exchange",
             _ => "comfort"

@@ -178,10 +178,10 @@ public class ConversationCardParser
         }
 
         // Parse goal type if goal card
-        GoalType? goalType = null;
+        ConversationType? goalType = null;
         if (dto.IsGoalCard == true && !string.IsNullOrEmpty(dto.GoalCardType))
         {
-            if (Enum.TryParse<GoalType>(dto.GoalCardType, true, out var parsed))
+            if (Enum.TryParse<ConversationType>(dto.GoalCardType, true, out var parsed))
             {
                 goalType = parsed;
             }
@@ -224,15 +224,15 @@ public class ConversationCardParser
         };
     }
 
-    private GoalType? GetGoalTypeForConversation(ConversationType type)
+    private ConversationType? GetGoalTypeForConversation(ConversationType type)
     {
         return type switch
         {
-            ConversationType.Standard => GoalType.Letter,
-            ConversationType.LetterOffer => GoalType.Letter,
-            ConversationType.MakeAmends => GoalType.Resolution,
-            ConversationType.Crisis => GoalType.Crisis,
-            ConversationType.QuickExchange => null,
+            ConversationType.FriendlyChat => ConversationType.Letter,
+            ConversationType.Promise => ConversationType.Letter,
+            ConversationType.Resolution => ConversationType.Resolution,
+            ConversationType.Crisis => ConversationType.Crisis,
+            ConversationType.Commerce => null,
             _ => null
         };
     }

@@ -207,55 +207,59 @@ public class Phase3_NPCDependents : IInitializationPhase
             if (letterConfigs != null && letterConfigs.Any())
             {
                 // Convert configurations to PromiseCards
-                var promiseCards = new List<PromiseCard>();
+                var goalCards = new List<ConversationCard>();
                 foreach (var config in letterConfigs)
                 {
-                    promiseCards.Add(ConvertToPromiseCard(config, npc));
+                    goalCards.Add(ConvertPromiseToConversationCard(config, npc));
                 }
                 
-                npc.InitializeGoalDeck(promiseCards);
-                Console.WriteLine($"[Phase3] Initialized Goal deck for {npc.Name} with {promiseCards.Count} cards from letter_decks.json");
+                npc.InitializeGoalDeck(goalCards);
+                Console.WriteLine($"[Phase3] Initialized Goal deck for {npc.Name} with {goalCards.Count} cards from letter_decks.json");
                 
-                foreach (var promiseCard in promiseCards)
+                foreach (var card in goalCards)
                 {
-                    Console.WriteLine($"  - {promiseCard.Title} (Requires: {string.Join(", ", promiseCard.Eligibility.RequiredTokens.Select(t => $"{t.Value} {t.Key}"))}, States: {string.Join(", ", promiseCard.Eligibility.RequiredStates)})");
+                    Console.WriteLine($"  - {card.DisplayName ?? card.Id} (Weight: {card.Weight}, Depth: {card.Depth})");
                 }
             }
         }
     }
     
-    private PromiseCard ConvertToPromiseCard(PromiseCardConfiguration config, NPC npc)
+    private ConversationCard ConvertPromiseToConversationCard(PromiseCardConfiguration config, NPC npc)
     {
-        return new PromiseCard
+        return new ConversationCard
         {
             Id = config.CardId,
-            Title = config.LetterDetails.Description,
-            Description = config.LetterDetails.Description,
-            TemplateType = "letter",
-            NPCPersonality = npc.PersonalityType,
+            Template = CardTemplateType.MakePromise, 
+            Context = new CardContext
+            {
+                Personality = npc.PersonalityType,
+                EmotionalState = npc.CurrentEmotionalState,
+                NPCName = npc.Name,
+                GeneratesLetterOnSuccess = true 
+            },
+            Type = ConvertConnectionTypeToCardType(config.LetterDetails.TokenType),
+            Persistence = PersistenceType.Goal,
+            Weight = isCrisis ? 0 : 2,
+            BaseComfort = 5, // Standard comfort gain for promise cards
             Depth = 7, // Default depth for letters
-            Weight = config.EligibilityRequirements.RequiredStates.Contains(EmotionalState.DESPERATE) ? 0 : 2,
-            Eligibility = new LetterEligibility
-            {
-                RequiredTokens = config.EligibilityRequirements.RequiredTokens,
-                RequiredStates = config.EligibilityRequirements.RequiredStates
-            },
-            SuccessTerms = new LetterNegotiationTerms
-            {
-                DeadlineHours = config.NegotiationTerms.SuccessTerms.DeadlineMinutes / 60,
-                QueuePosition = config.NegotiationTerms.SuccessTerms.QueuePosition,
-                Payment = config.NegotiationTerms.SuccessTerms.Payment,
-                ForcesPositionOne = config.NegotiationTerms.SuccessTerms.ForcesPositionOne
-            },
-            FailureTerms = new LetterNegotiationTerms
-            {
-                DeadlineHours = config.NegotiationTerms.FailureTerms.DeadlineMinutes / 60,
-                QueuePosition = config.NegotiationTerms.FailureTerms.QueuePosition,
-                Payment = config.NegotiationTerms.FailureTerms.Payment,
-                ForcesPositionOne = config.NegotiationTerms.FailureTerms.ForcesPositionOne
-            },
-            ConnectionType = config.LetterDetails.TokenType,
-            BaseSuccessRate = config.NegotiationTerms.BaseSuccessRate
+            Category = isCrisis ? CardCategory.CRISIS : CardCategory.PROMISE,
+            IsGoalCard = true,
+            GoalCardType = ConversationType.Letter, // Promise cards create letters
+            DisplayName = config.LetterDetails.Description,
+            Description = config.LetterDetails.Description,
+            SuccessRate = config.NegotiationTerms.BaseSuccessRate
+        };
+    }
+    
+    private CardType ConvertConnectionTypeToCardType(ConnectionType connectionType)
+    {
+        return connectionType switch
+        {
+            ConnectionType.Trust => CardType.Trust,
+            ConnectionType.Commerce => CardType.Commerce,
+            ConnectionType.Status => CardType.Status,
+            ConnectionType.Shadow => CardType.Shadow,
+            _ => CardType.Trust
         };
     }
 

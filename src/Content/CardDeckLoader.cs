@@ -347,14 +347,14 @@ public class CardDeckLoader
             }
             
             // Determine goal type
-            GoalType goalType = template switch
+            ConversationType goalType = template switch
             {
-                "LetterGoal" => GoalType.Letter,
-                "ResolutionGoal" => GoalType.Resolution,
-                "PromiseGoal" => GoalType.Promise,
-                "CommerceGoal" => GoalType.Commerce,
-                "CrisisGoal" => GoalType.Crisis,
-                _ => GoalType.Letter
+                "LetterGoal" => ConversationType.Letter,
+                "ResolutionGoal" => ConversationType.Resolution,
+                "PromiseGoal" => ConversationType.Promise,
+                "CommerceGoal" => ConversationType.Commerce,
+                "CrisisGoal" => ConversationType.Crisis,
+                _ => ConversationType.Letter
             };
             
             return new ConversationCard
@@ -504,7 +504,6 @@ public class CardDeckLoader
             "TOKEN" => CardCategory.TOKEN,
             "STATE" => CardCategory.STATE,
             "BURDEN" => CardCategory.BURDEN,
-            "CRISIS" => CardCategory.CRISIS,
             "PROMISE" => CardCategory.PROMISE,
             "EXCHANGE" => CardCategory.EXCHANGE,
             "OBSERVATION" => CardCategory.OBSERVATION,
@@ -532,7 +531,7 @@ public class CardDeckLoader
             "Fleeting" => PersistenceType.Fleeting,
             "Opportunity" => PersistenceType.Opportunity,
             "Burden" => PersistenceType.Burden,
-            "Crisis" => PersistenceType.Crisis,
+            "Crisis" => PersistenceType.Goal,
             _ => PersistenceType.Persistent
         };
     }
