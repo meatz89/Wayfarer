@@ -69,7 +69,7 @@ public class ConversationCardParser
         // Add universal cards
         var universalCards = _cardTemplates.Values
             .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID)
-            .Where(c => c.IsGoalCard != true && c.Category != CardCategory.BURDEN);
+            .Where(c => c.IsGoalCard != true);
 
         foreach (var cardDto in universalCards)
         {
@@ -139,7 +139,6 @@ public class ConversationCardParser
             Weight = card.Weight,
             BaseComfort = card.BaseComfort,
             Depth = card.Depth,
-            Category = card.Category,
             IsGoalCard = card.IsGoalCard,
             GoalCardType = card.GoalCardType,
             DisplayName = card.DisplayName,
@@ -195,7 +194,6 @@ public class ConversationCardParser
             Weight = dto.Weight,
             BaseComfort = dto.BaseComfort,
             Depth = dto.Depth ?? 0,
-            Category = dto.Category,
             IsGoalCard = dto.IsGoalCard ?? false,
             GoalCardType = goalType,
             DisplayName = dto.DisplayName,
@@ -209,8 +207,8 @@ public class ConversationCardParser
     {
         return type switch
         {
-            ConversationType.FriendlyChat => ConversationType.Letter,
-            ConversationType.Promise => ConversationType.Letter,
+            ConversationType.FriendlyChat => ConversationType.Promise,
+            ConversationType.Promise => ConversationType.Promise,
             ConversationType.Resolution => ConversationType.Resolution,
             ConversationType.Crisis => ConversationType.Crisis,
             ConversationType.Commerce => null,
@@ -241,7 +239,6 @@ public class ConversationCardDTO
     public int Weight { get; set; }
     public int BaseComfort { get; set; }
     public int? Depth { get; set; }
-    public CardCategory Category { get; set; }
     public bool? IsGoalCard { get; set; }
     public string GoalCardType { get; set; }
     public string DisplayName { get; set; }

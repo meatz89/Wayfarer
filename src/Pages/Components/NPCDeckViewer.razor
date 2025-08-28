@@ -127,7 +127,7 @@
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
                                     <span class="card-name">@(card.DisplayName ?? card.Template.ToString())</span>
-                                    <span class="card-category @GetCategoryClass(card.Category)">@card.Category</span>
+                                    <span class="card-category @GetCategoryClass(card)">@GetCategoryName(card)</span>
                                 </div>
                                 <div class="card-properties">
                                     <span>Type: @card.Type</span>
@@ -139,7 +139,7 @@
                                 <div class="card-outcomes">
                                     <div class="outcome success">
                                         <span>Success (@(card.SuccessRate ?? 50)%)</span>
-                                        @if (card.Category == CardCategory.STATE && card.SuccessState != null)
+                                        @if (card.IsStateCard && card.SuccessState != null)
                                         {
                                             <span>State → @card.SuccessState</span>
                                         }
@@ -150,7 +150,7 @@
                                     </div>
                                     <div class="outcome failure">
                                         <span>Failure (@(100 - (card.SuccessRate ?? 50))%)</span>
-                                        @if (card.Category == CardCategory.STATE && card.FailureState != null)
+                                        @if (card.IsStateCard && card.FailureState != null)
                                         {
                                             <span>State → @card.FailureState</span>
                                         }
@@ -351,19 +351,41 @@
         _ = GameScreen?.NavigateToScreen(ScreenMode.Location);
     }
     
-    private string GetCategoryClass(CardCategory category)
+    private string GetCategoryClass(ConversationCard card)
     {
-        return category switch
-        {
-            CardCategory.COMFORT => "comfort",
-            CardCategory.TOKEN => "token",
-            CardCategory.STATE => "state",
-            CardCategory.BURDEN => "burden",
-            CardCategory.OBSERVATION => "observation",
-            CardCategory.CRISIS => "crisis",
-            CardCategory.PROMISE => "promise",
-            CardCategory.EXCHANGE => "exchange",
-            _ => ""
-        };
+        // Determine category based on card properties since Category enum is removed
+        if (card.Template == CardTemplateType.Exchange || card.Template == CardTemplateType.SimpleExchange)
+            return "exchange";
+        if (card.IsObservation)
+            return "observation";
+        if (card.IsGoalCard)
+            return "promise";
+        if (card.IsStateCard)
+            return "state";
+        if (card.BaseComfort <= 0 && card.Weight >= 2)
+            return "burden";
+        if (card.BaseComfort > 2)
+            return "token";
+        
+        return "comfort"; // Default
+    }
+    
+    private string GetCategoryName(ConversationCard card)
+    {
+        // Determine category name based on card properties since Category enum is removed
+        if (card.Template == CardTemplateType.Exchange || card.Template == CardTemplateType.SimpleExchange)
+            return "EXCHANGE";
+        if (card.IsObservation)
+            return "OBSERVATION";
+        if (card.IsGoalCard)
+            return "PROMISE";
+        if (card.IsStateCard)
+            return "STATE";
+        if (card.BaseComfort <= 0 && card.Weight >= 2)
+            return "BURDEN";
+        if (card.BaseComfort > 2)
+            return "TOKEN";
+        
+        return "COMFORT"; // Default
     }
 }

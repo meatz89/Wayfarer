@@ -120,7 +120,7 @@ public class ExchangeCard : ICard
                     break;
                 case ResourceType.Attention:
                     // Attention is managed by TimeBlockAttentionManager
-                    if (currentAttention != null && currentAttention.CurrentAttention < cost.Amount)
+                    if (currentAttention != null && currentAttention.Current < cost.Amount)
                         return false;
                     break;
                 case ResourceType.TrustToken:
@@ -167,7 +167,6 @@ public class ExchangeCard : ICard
             Persistence = PersistenceType.Fleeting,
             Weight = 0, // Exchanges are free to play
             BaseComfort = 0,
-            Category = CardCategory.EXCHANGE,
             DisplayName = displayName,
             Description = $"Cost: {costText} → Reward: {rewardText}",
             SuccessRate = 100 // Exchanges always succeed if affordable

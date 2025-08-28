@@ -171,7 +171,7 @@ public class ObservationCard : ICard
         var rules = ConversationRules.States[state];
         
         // Check if observation cards are free in this state
-        if (rules.FreeWeightCategories != null && rules.FreeWeightCategories.Contains(CardCategory.OBSERVATION))
+        if (rules.FreeWeightCardTypes != null && rules.FreeWeightCardTypes.Contains(typeof(ObservationCard)))
             return 0;
             
         return Weight;

@@ -175,7 +175,6 @@ public class ObservationManager
                 Persistence = PersistenceType.Fleeting, // Observations are Opportunity type but DON'T vanish on Listen - they decay over time
                 Weight = originalCard.Weight,
                 BaseComfort = obsCard.EffectiveComfortValue, // Use decay-adjusted comfort value
-                Category = originalCard.Category,
                 IsObservation = true,
                 ObservationSource = obsCard.SourceObservationId,
                 CanDeliverLetter = originalCard.CanDeliverLetter,
@@ -186,7 +185,6 @@ public class ObservationManager
                 SuccessRate = originalCard.SuccessRate,
                 DisplayName = originalCard.DisplayName,
                 Description = originalCard.Description,
-                PowerLevel = originalCard.PowerLevel
             };
             
             conversationCards.Add(adjustedCard);
@@ -295,7 +293,6 @@ public class ObservationManager
             Persistence = PersistenceType.Fleeting, // All observation cards are one-shot
             Weight = observationTypeData.Weight,
             BaseComfort = observationTypeData.BaseComfort,
-            Category = CardCategory.COMFORT, // Most observations provide comfort
             IsObservation = true,
             ObservationSource = observation.Id,
             CanDeliverLetter = false,

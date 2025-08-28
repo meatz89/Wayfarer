@@ -81,7 +81,7 @@ public class StateCard : ICard
         var rules = ConversationRules.States[state];
         
         // Check if state cards are free in this state
-        if (rules.FreeWeightCategories != null && rules.FreeWeightCategories.Contains(CardCategory.STATE))
+        if (rules.FreeWeightCardTypes != null && rules.FreeWeightCardTypes.Contains(typeof(StateCard)))
             return 0;
             
         return Weight;

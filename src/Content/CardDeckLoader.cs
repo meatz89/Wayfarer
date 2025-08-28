@@ -243,7 +243,6 @@ public class CardDeckLoader
         {
             // Parse card type
             var typeStr = template.GetProperty("type").GetString();
-            var category = ParseCategory(typeStr);
             
             // Parse connection type
             var connectionStr = template.TryGetProperty("connectionType", out var connElem) 
@@ -295,7 +294,6 @@ public class CardDeckLoader
                 Weight = weight,
                 BaseComfort = baseComfort,
                 Depth = depth,
-                Category = category,
                 IsStateCard = isStateCard,
                 SuccessState = successState,
                 DisplayName = id.Replace("_", " "),
@@ -349,12 +347,12 @@ public class CardDeckLoader
             // Determine goal type
             ConversationType goalType = template switch
             {
-                "LetterGoal" => ConversationType.Letter,
+                "LetterGoal" => ConversationType.Promise,
                 "ResolutionGoal" => ConversationType.Resolution,
                 "PromiseGoal" => ConversationType.Promise,
                 "CommerceGoal" => ConversationType.Commerce,
                 "CrisisGoal" => ConversationType.Crisis,
-                _ => ConversationType.Letter
+                _ => ConversationType.Promise
             };
             
             return new ConversationCard
@@ -373,7 +371,6 @@ public class CardDeckLoader
                 Weight = weight,
                 BaseComfort = 0,
                 Depth = depth,
-                Category = CardCategory.PROMISE,
                 IsGoalCard = true,
                 GoalCardType = goalType,
                 DisplayName = id.Replace("_", " "),
@@ -426,7 +423,6 @@ public class CardDeckLoader
                 Weight = 0, // Exchange cards have no weight
                 BaseComfort = 0,
                 Depth = 0,
-                Category = CardCategory.EXCHANGE,
                 DisplayName = id.Replace("_", " "),
                 Description = description,
                 SuccessRate = 100 // Exchange cards always succeed if affordable
@@ -478,7 +474,6 @@ public class CardDeckLoader
                 Weight = 1,
                 BaseComfort = 2,
                 Depth = 0,
-                Category = CardCategory.OBSERVATION,
                 IsObservation = true,
                 ObservationSource = $"{location}/{spot}",
                 SuccessState = targetState,
@@ -496,20 +491,6 @@ public class CardDeckLoader
     }
     
     // Helper methods for parsing enums
-    private CardCategory ParseCategory(string typeStr)
-    {
-        return typeStr?.ToUpper() switch
-        {
-            "COMFORT" => CardCategory.COMFORT,
-            "TOKEN" => CardCategory.TOKEN,
-            "STATE" => CardCategory.STATE,
-            "BURDEN" => CardCategory.BURDEN,
-            "PROMISE" => CardCategory.PROMISE,
-            "EXCHANGE" => CardCategory.EXCHANGE,
-            "OBSERVATION" => CardCategory.OBSERVATION,
-            _ => CardCategory.COMFORT
-        };
-    }
     
     private CardType ParseCardType(string connectionStr)
     {
@@ -530,7 +511,7 @@ public class CardDeckLoader
             "Persistent" => PersistenceType.Persistent,
             "Fleeting" => PersistenceType.Fleeting,
             "Opportunity" => PersistenceType.Opportunity,
-            "Burden" => PersistenceType.Burden,
+            "Burden" => PersistenceType.Persistent,
             "Crisis" => PersistenceType.Goal,
             _ => PersistenceType.Persistent
         };

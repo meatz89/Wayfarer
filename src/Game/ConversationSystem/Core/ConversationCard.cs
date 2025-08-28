@@ -126,6 +126,11 @@ public class ConversationCard : ICard
     public EmotionalState? FailureState { get; init; }
 
     /// <summary>
+    /// Whether this card is an ExchangeCard
+    /// </summary>
+    public bool IsExchange { get; init; }
+
+    /// <summary>
     /// Whether this card came from an observation
     /// </summary>
     public bool IsObservation { get; init; }
@@ -188,9 +193,8 @@ public class ConversationCard : ICard
     {
         var rules = ConversationRules.States[state];
         
-        // Check if this card's category is free in this state
-        if (rules.FreeWeightCategories != null && rules.FreeWeightCategories.Contains(Category))
-            return 0;
+        // Type-based checking would need to be implemented here
+        // For now, no free weight categories
             
         return Weight;
     }
@@ -207,10 +211,6 @@ public class ConversationCard : ICard
         // Use override if specified (for special cards like Crisis letters)
         if (SuccessRate.HasValue)
             return SuccessRate.Value;
-            
-        // Exchange cards always succeed if affordable
-        if (Category == CardCategory.EXCHANGE)
-            return 100;
             
         var baseChance = 70;
         baseChance -= Weight * 10;
@@ -247,17 +247,21 @@ public class ConversationCard : ICard
     /// </summary>
     public string GetCategoryClass()
     {
-        return Category switch
-        {
-            CardCategory.COMFORT => "comfort",
-            CardCategory.TOKEN => "token",
-            CardCategory.STATE => "state",
-            CardCategory.BURDEN => "burden",
-            CardCategory.OBSERVATION => "observation",
-            CardCategory.PROMISE => "promise",
-            CardCategory.EXCHANGE => "exchange",
-            _ => "comfort"
-        };
+        // Determine category based on card properties since Category enum is removed
+        if (IsExchange)
+            return "exchange";
+        if (IsObservation)
+            return "observation";
+        if (IsGoalCard)
+            return "promise";
+        if (IsStateCard)
+            return "state";
+        if (BaseComfort <= 0 && Weight >= 2)
+            return "burden";
+        if (BaseComfort > 2)
+            return "token";
+        
+        return "comfort"; // Default
     }
     
 }

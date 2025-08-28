@@ -136,7 +136,7 @@ public class CardDeck : IEnumerable<ICard>
                 // Opportunity cards are removed from play when discarded
                 cards.Remove(card);
             }
-            else if (convCard.Persistence == PersistenceType.Burden)
+            else if (convCard.BaseComfort <= 0 && convCard.Weight >= 2)
             {
                 // Burden cards stay in deck even when "discarded"
                 // They're only removed through specific mechanics
@@ -216,7 +216,7 @@ public class CardDeck : IEnumerable<ICard>
     /// </summary>
     public List<ICard> GetBurdenCards()
     {
-        return cards.Where(c => c is ConversationCard convCard && convCard.Persistence == PersistenceType.Burden).ToList();
+        return cards.Where(c => c is ConversationCard convCard && convCard.BaseComfort <= 0 && convCard.Weight >= 2).ToList();
     }
 
     /// <summary>

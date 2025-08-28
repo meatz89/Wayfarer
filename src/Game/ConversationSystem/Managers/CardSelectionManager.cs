@@ -53,12 +53,12 @@ public class CardSelectionManager
         if (cardWeight > rules.MaxWeight)
         {
             // Exception: Crisis letters can override weight limits when forced
-            if (card.Category != CardCategory.BURDEN)
+            if (!(card.BaseComfort <= 0 && card.Weight >= 2))
                 return false;
         }
 
-        // Category restrictions (e.g., HOSTILE only allows Crisis letters)
-        if (rules.AllowedCategories != null && !rules.AllowedCategories.Contains(card.Category))
+        // Type restrictions (e.g., HOSTILE only allows Crisis letters)
+        if (rules.AllowedCardTypes != null && !rules.AllowedCardTypes.Contains(card.GetType()))
             return false;
 
         return true;
@@ -110,7 +110,7 @@ public class CardSelectionManager
         foreach (var card in selectedCards)
         {
             // Exchange cards ALWAYS succeed - they're simple trades
-            if (card.Category == CardCategory.EXCHANGE)
+            if (card.Template == CardTemplateType.Exchange || card.Template == CardTemplateType.SimpleExchange)
             {
                 results.Add(new SingleCardResult
                 {
@@ -125,7 +125,7 @@ public class CardSelectionManager
             }
             
             // Promise cards (including letters) create negotiation results and obligations
-            if (card.Category == CardCategory.PROMISE)
+            if (card.IsGoalCard && card.Template == CardTemplateType.MakePromise)
             {
                 var letterSuccessChance = card.CalculateSuccessChance(npcTokens);
                 var letterRoll = random.Next(100);
@@ -190,7 +190,7 @@ public class CardSelectionManager
         var singleCard = selectedCards.First();
         var singleResult = results.First();
 
-        if (singleCard.Category == CardCategory.STATE)
+        if (singleCard.IsStateCard)
         {
             newState = singleResult.Success ? singleCard.SuccessState : singleCard.FailureState;
         }
@@ -228,17 +228,17 @@ public class CardSelectionManager
         // ONE-CARD RULE: Always exactly one card
         var card = selectedCards.First();
         
-        if (card.Category == CardCategory.BURDEN)
+        if (card.BaseComfort <= 0 && card.Weight >= 2)
             return "DESPERATE ACTION";
         
-        if (card.Category == CardCategory.STATE)
+        if (card.IsStateCard)
             return "Emotional Shift";
         
-        if (card.Category == CardCategory.EXCHANGE)
+        if (card.Template == CardTemplateType.Exchange || card.Template == CardTemplateType.SimpleExchange)
             return "Exchange Offer";
             
-        if (card.Category == CardCategory.PROMISE)
-            return card.IsGoalCard && card.GoalCardType == ConversationType.Letter ? "Letter Negotiation" : "Promise Negotiation";
+        if (card.IsGoalCard && card.Template == CardTemplateType.MakePromise)
+            return card.IsGoalCard && card.GoalCardType == ConversationType.Promise ? "Letter Negotiation" : "Promise Negotiation";
         
         // Default for normal conversation cards
         return $"{card.Type} Expression";

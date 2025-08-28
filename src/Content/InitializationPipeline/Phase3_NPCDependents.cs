@@ -179,7 +179,6 @@ public class Phase3_NPCDependents : IInitializationPhase
             Weight = original.Weight,
             BaseComfort = original.BaseComfort,
             Depth = original.Depth,
-            Category = original.Category,
             SuccessState = original.SuccessState,
             IsStateCard = original.IsStateCard,
             GrantsToken = original.GrantsToken,
@@ -225,6 +224,8 @@ public class Phase3_NPCDependents : IInitializationPhase
     
     private ConversationCard ConvertPromiseToConversationCard(PromiseCardConfiguration config, NPC npc)
     {
+        bool isCrisis = npc.IsInCrisis();
+        
         return new ConversationCard
         {
             Id = config.CardId,
@@ -241,9 +242,8 @@ public class Phase3_NPCDependents : IInitializationPhase
             Weight = isCrisis ? 0 : 2,
             BaseComfort = 5, // Standard comfort gain for promise cards
             Depth = 7, // Default depth for letters
-            Category = isCrisis ? CardCategory.CRISIS : CardCategory.PROMISE,
             IsGoalCard = true,
-            GoalCardType = ConversationType.Letter, // Promise cards create letters
+            GoalCardType = ConversationType.Promise, // Promise cards create letters
             DisplayName = config.LetterDetails.Description,
             Description = config.LetterDetails.Description,
             SuccessRate = config.NegotiationTerms.BaseSuccessRate

@@ -70,7 +70,7 @@ public class ComfortCard : ICard
         var rules = ConversationRules.States[state];
         
         // Check if comfort cards are free in this state
-        if (rules.FreeWeightCategories != null && rules.FreeWeightCategories.Contains(CardCategory.COMFORT))
+        if (rules.FreeWeightCardTypes != null && rules.FreeWeightCardTypes.Contains(typeof(ComfortCard)))
             return 0;
             
         return Weight;

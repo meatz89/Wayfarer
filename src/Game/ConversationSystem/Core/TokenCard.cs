@@ -76,7 +76,7 @@ public class TokenCard : ICard
         var rules = ConversationRules.States[state];
         
         // Check if token cards are free in this state
-        if (rules.FreeWeightCategories != null && rules.FreeWeightCategories.Contains(CardCategory.TOKEN))
+        if (rules.FreeWeightCardTypes != null && rules.FreeWeightCardTypes.Contains(typeof(TokenCard)))
             return 0;
             
         return Weight;

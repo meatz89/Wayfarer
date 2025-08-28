@@ -72,14 +72,14 @@ public class StateRuleset
     public Dictionary<int, int> SetBonuses { get; init; } = new();
 
     /// <summary>
-    /// Card categories that cost 0 weight in this state
+    /// Card types that cost 0 weight in this state
     /// </summary>
-    public List<CardCategory> FreeWeightCategories { get; init; } = new();
+    public List<Type> FreeWeightCardTypes { get; init; } = new();
 
     /// <summary>
-    /// Card categories allowed to be played in this state (null = all allowed)
+    /// Card types allowed to be played in this state (null = all allowed)
     /// </summary>
-    public List<CardCategory> AllowedCategories { get; init; }
+    public List<Type> AllowedCardTypes { get; init; }
 
     /// <summary>
     /// Whether listening ends the conversation (HOSTILE breakdown)
@@ -178,7 +178,7 @@ public static class ConversationRules
             ListenTransition = EmotionalState.HOSTILE,  // Transitions to HOSTILE
             InjectsCrisis = true,  // INJECT 1 Crisis letter
             CrisisCardsInjected = 1,
-            FreeWeightCategories = new() { CardCategory.BURDEN },  // Crisis letters cost 0 weight
+            FreeWeightCardTypes = new() { typeof(BurdenCard) },  // Crisis letters cost 0 weight
             ChecksGoalDeck = true  // Check for urgent letters in desperate state
         },
 
@@ -190,8 +190,8 @@ public static class ConversationRules
             ListenTransition = EmotionalState.HOSTILE,  // Stays HOSTILE
             InjectsCrisis = true,  // INJECT 2 Crisis letters
             CrisisCardsInjected = 2,
-            FreeWeightCategories = new() { CardCategory.BURDEN },
-            AllowedCategories = new() { CardCategory.BURDEN },  // ONLY Crisis letters allowed
+            FreeWeightCardTypes = new() { typeof(BurdenCard) },
+            AllowedCardTypes = new() { typeof(BurdenCard) },  // ONLY Crisis letters allowed
             ListenEndsConversation = true,  // END conversation after listen
             ChecksGoalDeck = false
         }

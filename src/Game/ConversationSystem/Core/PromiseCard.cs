@@ -175,7 +175,7 @@ public class PromiseCard : ICard
             Persistence = PersistenceType.Fleeting, // Letters are opportunities that can be lost
             Weight = Weight,
             BaseComfort = 0, // Letters don't give comfort, they create obligations
-            Category = CardCategory.PROMISE, // Letters are promises that create obligations
+ // Letters are promises that create obligations
             Depth = Depth,
             DisplayName = Title,
             Description = Description,

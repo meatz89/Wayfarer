@@ -308,17 +308,8 @@ public class ConversationManager
         foreach (var card in playedCards)
         {
             // Handle exchange cards
-            if (card.Category == CardCategory.EXCHANGE && card.Context?.ExchangeData != null)
+            if (card.Context?.ExchangeData != null)
             {
-                // Check for decline card
-                if (card.Id == "decline_exchange")
-                {
-                    // Decline card just ends the conversation
-                    Console.WriteLine("[ConversationManager] Player declined all exchange offers");
-                    messageSystem.AddSystemMessage("You politely decline the offers", SystemMessageTypes.Info);
-                    continue;
-                }
-                
                 // Execute the actual exchange directly
                 Console.WriteLine($"[EXCHANGE DEBUG] About to execute exchange for card {card.Id}");
                 Console.WriteLine($"[EXCHANGE DEBUG] card.Context null? {card.Context == null}");

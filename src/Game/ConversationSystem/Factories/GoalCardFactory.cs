@@ -29,15 +29,12 @@ public static class GoalCardFactory
             return null;
         }
         
-        // Find the appropriate goal card from GameWorld templates
-        var goalType = GetGoalTypeForConversation(conversationType);
-        
         // Look for a goal card matching the conversation type
         foreach (var kvp in _gameWorld.CardTemplates)
         {
             var dto = kvp.Value;
             if (dto.IsGoalCard == true && 
-                dto.GoalCardType == goalType?.ToString() &&
+                dto.GoalCardType == conversationType?.ToString() &&
                 (string.IsNullOrEmpty(dto.ForNPC) || dto.ForNPC == npcId))
             {
                 return ConvertDTOToCard(dto, npcId, npcName);
@@ -49,7 +46,7 @@ public static class GoalCardFactory
         {
             var dto = kvp.Value;
             if (dto.IsGoalCard == true && 
-                dto.GoalCardType == goalType?.ToString() &&
+                dto.GoalCardType == conversationType?.ToString() &&
                 string.IsNullOrEmpty(dto.ForNPC))
             {
                 return ConvertDTOToCard(dto, npcId, npcName);
@@ -58,19 +55,6 @@ public static class GoalCardFactory
         
         Console.WriteLine($"WARNING: No goal card found for conversation type {conversationType}");
         return null;
-    }
-    
-    private static ConversationType? GetGoalTypeForConversation(ConversationType type)
-    {
-        return type switch
-        {
-            ConversationType.FriendlyChat => ConversationType.Letter,
-            ConversationType.Promise => ConversationType.Letter,
-            ConversationType.Resolution => ConversationType.Resolution,
-            ConversationType.Commerce => ConversationType.Commerce,
-            ConversationType.Crisis => ConversationType.Crisis,
-            _ => null
-        };
     }
     
     private static ConversationCard ConvertDTOToCard(ConversationCardDTO dto, string npcId, string npcName)
@@ -109,7 +93,6 @@ public static class GoalCardFactory
             Weight = dto.Weight,
             BaseComfort = dto.BaseComfort,
             Depth = dto.Depth ?? 0,
-            Category = dto.Category,
             IsGoalCard = true,
             GoalCardType = goalType,
             DisplayName = dto.DisplayName,
