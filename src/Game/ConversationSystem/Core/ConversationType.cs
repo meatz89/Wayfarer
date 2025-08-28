@@ -12,24 +12,25 @@ public enum ConversationType
     QuickExchange,
     
     /// <summary>
-    /// Crisis resolution (1 attention, 3 patience, crisis deck only)
-    /// </summary>
-    Crisis,
-    
-    /// <summary>
     /// Standard conversation (2 attention, 8 patience, full mechanics)
     /// </summary>
     Standard,
     
     /// <summary>
-    /// Letter offer conversation (2 attention, 6 patience, letter deck cards)
-    /// Enabled when NPC has letter cards in their letter deck
+    /// Letter offer conversation (2 attention, 6 patience, comfort, tokens and promise card)
+    /// Enabled when NPC has letter cards in their Goal deck
     /// </summary>
     LetterOffer,
-    
+
     /// <summary>
-    /// Make amends conversation (2 attention, 6 patience, burden resolution)
-    /// Enabled when NPC has 2+ burden cards in their conversation deck
+    /// Letter offer conversation (2 attention, 6 patience, comfort, tokens and letter delivery card)
+    /// Enabled when Player has letter for the NPC recipient in his Obligation Queue 
+    /// </summary>
+    LetterDelivery,
+
+    /// <summary>
+    /// Make amends conversation (2 attention, 6 patience, comfort, tokens and burden resolution card)
+    /// Enabled when NPC has 1+ burden cards in their conversation deck
     /// </summary>
     MakeAmends,
 }
@@ -48,11 +49,11 @@ public enum DeckType
     /// Conversation deck for normal interactions
     /// </summary>
     Conversation,
-    
+
     /// <summary>
-    /// Crisis deck for urgent situations
+    /// Goal Decks for letters, promises and burdens
     /// </summary>
-    Crisis
+    Goal
 }
 
 /// <summary>
@@ -65,59 +66,11 @@ public static class ConversationTypeConfig
         return type switch
         {
             ConversationType.QuickExchange => 0,
-            ConversationType.Crisis => 1,
+            ConversationType.LetterDelivery => 1,
             ConversationType.Standard => 2,
             ConversationType.LetterOffer => 2,
             ConversationType.MakeAmends => 2,
             _ => 2
-        };
-    }
-    
-    public static int GetBasePatience(ConversationType type)
-    {
-        return type switch
-        {
-            ConversationType.QuickExchange => 0,  // No patience for exchanges
-            ConversationType.Crisis => 3,
-            ConversationType.Standard => 8,
-            ConversationType.LetterOffer => 6,  // Focused on letter negotiation
-            ConversationType.MakeAmends => 6,    // Focused on burden resolution
-            _ => 8
-        };
-    }
-    
-    public static DeckType GetDeckType(ConversationType type)
-    {
-        return type switch
-        {
-            ConversationType.QuickExchange => DeckType.Exchange,
-            ConversationType.Crisis => DeckType.Crisis,
-            ConversationType.Standard => DeckType.Conversation,
-            ConversationType.LetterOffer => DeckType.Conversation,  // Uses conversation deck with letter cards mixed in
-            ConversationType.MakeAmends => DeckType.Conversation,   // Uses conversation deck focused on burdens
-            _ => DeckType.Conversation
-        };
-    }
-    
-    public static bool RequiresEmotionalStates(ConversationType type)
-    {
-        return type switch
-        {
-            ConversationType.QuickExchange => false,
-            _ => true
-        };
-    }
-    
-    public static bool CanGenerateLetters(ConversationType type)
-    {
-        return type switch
-        {
-            ConversationType.QuickExchange => false,
-            ConversationType.Crisis => false,  // Crisis resolves issues, doesn't generate letters
-            ConversationType.Standard => true,
-            ConversationType.LetterOffer => true,  // Primary purpose is letter generation
-            ConversationType.MakeAmends => false,   // Resolves burdens, doesn't generate letters
-            _ => false
         };
     }
     
@@ -127,15 +80,25 @@ public static class ConversationTypeConfig
     /// which properly analyzes deck contents
     /// </summary>
     public static ConversationType DetermineAvailableType(
-        bool hasCrisisCards,
+        bool burden,
+        bool letterDelivery,
+        bool letterOffer,
         int relationshipLevel,
         bool playerRequestedExchange,
         int playerAttention)
     {
-        // Crisis takes absolute priority
-        if (hasCrisisCards)
-            return ConversationType.Crisis;
-            
+        // Burdens take absolute priority
+        if (burden)
+            return ConversationType.MakeAmends;
+
+        // Letter delivery from player to npc recipient
+        if (letterDelivery)
+            return ConversationType.LetterDelivery;
+
+        // Letter offers from npc sender to player
+        if (letterOffer)
+            return ConversationType.LetterOffer;
+
         // Player explicitly requested exchange
         if (playerRequestedExchange)
             return ConversationType.QuickExchange;
@@ -144,7 +107,6 @@ public static class ConversationTypeConfig
         if (playerAttention >= 2)
             return ConversationType.Standard;
             
-        // Only exchanges possible with low attention
-        return ConversationType.QuickExchange;
+        throw new Exception("No valid conversation type selected");
     }
 }

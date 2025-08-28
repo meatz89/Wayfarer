@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-
 public class NPC
 {
     // Identity
@@ -52,7 +51,7 @@ public class NPC
     private List<RouteOption> _knownRoutes = new List<RouteOption>();
     
     // REMOVED: Boolean flags violate deck-based architecture
-    // Letters are detected by checking LetterDeck contents
+    // Letters are detected by checking GoalDeck contents
     // Burden history detected by counting burden cards in ConversationDeck
     // Crisis detected by checking CurrentState == EmotionalState.DESPERATE
     
@@ -60,15 +59,12 @@ public class NPC
     public EmotionalState CurrentState { get; set; } = EmotionalState.NEUTRAL;
     public EmotionalState CurrentEmotionalState => CurrentState; // Alias for compatibility
 
-    // FOUR DECK ARCHITECTURE (POC EXACT)
-    public CardDeck ConversationDeck { get; set; }  // Comfort/State/Burden cards (depth 0-20)
-    public List<LetterCard> LetterDeck { get; set; } = new();  // Letter cards with eligibility (tokens + state)
-    public CardDeck CrisisDeck { get; set; }  // Crisis letters (usually empty unless crisis)
-    public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // Exchange cards (Mercantile NPCs only)
+    // THREE DECK ARCHITECTURE (POC EXACT)
+    public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Comfort, Token, State, Knowledge, Burden
+    public CardDeck GoalDeck { get; set; } = new();  // 2-8 cards: Promise (letters), Resolution, Crisis goals
+    public CardDeck ExchangeDeck { get; set; } = new();  // 5-10 cards: Simple instant trades (Mercantile NPCs only) 
 
-    // Daily exchange selection
-    public ExchangeCard TodaysExchangeCard { get; set; }
-    public int LastExchangeSelectionDay { get; set; } = -1;
+    // Daily exchange selection (removed - handled by GetTodaysExchange method)
 
     // Initialize conversation deck with proper cards
     public void InitializeConversationDeck(NPCDeckFactory deckFactory)
@@ -76,64 +72,45 @@ public class NPC
         ConversationDeck ??= deckFactory.CreateDeckForNPC(this);
     }
     
-    // Initialize letter deck from content repository
-    public void InitializeLetterDeck(List<LetterCard> letterCards = null)
+    // Initialize goal deck from content repository
+    public void InitializeGoalDeck(List<ConversationCard> goalCards = null)
     {
         // Only initialize if not already done
-        if (LetterDeck == null || !LetterDeck.Any())
+        if (GoalDeck == null || !GoalDeck.Any())
         {
-            // Initialize from provided cards or empty
-            LetterDeck = letterCards ?? new List<LetterCard>();
-        }
-    }
-
-    // Initialize exchange deck (for NPCs that offer exchanges)
-    public void InitializeExchangeDeck(List<string> spotDomainTags = null)
-    {
-        if (ExchangeDeck == null || !ExchangeDeck.Any())
-        {
-            // NPCs with exchange capabilities: MERCANTILE always, others based on location
-            ExchangeDeck = ExchangeCardFactory.CreateExchangeDeck(PersonalityType, ID, spotDomainTags);
-            
-            // Log if exchanges were created
-            if (ExchangeDeck.Any())
+            GoalDeck = new CardDeck();
+            if (goalCards != null)
             {
-                Console.WriteLine($"[NPC] Initialized {ExchangeDeck.Count} exchange cards for {Name} ({PersonalityType})");
+                foreach (var card in goalCards)
+                {
+                    GoalDeck.AddCard(card);
+                }
             }
         }
     }
 
-    // Initialize crisis deck (usually empty unless crisis active)
-    public void InitializeCrisisDeck()
+    // Initialize exchange deck (for Mercantile NPCs only)
+    public void InitializeExchangeDeck(List<ConversationCard> exchangeCards = null)
     {
-        // Crisis deck starts empty and cards are added during crisis events
-        CrisisDeck ??= new CardDeck();
-    }
-    
-    // Add Crisis letters to the crisis deck
-    public void AddCrisisCards(List<ConversationCard> crisisCards)
-    {
-        if (CrisisDeck == null)
+        if (ExchangeDeck == null || !ExchangeDeck.Any())
         {
-            InitializeCrisisDeck();
-        }
-        
-        foreach (var card in crisisCards)
-        {
-            CrisisDeck.AddCard(card);
+            ExchangeDeck = new CardDeck();
+            // Only Mercantile NPCs have exchange decks
+            if (PersonalityType == PersonalityType.MERCANTILE && exchangeCards != null)
+            {
+                foreach (var card in exchangeCards)
+                {
+                    ExchangeDeck.AddCard(card);
+                }
+            }
         }
     }
 
-    // Check if NPC has Crisis letters
-    public bool HasCrisisCards()
+    // Check if NPC has promise cards (letters) in their goal deck  
+    public bool HasPromiseCards()
     {
-        return CrisisDeck != null && CrisisDeck.RemainingCards > 0;
-    }
-    
-    // Check if NPC has letter cards in their letter deck
-    public bool HasLetterCards()
-    {
-        return LetterDeck != null && LetterDeck.Any();
+        if (GoalDeck == null) return false;
+        return GoalDeck.GetAllCards().Any(c => c.Category == CardCategory.PROMISE);
     }
     
     // Check if NPC has burden history (cards in conversation deck)
@@ -173,31 +150,19 @@ public class NPC
         return ExchangeDeck != null && ExchangeDeck.Any();
     }
 
-    // Get today's exchange card (selected randomly at dawn)
-    public ExchangeCard GetTodaysExchangeCard()
+    // Get today's exchange card (selected deterministically at dawn)
+    public ConversationCard GetTodaysExchange(int currentDay)
     {
-        return TodaysExchangeCard;
-    }
-
-    // Get today's exchange card (selected randomly at dawn)
-    public ExchangeCard GetTodaysExchange(int currentDay)
-    {
-        // If it's a new day, select a new card
-        if (LastExchangeSelectionDay != currentDay)
-        {
-            if (ExchangeDeck?.Any() == true)
-            {
-                // Use deterministic random based on day and NPC ID
-                var random = new Random(currentDay * ID.GetHashCode());
-                TodaysExchangeCard = ExchangeDeck[random.Next(ExchangeDeck.Count)];
-                LastExchangeSelectionDay = currentDay;
-            }
-            else
-            {
-                TodaysExchangeCard = null;
-            }
-        }
-        return TodaysExchangeCard;
+        // Exchange cards only for Mercantile NPCs
+        if (PersonalityType != PersonalityType.MERCANTILE || ExchangeDeck == null || !ExchangeDeck.Any())
+            return null;
+            
+        // Use deterministic selection based on day and NPC ID
+        var cards = ExchangeDeck.GetAllCards();
+        if (cards.Count == 0) return null;
+        
+        var index = (currentDay * ID.GetHashCode()) % cards.Count;
+        return cards[Math.Abs(index)];
     }
 
     // Helper methods for UI display

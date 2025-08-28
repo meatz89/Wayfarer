@@ -21,8 +21,8 @@ public class Phase3_NPCDependents : IInitializationPhase
         // 2. Load DeliveryObligation Templates (depends on NPCs for validation)
         LoadLetterTemplates(context);
         
-        // 3. Load Letter Deck configurations
-        LoadLetterDecks(context);
+        // 3. Load Goal deck configurations
+        LoadGoalDecks(context);
         
         // 4. Initialize NPC Conversation Decks (CRITICAL - was missing!)
         InitializeNPCDecks(context);
@@ -30,9 +30,8 @@ public class Phase3_NPCDependents : IInitializationPhase
     
     private void InitializeNPCDecks(InitializationContext context)
     {
-        Console.WriteLine("[Phase3] Initializing NPC conversation decks...");
+        Console.WriteLine("[Phase3] Initializing NPC THREE-DECK ARCHITECTURE...");
         
-        // Get NPCDeckFactory from context (should be registered in services)
         var npcs = context.GameWorld.WorldState.NPCs;
         
         if (npcs == null || !npcs.Any())
@@ -41,41 +40,81 @@ public class Phase3_NPCDependents : IInitializationPhase
             return;
         }
         
-        // Create a deck factory instance (no token manager during initialization)
-        var deckFactory = new NPCDeckFactory(null);
+        // Cards are already loaded in GameWorld from Phase0
+        var gameWorld = context.GameWorld;
         
         foreach (var npc in npcs)
         {
             try
             {
-                // Initialize conversation deck for each NPC
-                npc.InitializeConversationDeck(deckFactory);
-                
-                // Debug: Check personality BEFORE initializing exchange deck
-                Console.WriteLine($"[Phase3] NPC {npc.Name} (ID: {npc.ID}) has PersonalityType: {npc.PersonalityType}");
-                
-                // Initialize exchange deck (without spot tags since we don't know location yet)
-                // MERCANTILE NPCs will get their exchanges initialized here
-                // Other personalities need spot information which comes at conversation time
-                npc.InitializeExchangeDeck(null);
-                
-                // Debug: Check exchange deck contents
-                if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
+                // DECK 1: CONVERSATION DECK (20-30 cards)
+                // Load from NPCConversationDeckMappings
+                if (gameWorld.NPCConversationDeckMappings.TryGetValue(npc.ID.ToLower(), out var cardIds))
                 {
-                    Console.WriteLine($"[Phase3] Exchange deck for {npc.Name} contains {npc.ExchangeDeck.Count} cards:");
-                    foreach (var card in npc.ExchangeDeck)
+                    npc.ConversationDeck = new CardDeck();
+                    foreach (var cardId in cardIds)
                     {
-                        Console.WriteLine($"  - {card.TemplateType} (Personality: {card.NPCPersonality})");
+                        if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
+                        {
+                            // Clone card with NPC-specific context
+                            var npcCard = CloneCardForNPC(card, npc);
+                            npc.ConversationDeck.AddCard(npcCard);
+                        }
+                    }
+                    Console.WriteLine($"[Phase3] {npc.Name}: Conversation deck has {npc.ConversationDeck.Count} cards");
+                }
+                else
+                {
+                    // Fallback: Use NPCDeckFactory for legacy support
+                    var deckFactory = new NPCDeckFactory(null);
+                    npc.InitializeConversationDeck(deckFactory);
+                    Console.WriteLine($"[Phase3] {npc.Name}: Used legacy deck initialization");
+                }
+                
+                // DECK 2: GOAL DECK (2-8 cards)
+                // Load from NPCGoalDecks
+                if (gameWorld.NPCGoalDecks.TryGetValue(npc.ID.ToLower(), out var goalCards))
+                {
+                    npc.GoalDeck = new CardDeck();
+                    foreach (var goalCard in goalCards)
+                    {
+                        // Clone goal card with NPC-specific context
+                        var npcGoal = CloneCardForNPC(goalCard, npc);
+                        npc.GoalDeck.AddCard(npcGoal);
+                    }
+                    Console.WriteLine($"[Phase3] {npc.Name}: Goal deck has {npc.GoalDeck.Count} cards (Letters: {npc.HasPromiseCards()})");
+                }
+                else
+                {
+                    // Fallback: Use legacy goal deck initialization
+                    InitializeGoalDeckForNPC(npc, context);
+                }
+                
+                // DECK 3: EXCHANGE DECK (5-10 cards, Mercantile only)
+                // Only for MERCANTILE personality
+                if (npc.PersonalityType == PersonalityType.MERCANTILE)
+                {
+                    if (gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out var exchangeCards))
+                    {
+                        npc.ExchangeDeck = new CardDeck();
+                        foreach (var exchangeCard in exchangeCards)
+                        {
+                            // Clone exchange card with NPC-specific context
+                            var npcExchange = CloneCardForNPC(exchangeCard, npc);
+                            npc.ExchangeDeck.AddCard(npcExchange);
+                        }
+                        Console.WriteLine($"[Phase3] {npc.Name}: Exchange deck has {npc.ExchangeDeck.Count} cards");
                     }
                 }
                 
-                // Initialize letter deck for specific NPCs
-                InitializeLetterDeckForNPC(npc, context);
-                
-                // Note: Crisis letters are added later in Phase8 when meeting obligations are created
-                // This ensures proper initialization order
-                
-                Console.WriteLine($"[Phase3] Initialized decks for NPC: {npc.Name} (ID: {npc.ID})");
+                // Report deck status
+                Console.WriteLine($"[Phase3] {npc.Name} deck summary:");
+                Console.WriteLine($"  - Conversation: {npc.ConversationDeck?.Count ?? 0} cards");
+                Console.WriteLine($"  - Goal: {npc.GoalDeck?.Count ?? 0} cards");
+                Console.WriteLine($"  - Exchange: {npc.ExchangeDeck?.Count ?? 0} cards");
+                Console.WriteLine($"  - Has Letters: {npc.HasPromiseCards()}");
+                Console.WriteLine($"  - Has Burdens: {npc.HasBurdenHistory()} ({npc.CountBurdenCards()} cards)");
+                Console.WriteLine($"  - In Crisis: {npc.IsInCrisis()}");
             }
             catch (Exception ex)
             {
@@ -83,38 +122,111 @@ public class Phase3_NPCDependents : IInitializationPhase
             }
         }
         
-        Console.WriteLine($"[Phase3] Initialized decks for {npcs.Count} NPCs");
+        Console.WriteLine($"[Phase3] Initialized THREE-DECK ARCHITECTURE for {npcs.Count} NPCs");
     }
     
-    private void InitializeLetterDeckForNPC(NPC npc, InitializationContext context)
+    /// <summary>
+    /// Clone a card with NPC-specific context
+    /// </summary>
+    private ConversationCard CloneCardForNPC(ConversationCard original, NPC npc)
     {
-        // Get letter cards from the letter deck repository
-        if (context.LetterDeckRepository != null)
+        // Create new context with NPC-specific values
+        var npcContext = new CardContext
         {
-            var letterConfigs = context.LetterDeckRepository.GetLetterCardsForNPC(npc.ID);
+            Personality = npc.PersonalityType,
+            EmotionalState = npc.CurrentEmotionalState,
+            NPCName = npc.Name,
+            NPCPersonality = npc.PersonalityType,
+            // Preserve original context properties
+            UrgencyLevel = original.Context?.UrgencyLevel ?? 0,
+            HasDeadline = original.Context?.HasDeadline ?? false,
+            MinutesUntilDeadline = original.Context?.MinutesUntilDeadline,
+            ObservationType = original.Context?.ObservationType,
+            LetterId = original.Context?.LetterId,
+            TargetNpcId = original.Context?.TargetNpcId,
+            ExchangeData = original.Context?.ExchangeData,
+            ObservationId = original.Context?.ObservationId,
+            ObservationText = original.Context?.ObservationText,
+            ObservationDescription = original.Context?.ObservationDescription,
+            ExchangeName = original.Context?.ExchangeName,
+            ExchangeCost = original.Context?.ExchangeCost,
+            ExchangeReward = original.Context?.ExchangeReward,
+            ObservationDecayState = original.Context?.ObservationDecayState,
+            ObservationDecayDescription = original.Context?.ObservationDecayDescription,
+            GeneratesLetterOnSuccess = original.Context?.GeneratesLetterOnSuccess ?? false,
+            IsOfferCard = original.Context?.IsOfferCard ?? false,
+            GrantsToken = original.Context?.GrantsToken ?? false,
+            IsAcceptCard = original.Context?.IsAcceptCard ?? false,
+            IsDeclineCard = original.Context?.IsDeclineCard ?? false,
+            OfferCardId = original.Context?.OfferCardId,
+            CustomText = original.Context?.CustomText,
+            LetterDetails = original.Context?.LetterDetails,
+            ValidStates = original.Context?.ValidStates ?? new List<EmotionalState>(),
+            ExchangeOffer = original.Context?.ExchangeOffer,
+            ExchangeRequest = original.Context?.ExchangeRequest,
+            ObservationLocation = original.Context?.ObservationLocation,
+            ObservationSpot = original.Context?.ObservationSpot
+        };
+        
+        // Create cloned card with NPC context
+        return new ConversationCard
+        {
+            Id = original.Id,
+            Template = original.Template,
+            Context = npcContext,
+            Type = original.Type,
+            Persistence = original.Persistence,
+            Weight = original.Weight,
+            BaseComfort = original.BaseComfort,
+            Depth = original.Depth,
+            Category = original.Category,
+            SuccessState = original.SuccessState,
+            IsStateCard = original.IsStateCard,
+            GrantsToken = original.GrantsToken,
+            FailureState = original.FailureState,
+            IsObservation = original.IsObservation,
+            ObservationSource = original.ObservationSource,
+            CanDeliverLetter = original.CanDeliverLetter,
+            DeliveryObligationId = original.DeliveryObligationId,
+            ManipulatesObligations = original.ManipulatesObligations,
+            SuccessRate = original.SuccessRate,
+            DisplayName = original.DisplayName,
+            Description = original.Description,
+            IsGoalCard = original.IsGoalCard,
+            GoalCardType = original.GoalCardType,
+            PowerLevel = original.PowerLevel
+        };
+    }
+    
+    private void InitializeGoalDeckForNPC(NPC npc, InitializationContext context)
+    {
+        // Get letter cards from the Goal deck repository
+        if (context.GoalDeckRepository != null)
+        {
+            var letterConfigs = context.GoalDeckRepository.GetPromiseCardsForNPC(npc.ID);
             if (letterConfigs != null && letterConfigs.Any())
             {
-                // Convert configurations to LetterCards
-                var letterCards = new List<LetterCard>();
+                // Convert configurations to PromiseCards
+                var promiseCards = new List<PromiseCard>();
                 foreach (var config in letterConfigs)
                 {
-                    letterCards.Add(ConvertToLetterCard(config, npc));
+                    promiseCards.Add(ConvertToPromiseCard(config, npc));
                 }
                 
-                npc.InitializeLetterDeck(letterCards);
-                Console.WriteLine($"[Phase3] Initialized letter deck for {npc.Name} with {letterCards.Count} cards from letter_decks.json");
+                npc.InitializeGoalDeck(promiseCards);
+                Console.WriteLine($"[Phase3] Initialized Goal deck for {npc.Name} with {promiseCards.Count} cards from letter_decks.json");
                 
-                foreach (var letterCard in letterCards)
+                foreach (var promiseCard in promiseCards)
                 {
-                    Console.WriteLine($"  - {letterCard.Title} (Requires: {string.Join(", ", letterCard.Eligibility.RequiredTokens.Select(t => $"{t.Value} {t.Key}"))}, States: {string.Join(", ", letterCard.Eligibility.RequiredStates)})");
+                    Console.WriteLine($"  - {promiseCard.Title} (Requires: {string.Join(", ", promiseCard.Eligibility.RequiredTokens.Select(t => $"{t.Value} {t.Key}"))}, States: {string.Join(", ", promiseCard.Eligibility.RequiredStates)})");
                 }
             }
         }
     }
     
-    private LetterCard ConvertToLetterCard(LetterCardConfiguration config, NPC npc)
+    private PromiseCard ConvertToPromiseCard(PromiseCardConfiguration config, NPC npc)
     {
-        return new LetterCard
+        return new PromiseCard
         {
             Id = config.CardId,
             Title = config.LetterDetails.Description,
@@ -147,18 +259,18 @@ public class Phase3_NPCDependents : IInitializationPhase
         };
     }
 
-    private void LoadLetterDecks(InitializationContext context)
+    private void LoadGoalDecks(InitializationContext context)
     {
-        Console.WriteLine("[Phase3] Loading letter deck configurations...");
+        Console.WriteLine("[Phase3] Loading Goal deck configurations...");
         
-        // Create and initialize letter deck repository
-        var letterDeckRepo = new LetterDeckRepository(context.ContentPath);
-        letterDeckRepo.LoadLetterDecks();
+        // Create and initialize Goal deck repository
+        var GoalDeckRepo = new GoalDeckRepository(context.ContentPath);
+        GoalDeckRepo.LoadGoalDecks();
         
         // Store in context for later use
-        context.LetterDeckRepository = letterDeckRepo;
+        context.GoalDeckRepository = GoalDeckRepo;
         
-        Console.WriteLine("[Phase3] Letter deck configurations loaded");
+        Console.WriteLine("[Phase3] Goal deck configurations loaded");
     }
     
     private TierLevel ParseTierLevel(string tierString)

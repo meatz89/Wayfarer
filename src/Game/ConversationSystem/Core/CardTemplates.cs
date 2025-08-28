@@ -85,7 +85,17 @@ public enum CardTemplateType
     Exchange,
     ExchangeOffer,      // The display-only offer card from NPC
     ExchangeAccept,     // Player's accept response card
-    ExchangeDecline     // Player's decline response card
+    ExchangeDecline,    // Player's decline response card
+    SimpleExchange,     // Simple instant trade template
+    
+    // Special templates
+    GoalCard,           // Goal card template
+    ObservationShare,   // Observation sharing template
+    
+    // Additional comfort templates
+    OfferAssistance,    // Offer to help with problems
+    PersonalStory,      // Share personal experience
+    CalmingResponse     // Attempt to calm someone
 }
 
 /// <summary>
@@ -227,4 +237,29 @@ public class CardContext
     /// Letter details for delivery cards
     /// </summary>
     public string LetterDetails { get; init; }
+    
+    /// <summary>
+    /// Valid states for goal cards (which states allow this goal)
+    /// </summary>
+    public List<EmotionalState> ValidStates { get; init; } = new();
+    
+    /// <summary>
+    /// Exchange offer for exchange cards (e.g., "3 food")
+    /// </summary>
+    public string ExchangeOffer { get; init; }
+    
+    /// <summary>
+    /// Exchange request for exchange cards (e.g., "5 coins")
+    /// </summary>
+    public string ExchangeRequest { get; init; }
+    
+    /// <summary>
+    /// Observation location for observation cards
+    /// </summary>
+    public string ObservationLocation { get; init; }
+    
+    /// <summary>
+    /// Observation spot for observation cards
+    /// </summary>
+    public string ObservationSpot { get; init; }
 }

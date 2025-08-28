@@ -17,24 +17,28 @@ public class Phase0_CardSystem : IInitializationPhase
 
         try
         {
-            // Create parser as a temporary tool - it will be discarded after loading
-            var cardParser = new ConversationCardParser(context.GetContentPath());
+            // PHASE 1: Load comprehensive deck system (POC architecture)
+            var deckLoader = new CardDeckLoader(context.GetContentPath());
+            deckLoader.LoadAllDecks();
             
-            // Load all card definitions from conversations.json
-            cardParser.LoadConversationCards();
-            
-            // CRITICAL: Store loaded card data directly in GameWorld, not the parser
-            // GameWorld is the single source of truth for all state
-            context.GameWorld.CardTemplates = cardParser.GetCardTemplates();
-            context.GameWorld.PersonalityMappings = cardParser.GetPersonalityMappings();
-            context.GameWorld.TokenUnlocks = cardParser.GetTokenUnlocks();
+            // Store all deck configurations in GameWorld (single source of truth)
+            context.GameWorld.AllCardDefinitions = deckLoader.GetAllCards();
+            context.GameWorld.NPCConversationDeckMappings = deckLoader.GetNPCConversationDecks();
+            context.GameWorld.NPCGoalDecks = deckLoader.GetNPCGoalDecks();
+            context.GameWorld.NPCExchangeDecks = deckLoader.GetNPCExchangeDecks();
+            context.GameWorld.PlayerObservationCards = deckLoader.GetPlayerObservationCards();
             
             // Initialize static factories to read from GameWorld
             GoalCardFactory.Initialize(context.GameWorld);
             CardDeck.InitializeGameWorld(context.GameWorld);
             
-            // Parser is now discarded - it was just a tool for loading
-            Console.WriteLine($"  Card system initialized: {context.GameWorld.CardTemplates.Count} templates loaded into GameWorld");
+            // Report loading statistics
+            Console.WriteLine($"[Phase0] Card system initialized:");
+            Console.WriteLine($"  - Total cards: {context.GameWorld.AllCardDefinitions.Count}");
+            Console.WriteLine($"  - NPC conversation decks: {context.GameWorld.NPCConversationDeckMappings.Count}");
+            Console.WriteLine($"  - NPC goal decks: {context.GameWorld.NPCGoalDecks.Count}");
+            Console.WriteLine($"  - NPC exchange decks: {context.GameWorld.NPCExchangeDecks.Count}");
+            Console.WriteLine($"  - Player observation cards: {context.GameWorld.PlayerObservationCards.Count}");
         }
         catch (Exception ex)
         {

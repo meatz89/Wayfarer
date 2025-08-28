@@ -34,10 +34,6 @@ public class Phase8_InitialLetters : IInitializationPhase
             
             gameWorld.GetPlayer().MeetingObligations.Add(urgentMeeting);
             Console.WriteLine($"  Added {urgentNpc.Name}'s urgent meeting request (2 hour deadline)");
-            
-            // Crisis deck initialization will happen from JSON data
-            urgentNpc.InitializeCrisisDeck();
-            Console.WriteLine($"  Initialized crisis deck for {urgentNpc.Name} from JSON data");
         }
         
         // Load initial obligations from NPCs with letter cards

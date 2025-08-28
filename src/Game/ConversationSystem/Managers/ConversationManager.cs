@@ -143,7 +143,7 @@ public class ConversationManager
         }
         
         // Check for letter cards → Letter Offer conversation
-        if (npc.HasLetterCards())
+        if (npc.HasPromiseCards())
         {
             available.Add(ConversationType.LetterOffer);
         }
@@ -479,7 +479,7 @@ public class ConversationManager
         // Check if current emotional state allows letter generation
         // Letters emerge from emotional state, not comfort thresholds
         var stateRules = ConversationRules.States[currentSession.CurrentState];
-        if (stateRules.ChecksLetterDeck)
+        if (stateRules.ChecksGoalDeck)
         {
             // Create a new delivery obligation
             var obligation = CreateLetterObligation(currentSession.NPC);

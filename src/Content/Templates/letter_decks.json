@@ -1,8 +1,8 @@
 {
-  "letterDecks": [
+  "goalDecks": [
     {
       "npcId": "elena",
-      "letterCards": [
+      "promiseCards": [
         {
           "cardId": "elena_crisis_letter_goal",
           "eligibilityRequirements": {
@@ -37,7 +37,7 @@
     },
     {
       "npcId": "marcus",
-      "letterCards": [
+      "promiseCards": [
         {
           "cardId": "marcus_letter_goal",
           "eligibilityRequirements": {
@@ -73,7 +73,7 @@
     },
     {
       "npcId": "viktor",
-      "letterCards": [
+      "promiseCards": [
         {
           "cardId": "guard_letter_goal",
           "eligibilityRequirements": {

@@ -137,17 +137,11 @@ public class ConversationSession
             npc.InitializeConversationDeck(new NPCDeckFactory(tokenManager));
         }
         
-        // Initialize letter deck for NPCs that have letters
-        if (npc.HasLetterCards() && (npc.LetterDeck == null || !npc.LetterDeck.Any()))
+        // Initialize Goal deck for NPCs that have letters
+        if (npc.HasPromiseCards() && (npc.GoalDeck == null || !npc.GoalDeck.Any()))
         {
-            // Letter decks should be initialized from letter_decks.json during Phase3
-            Console.WriteLine($"[ConversationSession] Warning: {npc.Name} has no letter deck but should have letters");
-        }
-        
-        // Initialize crisis deck if needed (usually empty)
-        if (npc.CrisisDeck == null)
-        {
-            npc.InitializeCrisisDeck();
+            // Goal decks should be initialized from letter_decks.json during Phase3
+            Console.WriteLine($"[ConversationSession] Warning: {npc.Name} has no Goal deck but should have letters");
         }
 
         // CRITICAL: Comfort always starts at 5 for new conversations
@@ -518,22 +512,22 @@ public class ConversationSession
             }
         }
 
-        // Check letter deck if state requires it (OPEN checks trust, CONNECTED checks all)
-        if (rules.ChecksLetterDeck && tokenManager != null && NPC.LetterDeck != null && NPC.LetterDeck.Any())
+        // Check Goal deck if state requires it (OPEN checks trust, CONNECTED checks all)
+        if (rules.ChecksGoalDeck && tokenManager != null && NPC.GoalDeck != null && NPC.GoalDeck.Any())
         {
             var npcTokens = tokenManager.GetTokensWithNPC(NPC.ID);
             
-            foreach (var letterCard in NPC.LetterDeck)
+            foreach (var promiseCard in NPC.GoalDeck)
             {
                 // Check if letter is eligible with current tokens and state
-                if (letterCard.IsEligible(npcTokens, CurrentState))
+                if (promiseCard.IsEligible(npcTokens, CurrentState))
                 {
-                    // Convert letter card to conversation card for negotiation
-                    var conversationCard = letterCard.ToConversationCard(NPC.ID, NPC.Name);
+                    // Convert promise card to conversation card for negotiation
+                    var conversationCard = promiseCard.ToConversationCard(NPC.ID, NPC.Name);
                     
                     // Calculate success rate with linear token progression (+5% per token)
-                    var relevantTokens = npcTokens.GetValueOrDefault(letterCard.ConnectionType, 0);
-                    var successRate = letterCard.BaseSuccessRate + (relevantTokens * 5);
+                    var relevantTokens = npcTokens.GetValueOrDefault(promiseCard.ConnectionType, 0);
+                    var successRate = promiseCard.BaseSuccessRate + (relevantTokens * 5);
                     successRate = Math.Clamp(successRate, 10, 95);
                     
                     // Create new card with calculated success rate (init-only property)
@@ -556,7 +550,7 @@ public class ConversationSession
                     };
                     
                     HandCards.Add(conversationCard);
-                    Console.WriteLine($"[ExecuteListen] Added eligible letter: {letterCard.Title} (Success: {successRate}%)");
+                    Console.WriteLine($"[ExecuteListen] Added eligible letter: {promiseCard.Title} (Success: {successRate}%)");
                 }
             }
         }
@@ -1065,7 +1059,7 @@ public class ConversationSession
                 var letterObligation = CreateLetterObligationFromGoal(goalCard, result.Success);
                 result.LetterNegotiations.Add(new LetterNegotiationResult
                 {
-                    LetterCardId = goalCard.Id,
+                    PromiseCardId = goalCard.Id,
                     NegotiationSuccess = result.Success,
                     CreatedObligation = letterObligation
                 });
@@ -1170,27 +1164,27 @@ public class ConversationSession
         {
             var negotiation = result.LetterNegotiations[i];
             
-            // Find the source letter card from the NPC's letter deck
-            var sourceLetterCard = NPC.LetterDeck?.FirstOrDefault(lc => lc.Id == negotiation.LetterCardId);
-            if (sourceLetterCard == null)
+            // Find the source promise card from the NPC's Goal deck
+            var sourcePromiseCard = NPC.GoalDeck?.FirstOrDefault(lc => lc.Id == negotiation.PromiseCardId);
+            if (sourcePromiseCard == null)
             {
-                Console.WriteLine($"[ProcessLetterNegotiations] WARNING: Could not find source letter card {negotiation.LetterCardId}");
+                Console.WriteLine($"[ProcessLetterNegotiations] WARNING: Could not find source promise card {negotiation.PromiseCardId}");
                 continue;
             }
 
             // Determine which terms to use based on negotiation success
-            var terms = negotiation.NegotiationSuccess ? sourceLetterCard.SuccessTerms : sourceLetterCard.FailureTerms;
+            var terms = negotiation.NegotiationSuccess ? sourcePromiseCard.SuccessTerms : sourcePromiseCard.FailureTerms;
 
             // Create the delivery obligation from the negotiated terms
-            var obligation = CreateDeliveryObligationFromTerms(sourceLetterCard, terms, NPC);
+            var obligation = CreateDeliveryObligationFromTerms(sourcePromiseCard, terms, NPC);
 
             // Complete the negotiation result (replace the incomplete one)
             var completedNegotiation = new LetterNegotiationResult
             {
-                LetterCardId = negotiation.LetterCardId,
+                PromiseCardId = negotiation.PromiseCardId,
                 NegotiationSuccess = negotiation.NegotiationSuccess,
                 FinalTerms = terms,
-                SourceLetterCard = sourceLetterCard,
+                SourcePromiseCard = sourcePromiseCard,
                 CreatedObligation = obligation
             };
 
@@ -1205,24 +1199,24 @@ public class ConversationSession
     /// <summary>
     /// Create a DeliveryObligation from negotiated letter terms
     /// </summary>
-    private DeliveryObligation CreateDeliveryObligationFromTerms(LetterCard letterCard, LetterNegotiationTerms terms, NPC sender)
+    private DeliveryObligation CreateDeliveryObligationFromTerms(PromiseCard promiseCard, LetterNegotiationTerms terms, NPC sender)
     {
-        // Get recipient from letter card (hardcoded based on letter ID for now)
+        // Get recipient from promise card (hardcoded based on letter ID for now)
         string recipientId = "unknown";
         string recipientName = "Unknown Recipient";
         
         // Map known letter cards to their recipients
-        if (letterCard.Id.Contains("blackwood"))
+        if (promiseCard.Id.Contains("blackwood"))
         {
             recipientId = "lord_blackwood";
             recipientName = "Lord Blackwood";
         }
-        else if (letterCard.Id.Contains("noble_district"))
+        else if (promiseCard.Id.Contains("noble_district"))
         {
             recipientId = "noble_district_merchant";
             recipientName = "Noble District Merchant";
         }
-        else if (letterCard.Id.Contains("guard"))
+        else if (promiseCard.Id.Contains("guard"))
         {
             recipientId = "guard_tower";
             recipientName = "Guard Tower";
@@ -1230,17 +1224,17 @@ public class ConversationSession
 
         return new DeliveryObligation
         {
-            Id = $"{sender.ID}_{letterCard.Id}_{DateTime.Now.Ticks}",
+            Id = $"{sender.ID}_{promiseCard.Id}_{DateTime.Now.Ticks}",
             SenderName = sender.Name,
             SenderId = sender.ID,
             RecipientName = recipientName,
             RecipientId = recipientId,
             DeadlineInMinutes = terms.DeadlineHours * 60,
             Payment = terms.Payment,
-            TokenType = letterCard.ConnectionType,
+            TokenType = promiseCard.ConnectionType,
             
             // Letter-specific properties based on the template
-            Stakes = letterCard.TemplateType switch
+            Stakes = promiseCard.TemplateType switch
             {
                 "urgent_refusal" => StakeType.SAFETY,
                 "formal_refusal" => StakeType.REPUTATION,
@@ -1251,8 +1245,8 @@ public class ConversationSession
                              terms.DeadlineHours <= 6 ? EmotionalWeight.HIGH :
                              EmotionalWeight.MEDIUM,
                              
-            Description = $"{letterCard.Title} for {sender.Name}",
-            Message = letterCard.Description,
+            Description = $"{promiseCard.Title} for {sender.Name}",
+            Message = promiseCard.Description,
             
             // Queue positioning based on terms
             QueuePosition = terms.QueuePosition,
@@ -1261,7 +1255,7 @@ public class ConversationSession
             
             // Generation tracking
             IsGenerated = true,
-            GenerationReason = $"Letter negotiation: {(terms == letterCard.SuccessTerms ? "success" : "failure")}"
+            GenerationReason = $"Letter negotiation: {(terms == promiseCard.SuccessTerms ? "success" : "failure")}"
         };
     }
     

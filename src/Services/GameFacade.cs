@@ -746,34 +746,6 @@ public class GameFacade
             return false;
         }
     }
-
-    /// <summary>
-    /// Legacy method - redirects to new displacement system
-    /// </summary>
-    public async Task<bool> DisplaceLetterInQueue(string letterId)
-    {
-        // Get current position and displace to end of queue
-        var obligations = _letterQueueManager.GetActiveObligations();
-        var obligation = obligations.FirstOrDefault(o => o.Id == letterId);
-        
-        if (obligation == null)
-        {
-            _messageSystem.AddSystemMessage("Letter not found in queue", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        int currentPosition = _letterQueueManager.GetQueuePosition(obligation);
-        if (currentPosition <= 0)
-        {
-            _messageSystem.AddSystemMessage("Unable to determine letter position", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Move to end of queue (back of line)
-        int targetPosition = Math.Min(currentPosition + 1, 8);
-        return await DisplaceObligation(letterId, targetPosition);
-    }
-
     #endregion
     
     private string GetNPCDescription(NPC npc, EmotionalState state)
@@ -1053,7 +1025,6 @@ public class GameFacade
                 ObserveLocationIntent observe => await ExecuteObserve(observe),
                 ExploreAreaIntent explore => await ExecuteExplore(explore),
                 RequestPatronFundsIntent patron => await ExecutePatronFunds(patron),
-                AcceptLetterOfferIntent offer => await ExecuteAcceptOffer(offer), // Legacy - returns false
                 TravelIntent travel => await ExecuteTravel(travel),
                 DiscoverRouteIntent discover => await ExecuteDiscoverRoute(discover),
                 _ => throw new NotSupportedException($"Unknown intent type: {intent.GetType()}")
@@ -1501,17 +1472,6 @@ public class GameFacade
     {
         // Patron system has been completely removed
         _messageSystem.AddSystemMessage("The patron system no longer exists. Earn coins through deliveries and trade.", SystemMessageTypes.Info);
-        return false;
-    }
-
-    private async Task<bool> ExecuteAcceptOffer(AcceptLetterOfferIntent intent)
-    {
-        // REMOVED - Letters are now ONLY created through conversation choices
-        // This legacy automatic offer system violates our architectural principles
-        _messageSystem.AddSystemMessage(
-            "Letter offers are now handled through conversations. Talk to NPCs to request letters!",
-            SystemMessageTypes.Info
-        );
         return false;
     }
 

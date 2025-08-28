@@ -64,11 +64,11 @@ public class LetterNegotiationTerms
 }
 
 /// <summary>
-/// A letter card represents an opportunity to negotiate letter delivery terms.
-/// Letters become eligible based on token requirements and emotional state.
+/// A promise card represents an opportunity to negotiate obligation terms (like letters).
+/// Promises become eligible based on token requirements and emotional state.
 /// Playing the card determines success/failure for negotiation terms.
 /// </summary>
-public class LetterCard
+public class PromiseCard
 {
     /// <summary>
     /// Unique identifier for this letter
@@ -121,7 +121,7 @@ public class LetterCard
     public LetterNegotiationTerms FailureTerms { get; init; }
     
     /// <summary>
-    /// Connection type this letter card builds (usually Trust)
+    /// Connection type this promise card builds (usually Trust)
     /// </summary>
     public ConnectionType ConnectionType { get; init; } = ConnectionType.Trust;
     
@@ -189,20 +189,20 @@ public class LetterCard
 /// <summary>
 /// Factory for creating letter cards based on NPC and scenario
 /// </summary>
-public static class LetterCardFactory
+public static class PromiseCardFactory
 {
     /// <summary>
-    /// Create Elena's letter deck from POC specification
+    /// Create Elena's Goal deck from POC specification
     /// </summary>
-    public static List<LetterCard> CreateElenaLetterDeck(string npcId)
+    public static List<PromiseCard> CreateElenaGoalDeck(string npcId)
     {
-        var deck = new List<LetterCard>();
+        var deck = new List<PromiseCard>();
         
         // "Crisis Letter to Lord Blackwood" - POC Main Scenario
         // Eligible: Trust tokens ≥ 0 (available immediately in DESPERATE state)
         // Success: 3-hour deadline, queue position 2-3, 12 coins payment
         // Failure: 1-hour deadline, forces position 1 (displaces Marcus), 15 coins payment
-        deck.Add(new LetterCard
+        deck.Add(new PromiseCard
         {
             Id = $"{npcId}_crisis_letter_blackwood",
             Title = "Crisis Letter to Lord Blackwood",
@@ -238,7 +238,7 @@ public static class LetterCardFactory
         // Eligible: Trust tokens ≥ 3, Open/Connected state
         // Success: 8-hour deadline, position 3, 8 coins
         // Failure: 2-hour deadline, position 2, 10 coins
-        deck.Add(new LetterCard
+        deck.Add(new PromiseCard
         {
             Id = $"{npcId}_formal_refusal_blackwood",
             Title = "Formal Refusal to Lord Blackwood", 

@@ -178,11 +178,11 @@
                     <span class="urgency-rule">⚠ Goal Urgency Rule: Once drawn, must be played within 1 turn or conversation fails!</span>
                 </div>
                 
-                @if (CurrentNPC.LetterDeck != null && CurrentNPC.LetterDeck.Any())
+                @if (CurrentNPC.GoalDeck != null && CurrentNPC.GoalDeck.Any())
                 {
-                    <h4 class="sub-deck-header">Letter Goals (@(CurrentNPC.LetterDeck.Count) cards)</h4>
+                    <h4 class="sub-deck-header">Letter Goals (@(CurrentNPC.GoalDeck.Count) cards)</h4>
                     <div class="card-list">
-                        @foreach (var card in CurrentNPC.LetterDeck)
+                        @foreach (var card in CurrentNPC.GoalDeck)
                         {
                             <div class="debug-card letter-card goal-card">
                                 <div class="card-header">
@@ -313,8 +313,8 @@
     // Computed properties for conversation availability
     private bool HasExchangeCards => CurrentNPC?.ExchangeDeck?.Any() == true;
     private bool HasCrisisCards => CrisisCards?.Any() == true;
-    private bool HasGoalCards => (CurrentNPC?.LetterDeck?.Any() == true) || HasCrisisCards;
-    private int TotalGoalCards => (CurrentNPC?.LetterDeck?.Count ?? 0) + (CrisisCards?.Count ?? 0);
+    private bool HasGoalCards => (CurrentNPC?.GoalDeck?.Any() == true) || HasCrisisCards;
+    private int TotalGoalCards => (CurrentNPC?.GoalDeck?.Count ?? 0) + (CrisisCards?.Count ?? 0);
     
     protected override void OnInitialized()
     {

@@ -61,27 +61,6 @@ public class CardDeck
         Shuffle();
     }
 
-    /// <summary>
-    /// Initialize crisis deck for an NPC
-    /// </summary>
-    public void InitializeCrisisDeck(NPC npc)
-    {
-        cards.Clear();
-        discardPile.Clear();
-
-        if (_gameWorld == null)
-        {
-            Console.WriteLine("WARNING: CardDeck not initialized with GameWorld - using empty crisis deck");
-            return;
-        }
-
-        // Load crisis cards from GameWorld templates
-        var crisisCards = GetCrisisCards(npc);
-        cards.AddRange(crisisCards);
-
-        // No shuffle for crisis decks - they're drawn in order
-    }
-
     private void AddBurdenCardsForNPC(NPC npc)
     {
         // Burden cards are defined in conversations.json with forNPC property

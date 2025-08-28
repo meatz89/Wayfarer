@@ -57,19 +57,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-
-        protected async Task DisplaceLetter(DeliveryObligation letter)
-        {
-            // Legacy method - use displacement to back of queue
-            var result = await GameFacade.DisplaceLetterInQueue(letter.Id);
-            if (!result)
-            {
-                Console.WriteLine($"[ObligationQueueContent] Failed to displace letter: {letter.Id}");
-            }
-            RefreshObligations();
-            StateHasChanged();
-        }
-
         protected async Task DisplaceLetterToPosition(DeliveryObligation letter, int targetPosition)
         {
             // Use the new token-burning displacement system

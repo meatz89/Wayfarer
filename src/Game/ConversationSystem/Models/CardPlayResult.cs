@@ -94,9 +94,9 @@ public class SingleCardResult
 public class LetterNegotiationResult
 {
     /// <summary>
-    /// The letter card that was played
+    /// The promise card that was played
     /// </summary>
-    public string LetterCardId { get; init; }
+    public string PromiseCardId { get; init; }
 
     /// <summary>
     /// Whether the negotiation was successful
@@ -109,9 +109,9 @@ public class LetterNegotiationResult
     public LetterNegotiationTerms FinalTerms { get; init; }
 
     /// <summary>
-    /// The letter card that generated this negotiation
+    /// The promise card that generated this negotiation
     /// </summary>
-    public LetterCard SourceLetterCard { get; init; }
+    public PromiseCard SourcePromiseCard { get; init; }
 
     /// <summary>
     /// The delivery obligation that needs to be created

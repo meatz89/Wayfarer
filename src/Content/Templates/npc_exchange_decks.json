@@ -1,0 +1,54 @@
+{
+  "exchangeDecks": {
+    "marcus": [
+      {
+        "id": "marcus_food_for_coins",
+        "template": "SimpleExchange",
+        "type": "Commerce",
+        "category": "EXCHANGE",
+        "depth": 0,
+        "weight": 0,
+        "offer": {
+          "resource": "food",
+          "amount": 3
+        },
+        "request": {
+          "resource": "coins",
+          "amount": 5
+        }
+      },
+      {
+        "id": "marcus_health_potion",
+        "template": "SimpleExchange",
+        "type": "Commerce",
+        "category": "EXCHANGE",
+        "depth": 0,
+        "weight": 0,
+        "offer": {
+          "resource": "health",
+          "amount": 2
+        },
+        "request": {
+          "resource": "coins",
+          "amount": 8
+        }
+      },
+      {
+        "id": "marcus_bulk_trade",
+        "template": "SimpleExchange",
+        "type": "Commerce",
+        "category": "EXCHANGE",
+        "depth": 0,
+        "weight": 0,
+        "offer": {
+          "resource": "food",
+          "amount": 5
+        },
+        "request": {
+          "resource": "coins",
+          "amount": 7
+        }
+      }
+    ]
+  }
+}

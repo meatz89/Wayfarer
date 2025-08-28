@@ -152,8 +152,8 @@ public class InitializationContext
     // This is NOT game state and is discarded after initialization completes
     public ValidationTracker ValidationTracker { get; set; } = new();
     
-    // Letter deck repository for loading letter configurations
-    public LetterDeckRepository LetterDeckRepository { get; set; }
+    // Goal deck repository for loading letter configurations
+    public GoalDeckRepository GoalDeckRepository { get; set; }
 
     /// <summary>
     /// Gets the content path based on game mode

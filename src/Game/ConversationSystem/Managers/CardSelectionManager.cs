@@ -131,16 +131,16 @@ public class CardSelectionManager
                 var letterRoll = random.Next(100);
                 var letterSuccess = letterRoll < letterSuccessChance;
                 
-                // Extract letter card ID from the conversation card context
-                var letterCardId = card.Context?.LetterId ?? card.Id;
+                // Extract promise card ID from the conversation card context
+                var promiseCardId = card.Context?.LetterId ?? card.Id;
                 
                 // Create a basic negotiation result - will be completed by ConversationSession
                 var negotiationResult = new LetterNegotiationResult
                 {
-                    LetterCardId = letterCardId,
+                    PromiseCardId = promiseCardId,
                     NegotiationSuccess = letterSuccess,
                     FinalTerms = null,        // Will be set by ConversationSession
-                    SourceLetterCard = null,  // Will be set by ConversationSession
+                    SourcePromiseCard = null,  // Will be set by ConversationSession
                     CreatedObligation = null  // Will be set by ConversationSession
                 };
                 letterNegotiations.Add(negotiationResult);

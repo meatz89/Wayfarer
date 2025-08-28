@@ -21,7 +21,7 @@ public class NPCDTO
     public int Tier { get; set; }
     
     // REMOVED: Boolean flags violate deck-based architecture
-    // Letters are detected by checking letter deck contents
+    // Letters are detected by checking Goal deck contents
     // Burden history detected by counting burden cards in conversation deck
     // Crisis detected by checking emotional state
     
@@ -30,4 +30,4 @@ public class NPCDTO
 }
 
 // REMOVED: Letter DTOs violate deck-based architecture
-// Letters are now handled as goal cards in the letter deck
+// Letters are now handled as goal cards in the Goal deck

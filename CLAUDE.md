@@ -75,7 +75,7 @@ RIGHT: Repository reads/writes to GameWorld.CardTemplates
 WRONG: if (npc.ID == "elena") { special behavior }
 RIGHT: if (npc.HasUrgentLetter) { behavior }
 
-WRONG: CardTemplates.CreateLetterCard("hardcoded text")
+WRONG: CardTemplates.CreatePromiseCard("hardcoded text")
 RIGHT: Load from cards.json with id "letter_card_1"
 ```
 

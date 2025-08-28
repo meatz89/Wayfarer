@@ -5,82 +5,82 @@ using System.Linq;
 using System.Text.Json;
 
 /// <summary>
-/// Repository for loading letter deck configurations from JSON.
+/// Repository for loading Goal deck configurations from JSON.
 /// Maps NPCs to their available letter goal cards with eligibility requirements.
 /// </summary>
-public class LetterDeckRepository
+public class GoalDeckRepository
 {
-    private readonly string _letterDecksPath;
-    private Dictionary<string, List<LetterCardConfiguration>> _npcLetterDecks;
+    private readonly string _goalDecksPath;
+    private Dictionary<string, List<PromiseCardConfiguration>> _npcGoalDecks;
     
-    public LetterDeckRepository(string contentPath)
+    public GoalDeckRepository(string contentPath)
     {
-        _letterDecksPath = Path.Combine(contentPath, "letter_decks.json");
-        _npcLetterDecks = new Dictionary<string, List<LetterCardConfiguration>>();
+        _goalDecksPath = Path.Combine(contentPath, "letter_decks.json");
+        _npcGoalDecks = new Dictionary<string, List<PromiseCardConfiguration>>();
     }
     
     /// <summary>
-    /// Load letter deck configurations from JSON
+    /// Load Goal deck configurations from JSON
     /// </summary>
-    public void LoadLetterDecks()
+    public void LoadGoalDecks()
     {
-        if (!File.Exists(_letterDecksPath))
+        if (!File.Exists(_goalDecksPath))
         {
-            Console.WriteLine($"[LetterDeckRepository] letter_decks.json not found at {_letterDecksPath}");
+            Console.WriteLine($"[GoalDeckRepository] letter_decks.json not found at {_goalDecksPath}");
             return;
         }
         
         try
         {
-            string json = File.ReadAllText(_letterDecksPath);
+            string json = File.ReadAllText(_goalDecksPath);
             using JsonDocument doc = JsonDocument.Parse(json);
             JsonElement root = doc.RootElement;
             
-            if (root.TryGetProperty("letterDecks", out JsonElement letterDecksArray))
+            if (root.TryGetProperty("GoalDecks", out JsonElement GoalDecksArray))
             {
-                foreach (JsonElement deckElement in letterDecksArray.EnumerateArray())
+                foreach (JsonElement deckElement in GoalDecksArray.EnumerateArray())
                 {
-                    ParseLetterDeck(deckElement);
+                    ParseGoalDeck(deckElement);
                 }
             }
             
-            Console.WriteLine($"[LetterDeckRepository] Loaded letter decks for {_npcLetterDecks.Count} NPCs");
+            Console.WriteLine($"[GoalDeckRepository] Loaded Goal decks for {_npcGoalDecks.Count} NPCs");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[LetterDeckRepository] Error loading letter_decks.json: {ex.Message}");
+            Console.WriteLine($"[GoalDeckRepository] Error loading letter_decks.json: {ex.Message}");
         }
     }
     
-    private void ParseLetterDeck(JsonElement deckElement)
+    private void ParseGoalDeck(JsonElement deckElement)
     {
         string npcId = GetStringProperty(deckElement, "npcId", "");
         if (string.IsNullOrEmpty(npcId)) return;
         
-        var letterCards = new List<LetterCardConfiguration>();
+        var promiseCards = new List<PromiseCardConfiguration>();
         
-        if (deckElement.TryGetProperty("letterCards", out JsonElement cardsArray))
+        if (deckElement.TryGetProperty("promiseCards", out JsonElement cardsArray))
         {
             foreach (JsonElement cardElement in cardsArray.EnumerateArray())
             {
-                var config = ParseLetterCardConfiguration(cardElement);
+                var config = ParsePromiseCardConfiguration(cardElement);
                 if (config != null)
                 {
-                    letterCards.Add(config);
+                    promiseCards.Add(config);
                 }
             }
         }
         
-        if (letterCards.Any())
+        if (promiseCards.Any())
         {
-            _npcLetterDecks[npcId] = letterCards;
-            Console.WriteLine($"[LetterDeckRepository] Loaded {letterCards.Count} letter cards for NPC {npcId}");
+            _npcGoalDecks[npcId] = promiseCards;
+            Console.WriteLine($"[GoalDeckRepository] Loaded {promiseCards.Count} letter cards for NPC {npcId}");
         }
     }
     
-    private LetterCardConfiguration ParseLetterCardConfiguration(JsonElement cardElement)
+    private PromiseCardConfiguration ParsePromiseCardConfiguration(JsonElement cardElement)
     {
-        var config = new LetterCardConfiguration
+        var config = new PromiseCardConfiguration
         {
             CardId = GetStringProperty(cardElement, "cardId", ""),
             EligibilityRequirements = ParseEligibilityRequirements(cardElement.GetProperty("eligibilityRequirements")),
@@ -182,23 +182,23 @@ public class LetterDeckRepository
     }
     
     /// <summary>
-    /// Get letter card configurations for a specific NPC
+    /// Get promise card configurations for a specific NPC
     /// </summary>
-    public List<LetterCardConfiguration> GetLetterCardsForNPC(string npcId)
+    public List<PromiseCardConfiguration> GetPromiseCardsForNPC(string npcId)
     {
-        if (_npcLetterDecks.TryGetValue(npcId, out var cards))
+        if (_npcGoalDecks.TryGetValue(npcId, out var cards))
         {
             return cards;
         }
-        return new List<LetterCardConfiguration>();
+        return new List<PromiseCardConfiguration>();
     }
     
     /// <summary>
     /// Check if NPC has any letter cards
     /// </summary>
-    public bool NPCHasLetterCards(string npcId)
+    public bool NPCHasPromiseCards(string npcId)
     {
-        return _npcLetterDecks.ContainsKey(npcId) && _npcLetterDecks[npcId].Any();
+        return _npcGoalDecks.ContainsKey(npcId) && _npcGoalDecks[npcId].Any();
     }
     
     private string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
@@ -233,9 +233,9 @@ public class LetterDeckRepository
 }
 
 /// <summary>
-/// Configuration for a letter card in an NPC's letter deck
+/// Configuration for a promise card in an NPC's Goal deck
 /// </summary>
-public class LetterCardConfiguration
+public class PromiseCardConfiguration
 {
     public string CardId { get; set; }
     public EligibilityRequirements EligibilityRequirements { get; set; }

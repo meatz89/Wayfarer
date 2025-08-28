@@ -46,11 +46,16 @@ public List<LetterPositioningMessage> LetterPositioningMessages { get; set; } = 
 // Special letter events for UI translation
 public List<SpecialLetterEvent> SpecialLetterEvents { get; set; } = new List<SpecialLetterEvent>();
 
-// Card System - The ONLY place card templates should exist
-// This stores the LOADED card data, not the parser (parsers are tools, not state)
-public Dictionary<string, ConversationCardDTO> CardTemplates { get; set; } = new Dictionary<string, ConversationCardDTO>();
 public Dictionary<PersonalityType, PersonalityCardMapping> PersonalityMappings { get; set; } = new Dictionary<PersonalityType, PersonalityCardMapping>();
 public Dictionary<int, List<string>> TokenUnlocks { get; set; } = new Dictionary<int, List<string>>();
+
+// DECK ARCHITECTURE - Single source of truth for all deck configurations
+// All cards are ConversationCard type (no LetterCard, ExchangeCard, etc.)
+public Dictionary<string, ConversationCard> AllCardDefinitions { get; set; } = new Dictionary<string, ConversationCard>();
+public Dictionary<string, List<string>> NPCConversationDeckMappings { get; set; } = new Dictionary<string, List<string>>();
+public Dictionary<string, List<ConversationCard>> NPCGoalDecks { get; set; } = new Dictionary<string, List<ConversationCard>>();
+public Dictionary<string, List<ConversationCard>> NPCExchangeDecks { get; set; } = new Dictionary<string, List<ConversationCard>>();
+public List<ConversationCard> PlayerObservationCards { get; set; } = new List<ConversationCard>();
 
 // Initialization data - stored in GameWorld, not passed between phases
 // This eliminates the need for SharedData dictionary

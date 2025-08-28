@@ -405,12 +405,6 @@ namespace Wayfarer.Pages
             // Add card category class for visual styling
             classes.Add(card.GetCategoryClass());
             
-            // Legacy classes for backward compatibility
-            if (card.Category == CardCategory.BURDEN) classes.Add("crisis");
-            if (card.Category == CardCategory.STATE) classes.Add("state-changer");
-            if (card.IsObservation) classes.Add("observation-card");
-            if (card.CanDeliverLetter) classes.Add("letter-delivery");
-            
             return string.Join(" ", classes);
         }
         

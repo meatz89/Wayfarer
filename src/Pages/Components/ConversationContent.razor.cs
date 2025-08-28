@@ -945,7 +945,7 @@ namespace Wayfarer.Pages.Components
                                      negotiation.FinalTerms.DeadlineHours <= 6 ? " - URGENT" : "";
                         
                         messageSystem?.AddSystemMessage(
-                            $"{negotiationOutcome} letter: '{negotiation.SourceLetterCard.Title}' - {negotiation.FinalTerms.DeadlineHours}h deadline, {negotiation.FinalTerms.Payment} coins{urgency}",
+                            $"{negotiationOutcome} letter: '{negotiation.SourcePromiseCard.Title}' - {negotiation.FinalTerms.DeadlineHours}h deadline, {negotiation.FinalTerms.Payment} coins{urgency}",
                             negotiation.FinalTerms.DeadlineHours <= 2 ? SystemMessageTypes.Danger : SystemMessageTypes.Success
                         );
                         
@@ -964,7 +964,7 @@ namespace Wayfarer.Pages.Components
                 }
                 else
                 {
-                    Console.WriteLine($"[ProcessLetterNegotiations] WARNING: No obligation created for negotiation {negotiation.LetterCardId}");
+                    Console.WriteLine($"[ProcessLetterNegotiations] WARNING: No obligation created for negotiation {negotiation.PromiseCardId}");
                 }
             }
         }

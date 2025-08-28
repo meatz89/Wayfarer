@@ -23,54 +23,6 @@ public class ConversationCardParser
         _tokenUnlocks = new Dictionary<int, List<string>>();
     }
 
-    public void LoadConversationCards()
-    {
-        var filePath = Path.Combine(_contentPath, "conversations.json");
-        if (!File.Exists(filePath))
-        {
-            Console.WriteLine($"WARNING: conversations.json not found at {filePath}");
-            return;
-        }
-
-        var json = File.ReadAllText(filePath);
-        var data = JsonSerializer.Deserialize<ConversationDataDTO>(json, new JsonSerializerOptions 
-        { 
-            PropertyNameCaseInsensitive = true,
-            Converters = { new JsonStringEnumConverter() }
-        });
-
-        if (data?.ConversationCards != null)
-        {
-            foreach (var card in data.ConversationCards)
-            {
-                _cardTemplates[card.Id] = card;
-            }
-            Console.WriteLine($"Loaded {_cardTemplates.Count} conversation card templates");
-        }
-
-        if (data?.PersonalityCardMappings != null)
-        {
-            foreach (var kvp in data.PersonalityCardMappings)
-            {
-                if (Enum.TryParse<PersonalityType>(kvp.Key, true, out var personality))
-                {
-                    _personalityMappings[personality] = kvp.Value;
-                }
-            }
-        }
-
-        if (data?.TokenCardUnlocks != null)
-        {
-            foreach (var kvp in data.TokenCardUnlocks)
-            {
-                if (int.TryParse(kvp.Key, out var tokenCount))
-                {
-                    _tokenUnlocks[tokenCount] = kvp.Value;
-                }
-            }
-        }
-    }
-
     /// <summary>
     /// Get the loaded card templates for transfer to GameWorld
     /// This allows the parser to be discarded after initialization

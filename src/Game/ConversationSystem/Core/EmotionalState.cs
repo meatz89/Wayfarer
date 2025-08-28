@@ -92,9 +92,9 @@ public class StateRuleset
     public bool AllowOneFinalTurn { get; init; }
     
     /// <summary>
-    /// Whether to check letter deck during Listen (OPEN/CONNECTED)
+    /// Whether to check Goal deck during Listen (OPEN/CONNECTED)
     /// </summary>
-    public bool ChecksLetterDeck { get; init; }
+    public bool ChecksGoalDeck { get; init; }
 }
 
 /// <summary>
@@ -112,7 +112,7 @@ public static class ConversationRules
             MaxWeight = 3,      // Speak weight limit 3 (Heavy weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.NEUTRAL,  // Stays NEUTRAL
-            ChecksLetterDeck = true  // Check letter deck for urgent letters
+            ChecksGoalDeck = true  // Check Goal deck for urgent letters
         },
 
         [EmotionalState.GUARDED] = new StateRuleset
@@ -121,7 +121,7 @@ public static class ConversationRules
             MaxWeight = 2,      // Speak weight limit 2 (Medium weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.NEUTRAL,  // Transitions to NEUTRAL
-            ChecksLetterDeck = false
+            ChecksGoalDeck = false
         },
 
         [EmotionalState.OPEN] = new StateRuleset
@@ -130,7 +130,7 @@ public static class ConversationRules
             MaxWeight = 3,      // Speak weight limit 3 (Heavy weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.OPEN,  // Stays OPEN
-            ChecksLetterDeck = true  // CHECK letter deck for trust letters
+            ChecksGoalDeck = true  // CHECK Goal deck for trust letters
         },
 
         [EmotionalState.CONNECTED] = new StateRuleset
@@ -139,7 +139,7 @@ public static class ConversationRules
             MaxWeight = 3,      // Speak weight limit 3 (Heavy weight, +1 with momentum)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.CONNECTED,  // Stays CONNECTED
-            ChecksLetterDeck = true,  // CHECK letter deck for ANY letters
+            ChecksGoalDeck = true,  // CHECK Goal deck for ANY letters
             AutoAdvanceDepth = false  // No depth advancement (comfort gates)
         },
 
@@ -149,7 +149,7 @@ public static class ConversationRules
             MaxWeight = 2,      // Speak weight limit 2 (Medium weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.GUARDED,  // Transitions to GUARDED
-            ChecksLetterDeck = true  // Check letter deck for urgent letters
+            ChecksGoalDeck = true  // Check Goal deck for urgent letters
         },
 
         [EmotionalState.EAGER] = new StateRuleset
@@ -158,7 +158,7 @@ public static class ConversationRules
             MaxWeight = 3,      // Speak weight limit 3 (Heavy weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.EAGER,  // Stays EAGER
-            ChecksLetterDeck = false
+            ChecksGoalDeck = false
         },
 
         [EmotionalState.OVERWHELMED] = new StateRuleset
@@ -167,7 +167,7 @@ public static class ConversationRules
             MaxWeight = 1,      // Speak weight limit 1 (Light weight only)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.NEUTRAL,  // Transitions to NEUTRAL
-            ChecksLetterDeck = false
+            ChecksGoalDeck = false
         },
 
         [EmotionalState.DESPERATE] = new StateRuleset
@@ -179,7 +179,7 @@ public static class ConversationRules
             InjectsCrisis = true,  // INJECT 1 Crisis letter
             CrisisCardsInjected = 1,
             FreeWeightCategories = new() { CardCategory.BURDEN },  // Crisis letters cost 0 weight
-            ChecksLetterDeck = true  // Check for urgent letters in desperate state
+            ChecksGoalDeck = true  // Check for urgent letters in desperate state
         },
 
         [EmotionalState.HOSTILE] = new StateRuleset
@@ -193,7 +193,7 @@ public static class ConversationRules
             FreeWeightCategories = new() { CardCategory.BURDEN },
             AllowedCategories = new() { CardCategory.BURDEN },  // ONLY Crisis letters allowed
             ListenEndsConversation = true,  // END conversation after listen
-            ChecksLetterDeck = false
+            ChecksGoalDeck = false
         }
     };
 

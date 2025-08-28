@@ -1,0 +1,82 @@
+{
+  "observationCards": [
+    {
+      "id": "obs_market_patterns",
+      "template": "Observation",
+      "type": "Commerce",
+      "category": "OBSERVATION",
+      "depth": 6,
+      "weight": 1,
+      "location": "market_square",
+      "spot": "merchant_stalls",
+      "description": "You notice patterns in merchant pricing",
+      "attentionCost": 1,
+      "decayRate": "slow"
+    },
+    {
+      "id": "obs_guard_routes",
+      "template": "Observation",
+      "type": "Shadow",
+      "category": "OBSERVATION",
+      "depth": 9,
+      "weight": 1,
+      "location": "city_gates",
+      "spot": "guard_post",
+      "description": "You memorize guard patrol patterns",
+      "attentionCost": 1,
+      "decayRate": "medium"
+    },
+    {
+      "id": "obs_noble_gossip",
+      "template": "Observation",
+      "type": "Status",
+      "category": "OBSERVATION",
+      "depth": 12,
+      "weight": 2,
+      "location": "noble_district",
+      "spot": "courtyard",
+      "description": "You overhear court intrigue",
+      "attentionCost": 1,
+      "decayRate": "fast"
+    },
+    {
+      "id": "obs_elena_routine",
+      "template": "Observation",
+      "type": "Trust",
+      "category": "OBSERVATION",
+      "depth": 8,
+      "weight": 1,
+      "location": "market_square",
+      "spot": "fountain",
+      "description": "You learn Elena visits the fountain at dawn",
+      "attentionCost": 1,
+      "decayRate": "slow"
+    },
+    {
+      "id": "obs_temple_schedule",
+      "template": "Observation",
+      "type": "Trust",
+      "category": "OBSERVATION",
+      "depth": 5,
+      "weight": 1,
+      "location": "temple_district",
+      "spot": "temple_steps",
+      "description": "You learn when temple services occur",
+      "attentionCost": 1,
+      "decayRate": "slow"
+    },
+    {
+      "id": "obs_alley_shortcuts",
+      "template": "Observation",
+      "type": "Shadow",
+      "category": "OBSERVATION",
+      "depth": 7,
+      "weight": 1,
+      "location": "back_alleys",
+      "spot": "shadowy_corner",
+      "description": "You discover hidden shortcuts through the alleys",
+      "attentionCost": 1,
+      "decayRate": "medium"
+    }
+  ]
+}

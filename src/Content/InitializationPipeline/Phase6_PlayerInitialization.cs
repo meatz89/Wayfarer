@@ -189,5 +189,41 @@ public class Phase6_PlayerInitialization : IInitializationPhase
         }
 
         // Location is now derived from CurrentLocationSpot, no need for separate validation
+        
+        // INITIALIZE PLAYER OBSERVATION DECK (POC Architecture)
+        InitializePlayerObservationDeck(player, context);
+    }
+    
+    private void InitializePlayerObservationDeck(Player player, InitializationContext context)
+    {
+        Console.WriteLine("Initializing Player Observation Deck...");
+        
+        // Get observation cards from GameWorld (loaded in Phase0)
+        var observationCards = context.GameWorld.PlayerObservationCards;
+        
+        if (observationCards == null || !observationCards.Any())
+        {
+            Console.WriteLine("  No observation cards loaded - player starts with empty deck");
+            return;
+        }
+        
+        // Initialize the player's observation deck
+        if (player.ObservationDeck == null)
+        {
+            player.ObservationDeck = new CardDeck();
+        }
+        
+        // Add all observation cards to the player's deck
+        // In the full game, these would be gained through exploration
+        // For the POC, we give the player some starting observations
+        int cardsAdded = 0;
+        foreach (var card in observationCards.Take(3)) // Start with 3 observation cards
+        {
+            player.ObservationDeck.AddCard(card);
+            cardsAdded++;
+            Console.WriteLine($"  Added observation: {card.DisplayName}");
+        }
+        
+        Console.WriteLine($"  Player Observation Deck initialized with {cardsAdded} cards");
     }
 }

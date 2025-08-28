@@ -62,24 +62,7 @@
 		"personalityType": "STEADFAST",
 		"services": [],
 		"letterTokenTypes": ["Shadow"],
-		"currentState": "NEUTRAL",
-		"hasLetter": true,
-		"hasLetterDeck": true,
-		"activeLetter": {
-			"id": "guard_report",
-			"senderId": "viktor",
-			"senderName": "Guard Captain Viktor",
-			"recipientId": "guard_tower",
-			"recipientName": "Guard Tower",
-			"description": "Guard Captain's security report",
-			"letterType": "Shadow",
-			"tokenType": "Shadow",
-			"stakes": "SAFETY",
-			"urgencyHours": 8,
-			"deadlineInMinutes": 480,
-			"queuePosition": 2,
-			"payment": 3
-		}
+		"currentState": "NEUTRAL"
 	},
 	{
 		"id": "garrett",
@@ -93,19 +76,6 @@
 		"services": ["Shadow"],
 		"letterTokenTypes": ["Shadow"],
 		"currentState": "GUARDED",
-		"hasLetter": true,
-		"activeLetter": {
-			"id": "garrett_mysterious_package",
-			"senderId": "garrett",
-			"senderName": "Garrett",
-			"recipientId": "city_gates",
-			"recipientName": "City Gates",
-			"description": "Garrett's mysterious package",
-			"tokenType": "Shadow",
-			"stakes": "SECRET",
-			"deadlineInMinutes": 17280,
-			"queuePosition": 6,
-			"payment": 15
-		}
+		
 	}
 ]

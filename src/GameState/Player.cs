@@ -82,6 +82,9 @@
 
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
+    
+    // PLAYER OBSERVATION DECK - Cards gained from exploring locations
+    public CardDeck ObservationDeck { get; set; } = new();
 
 
     // Token Favor System
