@@ -46,6 +46,39 @@
 **🚨 HIGHLANDER PRINCIPLE: THERE CAN BE ONLY ONE 🚨**
 - NEVER have duplicate enums, classes, or concepts for the same thing. If you find EmotionalState and NPCEmotionalState, DELETE ONE. If you find two ways to track the same state, DELETE ONE. No mapping, no conversion, no compatibility layers. ONE source of truth, ONE enum, ONE class per concept.
 
+**🚨 GAMEWORLD ARCHITECTURE PRINCIPLES (CRITICAL - NEVER VIOLATE) 🚨**
+- **GameWorld is the SINGLE SOURCE OF TRUTH** - ALL game state lives in GameWorld, nowhere else
+- **NO SharedData dictionaries** - NEVER create SharedData, TempData, or any parallel data storage
+- **NO state in Repositories** - Repositories are INTERFACES to GameWorld, they don't store state themselves
+- **NO parsers in GameWorld** - GameWorld contains STATE not TOOLS. Parsers are init-only and discarded
+- **NO hardcoded content in code** - ALL content (text, cards, letters) comes from JSON files
+- **NO string/ID matching** - NEVER check npc.ID == "elena". Use mechanical properties from JSON instead
+- **NO hardcoded templates** - NEVER create CardTemplates.CreateX() with hardcoded text
+
+**CORRECT ARCHITECTURE PATTERN:**
+```
+Initialization Phase:
+JSON Files → Parser → GameWorld
+
+Runtime Phase:
+All Systems → GameWorld (read/write state)
+```
+
+**WRONG PATTERNS (NEVER DO THESE):**
+```
+WRONG: InitContext.SharedData["cards"] = cards
+RIGHT: gameWorld.CardTemplates = cards
+
+WRONG: Repository stores List<Card> internally
+RIGHT: Repository reads/writes to GameWorld.CardTemplates
+
+WRONG: if (npc.ID == "elena") { special behavior }
+RIGHT: if (npc.HasUrgentLetter) { behavior }
+
+WRONG: CardTemplates.CreateLetterCard("hardcoded text")
+RIGHT: Load from cards.json with id "letter_card_1"
+```
+
 **🚨 CSS ARCHITECTURE PRINCIPLE: CLEAN SPECIFICITY 🚨**
 - NEVER use !important to fix CSS issues - it only hides deeper problems
 - Global resets go in common.css FIRST, before any other styles

@@ -70,6 +70,31 @@ public class ConversationCardParser
     }
 
     /// <summary>
+    /// Get the loaded card templates for transfer to GameWorld
+    /// This allows the parser to be discarded after initialization
+    /// </summary>
+    public Dictionary<string, ConversationCardDTO> GetCardTemplates()
+    {
+        return new Dictionary<string, ConversationCardDTO>(_cardTemplates);
+    }
+
+    /// <summary>
+    /// Get the loaded personality mappings for transfer to GameWorld
+    /// </summary>
+    public Dictionary<PersonalityType, PersonalityCardMapping> GetPersonalityMappings()
+    {
+        return new Dictionary<PersonalityType, PersonalityCardMapping>(_personalityMappings);
+    }
+
+    /// <summary>
+    /// Get the loaded token unlocks for transfer to GameWorld
+    /// </summary>
+    public Dictionary<int, List<string>> GetTokenUnlocks()
+    {
+        return new Dictionary<int, List<string>>(_tokenUnlocks);
+    }
+
+    /// <summary>
     /// Get a conversation card by ID
     /// </summary>
     public ConversationCard GetCard(string cardId)

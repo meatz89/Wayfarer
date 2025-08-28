@@ -46,6 +46,18 @@ public List<LetterPositioningMessage> LetterPositioningMessages { get; set; } = 
 // Special letter events for UI translation
 public List<SpecialLetterEvent> SpecialLetterEvents { get; set; } = new List<SpecialLetterEvent>();
 
+// Card System - The ONLY place card templates should exist
+// This stores the LOADED card data, not the parser (parsers are tools, not state)
+public Dictionary<string, ConversationCardDTO> CardTemplates { get; set; } = new Dictionary<string, ConversationCardDTO>();
+public Dictionary<PersonalityType, PersonalityCardMapping> PersonalityMappings { get; set; } = new Dictionary<PersonalityType, PersonalityCardMapping>();
+public Dictionary<int, List<string>> TokenUnlocks { get; set; } = new Dictionary<int, List<string>>();
+
+// Initialization data - stored in GameWorld, not passed between phases
+// This eliminates the need for SharedData dictionary
+public string InitialLocationId { get; set; }
+public string InitialLocationSpotId { get; set; }
+public dynamic InitialPlayerConfig { get; set; }
+
 // Note: Pending command system has been removed in favor of intent-based architecture
 
 // Strongly typed pending queue state (replaces unsafe metadata dictionary)
