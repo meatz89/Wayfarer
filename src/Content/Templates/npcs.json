@@ -16,6 +16,7 @@
 		"hasUrgentMeeting": true,
 		"defaultLetterRecipient": "lord_blackwood",
 		"crisisIfNegotiationFailed": true,
+		"hasBurdenHistory": true,
 		"urgentLetter": {
 			"id": "elena_refusal",
 			"sender": "elena",
@@ -62,7 +63,21 @@
 		"letterTokenTypes": ["Status"],
 		"currentState": "NEUTRAL",
 		"leavingAt": 300,
-		"willBeUnavailableAfter": 300
+		"willBeUnavailableAfter": 300,
+		"hasLetter": true,
+		"activeLetter": {
+			"id": "lord_blackwood_correspondence",
+			"senderId": "lord_blackwood",
+			"senderName": "Lord Blackwood",
+			"recipientId": "noble_district",
+			"recipientName": "Noble District",
+			"description": "Lord Blackwood's urgent correspondence",
+			"tokenType": "Status",
+			"stakes": "REPUTATION",
+			"deadlineInMinutes": 2880,
+			"queuePosition": 2,
+			"payment": 10
+		}
 	},
 	{
 		"id": "bertram",
@@ -90,6 +105,47 @@
 		"letterTokenTypes": ["Status"],
 		"currentState": "NEUTRAL",
 		"isBlockingPath": true,
-		"requiresStatusToPass": 3
+		"requiresStatusToPass": 3,
+		"hasLetter": true,
+		"activeLetter": {
+			"id": "viktor_security_report",
+			"senderId": "viktor",
+			"senderName": "Viktor",
+			"recipientId": "noble_district",
+			"recipientName": "Noble District",
+			"description": "Guard Captain Viktor's security report",
+			"tokenType": "Status",
+			"stakes": "SAFETY",
+			"deadlineInMinutes": 8640,
+			"queuePosition": 5,
+			"payment": 3
+		}
+	},
+	{
+		"id": "garrett",
+		"name": "Garrett",
+		"profession": "Smuggler",
+		"locationId": "riverside",
+		"spotId": "docks",
+		"description": "A shadowy figure near the cargo crates",
+		"personality": "Secretive and cautious",
+		"personalityType": "SHADOW",
+		"services": ["Shadow"],
+		"letterTokenTypes": ["Shadow"],
+		"currentState": "GUARDED",
+		"hasLetter": true,
+		"activeLetter": {
+			"id": "garrett_mysterious_package",
+			"senderId": "garrett",
+			"senderName": "Garrett",
+			"recipientId": "riverside",
+			"recipientName": "Riverside",
+			"description": "Garrett's mysterious package",
+			"tokenType": "Shadow",
+			"stakes": "SECRET",
+			"deadlineInMinutes": 17280,
+			"queuePosition": 6,
+			"payment": 15
+		}
 	}
 ]

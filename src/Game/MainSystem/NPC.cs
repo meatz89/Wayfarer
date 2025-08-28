@@ -56,6 +56,13 @@ public class NPC
     public bool HasUrgentMeeting { get; set; }
     public string DefaultLetterRecipient { get; set; }
     public bool CrisisIfNegotiationFailed { get; set; }
+    public bool HasBurdenHistory { get; set; }  // NPCs with past failures get burden cards
+    public bool HasLetter { get; set; }  // NPC has a letter to give
+    public DeliveryObligation ActiveLetter { get; set; }  // The letter they have
+    
+    // Emotional state
+    public EmotionalState CurrentState { get; set; } = EmotionalState.NEUTRAL;
+    public EmotionalState CurrentEmotionalState => CurrentState; // Alias for compatibility
 
     // FOUR DECK ARCHITECTURE (POC EXACT)
     public CardDeck ConversationDeck { get; set; }  // Comfort/State/Burden cards (depth 0-20)

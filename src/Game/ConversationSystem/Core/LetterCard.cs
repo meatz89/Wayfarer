@@ -198,40 +198,40 @@ public static class LetterCardFactory
     {
         var deck = new List<LetterCard>();
         
-        // "Urgent Refusal to Lord Blackwood"
-        // Eligible: Trust tokens ≥ 1, Desperate/Tense/Neutral state
-        // Success: 4-hour deadline, queue position 2, 10 coins payment
-        // Failure: 1-hour deadline, forces position 1, 15 coins payment
+        // "Crisis Letter to Lord Blackwood" - POC Main Scenario
+        // Eligible: Trust tokens ≥ 0 (available immediately in DESPERATE state)
+        // Success: 3-hour deadline, queue position 2-3, 12 coins payment
+        // Failure: 1-hour deadline, forces position 1 (displaces Marcus), 15 coins payment
         deck.Add(new LetterCard
         {
-            Id = $"{npcId}_urgent_refusal_blackwood",
-            Title = "Urgent Refusal to Lord Blackwood",
-            Description = "Elena needs to refuse Lord Blackwood's demands immediately",
-            TemplateType = "urgent_refusal",
+            Id = $"{npcId}_crisis_letter_blackwood",
+            Title = "Crisis Letter to Lord Blackwood",
+            Description = "Elena desperately needs to send this urgent refusal before Lord Blackwood's deadline",
+            TemplateType = "crisis_letter",
             NPCPersonality = PersonalityType.DEVOTED,
-            Depth = 8,
-            Weight = 2,
+            Depth = 7,  // Accessible with moderate comfort building
+            Weight = 0,  // Free to play in DESPERATE state (crisis mechanics)
             Eligibility = new LetterEligibility
             {
-                RequiredTokens = new() { { ConnectionType.Trust, 1 } },
-                RequiredStates = new() { EmotionalState.DESPERATE, EmotionalState.TENSE, EmotionalState.NEUTRAL }
+                RequiredTokens = new() { },  // No token requirement - urgency overrides trust barriers
+                RequiredStates = new() { EmotionalState.DESPERATE, EmotionalState.TENSE }  // Only available when Elena is stressed
             },
             SuccessTerms = new LetterNegotiationTerms
             {
-                DeadlineHours = 4,
-                QueuePosition = 2,
-                Payment = 10,
+                DeadlineHours = 3,  // Reasonable but urgent deadline
+                QueuePosition = 2,  // Gets position 2 on good negotiation
+                Payment = 12,
                 ForcesPositionOne = false
             },
             FailureTerms = new LetterNegotiationTerms
             {
-                DeadlineHours = 1,
-                QueuePosition = 1,
-                Payment = 15,
-                ForcesPositionOne = true
+                DeadlineHours = 1,  // Crisis deadline!
+                QueuePosition = 1,  // Forces position 1
+                Payment = 15,       // Higher payment for urgent delivery
+                ForcesPositionOne = true  // This triggers automatic displacement
             },
             ConnectionType = ConnectionType.Trust,
-            BaseSuccessRate = 60
+            BaseSuccessRate = 50  // 50/50 chance, modified by Trust tokens
         });
         
         // "Formal Refusal to Lord Blackwood"

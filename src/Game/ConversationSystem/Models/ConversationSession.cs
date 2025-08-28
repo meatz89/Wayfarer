@@ -576,7 +576,7 @@ public class ConversationSession
                 // Generate Crisis letters if deck is empty
                 for (int i = 0; i < rules.CrisisCardsInjected; i++)
                 {
-                    var crisisCard = Deck.GenerateCrisisCard(NPC);
+                    var crisisCard = CardDeck.GenerateCrisisCard(NPC);
                     HandCards.Add(crisisCard);
                 }
                 Console.WriteLine($"[ExecuteListen] Generated {rules.CrisisCardsInjected} Crisis letters");

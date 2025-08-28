@@ -44,6 +44,9 @@ public enum PersistenceType
 {
     Persistent,  // Stays in hand when listening
     Fleeting,    // Vanishes when listening (fleeting moments)
+    Opportunity, // Removed from deck when discarded
+    Burden,      // Stays in deck even when discarded, only removed by special mechanics
+    Crisis       // Crisis cards that must be resolved
 }
 
 /// <summary>
@@ -107,6 +110,16 @@ public class ConversationCard
     /// State to transition to on success (STATE cards only)
     /// </summary>
     public EmotionalState? SuccessState { get; init; }
+    
+    /// <summary>
+    /// Whether this is a state transition card
+    /// </summary>
+    public bool IsStateCard { get; init; }
+    
+    /// <summary>
+    /// Whether this card grants a token on success
+    /// </summary>
+    public bool GrantsToken { get; init; }
 
     /// <summary>
     /// State to transition to on failure (STATE cards only)

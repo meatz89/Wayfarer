@@ -30,6 +30,9 @@ public class GameWorldInitializationPipeline
         // CRITICAL: Order matters! Each phase can only depend on previous phases
         _phases = new List<IInitializationPhase>
         {
+            // Phase 0: Card system initialization (must happen first)
+            new Phase0_CardSystem(),
+            
             // Phase 1: Base entities with no dependencies
             new Phase1_CoreEntities(),
             
