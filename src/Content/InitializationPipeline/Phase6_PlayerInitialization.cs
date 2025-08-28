@@ -24,9 +24,9 @@ public class Phase6_PlayerInitialization : IInitializationPhase
         // First, check if we have a configured starting spot
         LocationSpot startingSpot = null;
 
-        if (context.SharedData.ContainsKey("StartingLocationSpotId"))
+        if (!string.IsNullOrEmpty(context.GameWorld.InitialLocationSpotId))
         {
-            string startingSpotId = (string)context.SharedData["StartingLocationSpotId"];
+            string startingSpotId = context.GameWorld.InitialLocationSpotId;
             startingSpot = worldState.locationSpots.FirstOrDefault(s => s.SpotID == startingSpotId);
 
             if (startingSpot != null)
@@ -45,10 +45,10 @@ public class Phase6_PlayerInitialization : IInitializationPhase
         {
             string preferredLocationId = null;
 
-            // Check for configured starting location
-            if (context.SharedData.ContainsKey("StartingLocationId"))
+            // Check for configured starting location from GameWorld
+            if (!string.IsNullOrEmpty(context.GameWorld.InitialLocationId))
             {
-                preferredLocationId = (string)context.SharedData["StartingLocationId"];
+                preferredLocationId = context.GameWorld.InitialLocationId;
             }
             else
             {
@@ -115,10 +115,10 @@ public class Phase6_PlayerInitialization : IInitializationPhase
             Console.WriteLine("  Set default player archetype: Merchant");
         }
 
-        // Load player config from gameWorld.json if available
-        if (context.SharedData.ContainsKey("PlayerConfig"))
+        // Load player config from GameWorld if available
+        if (context.GameWorld.InitialPlayerConfig != null)
         {
-            dynamic playerConfig = context.SharedData["PlayerConfig"];
+            dynamic playerConfig = context.GameWorld.InitialPlayerConfig;
 
             if (playerConfig.Coins != null)
             {

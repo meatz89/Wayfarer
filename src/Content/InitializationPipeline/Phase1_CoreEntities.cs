@@ -43,20 +43,21 @@ public class Phase1_CoreEntities : IInitializationPhase
             string json = File.ReadAllText(gameWorldPath);
             dynamic? gameWorldData = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(json);
 
-            // Store the configuration data for Phase 5 to use
+            // Store initialization data directly in GameWorld
+            // GameWorld is the single source of truth - no SharedData dictionary
             if (gameWorldData != null)
             {
                 if (gameWorldData.CurrentLocationId != null)
                 {
-                    context.SharedData["StartingLocationId"] = (string)gameWorldData.CurrentLocationId;
+                    context.GameWorld.InitialLocationId = (string)gameWorldData.CurrentLocationId;
                 }
                 if (gameWorldData.CurrentLocationSpotId != null)
                 {
-                    context.SharedData["StartingLocationSpotId"] = (string)gameWorldData.CurrentLocationSpotId;
+                    context.GameWorld.InitialLocationSpotId = (string)gameWorldData.CurrentLocationSpotId;
                 }
                 if (gameWorldData.Player != null)
                 {
-                    context.SharedData["PlayerConfig"] = gameWorldData.Player;
+                    context.GameWorld.InitialPlayerConfig = gameWorldData.Player;
                 }
             }
 

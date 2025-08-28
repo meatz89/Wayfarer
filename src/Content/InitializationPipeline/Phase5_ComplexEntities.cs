@@ -66,8 +66,8 @@ public class Phase5_ComplexEntities : IInitializationPhase
         {
             try
             {
-                // Store NPC reference for Phase 6 validation
-                context.SharedData[$"obligation_{dto.ID}_npc"] = dto.Source;
+                // Store NPC reference for Phase 7 validation
+                context.ValidationTracker.ObligationNPCs[dto.ID] = dto.Source;
 
                 // Create obligation (don't validate NPC yet - Phase 6 will handle missing refs)
                 StandingObligation obligation = obligationFactory.CreateStandingObligationFromDTO(dto, npcs);
@@ -108,11 +108,15 @@ public class Phase5_ComplexEntities : IInitializationPhase
 
         foreach (RouteDiscoveryDTO dto in discoveryDTOs)
         {
-            // Store references for Phase 6
-            context.SharedData[$"discovery_{dto.RouteId}_route"] = dto.RouteId;
+            // Store references for Phase 7 validation
+            context.ValidationTracker.RouteDiscoveryRoutes.Add(dto.RouteId);
+            if (!context.ValidationTracker.RouteDiscoveryNPCs.ContainsKey(dto.RouteId))
+            {
+                context.ValidationTracker.RouteDiscoveryNPCs[dto.RouteId] = new List<string>();
+            }
             foreach (string npcId in dto.KnownByNPCs ?? new List<string>())
             {
-                context.SharedData[$"discovery_{dto.RouteId}_npc_{npcId}"] = npcId;
+                context.ValidationTracker.RouteDiscoveryNPCs[dto.RouteId].Add(npcId);
             }
 
             // Create discovery

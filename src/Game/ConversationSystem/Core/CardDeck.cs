@@ -13,7 +13,7 @@ public class CardDeck
     private readonly List<ConversationCard> discardPile;
     private readonly Random random;
     private Dictionary<ConnectionType, int> currentTokens;
-    private static ConversationCardParser _cardParser;
+    private static GameWorld _gameWorld;
 
     public CardDeck()
     {
@@ -23,11 +23,12 @@ public class CardDeck
     }
 
     /// <summary>
-    /// Initialize the static card parser
+    /// Initialize with GameWorld reference for accessing card templates
+    /// GameWorld is the single source of truth for all card data
     /// </summary>
-    public static void InitializeCardParser(ConversationCardParser parser)
+    public static void InitializeGameWorld(GameWorld gameWorld)
     {
-        _cardParser = parser;
+        _gameWorld = gameWorld;
     }
 
     /// <summary>
@@ -38,17 +39,17 @@ public class CardDeck
         cards.Clear();
         discardPile.Clear();
 
-        if (_cardParser == null)
+        if (_gameWorld == null)
         {
-            Console.WriteLine("WARNING: CardDeck not initialized with ConversationCardParser - using empty deck");
+            Console.WriteLine("WARNING: CardDeck not initialized with GameWorld - using empty deck");
             return;
         }
 
         // Store tokens for filtering during draw
         currentTokens = tokenManager?.GetTokensWithNPC(npc.ID) ?? new Dictionary<ConnectionType, int>();
 
-        // Load all cards for this NPC from JSON
-        var npcCards = _cardParser.GetCardsForNPC(npc, currentTokens);
+        // Load all cards for this NPC from GameWorld templates
+        var npcCards = GetCardsForNPC(npc, currentTokens);
         cards.AddRange(npcCards);
 
         // NPCs with burden history get additional burden cards
@@ -68,14 +69,14 @@ public class CardDeck
         cards.Clear();
         discardPile.Clear();
 
-        if (_cardParser == null)
+        if (_gameWorld == null)
         {
-            Console.WriteLine("WARNING: CardDeck not initialized with ConversationCardParser - using empty crisis deck");
+            Console.WriteLine("WARNING: CardDeck not initialized with GameWorld - using empty crisis deck");
             return;
         }
 
-        // Load crisis cards from JSON
-        var crisisCards = _cardParser.GetCrisisCards(npc);
+        // Load crisis cards from GameWorld templates
+        var crisisCards = GetCrisisCards(npc);
         cards.AddRange(crisisCards);
 
         // No shuffle for crisis decks - they're drawn in order
@@ -414,6 +415,139 @@ public class CardDeck
             DisplayName = "Crisis Moment",
             Description = $"{npc.Name} needs immediate help!",
             SuccessRate = 35
+        };
+    }
+
+    /// <summary>
+    /// Get all cards for an NPC's personality from GameWorld templates
+    /// </summary>
+    private List<ConversationCard> GetCardsForNPC(NPC npc, Dictionary<ConnectionType, int> tokens)
+    {
+        var cards = new List<ConversationCard>();
+
+        // Add universal cards from GameWorld
+        var universalCards = _gameWorld.CardTemplates.Values
+            .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID)
+            .Where(c => c.Category != CardCategory.GOAL && c.Category != CardCategory.CRISIS);
+
+        foreach (var cardDto in universalCards)
+        {
+            cards.Add(ConvertDTOToCard(cardDto, npc));
+        }
+
+        // Add personality-specific cards from GameWorld
+        if (_gameWorld.PersonalityMappings.TryGetValue(npc.PersonalityType, out var mapping))
+        {
+            foreach (var cardId in mapping.Cards)
+            {
+                if (_gameWorld.CardTemplates.TryGetValue(cardId, out var cardDto))
+                {
+                    cards.Add(ConvertDTOToCard(cardDto, npc));
+                }
+            }
+        }
+
+        // Add token-unlocked cards if applicable
+        if (tokens != null && tokens.Any())
+        {
+            foreach (var kvp in _gameWorld.TokenUnlocks)
+            {
+                var requiredTokens = kvp.Key;
+                var unlockedCardIds = kvp.Value;
+                
+                // Check if player has enough tokens
+                var totalTokens = tokens.Values.Sum();
+                if (totalTokens >= requiredTokens)
+                {
+                    foreach (var cardId in unlockedCardIds)
+                    {
+                        if (_gameWorld.CardTemplates.TryGetValue(cardId, out var cardDto))
+                        {
+                            cards.Add(ConvertDTOToCard(cardDto, npc));
+                        }
+                    }
+                }
+            }
+        }
+
+        return cards;
+    }
+
+    /// <summary>
+    /// Get crisis cards for an NPC from GameWorld templates
+    /// </summary>
+    private List<ConversationCard> GetCrisisCards(NPC npc)
+    {
+        var cards = new List<ConversationCard>();
+        
+        var crisisCards = _gameWorld.CardTemplates.Values
+            .Where(c => c.Category == CardCategory.CRISIS)
+            .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID);
+
+        foreach (var cardDto in crisisCards)
+        {
+            cards.Add(ConvertDTOToCard(cardDto, npc));
+        }
+
+        return cards;
+    }
+
+    /// <summary>
+    /// Convert a DTO from GameWorld into a ConversationCard
+    /// </summary>
+    private ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc)
+    {
+        // Parse template
+        CardTemplateType template = CardTemplateType.SimpleGreeting;
+        if (!string.IsNullOrEmpty(dto.Template))
+        {
+            Enum.TryParse<CardTemplateType>(dto.Template, true, out template);
+        }
+
+        // Parse goal type if goal card
+        GoalType? goalType = null;
+        if (dto.IsGoalCard == true && !string.IsNullOrEmpty(dto.GoalCardType))
+        {
+            if (Enum.TryParse<GoalType>(dto.GoalCardType, true, out var parsed))
+            {
+                goalType = parsed;
+            }
+        }
+
+        // Parse success state for state cards
+        EmotionalState? successState = null;
+        if (dto.IsStateCard == true && !string.IsNullOrEmpty(dto.SuccessState))
+        {
+            if (Enum.TryParse<EmotionalState>(dto.SuccessState, true, out var parsed))
+            {
+                successState = parsed;
+            }
+        }
+
+        // Create card with all init-only properties set at once
+        return new ConversationCard
+        {
+            Id = dto.Id,
+            Template = template,
+            Context = new CardContext
+            {
+                Personality = npc?.PersonalityType ?? PersonalityType.STEADFAST,
+                EmotionalState = npc?.CurrentEmotionalState ?? EmotionalState.NEUTRAL,
+                NPCName = npc?.Name,
+                GeneratesLetterOnSuccess = dto.GeneratesLetterOnSuccess ?? false
+            },
+            Type = Enum.Parse<CardType>(dto.Type, true),
+            Persistence = Enum.Parse<PersistenceType>(dto.Persistence, true),
+            Weight = dto.Weight,
+            BaseComfort = dto.BaseComfort,
+            Depth = dto.Depth ?? 0,
+            Category = dto.Category,
+            IsGoalCard = dto.IsGoalCard ?? false,
+            GoalCardType = goalType,
+            DisplayName = dto.DisplayName,
+            Description = dto.Description,
+            SuccessRate = dto.SuccessRate ?? 0,
+            SuccessState = successState
         };
     }
 }

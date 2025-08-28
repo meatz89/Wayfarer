@@ -111,10 +111,20 @@ public class Phase7_FinalValidation : IInitializationPhase
         HashSet<string> npcIds = npcs.Select(n => n.ID).ToHashSet();
         HashSet<string> missingNPCs = new HashSet<string>();
 
-        // Collect all NPC references from SharedData
-        foreach (KeyValuePair<string, object> kvp in context.SharedData)
+        // Collect all NPC references from ValidationTracker
+        // Check obligation NPCs
+        foreach (var kvp in context.ValidationTracker.ObligationNPCs)
         {
-            if (kvp.Key.Contains("_npc") && kvp.Value is string npcId)
+            if (!npcIds.Contains(kvp.Value))
+            {
+                missingNPCs.Add(kvp.Value);
+            }
+        }
+        
+        // Check route discovery NPCs
+        foreach (var routeNPCs in context.ValidationTracker.RouteDiscoveryNPCs.Values)
+        {
+            foreach (string npcId in routeNPCs)
             {
                 if (!npcIds.Contains(npcId))
                 {

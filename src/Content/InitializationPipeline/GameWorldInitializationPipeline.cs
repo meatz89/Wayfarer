@@ -148,8 +148,9 @@ public class InitializationContext
     public List<string> Warnings { get; set; }
     public GameMode GameMode { get; set; } = GameMode.MainGame;
 
-    // Temporary storage for cross-phase data
-    public Dictionary<string, object> SharedData { get; set; } = new();
+    // Validation tracking - used only during initialization for cross-reference checks
+    // This is NOT game state and is discarded after initialization completes
+    public ValidationTracker ValidationTracker { get; set; } = new();
 
     /// <summary>
     /// Gets the content path based on game mode
@@ -160,6 +161,20 @@ public class InitializationContext
             ? Path.Combine(ContentPath, "Tutorial")
             : ContentPath;
     }
+}
+
+/// <summary>
+/// Tracks entity references for validation during initialization only
+/// This is discarded after initialization completes
+/// </summary>
+public class ValidationTracker
+{
+    // Track obligation source NPCs for validation
+    public Dictionary<string, string> ObligationNPCs { get; set; } = new();
+    
+    // Track route discovery references for validation  
+    public Dictionary<string, List<string>> RouteDiscoveryNPCs { get; set; } = new();
+    public HashSet<string> RouteDiscoveryRoutes { get; set; } = new();
 }
 
 /// <summary>
