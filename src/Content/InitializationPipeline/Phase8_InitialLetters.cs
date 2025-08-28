@@ -65,7 +65,7 @@ public class Phase8_InitialLetters : IInitializationPhase
                             GeneratesLetterOnSuccess = true
                         },
                         Type = CardType.Trust,
-                        Persistence = PersistenceType.Crisis,
+                        Persistence = PersistenceType.Persistent,
                         Weight = 5,  // Weight is 5 but costs 0 in DESPERATE state
                         BaseComfort = 10,  // High comfort value to help reach threshold
                         Category = CardCategory.CRISIS,

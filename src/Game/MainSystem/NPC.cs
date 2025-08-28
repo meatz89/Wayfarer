@@ -127,6 +127,37 @@ public class NPC
     {
         return CrisisDeck != null && CrisisDeck.RemainingCards > 0;
     }
+    
+    // Check if NPC has letter cards in their letter deck
+    public bool HasLetterCards()
+    {
+        return LetterDeck != null && LetterDeck.Any();
+    }
+    
+    // Count burden cards in conversation deck
+    public int CountBurdenCards()
+    {
+        if (ConversationDeck == null) return 0;
+        
+        // Burden cards are identified by having negative comfort, state-changing templates, or crisis indicators
+        return ConversationDeck.GetAllCards()
+            .Count(card => card.BaseComfort < 0 ||  // Negative comfort indicates burden
+                          card.Category == CardCategory.CRISIS ||  // Crisis cards are burdens
+                          card.Category == CardCategory.STATE ||   // State changes can be burdensome
+                          card.Template == CardTemplateType.ShowingTension ||
+                          card.Template == CardTemplateType.TenseComment ||
+                          card.Template == CardTemplateType.OverwhelmedResponse ||
+                          card.Template == CardTemplateType.DesperatePlea ||
+                          card.Id.ToLower().Contains("burden") ||
+                          card.Id.ToLower().Contains("conflict") ||
+                          card.Id.ToLower().Contains("problem"));
+    }
+    
+    // Check if NPC has exchange cards available
+    public bool HasExchangeCards()
+    {
+        return ExchangeDeck != null && ExchangeDeck.Any();
+    }
 
     // Get today's exchange card (selected randomly at dawn)
     public ExchangeCard GetTodaysExchangeCard()

@@ -103,7 +103,7 @@ public class NPCDeckFactory
                 Template = CardTemplateType.DiscussBusiness,
                 Context = new CardContext { Personality = PersonalityType.MERCANTILE },
                 Type = CardType.Commerce,
-                Persistence = PersistenceType.Opportunity,
+                Persistence = PersistenceType.Fleeting,
                 Weight = 1,
                 BaseComfort = 2,
                 Category = CardCategory.COMFORT
@@ -114,40 +114,24 @@ public class NPCDeckFactory
                 Template = CardTemplateType.OfferWork,
                 Context = new CardContext { Personality = PersonalityType.MERCANTILE },
                 Type = CardType.Commerce,
-                Persistence = PersistenceType.OneShot,
+                Persistence = PersistenceType.Fleeting,
                 Weight = 2,
                 BaseComfort = 4,
                 Category = CardCategory.COMFORT,
                 CanDeliverLetter = true
             },
-            // Add STATE card for testing
             new ConversationCard
             {
                 Id = Guid.NewGuid().ToString(),
                 Template = CardTemplateType.ShowingTension,
                 Context = new CardContext { Personality = PersonalityType.MERCANTILE },
                 Type = CardType.Commerce,
-                Persistence = PersistenceType.OneShot,
+                Persistence = PersistenceType.Fleeting,
                 Weight = 2,
                 BaseComfort = 0,
                 Category = CardCategory.STATE,
                 SuccessState = EmotionalState.TENSE,
                 FailureState = EmotionalState.GUARDED
-            },
-            // Add Crisis letter for testing
-            new ConversationCard
-            {
-                Id = Guid.NewGuid().ToString(),
-                Template = CardTemplateType.DesperateRequest,
-                Context = new CardContext { 
-                    Personality = PersonalityType.MERCANTILE,
-                    EmotionalState = EmotionalState.DESPERATE
-                },
-                Type = CardType.Trust,
-                Persistence = PersistenceType.Crisis,
-                Weight = 3,
-                BaseComfort = 8,
-                Category = CardCategory.CRISIS
             }
         };
     }
@@ -173,7 +157,7 @@ public class NPCDeckFactory
                 Template = CardTemplateType.MakePromise,
                 Context = new CardContext { Personality = PersonalityType.PROUD },
                 Type = CardType.Trust,
-                Persistence = PersistenceType.OneShot,
+                Persistence = PersistenceType.Fleeting,
                 Weight = 3,
                 BaseComfort = 5,
                 Category = CardCategory.COMFORT,
@@ -203,7 +187,7 @@ public class NPCDeckFactory
                 Template = CardTemplateType.ShareInformation,
                 Context = new CardContext { Personality = PersonalityType.DEVOTED },
                 Type = CardType.Status,
-                Persistence = PersistenceType.Opportunity,
+                Persistence = PersistenceType.Fleeting,
                 Weight = 2,
                 BaseComfort = 3,
                 Category = CardCategory.COMFORT
@@ -221,7 +205,7 @@ public class NPCDeckFactory
                 Template = CardTemplateType.ImplyKnowledge,
                 Context = new CardContext { Personality = PersonalityType.CUNNING },
                 Type = CardType.Shadow,
-                Persistence = PersistenceType.Opportunity,
+                Persistence = PersistenceType.Fleeting,
                 Weight = 2,
                 BaseComfort = 4,
                 Category = CardCategory.COMFORT
@@ -272,7 +256,7 @@ public class NPCDeckFactory
                 HasDeadline = true
             },
             Type = CardType.Trust,
-            Persistence = PersistenceType.Crisis,
+            Persistence = PersistenceType.Persistent,
             Weight = 3,
             BaseComfort = 10,
             Category = CardCategory.CRISIS,
@@ -312,7 +296,7 @@ public class NPCDeckFactory
             Template = CardTemplateType.DeliverLetter,
             Context = new CardContext { },
             Type = CardType.Trust,
-            Persistence = PersistenceType.OneShot,
+            Persistence = PersistenceType.Fleeting,
             Weight = 1,
             BaseComfort = 5,
             Category = CardCategory.COMFORT,

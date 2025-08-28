@@ -82,6 +82,18 @@ public class ConversationManager
         {
             return StartCrisisConversation(npc, observationCards);
         }
+        
+        // For Letter Offer conversation, mix in letter cards
+        if (conversationType == ConversationType.LetterOffer)
+        {
+            return StartLetterOfferConversation(npc, observationCards);
+        }
+        
+        // For Make Amends conversation, focus on burden resolution
+        if (conversationType == ConversationType.MakeAmends)
+        {
+            return StartMakeAmendsConversation(npc, observationCards);
+        }
 
         // Check if NPC can converse (for standard conversations)
         var initialState = ConversationRules.DetermineInitialState(npc, queueManager);
@@ -105,6 +117,7 @@ public class ConversationManager
     /// <summary>
     /// Get available conversation types for an NPC
     /// This determines what options appear on the location screen
+    /// Types are determined dynamically based on deck contents
     /// </summary>
     public List<ConversationType> GetAvailableConversationTypes(NPC npc)
     {
@@ -114,7 +127,7 @@ public class ConversationManager
         if (npc.HasCrisisCards())
         {
             available.Add(ConversationType.Crisis);
-            return available; // Other types are LOCKED
+            return available; // Other types are LOCKED during crisis
         }
         
         // Check for exchange deck - depends on personality and location
@@ -124,22 +137,28 @@ public class ConversationManager
         
         // Initialize exchange deck with spot information
         npc.InitializeExchangeDeck(spotDomainTags);
-        if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
+        if (npc.HasExchangeCards())
         {
             available.Add(ConversationType.QuickExchange);
         }
         
-        // Check for standard conversation deck
+        // Check for letter cards → Letter Offer conversation
+        if (npc.HasLetterCards())
+        {
+            available.Add(ConversationType.LetterOffer);
+        }
+        
+        // Check for burden cards → Make Amends conversation
+        // Requires at least 2 burden cards to enable this type
+        if (npc.CountBurdenCards() >= 2)
+        {
+            available.Add(ConversationType.MakeAmends);
+        }
+        
+        // Standard conversation always available if conversation deck exists
         if (npc.ConversationDeck != null && npc.ConversationDeck.RemainingCards > 0)
         {
             available.Add(ConversationType.Standard);
-            
-            // Check if Deep conversation is available (requires relationship level 3+)
-            var relationshipLevel = tokenManager.GetRelationshipLevel(npc.ID);
-            if (relationshipLevel >= 3)
-            {
-                available.Add(ConversationType.Deep);
-            }
         }
         
         return available;
@@ -167,6 +186,56 @@ public class ConversationManager
     {
         // Crisis conversations use crisis deck exclusively
         currentSession = ConversationSession.StartCrisis(npc, queueManager, tokenManager, observationCards);
+        return currentSession;
+    }
+    
+    /// <summary>
+    /// Start a letter offer conversation
+    /// </summary>
+    private ConversationSession StartLetterOfferConversation(NPC npc, List<ConversationCard> observationCards)
+    {
+        // Letter Offer conversations mix letter cards into conversation deck
+        // and use a Letter goal card
+        var initialState = ConversationRules.DetermineInitialState(npc, queueManager);
+        if (initialState == EmotionalState.HOSTILE)
+        {
+            throw new InvalidOperationException($"{npc.Name} is hostile and won't discuss letters");
+        }
+        
+        currentSession = ConversationSession.StartConversation(
+            npc,
+            queueManager,
+            tokenManager,
+            observationCards,
+            ConversationType.LetterOffer,
+            gameWorld.GetPlayerResourceState()
+        );
+        
+        return currentSession;
+    }
+    
+    /// <summary>
+    /// Start a make amends conversation
+    /// </summary>
+    private ConversationSession StartMakeAmendsConversation(NPC npc, List<ConversationCard> observationCards)
+    {
+        // Make Amends conversations focus on burden cards
+        // and use a Resolution goal card
+        var initialState = ConversationRules.DetermineInitialState(npc, queueManager);
+        if (initialState == EmotionalState.HOSTILE)
+        {
+            throw new InvalidOperationException($"{npc.Name} is hostile and won't discuss problems");
+        }
+        
+        currentSession = ConversationSession.StartConversation(
+            npc,
+            queueManager,
+            tokenManager,
+            observationCards,
+            ConversationType.MakeAmends,
+            gameWorld.GetPlayerResourceState()
+        );
+        
         return currentSession;
     }
 
@@ -206,7 +275,7 @@ public class ConversationManager
         // Remove observation cards from ObservationManager after playing (they're OneShot)
         foreach (var card in selectedCards)
         {
-            if (card.IsObservation && card.Persistence == PersistenceType.OneShot)
+            if (card.IsObservation && card.Persistence == PersistenceType.Fleeting)
             {
                 observationManager.RemoveObservationCardByConversationId(card.Id);
                 Console.WriteLine($"[ConversationManager] Removed observation card {card.Id} from ObservationManager");

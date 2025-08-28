@@ -172,7 +172,7 @@ public class LetterCard
                 UrgencyLevel = SuccessTerms.DeadlineHours <= 2 ? 3 : SuccessTerms.DeadlineHours <= 6 ? 2 : 1
             },
             Type = CardType.Trust, // Letter cards are typically Trust type
-            Persistence = PersistenceType.Opportunity, // Letters are opportunities that can be lost
+            Persistence = PersistenceType.Fleeting, // Letters are opportunities that can be lost
             Weight = Weight,
             BaseComfort = 0, // Letters don't give comfort, they create obligations
             Category = CardCategory.LETTER, // New category for letter cards

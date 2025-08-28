@@ -562,7 +562,6 @@ namespace Wayfarer.Pages.Components
                 ConversationType.QuickExchange => "Quick Exchange",
                 ConversationType.Crisis => "Crisis Resolution",
                 ConversationType.Standard => "Standard Conversation",
-                ConversationType.Deep => "Deep Conversation",
                 _ => "Conversation"
             };
         }
@@ -656,7 +655,7 @@ namespace Wayfarer.Pages.Components
                 return "state";
             if (card.Category == CardCategory.EXCHANGE)
                 return "exchange";
-            if (card.Persistence == PersistenceType.OneShot)
+            if (card.Persistence == PersistenceType.Fleeting)
                 return "observation";
             return "comfort";
         }

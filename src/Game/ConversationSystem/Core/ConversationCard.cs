@@ -28,12 +28,13 @@ public enum GoalType
 /// </summary>
 public enum CardCategory
 {
-    COMFORT,  // Build comfort, can combine with other comfort cards
-    STATE,    // Change emotional state, must play alone
-    CRISIS,   // Emergency actions, free in DESPERATE state
-    EXCHANGE, // Exchange cards for Quick Exchange conversations
-    LETTER,   // Letter negotiation cards for creating obligations
-    GOAL      // Goal cards that end conversation when played
+    COMFORT,    // Build comfort, can combine with other comfort cards
+    STATE,      // Change emotional state, must play alone
+    CRISIS,     // Emergency actions, free in DESPERATE state
+    EXCHANGE,   // Exchange cards for Quick Exchange conversations
+    LETTER,     // Letter negotiation cards for creating obligations
+    GOAL,       // Goal cards that end conversation when played
+    OBSERVATION // Observation cards from location observations (in the player deck)
 }
 
 /// <summary>
@@ -42,10 +43,7 @@ public enum CardCategory
 public enum PersistenceType
 {
     Persistent,  // Stays in hand when listening
-    Opportunity, // Vanishes when listening (fleeting moments)
-    OneShot,     // Removed after playing (major confessions)
-    Burden,      // Cannot vanish (negative cards)
-    Crisis       // Emergency cards, free in DESPERATE state
+    Fleeting,    // Vanishes when listening (fleeting moments)
 }
 
 /// <summary>

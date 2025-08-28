@@ -172,7 +172,7 @@ public class ObservationManager
                 Template = originalCard.Template,
                 Context = updatedContext,
                 Type = originalCard.Type,
-                Persistence = PersistenceType.Opportunity, // Observations are Opportunity type but DON'T vanish on Listen - they decay over time
+                Persistence = PersistenceType.Fleeting, // Observations are Opportunity type but DON'T vanish on Listen - they decay over time
                 Weight = originalCard.Weight,
                 BaseComfort = obsCard.EffectiveComfortValue, // Use decay-adjusted comfort value
                 Category = originalCard.Category,
@@ -292,7 +292,7 @@ public class ObservationManager
             Template = template,
             Context = context,
             Type = cardType,
-            Persistence = PersistenceType.OneShot, // All observation cards are one-shot
+            Persistence = PersistenceType.Fleeting, // All observation cards are one-shot
             Weight = observationTypeData.Weight,
             BaseComfort = observationTypeData.BaseComfort,
             Category = CardCategory.COMFORT, // Most observations provide comfort

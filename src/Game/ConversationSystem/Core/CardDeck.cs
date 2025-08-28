@@ -125,7 +125,7 @@ public class CardDeck
                     Template = CardTemplateType.ExpressEmpathy,
                     Context = new CardContext { Personality = PersonalityType.DEVOTED },
                     Type = CardType.Trust,
-                    Persistence = PersistenceType.Opportunity,
+                    Persistence = PersistenceType.Fleeting,
                     Weight = 2,
                     BaseComfort = 4,
                     Depth = 8  // Decent level (6-10 range)
@@ -174,7 +174,7 @@ public class CardDeck
                     Template = CardTemplateType.ProposeDeal,
                     Context = new CardContext { Personality = PersonalityType.MERCANTILE },
                     Type = CardType.Commerce,
-                    Persistence = PersistenceType.Opportunity,
+                    Persistence = PersistenceType.Fleeting,
                     Weight = 2,
                     BaseComfort = 4,
                     Depth = 8  // Decent level
@@ -211,7 +211,7 @@ public class CardDeck
                     Template = CardTemplateType.ShowRespect,
                     Context = new CardContext { Personality = PersonalityType.PROUD },
                     Type = CardType.Status,
-                    Persistence = PersistenceType.Opportunity,
+                    Persistence = PersistenceType.Fleeting,
                     Weight = 2,
                     BaseComfort = 4,
                     Depth = 14  // Good level
@@ -226,7 +226,7 @@ public class CardDeck
                     Template = CardTemplateType.ShareSecret,
                     Context = new CardContext { Personality = PersonalityType.CUNNING },
                     Type = CardType.Shadow,
-                    Persistence = PersistenceType.Opportunity,
+                    Persistence = PersistenceType.Fleeting,
                     Weight = 1,
                     BaseComfort = 3,
                     Depth = 8,  // Decent level
@@ -237,7 +237,7 @@ public class CardDeck
                     Template = CardTemplateType.ImplyKnowledge,
                     Context = new CardContext { Personality = PersonalityType.CUNNING },
                     Type = CardType.Shadow,
-                    Persistence = PersistenceType.Opportunity,
+                    Persistence = PersistenceType.Fleeting,
                     Weight = 2,
                     BaseComfort = 5,
                     Depth = 17  // Excellent level - hidden knowledge
@@ -332,7 +332,7 @@ public class CardDeck
                 Template = CardTemplateType.ExpressVulnerability,
                 Context = new CardContext { },
                 Type = CardType.Trust,
-                Persistence = PersistenceType.Opportunity,
+                Persistence = PersistenceType.Fleeting,
                 Weight = 2,
                 BaseComfort = 6,
                 Depth = 15,
@@ -348,7 +348,7 @@ public class CardDeck
                 Template = CardTemplateType.ExpressVulnerability,
                 Context = new CardContext { },
                 Type = CardType.Trust,
-                Persistence = PersistenceType.OneShot,
+                Persistence = PersistenceType.Fleeting,
                 Weight = 3,
                 BaseComfort = 10,
                 Depth = 20,
@@ -380,7 +380,7 @@ public class CardDeck
                 Template = CardTemplateType.ProposeDeal,
                 Context = new CardContext { },
                 Type = CardType.Commerce,
-                Persistence = PersistenceType.Opportunity,
+                Persistence = PersistenceType.Fleeting,
                 Weight = 2,
                 BaseComfort = 7,
                 Depth = 16,
@@ -394,7 +394,7 @@ public class CardDeck
             Template = CardTemplateType.DiscussObligation,
             Context = new CardContext { },
             Type = CardType.Trust,
-            Persistence = PersistenceType.Opportunity,
+            Persistence = PersistenceType.Fleeting,
             Weight = 1,
             BaseComfort = 2,
             ManipulatesObligations = true,
@@ -410,7 +410,7 @@ public class CardDeck
             Template = CardTemplateType.ShowingTension,
             Context = new CardContext { },
             Type = CardType.Trust,
-            Persistence = PersistenceType.Burden,
+            Persistence = PersistenceType.Persistent,
             Weight = 1,
             BaseComfort = 0,
             Category = CardCategory.COMFORT,  // Burden cards are comfort cards with negative effects
@@ -420,8 +420,6 @@ public class CardDeck
 
     private void AddStateTransitionCards(PersonalityType personality)
     {
-        // Add state cards based on personality tendencies
-        
         // Calming card - for moving from negative states
         cards.Add(new ConversationCard
         {
@@ -495,7 +493,7 @@ public class CardDeck
             Template = CardTemplateType.EagerEngagement,
             Context = new CardContext { Personality = personality },
             Type = CardType.Trust,
-            Persistence = PersistenceType.Opportunity,
+            Persistence = PersistenceType.Fleeting,
             Weight = 1,
             BaseComfort = 0,
             Category = CardCategory.STATE,
@@ -529,7 +527,7 @@ public class CardDeck
                 Template = CardTemplateType.DesperatePlea,
                 Context = new CardContext { Personality = personality },
                 Type = CardType.Trust,
-                Persistence = PersistenceType.Opportunity,
+                Persistence = PersistenceType.Fleeting,
                 Weight = 2,
                 BaseComfort = 0,
                 Category = CardCategory.STATE,
@@ -562,7 +560,7 @@ public class CardDeck
             Template = CardTemplateType.BecomingEager,
             Context = new CardContext { Personality = personality },
             Type = CardType.Trust,
-            Persistence = PersistenceType.Opportunity,
+            Persistence = PersistenceType.Fleeting,
             Weight = 2,
             BaseComfort = 0,
             Category = CardCategory.STATE,
@@ -580,7 +578,7 @@ public class CardDeck
                 Template = CardTemplateType.ExpressVulnerability,
                 Context = new CardContext { Personality = personality },
                 Type = CardType.Trust,
-                Persistence = PersistenceType.OneShot,
+                Persistence = PersistenceType.Fleeting,
                 Weight = 3,
                 BaseComfort = 0,
                 Category = CardCategory.STATE,
@@ -721,7 +719,7 @@ public class CardDeck
     /// </summary>
     public void Discard(ConversationCard card)
     {
-        if (card.Persistence != PersistenceType.OneShot)
+        if (card.Persistence != PersistenceType.Fleeting)
         {
             discardPile.Add(card);
         }
@@ -734,8 +732,7 @@ public class CardDeck
     {
         // Return persistent cards from discard
         var persistentCards = discardPile
-            .Where(c => c.Persistence == PersistenceType.Persistent || 
-                       c.Persistence == PersistenceType.Burden)
+            .Where(c => c.Persistence == PersistenceType.Persistent)
             .ToList();
         
         cards.AddRange(persistentCards);
@@ -760,7 +757,7 @@ public class CardDeck
                 HasDeadline = true
             },
             Type = CardType.Trust,
-            Persistence = PersistenceType.Crisis,
+            Persistence = PersistenceType.Persistent,
             Weight = 0, // Free to play in DESPERATE/HOSTILE states
             BaseComfort = 8,
             Category = CardCategory.CRISIS
@@ -859,7 +856,7 @@ public class CardDeck
     public bool IsCrisis()
     {
         // A crisis deck contains cards with Crisis category or Crisis persistence
-        return cards.Any() && cards.All(c => c.Category == CardCategory.CRISIS || c.Persistence == PersistenceType.Crisis);
+        return cards.Any() && cards.All(c => c.Category == CardCategory.CRISIS || c.Persistence == PersistenceType.Persistent);
     }
     
     /// <summary>

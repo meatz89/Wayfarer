@@ -447,7 +447,7 @@ public class ConversationSession
         // Remove all opportunity cards EXCEPT observation cards and goal cards
         // Observation cards are Opportunity type but DON'T vanish on Listen - they decay over time instead
         // Goal cards NEVER vanish once drawn (they must be played within 3 turns)
-        HandCards.RemoveAll(c => c.Persistence == PersistenceType.Opportunity && !c.IsObservation && !c.IsGoalCard);
+        HandCards.RemoveAll(c => c.Persistence == PersistenceType.Fleeting && !c.IsObservation && !c.IsGoalCard);
 
         // Get state rules
         var rules = ConversationRules.States[CurrentState];
@@ -688,7 +688,7 @@ public class ConversationSession
             HandCards.Remove(card);
             
             // Handle different persistence types
-            if (card.Persistence == PersistenceType.OneShot)
+            if (card.Persistence == PersistenceType.Fleeting)
             {
                 Deck.RemoveCard(card); // Permanently remove
             }
@@ -1078,7 +1078,7 @@ public class ConversationSession
                 
             case GoalType.Resolution:
                 // Remove burden cards from the deck
-                var burdenCards = Deck.GetCards().Where(c => c.Persistence == PersistenceType.Burden).ToList();
+                var burdenCards = Deck.GetCards().Where(c => c.Persistence == PersistenceType.Persistent).ToList();
                 foreach (var burden in burdenCards)
                 {
                     Deck.RemoveCard(burden);
@@ -1246,7 +1246,7 @@ public class ConversationSession
             Template = CardTemplateType.DeliverLetter,
             Context = context,
             Type = CardType.Trust, // Delivery builds trust
-            Persistence = PersistenceType.Opportunity, // One chance to deliver
+            Persistence = PersistenceType.Fleeting, // One chance to deliver
             Weight = 0, // Free to play - delivering is always good
             BaseComfort = comfortReward,
             Category = CardCategory.COMFORT, // Uses comfort category for now

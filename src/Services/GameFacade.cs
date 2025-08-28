@@ -580,11 +580,6 @@ public class GameFacade
                 interaction.Text = "Have Conversation";
                 interaction.Cost = "2 attention";
                 break;
-                
-            case ConversationType.Deep:
-                interaction.Text = "Deep Conversation";
-                interaction.Cost = "3 attention";
-                break;
         }
         
         // Mark as locked if crisis is active and this isn't the crisis conversation

@@ -22,9 +22,16 @@ public enum ConversationType
     Standard,
     
     /// <summary>
-    /// Deep conversation (3 attention, 12 patience, relationship level 3+)
+    /// Letter offer conversation (2 attention, 6 patience, letter deck cards)
+    /// Enabled when NPC has letter cards in their letter deck
     /// </summary>
-    Deep
+    LetterOffer,
+    
+    /// <summary>
+    /// Make amends conversation (2 attention, 6 patience, burden resolution)
+    /// Enabled when NPC has 2+ burden cards in their conversation deck
+    /// </summary>
+    MakeAmends,
 }
 
 /// <summary>
@@ -60,7 +67,8 @@ public static class ConversationTypeConfig
             ConversationType.QuickExchange => 0,
             ConversationType.Crisis => 1,
             ConversationType.Standard => 2,
-            ConversationType.Deep => 3,
+            ConversationType.LetterOffer => 2,
+            ConversationType.MakeAmends => 2,
             _ => 2
         };
     }
@@ -72,7 +80,8 @@ public static class ConversationTypeConfig
             ConversationType.QuickExchange => 0,  // No patience for exchanges
             ConversationType.Crisis => 3,
             ConversationType.Standard => 8,
-            ConversationType.Deep => 12,
+            ConversationType.LetterOffer => 6,  // Focused on letter negotiation
+            ConversationType.MakeAmends => 6,    // Focused on burden resolution
             _ => 8
         };
     }
@@ -84,7 +93,8 @@ public static class ConversationTypeConfig
             ConversationType.QuickExchange => DeckType.Exchange,
             ConversationType.Crisis => DeckType.Crisis,
             ConversationType.Standard => DeckType.Conversation,
-            ConversationType.Deep => DeckType.Conversation,
+            ConversationType.LetterOffer => DeckType.Conversation,  // Uses conversation deck with letter cards mixed in
+            ConversationType.MakeAmends => DeckType.Conversation,   // Uses conversation deck focused on burdens
             _ => DeckType.Conversation
         };
     }
@@ -105,22 +115,16 @@ public static class ConversationTypeConfig
             ConversationType.QuickExchange => false,
             ConversationType.Crisis => false,  // Crisis resolves issues, doesn't generate letters
             ConversationType.Standard => true,
-            ConversationType.Deep => true,
+            ConversationType.LetterOffer => true,  // Primary purpose is letter generation
+            ConversationType.MakeAmends => false,   // Resolves burdens, doesn't generate letters
             _ => false
-        };
-    }
-    
-    public static int GetMinimumRelationshipLevel(ConversationType type)
-    {
-        return type switch
-        {
-            ConversationType.Deep => 3,
-            _ => 0
         };
     }
     
     /// <summary>
     /// Determine which conversation type is available/forced based on game state
+    /// Note: This method is deprecated - use ConversationManager.GetAvailableConversationTypes instead
+    /// which properly analyzes deck contents
     /// </summary>
     public static ConversationType DetermineAvailableType(
         bool hasCrisisCards,
@@ -135,10 +139,6 @@ public static class ConversationTypeConfig
         // Player explicitly requested exchange
         if (playerRequestedExchange)
             return ConversationType.QuickExchange;
-            
-        // Check if Deep conversation is available
-        if (playerAttention >= 3 && relationshipLevel >= 3)
-            return ConversationType.Deep;
             
         // Default to standard if player has enough attention
         if (playerAttention >= 2)

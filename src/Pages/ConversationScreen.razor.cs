@@ -371,7 +371,7 @@ namespace Wayfarer.Pages
 
         protected bool HasOpportunities()
         {
-            return Session.HandCards.Any(c => c.Persistence == PersistenceType.Opportunity);
+            return Session.HandCards.Any(c => c.Persistence == PersistenceType.Fleeting);
         }
 
         protected int GetCurrentWeight()
@@ -660,10 +660,7 @@ namespace Wayfarer.Pages
             return persistence switch
             {
                 PersistenceType.Persistent => "♻",
-                PersistenceType.Opportunity => "⏱",
-                PersistenceType.OneShot => "→",
-                PersistenceType.Burden => "⚫",
-                PersistenceType.Crisis => "🔥",
+                PersistenceType.Fleeting => "⏱",
                 _ => ""
             };
         }

@@ -32,13 +32,14 @@ public static class GoalCardFactory
     /// </summary>
     private static GoalType? GetGoalTypeForConversation(ConversationType type)
     {
-        // Based on conversation-system.md lines 107-112
+        // Based on conversation-system.md lines 107-112 and Package 3 requirements
         return type switch
         {
-            ConversationType.Standard => GoalType.Letter,  // Elena's main use case
-            ConversationType.Deep => GoalType.Promise,     // Deep conversations create obligations
-            ConversationType.Crisis => GoalType.Crisis,    // Crisis needs resolution
-            ConversationType.QuickExchange => null,        // Exchanges don't have goals
+            ConversationType.Standard => GoalType.Letter,       // Standard conversations can generate letters
+            ConversationType.LetterOffer => GoalType.Letter,    // Primary purpose is letter negotiation
+            ConversationType.MakeAmends => GoalType.Resolution, // Resolves burdens and issues
+            ConversationType.Crisis => GoalType.Crisis,         // Crisis needs resolution
+            ConversationType.QuickExchange => null,             // Exchanges don't have goals
             _ => null
         };
     }
