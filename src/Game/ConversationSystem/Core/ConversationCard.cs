@@ -1,6 +1,66 @@
 using System;
 
 /// <summary>
+/// Template types for generating card dialogue and display
+/// </summary>
+public enum CardTemplateType
+{
+    // Basic conversation templates
+    SimpleGreeting,
+    ActiveListening,
+    CasualInquiry,
+    
+    // Relationship building
+    OfferHelp,
+    OpeningUp,
+    ShareInformation,
+    MakePromise,
+    
+    // Commerce/Business
+    DiscussBusiness,
+    OfferWork,
+    Exchange,
+    SimpleExchange,
+    
+    // Status/Politics
+    DiscussPolitics,
+    ShowRespect,
+    
+    // Shadow/Secret
+    ImplyKnowledge,
+    RequestDiscretion,
+    
+    // Special situations
+    DesperateRequest,
+    UrgentPlea,
+    CalmnessAttempt,
+    DeliverLetter,
+    DiscussObligation,
+    StateTransition,
+    
+    // Observation
+    ObservationNotice,
+    
+    // Missing values found in code
+    GoalCard,
+    ObservationShare,
+    OfferAssistance,
+    PersonalStory,
+    CalmingResponse,
+    NegotiateDeadline,
+    ShareSecret,
+    ShowingTension,
+    ExpressEmpathy,
+    SharePersonal,
+    ProposeDeal,
+    NegotiateTerms,
+    AcknowledgePosition,
+    MentionLetter,
+    ShareUrgentNews,
+    MentionObservation
+}
+
+/// <summary>
 /// Types of conversation cards matching relationship types
 /// </summary>
 public enum CardType
@@ -9,6 +69,19 @@ public enum CardType
     Commerce,
     Status,
     Shadow
+}
+
+/// <summary>
+/// Categories of conversation cards for UI styling and game mechanics
+/// </summary>
+public enum CardCategory
+{
+    Comfort,    // Basic conversation cards that build comfort
+    Token,      // Cards that grant connection tokens
+    State,      // Cards that change NPC emotional state
+    Burden,     // Negative cards that require resolution
+    Promise,    // Goal cards for letter offers
+    Exchange    // Commerce cards for quick trades
 }
 
 /// <summary>
@@ -68,7 +141,7 @@ public enum PersistenceType
 /// A single conversation card representing something to say or do.
 /// Cards are the atomic units of conversation.
 /// </summary>
-public class ConversationCard : ICard
+public class ConversationCard
 {
     /// <summary>
     /// Unique identifier for this card
@@ -79,6 +152,11 @@ public class ConversationCard : ICard
     /// Card template type for frontend text generation
     /// </summary>
     public CardTemplateType Template { get; init; }
+    
+    /// <summary>
+    /// Category of this card for game mechanics and UI styling
+    /// </summary>
+    public CardCategory Category { get; init; }
     
     /// <summary>
     /// Context data for template rendering
@@ -184,7 +262,6 @@ public class ConversationCard : ICard
     /// The type of goal this card represents (if IsGoalCard is true)
     /// </summary>
     public ConversationType? GoalCardType { get; init; }
-    
 
     /// <summary>
     /// Get effective weight considering state rules
@@ -193,8 +270,9 @@ public class ConversationCard : ICard
     {
         var rules = ConversationRules.States[state];
         
-        // Type-based checking would need to be implemented here
-        // For now, no free weight categories
+        // Check if this card category gets free weight
+        if (rules.FreeWeightCardCategories != null && rules.FreeWeightCardCategories.Contains(Category))
+            return 0;
             
         return Weight;
     }
@@ -247,21 +325,7 @@ public class ConversationCard : ICard
     /// </summary>
     public string GetCategoryClass()
     {
-        // Determine category based on card properties since Category enum is removed
-        if (IsExchange)
-            return "exchange";
-        if (IsObservation)
-            return "observation";
-        if (IsGoalCard)
-            return "promise";
-        if (IsStateCard)
-            return "state";
-        if (BaseComfort <= 0 && Weight >= 2)
-            return "burden";
-        if (BaseComfort > 2)
-            return "token";
-        
-        return "comfort"; // Default
+        return Category.ToString().ToLower();
     }
     
 }

@@ -58,7 +58,7 @@ public class CardSelectionManager
         }
 
         // Type restrictions (e.g., HOSTILE only allows Crisis letters)
-        if (rules.AllowedCardTypes != null && !rules.AllowedCardTypes.Contains(card.GetType()))
+        if (rules.AllowedCardCategories != null && !rules.AllowedCardCategories.Contains(card.Category))
             return false;
 
         return true;

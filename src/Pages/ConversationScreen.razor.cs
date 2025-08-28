@@ -27,7 +27,7 @@ namespace Wayfarer.Pages
         protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
         protected ActionType SelectedAction { get; set; } = ActionType.None;
         protected CardPlayResult LastResult { get; set; }
-        protected ExchangeCard CurrentExchangeCard { get; set; }
+        protected ConversationCard CurrentConversationCard { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -448,7 +448,7 @@ namespace Wayfarer.Pages
         }
 
         // Exchange Mode Methods
-        protected ExchangeCard GetCurrentExchangeCard()
+        protected ConversationCard GetCurrentConversationCard()
         {
             if (Session?.NPC == null || ConversationType != ConversationType.Commerce)
                 return null;
@@ -567,13 +567,13 @@ namespace Wayfarer.Pages
             return $"{Session.CurrentPatience} turns remaining • Each turn advances time";
         }
 
-        protected string GetExchangeCardName(ConversationCard card)
+        protected string GetConversationCardName(ConversationCard card)
         {
             if (card.Context?.ExchangeData == null)
                 return "Exchange";
                 
             var exchange = card.Context.ExchangeData;
-            return exchange.TemplateType switch
+            return exchange.Template switch
             {
                 "food" => "Food Exchange",
                 "healing" => "Healing Service",
@@ -604,7 +604,7 @@ namespace Wayfarer.Pages
             return string.Join(", ", rewards);
         }
         
-        protected bool IsExchangeCard(ConversationCard card)
+        protected bool IsConversationCard(ConversationCard card)
         {
             return card.Template == CardTemplateType.Exchange;
         }
@@ -639,7 +639,7 @@ namespace Wayfarer.Pages
                 CardTemplateType.AcknowledgePosition => "Acknowledge Position",
                 CardTemplateType.ShareSecret => "Share Secret",
                 CardTemplateType.MentionLetter => "Mention Letter",
-                CardTemplateType.Exchange => GetExchangeCardName(card),
+                CardTemplateType.Exchange => GetConversationCardName(card),
                 _ => "Conversation Option"
             };
         }

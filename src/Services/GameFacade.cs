@@ -2505,7 +2505,7 @@ public class GameFacade
         return context;
     }
 
-    public async Task<bool> ExecuteExchange(string npcId, ExchangeCard exchange)
+    public async Task<bool> ExecuteExchange(string npcId, ConversationCard exchange)
     {
         // Validate inputs
         if (string.IsNullOrEmpty(npcId) || exchange == null)

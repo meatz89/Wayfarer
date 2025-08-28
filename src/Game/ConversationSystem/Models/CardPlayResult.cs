@@ -104,14 +104,14 @@ public class LetterNegotiationResult
     public bool NegotiationSuccess { get; init; }
 
     /// <summary>
-    /// Final terms after negotiation (success or failure terms)
+    /// Final terms after negotiation (success or failure terms)  
     /// </summary>
-    public LetterNegotiationTerms FinalTerms { get; init; }
+    // public LetterNegotiationTerms FinalTerms { get; init; }
 
     /// <summary>
     /// The promise card that generated this negotiation
     /// </summary>
-    public PromiseCard SourcePromiseCard { get; init; }
+    public ConversationCard SourcePromiseCard { get; init; }
 
     /// <summary>
     /// The delivery obligation that needs to be created

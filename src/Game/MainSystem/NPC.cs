@@ -61,7 +61,7 @@ public class NPC
 
     // THREE DECK ARCHITECTURE (POC EXACT)
     public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Comfort, Token, State, Knowledge, Burden
-    public CardDeck GoalDeck { get; set; } = new();  // 2-8 cards: Promise (letters), Resolution, Crisis goals
+    public CardDeck GoalDeck { get; set; } = new();  // 0-3 cards: Promise (letters), Resolution, Crisis goals
     public CardDeck ExchangeDeck { get; set; } = new();  // 5-10 cards: Simple instant trades (Mercantile NPCs only) 
 
     // Daily exchange selection (removed - handled by GetTodaysExchange method)
@@ -110,7 +110,7 @@ public class NPC
     public bool HasPromiseCards()
     {
         if (GoalDeck == null) return false;
-        return GoalDeck.GetAllCards().Any(c => c is PromiseCard);
+        return GoalDeck.GetAllCards().Any(c => c.Category == CardCategory.Promise);
     }
     
     // Check if NPC has crisis cards in their goal deck
@@ -147,9 +147,9 @@ public class NPC
     {
         if (ConversationDeck == null) return 0;
         
-        // Burden cards are identified by their type
+        // Burden cards are identified by their category
         return ConversationDeck.GetAllCards()
-            .Count(card => card is BurdenCard);
+            .Count(card => card.Category == CardCategory.Burden);
     }
     
     // Check if NPC has exchange cards available
@@ -159,7 +159,7 @@ public class NPC
     }
 
     // Get today's exchange card (selected deterministically at dawn)
-    public ICard GetTodaysExchange(int currentDay)
+    public ConversationCard GetTodaysExchange(int currentDay)
     {
         // Exchange cards only for Mercantile NPCs
         if (PersonalityType != PersonalityType.MERCANTILE || ExchangeDeck == null || !ExchangeDeck.Any())

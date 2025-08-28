@@ -12,7 +12,7 @@ public static class ExchangeNarrative
     /// Generate the full narrative for an exchange including context and emotion
     /// </summary>
     public static ExchangeNarrativeText GenerateNarrative(
-        ExchangeCard exchange,
+        ConversationCard exchange,
         string npcName,
         string npcId,
         ExchangeMemory exchangeMemory,
@@ -29,8 +29,8 @@ public static class ExchangeNarrative
         // Create the exchange description with emotional weight
         narrative.ExchangeDescription = GenerateExchangeDescription(
             exchange,
-            exchangeMemory?.GetExchangeFlavor(npcId, exchange.TemplateType) ?? "for the first time",
-            exchangeMemory?.HasCrisisHistory(npcId, exchange.TemplateType) ?? false
+            exchangeMemory?.GetExchangeFlavor(npcId, exchange.Template.ToString()) ?? "for the first time",
+            exchangeMemory?.HasCrisisHistory(npcId, exchange.Template.ToString()) ?? false
         );
         
         // Add contextual flavor based on history
@@ -64,20 +64,23 @@ public static class ExchangeNarrative
     }
     
     private static string GenerateExchangeDescription(
-        ExchangeCard exchange, 
+        ConversationCard exchange, 
         string frequencyFlavor,
         bool hasCrisisHistory)
     {
-        var baseDescription = exchange.TemplateType switch
+        var templateString = exchange.Template.ToString().ToLower();
+        var npcPersonality = exchange.Context?.NPCPersonality ?? PersonalityType.STEADFAST;
+        
+        var baseDescription = templateString switch
         {
-            "food" => exchange.NPCPersonality switch
+            "food" => npcPersonality switch
             {
                 PersonalityType.DEVOTED => $"They offer to share their meal {frequencyFlavor}",
                 PersonalityType.MERCANTILE => $"They gesture to their provisions {frequencyFlavor}",
                 PersonalityType.STEADFAST => $"They pull out simple rations {frequencyFlavor}",
                 _ => $"They offer food {frequencyFlavor}"
             },
-            "healing" => exchange.NPCPersonality switch
+            "healing" => npcPersonality switch
             {
                 PersonalityType.DEVOTED => $"They prepare to offer healing prayers {frequencyFlavor}",
                 PersonalityType.MERCANTILE => $"They display their medical supplies {frequencyFlavor}",
@@ -85,7 +88,7 @@ public static class ExchangeNarrative
             },
             "work" => $"They mention work that needs doing {frequencyFlavor}",
             "information" => $"They lean in conspiratorially {frequencyFlavor}",
-            "lodging" => exchange.NPCPersonality switch
+            "lodging" => npcPersonality switch
             {
                 PersonalityType.STEADFAST => $"They gesture to the rooms upstairs {frequencyFlavor}",
                 _ => $"They offer you a place to rest {frequencyFlavor}"
@@ -104,7 +107,7 @@ public static class ExchangeNarrative
     }
     
     private static string GenerateContextualFlavor(
-        ExchangeCard exchange,
+        ConversationCard exchange,
         MemorableExchange significantMemory)
     {
         var contextLines = new List<string>();
@@ -116,14 +119,18 @@ public static class ExchangeNarrative
         }
         
         // Add personality-specific observations
-        switch (exchange.NPCPersonality)
+        var personality = exchange.Context?.NPCPersonality ?? PersonalityType.STEADFAST;
+        var reward = exchange.Context?.Reward ?? new List<ResourceExchange>();
+        var cost = exchange.Context?.Cost ?? new List<ResourceExchange>();
+        
+        switch (personality)
         {
             case PersonalityType.DEVOTED:
-                if (exchange.Reward.Exists(r => r.Type == ResourceType.Health))
+                if (reward.Exists(r => r.ResourceType == ResourceType.Health))
                     contextLines.Add("Their faith guides their healing touch.");
                 break;
             case PersonalityType.MERCANTILE:
-                if (exchange.Cost.Exists(c => c.Type == ResourceType.Coins))
+                if (cost.Exists(c => c.ResourceType == ResourceType.Coins))
                     contextLines.Add("Business is business, but there's warmth in the transaction.");
                 break;
             case PersonalityType.CUNNING:
@@ -141,7 +148,7 @@ public static class ExchangeNarrative
     }
     
     private static string GenerateClosing(
-        ExchangeCard exchange,
+        ConversationCard exchange,
         bool hasGenerosityPattern)
     {
         if (hasGenerosityPattern)
@@ -149,7 +156,7 @@ public static class ExchangeNarrative
             return "Your consistent generosity hasn't gone unnoticed.";
         }
 
-        if (exchange.Reward.Exists(r => r.Type == ResourceType.TrustToken))
+        if (exchange.Context?.Reward?.Exists(r => r.ResourceType == ResourceType.Favor) == true)
         {
             return "This exchange deepens the connection between you.";
         }

@@ -8,14 +8,17 @@ using System.Collections.Generic;
 public enum ObservationDecayState
 {
     Active,
-    Expired   // 6+ hours: Must discard, unplayable
+    Expired,   // 6+ hours: Must discard, unplayable
+    // Compatibility aliases
+    Fresh = Active,
+    Stale = Expired
 }
 
 /// <summary>
 /// Observation card that tracks when it was created and its decay state
 /// Observations naturally expire through three stages, modeling how information becomes outdated
 /// </summary>
-public class ObservationCard : ICard
+public class ObservationCard : ConversationCard
 {
     /// <summary>
     /// Unique identifier for this observation card
@@ -26,6 +29,11 @@ public class ObservationCard : ICard
     /// Card template type for frontend text generation
     /// </summary>
     public CardTemplateType Template { get; init; }
+    
+    /// <summary>
+    /// ConversationCard interface compatibility - same as Template
+    /// </summary>
+    public CardTemplateType TemplateType => Template;
     
     /// <summary>
     /// Context data for template rendering
@@ -91,6 +99,41 @@ public class ObservationCard : ICard
     /// Base comfort value when fresh
     /// </summary>
     public int BaseComfortValue { get; init; }
+    
+    /// <summary>
+    /// ConversationCard interface - stub cost value
+    /// </summary>
+    public int Cost => 0;
+    
+    /// <summary>
+    /// ConversationCard interface - stub reward value
+    /// </summary>
+    public int Reward => BaseComfort;
+    
+    /// <summary>
+    /// ConversationCard interface - calculated success rate
+    /// </summary>
+    public int BaseSuccessRate => CalculateSuccessChance();
+    
+    /// <summary>
+    /// ConversationCard interface - stub success terms for UI
+    /// </summary>
+    public List<string> SuccessTerms => new List<string> { "Shared observation" };
+    
+    /// <summary>
+    /// ConversationCard interface - stub failure terms for UI
+    /// </summary>
+    public List<string> FailureTerms => new List<string> { "Awkward silence" };
+    
+    /// <summary>
+    /// ConversationCard interface properties
+    /// </summary>
+    public bool IsExchange => false;
+    public bool IsObservation => true;
+    public bool IsGoalCard => false;
+    public bool IsStateCard => false;
+    public bool CanDeliverLetter => false;
+    public bool ManipulatesObligations => false;
     
     /// <summary>
     /// Whether this card is currently playable
@@ -163,19 +206,7 @@ public class ObservationCard : ICard
         };
     }
     
-    /// <summary>
-    /// Get effective weight considering state rules
-    /// </summary>
-    public int GetEffectiveWeight(EmotionalState state)
-    {
-        var rules = ConversationRules.States[state];
-        
-        // Check if observation cards are free in this state
-        if (rules.FreeWeightCardTypes != null && rules.FreeWeightCardTypes.Contains(typeof(ObservationCard)))
-            return 0;
-            
-        return Weight;
-    }
+    // GetEffectiveWeight is inherited from ConversationCard and uses Category-based logic
 
     /// <summary>
     /// Calculate success chance based on weight and tokens
@@ -259,4 +290,45 @@ public class ObservationCard : ICard
             DecayState = ObservationDecayState.Active // Always starts fresh
         };
     }
+    
+    /// <summary>
+    /// Static method for compatibility with old code
+    /// </summary>
+    public static ObservationCard FromConversationCard(ConversationCard card)
+    {
+        return new ObservationCard
+        {
+            Id = card.Id,
+            Template = card.Template,
+            Context = card.Context,
+            Type = card.Type,
+            Weight = card.Weight,
+            BaseComfort = card.BaseComfort,
+            DisplayName = card.DisplayName,
+            Description = card.Description,
+            CreatedAt = DateTime.Now,
+            SourceObservationId = card.Id,
+            BaseComfortValue = card.BaseComfort,
+            DecayState = ObservationDecayState.Active
+        };
+    }
+    
+    /// <summary>
+    /// Property for compatibility with old code  
+    /// </summary>
+    public ConversationCard ConversationCard => new ConversationCard
+    {
+        Id = Id,
+        Template = Template,
+        Context = Context,
+        Type = Type,
+        Persistence = Persistence,
+        Weight = Weight,
+        BaseComfort = BaseComfort,
+        Depth = Depth,
+        DisplayName = DisplayName,
+        Description = Description,
+        IsObservation = true,
+        ObservationSource = SourceObservationId
+    };
 }

@@ -63,14 +63,6 @@ public class Phase3_NPCDependents : IInitializationPhase
                     }
                     Console.WriteLine($"[Phase3] {npc.Name}: Conversation deck has {npc.ConversationDeck.Count} cards");
                 }
-                else
-                {
-                    // Fallback: Use NPCDeckFactory for legacy support
-                    var deckFactory = new NPCDeckFactory(null);
-                    npc.InitializeConversationDeck(deckFactory);
-                    Console.WriteLine($"[Phase3] {npc.Name}: Used legacy deck initialization");
-                }
-                
                 // DECK 2: GOAL DECK (2-8 cards)
                 // Load from NPCGoalDecks
                 if (gameWorld.NPCGoalDecks.TryGetValue(npc.ID.ToLower(), out var goalCards))
@@ -84,12 +76,6 @@ public class Phase3_NPCDependents : IInitializationPhase
                     }
                     Console.WriteLine($"[Phase3] {npc.Name}: Goal deck has {npc.GoalDeck.Count} cards (Letters: {npc.HasPromiseCards()})");
                 }
-                else
-                {
-                    // Fallback: Use legacy goal deck initialization
-                    InitializeGoalDeckForNPC(npc, context);
-                }
-                
                 // DECK 3: EXCHANGE DECK (5-10 cards, Mercantile only)
                 // Only for MERCANTILE personality
                 if (npc.PersonalityType == PersonalityType.MERCANTILE)

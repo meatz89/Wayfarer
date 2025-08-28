@@ -3,7 +3,7 @@ using System;
 /// <summary>
 /// Factory for creating goal cards that are shuffled into conversation decks.
 /// Goal cards define the purpose of a conversation and end it when played.
-/// All cards are loaded from GameWorld.CardTemplates
+/// All cards are loaded from GameWorld.AllCardDefinitions
 /// </summary>
 public static class GoalCardFactory
 {
@@ -30,26 +30,13 @@ public static class GoalCardFactory
         }
         
         // Look for a goal card matching the conversation type
-        foreach (var kvp in _gameWorld.CardTemplates)
+        foreach (var kvp in _gameWorld.AllCardDefinitions)
         {
-            var dto = kvp.Value;
-            if (dto.IsGoalCard == true && 
-                dto.GoalCardType == conversationType?.ToString() &&
-                (string.IsNullOrEmpty(dto.ForNPC) || dto.ForNPC == npcId))
+            var card = kvp.Value;
+            if (card.IsGoalCard == true && 
+                card.GoalCardType == conversationType)
             {
-                return ConvertDTOToCard(dto, npcId, npcName);
-            }
-        }
-        
-        // Fallback to generic goal card if no specific one found
-        foreach (var kvp in _gameWorld.CardTemplates)
-        {
-            var dto = kvp.Value;
-            if (dto.IsGoalCard == true && 
-                dto.GoalCardType == conversationType?.ToString() &&
-                string.IsNullOrEmpty(dto.ForNPC))
-            {
-                return ConvertDTOToCard(dto, npcId, npcName);
+                return CreateGoalCardInstance(card, npcId, npcName);
             }
         }
         
@@ -57,47 +44,30 @@ public static class GoalCardFactory
         return null;
     }
     
-    private static ConversationCard ConvertDTOToCard(ConversationCardDTO dto, string npcId, string npcName)
+    private static ConversationCard CreateGoalCardInstance(ConversationCard templateCard, string npcId, string npcName)
     {
-        // Parse template
-        CardTemplateType template = CardTemplateType.SimpleGreeting;
-        if (!string.IsNullOrEmpty(dto.Template))
-        {
-            Enum.TryParse<CardTemplateType>(dto.Template, true, out template);
-        }
-
-        // Parse goal type
-        ConversationType? goalType = null;
-        if (!string.IsNullOrEmpty(dto.GoalCardType))
-        {
-            if (Enum.TryParse<ConversationType>(dto.GoalCardType, true, out var parsed))
-            {
-                goalType = parsed;
-            }
-        }
-
-        // Create card with all init-only properties set at once
+        // Create a new instance based on the template card but with updated context
         return new ConversationCard
         {
-            Id = dto.Id,
-            Template = template,
+            Id = $"{templateCard.Id}_{npcId}_{Guid.NewGuid().ToString()[..8]}", // Unique ID for this instance
+            Template = templateCard.Template,
             Context = new CardContext
             {
                 Personality = PersonalityType.STEADFAST, // Default for goal cards
                 EmotionalState = EmotionalState.NEUTRAL,
-                NPCName = npcName,
-                GeneratesLetterOnSuccess = dto.GeneratesLetterOnSuccess ?? false
+                NPCName = npcName
             },
-            Type = Enum.Parse<CardType>(dto.Type, true),
-            Persistence = Enum.Parse<PersistenceType>(dto.Persistence, true),
-            Weight = dto.Weight,
-            BaseComfort = dto.BaseComfort,
-            Depth = dto.Depth ?? 0,
+            Type = templateCard.Type,
+            Category = templateCard.Category,
+            Persistence = templateCard.Persistence,
+            Weight = templateCard.Weight,
+            BaseComfort = templateCard.BaseComfort,
+            Depth = templateCard.Depth,
             IsGoalCard = true,
-            GoalCardType = goalType,
-            DisplayName = dto.DisplayName,
-            Description = dto.Description,
-            SuccessRate = dto.SuccessRate ?? 0
+            GoalCardType = templateCard.GoalCardType,
+            DisplayName = templateCard.DisplayName,
+            Description = templateCard.Description,
+            SuccessRate = templateCard.SuccessRate
         };
     }
 }

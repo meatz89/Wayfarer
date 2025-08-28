@@ -56,11 +56,6 @@ public class CardContext
     public PersonalityType NPCPersonality { get; init; }
     
     /// <summary>
-    /// Exchange card data for exchange cards
-    /// </summary>
-    public ExchangeCard ExchangeData { get; init; }
-    
-    /// <summary>
     /// Observation ID if observation card
     /// </summary>
     public string ObservationId { get; init; }
@@ -164,4 +159,14 @@ public class CardContext
     /// Observation spot for observation cards
     /// </summary>
     public string ObservationSpot { get; init; }
+    
+    /// <summary>
+    /// Resource costs for exchange cards
+    /// </summary>
+    public List<ResourceExchange> Cost { get; init; } = new();
+    
+    /// <summary>
+    /// Resource rewards for exchange cards
+    /// </summary>
+    public List<ResourceExchange> Reward { get; init; } = new();
 }

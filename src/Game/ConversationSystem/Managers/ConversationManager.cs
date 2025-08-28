@@ -566,7 +566,7 @@ public class ConversationManager
     /// <summary>
     /// Execute an exchange card's resource trade
     /// </summary>
-    private async Task<bool> ExecuteExchangeAsync(ExchangeCard exchange)
+    private async Task<bool> ExecuteExchangeAsync(ConversationCard exchange)
     {
         Console.WriteLine($"[EXCHANGE DEBUG] ExecuteExchangeAsync called with exchange: {exchange?.Id ?? "NULL"}");
         
@@ -679,7 +679,7 @@ public class ConversationManager
         }
         
         // Generate narrative message
-        var exchangeName = exchange.TemplateType switch
+        var exchangeName = exchange.Template switch
         {
             "food" => "bought travel provisions",
             "healing" => "purchased medicine",

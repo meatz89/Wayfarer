@@ -336,13 +336,13 @@
         // Get conversation cards
         if (CurrentNPC.ConversationDeck != null)
         {
-            ConversationCards = CurrentNPC.ConversationDeck.GetAllCards();
+            ConversationCards = CurrentNPC.ConversationDeck.GetAllCards().Cast<ConversationCard>().ToList();
         }
         
         // Get Crisis letters
         if (CurrentNPC.CrisisDeck != null)
         {
-            CrisisCards = CurrentNPC.CrisisDeck.GetAllCards();
+            CrisisCards = CurrentNPC.CrisisDeck.GetAllCards().Cast<ConversationCard>().ToList();
         }
     }
     

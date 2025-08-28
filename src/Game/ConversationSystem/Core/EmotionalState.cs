@@ -72,14 +72,14 @@ public class StateRuleset
     public Dictionary<int, int> SetBonuses { get; init; } = new();
 
     /// <summary>
-    /// Card types that cost 0 weight in this state
+    /// Card categories that cost 0 weight in this state
     /// </summary>
-    public List<Type> FreeWeightCardTypes { get; init; } = new();
+    public List<CardCategory> FreeWeightCardCategories { get; init; } = new();
 
     /// <summary>
-    /// Card types allowed to be played in this state (null = all allowed)
+    /// Card categories allowed to be played in this state (null = all allowed)
     /// </summary>
-    public List<Type> AllowedCardTypes { get; init; }
+    public List<CardCategory> AllowedCardCategories { get; init; }
 
     /// <summary>
     /// Whether listening ends the conversation (HOSTILE breakdown)
@@ -178,7 +178,7 @@ public static class ConversationRules
             ListenTransition = EmotionalState.HOSTILE,  // Transitions to HOSTILE
             InjectsCrisis = true,  // INJECT 1 Crisis letter
             CrisisCardsInjected = 1,
-            FreeWeightCardTypes = new() { typeof(BurdenCard) },  // Crisis letters cost 0 weight
+            FreeWeightCardCategories = new() { CardCategory.Burden },  // Crisis letters cost 0 weight
             ChecksGoalDeck = true  // Check for urgent letters in desperate state
         },
 
@@ -190,8 +190,8 @@ public static class ConversationRules
             ListenTransition = EmotionalState.HOSTILE,  // Stays HOSTILE
             InjectsCrisis = true,  // INJECT 2 Crisis letters
             CrisisCardsInjected = 2,
-            FreeWeightCardTypes = new() { typeof(BurdenCard) },
-            AllowedCardTypes = new() { typeof(BurdenCard) },  // ONLY Crisis letters allowed
+            FreeWeightCardCategories = new() { CardCategory.Burden },
+            AllowedCardCategories = new() { CardCategory.Burden },  // ONLY Crisis letters allowed
             ListenEndsConversation = true,  // END conversation after listen
             ChecksGoalDeck = false
         }

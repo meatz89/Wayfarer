@@ -17,7 +17,7 @@ public class ExchangeContext
     /// <summary>
     /// Determine if an exchange should be available based on relationship context
     /// </summary>
-    public bool ShouldOfferExchange(string npcId, ExchangeCard exchange)
+    public bool ShouldOfferExchange(string npcId, ConversationCard exchange)
     {
         return true;
     }
@@ -25,45 +25,60 @@ public class ExchangeContext
     /// <summary>
     /// Get modified exchange based on relationship (returns new card with adjusted values)
     /// </summary>
-    public ExchangeCard GetModifiedExchange(string npcId, ExchangeCard originalExchange)
+    public ConversationCard GetModifiedExchange(string npcId, ConversationCard originalExchange)
     {
         var modifiedCosts = new List<ResourceExchange>();
         
-        foreach (var cost in originalExchange.Cost)
+        foreach (var cost in originalExchange.Context?.Cost ?? new List<ResourceExchange>())
         {
             var newAmount = cost.Amount;
             
             modifiedCosts.Add(new ResourceExchange
             {
-                Type = cost.Type,
+                ResourceType = cost.ResourceType,
                 Amount = newAmount,
                 IsAbsolute = cost.IsAbsolute
             });
         }
         
         // Return new exchange card with modified costs
-        return new ExchangeCard
+        return new ConversationCard
         {
             Id = originalExchange.Id,
-            TemplateType = originalExchange.TemplateType,
-            NPCPersonality = originalExchange.NPCPersonality,
-            Cost = modifiedCosts,
-            Reward = originalExchange.Reward,
+            Template = originalExchange.Template,
+            Context = new CardContext
+            {
+                Personality = originalExchange.Context?.Personality ?? PersonalityType.STEADFAST,
+                EmotionalState = originalExchange.Context?.EmotionalState ?? EmotionalState.NEUTRAL,
+                NPCName = originalExchange.Context?.NPCName,
+                Cost = modifiedCosts,
+                Reward = originalExchange.Context?.Reward ?? new List<ResourceExchange>(),
+                // Copy other context properties
+                ExchangeName = originalExchange.Context?.ExchangeName,
+                ExchangeCost = originalExchange.Context?.ExchangeCost,
+                ExchangeReward = originalExchange.Context?.ExchangeReward
+            },
+            Type = originalExchange.Type,
+            Category = originalExchange.Category,
+            Persistence = originalExchange.Persistence,
+            Weight = originalExchange.Weight,
+            BaseComfort = originalExchange.BaseComfort,
+            IsExchange = true
         };
     }
     
     /// <summary>
     /// Get the emotional weight of an exchange
     /// </summary>
-    public int GetEmotionalWeight(string npcId, ExchangeCard exchange)
+    public int GetEmotionalWeight(string npcId, ConversationCard exchange)
     {
         var weight = 0;
         
-        // Reconciliation exchanges are emotionally heavy
-        if (exchange.TemplateType == "reconciliation")
+        // Reconciliation exchanges are emotionally heavy  
+        if (exchange.Template.ToString().ToLower() == "reconciliation")
             weight += 3;
             
-        if (_exchangeMemory.HasCrisisHistory(npcId, exchange.TemplateType))
+        if (_exchangeMemory.HasCrisisHistory(npcId, exchange.Template.ToString()))
             weight += 2;
             
         return weight;
@@ -74,18 +89,18 @@ public class ExchangeContext
     /// </summary>
     public void ProcessExchangeAftermath(
         string npcId, 
-        ExchangeCard exchange,
+        ConversationCard exchange,
         bool wasGenerous,
         EmotionalState npcState)
     {
         // Record the exchange in memory
-        _exchangeMemory.RecordExchange(npcId, exchange.TemplateType, npcState, wasGenerous);
+        _exchangeMemory.RecordExchange(npcId, exchange.Template.ToString(), npcState, wasGenerous);
     }
     
     /// <summary>
     /// Check if this exchange has special meaning
     /// </summary>
-    public string GetSpecialMeaning(string npcId, ExchangeCard exchange)
+    public string GetSpecialMeaning(string npcId, ConversationCard exchange)
     {
         // Generous exchange during crisis
         if (_exchangeMemory.GetMostSignificantExchange(npcId)?.EmotionalContext == EmotionalState.DESPERATE)
