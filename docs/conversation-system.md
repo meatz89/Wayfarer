@@ -84,9 +84,8 @@ Each NPC has THREE decks:
 
 2. Goal Deck (Variable, 2-8 cards)
 **Can Contain**:
-- Letter goals (Trust/Commerce/Status/Shadow)
-- Promise goals (Meeting)
-- Resolution goal (Remove Burdens)
+- Promise cards (Trust Letter/Commerce Letter/Status Letter/Shadow Letter, Meeting)
+- Resolution cards (Remove Burdens)
 
 **Draw Rules**: NEVER drawn directly. ONE goal selected based on conversation type and shuffled into conversation deck copy.
 
