@@ -188,7 +188,6 @@ Six daily periods, each 4 hours:
 
 **Acquisition Mechanics**:
 - **Location Observation**: 1 attention at specific spots/times
-- **Knowledge Cards**: Create observations during conversations
 
 **Properties**:
 - Weight 1 (always playable)
@@ -210,7 +209,6 @@ Six daily periods, each 4 hours:
 **Acquisition**:
 - Letter cards (requires 5+ tokens typically)
 - Exchange cards (15-20 coins)
-- Knowledge cards creating opportunities
 
 **Strategic Role**: Gate exploration and enable efficient routing. Compete for limited satchel space.
 
