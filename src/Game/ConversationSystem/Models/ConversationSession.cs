@@ -1104,8 +1104,13 @@ public class ConversationSession
     private DeliveryObligation CreateLetterObligationFromGoal(ConversationCard goalCard, bool success)
     {
         // Terms based on success/failure of goal negotiation
-        var deadlineHours = success ? 24 : 12;  // Better deadline on success
+        // CRITICAL: Failed negotiations force position 1 (POC Package 4)
+        var deadlineHours = success ? 24 : 6;  // Much worse deadline on failure
         var payment = success ? 15 : 5;  // Better payment on success
+        
+        // Check for Elena scenario - she's in trouble if negotiation failed
+        bool isElenaScenario = NPC.Name == "Elena" || NPC.ID == "elena";
+        bool isCrisisIfFailed = isElenaScenario && !success;
         
         return new DeliveryObligation
         {
@@ -1117,15 +1122,20 @@ public class ConversationSession
             DeadlineInMinutes = deadlineHours * 60,
             Payment = payment,
             TokenType = ConnectionType.Trust,  // Letter goals build trust
-            Stakes = StakeType.REPUTATION,
-            EmotionalWeight = success ? EmotionalWeight.MEDIUM : EmotionalWeight.HIGH,
+            Stakes = success ? StakeType.REPUTATION : StakeType.SAFETY,  // Failed = higher stakes
+            EmotionalWeight = success ? EmotionalWeight.MEDIUM : EmotionalWeight.CRITICAL,
             Description = $"Letter delivery from {NPC.Name}",
-            Message = "Deliver this important letter",
-            QueuePosition = success ? 3 : 5,  // Better position on success
-            FinalQueuePosition = success ? 3 : 5,
-            PositioningReason = LetterPositioningReason.Neutral,
+            Message = success ? "Deliver this important letter" : "URGENT: This letter MUST be delivered immediately!",
+            
+            // Queue position is handled by automatic displacement for failures
+            QueuePosition = success ? 3 : 1,  // Failed forces position 1
+            FinalQueuePosition = success ? 3 : 1,
+            PositioningReason = success ? LetterPositioningReason.Neutral : LetterPositioningReason.PoorStanding,
+            
+            // Mark for automatic displacement processing
             IsGenerated = true,
-            GenerationReason = $"Goal card negotiation: {(success ? "success" : "failure")}"
+            GenerationReason = $"Goal card negotiation: {(success ? "success" : "failure")}",
+            IsCrisisLetter = isCrisisIfFailed  // Elena's failed letter is a crisis
         };
     }
     

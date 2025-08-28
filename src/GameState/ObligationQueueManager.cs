@@ -195,10 +195,27 @@ public class ObligationQueueManager
         // Apply deadline bonuses from obligations
         ApplyDeadlineBonuses(obligation);
 
-        // Patron letters use extreme leverage through debt, not special handling
-        // Their massive debt (e.g., -20 tokens) naturally pushes them to top positions
+        // Check for automatic displacement scenarios (POC Package 4)
+        bool shouldForcePosition = CheckForAutomaticDisplacement(obligation);
+        
+        if (shouldForcePosition)
+        {
+            // Determine forced position and reason
+            int forcedPosition = DetermineForcedPosition(obligation);
+            string displacementReason = GetDisplacementReason(obligation);
+            
+            // Use automatic displacement system
+            bool success = AutomaticDisplacement(obligation, forcedPosition, displacementReason);
+            
+            if (success)
+            {
+                // Add to satchel
+                AddPhysicalLetter(obligation);
+                return forcedPosition;
+            }
+        }
 
-        // Calculate leverage position
+        // Normal leverage-based positioning
         int targetPosition = CalculateLeveragePosition(obligation);
 
         // Add to queue
@@ -207,21 +224,102 @@ public class ObligationQueueManager
         // Also add to satchel (physical inventory) - regular letters take physical space
         if (queuePosition > 0)
         {
-            // Create physical Letter object from DeliveryObligation
-            Letter physicalLetter = new Letter
-            {
-                Id = obligation.Id,
-                SenderName = obligation.SenderName,
-                RecipientName = obligation.RecipientName,
-                Size = 1, // Standard letter size
-                PhysicalProperties = LetterPhysicalProperties.None,
-                SpecialType = LetterSpecialType.None // Physical letters default to regular type
-            };
-            
-            _gameWorld.GetPlayer().CarriedLetters.Add(physicalLetter);
+            AddPhysicalLetter(obligation);
         }
 
         return queuePosition;
+    }
+    
+    /// <summary>
+    /// Check if this obligation should force automatic displacement
+    /// </summary>
+    private bool CheckForAutomaticDisplacement(DeliveryObligation obligation)
+    {
+        // Failed letter negotiations force position 1
+        if (obligation.GenerationReason != null && 
+            obligation.GenerationReason.Contains("failure", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        
+        // Crisis letters force position 1
+        if (obligation.IsCrisisLetter)
+        {
+            return true;
+        }
+        
+        // Lord Blackwood (proud NPC) attempts position 1
+        if (obligation.SenderName == "Lord Blackwood" || 
+            obligation.RecipientName == "Lord Blackwood")
+        {
+            return true;
+        }
+        
+        // Check if obligation is marked as desperate
+        // (This would be set during conversation based on NPC's emotional state)
+        if (obligation.EmotionalWeight == EmotionalWeight.CRITICAL)
+        {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /// <summary>
+    /// Determine the forced position for automatic displacement
+    /// </summary>
+    private int DetermineForcedPosition(DeliveryObligation obligation)
+    {
+        // Most forced scenarios go to position 1
+        // Could be extended to support other positions
+        return 1;
+    }
+    
+    /// <summary>
+    /// Get the reason for automatic displacement
+    /// </summary>
+    private string GetDisplacementReason(DeliveryObligation obligation)
+    {
+        if (obligation.GenerationReason != null && 
+            obligation.GenerationReason.Contains("failure", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Failed negotiation - NPC's terms are non-negotiable!";
+        }
+        
+        if (obligation.IsCrisisLetter)
+        {
+            return "CRISIS: This letter cannot wait!";
+        }
+        
+        if (obligation.SenderName == "Lord Blackwood")
+        {
+            return "Lord Blackwood's pride demands immediate attention!";
+        }
+        
+        if (obligation.EmotionalWeight == EmotionalWeight.CRITICAL)
+        {
+            return $"{obligation.SenderName} is DESPERATE - their letter takes priority!";
+        }
+        
+        return "Urgent circumstances demand immediate delivery!";
+    }
+    
+    /// <summary>
+    /// Add physical letter to satchel
+    /// </summary>
+    private void AddPhysicalLetter(DeliveryObligation obligation)
+    {
+        Letter physicalLetter = new Letter
+        {
+            Id = obligation.Id,
+            SenderName = obligation.SenderName,
+            RecipientName = obligation.RecipientName,
+            Size = 1, // Standard letter size
+            PhysicalProperties = LetterPhysicalProperties.None,
+            SpecialType = LetterSpecialType.None // Physical letters default to regular type
+        };
+        
+        _gameWorld.GetPlayer().CarriedLetters.Add(physicalLetter);
     }
 
     // Apply deadline bonuses from active obligations
@@ -2469,6 +2567,279 @@ public class ObligationQueueManager
         return preview;
     }
 
+    #endregion
+
+    #region Automatic Queue Displacement System (POC Package 4)
+    
+    /// <summary>
+    /// Automatically displace obligations when a new obligation forces position 1
+    /// Used for failed letter negotiations, crisis letters, and proud NPCs
+    /// </summary>
+    public bool AutomaticDisplacement(DeliveryObligation newObligation, int forcedPosition, string displacementReason)
+    {
+        if (newObligation == null || forcedPosition < 1 || forcedPosition > _config.LetterQueue.MaxQueueSize)
+        {
+            _messageSystem.AddSystemMessage(
+                $"❌ Invalid displacement request for position {forcedPosition}",
+                SystemMessageTypes.Danger
+            );
+            return false;
+        }
+
+        var queue = GetPlayerQueue();
+        
+        // Announce the forced displacement
+        _messageSystem.AddSystemMessage(
+            $"⚡ {newObligation.SenderName}'s letter FORCES position {forcedPosition}!",
+            SystemMessageTypes.Danger
+        );
+        _messageSystem.AddSystemMessage(
+            $"  • {displacementReason}",
+            SystemMessageTypes.Warning
+        );
+
+        // Check if the forced position is already occupied
+        if (queue[forcedPosition - 1] != null)
+        {
+            // Calculate and execute displacement cascade
+            var displacedObligations = CalculateDisplacementCascade(queue, forcedPosition);
+            
+            if (displacedObligations.Count > 0)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"📦 QUEUE CASCADE: {displacedObligations.Count} obligations displaced!",
+                    SystemMessageTypes.Warning
+                );
+                
+                // Burn tokens with each displaced NPC
+                foreach (var displaced in displacedObligations)
+                {
+                    BurnDisplacementTokens(displaced.Obligation, displaced.DisplacementAmount);
+                }
+                
+                // Execute the cascade
+                ExecuteDisplacementCascade(queue, forcedPosition, displacedObligations);
+            }
+        }
+        
+        // Place the new obligation at the forced position
+        queue[forcedPosition - 1] = newObligation;
+        newObligation.QueuePosition = forcedPosition;
+        
+        // Set positioning metadata for UI display
+        newObligation.PositioningReason = DeterminePositioningReasonForForced(newObligation, displacementReason);
+        newObligation.FinalQueuePosition = forcedPosition;
+        
+        _messageSystem.AddSystemMessage(
+            $"✅ {newObligation.SenderName}'s letter locked into position {forcedPosition}",
+            SystemMessageTypes.Success
+        );
+        
+        return true;
+    }
+    
+    /// <summary>
+    /// Calculate which obligations will be displaced and by how much
+    /// </summary>
+    private List<DisplacedObligation> CalculateDisplacementCascade(DeliveryObligation[] queue, int forcedPosition)
+    {
+        var displaced = new List<DisplacedObligation>();
+        
+        // Starting from the forced position, cascade everything down
+        for (int i = forcedPosition - 1; i < queue.Length - 1; i++)
+        {
+            if (queue[i] != null)
+            {
+                // This obligation will be pushed down by 1 position
+                displaced.Add(new DisplacedObligation
+                {
+                    Obligation = queue[i],
+                    OriginalPosition = i + 1,
+                    NewPosition = i + 2,
+                    DisplacementAmount = 1  // Each gets pushed down by 1 in a cascade
+                });
+            }
+        }
+        
+        // Check if any obligation falls off the end
+        if (queue[queue.Length - 1] != null)
+        {
+            displaced.Add(new DisplacedObligation
+            {
+                Obligation = queue[queue.Length - 1],
+                OriginalPosition = queue.Length,
+                NewPosition = -1,  // Falls off the queue
+                DisplacementAmount = 1
+            });
+        }
+        
+        return displaced;
+    }
+    
+    /// <summary>
+    /// Burn tokens with an NPC when their obligation is displaced
+    /// </summary>
+    private void BurnDisplacementTokens(DeliveryObligation displacedObligation, int positionsDisplaced)
+    {
+        var npcId = GetNPCIdByName(displacedObligation.SenderName);
+        if (string.IsNullOrEmpty(npcId)) return;
+        
+        // Calculate token cost based on displacement distance
+        int tokenCost = Math.Min(3, positionsDisplaced);  // Cap at 3 tokens max
+        
+        // Try to burn tokens with this NPC
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        var availableTokens = tokens.GetValueOrDefault(displacedObligation.TokenType, 0);
+        
+        if (availableTokens >= tokenCost)
+        {
+            // Burn the tokens
+            _connectionTokenManager.RemoveTokensFromNPC(displacedObligation.TokenType, tokenCost, npcId);
+            
+            _messageSystem.AddSystemMessage(
+                $"💔 Burned {tokenCost} {displacedObligation.TokenType} token(s) with {displacedObligation.SenderName}",
+                SystemMessageTypes.Danger
+            );
+            
+            // Add burden cards to the NPC's deck for each burned token
+            for (int i = 0; i < tokenCost; i++)
+            {
+                AddBurdenCardToNPC(npcId, displacedObligation.TokenType);
+            }
+        }
+        else if (availableTokens > 0)
+        {
+            // Burn what we can
+            _connectionTokenManager.RemoveTokensFromNPC(displacedObligation.TokenType, availableTokens, npcId);
+            
+            _messageSystem.AddSystemMessage(
+                $"💔 Burned {availableTokens} {displacedObligation.TokenType} token(s) with {displacedObligation.SenderName} (all they had)",
+                SystemMessageTypes.Danger
+            );
+            
+            // Add burden cards
+            for (int i = 0; i < availableTokens; i++)
+            {
+                AddBurdenCardToNPC(npcId, displacedObligation.TokenType);
+            }
+        }
+        else
+        {
+            // No tokens to burn - relationship already terrible
+            _messageSystem.AddSystemMessage(
+                $"⚠️ No tokens left to burn with {displacedObligation.SenderName} - relationship already ruined",
+                SystemMessageTypes.Warning
+            );
+        }
+    }
+    
+    /// <summary>
+    /// Add burden cards to an NPC's conversation deck when tokens are burned
+    /// </summary>
+    private void AddBurdenCardToNPC(string npcId, ConnectionType tokenType)
+    {
+        var npc = _npcRepository.GetById(npcId);
+        if (npc == null) return;
+        
+        // This would normally add burden cards to the NPC's deck
+        // For POC, we just track the narrative
+        _messageSystem.AddSystemMessage(
+            $"  • {npc.Name} gains a burden card (relationship damage)",
+            SystemMessageTypes.Info
+        );
+    }
+    
+    /// <summary>
+    /// Execute the displacement cascade, moving obligations down
+    /// </summary>
+    private void ExecuteDisplacementCascade(DeliveryObligation[] queue, int forcedPosition, List<DisplacedObligation> displacements)
+    {
+        // First, clear the forced position and everything after it
+        var tempQueue = new DeliveryObligation[queue.Length];
+        
+        // Copy obligations before the forced position
+        for (int i = 0; i < forcedPosition - 1; i++)
+        {
+            tempQueue[i] = queue[i];
+        }
+        
+        // Leave the forced position empty (will be filled by new obligation)
+        tempQueue[forcedPosition - 1] = null;
+        
+        // Place displaced obligations in their new positions
+        foreach (var displaced in displacements)
+        {
+            if (displaced.NewPosition > 0 && displaced.NewPosition <= queue.Length)
+            {
+                tempQueue[displaced.NewPosition - 1] = displaced.Obligation;
+                displaced.Obligation.QueuePosition = displaced.NewPosition;
+                
+                _messageSystem.AddSystemMessage(
+                    $"  • {displaced.Obligation.SenderName}'s letter displaced: position {displaced.OriginalPosition} → {displaced.NewPosition}",
+                    SystemMessageTypes.Info
+                );
+            }
+            else if (displaced.NewPosition == -1)
+            {
+                // This obligation fell off the queue
+                _messageSystem.AddSystemMessage(
+                    $"💥 {displaced.Obligation.SenderName}'s letter FORCED OUT of queue!",
+                    SystemMessageTypes.Danger
+                );
+                
+                // Apply severe relationship penalty for being forced out
+                var senderId = GetNPCIdByName(displaced.Obligation.SenderName);
+                _connectionTokenManager.RemoveTokensFromNPC(displaced.Obligation.TokenType, 3, senderId);
+                
+                _messageSystem.AddSystemMessage(
+                    $"  • Lost 3 additional {displaced.Obligation.TokenType} tokens for forcing their letter out completely",
+                    SystemMessageTypes.Danger
+                );
+            }
+        }
+        
+        // Copy the rearranged queue back
+        for (int i = 0; i < queue.Length; i++)
+        {
+            queue[i] = tempQueue[i];
+        }
+    }
+    
+    /// <summary>
+    /// Determine the positioning reason for forced displacement
+    /// </summary>
+    private LetterPositioningReason DeterminePositioningReasonForForced(DeliveryObligation obligation, string displacementReason)
+    {
+        if (displacementReason.Contains("failed", StringComparison.OrdinalIgnoreCase))
+        {
+            return LetterPositioningReason.PoorStanding;
+        }
+        else if (displacementReason.Contains("crisis", StringComparison.OrdinalIgnoreCase))
+        {
+            return LetterPositioningReason.Obligation;
+        }
+        else if (displacementReason.Contains("proud", StringComparison.OrdinalIgnoreCase) || 
+                 displacementReason.Contains("Lord Blackwood", StringComparison.OrdinalIgnoreCase))
+        {
+            return LetterPositioningReason.CommerceDebt;  // Using this to indicate power/status
+        }
+        else
+        {
+            return LetterPositioningReason.Neutral;
+        }
+    }
+    
+    /// <summary>
+    /// Helper class for tracking displaced obligations
+    /// </summary>
+    private class DisplacedObligation
+    {
+        public DeliveryObligation Obligation { get; set; }
+        public int OriginalPosition { get; set; }
+        public int NewPosition { get; set; }
+        public int DisplacementAmount { get; set; }
+    }
+    
     #endregion
 
 }
