@@ -51,7 +51,7 @@ public static class GoalCardFactory
         return new ConversationCard
         {
             Id = $"goal_letter_{npcId}",
-            Template = CardTemplateType.Negotiate,
+            Template = CardTemplateType.NegotiateTerms,
             Context = new CardContext
             {
                 NPCName = npcName,
@@ -79,7 +79,7 @@ public static class GoalCardFactory
         return new ConversationCard
         {
             Id = $"goal_promise_{npcId}",
-            Template = CardTemplateType.Promise,
+            Template = CardTemplateType.MakePromise,
             Context = new CardContext
             {
                 NPCName = npcName,
@@ -107,7 +107,7 @@ public static class GoalCardFactory
         return new ConversationCard
         {
             Id = $"goal_resolution_{npcId}",
-            Template = CardTemplateType.Resolve,
+            Template = CardTemplateType.CalmTheSituation,
             Context = new CardContext
             {
                 NPCName = npcName,
@@ -135,7 +135,7 @@ public static class GoalCardFactory
         return new ConversationCard
         {
             Id = $"goal_commerce_{npcId}",
-            Template = CardTemplateType.Negotiate,
+            Template = CardTemplateType.NegotiateTerms,
             Context = new CardContext
             {
                 NPCName = npcName,
@@ -163,7 +163,7 @@ public static class GoalCardFactory
         return new ConversationCard
         {
             Id = $"goal_crisis_{npcId}",
-            Template = CardTemplateType.Crisis,
+            Template = CardTemplateType.UrgentPlea,
             Context = new CardContext
             {
                 NPCName = npcName,

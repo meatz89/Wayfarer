@@ -152,9 +152,28 @@ public class ConversationSession
         // CRITICAL: Comfort always starts at 5 for new conversations
         var startingComfort = 5;
         
+        // Create and shuffle goal card into deck based on conversation type
+        var goalCard = GoalCardFactory.CreateGoalCard(conversationType, npc.ID, npc.Name);
+        if (goalCard != null)
+        {
+            npc.ConversationDeck.ShuffleInGoalCard(goalCard);
+            Console.WriteLine($"[StartConversation] Shuffled {goalCard.GoalCardType} goal card into deck");
+        }
+        
         // Draw initial hand (3 cards at comfort 5)
         var handCards = new List<ConversationCard>();
-        handCards.AddRange(npc.ConversationDeck.Draw(3, startingComfort));
+        var drawnCards = npc.ConversationDeck.Draw(3, startingComfort);
+        handCards.AddRange(drawnCards);
+        
+        // Check if we drew the goal card in initial hand
+        bool goalCardDrawn = false;
+        int? goalUrgencyCounter = null;
+        if (drawnCards.Any(c => c.IsGoalCard))
+        {
+            goalCardDrawn = true;
+            goalUrgencyCounter = 3;  // 3 turns to play it
+            Console.WriteLine($"[StartConversation] Goal card drawn in initial hand! Must play within 3 turns.");
+        }
         
         // Add observation cards if any
         if (observationCards != null && observationCards.Any())
@@ -201,7 +220,12 @@ public class ConversationSession
             TurnNumber = 0,
             LetterGenerated = false,
             ObservationCards = observationCards ?? new List<ConversationCard>(),
-            Momentum = 0  // Always starts at 0
+            Momentum = 0,  // Always starts at 0
+            GoalCard = goalCard,
+            GoalCardDrawn = goalCardDrawn,
+            GoalUrgencyCounter = goalUrgencyCounter,
+            GoalCardPlayed = false,
+            TokenManager = tokenManager
         };
         
         Console.WriteLine($"[StartConversation] Created session with comfort: {session.CurrentComfort} (expected: {startingComfort})");
@@ -406,10 +430,24 @@ public class ConversationSession
     {
         TurnNumber++;
         CurrentPatience--;
+        
+        // Check urgency rule - if goal card was drawn and counter hits 0, conversation fails
+        if (GoalCardDrawn && GoalUrgencyCounter.HasValue)
+        {
+            GoalUrgencyCounter--;
+            if (GoalUrgencyCounter <= 0)
+            {
+                Console.WriteLine($"[ExecuteListen] Goal card urgency expired! Conversation fails.");
+                // Force conversation to end with failure
+                CurrentPatience = 0;
+                return;
+            }
+        }
 
-        // Remove all opportunity cards EXCEPT observation cards
+        // Remove all opportunity cards EXCEPT observation cards and goal cards
         // Observation cards are Opportunity type but DON'T vanish on Listen - they decay over time instead
-        HandCards.RemoveAll(c => c.Persistence == PersistenceType.Opportunity && !c.IsObservation);
+        // Goal cards NEVER vanish once drawn (they must be played within 3 turns)
+        HandCards.RemoveAll(c => c.Persistence == PersistenceType.Opportunity && !c.IsObservation && !c.IsGoalCard);
 
         // Get state rules
         var rules = ConversationRules.States[CurrentState];
@@ -418,6 +456,18 @@ public class ConversationSession
         Console.WriteLine($"[ExecuteListen] Drawing cards for state {CurrentState} (count: {rules.CardsOnListen}, comfort: {CurrentComfort}, momentum: {Momentum})");
         var newCards = DrawCardsForState(CurrentState, rules.CardsOnListen, CurrentComfort);
         Console.WriteLine($"[ExecuteListen] Drew {newCards.Count} filtered cards for {CurrentState} state");
+        
+        // Check if we drew the goal card and start urgency countdown
+        foreach (var card in newCards)
+        {
+            if (card.IsGoalCard && !GoalCardDrawn)
+            {
+                GoalCardDrawn = true;
+                GoalUrgencyCounter = 3; // 3 turns to play it
+                Console.WriteLine($"[ExecuteListen] Drew goal card! Must play within 3 turns.");
+            }
+        }
+        
         HandCards.AddRange(newCards);
         
         // Check for momentum degradation at -3
@@ -552,6 +602,25 @@ public class ConversationSession
     {
         TurnNumber++;
         CurrentPatience--;
+        
+        // Check urgency rule when speaking (decrement counter if goal not played)
+        bool playingGoalCard = selectedCards.Any(c => c.IsGoalCard);
+        
+        if (!playingGoalCard && GoalCardDrawn && GoalUrgencyCounter.HasValue)
+        {
+            GoalUrgencyCounter--;
+            if (GoalUrgencyCounter <= 0)
+            {
+                Console.WriteLine($"[ExecuteSpeak] Goal card urgency expired! Conversation fails.");
+                // Force conversation to end with failure
+                CurrentPatience = 0;
+                return new CardPlayResult
+                {
+                    TotalComfort = 0,
+                    Results = new List<SingleCardResult>()  // Empty results = failure
+                };
+            }
+        }
 
         // Get current tokens for success calculation
         var npcTokens = TokenManager?.GetTokensWithNPC(NPC.ID) ?? new Dictionary<ConnectionType, int>();
@@ -563,6 +632,24 @@ public class ConversationSession
         }
 
         var result = manager.PlaySelectedCards();
+        
+        // Check if a goal card was played
+        if (playingGoalCard)
+        {
+            var goalCard = selectedCards.First(c => c.IsGoalCard);
+            GoalCardPlayed = true;
+            
+            Console.WriteLine($"[ExecuteSpeak] Goal card played: {goalCard.DisplayName}");
+            
+            // Process the goal card effect based on type
+            ProcessGoalCardEffect(goalCard, result);
+            
+            // Goal cards END the conversation immediately
+            CurrentPatience = 0;  // Force end
+            LetterGenerated = true;  // Mark as successful completion
+            
+            Console.WriteLine($"[ExecuteSpeak] Goal card played - conversation will end");
+        }
 
         // Process letter negotiations and create delivery obligations
         if (result.LetterNegotiations.Any())
@@ -960,6 +1047,86 @@ public class ConversationSession
             
         var rewardParts = exchange.Reward.Select(r => r.GetDisplayText());
         return string.Join(", ", rewardParts);
+    }
+    
+    /// <summary>
+    /// Process goal card effect based on its type
+    /// </summary>
+    private void ProcessGoalCardEffect(ConversationCard goalCard, CardPlayResult result)
+    {
+        if (!goalCard.GoalCardType.HasValue)
+            return;
+            
+        switch (goalCard.GoalCardType.Value)
+        {
+            case GoalType.Letter:
+                // Create a letter obligation with terms based on success
+                var letterObligation = CreateLetterObligationFromGoal(goalCard, result.Success);
+                result.LetterNegotiations.Add(new LetterNegotiationResult
+                {
+                    LetterCardId = goalCard.Id,
+                    NegotiationSuccess = result.Success,
+                    CreatedObligation = letterObligation
+                });
+                Console.WriteLine($"[ProcessGoalCardEffect] Letter goal created obligation: {letterObligation.Id}");
+                break;
+                
+            case GoalType.Promise:
+                // TODO: Create meeting/escort obligation
+                Console.WriteLine($"[ProcessGoalCardEffect] Promise goal - creating meeting obligation");
+                break;
+                
+            case GoalType.Resolution:
+                // Remove burden cards from the deck
+                var burdenCards = Deck.GetCards().Where(c => c.Persistence == PersistenceType.Burden).ToList();
+                foreach (var burden in burdenCards)
+                {
+                    Deck.RemoveCard(burden);
+                }
+                Console.WriteLine($"[ProcessGoalCardEffect] Resolution goal - removed {burdenCards.Count} burden cards");
+                break;
+                
+            case GoalType.Commerce:
+                // TODO: Enable special trade
+                Console.WriteLine($"[ProcessGoalCardEffect] Commerce goal - special trade unlocked");
+                break;
+                
+            case GoalType.Crisis:
+                // TODO: Resolve crisis state
+                Console.WriteLine($"[ProcessGoalCardEffect] Crisis goal - crisis resolved");
+                break;
+        }
+    }
+    
+    /// <summary>
+    /// Create a letter obligation from a goal card
+    /// </summary>
+    private DeliveryObligation CreateLetterObligationFromGoal(ConversationCard goalCard, bool success)
+    {
+        // Terms based on success/failure of goal negotiation
+        var deadlineHours = success ? 24 : 12;  // Better deadline on success
+        var payment = success ? 15 : 5;  // Better payment on success
+        
+        return new DeliveryObligation
+        {
+            Id = $"goal_{NPC.ID}_{DateTime.Now.Ticks}",
+            SenderName = NPC.Name,
+            SenderId = NPC.ID,
+            RecipientName = "Lord Blackwood",  // Default for Elena scenario
+            RecipientId = "lord_blackwood",
+            DeadlineInMinutes = deadlineHours * 60,
+            Payment = payment,
+            TokenType = ConnectionType.Trust,  // Letter goals build trust
+            Stakes = StakeType.REPUTATION,
+            EmotionalWeight = success ? EmotionalWeight.MEDIUM : EmotionalWeight.HIGH,
+            Description = $"Letter delivery from {NPC.Name}",
+            Message = "Deliver this important letter",
+            QueuePosition = success ? 3 : 5,  // Better position on success
+            FinalQueuePosition = success ? 3 : 5,
+            PositioningReason = LetterPositioningReason.Neutral,
+            IsGenerated = true,
+            GenerationReason = $"Goal card negotiation: {(success ? "success" : "failure")}"
+        };
     }
     
     /// <summary>

@@ -804,6 +804,33 @@ public class CardDeck
         };
     }
 
+    /// <summary>
+    /// Add a single goal card to the deck and shuffle it in
+    /// </summary>
+    public void ShuffleInGoalCard(ConversationCard goalCard)
+    {
+        if (goalCard == null || !goalCard.IsGoalCard)
+            throw new ArgumentException("Invalid goal card provided");
+            
+        // Remove any existing goal cards first (there should only be ONE)
+        cards.RemoveAll(c => c.IsGoalCard);
+        discardPile.RemoveAll(c => c.IsGoalCard);
+        
+        // Add the new goal card
+        cards.Add(goalCard);
+        
+        // Shuffle to randomize position
+        Shuffle();
+    }
+    
+    /// <summary>
+    /// Check if deck contains a goal card
+    /// </summary>
+    public bool HasGoalCard()
+    {
+        return cards.Any(c => c.IsGoalCard) || discardPile.Any(c => c.IsGoalCard);
+    }
+    
     private void Shuffle()
     {
         for (int i = cards.Count - 1; i > 0; i--)
@@ -817,6 +844,14 @@ public class CardDeck
 
     public int RemainingCards => cards.Count;
     public bool IsEmpty => !cards.Any();
+    
+    /// <summary>
+    /// Get all cards in the deck (for filtering purposes)
+    /// </summary>
+    public IEnumerable<ConversationCard> GetCards()
+    {
+        return cards.Concat(discardPile);
+    }
     
     /// <summary>
     /// Check if this is a crisis deck (contains only Crisis letters)
