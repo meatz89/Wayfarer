@@ -67,7 +67,7 @@ public static class GoalCardFactory
             ConversationType.Standard => GoalType.Letter,
             ConversationType.LetterOffer => GoalType.Letter,
             ConversationType.MakeAmends => GoalType.Resolution,
-            ConversationType.Exchange => GoalType.Exchange,
+            ConversationType.QuickExchange => GoalType.Commerce,
             ConversationType.Crisis => GoalType.Crisis,
             _ => null
         };
