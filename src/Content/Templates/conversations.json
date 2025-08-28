@@ -178,7 +178,7 @@
       "weight": 0,
       "baseComfort": -3,
       "depth": 0,
-      "category": "BURDEN",
+      "category": "COMFORT",
       "displayName": "Awkward Silence",
       "description": "An uncomfortable pause in the conversation"
     },
@@ -190,7 +190,7 @@
       "weight": 0,
       "baseComfort": -2,
       "depth": 0,
-      "category": "BURDEN",
+      "category": "COMFORT",
       "displayName": "Misunderstanding",
       "description": "A point of confusion that needs clearing up"
     },
@@ -202,7 +202,7 @@
       "weight": 0,
       "baseComfort": -5,
       "depth": 0,
-      "category": "BURDEN",
+      "category": "COMFORT",
       "displayName": "Past Betrayal",
       "description": "A reminder of broken trust from before",
       "forNPC": "elena"
@@ -215,7 +215,7 @@
       "weight": 0,
       "baseComfort": -4,
       "depth": 0,
-      "category": "BURDEN",
+      "category": "COMFORT",
       "displayName": "Failed Promise",
       "description": "An unfulfilled obligation weighing on the conversation",
       "forNPC": "elena"
