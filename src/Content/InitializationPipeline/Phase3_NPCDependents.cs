@@ -193,8 +193,7 @@ public class Phase3_NPCDependents : IInitializationPhase
             DisplayName = original.DisplayName,
             Description = original.Description,
             IsGoalCard = original.IsGoalCard,
-            GoalCardType = original.GoalCardType,
-            PowerLevel = original.PowerLevel
+            GoalCardType = original.GoalCardType
         };
     }
     

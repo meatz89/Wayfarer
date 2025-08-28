@@ -7,26 +7,13 @@ public class TokenMechanicsManager
     private readonly MessageSystem _messageSystem;
     private readonly NPCRepository _npcRepository;
     private readonly ItemRepository _itemRepository;
-
-    // Token mechanic constants
-    private const int TRUST_DEADLINE_HOURS_PER_TOKEN = 2;
-    private const int MAX_QUEUE_POSITION_BONUS = 3;
-    private const int STATUS_TOKENS_PER_TIER = 2;
-
+    
     public TokenMechanicsManager(GameWorld gameWorld, MessageSystem messageSystem, NPCRepository npcRepository, ItemRepository itemRepository)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
         _npcRepository = npcRepository;
         _itemRepository = itemRepository;
-    }
-
-
-
-    // Get player's total tokens by type
-    public Dictionary<ConnectionType, int> GetPlayerTokens()
-    {
-        return _gameWorld.GetPlayer().ConnectionTokens;
     }
 
     // Get tokens with specific NPC
@@ -43,59 +30,6 @@ public class TokenMechanicsManager
             emptyTokens[tokenType] = 0;
         }
         return emptyTokens;
-    }
-
-    // Get relationship level based on total tokens with NPC
-    public int GetRelationshipLevel(string npcId)
-    {
-        var tokens = GetTokensWithNPC(npcId);
-        int totalTokens = 0;
-        foreach (var kvp in tokens)
-        {
-            totalTokens += kvp.Value;
-        }
-        
-        // Relationship levels based on total tokens
-        // Level 0: 0 tokens (stranger)
-        // Level 1: 1-2 tokens (acquaintance)  
-        // Level 2: 3-4 tokens (friend)
-        // Level 3: 5-7 tokens (close friend) - unlocks Deep conversations
-        // Level 4: 8-11 tokens (trusted)
-        // Level 5: 12+ tokens (intimate)
-        if (totalTokens == 0) return 0;
-        if (totalTokens <= 2) return 1;
-        if (totalTokens <= 4) return 2;
-        if (totalTokens <= 7) return 3;
-        if (totalTokens <= 11) return 4;
-        return 5;
-    }
-
-    // Get tokens with specific NPC as strongly typed object
-    public NPCTokenBalance GetNPCTokenBalance(string npcId)
-    {
-        Dictionary<ConnectionType, int> tokenDict = GetTokensWithNPC(npcId);
-        NPCTokenBalance balance = new NPCTokenBalance();
-
-        foreach (KeyValuePair<ConnectionType, int> kvp in tokenDict)
-        {
-            balance.Balances.Add(new TokenBalance
-            {
-                TokenType = kvp.Key,
-                Amount = kvp.Value
-            });
-        }
-
-        return balance;
-    }
-
-
-    // Add tokens with specific type (used by context-aware commands)
-    public void AddTokensFromAction(string npcId, ConnectionType tokenType, int count = 1)
-    {
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null) return;
-
-        AddTokensToNPC(tokenType, count, npcId);
     }
 
     // Add tokens to specific NPC relationship
@@ -293,79 +227,6 @@ public class TokenMechanicsManager
         );
     }
 
-    // Calculate connection gravity for NPC (for future use)
-    public int GetConnectionGravity(string npcId)
-    {
-        Dictionary<ConnectionType, int> npcTokens = GetTokensWithNPC(npcId);
-        int totalTokens = npcTokens.Values.Sum();
-
-        if (totalTokens >= GameRules.TOKENS_QUALITY_THRESHOLD) return 6;  // Strong connection
-        if (totalTokens >= GameRules.TOKENS_BASIC_THRESHOLD) return 7;  // Moderate connection
-        return 8;                        // Default position
-    }
-
-    // ============== TOKEN TYPE SPECIFIC MECHANICS ==============
-
-    /// <summary>
-    /// Trust Mechanic: Each positive trust token adds 2 hours to deadline tolerance
-    /// </summary>
-    public int GetDeadlineBonus(string npcId)
-    {
-        if (string.IsNullOrEmpty(npcId)) return 0;
-
-        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
-        int trustTokens = tokens.GetValueOrDefault(ConnectionType.Trust, 0);
-
-        // Only positive trust tokens provide deadline bonus
-        return Math.Max(0, trustTokens * TRUST_DEADLINE_HOURS_PER_TOKEN);
-    }
-
-    /// <summary>
-    /// Commerce Mechanic: Positive commerce tokens allow better queue position when adding letters
-    /// </summary>
-    public int GetQueuePositionBonus(string npcId)
-    {
-        if (string.IsNullOrEmpty(npcId)) return 0;
-
-        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
-        int commerceTokens = tokens.GetValueOrDefault(ConnectionType.Commerce, 0);
-
-        // Cap at MAX_QUEUE_POSITION_BONUS positions forward
-        return Math.Max(0, Math.Min(commerceTokens, MAX_QUEUE_POSITION_BONUS));
-    }
-
-    /// <summary>
-    /// Status Mechanic: Higher status tokens unlock access to higher tier letters
-    /// Tier 1: 2 tokens, Tier 2: 4 tokens, Tier 3: 6 tokens
-    /// </summary>
-    public bool CanAccessTier(string npcId, int tier)
-    {
-        if (string.IsNullOrEmpty(npcId)) return false;
-        if (tier < 1 || tier > 3) return false;
-
-        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
-        int statusTokens = tokens.GetValueOrDefault(ConnectionType.Status, 0);
-
-        // Need STATUS_TOKENS_PER_TIER * tier tokens for access
-        int requiredTokens = tier * STATUS_TOKENS_PER_TIER;
-        return statusTokens >= requiredTokens;
-    }
-
-    /// <summary>
-    /// Shadow Mechanic: Any positive shadow tokens reveal hidden letter properties
-    /// </summary>
-    public bool CanRevealProperty(string npcId, string property)
-    {
-        if (string.IsNullOrEmpty(npcId)) return false;
-        if (string.IsNullOrEmpty(property)) return false;
-
-        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
-        int shadowTokens = tokens.GetValueOrDefault(ConnectionType.Shadow, 0);
-
-        // Any positive shadow tokens enable property revelation
-        return shadowTokens > 0;
-    }
-
     /// <summary>
     /// Leverage Mechanic: Negative tokens represent leverage the NPC has over the player
     /// </summary>
@@ -378,42 +239,6 @@ public class TokenMechanicsManager
 
         // Return absolute value if negative, 0 otherwise
         return tokenCount < 0 ? Math.Abs(tokenCount) : 0;
-    }
-
-    /// <summary>
-    /// Get total leverage across all token types for an NPC
-    /// </summary>
-    public int GetTotalLeverage(string npcId)
-    {
-        if (string.IsNullOrEmpty(npcId)) return 0;
-
-        int totalLeverage = 0;
-        foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
-        {
-            totalLeverage += GetLeverage(npcId, type);
-        }
-        return totalLeverage;
-    }
-
-    /// <summary>
-    /// Check if NPC has any leverage over the player
-    /// </summary>
-    public bool HasLeverage(string npcId)
-    {
-        return GetTotalLeverage(npcId) > 0;
-    }
-
-    /// <summary>
-    /// Get the maximum tier the player can access with an NPC
-    /// </summary>
-    public int GetMaxAccessibleTier(string npcId)
-    {
-        for (int tier = 3; tier >= 1; tier--)
-        {
-            if (CanAccessTier(npcId, tier))
-                return tier;
-        }
-        return 0; // No tier access
     }
 
     // Remove tokens from NPC relationship (for expired letters)
@@ -463,14 +288,6 @@ public class TokenMechanicsManager
         }
 
         // Token change notifications are handled by GameFacade orchestration
-    }
-
-    // Check if player has 3+ tokens with a specific NPC
-    public bool HasEnoughTokensForDirectOffer(string npcId)
-    {
-        Dictionary<ConnectionType, int> npcTokens = GetTokensWithNPC(npcId);
-        int totalTokens = npcTokens.Values.Sum();
-        return totalTokens >= GameRules.TOKENS_BASIC_THRESHOLD;
     }
 
     // Get total tokens of a specific type across all NPCs
@@ -542,42 +359,6 @@ public class TokenMechanicsManager
         return true;
     }
 
-    // Helper method to generate NPC reactions to token gains
-    private string GetTokenGainReaction(NPC npc, ConnectionType type, int count)
-    {
-        string[] reactions = type switch
-        {
-            ConnectionType.Trust => new[]
-            {
-                $"{npc.Name} smiles warmly. \"I knew I could count on you.\"",
-                $"{npc.Name} clasps your hand. \"Thank you, my friend.\"",
-                $"\"You've proven yourself trustworthy,\" {npc.Name} says with appreciation."
-            },
-            ConnectionType.Commerce => new[]
-            {
-                $"{npc.Name} nods approvingly. \"Good business, as always.\"",
-                $"\"Reliable couriers are worth their weight in gold,\" says {npc.Name}.",
-                $"{npc.Name} makes a note. \"I'll remember this efficiency.\""
-            },
-            ConnectionType.Status => new[]
-            {
-                $"{npc.Name} inclines their head graciously. \"Your service honors us both.\"",
-                $"\"The nobility appreciates discretion,\" {npc.Name} says formally.",
-                $"{npc.Name} acknowledges your service with courtly grace."
-            },
-            ConnectionType.Shadow => new[]
-            {
-                $"{npc.Name} gives a subtle nod. \"Your discretion is... noted.\"",
-                $"\"We remember those who keep our secrets,\" {npc.Name} murmurs.",
-                $"A meaningful look passes between you and {npc.Name}."
-            },
-            _ => new[] { $"{npc.Name} acknowledges your service." }
-        };
-
-        Random random = new Random();
-        return reactions[random.Next(reactions.Length)];
-    }
-
     // Helper method to check and announce relationship milestones
     private void CheckRelationshipMilestone(NPC npc, int totalTokens)
     {
@@ -592,51 +373,6 @@ public class TokenMechanicsManager
         if (milestones.TryGetValue(totalTokens, out string? message))
         {
             _messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
-        }
-    }
-
-    /// <summary>
-    /// Check if player has at least the specified number of tokens with an NPC.
-    /// </summary>
-    public bool HasTokensWithNPC(string npcId, int minTokens)
-    {
-        Dictionary<ConnectionType, int> npcTokens = GetTokensWithNPC(npcId);
-        return npcTokens.Values.Sum() >= minTokens;
-    }
-
-    // Set tokens for scenario initialization
-    public void SetTokensForScenario(Dictionary<string, Dictionary<ConnectionType, int>> tokenData)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        // Clear existing tokens
-        player.ConnectionTokens.Clear();
-        player.NPCTokens.Clear();
-
-        // Set tokens from scenario data
-        foreach (KeyValuePair<string, Dictionary<ConnectionType, int>> entry in tokenData)
-        {
-            if (entry.Key == "global")
-            {
-                // Set global token counts
-                foreach (KeyValuePair<ConnectionType, int> tokenEntry in entry.Value)
-                {
-                    player.ConnectionTokens[tokenEntry.Key] = tokenEntry.Value;
-                }
-            }
-            else
-            {
-                // Set NPC-specific tokens
-                if (!player.NPCTokens.ContainsKey(entry.Key))
-                {
-                    player.NPCTokens[entry.Key] = new Dictionary<ConnectionType, int>();
-                }
-
-                foreach (KeyValuePair<ConnectionType, int> tokenEntry in entry.Value)
-                {
-                    player.NPCTokens[entry.Key][tokenEntry.Key] = tokenEntry.Value;
-                }
-            }
         }
     }
 
@@ -666,60 +402,5 @@ public class TokenMechanicsManager
 
         return totalModifier;
     }
-
-    /// <summary>
-    /// Check if player has equipment that enables generation of a specific token type
-    /// </summary>
-    public bool CanGenerateTokenType(ConnectionType tokenType, string npcId)
-    {
-        // First check if NPC naturally offers this token type
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc != null && npc.LetterTokenTypes.Contains(tokenType))
-        {
-            return true;
-        }
-
-        // Then check equipment
-        if (_itemRepository == null) return false;
-
-        Player player = _gameWorld.GetPlayer();
-
-        foreach (string itemId in player.Inventory.GetAllItems())
-        {
-            if (string.IsNullOrEmpty(itemId)) continue;
-
-            Item item = _itemRepository.GetItemById(itemId);
-            if (item != null && item.EnablesTokenGeneration != null &&
-                item.EnablesTokenGeneration.Contains(tokenType))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
     
-    /// <summary>
-    /// Check if a card is unlocked based on token requirements
-    /// </summary>
-    public bool IsCardUnlocked(string npcId, CardPowerLevel powerLevel, ConnectionType cardType)
-    {
-        var tokens = GetTokensWithNPC(npcId);
-        var relevantTokens = tokens.GetValueOrDefault(cardType, 0);
-        return relevantTokens >= (int)powerLevel;
-    }
-    
-    /// <summary>
-    /// Get card power level based on current tokens
-    /// </summary>
-    public CardPowerLevel GetMaxUnlockedPowerLevel(string npcId, ConnectionType cardType)
-    {
-        var tokens = GetTokensWithNPC(npcId);
-        var relevantTokens = tokens.GetValueOrDefault(cardType, 0);
-        
-        if (relevantTokens >= 10) return CardPowerLevel.Master;
-        if (relevantTokens >= 5) return CardPowerLevel.Advanced;
-        if (relevantTokens >= 3) return CardPowerLevel.Intermediate;
-        return CardPowerLevel.Basic;
-    }
 }

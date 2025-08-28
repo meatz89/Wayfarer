@@ -62,15 +62,6 @@ public class StateCard : ICard
     /// </summary>
     public string Description { get; init; }
     
-    /// <summary>
-    /// Power level determines token requirement for unlocking
-    /// </summary>
-    public CardPowerLevel PowerLevel { get; init; } = CardPowerLevel.Basic;
-    
-    /// <summary>
-    /// Minimum tokens of matching type required to unlock this card
-    /// </summary>
-    public int RequiredTokens => (int)PowerLevel;
 
     /// <summary>
     /// State to transition to on success
@@ -143,16 +134,6 @@ public class StateCard : ICard
         return "state";
     }
     
-    /// <summary>
-    /// Check if player has enough tokens to unlock this card
-    /// </summary>
-    public bool IsUnlocked(Dictionary<ConnectionType, int> tokens)
-    {
-        if (tokens == null) return PowerLevel == CardPowerLevel.Basic;
-        
-        var relevantTokens = tokens.GetValueOrDefault(GetConnectionType(), 0);
-        return relevantTokens >= RequiredTokens;
-    }
 
     /// <summary>
     /// Get the target state based on success/failure

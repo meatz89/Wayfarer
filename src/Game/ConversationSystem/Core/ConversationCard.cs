@@ -52,21 +52,6 @@ public enum ConversationType
     Crisis,
 }
 
-/// <summary>
-/// Mechanical categories that determine how cards function
-/// Cards have categories based on what they DO, not where they come from
-/// </summary>
-public enum CardCategory
-{
-    COMFORT,    // Modify comfort value only
-    TOKEN,      // Add 1 token of specific type only  
-    STATE,      // Change emotional state only
-    BURDEN,     // Block hand slots until resolved
-    OBSERVATION, // State change cards gained from world (not deck)
-    CRISIS,     // Emergency cards with high stakes
-    PROMISE,    // Create obligations (includes letters and goals)
-    EXCHANGE    // Simple resource trades (mercantile NPCs only)
-}
 
 /// <summary>
 /// Persistence behavior when LISTEN action taken
@@ -200,15 +185,6 @@ public class ConversationCard : ICard
     /// </summary>
     public ConversationType? GoalCardType { get; init; }
     
-    /// <summary>
-    /// Power level determines token requirement for unlocking
-    /// </summary>
-    public CardPowerLevel PowerLevel { get; init; } = CardPowerLevel.Basic;
-    
-    /// <summary>
-    /// Minimum tokens of matching type required to unlock this card
-    /// </summary>
-    public int RequiredTokens => (int)PowerLevel;
 
     /// <summary>
     /// Get effective weight considering state rules
@@ -289,14 +265,4 @@ public class ConversationCard : ICard
         };
     }
     
-    /// <summary>
-    /// Check if player has enough tokens to unlock this card
-    /// </summary>
-    public bool IsUnlocked(Dictionary<ConnectionType, int> tokens)
-    {
-        if (tokens == null) return PowerLevel == CardPowerLevel.Basic;
-        
-        var relevantTokens = tokens.GetValueOrDefault(GetConnectionType(), 0);
-        return relevantTokens >= RequiredTokens;
-    }
 }
