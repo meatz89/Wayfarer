@@ -69,7 +69,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                 // Initialize letter deck for specific NPCs
                 InitializeLetterDeckForNPC(npc);
                 
-                // Note: Crisis cards are added later in Phase8 when meeting obligations are created
+                // Note: Crisis letters are added later in Phase8 when meeting obligations are created
                 // This ensures proper initialization order
                 
                 Console.WriteLine($"[Phase3] Initialized decks for NPC: {npc.Name} (ID: {npc.ID})");

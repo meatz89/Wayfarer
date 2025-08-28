@@ -620,7 +620,7 @@ namespace Wayfarer.Pages.Components
             return Session.CurrentState switch
             {
                 EmotionalState.DESPERATE => "• Draw 2 + crisis • Crisis free • Listen worsens",
-                EmotionalState.HOSTILE => "• Only crisis cards playable",
+                EmotionalState.HOSTILE => "• Only Crisis letters playable",
                 EmotionalState.CONNECTED => "• Weight limit 4 • All comfort +2",
                 EmotionalState.EAGER => "• 2+ same type → +3 comfort",
                 _ => ""

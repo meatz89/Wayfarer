@@ -54,7 +54,7 @@ public class NPC
     // FOUR DECK ARCHITECTURE (POC EXACT)
     public CardDeck ConversationDeck { get; set; }  // Comfort/State/Burden cards (depth 0-20)
     public List<LetterCard> LetterDeck { get; set; } = new();  // Letter cards with eligibility (tokens + state)
-    public CardDeck CrisisDeck { get; set; }  // Crisis cards (usually empty unless crisis)
+    public CardDeck CrisisDeck { get; set; }  // Crisis letters (usually empty unless crisis)
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // Exchange cards (Mercantile NPCs only)
 
     // Daily exchange selection
@@ -108,7 +108,7 @@ public class NPC
         CrisisDeck ??= new CardDeck();
     }
     
-    // Add crisis cards to the crisis deck
+    // Add Crisis letters to the crisis deck
     public void AddCrisisCards(List<ConversationCard> crisisCards)
     {
         if (CrisisDeck == null)
@@ -122,7 +122,7 @@ public class NPC
         }
     }
 
-    // Check if NPC has crisis cards
+    // Check if NPC has Crisis letters
     public bool HasCrisisCards()
     {
         return CrisisDeck != null && CrisisDeck.RemainingCards > 0;

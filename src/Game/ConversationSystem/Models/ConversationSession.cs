@@ -299,22 +299,22 @@ public class ConversationSession
         // Use existing crisis deck or fail if none exists
         if (npc.CrisisDeck == null || npc.CrisisDeck.RemainingCards == 0)
         {
-            Console.WriteLine($"[ERROR] StartCrisis: {npc.Name} has no crisis deck or no crisis cards!");
+            Console.WriteLine($"[ERROR] StartCrisis: {npc.Name} has no crisis deck or no Crisis letters!");
             // Initialize an empty deck to prevent null reference, but conversation will end immediately
             npc.CrisisDeck = new CardDeck();
         }
         
         var deck = npc.CrisisDeck;
         
-        // Draw initial hand - for crisis, we should draw ALL crisis cards available
+        // Draw initial hand - for crisis, we should draw ALL Crisis letters available
         var handCards = new List<ConversationCard>();
         
-        // Draw all available crisis cards (typically just 1-2)
+        // Draw all available Crisis letters (typically just 1-2)
         var availableCount = Math.Min(deck.RemainingCards, 5); // Cap at 5 to prevent overflow
         if (availableCount > 0)
         {
-            handCards.AddRange(deck.Draw(availableCount, 0)); // Draw crisis cards (usually depth 0)
-            Console.WriteLine($"[StartCrisis] Drew {availableCount} crisis cards for {npc.Name}");
+            handCards.AddRange(deck.Draw(availableCount, 0)); // Draw Crisis letters (usually depth 0)
+            Console.WriteLine($"[StartCrisis] Drew {availableCount} Crisis letters for {npc.Name}");
         }
         else
         {
@@ -474,26 +474,26 @@ public class ConversationSession
             }
         }
 
-        // Inject crisis cards if state requires it (DESPERATE/HOSTILE)
+        // Inject Crisis letters if state requires it (DESPERATE/HOSTILE)
         if (rules.InjectsCrisis && rules.CrisisCardsInjected > 0)
         {
-            // Check if we have crisis cards in the crisis deck
+            // Check if we have Crisis letters in the crisis deck
             if (NPC.CrisisDeck != null && NPC.CrisisDeck.RemainingCards > 0)
             {
                 // Draw from crisis deck
                 var crisisCards = NPC.CrisisDeck.Draw(rules.CrisisCardsInjected, 0);
                 HandCards.AddRange(crisisCards);
-                Console.WriteLine($"[ExecuteListen] Injected {crisisCards.Count} crisis cards from deck");
+                Console.WriteLine($"[ExecuteListen] Injected {crisisCards.Count} Crisis letters from deck");
             }
             else
             {
-                // Generate crisis cards if deck is empty
+                // Generate Crisis letters if deck is empty
                 for (int i = 0; i < rules.CrisisCardsInjected; i++)
                 {
                     var crisisCard = Deck.GenerateCrisisCard(NPC);
                     HandCards.Add(crisisCard);
                 }
-                Console.WriteLine($"[ExecuteListen] Generated {rules.CrisisCardsInjected} crisis cards");
+                Console.WriteLine($"[ExecuteListen] Generated {rules.CrisisCardsInjected} Crisis letters");
             }
         }
 
@@ -543,7 +543,7 @@ public class ConversationSession
             CurrentState = result.NewState.Value;
         }
         
-        // If we're in HOSTILE state and played crisis cards, mark final turn as taken
+        // If we're in HOSTILE state and played Crisis letters, mark final turn as taken
         if (CurrentState == EmotionalState.HOSTILE)
         {
             HadFinalCrisisTurn = true;
@@ -642,7 +642,7 @@ public class ConversationSession
                 return true;
         }
             
-        // HOSTILE state: Allow one final turn to play crisis cards
+        // HOSTILE state: Allow one final turn to play Crisis letters
         if (CurrentState == EmotionalState.HOSTILE)
         {
             // If we haven't had the final turn yet, don't end

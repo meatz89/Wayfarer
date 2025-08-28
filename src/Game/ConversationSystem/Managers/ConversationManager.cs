@@ -110,7 +110,7 @@ public class ConversationManager
     {
         var available = new List<ConversationType>();
         
-        // If NPC has crisis cards, ONLY crisis conversation is available
+        // If NPC has Crisis letters, ONLY crisis conversation is available
         if (npc.HasCrisisCards())
         {
             available.Add(ConversationType.Crisis);
@@ -257,10 +257,10 @@ public class ConversationManager
                 }
             }
             
-            // Handle special crisis card that generates letter on success (e.g., Elena's Desperate Promise)
+            // Handle special Crisis letter that generates letter on success (e.g., Elena's Desperate Promise)
             if (card.Context?.GeneratesLetterOnSuccess == true && result.Results.First(r => r.Card == card).Success)
             {
-                Console.WriteLine($"[ConversationManager] Crisis card {card.Id} succeeded - generating letter!");
+                Console.WriteLine($"[ConversationManager] Crisis letter {card.Id} succeeded - generating letter!");
                 
                 // Create Elena's urgent letter
                 var urgentLetter = new DeliveryObligation

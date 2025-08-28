@@ -635,7 +635,7 @@ public class CardDeck
     }
 
     /// <summary>
-    /// Generate a crisis card for desperate states
+    /// Generate a Crisis letter for desperate states
     /// </summary>
     public ConversationCard GenerateCrisisCard(NPC npc)
     {
@@ -710,11 +710,19 @@ public class CardDeck
     public bool IsEmpty => !cards.Any();
     
     /// <summary>
-    /// Check if this is a crisis deck (contains only crisis cards)
+    /// Check if this is a crisis deck (contains only Crisis letters)
     /// </summary>
     public bool IsCrisis()
     {
         // A crisis deck contains cards with Crisis category or Crisis persistence
         return cards.Any() && cards.All(c => c.Category == CardCategory.CRISIS || c.Persistence == PersistenceType.Crisis);
+    }
+    
+    /// <summary>
+    /// Get all cards in the deck (for dev mode viewing)
+    /// </summary>
+    public List<ConversationCard> GetAllCards()
+    {
+        return new List<ConversationCard>(cards);
     }
 }

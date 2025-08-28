@@ -82,7 +82,6 @@ Four types, each with distinct identity:
 2. **Promise Negotiation**: Better terms with matching token types  
 3. **Displacement Cost**: Burn tokens to jump queue positions
 4. **Special Effects**: Some cards may reference token counts
-5. **Crisis Mitigation**: +10% per token on crisis cards (double value)
 
 Each use is a separate mechanic. Tokens never gate access to content.
 

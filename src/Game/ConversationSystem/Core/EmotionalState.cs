@@ -41,12 +41,12 @@ public class StateRuleset
     public EmotionalState ListenTransition { get; init; }
 
     /// <summary>
-    /// Whether crisis cards are injected when listening
+    /// Whether Crisis letters are injected when listening
     /// </summary>
     public bool InjectsCrisis { get; init; }
 
     /// <summary>
-    /// Number of crisis cards injected when listening
+    /// Number of Crisis letters injected when listening
     /// </summary>
     public int CrisisCardsInjected { get; init; } = 1;
 
@@ -87,7 +87,7 @@ public class StateRuleset
     public bool ListenEndsConversation { get; init; }
     
     /// <summary>
-    /// Whether to allow one final turn after this state to play crisis cards
+    /// Whether to allow one final turn after this state to play Crisis letters
     /// </summary>
     public bool AllowOneFinalTurn { get; init; }
     
@@ -173,12 +173,12 @@ public static class ConversationRules
         [EmotionalState.DESPERATE] = new StateRuleset
         {
             CardsOnListen = 2,  // Listen draws 2 conversation cards
-            MaxWeight = 1,      // Speak weight limit 1 (but crisis cards override)
+            MaxWeight = 1,      // Speak weight limit 1 (but Crisis letters override)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.HOSTILE,  // Transitions to HOSTILE
-            InjectsCrisis = true,  // INJECT 1 crisis card
+            InjectsCrisis = true,  // INJECT 1 Crisis letter
             CrisisCardsInjected = 1,
-            FreeWeightCategories = new() { CardCategory.CRISIS },  // Crisis cards cost 0 weight
+            FreeWeightCategories = new() { CardCategory.CRISIS },  // Crisis letters cost 0 weight
             ChecksLetterDeck = true  // Check for urgent letters in desperate state
         },
 
@@ -188,10 +188,10 @@ public static class ConversationRules
             MaxWeight = 3,      // Speak weight limit 3 (crisis only)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.HOSTILE,  // Stays HOSTILE
-            InjectsCrisis = true,  // INJECT 2 crisis cards
+            InjectsCrisis = true,  // INJECT 2 Crisis letters
             CrisisCardsInjected = 2,
             FreeWeightCategories = new() { CardCategory.CRISIS },
-            AllowedCategories = new() { CardCategory.CRISIS },  // ONLY crisis cards allowed
+            AllowedCategories = new() { CardCategory.CRISIS },  // ONLY Crisis letters allowed
             ListenEndsConversation = true,  // END conversation after listen
             ChecksLetterDeck = false
         }

@@ -26,12 +26,6 @@
     public const int TOKENS_QUALITY_THRESHOLD = 3;     // Quality letters offered (3-4 tokens)
     public const int TOKENS_PREMIUM_THRESHOLD = 5;     // Premium letters & routes (5+ tokens)
 
-    // REMOVED: Token depth thresholds - violates "no thresholds" design principle
-    // Cards are now filtered by comfort level only
-    // Tokens provide linear bonuses to success rates (+5% per token)
-
-    // Standing Obligations: Crisis Card Rewards
-    public const int CRISIS_CARD_TOKEN_REWARD = 3;     // Immediate token gain from crisis cards (US-8.1)
     public const int OBLIGATION_BREAKING_PENALTY = 5;  // Token loss for breaking obligations (US-8.3)
 
     // Conversation Comfort Thresholds

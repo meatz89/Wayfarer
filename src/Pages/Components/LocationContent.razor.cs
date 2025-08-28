@@ -9,6 +9,7 @@ namespace Wayfarer.Pages.Components
     public class LocationContentBase : ComponentBase
     {
         [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected DevModeService DevMode { get; set; }
         
         [Parameter] public EventCallback OnActionExecuted { get; set; }
         
@@ -185,6 +186,15 @@ namespace Wayfarer.Pages.Components
             }
         }
 
+        protected async Task ViewNPCDeck(string npcId)
+        {
+            Console.WriteLine($"[LocationContent] Viewing deck for NPC: {npcId}");
+            if (GameScreen != null)
+            {
+                await GameScreen.NavigateToDeckViewer(npcId);
+            }
+        }
+        
         protected async Task TakeObservation(string observationId)
         {
             Console.WriteLine($"[LocationContent] Taking observation: {observationId}");

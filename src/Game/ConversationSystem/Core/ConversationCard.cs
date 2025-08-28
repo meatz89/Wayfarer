@@ -180,7 +180,7 @@ public class ConversationCard
     /// </summary>
     public int CalculateSuccessChance(Dictionary<ConnectionType, int> tokens = null)
     {
-        // Use override if specified (for special cards like crisis cards)
+        // Use override if specified (for special cards like Crisis letters)
         if (SuccessRate.HasValue)
             return SuccessRate.Value;
             

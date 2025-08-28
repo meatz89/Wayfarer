@@ -52,12 +52,12 @@ public class CardSelectionManager
         var cardWeight = card.GetEffectiveWeight(currentState);
         if (cardWeight > rules.MaxWeight)
         {
-            // Exception: Crisis cards can override weight limits when forced
+            // Exception: Crisis letters can override weight limits when forced
             if (card.Category != CardCategory.CRISIS)
                 return false;
         }
 
-        // Category restrictions (e.g., HOSTILE only allows crisis cards)
+        // Category restrictions (e.g., HOSTILE only allows Crisis letters)
         if (rules.AllowedCategories != null && !rules.AllowedCategories.Contains(card.Category))
             return false;
 

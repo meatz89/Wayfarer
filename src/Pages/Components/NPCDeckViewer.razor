@@ -1,0 +1,369 @@
+@using System.Collections.Generic
+@using System.Linq
+
+@namespace Wayfarer.Pages.Components
+
+<div class="deck-viewer">
+    <div class="deck-viewer-header">
+        <button class="back-button" @onclick="GoBack">← Back to Location</button>
+        <h2>NPC Deck Viewer - Development Mode</h2>
+        @if (CurrentNPC != null)
+        {
+            <div class="npc-info">
+                <span class="npc-name">@CurrentNPC.Name</span>
+                <span class="npc-id">ID: @CurrentNPC.ID</span>
+                <span class="npc-personality">@CurrentNPC.PersonalityType</span>
+            </div>
+        }
+    </div>
+    
+    @if (CurrentNPC == null)
+    {
+        <div class="error-message">NPC not found!</div>
+    }
+    else
+    {
+        <!-- Available Conversation Types Panel -->
+        <div class="conversation-availability-panel">
+            <h3>Available Conversation Types</h3>
+            <div class="conversation-types-grid">
+                @* Quick Exchange - enabled by Exchange Deck *@
+                <div class="conversation-type-card @(HasExchangeCards ? "enabled" : "disabled")">
+                    <div class="conversation-type-header">
+                        <span class="type-name">Quick Exchange</span>
+                        <span class="attention-cost">0 attention</span>
+                    </div>
+                    <div class="enabling-condition">
+                        @if (HasExchangeCards)
+                        {
+                            <span class="enabled-by">✓ Exchange Deck (@(CurrentNPC.ExchangeDeck?.Count ?? 0) cards)</span>
+                        }
+                        else
+                        {
+                            <span class="disabled-reason">✗ No exchange cards</span>
+                        }
+                    </div>
+                    <div class="type-description">
+                        Instant resource trades. No patience required.
+                    </div>
+                </div>
+
+                @* Crisis Resolution - enabled by Crisis letters *@
+                <div class="conversation-type-card @(HasCrisisCards ? "enabled crisis" : "disabled")">
+                    <div class="conversation-type-header">
+                        <span class="type-name">Crisis Resolution</span>
+                        <span class="attention-cost">1 attention</span>
+                    </div>
+                    <div class="enabling-condition">
+                        @if (HasCrisisCards)
+                        {
+                            <span class="enabled-by">✓ Crisis letters (@(CrisisCards?.Count ?? 0) active)</span>
+                        }
+                        else
+                        {
+                            <span class="disabled-reason">✗ No crisis active</span>
+                        }
+                    </div>
+                    <div class="type-description">
+                        Urgent situation requiring immediate resolution.
+                    </div>
+                </div>
+
+                @* Standard Talk - always available *@
+                <div class="conversation-type-card enabled">
+                    <div class="conversation-type-header">
+                        <span class="type-name">Talk</span>
+                        <span class="attention-cost">2 attention</span>
+                    </div>
+                    <div class="enabling-condition">
+                        <span class="enabled-by">✓ Always available</span>
+                    </div>
+                    <div class="type-description">
+                        Standard conversation with full mechanics.
+                    </div>
+                </div>
+
+                @* Future: Make Amends - enabled by 2+ burden cards *@
+                <div class="conversation-type-card disabled future">
+                    <div class="conversation-type-header">
+                        <span class="type-name">Make Amends</span>
+                        <span class="attention-cost">2 attention</span>
+                    </div>
+                    <div class="enabling-condition">
+                        <span class="disabled-reason">✗ Requires 2+ burden cards (not implemented)</span>
+                    </div>
+                    <div class="type-description">
+                        Address past wrongs and repair relationships.
+                    </div>
+                </div>
+
+                @* Future: Deep Conversation - enabled by relationship level 3+ *@
+                <div class="conversation-type-card disabled future">
+                    <div class="conversation-type-header">
+                        <span class="type-name">Deep Conversation</span>
+                        <span class="attention-cost">3 attention</span>
+                    </div>
+                    <div class="enabling-condition">
+                        <span class="disabled-reason">✗ Requires relationship level 3+ (not implemented)</span>
+                    </div>
+                    <div class="type-description">
+                        Extended intimate conversation with trusted friends.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="decks-container">
+            <!-- Conversation Deck -->
+            <div class="deck-section conversation-deck-section">
+                <h3>Conversation Deck (@(ConversationCards?.Count ?? 0) cards)</h3>
+                <div class="deck-purpose">Contains comfort, state, and token cards for standard conversations</div>
+                @if (ConversationCards != null && ConversationCards.Any())
+                {
+                    <div class="card-list">
+                        @foreach (var card in ConversationCards.OrderBy(c => c.Depth))
+                        {
+                            <div class="debug-card conversation-card">
+                                <div class="card-header">
+                                    <span class="card-id">@card.Id</span>
+                                    <span class="card-name">@(card.DisplayName ?? card.Template.ToString())</span>
+                                    <span class="card-category @GetCategoryClass(card.Category)">@card.Category</span>
+                                </div>
+                                <div class="card-properties">
+                                    <span>Type: @card.Type</span>
+                                    <span>Depth: @card.Depth</span>
+                                    <span>Weight: @card.Weight</span>
+                                    <span>Persistence: @card.Persistence</span>
+                                </div>
+                                <div class="card-text">@(card.Description ?? "Template: " + card.Template)</div>
+                                <div class="card-outcomes">
+                                    <div class="outcome success">
+                                        <span>Success (@(card.SuccessRate ?? 50)%)</span>
+                                        @if (card.Category == CardCategory.STATE && card.SuccessState != null)
+                                        {
+                                            <span>State → @card.SuccessState</span>
+                                        }
+                                        else if (card.BaseComfort > 0)
+                                        {
+                                            <span>+@card.BaseComfort comfort</span>
+                                        }
+                                    </div>
+                                    <div class="outcome failure">
+                                        <span>Failure (@(100 - (card.SuccessRate ?? 50))%)</span>
+                                        @if (card.Category == CardCategory.STATE && card.FailureState != null)
+                                        {
+                                            <span>State → @card.FailureState</span>
+                                        }
+                                        else
+                                        {
+                                            <span>No effect</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-deck">No conversation cards</div>
+                }
+            </div>
+
+            <!-- Goal Deck (Letters + Crisis) -->
+            <div class="deck-section goal-deck-section @(HasGoalCards ? "has-goals" : "")">
+                <h3>Goal Deck (@(TotalGoalCards) cards total)</h3>
+                <div class="deck-purpose">
+                    Contains letter and crisis goals. Only ONE goal card can be drawn per conversation.
+                    <span class="urgency-rule">⚠ Goal Urgency Rule: Once drawn, must be played within 1 turn or conversation fails!</span>
+                </div>
+                
+                @if (CurrentNPC.LetterDeck != null && CurrentNPC.LetterDeck.Any())
+                {
+                    <h4 class="sub-deck-header">Letter Goals (@(CurrentNPC.LetterDeck.Count) cards)</h4>
+                    <div class="card-list">
+                        @foreach (var card in CurrentNPC.LetterDeck)
+                        {
+                            <div class="debug-card letter-card goal-card">
+                                <div class="card-header">
+                                    <span class="card-id">@card.Id</span>
+                                    <span class="card-name">@card.Title</span>
+                                    <span class="goal-type-badge">LETTER GOAL</span>
+                                </div>
+                                <div class="card-properties">
+                                    <span>Template: @card.TemplateType</span>
+                                    <span>Depth: @card.Depth</span>
+                                    <span>Weight: @card.Weight</span>
+                                </div>
+                                <div class="eligibility">
+                                    <h4>Eligibility Requirements:</h4>
+                                    @if (card.Eligibility?.RequiredTokens?.Any() == true)
+                                    {
+                                        <div>Tokens: @string.Join(", ", card.Eligibility.RequiredTokens.Select(t => $"{t.Key}: {t.Value}"))</div>
+                                    }
+                                    @if (card.Eligibility?.RequiredStates?.Any() == true)
+                                    {
+                                        <div>States: @string.Join(", ", card.Eligibility.RequiredStates)</div>
+                                    }
+                                </div>
+                                <div class="negotiation">
+                                    <h4>Success Terms:</h4>
+                                    <div>Deadline: @card.SuccessTerms.DeadlineHours hours</div>
+                                    <div>Payment: @card.SuccessTerms.Payment coins</div>
+                                    <div>Queue Position: @card.SuccessTerms.QueuePosition</div>
+                                    
+                                    <h4>Failure Terms:</h4>
+                                    <div>Deadline: @card.FailureTerms.DeadlineHours hours</div>
+                                    <div>Payment: @card.FailureTerms.Payment coins</div>
+                                    <div>Queue Position: @card.FailureTerms.QueuePosition</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                
+                @if (CrisisCards != null && CrisisCards.Any())
+                {
+                    <h4 class="sub-deck-header crisis-header">Crisis Goals (@(CrisisCards.Count) cards) ⚠</h4>
+                    <div class="card-list">
+                        @foreach (var card in CrisisCards)
+                        {
+                            <div class="debug-card crisis-card goal-card">
+                                <div class="card-header">
+                                    <span class="card-id">@card.Id</span>
+                                    <span class="card-name">@(card.DisplayName ?? card.Template.ToString())</span>
+                                    <span class="goal-type-badge crisis">CRISIS GOAL</span>
+                                </div>
+                                <div class="card-properties">
+                                    <span>Type: @card.Type</span>
+                                    <span>Depth: @card.Depth</span>
+                                    <span>Weight: @card.Weight</span>
+                                    <span class="crisis-note">FREE in DESPERATE state!</span>
+                                </div>
+                                <div class="card-text">@(card.Description ?? "Template: " + card.Template)</div>
+                            </div>
+                        }
+                    </div>
+                }
+                
+                @if (!HasGoalCards)
+                {
+                    <div class="empty-deck">No goal cards (letters or crisis)</div>
+                }
+            </div>
+
+            <!-- Exchange Deck -->
+            <div class="deck-section exchange-deck-section @(HasExchangeCards ? "has-exchanges" : "")">
+                <h3>Exchange Deck (@(CurrentNPC.ExchangeDeck?.Count ?? 0) cards)</h3>
+                <div class="deck-purpose">Simple instant trades for Quick Exchange conversations (0 attention)</div>
+                @if (CurrentNPC.ExchangeDeck != null && CurrentNPC.ExchangeDeck.Any())
+                {
+                    <div class="card-list">
+                        @foreach (var card in CurrentNPC.ExchangeDeck)
+                        {
+                            <div class="debug-card exchange-card">
+                                <div class="card-header">
+                                    <span class="card-id">@card.Id</span>
+                                    <span class="card-name">@card.TemplateType</span>
+                                </div>
+                                <div class="exchange-details">
+                                    <div class="costs">
+                                        <h4>Costs:</h4>
+                                        @foreach (var cost in card.Cost)
+                                        {
+                                            <div>@cost.GetDisplayText()</div>
+                                        }
+                                    </div>
+                                    <div class="rewards">
+                                        <h4>Rewards:</h4>
+                                        @foreach (var reward in card.Reward)
+                                        {
+                                            <div>@reward.GetDisplayText()</div>
+                                        }
+                                    </div>
+                                    <div class="success-rate">
+                                        Success Rate: @card.BaseSuccessRate%
+                                    </div>
+                                </div>
+                                @if (card == CurrentNPC.TodaysExchangeCard)
+                                {
+                                    <div class="today-marker">Today's Selected Exchange</div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-deck">No exchange cards (only Mercantile NPCs have exchanges)</div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [CascadingParameter] public GameScreenBase GameScreen { get; set; }
+    [Inject] private NPCRepository NPCRepository { get; set; }
+    
+    private NPC CurrentNPC { get; set; }
+    private List<ConversationCard> ConversationCards { get; set; }
+    private List<ConversationCard> CrisisCards { get; set; }
+    
+    // Computed properties for conversation availability
+    private bool HasExchangeCards => CurrentNPC?.ExchangeDeck?.Any() == true;
+    private bool HasCrisisCards => CrisisCards?.Any() == true;
+    private bool HasGoalCards => (CurrentNPC?.LetterDeck?.Any() == true) || HasCrisisCards;
+    private int TotalGoalCards => (CurrentNPC?.LetterDeck?.Count ?? 0) + (CrisisCards?.Count ?? 0);
+    
+    protected override void OnInitialized()
+    {
+        LoadNPCData();
+    }
+    
+    private void LoadNPCData()
+    {
+        if (string.IsNullOrEmpty(GameScreen?.CurrentDeckViewerNpcId))
+        {
+            Console.WriteLine("[NPCDeckViewer] No NPC ID provided");
+            return;
+        }
+        
+        CurrentNPC = NPCRepository.GetById(GameScreen.CurrentDeckViewerNpcId);
+        if (CurrentNPC == null)
+        {
+            Console.WriteLine($"[NPCDeckViewer] NPC not found: {GameScreen.CurrentDeckViewerNpcId}");
+            return;
+        }
+        
+        // Get conversation cards
+        if (CurrentNPC.ConversationDeck != null)
+        {
+            ConversationCards = CurrentNPC.ConversationDeck.GetAllCards();
+        }
+        
+        // Get Crisis letters
+        if (CurrentNPC.CrisisDeck != null)
+        {
+            CrisisCards = CurrentNPC.CrisisDeck.GetAllCards();
+        }
+    }
+    
+    private void GoBack()
+    {
+        _ = GameScreen?.NavigateToScreen(ScreenMode.Location);
+    }
+    
+    private string GetCategoryClass(CardCategory category)
+    {
+        return category switch
+        {
+            CardCategory.COMFORT => "comfort",
+            CardCategory.STATE => "state",
+            CardCategory.CRISIS => "crisis",
+            CardCategory.EXCHANGE => "exchange",
+            CardCategory.LETTER => "letter",
+            _ => ""
+        };
+    }
+}

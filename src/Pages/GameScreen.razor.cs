@@ -11,7 +11,8 @@ namespace Wayfarer.Pages
         Location,
         Conversation,
         ObligationQueue,
-        Travel
+        Travel,
+        DeckViewer // Dev mode screen for viewing NPC decks
     }
 
     public class ScreenContext
@@ -62,6 +63,7 @@ namespace Wayfarer.Pages
         // Navigation State
         protected ConversationContext CurrentConversationContext { get; set; }
         protected int PendingLetterCount { get; set; }
+        public string CurrentDeckViewerNpcId { get; set; } // For dev mode deck viewer
 
         protected override async Task OnInitializedAsync()
         {
@@ -238,7 +240,7 @@ namespace Wayfarer.Pages
             return true;
         }
 
-        protected async Task NavigateToScreen(ScreenMode newMode)
+        public async Task NavigateToScreen(ScreenMode newMode)
         {
             if (!CanNavigateTo(newMode))
             {
@@ -354,6 +356,28 @@ namespace Wayfarer.Pages
         public async Task NavigateToQueue()
         {
             await NavigateToScreen(ScreenMode.ObligationQueue);
+        }
+        
+        public async Task NavigateToDeckViewer(string npcId)
+        {
+            Console.WriteLine($"[GameScreen] Navigating to deck viewer for NPC: {npcId}");
+            
+            // Store the NPC ID for the deck viewer to use
+            CurrentDeckViewerNpcId = npcId;
+            
+            // Store the NPC ID in the context for the deck viewer to use
+            var context = new ScreenContext
+            {
+                Mode = ScreenMode.DeckViewer,
+                EnteredAt = DateTime.Now,
+                StateData = new Dictionary<string, object>
+                {
+                    ["NpcId"] = npcId
+                }
+            };
+            _navigationStack.Push(context);
+            
+            await NavigateToScreen(ScreenMode.DeckViewer);
         }
 
         protected void HandleNavigationEvent(string eventType, object data)

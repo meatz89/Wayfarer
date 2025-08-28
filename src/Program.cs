@@ -23,8 +23,12 @@ Console.WriteLine("[STARTUP] Razor Pages and Blazor services added");
 Console.WriteLine("[STARTUP] Building configuration...");
 IConfigurationRoot configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
+    .AddJsonFile("appsettings.Development.json", optional: true)
     .Build();
 Console.WriteLine("[STARTUP] Configuration built");
+
+// Register IConfiguration for dependency injection
+builder.Services.AddSingleton<IConfiguration>(configuration);
 
 Console.WriteLine("[STARTUP] Configuring custom services...");
 builder.Services.ConfigureServices();

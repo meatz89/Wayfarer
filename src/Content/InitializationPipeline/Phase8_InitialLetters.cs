@@ -48,7 +48,7 @@ public class Phase8_InitialLetters : IInitializationPhase
                 elena.InitializeCrisisDeck();
                 if (elena.CrisisDeck != null)
                 {
-                    // Add the Desperate Promise crisis card per POC requirements
+                    // Add the Desperate Promise Crisis letter per POC requirements
                     var desperatePromiseCard = new ConversationCard
                     {
                         Id = "elena_desperate_promise",
@@ -80,7 +80,7 @@ public class Phase8_InitialLetters : IInitializationPhase
                     };
                     elena.CrisisDeck.AddCard(desperatePromiseCard);
                     
-                    Console.WriteLine($"  Added 'Desperate Promise' crisis card to Elena (40% success for instant letter)");
+                    Console.WriteLine($"  Added 'Desperate Promise' Crisis letter to Elena (40% success for instant letter)");
                 }
             }
         }

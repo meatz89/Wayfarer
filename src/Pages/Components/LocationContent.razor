@@ -83,6 +83,14 @@
                                     </span>
                                 </div>
                             }
+                            @if (DevMode?.ShowDeckViewer == true)
+                            {
+                                <div class="npc-action dev-mode-action" 
+                                     @onclick="() => ViewNPCDeck(npc.Id)">
+                                    <span class="action-type">🔍 View Deck (Dev)</span>
+                                    <span class="action-details">Debug Tool</span>
+                                </div>
+                            }
                         </div>
                     </div>
                 }

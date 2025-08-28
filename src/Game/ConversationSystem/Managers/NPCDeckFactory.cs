@@ -134,7 +134,7 @@ public class NPCDeckFactory
                 SuccessState = EmotionalState.TENSE,
                 FailureState = EmotionalState.GUARDED
             },
-            // Add CRISIS card for testing
+            // Add Crisis letter for testing
             new ConversationCard
             {
                 Id = Guid.NewGuid().ToString(),

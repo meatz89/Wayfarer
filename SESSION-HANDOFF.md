@@ -137,7 +137,7 @@ This is a tech demo, not a game. There's no fun, no tension, no meaningful choic
 - ✅ Card-based UI throughout (no buttons for game actions)
 - ✅ Token progression working (relationship building)
 - ✅ State transitions show target states (→ Eager, → Tense)
-- ✅ Crisis conversations don't auto-end (proper gameplay)
+- ✅ Conversations don't auto-end (proper gameplay)
 
 #### Letter & Queue Systems:
 - ✅ Letter generation from emotional states
@@ -361,7 +361,7 @@ This is a tech demo, not a game. There's no fun, no tension, no meaningful choic
 
 5. **UI FIXES** ✅ (Partial)
    - Card effect colors: green for success, red for failure
-   - Crisis card weight display in HOSTILE state
+   - Crisis letter weight display in HOSTILE state
    - Observation display with narrative after taking
    - File: `/src/wwwroot/css/conversation.css`
 
@@ -457,12 +457,12 @@ This is a tech demo, not a game. There's no fun, no tension, no meaningful choic
 
 ### WHAT I ACTUALLY FIXED:
 1. **Crisis conversations don't auto-complete** - ConversationType property used correctly
-2. **Crisis cards can be selected** - Fixed weight calculation to use GetEffectiveWeight()
+2. **Crisis letters can be selected** - Fixed weight calculation to use GetEffectiveWeight()
 3. **Exchanges execute** - Added GameFacade.ExecuteExchange() call that was missing
 4. **Card UI improved** - Added medieval styling, shadows, gradients
 
 ### WHAT ACTUALLY WORKS (Tested with Playwright):
-- ✅ Crisis conversation with Elena - played crisis card, failed, conversation continued
+- ✅ Crisis conversation with Elena - played Crisis letter, failed, conversation continued
 - ✅ Exchange with Bertram - paid 2 coins, received 3 attention (10/7 overflow works)
 - ✅ Resources update correctly - screenshot proof in `.playwright-mcp/exchange-fix-successful.png`
 - ✅ Attention now starts at 7/7 and persists properly

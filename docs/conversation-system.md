@@ -17,7 +17,7 @@ You are a letter carrier navigating the social and physical landscape of a medie
 ## Three Core Game Loops
 
 ### 1. Card-Based Conversations
-NPCs contain four decks (conversation, letter, crisis, exchange). Emotional states filter drawable cards during LISTEN. Through state navigation and single card plays, players build permanent token relationships and accept obligations. One statement per turn creates authentic dialogue rhythm.
+NPCs contain three decks (conversation, goal exchange). Emotional states filter drawable cards during LISTEN. Through state navigation and single card plays, players build permanent token relationships and accept obligations. One statement per turn creates authentic dialogue rhythm.
 
 ### 2. Obligation Queue Management  
 Forced sequential queue where position 1 MUST complete first. Players burn tokens to displace obligations, permanently damaging relationships for temporal flexibility. Queue position negotiated through letter card success/failure. Each obligation adds pressure through deadlines and queue positioning.
@@ -65,6 +65,158 @@ Daily allocation of 10 attention (modified by hunger):
 - **Wait**: 0 attention - pass time strategically
 
 ## Conversation System
+
+After extensive deliberation, here's the complete deck architecture that maintains elegant mechanical separation while enabling rich conversation options:
+
+### NPC Deck Structure
+
+Each NPC has THREE decks:
+
+1. Conversation Deck (20-30 cards)
+**Always Contains**:
+- 8-10 Comfort cards (various weights/depths)
+- 3-5 Token cards (NPC's preferred type)
+- 3-5 State cards (all weight 1, various depths)
+- 2-3 Knowledge cards
+- 0-X Burden cards (added through failures)
+
+**Draw Rules**: Standard emotional state filtering during LISTEN
+
+2. Goal Deck (Variable, 2-8 cards)
+**Can Contain**:
+- Letter goals (Trust/Commerce/Status/Shadow)
+- Promise goals (Meeting/Escort/Investigation)
+- Resolution goal (Remove Burdens)
+- Commerce goals (Special trades)
+- Crisis goals (Emergency situations)
+
+**Draw Rules**: NEVER drawn directly. ONE goal selected based on conversation type and shuffled into conversation deck copy.
+
+3. Exchange Deck (Mercantile NPCs only, 5-10 cards)
+**Contains**: Simple instant trades
+**Draw Rules**: Draw 1, accept or decline, conversation ends
+
+### Conversation Types & Requirements
+
+The **presence of specific cards determines available conversation options** on location screen:
+
+### Standard Conversation (Always Available)
+- **UI Label**: "Chat with [NPC]"
+- **Cost**: 2 attention
+- **Requirement**: None
+- **Goal**: None - pure relationship building
+- **Duration**: Full patience
+- **Purpose**: Token farming, state navigation practice
+
+### Letter Conversation
+- **UI Label**: "Discuss Letter"
+- **Cost**: 2 attention  
+- **Requirement**: Letter goal in NPC's goal deck
+- **Goal**: Appropriate letter goal shuffled in
+- **Duration**: Until goal played or patience depletes
+- **Purpose**: Accept delivery obligations
+
+### Resolution Conversation
+- **UI Label**: "Make Amends"
+- **Cost**: 2 attention
+- **Requirement**: 2+ burden cards in conversation deck
+- **Goal**: "Clear the Air" resolution goal shuffled in
+- **Duration**: Until goal played or patience depletes
+- **Purpose**: Remove burden cards, repair relationship
+
+### Promise Conversation
+- **UI Label**: Context-specific ("Arrange Meeting", "Discuss Escort")
+- **Cost**: 2 attention
+- **Requirement**: Promise goal in goal deck
+- **Goal**: Appropriate promise goal shuffled in
+- **Duration**: Until goal played or patience depletes
+- **Purpose**: Accept time/location obligations
+
+### Crisis Conversation  
+- **UI Label**: "Address Crisis"
+- **Cost**: 2 attention
+- **Requirement**: Crisis goal in goal deck + crisis trigger met
+- **Goal**: Crisis goal shuffled in
+- **Duration**: Until goal played (urgent!)
+- **Purpose**: Resolve emergency, prevent relationship damage
+
+### Commerce Conversation
+- **UI Label**: "Negotiate Deal"
+- **Cost**: 2 attention
+- **Requirement**: Commerce goal in goal deck
+- **Goal**: Commerce goal shuffled in
+- **Duration**: Until goal played or patience depletes
+- **Purpose**: Special trades with negotiated terms
+
+### Quick Exchange
+- **UI Label**: "Quick Trade"
+- **Cost**: 0 attention
+- **Requirement**: Exchange deck exists
+- **Goal**: None (instant resolution)
+- **Duration**: 1 card draw, accept/decline
+- **Purpose**: Simple resource trades
+
+### Goal Card Selection Rules
+
+When starting a conversation with a goal:
+
+1. **Identify conversation type** from player's choice
+2. **Select appropriate goal** from goal deck:
+   - Letter: Highest priority letter matching current state
+   - Promise: Most urgent promise
+   - Resolution: "Clear the Air" card
+   - Crisis: Active crisis goal
+   - Commerce: Best available commerce goal
+3. **Create conversation instance**: Copy conversation deck + selected goal
+4. **Shuffle goal into deck** at appropriate depth
+5. **Begin conversation** with standard rules
+
+### Example: Elena's Deck Configuration
+
+### Conversation Deck
+- 5 Trust comfort cards (W1-W3, D2-D14)
+- 3 Trust token cards (D5, D8, D12)
+- 4 State cards (D2, D5, D8, D14)
+- 2 Burden cards (from your past failure)
+- 2 Observation cards IN PLAYER DECK (D6, D9)
+
+### Goal Deck
+- "Marriage Refusal Letter" (Trust, D8, [Desperate/Tense])
+- "Personal Letter" (Trust, D10, [Open/Connected])
+- "Meet Tonight" (Promise, D5, [Any state])
+- "Clear the Air" (Resolution, always available when burdens exist)
+
+### Available Conversations at Location
+- **Make Amends** (burden cards present)
+- **Discuss Letter** (letter goals available)
+- **Chat** (always available)
+
+If player chooses "Discuss Letter" and Elena is Desperate, only "Marriage Refusal Letter" qualifies (state match). This goal shuffles into the conversation deck at depth 8.
+
+### The Goal Urgency Rule
+
+Once drawn, goal cards get the "Urgent" tag, creating authentic pressure:
+- **Turn 1 after draw**: Goal permanent in hand, - play or conversation fails
+
+This prevents ignoring important matters once revealed.
+
+## Deck Evolution Through Play
+
+**Successful Letter Delivery**: 
+- Adds 2 comfort cards to recipient's conversation deck
+- May add new goals to recipient's goal deck
+
+**Failed Delivery**:
+- Adds 2 burden cards to sender's conversation deck
+- Enables "Make Amends" conversation option
+
+**Promise Completion**:
+- Adds token cards to NPC's deck
+- May unlock new goal cards
+
+**Burden Resolution Success**:
+- Removes burden cards permanently
+- May add trust token cards
 
 ### Conversation Resources
 
@@ -214,7 +366,6 @@ At -3 momentum, automatic state degradation occurs:
 **Permanent Cards** (stay in hand):
 - Observations (expire after 24-48 hours)
 - Burden cards (must resolve)
-- Crisis cards (must address)
 - Letters (standing offers)
 
 **Fleeting Cards** (return to deck if unplayed):
@@ -677,7 +828,7 @@ Always have options:
 - Can wait if early
 - Can displace if desperate
 - State cards guaranteed in draws
-- Crisis cards weight 0 in crisis states
+- Crisis letters weight 0 in crisis states
 
 But each option costs something valuable.
 

@@ -105,7 +105,7 @@ Turn [X-1]: [EMOTIONAL_STATE] - Player [ACTION] - NPC said: "[TRUNCATED_DIALOGUE
 
 KEY MOMENTS THIS CONVERSATION:
 - [Any state changes]
-- [Any crisis cards played]
+- [Any Crisis letters played]
 - [Any special effects triggered]
 
 ESTABLISHED FACTS:
@@ -178,7 +178,7 @@ Task: Narrate a crisis moment with [NPC_NAME] in [EMOTIONAL_STATE] state.
 [All context layers]
 
 CRISIS CONTEXT:
-Crisis Card: [CARD_NAME] - [SUCCESS_CHANCE]% chance of [SUCCESS_EFFECT]
+Crisis letter: [CARD_NAME] - [SUCCESS_CHANCE]% chance of [SUCCESS_EFFECT]
 Stakes: Success: [POSITIVE_OUTCOME] / Failure: [NEGATIVE_OUTCOME]
 Patience Critical: [TURNS_REMAINING] turns left
 

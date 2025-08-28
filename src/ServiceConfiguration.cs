@@ -6,6 +6,9 @@ public static class ServiceConfiguration
     {
         Console.WriteLine("[SERVICE] Starting service configuration...");
 
+        // Register dev mode service (needs to be early for other services to use)
+        services.AddSingleton<DevModeService>();
+        
         // Register configuration
         Console.WriteLine("[SERVICE] Registering IContentDirectory...");
         services.AddSingleton<IContentDirectory>(_ => new ContentDirectory { Path = "Content" });

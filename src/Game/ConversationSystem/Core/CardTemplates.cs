@@ -189,7 +189,7 @@ public class CardContext
     public string ObservationDecayDescription { get; init; }
     
     /// <summary>
-    /// Special flag for crisis cards that generate letters on success
+    /// Special flag for Crisis letters that generate letters on success
     /// </summary>
     public bool GeneratesLetterOnSuccess { get; init; }
     
