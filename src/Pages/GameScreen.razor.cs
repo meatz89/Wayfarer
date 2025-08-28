@@ -43,17 +43,17 @@ namespace Wayfarer.Pages
         private SemaphoreSlim _stateLock = new(1, 1);
         private HashSet<IDisposable> _subscriptions = new();
 
-        // Resources Display
-        protected int Coins { get; set; }
-        protected int Health { get; set; }
-        protected int Food { get; set; }
-        protected int Attention { get; set; }
-        protected int MaxAttention { get; set; } = 10;
+        // Resources Display - Made public for child components to access for Perfect Information principle
+        public int Coins { get; set; }
+        public int Health { get; set; }
+        public int Food { get; set; }
+        public int Attention { get; set; }
+        public int MaxAttention { get; set; } = 10;
 
-        // Time Display
-        protected string CurrentTime { get; set; } = "";
-        protected string TimePeriod { get; set; } = "";
-        protected string MostUrgentDeadline { get; set; } = "";
+        // Time Display - Made public for child components to access for Perfect Information principle
+        public string CurrentTime { get; set; } = "";
+        public string TimePeriod { get; set; } = "";
+        public string MostUrgentDeadline { get; set; } = "";
 
         // Location Display
         protected string CurrentLocationPath { get; set; } = "";

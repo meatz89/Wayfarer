@@ -6,6 +6,20 @@
 /* Medieval font stack for better theming */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap');
 
+/* Resources Bar for Conversation Screen - Always Visible for Perfect Information */
+.conversation-resources {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: #1a1612;
+    color: #e8dcc4;
+    padding: 10px 20px;
+    border-bottom: 2px solid #3d3429;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 /* Conversation-specific container using common base */
 .game-container {
     width: 100%;

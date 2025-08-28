@@ -105,11 +105,9 @@ namespace Wayfarer.Pages.Components
                     messageSystem.AddSystemMessage("You listen carefully...", SystemMessageTypes.Info);
                 }
                 
-                // Get TokenMechanicsManager for letter deck checking
-                var tokenManager = GameFacade?.GetTokenMechanicsManager();
-                
-                // ExecuteListen is void, updates Session directly
-                Session.ExecuteListen(tokenManager);
+                // CRITICAL: Must use ConversationManager.ExecuteListen to properly handle letter delivery cards
+                // The ConversationManager will pass the correct managers to the session
+                ConversationManager.ExecuteListen();
                 
                 // Generate narrative for the action
                 GenerateListenNarrative();
@@ -188,49 +186,16 @@ namespace Wayfarer.Pages.Components
                 }
                 
                 // ExecuteSpeak expects HashSet<ConversationCard>
-                var result = Session.ExecuteSpeak(SelectedCards);
+                // CRITICAL: Must use ConversationManager.ExecuteSpeak to handle special card effects like letter delivery
+                var result = await ConversationManager.ExecuteSpeak(SelectedCards);
                 ProcessSpeakResult(result);
                 
                 // Add detailed notification for result
+                // NOTE: Exchange handling is done in ConversationManager.HandleSpecialCardEffectsAsync
+                // Letter delivery is also handled there - no need to duplicate logic here
                 if (messageSystem != null && result != null)
                 {
-                    // Check if this was an exchange and execute it
-                    if (exchangeCard != null)
-                    {
-                        if (result.Results?.Any(r => r.Success) == true)
-                        {
-                            if (exchangeCard.Context?.ExchangeName == "Pass on this offer")
-                            {
-                                messageSystem.AddSystemMessage("Exchange declined", SystemMessageTypes.Info);
-                            }
-                            else
-                            {
-                                // Actually execute the exchange through GameFacade
-                                if (exchangeCard.Context?.ExchangeData != null && Context?.NpcId != null)
-                                {
-                                    var exchangeSuccess = await GameFacade.ExecuteExchange(Context.NpcId, exchangeCard.Context.ExchangeData);
-                                    if (exchangeSuccess)
-                                    {
-                                        messageSystem.AddSystemMessage($"Exchange successful! Received {exchangeCard.Context?.ExchangeReward}", SystemMessageTypes.Success);
-                                    }
-                                    else
-                                    {
-                                        messageSystem.AddSystemMessage("Exchange failed: Insufficient resources", SystemMessageTypes.Warning);
-                                    }
-                                }
-                                else
-                                {
-                                    messageSystem.AddSystemMessage($"Exchange successful! Received {exchangeCard.Context?.ExchangeReward}", SystemMessageTypes.Success);
-                                }
-                            }
-                        }
-                        else if (result.Results?.Any(r => !r.Success) == true)
-                        {
-                            // Exchange failed - likely insufficient resources
-                            messageSystem.AddSystemMessage("Exchange failed: Insufficient resources", SystemMessageTypes.Warning);
-                        }
-                    }
-                    else if (result.Results?.Any() == true)
+                    if (result.Results?.Any() == true)
                     {
                         var successes = result.Results.Count(r => r.Success);
                         var failures = result.Results.Count(r => !r.Success);
