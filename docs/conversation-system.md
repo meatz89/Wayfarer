@@ -17,7 +17,7 @@ You are a letter carrier navigating the social and physical landscape of a medie
 ## Three Core Game Loops
 
 ### 1. Card-Based Conversations
-NPCs contain three decks (conversation, goal exchange). Emotional states filter drawable cards during LISTEN. Through state navigation and single card plays, players build permanent token relationships and accept obligations. One statement per turn creates authentic dialogue rhythm.
+NPCs contain three decks (conversation, goal, exchange). Emotional states filter drawable cards during LISTEN. Through state navigation and single card plays, players build permanent token relationships and accept obligations. One statement per turn creates authentic dialogue rhythm.
 
 ### 2. Obligation Queue Management  
 Forced sequential queue where position 1 MUST complete first. Players burn tokens to displace obligations, permanently damaging relationships for temporal flexibility. Queue position negotiated through letter card success/failure. Each obligation adds pressure through deadlines and queue positioning.
@@ -85,10 +85,8 @@ Each NPC has THREE decks:
 2. Goal Deck (Variable, 2-8 cards)
 **Can Contain**:
 - Letter goals (Trust/Commerce/Status/Shadow)
-- Promise goals (Meeting/Escort/Investigation)
+- Promise goals (Meeting)
 - Resolution goal (Remove Burdens)
-- Commerce goals (Special trades)
-- Crisis goals (Emergency situations)
 
 **Draw Rules**: NEVER drawn directly. ONE goal selected based on conversation type and shuffled into conversation deck copy.
 
