@@ -17,7 +17,7 @@ You are a letter carrier navigating the social and physical landscape of a medie
 ## Three Core Game Loops
 
 ### 1. Card-Based Conversations
-NPCs contain four decks (conversation, letter, crisis, exchange). Emotional states filter drawable cards during LISTEN. Through state navigation and single card plays, players build permanent token relationships and accept obligations. One statement per turn creates authentic dialogue rhythm.
+NPCs contain three decks (conversation, goal exchange). Emotional states filter drawable cards during LISTEN. Through state navigation and single card plays, players build permanent token relationships and accept obligations. One statement per turn creates authentic dialogue rhythm.
 
 ### 2. Obligation Queue Management  
 Forced sequential queue where position 1 MUST complete first. Players burn tokens to displace obligations, permanently damaging relationships for temporal flexibility. Queue position negotiated through letter card success/failure. Each obligation adds pressure through deadlines and queue positioning.
@@ -34,7 +34,7 @@ Routes between locations require access permits (no alternatives in route rules)
 - **Attention** (0-10): Daily action points
 
 ### Resource Interconnections
-- Morning attention: 10 - (Hunger÷25), minimum 2
+- Morning attention: 10 - (HungerÃ·25), minimum 2
 - Health below 50: Maximum conversation weight -1
 - At 100 hunger: Starvation begins, -5 health per period
 - Hunger affects player capability, not NPC patience
@@ -66,6 +66,158 @@ Daily allocation of 10 attention (modified by hunger):
 
 ## Conversation System
 
+After extensive deliberation, here's the complete deck architecture that maintains elegant mechanical separation while enabling rich conversation options:
+
+### NPC Deck Structure
+
+Each NPC has THREE decks:
+
+1. Conversation Deck (20-30 cards)
+**Always Contains**:
+- 8-10 Comfort cards (various weights/depths)
+- 3-5 Token cards (NPC's preferred type)
+- 3-5 State cards (all weight 1, various depths)
+- 2-3 Knowledge cards
+- 0-X Burden cards (added through failures)
+
+**Draw Rules**: Standard emotional state filtering during LISTEN
+
+2. Goal Deck (Variable, 2-8 cards)
+**Can Contain**:
+- Letter goals (Trust/Commerce/Status/Shadow)
+- Promise goals (Meeting/Escort/Investigation)
+- Resolution goal (Remove Burdens)
+- Commerce goals (Special trades)
+- Crisis goals (Emergency situations)
+
+**Draw Rules**: NEVER drawn directly. ONE goal selected based on conversation type and shuffled into conversation deck copy.
+
+3. Exchange Deck (Mercantile NPCs only, 5-10 cards)
+**Contains**: Simple instant trades
+**Draw Rules**: Draw 1, accept or decline, conversation ends
+
+### Conversation Types & Requirements
+
+The **presence of specific cards determines available conversation options** on location screen:
+
+### Standard Conversation (Always Available)
+- **UI Label**: "Chat with [NPC]"
+- **Cost**: 2 attention
+- **Requirement**: None
+- **Goal**: None - pure relationship building
+- **Duration**: Full patience
+- **Purpose**: Token farming, state navigation practice
+
+### Letter Conversation
+- **UI Label**: "Discuss Letter"
+- **Cost**: 2 attention  
+- **Requirement**: Letter goal in NPC's goal deck
+- **Goal**: Appropriate letter goal shuffled in
+- **Duration**: Until goal played or patience depletes
+- **Purpose**: Accept delivery obligations
+
+### Resolution Conversation
+- **UI Label**: "Make Amends"
+- **Cost**: 2 attention
+- **Requirement**: 2+ burden cards in conversation deck
+- **Goal**: "Clear the Air" resolution goal shuffled in
+- **Duration**: Until goal played or patience depletes
+- **Purpose**: Remove burden cards, repair relationship
+
+### Promise Conversation
+- **UI Label**: Context-specific ("Arrange Meeting", "Discuss Escort")
+- **Cost**: 2 attention
+- **Requirement**: Promise goal in goal deck
+- **Goal**: Appropriate promise goal shuffled in
+- **Duration**: Until goal played or patience depletes
+- **Purpose**: Accept time/location obligations
+
+### Crisis Conversation  
+- **UI Label**: "Address Crisis"
+- **Cost**: 2 attention
+- **Requirement**: Crisis goal in goal deck + crisis trigger met
+- **Goal**: Crisis goal shuffled in
+- **Duration**: Until goal played (urgent!)
+- **Purpose**: Resolve emergency, prevent relationship damage
+
+### Commerce Conversation
+- **UI Label**: "Negotiate Deal"
+- **Cost**: 2 attention
+- **Requirement**: Commerce goal in goal deck
+- **Goal**: Commerce goal shuffled in
+- **Duration**: Until goal played or patience depletes
+- **Purpose**: Special trades with negotiated terms
+
+### Quick Exchange
+- **UI Label**: "Quick Trade"
+- **Cost**: 0 attention
+- **Requirement**: Exchange deck exists
+- **Goal**: None (instant resolution)
+- **Duration**: 1 card draw, accept/decline
+- **Purpose**: Simple resource trades
+
+### Goal Card Selection Rules
+
+When starting a conversation with a goal:
+
+1. **Identify conversation type** from player's choice
+2. **Select appropriate goal** from goal deck:
+   - Letter: Highest priority letter matching current state
+   - Promise: Most urgent promise
+   - Resolution: "Clear the Air" card
+   - Crisis: Active crisis goal
+   - Commerce: Best available commerce goal
+3. **Create conversation instance**: Copy conversation deck + selected goal
+4. **Shuffle goal into deck** at appropriate depth
+5. **Begin conversation** with standard rules
+
+### Example: Elena's Deck Configuration
+
+### Conversation Deck
+- 5 Trust comfort cards (W1-W3, D2-D14)
+- 3 Trust token cards (D5, D8, D12)
+- 4 State cards (D2, D5, D8, D14)
+- 2 Burden cards (from your past failure)
+- 2 Observation cards IN PLAYER DECK (D6, D9)
+
+### Goal Deck
+- "Marriage Refusal Letter" (Trust, D8, [Desperate/Tense])
+- "Personal Letter" (Trust, D10, [Open/Connected])
+- "Meet Tonight" (Promise, D5, [Any state])
+- "Clear the Air" (Resolution, always available when burdens exist)
+
+### Available Conversations at Location
+- **Make Amends** (burden cards present)
+- **Discuss Letter** (letter goals available)
+- **Chat** (always available)
+
+If player chooses "Discuss Letter" and Elena is Desperate, only "Marriage Refusal Letter" qualifies (state match). This goal shuffles into the conversation deck at depth 8.
+
+### The Goal Urgency Rule
+
+Once drawn, goal cards get the "Urgent" tag, creating authentic pressure:
+- **Turn 1 after draw**: Goal permanent in hand, - play or conversation fails
+
+This prevents ignoring important matters once revealed.
+
+## Deck Evolution Through Play
+
+**Successful Letter Delivery**: 
+- Adds 2 comfort cards to recipient's conversation deck
+- May add new goals to recipient's goal deck
+
+**Failed Delivery**:
+- Adds 2 burden cards to sender's conversation deck
+- Enables "Make Amends" conversation option
+
+**Promise Completion**:
+- Adds token cards to NPC's deck
+- May unlock new goal cards
+
+**Burden Resolution Success**:
+- Removes burden cards permanently
+- May add trust token cards
+
 ### Conversation Resources
 
 **Comfort** (Temporary)
@@ -96,7 +248,7 @@ Daily allocation of 10 attention (modified by hunger):
 **Quick Exchange** (0 attention, instant)
 - Mercantile NPCs only
 - Draw 1 card from exchange deck
-- Shows exact cost→reward trade
+- Shows exact costâ†’reward trade
 - Accept or refuse
 - No emotional states, patience, or goals
 
@@ -131,7 +283,7 @@ Each turn costs 1 patience. Choose:
 - Card resolves based on success/failure
 - Success: Momentum +1 (capped at +3)
 - Failure: Momentum -1 (minimum -3)
-- Success rate = Base + (Tokens × 5%), clamped 5%-95%
+- Success rate = Base + (Tokens Ã— 5%), clamped 5%-95%
 - Playing goal card ends conversation immediately
 - Fleeting cards return to deck if unplayed
 
@@ -143,69 +295,71 @@ States form a web, not a linear progression. Any state can transition to any oth
 
 **State Definitions and Momentum Effects**:
 
-**DESPERATE** (Crisis Mode)
-- Listen: Draws Trust and Crisis cards + 1 guaranteed state card
-- Speak: Maximum Light weight only (crisis cards weight becomes 0)
+**DESPERATE** (Crisis State)
+- Listen: Draws Trust cards + 1 guaranteed state card
+- Speak: Maximum Light (W1)
 - Momentum Effect: Each point reduces patience cost by 1 (minimum 0 patience per turn)
-- Goal cards: Crisis and urgent promises
+- Goal cards: Delivery with urgent deadlines
 
-**TENSE** (Stressed)  
-- Listen: Draws Shadow cards + 1 guaranteed state card
-- Speak: Maximum Medium weight
-- Momentum Effect: Positive momentum makes observation cards weight 0
-- Goal cards: Shadow promises, burden resolution
+**HOSTILE** (Aggressive State)
+- Listen: Draw burden cards only, conversation ends after turn
+- Speak: Light only (W1)
+- Momentum Effect: None (conversation ending)
+- Goal cards: None
 
-**NEUTRAL** (Baseline)
-- Listen: Draws all types equally + 1 guaranteed state card
-- Speak: Maximum Heavy weight
-- Momentum Effect: None (balanced state)
-- Goal cards: Commerce, routine promises
-
-**GUARDED** (Defensive)
-- Listen: Draws state cards only
-- Speak: Maximum Medium weight
-- Momentum Effect: Negative momentum increases card weight by 1 category per point
-- Goal cards: None typically (too suspicious)
-
-**OPEN** (Receptive)
-- Listen: Draws Trust and Token cards + 1 guaranteed state card
-- Speak: Maximum Heavy weight
-- Momentum Effect: Positive momentum adds +1 comfort to successful comfort cards
-- Goal cards: Trust promises, personal requests
-
-**EAGER** (Excited)
-- Listen: Draws Commerce and Token cards + 1 guaranteed state card
-- Speak: Maximum Heavy weight
-- Momentum Effect: Each point of momentum adds +5% to token card success
-- Goal cards: Commerce promises with bonus potential
-
-**OVERWHELMED** (Overloaded)
+**OVERWHELMED** (Overloaded State)
 - Listen: Draw 1 card only (no guaranteed state)
-- Speak: Maximum Light weight only
+- Speak: Maximum Light (W1)
 - Momentum Effect: Positive momentum allows drawing 1 additional card
 - Goal cards: None (cannot focus)
 
-**CONNECTED** (Deep Bond)
-- Listen: Draws 60% Token, 40% any + 1 guaranteed state card
-- Speak: Maximum Heavy weight (plus momentum allows heavier plays)
-- Momentum Effect: Positive momentum allows playing one weight category higher
-- Goal cards: All types available
+**TENSE** (Stressed State)  
+- Listen: Draws Shadow cards + 1 guaranteed state card
+- Speak: Maximum Medium (W2)
+- Momentum Effect: Positive momentum makes observation cards weight 0
+- Goal cards: Shadow promises, burden resolution
 
-**HOSTILE** (Aggressive)
-- Listen: Draw crisis cards only, conversation ends after turn
-- Speak: Crisis cards only
-- Momentum Effect: None (conversation ending)
-- Goal cards: None
+**GUARDED** (Defensive State)
+- Listen: Draws state cards only
+- Speak: Maximum Medium (W2)
+- Momentum Effect: Negative momentum increases card weight by |momentum|
+- Goal cards: None typically (too suspicious)
+
+**NEUTRAL** (Baseline State)
+- Listen: Draws all types equally + 1 guaranteed state card
+- Speak: Maximum Heavy (W3)
+- Momentum Effect: None (balanced state)
+- Goal cards: Commerce, routine promises
+
+**OPEN** (Receptive State)
+- Listen: Draws Trust and Token cards + 1 guaranteed state card
+- Speak: Maximum Heavy (W3)
+- Momentum Effect: Positive momentum adds +1 comfort to successful comfort cards
+- Goal cards: Trust promises, personal requests
+
+**EAGER** (Excited State)
+- Listen: Draws Commerce and Token cards + 1 guaranteed state card
+- Speak: Maximum Heavy (W3)
+- Momentum Effect: Each point of momentum adds +5% to token card success
+- Goal cards: Commerce promises with bonus potential
+
+**CONNECTED** (Deep Bond State)
+- Listen: Draws 60% Token, 40% any + 1 guaranteed state card
+- Speak: Maximum Heavy (W3)
+- Momentum Effect: Momentum increases maximum weight capacity (can play W3 even in crisis states at +3 momentum)
+- Goal cards: All types available
 
 ### Momentum Degradation
 
 At -3 momentum, automatic state degradation occurs:
-- Positive states (Open/Eager/Connected) → Neutral
-- Neutral → Guarded  
-- Negative states (Guarded/Tense) → Hostile
-- Desperate → Hostile
-
-This creates predictable downward spirals that must be avoided through successful play.
+- Connected â†’ Tense (trust broken)
+- Open â†’ Guarded (walls go up)
+- Eager â†’ Neutral (enthusiasm dies)
+- Neutral â†’ Tense (patience wears)
+- Desperate â†’ Hostile (crisis boils over)
+- Overwhelmed â†’ Neutral (mental reset)
+- Guarded â†’ Hostile (paranoia escalates)
+- Others â†’ Tense (default degradation)
 
 ### Card Persistence Rules
 
@@ -224,12 +378,17 @@ Fleeting cards don't vanish - they shuffle back into the NPC's deck and may be d
 
 ### Weight as Emotional Intensity
 
-Weight represents emotional intensity, not cognitive load:
-- Light: Gentle, simple statements
-- Medium: Normal conversational depth
-- Heavy: Complex or deeply charged statements
+Weight represents emotional intensity:
+- **Light (W1)**: Gentle, simple statements
+- **Medium (W2)**: Normal conversational depth
+- **Heavy (W3)**: Complex or emotionally charged statements
 
-States limit maximum processable weight. Cannot overwhelm someone already Overwhelmed.
+States limit maximum processable weight:
+- Crisis states: Maximum Light (W1)
+- Cautious states: Maximum Medium (W2)
+- Open states: Maximum Heavy (W3)
+
+Cannot overwhelm someone already overwhelmed.
 
 ### Patience Calculation
 
@@ -251,8 +410,7 @@ Modifiers (NPC-specific only):
 Every card contains:
 - **Type**: Determines effect pool
 - **Depth**: 0-20, determines comfort requirement
-- **Weight**: 1-5, emotional intensity
-- **Token Type**: Trust/Commerce/Status/Shadow (if applicable)
+- **Weight**: Light/Medium/Heavy (W1/W2/W3)
 - **Success Rate**: Base percentage before tokens
 - **Success Effect**: What happens on success
 - **Failure Effect**: What happens on failure
@@ -278,9 +436,9 @@ Every card contains:
 
 **Comfort Cards**
 - Effect: Modify comfort value ONLY
-- Weight 1: +2 comfort (success) / -1 comfort (failure) at 65% base
-- Weight 2: +4 comfort (success) / -1 comfort (failure) at 55% base
-- Weight 3: +8 comfort (success) / -2 comfort (failure) at 45% base
+- Light (W1): +2 comfort (success) / -1 comfort (failure) at 70% base
+- Medium (W2): +4 comfort (success) / -1 comfort (failure) at 60% base
+- Heavy (W3): +8 comfort (success) / -2 comfort (failure) at 45% base
 - Higher depths may have better ratios
 - Persistence: Fleeting
 
@@ -293,8 +451,9 @@ Every card contains:
 
 **State Cards**
 - Effect: Change emotional state ONLY
-- All Weight 1 for accessibility
+- All Light (W1) for accessibility
 - Exist at all depth levels (0-20)
+- Emergency transitions available at depths 0-3 from every state
 - Can transition from ANY state to ANY other
 - Success: Specific state transition
 - Failure: State unchanged
@@ -302,19 +461,14 @@ Every card contains:
 
 **Goal Cards** (One per conversation, shuffled into deck)
 - Effect: Define conversation objective and create obligations
-- Types: Promise (letters, meetings, escorts), Resolution (burden removal), Commerce (special trades), Crisis
+- Types: Delivery (letters/items), Meeting (time-fixed), Resolution (burden removal), Connection (relationship milestones)
 - Requirements: Specific emotional states + depth
 - Success: Favorable terms (deadline, payment, queue position)
 - Failure: Unfavorable terms or partial resolution
+- Token bonus: +10% per matching token type for negotiation
 - Playing ends conversation immediately
 - Persistence: Permanent once drawn
 - **Urgency Rule**: Must play within 3 turns of drawing or conversation fails
-
-**Knowledge Cards**
-- Effect: Create observation card in hand ONLY
-- Success: Add specific observation
-- Failure: No observation created
-- Found in conversation decks
 
 **Exchange Cards**
 - Effect: Simple resource trades ONLY
@@ -326,39 +480,35 @@ Every card contains:
 **Burden Cards**
 - Effect: Block hand slots ONLY
 - Added through failures and displacements
-- Weight 2, negative effects
+- Medium (W2) weight
 - Success: Remove from deck
 - Failure: Remains in deck
 - Persistence: Permanent until resolved
 
-**Crisis Cards**
-- Effect: Force state changes or add burdens
-- Weight 5 (becomes 0 in crisis states)
-- Success (40% base, +10% per matching token): Crisis resolved
-- Failure (60%): +2 burden cards
-- Persistence: Permanent until resolved
-
 **Observation Cards**
 - Effect: State change ONLY
-- Gained from location observations (1 attention cost) or knowledge cards
-- Weight 0-2 (flexible based on observation type)
+- Gained from location observations (1 attention) or appear in NPC decks
+- Light (W1) weight typically
 - Success rate: 85%
+- When drawn from deck: Gained permanently instead of played
+- When from location: Added to hand
 - Expire after 24-48 hours
 - Persistence: Permanent until expired
 
 ### Success Rate Calculation
 Base success by weight:
-- Light (W1): 60%
-- Medium (W2): 50%
-- Heavy (W3): 40%
+- Weight 1: 65%
+- Weight 2: 55%
+- Weight 3: 45%
+- Weight 4: 35%
+- Weight 5: 25%
 
 Token modification:
-- Regular cards: +5% per matching token
-- Goal/Crisis cards: +10% per matching token
+- Each matching token: +5% success
 - Applied to ALL card types equally
 - Can go negative (damaged relationships)
 
-Final rate = Base + (Token Bonus), clamped 5%-95%
+Final rate = Base + (Tokens Ã— 5%), clamped 5%-95%
 
 ## NPC System
 
@@ -384,7 +534,7 @@ Final rate = Base + (Token Bonus), clamped 5%-95%
 
 Goal cards require TWO aligned conditions:
 1. Current emotional state matches goal's valid states
-2. Current comfort ≥ goal's depth
+2. Current comfort â‰¥ goal's depth
 
 During LISTEN, goal cards drawn become permanent in hand and trigger the urgency rule (3 turns to play).
 
@@ -421,38 +571,26 @@ Tokens affect success chance when playing the goal card (+5% per matching token)
 
 ### Promise Types
 
-Promise cards (goal cards) create various obligations when played:
+Promise cards (goal cards) create three types of obligations:
 
-**Letter Promise**: Deliver correspondence
+**Delivery Promise**: Transport items or letters
 - Type: Trust/Commerce/Status/Shadow
 - Creates: Delivery obligation to specific NPC
 - Payment: 5-20 coins based on negotiation
 - Deck Effect: Cards added to recipient upon delivery
+- Can be displaced in queue
 
-**Meeting Promise**: Attend scheduled meeting
+**Meeting Promise**: Attend scheduled appointment
 - Creates: Be at specific location at specific time
 - Cannot be displaced (time-fixed)
 - Payment: Information or tokens typically
+- Failure has severe consequences
 
-**Escort Promise**: Guide NPC between locations  
-- Creates: Pick up and deliver NPC
-- Requires return journey
-- Payment: High coin rewards
-
-**Investigation Promise**: Gather specific information
-- Creates: Obtain specific observation card
-- Requires exploration
-- Payment: Knowledge cards or permits
-
-**Retrieval Promise**: Find and return item
-- Creates: Locate item at specific location
-- May require multiple conversations
-- Payment: Items or resources
-
-**Introduction Promise**: Connect two NPCs
-- Creates: Bring two NPCs together
-- Complex routing puzzle
-- Payment: Network effects
+**Resolution Promise**: Fix problems
+- Creates: Remove burden cards from NPC deck
+- Requires: Successful resolution through card play
+- Payment: Relationship repair, special rewards
+- Rebuilds damaged relationships
 
 ### Promise Negotiation
 
@@ -461,14 +599,15 @@ When playing a promise card (goal card):
 - Failure: Unfavorable terms (tight deadline, poor payment, forced position)
 - Token bonus: +10% per matching token type for negotiation
 
-Base rates by promise difficulty:
-- Easy promises: 50% base (routine deliveries, simple meetings)
-- Standard promises: 45% base (most letters, investigations)
-- Hard promises: 40% base (crisis resolutions, dangerous tasks)
+Specific base rates by promise type:
+- Urgent promises: 50% base (crisis situations)
+- Commerce promises: 45% base (transactional)
+- Trust promises: 40% base (personal risk)
+- Shadow promises: 35% base (dangerous)
 
 ### Access Permits
 
-Special promise type that:
+Special delivery type that:
 - Occupy satchel space
 - Have no delivery obligation
 - Enable specific routes/locations
@@ -541,9 +680,9 @@ Creates observation card in hand:
 - Refresh each time period
 
 **Conversation Cards**: Knowledge cards create observations
-- "Ask About Routes" → Travel state change
-- "Request Information" → Contextual state change
-- "Ask About Work" → Creates work opportunity at location
+- "Ask About Routes" â†’ Travel state change
+- "Request Information" â†’ Contextual state change
+- "Ask About Work" â†’ Creates work opportunity at location
 
 ### Expiration
 - 24-48 hours depending on type
@@ -573,12 +712,12 @@ Success passes, failure costs resources.
 Four daily periods advancing naturally:
 - **Morning** (6-12): Attention refresh, shops opening, NPCs fresh
 - **Afternoon** (12-18): Peak activity, all NPCs available
-- **Evening** (18-24): Shops closing, taverns peak, social time
+- **Evening** (18-24): Social time, taverns busy, shops closing
 - **Night** (24-6): Dangerous, most closed, special encounters
 
 Time advances through:
 - Travel: Each route costs specific time
-- Work actions: Advance one full period
+- Work actions: Advance one full period (6 hours)
 - Rest actions: Skip to next morning
 - Wait actions: Skip to next time block
 - Natural progression: Time passes during lengthy activities
@@ -586,21 +725,16 @@ Time advances through:
 ## Location Structure
 
 ### Hierarchy
-Region → District → Location → Spot
+Region â†’ District â†’ Location â†’ Spot
 
 Example:
-Lower Wards → Market District → Central Square → Fountain
+Lower Wards â†’ Market District â†’ Central Square â†’ Fountain
 
 ### Spot Properties
 
 - **Crossroads**: Enables travel to other locations
-- **Commercial**: Enables work actions
-- **Private**: +1 patience modifier in conversations
-- **Public**: -1 patience modifier in conversations
-- **Discrete**: Hidden from authority
-- **Hospitality**: Offers rest exchanges
-- **Authority**: Guards present
-- **Tense**: Adds pressure to conversations
+- **Commercial**: Enables work actions and quick exchanges
+- **Private**: +2 patience modifier in conversations
 
 Movement between spots within a location is instant and free.
 
@@ -615,15 +749,15 @@ Available at Commercial spots or through knowledge cards:
 
 ### Rest Exchanges
 Available at Hospitality spots:
-- "Quick Nap": 2 coins → +3 attention, advance 2 hours
-- "Full Rest": 5 coins → Full refresh, advance to morning
-- "Hot Meal": 2 coins → Hunger = 0
-- "Luxury": 10 coins → Full refresh + health restoration
+- "Quick Nap": 2 coins â†’ +3 attention, advance 2 hours
+- "Full Rest": 5 coins â†’ Full refresh, advance to morning
+- "Hot Meal": 2 coins â†’ Hunger = 0
+- "Luxury": 10 coins â†’ Full refresh + health restoration
 
 ## Morning Refresh
 At 6 AM daily:
 1. Base attention = 10
-2. Subtract (Hunger ÷ 25)
+2. Subtract (Hunger Ã· 25)
 3. Minimum = 2 attention
 
 Example: 60 hunger = 10 - 2 = 8 attention
@@ -666,13 +800,13 @@ Letters require aligned conditions across multiple meetings:
 Deadlines force tactical compromises.
 
 ### Resource Conversion Loops
-- Time → Money (work actions)
-- Money → Attention (rest exchanges)
-- Money → Hunger relief (food exchanges)
-- Attention → Progress (conversations/observations)
-- Progress → Money (complete obligations)
-- Tokens → Success rates (linear improvement)
-- Tokens → Queue flexibility (displacement cost)
+- Time â†’ Money (work actions)
+- Money â†’ Attention (rest exchanges)
+- Money â†’ Hunger relief (food exchanges)
+- Attention â†’ Progress (conversations/observations)
+- Progress â†’ Money (complete obligations)
+- Tokens â†’ Success rates (linear improvement)
+- Tokens â†’ Queue flexibility (displacement cost)
 
 ### Scheduling Puzzle
 - NPC availability windows
@@ -720,10 +854,10 @@ Every element defined mechanically:
 ### AI Translation
 
 AI translates mechanical state contextually:
-- Same card → Different narrative per NPC
-- Emotional states → Appropriate dialogue
-- Observation cards → Discovery scenes
-- Letter delivery → Relationship evolution
+- Same card â†’ Different narrative per NPC
+- Emotional states â†’ Appropriate dialogue
+- Observation cards â†’ Discovery scenes
+- Letter delivery â†’ Relationship evolution
 
 **Card Text**: What player says based on type and effect
 - Comfort: "I understand your situation"
