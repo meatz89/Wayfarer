@@ -87,7 +87,6 @@ All Weight 1 for accessibility regardless of depth.
 - **Promise Conversation**: Meeting/Escort/Investigation goal
 - **Resolution Conversation**: Burden removal goal
 - **Commerce Conversation**: Special trade goal
-- **Crisis Conversation**: Emergency resolution goal
 
 **The Urgency Rule**: Once drawn, gains Goal persistence - must be played within 3 turns or conversation fails. This creates authentic pressure - important matters can't be ignored.
 
@@ -127,16 +126,6 @@ All Weight 1 for accessibility regardless of depth.
 
 **Strategic Role**: Permanent consequence of failed relationships. Forces suboptimal turns to clear, reducing conversation efficiency.
 
-### Crisis Cards
-**Single Effect**: Emergency resolution
-
-**High Stakes**:
-- Weight 5 (becomes 0 in Desperate state)
-- Success (40%): Crisis resolved, +1 token
-- Failure (60%): +2 burden cards
-
-**Strategic Role**: Forced plays in crisis states. Low success rate creates tension - do you have tokens to improve odds?
-
 ## Emotional State Strategy with Momentum
 
 ### State Web Navigation
@@ -144,7 +133,7 @@ All Weight 1 for accessibility regardless of depth.
 States connect as a web, not a track. Strategic considerations for each:
 
 **DESPERATE** (Crisis State)
-- Draws: Trust and Crisis cards
+- Draws: Trust cards
 - Weight limit: 1 (crisis weight 0)
 - Momentum: Reduces patience cost (-1 per point, min 0)
 - Goals Available: Crisis, urgent letters
@@ -208,12 +197,11 @@ States connect as a web, not a track. Strategic considerations for each:
 - Strategy: Maintain positive momentum for heavy plays
 
 **HOSTILE** (End State)
-- Draws: Crisis cards only
+- Draws: NO cards
 - Weight limit: 1
 - Momentum: No effect
 - Goals Available: None
-- Conversation ends after next turn
-- Strategy: Last chance crisis resolution only
+- Conversation ends immediately
 
 ## Multi-Turn Tactics
 
@@ -289,12 +277,6 @@ Common paths based on goals:
 3. Accumulate comfort to letter depth
 4. Play letter card when available
 
-**Crisis Management Path**:
-1. Stay in Desperate (crisis cards weight 0)
-2. Play crisis cards until resolved
-3. Use state card to escape
-4. Rebuild from stable state
-
 **Commerce Optimization Path**:
 1. Navigate to Eager
 2. Farm Commerce tokens
@@ -362,7 +344,6 @@ Every card type has different failure cost:
 - Letter: Poor terms (still get letter)
 - Observation: No effect (wasted turn)
 - Burden: Remains in deck (permanent problem)
-- Crisis: +2 burdens (major setback)
 
 Weight failure costs against potential gains.
 
@@ -371,7 +352,6 @@ Weight failure costs against potential gains.
 Always have options:
 - State cards at depth 1-3 (always accessible)
 - Weight 1 cards always playable (minimum capacity)
-- Crisis cards become weight 0 in Desperate
 - Observations provide backup state changes
 - Can leave and return later
 - Can work/wait to reset

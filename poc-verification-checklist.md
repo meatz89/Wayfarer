@@ -105,7 +105,7 @@
 - [ ] **ACTION**: Click Elena
 - [ ] **SCREENSHOT**: Available conversation types
 - [ ] **VERIFY OPTIONS**:
-  - [ ] "Letter Offer" (Elena has Crisis Letter in deck)
+  - [ ] "Letter Offer" (Elena has  Letter in deck)
   - [ ] "Burden Resolution" (Elena has 2 burden cards)
 - [ ] **VERIFY**: Only conversation types for cards in deck shown
 
@@ -117,7 +117,7 @@
 
 ### 7.3 Letter Offer Conversation
 - [ ] **ACTION**: Select "Letter Offer" conversation  
-- [ ] **VERIFY**: ONE letter goal card shuffled in (Crisis Letter)
+- [ ] **VERIFY**: ONE promise goal card shuffled in Deck (letter)
 - [ ] **VERIFY**: NO burden resolution cards (wrong conversation type)
 - [ ] **SCREENSHOT**: Conversation screen loads
 - [ ] **VERIFY HEADER**:
@@ -154,7 +154,7 @@
 
 ### 7.8 Letter Card Draw and Play
 - [ ] **ACTION**: LISTEN when comfort ≥ 7
-- [ ] **VERIFY**: "Crisis Letter" goal card drawn
+- [ ] **VERIFY**: "Letter" goal card drawn
 - [ ] **VERIFY**: 3-turn urgency rule activated
 - [ ] **ACTION**: Play letter card within 3 turns
 - [ ] **VERIFY**: Negotiation success/failure

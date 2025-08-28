@@ -293,17 +293,22 @@ public class CardDeck : IEnumerable<ICard>
     }
     
     /// <summary>
-    /// Draw cards filtered by category
+    /// Draw cards filtered by type
     /// </summary>
-    public List<ICard> DrawFilteredByCategory(int count, int currentComfort, CardCategory category)
+    public List<ICard> DrawFilteredByType<T>(int count, int currentComfort) where T : ICard
     {
         var drawn = new List<ICard>();
         
-        // Only ConversationCards have Category and Depth
+        // Filter by card type and depth if applicable
         var availableCards = cards
             .Where(c => {
-                if (c is ConversationCard convCard)
-                    return (convCard.Depth <= currentComfort || convCard.Depth == 0) && convCard.Category == category;
+                if (c is T)
+                {
+                    // Check depth if it's a ConversationCard
+                    if (c is ConversationCard convCard)
+                        return convCard.Depth <= currentComfort || convCard.Depth == 0;
+                    return true;
+                }
                 return false;
             })
             .ToList();
@@ -449,7 +454,6 @@ public class CardDeck : IEnumerable<ICard>
             Persistence = PersistenceType.Goal,
             Weight = 0, // Free in crisis
             BaseComfort = 8,
-            Category = CardCategory.BURDEN,
             DisplayName = "Crisis Moment",
             Description = $"{npc.Name} needs immediate help!",
             SuccessRate = 35
@@ -466,7 +470,7 @@ public class CardDeck : IEnumerable<ICard>
         // Add universal cards from GameWorld
         var universalCards = _gameWorld.AllCardDefinitions.Values
             .Where(c => string.IsNullOrEmpty(c.Context?.NPCName) || c.Id.Contains(npc.ID))
-            .Where(c => c.IsGoalCard != true && c.Category != CardCategory.BURDEN);
+            .Where(c => c.IsGoalCard != true && !(c is BurdenCard));
 
         foreach (var card in universalCards)
         {
@@ -488,23 +492,5 @@ public class CardDeck : IEnumerable<ICard>
         return cards;
     }
 
-    /// <summary>
-    /// Get crisis cards for an NPC from GameWorld templates
-    /// </summary>
-    private List<ICard> GetCrisisCards(NPC npc)
-    {
-        var cards = new List<ICard>();
-        
-        var crisisCards = _gameWorld.AllCardDefinitions.Values
-            .Where(c => c.Category == CardCategory.BURDEN)
-            .Where(c => string.IsNullOrEmpty(c.Context?.NPCName) || c.Id.Contains(npc.ID));
-
-        foreach (var card in crisisCards)
-        {
-            cards.Add(card);
-        }
-
-        return cards;
-    }
 
 }

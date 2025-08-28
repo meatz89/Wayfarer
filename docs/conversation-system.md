@@ -365,7 +365,6 @@ At -3 momentum, automatic state degradation occurs:
 **Persistent Cards** (stay in hand):
 - Observations (expire after 24-48 hours)
 - Burden cards (must resolve)
-- Crisis cards (must address)
 - Letters (standing offers)
 
 **Fleeting Cards** (return to deck if unplayed):
@@ -846,7 +845,6 @@ Always have options:
 - Can wait if early
 - Can displace if desperate
 - State cards guaranteed in draws
-- Crisis cards weight 0 in crisis states
 
 But each option costs something valuable.
 

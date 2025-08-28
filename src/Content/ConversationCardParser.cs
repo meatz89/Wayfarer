@@ -149,25 +149,6 @@ public class ConversationCardParser
         };
     }
 
-    /// <summary>
-    /// Get crisis cards for an NPC
-    /// </summary>
-    public List<ConversationCard> GetCrisisCards(NPC npc)
-    {
-        var cards = new List<ConversationCard>();
-        
-        var crisisCards = _cardTemplates.Values
-            .Where(c => c.Category == CardCategory.BURDEN)
-            .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID);
-
-        foreach (var cardDto in crisisCards)
-        {
-            cards.Add(ConvertDTOToCard(cardDto, npc));
-        }
-
-        return cards;
-    }
-
     private ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null)
     {
         // Parse template

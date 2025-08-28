@@ -110,35 +110,23 @@ public class NPC
     public bool HasPromiseCards()
     {
         if (GoalDeck == null) return false;
-        return GoalDeck.GetAllCards().Any(c => c is ConversationCard conv && conv.Category == CardCategory.PROMISE);
+        return GoalDeck.GetAllCards().Any(c => c is PromiseCard);
     }
     
     // Check if NPC has crisis cards in their goal deck
     public bool HasCrisisCards()
     {
-        if (GoalDeck == null) return false;
-        return GoalDeck.GetAllCards().Any(c => 
-            c is ConversationCard conv && conv.Category == CardCategory.CRISIS);
+        // Crisis system removed - no crisis cards
+        return false;
     }
     
-    // Crisis deck - subset of goal deck containing crisis cards
-    // This is a virtual deck created from goal cards
+    // Crisis deck - removed, crisis system no longer used
     public CardDeck CrisisDeck
     {
         get
         {
-            var crisisDeck = new CardDeck();
-            if (GoalDeck != null)
-            {
-                // CLEAN DESIGN: Check ONLY Category, which is the mechanical property
-                var crisisCards = GoalDeck.GetAllCards()
-                    .Where(c => c is ConversationCard conv && conv.Category == CardCategory.CRISIS);
-                foreach (var card in crisisCards)
-                {
-                    crisisDeck.AddCard(card);
-                }
-            }
-            return crisisDeck;
+            // Return empty deck - crisis system removed
+            return new CardDeck();
         }
     }
     
@@ -159,10 +147,9 @@ public class NPC
     {
         if (ConversationDeck == null) return 0;
         
-        // CLEAN DESIGN: Burden cards are identified ONLY by their Category
-        // Category determines what a card DOES mechanically
+        // Burden cards are identified by their type
         return ConversationDeck.GetAllCards()
-            .Count(card => card is ConversationCard conv && conv.Category == CardCategory.BURDEN);
+            .Count(card => card is BurdenCard);
     }
     
     // Check if NPC has exchange cards available

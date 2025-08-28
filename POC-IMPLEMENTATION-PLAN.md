@@ -34,7 +34,7 @@ This document provides a brutally honest assessment of what needs to be implemen
 **Documentation Requirements:**
 - One goal card shuffled per conversation
 - 3-turn urgency rule
-- Letter/Promise/Resolution/Crisis goal types
+- Letter/Promise/Resolution goal types
 - Goals create obligations in queue
 
 **Current Reality:**
@@ -89,7 +89,7 @@ This document provides a brutally honest assessment of what needs to be implemen
 ```csharp
 // Required implementation in ConversationManager.cs
 Dictionary<EmotionalState, CardFilter> stateFilters = new {
-    DESPERATE → Trust + Crisis cards only,
+    DESPERATE → Trust cards only,
     TENSE → Shadow + Trust cards,
     NEUTRAL → Balanced mix,
     GUARDED → State cards only,
@@ -114,7 +114,7 @@ Dictionary<EmotionalState, CardFilter> stateFilters = new {
 - Implement proper draw rules per state
 
 **Acceptance Criteria:**
-- [ ] Screenshot showing DESPERATE drawing only Trust/Crisis cards
+- [ ] Screenshot showing DESPERATE drawing only Trust cards
 - [ ] Screenshot showing depth-locked cards marked "Too Deep"
 - [ ] Screenshot showing momentum affecting weight limits
 - [ ] Test all 9 states filter correctly
@@ -128,7 +128,7 @@ Dictionary<EmotionalState, CardFilter> stateFilters = new {
 
 #### 2.1 Goal Card Architecture
 - Create GoalCard class
-- Implement Letter/Promise/Resolution/Crisis goal types
+- Implement Letter/Promise/Resolution goal types
 - One goal per conversation enforcement
 
 #### 2.2 Goal Urgency System
@@ -212,8 +212,7 @@ public List<ConversationType> DetermineAvailableConversations(NPC npc) {
 **Complexity:** Medium (15 hours)
 
 #### 5.1 Elena Configuration
-- DESPERATE emotional state
-- Crisis Letter card in deck
+- Has Letter (Promise) card in goal deck
 - Trust tokens available
 - Correct dialogue/narrative
 

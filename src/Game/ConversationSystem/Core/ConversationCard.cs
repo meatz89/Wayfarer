@@ -106,11 +106,6 @@ public class ConversationCard : ICard
     public int BaseComfort { get; init; }
 
     /// <summary>
-    /// Mechanical category determining how card functions
-    /// </summary>
-    public CardCategory Category { get; init; }
-
-    /// <summary>
     /// State to transition to on success (STATE cards only)
     /// </summary>
     public EmotionalState? SuccessState { get; init; }
