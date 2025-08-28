@@ -73,6 +73,31 @@ public class ConversationSession
     /// Token manager for calculating success bonuses
     /// </summary>
     public TokenMechanicsManager TokenManager { get; init; }
+    
+    /// <summary>
+    /// Current momentum (-3 to +3) that modifies weight limits
+    /// </summary>
+    public int Momentum { get; set; }
+    
+    /// <summary>
+    /// The goal card that was shuffled into the deck for this conversation
+    /// </summary>
+    public ConversationCard GoalCard { get; set; }
+    
+    /// <summary>
+    /// Whether the goal card has been drawn into hand
+    /// </summary>
+    public bool GoalCardDrawn { get; set; }
+    
+    /// <summary>
+    /// Urgency counter - turns remaining to play goal card after drawing
+    /// </summary>
+    public int? GoalUrgencyCounter { get; set; }
+    
+    /// <summary>
+    /// Whether goal card was successfully played
+    /// </summary>
+    public bool GoalCardPlayed { get; set; }
 
     /// <summary>
     /// Initialize a new conversation session
@@ -175,7 +200,8 @@ public class ConversationSession
             CurrentComfort = startingComfort,  // ALWAYS starts at 5
             TurnNumber = 0,
             LetterGenerated = false,
-            ObservationCards = observationCards ?? new List<ConversationCard>()
+            ObservationCards = observationCards ?? new List<ConversationCard>(),
+            Momentum = 0  // Always starts at 0
         };
         
         Console.WriteLine($"[StartConversation] Created session with comfort: {session.CurrentComfort} (expected: {startingComfort})");
@@ -280,7 +306,8 @@ public class ConversationSession
             TurnNumber = 0,
             LetterGenerated = false,
             ObservationCards = new List<ConversationCard>(),
-            TokenManager = tokenManager
+            TokenManager = tokenManager,
+            Momentum = 0  // No momentum in exchanges
         };
     }
 
@@ -367,7 +394,8 @@ public class ConversationSession
             TurnNumber = 0,
             LetterGenerated = false,
             ObservationCards = observationCards ?? new List<ConversationCard>(),
-            TokenManager = tokenManager
+            TokenManager = tokenManager,
+            Momentum = 0  // Crisis starts at 0 momentum
         };
     }
 
@@ -386,9 +414,17 @@ public class ConversationSession
         // Get state rules
         var rules = ConversationRules.States[CurrentState];
 
-        // Draw new conversation cards filtered by current comfort level
-        var newCards = Deck.Draw(rules.CardsOnListen, CurrentComfort);
+        // Draw new cards with state-based filtering and guaranteed state card
+        Console.WriteLine($"[ExecuteListen] Drawing cards for state {CurrentState} (count: {rules.CardsOnListen}, comfort: {CurrentComfort}, momentum: {Momentum})");
+        var newCards = DrawCardsForState(CurrentState, rules.CardsOnListen, CurrentComfort);
+        Console.WriteLine($"[ExecuteListen] Drew {newCards.Count} filtered cards for {CurrentState} state");
         HandCards.AddRange(newCards);
+        
+        // Check for momentum degradation at -3
+        if (Momentum <= -3)
+        {
+            ApplyMomentumDegradation();
+        }
 
         // Check for letters that can be delivered through this NPC during LISTEN
         if (queueManager != null)
@@ -536,6 +572,16 @@ public class ConversationSession
 
         // Apply comfort
         CurrentComfort += result.TotalComfort;
+        
+        // Apply momentum change based on success/failure
+        if (result.Success)
+        {
+            Momentum = Math.Min(3, Momentum + 1);  // Cap at +3
+        }
+        else if (result.TotalComfort <= 0)  // Only lose momentum on actual failure
+        {
+            Momentum = Math.Max(-3, Momentum - 1);  // Floor at -3
+        }
 
         // Apply state change if any
         if (result.NewState.HasValue)
@@ -663,6 +709,210 @@ public class ConversationSession
     public bool IsHandOverflowing()
     {
         return HandCards.Count > 7;
+    }
+    
+    /// <summary>
+    /// Draw cards filtered by emotional state according to POC rules
+    /// </summary>
+    private List<ConversationCard> DrawCardsForState(EmotionalState state, int baseCount, int comfort)
+    {
+        var drawnCards = new List<ConversationCard>();
+        Console.WriteLine($"[DrawCardsForState] State: {state}, BaseCount: {baseCount}, Comfort: {comfort}");
+        
+        // Special handling for GUARDED - state cards only
+        if (state == EmotionalState.GUARDED)
+        {
+            Console.WriteLine($"[DrawCardsForState] GUARDED - Drawing STATE cards only");
+            // GUARDED draws state cards only
+            var stateCards = Deck.DrawFilteredByCategory(baseCount, comfort, CardCategory.STATE);
+            return stateCards;
+        }
+        
+        // Special handling for HOSTILE - crisis cards only
+        if (state == EmotionalState.HOSTILE)
+        {
+            // HOSTILE draws crisis cards only
+            var crisisCards = Deck.DrawFilteredByCategory(baseCount, comfort, CardCategory.CRISIS);
+            return crisisCards;
+        }
+        
+        // OVERWHELMED only draws 1 card (no guaranteed state)
+        if (state == EmotionalState.OVERWHELMED)
+        {
+            // Can draw +1 card if positive momentum
+            var totalCards = baseCount + (Momentum > 0 ? 1 : 0);
+            var cards = Deck.Draw(totalCards, comfort);  // Any type, just limited count
+            return cards;
+        }
+        
+        // CONNECTED has special 60/40 distribution
+        if (state == EmotionalState.CONNECTED)
+        {
+            var guaranteeStateCard = baseCount > 1;
+            var regularCardCount = guaranteeStateCard ? baseCount - 1 : baseCount;
+            
+            // 60% chance to draw token cards, 40% any type
+            for (int i = 0; i < regularCardCount; i++)
+            {
+                if (random.Next(100) < 60)
+                {
+                    // Try to draw a token card
+                    var tokenCard = Deck.DrawFilteredByTypes(1, comfort, null, true);
+                    if (tokenCard.Any())
+                    {
+                        drawnCards.AddRange(tokenCard);
+                    }
+                    else
+                    {
+                        // Fall back to any card if no token cards available
+                        var anyCard = Deck.Draw(1, comfort);
+                        drawnCards.AddRange(anyCard);
+                    }
+                }
+                else
+                {
+                    // Draw any type
+                    var anyCard = Deck.Draw(1, comfort);
+                    drawnCards.AddRange(anyCard);
+                }
+            }
+            
+            // Add guaranteed state card
+            if (guaranteeStateCard)
+            {
+                var stateCard = Deck.DrawFilteredByCategory(1, comfort, CardCategory.STATE);
+                drawnCards.AddRange(stateCard);
+            }
+            
+            return drawnCards;
+        }
+        
+        // Standard state handling
+        var allowedTypes = GetAllowedCardTypesForState(state);
+        var guaranteeState = ShouldGuaranteeStateCard(state);
+        
+        // Determine if we should include token cards
+        bool includeTokenCards = state == EmotionalState.OPEN || state == EmotionalState.EAGER;
+        
+        Console.WriteLine($"[DrawCardsForState] Standard state: {state}, AllowedTypes: {string.Join(",", allowedTypes?.Select(t => t.ToString()) ?? new[] { "ALL" })}, IncludeTokenCards: {includeTokenCards}");
+        
+        // Draw cards based on state filtering rules
+        var regularCount = guaranteeState ? baseCount - 1 : baseCount;
+        
+        // Draw regular cards filtered by state
+        if (regularCount > 0)
+        {
+            Console.WriteLine($"[DrawCardsForState] Drawing {regularCount} regular cards filtered by type");
+            var regularCards = Deck.DrawFilteredByTypes(regularCount, comfort, allowedTypes, includeTokenCards);
+            drawnCards.AddRange(regularCards);
+        }
+        
+        // Add guaranteed state card if required
+        if (guaranteeState)
+        {
+            Console.WriteLine($"[DrawCardsForState] Adding 1 guaranteed STATE card");
+            var stateCard = Deck.DrawFilteredByCategory(1, comfort, CardCategory.STATE);
+            drawnCards.AddRange(stateCard);
+        }
+        
+        Console.WriteLine($"[DrawCardsForState] Total cards drawn: {drawnCards.Count}");
+        return drawnCards;
+    }
+    
+    private Random random = new Random();
+    
+    /// <summary>
+    /// Get allowed card types for a given emotional state
+    /// </summary>
+    private List<CardType> GetAllowedCardTypesForState(EmotionalState state)
+    {
+        return state switch
+        {
+            EmotionalState.DESPERATE => new List<CardType> { CardType.Trust },  // Trust and Crisis (Crisis added separately)
+            EmotionalState.TENSE => new List<CardType> { CardType.Shadow },     // Shadow cards only
+            EmotionalState.NEUTRAL => null,  // All types equally
+            EmotionalState.GUARDED => null,  // State cards only (handled specially)
+            EmotionalState.OPEN => new List<CardType> { CardType.Trust },       // Trust and Token cards
+            EmotionalState.EAGER => new List<CardType> { CardType.Commerce },   // Commerce and Token cards
+            EmotionalState.OVERWHELMED => null,  // Any type, but only 1 card
+            EmotionalState.CONNECTED => null,    // 60% Token, 40% any (handled specially)
+            EmotionalState.HOSTILE => null,      // Crisis cards only (handled specially)
+            _ => null
+        };
+    }
+    
+    /// <summary>
+    /// Check if state guarantees a state card when drawing
+    /// </summary>
+    private bool ShouldGuaranteeStateCard(EmotionalState state)
+    {
+        // Most states guarantee 1 state card except OVERWHELMED and HOSTILE
+        return state != EmotionalState.OVERWHELMED && state != EmotionalState.HOSTILE;
+    }
+    
+    /// <summary>
+    /// Apply momentum degradation at -3 momentum
+    /// </summary>
+    private void ApplyMomentumDegradation()
+    {
+        var oldState = CurrentState;
+        CurrentState = CurrentState switch
+        {
+            // Positive states degrade to NEUTRAL
+            EmotionalState.OPEN => EmotionalState.NEUTRAL,
+            EmotionalState.EAGER => EmotionalState.NEUTRAL,
+            EmotionalState.CONNECTED => EmotionalState.NEUTRAL,
+            
+            // NEUTRAL degrades to GUARDED
+            EmotionalState.NEUTRAL => EmotionalState.GUARDED,
+            
+            // Negative states degrade to HOSTILE
+            EmotionalState.GUARDED => EmotionalState.HOSTILE,
+            EmotionalState.TENSE => EmotionalState.HOSTILE,
+            EmotionalState.DESPERATE => EmotionalState.HOSTILE,
+            
+            // OVERWHELMED and HOSTILE stay as is
+            _ => CurrentState
+        };
+        
+        if (oldState != CurrentState)
+        {
+            Console.WriteLine($"[Momentum Degradation] State degraded from {oldState} to {CurrentState} due to -3 momentum");
+        }
+    }
+    
+    /// <summary>
+    /// Get maximum weight allowed for current state with momentum modifiers
+    /// </summary>
+    public int GetMaxWeightForState()
+    {
+        var rules = ConversationRules.States[CurrentState];
+        var baseWeight = rules.MaxWeight;
+        
+        // Apply momentum effects based on state
+        return CurrentState switch
+        {
+            // DESPERATE: Each momentum point reduces patience cost by 1
+            EmotionalState.DESPERATE => baseWeight,  // Weight stays same, patience cost changes
+            
+            // TENSE: Positive momentum makes observation cards weight 0
+            EmotionalState.TENSE => baseWeight,  // Handled in card weight calculation
+            
+            // GUARDED: Negative momentum increases card weight by 1 per point
+            EmotionalState.GUARDED => Math.Max(1, baseWeight + Math.Min(0, Momentum)),  // Negative momentum reduces allowed weight
+            
+            // EAGER: Each point adds +5% to token card success (no weight change)
+            EmotionalState.EAGER => baseWeight,
+            
+            // OVERWHELMED: Positive momentum allows drawing 1 additional card (no weight change)
+            EmotionalState.OVERWHELMED => baseWeight,
+            
+            // CONNECTED: Positive momentum allows playing one weight category higher
+            EmotionalState.CONNECTED => baseWeight + (Momentum > 0 ? 1 : 0),
+            
+            // Others: No momentum effect on weight
+            _ => baseWeight
+        };
     }
 
     private static int GetBasePatience(PersonalityType personality)

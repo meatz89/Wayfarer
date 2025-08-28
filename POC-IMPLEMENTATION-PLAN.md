@@ -127,7 +127,7 @@ Dictionary<EmotionalState, CardFilter> stateFilters = new {
 **Complexity:** High (30 hours)
 
 #### 2.1 Goal Card Architecture
-- Create GoalCard base class
+- Create GoalCard class
 - Implement Letter/Promise/Resolution/Crisis goal types
 - One goal per conversation enforcement
 
@@ -334,7 +334,7 @@ graph TD
 
 ### High Risk Areas:
 1. **State Machine Complexity**: 9 states with transitions
-   - Mitigation: Implement incrementally, test each state
+   - Mitigation: Implement fully, no fallbacks or backwards compatibility, delete all legacy code immediately, test each state
    
 2. **Queue Displacement Logic**: Complex cascade effects
    - Mitigation: Extensive unit testing, visual debugging
@@ -346,8 +346,6 @@ graph TD
 
 The current implementation is approximately **25% complete** relative to POC requirements. The missing 75% consists primarily of core mechanical depth rather than UI polish. 
 
-**Critical Path:** Packages 1→2→4→5 must be completed for basic POC demonstration.
-
-**Estimated Total Effort:** 160 developer hours to reach full POC compliance.
+**Critical Path:** Packages 1→2→3→4→5 must be completed for basic POC demonstration.
 
 **Recommendation:** Focus on mechanical implementation over visual polish. A mechanically complete game with basic UI is better than a beautiful UI with broken mechanics.

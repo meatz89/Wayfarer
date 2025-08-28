@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// Result of playing one or more conversation cards
@@ -49,6 +50,11 @@ public class CardPlayResult
     /// Letter negotiation results (if letter cards were played)
     /// </summary>
     public List<LetterNegotiationResult> LetterNegotiations { get; init; } = new List<LetterNegotiationResult>();
+    
+    /// <summary>
+    /// Overall success of the play (true if at least one card succeeded)
+    /// </summary>
+    public bool Success => Results?.Any(r => r.Success) ?? false;
 }
 
 /// <summary>

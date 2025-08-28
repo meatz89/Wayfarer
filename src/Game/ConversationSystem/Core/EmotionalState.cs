@@ -105,11 +105,11 @@ public static class ConversationRules
 {
     public static readonly Dictionary<EmotionalState, StateRuleset> States = new()
     {
-        // EXACT POC SPECIFICATIONS
+        // EXACT POC SPECIFICATIONS - CORRECTED DRAW COUNTS
         [EmotionalState.NEUTRAL] = new StateRuleset
         {
-            CardsOnListen = 2,  // Listen draws 2 conversation cards
-            MaxWeight = 3,      // Speak weight limit 3
+            CardsOnListen = 2,  // Listen draws 2 conversation cards (CORRECT per docs)
+            MaxWeight = 3,      // Speak weight limit 3 (Heavy weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.NEUTRAL,  // Stays NEUTRAL
             ChecksLetterDeck = true  // Check letter deck for urgent letters
@@ -117,8 +117,8 @@ public static class ConversationRules
 
         [EmotionalState.GUARDED] = new StateRuleset
         {
-            CardsOnListen = 1,  // Listen draws 1 conversation card
-            MaxWeight = 2,      // Speak weight limit 2
+            CardsOnListen = 1,  // Listen draws STATE CARDS ONLY (per docs)
+            MaxWeight = 2,      // Speak weight limit 2 (Medium weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.NEUTRAL,  // Transitions to NEUTRAL
             ChecksLetterDeck = false
@@ -126,8 +126,8 @@ public static class ConversationRules
 
         [EmotionalState.OPEN] = new StateRuleset
         {
-            CardsOnListen = 3,  // Listen draws 3 conversation cards
-            MaxWeight = 3,      // Speak weight limit 3
+            CardsOnListen = 3,  // Listen draws 3 cards (Trust and Token cards)
+            MaxWeight = 3,      // Speak weight limit 3 (Heavy weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.OPEN,  // Stays OPEN
             ChecksLetterDeck = true  // CHECK letter deck for trust letters
@@ -135,8 +135,8 @@ public static class ConversationRules
 
         [EmotionalState.CONNECTED] = new StateRuleset
         {
-            CardsOnListen = 3,  // Listen draws 3 conversation cards
-            MaxWeight = 4,      // Speak weight limit 4
+            CardsOnListen = 3,  // Listen draws 3 cards (60% Token, 40% any)
+            MaxWeight = 3,      // Speak weight limit 3 (Heavy weight, +1 with momentum)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.CONNECTED,  // Stays CONNECTED
             ChecksLetterDeck = true,  // CHECK letter deck for ANY letters
@@ -145,8 +145,8 @@ public static class ConversationRules
 
         [EmotionalState.TENSE] = new StateRuleset
         {
-            CardsOnListen = 1,  // Listen draws 1 conversation card
-            MaxWeight = 1,      // Speak weight limit 1
+            CardsOnListen = 2,  // Listen draws Shadow cards + 1 guaranteed state (per docs)
+            MaxWeight = 2,      // Speak weight limit 2 (Medium weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.GUARDED,  // Transitions to GUARDED
             ChecksLetterDeck = true  // Check letter deck for urgent letters
@@ -154,8 +154,8 @@ public static class ConversationRules
 
         [EmotionalState.EAGER] = new StateRuleset
         {
-            CardsOnListen = 3,  // Listen draws 3 conversation cards
-            MaxWeight = 3,      // Speak weight limit 3
+            CardsOnListen = 3,  // Listen draws 3 cards (Commerce and Token cards)
+            MaxWeight = 3,      // Speak weight limit 3 (Heavy weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.EAGER,  // Stays EAGER
             ChecksLetterDeck = false
@@ -163,8 +163,8 @@ public static class ConversationRules
 
         [EmotionalState.OVERWHELMED] = new StateRuleset
         {
-            CardsOnListen = 1,  // Listen draws 1 conversation card
-            MaxWeight = 1,      // Speak weight limit 1 (gentle statements only)
+            CardsOnListen = 1,  // Listen draws 1 card only (no guaranteed state)
+            MaxWeight = 1,      // Speak weight limit 1 (Light weight only)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.NEUTRAL,  // Transitions to NEUTRAL
             ChecksLetterDeck = false
@@ -172,8 +172,8 @@ public static class ConversationRules
 
         [EmotionalState.DESPERATE] = new StateRuleset
         {
-            CardsOnListen = 2,  // Listen draws 2 conversation cards
-            MaxWeight = 1,      // Speak weight limit 1 (but Crisis letters override)
+            CardsOnListen = 4,  // Listen draws Trust and Crisis cards (per docs - seems to be 4 total)
+            MaxWeight = 1,      // Speak weight limit 1 (Light, but Crisis free)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.HOSTILE,  // Transitions to HOSTILE
             InjectsCrisis = true,  // INJECT 1 Crisis letter
@@ -184,8 +184,8 @@ public static class ConversationRules
 
         [EmotionalState.HOSTILE] = new StateRuleset
         {
-            CardsOnListen = 1,  // Listen draws 1 conversation card
-            MaxWeight = 3,      // Speak weight limit 3 (crisis only)
+            CardsOnListen = 1,  // Listen draws crisis cards only
+            MaxWeight = 3,      // Speak weight limit - crisis cards only
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.HOSTILE,  // Stays HOSTILE
             InjectsCrisis = true,  // INJECT 2 Crisis letters

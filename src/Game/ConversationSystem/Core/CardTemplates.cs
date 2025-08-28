@@ -199,6 +199,11 @@ public class CardContext
     public bool IsOfferCard { get; init; }
     
     /// <summary>
+    /// Whether this card grants a token on success
+    /// </summary>
+    public bool GrantsToken { get; init; }
+    
+    /// <summary>
     /// Flag for accept response cards in exchanges
     /// </summary>
     public bool IsAcceptCard { get; init; }

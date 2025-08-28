@@ -278,6 +278,34 @@ public class CardDeck
         int trustTokens = tokens?.GetValueOrDefault(ConnectionType.Trust, 0) ?? 0;
         int commerceTokens = tokens?.GetValueOrDefault(ConnectionType.Commerce, 0) ?? 0;
         
+        // Add token cards (cards that grant tokens on success)
+        // These are important for OPEN, EAGER, and CONNECTED states
+        cards.Add(new ConversationCard
+        {
+            Id = "build_trust_token",
+            Template = CardTemplateType.ExpressEmpathy,
+            Context = new CardContext { GrantsToken = true },
+            Type = CardType.Trust,
+            Persistence = PersistenceType.Persistent,
+            Weight = 2,
+            BaseComfort = 0,  // Tokens don't give comfort, they give tokens
+            Depth = 10,  // Mid-level depth
+            Category = CardCategory.COMFORT  // Use comfort category for now
+        });
+        
+        cards.Add(new ConversationCard
+        {
+            Id = "build_commerce_token",
+            Template = CardTemplateType.ProposeDeal,
+            Context = new CardContext { GrantsToken = true },
+            Type = CardType.Commerce,
+            Persistence = PersistenceType.Persistent,
+            Weight = 2,
+            BaseComfort = 0,  // Tokens don't give comfort
+            Depth = 10,
+            Category = CardCategory.COMFORT
+        });
+        
         // Add cards based on relationship depth
         if (trustTokens >= 3)
         {
@@ -586,6 +614,87 @@ public class CardDeck
             drawn.Add(card);
         }
 
+        return drawn;
+    }
+    
+    /// <summary>
+    /// Draw cards filtered by specific card types (for emotional state filtering)
+    /// </summary>
+    public List<ConversationCard> DrawFilteredByTypes(int count, int currentComfort, List<CardType> allowedTypes, bool includeTokenCards)
+    {
+        var drawn = new List<ConversationCard>();
+        
+        // Build the filter
+        var availableCards = cards.Where(c => c.Depth <= currentComfort);
+        
+        if (allowedTypes != null)
+        {
+            // Filter by allowed types
+            availableCards = availableCards.Where(c => allowedTypes.Contains(c.Type));
+        }
+        
+        // Special handling for token cards (cards that grant tokens)
+        if (includeTokenCards)
+        {
+            // Include cards that have "Token" in their template or grant tokens
+            availableCards = availableCards.Where(c => 
+                allowedTypes == null || allowedTypes.Contains(c.Type) ||
+                c.Template.ToString().Contains("Token") ||
+                c.Context?.GrantsToken == true);
+        }
+        
+        var cardList = availableCards.ToList();
+        
+        // Shuffle for randomness
+        for (int i = cardList.Count - 1; i > 0; i--)
+        {
+            int j = random.Next(i + 1);
+            var temp = cardList[i];
+            cardList[i] = cardList[j];
+            cardList[j] = temp;
+        }
+        
+        // Draw up to count cards
+        for (int i = 0; i < count && cardList.Any(); i++)
+        {
+            var card = cardList.First();
+            cardList.RemoveAt(0);
+            cards.Remove(card);
+            drawn.Add(card);
+        }
+        
+        return drawn;
+    }
+    
+    /// <summary>
+    /// Draw cards filtered by category (for guaranteed state cards)
+    /// </summary>
+    public List<ConversationCard> DrawFilteredByCategory(int count, int currentComfort, CardCategory category)
+    {
+        var drawn = new List<ConversationCard>();
+        
+        var availableCards = cards
+            .Where(c => c.Depth <= currentComfort && c.Category == category)
+            .ToList();
+        
+        // Shuffle for randomness
+        for (int i = availableCards.Count - 1; i > 0; i--)
+        {
+            int j = random.Next(i + 1);
+            var temp = availableCards[i];
+            availableCards[i] = availableCards[j];
+            availableCards[j] = temp;
+        }
+        
+        // Draw up to count cards
+        for (int i = 0; i < count && availableCards.Any(); i++)
+        {
+            var card = availableCards.First();
+            availableCards.RemoveAt(0);
+            cards.Remove(card);
+            drawn.Add(card);
+        }
+        
         return drawn;
     }
 

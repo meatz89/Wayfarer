@@ -12,6 +12,18 @@ public enum CardType
 }
 
 /// <summary>
+/// Types of goal cards that can be shuffled into conversation deck
+/// </summary>
+public enum GoalType
+{
+    Letter,     // Creates delivery obligation (Elena's main use case)
+    Promise,    // Creates meeting/escort/investigation obligation
+    Resolution, // Removes burden cards from deck
+    Commerce,   // Enables special trades
+    Crisis      // Resolves emergency situations
+}
+
+/// <summary>
 /// Mechanical categories that determine how cards function
 /// </summary>
 public enum CardCategory
@@ -20,7 +32,8 @@ public enum CardCategory
     STATE,    // Change emotional state, must play alone
     CRISIS,   // Emergency actions, free in DESPERATE state
     EXCHANGE, // Exchange cards for Quick Exchange conversations
-    LETTER    // Letter negotiation cards for creating obligations
+    LETTER,   // Letter negotiation cards for creating obligations
+    GOAL      // Goal cards that end conversation when played
 }
 
 /// <summary>
@@ -148,6 +161,16 @@ public class ConversationCard
     public string Description { get; init; }
     
     /// <summary>
+    /// Whether this is a goal card that was shuffled into the deck
+    /// </summary>
+    public bool IsGoalCard { get; init; }
+    
+    /// <summary>
+    /// The type of goal this card represents (if IsGoalCard is true)
+    /// </summary>
+    public GoalType? GoalCardType { get; init; }
+    
+    /// <summary>
     /// Power level determines token requirement for unlocking
     /// </summary>
     public CardPowerLevel PowerLevel { get; init; } = CardPowerLevel.Basic;
@@ -228,6 +251,7 @@ public class ConversationCard
             CardCategory.CRISIS => "crisis",
             CardCategory.EXCHANGE => "exchange",
             CardCategory.LETTER => "letter",
+            CardCategory.GOAL => "goal",
             _ => "comfort"
         };
     }
