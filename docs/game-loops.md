@@ -21,9 +21,11 @@ The three core game loops answer fundamental design questions while maintaining 
 5. Weight limits based on emotional state constrain plays
 6. One card per turn creates authentic dialogue rhythm
 
-**Goal Card Requirements** (BOTH must align):
-1. Current emotional state matches goal's valid states
-2. Current comfort ≥ goal's depth
+**Goal Card Selection**:
+1. Player chooses conversation type
+2. Appropriate goal from goal deck shuffled into conversation deck copy
+3. Goal card depth and state requirements determine when drawable
+4. Once drawn, Goal persistence activates (3 turns to play)
 
 **The Urgency Rule**: Once goal drawn, must play within 3 turns or conversation fails.
 
@@ -34,7 +36,7 @@ This creates multi-conversation arcs where relationships improve negotiation out
 ### Conversation Outputs
 - **Promises**: Create obligations in queue (letters, meetings, escorts, etc.)
 - **Tokens**: Permanent relationship modifiers
-- **Knowledge**: Observation cards for state changes
+- **Observations**: Cards for player's observation deck
 - **Deck Evolution**: Successful completions modify NPC decks
 - **Permits**: Special promises that enable routes
 
@@ -95,7 +97,7 @@ Personality modifiers:
 
 ### Design Questions Answered
 - **How does progression manifest?** Access to new routes and locations
-- **How does world grow?** Knowledge cards and observations unlock content
+- **How does world grow?** Player observation deck and discoveries unlock content
 - **What creates exploration?** Information has mechanical value
 
 ### Travel Mechanics
@@ -106,10 +108,10 @@ Personality modifiers:
 - Multiple NPCs can provide same permit through different means
 
 **Access Permit Sources**:
-- Letter cards from high-token relationships (5+ tokens typically)
+- Letter cards from high-token relationships
 - Exchange cards from merchants (coin cost)
-- Knowledge cards creating permit opportunities
-- Observation cards revealing alternate routes
+- Observation rewards from NPCs
+- Location discoveries
 
 **Permits as Physical Items**:
 - Take satchel space (max 5 letters/permits)
@@ -117,20 +119,19 @@ Personality modifiers:
 - No associated obligation
 - Enable specific routes while held
 
-### Observation System
+### Player Observation Deck System
 
-**Creating Observations** (1 attention at locations):
+**Building Your Deck** (1 attention at locations):
 - Different observations available each time period
-- Creates state change cards (weight 1, 70% success)
+- Creates state change cards (weight 1, 85% success)
 - Expire after 24-48 hours
+- Maximum 20 cards in deck
 - Represent temporal knowledge
 
-**Knowledge Through Conversation**:
-- Knowledge cards in NPC decks create observations
-- "Ask About Routes" → Travel state change
-- "Request Work" → Unlocks work action at location
-- "Learn Schedule" → NPC availability windows
-- "Gather Intel" → Authority avoidance
+**Observation Sources**:
+- Location observations (spend attention)
+- NPC rewards (completing promises)
+- Travel discoveries (finding routes)
 
 ### Travel Encounters
 
@@ -149,7 +150,7 @@ Success allows passage, failure costs resources.
 
 Attention enables:
 - **Conversations** (2): Access to letters and tokens
-- **Observations** (1): Knowledge for state changes
+- **Observations** (1): Build player deck for state changes
 - **Work** (2): Coins but time cost
 
 This forces prioritization between relationship building, information gathering, and resource generation.
@@ -158,7 +159,7 @@ This forces prioritization between relationship building, information gathering,
 
 Tokens serve multiple purposes through different mechanics:
 - **In Conversations**: +5% success rate per token (linear, all cards)
-- **For Letters**: Better negotiation outcomes (no gates, just better terms)
+- **For Negotiations**: Better terms (no gates, just better outcomes)
 - **For Displacement**: Burn for queue flexibility (permanent cost)
 - **For Special Cards**: Some cards may check tokens for unique effects
 
@@ -191,15 +192,15 @@ Deadlines create cascading decisions:
 - Displacement damages relationships at distance
 
 **Travel creates Conversation pressure**:
-- Access permits require high tokens
+- Access permits require successful negotiations
 - Travel time reduces deadline margins
 - Encounters can damage resources
 
 ### How Loops Solve Each Other's Problems
 
 **Conversations solve Travel problems**:
-- Knowledge cards reveal alternate routes
-- Letter cards provide access permits
+- Goal cards provide access permits
+- NPC rewards add observation cards to player deck
 - Tokens unlock permit opportunities
 
 **Queue management solves Conversation problems**:
@@ -257,8 +258,8 @@ Each loop provides escape valves:
 New NPCs simply need:
 - Personality type (determines patience and token burning)
 - Deck composition (which cards at which depths)
-- Letter types available (based on narrative role)
-- Token requirements (relationship gates)
+- Goal deck (available conversation types)
+- Exchange deck (if mercantile)
 
 ### Adding Locations
 New locations simply need:
@@ -279,7 +280,7 @@ The player experiences:
 
 **Morning**: Check queue, plan route to chain obligations efficiently
 
-**Travel**: Navigate using permits, gather observations at locations
+**Travel**: Navigate using permits, add observations to player deck
 
 **Conversations**: Build relationships, negotiate letters, manage emotional states
 
@@ -300,7 +301,7 @@ The three loops create a complete game where:
 
 1. **Conversations** provide the puzzle challenge through emotional state navigation
 2. **Queue** provides the time pressure through forced sequential completion
-3. **Travel** provides the exploration through knowledge-based route unlocking
+3. **Travel** provides the exploration through observation-based route unlocking
 
 Each loop uses different mechanics that operate on shared resources:
 - Tokens flow through all three but serve different purposes in each
