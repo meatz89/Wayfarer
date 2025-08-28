@@ -821,14 +821,14 @@ namespace Wayfarer.Pages.Components
         
         protected string GetSuccessChance(ConversationCard card)
         {
-            // Calculate success chance based on card type and state
-            return card.CalculateSuccessChance().ToString();
+            // Calculate success chance based on card type and state, including token bonuses
+            return card.CalculateSuccessChance(CurrentTokens).ToString();
         }
         
         protected string GetFailureChance(ConversationCard card)
         {
             // Calculate failure chance (inverse of success)
-            var success = card.CalculateSuccessChance();
+            var success = card.CalculateSuccessChance(CurrentTokens);
             return (100 - success).ToString();
         }
 
@@ -879,7 +879,9 @@ namespace Wayfarer.Pages.Components
             
             if (tokenCount > 0)
             {
-                int bonus = tokenCount * 5;
+                // Crisis and Goal cards get +10% per token, others get +5%
+                int bonusPerToken = (card.Category == CardCategory.CRISIS || card.Category == CardCategory.GOAL) ? 10 : 5;
+                int bonus = tokenCount * bonusPerToken;
                 var result = $"(+{bonus}% from {tokenCount} {tokenType})";
                 Console.WriteLine($"[GetTokenBonusText] Returning: {result}");
                 return result;

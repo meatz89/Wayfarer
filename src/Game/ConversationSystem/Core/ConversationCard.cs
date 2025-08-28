@@ -225,14 +225,16 @@ public class ConversationCard
         var baseChance = 70;
         baseChance -= Weight * 10;
         
-        // Apply linear token bonus: +5% per token of matching type
+        // Apply linear token bonus: +5% per token for cards
         if (tokens != null)
         {
-            var tokenBonus = tokens.GetValueOrDefault(GetConnectionType(), 0) * 5;
+            var tokenCount = tokens.GetValueOrDefault(GetConnectionType(), 0);
+            var bonusPerToken = 5;
+            var tokenBonus = tokenCount * bonusPerToken;
             baseChance += tokenBonus;
         }
         
-        return Math.Clamp(baseChance, 10, 95);
+        return Math.Clamp(baseChance, 5, 95);
     }
 
     /// <summary>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 /// <summary>
 /// Parses conversation card definitions from JSON
@@ -34,7 +35,8 @@ public class ConversationCardParser
         var json = File.ReadAllText(filePath);
         var data = JsonSerializer.Deserialize<ConversationDataDTO>(json, new JsonSerializerOptions 
         { 
-            PropertyNameCaseInsensitive = true 
+            PropertyNameCaseInsensitive = true,
+            Converters = { new JsonStringEnumConverter() }
         });
 
         if (data?.ConversationCards != null)
