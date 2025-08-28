@@ -77,6 +77,27 @@ public static class NPCParser
             npc.LetterTokenTypes.Add(tokenType.Value);
         }
     }
+    
+    // Parse new mechanical properties that replace hardcoded ID checks
+    if (root.TryGetProperty("hasLetterDeck", out JsonElement hasLetterDeckElement) && 
+        hasLetterDeckElement.ValueKind == JsonValueKind.True)
+    {
+        npc.HasLetterDeck = true;
+    }
+    
+    if (root.TryGetProperty("hasUrgentMeeting", out JsonElement hasUrgentMeetingElement) && 
+        hasUrgentMeetingElement.ValueKind == JsonValueKind.True)
+    {
+        npc.HasUrgentMeeting = true;
+    }
+    
+    npc.DefaultLetterRecipient = GetStringProperty(root, "defaultLetterRecipient", null);
+    
+    if (root.TryGetProperty("crisisIfNegotiationFailed", out JsonElement crisisElement) && 
+        crisisElement.ValueKind == JsonValueKind.True)
+    {
+        npc.CrisisIfNegotiationFailed = true;
+    }
 
     return npc;
 }

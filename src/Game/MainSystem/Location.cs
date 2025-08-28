@@ -35,6 +35,8 @@ public string TravelDescription { get; set; }
 public int Difficulty { get; set; }
 public int Depth { get; set; }
 public LocationTypes LocationType { get; set; } = LocationTypes.Connective;
+public string LocationTypeString { get; set; } // Mechanical property for display type (e.g., "Tavern", "Crossroads")
+public bool IsStartingLocation { get; set; } // Mechanical property for starting location preference
 public List<ServiceTypes> AvailableServices { get; set; } = new List<ServiceTypes>();
 public bool HasBeenVisited { get; set; }
 public int VisitCount { get; set; }

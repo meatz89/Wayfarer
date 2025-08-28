@@ -23,31 +23,28 @@ public class Phase8_InitialLetters : IInitializationPhase
         // Create the 5 delivery obligations from the mockup
         List<DeliveryObligation> obligations = new System.Collections.Generic.List<DeliveryObligation>();
 
-        // 1. Elena has a MEETING OBLIGATION instead of a delivery obligation
-        // She summons the player urgently, and will give them the letter during conversation
-        MeetingObligation elenaMeeting = new MeetingObligation
+        // Check for NPCs with urgent meeting obligations
+        var urgentNpc = gameWorld.WorldState.NPCs.FirstOrDefault(n => n.HasUrgentMeeting);
+        if (urgentNpc != null && gameWorld.GetPlayer() != null)
         {
-            Id = "elena_urgent_meeting",
-            RequesterId = "elena",
-            RequesterName = "Elena",
-            DeadlineInMinutes = 73,  // 1h 13m - DESPERATE state (< 2 hours with SAFETY stakes)
-            Stakes = StakeType.SAFETY,
-            Reason = "Family safety matter - urgent letter delivery needed"
-        };
-        
-        // Add Elena's meeting obligation to player
-        if (gameWorld.GetPlayer() != null)
-        {
-            gameWorld.GetPlayer().MeetingObligations.Add(elenaMeeting);
-            Console.WriteLine($"  Added Elena's urgent meeting request (2 hour deadline)");
-            
-            // Initialize Elena's crisis deck for the urgent meeting
-            var elena = gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == "elena");
-            if (elena != null)
+            // Create meeting obligation for urgent NPC
+            MeetingObligation urgentMeeting = new MeetingObligation
             {
-                elena.InitializeCrisisDeck();
-                if (elena.CrisisDeck != null)
-                {
+                Id = $"{urgentNpc.ID}_urgent_meeting",
+                RequesterId = urgentNpc.ID,
+                RequesterName = urgentNpc.Name,
+                DeadlineInMinutes = 73,  // 1h 13m - DESPERATE state (< 2 hours with SAFETY stakes)
+                Stakes = StakeType.SAFETY,
+                Reason = "Family safety matter - urgent letter delivery needed"
+            };
+            
+            gameWorld.GetPlayer().MeetingObligations.Add(urgentMeeting);
+            Console.WriteLine($"  Added {urgentNpc.Name}'s urgent meeting request (2 hour deadline)");
+            
+            // Initialize crisis deck for the urgent NPC
+            urgentNpc.InitializeCrisisDeck();
+            if (urgentNpc.CrisisDeck != null)
+            {
                     // Add the Desperate Promise Crisis letter per POC requirements
                     var desperatePromiseCard = new ConversationCard
                     {
@@ -60,7 +57,7 @@ public class Phase8_InitialLetters : IInitializationPhase
                             UrgencyLevel = 3,
                             HasDeadline = true,
                             MinutesUntilDeadline = 73,
-                            NPCName = "Elena",
+                            NPCName = urgentNpc.Name,
                             // Special context for letter generation
                             GeneratesLetterOnSuccess = true
                         },
@@ -76,12 +73,11 @@ public class Phase8_InitialLetters : IInitializationPhase
                         ManipulatesObligations = false,
                         SuccessRate = 40,  // 40% chance to generate letter immediately
                         DisplayName = "Desperate Promise",
-                        Description = "Elena desperately needs you to deliver a letter to her family"
+                        Description = $"{urgentNpc.Name} desperately needs you to deliver a letter to their family"
                     };
-                    elena.CrisisDeck.AddCard(desperatePromiseCard);
+                    urgentNpc.CrisisDeck.AddCard(desperatePromiseCard);
                     
-                    Console.WriteLine($"  Added 'Desperate Promise' Crisis letter to Elena (40% success for instant letter)");
-                }
+                    Console.WriteLine($"  Added 'Desperate Promise' Crisis letter to {urgentNpc.Name} (40% success for instant letter)");
             }
         }
         

@@ -19,6 +19,10 @@ public class LocationDTO
     public Dictionary<string, List<string>> AvailableProfessionsByTime { get; set; } = new Dictionary<string, List<string>>();
     public AccessRequirementDTO AccessRequirement { get; set; }
     public int Tier { get; set; }
+    
+    // Mechanical properties to replace hardcoded location checks
+    public string LocationType { get; set; } // e.g., "Tavern", "Crossroads", "Elite Quarter"
+    public bool IsStartingLocation { get; set; }
 }
 
 /// <summary>

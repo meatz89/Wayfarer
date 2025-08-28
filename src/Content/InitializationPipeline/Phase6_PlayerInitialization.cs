@@ -66,16 +66,17 @@ public class Phase6_PlayerInitialization : IInitializationPhase
 
                 if (spotsInLocation.Any())
                 {
-                    // Prefer specific spot types for starting
-                    // Start at copper_kettle for testing NPCs
-                    startingSpot = worldState.locationSpots.FirstOrDefault(s => s.SpotID == "copper_kettle")
-                        ?? spotsInLocation.FirstOrDefault(s =>
-                            s.SpotID == "abandoned_warehouse" || // Tutorial start
-                            s.Name.Contains("Square", StringComparison.OrdinalIgnoreCase) ||
-                            s.Name.Contains("Market", StringComparison.OrdinalIgnoreCase) ||
-                            s.Name.Contains("Tavern", StringComparison.OrdinalIgnoreCase))
-                        ?? spotsInLocation.First();
-
+                    // Use mechanical property to find starting location
+                    // First check if any location is marked as starting location
+                    var startingLocation = worldState.locations.FirstOrDefault(l => l.IsStartingLocation);
+                    if (startingLocation != null)
+                    {
+                        var spotsInStartingLocation = worldState.locationSpots
+                            .Where(s => s.LocationId == startingLocation.Id)
+                            .ToList();
+                        startingSpot = spotsInStartingLocation.FirstOrDefault();
+                    }
+                    
                     player.CurrentLocationSpot = startingSpot;
                     Console.WriteLine($"  Set player to starting spot: {startingSpot.SpotID}");
                 }

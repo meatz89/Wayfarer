@@ -137,8 +137,8 @@ public class ConversationSession
             npc.InitializeConversationDeck(new NPCDeckFactory(tokenManager));
         }
         
-        // Initialize letter deck for Elena (POC character)
-        if ((npc.ID == "elena" || npc.ID == "elena_merchant") && (npc.LetterDeck == null || !npc.LetterDeck.Any()))
+        // Initialize letter deck for NPCs that have letters
+        if (npc.HasLetterDeck && (npc.LetterDeck == null || !npc.LetterDeck.Any()))
         {
             npc.LetterDeck = LetterCardFactory.CreateElenaLetterDeck(npc.ID);
         }
@@ -1108,17 +1108,16 @@ public class ConversationSession
         var deadlineHours = success ? 24 : 6;  // Much worse deadline on failure
         var payment = success ? 15 : 5;  // Better payment on success
         
-        // Check for Elena scenario - she's in trouble if negotiation failed
-        bool isElenaScenario = NPC.Name == "Elena" || NPC.ID == "elena";
-        bool isCrisisIfFailed = isElenaScenario && !success;
+        // Check if NPC triggers crisis on failed negotiation
+        bool isCrisisIfFailed = NPC.CrisisIfNegotiationFailed && !success;
         
         return new DeliveryObligation
         {
             Id = $"goal_{NPC.ID}_{DateTime.Now.Ticks}",
             SenderName = NPC.Name,
             SenderId = NPC.ID,
-            RecipientName = "Lord Blackwood",  // Default for Elena scenario
-            RecipientId = "lord_blackwood",
+            RecipientName = FormatRecipientName(NPC.DefaultLetterRecipient) ?? "Unknown Recipient",
+            RecipientId = NPC.DefaultLetterRecipient ?? "unknown",
             DeadlineInMinutes = deadlineHours * 60,
             Payment = payment,
             TokenType = ConnectionType.Trust,  // Letter goals build trust
@@ -1185,9 +1184,9 @@ public class ConversationSession
     /// </summary>
     private DeliveryObligation CreateDeliveryObligationFromTerms(LetterCard letterCard, LetterNegotiationTerms terms, NPC sender)
     {
-        // Determine recipient based on letter template - for POC, assuming it's "Lord Blackwood"
-        var recipientName = "Lord Blackwood";  // TODO: Extract from letter template
-        var recipientId = "lord_blackwood";    // TODO: Extract from letter template
+        // Use sender's default recipient or extract from letter template
+        var recipientName = FormatRecipientName(sender.DefaultLetterRecipient) ?? "Unknown Recipient";
+        var recipientId = sender.DefaultLetterRecipient ?? "unknown";
 
         return new DeliveryObligation
         {
@@ -1285,5 +1284,22 @@ public class ConversationSession
             "riverside" => npcLocation?.Contains("riverside") == true || npcSpotId?.Contains("riverside") == true,
             _ => false
         };
+    }
+    
+    private static string FormatRecipientName(string recipientId)
+    {
+        if (string.IsNullOrEmpty(recipientId))
+            return null;
+            
+        // Replace underscores with spaces and capitalize each word
+        var words = recipientId.Replace("_", " ").Split(' ');
+        for (int i = 0; i < words.Length; i++)
+        {
+            if (words[i].Length > 0)
+            {
+                words[i] = char.ToUpper(words[i][0]) + (words[i].Length > 1 ? words[i].Substring(1).ToLower() : "");
+            }
+        }
+        return string.Join(" ", words);
     }
 }

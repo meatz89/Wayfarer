@@ -50,6 +50,12 @@ public class NPC
 
     // Known routes (for HELP verb sharing)
     private List<RouteOption> _knownRoutes = new List<RouteOption>();
+    
+    // Mechanical properties to replace hardcoded ID checks
+    public bool HasLetterDeck { get; set; }
+    public bool HasUrgentMeeting { get; set; }
+    public string DefaultLetterRecipient { get; set; }
+    public bool CrisisIfNegotiationFailed { get; set; }
 
     // FOUR DECK ARCHITECTURE (POC EXACT)
     public CardDeck ConversationDeck { get; set; }  // Comfort/State/Burden cards (depth 0-20)
@@ -73,8 +79,8 @@ public class NPC
         // Only initialize if not already done
         if (LetterDeck == null || !LetterDeck.Any())
         {
-            // For POC, only Elena has letters
-            if (ID == "elena" || ID == "elena_merchant")
+            // Use mechanical property instead of hardcoded ID check
+            if (HasLetterDeck)
             {
                 LetterDeck = LetterCardFactory.CreateElenaLetterDeck(ID);
             }

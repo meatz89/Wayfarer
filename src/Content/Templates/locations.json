@@ -21,7 +21,9 @@
 			"Afternoon": [],
 			"Evening": [],
 			"Night": []
-		}
+		},
+		"locationType": "Home Base",
+		"isStartingLocation": false
 	},
 	{
 		"id": "market_square",
@@ -45,7 +47,9 @@
 			"Afternoon": ["Merchant"],
 			"Evening": [],
 			"Night": []
-		}
+		},
+		"locationType": "Crossroads",
+		"isStartingLocation": false
 	},
 	{
 		"id": "copper_kettle_tavern",
@@ -69,7 +73,9 @@
 			"Afternoon": ["Innkeeper"],
 			"Evening": ["Innkeeper"],
 			"Night": []
-		}
+		},
+		"locationType": "Tavern",
+		"isStartingLocation": true
 	},
 	{
 		"id": "noble_district",
@@ -93,7 +99,9 @@
 			"Afternoon": ["Noble"],
 			"Evening": [],
 			"Night": []
-		}
+		},
+		"locationType": "Elite Quarter",
+		"isStartingLocation": false
 	},
 	{
 		"id": "merchant_row",
@@ -117,7 +125,9 @@
 			"Afternoon": ["Merchant"],
 			"Evening": [],
 			"Night": []
-		}
+		},
+		"locationType": "Market",
+		"isStartingLocation": false
 	},
 	{
 		"id": "city_gates",
@@ -141,7 +151,9 @@
 			"Afternoon": ["Guard", "Traveler"],
 			"Evening": ["Guard"],
 			"Night": ["Guard"]
-		}
+		},
+		"locationType": "Gateway",
+		"isStartingLocation": false
 	},
 	{
 		"id": "riverside_path",
@@ -165,7 +177,9 @@
 			"Afternoon": [],
 			"Evening": [],
 			"Night": []
-		}
+		},
+		"locationType": "Path",
+		"isStartingLocation": false
 	},
 	{
 		"id": "harbor_office",
@@ -189,6 +203,8 @@
 			"Afternoon": ["Harbor_Master"],
 			"Evening": ["Harbor_Master"],
 			"Night": []
-		}
+		},
+		"locationType": "Harbor",
+		"isStartingLocation": false
 	}
 ]

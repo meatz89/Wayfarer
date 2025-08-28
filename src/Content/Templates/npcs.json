@@ -12,6 +12,10 @@
 		"letterTokenTypes": ["Trust"],
 		"currentState": "DESPERATE",
 		"letterDeadline": 73,
+		"hasLetterDeck": true,
+		"hasUrgentMeeting": true,
+		"defaultLetterRecipient": "lord_blackwood",
+		"crisisIfNegotiationFailed": true,
 		"urgentLetter": {
 			"id": "elena_refusal",
 			"sender": "elena",

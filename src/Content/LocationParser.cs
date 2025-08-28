@@ -67,6 +67,15 @@ public static Location ParseLocation(string json)
     {
         location.AccessRequirement = AccessRequirementParser.ParseAccessRequirement(accessReqElement);
     }
+    
+    // Parse new mechanical properties that replace hardcoded location checks
+    location.LocationTypeString = GetStringProperty(root, "locationType", "");
+    
+    if (root.TryGetProperty("isStartingLocation", out JsonElement isStartingElement) && 
+        isStartingElement.ValueKind == JsonValueKind.True)
+    {
+        location.IsStartingLocation = true;
+    }
 
     return location;
 }

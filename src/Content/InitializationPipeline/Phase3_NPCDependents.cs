@@ -85,18 +85,18 @@ public class Phase3_NPCDependents : IInitializationPhase
     
     private void InitializeLetterDeckForNPC(NPC npc)
     {
-        // Initialize letter deck for specific NPCs based on POC specification
-        if (npc.ID.ToLower() == "elena" || npc.ID.ToLower() == "elena_merchant")
+        // Initialize letter deck for NPCs that have letters based on mechanical property
+        if (npc.HasLetterDeck)
         {
             npc.LetterDeck = LetterCardFactory.CreateElenaLetterDeck(npc.ID);
-            Console.WriteLine($"[Phase3] Initialized letter deck for Elena with {npc.LetterDeck.Count} cards");
+            Console.WriteLine($"[Phase3] Initialized letter deck for {npc.Name} with {npc.LetterDeck.Count} cards");
             
             foreach (var letterCard in npc.LetterDeck)
             {
                 Console.WriteLine($"  - {letterCard.Title} (Requires: {string.Join(", ", letterCard.Eligibility.RequiredTokens.Select(t => $"{t.Value} {t.Key}"))}, States: {string.Join(", ", letterCard.Eligibility.RequiredStates)})");
             }
         }
-        // Add other NPCs with letter decks here as needed
+        // Letter decks are now initialized based on HasLetterDeck property
     }
 
     private TierLevel ParseTierLevel(string tierString)

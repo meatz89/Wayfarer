@@ -105,17 +105,11 @@ public static class LocationTraitsParser
     
     private static string GetLocationTypeTrait(Location location)
     {
-        // Check for special location types
-        if (location.Id == "market_square")
-            return "Crossroads";
-        
-        if (location.Id == "copper_kettle_tavern")
-            return "Tavern";
+        // Use mechanical property instead of hardcoded checks
+        if (!string.IsNullOrEmpty(location.LocationTypeString))
+            return location.LocationTypeString;
             
-        if (location.Id == "noble_district")
-            return "Elite Quarter";
-            
-        // Check access requirement
+        // Fallback: Check access requirement
         if (location.AccessRequirement != null)
             return "Restricted Area";
             
