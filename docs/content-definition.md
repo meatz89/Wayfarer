@@ -332,7 +332,7 @@ Knowledge cards in NPC decks can create:
 **DESPERATE** (Elena's starting state):
 - Weight limit: 1
 - Draws: Trust/Crisis + 1 guaranteed state card
-- Crisis letters weight becomes 0
+- Crisis cards weight becomes 0
 - Momentum: Each point reduces patience cost by 1 (min 0)
 - Goals Available: Crisis promises, urgent letters
 - Degradation: → Hostile at -3 momentum
@@ -379,12 +379,12 @@ Knowledge cards in NPC decks can create:
 **Elena's Optimal Journey**:
 1. **Desperate** → Use observation for direct jump to Open
 2. **Desperate** → Tense → Neutral → Open (traditional path)
-3. **Desperate** → Stay for Crisis letter resolution
+3. **Desperate** → Stay for crisis card resolution
 
 Each path has trade-offs:
 - Direct jump costs observation but saves turns
 - Traditional path reliable but slow
-- Staying faces Crisis letters but weight 0 advantage
+- Staying faces crisis cards but weight 0 advantage
 
 ### Comfort Building Mathematics
 
@@ -615,7 +615,7 @@ W3 card, 0 tokens:
 **Scenario 1**: Elena Desperate, You have 3 Trust tokens
 - +15% success on all cards (base + 15% from 3 tokens)
 - Letter negotiations much more favorable
-- Crisis letters still risky but manageable
+- Crisis cards still risky but manageable
 - Can build momentum to reduce patience cost
 
 **Scenario 2**: Elena Open, You have -2 Trust tokens (from past failures)
