@@ -96,15 +96,15 @@
         <div class="action-section">
             @if ((Context?.Type ?? ConversationType.Standard) == ConversationType.QuickExchange)
             {
-                <!-- Exchanges use SPEAK to confirm selection, just like regular conversations -->
-                <div class="turn-indicator">Select an exchange offer</div>
+                <!-- Quick Exchanges: Select a card then SPEAK to accept it -->
+                <div class="turn-indicator">Select an exchange card to trade</div>
                 <div class="action-choices">
                     <button class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsProcessing)">
-                        <div>ACCEPT</div>
+                        <div>TRADE</div>
                         <div class="action-details">@GetSpeakDetails()</div>
                     </button>
                     <button class="action-button exit-button" @onclick="ExitConversation">
-                        <div>DECLINE</div>
+                        <div>EXIT</div>
                         <div class="action-details">Leave without trading</div>
                     </button>
                 </div>
