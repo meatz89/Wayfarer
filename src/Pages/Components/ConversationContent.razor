@@ -5,25 +5,10 @@
 <div class="conversation-content">
     @if (Session != null)
     {
-        <!-- Conversation Mode Indicator -->
-        <div class="conversation-mode">
-            <div class="mode-title">@GetConversationModeTitle()</div>
-            <div class="mode-cost">
-                @if ((Context?.Type ?? ConversationType.Standard) != ConversationType.QuickExchange)
-                {
-                    <span class="cost-item">@Session.CurrentPatience/@Session.MaxPatience Patience</span>
-                }
-            </div>
-        </div>
-
         <!-- NPC Info -->
         <div class="npc-header">
             <div class="npc-info">
                 <h2>@NpcName</h2>
-                @if ((Context?.Type ?? ConversationType.Standard) != ConversationType.QuickExchange)
-                {
-                    <div class="npc-state @GetStateClass()">@Session.CurrentState</div>
-                }
             </div>
         </div>
 
