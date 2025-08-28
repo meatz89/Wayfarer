@@ -51,14 +51,10 @@ public class NPC
     // Known routes (for HELP verb sharing)
     private List<RouteOption> _knownRoutes = new List<RouteOption>();
     
-    // Mechanical properties to replace hardcoded ID checks
-    public bool HasLetterDeck { get; set; }
-    public bool HasUrgentMeeting { get; set; }
-    public string DefaultLetterRecipient { get; set; }
-    public bool CrisisIfNegotiationFailed { get; set; }
-    public bool HasBurdenHistory { get; set; }  // NPCs with past failures get burden cards
-    public bool HasLetter { get; set; }  // NPC has a letter to give
-    public DeliveryObligation ActiveLetter { get; set; }  // The letter they have
+    // REMOVED: Boolean flags violate deck-based architecture
+    // Letters are detected by checking LetterDeck contents
+    // Burden history detected by counting burden cards in ConversationDeck
+    // Crisis detected by checking CurrentState == EmotionalState.DESPERATE
     
     // Emotional state
     public EmotionalState CurrentState { get; set; } = EmotionalState.NEUTRAL;
@@ -80,21 +76,14 @@ public class NPC
         ConversationDeck ??= deckFactory.CreateDeckForNPC(this);
     }
     
-    // Initialize letter deck with eligibility-based cards
-    public void InitializeLetterDeck()
+    // Initialize letter deck from content repository
+    public void InitializeLetterDeck(List<LetterCard> letterCards = null)
     {
         // Only initialize if not already done
         if (LetterDeck == null || !LetterDeck.Any())
         {
-            // Use mechanical property instead of hardcoded ID check
-            if (HasLetterDeck)
-            {
-                LetterDeck = LetterCardFactory.CreateElenaLetterDeck(ID);
-            }
-            else
-            {
-                LetterDeck = new List<LetterCard>();
-            }
+            // Initialize from provided cards or empty
+            LetterDeck = letterCards ?? new List<LetterCard>();
         }
     }
 
@@ -145,6 +134,18 @@ public class NPC
     public bool HasLetterCards()
     {
         return LetterDeck != null && LetterDeck.Any();
+    }
+    
+    // Check if NPC has burden history (cards in conversation deck)
+    public bool HasBurdenHistory()
+    {
+        return CountBurdenCards() > 0;
+    }
+    
+    // Check if NPC is in crisis (DESPERATE state)
+    public bool IsInCrisis()
+    {
+        return CurrentState == EmotionalState.DESPERATE;
     }
     
     // Count burden cards in conversation deck

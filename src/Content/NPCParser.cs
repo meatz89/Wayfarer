@@ -78,26 +78,24 @@ public static class NPCParser
         }
     }
     
-    // Parse new mechanical properties that replace hardcoded ID checks
-    if (root.TryGetProperty("hasLetterDeck", out JsonElement hasLetterDeckElement) && 
-        hasLetterDeckElement.ValueKind == JsonValueKind.True)
+    // REMOVED: Boolean flags violate deck-based architecture
+    // Letters are detected by checking letter deck contents
+    // Burden history detected by counting burden cards in conversation deck
+    // Crisis detected by checking emotional state
+    
+    // Parse CurrentState (emotional state)
+    string currentStateStr = GetStringProperty(root, "currentState", "NEUTRAL");
+    if (Enum.TryParse<EmotionalState>(currentStateStr, true, out EmotionalState emotionalState))
     {
-        npc.HasLetterDeck = true;
+        npc.CurrentState = emotionalState;
+    }
+    else
+    {
+        npc.CurrentState = EmotionalState.NEUTRAL;
     }
     
-    if (root.TryGetProperty("hasUrgentMeeting", out JsonElement hasUrgentMeetingElement) && 
-        hasUrgentMeetingElement.ValueKind == JsonValueKind.True)
-    {
-        npc.HasUrgentMeeting = true;
-    }
-    
-    npc.DefaultLetterRecipient = GetStringProperty(root, "defaultLetterRecipient", null);
-    
-    if (root.TryGetProperty("crisisIfNegotiationFailed", out JsonElement crisisElement) && 
-        crisisElement.ValueKind == JsonValueKind.True)
-    {
-        npc.CrisisIfNegotiationFailed = true;
-    }
+    // REMOVED: ActiveLetter violates deck-based architecture
+    // Letters are now handled as goal cards in the letter deck
 
     return npc;
 }
@@ -113,6 +111,7 @@ private static Professions MapProfessionFromJson(string jsonProfession)
         "Scholar" => Professions.Scholar,
         "Scribe" => Professions.Scribe,
         "Noble" => Professions.Noble,
+        "Smuggler" => Professions.Agent,
         _ => throw new ArgumentException($"Unknown profession in JSON: '{jsonProfession}' - add to profession mapping")
     };
 }
@@ -123,6 +122,11 @@ private static ServiceTypes? MapServiceFromJson(string jsonService)
 {
     return jsonService switch
     {
+        "Trade" => ServiceTypes.Trade,
+        "Work" => ServiceTypes.Work,
+        "Information" => ServiceTypes.Information,
+        "Lodging" => ServiceTypes.Rest,
+        // "Shadow" is not a service type, skip it
         "equipment_commissioning" => ServiceTypes.EquipmentRepair,
         "workshop_contracts" => ServiceTypes.Training,
         "trade_goods" => ServiceTypes.Trade,
@@ -150,12 +154,27 @@ private static ConnectionType? ParseConnectionType(string connectionTypeStr)
     return connectionTypeStr.ToLower() switch
     {
         "trust" => ConnectionType.Trust,
+        "commerce" => ConnectionType.Commerce,
         "trade" => ConnectionType.Commerce,
+        "status" => ConnectionType.Status,
         "noble" => ConnectionType.Status,
         "common" => ConnectionType.Trust,
         "shadow" => ConnectionType.Shadow,
         _ => null
     };
+}
+
+// REMOVED: ParseActiveLetter violates deck-based architecture
+// Letters are now handled as goal cards in the letter deck
+
+private static int GetIntProperty(JsonElement element, string propertyName, int defaultValue)
+{
+    if (element.TryGetProperty(propertyName, out JsonElement property) &&
+        property.ValueKind == JsonValueKind.Number)
+    {
+        return property.GetInt32();
+    }
+    return defaultValue;
 }
 
 private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)

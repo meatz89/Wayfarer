@@ -151,6 +151,9 @@ public class InitializationContext
     // Validation tracking - used only during initialization for cross-reference checks
     // This is NOT game state and is discarded after initialization completes
     public ValidationTracker ValidationTracker { get; set; } = new();
+    
+    // Letter deck repository for loading letter configurations
+    public LetterDeckRepository LetterDeckRepository { get; set; }
 
     /// <summary>
     /// Gets the content path based on game mode

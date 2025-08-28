@@ -20,42 +20,14 @@ public class NPCDTO
     public string AvailabilitySchedule { get; set; }
     public int Tier { get; set; }
     
-    // Mechanical properties to replace hardcoded ID checks
-    public bool HasLetterDeck { get; set; }
-    public bool HasUrgentMeeting { get; set; }
-    public string DefaultLetterRecipient { get; set; }
-    public bool CrisisIfNegotiationFailed { get; set; }
+    // REMOVED: Boolean flags violate deck-based architecture
+    // Letters are detected by checking letter deck contents
+    // Burden history detected by counting burden cards in conversation deck
+    // Crisis detected by checking emotional state
     
     // Properties from JSON that weren't being parsed
     public string CurrentState { get; set; }
-    public int? LetterDeadline { get; set; }
-    public UrgentLetterDTO UrgentLetter { get; set; }
-    public bool HasLetter { get; set; }
-    public ActiveLetterDTO ActiveLetter { get; set; }
-    public int? LeavingAt { get; set; }
-    public int? WillBeUnavailableAfter { get; set; }
-    public bool IsBlockingPath { get; set; }
-    public int? RequiresStatusToPass { get; set; }
 }
 
-public class UrgentLetterDTO
-{
-    public string Id { get; set; }
-    public string Sender { get; set; }
-    public string Recipient { get; set; }
-    public int Weight { get; set; }
-    public int DeadlineInMinutes { get; set; }
-    public string Stakes { get; set; }
-    public string Description { get; set; }
-}
-
-public class ActiveLetterDTO
-{
-    public string Id { get; set; }
-    public string Sender { get; set; }
-    public string Recipient { get; set; }
-    public int Weight { get; set; }
-    public int DeadlineInMinutes { get; set; }
-    public int Reward { get; set; }
-    public string Description { get; set; }
-}
+// REMOVED: Letter DTOs violate deck-based architecture
+// Letters are now handled as goal cards in the letter deck

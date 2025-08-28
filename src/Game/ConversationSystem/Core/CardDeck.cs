@@ -53,7 +53,7 @@ public class CardDeck
         cards.AddRange(npcCards);
 
         // NPCs with burden history get additional burden cards
-        if (npc.HasBurdenHistory)
+        if (npc.HasBurdenHistory())
         {
             AddBurdenCardsForNPC(npc);
         }

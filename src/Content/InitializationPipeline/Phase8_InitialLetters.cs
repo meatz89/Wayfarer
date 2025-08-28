@@ -17,8 +17,8 @@ public class Phase8_InitialLetters : IInitializationPhase
         GameWorld gameWorld = context.GameWorld;
         List<DeliveryObligation> obligations = new System.Collections.Generic.List<DeliveryObligation>();
 
-        // Check for NPCs with urgent meeting obligations (using systemic properties)
-        var urgentNpc = gameWorld.WorldState.NPCs.FirstOrDefault(n => n.HasUrgentMeeting);
+        // Check for NPCs in crisis state who might have urgent meetings
+        var urgentNpc = gameWorld.WorldState.NPCs.FirstOrDefault(n => n.IsInCrisis());
         if (urgentNpc != null && gameWorld.GetPlayer() != null)
         {
             // Create meeting obligation for urgent NPC
@@ -40,14 +40,10 @@ public class Phase8_InitialLetters : IInitializationPhase
             Console.WriteLine($"  Initialized crisis deck for {urgentNpc.Name} from JSON data");
         }
         
-        // Load initial obligations from NPC data
-        // NPCs with hasLetter:true should have their letters in the initial queue
-        foreach (var npc in gameWorld.WorldState.NPCs.Where(npc => npc.HasLetter && npc.ActiveLetter != null))
-        {
-            var letter = npc.ActiveLetter;
-            obligations.Add(letter);
-            Console.WriteLine($"  Added {npc.Name}'s letter to initial queue");
-        }
+        // Load initial obligations from NPCs with letter cards
+        // NPCs with letter cards in their deck should have them offered initially
+        // This is now handled through the conversation system when player talks to them
+        // We don't pre-load letters into the queue anymore - they must be negotiated first
 
         // Additional letters can be defined in letters.json and referenced from NPCs
         // This ensures all content is data-driven, not hardcoded

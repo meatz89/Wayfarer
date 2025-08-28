@@ -138,9 +138,10 @@ public class ConversationSession
         }
         
         // Initialize letter deck for NPCs that have letters
-        if (npc.HasLetterDeck && (npc.LetterDeck == null || !npc.LetterDeck.Any()))
+        if (npc.HasLetterCards() && (npc.LetterDeck == null || !npc.LetterDeck.Any()))
         {
-            npc.LetterDeck = LetterCardFactory.CreateElenaLetterDeck(npc.ID);
+            // Letter decks should be initialized from letter_decks.json during Phase3
+            Console.WriteLine($"[ConversationSession] Warning: {npc.Name} has no letter deck but should have letters");
         }
         
         // Initialize crisis deck if needed (usually empty)
@@ -1108,16 +1109,38 @@ public class ConversationSession
         var deadlineHours = success ? 24 : 6;  // Much worse deadline on failure
         var payment = success ? 15 : 5;  // Better payment on success
         
-        // Check if NPC triggers crisis on failed negotiation
-        bool isCrisisIfFailed = NPC.CrisisIfNegotiationFailed && !success;
+        // Check if goal card is a crisis letter based on card ID
+        bool isCrisisLetter = goalCard.Id == "elena_crisis_letter_goal" || goalCard.Id == "goal_crisis";
+        bool forcesPosition1 = isCrisisLetter; // Crisis letters force position 1 on failure
+        
+        // Get recipient info from card context or use defaults
+        string recipientId = "unknown";
+        string recipientName = "Unknown Recipient";
+        
+        // For specific known letter goals, set the recipient
+        if (goalCard.Id == "elena_crisis_letter_goal")
+        {
+            recipientId = "lord_blackwood";
+            recipientName = "Lord Blackwood";
+        }
+        else if (goalCard.Id == "marcus_letter_goal")
+        {
+            recipientId = "noble_district_merchant";
+            recipientName = "Noble District Merchant";
+        }
+        else if (goalCard.Id == "guard_letter_goal")
+        {
+            recipientId = "guard_tower";
+            recipientName = "Guard Tower";
+        }
         
         return new DeliveryObligation
         {
             Id = $"goal_{NPC.ID}_{DateTime.Now.Ticks}",
             SenderName = NPC.Name,
             SenderId = NPC.ID,
-            RecipientName = FormatRecipientName(NPC.DefaultLetterRecipient) ?? "Unknown Recipient",
-            RecipientId = NPC.DefaultLetterRecipient ?? "unknown",
+            RecipientName = recipientName,
+            RecipientId = recipientId,
             DeadlineInMinutes = deadlineHours * 60,
             Payment = payment,
             TokenType = ConnectionType.Trust,  // Letter goals build trust
@@ -1127,14 +1150,14 @@ public class ConversationSession
             Message = success ? "Deliver this important letter" : "URGENT: This letter MUST be delivered immediately!",
             
             // Queue position is handled by automatic displacement for failures
-            QueuePosition = success ? 3 : 1,  // Failed forces position 1
-            FinalQueuePosition = success ? 3 : 1,
+            QueuePosition = (forcesPosition1 && !success) ? 1 : (success ? 3 : 1),
+            FinalQueuePosition = (forcesPosition1 && !success) ? 1 : (success ? 3 : 1),
             PositioningReason = success ? LetterPositioningReason.Neutral : LetterPositioningReason.PoorStanding,
             
             // Mark for automatic displacement processing
             IsGenerated = true,
             GenerationReason = $"Goal card negotiation: {(success ? "success" : "failure")}",
-            IsCrisisLetter = isCrisisIfFailed  // Elena's failed letter is a crisis
+            IsCrisisLetter = isCrisisLetter && !success  // Crisis on failed negotiation
         };
     }
     
@@ -1184,9 +1207,26 @@ public class ConversationSession
     /// </summary>
     private DeliveryObligation CreateDeliveryObligationFromTerms(LetterCard letterCard, LetterNegotiationTerms terms, NPC sender)
     {
-        // Use sender's default recipient or extract from letter template
-        var recipientName = FormatRecipientName(sender.DefaultLetterRecipient) ?? "Unknown Recipient";
-        var recipientId = sender.DefaultLetterRecipient ?? "unknown";
+        // Get recipient from letter card (hardcoded based on letter ID for now)
+        string recipientId = "unknown";
+        string recipientName = "Unknown Recipient";
+        
+        // Map known letter cards to their recipients
+        if (letterCard.Id.Contains("blackwood"))
+        {
+            recipientId = "lord_blackwood";
+            recipientName = "Lord Blackwood";
+        }
+        else if (letterCard.Id.Contains("noble_district"))
+        {
+            recipientId = "noble_district_merchant";
+            recipientName = "Noble District Merchant";
+        }
+        else if (letterCard.Id.Contains("guard"))
+        {
+            recipientId = "guard_tower";
+            recipientName = "Guard Tower";
+        }
 
         return new DeliveryObligation
         {

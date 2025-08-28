@@ -21,7 +21,10 @@ public class Phase3_NPCDependents : IInitializationPhase
         // 2. Load DeliveryObligation Templates (depends on NPCs for validation)
         LoadLetterTemplates(context);
         
-        // 3. Initialize NPC Conversation Decks (CRITICAL - was missing!)
+        // 3. Load Letter Deck configurations
+        LoadLetterDecks(context);
+        
+        // 4. Initialize NPC Conversation Decks (CRITICAL - was missing!)
         InitializeNPCDecks(context);
     }
     
@@ -67,7 +70,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                 }
                 
                 // Initialize letter deck for specific NPCs
-                InitializeLetterDeckForNPC(npc);
+                InitializeLetterDeckForNPC(npc, context);
                 
                 // Note: Crisis letters are added later in Phase8 when meeting obligations are created
                 // This ensures proper initialization order
@@ -83,22 +86,81 @@ public class Phase3_NPCDependents : IInitializationPhase
         Console.WriteLine($"[Phase3] Initialized decks for {npcs.Count} NPCs");
     }
     
-    private void InitializeLetterDeckForNPC(NPC npc)
+    private void InitializeLetterDeckForNPC(NPC npc, InitializationContext context)
     {
-        // Initialize letter deck for NPCs that have letters based on mechanical property
-        if (npc.HasLetterDeck)
+        // Get letter cards from the letter deck repository
+        if (context.LetterDeckRepository != null)
         {
-            npc.LetterDeck = LetterCardFactory.CreateElenaLetterDeck(npc.ID);
-            Console.WriteLine($"[Phase3] Initialized letter deck for {npc.Name} with {npc.LetterDeck.Count} cards");
-            
-            foreach (var letterCard in npc.LetterDeck)
+            var letterConfigs = context.LetterDeckRepository.GetLetterCardsForNPC(npc.ID);
+            if (letterConfigs != null && letterConfigs.Any())
             {
-                Console.WriteLine($"  - {letterCard.Title} (Requires: {string.Join(", ", letterCard.Eligibility.RequiredTokens.Select(t => $"{t.Value} {t.Key}"))}, States: {string.Join(", ", letterCard.Eligibility.RequiredStates)})");
+                // Convert configurations to LetterCards
+                var letterCards = new List<LetterCard>();
+                foreach (var config in letterConfigs)
+                {
+                    letterCards.Add(ConvertToLetterCard(config, npc));
+                }
+                
+                npc.InitializeLetterDeck(letterCards);
+                Console.WriteLine($"[Phase3] Initialized letter deck for {npc.Name} with {letterCards.Count} cards from letter_decks.json");
+                
+                foreach (var letterCard in letterCards)
+                {
+                    Console.WriteLine($"  - {letterCard.Title} (Requires: {string.Join(", ", letterCard.Eligibility.RequiredTokens.Select(t => $"{t.Value} {t.Key}"))}, States: {string.Join(", ", letterCard.Eligibility.RequiredStates)})");
+                }
             }
         }
-        // Letter decks are now initialized based on HasLetterDeck property
+    }
+    
+    private LetterCard ConvertToLetterCard(LetterCardConfiguration config, NPC npc)
+    {
+        return new LetterCard
+        {
+            Id = config.CardId,
+            Title = config.LetterDetails.Description,
+            Description = config.LetterDetails.Description,
+            TemplateType = "letter",
+            NPCPersonality = npc.PersonalityType,
+            Depth = 7, // Default depth for letters
+            Weight = config.EligibilityRequirements.RequiredStates.Contains(EmotionalState.DESPERATE) ? 0 : 2,
+            Eligibility = new LetterEligibility
+            {
+                RequiredTokens = config.EligibilityRequirements.RequiredTokens,
+                RequiredStates = config.EligibilityRequirements.RequiredStates
+            },
+            SuccessTerms = new LetterNegotiationTerms
+            {
+                DeadlineHours = config.NegotiationTerms.SuccessTerms.DeadlineMinutes / 60,
+                QueuePosition = config.NegotiationTerms.SuccessTerms.QueuePosition,
+                Payment = config.NegotiationTerms.SuccessTerms.Payment,
+                ForcesPositionOne = config.NegotiationTerms.SuccessTerms.ForcesPositionOne
+            },
+            FailureTerms = new LetterNegotiationTerms
+            {
+                DeadlineHours = config.NegotiationTerms.FailureTerms.DeadlineMinutes / 60,
+                QueuePosition = config.NegotiationTerms.FailureTerms.QueuePosition,
+                Payment = config.NegotiationTerms.FailureTerms.Payment,
+                ForcesPositionOne = config.NegotiationTerms.FailureTerms.ForcesPositionOne
+            },
+            ConnectionType = config.LetterDetails.TokenType,
+            BaseSuccessRate = config.NegotiationTerms.BaseSuccessRate
+        };
     }
 
+    private void LoadLetterDecks(InitializationContext context)
+    {
+        Console.WriteLine("[Phase3] Loading letter deck configurations...");
+        
+        // Create and initialize letter deck repository
+        var letterDeckRepo = new LetterDeckRepository(context.ContentPath);
+        letterDeckRepo.LoadLetterDecks();
+        
+        // Store in context for later use
+        context.LetterDeckRepository = letterDeckRepo;
+        
+        Console.WriteLine("[Phase3] Letter deck configurations loaded");
+    }
+    
     private TierLevel ParseTierLevel(string tierString)
     {
         if (string.IsNullOrEmpty(tierString))
