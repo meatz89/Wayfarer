@@ -235,7 +235,7 @@
                 <div class="card-grid">
                     @foreach (var convCard in Session.HandCards)
                     {
-                        <div class="card @GetCardClass(convCard) @GetObservationDecayClass(convCard) @(IsCardSelected(convCard) ? "selected" : "") @(IsObservationExpired(convCard) ? "unavailable" : "")"
+                        <div class="wayfarer-card @GetCardClass(convCard) @GetObservationDecayClass(convCard) @(IsCardSelected(convCard) ? "selected" : "") @(IsObservationExpired(convCard) ? "unavailable" : "") clickable"
                              @onclick="() => ToggleCardSelection(convCard)">
                             @if (convCard.GetEffectiveWeight(Context.Session.CurrentState) == 0 && convCard.Weight > 0)
                             {
@@ -253,30 +253,34 @@
                             {
                                 <div class="card-marker goal">Goal Card</div>
                             }
-                            <div class="card-content">
-                                <div class="card-main">
-                                    <div class="card-identity">
-                                        <div class="card-name">@GetProperCardName(convCard)</div>
-                                        <div class="card-weight">@convCard.GetEffectiveWeight(Context.Session.CurrentState)</div>
+                            <div class="card-layout">
+                                <div class="card-main-area">
+                                    <div class="card-header">
+                                        <div class="card-type-label">@GetCardTypeLabel(convCard)</div>
+                                        <div class="card-cost">Weight @convCard.GetEffectiveWeight(Context.Session.CurrentState)</div>
                                     </div>
-                                    <div class="card-drawable">@GetDrawableStatesText(convCard)</div>
+                                    <div class="card-identity">
+                                        <div class="card-title">@GetProperCardName(convCard)</div>
+                                        <div class="card-weight-badge">@convCard.GetEffectiveWeight(Context.Session.CurrentState)</div>
+                                    </div>
+                                    <div class="card-drawable-states">@GetDrawableStatesText(convCard)</div>
                                     <div class="card-text">
-                                        "@GetProperCardDialogue(convCard)"
+                                        <div class="card-dialogue">"@GetProperCardDialogue(convCard)"</div>
                                     </div>
                                 </div>
                                 <div class="card-outcomes">
                                     <div class="outcome success">
-                                        <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
-                                        <div class="outcome-label">Success</div>
+                                        <div class="outcome-percentage">@GetSuccessChance(convCard)%</div>
+                                        <div class="outcome-label">SUCCESS</div>
                                         <div class="outcome-effect">@GetSuccessEffect(convCard)</div>
                                         @if (!string.IsNullOrEmpty(GetTokenBonusText(convCard)))
                                         {
                                             <div class="token-bonus">@GetTokenBonusText(convCard)</div>
                                         }
                                     </div>
-                                    <div class="outcome">
-                                        <div class="outcome-chance">@GetFailureChance(convCard)%</div>
-                                        <div class="outcome-label">Failure</div>
+                                    <div class="outcome failure">
+                                        <div class="outcome-percentage">@GetFailureChance(convCard)%</div>
+                                        <div class="outcome-label">FAILURE</div>
                                         <div class="outcome-effect">@GetFailureEffect(convCard)</div>
                                     </div>
                                 </div>

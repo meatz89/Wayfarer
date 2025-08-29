@@ -537,6 +537,22 @@ namespace Wayfarer.Pages.Components
         {
             return SelectedCards.Contains(card);
         }
+        
+        protected string GetCardTypeLabel(ConversationCard card)
+        {
+            if (card == null) return "Card";
+            
+            return card.Category switch
+            {
+                CardCategory.Comfort => "Comfort",
+                CardCategory.State => "State card",
+                CardCategory.Token => "Token",
+                CardCategory.Patience => "Patience",
+                CardCategory.Exchange or CardCategory.Promise => "Promise",
+                CardCategory.Burden => "Burden",
+                _ => card.IsObservation ? "Observation" : card.Type.ToString()
+            };
+        }
 
         protected bool CanSpeak()
         {
