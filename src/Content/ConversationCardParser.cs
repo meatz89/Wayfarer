@@ -146,7 +146,8 @@ public class ConversationCardParser
             Description = card.Description,
             SuccessRate = card.SuccessRate,
             SuccessState = card.SuccessState,
-            DrawableStates = card.DrawableStates
+            DrawableStates = card.DrawableStates,
+            PatienceBonus = card.PatienceBonus
         };
     }
 
@@ -235,7 +236,8 @@ public class ConversationCardParser
             Description = dto.Description,
             SuccessRate = dto.SuccessRate ?? 0,
             SuccessState = successState,
-            DrawableStates = drawableStates
+            DrawableStates = drawableStates,
+            PatienceBonus = dto.PatienceBonus ?? 0
         };
     }
 
@@ -286,6 +288,7 @@ public class ConversationCardDTO
     public bool? IsStateCard { get; set; }
     public string SuccessState { get; set; }
     public List<string> DrawableStates { get; set; } // NEW: States this card can be drawn in
+    public int? PatienceBonus { get; set; } // Patience added when this card succeeds
 }
 
 /// <summary>

@@ -167,6 +167,61 @@
 			"canDeliverLetter": true,
 			"drawableStates": ["NEUTRAL", "CONNECTED"],
 			"description": "Present a letter with proper ceremony and respect"
+		},
+		"KeepTalking": {
+			"type": "PATIENCE",
+			"category": "Patience",
+			"weight": 1,
+			"baseComfort": 0,
+			"persistence": "Opportunity",
+			"connectionType": "Trust",
+			"patienceBonus": 1,
+			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED", "OVERWHELMED", "TENSE", "EAGER"],
+			"description": "Ask them to continue the conversation a bit longer"
+		},
+		"EngagingQuestion": {
+			"type": "PATIENCE", 
+			"category": "Patience",
+			"weight": 2,
+			"baseComfort": 0,
+			"persistence": "Opportunity",
+			"connectionType": "Trust",
+			"patienceBonus": 2,
+			"drawableStates": ["NEUTRAL", "OPEN", "CONNECTED", "EAGER"],
+			"description": "Ask an engaging question that keeps them interested"
+		},
+		"FascinatingStory": {
+			"type": "PATIENCE",
+			"category": "Patience",
+			"weight": 3,
+			"baseComfort": 0,
+			"persistence": "Fleeting",
+			"connectionType": "Trust",
+			"patienceBonus": 3,
+			"drawableStates": ["OPEN", "CONNECTED"],
+			"description": "Tell a fascinating story that captures their full attention"
+		},
+		"QuickTrade": {
+			"type": "PATIENCE",
+			"category": "Patience",
+			"weight": 1,
+			"baseComfort": 0,
+			"persistence": "Opportunity",
+			"connectionType": "Commerce",
+			"patienceBonus": 1,
+			"drawableStates": ["EAGER", "NEUTRAL", "CONNECTED"],
+			"description": "Suggest discussing a quick trade opportunity"
+		},
+		"ImportantNews": {
+			"type": "PATIENCE",
+			"category": "Patience",
+			"weight": 2,
+			"baseComfort": 0,
+			"persistence": "Opportunity",
+			"connectionType": "Shadow",
+			"patienceBonus": 2,
+			"drawableStates": ["TENSE", "NEUTRAL", "CONNECTED"],
+			"description": "Mention you have important news to share"
 		}
 	},
 	"setBonuses": {

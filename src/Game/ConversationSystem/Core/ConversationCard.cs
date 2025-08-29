@@ -52,7 +52,8 @@ public enum CardCategory
     State,      // Cards that change NPC emotional state
     Burden,     // Negative cards that require resolution
     Promise,    // Goal cards for letter offers
-    Exchange    // Commerce cards for quick trades
+    Exchange,   // Commerce cards for quick trades
+    Patience    // Cards that extend conversation by adding patience
 }
 
 /// <summary>
@@ -234,6 +235,11 @@ public class ConversationCard
     /// This makes card availability transparent to players.
     /// </summary>
     public List<EmotionalState> DrawableStates { get; init; }
+
+    /// <summary>
+    /// Amount of patience to add when this card succeeds (Patience cards only)
+    /// </summary>
+    public int PatienceBonus { get; init; }
 
     /// <summary>
     /// Get effective weight considering state rules

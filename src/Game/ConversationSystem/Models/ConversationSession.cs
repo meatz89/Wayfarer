@@ -553,6 +553,15 @@ public class ConversationSession
             ProcessLetterNegotiations(result);
         }
 
+        // Apply patience changes from patience cards
+        foreach (var cardResult in result.Results)
+        {
+            if (cardResult.PatienceAdded > 0)
+            {
+                AddPatience(cardResult.PatienceAdded);
+            }
+        }
+
         // Apply comfort changes based on card weight and success/failure
         ApplyComfortChanges(result, selectedCards);
         
@@ -638,6 +647,18 @@ public class ConversationSession
         }
 
         return outcome;
+    }
+
+    /// <summary>
+    /// Add patience to the conversation (from patience cards)
+    /// </summary>
+    public void AddPatience(int amount)
+    {
+        if (amount > 0)
+        {
+            CurrentPatience += amount;
+            Console.WriteLine($"[AddPatience] Added {amount} patience. Now at {CurrentPatience}/{MaxPatience}");
+        }
     }
 
     /// <summary>
@@ -805,9 +826,10 @@ public class ConversationSession
             var card = cardResult.Card;
             var weight = card.GetEffectiveWeight(CurrentState);
             
-            // Skip cards that don't affect comfort (exchanges, letters, etc.)
+            // Skip cards that don't affect comfort (exchanges, letters, patience, etc.)
             if (card.Mechanics == CardMechanics.Exchange || 
-                (card.IsGoalCard && card.Mechanics == CardMechanics.Promise))
+                (card.IsGoalCard && card.Mechanics == CardMechanics.Promise) ||
+                card.Category == CardCategory.Patience)
             {
                 continue;
             }

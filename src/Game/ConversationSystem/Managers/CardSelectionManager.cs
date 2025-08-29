@@ -151,6 +151,27 @@ public class CardSelectionManager
                 continue;
             }
             
+            // Patience cards - extend conversation duration
+            if (card.Category == CardCategory.Patience)
+            {
+                var patienceSuccessChance = card.CalculateSuccessChance(npcTokens);
+                var patienceRoll = random.Next(100);
+                var patienceSuccess = patienceRoll < patienceSuccessChance;
+                
+                results.Add(new SingleCardResult
+                {
+                    Card = card,
+                    Success = patienceSuccess,
+                    Comfort = 0, // Patience cards don't generate comfort
+                    Roll = patienceRoll,
+                    SuccessChance = patienceSuccessChance,
+                    PatienceAdded = patienceSuccess ? card.PatienceBonus : 0
+                });
+                
+                // Patience cards don't contribute to comfort
+                continue;
+            }
+            
             // Normal cards use success/failure mechanics with token bonuses
             var successChance = card.CalculateSuccessChance(npcTokens);
             var roll = random.Next(100);

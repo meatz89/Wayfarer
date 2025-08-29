@@ -86,6 +86,11 @@ public class SingleCardResult
     /// The success chance that was needed
     /// </summary>
     public int SuccessChance { get; init; }
+
+    /// <summary>
+    /// Patience added to conversation (for Patience cards)
+    /// </summary>
+    public int PatienceAdded { get; init; }
 }
 
 /// <summary>

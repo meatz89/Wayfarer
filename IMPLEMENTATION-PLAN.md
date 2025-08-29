@@ -56,17 +56,17 @@ Complete replacement of conversation mechanics to match the refined design speci
 - [x] State transitions at ±3
 - [x] Delete momentum system entirely
 
-### PHASE 2: Remove Depth System
-- [ ] Delete Depth property from ConversationCard
-- [ ] Remove all depth-based filtering
-- [ ] Remove depth from JSON files
-- [ ] Update card draw to pure state filtering
+### PHASE 2: Remove Depth System ✅ COMPLETED
+- [x] Delete Depth property from ConversationCard
+- [x] Remove all depth-based filtering
+- [x] Remove depth from JSON files
+- [x] Update card draw to pure state filtering
 
-### PHASE 3: Card State Filtering
-- [ ] Add DrawableStates property to cards
-- [ ] Update card_templates.json with drawable states
-- [ ] Make LISTEN filter by current state only
-- [ ] Update UI to show drawable states
+### PHASE 3: Card State Filtering ✅ COMPLETED
+- [x] Add DrawableStates property to cards
+- [x] Update card_templates.json with drawable states
+- [x] Make LISTEN filter by current state only
+- [x] Update UI to show drawable states (backend working, UI needs testing)
 
 ### PHASE 4: New Card Types
 - [ ] Add CardCategory.Patience

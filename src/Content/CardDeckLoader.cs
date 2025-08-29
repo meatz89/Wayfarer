@@ -300,11 +300,34 @@ public class CardDeckLoader
             // Parse template type
             var templateType = ParseTemplateType(id);
             
+            // Parse category if specified
+            CardCategory category = CardCategory.Comfort; // Default
+            if (template.TryGetProperty("category", out var categoryElem))
+            {
+                var categoryStr = categoryElem.GetString();
+                if (Enum.TryParse<CardCategory>(categoryStr, true, out var parsedCategory))
+                {
+                    category = parsedCategory;
+                }
+            }
+            else if (isStateCard)
+            {
+                category = CardCategory.State;
+            }
+            
+            // Parse patience bonus for patience cards
+            var patienceBonus = 0;
+            if (template.TryGetProperty("patienceBonus", out var patienceElem))
+            {
+                patienceBonus = patienceElem.GetInt32();
+            }
+            
             return new ConversationCard
             {
                 Id = id,
                 TemplateId = templateType,
                 Mechanics = CardMechanics.Standard,
+                Category = category,
                 Context = new CardContext
                 {
                     Personality = PersonalityType.STEADFAST, // Default, will be overridden per NPC
@@ -319,6 +342,7 @@ public class CardDeckLoader
                 IsStateCard = isStateCard,
                 SuccessState = successState,
                 DrawableStates = drawableStates,
+                PatienceBonus = patienceBonus,
                 DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
                 Description = description,
                 SuccessRate = 70 - (weight * 10) // Base success rate calculation
@@ -377,11 +401,19 @@ public class CardDeckLoader
                 _ => ConversationType.Promise
             };
             
+            // Parse category from JSON or default based on goal type
+            CardCategory parsedCategory = CardCategory.Promise; // Default for goals
+            if (category != null && Enum.TryParse<CardCategory>(category, true, out var cat))
+            {
+                parsedCategory = cat;
+            }
+            
             return new ConversationCard
             {
                 Id = id,
                 TemplateId = "GoalCard",
                 Mechanics = CardMechanics.Promise,
+                Category = parsedCategory,
                 Context = new CardContext
                 {
                     Personality = PersonalityType.STEADFAST,
