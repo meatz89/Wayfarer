@@ -56,27 +56,25 @@ namespace Wayfarer.Pages.Components
                 {
                     var options = new List<ConversationOptionViewModel>();
                     
-                    // Add available conversation types
-                    if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
-                    {
-                        options.Add(new ConversationOptionViewModel
-                        {
-                            Type = ConversationType.Commerce,
-                            Label = "Quick Exchange",
-                            AttentionCost = 0,
-                            IsAvailable = true
-                        });
-                    }
+                    // Get ACTUAL available conversation types from ConversationManager
+                    var conversationManager = GameFacade.GetConversationManager();
+                    var availableTypes = conversationManager.GetAvailableConversationTypes(npc);
                     
-                    // Always show standard conversation option - NPCs should always be talkable
-                    // The deck will be created on demand if needed
-                    options.Add(new ConversationOptionViewModel
+                    // Add each available type as an option
+                    foreach (var type in availableTypes)
                     {
-                        Type = ConversationType.FriendlyChat,
-                        Label = "Talk",
-                        AttentionCost = 2,
-                        IsAvailable = true
-                    });
+                        // Get attention cost from backend mechanics
+                        var attentionCost = conversationManager.GetConversationAttentionCost(type);
+                        
+                        var option = new ConversationOptionViewModel
+                        {
+                            Type = type,
+                            Label = GetConversationLabel(type),
+                            AttentionCost = attentionCost,
+                            IsAvailable = true
+                        };
+                        options.Add(option);
+                    }
                     
                     // Get actual emotional state using the same logic as conversations
                     var emotionalState = GameFacade.GetNPCEmotionalState(npc.ID);
@@ -280,7 +278,24 @@ namespace Wayfarer.Pages.Components
             return type switch
             {
                 ConversationType.Commerce => "exchange",
+                ConversationType.FriendlyChat => "talk",
+                ConversationType.Promise => "promise",
+                ConversationType.Delivery => "delivery",
+                ConversationType.Resolution => "resolution",
                 _ => ""
+            };
+        }
+        
+        protected string GetConversationLabel(ConversationType type)
+        {
+            return type switch
+            {
+                ConversationType.Commerce => "Quick Exchange",
+                ConversationType.FriendlyChat => "Talk",
+                ConversationType.Promise => "Letter Offer",
+                ConversationType.Delivery => "Deliver Letter",
+                ConversationType.Resolution => "Make Amends",
+                _ => type.ToString()
             };
         }
 

@@ -157,6 +157,23 @@ public class ConversationManager
     }
     
     /// <summary>
+    /// Get the attention cost for a conversation type
+    /// This is determined by game mechanics, NOT UI logic
+    /// </summary>
+    public int GetConversationAttentionCost(ConversationType type)
+    {
+        return type switch
+        {
+            ConversationType.Commerce => 0,      // Quick exchanges are free - no emotional engagement
+            ConversationType.FriendlyChat => 2,  // Standard conversation cost
+            ConversationType.Promise => 2,        // Letter offers require attention
+            ConversationType.Delivery => 1,       // Delivering is simpler
+            ConversationType.Resolution => 3,     // Making amends is emotionally intensive
+            _ => 2  // Default cost
+        };
+    }
+    
+    /// <summary>
     /// Start a quick exchange conversation (simplified, no emotional states)
     /// </summary>
     private ConversationSession StartExchangeConversation(NPC npc)

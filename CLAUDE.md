@@ -97,6 +97,17 @@ RIGHT: Load from cards.json with id "letter_card_1"
 - Use SPEAK action to select cards, not custom button handlers
 - Conversations have different rules (e.g., no LISTEN in exchanges) but same UI
 
+**🚨 UI IS DUMB DISPLAY ONLY - NO GAME LOGIC IN UI 🚨**
+- **NEVER put game mechanics in UI components** - No attention costs, no availability logic, no rules
+- **UI must ALWAYS check backend for what's available** - Don't assume, ASK the backend
+- **Backend determines ALL game mechanics** - Costs, availability, rules, effects
+- **UI only displays what backend says is possible** - If backend says no FriendlyChat, don't show it
+- **Stop making the same fucking mistakes**:
+  - DON'T hardcode conversation types as "always available"
+  - DON'T decide attention costs in Razor components
+  - DON'T assume what NPCs can do - CHECK their actual decks
+  - DON'T put game logic in ViewModels or UI helpers
+
 **🚨 UNIFIED SCREEN ARCHITECTURE 🚨**
 - ONE GameScreen.razor component contains all UI
 - Fixed header with resources (coins/health/hunger/attention) ALWAYS visible

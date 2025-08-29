@@ -645,6 +645,11 @@ public class GameFacade
         return GetNPCEmotionalState(npc);
     }
     
+    public ConversationManager GetConversationManager()
+    {
+        return _conversationManager;
+    }
+    
     public List<SimpleRouteViewModel> GetAvailableRoutes()
     {
         var currentLocation = GetCurrentLocation();
