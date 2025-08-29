@@ -142,7 +142,6 @@ private static ServiceTypes? MapServiceFromJson(string jsonService)
         "fish_sales" => ServiceTypes.Trade,
         "dock_work" => ServiceTypes.Training,
         "transport_contracts" => ServiceTypes.Trading,
-        "bulk_trade" => ServiceTypes.Trading,
         "simple_labor" => ServiceTypes.Training,
         "boat_maintenance" => ServiceTypes.EquipmentRepair,
         _ => null // Unknown service

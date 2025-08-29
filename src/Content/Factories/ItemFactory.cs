@@ -133,7 +133,6 @@ public class ItemFactory
         // Adjust slots based on category
         int slots = category switch
         {
-            ItemCategory.Bulk_Goods => 2,
             ItemCategory.Luxury_Items => 1,
             _ => 1
         };

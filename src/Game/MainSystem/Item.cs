@@ -20,7 +20,6 @@ public enum ItemCategory
     Medicine,          // Herbs, potions, bandages
     Valuables,         // Jewelry, gems, coins
     Materials,         // Wood, metal, cloth
-    Bulk_Goods,        // Large trade goods, cargo
     Luxury_Items,      // Expensive specialty items
     Trade_Goods,       // Basic trade commodities
     Equipment,         // General equipment category
