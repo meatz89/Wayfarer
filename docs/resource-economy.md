@@ -2,7 +2,7 @@
 
 ## Core Economic Philosophy
 
-Every resource flows through multiple systems via different mechanics. Each mechanic has exactly ONE intentional effect. No thresholds, no secondary effects, no "OR" statements. Resources create strategic depth through their multiple uses, not through complex mechanics.
+Every resource flows through multiple systems via different mechanics. Each mechanic has exactly ONE intentional effect. No thresholds (except comfort ±3 for state transitions), no secondary effects, no "OR" statements. Resources create strategic depth through their multiple uses, not through complex mechanics.
 
 ## Primary Resources
 
@@ -98,37 +98,27 @@ Each use is a separate mechanic. Tokens never gate access to content.
 ## Conversation Resources
 
 ### Comfort (Temporary)
-**Range**: 0-20 within single conversation
-**Starting Value**: Always 5
-**Effect**: Determines maximum card depth accessible
+**Range**: -3 to +3 within single conversation
+**Starting Value**: Always 0
+**Effect**: At ±3, triggers emotional state transition
 
 **Modification**:
 - Comfort cards ONLY modify comfort
-- W1 cards: +2 (success) / -1 (failure)
-- W2 cards: +4 (success) / -1 (failure)  
-- W3 cards: +6 (success) / -2 (failure)
+- W1 cards: +1 (success) / -1 (failure)
+- W2 cards: +2 (success) / -2 (failure)  
+- W3 cards: +3 (success) / -3 (failure)
 
-**Strategic Role**: Tactical resource for reaching valuable cards within current conversation. Resets between conversations.
+**State Transitions at ±3**:
+- DESPERATE: +3→Tense, -3→Hostile
+- HOSTILE: +3→Tense, -3→Conversation ends
+- TENSE: +3→Neutral, -3→Hostile
+- GUARDED: +3→Neutral, -3→Hostile
+- NEUTRAL: +3→Open, -3→Tense
+- OPEN: +3→Connected, -3→Guarded
+- EAGER: +3→Connected, -3→Neutral
+- CONNECTED: +3→Stays Connected, -3→Tense
 
-### Momentum (Temporary)
-**Range**: -3 to +3 within single conversation
-**Starting Value**: Always 0
-**Effect**: Varies by emotional state (see emotional state rules)
-
-**Modification**:
-- Any successful card play: +1
-- Any failed card play: -1
-- Capped at -3 and +3
-
-**State Degradation at -3**:
-- Connected → Tense (trust broken)
-- Open → Guarded (walls go up)  
-- Eager → Neutral (enthusiasm dies)
-- Neutral → Tense (patience wears)
-- Desperate → Hostile (crisis explodes)
-- Others → Tense (default degradation)
-
-**Strategic Role**: Rewards successful chains within conversations. Each emotional state uses momentum differently, creating distinct conversation textures. At -3, automatic state degradation creates downward spirals that must be avoided.
+**Strategic Role**: Tactical battery for triggering state transitions. Positive comfort leads to better states, negative to worse. Resets to 0 after each transition.
 
 ### Patience (Per-NPC Resource)
 **Base Values by Personality**:
@@ -141,6 +131,7 @@ Each use is a separate mechanic. Tokens never gate access to content.
 **Modifiers**:
 - Private spot: +1
 - Public spot: -1
+- Patience cards: +X when played successfully
 
 **Effect**: Determines conversation length (1 patience per turn)
 
@@ -190,8 +181,8 @@ Six daily periods, each 4 hours:
 - **Location Observation**: 1 attention at specific spots/times
 
 **Properties**:
-- Weight 1 (always playable)
-- 70% success rate
+- Weight 1 (always playable except in Hostile)
+- 85% success rate
 - State change effects only
 - Expire after 24-48 hours
 
@@ -207,7 +198,7 @@ Six daily periods, each 4 hours:
 - Cannot be dropped without consequence
 
 **Acquisition**:
-- Letter cards (requires 5+ tokens typically)
+- Letter cards (requires successful negotiation)
 - Exchange cards (15-20 coins)
 
 **Strategic Role**: Gate exploration and enable efficient routing. Compete for limited satchel space.
@@ -225,7 +216,7 @@ More letters → More payment → More coins
 ### Tokens → Success → Letters → Tokens
 ```
 Token cards → Build specific relationship type
-Higher tokens → Better letter card success rates
+Higher tokens → Better card success rates
 Better negotiation → Favorable queue position
 Efficient completion → Preserve tokens
 Preserved tokens → Stronger future relationships
@@ -286,9 +277,9 @@ Every resource scales linearly:
 - Each token: exactly +5% success
 - Each 25 hunger: exactly -1 attention
 - Each patience: exactly 1 turn
-- Each comfort: access to that exact depth
+- Each comfort point: exactly that distance from transition
 
-No breakpoints. No "magic numbers." Every point matters equally.
+Only exception: Comfort ±3 triggers state transitions (necessary mechanical breakpoint).
 
 ## Intentional Mechanic Design
 
@@ -298,7 +289,7 @@ Examples of clean separation:
 **GOOD**: Routes require access permit. Guards can be bribed for permits. Merchants sell permits.
 
 **BAD**: "High tokens unlock letters AND improve success"  
-**GOOD**: Tokens improve success rates. Letter cards check token threshold separately.
+**GOOD**: Tokens improve success rates. Goal cards available based on emotional state.
 
 **BAD**: "Hunger reduces patience AND attention"
 **GOOD**: Hunger reduces attention only. Patience is per-NPC, not affected by player resources.
@@ -310,10 +301,11 @@ Examples of clean separation:
 
 All resource effects visible to player:
 - Success rates shown before playing cards
-- Token requirements shown on letter cards
+- Token effects transparent (+5% per token)
 - Displacement costs shown when viewing queue
 - Time costs shown on routes
 - Attention formula transparent
+- Comfort position always visible (-3 to +3)
 
 No hidden calculations. Perfect information for strategic decisions.
 
@@ -351,8 +343,8 @@ Same resources, same mechanics, different strategic emphasis.
 
 Resources flow through multiple mechanics without any mechanic doing multiple things:
 
-- Tokens affect success (one mechanic) AND gate letters (different mechanic) AND enable displacement (third mechanic)
+- Tokens affect success (one mechanic) AND enable displacement (different mechanic) AND improve negotiations (third mechanic)
 - Attention enables conversations (one mechanic) AND observations (different mechanic) AND work (third mechanic)
-- Comfort gates depth (one mechanic) while tokens affect success (different mechanic) even though both impact letter access
+- Comfort triggers transitions (one mechanic) while tokens affect success (different mechanic) even though both impact goal access
 
 This creates strategic depth from simple, intentional rules. Every resource matters in multiple ways, but each way is a distinct, single-purpose mechanic. The economy is the intersection of these mechanics, not their individual complexity.
