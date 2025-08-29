@@ -347,6 +347,38 @@ public class CardDeck : IEnumerable<ConversationCard>
     }
     
     /// <summary>
+    /// Draw cards filtered by emotional state using DrawableStates property
+    /// This replaces the old type-based filtering with explicit state declarations
+    /// </summary>
+    public List<ConversationCard> DrawFilteredByState(int count, int currentComfort, EmotionalState state)
+    {
+        var drawn = new List<ConversationCard>();
+        
+        // Filter cards that can be drawn in this state
+        var availableCards = cards
+            .Where(c => c.DrawableStates == null || 
+                       c.DrawableStates.Count == 0 || 
+                       c.DrawableStates.Contains(state))
+            .ToList();
+            
+        for (int i = 0; i < count && availableCards.Any(); i++)
+        {
+            var index = random.Next(availableCards.Count);
+            var card = availableCards[index];
+            
+            drawn.Add(card);
+            
+            if (card.Persistence != PersistenceType.Persistent)
+            {
+                cards.Remove(card);
+                availableCards.Remove(card);
+            }
+        }
+        
+        return drawn;
+    }
+    
+    /// <summary>
     /// Check if deck has any cards
     /// </summary>
     public bool Any()

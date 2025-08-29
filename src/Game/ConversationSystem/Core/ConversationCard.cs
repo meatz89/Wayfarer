@@ -227,6 +227,13 @@ public class ConversationCard
     /// The type of goal this card represents (if IsGoalCard is true)
     /// </summary>
     public ConversationType? GoalCardType { get; init; }
+    
+    /// <summary>
+    /// Emotional states in which this card can be drawn.
+    /// If null or empty, card can be drawn in any state (backward compatibility).
+    /// This makes card availability transparent to players.
+    /// </summary>
+    public List<EmotionalState> DrawableStates { get; init; }
 
     /// <summary>
     /// Get effective weight considering state rules

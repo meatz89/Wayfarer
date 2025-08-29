@@ -39,11 +39,6 @@ public class ObservationCard : ConversationCard
     public int BaseComfort { get; init; }
 
     /// <summary>
-    /// Card depth/power level (usually 0 - observations are always accessible)
-    /// </summary>
-    public int Depth { get; init; } = 0;
-
-    /// <summary>
     /// Override success rate for special cards (null uses calculated rate)
     /// </summary>
     public int? SuccessRate { get; init; }
@@ -307,7 +302,6 @@ public class ObservationCard : ConversationCard
         Persistence = Persistence,
         Weight = Weight,
         BaseComfort = BaseComfort,
-        Depth = Depth,
         DisplayName = DisplayName,
         Description = Description,
         IsObservation = true,
