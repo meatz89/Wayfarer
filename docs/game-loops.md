@@ -8,23 +8,22 @@ The three core game loops answer fundamental design questions while maintaining 
 
 ### Design Questions Answered
 - **What provides challenge?** Navigating emotional state web to access needed cards
-- **Why grow stronger?** Better cards locked behind depth and improved through tokens  
+- **Why grow stronger?** Better cards become drawable in better states  
 - **Why engage with NPCs?** Goal cards provide income, access, and world progression
 
 ### Mechanical Framework
 
 **The Conversation Puzzle**:
 1. Emotional states filter what cards can be drawn (web structure, not linear)
-2. Comfort (temporary) determines depth access within conversation
-3. Momentum (-3 to +3) affects state-specific mechanics and risks degradation
-4. Tokens (permanent) modify all success rates linearly (+5% per token)
-5. Weight limits based on emotional state constrain plays
-6. One card per turn creates authentic dialogue rhythm
+2. Comfort (-3 to +3) triggers state transitions at extremes
+3. Tokens (permanent) modify all success rates linearly (+5% per token)
+4. Weight limits based on emotional state constrain plays
+5. One card per turn creates authentic dialogue rhythm
 
 **Goal Card Selection**:
 1. Player chooses conversation type
 2. Appropriate goal from goal deck shuffled into conversation deck copy
-3. Goal card depth and state requirements determine when drawable
+3. Goal card drawable based on current state compatibility
 4. Once drawn, Goal persistence activates (3 turns to play)
 
 **The Urgency Rule**: Once goal drawn, must play within 3 turns or conversation fails.
@@ -220,27 +219,31 @@ Deadlines create cascading decisions:
 - Whether to accept current letter terms
 - Which observation to make now
 - Whether to displace queue position
+- Managing comfort to avoid unwanted transitions
 
 ### Medium-term Planning
-- Building toward specific letter requirements
+- Building toward specific state transitions
 - Managing queue to chain obligations
 - Accumulating permits for route access
 - Timing observations for conversation advantages
+- Navigating state web to access needed cards
 
 ### Long-term Strategy
 - Which NPCs to build relationships with
 - Which districts to gain access to
 - Which token types to prioritize
 - How to shape NPC decks through deliveries
+- Which states to master navigation toward
 
 ## No Soft-Lock Architecture
 
 Each loop provides escape valves:
 
 **Conversation deadlocks**:
-- State cards at low depths ensure navigation
-- Weight 1 cards always playable
+- State cards at W1 ensure navigation
+- Weight 1 cards always playable in most states
 - Can leave and return later
+- Patience cards can extend conversations
 
 **Queue deadlocks**:
 - Can always displace (at token cost)
@@ -257,7 +260,7 @@ Each loop provides escape valves:
 ### Adding NPCs
 New NPCs simply need:
 - Personality type (determines patience and token burning)
-- Deck composition (which cards at which depths)
+- Deck composition (which cards drawable in which states)
 - Goal deck (available conversation types)
 - Exchange deck (if mercantile)
 
@@ -271,7 +274,8 @@ New locations simply need:
 ### Adding Cards
 New cards must:
 - Have exactly ONE effect from their type's pool
-- Fit within existing depth/weight/success frameworks
+- List drawable emotional states clearly
+- Fit within existing weight/success frameworks
 - Not create secondary effects or thresholds
 
 ## The Holistic Experience
@@ -282,7 +286,7 @@ The player experiences:
 
 **Travel**: Navigate using permits, add observations to player deck
 
-**Conversations**: Build relationships, negotiate letters, manage emotional states
+**Conversations**: Build relationships, manage comfort battery, navigate states
 
 **Afternoon**: Work for resources or rush to meet deadlines
 
@@ -299,7 +303,7 @@ These emerge from mechanical state, not scripted events.
 
 The three loops create a complete game where:
 
-1. **Conversations** provide the puzzle challenge through emotional state navigation
+1. **Conversations** provide the puzzle challenge through emotional state navigation and comfort management
 2. **Queue** provides the time pressure through forced sequential completion
 3. **Travel** provides the exploration through observation-based route unlocking
 

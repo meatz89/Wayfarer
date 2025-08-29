@@ -54,13 +54,14 @@ PLAYER STATE:
 - Coins: [COINS] (descriptions: 0-5: "empty purse", 6-15: "light purse", 16-30: "decent funds", 31+: "heavy purse")
 
 CURRENT LOCATION: [LOCATION_NAME] - [SPOT_NAME]
-Spot traits: [TRAITS] (影响: Private: +1 comfort/patience, Public: -1 comfort/patience, Crossroads: travel available)
+Spot traits: [TRAITS] (影響: Private: +1 patience, Public: -1 patience, Crossroads: travel available)
 
 NPC STATE:
 - Name: [NPC_NAME]
 - Type: [PERSONALITY_TYPE] (Devoted/Mercantile/Proud/Cunning/Steadfast)
 - Emotional State: [EMOTIONAL_STATE] (affects everything they say and do)
 - Patience Remaining: [PATIENCE]/[MAX_PATIENCE]
+- Comfort Level: [COMFORT] (-3 to +3, triggers state change at extremes)
 - Most Recent Obligation: [OBLIGATION_DESC] with [TIME_REMAINING] remaining
 ```
 
@@ -74,11 +75,12 @@ CURRENT ACTION: [ACTION_TYPE]
 
 For CONVERSATION:
 - Turn number: [TURN]/[MAX_TURNS_BASED_ON_PATIENCE]
-- Conversation type: [Standard/Crisis/Deep]
+- Conversation type: [Standard/Letter/Promise/Resolution/Commerce]
 - Player chose: [LISTEN/SPEAK]
 - If SPEAK: Cards played: [CARD_NAMES] with total weight [WEIGHT]/[LIMIT]
-- Mechanical result: [SUCCESS/FAILURE] generating [COMFORT_GAINED] comfort
-- Total comfort accumulated: [TOTAL_COMFORT]/[GOAL_COMFORT]
+- Mechanical result: [SUCCESS/FAILURE] 
+- Comfort change: [+X/-X based on card weight]
+- New comfort total: [COMFORT]/3 or -3
 
 For EXCHANGE:
 - Exchange type: [Commerce/Service/Information]
@@ -89,12 +91,12 @@ For EXCHANGE:
 For OBSERVATION:
 - Location details: [SPOT_ATMOSPHERE]
 - Observation focus: [TARGET_DESCRIPTION]
-- Knowledge gained: [CARD_EARNED] (mechanical: [CARD_EFFECT])
+- Knowledge gained: [CARD_EARNED] (mechanical: [STATE_CHANGE_EFFECT])
 ```
 
 **Narrative Designer**: "This layer drives the immediate prose. The AI knows exactly what happened mechanically and must translate it."
 
-**Systems Architect**: "Note the [CONSIDERING] state for exchanges. This allows multi-turn negotiation narrative even though mechanically it's instant."
+**Systems Architect**: "Note the comfort change tracking. The AI needs to know when approaching state transitions."
 
 ### Layer 4: Conversation Memory (Dynamic Context)
 ```
@@ -104,8 +106,9 @@ Turn [X-1]: [EMOTIONAL_STATE] - Player [ACTION] - NPC said: "[TRUNCATED_DIALOGUE
 [Maximum 5 turns of history]
 
 KEY MOMENTS THIS CONVERSATION:
-- [Any state changes]
-- [Any Crisis letters played]
+- [Any state changes via comfort transitions]
+- [Any state changes via state cards]
+- [Any goal cards played]
 - [Any special effects triggered]
 
 ESTABLISHED FACTS:
@@ -126,12 +129,17 @@ STRICT RULES:
 3. NEVER invent NPCs, locations, or items not in the current context
 4. ALWAYS reflect the emotional state in tone, word choice, and body language
 5. ALWAYS keep responses under [WORD_LIMIT] words
+6. ALWAYS show awareness when comfort approaches ±3 (state transition imminent)
 
 For [EMOTIONAL_STATE] use these narrative markers:
 - DESPERATE: Rushed speech, incomplete sentences, physical agitation, time references
 - HOSTILE: Cutting words, closed body language, rejection of connection
 - GUARDED: Careful words, defensive posture, testing boundaries
-- [etc for all 9 states]
+- TENSE: Controlled but strained, watchful eyes, ready to retreat
+- NEUTRAL: Measured pace, open but uncommitted, professional distance
+- OPEN: Warm tone, leaning in, genuine interest, unguarded moments
+- EAGER: Quick speech, animated gestures, leaning forward, bright eyes
+- CONNECTED: Synchronized breathing, finishing thoughts, deep eye contact
 
 OUTPUT FORMAT:
 <atmosphere>[1-2 sentences of environmental/physical description]</atmosphere>
@@ -168,25 +176,24 @@ Generate:
 <waiting>[NPC's behavior while player decides]</waiting>
 ```
 
-### Crisis Conversation Template
+### Comfort Transition Template
 
-**Narrative Designer**: "Crisis conversations need urgency in every word."
+**Narrative Designer**: "Comfort reaching ±3 needs special attention."
 
 ```
-Task: Narrate a crisis moment with [NPC_NAME] in [EMOTIONAL_STATE] state.
+Task: Narrate approaching state transition with [NPC_NAME].
 
-[All context layers]
+COMFORT CONTEXT:
+Current Comfort: [+2 or -2]
+One more success/failure triggers transition
+Current State: [STATE] → Potential Next State: [NEW_STATE]
+Turns Remaining: [PATIENCE_LEFT]
 
-CRISIS CONTEXT:
-Crisis letter: [CARD_NAME] - [SUCCESS_CHANCE]% chance of [SUCCESS_EFFECT]
-Stakes: Success: [POSITIVE_OUTCOME] / Failure: [NEGATIVE_OUTCOME]
-Patience Critical: [TURNS_REMAINING] turns left
-
-Inject these crisis markers:
-- Physical manifestations of stress (trembling, sweating, pacing)
-- Verbal interruptions and overlapping dialogue
-- Environmental pressure (sounds of clocks, approaching footsteps)
-- Truncated patience for player responses
+Inject these transition markers:
+- Physical manifestations of emotional shift building
+- Verbal cues that something is about to change
+- Environmental reflection of tension/relief
+- Clear sense that next action matters deeply
 ```
 
 ### Observation Discovery Template
@@ -199,7 +206,7 @@ Task: Narrate the player discovering [OBSERVATION_NAME] at [LOCATION_NAME].
 DISCOVERY CONTEXT:
 Method: [How player notices - following, eavesdropping, examining]
 Information Type: [Commerce/Authority/Social/Secret]
-Card Earned: [CARD_NAME] providing [MECHANICAL_BENEFIT]
+Card Earned: [STATE_CHANGE] providing [MECHANICAL_BENEFIT]
 
 Generate a discovery scene:
 <approach>[How player positions themselves to observe]</approach>
@@ -244,7 +251,7 @@ DEVOTED (Family/Clergy):
 
 MERCANTILE (Traders):
 - Transactional language ("What I need..." "What you offer...")
-- Numerical references without stating exact numbers
+- Time awareness without stating exact numbers
 - Efficiency in speech
 - Example: "Time is coin, and we're spending both."
 
@@ -254,7 +261,17 @@ PROUD (Nobles):
 - Assumption of deference
 - Example: "House Blackwood does not wait for common couriers."
 
-[Continue for all types...]
+CUNNING (Spies):
+- Layered meanings, indirect speech
+- Questions that probe for information
+- Careful word choices
+- Example: "Interesting that you'd take that route. Most wouldn't."
+
+STEADFAST (Guards):
+- Direct, simple sentences
+- Focus on duty and rules
+- Minimal emotional expression
+- Example: "Papers. Now. No exceptions."
 ```
 
 ### Failure State Narratives
@@ -268,7 +285,8 @@ For failed comfort cards:
 - Describe the attempt clearly
 - Show why it didn't land emotionally
 - NPC's reaction reveals their state
-- Example: "Your promise hangs in the air. Elena's eyes narrow—she's heard promises before."
+- Weight determines severity of failure
+- Example: "Your reassurance falls flat. Elena pulls back—the comfort you offered only reminds her how little time remains."
 
 For failed state changes:
 - The attempt is recognized but insufficient
@@ -285,52 +303,48 @@ For mechanical failures:
 
 ## Integration Challenges & Solutions
 
-### Challenge 1: Emotional State Transitions
+### Challenge 1: Comfort Battery Visualization
 
-**Systems Architect**: "How do we narrate state changes smoothly?"
+**Systems Architect**: "How do we narrate the comfort battery building toward transitions?"
 
-**Solution**: Pre-generate transition phrases for each state pair:
+**Solution**: Progressive intensity phrases:
 ```
-DESPERATE → TENSE: "[NPC] draws a shuddering breath, the panic receding slightly."
-NEUTRAL → OPEN: "[NPC]'s shoulders relax, something in your words finding purchase."
-OPEN → CONNECTED: "The space between you shifts, barriers dissolving."
-```
-
-### Challenge 2: Multi-Card Combinations
-
-**Board Game Designer**: "When players combine multiple cards, how does the AI weave them together?"
-
-**Solution**: Card combination template:
-```
-COMBINATION CONTEXT:
-Cards played together: [CARD1: Weight X] + [CARD2: Weight Y]
-Token type alignment: [SAME/DIFFERENT]
-Set bonus earned: [BONUS_COMFORT]
-
-Narration approach:
-- First card establishes action
-- Second card builds/reinforces
-- Set bonus appears as unexpected connection
-- Example: "Your promise lands stronger when backed by the recalled memory—Elena sees you remember her past kindness."
+COMFORT PROGRESSION:
+At 0: "[NPC] remains steady, unmoved either way."
+At +1: "[NPC] shows the first signs of warming."
+At +2: "[NPC]'s guard is almost completely down."
+At +3: "Something shifts fundamentally in [NPC]'s demeanor."
+At -1: "[NPC] pulls back slightly, uncertain."
+At -2: "[NPC]'s expression hardens dangerously."
+At -3: "The conversation fractures beyond repair."
 ```
 
-### Challenge 3: Resource Depletion Visibility
+### Challenge 2: Weight Without Difficulty
 
-**Verisimilitude Specialist**: "How do we show hunger/exhaustion without stating numbers?"
+**Board Game Designer**: "Weight no longer affects success chance. How do we narrate different weights?"
 
-**Solution**: Environmental reflection system:
+**Solution**: Emotional intensity framework:
 ```
-DEPLETION DESCRIPTORS:
+WEIGHT NARRATION:
+W1: Simple, gentle, testing statements
+W2: Full thoughts, complete emotional expressions
+W3: Complex ideas, deep emotional commitment
+W4: (Connected only) Soul-baring, transformative exchanges
 
-High Hunger (60-80):
-- "The bread scents from nearby stalls twist your empty stomach"
-- "Your vision catches on every food display"
-- NPC notices: "When did you last eat, courier?"
+The weight represents how much emotional energy the statement requires,
+not how difficult it is to succeed with.
+```
 
-Low Attention (1-3):
-- "The conversation feels like wading through mud"
-- "You struggle to find the right words"
-- NPC notices: "Perhaps we should continue this tomorrow?"
+### Challenge 3: State-Specific Draw Pools
+
+**Verisimilitude Specialist**: "How do we show why certain cards aren't drawable?"
+
+**Solution**: Contextual availability:
+```
+DRAW FILTERING NARRATION:
+"In Elena's desperate state, only crisis responses and simple reassurances come to mind."
+"The tense atmosphere limits what can be said—complex emotions won't land now."
+"Connected as you are, deeper truths become speakable."
 ```
 
 ---
@@ -367,39 +381,43 @@ PLAYER STATE:
 - Coins: decent funds (23)
 
 CURRENT LOCATION: Copper Kettle Tavern - Corner Table
-Spot traits: Private (+1 comfort modifier)
+Spot traits: Private (+1 patience modifier)
 
 NPC STATE:
 - Name: Elena
 - Type: Devoted
 - Emotional State: DESPERATE
 - Patience Remaining: 6/9
+- Comfort Level: -1 (negative trend, -3 would trigger Hostile)
 - Most Recent Obligation: Letter to Lord Blackwood with 1h 13m remaining
 
 CURRENT ACTION: CONVERSATION
 - Turn number: 2/9
-- Conversation type: Standard
+- Conversation type: Letter
 - Player chose: SPEAK
-- Cards played: "Guard Checkpoint Warning" + "Promise to Help" with total weight 3/3
-- Mechanical result: SUCCESS generating 7 comfort
-- Total comfort accumulated: 7/10
+- Cards played: "Promise to Help" with weight 2/2
+- Mechanical result: FAILURE
+- Comfort change: -2 (from card weight)
+- New comfort total: -3 (triggers state transition to Hostile!)
 
 CONVERSATION HISTORY:
-Turn 1: DESPERATE - Player listened - Elena said: "You said you'd help. Please, I need more than words..."
+Turn 1: DESPERATE - Player listened - Elena said: "Please, I need someone I can trust..."
 
 ESTABLISHED FACTS:
 - Elena has a sealed letter she must deliver
 - Lord Blackwood leaves at sunset
 - Elena seeks to refuse his proposal
 
-For DESPERATE use these narrative markers:
-- Rushed speech, incomplete sentences, physical agitation, time references
+For DESPERATE transitioning to HOSTILE use these narrative markers:
+- Crisis exploding into anger or shutdown
+- Complete loss of faith in help
+- Defensive walls slamming up
 
 Generate:
 <atmosphere>[Environmental and physical description of the moment]</atmosphere>
-<action>[Describe player sharing the guard information and making promise]</action>
-<dialogue>[Elena's response showing desperate state but affected by comfort gained]</dialogue>
-<effect>[Subtle indication that progress was made without stating numbers]</effect>
+<action>[Describe player's failed promise attempt]</action>
+<dialogue>[Elena's response showing transition to hostile state]</dialogue>
+<effect>[Make clear the conversation is about to end without stating mechanics]</effect>
 ```
 
 This prompt structure ensures mechanical precision while enabling rich narrative generation that maintains the game's vision of emergent storytelling through systematic interaction.

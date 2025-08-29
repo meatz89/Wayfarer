@@ -223,7 +223,7 @@ This prevents ignoring important matters once revealed.
 **Comfort** (Temporary)
 - Range: -3 to +3 within single conversation
 - Starting Value: Always 0
-- Effect: At ±3, triggers emotional state transition
+- Effect: At ±3, triggers emotional state transition, resets to 0 after state transition
 - Modification: Only through comfort cards (weight determines change amount)
 
 **Patience** (Per-NPC)
