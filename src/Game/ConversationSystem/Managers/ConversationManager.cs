@@ -77,12 +77,6 @@ public class ConversationManager
             return StartExchangeConversation(npc);
         }
 
-        // For Crisis conversation, use crisis deck
-        if (conversationType == ConversationType)
-        {
-            return StartCrisisConversation(npc, observationCards);
-        }
-        
         // For Letter Offer conversation, mix in letter cards
         if (conversationType == ConversationType.Promise)
         {
@@ -122,13 +116,6 @@ public class ConversationManager
     public List<ConversationType> GetAvailableConversationTypes(NPC npc)
     {
         var available = new List<ConversationType>();
-        
-        // If NPC has Crisis letters, ONLY crisis conversation is available
-        if (npc.HasCrisisCards())
-        {
-            available.Add(ConversationType);
-            return available; // Other types are LOCKED during crisis
-        }
         
         // Check for exchange deck - depends on personality and location
         // Get current spot's domain tags for hospitality checks
@@ -186,16 +173,6 @@ public class ConversationManager
         // Create a simplified session for exchanges
         var spotDomainTags = gameWorld.GetCurrentSpotDomainTags();
         currentSession = ConversationSession.StartExchange(npc, gameWorld.GetPlayerResourceState(), tokenManager, spotDomainTags, queueManager);
-        return currentSession;
-    }
-    
-    /// <summary>
-    /// Start a crisis conversation
-    /// </summary>
-    private ConversationSession StartCrisisConversation(NPC npc, List<ConversationCard> observationCards)
-    {
-        // Crisis conversations use crisis deck exclusively
-        currentSession = ConversationSession.StartCrisis(npc, queueManager, tokenManager, observationCards);
         return currentSession;
     }
     

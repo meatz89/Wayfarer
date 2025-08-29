@@ -20,31 +20,9 @@ public enum ObservationDecayState
 /// </summary>
 public class ObservationCard : ConversationCard
 {
-    /// <summary>
-    /// Unique identifier for this observation card
-    /// </summary>
-    public string Id { get; init; }
+    // ObservationCard inherits all properties from ConversationCard
+    // No need to redeclare Id, Template, Context, Type, etc.
     
-    /// <summary>
-    /// Card template type for frontend text generation
-    /// </summary>
-    public CardTemplateType Template { get; init; }
-    
-    /// <summary>
-    /// ConversationCard interface compatibility - same as Template
-    /// </summary>
-    public CardTemplateType TemplateType => Template;
-    
-    /// <summary>
-    /// Context data for template rendering
-    /// </summary>
-    public CardContext Context { get; init; }
-
-    /// <summary>
-    /// Which relationship type this card builds
-    /// </summary>
-    public CardType Type { get; init; }
-
     /// <summary>
     /// Observation cards are always fleeting
     /// </summary>
@@ -264,7 +242,7 @@ public class ObservationCard : ConversationCard
     /// </summary>
     public static ObservationCard FromCardData(
         string cardId,
-        CardTemplateType template,
+        string templateId,
         CardContext context,
         CardType type,
         int weight,
@@ -277,7 +255,7 @@ public class ObservationCard : ConversationCard
         return new ObservationCard
         {
             Id = $"obscard_{sourceObservationId}_{DateTime.Now.Ticks}",
-            Template = template,
+            TemplateId = templateId,
             Context = context,
             Type = type,
             Weight = weight,
@@ -299,7 +277,9 @@ public class ObservationCard : ConversationCard
         return new ObservationCard
         {
             Id = card.Id,
-            Template = card.Template,
+            TemplateId = card.TemplateId,
+            Mechanics = card.Mechanics,
+            Category = card.Category,
             Context = card.Context,
             Type = card.Type,
             Weight = card.Weight,
@@ -319,7 +299,9 @@ public class ObservationCard : ConversationCard
     public ConversationCard ConversationCard => new ConversationCard
     {
         Id = Id,
-        Template = Template,
+        TemplateId = TemplateId,
+        Mechanics = Mechanics,
+        Category = Category,
         Context = Context,
         Type = Type,
         Persistence = Persistence,

@@ -242,12 +242,6 @@ public class ObligationQueueManager
             return true;
         }
         
-        // Crisis letters force position 1
-        if (obligation.IsCrisisLetter)
-        {
-            return true;
-        }
-        
         // Lord Blackwood (proud NPC) attempts position 1
         if (obligation.SenderName == "Lord Blackwood" || 
             obligation.RecipientName == "Lord Blackwood")
@@ -2813,10 +2807,6 @@ public class ObligationQueueManager
         if (displacementReason.Contains("failed", StringComparison.OrdinalIgnoreCase))
         {
             return LetterPositioningReason.PoorStanding;
-        }
-        else if (displacementReason.Contains("crisis", StringComparison.OrdinalIgnoreCase))
-        {
-            return LetterPositioningReason.Obligation;
         }
         else if (displacementReason.Contains("proud", StringComparison.OrdinalIgnoreCase) || 
                  displacementReason.Contains("Lord Blackwood", StringComparison.OrdinalIgnoreCase))

@@ -199,14 +199,7 @@
                 <div class="weight-tracker @(IsOverWeight() ? "overlimit" : "")">
                     <span>Weight:</span>
                     <span class="weight-display">
-                        @if (HasCrisisSelected())
-                        {
-                            <text>Crisis!</text>
-                        }
-                        else
-                        {
-                            <text>@GetCurrentWeight()/@GetMaxWeight()</text>
-                        }
+                        <text>@GetCurrentWeight()/@GetMaxWeight()</text>
                     </span>
                 </div>
             </div>

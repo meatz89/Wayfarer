@@ -29,8 +29,7 @@ public static class ExchangeNarrative
         // Create the exchange description with emotional weight
         narrative.ExchangeDescription = GenerateExchangeDescription(
             exchange,
-            exchangeMemory?.GetExchangeFlavor(npcId, exchange.Template.ToString()) ?? "for the first time",
-            exchangeMemory?.HasCrisisHistory(npcId, exchange.Template.ToString()) ?? false
+            exchangeMemory?.GetExchangeFlavor(npcId, exchange.TemplateId) ?? "for the first time"
         );
         
         // Add contextual flavor based on history
@@ -65,10 +64,9 @@ public static class ExchangeNarrative
     
     private static string GenerateExchangeDescription(
         ConversationCard exchange, 
-        string frequencyFlavor,
-        bool hasCrisisHistory)
+        string frequencyFlavor)
     {
-        var templateString = exchange.Template.ToString().ToLower();
+        var templateString = exchange.TemplateId?.ToLower() ?? "generic";
         var npcPersonality = exchange.Context?.NPCPersonality ?? PersonalityType.STEADFAST;
         
         var baseDescription = templateString switch
@@ -97,11 +95,6 @@ public static class ExchangeNarrative
             "trusted" => "They offer something special, reserved for trusted friends",
             _ => $"They propose an exchange {frequencyFlavor}"
         };
-        
-        if (hasCrisisHistory)
-        {
-            baseDescription += ", remembering when you helped during their darkest hour";
-        }
         
         return baseDescription + ".";
     }

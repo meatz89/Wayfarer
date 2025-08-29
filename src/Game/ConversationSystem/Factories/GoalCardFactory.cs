@@ -50,7 +50,8 @@ public static class GoalCardFactory
         return new ConversationCard
         {
             Id = $"{templateCard.Id}_{npcId}_{Guid.NewGuid().ToString()[..8]}", // Unique ID for this instance
-            Template = templateCard.Template,
+            TemplateId = templateCard.TemplateId,
+            Mechanics = templateCard.Mechanics,
             Context = new CardContext
             {
                 Personality = PersonalityType.STEADFAST, // Default for goal cards

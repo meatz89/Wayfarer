@@ -61,10 +61,6 @@
                             <div class="npc-state @GetStateClass(npc.EmotionalState)">@npc.EmotionalState</div>
                         </div>
                         <div class="npc-description">@GetNPCDescription(npc)</div>
-                        @if (npc.HasCrisis)
-                        {
-                            <div class="crisis-indicator">⚠ Crisis</div>
-                        }
                         <div class="npc-actions">
                             @foreach (var option in npc.ConversationOptions)
                             {

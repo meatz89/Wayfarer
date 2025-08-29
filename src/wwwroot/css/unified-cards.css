@@ -244,11 +244,6 @@
    Visual hints for card categories
    =================================== */
 
-/* Crisis letters */
-.card-crisis {
-    border-left: 4px solid #d4704a;
-}
-
 /* Commerce/Exchange cards */
 .card-commerce {
     border-left: 4px solid #d4a76a;

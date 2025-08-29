@@ -61,7 +61,7 @@ public class NPC
 
     // THREE DECK ARCHITECTURE (POC EXACT)
     public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Comfort, Token, State, Knowledge, Burden
-    public CardDeck GoalDeck { get; set; } = new();  // 0-3 cards: Promise (letters), Resolution, Crisis goals
+    public CardDeck GoalDeck { get; set; } = new();  // 0-3 cards: Promise (letters), Resolution goals
     public CardDeck ExchangeDeck { get; set; } = new();  // 5-10 cards: Simple instant trades (Mercantile NPCs only) 
 
     // Daily exchange selection (removed - handled by GetTodaysExchange method)
@@ -117,12 +117,6 @@ public class NPC
     public bool HasBurdenHistory()
     {
         return CountBurdenCards() > 0;
-    }
-    
-    // Check if NPC is in crisis (DESPERATE state)
-    public bool IsInCrisis()
-    {
-        return CurrentState == EmotionalState.DESPERATE;
     }
     
     // Count burden cards in conversation deck

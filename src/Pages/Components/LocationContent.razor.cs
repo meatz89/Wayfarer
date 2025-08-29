@@ -68,17 +68,6 @@ namespace Wayfarer.Pages.Components
                         });
                     }
                     
-                    if (npc.HasCrisisCards())
-                    {
-                        options.Add(new ConversationOptionViewModel
-                        {
-                            Type = ConversationType,
-                            Label = "Crisis Resolution",
-                            AttentionCost = 1,
-                            IsAvailable = true
-                        });
-                    }
-                    
                     // Always show standard conversation option - NPCs should always be talkable
                     // The deck will be created on demand if needed
                     options.Add(new ConversationOptionViewModel
@@ -98,7 +87,6 @@ namespace Wayfarer.Pages.Components
                         Name = npc.Name,
                         PersonalityType = npc.PersonalityType.ToString(),
                         EmotionalState = emotionalState.ToString(),
-                        HasCrisis = npc.HasCrisisCards(),
                         ConversationOptions = options
                     });
                 }
@@ -276,28 +264,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        private string GetConversationLabel(ConversationType type)
-        {
-            return type switch
-            {
-                ConversationType.Commerce => "Quick Exchange",
-                ConversationType => "Crisis Resolution",
-                ConversationType.FriendlyChat => "Standard Conversation",
-                _ => type.ToString()
-            };
-        }
-
-        private int GetAttentionCost(ConversationType type)
-        {
-            return type switch
-            {
-                ConversationType.Commerce => 0,
-                ConversationType => 1,
-                ConversationType.FriendlyChat => 2,
-                _ => 0
-            };
-        }
-
         protected string GetStateClass(string emotionalState)
         {
             return emotionalState?.ToLower() switch
@@ -314,7 +280,6 @@ namespace Wayfarer.Pages.Components
             return type switch
             {
                 ConversationType.Commerce => "exchange",
-                ConversationType => "crisis",
                 _ => ""
             };
         }
@@ -337,11 +302,7 @@ namespace Wayfarer.Pages.Components
             var state = npc.EmotionalState?.ToLower();
             var personality = npc.PersonalityType?.ToLower();
             
-            if (state == "desperate" && npc.HasCrisis)
-            {
-                return "Clutching a sealed letter with white knuckles, eyes darting nervously.";
-            }
-            else if (state == "hostile")
+            if (state == "hostile")
             {
                 return "Glaring at anyone who approaches, clearly not in a talking mood.";
             }
@@ -367,7 +328,6 @@ namespace Wayfarer.Pages.Components
         public string Name { get; set; }
         public string PersonalityType { get; set; }
         public string EmotionalState { get; set; }
-        public bool HasCrisis { get; set; }
         public List<ConversationOptionViewModel> ConversationOptions { get; set; } = new();
     }
 

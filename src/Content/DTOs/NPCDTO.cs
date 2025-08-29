@@ -23,7 +23,6 @@ public class NPCDTO
     // REMOVED: Boolean flags violate deck-based architecture
     // Letters are detected by checking Goal deck contents
     // Burden history detected by counting burden cards in conversation deck
-    // Crisis detected by checking emotional state
     
     // Properties from JSON that weren't being parsed
     public string CurrentState { get; set; }

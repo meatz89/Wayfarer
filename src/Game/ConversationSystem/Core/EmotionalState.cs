@@ -41,16 +41,6 @@ public class StateRuleset
     public EmotionalState ListenTransition { get; init; }
 
     /// <summary>
-    /// Whether Crisis letters are injected when listening
-    /// </summary>
-    public bool InjectsCrisis { get; init; }
-
-    /// <summary>
-    /// Number of Crisis letters injected when listening
-    /// </summary>
-    public int CrisisCardsInjected { get; init; } = 1;
-
-    /// <summary>
     /// Whether opportunity cards are preserved when listening
     /// </summary>
     public bool PreservesOpportunities { get; init; }
@@ -176,8 +166,6 @@ public static class ConversationRules
             MaxWeight = 1,      // Speak weight limit 1 (Light, but Crisis free)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.HOSTILE,  // Transitions to HOSTILE
-            InjectsCrisis = true,  // INJECT 1 Crisis letter
-            CrisisCardsInjected = 1,
             FreeWeightCardCategories = new() { CardCategory.Burden },  // Crisis letters cost 0 weight
             ChecksGoalDeck = true  // Check for urgent letters in desperate state
         },
@@ -188,8 +176,6 @@ public static class ConversationRules
             MaxWeight = 3,      // Speak weight limit - crisis cards only
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.HOSTILE,  // Stays HOSTILE
-            InjectsCrisis = true,  // INJECT 2 Crisis letters
-            CrisisCardsInjected = 2,
             FreeWeightCardCategories = new() { CardCategory.Burden },
             AllowedCardCategories = new() { CardCategory.Burden },  // ONLY Crisis letters allowed
             ListenEndsConversation = true,  // END conversation after listen
@@ -204,15 +190,6 @@ public static class ConversationRules
     {
         var rules = States[state];
         var effects = $"Draw {rules.CardsOnListen} • Weight limit {rules.MaxWeight}";
-
-        if (state == EmotionalState.DESPERATE)
-            effects += " • Crisis free • Listen worsens";
-        else if (state == EmotionalState.EAGER)
-            effects += " • Engaged mood";
-        else if (state == EmotionalState.OVERWHELMED)
-            effects += " • Needs space";
-        else if (state == EmotionalState.CONNECTED)
-            effects += " • +2 comfort bonus";
 
         return effects;
     }

@@ -81,7 +81,6 @@ public static class NPCParser
     // REMOVED: Boolean flags violate deck-based architecture
     // Letters are detected by checking Goal deck contents
     // Burden history detected by counting burden cards in conversation deck
-    // Crisis detected by checking emotional state
     
     // Parse CurrentState (emotional state)
     string currentStateStr = GetStringProperty(root, "currentState", "NEUTRAL");

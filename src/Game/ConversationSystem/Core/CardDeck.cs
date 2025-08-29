@@ -401,34 +401,6 @@ public class CardDeck : IEnumerable<ConversationCard>
     }
     
     /// <summary>
-    /// Generate a crisis card dynamically
-    /// </summary>
-    public static ConversationCard GenerateCrisisCard(NPC npc)
-    {
-        // Crisis cards should be loaded from JSON, but provide fallback
-        return new ConversationCard
-        {
-            Id = $"crisis_generated_{Guid.NewGuid()}",
-            Template = CardTemplateType.UrgentPlea,
-            Context = new CardContext
-            {
-                Personality = npc.PersonalityType,
-                EmotionalState = EmotionalState.DESPERATE,
-                NPCName = npc.Name,
-                UrgencyLevel = 3,
-                HasDeadline = true
-            },
-            Type = CardType.Trust,
-            Persistence = PersistenceType.Goal,
-            Weight = 0, // Free in crisis
-            BaseComfort = 8,
-            DisplayName = "Crisis Moment",
-            Description = $"{npc.Name} needs immediate help!",
-            SuccessRate = 35
-        };
-    }
-
-    /// <summary>
     /// Get all cards for an NPC's personality from GameWorld templates
     /// </summary>
     private List<ConversationCard> GetCardsForNPC(NPC npc)

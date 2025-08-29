@@ -148,9 +148,9 @@ public class DialogueGenerationService
     /// Generate card dialogue from template type
     /// Returns categorical template, NOT English text
     /// </summary>
-    public string GenerateCardDialogue(CardTemplateType templateType, bool isPlayer)
+    public string GenerateCardDialogue(string templateId, bool isPlayer)
     {
-        var key = templateType.ToString();
+        var key = templateId;
         
         if (_templates.CardDialogue?.Categories?.ContainsKey(key) == true)
         {

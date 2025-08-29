@@ -28,18 +28,6 @@
 			"failureState": null,
 			"description": "Attempt to calm their emotional state"
 		},
-		"DesperatePromise": {
-			"type": "CRISIS",
-			"weight": 5,
-			"baseComfort": 10,
-			"persistence": "Crisis",
-			"connectionType": "Trust",
-			"isCrisis": true,
-			"freeInDesperate": true,
-			"generatesLetter": true,
-			"endsConversation": true,
-			"description": "A desperate oath to solve their crisis immediately"
-		},
 		"SimpleGreeting": {
 			"type": "COMFORT",
 			"weight": 0,
@@ -121,15 +109,6 @@
 			"isStateCard": true,
 			"successState": "OPEN",
 			"description": "Create emotional openness"
-		},
-		"UrgentPlea": {
-			"type": "CRISIS",
-			"weight": 4,
-			"baseComfort": 6,
-			"persistence": "Crisis",
-			"connectionType": "Trust",
-			"isCrisis": true,
-			"description": "An urgent request for immediate help"
 		}
 	},
 	"setBonuses": {

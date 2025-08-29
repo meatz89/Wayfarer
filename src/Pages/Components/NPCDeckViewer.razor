@@ -48,27 +48,6 @@
                     </div>
                 </div>
 
-                @* Crisis Resolution - enabled by Crisis letters *@
-                <div class="conversation-type-card @(HasCrisisCards ? "enabled crisis" : "disabled")">
-                    <div class="conversation-type-header">
-                        <span class="type-name">Crisis Resolution</span>
-                        <span class="attention-cost">1 attention</span>
-                    </div>
-                    <div class="enabling-condition">
-                        @if (HasCrisisCards)
-                        {
-                            <span class="enabled-by">✓ Crisis letters (@(CrisisCards?.Count ?? 0) active)</span>
-                        }
-                        else
-                        {
-                            <span class="disabled-reason">✗ No crisis active</span>
-                        }
-                    </div>
-                    <div class="type-description">
-                        Urgent situation requiring immediate resolution.
-                    </div>
-                </div>
-
                 @* Standard Talk - always available *@
                 <div class="conversation-type-card enabled">
                     <div class="conversation-type-header">
@@ -222,30 +201,6 @@
                     </div>
                 }
                 
-                @if (CrisisCards != null && CrisisCards.Any())
-                {
-                    <h4 class="sub-deck-header crisis-header">Crisis Goals (@(CrisisCards.Count) cards) ⚠</h4>
-                    <div class="card-list">
-                        @foreach (var card in CrisisCards)
-                        {
-                            <div class="debug-card crisis-card goal-card">
-                                <div class="card-header">
-                                    <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@(card.DisplayName ?? card.Template.ToString())</span>
-                                    <span class="goal-type-badge crisis">CRISIS GOAL</span>
-                                </div>
-                                <div class="card-properties">
-                                    <span>Type: @card.Type</span>
-                                    <span>Depth: @card.Depth</span>
-                                    <span>Weight: @card.Weight</span>
-                                    <span class="crisis-note">FREE in DESPERATE state!</span>
-                                </div>
-                                <div class="card-text">@(card.Description ?? "Template: " + card.Template)</div>
-                            </div>
-                        }
-                    </div>
-                }
-                
                 @if (!HasGoalCards)
                 {
                     <div class="empty-deck">No goal cards (letters or crisis)</div>
@@ -305,13 +260,11 @@
     
     private NPC CurrentNPC { get; set; }
     private List<ConversationCard> ConversationCards { get; set; }
-    private List<ConversationCard> CrisisCards { get; set; }
     
     // Computed properties for conversation availability
     private bool HasExchangeCards => CurrentNPC?.ExchangeDeck?.Any() == true;
-    private bool HasCrisisCards => CrisisCards?.Any() == true;
-    private bool HasGoalCards => (CurrentNPC?.GoalDeck?.Any() == true) || HasCrisisCards;
-    private int TotalGoalCards => (CurrentNPC?.GoalDeck?.Count ?? 0) + (CrisisCards?.Count ?? 0);
+    private bool HasGoalCards => (CurrentNPC?.GoalDeck?.Any() == true);
+    private int TotalGoalCards => (CurrentNPC?.GoalDeck?.Count ?? 0);
     
     protected override void OnInitialized()
     {

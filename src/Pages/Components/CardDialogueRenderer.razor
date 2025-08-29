@@ -3,7 +3,7 @@
 @inject NarrativeRenderer NarrativeRenderer
 
 @code {
-    [Parameter] public CardTemplateType Template { get; set; }
+    [Parameter] public string TemplateId { get; set; }
     [Parameter] public CardContext Context { get; set; }
     [Parameter] public string NPCName { get; set; }
     [Parameter] public bool IsPlayerCard { get; set; } = true;
@@ -11,7 +11,7 @@
     private string GetCardText()
     {
         // Generate categorical template from card type
-        var template = DialogueGenerator.GenerateCardDialogue(Template, IsPlayerCard);
+        var template = DialogueGenerator.GenerateCardDialogue(TemplateId, IsPlayerCard);
         
         // Render template to human-readable text
         var text = NarrativeRenderer.RenderTemplate(template);
@@ -34,19 +34,10 @@
 
     private int GetCardWeight()
     {
-        // Get weight from card template configuration
-        return Template switch
-        {
-            CardTemplateType.SimpleGreeting => 0,
-            CardTemplateType.ActiveListening => 1,
-            CardTemplateType.CasualInquiry => 1,
-            CardTemplateType.OfferHelp => 2,
-            CardTemplateType.SharePersonal => 2,
-            CardTemplateType.ShareSecret => 3,
-            CardTemplateType.MakeDesperatePromise => 5,
-            CardTemplateType.UrgentPlea => 4,
-            _ => 1
-        };
+        // Weight should come from the card data, not template matching!
+        // This is a mechanical property that should be on the card itself
+        // TODO: Get this from card.Weight property instead
+        return 1; // Default weight until properly connected
     }
 
     private string GetCardTypeClass()
@@ -54,8 +45,6 @@
         // Determine card visual category from template
         if (Template.ToString().Contains("Calm") || Template.ToString().Contains("Opening"))
             return "state";
-        if (Template.ToString().Contains("Desperate") || Template.ToString().Contains("Urgent"))
-            return "crisis";
         return "comfort";
     }
 }

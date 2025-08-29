@@ -92,7 +92,6 @@ public class DeliveryObligation
     // Properties for forced letter generation
     public bool IsGenerated { get; set; } = false;
     public string GenerationReason { get; set; } = "";
-    public bool IsCrisisLetter { get; set; } = false; // Crisis letters force position 1
 
     // Properties for letter chains
     public List<string> UnlocksLetterIds { get; set; } = new List<string>();

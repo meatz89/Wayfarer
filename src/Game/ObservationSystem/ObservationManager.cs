@@ -170,7 +170,9 @@ public class ObservationManager
             var adjustedCard = new ConversationCard
             {
                 Id = originalCard.Id,
-                Template = originalCard.Template,
+                TemplateId = originalCard.TemplateId,
+                Mechanics = originalCard.Mechanics,
+                Category = originalCard.Category,
                 Context = updatedContext,
                 Type = originalCard.Type,
                 Persistence = PersistenceType.Fleeting, // Observations are Opportunity type but DON'T vanish on Listen - they decay over time
@@ -326,27 +328,21 @@ public class ObservationManager
     /// <summary>
     /// Determine the card template based on observation properties
     /// </summary>
-    private CardTemplateType DetermineCardTemplate(Observation observation)
+    private string DetermineCardTemplate(Observation observation)
     {
         // Use cardTemplate from JSON if specified
         if (!string.IsNullOrEmpty(observation.CardTemplate))
         {
-            return observation.CardTemplate switch
-            {
-                "MentionGuards" => CardTemplateType.ShareInformation,
-                "DiscussBusiness" => CardTemplateType.DiscussBusiness,
-                "ShareSecret" => CardTemplateType.ShareSecret,
-                _ => CardTemplateType.ShareInformation
-            };
+            return observation.CardTemplate;
         }
 
         // Default template based on observation type
         return observation.Type switch
         {
-            ObservationType.Shadow => CardTemplateType.ShareSecret,
-            ObservationType.Critical => CardTemplateType.ShareUrgentNews,
-            ObservationType.Important => CardTemplateType.ShareInformation,
-            _ => CardTemplateType.MentionObservation
+            ObservationType.Shadow => "ShareSecret",
+            ObservationType.Critical => "ShareUrgentNews",
+            ObservationType.Important => "ShareInformation",
+            _ => "MentionObservation"
         };
     }
 

@@ -598,8 +598,8 @@ namespace Wayfarer.Pages.Components
             
             return Session.CurrentState switch
             {
-                EmotionalState.DESPERATE => "Draw 2 + Crisis • State → Hostile",
-                EmotionalState.HOSTILE => "Draw 1 + 2 Crisis • Ends conversation",
+                EmotionalState.DESPERATE => "Draw 2 + Burden • State → Hostile",
+                EmotionalState.HOSTILE => "Draw 1 + 2 Burden • Ends conversation",
                 EmotionalState.GUARDED => "Draw 1 • State → Neutral",
                 EmotionalState.OPEN => "Draw 3 • State unchanged",
                 EmotionalState.EAGER => "Draw 3 • State unchanged",
@@ -618,8 +618,7 @@ namespace Wayfarer.Pages.Components
             
             return Session.CurrentState switch
             {
-                EmotionalState.DESPERATE => "• Draw 2 + crisis • Crisis free • Listen worsens",
-                EmotionalState.HOSTILE => "• Only Crisis letters playable",
+                EmotionalState.DESPERATE => "• Draw 2 + burden • Burden free • Listen worsens",
                 EmotionalState.CONNECTED => "• Weight limit 4 • All comfort +2",
                 EmotionalState.EAGER => "• 2+ same type → +3 comfort",
                 _ => ""
@@ -781,12 +780,8 @@ namespace Wayfarer.Pages.Components
                 return "type-comfort";
             if (tag.Contains("STATE", StringComparison.OrdinalIgnoreCase))
                 return "type-state";
-            if (tag.Contains("CRISIS", StringComparison.OrdinalIgnoreCase))
-                return "type-crisis";
             if (tag.Contains("BURDEN", StringComparison.OrdinalIgnoreCase))
                 return "type-burden";
-            if (tag.Contains("OneShot", StringComparison.OrdinalIgnoreCase))
-                return "observation";
             if (tag.Contains("Persistent", StringComparison.OrdinalIgnoreCase))
                 return "persistence";
             return "";

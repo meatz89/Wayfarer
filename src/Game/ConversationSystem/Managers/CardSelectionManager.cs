@@ -52,14 +52,8 @@ public class CardSelectionManager
         var cardWeight = card.GetEffectiveWeight(currentState);
         if (cardWeight > rules.MaxWeight)
         {
-            // Exception: Crisis letters can override weight limits when forced
-            if (!(card.BaseComfort <= 0 && card.Weight >= 2))
-                return false;
-        }
-
-        // Type restrictions (e.g., HOSTILE only allows Crisis letters)
-        if (rules.AllowedCardCategories != null && !rules.AllowedCardCategories.Contains(card.Category))
             return false;
+        }
 
         return true;
     }
@@ -110,7 +104,7 @@ public class CardSelectionManager
         foreach (var card in selectedCards)
         {
             // Exchange cards ALWAYS succeed - they're simple trades
-            if (card.Template == CardTemplateType.Exchange || card.Template == CardTemplateType.SimpleExchange)
+            if (card.Mechanics == CardMechanics.Exchange)
             {
                 results.Add(new SingleCardResult
                 {
@@ -125,7 +119,7 @@ public class CardSelectionManager
             }
             
             // Promise cards (including letters) create negotiation results and obligations
-            if (card.IsGoalCard && card.Template == CardTemplateType.MakePromise)
+            if (card.IsGoalCard && card.Mechanics == CardMechanics.Promise)
             {
                 var letterSuccessChance = card.CalculateSuccessChance(npcTokens);
                 var letterRoll = random.Next(100);
@@ -234,10 +228,10 @@ public class CardSelectionManager
         if (card.IsStateCard)
             return "Emotional Shift";
         
-        if (card.Template == CardTemplateType.Exchange || card.Template == CardTemplateType.SimpleExchange)
+        if (card.Mechanics == CardMechanics.Exchange)
             return "Exchange Offer";
             
-        if (card.IsGoalCard && card.Template == CardTemplateType.MakePromise)
+        if (card.IsGoalCard && card.Mechanics == CardMechanics.Promise)
             return card.IsGoalCard && card.GoalCardType == ConversationType.Promise ? "Letter Negotiation" : "Promise Negotiation";
         
         // Default for normal conversation cards

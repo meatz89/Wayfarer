@@ -37,9 +37,9 @@ public class ExchangeData
     public bool CanBarter { get; init; } = false;
     
     /// <summary>
-    /// Template type for generating display text
+    /// Template ID for generating display text (e.g., "food_exchange", "healing_exchange")
     /// </summary>
-    public CardTemplateType Template { get; init; }
+    public string TemplateId { get; init; }
     
     /// <summary>
     /// Check if player can afford this exchange
@@ -52,15 +52,20 @@ public class ExchangeData
     }
     
     /// <summary>
-    /// Get narrative context for messages
+    /// Get narrative context for messages based on exchange type
     /// </summary>
     public string GetNarrativeContext()
     {
-        return Template switch
-        {
-            CardTemplateType.Exchange => "completed an exchange",
-            CardTemplateType.SimpleExchange => "made a quick trade",
-            _ => "completed a transaction"
-        };
+        // Determine exchange type from reward resources
+        var rewardTypes = Reward?.Select(r => r.ResourceType).ToHashSet() ?? new HashSet<ResourceType>();
+        
+        if (rewardTypes.Contains(ResourceType.Hunger))
+            return "made a food exchange";
+        if (rewardTypes.Contains(ResourceType.Health))
+            return "received healing";
+        if (rewardTypes.Any(r => r == ResourceType.Coins))
+            return "completed a trade";
+            
+        return "completed a transaction";
     }
 }

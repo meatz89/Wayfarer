@@ -166,7 +166,6 @@
       "LateNight": "deep_stillness"
     },
     "urgency": {
-      "critical": "immediate_crisis",
       "urgent": "pressing_need",
       "moderate": "steady_concern",
       "low": "manageable_pace"

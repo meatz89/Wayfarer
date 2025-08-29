@@ -281,7 +281,8 @@ public class CardDeckLoader
             return new ConversationCard
             {
                 Id = id,
-                Template = templateType,
+                TemplateId = templateType,
+                Mechanics = CardMechanics.Standard,
                 Context = new CardContext
                 {
                     Personality = PersonalityType.STEADFAST, // Default, will be overridden per NPC
@@ -351,14 +352,14 @@ public class CardDeckLoader
                 "ResolutionGoal" => ConversationType.Resolution,
                 "PromiseGoal" => ConversationType.Promise,
                 "CommerceGoal" => ConversationType.Commerce,
-                "CrisisGoal" => ConversationType,
                 _ => ConversationType.Promise
             };
             
             return new ConversationCard
             {
                 Id = id,
-                Template = CardTemplateType.GoalCard,
+                TemplateId = "GoalCard",
+                Mechanics = CardMechanics.Promise,
                 Context = new CardContext
                 {
                     Personality = PersonalityType.STEADFAST,
@@ -409,7 +410,8 @@ public class CardDeckLoader
             return new ConversationCard
             {
                 Id = id,
-                Template = CardTemplateType.SimpleExchange,
+                TemplateId = "SimpleExchange",
+                Mechanics = CardMechanics.Exchange,
                 Context = new CardContext
                 {
                     Personality = PersonalityType.MERCANTILE,
@@ -460,7 +462,8 @@ public class CardDeckLoader
             return new ConversationCard
             {
                 Id = id,
-                Template = CardTemplateType.ObservationShare,
+                TemplateId = "ObservationShare",
+                Mechanics = CardMechanics.Standard,
                 Context = new CardContext
                 {
                     Personality = PersonalityType.STEADFAST,
@@ -512,23 +515,14 @@ public class CardDeckLoader
             "Fleeting" => PersistenceType.Fleeting,
             "Opportunity" => PersistenceType.Opportunity,
             "Burden" => PersistenceType.Persistent,
-            "Crisis" => PersistenceType.Goal,
             _ => PersistenceType.Persistent
         };
     }
     
-    private CardTemplateType ParseTemplateType(string id)
+    private string ParseTemplateType(string id)
     {
-        // Map card IDs to template types
-        return id switch
-        {
-            "SimpleGreeting" => CardTemplateType.SimpleGreeting,
-            "ActiveListening" => CardTemplateType.ActiveListening,
-            "OfferHelp" => CardTemplateType.OfferAssistance,
-            "SharePersonal" => CardTemplateType.PersonalStory,
-            "CalmReassurance" => CardTemplateType.CalmingResponse,
-            _ => CardTemplateType.SimpleGreeting
-        };
+        // Just return the ID as the template - no mapping needed
+        return id;
     }
     
     private string GetGoalDescription(JsonElement goalData)

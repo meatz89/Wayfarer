@@ -1,63 +1,34 @@
 using System;
 
 /// <summary>
-/// Template types for generating card dialogue and display
+/// Mechanical behavior types for cards - determines game mechanics
 /// </summary>
-public enum CardTemplateType
+public enum CardMechanics
 {
-    // Basic conversation templates
-    SimpleGreeting,
-    ActiveListening,
-    CasualInquiry,
+    /// <summary>
+    /// Standard conversation card with normal success/failure mechanics
+    /// </summary>
+    Standard,
     
-    // Relationship building
-    OfferHelp,
-    OpeningUp,
-    ShareInformation,
-    MakePromise,
-    
-    // Commerce/Business
-    DiscussBusiness,
-    OfferWork,
+    /// <summary>
+    /// Exchange cards that always succeed (no roll needed)
+    /// </summary>
     Exchange,
-    SimpleExchange,
     
-    // Status/Politics
-    DiscussPolitics,
-    ShowRespect,
+    /// <summary>
+    /// Promise cards that create obligations and trigger negotiation
+    /// </summary>
+    Promise,
     
-    // Shadow/Secret
-    ImplyKnowledge,
-    RequestDiscretion,
+    /// <summary>
+    /// Delivery cards that complete letter obligations
+    /// </summary>
+    Delivery,
     
-    // Special situations
-    DesperateRequest,
-    UrgentPlea,
-    CalmnessAttempt,
-    DeliverLetter,
-    DiscussObligation,
-    StateTransition,
-    
-    // Observation
-    ObservationNotice,
-    
-    // Missing values found in code
-    GoalCard,
-    ObservationShare,
-    OfferAssistance,
-    PersonalStory,
-    CalmingResponse,
-    NegotiateDeadline,
-    ShareSecret,
-    ShowingTension,
-    ExpressEmpathy,
-    SharePersonal,
-    ProposeDeal,
-    NegotiateTerms,
-    AcknowledgePosition,
-    MentionLetter,
-    ShareUrgentNews,
-    MentionObservation
+    /// <summary>
+    /// State change cards that modify emotional state
+    /// </summary>
+    StateChange
 }
 
 /// <summary>
@@ -114,15 +85,9 @@ public enum ConversationType
 
     /// <summary>
     /// Make amends conversation (2 attention, 6 patience, comfort, tokens and burden resolution card)
-    /// Enabled when NPC has 1+ burden cards in their conversation deck
+    /// Forced when NPC has burden cards in their goal deck
     /// </summary>
     Resolution,
-
-    /// <summary>
-    /// Crisis conversation (1 attention, 3 patience, forced resolution)
-    /// Forced when NPC has crisis cards in their goal deck
-    /// </summary>
-    Crisis,
 }
 
 
@@ -149,9 +114,14 @@ public class ConversationCard
     public string Id { get; init; }
 
     /// <summary>
-    /// Card template type for frontend text generation
+    /// Template ID for dialogue/display lookup (e.g., "SimpleGreeting", "food_exchange")
     /// </summary>
-    public CardTemplateType Template { get; init; }
+    public string TemplateId { get; init; }
+    
+    /// <summary>
+    /// Mechanical behavior type that determines game mechanics
+    /// </summary>
+    public CardMechanics Mechanics { get; init; } = CardMechanics.Standard;
     
     /// <summary>
     /// Category of this card for game mechanics and UI styling
@@ -286,10 +256,6 @@ public class ConversationCard
     /// </summary>
     public int CalculateSuccessChance(Dictionary<ConnectionType, int> tokens = null)
     {
-        // Use override if specified (for special cards like Crisis letters)
-        if (SuccessRate.HasValue)
-            return SuccessRate.Value;
-            
         var baseChance = 70;
         baseChance -= Weight * 10;
         

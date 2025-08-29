@@ -86,20 +86,6 @@ public class ExchangeMemory
             return "as has become your custom";
     }
     
-    /// <summary>
-    /// Check if this exchange happened during crisis before
-    /// </summary>
-    public bool HasCrisisHistory(string npcId, string exchangeType)
-    {
-        if (!_npcExchanges.ContainsKey(npcId))
-            return false;
-            
-        return _npcExchanges[npcId].Any(e => 
-            e.ExchangeType == exchangeType && 
-            (e.EmotionalContext == EmotionalState.DESPERATE || 
-             e.EmotionalContext == EmotionalState.TENSE));
-    }
-    
     private int GetEmotionalWeight(EmotionalState state)
     {
         return state switch

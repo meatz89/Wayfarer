@@ -60,11 +60,6 @@ public class ConversationSession
     public bool LetterGenerated { get; set; }
     
     /// <summary>
-    /// Whether we've had the final crisis turn in HOSTILE state
-    /// </summary>
-    public bool HadFinalCrisisTurn { get; set; }
-
-    /// <summary>
     /// Observation cards added at start
     /// </summary>
     public List<ConversationCard> ObservationCards { get; set; }
@@ -280,11 +275,11 @@ public class ConversationSession
             {
                 if (ec is ConversationCard exc)
                 {
-                    Console.WriteLine($"[DEBUG] Exchange card: {exc.Id} - {exc.Template}");
+                    Console.WriteLine($"[DEBUG] Exchange card: {exc.Id} - {exc.TemplateId}");
                 }
                 else if (ec is ConversationCard conv) 
                 {
-                    Console.WriteLine($"[DEBUG] Exchange card: {conv.Id} - {conv.Template}");
+                    Console.WriteLine($"[DEBUG] Exchange card: {conv.Id} - {conv.TemplateId}");
                 }
             }
         }
@@ -341,94 +336,6 @@ public class ConversationSession
             ObservationCards = new List<ConversationCard>(),
             TokenManager = tokenManager,
             Momentum = 0  // No momentum in exchanges
-        };
-    }
-
-    /// <summary>
-    /// Start a Crisis conversation (forced resolution)
-    /// </summary>
-    public static ConversationSession StartCrisis(NPC npc, ObligationQueueManager queueManager,
-        TokenMechanicsManager tokenManager, List<ConversationCard> observationCards)
-    {
-        // Crisis conversations always start in DESPERATE state
-        var initialState = EmotionalState.DESPERATE;
-        
-        // Crisis conversations have limited patience
-        var basePatience = 3; // Fixed 3 patience for crisis
-        
-        // Use existing crisis deck or fail if none exists
-        if (npcDeck == null || npcDeck.RemainingCards == 0)
-        {
-            Console.WriteLine($"[ERROR] StartCrisis: {npc.Name} has no crisis deck or no Crisis letters!");
-            // Can't proceed without crisis cards
-            return null;
-        }
-        
-        var deck = npcDeck;
-        
-        // Draw initial hand - for crisis, we should draw ALL Crisis letters available
-        var handCards = new List<ConversationCard>();
-        
-        // Draw all available Crisis letters (typically just 1-2)
-        var availableCount = Math.Min(deck.RemainingCards, 5); // Cap at 5 to prevent overflow
-        if (availableCount > 0)
-        {
-            handCards.AddRange(deck.Draw(availableCount, 0)); // Draw Crisis letters (usually depth 0)
-            Console.WriteLine($"[StartCrisis] Drew {availableCount} Crisis letters for {npc.Name}");
-        }
-        else
-        {
-            Console.WriteLine($"[WARNING] StartCrisis: No cards available in {npc.Name}'s crisis deck!");
-        }
-        
-        // Add observation cards if any
-        if (observationCards != null && observationCards.Any())
-        {
-            handCards.AddRange(observationCards);
-            Console.WriteLine($"[StartCrisis] Added {observationCards.Count} observation cards");
-        }
-        
-        // Check for letters that can be delivered through this NPC in crisis
-        if (queueManager != null)
-        {
-            var activeObligations = queueManager.GetActiveObligations();
-            var lettersForDelivery = activeObligations
-                .Where(o => o != null && (
-                    o.RecipientId == npc.ID || 
-                    o.RecipientId == npc.Location || 
-                    o.RecipientId == npc.SpotId ||
-                    IsLocationMatch(o.RecipientId, npc.Location, npc.SpotId)))
-                .ToList();
-            
-            if (lettersForDelivery.Any())
-            {
-                Console.WriteLine($"[StartCrisis] Found {lettersForDelivery.Count} letters deliverable through {npc.Name}");
-                
-                // Create a delivery card for each letter
-                foreach (var letter in lettersForDelivery)
-                {
-                    var deliveryCard = CreateLetterDeliveryCard(letter, npc, tokenManager);
-                    handCards.Add(deliveryCard);
-                    Console.WriteLine($"[StartCrisis] Added delivery card for letter from {letter.SenderName} to {letter.RecipientName}");
-                }
-            }
-        }
-
-        return new ConversationSession
-        {
-            NPC = npc,
-            ConversationType = ConversationType,
-            CurrentState = initialState,
-            HandCards = handCards,
-            Deck = deck,
-            CurrentPatience = basePatience,
-            MaxPatience = basePatience,
-            CurrentComfort = 0,
-            TurnNumber = 0,
-            LetterGenerated = false,
-            ObservationCards = observationCards ?? new List<ConversationCard>(),
-            TokenManager = tokenManager,
-            Momentum = 0  // Crisis starts at 0 momentum
         };
     }
 
@@ -573,29 +480,6 @@ public class ConversationSession
             }
         }
 
-        // Inject Crisis letters if state requires it (DESPERATE/HOSTILE)
-        if (rules.InjectsCrisis && rulesCardsInjected > 0)
-        {
-            // Check if we have Crisis letters in the crisis deck
-            if (NPCDeck != null && NPCDeck.RemainingCards > 0)
-            {
-                // Draw from crisis deck
-                var crisisCards = NPCDeck.Draw(rulesCardsInjected, 0);
-                HandCards.AddRange(crisisCards);
-                Console.WriteLine($"[ExecuteListen] Injected {crisisCards.Count} Crisis letters from deck");
-            }
-            else
-            {
-                // Generate Crisis letters if deck is empty
-                for (int i = 0; i < rulesCardsInjected; i++)
-                {
-                    var crisisCard = CardDeck.GenerateCrisisCard(NPC);
-                    HandCards.Add(crisisCard);
-                }
-                Console.WriteLine($"[ExecuteListen] Generated {rulesCardsInjected} Crisis letters");
-            }
-        }
-
         // Transition state according to rules
         var previousState = CurrentState;
         CurrentState = rules.ListenTransition;
@@ -691,12 +575,6 @@ public class ConversationSession
         if (result.NewState.HasValue)
         {
             CurrentState = result.NewState.Value;
-        }
-        
-        // If we're in HOSTILE state and played Crisis letters, mark final turn as taken
-        if (CurrentState == EmotionalState.HOSTILE)
-        {
-            HadFinalCrisisTurn = true;
         }
 
         // Remove played cards from hand
@@ -795,18 +673,6 @@ public class ConversationSession
                 return true;
         }
             
-        // HOSTILE state: Allow one final turn to play Crisis letters
-        if (CurrentState == EmotionalState.HOSTILE)
-        {
-            // If we haven't had the final turn yet, don't end
-            if (!HadFinalCrisisTurn)
-            {
-                return false;
-            }
-            // If we've had the final turn, end the conversation
-            return true;
-        }
-        
         return false;
     }
 
@@ -833,14 +699,6 @@ public class ConversationSession
             // GUARDED draws state cards only
             var stateCards = Deck.DrawFilteredByCategory(baseCount, comfort, CardCategory.State);
             return stateCards;
-        }
-        
-        // Special handling for HOSTILE - crisis cards only
-        if (state == EmotionalState.HOSTILE)
-        {
-            // HOSTILE draws crisis cards only
-            var crisisCards = Deck.DrawFilteredByCategory(baseCount, comfort, CardCategory.Burden);
-            return crisisCards;
         }
         
         // OVERWHELMED only draws 1 card (no guaranteed state)
@@ -1038,15 +896,29 @@ public class ConversationSession
     
     private static string GetExchangeName(ConversationCard exchange)
     {
-        // Generate proper exchange names based on template type
-        return exchange.Template switch
+        // Determine exchange type from the exchange data
+        var exchangeData = exchange.Context?.ExchangeData;
+        if (exchangeData?.Reward?.Count > 0)
         {
-            "food" => "Buy Travel Provisions",
-            "healing" => "Purchase Medicine",
-            "information" => "Information Trade",
-            "work" => "Help Inventory Stock",
-            "favor" => "Noble Favor",
-            "lodging" => "Rest at the Inn",
+            var resource = exchangeData.Reward[0].ResourceType;
+            return resource switch
+            {
+                ResourceType.Food => "Buy Travel Provisions",
+                ResourceType.Health => "Purchase Medicine",
+                ResourceType.Information => "Information Trade",
+                ResourceType.Work => "Help Inventory Stock",
+                ResourceType.Favor => "Noble Favor",
+                ResourceType.Rest => "Rest at the Inn",
+                _ => "Make Exchange"
+            };
+        }
+        
+        // Fallback to template ID if available
+        return exchange.TemplateId switch
+        {
+            "food_exchange" => "Buy Travel Provisions",
+            "healing_exchange" => "Purchase Medicine",
+            "information_exchange" => "Information Trade",
             _ => "Make Exchange"
         };
     }
@@ -1125,21 +997,12 @@ public class ConversationSession
         var payment = success ? 15 : 5;  // Better payment on success
         
         // CLEAN DESIGN: Check Category, not ID strings
-        bool isCrisisLetter = goalCard.Category == CardCategory;
-        bool forcesPosition1 = isCrisisLetter; // Crisis letters force position 1 on failure
+        bool isBurden = goalCard.Category == CardCategory.Burden;
+        bool forcesPosition1 = isBurden; // Crisis letters force position 1 on failure
         
         // Get recipient info from card context or use defaults
         string recipientId = "unknown";
         string recipientName = "Unknown Recipient";
-        
-        // CLEAN DESIGN: Get recipient from card context, not hardcoded IDs
-        // Recipients should be stored in the card's context or metadata
-        if (goalCard.Context != null)
-        {
-            // Use Context properties if they have recipient info
-            recipientId = goalCard.Context.CustomData?.GetValueOrDefault("RecipientId", "unknown") ?? "unknown";
-            recipientName = goalCard.Context.CustomData?.GetValueOrDefault("RecipientName", "Unknown Recipient") ?? "Unknown Recipient";
-        }
         
         return new DeliveryObligation
         {
@@ -1164,7 +1027,6 @@ public class ConversationSession
             // Mark for automatic displacement processing
             IsGenerated = true,
             GenerationReason = $"Goal card negotiation: {(success ? "success" : "failure")}",
-            IsCrisisLetter = isCrisisLetter && !success  // Crisis on failed negotiation
         };
     }
     
@@ -1298,13 +1160,14 @@ public class ConversationSession
         return new ConversationCard
         {
             Id = $"deliver_{obligation.Id}",
-            Template = CardTemplateType.DeliverLetter,
+            TemplateId = "deliver_letter", // Use string template ID
+            Mechanics = CardMechanics.Delivery, // Proper delivery mechanics
+            Category = CardCategory.Promise, // Delivery cards are promises fulfilled
             Context = context,
             Type = CardType.Trust, // Delivery builds trust
             Persistence = PersistenceType.Fleeting, // One chance to deliver
             Weight = 0, // Free to play - delivering is always good
             BaseComfort = comfortReward,
-            Category = CardCategory.COMFORT, // Uses comfort category for now
             CanDeliverLetter = true,
             DeliveryObligationId = obligation.Id,
             DisplayName = $"Deliver letter from {obligation.SenderName}",
@@ -1406,19 +1269,9 @@ public class ConversationSession
         }
         
         // Select based on priority:
-        // 1. Crisis goals (highest priority)
-        // 2. State-specific goals (match current state)
-        // 3. Any eligible goal
+        // 1. State-specific goals (match current state)
+        // 2. Any eligible goal
         
-        // Check for crisis goals first
-        var crisisGoal = stateFilteredGoals.FirstOrDefault((object g) => 
-            g.GoalCardType == global::ConversationType || 
-            g.Category == CardCategory);
-        if (crisisGoal != null)
-        {
-            Console.WriteLine($"[SelectGoalCard] Selected crisis goal: {crisisGoal.Id}");
-            return crisisGoal;
-        }
         
         // Check for state-specific goals
         var stateSpecificGoal = stateFilteredGoals.FirstOrDefault(g =>

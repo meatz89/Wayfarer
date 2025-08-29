@@ -158,7 +158,9 @@ public class Phase3_NPCDependents : IInitializationPhase
         return new ConversationCard
         {
             Id = original.Id,
-            Template = original.Template,
+            TemplateId = original.TemplateId,
+            Mechanics = original.Mechanics,
+            Category = original.Category,
             Context = npcContext,
             Type = original.Type,
             Persistence = original.Persistence,
@@ -206,34 +208,6 @@ public class Phase3_NPCDependents : IInitializationPhase
                 }
             }
         }
-    }
-    
-    private ConversationCard ConvertPromiseToConversationCard(PromiseCardConfiguration config, NPC npc)
-    {
-        bool isCrisis = npc.IsInCrisis();
-        
-        return new ConversationCard
-        {
-            Id = config.CardId,
-            Template = CardTemplateType.MakePromise, 
-            Context = new CardContext
-            {
-                Personality = npc.PersonalityType,
-                EmotionalState = npc.CurrentEmotionalState,
-                NPCName = npc.Name,
-                GeneratesLetterOnSuccess = true 
-            },
-            Type = ConvertConnectionTypeToCardType(config.LetterDetails.TokenType),
-            Persistence = PersistenceType.Goal,
-            Weight = isCrisis ? 0 : 2,
-            BaseComfort = 5, // Standard comfort gain for promise cards
-            Depth = 7, // Default depth for letters
-            IsGoalCard = true,
-            GoalCardType = ConversationType.Promise, // Promise cards create letters
-            DisplayName = config.LetterDetails.Description,
-            Description = config.LetterDetails.Description,
-            SuccessRate = config.NegotiationTerms.BaseSuccessRate
-        };
     }
     
     private CardType ConvertConnectionTypeToCardType(ConnectionType connectionType)

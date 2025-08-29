@@ -390,11 +390,6 @@ namespace Wayfarer.Pages
             return GetCurrentWeight() > GetMaxWeight();
         }
 
-        protected bool HasCrisisSelected()
-        {
-            return SelectedCards.Any(c => c.Category == CardCategory.BURDEN);
-        }
-
         protected string GetCardClasses(ConversationCard card)
         {
             var classes = new List<string>();
@@ -522,9 +517,6 @@ namespace Wayfarer.Pages
                 if (!SelectedCards.Any())
                     return "Choose your response...";
                 
-                if (HasCrisisSelected())
-                    return "🔥 DESPERATE ACTION (costs 1 turn)";
-                
                 var manager = new CardSelectionManager(Session.CurrentState);
                 foreach (var card in SelectedCards)
                 {
@@ -573,15 +565,22 @@ namespace Wayfarer.Pages
                 return "Exchange";
                 
             var exchange = card.Context.ExchangeData;
-            return exchange.Template switch
+            // Determine exchange type from the reward resource
+            if (exchange.Reward?.Count > 0)
             {
-                "food" => "Food Exchange",
-                "healing" => "Healing Service",
-                "information" => "Information Trade",
-                "work" => "Labor Exchange",
-                "favor" => "Favor Trade",
-                _ => "Resource Exchange"
-            };
+                var resource = exchange.Reward[0].ResourceType;
+                return resource switch
+                {
+                    ResourceType.Food => "Food Exchange",
+                    ResourceType.Health => "Healing Service",
+                    ResourceType.Information => "Information Trade",
+                    ResourceType.Work => "Labor Exchange",
+                    ResourceType.Favor => "Favor Trade",
+                    _ => "Resource Exchange"
+                };
+            }
+            
+            return "Resource Exchange";
         }
         
         protected string GetExchangeCostText(ConversationCard card)
@@ -606,40 +605,43 @@ namespace Wayfarer.Pages
         
         protected bool IsConversationCard(ConversationCard card)
         {
-            return card.Template == CardTemplateType.Exchange;
+            return card.Mechanics == CardMechanics.Exchange;
         }
         
         protected string GetCardDisplayName(ConversationCard card)
         {
-            // Generate a display name based on the template type
-            return card.Template switch
+            // Special handling for exchange cards
+            if (card.Mechanics == CardMechanics.Exchange)
+                return GetConversationCardName(card);
+                
+            // Generate a display name based on the template ID
+            return card.TemplateId switch
             {
-                CardTemplateType.OfferHelp => "Offer Assistance",
-                CardTemplateType.ActiveListening => "Listen Actively",
-                CardTemplateType.CasualInquiry => "Casual Question",
-                CardTemplateType.DiscussBusiness => "Discuss Business",
-                CardTemplateType.OfferWork => "Propose Work",
-                CardTemplateType.DiscussPolitics => "Political Discussion",
-                CardTemplateType.MakePromise => "Make Promise",
-                CardTemplateType.ShowRespect => "Show Respect",
-                CardTemplateType.ShareInformation => "Share Information",
-                CardTemplateType.ImplyKnowledge => "Hint at Knowledge",
-                CardTemplateType.RequestDiscretion => "Request Discretion",
-                CardTemplateType.SimpleGreeting => "Simple Greeting",
-                CardTemplateType.DesperateRequest => "DESPERATE PLEA",
-                CardTemplateType.OpeningUp => "Open Up",
-                CardTemplateType.CalmnessAttempt => "Calm Reassurance",
-                CardTemplateType.DiscussObligation => "Discuss Obligations",
-                CardTemplateType.DeliverLetter => "Deliver Letter",
-                CardTemplateType.ShowingTension => "Show Tension",
-                CardTemplateType.ExpressEmpathy => "Express Empathy",
-                CardTemplateType.SharePersonal => "Share Personal",
-                CardTemplateType.ProposeDeal => "Propose Deal",
-                CardTemplateType.NegotiateTerms => "Negotiate Terms",
-                CardTemplateType.AcknowledgePosition => "Acknowledge Position",
-                CardTemplateType.ShareSecret => "Share Secret",
-                CardTemplateType.MentionLetter => "Mention Letter",
-                CardTemplateType.Exchange => GetConversationCardName(card),
+                "OfferHelp" => "Offer Assistance",
+                "ActiveListening" => "Listen Actively",
+                "CasualInquiry" => "Casual Question",
+                "DiscussBusiness" => "Discuss Business",
+                "OfferWork" => "Propose Work",
+                "DiscussPolitics" => "Political Discussion",
+                "MakePromise" => "Make Promise",
+                "ShowRespect" => "Show Respect",
+                "ShareInformation" => "Share Information",
+                "ImplyKnowledge" => "Hint at Knowledge",
+                "RequestDiscretion" => "Request Discretion",
+                "SimpleGreeting" => "Simple Greeting",
+                "DesperateRequest" => "DESPERATE PLEA",
+                "OpeningUp" => "Open Up",
+                "CalmnessAttempt" => "Calm Reassurance",
+                "DiscussObligation" => "Discuss Obligations",
+                "DeliverLetter" => "Deliver Letter",
+                "ShowingTension" => "Show Tension",
+                "ExpressEmpathy" => "Express Empathy",
+                "SharePersonal" => "Share Personal",
+                "ProposeDeal" => "Propose Deal",
+                "NegotiateTerms" => "Negotiate Terms",
+                "AcknowledgePosition" => "Acknowledge Position",
+                "ShareSecret" => "Share Secret",
+                "MentionLetter" => "Mention Letter",
                 _ => "Conversation Option"
             };
         }

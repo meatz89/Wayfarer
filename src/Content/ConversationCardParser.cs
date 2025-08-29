@@ -126,7 +126,9 @@ public class ConversationCardParser
         return new ConversationCard
         {
             Id = $"{cardId}_{npcId}",
-            Template = card.Template,
+            TemplateId = card.TemplateId,
+            Mechanics = card.Mechanics,
+            Category = card.Category,
             Context = new CardContext
             {
                 NPCName = npcName,
@@ -150,11 +152,29 @@ public class ConversationCardParser
 
     private ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null)
     {
-        // Parse template
-        CardTemplateType template = CardTemplateType.SimpleGreeting;
-        if (!string.IsNullOrEmpty(dto.Template))
+        // Parse mechanics from template string or default to Standard
+        CardMechanics mechanics = CardMechanics.Standard;
+        if (!string.IsNullOrEmpty(dto.Mechanics))
         {
-            Enum.TryParse<CardTemplateType>(dto.Template, true, out template);
+            Enum.TryParse<CardMechanics>(dto.Mechanics, true, out mechanics);
+        }
+        
+        // Parse category from DTO or infer from mechanics
+        CardCategory category = CardCategory.Comfort; // Default
+        if (!string.IsNullOrEmpty(dto.Category))
+        {
+            Enum.TryParse<CardCategory>(dto.Category, true, out category);
+        }
+        else
+        {
+            // Infer category from mechanics if not specified
+            category = mechanics switch
+            {
+                CardMechanics.Exchange => CardCategory.Exchange,
+                CardMechanics.Promise => CardCategory.Promise,
+                CardMechanics.StateChange => CardCategory.State,
+                _ => CardCategory.Comfort
+            };
         }
 
         // Parse goal type if goal card
@@ -181,7 +201,9 @@ public class ConversationCardParser
         return new ConversationCard
         {
             Id = dto.Id,
-            Template = template,
+            TemplateId = dto.Template ?? dto.Id, // Use Template field as TemplateId, fallback to Id
+            Mechanics = mechanics,
+            Category = category,
             Context = new CardContext
             {
                 Personality = npc?.PersonalityType ?? PersonalityType.STEADFAST,
@@ -210,7 +232,7 @@ public class ConversationCardParser
             ConversationType.FriendlyChat => ConversationType.Promise,
             ConversationType.Promise => ConversationType.Promise,
             ConversationType.Resolution => ConversationType.Resolution,
-            ConversationType => ConversationType,
+            ConversationType.Delivery => ConversationType.Delivery,
             ConversationType.Commerce => null,
             _ => null
         };
@@ -233,7 +255,9 @@ public class ConversationDataDTO
 public class ConversationCardDTO
 {
     public string Id { get; set; }
-    public string Template { get; set; }
+    public string Template { get; set; } // Maps to TemplateId in card
+    public string Mechanics { get; set; } // New mechanics field
+    public string Category { get; set; } // New category field
     public string Type { get; set; }
     public string Persistence { get; set; }
     public int Weight { get; set; }
