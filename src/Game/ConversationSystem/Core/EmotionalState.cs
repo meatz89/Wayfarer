@@ -40,12 +40,6 @@ public class StateRuleset
     /// </summary>
     public EmotionalState ListenTransition { get; init; }
 
-    /// <summary>
-    /// Whether opportunity cards are preserved when listening
-    /// </summary>
-    public bool PreservesOpportunities { get; init; }
-
-    /// <summary>
     /// Maximum cards that can be played (ONE-CARD RULE: always 1)
     /// </summary>
     public int? MaxCards { get; init; }
@@ -54,12 +48,6 @@ public class StateRuleset
     /// Whether depth advances automatically each turn (CONNECTED)
     /// </summary>
     public bool AutoAdvanceDepth { get; init; }
-
-    /// <summary>
-    /// Set bonuses based on number of cards played (OBSOLETE - ONE-CARD RULE)
-    /// Kept for backwards compatibility but always returns 0
-    /// </summary>
-    public Dictionary<int, int> SetBonuses { get; init; } = new();
 
     /// <summary>
     /// Card categories that cost 0 weight in this state

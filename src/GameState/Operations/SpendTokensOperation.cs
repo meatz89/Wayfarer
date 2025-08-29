@@ -32,19 +32,16 @@ public bool CanExecute(GameWorld gameWorld)
 
 public void Execute(GameWorld gameWorld)
 {
-    bool tokensSpent;
     if (string.IsNullOrEmpty(_npcId))
     {
-        tokensSpent = _tokenManager.SpendTokens(_tokenType, _amount);
+        throw new InvalidOperationException("Cannot spend tokens without specifying NPC. Tokens are relational.");
     }
-    else
-    {
-        tokensSpent = _tokenManager.SpendTokensWithNPC(_tokenType, _amount, _npcId);
-    }
+
+    bool tokensSpent = _tokenManager.SpendTokensWithNPC(_tokenType, _amount, _npcId);
 
     if (!tokensSpent)
     {
-        throw new InvalidOperationException($"Failed to spend {_amount} {_tokenType} tokens");
+        throw new InvalidOperationException($"Failed to spend {_amount} {_tokenType} tokens with NPC {_npcId}");
     }
 }
 }

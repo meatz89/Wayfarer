@@ -385,7 +385,15 @@ public class StandingObligationManager
     private void ApplyBreakingConsequences(StandingObligation obligation)
     {
         // Apply exactly -5 token penalty for breaking obligations (US-8.3)
-        _connectionTokenManager.SpendTokens(obligation.RelatedTokenType.Value, GameRules.OBLIGATION_BREAKING_PENALTY);
+        if (!string.IsNullOrEmpty(obligation.RelatedNPCId))
+        {
+            _connectionTokenManager.RemoveTokensFromNPC(obligation.RelatedTokenType.Value, GameRules.OBLIGATION_BREAKING_PENALTY, obligation.RelatedNPCId);
+        }
+        else
+        {
+            // If no specific NPC, NOT POSSIBLE
+            throw new Exception("Not possible to remove tokens when no npc is set");
+        }
 
         _messageSystem.AddSystemMessage(
             $"Lost {GameRules.OBLIGATION_BREAKING_PENALTY} {obligation.RelatedTokenType} tokens for breaking {obligation.Name}",

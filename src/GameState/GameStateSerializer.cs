@@ -51,7 +51,7 @@ public static class GameWorldSerializer
 
                 // DeliveryObligation Queue System
                 LetterQueue = SerializeLetterQueue(gameWorld.GetPlayer().ObligationQueue),
-                ConnectionTokens = SerializeConnectionTokens(gameWorld.GetPlayer().ConnectionTokens),
+                // Tokens are purely relational (per-NPC), no global tokens
                 NPCTokens = SerializeNPCTokens(gameWorld.GetPlayer().NPCTokens),
 
                 // Physical Letter Carrying
@@ -284,17 +284,7 @@ public static class GameWorldSerializer
         return letter;
     }
 
-    private static void DeserializeConnectionTokens(Dictionary<string, int> tokens, Player player)
-    {
-        player.ConnectionTokens.Clear();
-        foreach (KeyValuePair<string, int> kvp in tokens)
-        {
-            if (EnumParser.TryParse<ConnectionType>(kvp.Key, out ConnectionType tokenType))
-            {
-                player.ConnectionTokens[tokenType] = kvp.Value;
-            }
-        }
-    }
+    // DeserializeConnectionTokens removed - tokens are now purely relational (per-NPC)
 
     private static void DeserializeNPCTokens(Dictionary<string, Dictionary<string, int>> npcTokens, Player player)
     {
@@ -436,7 +426,7 @@ public static class GameWorldSerializer
 
             // Apply letter queue system
             DeserializeLetterQueue(serialized.Player.LetterQueue, gameWorld.GetPlayer());
-            DeserializeConnectionTokens(serialized.Player.ConnectionTokens, gameWorld.GetPlayer());
+            // Tokens are now purely relational (per-NPC), no global tokens
             DeserializeNPCTokens(serialized.Player.NPCTokens, gameWorld.GetPlayer());
 
             // Apply physical letters

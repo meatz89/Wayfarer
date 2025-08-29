@@ -270,7 +270,7 @@ This architecture ensures:
 **Principles and Memories:**
 - ALWAYS read the full file before editing
 - game mechanical values, that could be changed during balancing, should be read from GameRules configuration file.
-- avoid defensive programming like checking for null values, try catch blocks, throwing exceptions, using defaults or fallback values and so on. this increases complexity of the code and hides errors. just let it fail and let the program crash fast
+- strictly avoid defensive programming like checking for null values, try catch blocks, throwing exceptions, using defaults or fallback values and so on. this increases complexity of the code and hides errors. just let it fail and let the program crash fast
 
 **🔥 MANDATORY UI VERIFICATION STRATEGY 🔥**
 

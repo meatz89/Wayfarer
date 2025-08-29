@@ -109,10 +109,6 @@ public static class LocationTraitsParser
         if (!string.IsNullOrEmpty(location.LocationTypeString))
             return location.LocationTypeString;
             
-        // Fallback: Check access requirement
-        if (location.AccessRequirement != null)
-            return "Restricted Area";
-            
         return "";
     }
 }

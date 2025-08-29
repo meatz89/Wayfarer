@@ -196,11 +196,6 @@ public class Inventory
                 {
                     usedSlots += item.GetRequiredSlots();
                 }
-                else
-                {
-                    // Fallback for items not found in repository
-                    usedSlots += 1;
-                }
             }
         }
 

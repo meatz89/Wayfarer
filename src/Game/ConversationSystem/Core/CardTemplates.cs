@@ -161,16 +161,6 @@ public class CardContext
     public string ObservationSpot { get; init; }
     
     /// <summary>
-    /// Resource costs for exchange cards
-    /// </summary>
-    public List<ResourceExchange> Cost { get; init; } = new();
-    
-    /// <summary>
-    /// Resource rewards for exchange cards
-    /// </summary>
-    public List<ResourceExchange> Reward { get; init; } = new();
-    
-    /// <summary>
     /// Exchange data for exchange cards (separate from ConversationCard)
     /// </summary>
     public ExchangeData ExchangeData { get; init; }

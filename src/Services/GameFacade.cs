@@ -2557,16 +2557,16 @@ public class GameFacade
                     }
                     break;
                 case ResourceType.TrustToken:
-                    _connectionTokenManager.SpendTokens(ConnectionType.Trust, cost.Amount);
+                    _connectionTokenManager.SpendTokens(ConnectionType.Trust, cost.Amount, npcId);
                     break;
                 case ResourceType.CommerceToken:
-                    _connectionTokenManager.SpendTokens(ConnectionType.Commerce, cost.Amount);
+                    _connectionTokenManager.SpendTokens(ConnectionType.Commerce, cost.Amount, npcId);
                     break;
                 case ResourceType.StatusToken:
-                    _connectionTokenManager.SpendTokens(ConnectionType.Status, cost.Amount);
+                    _connectionTokenManager.SpendTokens(ConnectionType.Status, cost.Amount, npcId);
                     break;
                 case ResourceType.ShadowToken:
-                    _connectionTokenManager.SpendTokens(ConnectionType.Shadow, cost.Amount);
+                    _connectionTokenManager.SpendTokens(ConnectionType.Shadow, cost.Amount, npcId);
                     break;
             }
         }

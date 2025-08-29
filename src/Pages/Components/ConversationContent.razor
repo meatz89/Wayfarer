@@ -166,12 +166,12 @@
                                 <div class="exchange-details">
                                     <div class="exchange-cost">
                                         <div class="exchange-label">You Pay</div>
-                                        <div class="exchange-value cost-value">@(card.Context.ExchangeCost ?? "Nothing")</div>
+                                        <div class="exchange-value cost-value">@GetExchangeCostDisplay(card)</div>
                                     </div>
                                     <div class="exchange-arrow">→</div>
                                     <div class="exchange-reward">
                                         <div class="exchange-label">You Receive</div>
-                                        <div class="exchange-value reward-value">@(card.Context.ExchangeReward ?? "Nothing")</div>
+                                        <div class="exchange-value reward-value">@GetExchangeRewardDisplay(card)</div>
                                     </div>
                                 </div>
                                 

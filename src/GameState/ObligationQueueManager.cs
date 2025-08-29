@@ -131,7 +131,7 @@ public class ObligationQueueManager
         // Grant tokens for successful delivery
         if (obligation.TokenType != ConnectionType.None)
         {
-            _connectionTokenManager.GrantTokens(obligation.TokenType, 1, obligation.RecipientId);
+            _connectionTokenManager.AddTokensToNPC(obligation.TokenType, 1, obligation.RecipientId);
         }
         
         _messageSystem.AddSystemMessage(
@@ -1162,11 +1162,6 @@ public class ObligationQueueManager
     private string GetNPCIdByName(string npcName)
     {
         NPC? npc = _npcRepository.GetAllNPCs().FirstOrDefault(n => n.Name == npcName);
-        if (npc == null)
-        {
-            // Try case-insensitive search as fallback
-            npc = _npcRepository.GetByName(npcName);
-        }
         return npc?.ID ?? "";
     }
 
@@ -1626,14 +1621,6 @@ public class ObligationQueueManager
     // Generate a letter from the selected sender
     private DeliveryObligation GenerateLetterFromSender(NPC sender, ConnectionType tokenType)
     {
-        // Create a simple delivery obligation
-        // In the real game, letters are created through ConversationLetterService
-        return GenerateBasicDeliveryObligation(sender, tokenType);
-    }
-
-    // Generate basic delivery obligation for testing/fallback
-    private DeliveryObligation GenerateBasicDeliveryObligation(NPC sender, ConnectionType tokenType)
-    {
         List<NPC> allNpcs = _npcRepository.GetAllNPCs();
         NPC recipient = allNpcs.Where(n => n.ID != sender.ID).FirstOrDefault();
         if (recipient == null) return null;
@@ -1826,7 +1813,7 @@ public class ObligationQueueManager
                     SystemMessageTypes.Warning
                 );
 
-                if (!_connectionTokenManager.SpendTokens(payment.Key, payment.Value))
+                if (!_connectionTokenManager.SpendTokensOfType(payment.Key, payment.Value))
                 {
                     return false;
                 }

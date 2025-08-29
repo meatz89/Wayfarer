@@ -215,7 +215,7 @@
                                 <div class="exchange-details">
                                     <div class="costs">
                                         <h4>Costs:</h4>
-                                        @foreach (var cost in (card.Context?.ExchangeData?.Cost ?? card.Context?.Cost ?? new List<ResourceExchange>()))
+                                        @foreach (var cost in (card.Context?.ExchangeData?.Cost ?? new List<ResourceExchange>()))
                                         {
                                             <div>@cost.GetDisplayText()</div>
                                         }

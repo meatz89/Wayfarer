@@ -15,7 +15,7 @@
 
     // DeliveryObligation Queue System
     public List<SerializableLetter> LetterQueue { get; set; } = new List<SerializableLetter>();
-    public Dictionary<string, int> ConnectionTokens { get; set; } = new Dictionary<string, int>();
+    // Tokens are purely relational (per-NPC), no global token count
     public Dictionary<string, Dictionary<string, int>> NPCTokens { get; set; } = new Dictionary<string, Dictionary<string, int>>();
 
     // Physical DeliveryObligation Carrying

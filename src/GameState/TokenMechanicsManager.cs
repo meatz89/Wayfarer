@@ -38,15 +38,11 @@ public class TokenMechanicsManager
         if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
 
         Player player = _gameWorld.GetPlayer();
-        Dictionary<ConnectionType, int> playerTokens = player.ConnectionTokens;
         Dictionary<string, Dictionary<ConnectionType, int>> npcTokens = player.NPCTokens;
 
         // Apply equipment modifiers
         float modifier = GetEquipmentTokenModifier(type);
         int modifiedCount = (int)Math.Ceiling(count * modifier);
-
-        // Update global token count with modified amount
-        playerTokens[type] = playerTokens.GetValueOrDefault(type) + modifiedCount;
 
         // Initialize NPC token tracking if needed
         if (!npcTokens.ContainsKey(npcId))
@@ -85,77 +81,13 @@ public class TokenMechanicsManager
         // Token change notifications are handled by GameFacade orchestration
     }
 
-    // Spend tokens (for queue actions)
-    public bool SpendTokens(ConnectionType type, int count)
-    {
-        if (count <= 0) return true;
-
-        Dictionary<ConnectionType, int> playerTokens = _gameWorld.GetPlayer().ConnectionTokens;
-        if (playerTokens.GetValueOrDefault(type) >= count)
-        {
-            playerTokens[type] -= count;
-
-            _messageSystem.AddSystemMessage(
-                $"💰 Spent {count} {type} token{(count > 1 ? "s" : "")} (Remaining: {playerTokens[type]})",
-                SystemMessageTypes.Info
-            );
-
-            return true;
-        }
-
-        _messageSystem.AddSystemMessage(
-            $"❌ Insufficient {type} tokens! Need {count}, have {playerTokens.GetValueOrDefault(type)}",
-            SystemMessageTypes.Danger
-        );
-
-        return false;
-    }
-
-    // Grant tokens to player for relationship building
-    public void GrantTokens(ConnectionType type, int count, string npcId)
-    {
-        if (count <= 0) return;
-        
-        Player player = _gameWorld.GetPlayer();
-        
-        // Add to total tokens
-        if (!player.ConnectionTokens.ContainsKey(type))
-        {
-            player.ConnectionTokens[type] = 0;
-        }
-        player.ConnectionTokens[type] += count;
-        
-        // Track NPC-specific tokens if NPC provided
-        if (!string.IsNullOrEmpty(npcId))
-        {
-            if (!player.NPCTokens.ContainsKey(npcId))
-            {
-                player.NPCTokens[npcId] = new Dictionary<ConnectionType, int>();
-            }
-            if (!player.NPCTokens[npcId].ContainsKey(type))
-            {
-                player.NPCTokens[npcId][type] = 0;
-            }
-            player.NPCTokens[npcId][type] += count;
-        }
-        
-        _messageSystem.AddSystemMessage($"Gained {count} {type} token(s)", SystemMessageTypes.Success);
-    }
     
     // Spend tokens with specific NPC context (for queue manipulation)
     public bool SpendTokensWithNPC(ConnectionType type, int count, string npcId)
     {
         if (count <= 0) return true;
-        if (string.IsNullOrEmpty(npcId)) return SpendTokens(type, count); // Fallback to general spending
 
         Player player = _gameWorld.GetPlayer();
-        Dictionary<ConnectionType, int> playerTokens = player.ConnectionTokens;
-
-        // Check if player has enough total tokens
-        if (playerTokens.GetValueOrDefault(type) < count)
-        {
-            return false;
-        }
 
         // Ensure NPC token tracking exists
         if (!player.NPCTokens.ContainsKey(npcId))
@@ -167,10 +99,7 @@ public class TokenMechanicsManager
             }
         }
 
-        // Spend from player total
-        playerTokens[type] -= count;
-
-        // Also reduce from NPC relationship (can go negative)
+        // reduce from NPC relationship (can go negative)
         player.NPCTokens[npcId][type] -= count;
 
         // Add narrative feedback
@@ -191,39 +120,43 @@ public class TokenMechanicsManager
             }
         }
 
-        // Check threshold-based obligations if we have the manager
-        // Token change notifications are handled by GameFacade orchestration
-
         return true;
     }
 
-    // Check if player has enough tokens
+    // Check if player has enough tokens (aggregates across all NPCs)
     public bool HasTokens(ConnectionType type, int count)
     {
-        Dictionary<ConnectionType, int> playerTokens = _gameWorld.GetPlayer().ConnectionTokens;
-        return playerTokens.GetValueOrDefault(type) >= count;
+        Player player = _gameWorld.GetPlayer();
+        int totalOfType = 0;
+        foreach (var npcTokens in player.NPCTokens.Values)
+        {
+            int tokensWithNpc = npcTokens.GetValueOrDefault(type, 0);
+            if (tokensWithNpc > 0) totalOfType += tokensWithNpc;
+        }
+        return totalOfType >= count;
     }
 
-    // Get total tokens of a type
+    // Get total tokens of a type (aggregates across all NPCs)
     public int GetTokenCount(ConnectionType type)
     {
-        return _gameWorld.GetPlayer().ConnectionTokens.GetValueOrDefault(type);
+        Player player = _gameWorld.GetPlayer();
+        int totalOfType = 0;
+        foreach (var npcTokens in player.NPCTokens.Values)
+        {
+            int tokensWithNpc = npcTokens.GetValueOrDefault(type, 0);
+            if (tokensWithNpc > 0) totalOfType += tokensWithNpc;
+        }
+        return totalOfType;
     }
 
-    // Add tokens without NPC context (for undo operations)
+    // Add tokens without NPC context (DEPRECATED - tokens must be NPC-specific)
     public void AddTokens(ConnectionType type, int count)
     {
-        if (count <= 0) return;
-
-        Player player = _gameWorld.GetPlayer();
-        Dictionary<ConnectionType, int> playerTokens = player.ConnectionTokens;
-
-        // Update global token count
-        playerTokens[type] = playerTokens.GetValueOrDefault(type) + count;
-
+        // This method violates the relational token architecture
+        // Tokens must always be associated with a specific NPC
         _messageSystem.AddSystemMessage(
-            $"🤝 +{count} {type} token{(count > 1 ? "s" : "")} (Total: {playerTokens[type]})",
-            SystemMessageTypes.Success
+            $"ERROR: Cannot add tokens without NPC context. Tokens are relational.",
+            SystemMessageTypes.Danger
         );
     }
 
@@ -265,10 +198,6 @@ public class TokenMechanicsManager
         // Remove tokens from NPC relationship (can go negative)
         npcTokens[npcId][type] -= count;
 
-        // Also remove from player's total tokens (but don't go below 0)
-        Dictionary<ConnectionType, int> playerTokens = player.ConnectionTokens;
-        playerTokens[type] = Math.Max(0, playerTokens.GetValueOrDefault(type) - count);
-
         // Add narrative feedback for relationship damage
         NPC npc = _npcRepository.GetById(npcId);
         if (npc != null)
@@ -294,7 +223,13 @@ public class TokenMechanicsManager
     public int GetTotalTokensOfType(ConnectionType type)
     {
         Player player = _gameWorld.GetPlayer();
-        return player.ConnectionTokens.GetValueOrDefault(type, 0);
+        int totalOfType = 0;
+        foreach (var npcTokens in player.NPCTokens.Values)
+        {
+            int tokensWithNpc = npcTokens.GetValueOrDefault(type, 0);
+            if (tokensWithNpc > 0) totalOfType += tokensWithNpc;
+        }
+        return totalOfType;
     }
 
     // Spend tokens of a specific type from any NPCs that have that type
@@ -303,13 +238,11 @@ public class TokenMechanicsManager
         if (amount <= 0) return true;
 
         Player player = _gameWorld.GetPlayer();
-        int totalAvailable = player.ConnectionTokens.GetValueOrDefault(type, 0);
-
+        
+        // Calculate total available across all NPCs
+        int totalAvailable = GetTotalTokensOfType(type);
         if (totalAvailable < amount)
             return false;
-
-        // Deduct from total
-        player.ConnectionTokens[type] = totalAvailable - amount;
 
         // Deduct from NPCs proportionally
         Dictionary<string, Dictionary<ConnectionType, int>> npcTokens = player.NPCTokens;
@@ -327,6 +260,16 @@ public class TokenMechanicsManager
                 int toSpend = Math.Min(tokensWithNpc, remaining);
                 npcDict[type] = tokensWithNpc - toSpend;
                 remaining -= toSpend;
+                
+                // Add narrative feedback for each NPC
+                NPC npc = _npcRepository.GetById(npcId);
+                if (npc != null && toSpend > 0)
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"Called in {toSpend} {type} favor{(toSpend > 1 ? "s" : "")} with {npc.Name}",
+                        SystemMessageTypes.Info
+                    );
+                }
             }
         }
 
@@ -337,6 +280,14 @@ public class TokenMechanicsManager
     public bool SpendTokens(ConnectionType type, int amount, string npcId)
     {
         if (amount <= 0) return true;
+        if (string.IsNullOrEmpty(npcId))
+        {
+            _messageSystem.AddSystemMessage(
+                "ERROR: Cannot spend tokens without specifying NPC. Tokens are relational.",
+                SystemMessageTypes.Danger
+            );
+            return false;
+        }
 
         Player player = _gameWorld.GetPlayer();
         Dictionary<ConnectionType, int> npcTokens = GetTokensWithNPC(npcId);
@@ -349,12 +300,22 @@ public class TokenMechanicsManager
         if (!player.NPCTokens.ContainsKey(npcId))
         {
             player.NPCTokens[npcId] = new Dictionary<ConnectionType, int>();
+            foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+            {
+                player.NPCTokens[npcId][tokenType] = 0;
+            }
         }
         player.NPCTokens[npcId][type] = tokensOfType - amount;
-
-        // Also deduct from total
-        int totalOfType = player.ConnectionTokens.GetValueOrDefault(type, 0);
-        player.ConnectionTokens[type] = Math.Max(0, totalOfType - amount);
+        
+        // Add narrative feedback
+        NPC npc = _npcRepository.GetById(npcId);
+        if (npc != null)
+        {
+            _messageSystem.AddSystemMessage(
+                $"Spent {amount} {type} token{(amount > 1 ? "s" : "")} with {npc.Name}",
+                SystemMessageTypes.Info
+            );
+        }
 
         return true;
     }

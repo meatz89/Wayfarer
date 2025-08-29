@@ -169,11 +169,6 @@ public sealed class InventoryState
                 {
                     usedSlots += item.GetRequiredSlots();
                 }
-                else
-                {
-                    // Fallback for items not found in repository
-                    usedSlots += 1;
-                }
             }
         }
 

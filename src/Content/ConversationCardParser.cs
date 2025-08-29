@@ -201,7 +201,7 @@ public class ConversationCardParser
         return new ConversationCard
         {
             Id = dto.Id,
-            TemplateId = dto.Template ?? dto.Id, // Use Template field as TemplateId, fallback to Id
+            TemplateId = dto.Template,
             Mechanics = mechanics,
             Category = category,
             Context = new CardContext

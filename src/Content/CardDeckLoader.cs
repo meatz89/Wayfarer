@@ -414,6 +414,36 @@ public class CardDeckLoader
             
             var description = $"Trade {requestAmount} {requestResource} for {offerAmount} {offerResource}";
             
+            // Create ResourceExchange objects for Cost and Reward
+            var costResourceType = ParseResourceType(requestResource);
+            var rewardResourceType = ParseResourceType(offerResource);
+            
+            var costExchange = new ResourceExchange
+            {
+                ResourceType = costResourceType,
+                Amount = requestAmount,
+                IsAbsolute = false
+            };
+            
+            var rewardExchange = new ResourceExchange
+            {
+                ResourceType = rewardResourceType,
+                Amount = offerAmount,
+                IsAbsolute = false
+            };
+            
+            // Create ExchangeData with proper Cost and Reward
+            var exchangeDataObj = new ExchangeData
+            {
+                ExchangeName = id.Replace("_", " "),
+                NPCPersonality = PersonalityType.MERCANTILE,
+                Cost = new List<ResourceExchange> { costExchange },
+                Reward = new List<ResourceExchange> { rewardExchange },
+                BaseSuccessRate = 100,
+                CanBarter = false,
+                TemplateId = "SimpleExchange"
+            };
+            
             return new ConversationCard
             {
                 Id = id,
@@ -425,7 +455,9 @@ public class CardDeckLoader
                     EmotionalState = EmotionalState.NEUTRAL,
                     NPCName = "",
                     ExchangeOffer = $"{offerAmount} {offerResource}",
-                    ExchangeRequest = $"{requestAmount} {requestResource}"
+                    ExchangeRequest = $"{requestAmount} {requestResource}",
+                    // Set the ExchangeData properly
+                    ExchangeData = exchangeDataObj,
                 },
                 Type = CardType.Commerce,
                 Persistence = PersistenceType.Fleeting,
@@ -434,7 +466,9 @@ public class CardDeckLoader
                 Depth = 0,
                 DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
                 Description = description,
-                SuccessRate = 100 // Exchange cards always succeed if affordable
+                SuccessRate = 100, // Exchange cards always succeed if affordable
+                IsExchange = true, // Mark as exchange card
+                Category = CardCategory.Exchange // Set the category
             };
         }
         catch (Exception ex)
@@ -555,6 +589,23 @@ public class CardDeckLoader
         }
         
         return "Complete goal";
+    }
+    
+    private ResourceType ParseResourceType(string resourceStr)
+    {
+        return resourceStr?.ToLower() switch
+        {
+            "coins" => ResourceType.Coins,
+            "health" => ResourceType.Health,
+            "food" => ResourceType.Hunger, // "food" in JSON maps to Hunger resource
+            "hunger" => ResourceType.Hunger,
+            "attention" => ResourceType.Attention,
+            "trust" => ResourceType.TrustToken,
+            "commerce" => ResourceType.CommerceToken,
+            "status" => ResourceType.StatusToken,
+            "shadow" => ResourceType.ShadowToken,
+            _ => ResourceType.Coins // Default to coins if unknown
+        };
     }
     
     // Public accessors for loaded data

@@ -65,7 +65,6 @@
 
     public DeliveryObligation[] ObligationQueue { get; private set; } = new DeliveryObligation[8];
     public List<MeetingObligation> MeetingObligations { get; set; } = new List<MeetingObligation>();
-    public Dictionary<ConnectionType, int> ConnectionTokens { get; private set; } = new Dictionary<ConnectionType, int>();
     public Dictionary<string, Dictionary<ConnectionType, int>> NPCTokens { get; private set; } = new Dictionary<string, Dictionary<ConnectionType, int>>();
 
     // Physical DeliveryObligation Carrying
@@ -197,11 +196,7 @@
 
         // Skill cards removed - using letter queue system
 
-        // Initialize letter queue system
-        foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
-        {
-            ConnectionTokens[tokenType] = 0;
-        }
+        // Token system is purely relational (NPC-specific)
     }
 
     public void Initialize(string playerName, Professions selectedArchetype, Genders gender)
@@ -538,13 +533,15 @@
     /// <summary>
     /// Get total token count across all NPCs and types.
     /// Used for progression and special letter generation.
+    /// Aggregates from NPC-specific tokens only.
     /// </summary>
     public int GetTotalTokenCount()
     {
         int total = 0;
         foreach (Dictionary<ConnectionType, int> tokenCounts in NPCTokens.Values)
         {
-            total += tokenCounts.Values.Sum();
+            // Only count positive tokens (negative represents leverage/debt)
+            total += tokenCounts.Values.Where(v => v > 0).Sum();
         }
         return total;
     }
@@ -634,9 +631,7 @@ public class NPCConnection
         int currentValue = _player.NPCTokens[_npcId].GetValueOrDefault(_tokenType, 0);
         _player.NPCTokens[_npcId][_tokenType] = Math.Max(0, currentValue + amount);
 
-        // Also update global token count
-        int globalValue = _player.ConnectionTokens.GetValueOrDefault(_tokenType, 0);
-        _player.ConnectionTokens[_tokenType] = Math.Max(0, globalValue + amount);
+        // Tokens are purely relational - no global count
     }
 }
 

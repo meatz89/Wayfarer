@@ -716,20 +716,6 @@ namespace Wayfarer.Pages.Components
                     };
                     return $"→ {stateName}";
                 }
-                else
-                {
-                    // Fallback to template name matching if SuccessState is not set
-                    if (card.TemplateId != null && (card.TemplateId.Contains("Warm") || card.TemplateId.Contains("Open")))
-                        return "→ Open";
-                    else if (card.TemplateId != null && card.TemplateId.Contains("Tense"))
-                        return "→ Tense";
-                    else if (card.TemplateId != null && card.TemplateId.Contains("Overwhelmed"))
-                        return "→ Overwhelmed";
-                    else if (card.TemplateId != null && card.TemplateId.Contains("Eager"))
-                        return "→ Eager";
-                    else
-                        return "Change state";
-                }
             }
             
             // Show comfort gain without redundant success percentage
@@ -874,7 +860,7 @@ namespace Wayfarer.Pages.Components
             
             if (tokenCount > 0)
             {
-                // Crisis cards and Promise cards (including goals) get +10% per token, others get +5%
+                // All cards (including goals) get +10% per token
                 int bonusPerToken = 10;
                 int bonus = tokenCount * bonusPerToken;
                 var result = $"(+{bonus}% from {tokenCount} {tokenType})";
@@ -883,6 +869,46 @@ namespace Wayfarer.Pages.Components
             }
             
             return "";
+        }
+        
+        protected string GetExchangeCostDisplay(ConversationCard card)
+        {
+            // Debug logging
+            Console.WriteLine($"[GetExchangeCostDisplay] Card ID: {card?.Id}");
+            Console.WriteLine($"[GetExchangeCostDisplay] Context null: {card?.Context == null}");
+            Console.WriteLine($"[GetExchangeCostDisplay] ExchangeData null: {card?.Context?.ExchangeData == null}");
+            
+            // Check for cost in Context.ExchangeData
+            var exchangeData = card?.Context?.ExchangeData;
+            if (exchangeData != null)
+            {
+                Console.WriteLine($"[GetExchangeCostDisplay] ExchangeData.Cost null: {exchangeData.Cost == null}");
+                Console.WriteLine($"[GetExchangeCostDisplay] ExchangeData.Cost count: {exchangeData.Cost?.Count ?? 0}");
+            }
+            
+            if (exchangeData?.Cost != null && exchangeData.Cost.Any())
+            {
+                var costParts = exchangeData.Cost.Select(c => c.GetDisplayText());
+                var result = string.Join(", ", costParts);
+                Console.WriteLine($"[GetExchangeCostDisplay] Returning: {result}");
+                return result;
+            }
+            
+            Console.WriteLine($"[GetExchangeCostDisplay] Returning default: Nothing");
+            return "Nothing";
+        }
+        
+        protected string GetExchangeRewardDisplay(ConversationCard card)
+        {
+            // Check for reward in Context.ExchangeData
+            var exchangeData = card?.Context?.ExchangeData;
+            if (exchangeData?.Reward != null && exchangeData.Reward.Any())
+            {
+                var rewardParts = exchangeData.Reward.Select(r => r.GetDisplayText());
+                return string.Join(", ", rewardParts);
+            }
+                        
+            return "Nothing";
         }
         
         protected string GetConversationEndReason()

@@ -282,7 +282,7 @@ public class ConversationManager
         {
             if (card.IsObservation && card.Persistence == PersistenceType.Fleeting)
             {
-                observationManager.RemoveObservationCardByConversationId(card.Id);
+                observationManager.RemoveObservationCard(card.Id);
                 Console.WriteLine($"[ConversationManager] Removed observation card {card.Id} from ObservationManager");
             }
         }
@@ -406,12 +406,6 @@ public class ConversationManager
                             currentSession.CurrentComfort += 5;
                         }
                     }
-                }
-                else
-                {
-                    // Fallback to old method if no specific ID (shouldn't happen)
-                    DeliverLetterThroughConversation();
-                    deliverySuccess = true;
                 }
                 
                 result = new CardPlayResult
@@ -607,16 +601,16 @@ public class ConversationManager
                     }
                     break;
                 case ResourceType.TrustToken:
-                    tokenManager.SpendTokens(ConnectionType.Trust, cost.Amount);
+                    tokenManager.SpendTokens(ConnectionType.Trust, cost.Amount, currentSession.NPC.ID);
                     break;
                 case ResourceType.CommerceToken:
-                    tokenManager.SpendTokens(ConnectionType.Commerce, cost.Amount);
+                    tokenManager.SpendTokens(ConnectionType.Commerce, cost.Amount, currentSession.NPC.ID);
                     break;
                 case ResourceType.StatusToken:
-                    tokenManager.SpendTokens(ConnectionType.Status, cost.Amount);
+                    tokenManager.SpendTokens(ConnectionType.Status, cost.Amount, currentSession.NPC.ID);
                     break;
                 case ResourceType.ShadowToken:
-                    tokenManager.SpendTokens(ConnectionType.Shadow, cost.Amount);
+                    tokenManager.SpendTokens(ConnectionType.Shadow, cost.Amount, currentSession.NPC.ID);
                     break;
             }
         }
@@ -644,16 +638,16 @@ public class ConversationManager
                         player.Food = Math.Max(0, Math.Min(100, player.Food - reward.Amount));
                     break;
                 case ResourceType.TrustToken:
-                    tokenManager.AddTokens(ConnectionType.Trust, reward.Amount);
+                    tokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Amount, currentSession.NPC.ID);
                     break;
                 case ResourceType.CommerceToken:
-                    tokenManager.AddTokens(ConnectionType.Commerce, reward.Amount);
+                    tokenManager.AddTokensToNPC(ConnectionType.Commerce, reward.Amount, currentSession.NPC.ID);
                     break;
                 case ResourceType.StatusToken:
-                    tokenManager.AddTokens(ConnectionType.Status, reward.Amount);
+                    tokenManager.AddTokensToNPC(ConnectionType.Status, reward.Amount, currentSession.NPC.ID);
                     break;
                 case ResourceType.ShadowToken:
-                    tokenManager.AddTokens(ConnectionType.Shadow, reward.Amount);
+                    tokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Amount, currentSession.NPC.ID);
                     break;
                 case ResourceType.Attention:
                     // Attention rewards add to current time block's attention

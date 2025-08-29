@@ -83,21 +83,6 @@ public class Phase6_PlayerInitialization : IInitializationPhase
             }
         }
 
-        // Final fallback - any spot
-        if (player.CurrentLocationSpot == null)
-        {
-            if (worldState.locationSpots.Any())
-            {
-                player.CurrentLocationSpot = worldState.locationSpots.First();
-                Console.WriteLine($"  Set player to first available spot: {player.CurrentLocationSpot.SpotID}");
-            }
-            else
-            {
-                context.Errors.Add("No location spots available for player initialization");
-                return;
-            }
-        }
-
         // Player is now always at a spot, location is derived from the spot
 
         // No need to sync - Player is the single source of truth for current location
@@ -156,7 +141,7 @@ public class Phase6_PlayerInitialization : IInitializationPhase
             }
         }
 
-        // Ensure player has basic resources (fallback if not set)
+        // Ensure player has basic resources
         if (player.Coins == 0)
         {
             player.Coins = 10;

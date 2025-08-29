@@ -113,8 +113,8 @@ public static class ExchangeNarrative
         
         // Add personality-specific observations
         var personality = exchange.Context?.NPCPersonality ?? PersonalityType.STEADFAST;
-        var reward = exchange.Context?.Reward ?? new List<ResourceExchange>();
-        var cost = exchange.Context?.Cost ?? new List<ResourceExchange>();
+        var reward = exchange.Context?.ExchangeData?.Reward ?? new List<ResourceExchange>();
+        var cost = exchange.Context?.ExchangeData?.Cost ?? new List<ResourceExchange>();
         
         switch (personality)
         {

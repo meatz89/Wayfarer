@@ -253,12 +253,6 @@ public class ConversationSession
     public static ConversationSession StartExchange(NPC npc, PlayerResourceState resourceState, TokenMechanicsManager tokenManager, List<string> spotDomainTags = null, ObligationQueueManager queueManager = null, GameWorld gameWorld = null)
     {
         // Exchange deck should already be initialized from Phase3
-        // This is just a fallback
-        if (npc.ExchangeDeck == null || !npc.ExchangeDeck.Any())
-        {
-            npc.InitializeExchangeDeck(null);
-        }
-        
         var handCards = new List<ConversationCard>();
         var exchangeCards = new List<ConversationCard>();
         
@@ -884,51 +878,6 @@ public class ConversationSession
             PersonalityType.STEADFAST => 11,
             _ => 10
         };
-    }
-    
-    private static string GetExchangeName(ConversationCard exchange)
-    {
-        // Use ExchangeName if available
-        if (!string.IsNullOrEmpty(exchange.Context?.ExchangeData?.ExchangeName))
-        {
-            return exchange.Context.ExchangeData.ExchangeName;
-        }
-        
-        // Use template ID to determine exchange type
-        return exchange.TemplateId switch
-        {
-            "food_exchange" => "Buy Travel Provisions",
-            "healing_exchange" => "Purchase Medicine",
-            "information_exchange" => "Information Trade",
-            "work_exchange" => "Help Inventory Stock",
-            "favor_exchange" => "Noble Favor",
-            "rest_exchange" => "Rest at the Inn",
-            _ => "Make Exchange"
-        };
-    }
-    
-    private static string GetExchangeCostDisplay(ConversationCard exchange)
-    {
-        // Check for cost in Context.ExchangeData first
-        var cost = exchange.Context?.ExchangeData?.Cost ?? exchange.Context?.Cost;
-        
-        if (cost == null || !cost.Any())
-            return "Free";
-            
-        var costParts = cost.Select(c => c.GetDisplayText());
-        return string.Join(", ", costParts);
-    }
-    
-    private static string GetExchangeRewardDisplay(ConversationCard exchange)
-    {
-        // Check for reward in Context.ExchangeData first
-        var reward = exchange.Context?.ExchangeData?.Reward ?? exchange.Context?.Reward;
-        
-        if (reward == null || !reward.Any())
-            return "Nothing";
-            
-        var rewardParts = reward.Select(r => r.GetDisplayText());
-        return string.Join(", ", rewardParts);
     }
     
     /// <summary>

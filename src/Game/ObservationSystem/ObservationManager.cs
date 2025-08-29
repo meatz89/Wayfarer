@@ -212,19 +212,6 @@ public class ObservationManager
     }
     
     /// <summary>
-    /// Remove observation card by conversation card ID (for backwards compatibility)
-    /// </summary>
-    public void RemoveObservationCardByConversationId(string conversationCardId)
-    {
-        var card = _currentObservationCards.FirstOrDefault(c => c.ConversationCard.Id == conversationCardId);
-        if (card != null)
-        {
-            _currentObservationCards.Remove(card);
-            Console.WriteLine($"[ObservationManager] Removed observation card {card.Id} by conversation ID {conversationCardId}");
-        }
-    }
-
-    /// <summary>
     /// Get all taken observations for the current time block
     /// </summary>
     public List<TakenObservation> GetTakenObservations()

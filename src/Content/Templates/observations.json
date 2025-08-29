@@ -3,43 +3,6 @@
 		"market_square": {
 			"central_fountain": [
 			{
-				"id": "fountain_architecture",
-				"text": "Study the fountain's architecture",
-				"type": "Normal",
-				"attentionCost": 1,
-				"relevantNPCs": [],
-				"cardTemplate": "ShareInformation",
-				"description": "The fountain bears the crest of an ancient merchant guild, suggesting this square's long history of commerce"
-			},
-			{
-				"id": "market_activity",
-				"text": "Watch the flow of market traffic",
-				"type": "Useful",
-				"attentionCost": 1,
-				"relevantNPCs": [],
-				"providesInfo": "timing",
-				"description": "Morning brings merchants setting up, afternoon sees the most customers, evening brings workers heading home"
-			},
-			{
-				"id": "guards_north",
-				"text": "Notice guard checkpoint ahead",
-				"type": "Important",
-				"attentionCost": 1,
-				"relevantNPCs": [],
-				"createsState": "TENSE",
-				"cardTemplate": "MentionGuards",
-				"description": "Lord Blackwood's guards are checking papers at the north entrance"
-			},
-			{
-				"id": "merchant_negotiations",
-				"text": "Eavesdrop on merchant negotiations",
-				"type": "Normal",
-				"attentionCost": 1,
-				"relevantNPCs": ["marcus", "bertram"],
-				"cardTemplate": "DiscussBusiness",
-				"description": "Merchants arguing over grain prices"
-			},
-			{
 				"id": "guards_blocking",
 				"text": "Guards blocking north road",
 				"type": "Important",
@@ -58,56 +21,6 @@
 					"opportunityType": true
 				}
 			}
-			],
-			"merchant_row": [
-			{
-				"id": "shop_signs",
-				"text": "Read the shop signs",
-				"type": "Normal",
-				"attentionCost": 1,
-				"relevantNPCs": [],
-				"description": "Various merchants advertise their wares: grain, cloth, tools, and even some exotic spices"
-			},
-			{
-				"id": "hidden_alley",
-				"text": "Notice a narrow alley between shops",
-				"type": "Shadow",
-				"attentionCost": 1,
-				"relevantNPCs": [],
-				"cardTemplate": "ShareSecret",
-				"description": "A barely visible passage between buildings might lead around the guard checkpoints"
-			}
-			],
-			"north_entrance": [
-			{
-				"id": "guard_patrol_pattern",
-				"text": "Study guard patrol patterns",
-				"type": "Useful",
-				"attentionCost": 1,
-				"relevantNPCs": [],
-				"providesInfo": "timing",
-				"description": "Guards change shifts every four hours, with a brief gap during the handover"
-			}
-			],
-			"north_alcove": [
-			{
-				"id": "quiet_corner",
-				"text": "A quiet place to rest",
-				"type": "Normal",
-				"attentionCost": 1,
-				"relevantNPCs": [],
-				"description": "This alcove provides shelter from the bustle of the market, a good spot to gather your thoughts"
-			}
-			],
-			"guard_post": [
-			{
-				"id": "checkpoint_procedures",
-				"text": "Watch checkpoint procedures",
-				"type": "Important",
-				"attentionCost": 1,
-				"relevantNPCs": [],
-				"description": "Guards carefully check papers, but seem more lenient with those who slip them coins"
-			}
 			]
 		},
 		"copper_kettle_tavern": {
@@ -119,24 +32,6 @@
 				"attentionCost": 1,
 				"relevantNPCs": [],
 				"description": "The warmth of the hearth and smell of ale create a welcoming environment for weary travelers"
-			},
-			{
-				"id": "notice_board",
-				"text": "Read the notice board",
-				"type": "Useful",
-				"attentionCost": 1,
-				"relevantNPCs": [],
-				"providesInfo": "timing",
-				"description": "Various announcements including news that Lord Blackwood is leaving at sunset for the capital"
-			},
-			{
-				"id": "elena_distress",
-				"text": "Elena's visible distress",
-				"type": "Important",
-				"attentionCost": 0,
-				"relevantNPCs": ["elena"],
-				"automatic": true,
-				"description": "She's clutching a letter with white knuckles"
 			}
 			],
 			"corner_table": [
@@ -165,14 +60,6 @@
 				"attentionCost": 1,
 				"relevantNPCs": [],
 				"description": "Patrons at the bar discuss recent events in the city, including increased guard activity"
-			},
-			{
-				"id": "drink_prices",
-				"text": "Check the drink menu",
-				"type": "Normal",
-				"attentionCost": 1,
-				"relevantNPCs": [],
-				"description": "Ale costs 2 coins, wine 3 coins, and a hot meal runs 2 coins"
 			}
 			],
 			"upstairs_room": [
@@ -190,14 +77,6 @@
 		"noble_district": {
 			"aldwin_manor": [
 			{
-				"id": "manor_architecture",
-				"text": "Admire the manor's architecture",
-				"type": "Normal",
-				"attentionCost": 1,
-				"relevantNPCs": [],
-				"description": "The Aldwin family manor displays wealth accumulated over generations of successful trade"
-			},
-			{
 				"id": "servant_entrance",
 				"text": "Notice the servant's entrance",
 				"type": "Shadow",
@@ -205,35 +84,9 @@
 				"relevantNPCs": [],
 				"cardTemplate": "ShareSecret",
 				"description": "A side door used by servants seems less guarded than the main entrance"
-			},
-			{
-				"id": "lord_preparing",
-				"text": "Lord preparing to leave",
-				"type": "Critical",
-				"attentionCost": 1,
-				"relevantNPCs": ["lord_blackwood"],
-				"createsUrgency": true,
-				"description": "Servants loading carriages, Lord Blackwood will leave soon"
-			},
-			{
-				"id": "guard_positions",
-				"text": "Guard patrol patterns",
-				"type": "Shadow",
-				"attentionCost": 2,
-				"relevantNPCs": [],
-				"cardTemplate": "ShareSecret",
-				"description": "Guards change shifts every hour, leaving brief gaps"
 			}
 			],
 			"blackwood_estate": [
-			{
-				"id": "estate_gardens",
-				"text": "Walk through the estate gardens",
-				"type": "Normal",
-				"attentionCost": 1,
-				"relevantNPCs": [],
-				"description": "Beautiful gardens maintained by a team of gardeners, showing the Blackwood family's prestige"
-			},
 			{
 				"id": "carriage_preparations",
 				"text": "Watch carriage preparations",
