@@ -28,7 +28,7 @@ public class StandingObligationFactory
         {
             ID = id,
             Name = name,
-            Description = $"An obligation called {name}",
+            Description = $"An obligation called {name}", // TODO: Load description from JSON when available
             Source = npcId ?? "unknown_npc",
             RelatedTokenType = ConnectionType.Trust, // Most basic type
             BenefitEffects = new List<ObligationEffect>(),

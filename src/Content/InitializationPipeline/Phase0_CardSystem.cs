@@ -27,6 +27,7 @@ public class Phase0_CardSystem : IInitializationPhase
             context.GameWorld.NPCGoalDecks = deckLoader.GetNPCGoalDecks();
             context.GameWorld.NPCExchangeDecks = deckLoader.GetNPCExchangeDecks();
             context.GameWorld.PlayerObservationCards = deckLoader.GetPlayerObservationCards();
+            context.GameWorld.TravelCards = deckLoader.GetTravelCards();
             
             // Initialize static factories to read from GameWorld
             GoalCardFactory.Initialize(context.GameWorld);
@@ -39,6 +40,7 @@ public class Phase0_CardSystem : IInitializationPhase
             Console.WriteLine($"  - NPC goal decks: {context.GameWorld.NPCGoalDecks.Count}");
             Console.WriteLine($"  - NPC exchange decks: {context.GameWorld.NPCExchangeDecks.Count}");
             Console.WriteLine($"  - Player observation cards: {context.GameWorld.PlayerObservationCards.Count}");
+            Console.WriteLine($"  - Travel cards: {context.GameWorld.TravelCards.Count}");
         }
         catch (Exception ex)
         {

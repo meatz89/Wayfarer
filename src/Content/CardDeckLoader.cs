@@ -20,6 +20,8 @@ public class CardDeckLoader
     private Dictionary<string, List<ConversationCard>> _npcGoalDecks = new();
     private Dictionary<string, List<ConversationCard>> _npcExchangeDecks = new();
     private List<ConversationCard> _playerObservationCards = new();
+    private List<TravelCard> _travelCards = new();
+    private TravelCardLoader _travelCardLoader;
     
     public CardDeckLoader(string contentPath)
     {
@@ -31,6 +33,7 @@ public class CardDeckLoader
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip
         };
+        _travelCardLoader = new TravelCardLoader(contentPath);
     }
     
     /// <summary>
@@ -53,11 +56,15 @@ public class CardDeckLoader
         // 5. Load player observation cards
         LoadPlayerObservationCards();
         
+        // 6. Load travel cards
+        LoadTravelCards();
+        
         Console.WriteLine($"[CardDeckLoader] Loaded {_allCards.Count} total cards");
         Console.WriteLine($"[CardDeckLoader] Loaded {_npcConversationDecks.Count} NPC conversation decks");
         Console.WriteLine($"[CardDeckLoader] Loaded {_npcGoalDecks.Count} NPC goal decks");
         Console.WriteLine($"[CardDeckLoader] Loaded {_npcExchangeDecks.Count} NPC exchange decks");
         Console.WriteLine($"[CardDeckLoader] Loaded {_playerObservationCards.Count} player observation cards");
+        Console.WriteLine($"[CardDeckLoader] Loaded {_travelCards.Count} travel cards");
     }
     
     /// <summary>
@@ -297,7 +304,7 @@ public class CardDeckLoader
                 Depth = depth,
                 IsStateCard = isStateCard,
                 SuccessState = successState,
-                DisplayName = id.Replace("_", " "),
+                DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
                 Description = description,
                 SuccessRate = 70 - (weight * 10) // Base success rate calculation
             };
@@ -374,7 +381,7 @@ public class CardDeckLoader
                 Depth = depth,
                 IsGoalCard = true,
                 GoalCardType = goalType,
-                DisplayName = id.Replace("_", " "),
+                DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
                 Description = GetGoalDescription(goalData),
                 SuccessRate = 50 // Goal cards have base 50% success
             };
@@ -425,7 +432,7 @@ public class CardDeckLoader
                 Weight = 0, // Exchange cards have no weight
                 BaseComfort = 0,
                 Depth = 0,
-                DisplayName = id.Replace("_", " "),
+                DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
                 Description = description,
                 SuccessRate = 100 // Exchange cards always succeed if affordable
             };
@@ -493,6 +500,14 @@ public class CardDeckLoader
         }
     }
     
+    /// <summary>
+    /// Load travel cards from travel_cards.json
+    /// </summary>
+    private void LoadTravelCards()
+    {
+        _travelCards = _travelCardLoader.LoadTravelCards();
+    }
+    
     // Helper methods for parsing enums
     
     private CardType ParseCardType(string connectionStr)
@@ -548,6 +563,7 @@ public class CardDeckLoader
     public Dictionary<string, List<ConversationCard>> GetNPCGoalDecks() => new(_npcGoalDecks);
     public Dictionary<string, List<ConversationCard>> GetNPCExchangeDecks() => new(_npcExchangeDecks);
     public List<ConversationCard> GetPlayerObservationCards() => new(_playerObservationCards);
+    public List<TravelCard> GetTravelCards() => new(_travelCards);
     
     /// <summary>
     /// Get conversation cards for a specific NPC

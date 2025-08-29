@@ -1,0 +1,244 @@
+{
+	"travelCards": [
+		{
+			"id": "guard_checkpoint_1",
+			"category": "ENCOUNTER",
+			"type": "AUTHORITY",
+			"displayName": "Guard Checkpoint",
+			"description": "City guards are checking papers and questioning travelers",
+			"weight": 2,
+			"depth": 0,
+			"baseComfort": 0,
+			"persistence": "Opportunity",
+			"connectionType": "Authority",
+			"mechanics": {
+				"requiresPermit": true,
+				"alternativeRoutes": ["merchant_path", "forest_path"]
+			},
+			"context": {
+				"terrainType": "Official",
+				"threatLevel": "Medium"
+			}
+		},
+		{
+			"id": "merchant_caravan",
+			"category": "ENCOUNTER",
+			"type": "COMMERCE",
+			"displayName": "Merchant Caravan",
+			"description": "A traveling merchant offers to share the road for safety",
+			"weight": 1,
+			"depth": 0,
+			"baseComfort": 2,
+			"persistence": "Opportunity",
+			"connectionType": "Commerce",
+			"mechanics": {
+				"providesProtection": true,
+				"tradingOpportunity": true
+			},
+			"context": {
+				"terrainType": "Trade_Route",
+				"threatLevel": "Low"
+			}
+		},
+		{
+			"id": "weather_delay",
+			"category": "ENCOUNTER",
+			"type": "WEATHER",
+			"displayName": "Sudden Weather",
+			"description": "Heavy rain forces you to seek shelter",
+			"weight": 2,
+			"depth": 0,
+			"baseComfort": -1,
+			"persistence": "Opportunity",
+			"connectionType": "Natural",
+			"mechanics": {
+				"delayTravel": true,
+				"shelterRequired": true
+			},
+			"context": {
+				"terrainType": "Exposed",
+				"threatLevel": "Medium"
+			}
+		},
+		{
+			"id": "bandit_signs",
+			"category": "ENCOUNTER",
+			"type": "DANGER",
+			"displayName": "Signs of Bandits",
+			"description": "Fresh tracks and disturbed foliage suggest bandit activity ahead",
+			"weight": 2,
+			"depth": 0,
+			"baseComfort": -2,
+			"persistence": "Opportunity",
+			"connectionType": "Shadow",
+			"mechanics": {
+				"requiresCaution": true,
+				"alternativeRoutes": ["safe_path", "guided_route"]
+			},
+			"context": {
+				"terrainType": "Wilderness",
+				"threatLevel": "High"
+			}
+		},
+		{
+			"id": "fellow_traveler",
+			"category": "ENCOUNTER", 
+			"type": "SOCIAL",
+			"displayName": "Fellow Traveler",
+			"description": "A friendly traveler offers to share news and company",
+			"weight": 1,
+			"depth": 0,
+			"baseComfort": 1,
+			"persistence": "Opportunity",
+			"connectionType": "Trust",
+			"mechanics": {
+				"providesInformation": true,
+				"companionshipBonus": true
+			},
+			"context": {
+				"terrainType": "Trade_Route",
+				"threatLevel": "Low"
+			}
+		},
+		{
+			"id": "bridge_toll",
+			"category": "ENCOUNTER",
+			"type": "COMMERCE",
+			"displayName": "Bridge Toll",
+			"description": "A toll collector demands payment to cross the bridge",
+			"weight": 1,
+			"depth": 0,
+			"baseComfort": 0,
+			"persistence": "Persistent",
+			"connectionType": "Authority",
+			"mechanics": {
+				"requiresPayment": true,
+				"alternativeRoutes": ["ford_crossing", "ferry_point"]
+			},
+			"context": {
+				"terrainType": "Official",
+				"threatLevel": "Low"
+			}
+		},
+		{
+			"id": "injured_messenger",
+			"category": "ENCOUNTER",
+			"type": "SOCIAL",
+			"displayName": "Injured Messenger",
+			"description": "A wounded courier needs assistance delivering an urgent message",
+			"weight": 3,
+			"depth": 0,
+			"baseComfort": 3,
+			"persistence": "OneShot",
+			"connectionType": "Trust",
+			"mechanics": {
+				"moralChoice": true,
+				"potentialReward": true
+			},
+			"context": {
+				"terrainType": "Wilderness",
+				"threatLevel": "Medium"
+			}
+		},
+		{
+			"id": "blocked_road",
+			"category": "ENCOUNTER",
+			"type": "OBSTACLE",
+			"displayName": "Blocked Road",
+			"description": "A fallen tree blocks the main path forward",
+			"weight": 2,
+			"depth": 0,
+			"baseComfort": -1,
+			"persistence": "Opportunity",
+			"connectionType": "Natural",
+			"mechanics": {
+				"requiresDetour": true,
+				"alternativeRoutes": ["forest_path", "mountain_trail"]
+			},
+			"context": {
+				"terrainType": "Wilderness",
+				"threatLevel": "Low"
+			}
+		},
+		{
+			"id": "night_camp",
+			"category": "ENCOUNTER",
+			"type": "REST",
+			"displayName": "Suitable Campsite",
+			"description": "A sheltered spot perfect for resting during travel",
+			"weight": 1,
+			"depth": 0,
+			"baseComfort": 2,
+			"persistence": "Persistent",
+			"connectionType": "Natural",
+			"mechanics": {
+				"restOpportunity": true,
+				"safetyBonus": true
+			},
+			"context": {
+				"terrainType": "Wilderness",
+				"threatLevel": "Low"
+			}
+		},
+		{
+			"id": "patrol_encounter",
+			"category": "ENCOUNTER",
+			"type": "AUTHORITY",
+			"displayName": "Lord's Patrol",
+			"description": "Lord Blackwood's soldiers are patrolling this route",
+			"weight": 2,
+			"depth": 0,
+			"baseComfort": -1,
+			"persistence": "Opportunity",
+			"connectionType": "Authority",
+			"mechanics": {
+				"scrutinyRisk": true,
+				"requiresExplanation": true
+			},
+			"context": {
+				"terrainType": "Official",
+				"threatLevel": "Medium"
+			}
+		},
+		{
+			"id": "animal_crossing",
+			"category": "ENCOUNTER",
+			"type": "NATURAL",
+			"displayName": "Wildlife Crossing",
+			"description": "A herd of deer blocks the path, creating a peaceful delay",
+			"weight": 1,
+			"depth": 0,
+			"baseComfort": 1,
+			"persistence": "Opportunity",
+			"connectionType": "Natural",
+			"mechanics": {
+				"minorDelay": true,
+				"peacefulEncounter": true
+			},
+			"context": {
+				"terrainType": "Wilderness",
+				"threatLevel": "None"
+			}
+		},
+		{
+			"id": "hidden_shortcut",
+			"category": "ENCOUNTER",
+			"type": "DISCOVERY",
+			"displayName": "Hidden Path",
+			"description": "You discover a little-used path that could save time",
+			"weight": 2,
+			"depth": 0,
+			"baseComfort": 1,
+			"persistence": "OneShot",
+			"connectionType": "Shadow",
+			"mechanics": {
+				"timeSaving": true,
+				"riskVsReward": true
+			},
+			"context": {
+				"terrainType": "Wilderness",
+				"threatLevel": "Low"
+			}
+		}
+	]
+}

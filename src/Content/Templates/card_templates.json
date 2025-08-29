@@ -109,6 +109,47 @@
 			"isStateCard": true,
 			"successState": "OPEN",
 			"description": "Create emotional openness"
+		},
+		"DeliverLetter": {
+			"type": "ACTION",
+			"category": "LETTER_DELIVERY",
+			"weight": 2,
+			"baseComfort": 3,
+			"persistence": "OneShot",
+			"connectionType": "Trust",
+			"canDeliverLetter": true,
+			"description": "Deliver an important letter to the recipient"
+		},
+		"UrgentDelivery": {
+			"type": "ACTION", 
+			"category": "LETTER_DELIVERY",
+			"weight": 3,
+			"baseComfort": 4,
+			"persistence": "OneShot",
+			"connectionType": "Trust",
+			"canDeliverLetter": true,
+			"urgencyLevel": 2,
+			"description": "Deliver an urgent letter that cannot wait"
+		},
+		"DiscreetDelivery": {
+			"type": "ACTION",
+			"category": "LETTER_DELIVERY", 
+			"weight": 2,
+			"baseComfort": 2,
+			"persistence": "OneShot",
+			"connectionType": "Shadow",
+			"canDeliverLetter": true,
+			"description": "Quietly deliver a letter without drawing attention"
+		},
+		"FormalDelivery": {
+			"type": "ACTION",
+			"category": "LETTER_DELIVERY",
+			"weight": 1,
+			"baseComfort": 2,
+			"persistence": "OneShot", 
+			"connectionType": "Status",
+			"canDeliverLetter": true,
+			"description": "Present a letter with proper ceremony and respect"
 		}
 	},
 	"setBonuses": {

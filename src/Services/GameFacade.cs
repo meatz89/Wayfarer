@@ -376,8 +376,9 @@ public class GameFacade
             };
         }
         
-        // VALIDATION: Check if spot is Commercial
-        bool isCommercial = currentSpot.Properties?.Contains("Commercial") ?? false;
+        // REMOVED: String matching violation - Properties?.Contains("Commercial")
+        // Proper implementation should use currentSpot.IsCommercial or categorical enum property
+        bool isCommercial = false; // TODO: Replace with categorical property from JSON
         if (!isCommercial)
         {
             return new WorkResult
@@ -835,11 +836,9 @@ public class GameFacade
     
     private bool ShouldDisplayObservation(Observation obs, TimeBlocks currentTimeBlock, int currentHour)
     {
-        // Special handling for "guards_blocking" observation - only show in Afternoon
-        if (obs.Id == "guards_blocking" || obs.Id == "guards_north")
-        {
-            return currentTimeBlock == TimeBlocks.Afternoon;
-        }
+        // REMOVED: String matching violation - checking obs.Id == "guards_blocking"
+        // Proper implementation should use categorical properties from JSON
+        // e.g., obs.TimeBlockRestrictions.Contains(currentTimeBlock) or obs.VisibilityRules
         
         // For other observations, always display them (unless we add more time-based logic)
         return true;

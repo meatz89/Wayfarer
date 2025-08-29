@@ -98,9 +98,6 @@ public class RouteOption
     // Track if this specific route has been unlocked via permit
     // (Separate from IsDiscovered - permits unlock tier-restricted routes)
     public bool HasPermitUnlock { get; set; } = false;
-    
-    // Route personality for travel card deck generation
-    public RoutePersonality Personality { get; set; } = RoutePersonality.SAFE;
 
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalWeight)
     {

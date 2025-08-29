@@ -23,13 +23,15 @@ public class TakenObservation
 public class ObservationManager
 {
     private readonly TimeManager _timeManager;
+    private readonly GameWorld _gameWorld;
     private readonly Dictionary<string, HashSet<string>> _takenObservationsByTimeBlock;
     private readonly List<ObservationCard> _currentObservationCards;
     private readonly Dictionary<string, TakenObservation> _takenObservations;
 
-    public ObservationManager(TimeManager timeManager)
+    public ObservationManager(TimeManager timeManager, GameWorld gameWorld)
     {
         _timeManager = timeManager;
+        _gameWorld = gameWorld;
         _takenObservationsByTimeBlock = new Dictionary<string, HashSet<string>>();
         _currentObservationCards = new List<ObservationCard>();
         _takenObservations = new Dictionary<string, TakenObservation>();
@@ -268,100 +270,69 @@ public class ObservationManager
     }
 
     /// <summary>
-    /// Generate a conversation card from an observation
+    /// Generate a conversation card from an observation using JSON-based card templates
     /// </summary>
     private ConversationCard GenerateConversationCard(Observation observation, TokenMechanicsManager tokenManager)
     {
-        // Determine card type based on observation type and content
-        var cardType = DetermineCardType(observation);
-        var observationTypeData = GetObservationTypeData(observation.Type);
-        
-        // Create card context
-        var context = new CardContext
+        if (string.IsNullOrEmpty(observation.CardTemplate))
         {
-            ObservationId = observation.Id,
-            ObservationText = observation.Text,
-            ObservationDescription = observation.Description
-        };
+            Console.WriteLine($"[ObservationManager] No card template specified for observation {observation.Id}");
+            return null;
+        }
 
-        // Determine template based on observation properties
-        var template = DetermineCardTemplate(observation);
-
-        return new ConversationCard
+        // Load the base card template from GameWorld's AllCardDefinitions
+        if (!_gameWorld.AllCardDefinitions.TryGetValue(observation.CardTemplate, out var baseCard))
         {
-            Id = $"obs_{observation.Id}_{Guid.NewGuid().ToString("N")[..8]}",
-            Template = template,
-            Context = context,
-            Type = cardType,
-            Persistence = PersistenceType.Fleeting, // All observation cards are one-shot
-            Weight = observationTypeData.Weight,
-            BaseComfort = observationTypeData.BaseComfort,
+            Console.WriteLine($"[ObservationManager] Card template '{observation.CardTemplate}' not found in AllCardDefinitions for observation {observation.Id}");
+            return null;
+        }
+
+        // Create a new card instance based on the template, customized for this observation
+        var observationCard = new ConversationCard
+        {
+            Id = $"{observation.Id}_card_{Guid.NewGuid()}",
+            TemplateId = baseCard.TemplateId,
+            Mechanics = baseCard.Mechanics,
+            Category = baseCard.Category,
+            Type = baseCard.Type,
+            Persistence = PersistenceType.Fleeting, // Observation cards are fleeting
+            Weight = baseCard.Weight,
+            BaseComfort = baseCard.BaseComfort,
             IsObservation = true,
             ObservationSource = observation.Id,
-            CanDeliverLetter = false,
-            ManipulatesObligations = false,
-            Depth = 0 // Observations can be played at any comfort level
+            CanDeliverLetter = baseCard.CanDeliverLetter,
+            ManipulatesObligations = baseCard.ManipulatesObligations,
+            Depth = baseCard.Depth,
+            SuccessState = baseCard.SuccessState,
+            FailureState = baseCard.FailureState,
+            SuccessRate = baseCard.SuccessRate,
+            DisplayName = baseCard.DisplayName ?? observation.Text,
+            Description = baseCard.Description ?? observation.Description,
+            Context = new CardContext
+            {
+                Personality = PersonalityType.STEADFAST,
+                EmotionalState = EmotionalState.NEUTRAL,
+                UrgencyLevel = 0,
+                HasDeadline = false,
+                ObservationType = observation.Type,
+                ObservationId = observation.Id,
+                ObservationText = observation.Text,
+                ObservationDescription = observation.Description
+            }
         };
+
+        Console.WriteLine($"[ObservationManager] Generated observation card {observationCard.Id} from template {observation.CardTemplate} for observation {observation.Id}");
+        return observationCard;
     }
 
-    /// <summary>
-    /// Determine the card type based on observation characteristics
-    /// </summary>
-    private CardType DetermineCardType(Observation observation)
-    {
-        // Check observation type first
-        switch (observation.Type)
-        {
-            case ObservationType.Shadow:
-                return CardType.Shadow;
-            case ObservationType.Important:
-            case ObservationType.Critical:
-                return CardType.Status; // Important information = Status
-            case ObservationType.Normal:
-            case ObservationType.Useful:
-                return CardType.Trust; // Regular observations build trust
-            default:
-                return CardType.Trust;
-        }
-    }
-
-    /// <summary>
-    /// Determine the card template based on observation properties
-    /// </summary>
-    private string DetermineCardTemplate(Observation observation)
-    {
-        // Use cardTemplate from JSON if specified
-        if (!string.IsNullOrEmpty(observation.CardTemplate))
-        {
-            return observation.CardTemplate;
-        }
-
-        // Default template based on observation type
-        return observation.Type switch
-        {
-            ObservationType.Shadow => "ShareSecret",
-            ObservationType.Critical => "ShareUrgentNews",
-            ObservationType.Important => "ShareInformation",
-            _ => "MentionObservation"
-        };
-    }
-
-    /// <summary>
-    /// Get observation type configuration data
-    /// </summary>
-    private ObservationTypeData GetObservationTypeData(ObservationType type)
-    {
-        // Default values if not found in configuration
-        return type switch
-        {
-            ObservationType.Important => new ObservationTypeData { Weight = 1, BaseComfort = 2 },
-            ObservationType.Critical => new ObservationTypeData { Weight = 2, BaseComfort = 3 },
-            ObservationType.Shadow => new ObservationTypeData { Weight = 2, BaseComfort = 3 },
-            ObservationType.Useful => new ObservationTypeData { Weight = 0, BaseComfort = 0 },
-            ObservationType.Normal => new ObservationTypeData { Weight = 1, BaseComfort = 1 },
-            _ => new ObservationTypeData { Weight = 1, BaseComfort = 1 }
-        };
-    }
+    // REMOVED: DetermineCardType - hardcoded type assignment violates architecture
+    // Card types should come from observation JSON properties, not switch statements
+    
+    // REMOVED: DetermineCardTemplate - hardcoded template assignment violates architecture  
+    // Card templates should be specified in observation JSON, not defaulted in code
+    
+    // REMOVED: GetObservationTypeData - hardcoded values violate architecture
+    // All card properties (weight, comfort) should come from JSON templates
 
     /// <summary>
     /// Get current game time for decay calculations

@@ -54,8 +54,8 @@ public static class GoalCardFactory
             Mechanics = templateCard.Mechanics,
             Context = new CardContext
             {
-                Personality = PersonalityType.STEADFAST, // Default for goal cards
-                EmotionalState = EmotionalState.NEUTRAL,
+                Personality = templateCard.Context?.Personality ?? PersonalityType.STEADFAST, // Use template default
+                EmotionalState = templateCard.Context?.EmotionalState ?? EmotionalState.NEUTRAL, // Use template default
                 NPCName = npcName
             },
             Type = templateCard.Type,

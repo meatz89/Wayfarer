@@ -103,7 +103,8 @@ public class ConversationSession
         TokenMechanicsManager tokenManager,
         List<ConversationCard> observationCards,
         ConversationType conversationType,
-        PlayerResourceState playerResourceState = null)
+        PlayerResourceState playerResourceState = null,
+        GameWorld gameWorld = null)
     {
         // Determine initial state based on NPC condition
         var initialState = ConversationRules.DetermineInitialState(npc, queueManager);
@@ -205,21 +206,17 @@ public class ConversationSession
                 .Where(o => o != null && (
                     o.RecipientId == npc.ID || 
                     o.RecipientId == npc.Location || 
-                    o.RecipientId == npc.SpotId ||
-                    IsLocationMatch(o.RecipientId, npc.Location, npc.SpotId)))
+                    o.RecipientId == npc.SpotId))
+                    // REMOVED: IsLocationMatch - string matching violation
                 .ToList();
             
             if (lettersForDelivery.Any())
             {
                 Console.WriteLine($"[StartConversation] Found {lettersForDelivery.Count} letters deliverable through {npc.Name}");
                 
-                // Create a delivery card for each letter
-                foreach (var letter in lettersForDelivery)
-                {
-                    var deliveryCard = CreateLetterDeliveryCard(letter, npc, tokenManager);
-                    handCards.Add(deliveryCard);
-                    Console.WriteLine($"[StartConversation] Added delivery card for letter from {letter.SenderName} to {letter.RecipientName}");
-                }
+                // Load letter delivery cards from JSON templates based on letter properties
+                var deliveryCards = GetLetterDeliveryCards(lettersForDelivery, gameWorld);
+                handCards.AddRange(deliveryCards);
             }
         }
 
@@ -253,7 +250,7 @@ public class ConversationSession
     /// <summary>
     /// Start a Quick Exchange conversation (simplified, no emotional states)
     /// </summary>
-    public static ConversationSession StartExchange(NPC npc, PlayerResourceState resourceState, TokenMechanicsManager tokenManager, List<string> spotDomainTags = null, ObligationQueueManager queueManager = null)
+    public static ConversationSession StartExchange(NPC npc, PlayerResourceState resourceState, TokenMechanicsManager tokenManager, List<string> spotDomainTags = null, ObligationQueueManager queueManager = null, GameWorld gameWorld = null)
     {
         // Exchange deck should already be initialized from Phase3
         // This is just a fallback
@@ -299,21 +296,17 @@ public class ConversationSession
                 .Where(o => o != null && (
                     o.RecipientId == npc.ID || 
                     o.RecipientId == npc.Location || 
-                    o.RecipientId == npc.SpotId ||
-                    IsLocationMatch(o.RecipientId, npc.Location, npc.SpotId)))
+                    o.RecipientId == npc.SpotId))
+                    // REMOVED: IsLocationMatch - string matching violation
                 .ToList();
             
             if (lettersForDelivery.Any())
             {
                 Console.WriteLine($"[StartExchange] Found {lettersForDelivery.Count} letters deliverable through {npc.Name}");
                 
-                // Create a delivery card for each letter
-                foreach (var letter in lettersForDelivery)
-                {
-                    var deliveryCard = CreateLetterDeliveryCard(letter, npc, tokenManager);
-                    handCards.Add(deliveryCard);
-                    Console.WriteLine($"[StartExchange] Added delivery card for letter from {letter.SenderName} to {letter.RecipientName}");
-                }
+                // Load letter delivery cards from JSON templates based on letter properties
+                var deliveryCards = GetLetterDeliveryCards(lettersForDelivery, gameWorld);
+                exchangeCards.AddRange(deliveryCards);
             }
         }
         
@@ -342,7 +335,7 @@ public class ConversationSession
     /// <summary>
     /// Execute LISTEN action according to exact POC rules
     /// </summary>
-    public void ExecuteListen(TokenMechanicsManager tokenManager = null, ObligationQueueManager queueManager = null)
+    public void ExecuteListen(TokenMechanicsManager tokenManager = null, ObligationQueueManager queueManager = null, GameWorld gameWorld = null)
     {
         TurnNumber++;
         CurrentPatience--;
@@ -408,7 +401,7 @@ public class ConversationSession
                     o.RecipientId == NPC.ID || 
                     o.RecipientId == NPC.Location || 
                     o.RecipientId == NPC.SpotId ||
-                    IsLocationMatch(o.RecipientId, NPC.Location, NPC.SpotId)))
+                    false)) // REMOVED: IsLocationMatch string matching violation
                 .ToList();
             
             if (lettersForDelivery.Any())
@@ -422,15 +415,14 @@ public class ConversationSession
                     var existingDeliveryCard = HandCards.FirstOrDefault(c => 
                         c is ConversationCard conv && conv.CanDeliverLetter && conv.DeliveryObligationId == letter.Id);
                     
+                    // Load letter delivery cards from JSON templates if not already in hand
                     if (existingDeliveryCard == null)
                     {
-                        var deliveryCard = CreateLetterDeliveryCard(letter, NPC, tokenManager ?? TokenManager);
-                        HandCards.Add(deliveryCard);
-                        Console.WriteLine($"[ExecuteListen] Added delivery card for letter from {letter.SenderName} to {letter.RecipientName}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[ExecuteListen] Delivery card for letter from {letter.SenderName} already in hand");
+                        var deliveryCard = GetLetterDeliveryCard(letter, gameWorld);
+                        if (deliveryCard != null)
+                        {
+                            HandCards.Add(deliveryCard);
+                        }
                     }
                 }
             }
@@ -1132,69 +1124,102 @@ public class ConversationSession
             GenerationReason = $"Letter negotiation for {sender.Name}"
         };
     }
-    
-    /// <summary>
-    /// Create a letter delivery card for an obligation
-    /// </summary>
-    private static ConversationCard CreateLetterDeliveryCard(DeliveryObligation obligation, NPC recipient, TokenMechanicsManager tokenManager)
-    {
-        // Calculate comfort reward based on letter importance
-        int comfortReward = obligation.EmotionalWeight switch
-        {
-            EmotionalWeight.CRITICAL => 10,
-            EmotionalWeight.HIGH => 7,
-            EmotionalWeight.MEDIUM => 5,
-            EmotionalWeight.LOW => 3,
-            _ => 5
-        };
-        
-        // Create context for the card
-        var context = new CardContext
-        {
-            NPCName = recipient.Name,
-            NPCPersonality = recipient.PersonalityType,
-            CustomText = $"Deliver {obligation.SenderName}'s letter",
-            LetterDetails = $"From: {obligation.SenderName}\nDeadline: {obligation.DeadlineInMinutes / 60} hours\nPayment: {obligation.Payment} coins"
-        };
-        
-        return new ConversationCard
-        {
-            Id = $"deliver_{obligation.Id}",
-            TemplateId = "deliver_letter", // Use string template ID
-            Mechanics = CardMechanics.Delivery, // Proper delivery mechanics
-            Category = CardCategory.Promise, // Delivery cards are promises fulfilled
-            Context = context,
-            Type = CardType.Trust, // Delivery builds trust
-            Persistence = PersistenceType.Fleeting, // One chance to deliver
-            Weight = 0, // Free to play - delivering is always good
-            BaseComfort = comfortReward,
-            CanDeliverLetter = true,
-            DeliveryObligationId = obligation.Id,
-            DisplayName = $"Deliver letter from {obligation.SenderName}",
-            Description = $"Payment: {obligation.Payment} coins | Deadline: {obligation.DeadlineInMinutes / 60}h",
-            SuccessRate = 100 // Delivery always succeeds if you have the letter
-        };
-    }
-    
-    /// <summary>
-    /// Check if a letter's recipient location matches the NPC's current location context
-    /// </summary>
-    private static bool IsLocationMatch(string recipientId, string npcLocation, string npcSpotId)
-    {
-        // Handle specific location mappings for the current test data:
-        // - "merchant_row" letters can be delivered to NPCs at market_square/merchant_row
-        // - "noble_district" letters can be delivered to NPCs in noble locations
-        // - "riverside" letters can be delivered to NPCs at riverside locations
-        
-        return recipientId switch
-        {
-            "merchant_row" => npcLocation == "market_square" && npcSpotId == "merchant_row",
-            "noble_district" => npcLocation?.Contains("noble") == true || npcSpotId?.Contains("noble") == true,
-            "riverside" => npcLocation?.Contains("riverside") == true || npcSpotId?.Contains("riverside") == true,
-            _ => false
-        };
-    }
     */
+    
+    /// <summary>
+    /// Get letter delivery cards from JSON templates based on letter properties
+    /// </summary>
+    private static List<ConversationCard> GetLetterDeliveryCards(List<DeliveryObligation> letters, GameWorld gameWorld)
+    {
+        var deliveryCards = new List<ConversationCard>();
+        
+        foreach (var letter in letters)
+        {
+            var card = GetLetterDeliveryCard(letter, gameWorld);
+            if (card != null)
+            {
+                deliveryCards.Add(card);
+            }
+        }
+        
+        return deliveryCards;
+    }
+    
+    /// <summary>
+    /// Get a letter delivery card from JSON templates based on letter properties
+    /// </summary>
+    private static ConversationCard GetLetterDeliveryCard(DeliveryObligation letter, GameWorld gameWorld)
+    {
+        // Find letter delivery cards by category
+        var deliveryTemplates = gameWorld.AllCardDefinitions.Values
+            .Where(card => card.Category == "LETTER_DELIVERY" && card.CanDeliverLetter)
+            .ToList();
+        
+        if (!deliveryTemplates.Any())
+        {
+            Console.WriteLine("[ConversationSession] No LETTER_DELIVERY cards found in AllCardDefinitions");
+            return null;
+        }
+        
+        // Select appropriate template based on letter properties
+        ConversationCard template;
+        if (letter.IsUrgent)
+        {
+            template = deliveryTemplates.FirstOrDefault(c => c.DisplayName?.Contains("Urgent") == true) 
+                      ?? deliveryTemplates.FirstOrDefault();
+        }
+        else if (letter.IsSecure)
+        {
+            template = deliveryTemplates.FirstOrDefault(c => c.DisplayName?.Contains("Discreet") == true) 
+                      ?? deliveryTemplates.FirstOrDefault();
+        }
+        else
+        {
+            template = deliveryTemplates.FirstOrDefault(c => c.DisplayName?.Contains("Deliver") == true) 
+                      ?? deliveryTemplates.FirstOrDefault();
+        }
+        
+        if (template == null)
+        {
+            Console.WriteLine("[ConversationSession] No suitable LETTER_DELIVERY template found");
+            return null;
+        }
+        
+        // Create customized card instance
+        var deliveryCard = new ConversationCard
+        {
+            Id = $"delivery_{letter.Id}_{Guid.NewGuid()}",
+            TemplateId = template.TemplateId,
+            Mechanics = template.Mechanics,
+            Category = template.Category,
+            Type = template.Type,
+            Persistence = template.Persistence,
+            Weight = template.Weight,
+            BaseComfort = template.BaseComfort,
+            CanDeliverLetter = true,
+            DeliveryObligationId = letter.Id,
+            ManipulatesObligations = template.ManipulatesObligations,
+            Depth = template.Depth,
+            SuccessState = template.SuccessState,
+            FailureState = template.FailureState,
+            SuccessRate = template.SuccessRate,
+            DisplayName = $"Deliver Letter to {FormatRecipientName(letter.RecipientId)}",
+            Description = $"Deliver {letter.Subject} to {FormatRecipientName(letter.RecipientId)}",
+            Context = new CardContext
+            {
+                Personality = PersonalityType.STEADFAST,
+                EmotionalState = EmotionalState.NEUTRAL,
+                UrgencyLevel = letter.IsUrgent ? 2 : 0,
+                HasDeadline = letter.HasDeadline,
+                MinutesUntilDeadline = letter.MinutesUntilDeadline,
+                LetterId = letter.Id,
+                TargetNpcId = letter.RecipientId
+            }
+        };
+        
+        Console.WriteLine($"[ConversationSession] Created delivery card {deliveryCard.Id} for letter {letter.Id}");
+        return deliveryCard;
+    }
     
     private static string FormatRecipientName(string recipientId)
     {

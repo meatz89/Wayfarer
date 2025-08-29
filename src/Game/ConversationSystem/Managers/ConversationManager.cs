@@ -102,7 +102,8 @@ public class ConversationManager
             tokenManager,
             observationCards,
             conversationType,
-            gameWorld.GetPlayerResourceState()  // Pass player resource state for hunger penalty
+            gameWorld.GetPlayerResourceState(),  // Pass player resource state for hunger penalty
+            gameWorld  // Pass GameWorld for card templates
         );
 
         return currentSession;
@@ -172,7 +173,7 @@ public class ConversationManager
         
         // Create a simplified session for exchanges
         var spotDomainTags = gameWorld.GetCurrentSpotDomainTags();
-        currentSession = ConversationSession.StartExchange(npc, gameWorld.GetPlayerResourceState(), tokenManager, spotDomainTags, queueManager);
+        currentSession = ConversationSession.StartExchange(npc, gameWorld.GetPlayerResourceState(), tokenManager, spotDomainTags, queueManager, gameWorld);
         return currentSession;
     }
     
@@ -236,7 +237,7 @@ public class ConversationManager
             throw new InvalidOperationException("No active conversation");
         }
 
-        currentSession.ExecuteListen(tokenManager, queueManager);
+        currentSession.ExecuteListen(tokenManager, queueManager, gameWorld);
 
         if (currentSession.ShouldEnd())
         {

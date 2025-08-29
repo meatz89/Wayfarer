@@ -95,7 +95,7 @@ public class TravelManager
     private readonly RouteRepository _routeRepository;
     private readonly AccessRequirementChecker _accessChecker;
     private readonly FlagService _flagService;
-    private readonly TravelEventManager _travelEventManager;
+    // REMOVED: TravelEventManager - hardcoded content generation system deleted
     public LocationSystem LocationSystem { get; }
     public LocationRepository LocationRepository { get; }
     public ItemRepository ItemRepository { get; }
@@ -109,8 +109,8 @@ public class TravelManager
         RouteRepository routeRepository,
         AccessRequirementChecker accessChecker,
         TimeManager timeManager,
-        FlagService flagService,
-        TravelEventManager travelEventManager
+        FlagService flagService
+        // TravelEventManager travelEventManager - REMOVED
         )
     {
         _gameWorld = gameWorld;
@@ -119,7 +119,7 @@ public class TravelManager
         _routeRepository = routeRepository;
         _accessChecker = accessChecker;
         _flagService = flagService;
-        _travelEventManager = travelEventManager;
+        // _travelEventManager = travelEventManager; // REMOVED
         this.LocationSystem = locationSystem;
         this.LocationRepository = locationRepository;
         ItemRepository = itemRepository;
@@ -377,22 +377,8 @@ public class TravelManager
         return _accessChecker.CheckRouteAccess(route);
     }
 
-    /// <summary>
-    /// Get travel events for a route based on player familiarity and transport
-    /// </summary>
-    public TravelEventResult GetTravelEvents(RouteOption route, TravelMethods method)
-    {
-        // Convert TravelMethods to TransportType
-        TransportType transport = method switch
-        {
-            TravelMethods.Walking => TransportType.Walking,
-            TravelMethods.Cart => TransportType.Cart,
-            TravelMethods.Carriage => TransportType.Carriage,
-            _ => TransportType.Walking
-        };
-        
-        return _travelEventManager.DrawTravelEvents(route, transport);
-    }
+    // REMOVED: GetTravelEvents method - TravelEventManager system deleted
+    // Travel events should be loaded from JSON templates, not generated in code
     
     /// <summary>
     /// Check if boat schedule is available based on weather conditions and river state
