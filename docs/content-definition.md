@@ -11,12 +11,11 @@ This scenario demonstrates all three core game loops working together to create 
 ### Strict Effect Separation
 - Each card type has ONE effect pool
 - No cards do multiple things
-- No thresholds - linear progression only
 - Perfect information - all effects visible
 
 ### Strategic Layers
 - **Emotional State Navigation**: States filter drawable cards only
-- **Comfort Building**: Depth access requires careful accumulation within conversation
+- **Comfort Building**: Battery system (-3 to +3) triggers state transitions
 - **Token Investment**: Linear +5% per token for all cards including negotiations
 - **Queue Management**: Position 1 must complete first, multiple obligations compete
 
@@ -137,60 +136,56 @@ From Copper Kettle Common Room:
 **Conversation Deck** (20 cards):
 
 **Comfort Cards** (8 total):
-- 4 cards at W1/various depths: +2 comfort, 65% base
-  - "I understand" (D2)
-  - "Let me help" (D3) 
-  - "You're not alone" (D5)
-  - "We'll solve this" (D7)
-- 3 cards at W2/various depths: +4 comfort, 55% base
-  - "Trust in me" (D4)
-  - "I promise to help" (D6)
-  - "Together we're strong" (D9)
-- 1 card at W3/depth 14: +6 comfort, 45% base
-  - "Soul connection" (D14)
+- 4 cards at W1: +1 comfort/-1 comfort, 60% base
+  - "I understand" - Drawable: [Desperate, Tense, Open]
+  - "Let me help" - Drawable: [Desperate, Tense, Open]
+  - "You're not alone" - Drawable: [Open, Connected]
+  - "We'll solve this" - Drawable: [Open, Connected]
+- 3 cards at W2: +2 comfort/-2 comfort, 60% base
+  - "Trust in me" - Drawable: [Neutral, Open]
+  - "I promise to help" - Drawable: [Open, Connected]
+  - "Together we're strong" - Drawable: [Connected]
+- 1 card at W3: +3 comfort/-3 comfort, 60% base
+  - "Soul connection" - Drawable: [Connected]
 
 **Token Cards** (4 total):
-- "Build Trust" (D5/W1): +1 Trust token, 65% base
-- "Prove Reliability" (D8/W2): +1 Trust token, 55% base
-- "Deep Connection" (D10/W2): +1 Trust token, 55% base
-- "Sacred Promise" (D15/W3): +1 Trust token, 45% base
+- "Build Trust" (W1): +1 Trust token, 60% base - Drawable: [Open, Connected]
+- "Prove Reliability" (W2): +1 Trust token, 60% base - Drawable: [Open]
+- "Deep Connection" (W2): +1 Trust token, 60% base - Drawable: [Connected]
+- "Sacred Promise" (W3): +1 Trust token, 60% base - Drawable: [Connected]
 
-**State Cards** (4 total, all W1 for accessibility, various depths):
-- "Calm Reassurance" (D2): Desperate→Tense, 65% base
-- "Find Balance" (D5): Tense→Neutral, 65% base
-- "Open Hearts" (D8): Neutral→Open, 65% base
-- "Soul Bond" (D14): Open→Connected, 65% base
+**State Cards** (4 total, all W1 for accessibility):
+- "Calm Reassurance": Desperate→Tense, 60% base - Drawable: [Desperate]
+- "Find Balance": Tense→Neutral, 60% base - Drawable: [Tense]
+- "Open Hearts": Neutral→Open, 60% base - Drawable: [Neutral]
+- "Soul Bond": Open→Connected, 60% base - Drawable: [Open]
 
 **Burden Cards** (2 starting - past failure):
-- "Broken Promise" (D1/W2): Remove on success, 55% base
-- "Lost Faith" (D3/W2): Remove on success, 55% base
+- "Broken Promise" (W2): Remove on success, 55% base - Drawable: [All non-Hostile]
+- "Lost Faith" (W2): Remove on success, 55% base - Drawable: [All non-Hostile]
 
 **Goal Deck** (Separate from conversation deck):
 
 - **"Crisis Refusal"** (Trust Letter)
-  - Valid States: [Desperate/Tense]
-  - Depth: 3 (need comfort 3+ to draw)
+  - Valid States: [Desperate, Tense]
   - Base Negotiation: 50% + (Trust tokens × 5%)
   - Success Terms: 4hr deadline, position 3, 10 coins
   - Failure Terms: 1hr deadline, position 1, 5 coins
 
 - **"Formal Refusal"** (Trust Letter)
-  - Valid States: [Neutral/Open]
-  - Depth: 7 (need comfort 7+ to draw)
+  - Valid States: [Neutral, Open]
   - Base Negotiation: 50% + (Trust tokens × 5%)
   - Success Terms: 6hr deadline, lowest available, 15 coins
   - Failure Terms: 3hr deadline, position 2, 10 coins
 
 - **"Personal Letter"** (Trust Letter)
-  - Valid States: [Open/Connected]
-  - Depth: 10 (need comfort 10+ to draw)
+  - Valid States: [Open, Connected]
   - Base Negotiation: 50% + (Trust tokens × 5%)
   - Success Terms: 8hr deadline, flexible position, 20 coins
   - Failure Terms: 4hr deadline, position 3, 15 coins
 
 - **"Clear the Air"** (Resolution Goal)
   - Valid States: [Any]
-  - Depth: 5
   - Effect: Remove burden cards on success
 
 ### Marcus - The Merchant
@@ -202,25 +197,23 @@ From Copper Kettle Common Room:
 - Starting State: Neutral (Morning-Afternoon), Eager (Evening)
 
 **Conversation Deck** (16 cards total):
-- 10 Commerce comfort cards (various depths/weights)
-  - 5 at W1: +2 comfort, 65% base
-  - 4 at W2: +4 comfort, 55% base
-  - 1 at W3: +8 comfort, 45% base
-- 2 Token cards: Commerce (D6), Shadow (D10)
-- 2 State cards: Neutral→Eager (D4), Any→Neutral (D8)
+- 10 Commerce comfort cards
+  - 5 at W1: +1/-1 comfort, 60% base - Drawable: [Neutral, Eager]
+  - 4 at W2: +2/-2 comfort, 60% base - Drawable: [Eager]
+  - 1 at W3: +3/-3 comfort, 60% base - Drawable: [Eager]
+- 2 Token cards: Commerce (W1), Shadow (W2) - Drawable: [Eager]
+- 2 State cards: Neutral→Eager (W1), Any→Neutral (W1) - Drawable: [All non-Hostile]
 - 2 Burden cards (if relationship damaged)
 
 **Goal Deck**:
 - "Package Delivery" (Commerce Promise)
-  - Valid States: Eager, Neutral
-  - Depth: 6
+  - Valid States: [Eager, Neutral]
   - Base Negotiation: 45% + (Commerce tokens × 5%)
   - Success: 6hr deadline, position 3, 8 coins
   - Failure: 3hr deadline, position 2, 8 coins
 
 - "Noble Permit Sale" (Commerce Promise)
-  - Valid States: Eager only
-  - Depth: 4
+  - Valid States: [Eager only]
   - Base Negotiation: 50% + (Commerce tokens × 5%)
   - Success: Pay 12 coins, get permit
   - Failure: Pay 15 coins, get permit
@@ -241,16 +234,15 @@ From Copper Kettle Common Room:
 - State: Tense (day shift until 6 PM) / Neutral (night shift after 6 PM)
 
 **Conversation Deck** (13 cards total):
-- 6 Status comfort cards
-- 3 Shadow comfort cards  
-- 1 Token card: Shadow (D8)
-- 2 State cards: Tense→Neutral (D4), Guarded→Open (D7)
+- 6 Status comfort cards - Drawable: [Neutral, Open]
+- 3 Shadow comfort cards - Drawable: [Tense, Guarded]
+- 1 Token card: Shadow (W2) - Drawable: [Tense]
+- 2 State cards: Tense→Neutral (W1), Guarded→Open (W1) - Drawable: [All non-Hostile]
 - 1 Burden card (if damaged)
 
 **Goal Deck**:
 - "Checkpoint Pass" (Shadow Promise/Permit)
-  - Valid States: Neutral only
-  - Depth: 8
+  - Valid States: [Neutral only]
   - Base Negotiation: 35% + (Shadow tokens × 5%)
   - Success: 24hr access permit, no cost
   - Failure: 2hr access permit, 5 coin fee
@@ -289,7 +281,7 @@ From Copper Kettle Common Room:
 The player maintains their own observation deck (max 20 cards):
 - Cost: 1 attention at specific locations
 - Effect: State change card added to player deck
-- Weight: 1 (always playable)
+- Weight: 1 (always playable except in Hostile)
 - Success rate: 85%
 - Expiration: 24-48 hours (no decay)
 
@@ -318,49 +310,43 @@ NPCs can reward observation cards:
 
 ## Emotional State Effects
 
-### State Web and Momentum Effects
+### State Web and Comfort Transitions
 
 **DESPERATE** (Elena's starting state):
 - Weight limit: 1
-- Draws: Trust/Crisis + 1 guaranteed state card
-- Momentum: Each point reduces patience cost by 1 (min 0)
+- Draws: Cards listing Desperate as drawable
+- Comfort: +3→Tense (escape!), -3→Hostile (crisis explodes)
 - Goals Available: Crisis promises, urgent letters
-- Degradation: → Hostile at -3 momentum
 
 **TENSE** (Cautious):
 - Weight limit: 2
-- Draws: Shadow cards + 1 guaranteed state card
-- Momentum: Positive momentum makes observations weight 0
+- Draws: Cards listing Tense as drawable
+- Comfort: +3→Neutral, -3→Hostile
 - Goals Available: Shadow promises, burden resolution
-- Degradation: Default target for most states
 
 **NEUTRAL** (Balanced):
 - Weight limit: 3
-- Draws: All types equally + 1 guaranteed state card
-- Momentum: No effect (balanced state)
+- Draws: Cards listing Neutral as drawable
+- Comfort: +3→Open, -3→Tense
 - Goals Available: Commerce promises, routine letters
-- Degradation: → Tense at -3 momentum
 
 **OPEN** (Receptive):
 - Weight limit: 3
-- Draws: Trust/Token cards + 1 guaranteed state card
-- Momentum: Positive momentum adds +1 comfort to successes
+- Draws: Cards listing Open as drawable
+- Comfort: +3→Connected, -3→Guarded
 - Goals Available: Trust promises, personal requests
-- Degradation: → Guarded at -3 momentum
 
 **EAGER** (Excited):
 - Weight limit: 3
-- Draws: Commerce/Token cards + 1 guaranteed state card
-- Momentum: Each point adds +5% to token card success
+- Draws: Cards listing Eager as drawable
+- Comfort: +3→Connected, -3→Neutral
 - Goals Available: Commerce promises with bonus potential
-- Degradation: → Neutral at -3 momentum
 
 **CONNECTED** (Deep Bond):
 - Weight limit: 4
-- Draws: 60% Token, 40% any + 1 guaranteed state card
-- Momentum: Increases maximum weight by momentum value (up to 7!)
+- Draws: Cards listing Connected as drawable
+- Comfort: +3→Stays Connected (maxed), -3→Tense (devastating)
 - Goals Available: All promise types
-- Degradation: → Tense at -3 momentum (devastating)
 
 ## Strategic Decision Framework
 
@@ -368,7 +354,7 @@ NPCs can reward observation cards:
 
 **Elena's Optimal Journey**:
 1. **Desperate** → Use observation for direct jump to Open
-2. **Desperate** → Tense → Neutral → Open (traditional path)
+2. **Desperate** → Build +3 comfort → Tense → Build +3 → Neutral → Build +3 → Open
 
 Each path has trade-offs:
 - Direct jump costs observation but saves turns
@@ -377,25 +363,26 @@ Each path has trade-offs:
 ### Comfort Building Mathematics
 
 **Turn Economy with 16 Patience**:
-- Comfort starts at 5
-- Need comfort 3+ for Crisis Letter (already met!)
-- Need comfort 7+ for Formal Letter (need +2)
-- Need comfort 10+ for Personal Letter (need +5)
+- Comfort starts at 0
+- Need Open or Connected for best letters
+- Desperate → Tense requires +3 comfort
+- Tense → Neutral requires +3 comfort
+- Neutral → Open requires +3 comfort
 
 **Build Rates**:
-- W1 cards: +2 comfort at 65% + tokens (70% with 1 Trust)
-- W2 cards: +4 comfort at 55% + tokens (60% with 1 Trust)
-- W3 cards: +6 comfort at 45% + tokens (50% with 1 Trust)
+- W1 cards: +1 comfort (success) / -1 comfort (failure) at 65% with 1 Trust
+- W2 cards: +2 comfort (success) / -2 comfort (failure) at 65% with 1 Trust
+- W3 cards: +3 comfort (success) / -3 comfort (failure) at 65% with 1 Trust
 
-Perfect play: 2-3 turns to reach any letter depth
+Perfect play: 1 turn per state transition if using W3 cards successfully
 
 ### Token Economics
 
 **Linear Benefits (ALL cards including negotiations)**:
-- 0 tokens: Base rates (35-65% depending on card)
-- 2 tokens: +10% success (45-75%)
-- 4 tokens: +20% success (55-85%)
-- 6 tokens: +30% success (65-95%, capped at 95%)
+- 0 tokens: Base 60% success
+- 2 tokens: +10% success (70%)
+- 4 tokens: +20% success (80%)
+- 6 tokens: +30% success (90%)
 
 **Letter Negotiation Advantage**:
 - Trust tokens help Trust letter negotiations
@@ -453,8 +440,8 @@ To deliver Elena immediately from position 3:
 6. Observe "Shared Hardship" at Copper Kettle (-1 att)
 7. Converse with Elena (-2 att, 16 patience)
 8. Use observation: Desperate→Open directly
-9. Build comfort with +1 bonus to 7+
-10. Access "Formal Refusal"
+9. Build comfort to trigger Connected transition
+10. Access "Personal Letter"
 
 **Results**: Good terms, queue cleared, profitable
 
@@ -465,8 +452,8 @@ To deliver Elena immediately from position 3:
 
 **Afternoon** (8 attention, 7 coins):
 3. Full Elena conversation (-2 att)
-4. Stay Desperate for crisis resolution
-5. Focus on token cards at 70% success
+4. Stay Desperate, carefully manage comfort
+5. Focus on token cards in drawable states
 6. Build tokens to 3-4 Trust
 7. Accept Crisis Letter quickly
 
@@ -495,7 +482,7 @@ To deliver Elena immediately from position 3:
 
 **Evening**:
 3. Guard in Neutral state
-4. Build comfort to D8
+4. Build comfort for transitions
 5. Negotiate Checkpoint Pass letter
 6. Free access to Noble District
 
@@ -539,13 +526,13 @@ At 60 hunger: 10 - 2 = 8 attention
 ### Success Rate Examples
 ```
 W1 Trust card, 1 Trust token with Elena:
-65% + (1 × 5%) = 70%
+60% + (1 × 5%) = 65%
 
 W2 Commerce card, 2 Commerce with Marcus:
-55% + (2 × 5%) = 65%
+60% + (2 × 5%) = 70%
 
 W3 card, 0 tokens:
-45% + 0 = 45%
+60% + 0 = 60%
 ```
 
 ## Failure Cascades
@@ -573,7 +560,7 @@ W3 card, 0 tokens:
 ## Success Metrics
 
 ### Perfect Run (Master Strategist)
-- "Personal Letter" obtained (D10)
+- "Personal Letter" obtained (Connected state)
 - 8-hour deadline negotiated
 - Position 5+ (no displacement)
 - Complete by 3 PM
@@ -582,7 +569,7 @@ W3 card, 0 tokens:
 - No tokens burned
 
 ### Good Run (Competent Courier)
-- "Formal Refusal" obtained (D7)
+- "Formal Refusal" obtained (Open state)
 - 4-6 hour deadline
 - Reasonable position
 - Complete by 4 PM
@@ -603,7 +590,7 @@ W3 card, 0 tokens:
 **Scenario 1**: Elena Desperate, You have 3 Trust tokens
 - +15% success on all cards
 - Letter negotiations much more favorable
-- Can build momentum to reduce patience cost
+- Can manage comfort carefully
 
 **Scenario 2**: Elena Open, You have -2 Trust tokens (from past failures)
 - Weight 3 cards available
@@ -626,7 +613,7 @@ Each combination creates unique tactical challenge.
 
 ### Deck Evolution
 Successful delivery adds cards to Lord Blackwood's deck:
-- Trust comfort cards at low depths
+- Trust comfort cards with appropriate drawable states
 - Makes future Trust conversations easier
 - Permanent world change
 
@@ -646,11 +633,11 @@ Twenty deliveries create twenty permanent changes.
 ## Core Innovation Summary
 
 The scenario demonstrates elegant complexity through simple rules:
-- **State Filtering**: Different moods enable different cards
+- **State Filtering**: Different states enable different drawable cards
 - **Token Linearity**: Every token adds exactly 5% success
 - **One Card Per Turn**: Authentic conversation rhythm
-- **Linear Progression**: Every token matters equally
+- **Comfort Battery**: ±3 triggers state transitions
 - **Queue Displacement**: Permanent sacrifice for flexibility
 - **Player Observation Deck**: Built knowledge provides tactical advantages
 
-No thresholds, no hidden mechanics, no soft locks. Every mechanic serves one purpose while resources flow through multiple systems. The puzzle emerges from interaction, not complication.
+No thresholds (except comfort ±3), no hidden mechanics, no soft locks. Every mechanic serves one purpose while resources flow through multiple systems. The puzzle emerges from interaction, not complication.

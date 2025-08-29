@@ -279,6 +279,28 @@ public class ConversationSession
         foreach (var exchangeCard in exchangeCards)
         {
             // Exchange cards should already have proper Category and Context
+            Console.WriteLine($"[StartExchange] Adding exchange card {exchangeCard.Id}");
+            Console.WriteLine($"[StartExchange]   - Context null: {exchangeCard.Context == null}");
+            Console.WriteLine($"[StartExchange]   - ExchangeData null: {exchangeCard.Context?.ExchangeData == null}");
+            if (exchangeCard.Context?.ExchangeData != null)
+            {
+                Console.WriteLine($"[StartExchange]   - Cost count: {exchangeCard.Context.ExchangeData.Cost?.Count ?? 0}");
+                Console.WriteLine($"[StartExchange]   - Reward count: {exchangeCard.Context.ExchangeData.Reward?.Count ?? 0}");
+                if (exchangeCard.Context.ExchangeData.Cost?.Any() == true)
+                {
+                    foreach (var cost in exchangeCard.Context.ExchangeData.Cost)
+                    {
+                        Console.WriteLine($"[StartExchange]     - Cost: {cost.Amount} {cost.ResourceType}");
+                    }
+                }
+                if (exchangeCard.Context.ExchangeData.Reward?.Any() == true)
+                {
+                    foreach (var reward in exchangeCard.Context.ExchangeData.Reward)
+                    {
+                        Console.WriteLine($"[StartExchange]     - Reward: {reward.Amount} {reward.ResourceType}");
+                    }
+                }
+            }
             handCards.Add(exchangeCard);
         }
         

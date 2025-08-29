@@ -98,8 +98,32 @@ public class NPC
             // Only Mercantile NPCs have exchange decks
             if (PersonalityType == PersonalityType.MERCANTILE && exchangeCards != null)
             {
+                Console.WriteLine($"[NPC.InitializeExchangeDeck] Adding {exchangeCards.Count} exchange cards for {Name}");
                 foreach (var card in exchangeCards)
                 {
+                    Console.WriteLine($"[NPC.InitializeExchangeDeck] Card {card.Id}:");
+                    Console.WriteLine($"  - Context null: {card.Context == null}");
+                    Console.WriteLine($"  - ExchangeData null: {card.Context?.ExchangeData == null}");
+                    if (card.Context?.ExchangeData != null)
+                    {
+                        var ed = card.Context.ExchangeData;
+                        Console.WriteLine($"  - Cost items: {ed.Cost?.Count ?? 0}");
+                        Console.WriteLine($"  - Reward items: {ed.Reward?.Count ?? 0}");
+                        if (ed.Cost?.Any() == true)
+                        {
+                            foreach (var cost in ed.Cost)
+                            {
+                                Console.WriteLine($"    Cost: {cost.Amount} {cost.ResourceType}");
+                            }
+                        }
+                        if (ed.Reward?.Any() == true)
+                        {
+                            foreach (var reward in ed.Reward)
+                            {
+                                Console.WriteLine($"    Reward: {reward.Amount} {reward.ResourceType}");
+                            }
+                        }
+                    }
                     ExchangeDeck.AddCard(card);
                 }
             }
