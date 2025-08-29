@@ -5,12 +5,15 @@
 		"profession": "Scribe",
 		"locationId": "copper_kettle_tavern",
 		"spotId": "corner_table",
-		"description": "A young woman nervously fidgeting with a sealed letter",
-		"personality": "Intelligent and desperate, worried about Lord Blackwood's marriage proposal",
+		"description": "Clutching her sealed letter, eyes darting to the door with each sound",
+		"personality": "Desperate about Lord Blackwood's marriage proposal - he leaves at sunset",
 		"personalityType": "DEVOTED",
-		"services": ["Information"],
+		"services": [],
 		"letterTokenTypes": ["Trust"],
-		"currentState": "DESPERATE"
+		"currentState": "DESPERATE",
+		"initialTokens": {
+			"Trust": 1
+		}
 	},
 	{
 		"id": "marcus",
