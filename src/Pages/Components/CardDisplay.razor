@@ -1,0 +1,137 @@
+@namespace Wayfarer.Pages.Components
+
+@* 
+    Unified Card Display Component
+    Used for all card types: conversation cards, NPC action cards, exchange cards, etc.
+    Follows Perfect Information principle - all mechanics visible
+*@
+
+<div class="wayfarer-card @GetCardTypeClass() @(IsSelected ? "selected" : "") @(IsUnavailable ? "unavailable" : "") @(OnClick.HasDelegate ? "clickable" : "")"
+     @onclick="HandleClick">
+    
+    @* Special markers (expires, burden, goal, etc.) *@
+    @if (!string.IsNullOrEmpty(MarkerText))
+    {
+        <div class="card-marker @MarkerClass">@MarkerText</div>
+    }
+    
+    <div class="card-layout">
+        @* Main card content area *@
+        <div class="card-main-area">
+            @* Card Header with Type and Cost *@
+            <div class="card-header">
+                <div class="card-type-label">@CardType</div>
+                @if (AttentionCost > 0)
+                {
+                    <div class="card-cost">@AttentionCost attention</div>
+                }
+                else if (IsFree)
+                {
+                    <div class="card-cost free">FREE</div>
+                }
+            </div>
+            
+            @* Card Identity Section *@
+            <div class="card-identity">
+                <div class="card-title">@CardName</div>
+                @if (Weight > 0 || ShowWeight)
+                {
+                    <div class="card-weight-badge">@Weight</div>
+                }
+            </div>
+            
+            @* Drawable States (for conversation cards) *@
+            @if (!string.IsNullOrEmpty(DrawableStates))
+            {
+                <div class="card-drawable-states">@DrawableStates</div>
+            }
+            
+            @* Card Text/Dialogue *@
+            <div class="card-text">
+                @if (!string.IsNullOrEmpty(CardText))
+                {
+                    <div class="card-dialogue">"@CardText"</div>
+                }
+                @if (!string.IsNullOrEmpty(Description))
+                {
+                    <div class="card-description">@Description</div>
+                }
+            </div>
+            
+            @* Additional Info (for NPC actions, exchanges, etc.) *@
+            @if (ChildContent != null)
+            {
+                <div class="card-additional">
+                    @ChildContent
+                </div>
+            }
+        </div>
+        
+        @* Success/Failure Outcome Panels (for conversation cards) *@
+        @if (ShowOutcomes)
+        {
+            <div class="card-outcomes">
+                <div class="outcome success">
+                    <div class="outcome-percentage">@SuccessChance%</div>
+                    <div class="outcome-label">SUCCESS</div>
+                    <div class="outcome-effect">@SuccessEffect</div>
+                </div>
+                <div class="outcome failure">
+                    <div class="outcome-percentage">@FailureChance%</div>
+                    <div class="outcome-label">FAILURE</div>
+                    <div class="outcome-effect">@FailureEffect</div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    // Core card properties
+    [Parameter] public string CardName { get; set; } = "Unnamed Card";
+    [Parameter] public string CardType { get; set; } = "Card";
+    [Parameter] public string CardText { get; set; }
+    [Parameter] public string Description { get; set; }
+    [Parameter] public int Weight { get; set; }
+    [Parameter] public bool ShowWeight { get; set; } = true;
+    [Parameter] public int AttentionCost { get; set; }
+    [Parameter] public bool IsFree { get; set; }
+    
+    // Card state
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public bool IsUnavailable { get; set; }
+    [Parameter] public string CardCategory { get; set; } = "comfort";
+    
+    // Drawable states
+    [Parameter] public string DrawableStates { get; set; }
+    
+    // Outcomes for conversation cards
+    [Parameter] public bool ShowOutcomes { get; set; }
+    [Parameter] public int SuccessChance { get; set; } = 50;
+    [Parameter] public int FailureChance { get; set; } = 50;
+    [Parameter] public string SuccessEffect { get; set; } = "No effect";
+    [Parameter] public string FailureEffect { get; set; } = "No effect";
+    
+    // Special markers
+    [Parameter] public string MarkerText { get; set; }
+    [Parameter] public string MarkerClass { get; set; } = "";
+    
+    // Custom content slot
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    
+    // Interaction
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    
+    private string GetCardTypeClass()
+    {
+        return $"card-{CardCategory.ToLower()}";
+    }
+    
+    private async Task HandleClick(MouseEventArgs args)
+    {
+        if (OnClick.HasDelegate && !IsUnavailable)
+        {
+            await OnClick.InvokeAsync(args);
+        }
+    }
+}
