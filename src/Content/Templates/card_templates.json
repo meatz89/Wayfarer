@@ -6,6 +6,7 @@
 			"baseComfort": 4,
 			"persistence": "Opportunity",
 			"connectionType": "Trust",
+			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED"],
 			"description": "A sincere promise to assist with their troubles"
 		},
 		"MentionGuards": {
@@ -16,6 +17,7 @@
 			"connectionType": "Shadow",
 			"isObservation": true,
 			"createsState": "TENSE",
+			"drawableStates": ["TENSE", "NEUTRAL", "OVERWHELMED", "CONNECTED"],
 			"description": "Share observed information about guard positions"
 		},
 		"CalmReassurance": {
@@ -26,6 +28,7 @@
 			"isStateCard": true,
 			"successState": "TENSE",
 			"failureState": null,
+			"drawableStates": ["GUARDED"],
 			"description": "Attempt to calm their emotional state"
 		},
 		"SimpleGreeting": {
@@ -34,6 +37,7 @@
 			"baseComfort": 1,
 			"persistence": "Persistent",
 			"connectionType": "Trust",
+			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED", "OVERWHELMED"],
 			"description": "A friendly greeting to start conversation"
 		},
 		"ActiveListening": {
@@ -42,6 +46,7 @@
 			"baseComfort": 2,
 			"persistence": "Persistent",
 			"connectionType": "Trust",
+			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED", "OVERWHELMED"],
 			"description": "Show genuine interest in their words"
 		},
 		"OfferHelp": {
@@ -50,6 +55,7 @@
 			"baseComfort": 3,
 			"persistence": "Opportunity",
 			"connectionType": "Trust",
+			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED"],
 			"description": "Offer assistance with their current troubles"
 		},
 		"SharePersonal": {
@@ -58,6 +64,7 @@
 			"baseComfort": 3,
 			"persistence": "Opportunity",
 			"connectionType": "Trust",
+			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED"],
 			"description": "Share something personal about yourself"
 		},
 		"DiscussBusiness": {
@@ -66,6 +73,7 @@
 			"baseComfort": 2,
 			"persistence": "Persistent",
 			"connectionType": "Commerce",
+			"drawableStates": ["EAGER", "NEUTRAL", "CONNECTED", "OVERWHELMED"],
 			"description": "Talk about trade and business matters"
 		},
 		"ProposeDeal": {
@@ -74,6 +82,7 @@
 			"baseComfort": 3,
 			"persistence": "Opportunity",
 			"connectionType": "Commerce",
+			"drawableStates": ["EAGER", "NEUTRAL", "CONNECTED"],
 			"description": "Suggest a mutually beneficial arrangement"
 		},
 		"ShowRespect": {
@@ -82,6 +91,7 @@
 			"baseComfort": 2,
 			"persistence": "Persistent",
 			"connectionType": "Status",
+			"drawableStates": ["NEUTRAL", "OVERWHELMED", "CONNECTED"],
 			"description": "Acknowledge their position and standing"
 		},
 		"ShareSecret": {
@@ -90,6 +100,7 @@
 			"baseComfort": 4,
 			"persistence": "OneShot",
 			"connectionType": "Shadow",
+			"drawableStates": ["TENSE", "NEUTRAL", "CONNECTED"],
 			"description": "Reveal confidential information"
 		},
 		"CalmnessAttempt": {
@@ -99,6 +110,7 @@
 			"connectionType": "Trust",
 			"isStateCard": true,
 			"successState": "NEUTRAL",
+			"drawableStates": ["GUARDED"],
 			"description": "Try to bring them to a calmer state"
 		},
 		"OpeningUp": {
@@ -108,6 +120,7 @@
 			"connectionType": "Trust",
 			"isStateCard": true,
 			"successState": "OPEN",
+			"drawableStates": ["GUARDED"],
 			"description": "Create emotional openness"
 		},
 		"DeliverLetter": {
@@ -118,6 +131,7 @@
 			"persistence": "OneShot",
 			"connectionType": "Trust",
 			"canDeliverLetter": true,
+			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED", "TENSE", "EAGER", "OVERWHELMED"],
 			"description": "Deliver an important letter to the recipient"
 		},
 		"UrgentDelivery": {
@@ -129,6 +143,7 @@
 			"connectionType": "Trust",
 			"canDeliverLetter": true,
 			"urgencyLevel": 2,
+			"drawableStates": ["DESPERATE", "HOSTILE"],
 			"description": "Deliver an urgent letter that cannot wait"
 		},
 		"DiscreetDelivery": {
@@ -139,6 +154,7 @@
 			"persistence": "OneShot",
 			"connectionType": "Shadow",
 			"canDeliverLetter": true,
+			"drawableStates": ["TENSE", "NEUTRAL", "CONNECTED"],
 			"description": "Quietly deliver a letter without drawing attention"
 		},
 		"FormalDelivery": {
@@ -149,6 +165,7 @@
 			"persistence": "OneShot", 
 			"connectionType": "Status",
 			"canDeliverLetter": true,
+			"drawableStates": ["NEUTRAL", "CONNECTED"],
 			"description": "Present a letter with proper ceremony and respect"
 		}
 	},

@@ -145,7 +145,8 @@ public class ConversationCardParser
             DisplayName = card.DisplayName,
             Description = card.Description,
             SuccessRate = card.SuccessRate,
-            SuccessState = card.SuccessState
+            SuccessState = card.SuccessState,
+            DrawableStates = card.DrawableStates
         };
     }
 
@@ -195,6 +196,20 @@ public class ConversationCardParser
                 successState = parsed;
             }
         }
+        
+        // Parse DrawableStates list
+        List<EmotionalState> drawableStates = null;
+        if (dto.DrawableStates != null && dto.DrawableStates.Any())
+        {
+            drawableStates = new List<EmotionalState>();
+            foreach (var stateString in dto.DrawableStates)
+            {
+                if (Enum.TryParse<EmotionalState>(stateString, true, out var state))
+                {
+                    drawableStates.Add(state);
+                }
+            }
+        }
 
         // Create card with all init-only properties set at once
         return new ConversationCard
@@ -219,7 +234,8 @@ public class ConversationCardParser
             DisplayName = dto.DisplayName,
             Description = dto.Description,
             SuccessRate = dto.SuccessRate ?? 0,
-            SuccessState = successState
+            SuccessState = successState,
+            DrawableStates = drawableStates
         };
     }
 
@@ -269,6 +285,7 @@ public class ConversationCardDTO
     public bool? GeneratesLetterOnSuccess { get; set; }
     public bool? IsStateCard { get; set; }
     public string SuccessState { get; set; }
+    public List<string> DrawableStates { get; set; } // NEW: States this card can be drawn in
 }
 
 /// <summary>

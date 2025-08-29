@@ -150,6 +150,11 @@
             border-width: 2px;
         }
 
+        .obligation-item.empty {
+            border: 1px dashed #c4a684;
+            opacity: 0.6;
+        }
+
         .queue-position {
             position: absolute;
             top: -8px;
@@ -728,7 +733,7 @@
             <div class="resource-group">
                 <div class="resource">
                     <div class="resource-icon">💰</div>
-                    <div class="resource-value">23</div>
+                    <div class="resource-value">10</div>
                     <span>Coins</span>
                 </div>
                 <div class="resource">
@@ -743,7 +748,7 @@
                 </div>
                 <div class="resource">
                     <div class="resource-icon">👁️</div>
-                    <div class="resource-value">7/10</div>
+                    <div class="resource-value">8/10</div>
                     <span>Attention</span>
                 </div>
             </div>
@@ -756,13 +761,13 @@
         <div class="header">
             <div class="time-bar">
                 <div class="time-display">
-                    <span>Tuesday, 3:47 PM</span>
+                    <span>Tuesday, 2:47 PM</span>
                     <span class="time-period">Afternoon</span>
                 </div>
             </div>
         </div>
 
-        <!-- Active Obligations Queue -->
+        <!-- Active Obligations Queue - BEFORE accepting Elena's letter -->
         <div class="obligations-panel">
             <div class="obligations-header">
                 <span>Active Obligations</span>
@@ -771,17 +776,17 @@
             <div class="obligation-list">
                 <div class="obligation-item position-1">
                     <span class="queue-position">1</span>
-                    Elena's letter → Lord Blackwood <span class="deadline">(1h 13m)</span>
+                    Marcus's package → Warehouse <span class="deadline">(3h 13m)</span>
                 </div>
                 <span class="queue-arrow">→</span>
                 <div class="obligation-item">
                     <span class="queue-position">2</span>
-                    Marcus's package → Warehouse (4h 30m)
+                    Guard's report → Barracks <span class="deadline">(5h 30m)</span>
                 </div>
                 <span class="queue-arrow">→</span>
-                <div class="obligation-item">
+                <div class="obligation-item empty">
                     <span class="queue-position">3</span>
-                    Thomas's reply → Maria (6h 00m)
+                    <span style="color: #7a6250;">[Empty]</span>
                 </div>
             </div>
         </div>
@@ -798,7 +803,7 @@
             <div class="location-name">Central Market Square</div>
             <div class="location-traits">
                 <span class="trait">Public</span>
-                <span class="trait">Afternoon: Moderate Crowd</span>
+                <span class="trait">Afternoon: Busy</span>
                 <span class="trait">Commerce Hub</span>
             </div>
         </div>
@@ -814,7 +819,7 @@
 
         <div class="content-area">
             <div class="atmosphere-text">
-                The fountain's spray catches afternoon light. Merchants hawk their wares while guards patrol the northern checkpoint.
+                The fountain's spray catches afternoon light. Merchants hawk their wares while guards patrol near the northern checkpoint, checking papers of travelers heading to the Noble District.
             </div>
 
             <div class="section-header">Actions Available Here</div>
@@ -845,7 +850,7 @@
                     <div class="token-display">Shadow: <span class="token-count">0</span></div>
                 </div>
                 <div class="npc-description">
-                    Announcing the day's news with theatrical flair. No exchange deck available.
+                    Announcing news about Lord Blackwood's departure tonight for his summer estate.
                 </div>
                 <div class="npc-actions">
                     <div class="npc-action conversation">
@@ -861,14 +866,14 @@
             <div class="observations">
                 <div class="observation-note">Spend 1 attention to observe, gain a state change card for conversations:</div>
                 <div class="observation-item">
-                    <span class="observation-text">Guards discussing checkpoint bribes</span>
+                    <span class="observation-text">Noble District checkpoint activity</span>
                     <span class="observation-reward">
                         <span class="cost-value">1 attention</span>
                         <span class="reward-card">Any→Tense</span>
                     </span>
                 </div>
                 <div class="observation-item">
-                    <span class="observation-text">Merchant's heated argument</span>
+                    <span class="observation-text">Lord Blackwood's carriage being prepared</span>
                     <span class="observation-reward">
                         <span class="cost-value">1 attention</span>
                         <span class="reward-card">Tense→Eager</span>
@@ -885,61 +890,20 @@
                 
                 <div class="spot-card">
                     <div class="spot-card-name">Merchant Row</div>
-                    <div class="spot-occupants">Marcus (Calculating)</div>
+                    <div class="spot-occupants">Marcus (Calculating) <span class="urgent-marker">QUEUE 1!</span></div>
                     <div class="spot-move-action">Move here (instant, free)</div>
                 </div>
-            </div>
-        </div>
 
-        <div class="section-divider">
-            <span class="divider-text">After Moving to Merchant Row</span>
-        </div>
-
-        <!-- SCREEN 2: At Merchant Row with Marcus -->
-        <div class="current-spot-banner">
-            <div class="current-spot-name">Merchant Row</div>
-            <div class="spot-traits">
-                <span class="spot-trait">Commercial</span>
-                <span class="spot-trait">Loud</span>
-            </div>
-        </div>
-
-        <div class="content-area">
-            <div class="atmosphere-text">
-                Cloth and spices create a riot of color and scent. Marcus arranges his wares with meticulous care.
-            </div>
-
-            <div class="section-header">People at This Spot</div>
-            
-            <div class="npc-card">
-                <div class="npc-header">
-                    <div>
-                        <div class="npc-name">Marcus the Cloth Merchant</div>
-                        <div class="npc-type">Mercantile (10 base patience, HAS EXCHANGE DECK)</div>
-                    </div>
-                    <div class="npc-state">Calculating</div>
+                <div class="spot-card">
+                    <div class="spot-card-name">Guard Post</div>
+                    <div class="spot-occupants">Guard Captain (Tense)</div>
+                    <div class="spot-move-action">Move here (instant, free)</div>
                 </div>
-                <div class="npc-tokens">
-                    <div class="token-display">Trust: <span class="token-count">0</span></div>
-                    <div class="token-display">Commerce: <span class="token-count">2</span> <span class="token-effect">(+10% all cards)</span></div>
-                    <div class="token-display">Status: <span class="token-count">0</span></div>
-                    <div class="token-display">Shadow: <span class="token-count">1</span> <span class="token-effect">(+5% all cards)</span></div>
-                </div>
-                <div class="npc-description">
-                    Checking inventory against his ledger, occasionally frowning at the numbers. Has exchange deck for trades.
-                </div>
-                <div class="npc-actions">
-                    <div class="npc-action exchange">
-                        <span class="action-type">Quick Exchange</span>
-                        <span class="action-details">Free • <span style="color: #5a7a3a;">Trade resources instantly</span></span>
-                    </div>
-                    <div class="npc-action conversation">
-                        <span class="action-type">Standard Conversation</span>
-                        <span class="action-details">
-                            <span class="cost-value">2 attention</span> • 
-                            <span class="patience-calculation">10 patience</span>
-                        </span>
-                    </div>
+
+                <div class="spot-card">
+                    <div class="spot-card-name">North Alcove</div>
+                    <div class="spot-occupants">Empty (Discrete spot)</div>
+                    <div class="spot-move-action">Move here (instant, free)</div>
                 </div>
             </div>
         </div>
@@ -948,7 +912,7 @@
             <span class="divider-text">After Traveling to Copper Kettle</span>
         </div>
 
-        <!-- SCREEN 3: At Copper Kettle -->
+        <!-- SCREEN 2: At Copper Kettle -->
         <div class="location-header">
             <div class="location-path">
                 <span>Lower Wards</span>
@@ -974,7 +938,7 @@
 
         <div class="content-area">
             <div class="atmosphere-text">
-                The afternoon tavern is nearly empty. In the corner, Elena clutches a sealed letter.
+                The afternoon tavern is nearly empty. In the corner, you spot Elena at a private table, clutching something.
             </div>
 
             <div class="section-header">Other Spots in Copper Kettle</div>
@@ -995,6 +959,12 @@
                     <div class="spot-occupants">Bertram (Working)</div>
                     <div class="spot-move-action">Move here (instant, free)</div>
                 </div>
+
+                <div class="spot-card">
+                    <div class="spot-card-name">Hearthside</div>
+                    <div class="spot-occupants">Empty (Warm spot)</div>
+                    <div class="spot-move-action">Move here (instant, free)</div>
+                </div>
             </div>
         </div>
 
@@ -1002,7 +972,7 @@
             <span class="divider-text">After Moving to Corner Table</span>
         </div>
 
-        <!-- SCREEN 4: At Elena's Table -->
+        <!-- SCREEN 3: At Elena's Table -->
         <div class="current-spot-banner">
             <div class="current-spot-name">Corner Table</div>
             <div class="spot-traits">
@@ -1012,7 +982,7 @@
 
         <div class="content-area">
             <div class="atmosphere-text">
-                The corner offers privacy. Elena's white knuckles betray her desperation.
+                The corner offers privacy from prying eyes. Elena's white knuckles betray her desperation as she grips a sealed letter.
             </div>
 
             <div class="section-header">People at This Spot</div>
@@ -1032,7 +1002,7 @@
                     <div class="token-display">Shadow: <span class="token-count">0</span></div>
                 </div>
                 <div class="npc-description">
-                    Clutching her sealed letter, eyes darting to the door with each sound. Deadline under 2 hours triggers desperate state.
+                    Clutching her sealed letter, eyes darting to the door with each sound. Lord Blackwood leaves at sunset - less than 3 hours away.
                 </div>
                 <div class="npc-actions">
                     <div class="npc-action conversation">
@@ -1052,25 +1022,18 @@
 
             <div class="observations">
                 <div class="observation-note">Observations at this private spot:</div>
-                <div class="observation-item revealed">
-                    <div style="display: flex; justify-content: space-between; width: 100%;">
-                        <div class="observation-text">Guard Checkpoint Warning</div>
-                        <div>
-                            <span>Observed</span>
-                            <span> • </span>
-                            <span class="reward-card">Desperate→Open</span>
-                        </div>
-                    </div>
-                    <div class="observation-narrative">
-                        The north checkpoint is doubling inspections today. Guards are looking for someone specific - probably related to the noble district unrest. The merchant route through the warehouses avoids it entirely.
-                    </div>
-                    <div class="observation-decay">Card expires in 23h 45m</div>
-                </div>
                 <div class="observation-item">
                     <span class="observation-text">Elena's family seal on letter</span>
                     <span class="observation-reward">
                         <span class="cost-value">1 attention</span>
                         <span class="reward-card">Neutral→Open</span>
+                    </span>
+                </div>
+                <div class="observation-item">
+                    <span class="observation-text">Elena's trembling hands</span>
+                    <span class="observation-reward">
+                        <span class="cost-value">1 attention</span>
+                        <span class="reward-card">Desperate→Open</span>
                     </span>
                 </div>
             </div>
@@ -1093,7 +1056,7 @@
                 </div>
                 <div class="route-card blocked">
                     <div class="route-destination">Noble District Gate</div>
-                    <div class="route-details">25 min walk • Free • <span class="route-requirement">Requires: Access Permit</span></div>
+                    <div class="route-details">25 min walk • Free • <span class="route-requirement">Requires: Noble District Permit</span></div>
                 </div>
                 <div class="route-card">
                     <div class="route-destination">Temple of Bells</div>
@@ -1101,7 +1064,7 @@
                 </div>
                 <div class="route-card">
                     <div class="route-destination">Warehouse District</div>
-                    <div class="route-details">20 min walk • 2 coins (toll) • Available</div>
+                    <div class="route-details">20 min walk • Free • Available</div>
                 </div>
             </div>
         </div>

@@ -681,7 +681,10 @@ public class ConversationSession
         var drawnCards = new List<ConversationCard>();
         Console.WriteLine($"[DrawCardsForState] State: {state}, BaseCount: {baseCount}, Comfort: {comfort}");
         
-        // Special handling for GUARDED - state cards only
+        // NEW: Use DrawableStates property for transparent filtering
+        // Cards explicitly declare which states they can be drawn in
+        
+        // Special case: GUARDED still guarantees state cards
         if (state == EmotionalState.GUARDED)
         {
             Console.WriteLine($"[DrawCardsForState] GUARDED - Drawing STATE cards only");
@@ -690,14 +693,7 @@ public class ConversationSession
             return stateCards;
         }
         
-        // OVERWHELMED only draws 1 card (no guaranteed state)
-        if (state == EmotionalState.OVERWHELMED)
-        {
-            var cards = Deck.Draw(baseCount, comfort);  // Any type, just limited count
-            return cards;
-        }
-        
-        // CONNECTED has special 60/40 distribution
+        // CONNECTED has special 60/40 distribution for token cards
         if (state == EmotionalState.CONNECTED)
         {
             var guaranteeStateCard = baseCount > 1;
@@ -708,23 +704,26 @@ public class ConversationSession
             {
                 if (random.Next(100) < 60)
                 {
-                    // Try to draw a token card
-                    var tokenCard = Deck.DrawFilteredByTypes(1, comfort, null, true);
-                    if (tokenCard.Any())
+                    // Try to draw a token card that's drawable in CONNECTED state
+                    var tokenCards = Deck.DrawFilteredByState(1, comfort, state)
+                        .Where(c => c.GrantsToken)
+                        .ToList();
+                    
+                    if (tokenCards.Any())
                     {
-                        drawnCards.AddRange(tokenCard);
+                        drawnCards.Add(tokenCards.First());
                     }
                     else
                     {
-                        // Fall back to any card if no token cards available
-                        var anyCard = Deck.Draw(1, comfort);
+                        // Fall back to any card drawable in this state
+                        var anyCard = Deck.DrawFilteredByState(1, comfort, state);
                         drawnCards.AddRange(anyCard);
                     }
                 }
                 else
                 {
-                    // Draw any type
-                    var anyCard = Deck.Draw(1, comfort);
+                    // Draw any card drawable in this state
+                    var anyCard = Deck.DrawFilteredByState(1, comfort, state);
                     drawnCards.AddRange(anyCard);
                 }
             }
@@ -739,23 +738,16 @@ public class ConversationSession
             return drawnCards;
         }
         
-        // Standard state handling
-        var allowedTypes = GetAllowedCardTypesForState(state);
+        // Standard state handling - use DrawableStates
         var guaranteeState = ShouldGuaranteeStateCard(state);
-        
-        // Determine if we should include token cards
-        bool includeTokenCards = state == EmotionalState.OPEN || state == EmotionalState.EAGER;
-        
-        Console.WriteLine($"[DrawCardsForState] Standard state: {state}, AllowedTypes: {string.Join(",", allowedTypes?.Select(t => t.ToString()) ?? new[] { "ALL" })}, IncludeTokenCards: {includeTokenCards}");
-        
-        // Draw cards based on state filtering rules
         var regularCount = guaranteeState ? baseCount - 1 : baseCount;
         
-        // Draw regular cards filtered by state
+        Console.WriteLine($"[DrawCardsForState] Drawing {regularCount} cards filtered by DrawableStates for {state}");
+        
+        // Draw cards that are drawable in this state
         if (regularCount > 0)
         {
-            Console.WriteLine($"[DrawCardsForState] Drawing {regularCount} regular cards filtered by type");
-            var regularCards = Deck.DrawFilteredByTypes(regularCount, comfort, allowedTypes, includeTokenCards);
+            var regularCards = Deck.DrawFilteredByState(regularCount, comfort, state);
             drawnCards.AddRange(regularCards);
         }
         
