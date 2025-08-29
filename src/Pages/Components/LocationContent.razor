@@ -91,7 +91,7 @@
                                         </span>
                                     </div>
                                     <div class="card-body">
-                                        @if (option.Type == ConversationType.Exchange)
+                                        @if (option.Type == ConversationType.Commerce)
                                         {
                                             <div class="card-text">Trade coins for items or permits</div>
                                             <div class="card-outcomes">
@@ -106,7 +106,7 @@
                                                 <div class="outcome failure">Failure: Worse position & tight deadline</div>
                                             </div>
                                         }
-                                        else if (option.Type == ConversationType.Standard)
+                                        else if (option.Type == ConversationType.FriendlyChat)
                                         {
                                             <div class="card-text">Engage in conversation to build relationship</div>
                                             <div class="card-outcomes">

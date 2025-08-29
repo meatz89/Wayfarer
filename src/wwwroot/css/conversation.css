@@ -712,12 +712,33 @@
 
 /* Action Section */
 .action-section {
-    padding: 20px;
+    padding: 15px;
     background: #e8dcc4;
     text-align: center;
-    border-bottom: 2px solid #a68b6f;
+    border-bottom: 1px solid #a68b6f;
     position: relative;
     z-index: 2;
+}
+
+.turn-info {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.turn-detail {
+    display: flex;
+    gap: 5px;
+}
+
+.turn-value {
+    color: #5c4a3a;
+    font-weight: bold;
 }
 
 .turn-indicator {

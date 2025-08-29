@@ -688,6 +688,256 @@ namespace Wayfarer.Pages.Components
             return string.Join(" ", classes);
         }
 
+        protected string GetEmotionalStateDisplay()
+        {
+            if (Session == null) return "Unknown";
+            
+            return Session.CurrentState switch
+            {
+                EmotionalState.DESPERATE => "Desperate",
+                EmotionalState.HOSTILE => "Hostile", 
+                EmotionalState.TENSE => "Tense",
+                EmotionalState.GUARDED => "Guarded",
+                EmotionalState.NEUTRAL => "Neutral",
+                EmotionalState.OPEN => "Open",
+                EmotionalState.EAGER => "Eager",
+                EmotionalState.CONNECTED => "Connected",
+                _ => Session.CurrentState.ToString()
+            };
+        }
+        
+        protected string GetListenActionText()
+        {
+            if (Session == null) return "Draw cards";
+            
+            return Session.CurrentState switch
+            {
+                EmotionalState.DESPERATE => "Draw desperate cards",
+                EmotionalState.HOSTILE => "Draw burden cards",
+                EmotionalState.TENSE => "Draw tense cards",
+                EmotionalState.GUARDED => "Draw guarded cards",
+                EmotionalState.NEUTRAL => "Draw neutral cards",
+                EmotionalState.OPEN => "Draw open cards",
+                EmotionalState.EAGER => "Draw eager cards",
+                EmotionalState.CONNECTED => "Draw connected cards",
+                _ => "Draw cards"
+            };
+        }
+        
+        protected string GetSpeakActionText()
+        {
+            var limit = GetWeightLimit();
+            return $"Play weight {limit} cards";
+        }
+        
+        protected string GetProperCardName(ConversationCard card)
+        {
+            // Generate meaningful card names based on type and category
+            if (card.Category == CardCategory.Exchange && card.Context?.ExchangeName != null)
+                return card.Context.ExchangeName;
+            
+            if (card.Category == CardCategory.Burden)
+                return "Address Past Failure";
+            
+            if (card.Category == CardCategory.State)
+            {
+                if (card.SuccessState.HasValue)
+                {
+                    var targetState = GetEmotionalStateForCard(card.SuccessState.Value);
+                    return $"Let's {GetStateTransitionVerb(card.SuccessState.Value)}";
+                }
+                return "Change Approach";
+            }
+            
+            if (card.IsObservation)
+            {
+                // Use context for observation names
+                if (card.DisplayName != null)
+                    return card.DisplayName;
+                return "Share Observation";
+            }
+            
+            // Comfort cards get contextual names (comfort cards have no specific type)
+            if (card.Category == CardCategory.Comfort && card.Type == CardType.Trust)
+            {
+                if (card.BaseComfort >= 2)
+                    return "Deep Understanding";
+                else if (card.BaseComfort == 1)
+                    return "I Understand";
+                else
+                    return "Simple Response";
+            }
+            
+            // Token cards are identified by having token types
+            if (card.Type != CardType.Trust && card.Category == CardCategory.Comfort)
+            {
+                var tokenType = card.GetConnectionType();
+                return tokenType switch
+                {
+                    ConnectionType.Trust => "Build Trust",
+                    ConnectionType.Commerce => "Discuss Business", 
+                    ConnectionType.Status => "Show Respect",
+                    ConnectionType.Shadow => "Share Secret",
+                    _ => "Connect"
+                };
+            }
+            
+            // Default to template ID with formatting
+            return card.TemplateId?.Replace("_", " ") ?? "Unknown Card";
+        }
+        
+        private string GetStateTransitionVerb(EmotionalState targetState)
+        {
+            return targetState switch
+            {
+                EmotionalState.NEUTRAL => "Calm Down",
+                EmotionalState.OPEN => "Open Up",
+                EmotionalState.TENSE => "Be Careful",
+                EmotionalState.EAGER => "Get Excited",
+                EmotionalState.CONNECTED => "Connect Deeply",
+                _ => "Change Topics"
+            };
+        }
+        
+        private string GetEmotionalStateForCard(EmotionalState state)
+        {
+            return state switch
+            {
+                EmotionalState.DESPERATE => "desperate",
+                EmotionalState.HOSTILE => "hostile",
+                EmotionalState.TENSE => "tense",
+                EmotionalState.GUARDED => "guarded",
+                EmotionalState.NEUTRAL => "neutral",
+                EmotionalState.OPEN => "open",
+                EmotionalState.EAGER => "eager",
+                EmotionalState.CONNECTED => "connected",
+                _ => state.ToString().ToLower()
+            };
+        }
+        
+        protected string GetProperCardDialogue(ConversationCard card)
+        {
+            // Generate actual conversational dialogue instead of technical descriptions
+            
+            // Exchange cards
+            if (card.Category == CardCategory.Exchange)
+            {
+                if (card.Context?.ExchangeName == "Pass on this offer")
+                    return "Thank you, but I'll pass on this offer for now.";
+                if (card.Context?.ExchangeReward != null)
+                    return $"I'll take that deal - {card.Context.ExchangeCost} for {card.Context.ExchangeReward}.";
+                return "Let's make a trade.";
+            }
+            
+            // Burden cards - addressing past failures
+            if (card.Category == CardCategory.Burden)
+            {
+                return $"{NpcName}, about last time... I know I let you down when I didn't deliver your previous message.";
+            }
+            
+            // State transition cards
+            if (card.Category == CardCategory.State)
+            {
+                if (card.SuccessState.HasValue)
+                {
+                    return card.SuccessState.Value switch
+                    {
+                        EmotionalState.NEUTRAL => "Take a breath. We have time if we're smart about this. Let me help you think through the best approach.",
+                        EmotionalState.OPEN => "I can see this matters to you. Please, tell me more about what's happening.",
+                        EmotionalState.TENSE => "I understand this is sensitive. We should be careful how we proceed.",
+                        EmotionalState.EAGER => "This sounds like an opportunity! Tell me everything!",
+                        EmotionalState.CONNECTED => "I feel like we really understand each other. Let's work through this together.",
+                        EmotionalState.GUARDED => "Let's take this slowly and carefully.",
+                        _ => "Perhaps we should approach this differently."
+                    };
+                }
+                return "Let me try a different approach...";
+            }
+            
+            // Observation cards
+            if (card.IsObservation)
+            {
+                if (card.DisplayName == "Merchant Route Knowledge")
+                    return "I know a route through the merchant quarter that avoids the checkpoint entirely. We can reach Lord Blackwood faster.";
+                if (card.DisplayName == "Guard Patterns")
+                    return "I've been watching the guards. They change shifts at the third bell - that's our window.";
+                if (card.DisplayName == "Court Gossip")
+                    return "I overheard something at court that might interest you...";
+                return "I noticed something earlier that might help...";
+            }
+            
+            // Comfort cards based on weight/intensity
+            if (card.Category == CardCategory.Comfort && card.Type == CardType.Trust && card.BaseComfort > 0)
+            {
+                if (card.BaseComfort >= 2)
+                    return "I completely understand how you feel. Your situation resonates deeply with me.";
+                else if (card.BaseComfort == 1)
+                    return "I understand how important this is, " + NpcName + ". Your future shouldn't be decided without your consent.";
+                else
+                    return "I hear what you're saying.";
+            }
+            
+            // Token building cards (cards with specific token types)
+            if (card.Type != CardType.Trust && card.Category == CardCategory.Comfort)
+            {
+                var tokenType = card.GetConnectionType();
+                return tokenType switch
+                {
+                    ConnectionType.Trust => "You can trust me with this. I'll handle it with the care it deserves.",
+                    ConnectionType.Commerce => "This could be profitable for both of us. What are your terms?",
+                    ConnectionType.Status => "Your reputation precedes you. It's an honor to assist someone of your standing.",
+                    ConnectionType.Shadow => "Between you and me... I know how to keep a secret.",
+                    _ => "I want to help you with this."
+                };
+            }
+            
+            // Promise/Letter cards
+            if (card.DisplayName?.Contains("Letter") == true || card.DisplayName?.Contains("Accept") == true)
+            {
+                return "I'll take your letter to Lord Blackwood. For something this urgent, I'll do whatever it takes.";
+            }
+            
+            // Default fallback - try to get from loaded dialogues or use display name
+            var playerText = GetPlayerDialogueText(card.TemplateId, Session?.CurrentState);
+            if (!string.IsNullOrEmpty(playerText))
+                return playerText;
+            
+            return card.DisplayName ?? "Let me think about this...";
+        }
+        
+        protected string GetDrawableStatesText(ConversationCard card)
+        {
+            if (card.Category == CardCategory.Exchange)
+                return "Exchange • Instant resolution";
+            
+            if (card.Category == CardCategory.Burden)
+            {
+                // Burden cards are typically too heavy in desperate state
+                if (Session?.CurrentState == EmotionalState.DESPERATE && card.Weight > 1)
+                    return $"Too heavy for Desperate state (W{card.Weight})";
+                return "Burden • Must resolve";
+            }
+            
+            if (card.IsObservation)
+            {
+                if (IsObservationExpired(card))
+                    return "Observation • EXPIRED";
+                return "Observation • State change";
+            }
+            
+            if (card.DrawableStates != null && card.DrawableStates.Any())
+            {
+                var states = card.DrawableStates.Select(s => GetEmotionalStateForCard(s));
+                return $"Drawable: {string.Join(", ", states.Select(s => char.ToUpper(s[0]) + s.Substring(1)))}";
+            }
+            
+            if (card.Category == CardCategory.State)
+                return "State card • All non-Hostile";
+            
+            return $"{card.Category} • Weight {card.Weight}";
+        }
+        
+
         protected string GetTransitionHint()
         {
             if (Session == null) return "";
