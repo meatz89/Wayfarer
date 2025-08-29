@@ -63,7 +63,6 @@ public static class GoalCardFactory
             Persistence = templateCard.Persistence,
             Weight = templateCard.Weight,
             BaseComfort = templateCard.BaseComfort,
-            Depth = templateCard.Depth,
             IsGoalCard = true,
             GoalCardType = templateCard.GoalCardType,
             DisplayName = templateCard.DisplayName,

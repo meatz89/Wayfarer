@@ -97,7 +97,6 @@ public class TravelCard
     public string DisplayName { get; set; }
     public string Description { get; set; }
     public int Weight { get; set; }
-    public int Depth { get; set; }
     public int BaseComfort { get; set; }
     public string Persistence { get; set; }
     public string ConnectionType { get; set; }

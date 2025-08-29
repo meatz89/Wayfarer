@@ -140,7 +140,6 @@ public class ConversationCardParser
             Persistence = card.Persistence,
             Weight = card.Weight,
             BaseComfort = card.BaseComfort,
-            Depth = card.Depth,
             IsGoalCard = card.IsGoalCard,
             GoalCardType = card.GoalCardType,
             DisplayName = card.DisplayName,
@@ -215,7 +214,6 @@ public class ConversationCardParser
             Persistence = Enum.Parse<PersistenceType>(dto.Persistence, true),
             Weight = dto.Weight,
             BaseComfort = dto.BaseComfort,
-            Depth = dto.Depth ?? 0,
             IsGoalCard = dto.IsGoalCard ?? false,
             GoalCardType = goalType,
             DisplayName = dto.DisplayName,
@@ -262,7 +260,6 @@ public class ConversationCardDTO
     public string Persistence { get; set; }
     public int Weight { get; set; }
     public int BaseComfort { get; set; }
-    public int? Depth { get; set; }
     public bool? IsGoalCard { get; set; }
     public string GoalCardType { get; set; }
     public string DisplayName { get; set; }

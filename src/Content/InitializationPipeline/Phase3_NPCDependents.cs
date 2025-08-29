@@ -166,7 +166,6 @@ public class Phase3_NPCDependents : IInitializationPhase
             Persistence = original.Persistence,
             Weight = original.Weight,
             BaseComfort = original.BaseComfort,
-            Depth = original.Depth,
             SuccessState = original.SuccessState,
             IsStateCard = original.IsStateCard,
             GrantsToken = original.GrantsToken,
@@ -207,7 +206,6 @@ public class Phase3_NPCDependents : IInitializationPhase
                         Persistence = PersistenceType.Goal,
                         Weight = 2, // Standard weight for promise cards
                         BaseComfort = 0, // No comfort for goal cards
-                        Depth = 10, // Standard depth for goal cards
                         IsGoalCard = true,
                         GoalCardType = ConversationType.Promise,
                         DisplayName = $"Letter from {npc.Name}",
@@ -227,7 +225,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                 
                 foreach (var card in goalCards)
                 {
-                    Console.WriteLine($"  - {card.DisplayName ?? card.Id} (Weight: {card.Weight}, Depth: {card.Depth})");
+                    Console.WriteLine($"  - {card.DisplayName ?? card.Id} (Weight: {card.Weight})");
                 }
             }
         }

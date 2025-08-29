@@ -100,7 +100,7 @@
                 @if (ConversationCards != null && ConversationCards.Any())
                 {
                     <div class="card-list">
-                        @foreach (var card in ConversationCards.OrderBy(c => c.Depth))
+                        @foreach (var card in ConversationCards.OrderBy(c => c.Weight))
                         {
                             <div class="debug-card conversation-card">
                                 <div class="card-header">
@@ -110,7 +110,6 @@
                                 </div>
                                 <div class="card-properties">
                                     <span>Type: @card.Type</span>
-                                    <span>Depth: @card.Depth</span>
                                     <span>Weight: @card.Weight</span>
                                     <span>Persistence: @card.Persistence</span>
                                 </div>
@@ -171,7 +170,6 @@
                                 </div>
                                 <div class="card-properties">
                                     <span>Template: @card.TemplateId</span>
-                                    <span>Depth: @card.Depth</span>
                                     <span>Weight: @card.Weight</span>
                                 </div>
                                 <div class="eligibility">

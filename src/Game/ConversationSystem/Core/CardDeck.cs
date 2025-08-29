@@ -88,14 +88,12 @@ public class CardDeck : IEnumerable<ConversationCard>
     {
         var drawn = new List<ConversationCard>();
 
-        // Filter available cards by depth (comfort level requirement)
-        var availableCards = cards
-            .Where(c => c.Depth <= currentComfort || c.Depth == 0) // Depth 0 = always available
-            .ToList();
+        // Cards are no longer filtered by comfort/depth - emotional state filtering happens elsewhere
+        var availableCards = cards.ToList();
 
         if (!availableCards.Any())
         {
-            Console.WriteLine($"No cards available at comfort level {currentComfort}");
+            Console.WriteLine($"No cards available in deck");
             return drawn;
         }
 
@@ -186,11 +184,11 @@ public class CardDeck : IEnumerable<ConversationCard>
     public bool IsEmpty => cards.Count == 0;
 
     /// <summary>
-    /// Check if deck has cards available at given comfort level
+    /// Check if deck has any cards available
     /// </summary>
-    public bool HasCardsAtComfortLevel(int comfortLevel)
+    public bool HasCardsAvailable()
     {
-        return cards.Any(c => c.Depth <= comfortLevel || c.Depth == 0);
+        return cards.Any();
     }
 
     /// <summary>
@@ -281,9 +279,9 @@ public class CardDeck : IEnumerable<ConversationCard>
     {
         var drawn = new List<ConversationCard>();
         
-        // Filter by card category and depth
+        // Filter by card category only (depth filtering removed)
         var availableCards = cards
-            .Where(c => c.Category == category && (c.Depth <= currentComfort || c.Depth == 0))
+            .Where(c => c.Category == category)
             .ToList();
             
         for (int i = 0; i < count && availableCards.Any(); i++)
@@ -311,11 +309,7 @@ public class CardDeck : IEnumerable<ConversationCard>
         var drawn = new List<ConversationCard>();
         
         var availableCards = cards
-            .Where(c => {
-                var depthOk = c.Depth <= currentComfort || c.Depth == 0;
-                var typeOk = types == null || types.Contains(c.Type);
-                return depthOk && typeOk;
-            })
+            .Where(c => types == null || types.Contains(c.Type))
             .ToList();
             
         // Apply token card filter if needed

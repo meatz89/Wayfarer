@@ -204,11 +204,6 @@ public class ConversationCard
     public bool ManipulatesObligations { get; init; }
 
     /// <summary>
-    /// Card depth/power level (0-20, deeper cards require more comfort)
-    /// </summary>
-    public int Depth { get; init; }
-
-    /// <summary>
     /// Override success rate for special cards (null uses calculated rate)
     /// </summary>
     public int? SuccessRate { get; init; }

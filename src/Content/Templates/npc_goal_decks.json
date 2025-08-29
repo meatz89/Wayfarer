@@ -6,7 +6,6 @@
         "template": "LetterGoal",
         "type": "Trust",
         "category": "PROMISE",
-        "depth": 8,
         "weight": 3,
         "validStates": ["DESPERATE", "TENSE"],
         "letterContent": {
@@ -23,7 +22,6 @@
         "template": "LetterGoal",
         "type": "Trust",
         "category": "PROMISE",
-        "depth": 10,
         "weight": 2,
         "validStates": ["OPEN", "CONNECTED"],
         "letterContent": {
@@ -40,7 +38,6 @@
         "template": "ResolutionGoal",
         "type": "Trust",
         "category": "PROMISE",
-        "depth": 5,
         "weight": 1,
         "validStates": ["ANY"],
         "requirement": "2+ burden cards in conversation deck"
@@ -52,7 +49,6 @@
         "template": "LetterGoal",
         "type": "Commerce",
         "category": "PROMISE",
-        "depth": 6,
         "weight": 2,
         "validStates": ["NEUTRAL", "OPEN"],
         "letterContent": {
@@ -71,7 +67,6 @@
         "template": "LetterGoal",
         "type": "Status",
         "category": "PROMISE",
-        "depth": 12,
         "weight": 3,
         "validStates": ["NEUTRAL", "GUARDED"],
         "letterContent": {
@@ -90,7 +85,6 @@
         "template": "LetterGoal",
         "type": "Trust",
         "category": "PROMISE",
-        "depth": 9,
         "weight": 1,
         "validStates": ["OPEN", "EAGER"],
         "letterContent": {
@@ -109,7 +103,6 @@
         "template": "LetterGoal",
         "type": "Shadow",
         "category": "PROMISE",
-        "depth": 7,
         "weight": 2,
         "validStates": ["TENSE", "DESPERATE"],
         "letterContent": {

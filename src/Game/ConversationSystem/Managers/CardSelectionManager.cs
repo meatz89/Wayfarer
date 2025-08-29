@@ -95,7 +95,6 @@ public class CardSelectionManager
         }
 
         var results = new List<SingleCardResult>();
-        var totalComfort = 0;
         EmotionalState? newState = null;
 
         // Roll for each card individually

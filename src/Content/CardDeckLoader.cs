@@ -301,7 +301,6 @@ public class CardDeckLoader
                 Persistence = persistence,
                 Weight = weight,
                 BaseComfort = baseComfort,
-                Depth = depth,
                 IsStateCard = isStateCard,
                 SuccessState = successState,
                 DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
@@ -378,7 +377,6 @@ public class CardDeckLoader
                 Persistence = PersistenceType.Persistent,
                 Weight = weight,
                 BaseComfort = 0,
-                Depth = depth,
                 IsGoalCard = true,
                 GoalCardType = goalType,
                 DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
@@ -463,7 +461,6 @@ public class CardDeckLoader
                 Persistence = PersistenceType.Fleeting,
                 Weight = 0, // Exchange cards have no weight
                 BaseComfort = 0,
-                Depth = 0,
                 DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
                 Description = description,
                 SuccessRate = 100, // Exchange cards always succeed if affordable
@@ -517,7 +514,6 @@ public class CardDeckLoader
                 Persistence = PersistenceType.Opportunity,
                 Weight = 1,
                 BaseComfort = 2,
-                Depth = 0,
                 IsObservation = true,
                 ObservationSource = $"{location}/{spot}",
                 SuccessState = targetState,

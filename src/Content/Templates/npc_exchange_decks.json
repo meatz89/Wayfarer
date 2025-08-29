@@ -6,7 +6,6 @@
         "template": "SimpleExchange",
         "type": "Commerce",
         "category": "EXCHANGE",
-        "depth": 0,
         "weight": 0,
         "offer": {
           "resource": "food",
@@ -22,7 +21,6 @@
         "template": "SimpleExchange",
         "type": "Commerce",
         "category": "EXCHANGE",
-        "depth": 0,
         "weight": 0,
         "offer": {
           "resource": "health",
@@ -38,7 +36,6 @@
         "template": "SimpleExchange",
         "type": "Commerce",
         "category": "EXCHANGE",
-        "depth": 0,
         "weight": 0,
         "offer": {
           "resource": "food",

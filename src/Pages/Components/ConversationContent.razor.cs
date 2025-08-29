@@ -340,16 +340,16 @@ namespace Wayfarer.Pages.Components
         
         private string GetResponseDialogue()
         {
-            // Generate response based on current comfort level
-            if (Session.CurrentComfort >= 15)
+            // Generate response based on current comfort level (-3 to +3)
+            if (Session.CurrentComfort >= 2)
             {
                 return "This conversation has been wonderful!";
             }
-            else if (Session.CurrentComfort >= 10)
+            else if (Session.CurrentComfort >= 0)
             {
                 return "I appreciate you taking the time to talk.";
             }
-            else if (Session.CurrentComfort >= 5)
+            else if (Session.CurrentComfort >= -2)
             {
                 return "I see what you mean...";
             }
@@ -406,7 +406,7 @@ namespace Wayfarer.Pages.Components
                 EmotionalWeight = weight,
                 Tier = ConvertToTierLevel(tier),
                 Description = GenerateLetterDescription(npc.Name, recipientName, tier),
-                GenerationReason = $"Generated from {Session.CurrentComfort} comfort in conversation"
+                GenerationReason = $"Generated from conversation with {npc.Name}"
             };
         }
         
@@ -631,18 +631,22 @@ namespace Wayfarer.Pages.Components
             if (Session == null) return "None";
             return Session.CurrentComfort switch
             {
-                >= 20 => "Perfect Understanding",
-                >= 15 => "Deep Connection",
-                >= 10 => "Good Rapport",
-                >= 5 => "Basic Trust",
-                _ => "Tentative"
+                3 => "Perfect Understanding",
+                2 => "Deep Connection",
+                1 => "Good Rapport",
+                0 => "Neutral",
+                -1 => "Uncertain",
+                -2 => "Tense",
+                -3 => "Breaking Down",
+                _ => "Unknown"
             };
         }
 
         protected int GetComfortProgress()
         {
-            if (Session == null) return 0;
-            return Math.Min(100, (Session.CurrentComfort * 100) / 20); // Scale to 20 max comfort for full bar
+            if (Session == null) return 50; // Center position for 0
+            // Map -3 to +3 to 0% to 100%
+            return (int)((Session.CurrentComfort + 3) * 100 / 6.0);
         }
 
         protected string GetCardClass(ConversationCard card)
@@ -932,8 +936,8 @@ namespace Wayfarer.Pages.Components
                 return "No more cards available - conversation ended";
                 
             // Default reason based on comfort level
-            if (Session.CurrentComfort >= 10)
-                return $"Conversation ended naturally (Comfort reached: {Session.CurrentComfort})";
+            if (Session.CurrentComfort >= 2)
+                return $"Conversation ended naturally (Comfort: {Session.CurrentComfort})";
             else
                 return "Conversation ended";
         }
