@@ -90,10 +90,6 @@
             letter-spacing: 0.5px;
         }
 
-        .current-time {
-            text-transform: uppercase;
-        }
-
         .deadline-warning {
             color: #d4704a;
             font-weight: bold;
@@ -221,10 +217,39 @@
             color: #5c4a3a;
         }
 
-        .depth-access {
-            font-size: 14px;
-            color: #5a7a3a;
+        .comfort-battery {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+
+        .battery-segment {
+            width: 30px;
+            height: 20px;
+            border: 1px solid #c4a684;
+            background: #e8dcc4;
+        }
+
+        .battery-segment.filled {
+            background: #7a8b5a;
+        }
+
+        .battery-segment.negative {
+            background: #8b4726;
+        }
+
+        .battery-segment.center {
+            border-width: 2px;
+            border-color: #5c4a3a;
+        }
+
+        .transition-warning {
+            font-size: 11px;
+            color: #8b4726;
             font-weight: bold;
+            text-align: center;
             margin-top: 4px;
         }
 
@@ -504,8 +529,16 @@
             color: #5c4a3a;
         }
 
-        .depth-value {
-            color: #5a7a3a;
+        /* Card Drawable States */
+        .drawable-states {
+            padding: 8px 15px;
+            background: #f9f3e9;
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        .drawable-states strong {
+            color: #5c4a3a;
         }
 
         /* Card Text */
@@ -598,10 +631,6 @@
             font-weight: bold;
         }
 
-        .card-marker.opportunity {
-            background: #5a7a8a;
-        }
-
         .card-marker.must-play {
             background: #4a3a2a;
             animation: pulse 2s infinite;
@@ -609,14 +638,6 @@
 
         .card-marker.negotiate {
             background: #d4a76a;
-        }
-
-        .card-marker.free-weight {
-            background: #7a8b5a;
-        }
-
-        .card-marker.too-deep {
-            background: #8b4726;
         }
 
         @keyframes pulse {
@@ -715,10 +736,19 @@
             <div class="comfort-patience-section">
                 <div class="comfort-display">
                     <div class="comfort-header">
-                        <div class="comfort-title">Current Comfort</div>
-                        <div class="comfort-value">5</div>
+                        <div class="comfort-title">Comfort Battery</div>
+                        <div class="comfort-value">-1</div>
                     </div>
-                    <div class="depth-access">Can access cards: Depth 0-5</div>
+                    <div class="comfort-battery">
+                        <div class="battery-segment negative"></div>
+                        <div class="battery-segment"></div>
+                        <div class="battery-segment"></div>
+                        <div class="battery-segment center">0</div>
+                        <div class="battery-segment"></div>
+                        <div class="battery-segment"></div>
+                        <div class="battery-segment"></div>
+                    </div>
+                    <div class="transition-warning">At -3: Transition to HOSTILE!</div>
                 </div>
                 
                 <div class="patience-display">
@@ -732,7 +762,7 @@
                 <div class="state-indicator">
                     <span>Emotional State:</span>
                     <span class="state-name">Desperate</span>
-                    <span class="state-effects">• Draw 2 + 1 crisis • Weight limit 3 • Crisis letters free</span>
+                    <span class="state-effects">• Draw filters active • Weight limit 1 • -3 comfort → Hostile</span>
                 </div>
             </div>
         </div>
@@ -749,15 +779,15 @@
 
         <!-- Action Choice -->
         <div class="action-section">
-            <div class="turn-indicator">Turn 3 of 10 • Weight Limit: 3 • Comfort: 5 (Depth 0-5 accessible)</div>
+            <div class="turn-indicator">Turn 3 of 10 • Weight Limit: 1 (Desperate)</div>
             <div class="action-choices">
                 <div class="action-button">
                     <div>👂 LISTEN</div>
-                    <div class="action-details">Draw 2 + 1 crisis • State → Hostile</div>
+                    <div class="action-details">Draw cards listing Desperate</div>
                 </div>
                 <div class="action-button">
                     <div>💬 SPEAK</div>
-                    <div class="action-details">Play cards up to weight 3</div>
+                    <div class="action-details">Play cards up to weight 1</div>
                 </div>
             </div>
         </div>
@@ -768,57 +798,55 @@
                 <div class="cards-title">Your Hand (5 cards)</div>
                 <div class="weight-tracker">
                     <span>Weight Available:</span>
-                    <span style="font-weight: bold;">3</span>
+                    <span style="font-weight: bold;">1</span>
                 </div>
             </div>
             
             <div class="card-grid">
                 <!-- Observation Card -->
                 <div class="card observation">
-                    <div class="card-marker opportunity">Vanishes if Listen</div>
                     <div class="card-header">
                         <div class="card-identity">
                             <div class="card-name">Guard Checkpoint Info</div>
                             <div class="card-tags">
-                                <span class="tag">COMFORT</span>
-                                <span class="tag">Shadow</span>
+                                <span class="tag">State</span>
                                 <span class="tag">Observation</span>
+                                <span class="tag">W1</span>
                             </div>
                         </div>
                         <div class="card-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Depth</span>
-                                <span class="stat-value depth-value">0</span>
-                            </div>
                             <div class="stat-item">
                                 <span class="stat-label">Weight</span>
                                 <span class="stat-value">1</span>
                             </div>
                         </div>
                     </div>
+                    <div class="drawable-states">
+                        <strong>Always Playable</strong> (Observation card from player deck)
+                    </div>
                     <div class="card-text">
-                        "The north checkpoint is doubling inspections today. I know a merchant route that avoids it entirely - we could use that to reach Lord Blackwood faster."
+                        "The north checkpoint is doubling inspections today. I know a merchant route that avoids it entirely."
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
                             <div class="outcome-header">
                                 <span class="outcome-label">Success</span>
-                                <span class="outcome-chance">60%</span>
+                                <span class="outcome-chance">85%</span>
                             </div>
                             <div class="outcome-effects">
                                 <div class="effect">
-                                    <span class="effect-value">+4</span> comfort
+                                    Desperate → Open
                                 </div>
                             </div>
                         </div>
                         <div class="outcome failure">
                             <div class="outcome-header">
                                 <span class="outcome-label">Failure</span>
-                                <span class="outcome-chance">40%</span>
+                                <span class="outcome-chance">15%</span>
                             </div>
                             <div class="outcome-effects">
                                 <div class="effect">
-                                    <span class="effect-value">+1</span> comfort
+                                    No change
                                 </div>
                             </div>
                         </div>
@@ -831,21 +859,20 @@
                         <div class="card-identity">
                             <div class="card-name">I Understand</div>
                             <div class="card-tags">
-                                <span class="tag">COMFORT</span>
+                                <span class="tag">Comfort</span>
                                 <span class="tag">Trust</span>
-                                <span class="tag">Persistent</span>
+                                <span class="tag">W1</span>
                             </div>
                         </div>
                         <div class="card-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Depth</span>
-                                <span class="stat-value depth-value">3</span>
-                            </div>
                             <div class="stat-item">
                                 <span class="stat-label">Weight</span>
                                 <span class="stat-value">1</span>
                             </div>
                         </div>
+                    </div>
+                    <div class="drawable-states">
+                        <strong>Drawable in:</strong> Desperate, Tense, Open
                     </div>
                     <div class="card-text">
                         "I understand how important this is, Elena. Your future shouldn't be decided without your consent."
@@ -858,7 +885,7 @@
                             </div>
                             <div class="outcome-effects">
                                 <div class="effect">
-                                    <span class="effect-value">+3</span> comfort
+                                    <span class="effect-value">+1</span> comfort
                                 </div>
                             </div>
                         </div>
@@ -869,7 +896,7 @@
                             </div>
                             <div class="outcome-effects">
                                 <div class="effect">
-                                    <span class="effect-value">+1</span> comfort
+                                    <span class="effect-value">-1</span> comfort
                                 </div>
                             </div>
                         </div>
@@ -882,21 +909,19 @@
                         <div class="card-identity">
                             <div class="card-name">Let's Think This Through</div>
                             <div class="card-tags">
-                                <span class="tag">STATE</span>
-                                <span class="tag">Trust</span>
-                                <span class="tag">Solo Only</span>
+                                <span class="tag">State</span>
+                                <span class="tag">W1</span>
                             </div>
                         </div>
                         <div class="card-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Depth</span>
-                                <span class="stat-value depth-value">4</span>
-                            </div>
                             <div class="stat-item">
                                 <span class="stat-label">Weight</span>
                                 <span class="stat-value">1</span>
                             </div>
                         </div>
+                    </div>
+                    <div class="drawable-states">
+                        <strong>Drawable in:</strong> All non-Hostile states
                     </div>
                     <div class="card-text">
                         "Take a breath. We have time if we're smart about this. Let me help you think through the best approach."
@@ -928,147 +953,79 @@
                 </div>
 
                 <!-- Burden Card -->
-                <div class="card burden">
+                <div class="card burden unavailable">
                     <div class="card-marker must-play">Blocks Slot</div>
                     <div class="card-header">
                         <div class="card-identity">
                             <div class="card-name">Address Past Failure</div>
                             <div class="card-tags">
-                                <span class="tag">BURDEN</span>
-                                <span class="tag">Trust</span>
-                                <span class="tag">Must Resolve</span>
+                                <span class="tag">Burden</span>
+                                <span class="tag">W2</span>
                             </div>
                         </div>
                         <div class="card-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Depth</span>
-                                <span class="stat-value depth-value">1</span>
-                            </div>
                             <div class="stat-item">
                                 <span class="stat-label">Weight</span>
                                 <span class="stat-value">2</span>
                             </div>
                         </div>
                     </div>
+                    <div class="drawable-states">
+                        <strong>Too heavy!</strong> (Requires weight 2+)
+                    </div>
                     <div class="card-text">
-                        "Elena, about last time... I know I let you down when I didn't deliver your previous message. This time will be different, I promise."
+                        "Elena, about last time... I know I let you down when I didn't deliver your previous message."
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
                             <div class="outcome-header">
                                 <span class="outcome-label">Success</span>
-                                <span class="outcome-chance">55%</span>
+                                <span class="outcome-chance">60%</span>
                             </div>
                             <div class="outcome-effects">
                                 <div class="effect">
                                     Remove burden
                                 </div>
-                                <div class="effect">
-                                    <span class="effect-value">-2</span> comfort
-                                </div>
                             </div>
                         </div>
                         <div class="outcome failure">
                             <div class="outcome-header">
                                 <span class="outcome-label">Failure</span>
-                                <span class="outcome-chance">45%</span>
+                                <span class="outcome-chance">40%</span>
                             </div>
                             <div class="outcome-effects">
                                 <div class="effect">
                                     Burden remains
                                 </div>
-                                <div class="effect">
-                                    <span class="effect-value">-1</span> Trust token
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Crisis letter (injected) -->
-                <div class="card crisis">
-                    <div class="card-marker free-weight">Weight 0 in Desperate</div>
-                    <div class="card-header">
-                        <div class="card-identity">
-                            <div class="card-name">I'll Handle Everything!</div>
-                            <div class="card-tags">
-                                <span class="tag">CRISIS</span>
-                                <span class="tag">Trust</span>
-                                <span class="tag">Emergency</span>
-                            </div>
-                        </div>
-                        <div class="card-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Depth</span>
-                                <span class="stat-value depth-value">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Weight</span>
-                                <span class="stat-value">0</span>
-                                <span style="font-size: 9px;">(Free!)</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-text">
-                        "Don't worry about anything else - I'll take your letter right now and run straight to Lord Blackwood! I swear I'll get it there!"
-                    </div>
-                    <div class="card-outcomes">
-                        <div class="outcome success">
-                            <div class="outcome-header">
-                                <span class="outcome-label">Success</span>
-                                <span class="outcome-chance">30%</span>
-                            </div>
-                            <div class="outcome-effects">
-                                <div class="effect">
-                                    Remove crisis
-                                </div>
-                                <div class="effect">
-                                    State → Tense
-                                </div>
-                            </div>
-                        </div>
-                        <div class="outcome failure">
-                            <div class="outcome-header">
-                                <span class="outcome-label">Failure</span>
-                                <span class="outcome-chance">70%</span>
-                            </div>
-                            <div class="outcome-effects">
-                                <div class="effect">
-                                    Add 2 burden cards
-                                </div>
-                                <div class="effect">
-                                    Conversation ends
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Letter Card (in hand from letter deck check) -->
+                <!-- Letter Card (goal) -->
                 <div class="card letter">
                     <div class="card-marker negotiate">Negotiate Terms</div>
                     <div class="card-header">
                         <div class="card-identity">
                             <div class="card-name">Accept Elena's Letter</div>
                             <div class="card-tags">
-                                <span class="tag">LETTER</span>
+                                <span class="tag">Goal</span>
                                 <span class="tag">Trust</span>
-                                <span class="tag">Creates Obligation</span>
+                                <span class="tag">W1</span>
                             </div>
                         </div>
                         <div class="card-stats">
                             <div class="stat-item">
-                                <span class="stat-label">Depth</span>
-                                <span class="stat-value depth-value">8</span>
-                            </div>
-                            <div class="stat-item">
                                 <span class="stat-label">Weight</span>
-                                <span class="stat-value">2</span>
+                                <span class="stat-value">1</span>
                             </div>
                         </div>
                     </div>
+                    <div class="drawable-states">
+                        <strong>Valid States:</strong> Desperate, Tense
+                    </div>
                     <div class="card-text">
-                        "I'll take your letter to Lord Blackwood. For something this urgent, I'll need 10 coins to cover fast routes and checkpoint bribes."
+                        "I'll take your letter to Lord Blackwood right now. For something this urgent, let me handle everything."
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
@@ -1105,33 +1062,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Inaccessible Card (Depth too high) -->
-                <div class="card comfort unavailable">
-                    <div class="card-marker too-deep">Requires Comfort 11+</div>
-                    <div class="card-header">
-                        <div class="card-identity">
-                            <div class="card-name">Deep Empathy</div>
-                            <div class="card-tags">
-                                <span class="tag">COMFORT</span>
-                                <span class="tag">Trust</span>
-                            </div>
-                        </div>
-                        <div class="card-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Depth</span>
-                                <span class="stat-value depth-value">12</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Weight</span>
-                                <span class="stat-value">3</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-text">
-                        [Build comfort to 11+ to access this card]
                     </div>
                 </div>
             </div>

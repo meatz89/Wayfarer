@@ -2,44 +2,38 @@
   "conversationDecks": {
     "elena": {
       "cards": [
-        "small_talk", "listen_actively", "share_news", "offer_help", 
-        "express_trust_token", "guard_trust_token", "burden_past_failure",
-        "burden_broken_trust", "state_open", "state_tense", "state_desperate"
+        "SimpleGreeting", "ActiveListening", "SharePersonal", "OfferHelp", 
+        "PromiseToHelp", "CalmnessAttempt", "OpeningUp"
       ]
     },
     "marcus": {
       "cards": [
-        "small_talk", "discuss_business", "merchant_perspective", "market_gossip",
-        "commerce_token_basic", "commerce_token_trade", "state_neutral", 
-        "state_open", "state_guarded"
+        "SimpleGreeting", "DiscussBusiness", "ProposeDeal", "ShowRespect",
+        "ActiveListening", "SharePersonal", "CalmnessAttempt"
       ]
     },
     "thorne": {
       "cards": [
-        "listen_actively", "share_news", "noble_greeting", "court_politics",
-        "status_token_formal", "status_token_respect", "state_neutral",
-        "state_guarded", "state_hostile"
+        "SimpleGreeting", "ShowRespect", "SharePersonal", "ActiveListening",
+        "CalmnessAttempt", "OpeningUp", "PromiseToHelp"
       ]
     },
     "lyra": {
       "cards": [
-        "small_talk", "scholarly_discussion", "ancient_knowledge", "research_hint",
-        "trust_token_knowledge", "trust_token_wisdom", "state_open",
-        "state_eager", "state_overwhelmed"
+        "SimpleGreeting", "ActiveListening", "SharePersonal", "ShareSecret",
+        "PromiseToHelp", "OpeningUp", "CalmnessAttempt"
       ]
     },
     "viktor": {
       "cards": [
-        "guard_report", "security_concern", "patrol_route", "threat_assessment",
-        "shadow_token_vigilance", "shadow_token_protection", "state_neutral",
-        "state_tense", "state_desperate"
+        "SimpleGreeting", "ShowRespect", "ShareSecret", "ActiveListening",
+        "CalmnessAttempt", "SharePersonal", "PromiseToHelp"
       ]
     },
     "garrett": {
       "cards": [
-        "whispered_secrets", "information_trade", "shadowy_hints", "underground_news",
-        "shadow_token_secrets", "shadow_token_connections", "state_guarded",
-        "state_tense", "state_hostile"
+        "SimpleGreeting", "ShareSecret", "ProposeDeal", "ActiveListening",
+        "CalmnessAttempt", "SharePersonal", "DiscussBusiness"
       ]
     }
   }
