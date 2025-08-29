@@ -1,5 +1,35 @@
 {
 	"templates": {
+		"IUnderstand": {
+			"type": "COMFORT",
+			"weight": 1,
+			"baseComfort": 1,
+			"persistence": "Persistent",
+			"connectionType": "Trust",
+			"drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN", "CONNECTED"],
+			"description": "I Understand"
+		},
+		"LetsThinkThisThrough": {
+			"type": "STATE",
+			"weight": 1,
+			"persistence": "Opportunity",
+			"connectionType": "Trust",
+			"isStateCard": true,
+			"successState": "TENSE",
+			"failureState": null,
+			"drawableStates": ["DESPERATE"],
+			"description": "Let's Think This Through"
+		},
+		"MerchantRouteKnowledge": {
+			"type": "OBSERVATION",
+			"weight": 1,
+			"baseComfort": 0,
+			"persistence": "OneShot",
+			"connectionType": "Commerce",
+			"isObservation": true,
+			"drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN", "CONNECTED"],
+			"description": "Merchant Route Knowledge"
+		},
 		"PromiseToHelp": {
 			"type": "COMFORT",
 			"weight": 2,

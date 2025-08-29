@@ -80,7 +80,7 @@
 		"locationId": "copper_kettle_tavern",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
 		"domainTags": [ "PRIVATE", "QUIET", "INTIMATE" ],
-		"spotProperties": [ "Discrete", "Quiet", "Warm" ],
+		"spotProperties": [ "Private", "Quiet", "Warm" ],
 		"timeSpecificProperties": {
 			"Evening": [ "BusyEvening" ],
 			"Night": [ "QuietMorning", "Isolated" ]

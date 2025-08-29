@@ -2,19 +2,20 @@
   "goalDecks": {
     "elena": [
       {
-        "id": "elena_letter_desperate",
+        "id": "accept_elena_letter",
         "template": "LetterGoal",
         "type": "Trust",
         "category": "PROMISE",
-        "weight": 3,
+        "weight": 0,
         "validStates": ["DESPERATE", "TENSE"],
+        "description": "Accept Elena's Letter",
         "letterContent": {
-          "subject": "Marriage Refusal Letter",
-          "recipient": "Lord Harwick",
+          "subject": "Elena's urgent refusal of Lord Blackwood's marriage proposal",
+          "recipient": "Lord Blackwood",
           "recipientLocation": "noble_district",
-          "urgency": "high",
+          "urgency": "critical",
           "stakes": "SAFETY",
-          "deadline": 360
+          "deadline": 73
         }
       },
       {

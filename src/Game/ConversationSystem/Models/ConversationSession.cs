@@ -182,26 +182,10 @@ public class ConversationSession
             }
         }
 
-        // Draw initial hand (3 cards at comfort 5)
+        // CRITICAL: Start with EMPTY hand - player must LISTEN to get cards
         var handCards = new List<ConversationCard>();
-        var drawnCards = npc.ConversationDeck.Draw(3, startingComfort);
-        handCards.AddRange(drawnCards);
-
-        // Check if we drew the goal card in initial hand
         bool goalCardDrawn = false;
         int? goalUrgencyCounter = null;
-        if (drawnCards.Any(c => c is ConversationCard conv && conv.IsGoalCard))
-        {
-            goalCardDrawn = true;
-            goalUrgencyCounter = 3;  // 3 turns to play it
-            Console.WriteLine($"[StartConversation] Goal card drawn in initial hand! Must play within 3 turns.");
-        }
-
-        // Add observation cards if any
-        if (observationCards != null && observationCards.Any())
-        {
-            handCards.AddRange(observationCards);
-        }
 
         // Check for letters that can be delivered through this NPC
         if (queueManager != null)

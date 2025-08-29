@@ -2,8 +2,7 @@
   "conversationDecks": {
     "elena": {
       "cards": [
-        "SimpleGreeting", "ActiveListening", "SharePersonal", "OfferHelp", 
-        "PromiseToHelp", "CalmnessAttempt", "OpeningUp"
+        "IUnderstand", "LetsThinkThisThrough", "MerchantRouteKnowledge"
       ]
     },
     "marcus": {

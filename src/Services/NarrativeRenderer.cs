@@ -29,7 +29,13 @@ public class NarrativeRenderer
             ["commitment"] = RenderCommitment,
             ["topic"] = RenderTopic,
             ["reaction"] = RenderReaction,
-            ["response"] = RenderResponse
+            ["response"] = RenderResponse,
+            ["denial"] = RenderDenial,
+            ["threat"] = RenderThreat,
+            ["consequence"] = RenderConsequence,
+            ["plea"] = RenderPlea,
+            ["deadline"] = RenderDeadline,
+            ["fate"] = RenderFate
         };
     }
     
@@ -85,20 +91,32 @@ public class NarrativeRenderer
     private string CombineParts(List<string> parts)
     {
         if (parts.Count == 1)
-            return CapitalizeFirst(parts[0]) + ".";
+            return parts[0].EndsWith("!") || parts[0].EndsWith("?") || parts[0].EndsWith(".") 
+                ? parts[0] 
+                : parts[0] + ".";
             
-        var result = CapitalizeFirst(parts[0]);
-        for (int i = 1; i < parts.Count; i++)
+        // For desperate letter dialogue, combine with spaces
+        var result = "";
+        for (int i = 0; i < parts.Count; i++)
         {
-            if (parts[i].Contains("?"))
-                result += " " + parts[i];
+            if (i == 0)
+            {
+                result = parts[i];
+            }
             else
-                result += ", " + parts[i];
+            {
+                // Check if previous part ends with punctuation
+                if (result.EndsWith(".") || result.EndsWith("!") || result.EndsWith("?"))
+                {
+                    result += " " + parts[i];
+                }
+                else
+                {
+                    result += ". " + parts[i];
+                }
+            }
         }
         
-        if (!result.EndsWith(".") && !result.EndsWith("?") && !result.EndsWith("!"))
-            result += ".";
-            
         return result;
     }
     
@@ -306,6 +324,60 @@ public class NarrativeRenderer
             "engaged" => "leaning forward with interest",
             "generic" => "listening",
             _ => "responding"
+        };
+    }
+    
+    private string RenderDenial(string value)
+    {
+        return value switch
+        {
+            "no_understand" => "No, no, no... you don't understand!",
+            _ => "no"
+        };
+    }
+    
+    private string RenderThreat(string value)
+    {
+        return value switch
+        {
+            "sunset_departure" => "Lord Blackwood leaves at sunset",
+            _ => "danger looms"
+        };
+    }
+    
+    private string RenderConsequence(string value)
+    {
+        return value switch
+        {
+            "marriage_contract" => "If this letter doesn't reach him, my father will sign the marriage contract",
+            _ => "terrible consequences"
+        };
+    }
+    
+    private string RenderPlea(string value)
+    {
+        return value switch
+        {
+            "begging" => "Please, I'm begging you!",
+            _ => "please"
+        };
+    }
+    
+    private string RenderDeadline(string value)
+    {
+        return value switch
+        {
+            "tonight" => "tonight",
+            _ => "soon"
+        };
+    }
+    
+    private string RenderFate(string value)
+    {
+        return value switch
+        {
+            "trapped_forever" => "I'll be trapped forever",
+            _ => "doomed"
         };
     }
     

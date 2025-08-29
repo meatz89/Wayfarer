@@ -1,8 +1,8 @@
 {
 	"CurrentLocationId": "market_square",
 	"CurrentLocationSpotId": "central_fountain",
-	"CurrentDay": 3,
-	"CurrentTimeHours": 15,
+	"CurrentDay": 1,
+	"CurrentTimeHours": 10,
 	"Player": {
 		"Name": "Courier",
 		"Gender": null,
@@ -13,12 +13,12 @@
 		"MaxStamina": 10,
 		"StaminaPoints": 6,
 		"MaxHealth": 100,
-		"Health": 100,
-		"Food": 25,
+		"Health": 85,
+		"Food": 6,
 		"Level": 1,
 		"CurrentXP": 0,
 		"InventoryItems": [],
-		"AttentionPoints": 3,
-		"AttentionUsed": 1
+		"AttentionPoints": 4,
+		"AttentionUsed": 0
 	}
 }
