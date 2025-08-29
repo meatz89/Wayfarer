@@ -273,7 +273,6 @@ button:disabled {
 
 .game-container::before,
 .game-container::after {
-    content: "✠";
     position: absolute;
     font-size: 20px;
     color: #8b7355;

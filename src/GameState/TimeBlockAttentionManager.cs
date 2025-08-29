@@ -13,6 +13,7 @@ public class TimeBlockAttentionManager
         // Create a single attention manager that persists
         _attention = new AttentionManager();
         _attention.SetMaxAttention(7);
+        _attention.ResetToFull(); // Start with full attention
     }
 
     /// <summary>
