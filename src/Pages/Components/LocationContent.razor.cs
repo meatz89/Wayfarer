@@ -390,6 +390,38 @@ namespace Wayfarer.Pages.Components
             // This would check against the game state
             return 0;
         }
+        
+        protected int GetPatience(NpcViewModel npc, LocationSpot spot)
+        {
+            // Get base patience based on personality
+            int basePatience = GetBasePatience(npc);
+            
+            // Apply spot modifiers
+            if (spot?.Properties != null)
+            {
+                if (spot.Properties.Contains("Public"))
+                    basePatience -= 1;
+                else if (spot.Properties.Contains("Private"))
+                    basePatience += 1;
+            }
+            
+            return Math.Max(1, basePatience); // Minimum 1 patience
+        }
+        
+        protected int GetBasePatience(NpcViewModel npc)
+        {
+            // Base patience by personality type
+            return npc.PersonalityType?.ToLower() switch
+            {
+                "devoted" => 12,
+                "mercantile" => 10,
+                "proud" => 8,
+                "cunning" => 9,
+                "gruff" => 7,
+                "steadfast" => 11,
+                _ => 10
+            };
+        }
     }
 
     // View Models

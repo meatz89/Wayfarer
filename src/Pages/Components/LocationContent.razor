@@ -67,35 +67,72 @@
                         </div>
                         <div class="npc-tokens">
                             <div class="token-display">Trust: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Trust)</span> <span class="token-effect">(@GetTokenEffect(npc.Id, ConnectionType.Trust))</span></div>
-                            <div class="token-display">Commerce: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Commerce)</span></div>
-                            <div class="token-display">Status: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Status)</span></div>
-                            <div class="token-display">Shadow: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Shadow)</span></div>
+                            <div class="token-display">Commerce: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Commerce)</span> <span class="token-effect">(@GetTokenEffect(npc.Id, ConnectionType.Commerce))</span></div>
+                            <div class="token-display">Status: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Status)</span> <span class="token-effect">(@GetTokenEffect(npc.Id, ConnectionType.Status))</span></div>
+                            <div class="token-display">Shadow: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Shadow)</span> <span class="token-effect">(@GetTokenEffect(npc.Id, ConnectionType.Shadow))</span></div>
                         </div>
                         <div class="npc-description">@GetNPCDescription(npc)</div>
                         <div class="npc-actions">
                             @foreach (var option in npc.ConversationOptions)
                             {
-                                <div class="npc-action @GetActionClass(option.Type)" 
+                                <div class="dialog-card @GetActionClass(option.Type)" 
                                      @onclick="() => StartTypedConversation(npc.Id, option.Type)">
-                                    <span class="action-type">@option.Label</span>
-                                    <span class="action-details">
-                                        @if (option.AttentionCost == 0)
+                                    <div class="card-header">
+                                        <span class="card-type">@option.Label</span>
+                                        <span class="card-cost">
+                                            @if (option.AttentionCost == 0)
+                                            {
+                                                <span class="free-tag">FREE</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@option.AttentionCost attention</span>
+                                            }
+                                        </span>
+                                    </div>
+                                    <div class="card-body">
+                                        @if (option.Type == ConversationType.Exchange)
                                         {
-                                            <span class="action-reward">Free!</span>
+                                            <div class="card-text">Trade coins for items or permits</div>
+                                            <div class="card-outcomes">
+                                                <div class="outcome">Spend coins → Get permits/items</div>
+                                            </div>
                                         }
-                                        else
+                                        else if (option.Type == ConversationType.Promise)
                                         {
-                                            <span>@option.AttentionCost attention</span>
+                                            <div class="card-text">@(HasLetterGoal(npc.Id) ? "Letter available - negotiate delivery terms" : "No letter offers at this time")</div>
+                                            <div class="card-outcomes">
+                                                <div class="outcome success">Success: Better queue position & payment</div>
+                                                <div class="outcome failure">Failure: Worse position & tight deadline</div>
+                                            </div>
                                         }
-                                        @if (option.Type == ConversationType.Promise && HasLetterGoal(npc.Id))
+                                        else if (option.Type == ConversationType.Standard)
                                         {
-                                            <span> • Letter goal available</span>
+                                            <div class="card-text">Engage in conversation to build relationship</div>
+                                            <div class="card-outcomes">
+                                                <div class="outcome">Build trust & earn tokens</div>
+                                            </div>
                                         }
-                                        @if (option.Type == ConversationType.Resolution && GetBurdenCount(npc.Id) >= 2)
+                                        else if (option.Type == ConversationType.Resolution)
                                         {
-                                            <span> • @GetBurdenCount(npc.Id) burdens</span>
+                                            <div class="card-text">Address @GetBurdenCount(npc.Id) burdens weighing on relationship</div>
+                                            <div class="card-outcomes">
+                                                <div class="outcome success">Clear burdens & restore trust</div>
+                                                <div class="outcome failure">Burdens remain</div>
+                                            </div>
                                         }
-                                    </span>
+                                        <div class="patience-info">
+                                            <span>@GetPatience(npc, CurrentSpot) patience</span>
+                                            @if (CurrentSpot?.Properties.Contains("Public") == true)
+                                            {
+                                                <span class="patience-modifier"> (base @GetBasePatience(npc) -1 public)</span>
+                                            }
+                                            else if (CurrentSpot?.Properties.Contains("Private") == true)
+                                            {
+                                                <span class="patience-modifier"> (base @GetBasePatience(npc) +1 private)</span>
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
                             }
                             @if (DevMode?.ShowDeckViewer == true)
@@ -117,7 +154,7 @@
     @if (AvailableObservations.Any() || TakenObservations.Any())
     {
         <div class="observations">
-            <div class="observation-note">You notice some interesting details about this place...</div>
+            <div class="observation-note">Spend 1 attention to observe, gain a state change card for conversations:</div>
             <div class="observation-list">
                 @* Show taken observations first *@
                 @foreach (var taken in TakenObservations)
@@ -160,8 +197,8 @@
                     <div class="observation-item card-base card-compact" @onclick="() => TakeObservation(obs.Id)">
                         <div class="observation-text">@obs.Name</div>
                         <div class="observation-reward">
+                            <span class="cost-value">1 attention</span>
                             <span class="reward-card">+Card</span>
-                            <span class="action-details">1 attention</span>
                         </div>
                     </div>
                 }
