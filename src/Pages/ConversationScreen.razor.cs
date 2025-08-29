@@ -448,11 +448,11 @@ namespace Wayfarer.Pages
             if (Session?.NPC == null || ConversationType != ConversationType.Commerce)
                 return null;
                 
-            // The exchange card is stored in the first HandCard's context
+            // Exchange cards are just regular conversation cards in the hand
             if (Session.HandCards.Count > 0)
             {
-                var card = Session.HandCards.First();
-                return card.Context?.ExchangeData;
+                // Return the first exchange card in hand
+                return Session.HandCards.FirstOrDefault(c => c.IsExchange);
             }
             
             return null;
@@ -565,17 +565,22 @@ namespace Wayfarer.Pages
                 return "Exchange";
                 
             var exchange = card.Context.ExchangeData;
-            // Determine exchange type from the reward resource
-            if (exchange.Reward?.Count > 0)
+            
+            // Use ExchangeName if available
+            if (!string.IsNullOrEmpty(exchange.ExchangeName))
+                return exchange.ExchangeName;
+            
+            // Use template ID to determine exchange type
+            if (!string.IsNullOrEmpty(exchange.TemplateId))
             {
-                var resource = exchange.Reward[0].ResourceType;
-                return resource switch
+                return exchange.TemplateId switch
                 {
-                    ResourceType.Food => "Food Exchange",
-                    ResourceType.Health => "Healing Service",
-                    ResourceType.Information => "Information Trade",
-                    ResourceType.Work => "Labor Exchange",
-                    ResourceType.Favor => "Favor Trade",
+                    "food_exchange" => "Food Exchange",
+                    "healing_exchange" => "Healing Service",
+                    "information_exchange" => "Information Trade",
+                    "work_exchange" => "Labor Exchange",
+                    "favor_exchange" => "Favor Trade",
+                    "rest_exchange" => "Rest Service",
                     _ => "Resource Exchange"
                 };
             }

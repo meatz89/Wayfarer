@@ -65,7 +65,7 @@ public static class ServiceConfiguration
         services.AddTimeSystem();
 
         // Managers that depend on TimeManager
-        services.AddSingleton<TravelEventManager>();
+        // TravelEventManager removed - use categorical mechanics instead
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();

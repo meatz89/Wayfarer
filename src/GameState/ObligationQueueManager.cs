@@ -280,10 +280,7 @@ public class ObligationQueueManager
             return "Failed negotiation - NPC's terms are non-negotiable!";
         }
         
-        if (obligation.IsCrisisLetter)
-        {
-            return "CRISIS: This letter cannot wait!";
-        }
+        // Crisis system removed - use categorical mechanics instead
         
         if (obligation.SenderName == "Lord Blackwood")
         {

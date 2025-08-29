@@ -2006,7 +2006,7 @@ public class GameFacade
             {
                 // Add message about gaining the card
                 _messageSystem.AddSystemMessage($"Observed: {observation.Text}", SystemMessageTypes.Success);
-                _messageSystem.AddSystemMessage($"Gained conversation card: {observationCard.ConversationCard.Template}", SystemMessageTypes.Info);
+                _messageSystem.AddSystemMessage($"Gained conversation card: {observationCard.ConversationCard.DisplayName ?? observationCard.ConversationCard.TemplateId}", SystemMessageTypes.Info);
                 
                 Console.WriteLine($"[GameFacade.TakeObservation] Successfully generated observation card {observationCard.Id}");
                 return true;

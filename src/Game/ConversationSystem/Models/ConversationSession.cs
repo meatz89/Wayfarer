@@ -93,7 +93,7 @@ public class ConversationSession
     /// Whether goal card was successfully played
     /// </summary>
     public bool GoalCardPlayed { get; set; }
-
+    
     /// <summary>
     /// Initialize a new conversation session
     /// </summary>
@@ -108,10 +108,10 @@ public class ConversationSession
     {
         // Determine initial state based on NPC condition
         var initialState = ConversationRules.DetermineInitialState(npc, queueManager);
-        
+
         // Calculate starting patience (POC exact formula)
         var basePatience = GetBasePatience(npc.PersonalityType);
-        
+
         // Apply stamina penalty: Low stamina reduces patience
         // Assume stamina 0-10, where lower stamina = more "hunger"/fatigue
         // Formula: penalty = (10 - stamina) * 3 / 10 (max 3 penalty at 0 stamina)
@@ -121,10 +121,10 @@ public class ConversationSession
             var staminaDeficit = Math.Max(0, 10 - playerResourceState.Stamina);
             staminaPenalty = staminaDeficit * 3 / 10;  // 0 stamina = -3 patience
         }
-        
+
         // Apply spot modifiers (TODO: Add when spots are implemented)
         var spotModifier = 0;  // Private: +1, etc.
-        
+
         var totalPatience = Math.Max(3, basePatience - staminaPenalty + spotModifier);
 
         // Initialize conversation deck if needed
@@ -132,7 +132,7 @@ public class ConversationSession
         {
             npc.InitializeConversationDeck(new NPCDeckFactory(tokenManager));
         }
-        
+
         // Initialize Goal deck for NPCs that have letters
         if (npc.HasPromiseCards() && (npc.GoalDeck == null || !npc.GoalDeck.Any()))
         {
@@ -142,21 +142,21 @@ public class ConversationSession
 
         // CRITICAL: Comfort always starts at 5 for new conversations
         var startingComfort = 5;
-        
+
         // POC DECK ARCHITECTURE: Select goal from Goal Deck based on conversation type
         ConversationCard goalCard = null;
-        
+
         // Only select a goal card if this isn't a standard conversation
         if (conversationType != ConversationType.FriendlyChat && conversationType != ConversationType.Commerce)
         {
             goalCard = SelectGoalCardForConversation(npc, conversationType, initialState);
-            
+
             if (goalCard != null)
             {
                 // CRITICAL: Create a COPY of the conversation deck for this session
                 // This preserves the original deck for future conversations
                 var sessionDeck = CreateSessionDeck(npc.ConversationDeck);
-                
+
                 // Shuffle the selected goal into the copied deck
                 sessionDeck.ShuffleInGoalCard(goalCard);
                 if (goalCard is ConversationCard goalConv)
@@ -167,7 +167,7 @@ public class ConversationSession
                 {
                     Console.WriteLine($"[StartConversation] Shuffled promise card (ID: {goalCard.Id}) into session deck");
                 }
-                
+
                 // Use the session deck, not the original
                 npc = CreateNPCWithSessionDeck(npc, sessionDeck);
             }
@@ -176,12 +176,12 @@ public class ConversationSession
                 Console.WriteLine($"[StartConversation] No suitable goal card found for {conversationType} conversation");
             }
         }
-        
+
         // Draw initial hand (3 cards at comfort 5)
         var handCards = new List<ConversationCard>();
         var drawnCards = npc.ConversationDeck.Draw(3, startingComfort);
         handCards.AddRange(drawnCards);
-        
+
         // Check if we drew the goal card in initial hand
         bool goalCardDrawn = false;
         int? goalUrgencyCounter = null;
@@ -191,29 +191,29 @@ public class ConversationSession
             goalUrgencyCounter = 3;  // 3 turns to play it
             Console.WriteLine($"[StartConversation] Goal card drawn in initial hand! Must play within 3 turns.");
         }
-        
+
         // Add observation cards if any
         if (observationCards != null && observationCards.Any())
         {
             handCards.AddRange(observationCards);
         }
-        
+
         // Check for letters that can be delivered through this NPC
         if (queueManager != null)
         {
             var activeObligations = queueManager.GetActiveObligations();
             var lettersForDelivery = activeObligations
                 .Where(o => o != null && (
-                    o.RecipientId == npc.ID || 
-                    o.RecipientId == npc.Location || 
+                    o.RecipientId == npc.ID ||
+                    o.RecipientId == npc.Location ||
                     o.RecipientId == npc.SpotId))
-                    // REMOVED: IsLocationMatch - string matching violation
+                // REMOVED: IsLocationMatch - string matching violation
                 .ToList();
-            
+
             if (lettersForDelivery.Any())
             {
                 Console.WriteLine($"[StartConversation] Found {lettersForDelivery.Count} letters deliverable through {npc.Name}");
-                
+
                 // Load letter delivery cards from JSON templates based on letter properties
                 var deliveryCards = GetLetterDeliveryCards(lettersForDelivery, gameWorld);
                 handCards.AddRange(deliveryCards);
@@ -240,10 +240,10 @@ public class ConversationSession
             GoalCardPlayed = false,
             TokenManager = tokenManager
         };
-        
+
         Console.WriteLine($"[StartConversation] Created session with comfort: {session.CurrentComfort} (expected: {startingComfort})");
         Console.WriteLine($"[StartConversation] Initial state: {initialState}, Patience: {totalPatience}, Hand size: {handCards.Count}");
-        
+
         return session;
     }
 
@@ -450,7 +450,7 @@ public class ConversationSession
                     conversationCard = new ConversationCard
                     {
                         Id = conversationCard.Id,
-                        Template = conversationCard.Template,
+                        TemplateId = conversationCard.TemplateId,
                         Context = conversationCard.Context,
                         Type = conversationCard.Type,
                         Persistence = conversationCard.Persistence,
@@ -479,8 +479,8 @@ public class ConversationSession
         // Check if conversation should end (HOSTILE state after listen)
         if (rules.ListenEndsConversation)
         {
-            HadFinalCrisisTurn = true;  // Mark conversation as ending
-            Console.WriteLine($"[ExecuteListen] HOSTILE state - conversation will end");
+            // Conversation will end after this turn
+            Console.WriteLine($"[ExecuteListen] {CurrentState} state - conversation will end");
         }
     }
 
@@ -888,48 +888,46 @@ public class ConversationSession
     
     private static string GetExchangeName(ConversationCard exchange)
     {
-        // Determine exchange type from the exchange data
-        var exchangeData = exchange.Context?.ExchangeData;
-        if (exchangeData?.Reward?.Count > 0)
+        // Use ExchangeName if available
+        if (!string.IsNullOrEmpty(exchange.Context?.ExchangeData?.ExchangeName))
         {
-            var resource = exchangeData.Reward[0].ResourceType;
-            return resource switch
-            {
-                ResourceType.Food => "Buy Travel Provisions",
-                ResourceType.Health => "Purchase Medicine",
-                ResourceType.Information => "Information Trade",
-                ResourceType.Work => "Help Inventory Stock",
-                ResourceType.Favor => "Noble Favor",
-                ResourceType.Rest => "Rest at the Inn",
-                _ => "Make Exchange"
-            };
+            return exchange.Context.ExchangeData.ExchangeName;
         }
         
-        // Fallback to template ID if available
+        // Use template ID to determine exchange type
         return exchange.TemplateId switch
         {
             "food_exchange" => "Buy Travel Provisions",
             "healing_exchange" => "Purchase Medicine",
             "information_exchange" => "Information Trade",
+            "work_exchange" => "Help Inventory Stock",
+            "favor_exchange" => "Noble Favor",
+            "rest_exchange" => "Rest at the Inn",
             _ => "Make Exchange"
         };
     }
     
     private static string GetExchangeCostDisplay(ConversationCard exchange)
     {
-        if (exchange.Cost == null || !exchange.Cost.Any())
+        // Check for cost in Context.ExchangeData first
+        var cost = exchange.Context?.ExchangeData?.Cost ?? exchange.Context?.Cost;
+        
+        if (cost == null || !cost.Any())
             return "Free";
             
-        var costParts = exchange.Cost.Select(c => c.GetDisplayText());
+        var costParts = cost.Select(c => c.GetDisplayText());
         return string.Join(", ", costParts);
     }
     
     private static string GetExchangeRewardDisplay(ConversationCard exchange)
     {
-        if (exchange.Reward == null || !exchange.Reward.Any())
+        // Check for reward in Context.ExchangeData first
+        var reward = exchange.Context?.ExchangeData?.Reward ?? exchange.Context?.Reward;
+        
+        if (reward == null || !reward.Any())
             return "Nothing";
             
-        var rewardParts = exchange.Reward.Select(r => r.GetDisplayText());
+        var rewardParts = reward.Select(r => r.GetDisplayText());
         return string.Join(", ", rewardParts);
     }
     
@@ -944,7 +942,7 @@ public class ConversationSession
             
         switch (convGoalCard.GoalCardType.Value)
         {
-            case ConversationType.Letter:
+            case ConversationType.Delivery:
                 // Create a letter obligation with terms based on success
                 var letterObligation = CreateLetterObligationFromGoal(convGoalCard, result.Success);
                 result.LetterNegotiations.Add(new LetterNegotiationResult
@@ -953,7 +951,7 @@ public class ConversationSession
                     NegotiationSuccess = result.Success,
                     CreatedObligation = letterObligation
                 });
-                Console.WriteLine($"[ProcessGoalCardEffect] Letter goal created obligation: {letterObligation.Id}");
+                Console.WriteLine($"[ProcessGoalCardEffect] Delivery goal created obligation: {letterObligation.Id}");
                 break;
                 
             case ConversationType.Promise:
@@ -1039,36 +1037,17 @@ public class ConversationSession
                 continue;
             }
 
-            // Create default terms based on negotiation success
-            // TODO: Store terms in ConversationCard or elsewhere
-            /*
-            var terms = new LetterNegotiationTerms
+            // The obligation was already created in ProcessGoalCardEffect
+            // Just mark it as complete
+            if (negotiation.CreatedObligation != null)
             {
-                DeadlineHours = negotiation.NegotiationSuccess ? 24 : 12,
-                QueuePosition = negotiation.NegotiationSuccess ? 2 : 3,
-                Payment = negotiation.NegotiationSuccess ? 5 : 3,
-                ForcesPositionOne = false
-            };
-            */
-
-            // Create the delivery obligation from the negotiated terms  
-            // var obligation = CreateDeliveryObligationFromCard(sourcePromiseCard, terms, NPC);
-
-            // Complete the negotiation result (replace the incomplete one)
-            var completedNegotiation = new LetterNegotiationResult
+                Console.WriteLine($"[ProcessLetterNegotiations] Letter obligation already created: {negotiation.CreatedObligation.Id}");
+                LetterGenerated = true; // Mark that a letter was generated in this conversation
+            }
+            else
             {
-                PromiseCardId = negotiation.PromiseCardId,
-                NegotiationSuccess = negotiation.NegotiationSuccess,
-                FinalTerms = terms,
-                SourcePromiseCard = sourcePromiseCard,
-                CreatedObligation = obligation
-            };
-
-            // Replace in the list
-            result.LetterNegotiations[i] = completedNegotiation;
-
-            Console.WriteLine($"[ProcessLetterNegotiations] Created letter obligation: {obligation.Id} - {terms.DeadlineHours}h deadline, {terms.Payment} coins");
-            LetterGenerated = true; // Mark that a letter was generated in this conversation
+                Console.WriteLine($"[ProcessLetterNegotiations] WARNING: No obligation created for promise card {negotiation.PromiseCardId}");
+            }
         }
     }
 
@@ -1152,7 +1131,7 @@ public class ConversationSession
     {
         // Find letter delivery cards by category
         var deliveryTemplates = gameWorld.AllCardDefinitions.Values
-            .Where(card => card.Category == "LETTER_DELIVERY" && card.CanDeliverLetter)
+            .Where(card => card.CanDeliverLetter)
             .ToList();
         
         if (!deliveryTemplates.Any())
@@ -1161,16 +1140,11 @@ public class ConversationSession
             return null;
         }
         
-        // Select appropriate template based on letter properties
+        // Select appropriate template based on letter urgency
         ConversationCard template;
-        if (letter.IsUrgent)
+        if (letter.EmotionalWeight == EmotionalWeight.CRITICAL)
         {
             template = deliveryTemplates.FirstOrDefault(c => c.DisplayName?.Contains("Urgent") == true) 
-                      ?? deliveryTemplates.FirstOrDefault();
-        }
-        else if (letter.IsSecure)
-        {
-            template = deliveryTemplates.FirstOrDefault(c => c.DisplayName?.Contains("Discreet") == true) 
                       ?? deliveryTemplates.FirstOrDefault();
         }
         else
@@ -1181,7 +1155,7 @@ public class ConversationSession
         
         if (template == null)
         {
-            Console.WriteLine("[ConversationSession] No suitable LETTER_DELIVERY template found");
+            Console.WriteLine("[ConversationSession] No suitable delivery template found");
             return null;
         }
         
@@ -1204,13 +1178,13 @@ public class ConversationSession
             FailureState = template.FailureState,
             SuccessRate = template.SuccessRate,
             DisplayName = $"Deliver Letter to {FormatRecipientName(letter.RecipientId)}",
-            Description = $"Deliver {letter.Subject} to {FormatRecipientName(letter.RecipientId)}",
+            Description = $"Deliver letter to {FormatRecipientName(letter.RecipientId)}",
             Context = new CardContext
             {
                 Personality = PersonalityType.STEADFAST,
                 EmotionalState = EmotionalState.NEUTRAL,
-                UrgencyLevel = letter.IsUrgent ? 2 : 0,
-                HasDeadline = letter.HasDeadline,
+                UrgencyLevel = letter.EmotionalWeight == EmotionalWeight.CRITICAL ? 2 : 0,
+                HasDeadline = letter.DeadlineInMinutes > 0,
                 MinutesUntilDeadline = letter.MinutesUntilDeadline,
                 LetterId = letter.Id,
                 TargetNpcId = letter.RecipientId
@@ -1260,13 +1234,13 @@ public class ConversationSession
             // CLEAN DESIGN: GoalCardType is determined by conversation type the PLAYER CHOSE
             // This is orthogonal to Category which determines what the card DOES
             ConversationType.Promise => allGoals.Where(g =>
-                g is ConversationCard conv && conv.GoalCardType == ConversationType.Letter),
+                g is ConversationCard conv && conv.GoalCardType == ConversationType.Promise),
 
             ConversationType.Resolution => allGoals.Where(g =>
                 g is ConversationCard conv && conv.GoalCardType == ConversationType.Resolution),
 
-            ConversationType => allGoals.Where(g =>
-                g is ConversationCard conv && conv.GoalCardType == ConversationType),
+            ConversationType.Delivery => allGoals.Where(g =>
+                g is ConversationCard conv && conv.GoalCardType == ConversationType.Delivery),
 
             _ => allGoals // Standard conversations don't filter by type
         };

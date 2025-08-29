@@ -105,7 +105,7 @@
                             <div class="debug-card conversation-card">
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@(card.DisplayName ?? card.Template.ToString())</span>
+                                    <span class="card-name">@(card.DisplayName ?? card.TemplateId)</span>
                                     <span class="card-category @GetCategoryClass(card)">@GetCategoryName(card)</span>
                                 </div>
                                 <div class="card-properties">
@@ -114,7 +114,7 @@
                                     <span>Weight: @card.Weight</span>
                                     <span>Persistence: @card.Persistence</span>
                                 </div>
-                                <div class="card-text">@(card.Description ?? "Template: " + card.Template)</div>
+                                <div class="card-text">@(card.Description ?? "Template: " + card.TemplateId)</div>
                                 <div class="card-outcomes">
                                     <div class="outcome success">
                                         <span>Success (@(card.SuccessRate ?? 50)%)</span>
@@ -166,35 +166,26 @@
                             <div class="debug-card letter-card goal-card">
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@card.Title</span>
+                                    <span class="card-name">@(card.DisplayName ?? card.TemplateId)</span>
                                     <span class="goal-type-badge">LETTER GOAL</span>
                                 </div>
                                 <div class="card-properties">
-                                    <span>Template: @card.TemplateType</span>
+                                    <span>Template: @card.TemplateId</span>
                                     <span>Depth: @card.Depth</span>
                                     <span>Weight: @card.Weight</span>
                                 </div>
                                 <div class="eligibility">
                                     <h4>Eligibility Requirements:</h4>
-                                    @if (card.Eligibility?.RequiredTokens?.Any() == true)
+                                    @if (card.Context?.ValidStates?.Any() == true)
                                     {
-                                        <div>Tokens: @string.Join(", ", card.Eligibility.RequiredTokens.Select(t => $"{t.Key}: {t.Value}"))</div>
-                                    }
-                                    @if (card.Eligibility?.RequiredStates?.Any() == true)
-                                    {
-                                        <div>States: @string.Join(", ", card.Eligibility.RequiredStates)</div>
+                                        <div>Valid States: @string.Join(", ", card.Context.ValidStates)</div>
                                     }
                                 </div>
                                 <div class="negotiation">
-                                    <h4>Success Terms:</h4>
-                                    <div>Deadline: @card.SuccessTerms.DeadlineHours hours</div>
-                                    <div>Payment: @card.SuccessTerms.Payment coins</div>
-                                    <div>Queue Position: @card.SuccessTerms.QueuePosition</div>
-                                    
-                                    <h4>Failure Terms:</h4>
-                                    <div>Deadline: @card.FailureTerms.DeadlineHours hours</div>
-                                    <div>Payment: @card.FailureTerms.Payment coins</div>
-                                    <div>Queue Position: @card.FailureTerms.QueuePosition</div>
+                                    <h4>Goal Card Properties:</h4>
+                                    <div>Type: @card.GoalCardType</div>
+                                    <div>Category: @card.Category</div>
+                                    <div>Weight: @card.Weight</div>
                                 </div>
                             </div>
                         }
@@ -219,25 +210,21 @@
                             <div class="debug-card exchange-card">
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@card.TemplateType</span>
+                                    <span class="card-name">@card.TemplateId</span>
                                 </div>
                                 <div class="exchange-details">
                                     <div class="costs">
                                         <h4>Costs:</h4>
-                                        @foreach (var cost in card.Cost)
+                                        @foreach (var cost in (card.Context?.ExchangeData?.Cost ?? card.Context?.Cost ?? new List<ResourceExchange>()))
                                         {
                                             <div>@cost.GetDisplayText()</div>
                                         }
                                     </div>
-                                    <div class="rewards">
-                                        <h4>Rewards:</h4>
-                                        @foreach (var reward in card.Reward)
-                                        {
-                                            <div>@reward.GetDisplayText()</div>
-                                        }
-                                    </div>
-                                    <div class="success-rate">
-                                        Success Rate: @card.BaseSuccessRate%
+                                    <div class="exchange-info">
+                                        <h4>Exchange Properties:</h4>
+                                        <div>Category: @card.Category</div>
+                                        <div>Type: @card.Type</div>
+                                        <div>Weight: @card.Weight</div>
                                     </div>
                                 </div>
                                 @* TodaysExchangeCard property was removed - exchanges are selected dynamically *@
@@ -301,7 +288,7 @@
     private string GetCategoryClass(ConversationCard card)
     {
         // Determine category based on card properties since Category enum is removed
-        if (card.Template == CardTemplateType.Exchange || card.Template == CardTemplateType.SimpleExchange)
+        if (card.Mechanics == CardMechanics.Exchange)
             return "exchange";
         if (card.IsObservation)
             return "observation";
@@ -320,7 +307,7 @@
     private string GetCategoryName(ConversationCard card)
     {
         // Determine category name based on card properties since Category enum is removed
-        if (card.Template == CardTemplateType.Exchange || card.Template == CardTemplateType.SimpleExchange)
+        if (card.Mechanics == CardMechanics.Exchange)
             return "EXCHANGE";
         if (card.IsObservation)
             return "OBSERVATION";

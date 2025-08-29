@@ -657,12 +657,17 @@ public class ConversationManager
         }
         
         // Generate narrative message
-        var exchangeName = exchange.Template switch
-        {
-            CardTemplateType.Exchange => "completed an exchange",
-            CardTemplateType.SimpleExchange => "made a quick trade",
-            _ => "completed an exchange"
-        };
+        var exchangeName = !string.IsNullOrEmpty(exchange.ExchangeName) ? exchange.ExchangeName :
+            exchange.TemplateId switch
+            {
+                "food_exchange" => "bought travel provisions",
+                "healing_exchange" => "received healing",
+                "information_exchange" => "traded information",
+                "work_exchange" => "helped with work",
+                "favor_exchange" => "traded favors",
+                "rest_exchange" => "rested",
+                _ => "completed an exchange"
+            };
         messageSystem.AddSystemMessage($"You {exchangeName} with {currentSession.NPC.Name}", SystemMessageTypes.Success);
         
         // Log for debugging

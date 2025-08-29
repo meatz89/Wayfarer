@@ -43,7 +43,7 @@
     private string GetCardTypeClass()
     {
         // Determine card visual category from template
-        if (Template.ToString().Contains("Calm") || Template.ToString().Contains("Opening"))
+        if (TemplateId != null && (TemplateId.Contains("Calm") || TemplateId.Contains("Opening")))
             return "state";
         return "comfort";
     }

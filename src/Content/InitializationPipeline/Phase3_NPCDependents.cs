@@ -100,7 +100,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                 Console.WriteLine($"  - Exchange: {npc.ExchangeDeck?.Count ?? 0} cards");
                 Console.WriteLine($"  - Has Letters: {npc.HasPromiseCards()}");
                 Console.WriteLine($"  - Has Burdens: {npc.HasBurdenHistory()} ({npc.CountBurdenCards()} cards)");
-                Console.WriteLine($"  - In Crisis: {npc.IsInCrisis()}");
+                // Crisis system removed - no special cases
             }
             catch (Exception ex)
             {
@@ -192,11 +192,34 @@ public class Phase3_NPCDependents : IInitializationPhase
             var letterConfigs = context.GoalDeckRepository.GetPromiseCardsForNPC(npc.ID);
             if (letterConfigs != null && letterConfigs.Any())
             {
-                // Convert configurations to PromiseCards
+                // Convert configurations to ConversationCards  
                 var goalCards = new List<ConversationCard>();
                 foreach (var config in letterConfigs)
                 {
-                    goalCards.Add(ConvertPromiseToConversationCard(config, npc));
+                    // Create a goal card from the promise configuration
+                    var card = new ConversationCard
+                    {
+                        Id = $"promise_{npc.ID}_{config.CardId}",
+                        TemplateId = config.CardId,
+                        Mechanics = CardMechanics.Promise,
+                        Category = CardCategory.Promise,
+                        Type = CardType.Trust, // Promise cards are trust-based
+                        Persistence = PersistenceType.Goal,
+                        Weight = 2, // Standard weight for promise cards
+                        BaseComfort = 0, // No comfort for goal cards
+                        Depth = 10, // Standard depth for goal cards
+                        IsGoalCard = true,
+                        GoalCardType = ConversationType.Promise,
+                        DisplayName = $"Letter from {npc.Name}",
+                        Description = $"Negotiate terms for a letter delivery",
+                        Context = new CardContext
+                        {
+                            NPCName = npc.Name,
+                            Personality = npc.PersonalityType,
+                            EmotionalState = npc.CurrentEmotionalState
+                        }
+                    };
+                    goalCards.Add(card);
                 }
                 
                 npc.InitializeGoalDeck(goalCards);

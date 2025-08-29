@@ -667,8 +667,8 @@ namespace Wayfarer.Pages.Components
                 
             // Generate name from template and context
             if (card.Context?.NPCName != null)
-                return $"{card.Template} ({card.Context.NPCName})";
-            return card.Template.ToString();
+                return $"{card.TemplateId} ({card.Context.NPCName})";
+            return card.TemplateId;
         }
 
         protected List<string> GetCardTags(ConversationCard card)
@@ -719,13 +719,13 @@ namespace Wayfarer.Pages.Components
                 else
                 {
                     // Fallback to template name matching if SuccessState is not set
-                    if (card.Template.ToString().Contains("Warm") || card.Template.ToString().Contains("Open"))
+                    if (card.TemplateId != null && (card.TemplateId.Contains("Warm") || card.TemplateId.Contains("Open")))
                         return "→ Open";
-                    else if (card.Template.ToString().Contains("Tense"))
+                    else if (card.TemplateId != null && card.TemplateId.Contains("Tense"))
                         return "→ Tense";
-                    else if (card.Template.ToString().Contains("Overwhelmed"))
+                    else if (card.TemplateId != null && card.TemplateId.Contains("Overwhelmed"))
                         return "→ Overwhelmed";
-                    else if (card.Template.ToString().Contains("Eager"))
+                    else if (card.TemplateId != null && card.TemplateId.Contains("Eager"))
                         return "→ Eager";
                     else
                         return "Change state";
@@ -810,8 +810,8 @@ namespace Wayfarer.Pages.Components
                 }
             }
             
-            // Get the narrative text for the card - use template as the text
-            return card.Template.ToString().Replace("_", " ");
+            // Get the narrative text for the card - use template ID or display name
+            return card.DisplayName ?? card.TemplateId?.Replace("_", " ") ?? "Unknown Card";
         }
         
         protected string GetSuccessChance(ConversationCard card)
@@ -870,7 +870,7 @@ namespace Wayfarer.Pages.Components
             
             // Get the token count
             int tokenCount = CurrentTokens.GetValueOrDefault(tokenType, 0);
-            Console.WriteLine($"[GetTokenBonusText] Card: {card.Template}, TokenType: {tokenType}, Count: {tokenCount}");
+            Console.WriteLine($"[GetTokenBonusText] Card: {card.TemplateId}, TokenType: {tokenType}, Count: {tokenCount}");
             
             if (tokenCount > 0)
             {
@@ -975,8 +975,7 @@ namespace Wayfarer.Pages.Components
                 
             return card.Context.ObservationDecayState switch
             {
-                ObservationDecayState.Fresh => "observation-fresh",
-                ObservationDecayState.Stale => "observation-stale",
+                ObservationDecayState.Active => "observation-fresh",
                 ObservationDecayState.Expired => "observation-expired",
                 _ => ""
             };
