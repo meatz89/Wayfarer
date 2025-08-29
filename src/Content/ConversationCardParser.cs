@@ -210,7 +210,7 @@ public class ConversationCardParser
             ConversationType.FriendlyChat => ConversationType.Promise,
             ConversationType.Promise => ConversationType.Promise,
             ConversationType.Resolution => ConversationType.Resolution,
-            ConversationType.Crisis => ConversationType.Crisis,
+            ConversationType => ConversationType,
             ConversationType.Commerce => null,
             _ => null
         };

@@ -425,7 +425,7 @@ namespace Wayfarer.Pages
 
         protected string GetStateChangeText(ConversationCard card)
         {
-            if (card.Category != CardCategory.STATE) return "";
+            if (card.Category != CardCategory.State) return "";
             
             if (card.SuccessState.HasValue)
             {
@@ -436,7 +436,7 @@ namespace Wayfarer.Pages
         
         protected string GetSuccessEffect(ConversationCard card)
         {
-            if (card.Category == CardCategory.STATE && card.SuccessState.HasValue)
+            if (card.Category == CardCategory.State && card.SuccessState.HasValue)
             {
                 return $"{Session.CurrentState} → {card.SuccessState.Value}";
             }
@@ -502,7 +502,7 @@ namespace Wayfarer.Pages
 
         protected string GetFailureEffect(ConversationCard card)
         {
-            if (card.Category == CardCategory.STATE && card.FailureState.HasValue)
+            if (card.Category == CardCategory.State && card.FailureState.HasValue)
             {
                 return $"{Session.CurrentState} → {card.FailureState.Value}";
             }

@@ -791,11 +791,6 @@
     background: linear-gradient(to bottom, #faf4ea, #f4e8d0);
 }
 
-.dialog-card.crisis {
-    border-left-color: #8b4726;
-    background: linear-gradient(to bottom, #faf0e6, #f9ede0);
-}
-
 .dialog-card.burden {
     border-left-color: #4a3a2a;
     background: linear-gradient(to bottom, #e8dcc4, #ddc5a0);
@@ -1101,16 +1096,6 @@
 .tag.type-state {
     background: linear-gradient(135deg, #8b7355, #7b6345);
     border-color: #6b5335;
-    color: #faf4ea;
-    font-weight: bold;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    padding: 3px 8px;
-}
-
-.tag.CRISIS,
-.tag.type-crisis {
-    background: linear-gradient(135deg, #8b4726, #7b3716);
-    border-color: #6b2706;
     color: #faf4ea;
     font-weight: bold;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);

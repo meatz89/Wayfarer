@@ -113,23 +113,6 @@ public class NPC
         return GoalDeck.GetAllCards().Any(c => c.Category == CardCategory.Promise);
     }
     
-    // Check if NPC has crisis cards in their goal deck
-    public bool HasCrisisCards()
-    {
-        // Crisis system removed - no crisis cards
-        return false;
-    }
-    
-    // Crisis deck - removed, crisis system no longer used
-    public CardDeck CrisisDeck
-    {
-        get
-        {
-            // Return empty deck - crisis system removed
-            return new CardDeck();
-        }
-    }
-    
     // Check if NPC has burden history (cards in conversation deck)
     public bool HasBurdenHistory()
     {

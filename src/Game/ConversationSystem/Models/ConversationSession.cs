@@ -167,9 +167,9 @@ public class ConversationSession
                 {
                     Console.WriteLine($"[StartConversation] Shuffled {goalConv.GoalCardType} goal card (ID: {goalConv.Id}) into session deck");
                 }
-                else if (goalCard is PromiseCard promise)
+                else if (goalCard.Category == CardCategory.Promise)
                 {
-                    Console.WriteLine($"[StartConversation] Shuffled promise card (ID: {promise.Id}) into session deck");
+                    Console.WriteLine($"[StartConversation] Shuffled promise card (ID: {goalCard.Id}) into session deck");
                 }
                 
                 // Use the session deck, not the original
@@ -357,14 +357,14 @@ public class ConversationSession
         var basePatience = 3; // Fixed 3 patience for crisis
         
         // Use existing crisis deck or fail if none exists
-        if (npc.CrisisDeck == null || npc.CrisisDeck.RemainingCards == 0)
+        if (npcDeck == null || npcDeck.RemainingCards == 0)
         {
             Console.WriteLine($"[ERROR] StartCrisis: {npc.Name} has no crisis deck or no Crisis letters!");
             // Can't proceed without crisis cards
             return null;
         }
         
-        var deck = npc.CrisisDeck;
+        var deck = npcDeck;
         
         // Draw initial hand - for crisis, we should draw ALL Crisis letters available
         var handCards = new List<ConversationCard>();
@@ -417,7 +417,7 @@ public class ConversationSession
         return new ConversationSession
         {
             NPC = npc,
-            ConversationType = ConversationType.Crisis,
+            ConversationType = ConversationType,
             CurrentState = initialState,
             HandCards = handCards,
             Deck = deck,
@@ -536,17 +536,15 @@ public class ConversationSession
             
             foreach (var card in NPC.GoalDeck)
             {
-                if (card is PromiseCard promiseCard)
+                if (card.Category == CardCategory.Promise)
                 {
-                    // Check if letter is eligible with current tokens and state
-                    if (promiseCard.IsEligible(npcTokens, CurrentState))
+                    // Promise cards are eligible for negotiation
                     {
-                        // Convert promise card to conversation card for negotiation
-                        var conversationCard = promiseCard.ToConversationCard(NPC.ID, NPC.Name);
+                        // Use the conversation card directly
+                        var conversationCard = card;
                         
                         // Calculate success rate with linear token progression (+5% per token)
-                        var relevantTokens = npcTokens.GetValueOrDefault(promiseCard.ConnectionType, 0);
-                        var successRate = promiseCard.BaseSuccessRate + (relevantTokens * 5);
+                        var successRate = card.CalculateSuccessChance(npcTokens);
                     successRate = Math.Clamp(successRate, 10, 95);
                     
                     // Create new card with calculated success rate (init-only property)
@@ -569,32 +567,32 @@ public class ConversationSession
                     };
                     
                         HandCards.Add(conversationCard);
-                        Console.WriteLine($"[ExecuteListen] Added eligible letter: {promiseCard.Title} (Success: {successRate}%)");
+                        Console.WriteLine($"[ExecuteListen] Added eligible letter: {conversationCard.DisplayName ?? conversationCard.Id} (Success: {successRate}%)");
                     }
                 }
             }
         }
 
         // Inject Crisis letters if state requires it (DESPERATE/HOSTILE)
-        if (rules.InjectsCrisis && rules.CrisisCardsInjected > 0)
+        if (rules.InjectsCrisis && rulesCardsInjected > 0)
         {
             // Check if we have Crisis letters in the crisis deck
-            if (NPC.CrisisDeck != null && NPC.CrisisDeck.RemainingCards > 0)
+            if (NPCDeck != null && NPCDeck.RemainingCards > 0)
             {
                 // Draw from crisis deck
-                var crisisCards = NPC.CrisisDeck.Draw(rules.CrisisCardsInjected, 0);
+                var crisisCards = NPCDeck.Draw(rulesCardsInjected, 0);
                 HandCards.AddRange(crisisCards);
                 Console.WriteLine($"[ExecuteListen] Injected {crisisCards.Count} Crisis letters from deck");
             }
             else
             {
                 // Generate Crisis letters if deck is empty
-                for (int i = 0; i < rules.CrisisCardsInjected; i++)
+                for (int i = 0; i < rulesCardsInjected; i++)
                 {
                     var crisisCard = CardDeck.GenerateCrisisCard(NPC);
                     HandCards.Add(crisisCard);
                 }
-                Console.WriteLine($"[ExecuteListen] Generated {rules.CrisisCardsInjected} Crisis letters");
+                Console.WriteLine($"[ExecuteListen] Generated {rulesCardsInjected} Crisis letters");
             }
         }
 
@@ -790,7 +788,7 @@ public class ConversationSession
             
         // For crisis conversations, we don't end just because cards are empty
         // The player still gets their patience turns to try to resolve the crisis
-        if (ConversationType != ConversationType.Crisis)
+        if (ConversationType != ConversationType)
         {
             // For normal conversations, check if deck is empty
             if (Deck.IsEmpty)
@@ -1127,7 +1125,7 @@ public class ConversationSession
         var payment = success ? 15 : 5;  // Better payment on success
         
         // CLEAN DESIGN: Check Category, not ID strings
-        bool isCrisisLetter = goalCard.Category == CardCategory.CRISIS;
+        bool isCrisisLetter = goalCard.Category == CardCategory;
         bool forcesPosition1 = isCrisisLetter; // Crisis letters force position 1 on failure
         
         // Get recipient info from card context or use defaults
@@ -1208,7 +1206,7 @@ public class ConversationSession
                 PromiseCardId = negotiation.PromiseCardId,
                 NegotiationSuccess = negotiation.NegotiationSuccess,
                 FinalTerms = terms,
-                SourcePromiseCard = null, // ConversationCard doesn't match PromiseCard type
+                SourcePromiseCard = sourcePromiseCard,
                 CreatedObligation = obligation
             };
 
@@ -1379,8 +1377,8 @@ public class ConversationSession
             ConversationType.Resolution => allGoals.Where(g =>
                 g is ConversationCard conv && conv.GoalCardType == ConversationType.Resolution),
 
-            ConversationType.Crisis => allGoals.Where(g =>
-                g is ConversationCard conv && conv.GoalCardType == ConversationType.Crisis),
+            ConversationType => allGoals.Where(g =>
+                g is ConversationCard conv && conv.GoalCardType == ConversationType),
 
             _ => allGoals // Standard conversations don't filter by type
         };
@@ -1414,8 +1412,8 @@ public class ConversationSession
         
         // Check for crisis goals first
         var crisisGoal = stateFilteredGoals.FirstOrDefault((object g) => 
-            g.GoalCardType == global::ConversationType.Crisis || 
-            g.Category == CardCategory.CRISIS);
+            g.GoalCardType == global::ConversationType || 
+            g.Category == CardCategory);
         if (crisisGoal != null)
         {
             Console.WriteLine($"[SelectGoalCard] Selected crisis goal: {crisisGoal.Id}");

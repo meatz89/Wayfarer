@@ -106,7 +106,7 @@ public class LetterNegotiationResult
     /// <summary>
     /// Final terms after negotiation (success or failure terms)  
     /// </summary>
-    // public LetterNegotiationTerms FinalTerms { get; init; }
+    public TermDetails FinalTerms { get; init; }
 
     /// <summary>
     /// The promise card that generated this negotiation

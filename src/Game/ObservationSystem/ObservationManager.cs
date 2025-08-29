@@ -77,7 +77,8 @@ public class ObservationManager
         {
             // Create observation card with decay tracking
             var currentGameTime = GetCurrentGameTime();
-            var observationCard = ObservationCard.FromConversationCard(conversationCard, observation.Id, currentGameTime);
+            var observationCard = ObservationCard.FromConversationCard(conversationCard);
+            // Note: SourceObservationId is set in the FromConversationCard method using the card.Id
             
             _currentObservationCards.Add(observationCard);
             Console.WriteLine($"[ObservationManager] Generated observation card {observationCard.Id} from {observation.Id} at {currentGameTime}");

@@ -125,4 +125,16 @@ public bool IsEndlessModeActive()
     return EndlessMode;
 }
 
+/// <summary>
+/// Get domain tags from the current location spot
+/// </summary>
+public List<string> GetCurrentSpotDomainTags()
+{
+    var player = GetPlayer();
+    if (player?.CurrentLocationSpot?.DomainTags == null)
+        return new List<string>();
+    
+    return new List<string>(player.CurrentLocationSpot.DomainTags);
+}
+
 }

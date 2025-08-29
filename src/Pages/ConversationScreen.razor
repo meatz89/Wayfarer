@@ -245,7 +245,7 @@
                         </div>
 
                         <div class="card-outcomes">
-                            @if (IsExchangeCard(card))
+                            @if (card.IsExchange)
                             {
                                 <!-- Exchange cards show cost/reward instead of success/failure -->
                                 <div class="exchange-details">

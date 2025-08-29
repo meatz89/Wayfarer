@@ -557,8 +557,8 @@ public class GameFacade
         var attentionState = _timeBlockAttentionManager.GetAttentionState();
         bool hasEnoughAttention = attentionState.current >= attentionCost;
         
-        // Check if conversation type is locked due to crisis
-        bool isLockedByCrisis = npc.HasCrisisCards() && conversationType != ConversationType.Crisis;
+        // Check if conversation type is locked due to burden
+        bool isLockedByBurden = npc.HasBurdenHistory() && conversationType != ConversationType.Resolution;
         
         // Generate the interaction option
         var interaction = new InteractionOptionViewModel();
@@ -571,11 +571,6 @@ public class GameFacade
                 interaction.Cost = "Free";
                 break;
                 
-            case ConversationType.Crisis:
-                interaction.Text = "⚠ Address Crisis";
-                interaction.Cost = "1 attention";
-                break;
-                
             case ConversationType.FriendlyChat:
                 interaction.Text = "Have Conversation";
                 interaction.Cost = "2 attention";
@@ -583,7 +578,7 @@ public class GameFacade
         }
         
         // Mark as locked if crisis is active and this isn't the crisis conversation
-        if (isLockedByCrisis)
+        if (isLockedByBurden)
         {
             interaction.Text = $"[LOCKED] {interaction.Text}";
             interaction.Cost = "Crisis must be resolved";

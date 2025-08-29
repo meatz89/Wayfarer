@@ -78,7 +78,7 @@ public class ConversationManager
         }
 
         // For Crisis conversation, use crisis deck
-        if (conversationType == ConversationType.Crisis)
+        if (conversationType == ConversationType)
         {
             return StartCrisisConversation(npc, observationCards);
         }
@@ -126,7 +126,7 @@ public class ConversationManager
         // If NPC has Crisis letters, ONLY crisis conversation is available
         if (npc.HasCrisisCards())
         {
-            available.Add(ConversationType.Crisis);
+            available.Add(ConversationType);
             return available; // Other types are LOCKED during crisis
         }
         

@@ -72,7 +72,7 @@ namespace Wayfarer.Pages.Components
                     {
                         options.Add(new ConversationOptionViewModel
                         {
-                            Type = ConversationType.Crisis,
+                            Type = ConversationType,
                             Label = "Crisis Resolution",
                             AttentionCost = 1,
                             IsAvailable = true
@@ -281,7 +281,7 @@ namespace Wayfarer.Pages.Components
             return type switch
             {
                 ConversationType.Commerce => "Quick Exchange",
-                ConversationType.Crisis => "Crisis Resolution",
+                ConversationType => "Crisis Resolution",
                 ConversationType.FriendlyChat => "Standard Conversation",
                 _ => type.ToString()
             };
@@ -292,7 +292,7 @@ namespace Wayfarer.Pages.Components
             return type switch
             {
                 ConversationType.Commerce => 0,
-                ConversationType.Crisis => 1,
+                ConversationType => 1,
                 ConversationType.FriendlyChat => 2,
                 _ => 0
             };
@@ -314,7 +314,7 @@ namespace Wayfarer.Pages.Components
             return type switch
             {
                 ConversationType.Commerce => "exchange",
-                ConversationType.Crisis => "crisis",
+                ConversationType => "crisis",
                 _ => ""
             };
         }

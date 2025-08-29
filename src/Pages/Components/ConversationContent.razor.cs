@@ -560,8 +560,8 @@ namespace Wayfarer.Pages.Components
             return conversationType switch
             {
                 ConversationType.Commerce => "Quick Exchange",
-                ConversationType.Crisis => "Crisis Resolution",
-                ConversationType.FriendlyChat => "Standard Conversation",
+                ConversationType.Resolution => "Burden Resolution",
+                ConversationType.FriendlyChat => "Friendly Conversation",
                 _ => "Conversation"
             };
         }
@@ -649,7 +649,7 @@ namespace Wayfarer.Pages.Components
         protected string GetCardClass(ConversationCard card)
         {
             // Map categories to CSS classes
-            if (card.Category == CardCategory.BURDEN)
+            if (card.Category == CardCategory.Burden)
                 return "crisis";
             if (card.Category == CardCategory.State)
                 return "state";
@@ -941,12 +941,13 @@ namespace Wayfarer.Pages.Components
                     {
                         // Generate appropriate message based on negotiation success
                         var negotiationOutcome = negotiation.NegotiationSuccess ? "Successfully negotiated" : "Failed to negotiate";
-                        var urgency = negotiation.FinalTerms.DeadlineHours <= 2 ? " - CRITICAL!" : 
-                                     negotiation.FinalTerms.DeadlineHours <= 6 ? " - URGENT" : "";
+                        var deadlineHours = negotiation.FinalTerms.DeadlineMinutes / 60.0;
+                        var urgency = deadlineHours <= 2 ? " - CRITICAL!" : 
+                                     deadlineHours <= 6 ? " - URGENT" : "";
                         
                         messageSystem?.AddSystemMessage(
-                            $"{negotiationOutcome} letter: '{negotiation.SourcePromiseCard.Title}' - {negotiation.FinalTerms.DeadlineHours}h deadline, {negotiation.FinalTerms.Payment} coins{urgency}",
-                            negotiation.FinalTerms.DeadlineHours <= 2 ? SystemMessageTypes.Danger : SystemMessageTypes.Success
+                            $"{negotiationOutcome} letter: '{negotiation.SourcePromiseCard.DisplayName ?? negotiation.SourcePromiseCard.Id}' - {deadlineHours:F1}h deadline, {negotiation.FinalTerms.Payment} coins{urgency}",
+                            deadlineHours <= 2 ? SystemMessageTypes.Danger : SystemMessageTypes.Success
                         );
                         
                         // Mark the letter as generated in the session

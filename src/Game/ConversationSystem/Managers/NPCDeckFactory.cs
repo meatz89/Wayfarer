@@ -17,7 +17,7 @@ public class NPCDeckFactory
         var deck = new CardDeck();
         
         // Use the proper initialization method that sets up depth levels correctly
-        deck.InitializeForNPC(npc, _tokenManager);
+        deck.InitializeForNPC(npc);
         
         // The deck is now properly initialized with depth-based cards
         // No need to add custom cards here as InitializeForNPC handles it

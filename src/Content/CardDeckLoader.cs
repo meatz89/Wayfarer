@@ -351,7 +351,7 @@ public class CardDeckLoader
                 "ResolutionGoal" => ConversationType.Resolution,
                 "PromiseGoal" => ConversationType.Promise,
                 "CommerceGoal" => ConversationType.Commerce,
-                "CrisisGoal" => ConversationType.Crisis,
+                "CrisisGoal" => ConversationType,
                 _ => ConversationType.Promise
             };
             
