@@ -1096,5 +1096,96 @@ namespace Wayfarer.Pages.Components
             return card.IsObservation && 
                    card.Context?.ObservationDecayState == ObservationDecayState.Expired;
         }
+        
+        /// <summary>
+        /// Get the location context string for display in the location bar
+        /// </summary>
+        protected string GetLocationContext()
+        {
+            if (GameFacade == null) return "Unknown Location";
+            
+            var currentLocation = GameFacade.GetCurrentLocation();
+            var currentSpot = GameFacade.GetCurrentLocationSpot();
+            
+            if (currentLocation == null || currentSpot == null)
+                return "Unknown Location";
+            
+            var locationName = currentLocation.Name ?? "Unknown";
+            var spotName = currentSpot.Name ?? "Unknown";
+            var spotTraits = GetSpotTraits(currentSpot);
+            
+            if (!string.IsNullOrEmpty(spotTraits))
+            {
+                return $"{locationName} → {spotName} ({spotTraits})";
+            }
+            else
+            {
+                return $"{locationName} → {spotName}";
+            }
+        }
+        
+        /// <summary>
+        /// Get spot properties formatted for display
+        /// </summary>
+        private string GetSpotTraits(LocationSpot spot)
+        {
+            if (spot?.SpotProperties == null || !spot.SpotProperties.Any())
+                return "";
+            
+            var propertyDescriptions = new List<string>();
+            
+            foreach (var property in spot.SpotProperties)
+            {
+                // Convert property enum to user-friendly description
+                var description = property switch
+                {
+                    SpotPropertyType.Private => "Private",
+                    SpotPropertyType.Discrete => "Discrete",
+                    SpotPropertyType.Public => "Public",
+                    SpotPropertyType.Exposed => "Exposed",
+                    SpotPropertyType.Quiet => "Quiet", 
+                    SpotPropertyType.Loud => "Loud",
+                    SpotPropertyType.Warm => "Warm",
+                    SpotPropertyType.Shaded => "Shaded",
+                    SpotPropertyType.Crossroads => "Crossroads",
+                    SpotPropertyType.Isolated => "Isolated",
+                    SpotPropertyType.NobleFavored => "Noble-favored",
+                    SpotPropertyType.CommonerHaunt => "Commoner haunt",
+                    SpotPropertyType.MerchantHub => "Merchant hub",
+                    SpotPropertyType.SacredGround => "Sacred ground",
+                    SpotPropertyType.Commercial => "Commercial",
+                    _ => property.ToString()
+                };
+                
+                // Add patience bonus if this property provides it
+                var patienceBonus = GetPropertyPatienceBonus(property);
+                if (patienceBonus != 0)
+                {
+                    description += $", {(patienceBonus > 0 ? "+" : "")}{patienceBonus} patience";
+                }
+                
+                propertyDescriptions.Add(description);
+            }
+            
+            return string.Join(", ", propertyDescriptions);
+        }
+        
+        /// <summary>
+        /// Get patience bonus for a specific spot property
+        /// </summary>
+        private int GetPropertyPatienceBonus(SpotPropertyType property)
+        {
+            // Based on game design, certain properties affect conversation patience
+            return property switch
+            {
+                SpotPropertyType.Private => 1,      // Private locations give +1 patience
+                SpotPropertyType.Discrete => 1,     // Discrete locations help patience
+                SpotPropertyType.Exposed => -1,     // Exposed locations reduce patience
+                SpotPropertyType.Quiet => 1,        // Quiet locations help patience
+                SpotPropertyType.Loud => -1,        // Loud locations hurt patience
+                SpotPropertyType.Isolated => 1,     // Isolated spots help
+                _ => 0
+            };
+        }
     }
 }

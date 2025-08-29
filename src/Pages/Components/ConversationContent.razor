@@ -30,6 +30,11 @@
             </div>
         }
 
+        <!-- Location Context -->
+        <div class="location-context">
+            @GetLocationContext()
+        </div>
+
         @if ((Context?.Type ?? ConversationType.FriendlyChat) != ConversationType.Commerce)
         {
             <!-- Streamlined Conversation State -->

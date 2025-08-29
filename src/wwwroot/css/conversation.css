@@ -20,6 +20,17 @@
     align-items: center;
 }
 
+/* Location Context Bar */
+.location-context {
+    background: #f9f3e9;
+    padding: 8px 20px;
+    border-bottom: 1px solid #c4a684;
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
 /* Streamlined Conversation State Bar */
 .conversation-state-bar {
     background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
