@@ -270,7 +270,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5557\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5558\" dotnet run)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5559\" dotnet run)",
-      "mcp__playwright__browser_hover"
+      "mcp__playwright__browser_hover",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5600\" dotnet run)"
     ],
     "deny": []
   }
