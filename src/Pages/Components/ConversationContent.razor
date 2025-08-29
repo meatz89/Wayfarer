@@ -236,6 +236,16 @@
                             <div class="card-text">
                                 @GetCardText(convCard)
                             </div>
+                            @if (convCard.DrawableStates != null && convCard.DrawableStates.Any())
+                            {
+                                <div class="card-drawable-states">
+                                    <span class="drawable-label">Drawable in:</span>
+                                    @foreach (var state in convCard.DrawableStates)
+                                    {
+                                        <span class="drawable-state">@state</span>
+                                    }
+                                </div>
+                            }
                             <div class="card-outcomes">
                                 <div class="outcome success">
                                     <div class="outcome-header">

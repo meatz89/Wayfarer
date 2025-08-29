@@ -1239,6 +1239,38 @@
     color: #8b4726;
 }
 
+/* Drawable States Display - Shows which states cards can be drawn in */
+.card-drawable-states {
+    padding: 0.5rem;
+    background: rgba(139, 115, 85, 0.1);
+    border-top: 1px solid #c4a684;
+    font-size: 0.75rem;
+    color: #7a6250;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.drawable-label {
+    font-weight: 600;
+    color: #8b7355;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.drawable-state {
+    padding: 0.125rem 0.375rem;
+    background: rgba(196, 166, 132, 0.2);
+    border: 1px solid #c4a684;
+    border-radius: 0.25rem;
+    color: #5a4838;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+
 /* Outcomes Section - Match mockup exactly with proper visual hierarchy */
 .card-outcomes {
     display: grid;

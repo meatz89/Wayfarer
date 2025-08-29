@@ -95,6 +95,30 @@
             font-weight: bold;
         }
 
+        /* Queue Display */
+        .queue-display {
+            background: #f4e8d0;
+            padding: 8px 20px;
+            border-bottom: 1px solid #a68b6f;
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        .queue-item {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .position-1 {
+            color: #8b4726;
+            font-weight: bold;
+        }
+
+        .queue-empty {
+            color: #8b7355;
+            font-style: italic;
+        }
+
         /* Location Context */
         .location-context {
             background: #f9f3e9;
@@ -439,9 +463,8 @@
             border-left: 5px solid #8b7355;
         }
 
-        .card.crisis {
-            border-left: 5px solid #8b4726;
-            background: #faf0e6;
+        .card.patience {
+            border-left: 5px solid #6a7a8a;
         }
 
         .card.burden {
@@ -663,7 +686,7 @@
             <div class="resource-group">
                 <div class="resource">
                     <div class="resource-icon">💰</div>
-                    <div class="resource-value">23</div>
+                    <div class="resource-value">7</div>
                     <span>Coins</span>
                 </div>
                 <div class="resource">
@@ -673,12 +696,12 @@
                 </div>
                 <div class="resource low">
                     <div class="resource-icon">🍞</div>
-                    <div class="resource-value">60</div>
+                    <div class="resource-value">0</div>
                     <span>Hunger</span>
                 </div>
                 <div class="resource">
                     <div class="resource-icon">👁️</div>
-                    <div class="resource-value">6/10</div>
+                    <div class="resource-value">5/10</div>
                     <span>Attention</span>
                 </div>
             </div>
@@ -693,8 +716,16 @@
         <div class="header">
             <div class="time-bar">
                 <span class="current-time">Tuesday, 3:47 PM</span>
-                <span class="deadline-warning">⚠ Elena needs her letter delivered: 1h 13m</span>
+                <span class="deadline-warning">⚠ Lord Blackwood leaves city: 1h 13m</span>
             </div>
+        </div>
+
+        <!-- Queue Display - Elena's letter NOT here yet! -->
+        <div class="queue-display">
+            Queue: 
+            <span class="queue-item position-1">1. Marcus Package (30m)</span>
+            <span class="queue-item">2. Guard Report (4h)</span>
+            <span class="queue-empty">3. [Empty]</span>
         </div>
 
         <!-- Location Context -->
@@ -714,7 +745,7 @@
             <div class="npc-section">
                 <div class="npc-details">
                     <h2>Elena</h2>
-                    <div class="npc-state desperate">DESPERATE • Needs letter delivered to Lord Blackwood urgently</div>
+                    <div class="npc-state desperate">DESPERATE • Lord Blackwood leaves at sunset - this is her only chance</div>
                 </div>
             </div>
 
@@ -765,7 +796,7 @@
                 </div>
                 
                 <div class="patience-display">
-                    <div class="patience-value">8/10</div>
+                    <div class="patience-value">8/13</div>
                     <div class="patience-label">Patience</div>
                 </div>
             </div>
@@ -786,13 +817,13 @@
                 Elena clutches a sealed letter, her hands trembling. The wax seal bears her family crest. Her breathing is shallow, panic barely contained.
             </div>
             <div class="npc-dialogue desperate">
-                "Please, I need someone trustworthy to deliver this to Lord Blackwood before sunset. He's leaving the city tonight, and this letter... it's my refusal of his marriage proposal. If it doesn't reach him, my father will force the arrangement."
+                "Please, I need someone trustworthy to deliver this to Lord Blackwood before sunset. He's leaving the city tonight, and this letter... it's my refusal of his marriage proposal. If it doesn't reach him, my father will force the arrangement. He's in the Noble District - you'll need a permit to get through."
             </div>
         </div>
 
         <!-- Action Choice -->
         <div class="action-section">
-            <div class="turn-indicator">Turn 3 of 10 • Weight Limit: 1 (Desperate State)</div>
+            <div class="turn-indicator">Turn 3 of 13 • Weight Limit: 1 (Desperate State)</div>
             <div class="action-choices">
                 <div class="action-button">
                     <div>👂 LISTEN</div>
@@ -808,7 +839,7 @@
         <!-- Cards Section -->
         <div class="cards-section">
             <div class="cards-header">
-                <div class="cards-title">Your Hand (5 cards)</div>
+                <div class="cards-title">Your Hand (6 cards)</div>
                 <div class="weight-tracker">
                     <span>Weight Available:</span>
                     <span style="font-weight: bold;">1</span>
@@ -816,12 +847,12 @@
             </div>
             
             <div class="card-grid">
-                <!-- Observation Card -->
+                <!-- Observation Card from Market Square -->
                 <div class="card observation">
-                    <div class="card-marker opportunity">Expires 24hr</div>
+                    <div class="card-marker opportunity">From Market Square</div>
                     <div class="card-header">
                         <div class="card-identity">
-                            <div class="card-name">Guard Checkpoint Info</div>
+                            <div class="card-name">Merchant Route Knowledge</div>
                             <div class="card-tags">
                                 <span class="tag">STATE</span>
                                 <span class="tag">Observation</span>
@@ -836,11 +867,11 @@
                         </div>
                     </div>
                     <div class="drawable-states">
-                        <span class="drawable-label">Drawable in:</span>
+                        <span class="drawable-label">Playable in:</span>
                         <span class="state-list">All non-Hostile states</span>
                     </div>
                     <div class="card-text">
-                        "The north checkpoint is doubling inspections today. I know a merchant route that avoids it entirely."
+                        "I overheard merchants discussing a warehouse route that bypasses the Noble checkpoint entirely. We could use that path."
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
@@ -905,7 +936,7 @@
                                 <span class="outcome-chance">35%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect"><span class="effect-value">-1</span> comfort</div>
+                                <div class="effect"><span class="effect-value">-1</span> comfort (→ HOSTILE!)</div>
                             </div>
                         </div>
                     </div>
@@ -934,7 +965,7 @@
                         <span class="state-list">Desperate</span>
                     </div>
                     <div class="card-text">
-                        "Take a breath. We have time if we're smart about this. Let me help you think through the best approach."
+                        "Take a breath. We have over an hour. Let me help you think through the best approach to reach Lord Blackwood."
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
@@ -953,6 +984,53 @@
                             </div>
                             <div class="outcome-effects">
                                 <div class="effect">State unchanged</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patience Card -->
+                <div class="card patience">
+                    <div class="card-header">
+                        <div class="card-identity">
+                            <div class="card-name">Please, Give Me Time</div>
+                            <div class="card-tags">
+                                <span class="tag">PATIENCE</span>
+                                <span class="tag">Trust</span>
+                                <span class="tag">W1</span>
+                            </div>
+                        </div>
+                        <div class="card-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Weight</span>
+                                <span class="stat-value">1</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="drawable-states">
+                        <span class="drawable-label">Drawable in:</span>
+                        <span class="state-list">All non-Hostile states</span>
+                    </div>
+                    <div class="card-text">
+                        "Elena, I need you to trust me for just a bit longer. Let me understand everything before we proceed."
+                    </div>
+                    <div class="card-outcomes">
+                        <div class="outcome success">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Success</span>
+                                <span class="outcome-chance">65%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect"><span class="effect-value">+3</span> patience</div>
+                            </div>
+                        </div>
+                        <div class="outcome failure">
+                            <div class="outcome-header">
+                                <span class="outcome-label">Failure</span>
+                                <span class="outcome-chance">35%</span>
+                            </div>
+                            <div class="outcome-effects">
+                                <div class="effect">No change</div>
                             </div>
                         </div>
                     </div>
@@ -1008,13 +1086,13 @@
 
                 <!-- Letter Card (goal card) -->
                 <div class="card letter">
-                    <div class="card-marker negotiate">Goal Card</div>
+                    <div class="card-marker negotiate">Goal Card - Ends Conversation</div>
                     <div class="card-header">
                         <div class="card-identity">
                             <div class="card-name">Accept Elena's Letter</div>
                             <div class="card-tags">
                                 <span class="tag">GOAL</span>
-                                <span class="tag">Trust</span>
+                                <span class="tag">Trust Letter</span>
                                 <span class="tag">W1</span>
                             </div>
                         </div>
@@ -1030,7 +1108,7 @@
                         <span class="state-list">Desperate, Tense</span>
                     </div>
                     <div class="card-text">
-                        "I'll take your letter to Lord Blackwood. For something this urgent, I'll do whatever it takes."
+                        "I'll take your letter to Lord Blackwood. I'll need 10 coins for a Noble District permit - the guards won't let me through otherwise."
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
@@ -1042,6 +1120,7 @@
                                 <div class="effect">Gain letter</div>
                                 <div class="effect">4hr deadline</div>
                                 <div class="effect">Queue position 3</div>
+                                <div class="effect">10 coin payment</div>
                             </div>
                         </div>
                         <div class="outcome failure">
@@ -1053,6 +1132,7 @@
                                 <div class="effect">Gain letter</div>
                                 <div class="effect">1hr deadline!</div>
                                 <div class="effect">Forces queue position 1</div>
+                                <div class="effect">5 coin payment</div>
                             </div>
                         </div>
                     </div>
