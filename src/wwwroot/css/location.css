@@ -200,22 +200,15 @@
 
 /* Obligations Panel */
 .obligations-panel {
-    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+    background: #f4e8d0;
     border-bottom: 2px solid #a68b6f;
     padding: 10px 20px;
-    position: relative;
-    z-index: 2;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
-.obligation-panel-button {
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    text-align: left;
-    cursor: pointer;
-    font-family: inherit;
+.obligations-panel:hover {
+    background: #e8dcc4;
 }
 
 .obligations-header {
@@ -224,39 +217,63 @@
     letter-spacing: 1px;
     color: #7a6250;
     margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.queue-rule {
+    color: #8b4726;
+    font-weight: bold;
 }
 
 .obligation-list {
     display: flex;
-    gap: 15px;
-    overflow-x: auto;
+    gap: 10px;
+    align-items: center;
 }
 
 .obligation-item {
-    background: linear-gradient(135deg, #faf4ea, #f9f3e9);
+    background: #faf4ea;
     border: 1px solid #c4a684;
     border-radius: 3px;
     padding: 6px 10px;
     font-size: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    position: relative;
+    flex: 0 0 auto;
+    min-width: 180px;
 }
 
-.obligation-action {
-    font-weight: bold;
-    color: #5c4a3a;
-}
-
-.obligation-time {
-    font-size: 11px;
-    color: #8b7355;
-}
-
-.obligation-item.critical {
-    border-color: #d4704a;
+.obligation-item.position-1 {
+    border-color: #8b4726;
     background: #faf0e6;
+    border-width: 2px;
+}
+
+.obligation-item.empty {
+    border: 1px dashed #c4a684;
+    opacity: 0.6;
+}
+
+.queue-position {
+    position: absolute;
+    top: -8px;
+    left: 4px;
+    background: #8b4726;
+    color: #faf4ea;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.deadline {
+    color: #8b4726;
+    font-weight: bold;
+}
+
+.queue-arrow {
+    color: #7a6250;
+    font-size: 16px;
 }
 
 .obligation-target {

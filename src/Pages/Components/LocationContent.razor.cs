@@ -24,7 +24,7 @@ namespace Wayfarer.Pages.Components
         protected bool CanWork { get; set; }
         protected TimeBlocks CurrentTime { get; set; }
         protected List<NPC> NPCsAtSpot { get; set; } = new();
-        protected DeliveryObligation FirstObligation { get; set; }
+        protected IEnumerable<DeliveryObligation> ActiveObligations { get; set; } = new List<DeliveryObligation>();
 
         protected override async Task OnInitializedAsync()
         {
@@ -141,15 +141,18 @@ namespace Wayfarer.Pages.Components
             // Check if can work at this spot
             CanWork = spot?.Properties?.Contains("Commercial") ?? false;
             
-            // Get first obligation in queue  
-            var obligations = GameFacade.GetObligationQueueManager()?.GetActiveObligations();
-            if (obligations != null && obligations.Any())
+            // Get active obligations from the queue manager
+            var queueManager = GameFacade.GetObligationQueueManager();
+            if (queueManager != null)
             {
-                FirstObligation = obligations.First();
+                var obligations = queueManager.GetActiveObligations();
+                // Take only the first 3 for the preview panel
+                ActiveObligations = obligations?.Take(3) ?? new List<DeliveryObligation>();
+                Console.WriteLine($"[LocationContent] Got {ActiveObligations.Count()} obligations for display");
             }
             else
             {
-                FirstObligation = null;
+                ActiveObligations = new List<DeliveryObligation>();
             }
         }
 
@@ -333,6 +336,59 @@ namespace Wayfarer.Pages.Components
             {
                 return "Focused on the task at hand.";
             }
+        }
+        
+        protected string GetDeadlineText(int deadlineInMinutes)
+        {
+            if (deadlineInMinutes <= 0)
+                return "EXPIRED!";
+            
+            int hours = deadlineInMinutes / 60;
+            int minutes = deadlineInMinutes % 60;
+            
+            if (hours == 0)
+                return $"{minutes}m";
+            else if (minutes == 0)
+                return $"{hours}h";
+            else
+                return $"{hours}h {minutes}m";
+        }
+        
+        protected string GetTokenCount(string npcId, ConnectionType tokenType)
+        {
+            // This would get the actual token count from the ConnectionTokenManager
+            // For now returning placeholder
+            return "0";
+        }
+        
+        protected string GetTokenEffect(string npcId, ConnectionType tokenType)
+        {
+            // This would calculate the effect based on token count
+            // For now returning placeholder
+            return "+0%";
+        }
+        
+        protected string GetNPCPersonalityDescription(NpcViewModel npc)
+        {
+            // Format personality type for display
+            if (string.IsNullOrEmpty(npc.PersonalityType))
+                return "";
+                
+            return $"{npc.PersonalityType} type";
+        }
+        
+        protected bool HasLetterGoal(string npcId)
+        {
+            // Check if this NPC has an active letter goal
+            // This would check against the game state
+            return false;
+        }
+        
+        protected int GetBurdenCount(string npcId)
+        {
+            // Get burden count for this NPC
+            // This would check against the game state
+            return 0;
         }
     }
 

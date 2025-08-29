@@ -3,6 +3,43 @@
 @namespace Wayfarer.Pages.Components
 
 <div class="location-content content-area">
+    <!-- Active Obligations Queue - Always show to emphasize the queue system -->
+    <div class="obligations-panel" @onclick="() => GameScreen?.NavigateToQueue()">
+        <div class="obligations-header">
+            <span>Active Obligations</span>
+            <span class="queue-rule">Must complete Position 1 first!</span>
+        </div>
+        <div class="obligation-list">
+            @{
+                var obligationsList = ActiveObligations?.ToList() ?? new List<DeliveryObligation>();
+            }
+            @for (int i = 0; i < 3; i++)
+            {
+                if (i > 0)
+                {
+                    <span class="queue-arrow">→</span>
+                }
+                
+                @if (i < obligationsList.Count)
+                {
+                    var obligation = obligationsList[i];
+                    <div class="obligation-item @(i == 0 ? "position-1" : "")">
+                        <span class="queue-position">@(i + 1)</span>
+                        @obligation.SenderName → @obligation.RecipientName
+                        <span class="deadline">(@GetDeadlineText(obligation.DeadlineInMinutes))</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="obligation-item empty">
+                        <span class="queue-position">@(i + 1)</span>
+                        <span style="color: #7a6250;">[Empty]</span>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
     <!-- Atmospheric Description -->
     @if (CurrentSpot != null)
     {
@@ -11,41 +48,6 @@
                                      NPCsPresent="NPCsAtSpot" />
     }
 
-    <!-- Priority Obligation Display -->
-    @if (FirstObligation != null)
-    {
-        <div class="priority-obligation-display" @onclick="() => GameScreen?.NavigateToQueue()">
-            <div class="obligation-header">
-                <span class="icon icon-letter-urgent"></span>
-                <span>Priority Delivery</span>
-            </div>
-            <div class="obligation-details">
-                <div class="obligation-route">
-                    <span class="sender">@FirstObligation.SenderName</span>
-                    <span class="arrow">→</span>
-                    <span class="recipient">@FirstObligation.RecipientName</span>
-                </div>
-                <div class="obligation-deadline @GetDeadlineClass(FirstObligation.DeadlineInMinutes)">
-                    @if (FirstObligation.DeadlineInMinutes <= 0)
-                    {
-                        <span>EXPIRED</span>
-                    }
-                    else if (FirstObligation.DeadlineInMinutes < 60)
-                    {
-                        <span>@FirstObligation.DeadlineInMinutes min remaining</span>
-                    }
-                    else
-                    {
-                        <span>@(FirstObligation.DeadlineInMinutes / 60)h remaining</span>
-                    }
-                </div>
-                <div class="obligation-stakes">
-                    @FirstObligation.Stakes stakes
-                </div>
-            </div>
-            <div class="click-hint">Click to manage queue</div>
-        </div>
-    }
 
     <!-- Available NPCs -->
     @if (AvailableNpcs.Any())
@@ -57,8 +59,17 @@
                 {
                     <div class="card-base card-standard npc-card">
                         <div class="npc-header">
-                            <div class="npc-name">@npc.Name</div>
+                            <div>
+                                <div class="npc-name">@npc.Name</div>
+                                <div class="npc-type">@GetNPCPersonalityDescription(npc)</div>
+                            </div>
                             <div class="npc-state @GetStateClass(npc.EmotionalState)">@npc.EmotionalState</div>
+                        </div>
+                        <div class="npc-tokens">
+                            <div class="token-display">Trust: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Trust)</span> <span class="token-effect">(@GetTokenEffect(npc.Id, ConnectionType.Trust))</span></div>
+                            <div class="token-display">Commerce: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Commerce)</span></div>
+                            <div class="token-display">Status: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Status)</span></div>
+                            <div class="token-display">Shadow: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Shadow)</span></div>
                         </div>
                         <div class="npc-description">@GetNPCDescription(npc)</div>
                         <div class="npc-actions">
@@ -75,6 +86,14 @@
                                         else
                                         {
                                             <span>@option.AttentionCost attention</span>
+                                        }
+                                        @if (option.Type == ConversationType.Promise && HasLetterGoal(npc.Id))
+                                        {
+                                            <span> • Letter goal available</span>
+                                        }
+                                        @if (option.Type == ConversationType.Resolution && GetBurdenCount(npc.Id) >= 2)
+                                        {
+                                            <span> • @GetBurdenCount(npc.Id) burdens</span>
                                         }
                                     </span>
                                 </div>

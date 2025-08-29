@@ -164,62 +164,81 @@ The system is now fully aligned with the design specification with no legacy cod
 ## PHASE 8: UI Visual Overhaul 🚧 IN PROGRESS
 
 ### Overview
-While all mechanics are fully implemented and working, the UI needs significant visual updates to match the refined mockup design.
+After reading ALL documentation files and understanding the complete game mechanics, we're fixing the UI to match mockups exactly while displaying all mechanical information correctly.
 
-### Completed
-- [x] Created card_dialogues.json with player dialogue text
+### Key Understanding from Documentation
+- **Queue Management**: Position 1 MUST complete first, displacement burns tokens
+- **Token System**: Linear +5% per token on ALL cards including negotiations
+- **Comfort Battery**: -3 to +3 range, triggers state transitions at extremes
+- **Drawable States**: Cards explicitly list which emotional states allow drawing
+- **Goal Cards**: Selected from goal deck based on conversation type chosen
+- **Observation Deck**: Player builds deck of state change cards from world
 
-### In Progress
-- [ ] Update ConversationContent.razor card structure for visual cards
-- [ ] Add comfort dots visualization (-3 to +3)
-- [ ] Add token strip display
-- [ ] Style action buttons as cards
-- [ ] Add location context bar
-- [ ] Update card CSS for visual design
+### Work Packages for Specialized Agents
 
-### Key UI Changes Needed
+#### Package 1: Location Screen Obligations Queue (systems-architect)
+**Files**: LocationContent.razor, LocationContent.razor.cs
+**Tasks**:
+- Implement obligations queue panel showing positions 1-3
+- Add "Must complete Position 1 first!" warning
+- Display sender→recipient with deadlines
+- Show empty slots when queue not full
+- Add arrow connectors between positions
 
-#### 1. Card Visual Design
-- Add 5px colored left border based on category
-- Circular weight badges (24px diameter)
-- Separate 120px wide outcome panels
-- Card markers positioned absolute top-right
-- Proper card dialogue text from JSON
+#### Package 2: NPC Token System Display (content-integrator)
+**Files**: LocationContent.razor, LocationContent.razor.cs
+**Tasks**:
+- Display all 4 token types (Trust/Commerce/Status/Shadow)
+- Show token count and +5% effect per token
+- Add token burning rules display for displacement
+- Match token type to NPC personality type
+- Integrate with conversation success rates
 
-#### 2. Comfort Visualization
-- Replace text "Comfort: 0" with 7-dot display
-- Color negative dots red (#d4704a)
-- Color positive dots green (#7a8b5a)
+#### Package 3: Conversation Type Availability (game-mechanics-designer)
+**Files**: LocationContent.razor, LocationContent.razor.cs
+**Tasks**:
+- Show available conversation types based on goal deck
+- Display "Letter conversation" when letter goals exist
+- Show "Make amends (X burdens)" for resolution
+- Display "Promise conversation" for promise goals
+- NO "goal card available" for urgent letters
+
+#### Package 4: Comfort Dots System (systems-architect)
+**Files**: ConversationContent.razor, ConversationContent.razor.cs
+**Tasks**:
+- Implement 7-dot visualization (-3 to +3)
+- Color negative dots red, positive green
 - Highlight current position with larger dot
-- Add transition hints at ±3
+- Add transition hints at ±3 boundaries
+- Show state transition warnings
 
-#### 3. Token System Display
-- Compact horizontal strip below NPC header
-- Show all 4 token types with counts
-- Display +5% bonus per token
-- Update dynamically during conversation
+#### Package 5: Card Layout Overhaul (narrative-designer)
+**Files**: ConversationContent.razor, conversation.css
+**Tasks**:
+- Add 5px colored left borders by category
+- Implement 120px side panels for outcomes
+- Create circular weight badges (24px)
+- Position markers top-right (24hr, BURDEN, GOAL)
+- Show drawable states clearly
 
-#### 4. Enhanced Action Buttons
-- Minimum 180px width
-- Gradient backgrounds
-- Card-style appearance
-- Action details below main text
+#### Package 6: CSS and Visual Polish (wayfarer-design-auditor)
+**Files**: location.css, conversation.css, common.css
+**Tasks**:
+- Fix card category border colors
+- Style obligations queue properly
+- Create comfort dot animations
+- Ensure resources always visible
+- Match mockup typography and spacing
 
-#### 5. Missing UI Elements
-- Location context bar with spot traits
-- Deadline warnings in header
-- Larger narrative section
-- State-based NPC dialogue styling
+### Implementation Order
+1. Fix Location Screen (Packages 1-3)
+2. Fix Conversation Screen (Packages 4-5)
+3. Polish CSS (Package 6)
+4. Test with Playwright
 
-### Files Being Modified
-- `/src/Content/Dialogues/card_dialogues.json` ✅ Created
-- `/src/Pages/Components/ConversationContent.razor` - In progress
-- `/src/Pages/Components/ConversationContent.razor.cs` - Pending
-- `/src/wwwroot/css/conversation.css` - Pending
-
-### Testing Strategy
-- Use Playwright for visual verification
-- Compare screenshots with mockup
-- Test all card types display correctly
-- Verify comfort transitions visually
-- Ensure token bonuses show
+### Critical Rules
+- ALL content from JSON files, no hardcoded text
+- Perfect Information: All mechanics visible
+- One effect per mechanic, no double duty
+- Resources flow through multiple systems
+- Delete legacy code, no compatibility layers
