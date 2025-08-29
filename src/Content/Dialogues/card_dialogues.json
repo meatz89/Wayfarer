@@ -1,0 +1,187 @@
+{
+  "dialogues": {
+    "PromiseToHelp": {
+      "playerText": "I promise I'll help you with this. You have my word - whatever troubles you're facing, we'll find a solution together.",
+      "contextual": {
+        "DESPERATE": "Please, don't lose hope. I promise I'll help you through this crisis.",
+        "CONNECTED": "You know I'm here for you. Let me help with whatever's troubling you."
+      }
+    },
+    "MentionGuards": {
+      "playerText": "I noticed the guards have changed their patrol patterns near the north gate. They seem to be avoiding the merchant quarter after dusk.",
+      "contextual": {
+        "TENSE": "The guard movements might be relevant to your concerns...",
+        "NEUTRAL": "By the way, I've observed some interesting guard patterns you should know about."
+      }
+    },
+    "CalmReassurance": {
+      "playerText": "Take a breath. Let's slow down and think this through together. Nothing is as hopeless as it seems in the moment.",
+      "contextual": {
+        "GUARDED": "I understand your caution, but please, let's approach this calmly.",
+        "DESPERATE": "Easy now. Panic won't help us. Let's be rational about this."
+      }
+    },
+    "SimpleGreeting": {
+      "playerText": "Good day to you. How are things?",
+      "contextual": {
+        "NEUTRAL": "Hello there. Pleasant day, isn't it?",
+        "OPEN": "It's good to see you again!"
+      }
+    },
+    "ActiveListening": {
+      "playerText": "I'm listening. Please, tell me more about what's on your mind.",
+      "contextual": {
+        "DESPERATE": "I hear the urgency in your voice. Go on, I'm listening.",
+        "CONNECTED": "You have my full attention. What's really bothering you?"
+      }
+    },
+    "OfferHelp": {
+      "playerText": "How can I assist you? If there's something you need done, I might be able to help.",
+      "contextual": {
+        "DESPERATE": "Whatever you need, just say the word. I'll do what I can.",
+        "NEUTRAL": "Is there anything I can help you with today?"
+      }
+    },
+    "SharePersonal": {
+      "playerText": "You know, I've been through something similar myself. There was a time when I felt completely lost, but I learned that accepting help from others isn't weakness.",
+      "contextual": {
+        "CONNECTED": "Since we're being honest with each other, let me share something personal...",
+        "OPEN": "I feel I can trust you with this story from my past..."
+      }
+    },
+    "DiscussBusiness": {
+      "playerText": "How's business been treating you? The market seems particularly active today.",
+      "contextual": {
+        "EAGER": "I hear there are some excellent opportunities in the market right now.",
+        "NEUTRAL": "Any interesting trades coming through lately?"
+      }
+    },
+    "ProposeDeal": {
+      "playerText": "I have a proposition that might benefit us both. Would you be interested in a mutually profitable arrangement?",
+      "contextual": {
+        "EAGER": "Given your enthusiasm, I think you'll like what I'm about to propose.",
+        "CONNECTED": "Since we trust each other, how about we make a deal?"
+      }
+    },
+    "ShowRespect": {
+      "playerText": "I respect your position and understand the weight of your responsibilities. Your reputation precedes you.",
+      "contextual": {
+        "NEUTRAL": "I've heard much about your accomplishments.",
+        "CONNECTED": "Your standing in the community is well-earned."
+      }
+    },
+    "ShareSecret": {
+      "playerText": "Can I trust you with something? I've learned something that few people know, and I think you should hear it.",
+      "contextual": {
+        "CONNECTED": "Since we've grown close, there's something important I need to tell you...",
+        "OVERWHELMED": "This might be a lot to take in, but you need to know..."
+      }
+    },
+    "DefuseConflict": {
+      "playerText": "Let's not let this escalate. We both want the same thing here - a peaceful resolution.",
+      "contextual": {
+        "HOSTILE": "Wait, please. This hostility isn't necessary.",
+        "TENSE": "I can see you're on edge. Let's find common ground."
+      }
+    },
+    "ExpressDoubt": {
+      "playerText": "I'm not entirely convinced. Something about this doesn't add up.",
+      "contextual": {
+        "GUARDED": "Forgive my skepticism, but I need more proof.",
+        "NEUTRAL": "Hmm, I'll need to think about that."
+      }
+    },
+    "OfferPatience": {
+      "playerText": "Take your time. I'm in no rush - we can continue this conversation as long as you need.",
+      "contextual": {
+        "DESPERATE": "Don't worry about the time. Focus on what you need to say.",
+        "CONNECTED": "I have all the time in the world for you."
+      }
+    },
+    "AcceptLetter": {
+      "playerText": "I'll take your letter and ensure it reaches its destination. You can count on me.",
+      "contextual": {
+        "DESPERATE": "Given the urgency, I'll deliver this immediately!",
+        "NEUTRAL": "I'll add this to my deliveries.",
+        "CONNECTED": "For you, I'll make this a priority."
+      }
+    },
+    "DeclineLetter": {
+      "playerText": "I'm sorry, but I can't take on another delivery right now. My satchel is already full of urgent obligations.",
+      "contextual": {
+        "HOSTILE": "I won't be taking any letters from you.",
+        "NEUTRAL": "Perhaps another time when I have fewer commitments."
+      }
+    },
+    "ObservationShare": {
+      "playerText": "I've noticed something that might interest you...",
+      "contextual": {
+        "default": "Based on what I've observed recently..."
+      }
+    },
+    "BurdenApology": {
+      "playerText": "About what happened before... I need to apologize. I know I let you down.",
+      "contextual": {
+        "GUARDED": "I understand why you don't trust me after what happened.",
+        "CONNECTED": "Our friendship means too much to let this burden remain between us."
+      }
+    },
+    "ExchangeAccept": {
+      "playerText": "That's a fair trade. I accept your terms.",
+      "contextual": {
+        "EAGER": "Excellent! This is exactly the kind of deal I was looking for.",
+        "NEUTRAL": "Yes, I can work with those terms."
+      }
+    },
+    "ExchangeDecline": {
+      "playerText": "I appreciate the offer, but I'll have to pass on this trade.",
+      "contextual": {
+        "HOSTILE": "No deal.",
+        "NEUTRAL": "Thank you, but not today."
+      }
+    },
+    "ExchangeBarter": {
+      "playerText": "How about we adjust those terms a bit? I think we can both do better.",
+      "contextual": {
+        "EAGER": "I'm sure we can negotiate something even better!",
+        "CONNECTED": "Between friends, surely we can find better terms?"
+      }
+    }
+  },
+  "narrativeTemplates": {
+    "conversationStart": {
+      "DESPERATE": "{npcName}'s eyes dart nervously, their breathing quick and shallow.",
+      "HOSTILE": "The air grows thick with tension as {npcName} glares at you.",
+      "GUARDED": "{npcName} watches you carefully, measuring every word.",
+      "TENSE": "You can feel the unease radiating from {npcName}.",
+      "NEUTRAL": "{npcName} regards you with mild interest.",
+      "OPEN": "{npcName}'s posture relaxes, inviting conversation.",
+      "EAGER": "{npcName} leans forward with barely contained enthusiasm.",
+      "CONNECTED": "A warm familiarity passes between you and {npcName}.",
+      "OVERWHELMED": "{npcName} seems to be struggling to process everything."
+    },
+    "stateTransition": {
+      "toHOSTILE": "The conversation takes a dark turn. {npcName}'s expression hardens into open hostility.",
+      "toDESPERATE": "Panic creeps into {npcName}'s voice, their composure crumbling.",
+      "toGUARDED": "{npcName} pulls back, walls going up as trust evaporates.",
+      "toTENSE": "The atmosphere grows heavy with unspoken concerns.",
+      "toNEUTRAL": "The emotional charge dissipates, returning to neutral ground.",
+      "toOPEN": "{npcName}'s defenses lower, becoming more receptive to your words.",
+      "toEAGER": "Excitement builds in {npcName}'s eyes, sensing opportunity.",
+      "toCONNECTED": "A genuine connection forms, built on mutual understanding.",
+      "toOVERWHELMED": "It's all becoming too much for {npcName} to process."
+    },
+    "comfortChange": {
+      "increase": {
+        "small": "Your words seem to have a positive effect.",
+        "medium": "{npcName} visibly relaxes at your response.",
+        "large": "Your words strike a deep chord with {npcName}."
+      },
+      "decrease": {
+        "small": "That didn't land quite as intended.",
+        "medium": "{npcName} seems put off by your approach.",
+        "large": "Your words have clearly upset {npcName}."
+      }
+    }
+  }
+}

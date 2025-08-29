@@ -160,3 +160,66 @@ All phases have been successfully implemented. The conversation system has been 
 - OVERWHELMED: 1
 
 The system is now fully aligned with the design specification with no legacy code remaining.
+
+## PHASE 8: UI Visual Overhaul 🚧 IN PROGRESS
+
+### Overview
+While all mechanics are fully implemented and working, the UI needs significant visual updates to match the refined mockup design.
+
+### Completed
+- [x] Created card_dialogues.json with player dialogue text
+
+### In Progress
+- [ ] Update ConversationContent.razor card structure for visual cards
+- [ ] Add comfort dots visualization (-3 to +3)
+- [ ] Add token strip display
+- [ ] Style action buttons as cards
+- [ ] Add location context bar
+- [ ] Update card CSS for visual design
+
+### Key UI Changes Needed
+
+#### 1. Card Visual Design
+- Add 5px colored left border based on category
+- Circular weight badges (24px diameter)
+- Separate 120px wide outcome panels
+- Card markers positioned absolute top-right
+- Proper card dialogue text from JSON
+
+#### 2. Comfort Visualization
+- Replace text "Comfort: 0" with 7-dot display
+- Color negative dots red (#d4704a)
+- Color positive dots green (#7a8b5a)
+- Highlight current position with larger dot
+- Add transition hints at ±3
+
+#### 3. Token System Display
+- Compact horizontal strip below NPC header
+- Show all 4 token types with counts
+- Display +5% bonus per token
+- Update dynamically during conversation
+
+#### 4. Enhanced Action Buttons
+- Minimum 180px width
+- Gradient backgrounds
+- Card-style appearance
+- Action details below main text
+
+#### 5. Missing UI Elements
+- Location context bar with spot traits
+- Deadline warnings in header
+- Larger narrative section
+- State-based NPC dialogue styling
+
+### Files Being Modified
+- `/src/Content/Dialogues/card_dialogues.json` ✅ Created
+- `/src/Pages/Components/ConversationContent.razor` - In progress
+- `/src/Pages/Components/ConversationContent.razor.cs` - Pending
+- `/src/wwwroot/css/conversation.css` - Pending
+
+### Testing Strategy
+- Use Playwright for visual verification
+- Compare screenshots with mockup
+- Test all card types display correctly
+- Verify comfort transitions visually
+- Ensure token bonuses show
