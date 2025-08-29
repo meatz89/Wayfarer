@@ -366,7 +366,6 @@ public class CardDeckLoader
             var template = goalData.GetProperty("template").GetString();
             var type = goalData.GetProperty("type").GetString();
             var category = goalData.GetProperty("category").GetString();
-            var depth = goalData.GetProperty("depth").GetInt32();
             var weight = goalData.GetProperty("weight").GetInt32();
             
             // Get valid states

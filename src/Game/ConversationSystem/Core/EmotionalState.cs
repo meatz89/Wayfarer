@@ -96,7 +96,7 @@ public static class ConversationRules
         [EmotionalState.GUARDED] = new StateRuleset
         {
             CardsOnListen = 1,  // Listen draws STATE CARDS ONLY (per docs)
-            MaxWeight = 2,      // Speak weight limit 2 (Medium weight)
+            MaxWeight = 1,      // Speak weight limit 1 (per new spec)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.NEUTRAL,  // Transitions to NEUTRAL
             ChecksGoalDeck = false
@@ -114,7 +114,7 @@ public static class ConversationRules
         [EmotionalState.CONNECTED] = new StateRuleset
         {
             CardsOnListen = 3,  // Listen draws 3 cards (60% Token, 40% any)
-            MaxWeight = 3,      // Speak weight limit 3 (Heavy weight, +1 with momentum)
+            MaxWeight = 4,      // Speak weight limit 4 (highest weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.CONNECTED,  // Stays CONNECTED
             ChecksGoalDeck = true,  // CHECK Goal deck for ANY letters
@@ -161,7 +161,7 @@ public static class ConversationRules
         [EmotionalState.HOSTILE] = new StateRuleset
         {
             CardsOnListen = 1,  // Listen draws crisis cards only
-            MaxWeight = 3,      // Speak weight limit - crisis cards only
+            MaxWeight = 0,      // Speak weight limit 0 (cannot play cards)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.HOSTILE,  // Stays HOSTILE
             FreeWeightCardCategories = new() { CardCategory.Burden },

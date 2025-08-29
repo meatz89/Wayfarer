@@ -25,7 +25,6 @@ public class ObservationManager
     private readonly TimeManager _timeManager;
     private readonly GameWorld _gameWorld;
     private readonly Dictionary<string, HashSet<string>> _takenObservationsByTimeBlock;
-    private readonly List<ObservationCard> _currentObservationCards;
     private readonly Dictionary<string, TakenObservation> _takenObservations;
 
     public ObservationManager(TimeManager timeManager, GameWorld gameWorld)
@@ -33,7 +32,6 @@ public class ObservationManager
         _timeManager = timeManager;
         _gameWorld = gameWorld;
         _takenObservationsByTimeBlock = new Dictionary<string, HashSet<string>>();
-        _currentObservationCards = new List<ObservationCard>();
         _takenObservations = new Dictionary<string, TakenObservation>();
     }
 
@@ -82,132 +80,74 @@ public class ObservationManager
             var observationCard = ObservationCard.FromConversationCard(conversationCard);
             // Note: SourceObservationId is set in the FromConversationCard method using the card.Id
             
-            _currentObservationCards.Add(observationCard);
-            Console.WriteLine($"[ObservationManager] Generated observation card {observationCard.Id} from {observation.Id} at {currentGameTime}");
+            // Add to player's observation deck instead of internal storage
+            var currentDay = _timeManager.GetCurrentDay();
+            var timeBlock = _timeManager.GetCurrentTimeBlock();
+            bool addedToDeck = _gameWorld.GetPlayer().ObservationDeck.AddCard(observationCard, currentDay, timeBlock);
             
-            // Store taken observation details for UI display
-            var takenObs = new TakenObservation
+            if (addedToDeck)
             {
-                Id = observation.Id,
-                Name = observation.Text,
-                Description = observation.Description,
-                NarrativeText = observation.Description,  // Use description as narrative
-                GeneratedCard = observationCard,
-                TimeTaken = currentGameTime,
-                TimeBlockTaken = _timeManager.GetCurrentTimeBlock()
-            };
-            _takenObservations[observation.Id] = takenObs;
-            
-            return observationCard;
+                Console.WriteLine($"[ObservationManager] Generated observation card {observationCard.Id} from {observation.Id} at {currentGameTime}");
+                
+                // Store taken observation details for UI display
+                var takenObs = new TakenObservation
+                {
+                    Id = observation.Id,
+                    Name = observation.Text,
+                    Description = observation.Description,
+                    NarrativeText = observation.Description,  // Use description as narrative
+                    GeneratedCard = observationCard,
+                    TimeTaken = currentGameTime,
+                    TimeBlockTaken = _timeManager.GetCurrentTimeBlock()
+                };
+                _takenObservations[observation.Id] = takenObs;
+                
+                return observationCard;
+            }
+            else
+            {
+                Console.WriteLine($"[ObservationManager] Failed to add observation card to player deck (deck full?)");
+                return null;
+            }
         }
 
         return null;
     }
 
     /// <summary>
-    /// Get all current observation cards in player's hand
-    /// Updates decay states and filters out expired cards
+    /// Get all current observation cards in player's deck
+    /// Delegates to player's observation deck for proper tracking
     /// </summary>
     public List<ObservationCard> GetObservationCards()
     {
-        var currentGameTime = GetCurrentGameTime();
+        var currentDay = _timeManager.GetCurrentDay();
+        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
         
-        // Update decay states for all observation cards
-        foreach (var card in _currentObservationCards)
-        {
-            card.UpdateDecayState(currentGameTime);
-        }
-        
-        // Remove expired cards automatically
-        var expiredCards = _currentObservationCards.Where(c => c.DecayState == ObservationDecayState.Expired).ToList();
-        foreach (var expired in expiredCards)
-        {
-            _currentObservationCards.Remove(expired);
-            Console.WriteLine($"[ObservationManager] Automatically discarded expired observation card {expired.Id}");
-        }
-        
-        return _currentObservationCards.ToList();
+        // Get cards from player's deck with automatic expiration handling
+        return _gameWorld.GetPlayer().ObservationDeck.GetActiveCards(currentDay, currentTimeBlock);
     }
     
     /// <summary>
     /// Get observation cards as conversation cards for use in conversation system
-    /// Only returns playable (non-expired) cards with adjusted comfort values
+    /// Delegates to player's observation deck
     /// </summary>
     public List<ConversationCard> GetObservationCardsAsConversationCards()
     {
         var currentGameTime = GetCurrentGameTime();
-        var observationCards = GetObservationCards(); // This updates decay states
-        var conversationCards = new List<ConversationCard>();
+        var currentDay = _timeManager.GetCurrentDay();
+        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
         
-        foreach (var obsCard in observationCards.Where(c => c.IsPlayable))
-        {
-            // Create a modified conversation card with adjusted comfort value for stale cards
-            var originalCard = obsCard.ConversationCard;
-            
-            // Create updated context with decay information
-            var updatedContext = new CardContext
-            {
-                Personality = originalCard.Context?.Personality ?? PersonalityType.STEADFAST,
-                EmotionalState = originalCard.Context?.EmotionalState ?? EmotionalState.NEUTRAL,
-                UrgencyLevel = originalCard.Context?.UrgencyLevel ?? 0,
-                HasDeadline = originalCard.Context?.HasDeadline ?? false,
-                MinutesUntilDeadline = originalCard.Context?.MinutesUntilDeadline,
-                ObservationType = originalCard.Context?.ObservationType,
-                LetterId = originalCard.Context?.LetterId,
-                TargetNpcId = originalCard.Context?.TargetNpcId,
-                NPCName = originalCard.Context?.NPCName,
-                NPCPersonality = originalCard.Context?.NPCPersonality ?? PersonalityType.STEADFAST,
-                ExchangeData = originalCard.Context?.ExchangeData,
-                ObservationId = originalCard.Context?.ObservationId,
-                ObservationText = originalCard.Context?.ObservationText,
-                ObservationDescription = originalCard.Context?.ObservationDescription,
-                ExchangeName = originalCard.Context?.ExchangeName,
-                ExchangeCost = originalCard.Context?.ExchangeCost,
-                ExchangeReward = originalCard.Context?.ExchangeReward,
-                // Add decay state information
-                ObservationDecayState = obsCard.DecayState,
-                ObservationDecayDescription = obsCard.GetDecayStateDescription(currentGameTime)
-            };
-            
-            var adjustedCard = new ConversationCard
-            {
-                Id = originalCard.Id,
-                TemplateId = originalCard.TemplateId,
-                Mechanics = originalCard.Mechanics,
-                Category = originalCard.Category,
-                Context = updatedContext,
-                Type = originalCard.Type,
-                Persistence = PersistenceType.Fleeting, // Observations are Opportunity type but DON'T vanish on Listen - they decay over time
-                Weight = originalCard.Weight,
-                BaseComfort = obsCard.EffectiveComfortValue, // Use decay-adjusted comfort value
-                IsObservation = true,
-                ObservationSource = obsCard.SourceObservationId,
-                CanDeliverLetter = originalCard.CanDeliverLetter,
-                ManipulatesObligations = originalCard.ManipulatesObligations,
-                SuccessState = originalCard.SuccessState,
-                FailureState = originalCard.FailureState,
-                SuccessRate = originalCard.SuccessRate,
-                DisplayName = originalCard.DisplayName,
-                Description = originalCard.Description,
-            };
-            
-            conversationCards.Add(adjustedCard);
-        }
-        
-        return conversationCards;
+        // Get cards from player's deck already formatted as conversation cards
+        return _gameWorld.GetPlayer().ObservationDeck.GetAsConversationCards(currentGameTime, currentDay, currentTimeBlock);
     }
 
     /// <summary>
     /// Remove an observation card after it's been played or has expired
+    /// Delegates to player's observation deck
     /// </summary>
     public void RemoveObservationCard(string observationCardId)
     {
-        var card = _currentObservationCards.FirstOrDefault(c => c.Id == observationCardId);
-        if (card != null)
-        {
-            _currentObservationCards.Remove(card);
-            Console.WriteLine($"[ObservationManager] Removed observation card {card.Id}");
-        }
+        _gameWorld.GetPlayer().ObservationDeck.RemoveCard(observationCardId);
     }
     
     /// <summary>
@@ -252,7 +192,7 @@ public class ObservationManager
     {
         Console.WriteLine("[ObservationManager] Starting new day - clearing all observations");
         _takenObservationsByTimeBlock.Clear();
-        _currentObservationCards.Clear();
+        // Note: Player's observation deck handles its own expiration, not cleared on new day
     }
 
     /// <summary>

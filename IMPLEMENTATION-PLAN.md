@@ -68,30 +68,30 @@ Complete replacement of conversation mechanics to match the refined design speci
 - [x] Make LISTEN filter by current state only
 - [x] Update UI to show drawable states (backend working, UI needs testing)
 
-### PHASE 4: New Card Types
-- [ ] Add CardCategory.Patience
-- [ ] Create patience cards in JSON
-- [ ] Implement patience modification mechanics
-- [ ] No double-duty with other mechanics
+### PHASE 4: New Card Types ✅ COMPLETED
+- [x] Add CardCategory.Patience
+- [x] Create patience cards in JSON (5 cards added)
+- [x] Implement patience modification mechanics
+- [x] No double-duty with other mechanics (patience ONLY adds patience)
 
-### PHASE 5: Fix Weight Limits
-- [ ] HOSTILE: 0 (cannot play)
-- [ ] GUARDED: 1
-- [ ] CONNECTED: 4
-- [ ] Verify all states match spec
+### PHASE 5: Fix Weight Limits ✅ COMPLETED
+- [x] HOSTILE: 0 (cannot play)
+- [x] GUARDED: 1  
+- [x] CONNECTED: 4
+- [x] Verify all states match spec
 
-### PHASE 6: Goal Card System
-- [ ] Standard conversations shuffle letter goals
-- [ ] Exactly ONE goal per conversation type
-- [ ] Goal urgency: 3 turns to play
-- [ ] Letter cards ARE goal cards
+### PHASE 6: Goal Card System ✅ COMPLETED
+- [x] Standard conversations shuffle letter goals
+- [x] Exactly ONE goal per conversation type
+- [x] Goal urgency: 3 turns to play
+- [x] Letter cards ARE goal cards
 
-### PHASE 7: Observation Deck
-- [ ] Create player observation deck system
-- [ ] Max 20 cards
-- [ ] Weight 1, 85% success
-- [ ] State changes only
-- [ ] 24-48 hour expiration
+### PHASE 7: Observation Deck ✅ COMPLETED
+- [x] Create player observation deck system
+- [x] Max 20 cards
+- [x] Weight 1, 85% success
+- [x] State changes only
+- [x] 24-48 hour expiration
 
 ## Critical Principles
 1. **DELETE, don't deprecate** - Remove old code entirely

@@ -142,10 +142,19 @@ public class ConversationSession
         // POC DECK ARCHITECTURE: Select goal from Goal Deck based on conversation type
         ConversationCard goalCard = null;
 
-        // Only select a goal card if this isn't a standard conversation
-        if (conversationType != ConversationType.FriendlyChat && conversationType != ConversationType.Commerce)
+        // Select a goal card for all conversations except Commerce (quick exchanges)
+        // FriendlyChat conversations get Promise goals to enable letter creation
+        if (conversationType != ConversationType.Commerce)
         {
-            goalCard = SelectGoalCardForConversation(npc, conversationType, initialState);
+            // Map conversation types to appropriate goal types
+            var effectiveConversationType = conversationType;
+            if (conversationType == ConversationType.FriendlyChat)
+            {
+                // FriendlyChat gets Promise goals (letter offers)
+                effectiveConversationType = ConversationType.Promise;
+            }
+            
+            goalCard = SelectGoalCardForConversation(npc, effectiveConversationType, initialState);
 
             if (goalCard != null)
             {
@@ -157,11 +166,11 @@ public class ConversationSession
                 sessionDeck.ShuffleInGoalCard(goalCard);
                 if (goalCard is ConversationCard goalConv)
                 {
-                    Console.WriteLine($"[StartConversation] Shuffled {goalConv.GoalCardType} goal card (ID: {goalConv.Id}) into session deck");
+                    Console.WriteLine($"[StartConversation] Shuffled {goalConv.GoalCardType} goal card (ID: {goalConv.Id}) into session deck for {conversationType} conversation");
                 }
                 else if (goalCard.Category == CardCategory.Promise)
                 {
-                    Console.WriteLine($"[StartConversation] Shuffled promise card (ID: {goalCard.Id}) into session deck");
+                    Console.WriteLine($"[StartConversation] Shuffled promise card (ID: {goalCard.Id}) into session deck for {conversationType} conversation");
                 }
 
                 // Use the session deck, not the original
