@@ -1,11 +1,26 @@
 using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
+    // Data classes for card dialogues JSON
+    public class CardDialogues
+    {
+        public Dictionary<string, CardDialogue> dialogues { get; set; }
+        public Dictionary<string, Dictionary<string, Dictionary<string, string>>> narrativeTemplates { get; set; }
+    }
+
+    public class CardDialogue
+    {
+        public string playerText { get; set; }
+        public Dictionary<string, string> contextual { get; set; }
+    }
+
     public class ConversationContentBase : ComponentBase
     {
         [Parameter] public ConversationContext Context { get; set; }
@@ -26,6 +41,10 @@ namespace Wayfarer.Pages.Components
         protected string LastNarrative { get; set; }
         protected string LastDialogue { get; set; }
         // Letter generation is handled by ConversationManager based on emotional state
+        
+        // Card dialogues cache
+        private static CardDialogues _cardDialogues;
+        private static bool _cardDialoguesLoaded = false;
         
         // Get current token balances with this NPC
         protected Dictionary<ConnectionType, int> CurrentTokens
@@ -845,6 +864,9 @@ namespace Wayfarer.Pages.Components
         
         protected string GetCardText(ConversationCard card)
         {
+            // Load card dialogues if not loaded
+            LoadCardDialogues();
+            
             // For decline cards, show simple message
             if (card.Context?.IsDeclineCard == true)
             {
@@ -866,8 +888,108 @@ namespace Wayfarer.Pages.Components
                 }
             }
             
+            // Try to get player dialogue from JSON based on template ID
+            var playerText = GetPlayerDialogueText(card.TemplateId, Session?.CurrentState);
+            if (!string.IsNullOrEmpty(playerText))
+            {
+                return playerText;
+            }
+            
             // Get the narrative text for the card - use template ID or display name
             return card.DisplayName ?? card.TemplateId?.Replace("_", " ") ?? "Unknown Card";
+        }
+
+        private void LoadCardDialogues()
+        {
+            if (_cardDialoguesLoaded) return;
+            
+            try
+            {
+                var contentPath = Path.Combine("Content", "Dialogues", "card_dialogues.json");
+                if (File.Exists(contentPath))
+                {
+                    var json = File.ReadAllText(contentPath);
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    _cardDialogues = JsonSerializer.Deserialize<CardDialogues>(json, options);
+                    _cardDialoguesLoaded = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ConversationContent] Failed to load card dialogues: {ex.Message}");
+                _cardDialogues = new CardDialogues { dialogues = new Dictionary<string, CardDialogue>() };
+                _cardDialoguesLoaded = true;
+            }
+        }
+
+        private string GetPlayerDialogueText(string templateId, EmotionalState? currentState)
+        {
+            if (_cardDialogues?.dialogues == null || string.IsNullOrEmpty(templateId))
+                return null;
+
+            // Try direct template ID match first
+            if (_cardDialogues.dialogues.TryGetValue(templateId, out var dialogue))
+            {
+                // Check for contextual dialogue based on current state
+                if (currentState.HasValue && dialogue.contextual?.TryGetValue(currentState.Value.ToString(), out var contextualText) == true)
+                {
+                    return contextualText;
+                }
+                
+                // Return base player text
+                return dialogue.playerText;
+            }
+
+            // Try common mappings for template IDs
+            var mappedId = MapTemplateIdToDialogueKey(templateId);
+            if (!string.IsNullOrEmpty(mappedId) && _cardDialogues.dialogues.TryGetValue(mappedId, out var mappedDialogue))
+            {
+                // Check for contextual dialogue based on current state
+                if (currentState.HasValue && mappedDialogue.contextual?.TryGetValue(currentState.Value.ToString(), out var contextualText) == true)
+                {
+                    return contextualText;
+                }
+                
+                return mappedDialogue.playerText;
+            }
+
+            return null;
+        }
+
+        private string MapTemplateIdToDialogueKey(string templateId)
+        {
+            if (string.IsNullOrEmpty(templateId)) return null;
+
+            // Map common template IDs to dialogue keys
+            var mappings = new Dictionary<string, string>
+            {
+                { "promise_to_help", "PromiseToHelp" },
+                { "mention_guards", "MentionGuards" },
+                { "calm_reassurance", "CalmReassurance" },
+                { "simple_greeting", "SimpleGreeting" },
+                { "active_listening", "ActiveListening" },
+                { "offer_help", "OfferHelp" },
+                { "share_personal", "SharePersonal" },
+                { "discuss_business", "DiscussBusiness" },
+                { "propose_deal", "ProposeDeal" },
+                { "show_respect", "ShowRespect" },
+                { "share_secret", "ShareSecret" },
+                { "defuse_conflict", "DefuseConflict" },
+                { "express_doubt", "ExpressDoubt" },
+                { "offer_patience", "OfferPatience" },
+                { "accept_letter", "AcceptLetter" },
+                { "decline_letter", "DeclineLetter" },
+                { "observation_share", "ObservationShare" },
+                { "burden_apology", "BurdenApology" },
+                { "exchange_accept", "ExchangeAccept" },
+                { "exchange_decline", "ExchangeDecline" },
+                { "exchange_barter", "ExchangeBarter" }
+            };
+
+            return mappings.TryGetValue(templateId.ToLower(), out var mapped) ? mapped : null;
         }
         
         protected string GetSuccessChance(ConversationCard card)

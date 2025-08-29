@@ -4,7 +4,7 @@
    =================================== */
 
 /* Base card styles - ALL cards inherit this */
-.card-base {
+.card-base, .card {
     /* Structure */
     display: flex;
     flex-direction: column;
@@ -43,7 +43,8 @@
 }
 
 /* Hover state - consistent for all cards */
-.card-base:hover:not(.disabled):not(.current) {
+.card-base:hover:not(.disabled):not(.current),
+.card:hover:not(.disabled):not(.current) {
     background: linear-gradient(135deg, #fefaf0, #faf4ea);
     border-color: #a68b6f;
     transform: translateY(-2px);
@@ -52,7 +53,9 @@
 
 /* Selected/Active state */
 .card-base.selected,
-.card-base.active {
+.card-base.active,
+.card.selected,
+.card.active {
     background: linear-gradient(135deg, #e8dcc4, #dcc4a8);
     border-color: #8b7355;
     border-width: 3px;
@@ -60,7 +63,8 @@
 }
 
 /* Disabled state */
-.card-base.disabled {
+.card-base.disabled,
+.card.disabled {
     opacity: 0.6;
     cursor: not-allowed;
     background: #f4e8d0;
@@ -68,7 +72,8 @@
 }
 
 /* Current location/state indicator */
-.card-base.current {
+.card-base.current,
+.card.current {
     background: #e8dcc4;
     border: 2px solid #7a8b5a;
     cursor: default;
