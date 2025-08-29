@@ -44,7 +44,7 @@ public class ConversationSession
     public int MaxPatience { get; init; }
 
     /// <summary>
-    /// Comfort built so far
+    /// Comfort battery (-3 to +3, resets to 0 on state transitions)
     /// </summary>
     public int CurrentComfort { get; set; }
 
@@ -69,10 +69,6 @@ public class ConversationSession
     /// </summary>
     public TokenMechanicsManager TokenManager { get; init; }
     
-    /// <summary>
-    /// Current momentum (-3 to +3) that modifies weight limits
-    /// </summary>
-    public int Momentum { get; set; }
     
     /// <summary>
     /// The goal card that was shuffled into the deck for this conversation
@@ -140,8 +136,8 @@ public class ConversationSession
             Console.WriteLine($"[ConversationSession] Warning: {npc.Name} has no Goal deck but should have letters");
         }
 
-        // CRITICAL: Comfort always starts at 5 for new conversations
-        var startingComfort = 5;
+        // CRITICAL: Comfort always starts at 0 for new conversations (battery system)
+        var startingComfort = 0;
 
         // POC DECK ARCHITECTURE: Select goal from Goal Deck based on conversation type
         ConversationCard goalCard = null;
@@ -229,11 +225,10 @@ public class ConversationSession
             Deck = npc.ConversationDeck,  // Use the NPC's actual deck
             CurrentPatience = totalPatience,
             MaxPatience = totalPatience,
-            CurrentComfort = startingComfort,  // ALWAYS starts at 5
+            CurrentComfort = startingComfort,  // ALWAYS starts at 0 (battery system)
             TurnNumber = 0,
             LetterGenerated = false,
             ObservationCards = observationCards ?? new List<ConversationCard>(),
-            Momentum = 0,  // Always starts at 0
             GoalCard = goalCard,
             GoalCardDrawn = goalCardDrawn,
             GoalUrgencyCounter = goalUrgencyCounter,
@@ -343,8 +338,7 @@ public class ConversationSession
             TurnNumber = 0,
             LetterGenerated = false,
             ObservationCards = new List<ConversationCard>(),
-            TokenManager = tokenManager,
-            Momentum = 0  // No momentum in exchanges
+            TokenManager = tokenManager
         };
     }
 
@@ -381,8 +375,8 @@ public class ConversationSession
         var rules = ConversationRules.States[CurrentState];
 
         // Draw new cards with state-based filtering and guaranteed state card
-        Console.WriteLine($"[ExecuteListen] Drawing cards for state {CurrentState} (count: {rules.CardsOnListen}, comfort: {CurrentComfort}, momentum: {Momentum})");
-        var newCards = DrawCardsForState(CurrentState, rules.CardsOnListen, CurrentComfort);
+        Console.WriteLine($"[ExecuteListen] Drawing cards for state {CurrentState} (count: {rules.CardsOnListen}, comfort: {CurrentComfort})");
+        var newCards = DrawCardsForState(CurrentState, rules.CardsOnListen, Math.Abs(CurrentComfort));
         Console.WriteLine($"[ExecuteListen] Drew {newCards.Count} filtered cards for {CurrentState} state");
         
         // Check if we drew the goal card and start urgency countdown
@@ -397,12 +391,6 @@ public class ConversationSession
         }
         
         HandCards.AddRange(newCards);
-        
-        // Check for momentum degradation at -3
-        if (Momentum <= -3)
-        {
-            ApplyMomentumDegradation();
-        }
 
         // Check for letters that can be delivered through this NPC during LISTEN
         if (queueManager != null)
@@ -566,23 +554,17 @@ public class ConversationSession
             ProcessLetterNegotiations(result);
         }
 
-        // Apply comfort
-        CurrentComfort += result.TotalComfort;
+        // Apply comfort changes based on card weight and success/failure
+        ApplyComfortChanges(result, selectedCards);
         
-        // Apply momentum change based on success/failure
-        if (result.Success)
-        {
-            Momentum = Math.Min(3, Momentum + 1);  // Cap at +3
-        }
-        else if (result.TotalComfort <= 0)  // Only lose momentum on actual failure
-        {
-            Momentum = Math.Max(-3, Momentum - 1);  // Floor at -3
-        }
-
-        // Apply state change if any
+        // Check for automatic state transitions at ±3 comfort
+        CheckComfortStateTransitions();
+        
+        // Apply manual state change if any (from state cards)
         if (result.NewState.HasValue)
         {
             CurrentState = result.NewState.Value;
+            CurrentComfort = 0; // Reset comfort on state transition
         }
 
         // Remove played cards from hand
@@ -712,9 +694,7 @@ public class ConversationSession
         // OVERWHELMED only draws 1 card (no guaranteed state)
         if (state == EmotionalState.OVERWHELMED)
         {
-            // Can draw +1 card if positive momentum
-            var totalCards = baseCount + (Momentum > 0 ? 1 : 0);
-            var cards = Deck.Draw(totalCards, comfort);  // Any type, just limited count
+            var cards = Deck.Draw(baseCount, comfort);  // Any type, just limited count
             return cards;
         }
         
@@ -824,68 +804,102 @@ public class ConversationSession
     }
     
     /// <summary>
-    /// Apply momentum degradation at -3 momentum
+    /// Apply comfort changes based on card weight and success/failure
     /// </summary>
-    private void ApplyMomentumDegradation()
+    private void ApplyComfortChanges(CardPlayResult result, HashSet<ConversationCard> selectedCards)
     {
+        // Comfort changes are based on card weight, not base comfort
+        foreach (var cardResult in result.Results)
+        {
+            var card = cardResult.Card;
+            var weight = card.GetEffectiveWeight(CurrentState);
+            
+            // Skip cards that don't affect comfort (exchanges, letters, etc.)
+            if (card.Mechanics == CardMechanics.Exchange || 
+                (card.IsGoalCard && card.Mechanics == CardMechanics.Promise))
+            {
+                continue;
+            }
+            
+            // Apply weight-based comfort changes
+            if (cardResult.Success)
+            {
+                CurrentComfort += weight; // Success: +weight to comfort
+                Console.WriteLine($"[ApplyComfort] {card.DisplayName} succeeded: +{weight} comfort (now {CurrentComfort})");
+            }
+            else
+            {
+                CurrentComfort -= weight; // Failure: -weight to comfort
+                Console.WriteLine($"[ApplyComfort] {card.DisplayName} failed: -{weight} comfort (now {CurrentComfort})");
+            }
+        }
+        
+        // Clamp comfort to battery range
+        CurrentComfort = Math.Clamp(CurrentComfort, -3, 3);
+    }
+    
+    /// <summary>
+    /// Check for automatic state transitions at ±3 comfort
+    /// </summary>
+    private void CheckComfortStateTransitions()
+    {
+        if (Math.Abs(CurrentComfort) != 3)
+            return;
+            
         var oldState = CurrentState;
+        var isPositive = CurrentComfort > 0;
+        
         CurrentState = CurrentState switch
         {
-            // Positive states degrade to NEUTRAL
-            EmotionalState.OPEN => EmotionalState.NEUTRAL,
-            EmotionalState.EAGER => EmotionalState.NEUTRAL,
-            EmotionalState.CONNECTED => EmotionalState.NEUTRAL,
+            // DESPERATE: +3→Tense, -3→Hostile
+            EmotionalState.DESPERATE => isPositive ? EmotionalState.TENSE : EmotionalState.HOSTILE,
             
-            // NEUTRAL degrades to GUARDED
-            EmotionalState.NEUTRAL => EmotionalState.GUARDED,
+            // HOSTILE: +3→Tense, -3→Conversation ends (handled elsewhere)
+            EmotionalState.HOSTILE => isPositive ? EmotionalState.TENSE : EmotionalState.HOSTILE,
             
-            // Negative states degrade to HOSTILE
-            EmotionalState.GUARDED => EmotionalState.HOSTILE,
-            EmotionalState.TENSE => EmotionalState.HOSTILE,
-            EmotionalState.DESPERATE => EmotionalState.HOSTILE,
+            // TENSE: +3→Neutral, -3→Hostile
+            EmotionalState.TENSE => isPositive ? EmotionalState.NEUTRAL : EmotionalState.HOSTILE,
             
-            // OVERWHELMED and HOSTILE stay as is
+            // GUARDED: +3→Neutral, -3→Hostile  
+            EmotionalState.GUARDED => isPositive ? EmotionalState.NEUTRAL : EmotionalState.HOSTILE,
+            
+            // NEUTRAL: +3→Open, -3→Tense
+            EmotionalState.NEUTRAL => isPositive ? EmotionalState.OPEN : EmotionalState.TENSE,
+            
+            // OPEN: +3→Connected, -3→Guarded
+            EmotionalState.OPEN => isPositive ? EmotionalState.CONNECTED : EmotionalState.GUARDED,
+            
+            // EAGER: +3→Connected, -3→Neutral
+            EmotionalState.EAGER => isPositive ? EmotionalState.CONNECTED : EmotionalState.NEUTRAL,
+            
+            // CONNECTED: +3→Stays Connected, -3→Tense
+            EmotionalState.CONNECTED => isPositive ? EmotionalState.CONNECTED : EmotionalState.TENSE,
+            
+            // OVERWHELMED: No automatic transitions defined in spec
             _ => CurrentState
         };
         
         if (oldState != CurrentState)
         {
-            Console.WriteLine($"[Momentum Degradation] State degraded from {oldState} to {CurrentState} due to -3 momentum");
+            Console.WriteLine($"[Comfort Battery] State transition from {oldState} to {CurrentState} at comfort {CurrentComfort}");
+            CurrentComfort = 0; // Reset comfort on state transition
+            
+            // Special handling for HOSTILE at -3: conversation ends
+            if (oldState == EmotionalState.HOSTILE && CurrentComfort == -3)
+            {
+                CurrentPatience = 0; // Force conversation to end
+                Console.WriteLine($"[Comfort Battery] HOSTILE at -3 comfort - conversation ends");
+            }
         }
     }
     
     /// <summary>
-    /// Get maximum weight allowed for current state with momentum modifiers
+    /// Get maximum weight allowed for current state
     /// </summary>
     public int GetMaxWeightForState()
     {
         var rules = ConversationRules.States[CurrentState];
-        var baseWeight = rules.MaxWeight;
-        
-        // Apply momentum effects based on state
-        return CurrentState switch
-        {
-            // DESPERATE: Each momentum point reduces patience cost by 1
-            EmotionalState.DESPERATE => baseWeight,  // Weight stays same, patience cost changes
-            
-            // TENSE: Positive momentum makes observation cards weight 0
-            EmotionalState.TENSE => baseWeight,  // Handled in card weight calculation
-            
-            // GUARDED: Negative momentum increases card weight by 1 per point
-            EmotionalState.GUARDED => Math.Max(1, baseWeight + Math.Min(0, Momentum)),  // Negative momentum reduces allowed weight
-            
-            // EAGER: Each point adds +5% to token card success (no weight change)
-            EmotionalState.EAGER => baseWeight,
-            
-            // OVERWHELMED: Positive momentum allows drawing 1 additional card (no weight change)
-            EmotionalState.OVERWHELMED => baseWeight,
-            
-            // CONNECTED: Positive momentum allows playing one weight category higher
-            EmotionalState.CONNECTED => baseWeight + (Momentum > 0 ? 1 : 0),
-            
-            // Others: No momentum effect on weight
-            _ => baseWeight
-        };
+        return rules.MaxWeight;
     }
 
     private static int GetBasePatience(PersonalityType personality)

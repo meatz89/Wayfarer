@@ -302,6 +302,11 @@
             transform: translateX(5px);
         }
 
+        .exchange-card.unavailable {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
         .exchange-card-header {
             padding: 12px 15px;
             background: #f9f3e9;
@@ -450,6 +455,19 @@
             top: 10px;
             right: 10px;
         }
+
+        .queue-warning {
+            background: #8b4726;
+            color: #faf4ea;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -568,16 +586,17 @@
         <div class="exchange-section">
             <div class="exchange-header">
                 <div class="exchange-title">Choose One Exchange</div>
-                <div class="draw-info">Drew 1 random card from Marcus's Exchange Deck</div>
+                <div class="draw-info">Drew 3 random cards from Marcus's Exchange Deck</div>
             </div>
             
             <!-- Exchange Options -->
             <div class="exchange-options">
                 <!-- Buy Provisions - Recommended -->
                 <div class="exchange-card">
+                    <div class="recommendation">Recommended</div>
                     <div class="exchange-card-header">
                         <div class="exchange-name">Buy Provisions</div>
-                        <div class="success-rate">75%</div>
+                        <div class="success-rate">70%</div>
                     </div>
                     <div class="exchange-visual">
                         <div class="exchange-flow">
@@ -593,15 +612,15 @@
                         </div>
                     </div>
                     <div class="special-effects">
-                        Your 2 Commerce tokens with Marcus: +10% success bonus already applied
+                        Base 60% + 2 Commerce tokens (+10%) = 70% success rate
                     </div>
                 </div>
 
                 <!-- Buy Access Permit -->
-                <div class="exchange-card">
+                <div class="exchange-card unavailable">
                     <div class="exchange-card-header">
                         <div class="exchange-name">Buy Access Permit</div>
-                        <div class="success-rate">65%</div>
+                        <div class="success-rate">70%</div>
                     </div>
                     <div class="exchange-visual">
                         <div class="exchange-flow">
@@ -623,9 +642,10 @@
 
                 <!-- Accept Quick Job -->
                 <div class="exchange-card">
+                    <div class="queue-warning">Queue Pressure!</div>
                     <div class="exchange-card-header">
                         <div class="exchange-name">Accept Quick Delivery</div>
-                        <div class="success-rate">75%</div>
+                        <div class="success-rate">70%</div>
                     </div>
                     <div class="exchange-visual">
                         <div class="exchange-flow">
@@ -660,7 +680,8 @@
             <div class="action-info">
                 <span class="attention-note">Quick exchanges cost 0 attention</span> • 
                 One exchange per interaction • 
-                Success/failure resolved instantly
+                Success/failure resolved instantly •
+                All exchanges have 60% base success rate
             </div>
         </div>
     </div>

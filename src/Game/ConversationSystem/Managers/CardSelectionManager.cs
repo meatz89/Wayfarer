@@ -157,28 +157,20 @@ public class CardSelectionManager
             var roll = random.Next(100);
             var success = roll < successChance;
             
-            var comfort = success ? card.BaseComfort : 1;
-            
+            // Comfort is NOT used here - it's calculated based on weight in ConversationSession
+            // We just track success/failure for the weight-based comfort calculation
             results.Add(new SingleCardResult
             {
                 Card = card,
                 Success = success,
-                Comfort = comfort,
+                Comfort = 0, // Will be calculated based on weight in ConversationSession
                 Roll = roll,
                 SuccessChance = successChance
             });
-            
-            totalComfort += comfort;
         }
 
         // NO SET BONUSES - ONE-CARD RULE means no sets possible
-        // Set bonus logic removed as it's irrelevant with single card play
-
-        // CONNECTED state still gives bonus to all comfort (state bonus, not set bonus)
-        if (currentState == EmotionalState.CONNECTED)
-        {
-            totalComfort += 2;
-        }
+        // NO CONNECTED BONUS - comfort is purely weight-based now
 
         // State changes work naturally with single card
         var singleCard = selectedCards.First();
@@ -191,11 +183,11 @@ public class CardSelectionManager
 
         return new CardPlayResult
         {
-            TotalComfort = totalComfort,
+            TotalComfort = 0,  // Comfort is calculated from weight in ConversationSession
             NewState = newState,
             Results = results,
             SetBonus = 0,  // No set bonuses possible with ONE-CARD RULE
-            ConnectedBonus = currentState == EmotionalState.CONNECTED ? 2 : 0,
+            ConnectedBonus = 0,  // No connected bonus in new system
             EagerBonus = 0,  // No eager bonus possible with ONE-CARD RULE
             LetterNegotiations = letterNegotiations,
             ManipulatedObligations = letterNegotiations.Any()

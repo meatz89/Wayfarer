@@ -217,40 +217,40 @@
             color: #5c4a3a;
         }
 
-        .comfort-battery {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-            justify-content: center;
-            padding: 8px;
-        }
-
-        .battery-segment {
-            width: 30px;
-            height: 20px;
-            border: 1px solid #c4a684;
+        .comfort-bar {
+            height: 12px;
             background: #e8dcc4;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #c4a684;
         }
 
-        .battery-segment.filled {
-            background: #7a8b5a;
+        .comfort-indicator {
+            position: absolute;
+            width: 20px;
+            height: 100%;
+            background: #5c4a3a;
+            border-radius: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: left 0.3s ease;
         }
 
-        .battery-segment.negative {
-            background: #8b4726;
-        }
-
-        .battery-segment.center {
-            border-width: 2px;
-            border-color: #5c4a3a;
+        .comfort-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+            font-size: 10px;
+            color: #7a6250;
         }
 
         .transition-warning {
             font-size: 11px;
             color: #8b4726;
             font-weight: bold;
-            text-align: center;
             margin-top: 4px;
+            text-align: center;
         }
 
         .patience-display {
@@ -533,12 +533,18 @@
         .drawable-states {
             padding: 8px 15px;
             background: #f9f3e9;
+            border-bottom: 1px solid #e8dcc4;
             font-size: 11px;
             color: #7a6250;
         }
 
-        .drawable-states strong {
-            color: #5c4a3a;
+        .drawable-label {
+            font-weight: bold;
+            margin-right: 6px;
+        }
+
+        .state-list {
+            color: #5a7a3a;
         }
 
         /* Card Text */
@@ -629,6 +635,10 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: bold;
+        }
+
+        .card-marker.opportunity {
+            background: #5a7a8a;
         }
 
         .card-marker.must-play {
@@ -737,18 +747,21 @@
                 <div class="comfort-display">
                     <div class="comfort-header">
                         <div class="comfort-title">Comfort Battery</div>
-                        <div class="comfort-value">-1</div>
+                        <div class="comfort-value">-2</div>
                     </div>
-                    <div class="comfort-battery">
-                        <div class="battery-segment negative"></div>
-                        <div class="battery-segment"></div>
-                        <div class="battery-segment"></div>
-                        <div class="battery-segment center">0</div>
-                        <div class="battery-segment"></div>
-                        <div class="battery-segment"></div>
-                        <div class="battery-segment"></div>
+                    <div class="comfort-bar">
+                        <div class="comfort-indicator" style="left: 25%;"></div>
                     </div>
-                    <div class="transition-warning">At -3: Transition to HOSTILE!</div>
+                    <div class="comfort-scale">
+                        <span>-3</span>
+                        <span>-2</span>
+                        <span>-1</span>
+                        <span>0</span>
+                        <span>+1</span>
+                        <span>+2</span>
+                        <span>+3</span>
+                    </div>
+                    <div class="transition-warning">One more failure triggers HOSTILE!</div>
                 </div>
                 
                 <div class="patience-display">
@@ -762,7 +775,7 @@
                 <div class="state-indicator">
                     <span>Emotional State:</span>
                     <span class="state-name">Desperate</span>
-                    <span class="state-effects">• Draw filters active • Weight limit 1 • -3 comfort → Hostile</span>
+                    <span class="state-effects">• Weight limit 1 • +3 comfort→Tense • -3 comfort→Hostile</span>
                 </div>
             </div>
         </div>
@@ -770,7 +783,7 @@
         <!-- Narrative Section -->
         <div class="narrative-section">
             <div class="narrative-text">
-                Elena clutches a sealed letter, her hands trembling. The wax seal bears her family crest.
+                Elena clutches a sealed letter, her hands trembling. The wax seal bears her family crest. Her breathing is shallow, panic barely contained.
             </div>
             <div class="npc-dialogue desperate">
                 "Please, I need someone trustworthy to deliver this to Lord Blackwood before sunset. He's leaving the city tonight, and this letter... it's my refusal of his marriage proposal. If it doesn't reach him, my father will force the arrangement."
@@ -779,7 +792,7 @@
 
         <!-- Action Choice -->
         <div class="action-section">
-            <div class="turn-indicator">Turn 3 of 10 • Weight Limit: 1 (Desperate)</div>
+            <div class="turn-indicator">Turn 3 of 10 • Weight Limit: 1 (Desperate State)</div>
             <div class="action-choices">
                 <div class="action-button">
                     <div>👂 LISTEN</div>
@@ -805,11 +818,12 @@
             <div class="card-grid">
                 <!-- Observation Card -->
                 <div class="card observation">
+                    <div class="card-marker opportunity">Expires 24hr</div>
                     <div class="card-header">
                         <div class="card-identity">
                             <div class="card-name">Guard Checkpoint Info</div>
                             <div class="card-tags">
-                                <span class="tag">State</span>
+                                <span class="tag">STATE</span>
                                 <span class="tag">Observation</span>
                                 <span class="tag">W1</span>
                             </div>
@@ -822,7 +836,8 @@
                         </div>
                     </div>
                     <div class="drawable-states">
-                        <strong>Always Playable</strong> (Observation card from player deck)
+                        <span class="drawable-label">Drawable in:</span>
+                        <span class="state-list">All non-Hostile states</span>
                     </div>
                     <div class="card-text">
                         "The north checkpoint is doubling inspections today. I know a merchant route that avoids it entirely."
@@ -834,9 +849,7 @@
                                 <span class="outcome-chance">85%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect">
-                                    Desperate → Open
-                                </div>
+                                <div class="effect">Desperate → Open</div>
                             </div>
                         </div>
                         <div class="outcome failure">
@@ -845,9 +858,7 @@
                                 <span class="outcome-chance">15%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect">
-                                    No change
-                                </div>
+                                <div class="effect">No change</div>
                             </div>
                         </div>
                     </div>
@@ -859,7 +870,7 @@
                         <div class="card-identity">
                             <div class="card-name">I Understand</div>
                             <div class="card-tags">
-                                <span class="tag">Comfort</span>
+                                <span class="tag">COMFORT</span>
                                 <span class="tag">Trust</span>
                                 <span class="tag">W1</span>
                             </div>
@@ -872,7 +883,8 @@
                         </div>
                     </div>
                     <div class="drawable-states">
-                        <strong>Drawable in:</strong> Desperate, Tense, Open
+                        <span class="drawable-label">Drawable in:</span>
+                        <span class="state-list">Desperate, Tense, Open</span>
                     </div>
                     <div class="card-text">
                         "I understand how important this is, Elena. Your future shouldn't be decided without your consent."
@@ -884,9 +896,7 @@
                                 <span class="outcome-chance">65%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect">
-                                    <span class="effect-value">+1</span> comfort
-                                </div>
+                                <div class="effect"><span class="effect-value">+1</span> comfort</div>
                             </div>
                         </div>
                         <div class="outcome failure">
@@ -895,9 +905,7 @@
                                 <span class="outcome-chance">35%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect">
-                                    <span class="effect-value">-1</span> comfort
-                                </div>
+                                <div class="effect"><span class="effect-value">-1</span> comfort</div>
                             </div>
                         </div>
                     </div>
@@ -909,7 +917,8 @@
                         <div class="card-identity">
                             <div class="card-name">Let's Think This Through</div>
                             <div class="card-tags">
-                                <span class="tag">State</span>
+                                <span class="tag">STATE</span>
+                                <span class="tag">Trust</span>
                                 <span class="tag">W1</span>
                             </div>
                         </div>
@@ -921,7 +930,8 @@
                         </div>
                     </div>
                     <div class="drawable-states">
-                        <strong>Drawable in:</strong> All non-Hostile states
+                        <span class="drawable-label">Drawable in:</span>
+                        <span class="state-list">Desperate</span>
                     </div>
                     <div class="card-text">
                         "Take a breath. We have time if we're smart about this. Let me help you think through the best approach."
@@ -933,9 +943,7 @@
                                 <span class="outcome-chance">65%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect">
-                                    Desperate → Tense
-                                </div>
+                                <div class="effect">Desperate → Tense</div>
                             </div>
                         </div>
                         <div class="outcome failure">
@@ -944,9 +952,7 @@
                                 <span class="outcome-chance">35%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect">
-                                    State unchanged
-                                </div>
+                                <div class="effect">State unchanged</div>
                             </div>
                         </div>
                     </div>
@@ -959,7 +965,8 @@
                         <div class="card-identity">
                             <div class="card-name">Address Past Failure</div>
                             <div class="card-tags">
-                                <span class="tag">Burden</span>
+                                <span class="tag">BURDEN</span>
+                                <span class="tag">Trust</span>
                                 <span class="tag">W2</span>
                             </div>
                         </div>
@@ -971,7 +978,8 @@
                         </div>
                     </div>
                     <div class="drawable-states">
-                        <strong>Too heavy!</strong> (Requires weight 2+)
+                        <span class="drawable-label">Drawable in:</span>
+                        <span class="state-list">All non-Hostile states</span>
                     </div>
                     <div class="card-text">
                         "Elena, about last time... I know I let you down when I didn't deliver your previous message."
@@ -983,9 +991,7 @@
                                 <span class="outcome-chance">60%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect">
-                                    Remove burden
-                                </div>
+                                <div class="effect">Remove burden</div>
                             </div>
                         </div>
                         <div class="outcome failure">
@@ -994,22 +1000,20 @@
                                 <span class="outcome-chance">40%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect">
-                                    Burden remains
-                                </div>
+                                <div class="effect">Burden remains</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Letter Card (goal) -->
+                <!-- Letter Card (goal card) -->
                 <div class="card letter">
-                    <div class="card-marker negotiate">Negotiate Terms</div>
+                    <div class="card-marker negotiate">Goal Card</div>
                     <div class="card-header">
                         <div class="card-identity">
                             <div class="card-name">Accept Elena's Letter</div>
                             <div class="card-tags">
-                                <span class="tag">Goal</span>
+                                <span class="tag">GOAL</span>
                                 <span class="tag">Trust</span>
                                 <span class="tag">W1</span>
                             </div>
@@ -1022,10 +1026,11 @@
                         </div>
                     </div>
                     <div class="drawable-states">
-                        <strong>Valid States:</strong> Desperate, Tense
+                        <span class="drawable-label">Valid in:</span>
+                        <span class="state-list">Desperate, Tense</span>
                     </div>
                     <div class="card-text">
-                        "I'll take your letter to Lord Blackwood right now. For something this urgent, let me handle everything."
+                        "I'll take your letter to Lord Blackwood. For something this urgent, I'll do whatever it takes."
                     </div>
                     <div class="card-outcomes">
                         <div class="outcome success">
@@ -1034,15 +1039,9 @@
                                 <span class="outcome-chance">55%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect">
-                                    Gain letter
-                                </div>
-                                <div class="effect">
-                                    4-hour deadline
-                                </div>
-                                <div class="effect">
-                                    Queue position 2
-                                </div>
+                                <div class="effect">Gain letter</div>
+                                <div class="effect">4hr deadline</div>
+                                <div class="effect">Queue position 3</div>
                             </div>
                         </div>
                         <div class="outcome failure">
@@ -1051,15 +1050,9 @@
                                 <span class="outcome-chance">45%</span>
                             </div>
                             <div class="outcome-effects">
-                                <div class="effect">
-                                    Gain letter
-                                </div>
-                                <div class="effect">
-                                    1-hour deadline!
-                                </div>
-                                <div class="effect">
-                                    Forces queue position 1
-                                </div>
+                                <div class="effect">Gain letter</div>
+                                <div class="effect">1hr deadline!</div>
+                                <div class="effect">Forces queue position 1</div>
                             </div>
                         </div>
                     </div>
