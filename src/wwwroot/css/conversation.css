@@ -877,21 +877,24 @@
 }
 
 /* Conversation Screen Cards - More specific than unified cards */
+/* Apply styling to ALL card containers including debug view */
 .cards-section .card,
-.conversation-card {
-    /* Card structure with proper depth and medieval theming */
+.conversation-card,
+.deck-viewer .card,
+.debug-card,
+[class*="card"][class*="cursor-pointer"] {
+    /* Card structure with proper depth and medieval theming from mockup */
+    background: #faf4ea;
     background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
     border: 2px solid #c4a684;
-    border-radius: 6px;
+    border-radius: 4px;
     overflow: hidden;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
-    margin-bottom: 14px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2), 
-                0 2px 4px rgba(0,0,0,0.15),
-                inset 0 1px 0 rgba(255,255,255,0.3);
-    border-left-width: 5px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-left: 5px solid #c4a684; /* Default border, will be overridden by type */
 }
 
 .conversation-card::before {
@@ -907,13 +910,14 @@
 }
 
 .cards-section .card:hover,
-.conversation-card:hover {
-    background: linear-gradient(to bottom, #fefaf0, #faf4ea);
+.conversation-card:hover,
+.deck-viewer .card:hover,
+.debug-card:hover,
+[class*="card"][class*="cursor-pointer"]:hover {
+    background: #fefaf0;
     border-color: #a68b6f;
-    transform: translateX(5px) translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.25), 
-                0 3px 6px rgba(0,0,0,0.2),
-                inset 0 1px 0 rgba(255,255,255,0.4);
+    transform: translateX(5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .cards-section .card.selected,
@@ -929,38 +933,61 @@
 
 /* Card Type Borders - 5px colored left borders by category */
 .cards-section .card.comfort,
-.conversation-card.comfort {
+.conversation-card.comfort,
+.deck-viewer .card:has([class*="COMFORT"]),
+[class*="card"][class*="cursor-pointer"]:has([class*="COMFORT"]) {
     border-left: 5px solid #7a8b5a;
 }
 
 .cards-section .card.state,
-.conversation-card.state {
+.conversation-card.state,
+.deck-viewer .card:has([class*="STATE"]),
+[class*="card"][class*="cursor-pointer"]:has([class*="STATE"]) {
     border-left: 5px solid #8b7355;
 }
 
 .cards-section .card.burden,
-.conversation-card.burden {
+.conversation-card.burden,
+.deck-viewer .card:has([class*="BURDEN"]),
+[class*="card"][class*="cursor-pointer"]:has([class*="BURDEN"]) {
     border-left: 5px solid #4a3a2a;
 }
 
 .cards-section .card.crisis,
-.conversation-card.crisis {
-    border-left: 5px solid #4a3a2a;
+.conversation-card.crisis,
+.deck-viewer .card:has([class*="CRISIS"]),
+[class*="card"][class*="cursor-pointer"]:has([class*="CRISIS"]) {
+    border-left: 5px solid #8b4726;
 }
 
 .cards-section .card.observation,
-.conversation-card.observation {
+.conversation-card.observation,
+.deck-viewer .card:has([class*="OBSERVATION"]),
+[class*="card"][class*="cursor-pointer"]:has([class*="OBSERVATION"]) {
     border-left: 5px solid #5a7a8a;
 }
 
 .cards-section .card.exchange,
-.conversation-card.exchange {
+.conversation-card.exchange,
+.deck-viewer .card:has([class*="EXCHANGE"]),
+[class*="card"][class*="cursor-pointer"]:has([class*="EXCHANGE"]) {
     border-left: 5px solid #d4a76a;
 }
 
 .cards-section .card.letter,
-.conversation-card.letter {
+.conversation-card.letter,
+.deck-viewer .card:has([class*="PROMISE"]),
+.deck-viewer .card:has([class*="LETTER"]),
+[class*="card"][class*="cursor-pointer"]:has([class*="PROMISE"]),
+[class*="card"][class*="cursor-pointer"]:has([class*="LETTER"]) {
     border-left: 5px solid #d4a76a;
+}
+
+.cards-section .card.token,
+.conversation-card.token,
+.deck-viewer .card:has([class*="TOKEN"]),
+[class*="card"][class*="cursor-pointer"]:has([class*="TOKEN"]) {
+    border-left: 5px solid #7a8b5a;
 }
 
 /* Observation Decay States */
@@ -1207,33 +1234,35 @@
 /* Card Content Structure - Match mockup exactly */
 .card-content {
     display: flex;
-    flex-direction: column;
-    position: relative;
+    align-items: stretch;
 }
 
 .card-main {
+    flex: 1;
     padding: 15px;
-    background: linear-gradient(to bottom, #fefaf0, #faf4ea);
+    background: transparent;
 }
 
 .card-identity {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 8px;
 }
 
-.card-weight {
+/* Card Weight Circular Badge - Match mockup exactly */
+.card-weight,
+[class*="Weight"] {
+    display: inline-block;
     width: 24px;
     height: 24px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #8b7355, #7b6345);
+    background: #5c4a3a;
     color: #faf4ea;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
     font-weight: bold;
+    font-size: 13px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
@@ -1249,13 +1278,11 @@
 }
 
 .card-name {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: bold;
     color: #5c4a3a;
-    margin-bottom: 6px;
+    margin-bottom: 0;
     letter-spacing: 0.5px;
-    font-family: 'Garamond', 'Georgia', serif;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
 }
 
 .card-tags {
@@ -1467,30 +1494,20 @@
 }
 
 /* Outcomes Section - Match mockup exactly with 120px wide panels */
-.conversation-card .card-content .card-outcomes {
+.card-outcomes {
     display: flex;
-    border-top: 2px solid #c4a684;
-    margin: 0;
+    border-left: 1px solid #d4c5a0;
 }
 
-.conversation-card .card-content .card-outcomes .outcome {
+.outcome {
+    padding: 15px;
     width: 120px;
-    padding: 12px 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
     text-align: center;
-    position: relative;
+    background: #f9f3e9;
 }
 
-.conversation-card .card-content .card-outcomes .outcome.success {
-    background: linear-gradient(to bottom, #f4f9e9, #e8f5e9);
-    border-right: 1px solid #c4a684;
-}
-
-.conversation-card .card-content .card-outcomes .outcome:not(.success) {
-    background: linear-gradient(to bottom, #faf0e6, #f9ede0);
+.outcome.success {
+    border-right: 1px solid #d4c5a0;
 }
 
 .outcome-chance {
@@ -1672,6 +1689,42 @@
 
 .card-marker.too-deep {
     background: linear-gradient(to bottom, #8b4726, #6b3716);
+}
+
+/* Debug View Card Styling Additions */
+/* Target debug view cards specifically */
+div[class*="cursor-pointer"]:has(div:contains("COMFORT")),
+div[class*="cursor-pointer"]:has(div:contains("STATE")),
+div[class*="cursor-pointer"]:has(div:contains("TOKEN")),
+div[class*="cursor-pointer"]:has(div:contains("PROMISE")),
+div[class*="cursor-pointer"]:has(div:contains("LETTER")) {
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+/* Comfort cards - green left border */
+div[class*="cursor-pointer"]:has(div:contains("COMFORT")) {
+    border-left: 5px solid #7a8b5a !important;
+}
+
+/* State cards - brown left border */
+div[class*="cursor-pointer"]:has(div:contains("STATE")) {
+    border-left: 5px solid #8b7355 !important;
+}
+
+/* Token cards - green left border */
+div[class*="cursor-pointer"]:has(div:contains("TOKEN")) {
+    border-left: 5px solid #7a8b5a !important;
+}
+
+/* Promise/Letter cards - gold left border */
+div[class*="cursor-pointer"]:has(div:contains("PROMISE")),
+div[class*="cursor-pointer"]:has(div:contains("LETTER")) {
+    border-left: 5px solid #d4a76a !important;
 }
 
 /* Loading State */

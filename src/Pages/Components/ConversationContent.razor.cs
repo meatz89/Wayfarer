@@ -672,14 +672,20 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return "";
             
-            if (dotPosition == Session.CurrentComfort)
-                return "current";
-            else if (dotPosition < 0 && Session.CurrentComfort <= dotPosition)
-                return "negative";
-            else if (dotPosition > 0 && Session.CurrentComfort >= dotPosition)
-                return "positive";
+            var classes = new List<string>();
             
-            return "";
+            // Always add color class based on position
+            if (dotPosition < 0)
+                classes.Add("negative");
+            else if (dotPosition > 0)
+                classes.Add("positive");
+            // Position 0 gets no color class (neutral)
+            
+            // Add current class if this is the current position
+            if (dotPosition == Session.CurrentComfort)
+                classes.Add("current");
+            
+            return string.Join(" ", classes);
         }
 
         protected string GetTransitionHint()
