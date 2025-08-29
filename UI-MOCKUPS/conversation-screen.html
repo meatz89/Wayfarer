@@ -24,7 +24,7 @@
 
         .game-container {
             width: 100%;
-            max-width: 840px;
+            max-width: 1200px;
             background: #e8dcc4;
             border: 3px solid #8b7355;
             border-radius: 8px;
@@ -32,7 +32,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         }
 
-        /* Player Resources Bar - Unchanged */
+        /* Player Resources Bar */
         .resources-bar {
             background: #1a1612;
             color: #e8dcc4;
@@ -75,7 +75,7 @@
             color: #d4704a;
         }
 
-        /* Time and Location Header - Unchanged */
+        /* Time and Location Header */
         .header {
             background: #2c241a;
             color: #e8dcc4;
@@ -95,176 +95,169 @@
             font-weight: bold;
         }
 
-        /* Location Context - Unchanged */
+        /* Location Context */
         .location-context {
             background: #f9f3e9;
-            padding: 10px 20px;
+            padding: 8px 20px;
             border-bottom: 1px solid #c4a684;
-        }
-
-        .location-path {
-            display: flex;
-            align-items: center;
-            gap: 8px;
             font-size: 11px;
             color: #7a6250;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        /* Conversation State Bar - COMPACT */
-        .conversation-state {
+        /* Streamlined Conversation State Bar */
+        .conversation-state-bar {
             background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
-            padding: 12px 20px;
+            padding: 15px 20px;
             border-bottom: 2px solid #a68b6f;
         }
 
-        .state-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 3fr;
-            gap: 15px;
-            align-items: center;
-        }
-
-        /* NPC Info - Minimal */
-        .npc-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .npc-name {
-            font-size: 18px;
-            color: #5c4a3a;
-            font-weight: normal;
-        }
-
-        .emotional-state {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #8b4726;
-            font-weight: bold;
-        }
-
-        /* Comfort Display - SIMPLIFIED */
-        .comfort-display {
-            text-align: center;
-        }
-
-        .comfort-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #7a6250;
-            margin-bottom: 3px;
-        }
-
-        .comfort-value {
-            font-size: 22px;
-            font-weight: bold;
-            color: #5c4a3a;
-            position: relative;
-        }
-
-        .comfort-value.negative {
-            color: #8b4726;
-        }
-
-        .comfort-value.positive {
-            color: #5a7a3a;
-        }
-
-        .transition-marker {
-            font-size: 9px;
-            color: #8b4726;
-            position: absolute;
-            top: -8px;
-            right: -12px;
-            font-weight: bold;
-        }
-
-        /* Patience Display - COMPACT */
-        .patience-display {
-            text-align: center;
-        }
-
-        .patience-value {
-            font-size: 22px;
-            color: #5c4a3a;
-        }
-
-        .patience-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #7a6250;
-        }
-
-        /* Tokens Bar - HORIZONTAL MINIMAL */
-        .tokens-bar {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
-        .token-mini {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 11px;
-            color: #5c4a3a;
-        }
-
-        .token-mini-value {
-            font-weight: bold;
-            color: #5a7a3a;
-        }
-
-        .token-mini-label {
-            color: #7a6250;
-        }
-
-        /* Turn Indicator - SUBTLE */
-        .turn-indicator {
-            background: #e8dcc4;
-            padding: 8px 20px;
-            border-bottom: 1px solid #c4a684;
+        .npc-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 11px;
-            color: #7a6250;
+            margin-bottom: 12px;
         }
 
-        .weight-limit {
+        .npc-identity {
+            flex: 1;
+        }
+
+        .npc-name {
             color: #5c4a3a;
-            font-weight: bold;
+            font-size: 22px;
+            font-weight: normal;
+            letter-spacing: 1px;
         }
 
-        /* Narrative Section - CENTERED FOCUS */
+        .emotional-state {
+            font-size: 12px;
+            color: #8b4726;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+
+        /* Minimal State Indicators */
+        .state-indicators {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .indicator-label {
+            font-size: 10px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .indicator-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        /* Elegant Comfort Display */
+        .comfort-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comfort-dots {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .comfort-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e8dcc4;
+            border: 1px solid #a68b6f;
+            transition: all 0.3s ease;
+        }
+
+        .comfort-dot.negative {
+            background: #d4704a;
+        }
+
+        .comfort-dot.positive {
+            background: #7a8b5a;
+        }
+
+        .comfort-dot.current {
+            width: 12px;
+            height: 12px;
+            background: #5c4a3a;
+            border: 2px solid #3d3429;
+        }
+
+        .comfort-transition-hint {
+            font-size: 10px;
+            color: #8b4726;
+            font-style: italic;
+        }
+
+        /* Token Strip */
+        .token-strip {
+            display: flex;
+            gap: 15px;
+            padding: 8px 20px;
+            background: #f9f3e9;
+            border-bottom: 1px solid #d4c5a0;
+            font-size: 11px;
+        }
+
+        .token-compact {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .token-type {
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .token-count {
+            font-weight: bold;
+            color: #5a7a3a;
+        }
+
+        /* Narrative Section - CENTRAL FOCUS */
         .narrative-section {
-            padding: 25px 40px;
+            padding: 30px;
             background: #f4e8d0;
             border-bottom: 2px solid #a68b6f;
         }
 
         .narrative-text {
-            font-size: 15px;
-            line-height: 1.6;
+            font-size: 16px;
+            line-height: 1.7;
             color: #3d3429;
             font-style: italic;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .npc-dialogue {
-            padding: 15px 20px;
+            padding: 20px;
             background: #faf4ea;
             border-left: 3px solid #a68b6f;
             border-radius: 2px;
             font-size: 16px;
-            line-height: 1.5;
-            color: #2c241a;
+            line-height: 1.6;
         }
 
         .npc-dialogue.desperate {
@@ -272,12 +265,33 @@
             background: #faf0e6;
         }
 
-        /* Action Section - CLEAN */
+        /* Action Section */
         .action-section {
-            padding: 15px 20px;
+            padding: 15px;
             background: #e8dcc4;
             text-align: center;
-            border-bottom: 2px solid #a68b6f;
+            border-bottom: 1px solid #a68b6f;
+        }
+
+        .turn-info {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .turn-detail {
+            display: flex;
+            gap: 5px;
+        }
+
+        .turn-value {
+            color: #5c4a3a;
+            font-weight: bold;
         }
 
         .action-choices {
@@ -296,6 +310,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
+            min-width: 180px;
         }
 
         .action-button:hover {
@@ -310,155 +325,182 @@
             color: #7a6250;
         }
 
-        /* Cards as Dialog Options - SIMPLIFIED */
-        .dialog-section {
-            padding: 20px;
+        /* Cards Section - CENTRAL FOCUS */
+        .cards-section {
+            padding: 25px;
             background: #f4e8d0;
         }
 
-        .dialog-header {
-            font-size: 12px;
+        .cards-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .cards-title {
+            font-size: 13px;
             color: #7a6250;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 15px;
-            text-align: center;
         }
 
-        .dialog-options {
+        /* Card Display */
+        .card-grid {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            max-width: 720px;
+            gap: 12px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
-        /* Simplified Dialog Cards */
-        .dialog-card {
+        .card {
             background: #faf4ea;
             border: 2px solid #c4a684;
             border-radius: 4px;
             overflow: hidden;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             position: relative;
         }
 
-        .dialog-card:hover {
+        .card:hover {
             background: #fefaf0;
             border-color: #a68b6f;
             transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        .dialog-card.comfort {
-            border-left: 4px solid #7a8b5a;
+        .card.comfort {
+            border-left: 5px solid #7a8b5a;
         }
 
-        .dialog-card.state {
-            border-left: 4px solid #8b7355;
+        .card.state {
+            border-left: 5px solid #8b7355;
         }
 
-        .dialog-card.letter {
-            border-left: 4px solid #d4a76a;
+        .card.crisis {
+            border-left: 5px solid #8b4726;
+            background: #faf0e6;
         }
 
-        .dialog-card.observation {
-            border-left: 4px solid #5a7a8a;
-        }
-
-        .dialog-card.burden {
-            border-left: 4px solid #4a3a2a;
+        .card.burden {
+            border-left: 5px solid #4a3a2a;
+            background: #e8dcc4;
             opacity: 0.9;
         }
 
-        .dialog-card.unavailable {
+        .card.letter {
+            border-left: 5px solid #d4a76a;
+            background: #fff9f0;
+        }
+
+        .card.observation {
+            border-left: 5px solid #5a7a8a;
+            background: #f0f4fa;
+        }
+
+        .card.unavailable {
             opacity: 0.4;
             cursor: not-allowed;
             background: #d4c5a0;
         }
 
-        /* Dialog Header Row */
-        .dialog-header-row {
-            padding: 10px 15px;
-            background: #f9f3e9;
-            border-bottom: 1px solid #e8dcc4;
+        /* Simplified Card Layout */
+        .card-content {
+            display: flex;
+            align-items: stretch;
+        }
+
+        .card-main {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .card-identity {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+            margin-bottom: 8px;
         }
 
-        .dialog-type {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #7a6250;
-        }
-
-        .dialog-stats {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            font-size: 11px;
-        }
-
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .stat-label {
-            color: #7a6250;
-        }
-
-        .stat-value {
+        .card-name {
+            font-size: 14px;
             font-weight: bold;
             color: #5c4a3a;
         }
 
-        .success-rate {
-            color: #5a7a3a;
+        .card-weight {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: #5c4a3a;
+            color: #faf4ea;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
             font-weight: bold;
+            font-size: 13px;
         }
 
-        /* Dialog Text - The Focus */
-        .dialog-text {
-            padding: 15px 20px;
-            font-size: 15px;
+        .card-drawable {
+            font-size: 10px;
+            color: #7a6250;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .card-text {
+            font-size: 13px;
             line-height: 1.5;
             color: #2c241a;
             font-style: italic;
-            background: #fefaf0;
         }
 
-        /* Dialog Outcome - Minimal */
-        .dialog-outcome {
-            padding: 8px 15px;
-            background: #f9f3e9;
-            border-top: 1px solid #e8dcc4;
+        /* Card Success/Failure Strip */
+        .card-outcomes {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
+            border-left: 1px solid #d4c5a0;
+        }
+
+        .outcome {
+            padding: 15px;
+            width: 120px;
+            text-align: center;
+            background: #f9f3e9;
+        }
+
+        .outcome.success {
+            border-right: 1px solid #d4c5a0;
+        }
+
+        .outcome-chance {
+            font-size: 20px;
+            font-weight: bold;
+            color: #5c4a3a;
+            margin-bottom: 4px;
+        }
+
+        .outcome-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             color: #7a6250;
+            margin-bottom: 6px;
         }
 
-        .outcome-success {
-            color: #5a7a3a;
-        }
-
-        .outcome-failure {
-            color: #8b4726;
+        .outcome-effect {
+            font-size: 11px;
+            color: #5c4a3a;
+            font-weight: bold;
         }
 
         /* Special Markers */
         .card-marker {
             position: absolute;
-            top: -6px;
-            right: 10px;
+            top: -8px;
+            right: 15px;
             background: #8b4726;
             color: #faf4ea;
-            padding: 1px 6px;
+            padding: 2px 8px;
             border-radius: 2px;
             font-size: 9px;
             text-transform: uppercase;
@@ -466,12 +508,17 @@
             font-weight: bold;
         }
 
-        .card-marker.goal {
-            background: #d4a76a;
-        }
-
         .card-marker.expires {
             background: #5a7a8a;
+        }
+
+        .card-marker.blocks {
+            background: #4a3a2a;
+        }
+
+        .card-marker.goal {
+            background: #d4a76a;
+            color: #3d3429;
         }
     </style>
 </head>
@@ -518,194 +565,243 @@
 
         <!-- Location Context -->
         <div class="location-context">
-            <div class="location-path">
-                <span>Copper Kettle</span>
-                <span>→</span>
-                <span>Corner Table (Private)</span>
-            </div>
+            Copper Kettle Tavern → Corner Table (Private, +1 patience)
         </div>
 
-        <!-- Conversation State Bar - COMPACT -->
-        <div class="conversation-state">
-            <div class="state-grid">
-                <div class="npc-info">
+        <!-- Streamlined Conversation State -->
+        <div class="conversation-state-bar">
+            <div class="npc-header">
+                <div class="npc-identity">
                     <div class="npc-name">Elena</div>
-                    <div class="emotional-state">DESPERATE</div>
+                    <div class="emotional-state">Desperate</div>
                 </div>
-                
-                <div class="comfort-display">
-                    <div class="comfort-label">Comfort</div>
-                    <div class="comfort-value negative">
-                        -2
-                        <span class="transition-marker">!</span>
+                <div class="state-indicators">
+                    <div class="indicator">
+                        <span class="indicator-label">Patience</span>
+                        <span class="indicator-value">8/10</span>
                     </div>
-                </div>
-                
-                <div class="patience-display">
-                    <div class="patience-value">8/10</div>
-                    <div class="patience-label">Patience</div>
-                </div>
-                
-                <div class="tokens-bar">
-                    <div class="token-mini">
-                        <span class="token-mini-value">1</span>
-                        <span class="token-mini-label">Trust</span>
-                    </div>
-                    <div class="token-mini">
-                        <span class="token-mini-value">0</span>
-                        <span class="token-mini-label">Commerce</span>
-                    </div>
-                    <div class="token-mini">
-                        <span class="token-mini-value">0</span>
-                        <span class="token-mini-label">Status</span>
-                    </div>
-                    <div class="token-mini">
-                        <span class="token-mini-value">0</span>
-                        <span class="token-mini-label">Shadow</span>
+                    <div class="comfort-indicator">
+                        <span class="indicator-label">Comfort</span>
+                        <div class="comfort-dots">
+                            <span class="comfort-dot negative"></span>
+                            <span class="comfort-dot negative"></span>
+                            <span class="comfort-dot negative current"></span>
+                            <span class="comfort-dot"></span>
+                            <span class="comfort-dot"></span>
+                            <span class="comfort-dot"></span>
+                            <span class="comfort-dot"></span>
+                        </div>
+                        <span class="comfort-transition-hint">→ Hostile!</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Turn Indicator -->
-        <div class="turn-indicator">
-            <span>Turn 3 of 10</span>
-            <span>Weight Limit: <span class="weight-limit">1</span> (Desperate State)</span>
-            <span>One more failure → Hostile</span>
+        <!-- Token Strip -->
+        <div class="token-strip">
+            <div class="token-compact">
+                <span class="token-type">Trust:</span>
+                <span class="token-count">1 (+5%)</span>
+            </div>
+            <div class="token-compact">
+                <span class="token-type">Commerce:</span>
+                <span class="token-count">0</span>
+            </div>
+            <div class="token-compact">
+                <span class="token-type">Status:</span>
+                <span class="token-count">0</span>
+            </div>
+            <div class="token-compact">
+                <span class="token-type">Shadow:</span>
+                <span class="token-count">0</span>
+            </div>
         </div>
 
-        <!-- Narrative Section - CENTERED FOCUS -->
+        <!-- CENTRAL: Narrative Section -->
         <div class="narrative-section">
             <div class="narrative-text">
-                Elena clutches a sealed letter, her hands trembling. The wax seal bears her family crest. Her breathing is shallow, panic barely contained.
+                Elena's breathing comes in short gasps. Her fingers trace the seal on the letter obsessively. The comfort you've tried to offer hasn't reached her - she's spiraling deeper into panic.
             </div>
             <div class="npc-dialogue desperate">
-                "Please, I need someone trustworthy to deliver this to Lord Blackwood before sunset. He's leaving the city tonight, and this letter... it's my refusal of his marriage proposal. If it doesn't reach him, my father will force the arrangement."
+                "No, no, no... you don't understand! Lord Blackwood leaves at sunset. If this letter doesn't reach him, my father will sign the marriage contract tonight. I'll be trapped forever. Please, I'm begging you!"
             </div>
         </div>
 
         <!-- Action Choice -->
         <div class="action-section">
+            <div class="turn-info">
+                <div class="turn-detail">
+                    <span>Turn</span>
+                    <span class="turn-value">3/10</span>
+                </div>
+                <div class="turn-detail">
+                    <span>Weight Limit</span>
+                    <span class="turn-value">1</span>
+                </div>
+                <div class="turn-detail">
+                    <span>State</span>
+                    <span class="turn-value">Desperate</span>
+                </div>
+            </div>
             <div class="action-choices">
                 <div class="action-button">
                     <div>👂 LISTEN</div>
-                    <div class="action-details">Draw cards listing Desperate</div>
+                    <div class="action-details">Draw desperate cards</div>
                 </div>
                 <div class="action-button">
                     <div>💬 SPEAK</div>
-                    <div class="action-details">Play cards up to weight 1</div>
+                    <div class="action-details">Play weight 1 cards</div>
                 </div>
             </div>
         </div>
 
-        <!-- Dialog Options - SIMPLIFIED -->
-        <div class="dialog-section">
-            <div class="dialog-header">Your Response Options</div>
+        <!-- CENTRAL: Cards Section -->
+        <div class="cards-section">
+            <div class="cards-header">
+                <div class="cards-title">Your Hand</div>
+            </div>
             
-            <div class="dialog-options">
+            <div class="card-grid">
                 <!-- Observation Card -->
-                <div class="dialog-card observation">
+                <div class="card observation">
                     <div class="card-marker expires">24hr</div>
-                    <div class="dialog-header-row">
-                        <span class="dialog-type">OBSERVATION • STATE CHANGE</span>
-                        <div class="dialog-stats">
-                            <div class="stat">
-                                <span class="stat-label">W</span>
-                                <span class="stat-value">1</span>
+                    <div class="card-content">
+                        <div class="card-main">
+                            <div class="card-identity">
+                                <div class="card-name">Merchant Route Knowledge</div>
+                                <div class="card-weight">1</div>
                             </div>
-                            <div class="success-rate">85%</div>
+                            <div class="card-drawable">Observation • State Change</div>
+                            <div class="card-text">
+                                "I know a route through the merchant quarter that avoids the checkpoint entirely. We can reach Lord Blackwood faster."
+                            </div>
                         </div>
-                    </div>
-                    <div class="dialog-text">
-                        "I overheard the guards at the market - they're doubling checkpoint inspections today. But I know a merchant route that avoids them entirely. We could reach Lord Blackwood faster that way."
-                    </div>
-                    <div class="dialog-outcome">
-                        <span class="outcome-success">Success: Desperate → Open</span>
-                        <span class="outcome-failure">Failure: No change</span>
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-chance">85%</div>
+                                <div class="outcome-label">Success</div>
+                                <div class="outcome-effect">Desperate→Open</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">15%</div>
+                                <div class="outcome-label">Failure</div>
+                                <div class="outcome-effect">No change</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Comfort Card -->
-                <div class="dialog-card comfort">
-                    <div class="dialog-header-row">
-                        <span class="dialog-type">COMFORT • TRUST</span>
-                        <div class="dialog-stats">
-                            <div class="stat">
-                                <span class="stat-label">W</span>
-                                <span class="stat-value">1</span>
+                <!-- Basic Comfort Card -->
+                <div class="card comfort">
+                    <div class="card-content">
+                        <div class="card-main">
+                            <div class="card-identity">
+                                <div class="card-name">I Understand</div>
+                                <div class="card-weight">1</div>
                             </div>
-                            <div class="success-rate">65%</div>
+                            <div class="card-drawable">Drawable: Desperate, Tense, Open</div>
+                            <div class="card-text">
+                                "I understand how important this is, Elena. Your future shouldn't be decided without your consent."
+                            </div>
                         </div>
-                    </div>
-                    <div class="dialog-text">
-                        "I understand how important this is, Elena. Your future shouldn't be decided without your consent."
-                    </div>
-                    <div class="dialog-outcome">
-                        <span class="outcome-success">Success: +1 comfort</span>
-                        <span class="outcome-failure">Failure: -1 comfort (→ Hostile!)</span>
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-chance">65%</div>
+                                <div class="outcome-label">Success</div>
+                                <div class="outcome-effect">+1 comfort</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">35%</div>
+                                <div class="outcome-label">Failure</div>
+                                <div class="outcome-effect">-1 comfort</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- State Card -->
-                <div class="dialog-card state">
-                    <div class="dialog-header-row">
-                        <span class="dialog-type">STATE • TRUST</span>
-                        <div class="dialog-stats">
-                            <div class="stat">
-                                <span class="stat-label">W</span>
-                                <span class="stat-value">1</span>
+                <!-- State Change Card -->
+                <div class="card state">
+                    <div class="card-content">
+                        <div class="card-main">
+                            <div class="card-identity">
+                                <div class="card-name">Let's Think This Through</div>
+                                <div class="card-weight">1</div>
                             </div>
-                            <div class="success-rate">65%</div>
+                            <div class="card-drawable">Drawable: Desperate</div>
+                            <div class="card-text">
+                                "Take a breath. We have time if we're smart about this. Let me help you think through the best approach."
+                            </div>
                         </div>
-                    </div>
-                    <div class="dialog-text">
-                        "Take a breath. We have time if we're smart about this. Let me help you think through the best approach."
-                    </div>
-                    <div class="dialog-outcome">
-                        <span class="outcome-success">Success: Desperate → Tense</span>
-                        <span class="outcome-failure">Failure: State unchanged</span>
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-chance">65%</div>
+                                <div class="outcome-label">Success</div>
+                                <div class="outcome-effect">Desperate→Tense</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">35%</div>
+                                <div class="outcome-label">Failure</div>
+                                <div class="outcome-effect">No change</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Goal Card -->
-                <div class="dialog-card letter">
-                    <div class="card-marker goal">Goal</div>
-                    <div class="dialog-header-row">
-                        <span class="dialog-type">LETTER • GOAL</span>
-                        <div class="dialog-stats">
-                            <div class="stat">
-                                <span class="stat-label">W</span>
-                                <span class="stat-value">1</span>
+                <!-- Burden Card -->
+                <div class="card burden unavailable">
+                    <div class="card-marker blocks">Blocks Slot</div>
+                    <div class="card-content">
+                        <div class="card-main">
+                            <div class="card-identity">
+                                <div class="card-name">Address Past Failure</div>
+                                <div class="card-weight">2</div>
                             </div>
-                            <div class="success-rate">55%</div>
+                            <div class="card-drawable">Too heavy for Desperate state (W2)</div>
+                            <div class="card-text">
+                                "Elena, about last time... I know I let you down when I didn't deliver your previous message."
+                            </div>
                         </div>
-                    </div>
-                    <div class="dialog-text">
-                        "I'll take your letter to Lord Blackwood. For something this urgent, I'll do whatever it takes to get it there before sunset."
-                    </div>
-                    <div class="dialog-outcome">
-                        <span class="outcome-success">Success: 4hr deadline, position 3</span>
-                        <span class="outcome-failure">Failure: 1hr deadline, position 1!</span>
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-chance">60%</div>
+                                <div class="outcome-label">Success</div>
+                                <div class="outcome-effect">Remove burden</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">40%</div>
+                                <div class="outcome-label">Failure</div>
+                                <div class="outcome-effect">Remains</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Burden Card - Unavailable -->
-                <div class="dialog-card burden unavailable">
-                    <div class="dialog-header-row">
-                        <span class="dialog-type">BURDEN • BLOCKS SLOT</span>
-                        <div class="dialog-stats">
-                            <div class="stat">
-                                <span class="stat-label">W</span>
-                                <span class="stat-value">2</span>
+                <!-- Letter Card (goal card) -->
+                <div class="card letter">
+                    <div class="card-marker goal">Goal Card</div>
+                    <div class="card-content">
+                        <div class="card-main">
+                            <div class="card-identity">
+                                <div class="card-name">Accept Elena's Letter</div>
+                                <div class="card-weight">1</div>
                             </div>
-                            <div class="success-rate">Too Heavy!</div>
+                            <div class="card-drawable">Valid: Desperate, Tense</div>
+                            <div class="card-text">
+                                "I'll take your letter to Lord Blackwood. For something this urgent, I'll do whatever it takes."
+                            </div>
                         </div>
-                    </div>
-                    <div class="dialog-text">
-                        "Elena, about last time... I know I let you down when I didn't deliver your previous message."
-                    </div>
-                    <div class="dialog-outcome">
-                        <span>Cannot play - exceeds weight limit</span>
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-chance">55%</div>
+                                <div class="outcome-label">Success</div>
+                                <div class="outcome-effect">4hr deadline</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">45%</div>
+                                <div class="outcome-label">Failure</div>
+                                <div class="outcome-effect">1hr deadline!</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
