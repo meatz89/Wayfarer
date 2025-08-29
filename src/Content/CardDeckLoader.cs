@@ -282,6 +282,21 @@ public class CardDeckLoader
             
             var isStateCard = template.TryGetProperty("isStateCard", out var stateCardElem) && stateCardElem.GetBoolean();
             
+            // Parse DrawableStates list
+            List<EmotionalState> drawableStates = null;
+            if (template.TryGetProperty("drawableStates", out var drawableElem))
+            {
+                drawableStates = new List<EmotionalState>();
+                foreach (var stateElem in drawableElem.EnumerateArray())
+                {
+                    var stateStr = stateElem.GetString();
+                    if (Enum.TryParse<EmotionalState>(stateStr, true, out var state))
+                    {
+                        drawableStates.Add(state);
+                    }
+                }
+            }
+            
             // Parse template type
             var templateType = ParseTemplateType(id);
             
@@ -303,6 +318,7 @@ public class CardDeckLoader
                 BaseComfort = baseComfort,
                 IsStateCard = isStateCard,
                 SuccessState = successState,
+                DrawableStates = drawableStates,
                 DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
                 Description = description,
                 SuccessRate = 70 - (weight * 10) // Base success rate calculation
