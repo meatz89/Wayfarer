@@ -32,34 +32,44 @@
 
         @if ((Context?.Type ?? ConversationType.FriendlyChat) != ConversationType.Commerce)
         {
-            <!-- Progress Section -->
-            <div class="progress-section">
-                <div class="progress-bar">
-                    <div class="progress-label">
-                        <span>Comfort</span>
-                        <span>@Session.CurrentComfort</span>
+            <!-- Streamlined Conversation State -->
+            <div class="conversation-state-bar">
+                <div class="npc-header">
+                    <div class="npc-identity">
+                        <div class="npc-name">@NpcName</div>
+                        <div class="emotional-state">@Session.CurrentState</div>
                     </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" style="width: @GetComfortProgress()%"></div>
+                    <div class="state-indicators">
+                        <div class="indicator">
+                            <span class="indicator-label">Patience</span>
+                            <span class="indicator-value">@Session.CurrentPatience/@Session.MaxPatience</span>
+                        </div>
+                        <div class="comfort-indicator">
+                            <span class="indicator-label">Comfort</span>
+                            <div class="comfort-dots">
+                                @for (int i = -3; i <= 3; i++)
+                                {
+                                    <span class="comfort-dot @GetComfortDotClass(i)"></span>
+                                }
+                            </div>
+                            @if (Math.Abs(Session.CurrentComfort) == 3)
+                            {
+                                <span class="comfort-transition-hint">→ @GetTransitionHint()</span>
+                            }
+                        </div>
                     </div>
-                </div>
-                
-                <div class="patience-display">
-                    <div class="patience-value">@Session.CurrentPatience/@Session.MaxPatience</div>
-                    <div class="patience-label">Patience</div>
                 </div>
             </div>
 
-            <!-- State Section -->
-            <div class="state-section">
-                <div class="state-info">
-                    <span>Emotional State:</span>
-                    <span class="state-name">@Session.CurrentState</span>
-                    <span class="state-effects">@GetStateEffects()</span>
-                </div>
-                <TokenDisplay Tokens="@CurrentTokens" 
-                              NpcName="@NpcName" 
-                              ShowEmptyState="true" />
+            <!-- Token Strip -->
+            <div class="token-strip">
+                @foreach (var tokenType in Enum.GetValues<ConnectionType>().Where(t => t != ConnectionType.None))
+                {
+                    <div class="token-compact">
+                        <span class="token-type">@tokenType:</span>
+                        <span class="token-count">@GetTokenCount(tokenType) @GetTokenBonus(tokenType)</span>
+                    </div>
+                }
             </div>
         }
 
@@ -98,18 +108,18 @@
             {
                 <div class="turn-indicator">Turn @(Session.TurnNumber + 1) • @Session.CurrentPatience patience remaining</div>
                 <div class="action-choices">
-                    <button class="action-button" @onclick="ExecuteListen" disabled="@IsProcessing">
-                        <div>LISTEN</div>
+                    <div class="action-button" @onclick="ExecuteListen" disabled="@IsProcessing">
+                        <div>👂 LISTEN</div>
                         <div class="action-details">@GetListenDetails()</div>
-                    </button>
-                    <button class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsProcessing)">
-                        <div>SPEAK</div>
+                    </div>
+                    <div class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsProcessing)">
+                        <div>💬 SPEAK</div>
                         <div class="action-details">@GetSpeakDetails()</div>
-                    </button>
-                    <button class="action-button exit-button" @onclick="ExitConversation">
-                        <div>EXIT</div>
+                    </div>
+                    <div class="action-button exit-button" @onclick="ExitConversation">
+                        <div>🚪 EXIT</div>
                         <div class="action-details">Leave conversation</div>
-                    </button>
+                    </div>
                 </div>
             }
             else

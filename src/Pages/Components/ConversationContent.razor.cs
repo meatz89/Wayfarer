@@ -649,6 +649,72 @@ namespace Wayfarer.Pages.Components
             return (int)((Session.CurrentComfort + 3) * 100 / 6.0);
         }
 
+        protected string GetComfortDotClass(int dotPosition)
+        {
+            if (Session == null) return "";
+            
+            if (dotPosition == Session.CurrentComfort)
+                return "current";
+            else if (dotPosition < 0 && Session.CurrentComfort <= dotPosition)
+                return "negative";
+            else if (dotPosition > 0 && Session.CurrentComfort >= dotPosition)
+                return "positive";
+            
+            return "";
+        }
+
+        protected string GetTransitionHint()
+        {
+            if (Session == null) return "";
+            
+            if (Session.CurrentComfort == 3)
+            {
+                return Session.CurrentState switch
+                {
+                    EmotionalState.DESPERATE => "Tense!",
+                    EmotionalState.TENSE => "Neutral!",
+                    EmotionalState.GUARDED => "Neutral!",
+                    EmotionalState.NEUTRAL => "Open!",
+                    EmotionalState.OPEN => "Connected!",
+                    EmotionalState.EAGER => "Connected!",
+                    EmotionalState.CONNECTED => "Stays Connected",
+                    _ => ""
+                };
+            }
+            else if (Session.CurrentComfort == -3)
+            {
+                return Session.CurrentState switch
+                {
+                    EmotionalState.DESPERATE => "Hostile!",
+                    EmotionalState.HOSTILE => "Ends!",
+                    EmotionalState.TENSE => "Hostile!",
+                    EmotionalState.GUARDED => "Hostile!",
+                    EmotionalState.NEUTRAL => "Tense!",
+                    EmotionalState.OPEN => "Guarded!",
+                    EmotionalState.EAGER => "Neutral!",
+                    EmotionalState.CONNECTED => "Tense!",
+                    _ => ""
+                };
+            }
+            
+            return "";
+        }
+
+        protected int GetTokenCount(ConnectionType tokenType)
+        {
+            return CurrentTokens.GetValueOrDefault(tokenType, 0);
+        }
+
+        protected string GetTokenBonus(ConnectionType tokenType)
+        {
+            var count = GetTokenCount(tokenType);
+            if (count > 0)
+            {
+                return $"(+{count * 5}%)";
+            }
+            return "";
+        }
+
         protected string GetCardClass(ConversationCard card)
         {
             // Map categories to CSS classes
