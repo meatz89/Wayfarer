@@ -111,6 +111,7 @@ private static Professions MapProfessionFromJson(string jsonProfession)
         "Scribe" => Professions.Scribe,
         "Noble" => Professions.Noble,
         "Smuggler" => Professions.Agent,
+        "Information_Broker" => Professions.Information_Broker,
         _ => throw new ArgumentException($"Unknown profession in JSON: '{jsonProfession}' - add to profession mapping")
     };
 }

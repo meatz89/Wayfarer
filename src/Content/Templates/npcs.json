@@ -75,7 +75,6 @@
 		"personalityType": "CUNNING",
 		"services": ["Shadow"],
 		"letterTokenTypes": ["Shadow"],
-		"currentState": "GUARDED",
-		
+		"currentState": "GUARDED"
 	}
 ]
