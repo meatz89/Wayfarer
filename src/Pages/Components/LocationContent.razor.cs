@@ -25,6 +25,7 @@ namespace Wayfarer.Pages.Components
         protected TimeBlocks CurrentTime { get; set; }
         protected List<NPC> NPCsAtSpot { get; set; } = new();
         protected IEnumerable<DeliveryObligation> ActiveObligations { get; set; } = new List<DeliveryObligation>();
+        protected Location CurrentLocation { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -39,6 +40,7 @@ namespace Wayfarer.Pages.Components
         private async Task RefreshLocationData()
         {
             var location = GameFacade.GetCurrentLocation();
+            CurrentLocation = location;
             var spot = GameFacade.GetCurrentLocationSpot();
             CurrentSpot = spot;
             var timeInfo = GameFacade.GetTimeInfo();
@@ -406,6 +408,36 @@ namespace Wayfarer.Pages.Components
             }
             
             return Math.Max(1, basePatience); // Minimum 1 patience
+        }
+        
+        protected string GetTimeOfDayTrait()
+        {
+            return CurrentTime switch
+            {
+                TimeBlocks.Dawn => "Dawn",
+                TimeBlocks.Morning => "Morning",
+                TimeBlocks.Afternoon => "Afternoon",
+                TimeBlocks.Evening => "Evening",
+                TimeBlocks.Night => "Night",
+                TimeBlocks.LateNight => "Late Night",
+                _ => "Unknown"
+            };
+        }
+        
+        protected string GetSpotTraitClass(SpotPropertyType prop)
+        {
+            // Return a CSS class based on the property type
+            return prop.ToString().ToLower().Replace("_", "-");
+        }
+        
+        protected List<NPC> GetNPCsAtSpot(string spotId)
+        {
+            // Get NPCs at a specific spot
+            if (spotId == CurrentSpot?.SpotID)
+                return NPCsAtSpot;
+            
+            // Would need to query GameFacade for NPCs at other spots
+            return new List<NPC>();
         }
         
         protected int GetBasePatience(NpcViewModel npc)

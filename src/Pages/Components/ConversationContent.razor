@@ -2,297 +2,252 @@
 
 @namespace Wayfarer.Pages.Components
 
-<div class="conversation-content">
-    @if (Session != null)
+@if (Session != null)
+{
+    <!-- Location Context (from mockup) -->
+    <div class="location-context">
+        @GetLocationContext()
+    </div>
+
+    @if ((Context?.Type ?? ConversationType.FriendlyChat) != ConversationType.Commerce)
     {
-        <!-- NPC Info -->
-        <div class="npc-header">
-            <div class="npc-info">
-                <h2>@NpcName</h2>
+        <!-- Streamlined Conversation State Bar (from mockup) -->
+        <div class="conversation-state-bar">
+            <div class="npc-header">
+                <div class="npc-identity">
+                    <div class="npc-name">@NpcName</div>
+                    <div class="emotional-state">@GetEmotionalStateDisplay()</div>
+                </div>
+                <div class="state-indicators">
+                    <div class="indicator">
+                        <span class="indicator-label">Patience</span>
+                        <span class="indicator-value">@Session.CurrentPatience/@Session.MaxPatience</span>
+                    </div>
+                    <div class="comfort-indicator">
+                        <span class="indicator-label">Comfort</span>
+                        <div class="comfort-dots">
+                            @for (int i = -3; i <= 3; i++)
+                            {
+                                <span class="comfort-dot @GetComfortDotClass(i)"></span>
+                            }
+                        </div>
+                        @if (Math.Abs(Session.CurrentComfort) == 2)
+                        {
+                            <span class="comfort-transition-hint">→ @GetTransitionHint()</span>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
 
-        @* Display letter delivery indicators *@
-        @if (Context?.LettersCarriedForNpc?.Any() == true)
+        <!-- Token Strip (from mockup) -->
+        <div class="token-strip">
+            <div class="token-compact">
+                <span class="token-type">Trust:</span>
+                <span class="token-count">@GetTokenCount(ConnectionType.Trust) @GetTokenBonus(ConnectionType.Trust)</span>
+            </div>
+            <div class="token-compact">
+                <span class="token-type">Commerce:</span>
+                <span class="token-count">@GetTokenCount(ConnectionType.Commerce) @GetTokenBonus(ConnectionType.Commerce)</span>
+            </div>
+            <div class="token-compact">
+                <span class="token-type">Status:</span>
+                <span class="token-count">@GetTokenCount(ConnectionType.Status) @GetTokenBonus(ConnectionType.Status)</span>
+            </div>
+            <div class="token-compact">
+                <span class="token-type">Shadow:</span>
+                <span class="token-count">@GetTokenCount(ConnectionType.Shadow) @GetTokenBonus(ConnectionType.Shadow)</span>
+            </div>
+        </div>
+    }
+
+    <!-- CENTRAL: Narrative Section (from mockup) -->
+    <div class="narrative-section">
+        @if (!string.IsNullOrEmpty(LastNarrative))
         {
-            <div class="letter-delivery-indicators">
-                @foreach (var letter in Context.LettersCarriedForNpc)
+            <div class="narrative-text">
+                @LastNarrative
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(LastDialogue))
+        {
+            <div class="npc-dialogue @GetStateClass()">
+                "@LastDialogue"
+            </div>
+        }
+    </div>
+
+    <!-- Action Choice (from mockup) -->
+    <div class="action-section">
+        @if ((Context?.Type ?? ConversationType.FriendlyChat) == ConversationType.Commerce)
+        {
+            <!-- Quick Exchanges: Select a card then SPEAK to accept it -->
+            <div class="turn-indicator">Select an exchange card to trade</div>
+            <div class="action-choices">
+                <div class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsProcessing)">
+                    <div>TRADE</div>
+                    <div class="action-details">@GetSpeakDetails()</div>
+                </div>
+                <div class="action-button exit-button" @onclick="ExitConversation">
+                    <div>EXIT</div>
+                    <div class="action-details">Leave without trading</div>
+                </div>
+            </div>
+        }
+        else if (!IsConversationExhausted)
+        {
+            <div class="turn-info">
+                <div class="turn-detail">
+                    <span>Turn</span>
+                    <span class="turn-value">@(Session.TurnNumber + 1)/@Session.MaxPatience</span>
+                </div>
+                <div class="turn-detail">
+                    <span>Weight Limit</span>
+                    <span class="turn-value">@GetWeightLimit()</span>
+                </div>
+                <div class="turn-detail">
+                    <span>State</span>
+                    <span class="turn-value">@GetEmotionalStateDisplay()</span>
+                </div>
+            </div>
+            <div class="action-choices">
+                <div class="action-button" @onclick="ExecuteListen" disabled="@IsProcessing">
+                    <div>👂 LISTEN</div>
+                    <div class="action-details">@GetListenActionText()</div>
+                </div>
+                <div class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsProcessing)">
+                    <div>💬 SPEAK</div>
+                    <div class="action-details">@GetSpeakActionText()</div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="conversation-exhausted">
+                <div class="exhaustion-message">
+                    <p>@ExhaustionReason</p>
+                </div>
+                <div class="exhaustion-actions">
+                    <div class="action-button primary" @onclick="ManuallyEndConversation">
+                        <div>END CONVERSATION</div>
+                        <div class="action-details">Return to location</div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- CENTRAL: Cards Section (from mockup) -->
+    <div class="cards-section">
+        @if ((Context?.Type ?? ConversationType.FriendlyChat) == ConversationType.Commerce)
+            {
+            @* For exchanges, show cards as full selectable cards like conversations *@
+            <div class="cards-header">
+                <div class="cards-title">Available Exchanges</div>
+            </div>
+            
+            <div class="card-grid">
+                @foreach (var card in Session.HandCards)
                 {
-                    <div class="letter-indicator">
-                        <span class="icon icon-letter"></span>
-                        <span>Carrying letter from @letter.SenderName</span>
-                        @if (letter.DeadlineInMinutes <= 360)
+                    <div class="card exchange @GetCardClass(card) @(IsCardSelected(card) ? "selected" : "")"
+                         @onclick="() => ToggleCardSelection(card)">
+                        <div class="card-marker exchange">EXCHANGE</div>
+                        <div class="card-content">
+                            <div class="card-main">
+                                <div class="card-identity">
+                                    <div class="card-name">@GetCardName(card)</div>
+                                    @if (card.Context?.ExchangeData?.CanBarter == true)
+                                    {
+                                        <span class="tag">Negotiable</span>
+                                    }
+                                </div>
+                                @if (card.Context != null)
+                                {
+                                    <div class="card-text">
+                                        @GetCardText(card)
+                                    </div>
+                                    <div class="exchange-details">
+                                        <div class="exchange-cost">
+                                            <div class="exchange-label">You Pay</div>
+                                            <div class="exchange-value cost-value">@GetExchangeCostDisplay(card)</div>
+                                        </div>
+                                        <div class="exchange-arrow">→</div>
+                                        <div class="exchange-reward">
+                                            <div class="exchange-label">You Receive</div>
+                                            <div class="exchange-value reward-value">@GetExchangeRewardDisplay(card)</div>
+                                        </div>
+                                    </div>
+                                    
+                                    @if (card.Context.ExchangeData?.CanBarter == true)
+                                    {
+                                        <div class="barter-info">
+                                            <span class="barter-label">Barter Success:</span>
+                                            <span class="barter-rate">@GetExchangeSuccessRate(card)%</span>
+                                            <span class="barter-hint">(Better price on success)</span>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            }
+        else
+        {
+            @* Normal conversation cards *@
+            <div class="cards-header">
+                <div class="cards-title">Your Hand</div>
+            </div>
+            
+            <div class="card-grid">
+                @foreach (var convCard in Session.HandCards)
+                {
+                    <div class="card @GetCardClass(convCard) @(IsCardSelected(convCard) ? "selected" : "") @(IsObservationExpired(convCard) ? "unavailable" : "")"
+                         @onclick="() => ToggleCardSelection(convCard)">
+                        @if (convCard.IsObservation)
                         {
-                            <span class="deadline-urgent">(@(letter.DeadlineInMinutes / 60)h remaining!)</span>
+                            <div class="card-marker expires">24hr</div>
                         }
+                        @if (convCard.Category == CardCategory.Burden)
+                        {
+                            <div class="card-marker blocks">Blocks</div>
+                        }
+                        @if (convCard.Category == CardCategory.Exchange)
+                        {
+                            <div class="card-marker goal">Goal</div>
+                        }
+                        <div class="card-content">
+                            <div class="card-main">
+                                <div class="card-identity">
+                                    <div class="card-name">@GetProperCardName(convCard)</div>
+                                    <div class="card-weight">@convCard.GetEffectiveWeight(Context.Session.CurrentState)</div>
+                                </div>
+                                <div class="card-drawable">@GetDrawableStatesText(convCard)</div>
+                                <div class="card-text">
+                                    "@GetProperCardDialogue(convCard)"
+                                </div>
+                            </div>
+                            <div class="card-outcomes">
+                                <div class="outcome success">
+                                    <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
+                                    <div class="outcome-label">Success</div>
+                                    <div class="outcome-effect">@GetSuccessEffect(convCard)</div>
+                                </div>
+                                <div class="outcome">
+                                    <div class="outcome-chance">@GetFailureChance(convCard)%</div>
+                                    <div class="outcome-label">Failure</div>
+                                    <div class="outcome-effect">@GetFailureEffect(convCard)</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 }
             </div>
         }
-
-        <!-- Location Context -->
-        <div class="location-context">
-            @GetLocationContext()
-        </div>
-
-        @if ((Context?.Type ?? ConversationType.FriendlyChat) != ConversationType.Commerce)
-        {
-            <!-- Streamlined Conversation State -->
-            <div class="conversation-state-bar">
-                <div class="npc-header">
-                    <div class="npc-identity">
-                        <div class="npc-name">@NpcName</div>
-                        <div class="emotional-state">@GetEmotionalStateDisplay()</div>
-                    </div>
-                    <div class="state-indicators">
-                        <div class="indicator">
-                            <span class="indicator-label">Patience</span>
-                            <span class="indicator-value">@Session.CurrentPatience/@Session.MaxPatience</span>
-                        </div>
-                        <div class="comfort-indicator">
-                            <span class="indicator-label">Comfort</span>
-                            <div class="comfort-dots">
-                                @for (int i = -3; i <= 3; i++)
-                                {
-                                    <span class="comfort-dot @GetComfortDotClass(i)"></span>
-                                }
-                            </div>
-                            @if (Math.Abs(Session.CurrentComfort) == 2)
-                            {
-                                <span class="comfort-transition-hint">→ @GetTransitionHint()</span>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Token Strip -->
-            <div class="token-strip">
-                <div class="token-compact">
-                    <span class="token-type">Trust:</span>
-                    <span class="token-count">@GetTokenCount(ConnectionType.Trust) @GetTokenBonus(ConnectionType.Trust)</span>
-                </div>
-                <div class="token-compact">
-                    <span class="token-type">Commerce:</span>
-                    <span class="token-count">@GetTokenCount(ConnectionType.Commerce) @GetTokenBonus(ConnectionType.Commerce)</span>
-                </div>
-                <div class="token-compact">
-                    <span class="token-type">Status:</span>
-                    <span class="token-count">@GetTokenCount(ConnectionType.Status) @GetTokenBonus(ConnectionType.Status)</span>
-                </div>
-                <div class="token-compact">
-                    <span class="token-type">Shadow:</span>
-                    <span class="token-count">@GetTokenCount(ConnectionType.Shadow) @GetTokenBonus(ConnectionType.Shadow)</span>
-                </div>
-            </div>
-        }
-
-        <!-- Narrative Section -->
-        <div class="narrative-section">
-            @if (!string.IsNullOrEmpty(LastNarrative))
-            {
-                <div class="narrative-text">@LastNarrative</div>
-            }
-            @if (!string.IsNullOrEmpty(LastDialogue))
-            {
-                <div class="npc-dialogue @GetStateClass()">
-                    "@LastDialogue"
-                </div>
-            }
-        </div>
-
-        <!-- Action Section -->
-        <div class="action-section">
-            @if ((Context?.Type ?? ConversationType.FriendlyChat) == ConversationType.Commerce)
-            {
-                <!-- Quick Exchanges: Select a card then SPEAK to accept it -->
-                <div class="turn-indicator">Select an exchange card to trade</div>
-                <div class="action-choices">
-                    <button class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsProcessing)">
-                        <div>TRADE</div>
-                        <div class="action-details">@GetSpeakDetails()</div>
-                    </button>
-                    <button class="action-button exit-button" @onclick="ExitConversation">
-                        <div>EXIT</div>
-                        <div class="action-details">Leave without trading</div>
-                    </button>
-                </div>
-            }
-            else if (!IsConversationExhausted)
-            {
-                <div class="turn-info">
-                    <div class="turn-detail">
-                        <span>Turn</span>
-                        <span class="turn-value">@(Session.TurnNumber + 1)/@Session.MaxPatience</span>
-                    </div>
-                    <div class="turn-detail">
-                        <span>Weight Limit</span>
-                        <span class="turn-value">@GetWeightLimit()</span>
-                    </div>
-                    <div class="turn-detail">
-                        <span>State</span>
-                        <span class="turn-value">@GetEmotionalStateDisplay()</span>
-                    </div>
-                </div>
-                <div class="action-choices">
-                    <div class="action-button" @onclick="ExecuteListen" disabled="@IsProcessing">
-                        <div>👂 LISTEN</div>
-                        <div class="action-details">@GetListenActionText()</div>
-                    </div>
-                    <div class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsProcessing)">
-                        <div>💬 SPEAK</div>
-                        <div class="action-details">@GetSpeakActionText()</div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="conversation-exhausted">
-                    <div class="exhaustion-message">
-                        <p>@ExhaustionReason</p>
-                    </div>
-                    <div class="exhaustion-actions">
-                        <button class="action-button primary" @onclick="ManuallyEndConversation">
-                            <div>END CONVERSATION</div>
-                            <div class="action-details">Return to location</div>
-                        </button>
-                    </div>
-                </div>
-            }
-        </div>
-
-        <!-- Cards Section -->
-        <div class="cards-section">
-            @if ((Context?.Type ?? ConversationType.FriendlyChat) == ConversationType.Commerce)
-            {
-                @* For exchanges, show cards as full selectable cards like conversations *@
-                <div class="cards-header">
-                    <div class="cards-title">Available Exchanges</div>
-                    <div class="weight-tracker">
-                        <span>Select one:</span>
-                    </div>
-                </div>
-                
-                <div class="card-grid">
-                    @foreach (var card in Session.HandCards)
-                    {
-                        <div class="dialog-card exchange-card @GetCardClass(card) @(IsCardSelected(card) ? "selected" : "")"
-                             @onclick="() => ToggleCardSelection(card)">
-                            <div class="card-marker exchange">EXCHANGE</div>
-                            <div class="card-header">
-                                <div class="card-identity">
-                                    <div class="card-name">@GetCardName(card)</div>
-                                    <div class="card-tags">
-                                        <span class="tag">Exchange</span>
-                                        @if (card.Context?.ExchangeData?.CanBarter == true)
-                                        {
-                                            <span class="tag">Negotiable</span>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                            @if (card.Context != null)
-                            {
-                                <div class="card-text">
-                                    @GetCardText(card)
-                                </div>
-                                <div class="exchange-details">
-                                    <div class="exchange-cost">
-                                        <div class="exchange-label">You Pay</div>
-                                        <div class="exchange-value cost-value">@GetExchangeCostDisplay(card)</div>
-                                    </div>
-                                    <div class="exchange-arrow">→</div>
-                                    <div class="exchange-reward">
-                                        <div class="exchange-label">You Receive</div>
-                                        <div class="exchange-value reward-value">@GetExchangeRewardDisplay(card)</div>
-                                    </div>
-                                </div>
-                                
-                                @if (card.Context.ExchangeData?.CanBarter == true)
-                                {
-                                    <div class="barter-info">
-                                        <span class="barter-label">Barter Success:</span>
-                                        <span class="barter-rate">@GetExchangeSuccessRate(card)%</span>
-                                        <span class="barter-hint">(Better price on success)</span>
-                                    </div>
-                                }
-                            }
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                @* Normal conversation cards *@
-                <div class="cards-header">
-                    <div class="cards-title">Your Hand</div>
-                    <div class="weight-tracker @(TotalSelectedWeight > GetWeightLimit() ? "over-limit" : "")">
-                        <span>Card Weight:</span>
-                        <span style="font-weight: bold;">@TotalSelectedWeight/@GetWeightLimit()</span>
-                    </div>
-                </div>
-                
-                <div class="card-grid">
-                    @foreach (var convCard in Session.HandCards)
-                    {
-                        <div class="wayfarer-card @GetCardClass(convCard) @GetObservationDecayClass(convCard) @(IsCardSelected(convCard) ? "selected" : "") @(IsObservationExpired(convCard) ? "unavailable" : "") clickable"
-                             @onclick="() => ToggleCardSelection(convCard)">
-                            @if (convCard.GetEffectiveWeight(Context.Session.CurrentState) == 0 && convCard.Weight > 0)
-                            {
-                                <div class="card-marker free-weight">FREE!</div>
-                            }
-                            @if (convCard.Category == CardCategory.Burden)
-                            {
-                                <div class="card-marker burden">Burden</div>
-                            }
-                            @if (convCard.IsObservation)
-                            {
-                                <div class="card-marker expires">24hr</div>
-                            }
-                            @if (convCard.Category == CardCategory.Exchange)
-                            {
-                                <div class="card-marker goal">Goal Card</div>
-                            }
-                            <div class="card-layout">
-                                <div class="card-main-area">
-                                    <div class="card-header">
-                                        <div class="card-type-label">@GetCardTypeLabel(convCard)</div>
-                                        <div class="card-cost">Weight @convCard.GetEffectiveWeight(Context.Session.CurrentState)</div>
-                                    </div>
-                                    <div class="card-identity">
-                                        <div class="card-title">@GetProperCardName(convCard)</div>
-                                        <div class="card-weight-badge">@convCard.GetEffectiveWeight(Context.Session.CurrentState)</div>
-                                    </div>
-                                    <div class="card-drawable-states">@GetDrawableStatesText(convCard)</div>
-                                    <div class="card-text">
-                                        <div class="card-dialogue">"@GetProperCardDialogue(convCard)"</div>
-                                    </div>
-                                </div>
-                                <div class="card-outcomes">
-                                    <div class="outcome success">
-                                        <div class="outcome-percentage">@GetSuccessChance(convCard)%</div>
-                                        <div class="outcome-label">SUCCESS</div>
-                                        <div class="outcome-effect">@GetSuccessEffect(convCard)</div>
-                                        @if (!string.IsNullOrEmpty(GetTokenBonusText(convCard)))
-                                        {
-                                            <div class="token-bonus">@GetTokenBonusText(convCard)</div>
-                                        }
-                                    </div>
-                                    <div class="outcome failure">
-                                        <div class="outcome-percentage">@GetFailureChance(convCard)%</div>
-                                        <div class="outcome-label">FAILURE</div>
-                                        <div class="outcome-effect">@GetFailureEffect(convCard)</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-        </div>
-    }
-    else
-    {
-        <div class="loading">Loading conversation...</div>
-    }
-</div>
+    </div>
+}
+else
+{
+    <div class="loading">Loading conversation...</div>
+}

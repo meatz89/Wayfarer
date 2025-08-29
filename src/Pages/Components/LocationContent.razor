@@ -2,8 +2,9 @@
 
 @namespace Wayfarer.Pages.Components
 
-<div class="location-content content-area">
-    <!-- Active Obligations Queue - Always show to emphasize the queue system -->
+@if (CurrentSpot != null)
+{
+    <!-- Active Obligations Queue (from mockup) -->
     <div class="obligations-panel" @onclick="() => GameScreen?.NavigateToQueue()">
         <div class="obligations-header">
             <span>Active Obligations</span>
@@ -25,7 +26,7 @@
                     var obligation = obligationsList[i];
                     <div class="obligation-item @(i == 0 ? "position-1" : "")">
                         <span class="queue-position">@(i + 1)</span>
-                        @obligation.SenderName → @obligation.RecipientName
+                        @obligation.SenderName → @obligation.RecipientName 
                         <span class="deadline">(@GetDeadlineText(obligation.DeadlineInMinutes))</span>
                     </div>
                 }
@@ -40,139 +41,148 @@
         </div>
     </div>
 
-    <!-- Atmospheric Description -->
-    @if (CurrentSpot != null)
-    {
-        <LocationAtmosphereRenderer CurrentSpot="CurrentSpot" 
-                                     CurrentTime="CurrentTime" 
-                                     NPCsPresent="NPCsAtSpot" />
-    }
+    <!-- Location Header (from mockup) -->
+    <div class="location-header">
+        <div class="location-path">
+            @if (!string.IsNullOrEmpty(CurrentLocation?.Name))
+            {
+                <span>Lower Wards</span>
+                <span>→</span>
+                <span>@CurrentLocation.Name</span>
+            }
+        </div>
+        <div class="location-name">@CurrentLocation?.Name</div>
+        <div class="location-traits">
+            <span class="trait">Public</span>
+            <span class="trait">@GetTimeOfDayTrait()</span>
+        </div>
+    </div>
 
+    <!-- Current Spot Banner (from mockup) -->
+    <div class="current-spot-banner">
+        <div class="current-spot-name">@CurrentSpot.Name</div>
+        <div class="spot-traits">
+            @foreach (var prop in CurrentSpot.SpotProperties ?? new List<SpotPropertyType>())
+            {
+                <span class="spot-trait @GetSpotTraitClass(prop)">@prop</span>
+            }
+        </div>
+    </div>
 
-    <!-- Available NPCs -->
-    @if (AvailableNpcs.Any())
-    {
-        <div class="npcs-section">
-            <h4 class="section-header">People Here</h4>
-            <div class="npc-list">
-                @foreach (var npc in AvailableNpcs)
+    <div class="content-area">
+        <!-- Atmosphere (from mockup) -->
+        @if (CurrentSpot != null)
+        {
+            <div class="atmosphere-text">
+                <LocationAtmosphereRenderer CurrentSpot="CurrentSpot" 
+                                             CurrentTime="CurrentTime" 
+                                             NPCsPresent="NPCsAtSpot" />
+            </div>
+        }
+
+        <!-- Actions Available Here (from mockup) -->
+        @if (CanTravel || CanWork)
+        {
+            <div class="section-header">Actions Available Here</div>
+            <div class="actions-grid">
+                @if (CanTravel)
                 {
-                    <div class="card-base card-standard npc-card">
-                        <div class="npc-header">
-                            <div>
-                                <div class="npc-name">@npc.Name</div>
-                                <div class="npc-type">@GetNPCPersonalityDescription(npc)</div>
-                            </div>
-                            <div class="npc-state @GetStateClass(npc.EmotionalState)">@npc.EmotionalState</div>
-                        </div>
-                        <div class="npc-tokens">
-                            <div class="token-display">Trust: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Trust)</span> <span class="token-effect">(@GetTokenEffect(npc.Id, ConnectionType.Trust))</span></div>
-                            <div class="token-display">Commerce: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Commerce)</span> <span class="token-effect">(@GetTokenEffect(npc.Id, ConnectionType.Commerce))</span></div>
-                            <div class="token-display">Status: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Status)</span> <span class="token-effect">(@GetTokenEffect(npc.Id, ConnectionType.Status))</span></div>
-                            <div class="token-display">Shadow: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Shadow)</span> <span class="token-effect">(@GetTokenEffect(npc.Id, ConnectionType.Shadow))</span></div>
-                        </div>
-                        <div class="npc-description">@GetNPCDescription(npc)</div>
-                        <div class="npc-actions">
-                            @foreach (var option in npc.ConversationOptions)
-                            {
-                                <div class="dialog-card @GetActionClass(option.Type)" 
-                                     @onclick="() => StartTypedConversation(npc.Id, option.Type)">
-                                    <div class="card-header">
-                                        <span class="card-type">@option.Label</span>
-                                        <span class="card-cost">
-                                            @if (option.AttentionCost == 0)
-                                            {
-                                                <span class="free-tag">FREE</span>
-                                            }
-                                            else
-                                            {
-                                                <span>@option.AttentionCost attention</span>
-                                            }
-                                        </span>
-                                    </div>
-                                    <div class="card-body">
-                                        @if (option.Type == ConversationType.Commerce)
-                                        {
-                                            <div class="card-text">Trade coins for items or permits</div>
-                                            <div class="card-outcomes">
-                                                <div class="outcome">Spend coins → Get permits/items</div>
-                                            </div>
-                                        }
-                                        else if (option.Type == ConversationType.Promise)
-                                        {
-                                            <div class="card-text">@(HasLetterGoal(npc.Id) ? "Letter available - negotiate delivery terms" : "No letter offers at this time")</div>
-                                            <div class="card-outcomes">
-                                                <div class="outcome success">Success: Better queue position & payment</div>
-                                                <div class="outcome failure">Failure: Worse position & tight deadline</div>
-                                            </div>
-                                        }
-                                        else if (option.Type == ConversationType.FriendlyChat)
-                                        {
-                                            <div class="card-text">Engage in conversation to build relationship</div>
-                                            <div class="card-outcomes">
-                                                <div class="outcome">Build trust & earn tokens</div>
-                                            </div>
-                                        }
-                                        else if (option.Type == ConversationType.Resolution)
-                                        {
-                                            <div class="card-text">Address @GetBurdenCount(npc.Id) burdens weighing on relationship</div>
-                                            <div class="card-outcomes">
-                                                <div class="outcome success">Clear burdens & restore trust</div>
-                                                <div class="outcome failure">Burdens remain</div>
-                                            </div>
-                                        }
-                                        <div class="patience-info">
-                                            <span>@GetPatience(npc, CurrentSpot) patience</span>
-                                            @if (CurrentSpot?.Properties.Contains("Public") == true)
-                                            {
-                                                <span class="patience-modifier"> (base @GetBasePatience(npc) -1 public)</span>
-                                            }
-                                            else if (CurrentSpot?.Properties.Contains("Private") == true)
-                                            {
-                                                <span class="patience-modifier"> (base @GetBasePatience(npc) +1 private)</span>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                            @if (DevMode?.ShowDeckViewer == true)
-                            {
-                                <div class="npc-action dev-mode-action" 
-                                     @onclick="() => ViewNPCDeck(npc.Id)">
-                                    <span class="action-type">🔍 View Deck (Dev)</span>
-                                    <span class="action-details">Debug Tool</span>
-                                </div>
-                            }
+                    <div class="action-card travel" @onclick="NavigateToTravel">
+                        <div class="action-name">🗺️ Travel</div>
+                        <div class="action-cost">From Crossroads spot</div>
+                    </div>
+                }
+                @if (CanWork)
+                {
+                    <div class="action-card" @onclick="PerformWork">
+                        <div class="action-name">💼 Work: Haul Goods</div>
+                        <div class="action-cost">
+                            <span class="cost-value">2 attention</span> → 8 coins
                         </div>
                     </div>
                 }
             </div>
-        </div>
-    }
+        }
 
-    <!-- Available Observations -->
-    @if (AvailableObservations.Any() || TakenObservations.Any())
-    {
-        <div class="observations">
-            <div class="observation-note">Spend 1 attention to observe, gain a state change card for conversations:</div>
-            <div class="observation-list">
-                @* Show taken observations first *@
+        <!-- People at This Spot (from mockup) -->
+        @if (AvailableNpcs.Any())
+        {
+            <div class="section-header">People at This Spot</div>
+            @foreach (var npc in AvailableNpcs)
+            {
+                <div class="npc-card">
+                    <div class="npc-header">
+                        <div>
+                            <div class="npc-name">@npc.Name</div>
+                            <div class="npc-type">@GetNPCPersonalityDescription(npc)</div>
+                        </div>
+                        <div class="npc-state @GetStateClass(npc.EmotionalState)">@npc.EmotionalState</div>
+                    </div>
+                    <div class="npc-tokens">
+                        <div class="token-display">
+                            Trust: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Trust)</span> 
+                            <span class="token-effect">(@GetTokenEffect(npc.Id, ConnectionType.Trust))</span>
+                        </div>
+                        <div class="token-display">
+                            Commerce: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Commerce)</span>
+                        </div>
+                        <div class="token-display">
+                            Status: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Status)</span>
+                        </div>
+                        <div class="token-display">
+                            Shadow: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Shadow)</span>
+                        </div>
+                    </div>
+                    <div class="npc-description">
+                        @GetNPCDescription(npc)
+                    </div>
+                    <div class="npc-actions">
+                        @foreach (var option in npc.ConversationOptions)
+                        {
+                            <div class="npc-action @GetActionClass(option.Type) @(!option.IsAvailable ? "unavailable" : "")" 
+                                 @onclick="() => { if (option.IsAvailable) StartTypedConversation(npc.Id, option.Type); }">
+                                <span class="action-type">@option.Label</span>
+                                <span class="action-details">
+                                    @if (option.AttentionCost == 0)
+                                    {
+                                        <span>Free!</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="cost-value">@option.AttentionCost attention</span>
+                                    }
+                                    <span> • </span>
+                                    <span class="patience-calculation">@GetPatience(npc, CurrentSpot) patience</span>
+                                    @if (option.Type == ConversationType.Promise && HasLetterGoal(npc.Id))
+                                    {
+                                        <span> • Letter goal available!</span>
+                                    }
+                                </span>
+                            </div>
+                        }
+                        @if (DevMode?.ShowDeckViewer == true)
+                        {
+                            <div class="npc-action" @onclick="() => ViewNPCDeck(npc.Id)">
+                                <span class="action-type">🔍 View Deck (Dev)</span>
+                                <span class="action-details">Debug Tool</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+
+        <!-- Observations (from mockup) -->
+        @if (AvailableObservations.Any() || TakenObservations.Any())
+        {
+            <div class="observations">
+                <div class="observation-note">
+                    Spend 1 attention to observe, gain a state change card for conversations:
+                </div>
                 @foreach (var taken in TakenObservations)
                 {
-                    <div class="observation-item revealed card-base card-compact">
-                        <div style="display: flex; justify-content: space-between; width: 100%;">
-                            <div class="observation-text">@taken.Name</div>
-                            <div>
-                                <span>Observed</span>
-                                <span> • </span>
-                                @if (taken.GeneratedCard != null)
-                                {
-                                    <span class="reward-card">
-                                        @taken.GeneratedCard.ConversationCard.TemplateId Card
-                                    </span>
-                                }
-                            </div>
-                        </div>
+                    <div class="observation-item revealed">
+                        <span class="observation-text">@taken.Name</span>
                         @if (!string.IsNullOrEmpty(taken.NarrativeText))
                         {
                             <div class="observation-narrative">
@@ -181,87 +191,58 @@
                         }
                         @if (taken.GeneratedCard != null)
                         {
-                            var currentGameTime = DateTime.Now; // This should come from TimeManager ideally  
-                            var decayDescription = taken.GeneratedCard.GetDecayStateDescription(currentGameTime);
-                            if (!string.IsNullOrEmpty(decayDescription))
-                            {
-                                <div class="observation-decay">Card freshness: @decayDescription</div>
-                            }
-                        }
-                    </div>
-                }
-                
-                @* Show available observations *@
-                @foreach (var obs in AvailableObservations)
-                {
-                    <div class="observation-item card-base card-compact" @onclick="() => TakeObservation(obs.Id)">
-                        <div class="observation-text">@obs.Name</div>
-                        <div class="observation-reward">
-                            <span class="cost-value">1 attention</span>
-                            <span class="reward-card">+Card</span>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    }
-
-    <!-- Available Spots -->
-    @if (AvailableSpots.Any())
-    {
-        <div class="spots-section">
-            <h4 class="section-header">Move Within Location</h4>
-            <div class="cards-grid-2col">
-                @foreach (var spot in AvailableSpots)
-                {
-                    <div class="card-base card-compact spot-card" @onclick="() => MoveToSpot(spot.Id)">
-                        <div class="spot-card-name">@spot.Name</div>
-                        @if (spot.Properties.Any())
-                        {
-                            <div class="spot-traits">
-                                @foreach (var prop in spot.Properties)
-                                {
-                                    <span class="spot-trait">@prop</span>
-                                }
+                            <div class="observation-decay">
+                                Card freshness: @taken.GeneratedCard.GetDecayStateDescription(DateTime.Now)
                             </div>
                         }
-                        <div class="spot-move-action">Move here (free)</div>
+                    </div>
+                }
+                @foreach (var obs in AvailableObservations)
+                {
+                    <div class="observation-item" @onclick="() => TakeObservation(obs.Id)">
+                        <span class="observation-text">@obs.Name</span>
+                        <span class="observation-reward">
+                            <span class="cost-value">1 attention</span>
+                            <span class="reward-card">Any→Tense</span>
+                        </span>
                     </div>
                 }
             </div>
-        </div>
-    }
+        }
 
-    <!-- Section Divider -->
-    @if (CanTravel || CanWork)
-    {
-        <div class="section-divider">
-            <span class="divider-text">Actions</span>
-        </div>
-    }
-
-    <!-- Travel Option -->
-    @if (CanTravel)
-    {
-        <div class="travel-section">
-            <button class="travel-button" @onclick="NavigateToTravel">
-                <span class="travel-icon">🗺️</span>
-                <span>Travel to Another Location</span>
-            </button>
-        </div>
-    }
-
-    <!-- Work Action -->
-    @if (CanWork)
-    {
-        <div class="cards-grid">
-            <div class="card-base card-standard action-card" @onclick="PerformWork">
-                <div class="action-name">Work for Coins</div>
-                <div class="action-cost">
-                    <span class="cost-value">2</span> attention → 
-                    <span class="cost-value">8</span> coins
-                </div>
+        <!-- Other Spots (from mockup) -->
+        @if (AvailableSpots.Any())
+        {
+            <div class="section-header">Other Spots in @CurrentLocation?.Name</div>
+            <div class="spots-grid">
+                @foreach (var spot in AvailableSpots)
+                {
+                    <div class="spot-card @(spot.Id == CurrentSpot?.SpotID ? "current" : "")" 
+                         @onclick="() => MoveToSpot(spot.Id)">
+                        <div class="spot-card-name">@spot.Name</div>
+                        @if (GetNPCsAtSpot(spot.Id).Any())
+                        {
+                            <div class="spot-occupants">
+                                @string.Join(", ", GetNPCsAtSpot(spot.Id).Select(n => n.Name))
+                            </div>
+                        }
+                        @if (spot.Id != CurrentSpot?.SpotID)
+                        {
+                            <div class="spot-move-action">Move here (instant, free)</div>
+                        }
+                        else
+                        {
+                            <div class="spot-occupants">You are here</div>
+                        }
+                    </div>
+                }
             </div>
-        </div>
-    }
-</div>
+        }
+    </div>
+}
+else
+{
+    <div class="loading">
+        Loading location...
+    </div>
+}
