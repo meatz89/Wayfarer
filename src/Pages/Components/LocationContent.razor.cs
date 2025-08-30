@@ -293,16 +293,23 @@ namespace Wayfarer.Pages.Components
         
         protected List<NPC> GetNPCsAtSpot(string spotId)
         {
-            // Simply check if we're asking about the current spot
+            // For the current spot, use the cached NPCs
             if (CurrentSpot != null && CurrentSpot.Name == spotId)
             {
-                // Return the NPCs we already have loaded for the current spot
                 return NPCsAtSpot;
             }
             
-            // For other spots, we'd need to check NPC schedules
-            // For now, return empty - this could be enhanced later
-            return new List<NPC>();
+            // For other spots, get all NPCs at the current location and filter by spot
+            var currentLocation = GameFacade.GetCurrentLocation();
+            if (currentLocation == null) return new List<NPC>();
+            
+            // Get the spot we're checking
+            var spot = currentLocation.Spots?.FirstOrDefault(s => s.Name == spotId);
+            if (spot == null) return new List<NPC>();
+            
+            // Get ALL NPCs at this location and filter by SpotId
+            var npcsAtLocation = GameFacade.GetNPCsAtLocation(currentLocation.Id);
+            return npcsAtLocation.Where(n => n.SpotId == spot.SpotID).ToList();
         }
         
         protected bool HasUrgentLetter(string npcId)

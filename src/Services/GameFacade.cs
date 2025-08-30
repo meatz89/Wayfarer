@@ -3391,6 +3391,16 @@ public class GameFacade
     {
         return _npcRepository?.GetById(npcId);
     }
+    
+    public List<NPC> GetAllNPCs()
+    {
+        return _gameWorld.NPCs;
+    }
+    
+    public List<NPC> GetNPCsAtLocation(string locationId)
+    {
+        return _gameWorld.NPCs.Where(n => n.Location == locationId).ToList();
+    }
 
     public List<NPC> GetNPCsAtCurrentSpot()
     {
