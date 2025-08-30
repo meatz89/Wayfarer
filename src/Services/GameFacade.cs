@@ -2470,7 +2470,8 @@ public class GameFacade
         }
             
         // Get observation cards for this conversation (as conversation cards with decay applied)
-        var observationCards = _observationManager.GetObservationCardsAsConversationCards();
+        var observationCardsTemplates = _observationManager.GetObservationCardsAsConversationCards();
+        var observationCards = observationCardsTemplates.Select(card => new CardInstance(card, "conversation")).ToList();
         Console.WriteLine($"[GameFacade.CreateConversationContext] Including {observationCards.Count} observation cards in conversation");
 
         // Start the conversation session with observation cards

@@ -24,10 +24,10 @@ namespace Wayfarer.Pages
         [Inject] protected ObservationManager ObservationManager { get; set; }
 
         protected ConversationSession Session { get; set; }
-        protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
+        protected HashSet<CardInstance> SelectedCards { get; set; } = new();
         protected ActionType SelectedAction { get; set; } = ActionType.None;
         protected CardPlayResult LastResult { get; set; }
-        protected ConversationCard CurrentConversationCard { get; set; }
+        protected CardInstance CurrentConversationCard { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -59,7 +59,7 @@ namespace Wayfarer.Pages
             StateHasChanged();
         }
 
-        protected void ToggleCard(ConversationCard card)
+        protected void ToggleCard(CardInstance card)
         {
             if (SelectedAction != ActionType.Speak) return;
 
@@ -70,7 +70,7 @@ namespace Wayfarer.Pages
             else if (CanSelectCard(card))
             {
                 // Check if we can add this card
-                var tempSelection = new HashSet<ConversationCard>(SelectedCards) { card };
+                var tempSelection = new HashSet<CardInstance>(SelectedCards) { card };
                 if (ConversationManager.CanSelectCard(card, SelectedCards))
                 {
                     SelectedCards.Add(card);
@@ -79,7 +79,7 @@ namespace Wayfarer.Pages
             StateHasChanged();
         }
 
-        protected bool CanSelectCard(ConversationCard card)
+        protected bool CanSelectCard(CardInstance card)
         {
             if (SelectedAction != ActionType.Speak) return false;
             return ConversationManager.CanSelectCard(card, SelectedCards);
@@ -390,7 +390,7 @@ namespace Wayfarer.Pages
             return GetCurrentWeight() > GetMaxWeight();
         }
 
-        protected string GetCardClasses(ConversationCard card)
+        protected string GetCardClasses(CardInstance card)
         {
             var classes = new List<string>();
             
@@ -418,7 +418,7 @@ namespace Wayfarer.Pages
             };
         }
 
-        protected string GetStateChangeText(ConversationCard card)
+        protected string GetStateChangeText(CardInstance card)
         {
             if (card.Category != CardCategory.State) return "";
             
@@ -429,7 +429,7 @@ namespace Wayfarer.Pages
             return "State change";
         }
         
-        protected string GetSuccessEffect(ConversationCard card)
+        protected string GetSuccessEffect(CardInstance card)
         {
             if (card.Category == CardCategory.State && card.SuccessState.HasValue)
             {
@@ -443,7 +443,7 @@ namespace Wayfarer.Pages
         }
 
         // Exchange Mode Methods
-        protected ConversationCard GetCurrentConversationCard()
+        protected CardInstance GetCurrentConversationCard()
         {
             if (Session?.NPC == null || ConversationType != ConversationType.Commerce)
                 return null;
@@ -495,7 +495,7 @@ namespace Wayfarer.Pages
             return TimeManager?.GetCurrentTimeBlock().ToString() ?? "Unknown";
         }
 
-        protected string GetFailureEffect(ConversationCard card)
+        protected string GetFailureEffect(CardInstance card)
         {
             if (card.Category == CardCategory.State && card.FailureState.HasValue)
             {
@@ -559,7 +559,7 @@ namespace Wayfarer.Pages
             return $"{Session.CurrentPatience} turns remaining • Each turn advances time";
         }
 
-        protected string GetConversationCardName(ConversationCard card)
+        protected string GetConversationCardName(CardInstance card)
         {
             if (card.Context?.ExchangeData == null)
                 return "Exchange";
@@ -588,7 +588,7 @@ namespace Wayfarer.Pages
             return "Resource Exchange";
         }
         
-        protected string GetExchangeCostText(ConversationCard card)
+        protected string GetExchangeCostText(CardInstance card)
         {
             if (card.Context?.ExchangeData == null)
                 return "";
@@ -598,7 +598,7 @@ namespace Wayfarer.Pages
             return string.Join(", ", costs);
         }
         
-        protected string GetExchangeRewardText(ConversationCard card)
+        protected string GetExchangeRewardText(CardInstance card)
         {
             if (card.Context?.ExchangeData == null)
                 return "";
@@ -608,12 +608,12 @@ namespace Wayfarer.Pages
             return string.Join(", ", rewards);
         }
         
-        protected bool IsConversationCard(ConversationCard card)
+        protected bool IsConversationCard(CardInstance card)
         {
             return card.Mechanics == CardMechanics.Exchange;
         }
         
-        protected string GetCardDisplayName(ConversationCard card)
+        protected string GetCardDisplayName(CardInstance card)
         {
             // Special handling for exchange cards
             if (card.Mechanics == CardMechanics.Exchange)
@@ -666,10 +666,11 @@ namespace Wayfarer.Pages
             };
         }
 
-        private List<ConversationCard> GetObservationCards()
+        private List<CardInstance> GetObservationCards()
         {
-            // Get observation cards from the ObservationManager (as conversation cards with decay applied)
-            return ObservationManager.GetObservationCardsAsConversationCards();
+            // Get observation cards from the ObservationManager and convert to card instances
+            var observationCards = ObservationManager.GetObservationCardsAsConversationCards();
+            return observationCards.Select(card => new CardInstance(card, "conversation")).ToList();
         }
 
         protected EmotionalState GetNPCStartingState()

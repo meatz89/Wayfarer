@@ -49,7 +49,7 @@ public class ConversationManager
     /// Start a new conversation with an NPC of a specific type
     /// The type must be explicitly chosen by the player from available options
     /// </summary>
-    public ConversationSession StartConversation(string npcId, ConversationType conversationType, List<ConversationCard> observationCards = null)
+    public ConversationSession StartConversation(string npcId, ConversationType conversationType, List<CardInstance> observationCards = null)
     {
         if (IsConversationActive)
         {
@@ -233,7 +233,7 @@ public class ConversationManager
     /// <summary>
     /// Start a letter offer conversation
     /// </summary>
-    private ConversationSession StartLetterOfferConversation(NPC npc, List<ConversationCard> observationCards)
+    private ConversationSession StartLetterOfferConversation(NPC npc, List<CardInstance> observationCards)
     {
         // Letter Offer conversations mix letter cards into conversation deck
         // and use a Letter goal card
@@ -258,7 +258,7 @@ public class ConversationManager
     /// <summary>
     /// Start a make amends conversation
     /// </summary>
-    private ConversationSession StartMakeAmendsConversation(NPC npc, List<ConversationCard> observationCards)
+    private ConversationSession StartMakeAmendsConversation(NPC npc, List<CardInstance> observationCards)
     {
         // Make Amends conversations focus on burden cards
         // and use a Resolution goal card
@@ -301,7 +301,7 @@ public class ConversationManager
     /// <summary>
     /// Execute SPEAK action with selected cards
     /// </summary>
-    public async Task<CardPlayResult> ExecuteSpeak(HashSet<ConversationCard> selectedCards)
+    public async Task<CardPlayResult> ExecuteSpeak(HashSet<CardInstance> selectedCards)
     {
         if (!IsConversationActive)
         {
@@ -318,8 +318,8 @@ public class ConversationManager
         {
             if (card.IsObservation && card.Persistence == PersistenceType.Fleeting)
             {
-                observationManager.RemoveObservationCard(card.Id);
-                Console.WriteLine($"[ConversationManager] Removed observation card {card.Id} from ObservationManager");
+                observationManager.RemoveObservationCard(card.TemplateId);
+                Console.WriteLine($"[ConversationManager] Removed observation card {card.TemplateId} from ObservationManager");
             }
         }
 
@@ -334,7 +334,7 @@ public class ConversationManager
     /// <summary>
     /// Handle letter delivery, obligation manipulation, and exchanges
     /// </summary>
-    private async Task HandleSpecialCardEffectsAsync(HashSet<ConversationCard> playedCards, CardPlayResult result)
+    private async Task HandleSpecialCardEffectsAsync(HashSet<CardInstance> playedCards, CardPlayResult result)
     {
         foreach (var card in playedCards)
         {
@@ -342,26 +342,26 @@ public class ConversationManager
             if (card.Context?.ExchangeData != null)
             {
                 // Execute the actual exchange directly
-                Console.WriteLine($"[EXCHANGE DEBUG] About to execute exchange for card {card.Id}");
+                Console.WriteLine($"[EXCHANGE DEBUG] About to execute exchange for card {card.TemplateId}");
                 Console.WriteLine($"[EXCHANGE DEBUG] card.Context null? {card.Context == null}");
                 Console.WriteLine($"[EXCHANGE DEBUG] card.Context.ExchangeData null? {card.Context?.ExchangeData == null}");
                 
                 var exchangeSuccess = await ExecuteExchangeAsync(card.Context.ExchangeData);
                 if (!exchangeSuccess)
                 {
-                    Console.WriteLine($"[ConversationManager] Failed to execute exchange {card.Id}");
+                    Console.WriteLine($"[ConversationManager] Failed to execute exchange {card.TemplateId}");
                     messageSystem.AddSystemMessage("Exchange failed - insufficient resources", SystemMessageTypes.Warning);
                 }
                 else
                 {
-                    Console.WriteLine($"[ConversationManager] Successfully executed exchange {card.Id}");
+                    Console.WriteLine($"[ConversationManager] Successfully executed exchange {card.TemplateId}");
                 }
             }
             
             // Handle special Crisis letter that generates letter on success (e.g., Elena's Desperate Promise)
             if (card.Context?.GeneratesLetterOnSuccess == true && result.Results.First(r => r.Card == card).Success)
             {
-                Console.WriteLine($"[ConversationManager] Crisis letter {card.Id} succeeded - generating letter!");
+                Console.WriteLine($"[ConversationManager] Crisis letter {card.TemplateId} succeeded - generating letter!");
                 
                 // Create Elena's urgent letter
                 var urgentLetter = new DeliveryObligation
@@ -750,7 +750,6 @@ public class ConversationManager
         {
             // Determine which type to modify based on conversation
             var primaryType = currentSession.HandCards
-                .OfType<ConversationCard>()
                 .GroupBy(c => c.Type)
                 .OrderByDescending(g => g.Count())
                 .FirstOrDefault()?.Key ?? CardType.Trust;
@@ -779,15 +778,15 @@ public class ConversationManager
     /// <summary>
     /// Get available conversation cards for UI display
     /// </summary>
-    public List<ConversationCard> GetAvailableCards()
+    public List<CardInstance> GetAvailableCards()
     {
-        return currentSession?.HandCards ?? new List<ConversationCard>();
+        return currentSession?.HandCards ?? new List<CardInstance>();
     }
 
     /// <summary>
     /// Check if a card can be selected
     /// </summary>
-    public bool CanSelectCard(ConversationCard card, HashSet<ConversationCard> currentSelection)
+    public bool CanSelectCard(CardInstance card, HashSet<CardInstance> currentSelection)
     {
         if (!IsConversationActive)
             return false;

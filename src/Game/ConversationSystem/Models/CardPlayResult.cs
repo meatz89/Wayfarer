@@ -65,7 +65,7 @@ public class SingleCardResult
     /// <summary>
     /// The card that was played
     /// </summary>
-    public ConversationCard Card { get; init; }
+    public CardInstance Card { get; init; }
 
     /// <summary>
     /// Whether the roll was successful
@@ -116,7 +116,7 @@ public class LetterNegotiationResult
     /// <summary>
     /// The promise card that generated this negotiation
     /// </summary>
-    public ConversationCard SourcePromiseCard { get; init; }
+    public CardInstance SourcePromiseCard { get; init; }
 
     /// <summary>
     /// The delivery obligation that needs to be created

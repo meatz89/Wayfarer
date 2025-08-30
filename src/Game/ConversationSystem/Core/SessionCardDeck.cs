@@ -322,6 +322,19 @@ public class SessionCardDeck : IEnumerable<CardInstance>
     public bool IsEmpty => cards.Count == 0;
     public bool HasCardsAvailable() => cards.Any();
     
+    /// <summary>
+    /// Reset deck for new conversation - move discarded cards back and remove fleeting cards
+    /// </summary>
+    public void ResetForNewConversation()
+    {
+        // Move all cards from discard back to deck
+        cards.AddRange(discardPile);
+        discardPile.Clear();
+        // Remove any temporary cards
+        cards.RemoveAll(c => c.Persistence == PersistenceType.Fleeting);
+        Shuffle();
+    }
+    
     // IEnumerable implementation
     public IEnumerator<CardInstance> GetEnumerator() => cards.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

@@ -10,7 +10,7 @@ public class CardSelectionManager
 {
     private readonly EmotionalState currentState;
     private readonly StateRuleset rules;
-    private readonly HashSet<ConversationCard> selectedCards;
+    private readonly HashSet<CardInstance> selectedCards;
     private readonly Random random;
     private Dictionary<ConnectionType, int> npcTokens;
 
@@ -18,7 +18,7 @@ public class CardSelectionManager
     {
         currentState = state;
         rules = ConversationRules.States[state];
-        selectedCards = new HashSet<ConversationCard>();
+        selectedCards = new HashSet<CardInstance>();
         random = new Random();
         npcTokens = tokens ?? new Dictionary<ConnectionType, int>();
     }
@@ -36,12 +36,12 @@ public class CardSelectionManager
     /// <summary>
     /// Currently selected cards
     /// </summary>
-    public IReadOnlyCollection<ConversationCard> SelectedCards => selectedCards;
+    public IReadOnlyCollection<CardInstance> SelectedCards => selectedCards;
 
     /// <summary>
     /// Check if a card can be selected given current selection
     /// </summary>
-    public bool CanSelectCard(ConversationCard card)
+    public bool CanSelectCard(CardInstance card)
     {
         // HARD RULE: SPEAK plays exactly ONE card - this is core design
         if (selectedCards.Any())
@@ -61,7 +61,7 @@ public class CardSelectionManager
     /// <summary>
     /// Toggle card selection
     /// </summary>
-    public bool ToggleCard(ConversationCard card)
+    public bool ToggleCard(CardInstance card)
     {
         if (selectedCards.Contains(card))
         {
@@ -125,7 +125,7 @@ public class CardSelectionManager
                 var letterSuccess = letterRoll < letterSuccessChance;
                 
                 // Extract promise card ID from the conversation card context
-                var promiseCardId = card.Context?.LetterId ?? card.Id;
+                var promiseCardId = card.Context?.LetterId ?? card.TemplateId;
                 
                 // Create a basic negotiation result - will be completed by ConversationSession
                 var negotiationResult = new LetterNegotiationResult

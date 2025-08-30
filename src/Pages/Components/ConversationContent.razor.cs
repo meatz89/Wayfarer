@@ -70,7 +70,7 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameFacade GameFacade { get; set; }
 
         protected ConversationSession Session { get; set; }
-        protected HashSet<ConversationCard> SelectedCards { get; set; } = new();
+        protected HashSet<CardInstance> SelectedCards { get; set; } = new();
         protected int TotalSelectedWeight => SelectedCards.Sum(c => c.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.GUARDED));
         protected bool IsProcessing { get; set; }
         protected bool IsConversationExhausted { get; set; } = false;
@@ -595,7 +595,7 @@ namespace Wayfarer.Pages.Components
             Critical   // 20+ comfort
         }
 
-        protected void ToggleCardSelection(ConversationCard card)
+        protected void ToggleCardSelection(CardInstance card)
         {
             // Remove auto-execute for exchanges - treat them like normal cards
             // Player must select exchange card then click SPEAK to confirm
@@ -618,7 +618,7 @@ namespace Wayfarer.Pages.Components
             StateHasChanged();
         }
 
-        protected bool CanSelectCard(ConversationCard card)
+        protected bool CanSelectCard(CardInstance card)
         {
             if (Session == null) return false;
             
@@ -631,12 +631,12 @@ namespace Wayfarer.Pages.Components
             return newWeight <= GetWeightLimit();
         }
 
-        protected bool IsCardSelected(ConversationCard card)
+        protected bool IsCardSelected(CardInstance card)
         {
             return SelectedCards.Contains(card);
         }
         
-        protected string GetCardTypeLabel(ConversationCard card)
+        protected string GetCardTypeLabel(CardInstance card)
         {
             if (card == null) return "Card";
             
@@ -842,7 +842,7 @@ namespace Wayfarer.Pages.Components
             return $"Play weight {limit} cards";
         }
         
-        protected string GetProperCardName(ConversationCard card)
+        protected string GetProperCardName(CardInstance card)
         {
             // Generate meaningful card names based on type and category
             if (card.Category == CardCategory.Exchange && card.Context?.ExchangeName != null)
@@ -939,7 +939,7 @@ namespace Wayfarer.Pages.Components
             };
         }
         
-        protected string GetProperCardDialogue(ConversationCard card)
+        protected string GetProperCardDialogue(CardInstance card)
         {
             // Generate actual conversational dialogue instead of technical descriptions
             
@@ -1029,7 +1029,7 @@ namespace Wayfarer.Pages.Components
             return card.DisplayName ?? "Let me think about this...";
         }
         
-        protected string GetDrawableStatesText(ConversationCard card)
+        protected string GetDrawableStatesText(CardInstance card)
         {
             if (card.Category == CardCategory.Exchange)
                 return "Exchange • Instant resolution";
@@ -1114,7 +1114,7 @@ namespace Wayfarer.Pages.Components
             return "";
         }
 
-        protected string GetCardClass(ConversationCard card)
+        protected string GetCardClass(CardInstance card)
         {
             // Map categories to CSS classes
             if (card.Category == CardCategory.Burden)
@@ -1128,7 +1128,7 @@ namespace Wayfarer.Pages.Components
             return "comfort";
         }
 
-        protected string GetCardName(ConversationCard card)
+        protected string GetCardName(CardInstance card)
         {
             // For exchange cards, use the exchange name
             if (card.Category == CardCategory.Exchange && card.Context?.ExchangeName != null)
@@ -1140,7 +1140,7 @@ namespace Wayfarer.Pages.Components
             return card.TemplateId;
         }
 
-        protected List<string> GetCardTags(ConversationCard card)
+        protected List<string> GetCardTags(CardInstance card)
         {
             var tags = new List<string>();
             
@@ -1156,7 +1156,7 @@ namespace Wayfarer.Pages.Components
             return tags;
         }
 
-        protected string GetSuccessEffect(ConversationCard card)
+        protected string GetSuccessEffect(CardInstance card)
         {
             // For exchange cards, show the reward
             if (card.Category == CardCategory.Exchange && card.Context?.ExchangeReward != null)
@@ -1191,7 +1191,7 @@ namespace Wayfarer.Pages.Components
             return $"+{card.BaseComfort} comfort";
         }
 
-        protected string GetFailureEffect(ConversationCard card)
+        protected string GetFailureEffect(CardInstance card)
         {
             // For exchange cards, no failure - it's a choice
             if (card.Category == CardCategory.Exchange)
@@ -1242,7 +1242,7 @@ namespace Wayfarer.Pages.Components
             return "";
         }
         
-        protected string GetCardText(ConversationCard card)
+        protected string GetCardText(CardInstance card)
         {
             // Load card dialogues if not loaded
             LoadCardDialogues();
@@ -1398,13 +1398,13 @@ namespace Wayfarer.Pages.Components
             return mappings.TryGetValue(templateId.ToLower(), out var mapped) ? mapped : null;
         }
         
-        protected string GetSuccessChance(ConversationCard card)
+        protected string GetSuccessChance(CardInstance card)
         {
             // Calculate success chance based on card type and state, including token bonuses
             return card.CalculateSuccessChance(CurrentTokens).ToString();
         }
         
-        protected string GetFailureChance(ConversationCard card)
+        protected string GetFailureChance(CardInstance card)
         {
             // Calculate failure chance (inverse of success)
             var success = card.CalculateSuccessChance(CurrentTokens);
@@ -1434,7 +1434,7 @@ namespace Wayfarer.Pages.Components
             };
         }
         
-        protected int GetExchangeSuccessRate(ConversationCard card)
+        protected int GetExchangeSuccessRate(CardInstance card)
         {
             if (card?.Context?.ExchangeData == null) return 0;
             
@@ -1453,7 +1453,7 @@ namespace Wayfarer.Pages.Components
             return Math.Clamp(baseRate, 5, 95);
         }
         
-        protected string GetTokenBonusText(ConversationCard card)
+        protected string GetTokenBonusText(CardInstance card)
         {
             if (card == null || CurrentTokens == null) 
             {
@@ -1481,10 +1481,10 @@ namespace Wayfarer.Pages.Components
             return "";
         }
         
-        protected string GetExchangeCostDisplay(ConversationCard card)
+        protected string GetExchangeCostDisplay(CardInstance card)
         {
             // Debug logging
-            Console.WriteLine($"[GetExchangeCostDisplay] Card ID: {card?.Id}");
+            Console.WriteLine($"[GetExchangeCostDisplay] Card ID: {card?.TemplateId}");
             Console.WriteLine($"[GetExchangeCostDisplay] Context null: {card?.Context == null}");
             Console.WriteLine($"[GetExchangeCostDisplay] ExchangeData null: {card?.Context?.ExchangeData == null}");
             
@@ -1508,7 +1508,7 @@ namespace Wayfarer.Pages.Components
             return "Nothing";
         }
         
-        protected string GetExchangeRewardDisplay(ConversationCard card)
+        protected string GetExchangeRewardDisplay(CardInstance card)
         {
             // Check for reward in Context.ExchangeData
             var exchangeData = card?.Context?.ExchangeData;
@@ -1521,14 +1521,14 @@ namespace Wayfarer.Pages.Components
             return "Nothing";
         }
         
-        protected ConnectionType GetExchangeTokenType(ConversationCard card)
+        protected ConnectionType GetExchangeTokenType(CardInstance card)
         {
             // For merchants, exchanges typically use Commerce tokens
             // Could be expanded based on card context or NPC type
             return ConnectionType.Commerce;
         }
         
-        protected string GetTokenBonusPercentage(ConversationCard card)
+        protected string GetTokenBonusPercentage(CardInstance card)
         {
             var tokenType = GetExchangeTokenType(card);
             var tokenCount = GetTokenCount(tokenType);
@@ -1628,7 +1628,7 @@ namespace Wayfarer.Pages.Components
                             msgTemplate = "{0} letter: '{1}' - {2}h deadline, {3} coins";
                         
                         var message = string.Format(msgTemplate, negotiationOutcome,
-                            negotiation.SourcePromiseCard.DisplayName ?? negotiation.SourcePromiseCard.Id,
+                            negotiation.SourcePromiseCard.DisplayName ?? negotiation.SourcePromiseCard.TemplateId,
                             deadlineHours.ToString("F1"),
                             negotiation.FinalTerms.Payment) + urgencySuffix;
                         
@@ -1662,7 +1662,7 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// Get decay state CSS class for observation cards
         /// </summary>
-        protected string GetObservationDecayClass(ConversationCard card)
+        protected string GetObservationDecayClass(CardInstance card)
         {
             if (!card.IsObservation || card.Context?.ObservationDecayState == null)
                 return "";
@@ -1678,7 +1678,7 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// Get decay state description for observation cards
         /// </summary>
-        protected string GetObservationDecayDescription(ConversationCard card)
+        protected string GetObservationDecayDescription(CardInstance card)
         {
             if (!card.IsObservation)
                 return "";
@@ -1689,7 +1689,7 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// Check if observation card is expired (should show as unplayable)
         /// </summary>
-        protected bool IsObservationExpired(ConversationCard card)
+        protected bool IsObservationExpired(CardInstance card)
         {
             return card.IsObservation && 
                    card.Context?.ObservationDecayState == ObservationDecayState.Expired;

@@ -97,7 +97,7 @@ public class ConversationSession
         NPC npc,
         ObligationQueueManager queueManager,
         TokenMechanicsManager tokenManager,
-        List<ConversationCard> observationCards,
+        List<CardInstance> observationCards,
         ConversationType conversationType,
         PlayerResourceState playerResourceState = null,
         GameWorld gameWorld = null)
@@ -140,11 +140,10 @@ public class ConversationSession
         var startingComfort = 0;
 
         // ALWAYS create a session deck for every conversation to avoid duplicate draws
-        var sessionDeck = CreateSessionDeck(npc.ConversationDeck);
-        npc = CreateNPCWithSessionDeck(npc, sessionDeck);
+        var sessionDeck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck.GetAllCards(), $"session_{DateTime.Now.Ticks}");
 
         // POC DECK ARCHITECTURE: Select goal from Goal Deck based on conversation type
-        ConversationCard goalCard = null;
+        CardInstance goalCard = null;
 
         // Only select goal cards for specific conversation types that explicitly require them
         // FriendlyChat (standard conversation) should NOT have goal cards - they're for token building only
@@ -156,9 +155,9 @@ public class ConversationSession
 
             if (goalCard != null)
             {
-                // Shuffle the selected goal into the session deck
-                sessionDeck.ShuffleInGoalCard(goalCard);
-                Console.WriteLine($"[StartConversation] Shuffled {goalCard.Id} goal card into session deck for {conversationType} conversation");
+                // Shuffle the selected goal template into the session deck
+                sessionDeck.ShuffleInGoalCard(goalCard.Template);
+                Console.WriteLine($"[StartConversation] Shuffled {goalCard.TemplateId} goal card into session deck for {conversationType} conversation");
             }
             else
             {
@@ -171,7 +170,7 @@ public class ConversationSession
         }
 
         // Start with initial automatic card draw (no patience cost)
-        var handCards = new List<ConversationCard>();
+        var handCards = new List<CardInstance>();
         bool goalCardDrawn = false;
         int? goalUrgencyCounter = null;
         
@@ -186,7 +185,7 @@ public class ConversationSession
         {
             NPC = npc,
             CurrentState = initialState,
-            Deck = npc.ConversationDeck,
+            Deck = sessionDeck,
             CurrentComfort = startingComfort
         };
         
@@ -205,7 +204,7 @@ public class ConversationSession
         // Check if we drew the goal card in initial draw
         foreach (var card in handCards)
         {
-            if (card is ConversationCard conv && conv.IsGoalCard)
+            if (card.IsGoalCard)
             {
                 goalCardDrawn = true;
                 goalUrgencyCounter = 3; // 3 turns to play it
@@ -241,13 +240,13 @@ public class ConversationSession
             ConversationType = conversationType,
             CurrentState = initialState,
             HandCards = handCards,
-            Deck = npc.ConversationDeck,  // Use the NPC's actual deck
+            Deck = sessionDeck,  // Use the session deck
             CurrentPatience = totalPatience,
             MaxPatience = totalPatience,
             CurrentComfort = startingComfort,  // ALWAYS starts at 0 (battery system)
             TurnNumber = 0,
             LetterGenerated = false,
-            ObservationCards = observationCards ?? new List<ConversationCard>(),
+            ObservationCards = observationCards ?? new List<CardInstance>(),
             GoalCard = goalCard,
             GoalCardDrawn = goalCardDrawn,
             GoalUrgencyCounter = goalUrgencyCounter,
@@ -267,33 +266,31 @@ public class ConversationSession
     public static ConversationSession StartExchange(NPC npc, PlayerResourceState resourceState, TokenMechanicsManager tokenManager, List<string> spotDomainTags = null, ObligationQueueManager queueManager = null, GameWorld gameWorld = null)
     {
         // Exchange deck should already be initialized from Phase3
-        var handCards = new List<ConversationCard>();
-        var exchangeCards = new List<ConversationCard>();
+        var handCards = new List<CardInstance>();
+        var exchangeCards = new List<CardInstance>();
         
         // Get all available exchange cards from the NPC's deck
         if (npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
         {
             // Show ALL exchange options - player chooses one via SPEAK
-            exchangeCards = npc.ExchangeDeck.GetAllCards().Take(4).ToList(); // Up to 4 exchange options
+            var templates = npc.ExchangeDeck.GetAllCards().Take(4).ToList(); // Up to 4 exchange options
+            foreach (var template in templates)
+            {
+                var instance = new CardInstance(template, $"exchange_{DateTime.Now.Ticks}");
+                exchangeCards.Add(instance);
+            }
             Console.WriteLine($"[DEBUG] Found {npc.ExchangeDeck.Count} exchange cards in {npc.Name}'s deck");
             foreach (var ec in exchangeCards)
             {
-                if (ec is ConversationCard exc)
-                {
-                    Console.WriteLine($"[DEBUG] Exchange card: {exc.Id} - {exc.TemplateId}");
-                }
-                else if (ec is ConversationCard conv) 
-                {
-                    Console.WriteLine($"[DEBUG] Exchange card: {conv.Id} - {conv.TemplateId}");
-                }
+                Console.WriteLine($"[DEBUG] Exchange card: {ec.TemplateId} - {ec.DisplayName}");
             }
         }
         
-        // Exchange cards are already ConversationCards, just add them to hand
+        // Exchange cards are now CardInstances, just add them to hand
         foreach (var exchangeCard in exchangeCards)
         {
             // Exchange cards should already have proper Category and Context
-            Console.WriteLine($"[StartExchange] Adding exchange card {exchangeCard.Id}");
+            Console.WriteLine($"[StartExchange] Adding exchange card {exchangeCard.InstanceId}");
             Console.WriteLine($"[StartExchange]   - Context null: {exchangeCard.Context == null}");
             Console.WriteLine($"[StartExchange]   - ExchangeData null: {exchangeCard.Context?.ExchangeData == null}");
             if (exchangeCard.Context?.ExchangeData != null)
@@ -350,13 +347,13 @@ public class ConversationSession
             ConversationType = ConversationType.Commerce,
             CurrentState = EmotionalState.NEUTRAL, // No emotional states in exchanges
             HandCards = handCards, // Contains offer + accept/decline response cards
-            Deck = new CardDeck(), // Empty deck - exchanges use ExchangeDeck instead
+            Deck = new SessionCardDeck($"exchange_{DateTime.Now.Ticks}"), // Empty deck - exchanges use ExchangeDeck instead
             CurrentPatience = 1, // Single turn exchange
             MaxPatience = 1,
             CurrentComfort = 0, // No comfort in exchanges
             TurnNumber = 0,
             LetterGenerated = false,
-            ObservationCards = new List<ConversationCard>(),
+            ObservationCards = new List<CardInstance>(),
             TokenManager = tokenManager
         };
     }
@@ -385,10 +382,10 @@ public class ConversationSession
         // Remove all opportunity cards EXCEPT observation cards and goal cards
         // Observation cards are Opportunity type but DON'T vanish on Listen - they decay over time instead
         // Goal cards NEVER vanish once drawn (they must be played within 3 turns)
-        HandCards.RemoveAll(c => c is ConversationCard conv && 
-            conv.Persistence == PersistenceType.Fleeting && 
-            !conv.IsObservation && 
-            !conv.IsGoalCard);
+        HandCards.RemoveAll(c => 
+            c.Persistence == PersistenceType.Fleeting && 
+            !c.IsObservation && 
+            !c.IsGoalCard);
 
         // Get state rules
         var rules = ConversationRules.States[CurrentState];
@@ -401,7 +398,7 @@ public class ConversationSession
         // Check if we drew the goal card and start urgency countdown
         foreach (var card in newCards)
         {
-            if (card is ConversationCard conv && conv.IsGoalCard && !GoalCardDrawn)
+            if (card.IsGoalCard && !GoalCardDrawn)
             {
                 GoalCardDrawn = true;
                 GoalUrgencyCounter = 3; // 3 turns to play it
@@ -436,7 +433,7 @@ public class ConversationSession
                 {
                     // Check if delivery card for this letter is already in hand
                     var existingDeliveryCard = HandCards.FirstOrDefault(c => 
-                        c is ConversationCard conv && conv.CanDeliverLetter && conv.DeliveryObligationId == letter.Id);
+                        c.CanDeliverLetter && c.DeliveryObligationId == letter.Id);
                     
                     // Load letter delivery cards from JSON templates if not already in hand
                     if (existingDeliveryCard == null)
@@ -498,7 +495,8 @@ public class ConversationSession
                         SuccessRate = successRate  // Set during initialization
                     };
                     
-                        HandCards.Add(conversationCard);
+                        var cardInstance = new CardInstance(conversationCard, $"goal_{DateTime.Now.Ticks}");
+                        HandCards.Add(cardInstance);
                         Console.WriteLine($"[ExecuteListen] Added eligible letter: {conversationCard.DisplayName ?? conversationCard.Id} (Success: {successRate}%)");
                     }
                 }
@@ -524,13 +522,13 @@ public class ConversationSession
     /// <summary>
     /// Execute SPEAK action with selected cards
     /// </summary>
-    public CardPlayResult ExecuteSpeak(HashSet<ConversationCard> selectedCards)
+    public CardPlayResult ExecuteSpeak(HashSet<CardInstance> selectedCards)
     {
         TurnNumber++;
         CurrentPatience--;
         
         // Check urgency rule when speaking (decrement counter if goal not played)
-        bool playingGoalCard = selectedCards.Any(c => c is ConversationCard conv && conv.IsGoalCard);
+        bool playingGoalCard = selectedCards.Any(c => c.IsGoalCard);
         
         if (!playingGoalCard && GoalCardDrawn && GoalUrgencyCounter.HasValue)
         {
@@ -554,11 +552,8 @@ public class ConversationSession
         var manager = new CardSelectionManager(CurrentState, npcTokens);
         foreach (var card in selectedCards)
         {
-            // CardSelectionManager expects ConversationCard
-            if (card is ConversationCard convCard)
-            {
-                manager.ToggleCard(convCard);
-            }
+            // CardSelectionManager now expects CardInstance directly
+            manager.ToggleCard(card);
         }
 
         var result = manager.PlaySelectedCards();
@@ -566,13 +561,13 @@ public class ConversationSession
         // Check if a goal card was played
         if (playingGoalCard)
         {
-            var goalCard = selectedCards.First(c => c is ConversationCard conv && conv.IsGoalCard) as ConversationCard;
+            var goalCard = selectedCards.First(c => c.IsGoalCard);
             GoalCardPlayed = true;
             
             Console.WriteLine($"[ExecuteSpeak] Goal card played: {goalCard.DisplayName}");
             
             // Process the goal card effect based on type
-            ProcessGoalCardEffect(goalCard, result);
+            ProcessGoalCardEffect(goalCard.Template, result);
             
             // Goal cards END the conversation immediately
             CurrentPatience = 0;  // Force end
@@ -615,16 +610,13 @@ public class ConversationSession
             HandCards.Remove(card);
             
             // Handle different persistence types
-            if (card is ConversationCard convCard)
+            if (card.Persistence == PersistenceType.Fleeting)
             {
-                if (convCard.Persistence == PersistenceType.Fleeting)
-                {
-                    Deck.RemoveCard(card); // Permanently remove
-                }
-                else
-                {
-                    Deck.Discard(card); // Will return to deck later
-                }
+                Deck.RemoveCard(card); // Permanently remove
+            }
+            else
+            {
+                Deck.Discard(card); // Will return to deck later
             }
         }
 
@@ -731,9 +723,9 @@ public class ConversationSession
     /// <summary>
     /// Draw cards filtered by emotional state according to POC rules
     /// </summary>
-    private List<ConversationCard> DrawCardsForState(EmotionalState state, int baseCount, int comfort)
+    private List<CardInstance> DrawCardsForState(EmotionalState state, int baseCount, int comfort)
     {
-        var drawnCards = new List<ConversationCard>();
+        var drawnCards = new List<CardInstance>();
         Console.WriteLine($"[DrawCardsForState] State: {state}, BaseCount: {baseCount}, Comfort: {comfort}");
         
         // NEW: Use DrawableStates property for transparent filtering
@@ -852,7 +844,7 @@ public class ConversationSession
     /// <summary>
     /// Apply comfort changes based on card weight and success/failure
     /// </summary>
-    private void ApplyComfortChanges(CardPlayResult result, HashSet<ConversationCard> selectedCards)
+    private void ApplyComfortChanges(CardPlayResult result, HashSet<CardInstance> selectedCards)
     {
         // Comfort changes are based on card weight, not base comfort
         foreach (var cardResult in result.Results)
@@ -993,7 +985,7 @@ public class ConversationSession
                 
             case ConversationType.Resolution:
                 // Remove burden cards from the deck
-                var burdenCards = Deck.GetCards().Where(c => c is ConversationCard conv && conv.Persistence == PersistenceType.Persistent).ToList();
+                var burdenCards = Deck.GetCards().Where(c => c.Persistence == PersistenceType.Persistent).ToList();
                 foreach (var burden in burdenCards)
                 {
                     Deck.RemoveCard(burden);
@@ -1140,9 +1132,9 @@ public class ConversationSession
     /// <summary>
     /// Get letter delivery cards from JSON templates based on letter properties
     /// </summary>
-    private static List<ConversationCard> GetLetterDeliveryCards(List<DeliveryObligation> letters, GameWorld gameWorld)
+    private static List<CardInstance> GetLetterDeliveryCards(List<DeliveryObligation> letters, GameWorld gameWorld)
     {
-        var deliveryCards = new List<ConversationCard>();
+        var deliveryCards = new List<CardInstance>();
         
         foreach (var letter in letters)
         {
@@ -1159,7 +1151,7 @@ public class ConversationSession
     /// <summary>
     /// Get a letter delivery card from JSON templates based on letter properties
     /// </summary>
-    private static ConversationCard GetLetterDeliveryCard(DeliveryObligation letter, GameWorld gameWorld)
+    private static CardInstance GetLetterDeliveryCard(DeliveryObligation letter, GameWorld gameWorld)
     {
         // Find letter delivery cards by category
         var deliveryTemplates = gameWorld.AllCardDefinitions.Values
@@ -1191,8 +1183,8 @@ public class ConversationSession
             return null;
         }
         
-        // Create customized card instance
-        var deliveryCard = new ConversationCard
+        // Create customized template with delivery info
+        var customizedTemplate = new ConversationCard
         {
             Id = $"delivery_{letter.Id}_{Guid.NewGuid()}",
             TemplateId = template.TemplateId,
@@ -1222,7 +1214,9 @@ public class ConversationSession
             }
         };
         
-        Console.WriteLine($"[ConversationSession] Created delivery card {deliveryCard.Id} for letter {letter.Id}");
+        // Create CardInstance from the customized template
+        var deliveryCard = new CardInstance(customizedTemplate, $"delivery_{DateTime.Now.Ticks}");
+        Console.WriteLine($"[ConversationSession] Created delivery card {deliveryCard.InstanceId} for letter {letter.Id}");
         return deliveryCard;
     }
     
@@ -1247,7 +1241,7 @@ public class ConversationSession
     /// Select the appropriate goal card from NPC's Goal Deck based on conversation type and state
     /// POC Architecture: Goals determine conversation types
     /// </summary>
-    private static ConversationCard SelectGoalCardForConversation(NPC npc, ConversationType conversationType, EmotionalState currentState)
+    private static CardInstance SelectGoalCardForConversation(NPC npc, ConversationType conversationType, EmotionalState currentState)
     {
         // No goal deck means no goal card
         if (npc.GoalDeck == null || !npc.GoalDeck.Any())
@@ -1309,19 +1303,22 @@ public class ConversationSession
             g.Context.ValidStates.Contains(currentState));
         if (stateSpecificGoal != null)
         {
-            Console.WriteLine($"[SelectGoalCard] Selected state-specific goal: {stateSpecificGoal.Id}");
-            return stateSpecificGoal;
+            var instance = new CardInstance(stateSpecificGoal, $"goal_{DateTime.Now.Ticks}");
+            Console.WriteLine($"[SelectGoalCard] Selected state-specific goal: {stateSpecificGoal.Id} as instance {instance.InstanceId}");
+            return instance;
         }
         
-        // Return first eligible goal
+        // Return first eligible goal wrapped as instance
         var selectedGoal = stateFilteredGoals.First();
-        Console.WriteLine($"[SelectGoalCard] Selected goal: {selectedGoal.Id}");
-        return selectedGoal;
+        var goalInstance = new CardInstance(selectedGoal, $"goal_{DateTime.Now.Ticks}");
+        Console.WriteLine($"[SelectGoalCard] Selected goal: {selectedGoal.Id} as instance {goalInstance.InstanceId}");
+        return goalInstance;
     }
     
     /// <summary>
     /// Create a copy of a deck for use in a single conversation session
     /// This preserves the original deck for future conversations
+    /// OBSOLETE: Use SessionCardDeck.CreateFromTemplates instead
     /// </summary>
     private static CardDeck CreateSessionDeck(CardDeck originalDeck)
     {
@@ -1347,11 +1344,14 @@ public class ConversationSession
     /// Create a modified NPC reference with a session-specific deck
     /// This allows using a copied deck without modifying the original NPC
     /// </summary>
-    private static NPC CreateNPCWithSessionDeck(NPC original, CardDeck sessionDeck)
+    private static NPC CreateNPCWithSessionDeck(NPC original, SessionCardDeck sessionDeck)
     {
         // For now, just modify the conversation deck directly
         // In a full implementation, we'd create a wrapper or copy
-        original.ConversationDeck = sessionDeck;
+        // NOTE: This is a design issue - we shouldn't modify the original NPC
+        // But for now this maintains the existing behavior
+        // TODO: Create a wrapper NPC that holds both original and session deck
+        Console.WriteLine($"[CreateNPCWithSessionDeck] WARNING: Modifying original NPC deck - should create wrapper instead");
         return original;
     }
 }

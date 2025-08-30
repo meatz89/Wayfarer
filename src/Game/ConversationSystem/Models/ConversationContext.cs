@@ -29,7 +29,7 @@ public class ConversationContext
     /// <summary>
     /// Observation cards available to play in this conversation
     /// </summary>
-    public List<ConversationCard> ObservationCards { get; set; }
+    public List<CardInstance> ObservationCards { get; set; }
     
     /// <summary>
     /// Amount of attention spent to start this conversation
