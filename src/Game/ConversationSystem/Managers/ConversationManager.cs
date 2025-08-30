@@ -135,9 +135,39 @@ public class ConversationManager
         }
         
         // Check for letter cards → Letter Offer conversation
+        // FIXED: Only show Promise conversation if NPC has goal cards that are valid for current emotional state
         if (npc.HasPromiseCards())
         {
-            available.Add(ConversationType.Promise);
+            var currentState = ConversationRules.DetermineInitialState(npc, queueManager);
+            
+            // Check if any goal cards are valid for the current state
+            bool hasValidGoalCard = false;
+            if (npc.GoalDeck != null)
+            {
+                foreach (var goalCard in npc.GoalDeck.GetAllCards())
+                {
+                    // Check if goal card has validStates and if current state is allowed
+                    if (goalCard.Context?.ValidStates != null && goalCard.Context.ValidStates.Any())
+                    {
+                        if (goalCard.Context.ValidStates.Contains(currentState))
+                        {
+                            hasValidGoalCard = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        // No state restrictions means always valid
+                        hasValidGoalCard = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (hasValidGoalCard)
+            {
+                available.Add(ConversationType.Promise);
+            }
         }
         
         // Check for burden cards → Make Amends conversation
