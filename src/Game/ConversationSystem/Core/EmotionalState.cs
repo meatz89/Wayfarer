@@ -98,7 +98,7 @@ public static class ConversationRules
             CardsOnListen = 1,  // Listen draws 1 state card only
             MaxWeight = 1,      // Speak weight limit 1 (per new spec)
             MaxCards = 1,       // Play exactly ONE card
-            ListenTransition = EmotionalState.NEUTRAL,  // Transitions to NEUTRAL
+            ListenTransition = EmotionalState.GUARDED,  // Stays GUARDED (comfort transitions only)
             ChecksGoalDeck = false
         },
 
@@ -126,7 +126,7 @@ public static class ConversationRules
             CardsOnListen = 1,  // Listen draws 1 card (Shadow cards or state)
             MaxWeight = 2,      // Speak weight limit 2 (Medium weight)
             MaxCards = 1,       // Play exactly ONE card
-            ListenTransition = EmotionalState.GUARDED,  // Transitions to GUARDED
+            ListenTransition = EmotionalState.TENSE,  // Stays TENSE (comfort transitions only)
             ChecksGoalDeck = true  // Check Goal deck for urgent letters
         },
 
@@ -144,7 +144,7 @@ public static class ConversationRules
             CardsOnListen = 1,  // Listen draws 1 card only
             MaxWeight = 1,      // Speak weight limit 1 (Light weight only)
             MaxCards = 1,       // Play exactly ONE card
-            ListenTransition = EmotionalState.NEUTRAL,  // Transitions to NEUTRAL
+            ListenTransition = EmotionalState.OVERWHELMED,  // Stays OVERWHELMED (comfort transitions only)
             ChecksGoalDeck = false
         },
 
@@ -153,7 +153,7 @@ public static class ConversationRules
             CardsOnListen = 2,  // Listen draws 2 cards (Trust and Crisis cards)
             MaxWeight = 1,      // Speak weight limit 1 (Light, but Crisis free)
             MaxCards = 1,       // Play exactly ONE card
-            ListenTransition = EmotionalState.HOSTILE,  // Transitions to HOSTILE
+            ListenTransition = EmotionalState.DESPERATE,  // Stays DESPERATE (comfort transitions only)
             FreeWeightCardCategories = new() { CardCategory.Burden },  // Crisis letters cost 0 weight
             ChecksGoalDeck = true  // Check for urgent letters in desperate state
         },

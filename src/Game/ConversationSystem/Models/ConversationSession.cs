@@ -517,9 +517,13 @@ public class ConversationSession
             }
         }
 
-        // Transition state according to rules
+        // Only transition state if it's actually different or ends conversation
         var previousState = CurrentState;
-        CurrentState = rules.ListenTransition;
+        if (rules.ListenTransition != CurrentState || rules.ListenEndsConversation)
+        {
+            CurrentState = rules.ListenTransition;
+            Console.WriteLine($"[ExecuteListen] State transition from {previousState} to {CurrentState}");
+        }
         
         // Check if conversation should end (HOSTILE state after listen)
         if (rules.ListenEndsConversation)
