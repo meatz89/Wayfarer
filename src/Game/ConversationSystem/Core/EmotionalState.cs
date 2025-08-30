@@ -187,15 +187,8 @@ public static class ConversationRules
     /// </summary>
     public static EmotionalState DetermineInitialState(NPC npc, ObligationQueueManager queueManager)
     {
-        // Default based on personality
-        return npc.PersonalityType switch
-        {
-            PersonalityType.DEVOTED => EmotionalState.OPEN,
-            PersonalityType.MERCANTILE => EmotionalState.NEUTRAL,
-            PersonalityType.PROUD => EmotionalState.GUARDED,
-            PersonalityType.CUNNING => EmotionalState.GUARDED,
-            PersonalityType.STEADFAST => EmotionalState.NEUTRAL,
-            _ => EmotionalState.NEUTRAL
-        };
+        // SIMPLE: Just use the NPC's current state
+        // NPCs track their own emotional state, which is set from JSON
+        return npc.CurrentState;
     }
 }

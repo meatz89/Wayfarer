@@ -61,7 +61,7 @@
 	},
 	{
 		"id": "bar_counter",
-		"name": "Bar Counter",
+		"name": "The Bar",
 		"description": "The polished wooden bar where Bertram serves drinks and meals to travelers.",
 		"initialState": "Bertram polishes glasses behind the counter. Bottles and mugs line the shelves.",
 		"locationId": "copper_kettle_tavern",
@@ -98,7 +98,7 @@
 	},
 	{
 		"id": "central_fountain",
-		"name": "Central Fountain",
+		"name": "The Fountain",
 		"description": "The ornate fountain at the heart of Market Square. A gathering place for all.",
 		"initialState": "Clear water sparkles in the light. Citizens gather on benches around the fountain's edge.",
 		"locationId": "market_square",

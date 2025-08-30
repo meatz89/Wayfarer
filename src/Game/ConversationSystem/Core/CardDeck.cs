@@ -360,6 +360,21 @@ public class CardDeck : IEnumerable<ConversationCard>
                        c.DrawableStates.Count == 0 || 
                        c.DrawableStates.Contains(state))
             .ToList();
+        
+        // PRIORITY: If there's a drawable goal card, it MUST be drawn first
+        var drawableGoalCard = availableCards.FirstOrDefault(c => c.IsGoalCard);
+        if (drawableGoalCard != null)
+        {
+            drawn.Add(drawableGoalCard);
+            if (drawableGoalCard.Persistence != PersistenceType.Persistent)
+            {
+                cards.Remove(drawableGoalCard);
+                availableCards.Remove(drawableGoalCard);
+            }
+            count--; // Reduce count since we drew the goal card
+            
+            Console.WriteLine($"[DrawFilteredByState] Priority drew goal card: {drawableGoalCard.Id} in {state} state");
+        }
             
         for (int i = 0; i < count && availableCards.Any(); i++)
         {

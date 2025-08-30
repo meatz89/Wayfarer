@@ -426,6 +426,7 @@ public class CardDeckLoader
                 BaseComfort = 0,
                 IsGoalCard = true,
                 GoalCardType = goalType,
+                DrawableStates = validStates,  // CRITICAL: Set DrawableStates to control when card can be drawn
                 DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
                 Description = GetGoalDescription(goalData),
                 SuccessRate = 50 // Goal cards have base 50% success

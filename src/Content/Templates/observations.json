@@ -3,6 +3,30 @@
 		"market_square": {
 			"central_fountain": [
 			{
+				"id": "merchant_route_observation",
+				"text": "Study merchant route patterns",
+				"type": "Critical",
+				"attentionCost": 1,
+				"relevantNPCs": ["elena"],
+				"createsState": "OPEN",
+				"cardTemplate": "merchant_route_knowledge",
+				"description": "You observe merchants using a less-guarded route through the quarter",
+				"generatesCard": {
+					"id": "merchant_route_knowledge",
+					"name": "Merchant Route Knowledge",
+					"weight": 1,
+					"type": "State",
+					"category": "STATE",
+					"successRate": 85,
+					"stateTransition": {
+						"from": "DESPERATE",
+						"to": "OPEN"
+					},
+					"expiresAfter": 24,
+					"drawableStates": ["DESPERATE", "TENSE", "OPEN"]
+				}
+			},
+			{
 				"id": "guards_blocking",
 				"text": "Guards blocking north road",
 				"type": "Important",

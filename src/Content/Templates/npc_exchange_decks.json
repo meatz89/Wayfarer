@@ -2,18 +2,60 @@
   "exchangeDecks": {
     "marcus": [
       {
-        "id": "marcus_food_for_coins",
+        "id": "buy_provisions",
         "template": "SimpleExchange",
         "type": "Commerce",
         "category": "EXCHANGE",
         "weight": 0,
+        "displayName": "Buy Provisions",
+        "description": "Stock up on food supplies",
+        "successRate": 70,
         "offer": {
-          "resource": "food",
-          "amount": 3
+          "resource": "hunger",
+          "amount": 0,
+          "setValue": true
         },
         "request": {
           "resource": "coins",
-          "amount": 5
+          "amount": 3
+        }
+      },
+      {
+        "id": "buy_access_permit",
+        "template": "SimpleExchange",
+        "type": "Commerce",
+        "category": "EXCHANGE",
+        "weight": 0,
+        "displayName": "Buy Access Permit",
+        "description": "Purchase a noble district permit",
+        "successRate": 70,
+        "offer": {
+          "resource": "permit",
+          "amount": 1,
+          "permissionType": "noble_district"
+        },
+        "request": {
+          "resource": "coins",
+          "amount": 15
+        }
+      },
+      {
+        "id": "accept_quick_delivery",
+        "template": "SimpleExchange",
+        "type": "Commerce",
+        "category": "EXCHANGE",
+        "weight": 0,
+        "displayName": "Accept Quick Delivery",
+        "description": "Take on an urgent delivery job",
+        "successRate": 70,
+        "offer": {
+          "resource": "coins",
+          "amount": 8
+        },
+        "request": {
+          "resource": "obligation",
+          "amount": 1,
+          "obligationType": "delivery"
         }
       },
       {
@@ -22,6 +64,9 @@
         "type": "Commerce",
         "category": "EXCHANGE",
         "weight": 0,
+        "displayName": "Buy Health Potion",
+        "description": "Restore some health",
+        "successRate": 70,
         "offer": {
           "resource": "health",
           "amount": 2
@@ -29,21 +74,6 @@
         "request": {
           "resource": "coins",
           "amount": 8
-        }
-      },
-      {
-        "id": "marcus_bulk_trade",
-        "template": "SimpleExchange",
-        "type": "Commerce",
-        "category": "EXCHANGE",
-        "weight": 0,
-        "offer": {
-          "resource": "food",
-          "amount": 5
-        },
-        "request": {
-          "resource": "coins",
-          "amount": 7
         }
       }
     ]

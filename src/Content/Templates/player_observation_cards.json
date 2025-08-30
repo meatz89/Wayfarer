@@ -1,6 +1,26 @@
 {
   "observationCards": [
     {
+      "id": "merchant_route_knowledge",
+      "template": "Observation",
+      "type": "State",
+      "category": "STATE",
+      "weight": 1,
+      "location": "market_square",
+      "spot": "central_fountain",
+      "description": "I know a route through the merchant quarter that avoids the checkpoint entirely. We can reach Lord Blackwood faster.",
+      "attentionCost": 1,
+      "decayRate": "medium",
+      "expiresIn": 24,
+      "successRate": 85,
+      "stateTransition": {
+        "from": "DESPERATE",
+        "to": "OPEN"
+      },
+      "drawableStates": ["DESPERATE", "TENSE", "OPEN"],
+      "displayName": "Merchant Route Knowledge"
+    },
+    {
       "id": "obs_market_patterns",
       "template": "Observation",
       "type": "Commerce",

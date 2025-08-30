@@ -6,8 +6,8 @@
         "template": "LetterGoal",
         "type": "Trust",
         "category": "PROMISE",
-        "weight": 0,
-        "validStates": ["DESPERATE", "TENSE"],
+        "weight": 1,
+        "validStates": ["TENSE", "OPEN"],
         "description": "Accept Elena's Letter",
         "letterContent": {
           "subject": "Elena's urgent refusal of Lord Blackwood's marriage proposal",
