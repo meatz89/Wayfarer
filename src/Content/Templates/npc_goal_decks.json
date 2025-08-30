@@ -14,6 +14,7 @@
           "recipient": "Lord Blackwood",
           "recipientLocation": "noble_district",
           "urgency": "critical",
+          "urgencyHours": 1.2,
           "stakes": "SAFETY",
           "deadline": 73
         }

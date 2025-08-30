@@ -84,8 +84,69 @@ public class TimeManager
 
         // Log the time advancement
         _logger.LogDebug($"Advanced time by {minutes} minutes. New time: Day {result.NewState.CurrentDay}, {result.NewState.CurrentHour:D2}:{result.NewState.CurrentMinute:D2}");
+        
+        // Check for letters becoming urgent after time advancement
+        CheckForUrgentLetters();
     }
 
+    private void CheckForUrgentLetters()
+    {
+        // Get all NPCs from GameWorld
+        var gameWorld = _serviceProvider.GetService<GameWorld>();
+        if (gameWorld == null) return;
+        
+        var queueManager = gameWorld.GetObligationQueueManager();
+        if (queueManager == null) return;
+        
+        // Check each NPC's goal deck for urgent letters
+        foreach (var npc in gameWorld.WorldState.npcs)
+        {
+            if (npc.GoalDeck == null || !npc.GoalDeck.Any()) continue;
+            
+            // Look for letter goals
+            foreach (var goal in npc.GoalDeck)
+            {
+                if (goal.Category == CardCategory.Promise && 
+                    goal.Context?.LetterTemplate != null)
+                {
+                    // Calculate time remaining for this letter
+                    var letterDeadlineMinutes = goal.Context.LetterTemplate.MinDeadlineInMinutes;
+                    var currentTimeMinutes = GetCurrentTimeInMinutes();
+                    var letterCreationTime = goal.Context.LetterTemplate.CreatedAtMinutes ?? 0;
+                    var minutesRemaining = letterDeadlineMinutes - (currentTimeMinutes - letterCreationTime);
+                    
+                    // If letter has become urgent (< 120 minutes) and no meeting exists yet
+                    if (minutesRemaining < 120 && minutesRemaining > 0)
+                    {
+                        var meetingId = $"meeting_{npc.ID}_urgent";
+                        if (!queueManager.HasMeetingObligation(meetingId))
+                        {
+                            // Create urgent meeting obligation
+                            var meeting = new MeetingObligation
+                            {
+                                ID = meetingId,
+                                NpcId = npc.ID,
+                                NpcName = npc.Name,
+                                LocationId = npc.CurrentLocationId,
+                                SpotId = npc.CurrentSpotId,
+                                Description = $"Urgent meeting with {npc.Name}",
+                                Stakes = StakeType.SAFETY,
+                                DeadlineInMinutes = (int)minutesRemaining,
+                                IsActive = true
+                            };
+                            
+                            queueManager.AddMeetingObligation(meeting);
+                            _messageSystem.AddSystemMessage(
+                                $"📨 A messenger arrives: {npc.Name} urgently needs to see you!",
+                                SystemMessageTypes.Important
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     private string GetTimePassingDescription(int minutes)
     {
         if (minutes < 60)

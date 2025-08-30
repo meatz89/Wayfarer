@@ -187,6 +187,19 @@ public static class ConversationRules
     /// </summary>
     public static EmotionalState DetermineInitialState(NPC npc, ObligationQueueManager queueManager)
     {
+        // Check if NPC has an urgent letter to offer (in their goal deck)
+        if (npc.GoalDeck != null && npc.GoalDeck.Any())
+        {
+            // Look for letter goals with critical urgency
+            var hasUrgentLetterGoal = npc.GoalDeck.Any(goal => 
+                goal.Category == CardCategory.Promise && 
+                goal.Context?.LetterTemplate != null &&
+                goal.Context.LetterTemplate.UrgencyHours <= 2); // 2 hours or less = DESPERATE
+                
+            if (hasUrgentLetterGoal)
+                return EmotionalState.DESPERATE;
+        }
+        
         // Check for urgent letters creating desperate state
         var obligations = queueManager?.GetActiveObligations();
         if (obligations != null && obligations.Any())
