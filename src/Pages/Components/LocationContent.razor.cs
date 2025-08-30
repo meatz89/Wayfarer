@@ -291,6 +291,49 @@ namespace Wayfarer.Pages.Components
             };
         }
         
+        protected List<NPC> GetNPCsAtSpot(string spotId)
+        {
+            // Simply check if we're asking about the current spot
+            if (CurrentSpot != null && CurrentSpot.Name == spotId)
+            {
+                // Return the NPCs we already have loaded for the current spot
+                return NPCsAtSpot;
+            }
+            
+            // For other spots, we'd need to check NPC schedules
+            // For now, return empty - this could be enhanced later
+            return new List<NPC>();
+        }
+        
+        protected bool HasUrgentLetter(string npcId)
+        {
+            // Check if NPC has urgent letter in queue position 1
+            var queueManager = GameFacade.GetObligationQueueManager();
+            if (queueManager == null) return false;
+            
+            var obligations = queueManager.GetActiveObligations();
+            if (obligations == null || !obligations.Any()) return false;
+            
+            // Check if position 1 has this NPC's letter
+            var firstObligation = obligations.FirstOrDefault();
+            return firstObligation != null && 
+                   (firstObligation.SenderId == npcId || firstObligation.SenderName == GetNPCName(npcId)) &&
+                   firstObligation.DeadlineInMinutes < 360; // Urgent if less than 6 hours
+        }
+        
+        protected string GetNPCName(string npcId)
+        {
+            var npc = GameFacade.GetNPCById(npcId);
+            return npc?.Name ?? "";
+        }
+        
+        protected string GetNPCStateDisplay(NPC npc)
+        {
+            // Get display text for NPC emotional state
+            var emotionalState = GameFacade.GetNPCEmotionalState(npc.ID);
+            return emotionalState.ToString();
+        }
+        
         protected string GetConversationLabel(ConversationType type)
         {
             return type switch
@@ -430,15 +473,6 @@ namespace Wayfarer.Pages.Components
             return prop.ToString().ToLower().Replace("_", "-");
         }
         
-        protected List<NPC> GetNPCsAtSpot(string spotId)
-        {
-            // Get NPCs at a specific spot
-            if (spotId == CurrentSpot?.SpotID)
-                return NPCsAtSpot;
-            
-            // Would need to query GameFacade for NPCs at other spots
-            return new List<NPC>();
-        }
         
         protected int GetBasePatience(NpcViewModel npc)
         {

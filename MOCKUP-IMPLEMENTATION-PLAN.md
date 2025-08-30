@@ -216,9 +216,12 @@ This document tracks the implementation of UI mockups into the actual game, ensu
 6. "Buy Provisions" highlighted
 7. Accept → Hunger set to 0
 
-## Current Status: Phase 1 - Fixing Core Mechanics
+## Current Status: Phase 3 - UI Components Implementation
 
-Next Steps:
-1. Fix LISTEN card draw counts ⏳
-2. Test the changes
-3. Move to goal card mechanics
+### Remaining Work:
+1. Fix NPC location display (show at spots with states)
+2. Add "You are here" indicator
+3. Implement Work and Travel actions
+4. Fix conversation UI (turn counter, patience display)
+5. Create proper exchange card display
+6. Test complete Elena scenario

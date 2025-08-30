@@ -113,7 +113,13 @@
                 <div class="npc-card">
                     <div class="npc-header">
                         <div>
-                            <div class="npc-name">@npc.Name</div>
+                            <div class="npc-name">
+                                @npc.Name
+                                @if (HasUrgentLetter(npc.Id))
+                                {
+                                    <span class="urgent-badge" title="Has urgent letter in queue position 1!">URGENT</span>
+                                }
+                            </div>
                             <div class="npc-type">@GetNPCPersonalityDescription(npc)</div>
                         </div>
                         <div class="npc-state @GetStateClass(npc.EmotionalState)">@npc.EmotionalState</div>
@@ -217,22 +223,40 @@
             <div class="spots-grid">
                 @foreach (var spot in AvailableSpots)
                 {
-                    <div class="spot-card @(spot.Id == CurrentSpot?.SpotID ? "current" : "")" 
-                         @onclick="() => MoveToSpot(spot.Id)">
+                    var isCurrentSpot = spot.Id == CurrentSpot?.Name;
+                    <div class="spot-card @(isCurrentSpot ? "current" : "")" 
+                         @onclick="() => { if (!isCurrentSpot) MoveToSpot(spot.Id); }">
                         <div class="spot-card-name">@spot.Name</div>
-                        @if (GetNPCsAtSpot(spot.Id).Any())
-                        {
-                            <div class="spot-occupants">
-                                @string.Join(", ", GetNPCsAtSpot(spot.Id).Select(n => n.Name))
-                            </div>
+                        @{
+                            var npcsAtSpot = GetNPCsAtSpot(spot.Id);
+                            if (npcsAtSpot.Any())
+                            {
+                                <div class="spot-occupants">
+                                    @foreach (var npc in npcsAtSpot)
+                                    {
+                                        <span class="npc-at-spot">
+                                            @npc.Name 
+                                            <span class="npc-state">(@GetNPCStateDisplay(npc))</span>
+                                            @if (HasUrgentLetter(npc.ID))
+                                            {
+                                                <span class="urgent-marker" title="Urgent letter in queue!">⚠️</span>
+                                            }
+                                        </span>
+                                        @if (npc != npcsAtSpot.Last())
+                                        {
+                                            <span>, </span>
+                                        }
+                                    }
+                                </div>
+                            }
                         }
-                        @if (spot.Id != CurrentSpot?.SpotID)
+                        @if (isCurrentSpot)
                         {
-                            <div class="spot-move-action">Move here (instant, free)</div>
+                            <div class="you-are-here">You are here</div>
                         }
                         else
                         {
-                            <div class="spot-occupants">You are here</div>
+                            <div class="spot-move-action">Move here (instant, free)</div>
                         }
                     </div>
                 }
