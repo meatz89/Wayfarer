@@ -59,7 +59,7 @@ public class CardSelectionManager
     }
 
     /// <summary>
-    /// Toggle card selection
+    /// Toggle card selection - ONE CARD RULE: automatically deselects previous card
     /// </summary>
     public bool ToggleCard(CardInstance card)
     {
@@ -68,12 +68,18 @@ public class CardSelectionManager
             selectedCards.Remove(card);
             return false; // Card deselected
         }
-        else if (CanSelectCard(card))
+        
+        // Check if card weight exceeds state's max weight
+        var cardWeight = card.GetEffectiveWeight(currentState);
+        if (cardWeight > rules.MaxWeight)
         {
-            selectedCards.Add(card);
-            return true; // Card selected
+            return false; // Card too heavy for current emotional state
         }
-        return false; // Can't select
+        
+        // ONE CARD RULE: Clear any existing selection before selecting new card
+        selectedCards.Clear();
+        selectedCards.Add(card);
+        return true; // Card selected
     }
 
     /// <summary>

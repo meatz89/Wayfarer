@@ -597,23 +597,20 @@ namespace Wayfarer.Pages.Components
 
         protected void ToggleCardSelection(CardInstance card)
         {
-            // Remove auto-execute for exchanges - treat them like normal cards
-            // Player must select exchange card then click SPEAK to confirm
+            // ONE CARD RULE: Only one card can be selected at a time for SPEAK action
             
             if (SelectedCards.Contains(card))
             {
+                // Deselect the card
                 SelectedCards.Remove(card);
             }
             else if (CanSelectCard(card))
             {
-                // For exchanges, enforce ONE card selection (matches SPEAK plays ONE card design)
-                var conversationType = Context?.Type ?? ConversationType.FriendlyChat;
-                if (conversationType == ConversationType.Commerce)
-                {
-                    SelectedCards.Clear(); // Only one exchange can be selected at a time
-                }
+                // ONE CARD RULE: Clear any existing selection before selecting new card
+                SelectedCards.Clear();
                 SelectedCards.Add(card);
             }
+            // If card can't be selected (over weight limit), do nothing
             
             StateHasChanged();
         }
@@ -625,10 +622,9 @@ namespace Wayfarer.Pages.Components
             // Check if observation card is expired
             if (IsObservationExpired(card)) return false;
             
-            // Check weight limit - use effective weight which accounts for free categories in certain states
+            // Check weight limit - card must not exceed current state's max weight
             var effectiveWeight = card.GetEffectiveWeight(Session.CurrentState);
-            var newWeight = TotalSelectedWeight + effectiveWeight;
-            return newWeight <= GetWeightLimit();
+            return effectiveWeight <= GetWeightLimit();
         }
 
         protected bool IsCardSelected(CardInstance card)

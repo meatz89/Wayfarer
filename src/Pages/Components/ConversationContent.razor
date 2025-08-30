@@ -149,7 +149,7 @@
             <div class="card-grid">
                 @foreach (var card in Session.HandCards)
                 {
-                    <div class="card exchange @GetCardClass(card) @(IsCardSelected(card) ? "selected" : "")"
+                    <div class="card exchange @GetCardClass(card) @(IsCardSelected(card) ? "selected" : "") @(!CanSelectCard(card) ? "unavailable" : "")"
                          @onclick="() => ToggleCardSelection(card)">
                         <div class="card-marker exchange">EXCHANGE</div>
                         <div class="card-content">
@@ -203,7 +203,7 @@
             <div class="card-grid">
                 @foreach (var convCard in Session.HandCards)
                 {
-                    <div class="card @GetCardClass(convCard) @(IsCardSelected(convCard) ? "selected" : "") @(IsObservationExpired(convCard) ? "unavailable" : "")"
+                    <div class="card @GetCardClass(convCard) @(IsCardSelected(convCard) ? "selected" : "") @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "unavailable" : "")"
                          @onclick="() => ToggleCardSelection(convCard)">
                         @if (convCard.IsObservation)
                         {

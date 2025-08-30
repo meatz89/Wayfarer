@@ -353,16 +353,25 @@ States form a web, not a linear progression. Any state can transition to any oth
 
 ### Card Persistence Rules
 
-**Persistent Cards** (stay in hand):
+**CRITICAL CLARIFICATION - Draw vs Hand Behavior**:
+
+When cards are drawn from the deck:
+1. Card is ALWAYS removed from the deck (regardless of persistence type)
+2. Card is added to the hand
+3. Persistence determines what happens AFTER in the hand
+
+**Persistent Cards** (stay in hand after LISTEN):
 - Observations (expire after 24-48 hours)
 - Burden cards (must resolve)
 - Letters (standing offers)
+- Remain in hand across multiple turns
 
-**Fleeting Cards** (return to deck if unplayed):
+**Fleeting Cards** (removed from hand on LISTEN if unplayed):
 - Comfort cards
 - Token cards
 - State cards
 - Patience cards
+- Return to deck's discard pile, reshuffled for next conversation
 
 **Goal Persistence** (special rule):
 - When drawn, goal cards gain Goal persistence type
@@ -373,7 +382,7 @@ States form a web, not a linear progression. Any state can transition to any oth
 - Removed from deck forever if discarded
 - Represent unique moments
 
-Fleeting cards don't vanish - they shuffle back into the NPC's deck and may be drawn again in future turns with contextually appropriate narrative.
+**Implementation Detail**: The SessionCardDeck.Draw() method ALWAYS removes cards from the deck's card list. This prevents the same instance from being drawn multiple times. Persistence only affects whether cards stay in the HandDeck after a LISTEN action.
 
 ### Weight as Emotional Intensity
 
@@ -406,6 +415,35 @@ Modifiers (NPC-specific only):
 - -1 per burden card in NPC deck
 
 ## Card System
+
+### Card Instance Architecture
+
+**CRITICAL IMPLEMENTATION NOTE**: Cards exist at two levels:
+
+1. **Card Templates** (ConversationCard): Immutable definitions loaded from JSON
+   - Contains all card properties (type, weight, effects, etc.)
+   - Shared across all NPCs and sessions
+   - Never modified during gameplay
+
+2. **Card Instances** (CardInstance): Unique runtime instances
+   - Wraps a template with a unique instance ID
+   - Each instance has format: `{templateId}_{sessionId}_{instanceNumber}`
+   - Ensures clicking one card only selects that specific instance
+   - Prevents duplicate selection bug
+
+**Session Card Management**:
+- **SessionCardDeck**: Manages instances for a conversation session
+  - Creates unique instances from templates at session start
+  - Drawing ALWAYS removes cards from deck (including persistent cards)
+  - Cards move from deck → hand, never exist in both
+
+- **HandDeck**: Proper deck for managing the player's hand
+  - Maximum size: 7 cards
+  - Overflow detection for UI warnings
+  - Fleeting cards removed on LISTEN action
+  - Persistent cards remain until manually discarded
+
+**Key Principle**: Each card exists in exactly ONE place - either in the deck OR in the hand, never both. Persistence only affects whether cards stay in the HAND after being drawn, not whether they stay in the DECK.
 
 ### Card Anatomy
 Every card contains:
