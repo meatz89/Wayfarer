@@ -376,9 +376,8 @@ public class GameFacade
             };
         }
         
-        // REMOVED: String matching violation - Properties?.Contains("Commercial")
-        // Proper implementation should use currentSpot.IsCommercial or categorical enum property
-        bool isCommercial = false; // TODO: Replace with categorical property from JSON
+        // Check if this spot has Commercial property
+        bool isCommercial = currentSpot.SpotProperties?.Contains(SpotPropertyType.Commercial) ?? false;
         if (!isCommercial)
         {
             return new WorkResult
