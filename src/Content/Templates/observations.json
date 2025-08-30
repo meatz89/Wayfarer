@@ -55,6 +55,7 @@
 				"type": "Normal",
 				"attentionCost": 1,
 				"relevantNPCs": [],
+				"cardTemplate": "tavern_atmosphere_comfort",
 				"description": "The warmth of the hearth and smell of ale create a welcoming environment for weary travelers"
 			}
 			],
@@ -65,14 +66,16 @@
 				"type": "Normal",
 				"attentionCost": 1,
 				"relevantNPCs": [],
+				"cardTemplate": "private_conversation_insight",
 				"description": "This corner seems to be where people discuss matters they'd rather keep private"
 			},
 			{
 				"id": "elena_letter_seal",
 				"text": "Notice the seal on Elena's letter",
-				"type": "Important",
+				"type": "Normal",
 				"attentionCost": 1,
 				"relevantNPCs": ["elena"],
+				"cardTemplate": "elena_letter_seal_knowledge",
 				"description": "The letter bears the seal of a noble house, suggesting its importance"
 			}
 			],
@@ -83,6 +86,7 @@
 				"type": "Normal",
 				"attentionCost": 1,
 				"relevantNPCs": [],
+				"cardTemplate": "GenericObservation",
 				"description": "Patrons at the bar discuss recent events in the city, including increased guard activity"
 			}
 			],
@@ -94,6 +98,7 @@
 				"attentionCost": 1,
 				"relevantNPCs": [],
 				"providesInfo": "location",
+				"cardTemplate": "DiscussBusiness",
 				"description": "Rooms are available for 5 coins per night, offering a safe place to rest"
 			}
 			]
@@ -118,6 +123,7 @@
 				"attentionCost": 1,
 				"relevantNPCs": [],
 				"createsUrgency": true,
+				"cardTemplate": "ShowRespect",
 				"description": "Lord Blackwood's carriage is being loaded with luggage for a long journey to the capital"
 			}
 			]

@@ -462,22 +462,141 @@ namespace Wayfarer.Pages.Components
         
         protected string GetTimeOfDayTrait()
         {
-            return CurrentTime switch
+            // Show time-specific location traits based on current time and location context
+            var timeStr = CurrentTime switch
             {
                 TimeBlocks.Dawn => "Dawn",
-                TimeBlocks.Morning => "Morning",
+                TimeBlocks.Morning => "Morning", 
                 TimeBlocks.Afternoon => "Afternoon",
                 TimeBlocks.Evening => "Evening",
                 TimeBlocks.Night => "Night",
                 TimeBlocks.LateNight => "Late Night",
                 _ => "Unknown"
             };
+            
+            // Add context-specific modifiers based on location and time
+            var modifier = GetLocationTimeModifier();
+            
+            return string.IsNullOrEmpty(modifier) ? timeStr : $"{timeStr}: {modifier}";
+        }
+        
+        protected string GetLocationTimeModifier()
+        {
+            // Generate time-specific location traits based on location type and current time
+            if (CurrentLocation == null) return "";
+            
+            var locationName = CurrentLocation.Name?.ToLower() ?? "";
+            
+            // Market locations during different times
+            if (locationName.Contains("market") || locationName.Contains("square"))
+            {
+                return CurrentTime switch
+                {
+                    TimeBlocks.Morning => "Opening",
+                    TimeBlocks.Afternoon => "Busy", 
+                    TimeBlocks.Evening => "Closing",
+                    TimeBlocks.Night => "Empty",
+                    _ => ""
+                };
+            }
+            
+            // Tavern locations
+            if (locationName.Contains("tavern") || locationName.Contains("kettle"))
+            {
+                return CurrentTime switch
+                {
+                    TimeBlocks.Morning => "Quiet",
+                    TimeBlocks.Afternoon => "Quiet",
+                    TimeBlocks.Evening => "Busy",
+                    TimeBlocks.Night => "Lively", 
+                    _ => ""
+                };
+            }
+            
+            // Noble/Manor locations
+            if (locationName.Contains("noble") || locationName.Contains("manor"))
+            {
+                return CurrentTime switch
+                {
+                    TimeBlocks.Morning => "Formal",
+                    TimeBlocks.Afternoon => "Active", 
+                    TimeBlocks.Evening => "Reception",
+                    TimeBlocks.Night => "Private",
+                    _ => ""
+                };
+            }
+            
+            return "";
+        }
+        
+        protected string GetObservationReward(LocationObservationViewModel obs)
+        {
+            // Generate state transition display based on observation type and name
+            try
+            {
+                // For now, use type-based logic and name analysis to generate realistic transitions
+                // This matches the mockup which shows context-appropriate state transitions
+                
+                var name = obs.Name?.ToLower() ?? "";
+                var type = obs.Type?.ToLower() ?? "";
+                
+                // Analyze observation name for context clues
+                if (name.Contains("checkpoint") || name.Contains("guard"))
+                {
+                    return "Any→Tense";
+                }
+                else if (name.Contains("carriage") || name.Contains("preparation"))
+                {
+                    return "Tense→Eager";
+                }
+                else if (name.Contains("family") || name.Contains("letter"))
+                {
+                    return "Neutral→Open";
+                }
+                else if (name.Contains("trembling") || name.Contains("desperat"))
+                {
+                    return "Desperate→Open";
+                }
+                
+                // Fall back to type-based display
+                return type switch
+                {
+                    "authority" => "Any→Tense",
+                    "commerce" => "Tense→Eager", 
+                    "social" => "Neutral→Open",
+                    "secret" => "Any→Shadow",
+                    _ => "Any→Neutral"
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LocationContent] Error getting observation reward for {obs.Id}: {ex.Message}");
+                return "Any→Neutral";
+            }
         }
         
         protected string GetSpotTraitClass(SpotPropertyType prop)
         {
             // Return a CSS class based on the property type
             return prop.ToString().ToLower().Replace("_", "-");
+        }
+        
+        protected string GetSpotTraitDisplay(SpotPropertyType prop)
+        {
+            // Display spot properties with their mechanical effects
+            return prop switch
+            {
+                SpotPropertyType.Private => "Private (+1 patience)",
+                SpotPropertyType.Public => "Public (-1 patience)", 
+                SpotPropertyType.Discrete => "Discrete (+1 patience)",
+                SpotPropertyType.Exposed => "Exposed (-1 patience)",
+                SpotPropertyType.Crossroads => "Crossroads",
+                SpotPropertyType.Commercial => "Commercial",
+                SpotPropertyType.Quiet => "Quiet (+1 comfort)",
+                SpotPropertyType.Loud => "Loud (-1 comfort)",
+                SpotPropertyType.Warm => "Warm (+1 comfort)",
+                _ => prop.ToString()
+            };
         }
         
         

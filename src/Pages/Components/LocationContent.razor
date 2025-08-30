@@ -64,7 +64,7 @@
         <div class="spot-traits">
             @foreach (var prop in CurrentSpot.SpotProperties ?? new List<SpotPropertyType>())
             {
-                <span class="spot-trait @GetSpotTraitClass(prop)">@prop</span>
+                <span class="spot-trait @GetSpotTraitClass(prop)">@GetSpotTraitDisplay(prop)</span>
             }
         </div>
     </div>
@@ -209,7 +209,7 @@
                         <span class="observation-text">@obs.Name</span>
                         <span class="observation-reward">
                             <span class="cost-value">1 attention</span>
-                            <span class="reward-card">Any→Tense</span>
+                            <span class="reward-card">@GetObservationReward(obs)</span>
                         </span>
                     </div>
                 }

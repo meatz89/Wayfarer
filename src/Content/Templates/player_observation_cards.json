@@ -91,6 +91,66 @@
       "description": "You discover hidden shortcuts through the alleys",
       "attentionCost": 1,
       "decayRate": "medium"
+    },
+    {
+      "id": "elena_letter_seal_knowledge",
+      "template": "Observation",
+      "type": "State",
+      "category": "STATE",
+      "weight": 1,
+      "location": "copper_kettle_tavern",
+      "spot": "corner_table",
+      "description": "The noble seal on Elena's letter shows its urgency - this could help convince her to trust you with it.",
+      "attentionCost": 1,
+      "decayRate": "medium",
+      "expiresIn": 24,
+      "successRate": 85,
+      "stateTransition": {
+        "from": "ANY",
+        "to": "TENSE"
+      },
+      "drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN"],
+      "displayName": "Noble Seal Recognition"
+    },
+    {
+      "id": "tavern_atmosphere_comfort",
+      "template": "Observation",
+      "type": "State",
+      "category": "STATE",
+      "weight": 1,
+      "location": "copper_kettle_tavern",
+      "spot": "main_hall",
+      "description": "The warm atmosphere of the tavern helps ease tensions.",
+      "attentionCost": 1,
+      "decayRate": "medium",
+      "expiresIn": 24,
+      "successRate": 85,
+      "stateTransition": {
+        "from": "ANY",
+        "to": "TENSE"
+      },
+      "drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN"],
+      "displayName": "Tavern Warmth"
+    },
+    {
+      "id": "private_conversation_insight",
+      "template": "Observation",
+      "type": "State",
+      "category": "STATE",
+      "weight": 1,
+      "location": "copper_kettle_tavern",
+      "spot": "corner_table",
+      "description": "Overhearing private matters gives you insight into delicate situations.",
+      "attentionCost": 1,
+      "decayRate": "medium",
+      "expiresIn": 24,
+      "successRate": 85,
+      "stateTransition": {
+        "from": "ANY",
+        "to": "TENSE"
+      },
+      "drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN"],
+      "displayName": "Private Insight"
     }
   ]
 }

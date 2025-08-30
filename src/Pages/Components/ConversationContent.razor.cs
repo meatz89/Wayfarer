@@ -1523,6 +1523,22 @@ namespace Wayfarer.Pages.Components
             return "Nothing";
         }
         
+        protected ConnectionType GetExchangeTokenType(ConversationCard card)
+        {
+            // For merchants, exchanges typically use Commerce tokens
+            // Could be expanded based on card context or NPC type
+            return ConnectionType.Commerce;
+        }
+        
+        protected string GetTokenBonusPercentage(ConversationCard card)
+        {
+            var tokenType = GetExchangeTokenType(card);
+            var tokenCount = GetTokenCount(tokenType);
+            var bonusPercentage = tokenCount * 5; // 5% per token
+            
+            return bonusPercentage > 0 ? $"+{bonusPercentage}" : "+0";
+        }
+        
         protected string GetConversationEndReason()
         {
             LoadSystemNarratives();

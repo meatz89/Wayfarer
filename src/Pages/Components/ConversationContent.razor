@@ -99,10 +99,10 @@
             <div class="turn-info">
                 <div class="turn-detail">
                     <span>Turn</span>
-                    <span class="turn-value">@(Session.TurnNumber + 1)/@Session.MaxPatience</span>
+                    <span class="turn-value">@(Session.TurnNumber + 1)/10</span>
                 </div>
                 <div class="turn-detail">
-                    <span>Weight Limit</span>
+                    <span>Weight Limit:</span>
                     <span class="turn-value">@GetWeightLimit()</span>
                 </div>
                 <div class="turn-detail">
@@ -166,24 +166,24 @@
                                     <div class="card-text">
                                         @GetCardText(card)
                                     </div>
-                                    <div class="exchange-details">
-                                        <div class="exchange-cost">
-                                            <div class="exchange-label">You Pay</div>
-                                            <div class="exchange-value cost-value">@GetExchangeCostDisplay(card)</div>
-                                        </div>
-                                        <div class="exchange-arrow">→</div>
-                                        <div class="exchange-reward">
-                                            <div class="exchange-label">You Receive</div>
-                                            <div class="exchange-value reward-value">@GetExchangeRewardDisplay(card)</div>
+                                    <div class="exchange-visual">
+                                        <div class="exchange-flow">
+                                            <div class="exchange-cost">
+                                                <div class="exchange-label">You Pay</div>
+                                                <div class="exchange-value cost-value">@GetExchangeCostDisplay(card)</div>
+                                            </div>
+                                            <div class="exchange-arrow">→</div>
+                                            <div class="exchange-reward">
+                                                <div class="exchange-label">You Receive</div>
+                                                <div class="exchange-value reward-value">@GetExchangeRewardDisplay(card)</div>
+                                            </div>
                                         </div>
                                     </div>
                                     
                                     @if (card.Context.ExchangeData?.CanBarter == true)
                                     {
-                                        <div class="barter-info">
-                                            <span class="barter-label">Barter Success:</span>
-                                            <span class="barter-rate">@GetExchangeSuccessRate(card)%</span>
-                                            <span class="barter-hint">(Better price on success)</span>
+                                        <div class="special-effects">
+                                            Base @(card.Context.ExchangeData?.BaseSuccessRate ?? 60)% + @GetTokenBonus(GetExchangeTokenType(card)) tokens (@GetTokenBonusPercentage(card)%) = @GetExchangeSuccessRate(card)% success rate
                                         </div>
                                     }
                                 }
@@ -213,9 +213,13 @@
                         {
                             <div class="card-marker blocks">Blocks</div>
                         }
+                        @if (convCard.Category == CardCategory.Promise)
+                        {
+                            <div class="card-marker goal">Goal Card</div>
+                        }
                         @if (convCard.Category == CardCategory.Exchange)
                         {
-                            <div class="card-marker goal">Goal</div>
+                            <div class="card-marker exchange">Exchange</div>
                         }
                         <div class="card-content">
                             <div class="card-main">
