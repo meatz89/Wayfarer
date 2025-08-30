@@ -187,52 +187,6 @@ public static class ConversationRules
     /// </summary>
     public static EmotionalState DetermineInitialState(NPC npc, ObligationQueueManager queueManager)
     {
-        // Check if NPC has an urgent letter to offer (in their goal deck)
-        if (npc.GoalDeck != null && npc.GoalDeck.Any())
-        {
-            // Look for letter goals with critical urgency
-            var hasUrgentLetterGoal = npc.GoalDeck.Any(goal => 
-                goal.Category == CardCategory.Promise && 
-                goal.Context?.LetterTemplate != null &&
-                goal.Context.LetterTemplate.UrgencyHours <= 2); // 2 hours or less = DESPERATE
-                
-            if (hasUrgentLetterGoal)
-                return EmotionalState.DESPERATE;
-        }
-        
-        // Check for urgent letters creating desperate state
-        var obligations = queueManager?.GetActiveObligations();
-        if (obligations != null && obligations.Any())
-        {
-            var urgentLetter = obligations
-                .Where(o => o.SenderId == npc.ID && o.MinutesUntilDeadline < 360) // <6 hours
-                .FirstOrDefault();
-
-            if (urgentLetter != null)
-            {
-                if (urgentLetter.MinutesUntilDeadline < 180) // <3 hours
-                    return EmotionalState.DESPERATE;
-                return EmotionalState.TENSE;
-            }
-        }
-        
-        // Check for meeting obligations
-        var meeting = queueManager?.GetMeetingWithNPC(npc.ID);
-        if (meeting != null)
-        {
-            // Apply urgency rules based on deadline and stakes
-            if (meeting.Stakes == StakeType.SAFETY && meeting.DeadlineInMinutes < 360) // <6 hours
-                return EmotionalState.DESPERATE;
-            if (meeting.DeadlineInMinutes < 180) // <3 hours
-                return EmotionalState.DESPERATE;
-            if (meeting.DeadlineInMinutes < 720) // <12 hours
-                return EmotionalState.TENSE;
-        }
-
-        // Check relationship for hostility
-        if (npc.PlayerRelationship == NPCRelationship.Betrayed)
-            return EmotionalState.HOSTILE;
-
         // Default based on personality
         return npc.PersonalityType switch
         {
