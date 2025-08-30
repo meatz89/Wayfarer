@@ -24,9 +24,9 @@ public class ConversationSession
     public EmotionalState CurrentState { get; set; }
 
     /// <summary>
-    /// Cards currently in hand
+    /// Cards currently in hand (managed as a deck)
     /// </summary>
-    public List<CardInstance> HandCards { get; set; }
+    public HandDeck Hand { get; set; }
 
     /// <summary>
     /// The NPC's conversation deck

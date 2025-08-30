@@ -92,11 +92,8 @@ public class SessionCardDeck : IEnumerable<CardInstance>
             // Always remove from available to prevent drawing same instance twice
             availableCards.Remove(card);
             
-            // Remove from main deck based on persistence
-            if (card.Persistence != PersistenceType.Persistent)
-            {
-                cards.Remove(card);
-            }
+            // ALWAYS remove from main deck - cards move from deck to hand
+            cards.Remove(card);
         }
         
         Console.WriteLine($"[SessionCardDeck] Drew {drawn.Count} cards from deck");
@@ -138,10 +135,8 @@ public class SessionCardDeck : IEnumerable<CardInstance>
             drawn.Add(goalCard);
             availableCards.Remove(goalCard);
             
-            if (goalCard.Persistence != PersistenceType.Persistent)
-            {
-                cards.Remove(goalCard);
-            }
+            // ALWAYS remove from main deck - cards move from deck to hand
+            cards.Remove(goalCard);
             
             count--;
             Console.WriteLine($"[SessionCardDeck] Priority drew goal card: {goalCard.TemplateId} (instance: {goalCard.InstanceId})");
@@ -156,10 +151,8 @@ public class SessionCardDeck : IEnumerable<CardInstance>
             drawn.Add(card);
             availableCards.Remove(card); // Always remove to prevent duplicates
             
-            if (card.Persistence != PersistenceType.Persistent)
-            {
-                cards.Remove(card);
-            }
+            // ALWAYS remove from main deck - cards move from deck to hand
+            cards.Remove(card);
         }
         
         Console.WriteLine($"[SessionCardDeck] Drew {drawn.Count} cards for {state} state");
@@ -201,10 +194,8 @@ public class SessionCardDeck : IEnumerable<CardInstance>
             drawn.Add(card);
             availableCards.Remove(card); // Always remove to prevent duplicates
             
-            if (card.Persistence != PersistenceType.Persistent)
-            {
-                cards.Remove(card);
-            }
+            // ALWAYS remove from main deck - cards move from deck to hand
+            cards.Remove(card);
         }
         
         Console.WriteLine($"[SessionCardDeck] Drew {drawn.Count} cards for {category} category");
