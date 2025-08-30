@@ -105,11 +105,13 @@ public class CardDeck : IEnumerable<ConversationCard>
             
             drawn.Add(card);
             
-            // Remove non-persistent cards from deck after drawing
+            // Always remove from availableCards to prevent drawing the same card twice in this draw operation
+            availableCards.RemoveAt(index);
+            
+            // Remove non-persistent cards from the main deck after drawing
             if (card.Persistence != PersistenceType.Persistent)
             {
                 cards.Remove(card);
-                availableCards.Remove(card);
             }
         }
 

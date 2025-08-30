@@ -714,15 +714,13 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return 3;
             
-            return Session.CurrentState switch
+            // Use actual values from ConversationRules.States
+            if (ConversationRules.States.TryGetValue(Session.CurrentState, out var rules))
             {
-                EmotionalState.GUARDED => 2,
-                EmotionalState.TENSE => 1,
-                EmotionalState.OVERWHELMED => 1,
-                EmotionalState.CONNECTED => 4,
-                EmotionalState.HOSTILE => 3,
-                _ => 3
-            };
+                return rules.MaxWeight;
+            }
+            
+            return 3; // Default fallback
         }
 
         protected string GetListenDetails()

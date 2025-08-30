@@ -27,7 +27,7 @@
         "type": "Commerce",
         "category": "PROMISE",
         "weight": 2,
-        "validStates": ["NEUTRAL", "OPEN"],
+        "validStates": ["OPEN", "CONNECTED"],
         "letterContent": {
           "subject": "Trade Agreement",
           "recipient": "Guild Master Finn",
@@ -45,7 +45,7 @@
         "type": "Status",
         "category": "PROMISE",
         "weight": 3,
-        "validStates": ["NEUTRAL", "GUARDED"],
+        "validStates": ["TENSE", "GUARDED"],
         "letterContent": {
           "subject": "Noble Summons",
           "recipient": "Duke Aldric",

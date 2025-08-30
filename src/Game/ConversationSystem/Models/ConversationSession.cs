@@ -26,12 +26,12 @@ public class ConversationSession
     /// <summary>
     /// Cards currently in hand
     /// </summary>
-    public List<ConversationCard> HandCards { get; set; }
+    public List<CardInstance> HandCards { get; set; }
 
     /// <summary>
     /// The NPC's conversation deck
     /// </summary>
-    public CardDeck Deck { get; init; }
+    public SessionCardDeck Deck { get; init; }
 
     /// <summary>
     /// Current patience (turns remaining)
@@ -62,7 +62,7 @@ public class ConversationSession
     /// <summary>
     /// Observation cards added at start
     /// </summary>
-    public List<ConversationCard> ObservationCards { get; set; }
+    public List<CardInstance> ObservationCards { get; set; }
     
     /// <summary>
     /// Token manager for calculating success bonuses
@@ -73,7 +73,7 @@ public class ConversationSession
     /// <summary>
     /// The goal card that was shuffled into the deck for this conversation
     /// </summary>
-    public ConversationCard GoalCard { get; set; }
+    public CardInstance GoalCard { get; set; }
     
     /// <summary>
     /// Whether the goal card has been drawn into hand
@@ -139,47 +139,35 @@ public class ConversationSession
         // CRITICAL: Comfort always starts at 0 for new conversations (battery system)
         var startingComfort = 0;
 
+        // ALWAYS create a session deck for every conversation to avoid duplicate draws
+        var sessionDeck = CreateSessionDeck(npc.ConversationDeck);
+        npc = CreateNPCWithSessionDeck(npc, sessionDeck);
+
         // POC DECK ARCHITECTURE: Select goal from Goal Deck based on conversation type
         ConversationCard goalCard = null;
 
-        // Select a goal card for all conversations except Commerce (quick exchanges)
-        // FriendlyChat conversations get Promise goals to enable letter creation
-        if (conversationType != ConversationType.Commerce)
+        // Only select goal cards for specific conversation types that explicitly require them
+        // FriendlyChat (standard conversation) should NOT have goal cards - they're for token building only
+        if (conversationType == ConversationType.Promise || 
+            conversationType == ConversationType.Delivery || 
+            conversationType == ConversationType.Resolution)
         {
-            // Map conversation types to appropriate goal types
-            var effectiveConversationType = conversationType;
-            if (conversationType == ConversationType.FriendlyChat)
-            {
-                // FriendlyChat gets Promise goals (letter offers)
-                effectiveConversationType = ConversationType.Promise;
-            }
-            
-            goalCard = SelectGoalCardForConversation(npc, effectiveConversationType, initialState);
+            goalCard = SelectGoalCardForConversation(npc, conversationType, initialState);
 
             if (goalCard != null)
             {
-                // CRITICAL: Create a COPY of the conversation deck for this session
-                // This preserves the original deck for future conversations
-                var sessionDeck = CreateSessionDeck(npc.ConversationDeck);
-
-                // Shuffle the selected goal into the copied deck
+                // Shuffle the selected goal into the session deck
                 sessionDeck.ShuffleInGoalCard(goalCard);
-                if (goalCard is ConversationCard goalConv)
-                {
-                    Console.WriteLine($"[StartConversation] Shuffled {goalConv.GoalCardType} goal card (ID: {goalConv.Id}) into session deck for {conversationType} conversation");
-                }
-                else if (goalCard.Category == CardCategory.Promise)
-                {
-                    Console.WriteLine($"[StartConversation] Shuffled promise card (ID: {goalCard.Id}) into session deck for {conversationType} conversation");
-                }
-
-                // Use the session deck, not the original
-                npc = CreateNPCWithSessionDeck(npc, sessionDeck);
+                Console.WriteLine($"[StartConversation] Shuffled {goalCard.Id} goal card into session deck for {conversationType} conversation");
             }
             else
             {
                 Console.WriteLine($"[StartConversation] No suitable goal card found for {conversationType} conversation");
             }
+        }
+        else
+        {
+            Console.WriteLine($"[StartConversation] {conversationType} conversation - no goal cards (token building only)");
         }
 
         // Start with initial automatic card draw (no patience cost)
