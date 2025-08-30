@@ -31,11 +31,11 @@ public static class ConversationTypeConfig
     {
         return type switch
         {
-            ConversationType.Commerce => 0,
-            ConversationType.Delivery => 1,
-            ConversationType.FriendlyChat => 2,
-            ConversationType.Promise => 2,
-            ConversationType.Resolution => 2,
+            ConversationType.Commerce => 0,      // Quick Exchange - free
+            ConversationType.Delivery => 0,      // Letter Delivery - free
+            ConversationType.FriendlyChat => 2,  // Standard Conversation
+            ConversationType.Promise => 1,       // Letter Offer (promise to deliver)
+            ConversationType.Resolution => 2,    // Make Amends
             _ => 2
         };
     }

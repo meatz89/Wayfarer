@@ -147,6 +147,19 @@ public class ConversationManager
             available.Add(ConversationType.Resolution);
         }
         
+        // Check if player has letter to deliver to this NPC
+        if (queueManager != null)
+        {
+            var activeObligations = queueManager.GetActiveObligations();
+            var hasLetterForNpc = activeObligations.Any(o => 
+                o != null && (o.RecipientId == npc.ID || o.RecipientName == npc.Name));
+            
+            if (hasLetterForNpc)
+            {
+                available.Add(ConversationType.Delivery);
+            }
+        }
+        
         // Standard conversation always available if conversation deck exists
         if (npc.ConversationDeck != null && npc.ConversationDeck.RemainingCards > 0)
         {
@@ -162,15 +175,8 @@ public class ConversationManager
     /// </summary>
     public int GetConversationAttentionCost(ConversationType type)
     {
-        return type switch
-        {
-            ConversationType.Commerce => 0,      // Quick exchanges are free - no emotional engagement
-            ConversationType.FriendlyChat => 2,  // Standard conversation cost
-            ConversationType.Promise => 2,        // Letter offers require attention
-            ConversationType.Delivery => 1,       // Delivering is simpler
-            ConversationType.Resolution => 3,     // Making amends is emotionally intensive
-            _ => 2  // Default cost
-        };
+        // Use the centralized configuration
+        return ConversationTypeConfig.GetAttentionCost(type);
     }
     
     /// <summary>

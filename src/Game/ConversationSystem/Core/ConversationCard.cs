@@ -63,29 +63,29 @@ public enum CardCategory
 public enum ConversationType
 {
     /// <summary>
-    /// Quick resource exchange (0 attention, no patience, instant)
+    /// Quick resource exchange (0 attention, single turn)
     /// </summary>
     Commerce,
 
     /// <summary>
-    /// Trust building conversation (2 attention, 8 patience, full mechanics)
+    /// Standard conversation (2 attention, full patience)
     /// </summary>
     FriendlyChat,
 
     /// <summary>
-    /// Letter offer conversation (2 attention, 6 patience, comfort, tokens and promise card)
+    /// Letter offer conversation (1 attention, promise card in goal deck)
     /// Enabled when NPC has letter cards in their Goal deck
     /// </summary>
     Promise,
 
     /// <summary>
-    /// Letter delivery conversation (2 attention, 6 patience, comfort, tokens and letter delivery card)
+    /// Letter delivery conversation (0 attention, automatic)
     /// Enabled when Player has letter for the NPC recipient in his Obligation Queue 
     /// </summary>
     Delivery,
 
     /// <summary>
-    /// Make amends conversation (2 attention, 6 patience, comfort, tokens and burden resolution card)
+    /// Make amends conversation (2 attention, burden resolution card)
     /// Forced when NPC has burden cards in their goal deck
     /// </summary>
     Resolution,

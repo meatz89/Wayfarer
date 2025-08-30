@@ -1449,3 +1449,394 @@ body {
     color: #5c4a3a;
     font-style: italic;
 }
+
+/* ============================================
+   TOAST MESSAGES / SYSTEM NOTIFICATIONS
+   ============================================ */
+
+.message-display {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+.message {
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    padding: 12px 40px 12px 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    position: relative;
+    pointer-events: auto;
+    animation: slideIn 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.message-text {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #2c241a;
+}
+
+.message-close {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    color: #7a6250;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.message-close:hover {
+    color: #2c241a;
+    transform: translateY(-50%) scale(1.2);
+}
+
+/* Message type variations */
+.message.success {
+    background: #f0faf0;
+    border-color: #7a8b5a;
+}
+
+.message.success .message-text {
+    color: #3a5a2a;
+}
+
+.message.warning {
+    background: #faf7f0;
+    border-color: #d4a76a;
+}
+
+.message.warning .message-text {
+    color: #8b6726;
+}
+
+.message.danger {
+    background: #faf0f0;
+    border-color: #d4704a;
+}
+
+.message.danger .message-text {
+    color: #8b4726;
+}
+
+.message.info {
+    background: #f4f7fa;
+    border-color: #5a7a8a;
+}
+
+.message.info .message-text {
+    color: #3a5a6a;
+}
+
+.message.tutorial {
+    background: #f9f3e9;
+    border-color: #d4a76a;
+    border-style: dashed;
+}
+
+.message.tutorial .message-text {
+    color: #5c4a3a;
+    font-style: italic;
+}
+
+/* ============================================
+   TRAVEL SCREEN STYLING
+   ============================================ */
+
+.travel-content {
+    padding: 20px;
+    background: #faf4ea;
+    min-height: calc(100vh - 200px);
+}
+
+.travel-header {
+    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+    border: 1px solid #a68b6f;
+    border-radius: 4px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+}
+
+.travel-header h2 {
+    font-size: 24px;
+    color: #5c4a3a;
+    margin-bottom: 8px;
+    font-weight: normal;
+    letter-spacing: 1px;
+}
+
+.current-location {
+    font-size: 13px;
+    color: #7a6250;
+}
+
+.current-location strong {
+    color: #5c4a3a;
+    font-size: 14px;
+}
+
+.routes-section {
+    margin-bottom: 20px;
+}
+
+.routes-section h3 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #7a6250;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #d4c5a0;
+}
+
+.route-list {
+    display: grid;
+    gap: 15px;
+}
+
+.route-card {
+    background: white;
+    border: 2px solid #d4c5a0;
+    border-radius: 4px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.route-card:hover {
+    background: #fefaf0;
+    border-color: #a68b6f;
+    transform: translateX(3px);
+}
+
+.route-card.blocked {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #e8dcc4;
+}
+
+.route-card.blocked:hover {
+    transform: none;
+}
+
+.route-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.route-header h4 {
+    font-size: 16px;
+    color: #5c4a3a;
+    font-weight: bold;
+    margin: 0;
+}
+
+.route-distance {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    background: #f4e8d0;
+    border-radius: 2px;
+}
+
+.route-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.transport-type {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #5c4a3a;
+}
+
+.transport-icon {
+    font-size: 16px;
+}
+
+.route-time {
+    font-size: 13px;
+}
+
+.time-label {
+    color: #7a6250;
+    margin-right: 4px;
+}
+
+.time-value {
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.route-cost {
+    font-size: 13px;
+}
+
+.cost-label {
+    color: #7a6250;
+    margin-right: 4px;
+}
+
+.cost-value {
+    color: #8b4726;
+    font-weight: bold;
+}
+
+.route-familiarity {
+    font-size: 13px;
+}
+
+.familiarity-label {
+    color: #7a6250;
+    margin-right: 4px;
+}
+
+.familiarity-value {
+    color: #5a7a3a;
+    font-weight: bold;
+}
+
+.route-requirements {
+    background: #faf0e6;
+    border: 1px solid #d4a76a;
+    border-radius: 2px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    font-size: 12px;
+}
+
+.req-label {
+    color: #8b6726;
+    font-weight: bold;
+    margin-right: 6px;
+}
+
+.requirement {
+    display: inline-block;
+    background: #faf4ea;
+    border: 1px solid #c4a684;
+    border-radius: 2px;
+    padding: 2px 6px;
+    margin-right: 5px;
+    color: #5c4a3a;
+    font-size: 11px;
+}
+
+.route-action {
+    margin-top: 12px;
+    text-align: right;
+}
+
+.travel-button {
+    background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
+    color: #faf4ea;
+    border: 2px solid #5a6a3a;
+    border-radius: 4px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.travel-button:hover {
+    background: linear-gradient(to bottom, #8a9b6a, #7a8b5a);
+    transform: translateY(-1px);
+}
+
+.cannot-travel {
+    background: #f4e8d0;
+    border: 1px solid #c4a684;
+    border-radius: 2px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: #8b4726;
+    font-style: italic;
+    text-align: center;
+}
+
+.no-routes {
+    text-align: center;
+    padding: 40px;
+    background: #f9f3e9;
+    border: 2px dashed #c4a684;
+    border-radius: 4px;
+    margin: 20px 0;
+}
+
+.no-routes p {
+    font-size: 14px;
+    color: #7a6250;
+    line-height: 1.6;
+    margin: 10px 0;
+}
+
+.no-routes p:first-child {
+    font-size: 16px;
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.travel-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #d4c5a0;
+    text-align: center;
+}
+
+.back-button {
+    background: linear-gradient(to bottom, #8b7355, #7b6345);
+    color: #faf4ea;
+    border: 2px solid #6b5345;
+    border-radius: 4px;
+    padding: 10px 30px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.back-button:hover {
+    background: linear-gradient(to bottom, #9b8365, #8b7355);
+    transform: translateY(-1px);
+}

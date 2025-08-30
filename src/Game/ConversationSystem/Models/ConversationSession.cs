@@ -182,10 +182,48 @@ public class ConversationSession
             }
         }
 
-        // CRITICAL: Start with EMPTY hand - player must LISTEN to get cards
+        // Start with initial automatic card draw (no patience cost)
         var handCards = new List<ConversationCard>();
         bool goalCardDrawn = false;
         int? goalUrgencyCounter = null;
+        
+        // Perform initial card draw based on emotional state
+        // This simulates an automatic first LISTEN without patience cost
+        var rules = ConversationRules.States[initialState];
+        var initialDrawCount = rules.CardsOnListen;
+        Console.WriteLine($"[StartConversation] Performing initial draw of {initialDrawCount} cards for {initialState} state");
+        
+        // Draw initial cards using a temporary session to leverage existing draw logic
+        var tempSession = new ConversationSession
+        {
+            NPC = npc,
+            CurrentState = initialState,
+            Deck = npc.ConversationDeck,
+            CurrentComfort = startingComfort
+        };
+        
+        var initialCards = tempSession.DrawCardsForState(initialState, initialDrawCount, Math.Abs(startingComfort));
+        handCards.AddRange(initialCards);
+        
+        // Add observation cards to initial hand if provided
+        if (observationCards != null && observationCards.Any())
+        {
+            handCards.AddRange(observationCards);
+            Console.WriteLine($"[StartConversation] Added {observationCards.Count} observation cards to initial hand");
+        }
+        
+        Console.WriteLine($"[StartConversation] Drew {initialCards.Count} initial cards from deck, total hand size: {handCards.Count}");
+        
+        // Check if we drew the goal card in initial draw
+        foreach (var card in handCards)
+        {
+            if (card is ConversationCard conv && conv.IsGoalCard)
+            {
+                goalCardDrawn = true;
+                goalUrgencyCounter = 3; // 3 turns to play it
+                Console.WriteLine($"[StartConversation] Drew goal card in initial draw! Must play within 3 turns.");
+            }
+        }
 
         // Check for letters that can be delivered through this NPC
         if (queueManager != null)

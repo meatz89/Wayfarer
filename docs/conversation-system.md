@@ -108,6 +108,16 @@ The player builds and maintains their own observation deck through:
 - State change effects only
 - Expire after 24-48 hours
 
+### Conversation Flow
+
+**Starting a Conversation**: Attention cost depends on conversation type chosen (see below)
+
+**Initial Draw**: When a conversation starts, an automatic LISTEN action occurs with no patience cost, drawing 1-2 cards based on the NPC's emotional state. This gives the player initial options without spending resources.
+
+**Actions** (both cost 1 patience, NO attention cost):
+- **LISTEN**: Draw 1-2 new cards based on emotional state
+- **SPEAK**: Play one card (card weight must be ≤ emotional state's limit)
+
 ### Conversation Types & Requirements
 
 The **player chooses conversation type** on location screen, determining which goal gets shuffled in:
@@ -120,13 +130,21 @@ The **player chooses conversation type** on location screen, determining which g
 - **Duration**: Full patience
 - **Purpose**: Token farming, state navigation practice
 
-### Letter Conversation
+### Letter Offer (Promise Type)
 - **UI Label**: "Discuss Letter"
-- **Cost**: 2 attention  
+- **Cost**: 1 attention
 - **Requirement**: Letter goal in NPC's goal deck
-- **Goal**: Appropriate letter goal shuffled in
+- **Goal**: Letter promise card shuffled in
 - **Duration**: Until goal played or patience depletes
-- **Purpose**: Accept delivery obligations
+- **Purpose**: Accept delivery obligations (adds letter to satchel + obligation to queue)
+
+### Letter Delivery
+- **UI Label**: "Deliver Letter"
+- **Cost**: 0 attention (free)
+- **Requirement**: Have letter for this NPC in satchel
+- **Goal**: None - automatic delivery card in hand
+- **Duration**: Play delivery card to complete
+- **Purpose**: Complete delivery obligations
 
 ### Resolution Conversation
 - **UI Label**: "Make Amends"
@@ -136,29 +154,22 @@ The **player chooses conversation type** on location screen, determining which g
 - **Duration**: Until goal played or patience depletes
 - **Purpose**: Remove burden cards, repair relationship
 
-### Promise Conversation
+### Meeting Arrangement (Promise Type)
 - **UI Label**: Context-specific ("Arrange Meeting", "Discuss Escort")
 - **Cost**: 2 attention
-- **Requirement**: Promise goal in goal deck
-- **Goal**: Appropriate promise goal shuffled in
+- **Requirement**: Meeting promise goal in goal deck
+- **Goal**: Meeting promise card shuffled in
 - **Duration**: Until goal played or patience depletes
-- **Purpose**: Accept time/location obligations
+- **Purpose**: Accept meeting obligations (time/location requirements)
 
-### Commerce Conversation
-- **UI Label**: "Negotiate Deal"
-- **Cost**: 2 attention
-- **Requirement**: Commerce goal in goal deck
-- **Goal**: Commerce goal shuffled in
-- **Duration**: Until goal played or patience depletes
-- **Purpose**: Special trades with negotiated terms
 
 ### Quick Exchange
 - **UI Label**: "Quick Trade"
-- **Cost**: 0 attention
-- **Requirement**: Exchange deck exists
-- **Goal**: None (instant resolution)
-- **Duration**: 1 card draw, accept/decline
-- **Purpose**: Simple resource trades
+- **Cost**: 0 attention (free)
+- **Requirement**: NPC has exchange deck (merchants, location-specific)
+- **Goal**: None - immediate accept/decline cards
+- **Duration**: Single turn exchange
+- **Purpose**: Simple resource swaps
 
 ### Goal Card Selection Rules
 
@@ -287,52 +298,58 @@ States form a web, not a linear progression. Any state can transition to any oth
 **State Definitions and Comfort Transitions**:
 
 **DESPERATE** (Crisis State)
-- Listen: Draws cards listing Desperate as drawable
+- Listen: Draws 2 cards listing Desperate as drawable
 - Speak: Maximum Light (W1)
 - Comfort: +3→Tense, -3→Hostile
 - Goal cards: Delivery with urgent deadlines
 
 **HOSTILE** (Aggressive State)
-- Listen: Draw burden cards only, conversation ends after turn
+- Listen: Draws 1 burden card only, conversation ends after turn
 - Speak: Weight 0 (cannot play cards)
 - Comfort: +3→Tense, -3→Conversation ends
 - Goal cards: None
 
 **TENSE** (Stressed State)  
-- Listen: Draws cards listing Tense as drawable
+- Listen: Draws 1 card listing Tense as drawable
 - Speak: Maximum Medium (W2)
 - Comfort: +3→Neutral, -3→Hostile
 - Goal cards: Shadow promises, burden resolution
 
 **GUARDED** (Defensive State)
-- Listen: Draws cards listing Guarded as drawable
+- Listen: Draws 1 state card only
 - Speak: Maximum Light (W1)
 - Comfort: +3→Neutral, -3→Hostile
 - Goal cards: None typically (too suspicious)
 
 **NEUTRAL** (Baseline State)
-- Listen: Draws cards listing Neutral as drawable
+- Listen: Draws 2 cards listing Neutral as drawable
 - Speak: Maximum Heavy (W3)
 - Comfort: +3→Open, -3→Tense
 - Goal cards: Commerce, routine promises
 
 **OPEN** (Receptive State)
-- Listen: Draws cards listing Open as drawable
+- Listen: Draws 2 cards listing Open as drawable
 - Speak: Maximum Heavy (W3)
 - Comfort: +3→Connected, -3→Guarded
 - Goal cards: Trust promises, personal requests
 
 **EAGER** (Excited State)
-- Listen: Draws cards listing Eager as drawable
+- Listen: Draws 2 cards listing Eager as drawable
 - Speak: Maximum Heavy (W3)
 - Comfort: +3→Connected, -3→Neutral
 - Goal cards: Commerce promises with bonus potential
 
 **CONNECTED** (Deep Bond State)
-- Listen: Draws cards listing Connected as drawable
+- Listen: Draws 2 cards listing Connected as drawable
 - Speak: Maximum Very Heavy (W4)
 - Comfort: +3→Stays Connected, -3→Tense
 - Goal cards: All types available
+
+**OVERWHELMED** (Stressed State)
+- Listen: Draws 1 card only
+- Speak: Maximum Light (W1)  
+- Comfort: +3→Neutral, -3→Hostile
+- Goal cards: None typically
 
 ### Card Persistence Rules
 

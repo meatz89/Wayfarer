@@ -83,10 +83,10 @@ public static class ConversationRules
 {
     public static readonly Dictionary<EmotionalState, StateRuleset> States = new()
     {
-        // EXACT POC SPECIFICATIONS - CORRECTED DRAW COUNTS
+        // CORRECTED DRAW COUNTS - More reasonable 1-2 cards per LISTEN
         [EmotionalState.NEUTRAL] = new StateRuleset
         {
-            CardsOnListen = 2,  // Listen draws 2 conversation cards (CORRECT per docs)
+            CardsOnListen = 2,  // Listen draws 2 conversation cards
             MaxWeight = 3,      // Speak weight limit 3 (Heavy weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.NEUTRAL,  // Stays NEUTRAL
@@ -95,7 +95,7 @@ public static class ConversationRules
 
         [EmotionalState.GUARDED] = new StateRuleset
         {
-            CardsOnListen = 1,  // Listen draws STATE CARDS ONLY (per docs)
+            CardsOnListen = 1,  // Listen draws 1 state card only
             MaxWeight = 1,      // Speak weight limit 1 (per new spec)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.NEUTRAL,  // Transitions to NEUTRAL
@@ -104,7 +104,7 @@ public static class ConversationRules
 
         [EmotionalState.OPEN] = new StateRuleset
         {
-            CardsOnListen = 3,  // Listen draws 3 cards (Trust and Token cards)
+            CardsOnListen = 2,  // Listen draws 2 cards (Trust and Token cards)
             MaxWeight = 3,      // Speak weight limit 3 (Heavy weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.OPEN,  // Stays OPEN
@@ -113,7 +113,7 @@ public static class ConversationRules
 
         [EmotionalState.CONNECTED] = new StateRuleset
         {
-            CardsOnListen = 3,  // Listen draws 3 cards (60% Token, 40% any)
+            CardsOnListen = 2,  // Listen draws 2 cards (60% Token, 40% any)
             MaxWeight = 4,      // Speak weight limit 4 (highest weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.CONNECTED,  // Stays CONNECTED
@@ -123,7 +123,7 @@ public static class ConversationRules
 
         [EmotionalState.TENSE] = new StateRuleset
         {
-            CardsOnListen = 2,  // Listen draws Shadow cards + 1 guaranteed state (per docs)
+            CardsOnListen = 1,  // Listen draws 1 card (Shadow cards or state)
             MaxWeight = 2,      // Speak weight limit 2 (Medium weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.GUARDED,  // Transitions to GUARDED
@@ -132,7 +132,7 @@ public static class ConversationRules
 
         [EmotionalState.EAGER] = new StateRuleset
         {
-            CardsOnListen = 3,  // Listen draws 3 cards (Commerce and Token cards)
+            CardsOnListen = 2,  // Listen draws 2 cards (Commerce and Token cards)
             MaxWeight = 3,      // Speak weight limit 3 (Heavy weight)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.EAGER,  // Stays EAGER
@@ -141,7 +141,7 @@ public static class ConversationRules
 
         [EmotionalState.OVERWHELMED] = new StateRuleset
         {
-            CardsOnListen = 1,  // Listen draws 1 card only (no guaranteed state)
+            CardsOnListen = 1,  // Listen draws 1 card only
             MaxWeight = 1,      // Speak weight limit 1 (Light weight only)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.NEUTRAL,  // Transitions to NEUTRAL
@@ -150,7 +150,7 @@ public static class ConversationRules
 
         [EmotionalState.DESPERATE] = new StateRuleset
         {
-            CardsOnListen = 4,  // Listen draws Trust and Crisis cards (per docs - seems to be 4 total)
+            CardsOnListen = 2,  // Listen draws 2 cards (Trust and Crisis cards)
             MaxWeight = 1,      // Speak weight limit 1 (Light, but Crisis free)
             MaxCards = 1,       // Play exactly ONE card
             ListenTransition = EmotionalState.HOSTILE,  // Transitions to HOSTILE
