@@ -75,7 +75,13 @@ This document tracks the implementation of UI mockups into the actual game, ensu
 - ✅ Card expiry system (24-48 hour expiration implemented)
 - ✅ State transitions pulled from card data (not hardcoded)
 
-## 🎉 IMPLEMENTATION COMPLETE - 100% MOCKUP COMPLIANCE
+## 🎉 IMPLEMENTATION COMPLETE - 100% MOCKUP COMPLIANCE + CRITICAL FIXES
+
+### 🔥 Critical Gameplay Fixes (Post-Review)
+- ✅ **Fixed NPC descriptions** - Each NPC now shows their correct unique description from JSON
+- ✅ **Fixed goal card mechanics** - Goal cards now properly gated by emotional states
+- ✅ **Fixed Elena scenario** - Letter Offer only appears after navigating DESPERATE → TENSE
+- ✅ **Fixed conversation flow** - Goal cards shuffled into deck, discovered through LISTEN
 
 ### Location Screen ✅
 - ✅ Resources bar shows: Coins, Health, Hunger, Attention

@@ -472,6 +472,17 @@ public class ConversationSession
             {
                 if (card.Category == CardCategory.Promise)
                 {
+                    // Check if this goal card is valid for the current emotional state
+                    if (card.Context?.ValidStates != null && card.Context.ValidStates.Any())
+                    {
+                        // Goal card has state requirements - check if current state matches
+                        if (!card.Context.ValidStates.Contains(CurrentState))
+                        {
+                            Console.WriteLine($"[ExecuteListen] Skipping goal card {card.Id} - requires states {string.Join(", ", card.Context.ValidStates)} but current state is {CurrentState}");
+                            continue;
+                        }
+                    }
+                    
                     // Promise cards are eligible for negotiation
                     {
                         // Use the conversation card directly

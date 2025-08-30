@@ -259,7 +259,12 @@ public class CardDeck : IEnumerable<ConversationCard>
     {
         if (goalCard != null)
         {
+            goalCard.DrawableStates = goalCard.Context.ValidStates;
+
             cards.Add(goalCard);
+            var states = goalCard.DrawableStates != null ? string.Join(", ", goalCard.DrawableStates) : "Any";
+            Console.WriteLine($"[ShuffleInGoalCard] Added goal card {goalCard.Id} with existing DrawableStates: {states}");
+            
             Shuffle();
         }
     }

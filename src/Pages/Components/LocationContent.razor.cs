@@ -368,7 +368,14 @@ namespace Wayfarer.Pages.Components
         
         protected string GetNPCDescription(NpcViewModel npc)
         {
-            // Generate contextual descriptions based on NPC state
+            // Get the actual NPC object to access its description from JSON data
+            var actualNPC = GameFacade.GetNPCById(npc.Id);
+            if (actualNPC != null && !string.IsNullOrEmpty(actualNPC.Description))
+            {
+                return actualNPC.Description;
+            }
+            
+            // Fallback to generic descriptions if no specific description is available
             var state = npc.EmotionalState?.ToLower();
             var personality = npc.PersonalityType?.ToLower();
             
