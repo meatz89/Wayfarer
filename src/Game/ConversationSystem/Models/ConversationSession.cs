@@ -27,6 +27,11 @@ public class ConversationSession
     /// Cards currently in hand (managed as a deck)
     /// </summary>
     public HandDeck Hand { get; set; }
+    
+    /// <summary>
+    /// Convenience property for accessing hand cards (for UI display)
+    /// </summary>
+    public List<CardInstance> HandCards => Hand?.GetAllCards() ?? new List<CardInstance>();
 
     /// <summary>
     /// The NPC's conversation deck
@@ -170,7 +175,7 @@ public class ConversationSession
         }
 
         // Start with initial automatic card draw (no patience cost)
-        var handCards = new List<CardInstance>();
+        var hand = new HandDeck();
         bool goalCardDrawn = false;
         int? goalUrgencyCounter = null;
         
@@ -190,19 +195,19 @@ public class ConversationSession
         };
         
         var initialCards = tempSession.DrawCardsForState(initialState, initialDrawCount, Math.Abs(startingComfort));
-        handCards.AddRange(initialCards);
+        hand.AddCards(initialCards);
         
         // Add observation cards to initial hand if provided
         if (observationCards != null && observationCards.Any())
         {
-            handCards.AddRange(observationCards);
+            hand.AddCards(observationCards);
             Console.WriteLine($"[StartConversation] Added {observationCards.Count} observation cards to initial hand");
         }
         
-        Console.WriteLine($"[StartConversation] Drew {initialCards.Count} initial cards from deck, total hand size: {handCards.Count}");
+        Console.WriteLine($"[StartConversation] Drew {initialCards.Count} initial cards from deck, total hand size: {hand.Count}");
         
         // Check if we drew the goal card in initial draw
-        foreach (var card in handCards)
+        foreach (var card in hand.GetAllCards())
         {
             if (card.IsGoalCard)
             {
@@ -230,7 +235,7 @@ public class ConversationSession
 
                 // Load letter delivery cards from JSON templates based on letter properties
                 var deliveryCards = GetLetterDeliveryCards(lettersForDelivery, gameWorld);
-                handCards.AddRange(deliveryCards);
+                hand.AddCards(deliveryCards);
             }
         }
 
@@ -239,7 +244,7 @@ public class ConversationSession
             NPC = npc,
             ConversationType = conversationType,
             CurrentState = initialState,
-            HandCards = handCards,
+            Hand = hand,
             Deck = sessionDeck,  // Use the session deck
             CurrentPatience = totalPatience,
             MaxPatience = totalPatience,
@@ -255,7 +260,7 @@ public class ConversationSession
         };
 
         Console.WriteLine($"[StartConversation] Created session with comfort: {session.CurrentComfort} (expected: {startingComfort})");
-        Console.WriteLine($"[StartConversation] Initial state: {initialState}, Patience: {totalPatience}, Hand size: {handCards.Count}");
+        Console.WriteLine($"[StartConversation] Initial state: {initialState}, Patience: {totalPatience}, Hand size: {hand.Count}");
 
         return session;
     }
@@ -266,7 +271,7 @@ public class ConversationSession
     public static ConversationSession StartExchange(NPC npc, PlayerResourceState resourceState, TokenMechanicsManager tokenManager, List<string> spotDomainTags = null, ObligationQueueManager queueManager = null, GameWorld gameWorld = null)
     {
         // Exchange deck should already be initialized from Phase3
-        var handCards = new List<CardInstance>();
+        var hand = new HandDeck();
         var exchangeCards = new List<CardInstance>();
         
         // Get all available exchange cards from the NPC's deck
@@ -312,7 +317,7 @@ public class ConversationSession
                     }
                 }
             }
-            handCards.Add(exchangeCard);
+            hand.AddCard(exchangeCard);
         }
         
         // Check for letters that can be delivered through this NPC during exchange
@@ -333,7 +338,7 @@ public class ConversationSession
                 
                 // Load letter delivery cards from JSON templates based on letter properties
                 var deliveryCards = GetLetterDeliveryCards(lettersForDelivery, gameWorld);
-                exchangeCards.AddRange(deliveryCards);
+                hand.AddCards(deliveryCards);
             }
         }
         
@@ -346,7 +351,7 @@ public class ConversationSession
             NPC = npc,
             ConversationType = ConversationType.Commerce,
             CurrentState = EmotionalState.NEUTRAL, // No emotional states in exchanges
-            HandCards = handCards, // Contains offer + accept/decline response cards
+            Hand = hand, // Contains offer + accept/decline response cards
             Deck = new SessionCardDeck($"exchange_{DateTime.Now.Ticks}"), // Empty deck - exchanges use ExchangeDeck instead
             CurrentPatience = 1, // Single turn exchange
             MaxPatience = 1,
@@ -382,10 +387,7 @@ public class ConversationSession
         // Remove all opportunity cards EXCEPT observation cards and goal cards
         // Observation cards are Opportunity type but DON'T vanish on Listen - they decay over time instead
         // Goal cards NEVER vanish once drawn (they must be played within 3 turns)
-        HandCards.RemoveAll(c => 
-            c.Persistence == PersistenceType.Fleeting && 
-            !c.IsObservation && 
-            !c.IsGoalCard);
+        Hand.RemoveFleetingCards();
 
         // Get state rules
         var rules = ConversationRules.States[CurrentState];
@@ -406,7 +408,7 @@ public class ConversationSession
             }
         }
         
-        HandCards.AddRange(newCards);
+        Hand.AddCards(newCards);
 
         // Check for letters that can be delivered through this NPC during LISTEN
         if (queueManager != null)
@@ -432,7 +434,7 @@ public class ConversationSession
                 foreach (var letter in lettersForDelivery)
                 {
                     // Check if delivery card for this letter is already in hand
-                    var existingDeliveryCard = HandCards.FirstOrDefault(c => 
+                    var existingDeliveryCard = Hand.FirstOrDefault(c => 
                         c.CanDeliverLetter && c.DeliveryObligationId == letter.Id);
                     
                     // Load letter delivery cards from JSON templates if not already in hand
@@ -441,7 +443,7 @@ public class ConversationSession
                         var deliveryCard = GetLetterDeliveryCard(letter, gameWorld);
                         if (deliveryCard != null)
                         {
-                            HandCards.Add(deliveryCard);
+                            Hand.AddCard(deliveryCard);
                         }
                     }
                 }
@@ -496,7 +498,7 @@ public class ConversationSession
                     };
                     
                         var cardInstance = new CardInstance(conversationCard, $"goal_{DateTime.Now.Ticks}");
-                        HandCards.Add(cardInstance);
+                        Hand.AddCard(cardInstance);
                         Console.WriteLine($"[ExecuteListen] Added eligible letter: {conversationCard.DisplayName ?? conversationCard.Id} (Success: {successRate}%)");
                     }
                 }
@@ -605,20 +607,10 @@ public class ConversationSession
         }
 
         // Remove played cards from hand
-        foreach (var card in selectedCards)
-        {
-            HandCards.Remove(card);
-            
-            // Handle different persistence types
-            if (card.Persistence == PersistenceType.Fleeting)
-            {
-                Deck.RemoveCard(card); // Permanently remove
-            }
-            else
-            {
-                Deck.Discard(card); // Will return to deck later
-            }
-        }
+        Hand.RemoveCards(selectedCards);
+        
+        // Note: Cards are already removed from deck when drawn
+        // No need to handle persistence here - that was for the old architecture
 
         // Note: No depth advancement needed - comfort directly enables cards
 
@@ -717,7 +709,7 @@ public class ConversationSession
     /// </summary>
     public bool IsHandOverflowing()
     {
-        return HandCards.Count > 7;
+        return Hand.IsOverflowing;
     }
     
     /// <summary>
