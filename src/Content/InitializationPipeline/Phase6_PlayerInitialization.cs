@@ -198,24 +198,9 @@ public class Phase6_PlayerInitialization : IInitializationPhase
             player.ObservationDeck = new PlayerObservationDeck();
         }
         
-        // Add all observation cards to the player's deck
-        // In the full game, these would be gained through exploration
-        // For the POC, we give the player some starting observations
-        // Note: We need TimeManager to get current day/time for proper tracking
-        // Since this is initialization, we'll use day 1, Dawn
-        int cardsAdded = 0;
-        foreach (var card in observationCards.Take(3)) // Start with 3 observation cards
-        {
-            // Convert to ObservationCard if needed
-            var obsCard = card as ObservationCard ?? ObservationCard.FromConversationCard(card);
-            bool added = player.ObservationDeck.AddCard(obsCard, 1, TimeBlocks.Dawn);
-            if (added)
-            {
-                cardsAdded++;
-                Console.WriteLine($"  Added observation: {card.DisplayName}");
-            }
-        }
-        
-        Console.WriteLine($"  Player Observation Deck initialized with {cardsAdded} cards");
+        // CRITICAL FIX: Players start with EMPTY observation deck
+        // Observation cards must be EARNED by spending attention at locations
+        // They are NOT given for free at game start
+        Console.WriteLine("  Player starts with empty observation deck (cards must be earned through exploration)");
     }
 }

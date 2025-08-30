@@ -18,31 +18,6 @@
           "stakes": "SAFETY",
           "deadline": 73
         }
-      },
-      {
-        "id": "elena_letter_open",
-        "template": "LetterGoal",
-        "type": "Trust",
-        "category": "PROMISE",
-        "weight": 2,
-        "validStates": ["OPEN", "CONNECTED"],
-        "letterContent": {
-          "subject": "Personal Letter",
-          "recipient": "Sister Anna",
-          "recipientLocation": "temple_district",
-          "urgency": "medium",
-          "stakes": "STATUS",
-          "deadline": 720
-        }
-      },
-      {
-        "id": "clear_air_elena",
-        "template": "ResolutionGoal",
-        "type": "Trust",
-        "category": "PROMISE",
-        "weight": 1,
-        "validStates": ["ANY"],
-        "requirement": "2+ burden cards in conversation deck"
       }
     ],
     "marcus": [

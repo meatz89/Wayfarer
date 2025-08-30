@@ -50,6 +50,16 @@
 			"drawableStates": ["TENSE", "NEUTRAL", "OVERWHELMED", "CONNECTED"],
 			"description": "Share observed information about guard positions"
 		},
+		"GenericObservation": {
+			"type": "COMFORT",
+			"weight": 1,
+			"baseComfort": 1,
+			"persistence": "Opportunity",
+			"connectionType": "Trust",
+			"isObservation": true,
+			"drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN", "CONNECTED"],
+			"description": "Share an observation about your surroundings"
+		},
 		"CalmReassurance": {
 			"type": "STATE",
 			"weight": 1,
