@@ -25,7 +25,6 @@ public class ConversationFacade
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
-    private readonly ConversationManager _conversationManager;
     
     private ConversationSession _currentSession;
     private ConversationOutcome _lastOutcome;
@@ -44,8 +43,7 @@ public class ConversationFacade
         TimeManager timeManager,
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem,
-        TimeBlockAttentionManager timeBlockAttentionManager,
-        ConversationManager conversationManager)
+        TimeBlockAttentionManager timeBlockAttentionManager)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
@@ -61,7 +59,6 @@ public class ConversationFacade
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _timeBlockAttentionManager = timeBlockAttentionManager ?? throw new ArgumentNullException(nameof(timeBlockAttentionManager));
-        _conversationManager = conversationManager ?? throw new ArgumentNullException(nameof(conversationManager));
     }
 
     /// <summary>
@@ -400,6 +397,83 @@ public class ConversationFacade
     }
 
     /// <summary>
+    /// Execute LISTEN action in current conversation
+    /// </summary>
+    public void ExecuteListen()
+    {
+        if (!IsConversationActive())
+        {
+            throw new InvalidOperationException("No active conversation");
+        }
+
+        var result = ProcessAction(new ConversationAction
+        {
+            ActionType = ActionType.Listen,
+            SelectedCards = new HashSet<CardInstance>()
+        });
+    }
+
+    /// <summary>
+    /// Execute SPEAK action with selected cards
+    /// </summary>
+    public async Task<CardPlayResult> ExecuteSpeak(HashSet<CardInstance> selectedCards)
+    {
+        if (!IsConversationActive())
+        {
+            throw new InvalidOperationException("No active conversation");
+        }
+
+        var result = ProcessAction(new ConversationAction
+        {
+            ActionType = ActionType.Speak,
+            SelectedCards = selectedCards
+        });
+
+        // Convert ConversationTurnResult to CardPlayResult for backward compatibility
+        var cardPlayResult = new CardPlayResult
+        {
+            TotalComfort = result.ComfortChange ?? 0,
+            Results = selectedCards.Select(card => new SingleCardResult
+            {
+                Card = card,
+                Success = result.Success,
+                Comfort = (result.ComfortChange ?? 0) / Math.Max(1, selectedCards.Count), // Distribute comfort evenly
+                Roll = 50, // Default roll value
+                SuccessChance = 75, // Default success chance
+                PatienceAdded = 0
+            }).ToList(),
+            NewState = result.NewState,
+            SetBonus = 0,
+            ConnectedBonus = 0,
+            EagerBonus = 0,
+            DeliveredLetter = false,
+            ManipulatedObligations = false,
+            LetterNegotiations = new List<LetterNegotiationResult>()
+        };
+
+        return cardPlayResult;
+    }
+
+    /// <summary>
+    /// Check if a card can be selected given current selection
+    /// </summary>
+    public bool CanSelectCard(CardInstance card, HashSet<CardInstance> currentSelection)
+    {
+        if (!IsConversationActive())
+            return false;
+
+        // Can't select if already selected
+        if (currentSelection.Contains(card))
+            return true; // Can deselect
+
+        // Check weight limit
+        var currentWeight = currentSelection.Sum(c => c.GetEffectiveWeight(_currentSession.CurrentState));
+        var newWeight = currentWeight + card.GetEffectiveWeight(_currentSession.CurrentState);
+        
+        return newWeight <= _currentSession.CurrentComfort;
+    }
+
+    /// <summary>
     /// Handle special card effects like exchanges and letter delivery
     /// </summary>
     private void HandleSpecialCardEffects(HashSet<CardInstance> playedCards, ConversationTurnResult result)
@@ -478,11 +552,4 @@ public class ConversationFacade
         };
     }
     
-    /// <summary>
-    /// Get the underlying ConversationManager for backward compatibility
-    /// </summary>
-    public ConversationManager GetConversationManager()
-    {
-        return _conversationManager;
-    }
 }

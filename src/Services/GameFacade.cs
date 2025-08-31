@@ -42,7 +42,6 @@ public class GameFacade
     private readonly ActionGenerator _actionGenerator;
     private readonly BindingObligationSystem _bindingObligationSystem;
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
-    private readonly NPCDeckFactory _deckFactory;
     private readonly DialogueGenerationService _dialogueGenerator;
     private readonly NarrativeRenderer _narrativeRenderer;
     private readonly AccessRequirementChecker _accessChecker;
@@ -71,7 +70,6 @@ public class GameFacade
         ObservationManager observationManager,
         BindingObligationSystem bindingObligationSystem,
         TimeBlockAttentionManager timeBlockAttentionManager,
-        NPCDeckFactory deckFactory,
         DialogueGenerationService dialogueGenerator,
         NarrativeRenderer narrativeRenderer,
         AccessRequirementChecker accessChecker,
@@ -103,7 +101,6 @@ public class GameFacade
         Console.WriteLine($"[GameFacade] Constructor - ObservationSystem null? {observationSystem == null}");
         _bindingObligationSystem = bindingObligationSystem;
         _timeBlockAttentionManager = timeBlockAttentionManager;
-        _deckFactory = deckFactory;
         _dialogueGenerator = dialogueGenerator;
         _narrativeRenderer = narrativeRenderer;
         _accessChecker = accessChecker;
@@ -256,13 +253,6 @@ public class GameFacade
     public LocationSpot GetCurrentLocationSpot()
     {
         return _locationFacade.GetCurrentLocationSpot();
-    }
-    
-    public ConversationManager GetConversationManager()
-    {
-        // Return the underlying ConversationManager from the facade for backward compatibility
-        // This should be removed once all UI components are updated to use ConversationFacade directly
-        return _conversationFacade.GetConversationManager();
     }
     
     public Location GetLocationById(string locationId)

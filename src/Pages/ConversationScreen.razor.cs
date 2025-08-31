@@ -40,8 +40,7 @@ namespace Wayfarer.Pages
                 var observationCards = GetObservationCards();
                 
                 // Start the conversation with the specified type
-                var conversationManager = GameFacade.GetConversationManager();
-                Session = conversationManager.StartConversation(NpcId, ConversationType, observationCards);
+                Session = ConversationFacade.StartConversation(NpcId, ConversationType, observationCards);
             }
             catch (Exception ex)
             {
@@ -72,8 +71,7 @@ namespace Wayfarer.Pages
             {
                 // Check if we can add this card
                 var tempSelection = new HashSet<CardInstance>(SelectedCards) { card };
-                var conversationManager = GameFacade.GetConversationManager();
-                if (conversationManager.CanSelectCard(card, SelectedCards))
+                if (ConversationFacade.CanSelectCard(card, SelectedCards))
                 {
                     SelectedCards.Add(card);
                 }
@@ -84,15 +82,13 @@ namespace Wayfarer.Pages
         protected bool CanSelectCard(CardInstance card)
         {
             if (SelectedAction != ActionType.Speak) return false;
-            var conversationManager = GameFacade.GetConversationManager();
-            return conversationManager.CanSelectCard(card, SelectedCards);
+            return ConversationFacade.CanSelectCard(card, SelectedCards);
         }
 
         protected async Task ExecuteAction()
         {
             // Check if session is still active
-            var conversationManager = GameFacade.GetConversationManager();
-            if (Session == null || !conversationManager.IsConversationActive)
+            if (Session == null || !ConversationFacade.IsConversationActive())
             {
                 Console.WriteLine("[ConversationScreen] No active session, returning to location");
                 await OnConversationEnd.InvokeAsync();
@@ -101,19 +97,19 @@ namespace Wayfarer.Pages
             
             if (SelectedAction == ActionType.Listen)
             {
-                conversationManager.ExecuteListen();
+                ConversationFacade.ExecuteListen();
                 SelectedCards.Clear();
             }
             else if (SelectedAction == ActionType.Speak && SelectedCards.Any())
             {
-                LastResult = await conversationManager.ExecuteSpeak(SelectedCards);
+                LastResult = await ConversationFacade.ExecuteSpeak(SelectedCards);
                 SelectedCards.Clear();
             }
 
             SelectedAction = ActionType.None;
             
             // Check if conversation ended
-            if (!conversationManager.IsConversationActive)
+            if (!ConversationFacade.IsConversationActive())
             {
                 var outcome = Session.CheckThresholds();
                 // Show outcome and navigate back

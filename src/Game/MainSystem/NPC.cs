@@ -66,11 +66,6 @@ public class NPC
 
     // Daily exchange selection (removed - handled by GetTodaysExchange method)
 
-    // Initialize conversation deck with proper cards
-    public void InitializeConversationDeck(NPCDeckFactory deckFactory)
-    {
-        ConversationDeck ??= deckFactory.CreateDeckForNPC(this);
-    }
     
     // Initialize goal deck from content repository
     public void InitializeGoalDeck(List<ConversationCard> goalCards = null)

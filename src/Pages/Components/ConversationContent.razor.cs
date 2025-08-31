@@ -170,10 +170,7 @@ namespace Wayfarer.Pages.Components
                     messageSystem.AddSystemMessage(message, SystemMessageTypes.Info);
                 }
                 
-                // CRITICAL: Must use ConversationManager.ExecuteListen to properly handle letter delivery cards
-                // The ConversationManager will pass the correct managers to the session
-                var conversationManager = GameFacade.GetConversationManager();
-            conversationManager.ExecuteListen();
+                ConversationFacade.ExecuteListen();
                 
                 // Generate narrative for the action
                 GenerateListenNarrative();
@@ -257,8 +254,7 @@ namespace Wayfarer.Pages.Components
                 
                 // ExecuteSpeak expects HashSet<ConversationCard>
                 // CRITICAL: Must use ConversationManager.ExecuteSpeak to handle special card effects like letter delivery
-                var conversationManager = GameFacade.GetConversationManager();
-                var result = await conversationManager.ExecuteSpeak(SelectedCards);
+                var result = await ConversationFacade.ExecuteSpeak(SelectedCards);
                 ProcessSpeakResult(result);
                 
                 // Add detailed notification for result
@@ -660,8 +656,7 @@ namespace Wayfarer.Pages.Components
             // End the conversation properly to calculate and award tokens
             if (Session != null)
             {
-                var conversationManager = GameFacade.GetConversationManager();
-                var outcome = conversationManager.EndConversation();
+                var outcome = ConversationFacade.EndConversation();
                 Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Comfort={outcome.TotalComfort}, TokensEarned={outcome.TokensEarned}");
             }
             
@@ -677,8 +672,7 @@ namespace Wayfarer.Pages.Components
             // End the conversation properly to calculate and award tokens
             if (Session != null)
             {
-                var conversationManager = GameFacade.GetConversationManager();
-                var outcome = conversationManager.EndConversation();
+                var outcome = ConversationFacade.EndConversation();
                 Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Comfort={outcome.TotalComfort}, TokensEarned={outcome.TokensEarned}");
             }
             
