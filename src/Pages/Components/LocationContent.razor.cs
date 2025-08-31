@@ -59,14 +59,14 @@ namespace Wayfarer.Pages.Components
                     var options = new List<ConversationOptionViewModel>();
                     
                     // Get ACTUAL available conversation types from ConversationManager
-                    var conversationManager = GameFacade.GetConversationManager();
-                    var availableTypes = conversationManager.GetAvailableConversationTypes(npc);
+                    var conversationFacade = GameFacade.GetConversationFacade();
+                    var availableTypes = conversationFacade.GetAvailableConversationTypes(npc);
                     
                     // Add each available type as an option
                     foreach (var type in availableTypes)
                     {
                         // Get attention cost from backend mechanics
-                        var attentionCost = conversationManager.GetConversationAttentionCost(type);
+                        var attentionCost = conversationFacade.GetConversationAttentionCost(type);
                         
                         var option = new ConversationOptionViewModel
                         {

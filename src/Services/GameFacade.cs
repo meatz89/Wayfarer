@@ -17,6 +17,7 @@ public class GameFacade
     private readonly MessageSystem _messageSystem;
     private readonly IGameRuleEngine _ruleEngine;
     private readonly Wayfarer.Subsystems.LocationSubsystem.LocationFacade _locationFacade;
+    private readonly Wayfarer.Subsystems.ObligationSubsystem.ObligationFacade _obligationFacade;
 
 
     // Managers
@@ -74,7 +75,8 @@ public class GameFacade
         DialogueGenerationService dialogueGenerator,
         NarrativeRenderer narrativeRenderer,
         AccessRequirementChecker accessChecker,
-        Wayfarer.Subsystems.LocationSubsystem.LocationFacade locationFacade
+        Wayfarer.Subsystems.LocationSubsystem.LocationFacade locationFacade,
+        Wayfarer.Subsystems.ObligationSubsystem.ObligationFacade obligationFacade
 )
     {
         _gameWorld = gameWorld;
@@ -106,6 +108,7 @@ public class GameFacade
         _narrativeRenderer = narrativeRenderer;
         _accessChecker = accessChecker;
         _locationFacade = locationFacade;
+        _obligationFacade = obligationFacade;
     }
 
     // ========== ATTENTION STATE ACCESS ==========
@@ -149,7 +152,7 @@ public class GameFacade
         }
 
         // Update letter deadlines when time advances
-        _letterQueueManager.ProcessHourlyDeadlines(hours);
+        _obligationFacade.ProcessHourlyDeadlines(hours);
 
         // Process carried information letters after time change
         // Information revelation handled through other systems now
@@ -190,7 +193,7 @@ public class GameFacade
         // Update letter deadlines when time advances (even partial hours)
         if (hours > 0)
         {
-            _letterQueueManager.ProcessHourlyDeadlines(hours);
+            _obligationFacade.ProcessHourlyDeadlines(hours);
         }
 
         // Process carried information letters after time change
@@ -559,7 +562,7 @@ public class GameFacade
     /// </summary>
     public QueueDisplacementPreview GetDisplacementPreview(string obligationId, int targetPosition)
     {
-        return _letterQueueManager.GetDisplacementPreview(obligationId, targetPosition);
+        return _obligationFacade.GetDisplacementPreview(obligationId, targetPosition);
     }
 
     /// <summary>
@@ -571,7 +574,7 @@ public class GameFacade
         
         try
         {
-            var displacementResult = _letterQueueManager.TryDisplaceObligation(obligationId, targetPosition);
+            var displacementResult = _obligationFacade.TryDisplaceObligation(obligationId, targetPosition);
             
             if (!displacementResult.CanExecute)
             {
@@ -582,7 +585,8 @@ public class GameFacade
                 return false;
             }
 
-            return _letterQueueManager.ExecuteDisplacement(displacementResult);
+            var result = _obligationFacade.ExecuteDisplacement(displacementResult);
+            return result.CanExecute;
         }
         catch (Exception ex)
         {
@@ -596,7 +600,7 @@ public class GameFacade
     private string GetNPCDescription(NPC npc, EmotionalState state)
     {
         // Check if NPC has urgent letter
-        var obligations = _letterQueueManager.GetActiveObligations();
+        var obligations = _obligationFacade.GetActiveObligations();
         var hasUrgentLetter = obligations.Any(o => 
             (o.SenderId == npc.ID || o.SenderName == npc.Name) && 
             o.DeadlineInMinutes < 360);
@@ -761,7 +765,7 @@ public class GameFacade
         {
             var descGenerator = new Wayfarer.Game.MainSystem.SpotDescriptionGenerator();
             var activeProperties = spot.GetActiveProperties(_timeManager.GetCurrentTimeBlock());
-            var urgentObligations = _letterQueueManager.GetActiveObligations()
+            var urgentObligations = _obligationFacade.GetActiveObligations()
                 .Count(o => o.DeadlineInMinutes < 360);
             var npcsPresent = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, _timeManager.GetCurrentTimeBlock()).Count();
             
@@ -1148,7 +1152,7 @@ public class GameFacade
         player.TotalLettersDelivered++;
 
         // Remove letter from queue
-        _letterQueueManager.RemoveLetterFromQueue(letterPosition);
+        _obligationFacade.RemoveObligationFromQueue(letterPosition);
 
         // Final message
         _messageSystem.AddSystemMessage($"Successfully delivered letter to {recipient.Name}!", SystemMessageTypes.Success);
@@ -2330,7 +2334,7 @@ public class GameFacade
         var conversationSession = _conversationFacade.StartConversation(npcId, conversationType, observationCards);
         
         // Get letters the player is carrying for this NPC
-        var lettersForNpc = _letterQueueManager.GetActiveObligations()
+        var lettersForNpc = _obligationFacade.GetActiveObligations()
             .Where(o => o.RecipientId == npc.ID || o.RecipientName == npc.Name)
             .ToList();
         Console.WriteLine($"[GameFacade] Player is carrying {lettersForNpc.Count} letters for {npc.Name}");
@@ -2574,8 +2578,8 @@ public class GameFacade
         // Build queue slots
         for (int position = 1; position <= 8; position++)
         {
-            DeliveryObligation? obligation = _letterQueueManager.GetLetterAt(position);
-            bool canSkip = position > 1 && obligation != null && _letterQueueManager.GetLetterAt(1) == null;
+            DeliveryObligation? obligation = _obligationFacade.GetLetterAt(position);
+            bool canSkip = position > 1 && obligation != null && _obligationFacade.GetLetterAt(1) == null;
 
             // Calculate skip action details
             SkipActionViewModel? skipAction = null;
@@ -3288,7 +3292,7 @@ public class GameFacade
             return -1;
 
         // Delegate to ObligationQueueManager for proper queue management
-        return _letterQueueManager.AddLetterWithObligationEffects(letter);
+        return _obligationFacade.AddLetterWithObligationEffects(letter);
     }
 
     public bool IsActionForbidden(string actionType, DeliveryObligation letter, out string reason)

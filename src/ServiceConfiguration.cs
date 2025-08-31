@@ -131,6 +131,15 @@ public static class ServiceConfiguration
         services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationActionManager>();
         services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationNarrativeGenerator>();
         services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationFacade>();
+        
+        // Obligation Subsystem
+        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.DeliveryManager>();
+        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.MeetingManager>();
+        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.QueueManipulator>();
+        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.DisplacementCalculator>();
+        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.DeadlineTracker>();
+        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.ObligationStatistics>();
+        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.ObligationFacade>();
 
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();
