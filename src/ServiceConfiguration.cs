@@ -117,6 +117,15 @@ public static class ServiceConfiguration
         services.AddScoped<MusicService>();
         services.AddScoped<TimeImpactCalculator>();
 
+        // Location Subsystem
+        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationManager>();
+        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationSpotManager>();
+        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.MovementValidator>();
+        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.NPCLocationTracker>();
+        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationActionManager>();
+        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationNarrativeGenerator>();
+        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationFacade>();
+
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();
         services.AddSingleton<NPCService>();

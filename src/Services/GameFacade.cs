@@ -16,6 +16,7 @@ public class GameFacade
     private readonly TimeManager _timeManager;
     private readonly MessageSystem _messageSystem;
     private readonly IGameRuleEngine _ruleEngine;
+    private readonly Wayfarer.Subsystems.LocationSubsystem.LocationFacade _locationFacade;
 
 
     // Managers
@@ -76,7 +77,8 @@ public class GameFacade
         NPCDeckFactory deckFactory,
         DialogueGenerationService dialogueGenerator,
         NarrativeRenderer narrativeRenderer,
-        AccessRequirementChecker accessChecker
+        AccessRequirementChecker accessChecker,
+        Wayfarer.Subsystems.LocationSubsystem.LocationFacade locationFacade
 )
     {
         _gameWorld = gameWorld;
@@ -109,6 +111,7 @@ public class GameFacade
         _dialogueGenerator = dialogueGenerator;
         _narrativeRenderer = narrativeRenderer;
         _accessChecker = accessChecker;
+        _locationFacade = locationFacade;
     }
 
     // ========== ATTENTION STATE ACCESS ==========
@@ -250,14 +253,12 @@ public class GameFacade
 
     public Location GetCurrentLocation()
     {
-        Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocationSpot == null) return null;
-        return _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
+        return _locationFacade.GetCurrentLocation();
     }
     
     public LocationSpot GetCurrentLocationSpot()
     {
-        return _gameWorld.GetPlayer().CurrentLocationSpot;
+        return _locationFacade.GetCurrentLocationSpot();
     }
 
     /// <summary>
@@ -268,88 +269,7 @@ public class GameFacade
     /// <returns>True if movement successful, false otherwise</returns>
     public bool MoveToSpot(string spotName)
     {
-        // VALIDATION: Check inputs
-        if (string.IsNullOrEmpty(spotName))
-        {
-            _messageSystem.AddSystemMessage("Invalid spot name", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // STATE CHECK: Get current location and player
-        Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocationSpot == null)
-        {
-            _messageSystem.AddSystemMessage("Cannot determine current location", SystemMessageTypes.Danger);
-            return false;
-        }
-
-        Location currentLocation = _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
-        if (currentLocation == null)
-        {
-            _messageSystem.AddSystemMessage("Current location not found", SystemMessageTypes.Danger);
-            return false;
-        }
-
-        // EDGE CASE: Check if already at target spot
-        if (player.CurrentLocationSpot.Name == spotName || player.CurrentLocationSpot.SpotID == spotName)
-        {
-            // Already at this spot - no-op success
-            return true;
-        }
-
-        // SPOT RESOLUTION: Find target spot in current location
-        LocationSpot targetSpot = null;
-        
-        // First check AvailableSpots in the Location object
-        if (currentLocation.AvailableSpots != null)
-        {
-            targetSpot = currentLocation.AvailableSpots.FirstOrDefault(s => 
-                s.Name == spotName || s.SpotID == spotName);
-        }
-        
-        // If not found, check the location spot repository for spots in this location
-        if (targetSpot == null)
-        {
-            List<LocationSpot> spotsInLocation = _locationSpotRepository.GetSpotsForLocation(currentLocation.Id);
-            targetSpot = spotsInLocation?.FirstOrDefault(s => 
-                s.Name == spotName || s.SpotID == spotName);
-        }
-
-        // VALIDATION: Target spot must exist and be in current location
-        if (targetSpot == null)
-        {
-            _messageSystem.AddSystemMessage($"Spot '{spotName}' not found in {currentLocation.Name}", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // VALIDATION: Verify spot belongs to current location
-        if (targetSpot.LocationId != currentLocation.Id)
-        {
-            _messageSystem.AddSystemMessage($"Spot '{spotName}' is not in current location", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // ACCESS CHECK: Check if spot has access requirements
-        if (targetSpot.AccessRequirement != null)
-        {
-            AccessCheckResult accessCheck = _accessChecker.CheckSpotAccess(targetSpot);
-            if (!accessCheck.IsAllowed)
-            {
-                _messageSystem.AddSystemMessage(accessCheck.BlockedMessage ?? "Cannot access this spot", SystemMessageTypes.Warning);
-                return false;
-            }
-        }
-
-        // STATE TRANSITION: Update player location
-        player.CurrentLocationSpot = targetSpot;
-        
-        // NOTIFICATION: Inform player of successful movement
-        _messageSystem.AddSystemMessage($"Moved to {targetSpot.Name}", SystemMessageTypes.Info);
-        
-        // DISCOVERY: Track that player has visited this spot
-        player.AddKnownLocationSpot(targetSpot.SpotID);
-        
-        return true;
+        return _locationFacade.MoveToSpot(spotName);
     }
 
     /// <summary>
@@ -463,89 +383,7 @@ public class GameFacade
 
     public LocationScreenViewModel GetLocationScreen()
     {
-        Console.WriteLine("[GameFacade.GetLocationScreen] Starting...");
-        Player player = _gameWorld.GetPlayer();
-        Location location = GetCurrentLocation();
-        LocationSpot spot = GetCurrentLocationSpot();
-        Console.WriteLine($"[GameFacade.GetLocationScreen] Location: {location?.Name}, Spot: {spot?.Name} ({spot?.SpotID})");
-        
-        var viewModel = new LocationScreenViewModel
-        {
-            CurrentTime = _timeManager.GetFormattedTimeDisplay(),
-            DeadlineTimer = GetNextDeadlineDisplay(),
-            LocationPath = BuildLocationPath(location, spot),
-            LocationName = location?.Name ?? "Unknown Location",
-            CurrentSpotName = spot?.Name,
-            LocationTraits = GetLocationTraits(location, spot),
-            AtmosphereText = GenerateAtmosphereText(spot, location),
-            QuickActions = new List<LocationActionViewModel>(),
-            NPCsPresent = new List<NPCPresenceViewModel>(),
-            Observations = new List<ObservationViewModel>(),
-            AreasWithinLocation = new List<AreaWithinLocationViewModel>(),
-            Routes = new List<RouteOptionViewModel>()
-        };
-        
-        if (location != null && spot != null)
-        {
-            // Add location-specific actions
-            viewModel.QuickActions = GetLocationActions(location, spot);
-            
-            // Add NPCs with emotional states
-            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-            Console.WriteLine($"[GameFacade.GetLocationScreen] Looking for NPCs at {spot.SpotID} during {currentTime}");
-            var npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
-            Console.WriteLine($"[GameFacade.GetLocationScreen] Found {npcs.Count} NPCs");
-            
-            foreach (var npc in npcs)
-            {
-                var emotionalState = GetNPCEmotionalState(npc);
-                
-                // Get available conversation types for this NPC
-                var availableConversationTypes = _conversationManager.GetAvailableConversationTypes(npc);
-                var interactions = new List<InteractionOptionViewModel>();
-                
-                // Generate interaction options based on available conversation types
-                foreach (var conversationType in availableConversationTypes)
-                {
-                    var interaction = GenerateConversationInteraction(npc, conversationType, emotionalState);
-                    if (interaction != null)
-                    {
-                        interactions.Add(interaction);
-                    }
-                }
-                
-                // If no interactions available (e.g., hostile NPC), show why
-                if (!interactions.Any())
-                {
-                    interactions.Add(new InteractionOptionViewModel
-                    {
-                        Text = emotionalState == EmotionalState.HOSTILE ? "Too hostile to approach" : "No interactions available",
-                        Cost = "—"
-                    });
-                }
-                
-                viewModel.NPCsPresent.Add(new NPCPresenceViewModel
-                {
-                    Id = npc.ID,
-                    Name = npc.Name,
-                    EmotionalStateName = emotionalState.ToString(),
-                    Description = GetNPCDescription(npc, emotionalState),
-                    Interactions = interactions
-                });
-            }
-            
-            // Add observations (filtered by current spot)
-            viewModel.Observations = GetLocationObservations(location.Id, spot.SpotID);
-            
-            // Add areas within location
-            viewModel.AreasWithinLocation = GetAreasWithinLocation(location, spot);
-            
-            // Add routes to other locations
-            viewModel.Routes = GetRoutesFromLocation(location);
-        }
-        
-        Console.WriteLine($"[GameFacade.GetLocationScreen] Returning viewModel with {viewModel.NPCsPresent.Count} NPCs");
-        return viewModel;
+        return _locationFacade.GetLocationScreen();
     }
     
     private InteractionOptionViewModel GenerateConversationInteraction(NPC npc, ConversationType conversationType, EmotionalState emotionalState)
@@ -2850,12 +2688,7 @@ public class GameFacade
     
     public void RefreshLocationState()
     {
-        // Refresh current location state
-        var player = _gameWorld.GetPlayer();
-        if (player.CurrentLocationSpot != null)
-        {
-            _messageSystem.AddSystemMessage("Location refreshed", SystemMessageTypes.Info);
-        }
+        _locationFacade.RefreshLocationState();
     }
 
     public async Task<bool> EndConversationAsync()
@@ -3399,16 +3232,12 @@ public class GameFacade
     
     public List<NPC> GetNPCsAtLocation(string locationId)
     {
-        return _gameWorld.NPCs.Where(n => n.Location == locationId).ToList();
+        return _locationFacade.GetNPCsAtLocation(locationId);
     }
 
     public List<NPC> GetNPCsAtCurrentSpot()
     {
-        var player = _gameWorld.GetPlayer();
-        if (player?.CurrentLocationSpot == null) return new List<NPC>();
-        
-        var currentTime = _timeManager.GetCurrentTimeBlock();
-        return _npcRepository.GetNPCsForLocationSpotAndTime(player.CurrentLocationSpot.SpotID, currentTime);
+        return _locationFacade.GetNPCsAtCurrentSpot();
     }
 
     // ========== LETTER QUEUE MANAGEMENT ==========
