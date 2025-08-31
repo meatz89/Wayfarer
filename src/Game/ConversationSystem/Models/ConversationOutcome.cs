@@ -49,6 +49,11 @@ public class ConversationOutcome
     /// The tier of letter unlocked (Simple/Important/Urgent/Critical)
     /// </summary>
     public string LetterTier { get; set; }
+    
+    /// <summary>
+    /// Whether a goal card was successfully played
+    /// </summary>
+    public bool GoalAchieved { get; set; }
 
     /// <summary>
     /// Get summary text for the outcome

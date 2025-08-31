@@ -33,6 +33,7 @@ public class GameFacade
     private readonly ItemRepository _itemRepository;
     private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly ConversationManager _conversationManager;
+    private readonly ConversationFacade _conversationFacade;
     private readonly GameConfiguration _gameConfiguration;
     private readonly StandingObligationManager _standingObligationManager;
     private readonly StandingObligationRepository _standingObligationRepository;
@@ -63,6 +64,7 @@ public class GameFacade
         ItemRepository itemRepository,
         TokenMechanicsManager connectionTokenManager,
         ConversationManager conversationManager,
+        ConversationFacade conversationFacade,
         GameConfiguration gameConfiguration,
         StandingObligationManager standingObligationManager,
         StandingObligationRepository standingObligationRepository,
@@ -95,6 +97,7 @@ public class GameFacade
         _itemRepository = itemRepository;
         _connectionTokenManager = connectionTokenManager;
         _conversationManager = conversationManager;
+        _conversationFacade = conversationFacade;
         _gameConfiguration = gameConfiguration;
         _standingObligationManager = standingObligationManager;
         _standingObligationRepository = standingObligationRepository;
@@ -2230,6 +2233,13 @@ public class GameFacade
 
     public async Task<ConversationContext> CreateConversationContext(string npcId, ConversationType conversationType = ConversationType.FriendlyChat)
     {
+        // Delegate to ConversationFacade if available
+        if (_conversationFacade != null)
+        {
+            return await _conversationFacade.CreateConversationContext(npcId, conversationType);
+        }
+        
+        // Fallback to original implementation for backward compatibility
         // Create conversation context with all data needed atomically
         // This prevents race conditions and ensures complete data before navigation
         
@@ -2693,11 +2703,24 @@ public class GameFacade
 
     public async Task<bool> EndConversationAsync()
     {
-        // End any active conversation
-        if (_conversationManager.IsConversationActive)
+        // Delegate to ConversationFacade if available
+        if (_conversationFacade != null)
         {
-            _conversationManager.EndConversation();
-            _messageSystem.AddSystemMessage("Conversation ended", SystemMessageTypes.Info);
+            if (_conversationFacade.IsConversationActive())
+            {
+                _conversationFacade.EndConversation();
+                _messageSystem.AddSystemMessage("Conversation ended", SystemMessageTypes.Info);
+            }
+        }
+        else
+        {
+            // Fallback to original implementation
+            // End any active conversation
+            if (_conversationManager.IsConversationActive)
+            {
+                _conversationManager.EndConversation();
+                _messageSystem.AddSystemMessage("Conversation ended", SystemMessageTypes.Info);
+            }
         }
         return await Task.FromResult(true);
     }

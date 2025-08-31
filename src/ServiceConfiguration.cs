@@ -79,6 +79,16 @@ public static class ServiceConfiguration
         services.AddSingleton<ConversationManager>();
         services.AddSingleton<NPCDeckFactory>();
         
+        // ConversationSubsystem services
+        services.AddSingleton<CardDeckManager>();
+        services.AddSingleton<EmotionalStateManager>();
+        services.AddSingleton<ComfortManager>();
+        services.AddSingleton<DialogueGenerator>();
+        services.AddSingleton<ExchangeHandler>();
+        services.AddSingleton<ConversationStateTracker>();
+        services.AddSingleton<ConversationOrchestrator>();
+        services.AddSingleton<ConversationFacade>();
+        
         // Dialogue generation services (NO hardcoded text)
         services.AddSingleton<DialogueGenerationService>(provider => 
             new DialogueGenerationService(Path.Combine("Content", "Templates")));

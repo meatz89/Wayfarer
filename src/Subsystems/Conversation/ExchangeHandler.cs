@@ -1,0 +1,325 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+/// <summary>
+/// Handles exchange system for Commerce conversations.
+/// Manages resource trades and exchange validation.
+/// </summary>
+public class ExchangeHandler
+{
+    private readonly TimeManager _timeManager;
+    private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
+    private readonly TokenMechanicsManager _tokenManager;
+    private readonly MessageSystem _messageSystem;
+
+    public ExchangeHandler(
+        TimeManager timeManager,
+        TimeBlockAttentionManager timeBlockAttentionManager,
+        TokenMechanicsManager tokenManager,
+        MessageSystem messageSystem)
+    {
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
+        _timeBlockAttentionManager = timeBlockAttentionManager ?? throw new ArgumentNullException(nameof(timeBlockAttentionManager));
+        _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
+        _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+    }
+
+    /// <summary>
+    /// Execute an exchange with an NPC
+    /// </summary>
+    public bool ExecuteExchange(ExchangeData exchange, NPC npc, Player player, PlayerResourceState playerResources)
+    {
+        Console.WriteLine($"[ExchangeHandler] Executing exchange: {exchange?.ExchangeName ?? "NULL"}");
+        
+        if (exchange == null)
+        {
+            Console.WriteLine("[ExchangeHandler] Exchange is null");
+            return false;
+        }
+        
+        // Validate player can afford
+        if (!CanAffordExchange(exchange, playerResources))
+        {
+            _messageSystem.AddSystemMessage("You don't have enough resources for this exchange", SystemMessageTypes.Warning);
+            return false;
+        }
+        
+        // Apply costs
+        if (!ApplyCosts(exchange, player, npc))
+        {
+            Console.WriteLine("[ExchangeHandler] Failed to apply costs");
+            return false;
+        }
+        
+        // Apply rewards
+        ApplyRewards(exchange, player, npc);
+        
+        // Generate success message
+        var exchangeName = GetExchangeName(exchange);
+        _messageSystem.AddSystemMessage($"You {exchangeName} with {npc.Name}", SystemMessageTypes.Success);
+        
+        // Handle time advancement for work exchanges
+        if (ShouldAdvanceTime(exchange))
+        {
+            _timeManager.AdvanceTime(1);
+            _messageSystem.AddSystemMessage("Time passes as you work...", SystemMessageTypes.Info);
+        }
+        
+        Console.WriteLine($"[ExchangeHandler] Successfully completed exchange {exchange.ExchangeName}");
+        return true;
+    }
+
+    /// <summary>
+    /// Validate if player can afford exchange
+    /// </summary>
+    public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources)
+    {
+        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        var currentAttention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        
+        return exchange.CanAfford(playerResources, _tokenManager, currentAttention);
+    }
+
+    /// <summary>
+    /// Get available exchanges for NPC at location
+    /// </summary>
+    public List<ExchangeOption> GetAvailableExchanges(NPC npc, List<string> spotDomainTags, PlayerResourceState playerResources)
+    {
+        var exchanges = new List<ExchangeOption>();
+        
+        if (npc.ExchangeDeck == null || !npc.ExchangeDeck.HasCardsAvailable())
+            return exchanges;
+        
+        foreach (var card in npc.ExchangeDeck.GetAllCards())
+        {
+            if (card.Context?.ExchangeData == null)
+                continue;
+            
+            // Check domain requirements
+            if (!CheckDomainRequirements(card, spotDomainTags))
+                continue;
+            
+            var exchange = card.Context.ExchangeData;
+            var canAfford = CanAffordExchange(exchange, playerResources);
+            
+            exchanges.Add(new ExchangeOption
+            {
+                ExchangeId = card.TemplateId,
+                Name = exchange.ExchangeName ?? GetExchangeName(exchange),
+                Description = card.Description,
+                Cost = FormatCost(exchange.Cost),
+                Reward = FormatReward(exchange.Reward),
+                CanAfford = canAfford,
+                ExchangeData = exchange
+            });
+        }
+        
+        return exchanges;
+    }
+
+    /// <summary>
+    /// Apply exchange costs to player
+    /// </summary>
+    private bool ApplyCosts(ExchangeData exchange, Player player, NPC npc)
+    {
+        foreach (var cost in exchange.Cost)
+        {
+            switch (cost.ResourceType)
+            {
+                case ResourceType.Coins:
+                    if (player.Coins < cost.Amount)
+                        return false;
+                    player.Coins -= cost.Amount;
+                    break;
+                    
+                case ResourceType.Health:
+                    if (player.Health < cost.Amount)
+                        return false;
+                    player.Health -= cost.Amount;
+                    break;
+                    
+                case ResourceType.Attention:
+                    var timeBlock = _timeManager.GetCurrentTimeBlock();
+                    var attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(timeBlock);
+                    if (!attentionMgr.TrySpend(cost.Amount))
+                        return false;
+                    break;
+                    
+                case ResourceType.TrustToken:
+                    if (!_tokenManager.SpendTokens(ConnectionType.Trust, cost.Amount, npc.ID))
+                        return false;
+                    break;
+                    
+                case ResourceType.CommerceToken:
+                    if (!_tokenManager.SpendTokens(ConnectionType.Commerce, cost.Amount, npc.ID))
+                        return false;
+                    break;
+                    
+                case ResourceType.StatusToken:
+                    if (!_tokenManager.SpendTokens(ConnectionType.Status, cost.Amount, npc.ID))
+                        return false;
+                    break;
+                    
+                case ResourceType.ShadowToken:
+                    if (!_tokenManager.SpendTokens(ConnectionType.Shadow, cost.Amount, npc.ID))
+                        return false;
+                    break;
+            }
+        }
+        
+        return true;
+    }
+
+    /// <summary>
+    /// Apply exchange rewards to player
+    /// </summary>
+    private void ApplyRewards(ExchangeData exchange, Player player, NPC npc)
+    {
+        foreach (var reward in exchange.Reward)
+        {
+            switch (reward.ResourceType)
+            {
+                case ResourceType.Coins:
+                    player.Coins += reward.Amount;
+                    break;
+                    
+                case ResourceType.Health:
+                    if (reward.IsAbsolute)
+                        player.Health = reward.Amount;
+                    else
+                        player.Health = Math.Min(100, player.Health + reward.Amount);
+                    break;
+                    
+                case ResourceType.Hunger:
+                    // Hunger maps to Food (0 = not hungry, 100 = very hungry)
+                    if (reward.IsAbsolute)
+                        player.Food = reward.Amount == 0 ? 100 : (100 - reward.Amount);
+                    else
+                        player.Food = Math.Max(0, Math.Min(100, player.Food - reward.Amount));
+                    break;
+                    
+                case ResourceType.Attention:
+                    var timeBlock = _timeManager.GetCurrentTimeBlock();
+                    var attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(timeBlock);
+                    if (reward.IsAbsolute)
+                        attentionMgr.SetAttention(reward.Amount);
+                    else
+                        attentionMgr.AddAttention(reward.Amount);
+                    break;
+                    
+                case ResourceType.TrustToken:
+                    _tokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Amount, npc.ID);
+                    break;
+                    
+                case ResourceType.CommerceToken:
+                    _tokenManager.AddTokensToNPC(ConnectionType.Commerce, reward.Amount, npc.ID);
+                    break;
+                    
+                case ResourceType.StatusToken:
+                    _tokenManager.AddTokensToNPC(ConnectionType.Status, reward.Amount, npc.ID);
+                    break;
+                    
+                case ResourceType.ShadowToken:
+                    _tokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Amount, npc.ID);
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Check if exchange meets domain requirements
+    /// </summary>
+    private bool CheckDomainRequirements(ConversationCard card, List<string> spotDomains)
+    {
+        // Domain filtering removed - CardContext doesn't have RequiredDomains
+        return true; // No domain filtering for now
+    }
+
+    /// <summary>
+    /// Get friendly name for exchange
+    /// </summary>
+    private string GetExchangeName(ExchangeData exchange)
+    {
+        if (!string.IsNullOrEmpty(exchange.ExchangeName))
+            return exchange.ExchangeName;
+        
+        return exchange.TemplateId switch
+        {
+            "food_exchange" => "bought travel provisions",
+            "healing_exchange" => "received healing",
+            "information_exchange" => "traded information",
+            "work_exchange" => "helped with work",
+            "favor_exchange" => "traded favors",
+            "rest_exchange" => "rested",
+            "lodging_exchange" => "secured lodging",
+            _ => "completed an exchange"
+        };
+    }
+
+    /// <summary>
+    /// Check if exchange should advance time
+    /// </summary>
+    private bool ShouldAdvanceTime(ExchangeData exchange)
+    {
+        // Work exchanges that cost significant attention advance time
+        return exchange.Cost.Any(c => c.ResourceType == ResourceType.Attention && c.Amount >= 3);
+    }
+
+    /// <summary>
+    /// Format cost for display
+    /// </summary>
+    private string FormatCost(List<ResourceExchange> costs)
+    {
+        var parts = costs.Select(c => $"{c.Amount} {GetResourceName(c.ResourceType)}");
+        return string.Join(", ", parts);
+    }
+
+    /// <summary>
+    /// Format reward for display
+    /// </summary>
+    private string FormatReward(List<ResourceExchange> rewards)
+    {
+        var parts = rewards.Select(r => 
+        {
+            if (r.IsAbsolute)
+                return $"Set {GetResourceName(r.ResourceType)} to {r.Amount}";
+            else
+                return $"{r.Amount} {GetResourceName(r.ResourceType)}";
+        });
+        return string.Join(", ", parts);
+    }
+
+    /// <summary>
+    /// Get friendly resource name
+    /// </summary>
+    private string GetResourceName(ResourceType type)
+    {
+        return type switch
+        {
+            ResourceType.Coins => "coins",
+            ResourceType.Health => "health",
+            ResourceType.Hunger => "hunger",
+            ResourceType.Attention => "attention",
+            ResourceType.TrustToken => "trust",
+            ResourceType.CommerceToken => "commerce",
+            ResourceType.StatusToken => "status",
+            ResourceType.ShadowToken => "shadow",
+            _ => type.ToString().ToLower()
+        };
+    }
+}
+
+/// <summary>
+/// Represents an available exchange option
+/// </summary>
+public class ExchangeOption
+{
+    public string ExchangeId { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string Cost { get; set; }
+    public string Reward { get; set; }
+    public bool CanAfford { get; set; }
+    public ExchangeData ExchangeData { get; set; }
+}
