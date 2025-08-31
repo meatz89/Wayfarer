@@ -47,16 +47,12 @@ public static class ServiceConfiguration
         services.AddSingleton<NPCVisibilityService>();
 
         // Register repositories
-        services.AddSingleton<LocationRepository>();
-        services.AddSingleton<LocationSpotRepository>();
         services.AddSingleton<ItemRepository>();
         services.AddSingleton<NPCRepository>();
         services.AddSingleton<RouteRepository>();
         services.AddSingleton<StandingObligationRepository>();
         services.AddSingleton<RouteDiscoveryRepository>();
 
-
-        services.AddSingleton<LocationSystem>();
         services.AddSingleton<CharacterSystem>();
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();

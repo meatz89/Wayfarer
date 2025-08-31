@@ -327,15 +327,15 @@ public class CardDeckManager
     /// <summary>
     /// Manage hand size limit (max 7 cards)
     /// </summary>
-    public void ManageHandSize(HandDeck hand)
+    public void ManageHandSize(List<CardInstance> hand)
     {
         while (hand.Count > 7)
         {
             // Remove oldest card (first in list)
-            var oldestCard = hand.GetAllCards().FirstOrDefault();
+            var oldestCard = hand.FirstOrDefault();
             if (oldestCard != null)
             {
-                hand.RemoveCards(new[] { oldestCard });
+                hand.Remove(oldestCard);
             }
         }
     }

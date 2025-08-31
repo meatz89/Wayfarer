@@ -26,13 +26,10 @@ public class GameFacade
 
     // Domain services
     private readonly NPCRepository _npcRepository;
-    private readonly LocationRepository _locationRepository;
-    private readonly LocationSpotRepository _locationSpotRepository;
     private readonly RouteRepository _routeRepository;
     private readonly FlagService _flagService;
     private readonly ItemRepository _itemRepository;
     private readonly TokenMechanicsManager _connectionTokenManager;
-    private readonly ConversationManager _conversationManager;
     private readonly ConversationFacade _conversationFacade;
     private readonly GameConfiguration _gameConfiguration;
     private readonly StandingObligationManager _standingObligationManager;
@@ -57,13 +54,10 @@ public class GameFacade
         ObligationQueueManager letterQueueManager,
         RouteDiscoveryManager routeDiscoveryManager,
         NPCRepository npcRepository,
-        LocationRepository locationRepository,
-        LocationSpotRepository locationSpotRepository,
         RouteRepository routeRepository,
         FlagService flagService,
         ItemRepository itemRepository,
         TokenMechanicsManager connectionTokenManager,
-        ConversationManager conversationManager,
         ConversationFacade conversationFacade,
         GameConfiguration gameConfiguration,
         StandingObligationManager standingObligationManager,
@@ -90,13 +84,10 @@ public class GameFacade
         _letterQueueManager = letterQueueManager;
         _routeDiscoveryManager = routeDiscoveryManager;
         _npcRepository = npcRepository;
-        _locationRepository = locationRepository;
-        _locationSpotRepository = locationSpotRepository;
         _routeRepository = routeRepository;
         _flagService = flagService;
         _itemRepository = itemRepository;
         _connectionTokenManager = connectionTokenManager;
-        _conversationManager = conversationManager;
         _conversationFacade = conversationFacade;
         _gameConfiguration = gameConfiguration;
         _standingObligationManager = standingObligationManager;
@@ -262,6 +253,19 @@ public class GameFacade
     public LocationSpot GetCurrentLocationSpot()
     {
         return _locationFacade.GetCurrentLocationSpot();
+    }
+    
+    public ConversationManager GetConversationManager()
+    {
+        // Return the underlying ConversationManager from the facade for backward compatibility
+        // This should be removed once all UI components are updated to use ConversationFacade directly
+        return _conversationFacade.GetConversationManager();
+    }
+    
+    public Location GetLocationById(string locationId)
+    {
+        if (string.IsNullOrEmpty(locationId)) return null;
+        return _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
     }
 
     /// <summary>
@@ -485,9 +489,9 @@ public class GameFacade
         return GetNPCEmotionalState(npc);
     }
     
-    public ConversationManager GetConversationManager()
+    public ConversationFacade GetConversationFacade()
     {
-        return _conversationManager;
+        return _conversationFacade;
     }
     
     public List<SimpleRouteViewModel> GetAvailableRoutes()
@@ -514,7 +518,7 @@ public class GameFacade
         var spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
         if (spot == null) return "Unknown";
         
-        var location = _locationRepository.GetLocation(spot.LocationId);
+        var location = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == spot.LocationId);
         return location?.Name ?? "Unknown";
     }
     
@@ -694,7 +698,7 @@ public class GameFacade
         var areas = new List<AreaWithinLocationViewModel>();
         
         // Get all spots in the same location
-        var spots = _locationSpotRepository.GetSpotsForLocation(location.Id);
+        var spots = _gameWorld.WorldState.locationSpots.Where(s => s.LocationId == location.Id).ToList();
         var currentTime = _timeManager.GetCurrentTimeBlock();
         
         foreach (var spot in spots)
@@ -790,7 +794,7 @@ public class GameFacade
         {
             // Get destination location from the spot
             var destSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == route.DestinationLocationSpot);
-            var destination = destSpot != null ? _locationRepository.GetLocation(destSpot.LocationId) : null;
+            var destination = destSpot != null ? _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == destSpot.LocationId) : null;
             if (destination != null)
             {
                 // Each route is ONE specific transport method - no multiple options
@@ -890,14 +894,14 @@ public class GameFacade
         }
 
         // Get target spot from repositories (should ideally come from GameWorld)
-        Location currentLocation = _locationRepository.GetLocation(currentSpot.LocationId);
+        Location currentLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == currentSpot.LocationId);
         if (currentLocation == null)
         {
             _messageSystem.AddSystemMessage("Cannot determine current location", SystemMessageTypes.Danger);
             return false;
         }
 
-        List<LocationSpot> spotsInLocation = _locationRepository.GetSpotsForLocation(currentLocation.Id);
+        List<LocationSpot> spotsInLocation = _gameWorld.WorldState.locationSpots.Where(s => s.LocationId == currentLocation.Id).ToList();
         LocationSpot? targetSpot = spotsInLocation.FirstOrDefault(s => s.SpotID == intent.TargetSpotId);
 
         if (targetSpot == null)
@@ -922,7 +926,7 @@ public class GameFacade
 
         // Execute movement
         player.SpendStamina(1);
-        _locationRepository.SetCurrentLocation(currentLocation, targetSpot);
+        player.CurrentLocationSpot = targetSpot;
 
         _messageSystem.AddSystemMessage($"Moved to {targetSpot.Name}", SystemMessageTypes.Success);
         return true;
@@ -950,7 +954,7 @@ public class GameFacade
         {
             // Start conversation with the new card-based system
             // Default to Standard conversation type for now (should be passed from UI)
-            var session = _conversationManager.StartConversation(npc.ID, ConversationType.FriendlyChat, null);
+            var session = _conversationFacade.StartConversation(npc.ID, ConversationType.FriendlyChat, null);
             if (session == null)
             {
                 _messageSystem.AddSystemMessage($"Cannot talk to {npc.Name} right now", SystemMessageTypes.Warning);
@@ -1203,7 +1207,7 @@ public class GameFacade
         }
 
         // Generate location description from properties
-        var currentLocation = _locationRepository.GetLocation(currentSpot.LocationId);
+        var currentLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == currentSpot.LocationId);
         var atmosphereText = GenerateAtmosphereText(currentSpot, currentLocation);
         if (!string.IsNullOrEmpty(atmosphereText))
         {
@@ -1239,7 +1243,7 @@ public class GameFacade
         }
 
         // Determine time cost based on location tier (2-4 hours)
-        Location? location = _locationRepository.GetLocation(currentLocation.LocationId);
+        Location? location = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == currentLocation.LocationId);
         int timeCost = location?.Tier switch
         {
             1 => 2,  // Small locations
@@ -1378,7 +1382,7 @@ public class GameFacade
         Console.WriteLine($"[ExecuteTravel] Found destination spot: {targetSpot.SpotID} in location {targetSpot.LocationId}");
         
         // Get the location from the spot
-        Location destination = _locationRepository.GetLocation(targetSpot.LocationId);
+        Location destination = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == targetSpot.LocationId);
         if (destination == null)
         {
             _messageSystem.AddSystemMessage($"Destination location '{targetSpot.LocationId}' not found", SystemMessageTypes.Danger);
@@ -1386,11 +1390,11 @@ public class GameFacade
         }
         
         // NO FALLBACKS - use the exact spot the route specifies
-        _locationRepository.SetCurrentLocation(destination, targetSpot);
+        _gameWorld.GetPlayer().CurrentLocationSpot = targetSpot;
         _messageSystem.AddSystemMessage($"Traveled to {destination.Name}", SystemMessageTypes.Success);
 
         // Record the visit
-        _locationRepository.RecordLocationVisit(destination.Id);
+        // Location visit tracking handled by GameWorld
         return true;
     }
 
@@ -1512,7 +1516,7 @@ public class GameFacade
     private TravelViewModel GetTravelViewModel()
     {
         Player player = _gameWorld.GetPlayer();
-        Location currentLocation = player.GetCurrentLocation(_locationRepository);
+        Location currentLocation = GetCurrentLocation();
 
         TravelViewModel viewModel = new TravelViewModel
         {
@@ -1563,7 +1567,7 @@ public class GameFacade
     private List<DestinationViewModel> GetDestinations(Location currentLocation)
     {
         List<DestinationViewModel> destinations = new List<DestinationViewModel>();
-        List<Location> allLocations = _locationRepository.GetAllLocations();
+        List<Location> allLocations = _gameWorld.WorldState.locations;
 
         foreach (Location location in allLocations)
         {
@@ -1711,7 +1715,7 @@ public class GameFacade
 
         foreach (DestinationViewModel dest in travelViewModel.Destinations)
         {
-            Location location = _locationRepository.GetLocation(dest.LocationId);
+            Location location = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == dest.LocationId);
             bool canTravel = dest.AvailableRoutes.Any(r => !r.IsBlocked);
 
             destinations.Add(new TravelDestinationViewModel
@@ -2041,12 +2045,12 @@ public class GameFacade
 
     public List<TravelDestinationViewModel> GetTravelDestinationsWithRoutes()
     {
-        Location currentLocation = _locationRepository.GetCurrentLocation();
+        Location currentLocation = _locationFacade.GetCurrentLocation();
         List<TravelDestinationViewModel> destinations = new List<TravelDestinationViewModel>();
         TravelContextViewModel travelContext = GetTravelContext();
 
         // Get all locations that can be traveled to
-        List<Location> allLocations = _locationRepository.GetAllLocations();
+        List<Location> allLocations = _gameWorld.WorldState.locations;
 
         foreach (Location location in allLocations)
         {
@@ -2255,7 +2259,7 @@ public class GameFacade
         }
         
         Player player = _gameWorld.GetPlayer();
-        Location location = _locationRepository.GetCurrentLocation();
+        Location location = _locationFacade.GetCurrentLocation();
         
         // Check if NPC exists in game world
         var worldNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
@@ -2323,7 +2327,7 @@ public class GameFacade
         Console.WriteLine($"[GameFacade.CreateConversationContext] Including {observationCards.Count} observation cards in conversation");
 
         // Start the conversation session with observation cards
-        var conversationSession = _conversationManager.StartConversation(npcId, conversationType, observationCards);
+        var conversationSession = _conversationFacade.StartConversation(npcId, conversationType, observationCards);
         
         // Get letters the player is carrying for this NPC
         var lettersForNpc = _letterQueueManager.GetActiveObligations()
@@ -2716,9 +2720,9 @@ public class GameFacade
         {
             // Fallback to original implementation
             // End any active conversation
-            if (_conversationManager.IsConversationActive)
+            if (_conversationFacade.IsConversationActive())
             {
-                _conversationManager.EndConversation();
+                _conversationFacade.EndConversation();
                 _messageSystem.AddSystemMessage("Conversation ended", SystemMessageTypes.Info);
             }
         }

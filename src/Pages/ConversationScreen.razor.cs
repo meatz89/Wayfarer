@@ -14,7 +14,7 @@ namespace Wayfarer.Pages
         [Parameter] public ConversationType ConversationType { get; set; } = ConversationType.FriendlyChat;
         [Parameter] public EventCallback OnConversationEnd { get; set; }
 
-        [Inject] protected ConversationManager ConversationManager { get; set; }
+        [Inject] protected ConversationFacade ConversationFacade { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected TimeManager TimeManager { get; set; }
         [Inject] protected NavigationManager Navigation { get; set; }
@@ -40,7 +40,8 @@ namespace Wayfarer.Pages
                 var observationCards = GetObservationCards();
                 
                 // Start the conversation with the specified type
-                Session = ConversationManager.StartConversation(NpcId, ConversationType, observationCards);
+                var conversationManager = GameFacade.GetConversationManager();
+                Session = conversationManager.StartConversation(NpcId, ConversationType, observationCards);
             }
             catch (Exception ex)
             {
@@ -71,7 +72,8 @@ namespace Wayfarer.Pages
             {
                 // Check if we can add this card
                 var tempSelection = new HashSet<CardInstance>(SelectedCards) { card };
-                if (ConversationManager.CanSelectCard(card, SelectedCards))
+                var conversationManager = GameFacade.GetConversationManager();
+                if (conversationManager.CanSelectCard(card, SelectedCards))
                 {
                     SelectedCards.Add(card);
                 }
@@ -82,13 +84,15 @@ namespace Wayfarer.Pages
         protected bool CanSelectCard(CardInstance card)
         {
             if (SelectedAction != ActionType.Speak) return false;
-            return ConversationManager.CanSelectCard(card, SelectedCards);
+            var conversationManager = GameFacade.GetConversationManager();
+            return conversationManager.CanSelectCard(card, SelectedCards);
         }
 
         protected async Task ExecuteAction()
         {
             // Check if session is still active
-            if (Session == null || !ConversationManager.IsConversationActive)
+            var conversationManager = GameFacade.GetConversationManager();
+            if (Session == null || !conversationManager.IsConversationActive)
             {
                 Console.WriteLine("[ConversationScreen] No active session, returning to location");
                 await OnConversationEnd.InvokeAsync();
@@ -97,19 +101,19 @@ namespace Wayfarer.Pages
             
             if (SelectedAction == ActionType.Listen)
             {
-                ConversationManager.ExecuteListen();
+                conversationManager.ExecuteListen();
                 SelectedCards.Clear();
             }
             else if (SelectedAction == ActionType.Speak && SelectedCards.Any())
             {
-                LastResult = await ConversationManager.ExecuteSpeak(SelectedCards);
+                LastResult = await conversationManager.ExecuteSpeak(SelectedCards);
                 SelectedCards.Clear();
             }
 
             SelectedAction = ActionType.None;
             
             // Check if conversation ended
-            if (!ConversationManager.IsConversationActive)
+            if (!conversationManager.IsConversationActive)
             {
                 var outcome = Session.CheckThresholds();
                 // Show outcome and navigate back

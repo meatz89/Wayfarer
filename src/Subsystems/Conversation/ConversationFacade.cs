@@ -25,6 +25,7 @@ public class ConversationFacade
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
+    private readonly ConversationManager _conversationManager;
     
     private ConversationSession _currentSession;
     private ConversationOutcome _lastOutcome;
@@ -43,7 +44,8 @@ public class ConversationFacade
         TimeManager timeManager,
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem,
-        TimeBlockAttentionManager timeBlockAttentionManager)
+        TimeBlockAttentionManager timeBlockAttentionManager,
+        ConversationManager conversationManager)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
@@ -59,6 +61,7 @@ public class ConversationFacade
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _timeBlockAttentionManager = timeBlockAttentionManager ?? throw new ArgumentNullException(nameof(timeBlockAttentionManager));
+        _conversationManager = conversationManager ?? throw new ArgumentNullException(nameof(conversationManager));
     }
 
     /// <summary>
@@ -473,5 +476,13 @@ public class ConversationFacade
             CardType.Shadow => ConnectionType.Shadow,
             _ => ConnectionType.Trust
         };
+    }
+    
+    /// <summary>
+    /// Get the underlying ConversationManager for backward compatibility
+    /// </summary>
+    public ConversationManager GetConversationManager()
+    {
+        return _conversationManager;
     }
 }

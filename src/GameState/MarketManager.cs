@@ -10,10 +10,8 @@ using System.Linq;
 public class MarketManager
 {
     private readonly GameWorld _gameWorld;
-    private readonly LocationSystem _locationSystem;
     private readonly ItemRepository _itemRepository;
     private readonly NPCRepository _npcRepository;
-    private readonly LocationRepository _locationRepository;
     private readonly TimeManager _timeManager;
     private readonly MessageSystem _messageSystem;
 
@@ -83,15 +81,13 @@ public class MarketManager
         public List<MarketPriceInfo> AllPrices { get; set; }
     }
 
-    public MarketManager(GameWorld gameWorld, LocationSystem locationSystem, ItemRepository itemRepository,
-                        NPCRepository npcRepository, LocationRepository locationRepository, MessageSystem messageSystem,
+    public MarketManager(GameWorld gameWorld, ItemRepository itemRepository,
+                        NPCRepository npcRepository, MessageSystem messageSystem,
                         TimeManager timeManager)
     {
         _gameWorld = gameWorld;
-        _locationSystem = locationSystem;
         _itemRepository = itemRepository;
         _npcRepository = npcRepository;
-        _locationRepository = locationRepository;
         _timeManager = timeManager;
         _messageSystem = messageSystem;
     }
@@ -454,7 +450,7 @@ public class MarketManager
         List<MarketPriceInfo> prices = new List<MarketPriceInfo>();
 
         // Get all locations
-        List<Location> locations = _locationRepository.GetAllLocations() ?? new List<Location>();
+        List<Location> locations = _gameWorld.WorldState.locations ?? new List<Location>();
 
         foreach (Location location in locations)
         {

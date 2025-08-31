@@ -10,7 +10,6 @@ public class SpecialLetterHandler
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
     private readonly NPCRepository _npcRepository;
-    private readonly LocationRepository _locationRepository;
     private readonly TokenMechanicsManager _tokenManager;
     // EndorsementManager removed - endorsements no longer exist
     private readonly RouteRepository _routeRepository;
@@ -19,14 +18,12 @@ public class SpecialLetterHandler
         GameWorld gameWorld,
         MessageSystem messageSystem,
         NPCRepository npcRepository,
-        LocationRepository locationRepository,
         TokenMechanicsManager tokenManager,
         RouteRepository routeRepository)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
         _npcRepository = npcRepository;
-        _locationRepository = locationRepository;
         _tokenManager = tokenManager;
         _routeRepository = routeRepository;
     }
@@ -271,7 +268,8 @@ public class SpecialLetterHandler
     private void UnlockRouteFromCurrentLocation(DeliveryObligation obligation)
     {
         Player player = _gameWorld.GetPlayer();
-        Location currentLocation = player.GetCurrentLocation(_locationRepository);
+        Location currentLocation = player.CurrentLocationSpot?.LocationId != null ? 
+            _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == player.CurrentLocationSpot.LocationId) : null;
         if (currentLocation == null) return;
 
         List<RouteOption> lockedRoutes = _routeRepository.GetRoutesFromLocation(currentLocation.Id)

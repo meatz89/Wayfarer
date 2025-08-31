@@ -52,14 +52,6 @@
     public LocationSpot CurrentLocationSpot { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
 
-    /// <summary>
-    /// Gets the current location derived from the current location spot.
-    /// </summary>
-    public Location GetCurrentLocation(LocationRepository locationRepository)
-    {
-        if (CurrentLocationSpot == null) return null;
-        return locationRepository.GetLocation(CurrentLocationSpot.LocationId);
-    }
 
     public Dictionary<string, List<RouteOption>> KnownRoutes { get; private set; } = new Dictionary<string, List<RouteOption>>();
 

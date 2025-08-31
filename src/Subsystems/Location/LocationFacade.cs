@@ -28,7 +28,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         private readonly ObligationQueueManager _letterQueueManager;
         private readonly DialogueGenerationService _dialogueGenerator;
         private readonly NarrativeRenderer _narrativeRenderer;
-        private readonly ConversationManager _conversationManager;
+        private readonly ConversationFacade _conversationFacade;
         
         public LocationFacade(
             GameWorld gameWorld,
@@ -47,7 +47,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             ObligationQueueManager letterQueueManager,
             DialogueGenerationService dialogueGenerator,
             NarrativeRenderer narrativeRenderer,
-            ConversationManager conversationManager)
+            ConversationFacade conversationFacade)
         {
             _gameWorld = gameWorld;
             _locationManager = locationManager;
@@ -65,7 +65,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             _letterQueueManager = letterQueueManager;
             _dialogueGenerator = dialogueGenerator;
             _narrativeRenderer = narrativeRenderer;
-            _conversationManager = conversationManager;
+            _conversationFacade = conversationFacade;
         }
         
         /// <summary>
@@ -235,7 +235,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             foreach (var npc in npcs)
             {
                 var emotionalState = GetNPCEmotionalState(npc);
-                var availableConversationTypes = _conversationManager.GetAvailableConversationTypes(npc);
+                var availableConversationTypes = _conversationFacade.GetAvailableConversationTypes(npc);
                 var interactions = new List<InteractionOptionViewModel>();
                 
                 foreach (var conversationType in availableConversationTypes)

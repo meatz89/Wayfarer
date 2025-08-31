@@ -96,14 +96,10 @@ public class TravelManager
     private readonly AccessRequirementChecker _accessChecker;
     private readonly FlagService _flagService;
     // REMOVED: TravelEventManager - hardcoded content generation system deleted
-    public LocationSystem LocationSystem { get; }
-    public LocationRepository LocationRepository { get; }
     public ItemRepository ItemRepository { get; }
 
     public TravelManager(
         GameWorld gameWorld,
-        LocationSystem locationSystem,
-        LocationRepository locationRepository,
         ItemRepository itemRepository,
         TransportCompatibilityValidator transportValidator,
         RouteRepository routeRepository,
@@ -120,15 +116,14 @@ public class TravelManager
         _accessChecker = accessChecker;
         _flagService = flagService;
         // _travelEventManager = travelEventManager; // REMOVED
-        this.LocationSystem = locationSystem;
-        this.LocationRepository = locationRepository;
         ItemRepository = itemRepository;
     }
 
     public bool CanTravelTo(string locationId)
     {
-        Location destination = LocationRepository.GetLocation(locationId);
-        Location currentLocation = LocationRepository.GetCurrentLocation();
+        Location destination = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
+        Location currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId != null ? 
+            _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == _gameWorld.GetPlayer().CurrentLocationSpot.LocationId) : null;
 
         if (destination == null || currentLocation == null)
             return false;
@@ -148,8 +143,9 @@ public class TravelManager
 
     public RouteOption StartLocationTravel(string locationId, TravelMethods method = TravelMethods.Walking)
     {
-        Location destination = LocationRepository.GetLocation(locationId);
-        Location currentLocation = LocationRepository.GetCurrentLocation();
+        Location destination = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
+        Location currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId != null ? 
+            _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == _gameWorld.GetPlayer().CurrentLocationSpot.LocationId) : null;
 
         // Find the appropriate route
 
@@ -185,23 +181,19 @@ public class TravelManager
             return; // Invalid destination spot
         }
         
-        Location targetLocation = LocationSystem.GetLocation(targetSpot.LocationId);
+        Location targetLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == targetSpot.LocationId);
         if (targetLocation == null)
         {
             return; // Invalid location
         }
 
         // Use the exact spot from the route - NO FALLBACKS
-        LocationRepository.SetCurrentLocation(targetLocation, targetSpot);
+        _gameWorld.GetPlayer().CurrentLocationSpot = targetSpot;
 
-        string? currentLocation = LocationRepository.GetCurrentLocation()?.Id;
+        string? currentLocation = targetLocation?.Id;
 
-        bool isFirstVisit = LocationRepository.IsFirstVisit(targetLocation.Id);
-        if (isFirstVisit)
-        {
-            LocationRepository.RecordLocationVisit(targetLocation.Id);
-            // Discovery bonuses removed - new locations provide natural opportunities through different markets
-        }
+        // First visit tracking handled by GameWorld
+        // Discovery bonuses removed - new locations provide natural opportunities through different markets
 
         // Set tutorial flags for movement tracking
         if (!_flagService.HasFlag(FlagService.TUTORIAL_FIRST_MOVEMENT))
@@ -225,7 +217,7 @@ public class TravelManager
     public List<RouteOption> GetAvailableRoutes(string fromLocationId, string toLocationId)
     {
         List<RouteOption> availableRoutes = new List<RouteOption>();
-        Location fromLocation = LocationRepository.GetLocation(fromLocationId);
+        Location fromLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == fromLocationId);
 
         // If location doesn't exist, return empty list
         if (fromLocation == null) return availableRoutes;

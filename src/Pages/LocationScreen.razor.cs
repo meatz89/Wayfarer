@@ -10,7 +10,7 @@ public partial class LocationScreen : ComponentBase
 {
     [Inject] private GameFacade GameFacade { get; set; }
     [Inject] private NPCRepository NPCRepository { get; set; }
-    [Inject] private LocationRepository LocationRepository { get; set; }
+    // LocationRepository removed - using GameFacade for location access
     [Inject] private TimeManager TimeManager { get; set; }
     [Inject] private ObligationQueueManager QueueManager { get; set; }
 
@@ -289,7 +289,7 @@ public partial class LocationScreen : ComponentBase
             foreach (var d in deliveries.Where(d => d?.DeadlineInMinutes > 0).Take(2))
             {
                 var npc = NPCRepository.GetByName(d.RecipientName);
-                var location = npc != null ? LocationRepository.GetLocation(npc.Location) : null;
+                var location = npc != null ? GameFacade.GetLocationById(npc.Location) : null;
                 obligations.Add(new ObligationItem
                 {
                     Action = "Deliver",
@@ -307,7 +307,7 @@ public partial class LocationScreen : ComponentBase
             foreach (var m in meetings.Where(m => m?.DeadlineInMinutes > 0).Take(1))
             {
                 var npc = NPCRepository.GetByName(m.RequesterName);
-                var location = npc != null ? LocationRepository.GetLocation(npc.Location) : null;
+                var location = npc != null ? GameFacade.GetLocationById(npc.Location) : null;
                 obligations.Add(new ObligationItem
                 {
                     Action = "Meet",

@@ -6,7 +6,6 @@ using System.Linq;
 public class ActionGenerator
 {
 private readonly TimeManager _timeManager;
-private readonly LocationRepository _locationRepository;
 private readonly NPCRepository _npcRepository;
 private readonly TokenMechanicsManager _tokenManager;
 private readonly GameWorld _gameWorld;
@@ -14,14 +13,12 @@ private readonly TimeBlockAttentionManager _timeBlockAttention;
 
 public ActionGenerator(
     TimeManager timeManager,
-    LocationRepository locationRepository,
     NPCRepository npcRepository,
     TokenMechanicsManager tokenManager,
     GameWorld gameWorld,
     TimeBlockAttentionManager timeBlockAttention)
 {
     _timeManager = timeManager;
-    _locationRepository = locationRepository;
     _npcRepository = npcRepository;
     _tokenManager = tokenManager;
     _gameWorld = gameWorld;

@@ -66,7 +66,7 @@ namespace Wayfarer.Pages.Components
         [Parameter] public EventCallback OnConversationEnd { get; set; }
         [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 
-        [Inject] protected ConversationManager ConversationManager { get; set; }
+        [Inject] protected ConversationFacade ConversationFacade { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
 
         protected ConversationSession Session { get; set; }
@@ -172,7 +172,8 @@ namespace Wayfarer.Pages.Components
                 
                 // CRITICAL: Must use ConversationManager.ExecuteListen to properly handle letter delivery cards
                 // The ConversationManager will pass the correct managers to the session
-                ConversationManager.ExecuteListen();
+                var conversationManager = GameFacade.GetConversationManager();
+            conversationManager.ExecuteListen();
                 
                 // Generate narrative for the action
                 GenerateListenNarrative();
@@ -256,7 +257,8 @@ namespace Wayfarer.Pages.Components
                 
                 // ExecuteSpeak expects HashSet<ConversationCard>
                 // CRITICAL: Must use ConversationManager.ExecuteSpeak to handle special card effects like letter delivery
-                var result = await ConversationManager.ExecuteSpeak(SelectedCards);
+                var conversationManager = GameFacade.GetConversationManager();
+                var result = await conversationManager.ExecuteSpeak(SelectedCards);
                 ProcessSpeakResult(result);
                 
                 // Add detailed notification for result
@@ -656,9 +658,10 @@ namespace Wayfarer.Pages.Components
         protected async Task EndConversation()
         {
             // End the conversation properly to calculate and award tokens
-            if (Session != null && ConversationManager != null)
+            if (Session != null)
             {
-                var outcome = ConversationManager.EndConversation();
+                var conversationManager = GameFacade.GetConversationManager();
+                var outcome = conversationManager.EndConversation();
                 Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Comfort={outcome.TotalComfort}, TokensEarned={outcome.TokensEarned}");
             }
             
@@ -672,9 +675,10 @@ namespace Wayfarer.Pages.Components
             Console.WriteLine("[ConversationContent] Player manually exiting conversation");
             
             // End the conversation properly to calculate and award tokens
-            if (Session != null && ConversationManager != null)
+            if (Session != null)
             {
-                var outcome = ConversationManager.EndConversation();
+                var conversationManager = GameFacade.GetConversationManager();
+                var outcome = conversationManager.EndConversation();
                 Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Comfort={outcome.TotalComfort}, TokensEarned={outcome.TokensEarned}");
             }
             
