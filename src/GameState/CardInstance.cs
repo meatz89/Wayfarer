@@ -3,7 +3,7 @@
 public class CardInstance
 {
     public string InstanceId { get; init; } = Guid.NewGuid().ToString();
-    public string TemplateId { get; init; }
+    public string Id { get; init; }
     public string Name { get; init; }
     public CardType Type { get; init; }
     public ConnectionType TokenType { get; init; }
@@ -62,7 +62,7 @@ public class CardInstance
 
     public CardInstance(ConversationCard template, string sourceContext = null)
     {
-        TemplateId = template.Id;
+        Id = template.Id;
         Name = template.Name;
         Type = template.Type;
         Weight = template.Weight;

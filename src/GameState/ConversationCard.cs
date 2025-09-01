@@ -8,18 +8,18 @@ public class ConversationCard
     public string Description { get; set; }
     public TokenType TokenType { get; set; }
     public int Weight { get; set; }
-    public DifficultyTier Difficulty { get; set; }
+    public Difficulty Difficulty { get; set; }
     public bool IsFleeting { get; set; }
     public CardEffectType EffectType { get; set; }
     public int EffectValue { get; set; } // For fixed effects
     public string ScalingFormula { get; set; } // For scaled effects
     public AtmosphereType? AtmosphereChange { get; set; }
     public bool HasFinalWord { get; set; } // For goal cards
-    
+
     // Display properties
     public string DialogueFragment { get; set; }
     public string VerbPhrase { get; set; }
-    
+
     // Compatibility properties (will be removed later)
     public CardType Type { get; set; } = CardType.Normal;
     public PersistenceType Persistence { get; set; } = PersistenceType.Persistent;
@@ -64,8 +64,8 @@ public class ConversationCard
     public bool IsObservationCard => Type == CardType.Observation;
     public Difficulty Difficulty_Legacy { get; set; } = Difficulty.Medium;
     public string EffectFormula { get; set; }
-    public AtmosphereType? ConversationAtmosphereChange { get; set; }
-    
+    public AtmosphereType? ConversationAtmosphereChange => AtmosphereChange;
+
     // Helper method to check single effect
     public bool HasSingleEffect()
     {
@@ -75,7 +75,7 @@ public class ConversationCard
         if (AtmosphereChange.HasValue) effectCount++;
         return effectCount <= 1;
     }
-    
+
     // Deep clone for deck instances
     public ConversationCard DeepClone()
     {
@@ -102,13 +102,26 @@ public class ConversationCard
             BaseComfortReward = this.BaseComfortReward
         };
     }
-    
+
     // Get base success percentage from difficulty tier
     public int GetBaseSuccessPercentage()
     {
-        return (int)Difficulty;
+        // Use DifficultyTier if set, otherwise convert from old Difficulty
+        if (Difficulty != default(Difficulty))
+            return (int)Difficulty;
+
+        // Fallback to old Difficulty_Legacy
+        return Difficulty_Legacy switch
+        {
+            Difficulty.VeryEasy => 85,
+            Difficulty.Easy => 70,
+            Difficulty.Medium => 60,
+            Difficulty.Hard => 50,
+            Difficulty.VeryHard => 40,
+            _ => 60
+        };
     }
-    
+
     // Legacy compatibility methods
     public int GetEffectiveWeight(EmotionalState state)
     {
@@ -118,7 +131,7 @@ public class ConversationCard
         }
         return Weight;
     }
-    
+
     public int GetEffectiveSuccessChance(EmotionalState state)
     {
         int baseChance = BaseSuccessChance;
@@ -128,9 +141,48 @@ public class ConversationCard
         }
         return Math.Clamp(baseChance, 0, 100);
     }
-    
+
     public string GetEffectValueOrFormula()
     {
-        return string.IsNullOrEmpty(EffectFormula) ? (EffectValue?.ToString() ?? "0") : EffectFormula;
+        return string.IsNullOrEmpty(EffectFormula) ? EffectValue.ToString() : EffectFormula;
+    }
+
+    // Helper methods for TokenType/ConnectionType conversion
+    public static TokenType ConvertConnectionToToken(ConnectionType connection)
+    {
+        return connection switch
+        {
+            ConnectionType.Trust => TokenType.Trust,
+            ConnectionType.Commerce => TokenType.Commerce,
+            ConnectionType.Status => TokenType.Status,
+            ConnectionType.Shadow => TokenType.Shadow,
+            _ => TokenType.Trust
+        };
+    }
+
+    public static ConnectionType ConvertTokenToConnection(TokenType token)
+    {
+        return token switch
+        {
+            TokenType.Trust => ConnectionType.Trust,
+            TokenType.Commerce => ConnectionType.Commerce,
+            TokenType.Status => ConnectionType.Status,
+            TokenType.Shadow => ConnectionType.Shadow,
+            _ => ConnectionType.None
+        };
+    }
+
+    // Helper method for Difficulty conversion
+    public static Difficulty ConvertDifficulty(Difficulty difficulty)
+    {
+        return difficulty switch
+        {
+            Difficulty.VeryEasy => Difficulty.VeryEasy,
+            Difficulty.Easy => Difficulty.Easy,
+            Difficulty.Medium => Difficulty.Medium,
+            Difficulty.Hard => Difficulty.Hard,
+            Difficulty.VeryHard => Difficulty.VeryHard,
+            _ => Difficulty.Medium
+        };
     }
 }

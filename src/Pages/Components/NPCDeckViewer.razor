@@ -105,7 +105,7 @@
                             <div class="debug-card conversation-card">
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@(card.DisplayName ?? card.TemplateId)</span>
+                                    <span class="card-name">@(card.DisplayName ?? card.Id)</span>
                                     <span class="card-category @GetCategoryClass(card)">@GetCategoryName(card)</span>
                                 </div>
                                 <div class="card-properties">
@@ -113,7 +113,7 @@
                                     <span>Weight: @card.Weight</span>
                                     <span>Persistence: @card.Persistence</span>
                                 </div>
-                                <div class="card-text">@(card.Description ?? "Template: " + card.TemplateId)</div>
+                                <div class="card-text">@(card.Description ?? "Template: " + card.Id)</div>
                                 <div class="card-outcomes">
                                     <div class="outcome success">
                                         <span>Success (@card.SuccessRate%)</span>
@@ -165,11 +165,11 @@
                             <div class="debug-card letter-card goal-card">
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@(card.DisplayName ?? card.TemplateId)</span>
+                                    <span class="card-name">@(card.DisplayName ?? card.Id)</span>
                                     <span class="goal-type-badge">LETTER GOAL</span>
                                 </div>
                                 <div class="card-properties">
-                                    <span>Template: @card.TemplateId</span>
+                                    <span>Template: @card.Id</span>
                                     <span>Weight: @card.Weight</span>
                                 </div>
                                 <div class="eligibility">
@@ -208,7 +208,7 @@
                             <div class="debug-card exchange-card">
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@card.TemplateId</span>
+                                    <span class="card-name">@card.Id</span>
                                 </div>
                                 <div class="exchange-details">
                                     <div class="costs">

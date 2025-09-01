@@ -247,17 +247,20 @@ public class CardDeckManager
         // In the full implementation, cards would be loaded with new format
         return new ConversationCard
         {
-            Id = instance.TemplateId,
+            Id = instance.Id,
             Name = instance.Name,
             Type = instance.IsGoalCard ? CardType.Goal :
                    instance.IsObservation ? CardType.Observation : CardType.Normal,
-            TokenType = instance.TokenType,
+            TokenType = ConversationCard.ConvertConnectionToToken(instance.TokenType),
+            ConnectionType = instance.TokenType,
             Weight = instance.Weight,
-            Difficulty = ConvertToDifficulty(instance.BaseSuccessChance),
+            Difficulty = ConversationCard.ConvertDifficulty(ConvertToDifficulty(instance.BaseSuccessChance)),
+            Difficulty_Legacy = ConvertToDifficulty(instance.BaseSuccessChance),
             Persistence = instance.Persistence,
             EffectType = GuessEffectType(instance),
-            EffectValue = GuessEffectValue(instance),
-            AtmosphereTypeChange = null, // Would need to be set from JSON
+            EffectValue = int.Parse(GuessEffectValue(instance)),
+            EffectFormula = GuessEffectValue(instance),
+            AtmosphereChange = null, // Would need to be set from JSON
             HasFinalWord = instance.IsGoalCard,
             DialogueText = instance.DialogueFragment
         };
@@ -283,7 +286,7 @@ public class CardDeckManager
     private CardEffectType GuessEffectType(CardInstance instance)
     {
         if (instance.IsObservation)
-            return CardEffectType.ResetComfort; // Default observation effect
+            return CardEffectType.FixedComfort; // Default observation effect
 
         return CardEffectType.FixedComfort; // Default to fixed comfort
     }
@@ -395,9 +398,11 @@ public class CardDeckManager
             Type = CardType.Normal,
             Weight = 1,
             Difficulty = Difficulty.Medium,
+            Difficulty_Legacy = global::Difficulty.Medium,
             Persistence = PersistenceType.Fleeting,
             EffectType = CardEffectType.FixedComfort,
-            EffectValue = "1"
+            EffectValue = 1,
+            EffectFormula = "1"
         };
     }
 }

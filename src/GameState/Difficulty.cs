@@ -2,6 +2,7 @@
 // New enums for target system
 public enum Difficulty
 {
+    VeryEasy, // 85% base success
     Easy,     // 70% base success
     Medium,   // 60% base success  
     Hard,     // 50% base success

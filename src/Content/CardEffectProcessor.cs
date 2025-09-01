@@ -51,20 +51,6 @@ public class CardEffectProcessor
                 result.AtmosphereTypeChange = ProcessSetAtmosphereType(card.GetEffectValueOrFormula());
                 break;
 
-            case CardEffectType.ResetComfort:
-                result.ComfortChange = ProcessResetComfort(session);
-                result.SpecialEffect = "Comfort reset to 0";
-                break;
-
-            case CardEffectType.MaxWeight:
-                ProcessMaxWeight();
-                result.SpecialEffect = "Weight pool refreshed to maximum";
-                break;
-
-            case CardEffectType.FreeAction:
-                ProcessFreeAction();
-                result.SpecialEffect = "Next action costs 0 patience";
-                break;
         }
 
         // Apply atmosphere modifications to comfort changes
@@ -89,9 +75,9 @@ public class CardEffectProcessor
         }
 
         // Handle atmosphere change from card (separate from effect)
-        if (card.AtmosphereTypeChange.HasValue)
+        if (card.AtmosphereChange.HasValue)
         {
-            result.AtmosphereTypeChange = card.AtmosphereTypeChange.Value;
+            result.AtmosphereTypeChange = card.AtmosphereChange.Value;
         }
 
         return result;
@@ -181,7 +167,7 @@ public class CardEffectProcessor
         int baseSuccess = card.GetBaseSuccessPercentage();
 
         // Get the card's token type (Trust, Commerce, Status, or Shadow)
-        ConnectionType cardTokenType = card.TokenType;
+        ConnectionType cardTokenType = ConversationCard.ConvertTokenToConnection(card.TokenType);
 
         // Add token bonus (5% per MATCHING token only)
         int matchingTokens = tokenManager.GetTokenCount(cardTokenType, session.NPC.ID);

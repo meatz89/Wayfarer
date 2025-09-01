@@ -126,7 +126,6 @@ public class ConversationCardParser
         return new ConversationCard
         {
             Id = $"{cardId}_{npcId}",
-            TemplateId = card.TemplateId,
             Mechanics = card.Mechanics,
             Category = card.Category,
             Context = new CardContext
@@ -224,7 +223,6 @@ public class ConversationCardParser
         return new ConversationCard
         {
             Id = dto.Id,
-            TemplateId = dto.Template,
             Mechanics = mechanics,
             Category = category.ToString(),
             Context = new CardContext
@@ -235,7 +233,8 @@ public class ConversationCardParser
                 GeneratesLetterOnSuccess = dto.GeneratesLetterOnSuccess ?? false
             },
             Type = Enum.Parse<CardType>(dto.Type, true),
-            TokenType = Enum.Parse<ConnectionType>(dto.ConnectionType, true),
+            TokenType = ConversationCard.ConvertConnectionToToken(Enum.Parse<ConnectionType>(dto.ConnectionType, true)),
+            ConnectionType = Enum.Parse<ConnectionType>(dto.ConnectionType, true),
             Persistence = Enum.Parse<PersistenceType>(dto.Persistence, true),
             Weight = dto.Weight,
             BaseComfort = dto.BaseComfort,
@@ -248,11 +247,12 @@ public class ConversationCardParser
             PatienceBonus = dto.PatienceBonus ?? 0,
 
             // New target system properties
-            Difficulty = difficulty,
+            Difficulty = ConversationCard.ConvertDifficulty(difficulty),
+            Difficulty_Legacy = difficulty,
             EffectType = effectType,
-            EffectValue = dto.EffectValue,
+            EffectValue = string.IsNullOrEmpty(dto.EffectValue) ? 0 : int.Parse(dto.EffectValue),
             EffectFormula = dto.EffectFormula,
-            AtmosphereTypeChange = atmosphereChange
+            AtmosphereChange = atmosphereChange
         };
     }
 

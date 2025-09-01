@@ -629,7 +629,7 @@ namespace Wayfarer.Pages
                 return GetConversationCardName(card);
 
             // Generate a display name based on the template ID
-            return card.TemplateId switch
+            return card.Id switch
             {
                 "OfferHelp" => "Offer Assistance",
                 "ActiveListening" => "Listen Actively",

@@ -47,7 +47,7 @@ public class Phase1_CoreEntities : IInitializationPhase
 
         // Actually load and parse the gameWorld.json
         string json = File.ReadAllText(gameWorldPath);
-        var gameWorldData = Newtonsoft.Json.JsonConvert.DeserializeObject<GameWorldConfigData>(json);
+        GameWorldConfigData? gameWorldData = Newtonsoft.Json.JsonConvert.DeserializeObject<GameWorldConfigData>(json);
 
         // Store initialization data directly in GameWorld
         // GameWorld is the single source of truth - no SharedData dictionary

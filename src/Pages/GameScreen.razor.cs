@@ -367,11 +367,11 @@ namespace Wayfarer.Pages
         public async Task StartConversation(string npcId, ConversationType type)
         {
             CurrentConversationContext = await GameFacade.CreateConversationContext(npcId, type);
-            
+
             // Always refresh UI after GameFacade action
             await RefreshResourceDisplay();
             await RefreshTimeDisplay();
-            
+
             if (CurrentConversationContext != null && CurrentConversationContext.IsValid)
             {
                 CurrentScreen = ScreenMode.Conversation;
@@ -433,7 +433,7 @@ namespace Wayfarer.Pages
         {
             Console.WriteLine("[GameScreen] Conversation ended");
             CurrentConversationContext = null;
-            
+
             // Always refresh UI after conversation ends
             await RefreshResourceDisplay();
             await RefreshTimeDisplay();
@@ -451,12 +451,12 @@ namespace Wayfarer.Pages
             // Execute travel via intent system
             TravelIntent travelIntent = new TravelIntent(routeId);
             await GameFacade.ProcessIntent(travelIntent);
-            
+
             // Refresh UI after action
             await RefreshResourceDisplay();
             await RefreshTimeDisplay();
             await RefreshLocationDisplay();
-            
+
             await NavigateToScreen(ScreenMode.Location);
         }
 

@@ -189,7 +189,7 @@ public class GameFacade
         // Get all routes and find the one with matching ID
         List<RouteOption> allRoutes = _travelFacade.GetAvailableRoutesFromCurrentLocation();
         RouteOption? targetRoute = allRoutes.FirstOrDefault(r => r.Id == routeId);
-        
+
         if (targetRoute == null)
         {
             _narrativeFacade.AddSystemMessage($"Route {routeId} not found", SystemMessageTypes.Danger);
@@ -201,14 +201,14 @@ public class GameFacade
         // Calculate travel time and cost
         int travelTime = targetRoute.TravelTimeMinutes;
         int coinCost = _travelFacade.CalculateTravelCost(targetRoute, TravelMethods.Walking);
-        
+
         // Check if player can afford
         if (coinCost > 0 && _gameWorld.GetPlayer().Coins < coinCost)
         {
             _narrativeFacade.AddSystemMessage($"Not enough coins. Need {coinCost}, have {_gameWorld.GetPlayer().Coins}", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Create a successful travel result since we're handling travel directly
         TravelResult travelResult = new TravelResult
         {
@@ -258,7 +258,7 @@ public class GameFacade
             LocationSpot? finalDestSpot = _gameWorld.WorldState.locations
                 ?.SelectMany(l => l.Spots ?? new List<LocationSpot>())
                 .FirstOrDefault(s => s.SpotID == targetRoute.DestinationLocationSpot);
-            
+
             string destinationName = "Unknown";
             if (finalDestSpot != null)
             {
@@ -266,7 +266,7 @@ public class GameFacade
                     ?.FirstOrDefault(l => l.Id == finalDestSpot.LocationId);
                 destinationName = destLocation?.Name ?? finalDestSpot.Name;
             }
-            
+
             _narrativeFacade.AddSystemMessage($"Traveled to {destinationName}", SystemMessageTypes.Info);
         }
 

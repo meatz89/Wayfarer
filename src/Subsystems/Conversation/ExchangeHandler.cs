@@ -106,7 +106,7 @@ public class ExchangeHandler
 
             exchanges.Add(new ExchangeOption
             {
-                ExchangeId = card.TemplateId,
+                ExchangeId = card.Id,
                 Name = exchange.ExchangeName ?? GetExchangeName(exchange),
                 Description = card.Description,
                 Cost = FormatCost(exchange.GetCostAsList()),

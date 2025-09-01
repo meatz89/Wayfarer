@@ -885,7 +885,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Default to template ID with formatting
-            return card.TemplateId?.Replace("_", " ") ?? "Unknown Card";
+            return card.Id?.Replace("_", " ") ?? "Unknown Card";
         }
 
         private string GetStateTransitionVerb(EmotionalState targetState)
@@ -1008,7 +1008,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Default fallback - try to get from loaded dialogues or use display name
-            string playerText = GetPlayerDialogueText(card.TemplateId, Session?.CurrentState);
+            string playerText = GetPlayerDialogueText(card.Id, Session?.CurrentState);
             if (!string.IsNullOrEmpty(playerText))
                 return playerText;
 
@@ -1086,8 +1086,8 @@ namespace Wayfarer.Pages.Components
 
             // Generate name from template and context
             if (card.Context?.NPCName != null)
-                return $"{card.TemplateId} ({card.Context.NPCName})";
-            return card.TemplateId;
+                return $"{card.Id} ({card.Context.NPCName})";
+            return card.Id;
         }
 
         protected List<string> GetCardTags(CardInstance card)
@@ -1211,14 +1211,14 @@ namespace Wayfarer.Pages.Components
             }
 
             // Try to get player dialogue from JSON based on template ID
-            string playerText = GetPlayerDialogueText(card.TemplateId, Session?.CurrentState);
+            string playerText = GetPlayerDialogueText(card.Id, Session?.CurrentState);
             if (!string.IsNullOrEmpty(playerText))
             {
                 return playerText;
             }
 
             // Get the narrative text for the card - use template ID or display name
-            return card.DisplayName ?? card.TemplateId?.Replace("_", " ") ?? "Unknown Card";
+            return card.DisplayName ?? card.Id?.Replace("_", " ") ?? "Unknown Card";
         }
 
         private void LoadCardDialogues()
@@ -1410,7 +1410,7 @@ namespace Wayfarer.Pages.Components
 
             // Get the token count
             int tokenCount = CurrentTokens.GetValueOrDefault(tokenType, 0);
-            Console.WriteLine($"[GetTokenBonusText] Card: {card.TemplateId}, TokenType: {tokenType}, Count: {tokenCount}");
+            Console.WriteLine($"[GetTokenBonusText] Card: {card.Id}, TokenType: {tokenType}, Count: {tokenCount}");
 
             if (tokenCount > 0)
             {
@@ -1428,7 +1428,7 @@ namespace Wayfarer.Pages.Components
         protected string GetExchangeCostDisplay(CardInstance card)
         {
             // Debug logging
-            Console.WriteLine($"[GetExchangeCostDisplay] Card ID: {card?.TemplateId}");
+            Console.WriteLine($"[GetExchangeCostDisplay] Card ID: {card?.Id}");
             Console.WriteLine($"[GetExchangeCostDisplay] Context null: {card?.Context == null}");
             Console.WriteLine($"[GetExchangeCostDisplay] ExchangeData null: {card?.Context?.ExchangeData == null}");
 
@@ -1574,7 +1574,7 @@ namespace Wayfarer.Pages.Components
                             msgTemplate = "{0} letter: '{1}' - {2}h deadline, {3} coins";
 
                         string message = string.Format(msgTemplate, negotiationOutcome,
-                            negotiation.SourcePromiseCard.DisplayName ?? negotiation.SourcePromiseCard.TemplateId,
+                            negotiation.SourcePromiseCard.DisplayName ?? negotiation.SourcePromiseCard.Id,
                             deadlineHours.ToString("F1"),
                             negotiation.FinalTerms.Payment) + urgencySuffix;
 

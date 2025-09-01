@@ -8,7 +8,7 @@ public enum AtmosphereType
     Patient,     // Actions cost 0 patience
     Volatile,    // All comfort changes ±1
     Final,       // Any failure ends conversation
-    
+
     // Observation-only (unique effects)
     Informed,     // Next card cannot fail
     Exposed,      // Double comfort changes

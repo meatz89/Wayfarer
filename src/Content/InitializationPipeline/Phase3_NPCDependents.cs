@@ -151,7 +151,6 @@ public class Phase3_NPCDependents : IInitializationPhase
         return new ConversationCard
         {
             Id = original.Id,
-            TemplateId = original.TemplateId,
             Mechanics = original.Mechanics,
             Category = original.Category,
             Context = npcContext,
@@ -192,11 +191,11 @@ public class Phase3_NPCDependents : IInitializationPhase
                     ConversationCard card = new ConversationCard
                     {
                         Id = $"promise_{npc.ID}_{config.CardId}",
-                        TemplateId = config.CardId,
                         Mechanics = CardMechanicsType.Promise,
                         Category = CardCategory.Promise.ToString(),
                         Type = CardType.Goal, // Promise cards are goal cards
-                        TokenType = ConnectionType.Trust,
+                        TokenType = TokenType.Trust,
+                        ConnectionType = ConnectionType.Trust,
                         Persistence = PersistenceType.Fleeting, // Use valid persistence type
                         Weight = 2, // Standard weight for promise cards
                         BaseComfort = 0, // No comfort for goal cards

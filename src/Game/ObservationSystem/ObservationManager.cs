@@ -217,7 +217,6 @@ public class ObservationManager
         ConversationCard observationCard = new ConversationCard
         {
             Id = $"{observation.Id}_card_{Guid.NewGuid()}",
-            TemplateId = baseCard.TemplateId,
             Mechanics = baseCard.Mechanics,
             Category = baseCard.Category,
             Type = baseCard.Type,

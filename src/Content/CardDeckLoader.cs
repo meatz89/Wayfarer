@@ -313,7 +313,6 @@ public class CardDeckLoader
             return new ConversationCard
             {
                 Id = id,
-                TemplateId = templateType,
                 Mechanics = CardMechanicsType.Standard,
                 Category = category.ToString(),
                 Context = new CardContext
@@ -324,7 +323,8 @@ public class CardDeckLoader
                     GeneratesLetterOnSuccess = template.TryGetProperty("generatesLetter", out JsonElement letterElem) && letterElem.GetBoolean()
                 },
                 Type = cardType,
-                TokenType = cardTokenType,
+                TokenType = ConversationCard.ConvertConnectionToToken(cardTokenType),
+                ConnectionType = cardTokenType,
                 Persistence = persistence,
                 Weight = weight,
                 BaseComfort = baseComfort,
@@ -400,7 +400,6 @@ public class CardDeckLoader
             return new ConversationCard
             {
                 Id = id,
-                TemplateId = "GoalCard",
                 Mechanics = CardMechanicsType.Promise,
                 Category = parsedCategory.ToString(),
                 Context = new CardContext
@@ -484,7 +483,6 @@ public class CardDeckLoader
             return new ConversationCard
             {
                 Id = id,
-                TemplateId = "SimpleExchange",
                 Mechanics = CardMechanicsType.Exchange,
                 Context = new CardContext
                 {
@@ -547,7 +545,6 @@ public class CardDeckLoader
             return new ConversationCard
             {
                 Id = id,
-                TemplateId = "ObservationShare",
                 Mechanics = CardMechanicsType.Standard,
                 Context = new CardContext
                 {

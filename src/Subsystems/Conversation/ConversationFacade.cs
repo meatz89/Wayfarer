@@ -150,7 +150,7 @@ public class ConversationFacade
             {
                 if (card.IsObservation && card.Persistence == PersistenceType.Fleeting)
                 {
-                    _observationManager.RemoveObservationCard(card.TemplateId);
+                    _observationManager.RemoveObservationCard(card.Id);
                 }
             }
         }
