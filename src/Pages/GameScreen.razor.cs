@@ -441,6 +441,12 @@ namespace Wayfarer.Pages
             // Execute travel via intent system
             TravelIntent travelIntent = new TravelIntent(routeId);
             await GameFacade.ProcessIntent(travelIntent);
+            
+            // Refresh UI after action
+            await RefreshResourceDisplay();
+            await RefreshTimeDisplay();
+            await RefreshLocationDisplay();
+            
             await NavigateToScreen(ScreenMode.Location);
         }
 

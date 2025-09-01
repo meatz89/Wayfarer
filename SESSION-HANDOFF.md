@@ -1,188 +1,178 @@
-# SESSION HANDOFF: WAYFARER ARCHITECTURAL CLEANUP
-**Session Date**: 2025-08-29  
-**Status**: 🏗️ **MAJOR REFACTORING IN PROGRESS**  
-**Build Status**: ❌ ~84 compilation errors (architectural issues being fixed)  
+# Wayfarer Implementation Session Handoff
+
+## Session Date: 2025-09-01
+**Status**: 📋 **IMPLEMENTATION PLAN COMPLETE**
 **Branch**: letters-ledgers
+**Next Step**: Execute implementation packets
 
-## 🔥 CURRENT STATE: ARCHITECTURAL VIOLATIONS FIXED
+## 🎯 OBJECTIVE: Implement Refined Card-Based Conversation System
 
-### WHAT JUST HAPPENED (Session 56):
+The current Wayfarer codebase has a partially implemented conversation system that needs complete transformation to match the refined design documented in `/docs/refinements.md`.
 
-#### CATASTROPHIC AGENT MISTAKE & RECOVERY:
-1. **Agent 1 Deleted Everything** ❌
-   - Removed RouteDeck.cs (699 lines of travel cards)
-   - Deleted CreateLetterDeliveryCard method
-   - Removed TravelEventManager entirely
-   - Left TODO comments instead of implementing solutions
-   - **Result**: Game content completely missing
+## 📊 CURRENT STATE ANALYSIS
 
-2. **Agent 2 Properly Restored** ✅
-   - Created `/Content/Templates/travel_cards.json` with 12 travel encounter cards
-   - Added letter delivery cards to `card_templates.json`
-   - Implemented TravelCardLoader to load from JSON
-   - Fixed ObservationManager to actually load cards
-   - **Result**: Content properly restored with JSON-based architecture
+### What's Working (Keep)
+- Basic conversation session architecture
+- Comfort battery range (-3 to +3)
+- Token system per NPC
+- Card display UI components
 
-#### MAJOR ARCHITECTURAL FIXES:
-1. **CardTemplateType Refactoring** (In Progress)
-   - Problem: Mixing display templates, mechanics, and identity in one enum
-   - Solution: Split into `TemplateId` (string) and `Mechanics` (enum)
-   - Added `CardMechanics` enum for mechanical behavior
-   - UI no longer computes mechanics from template strings
+### Critical Gaps (Must Fix)
+1. **Single-Card SPEAK Not Enforced** - Currently allows multi-card selection
+2. **Token-Type Matching Missing** - Tokens boost all cards instead of matching types only
+3. **Observation Cards Not Integrated** - No unique effects implemented
+4. **Goal Cards Incomplete** - Missing "Final Word" mechanic
+5. **Weight Pool Issues** - May not persist correctly across turns
+6. **Fleeting Card Removal** - Not properly implemented after SPEAK
+7. **Card Content** - Must be ALL defined in JSON, not generated in code
 
-2. **Content Generation Violations Fixed**
-   - ALL cards now loaded from JSON files
-   - No more hardcoded DisplayName/Description in code
-   - No more string matching (ID == "elena", Contains("poor"))
-   - Content defined by categorical properties, not IDs
+## 🏗️ ARCHITECTURAL DECISIONS
 
-3. **Three-Deck NPC Architecture Implemented**
-   - ConversationDeck: 20-30 cards for normal play
-   - GoalDeck: 0-3 promise/letter cards
-   - ExchangeDeck: 5-10 simple trades (Mercantile only)
+### Card System
+- **ALL cards defined in single `cards.json` file** (no procedural generation)
+- **Shared base deck** for all NPCs (100+ cards)
+- **Each NPC gets independent deck instance** at initialization
+- **NPC-specific special cards** added on top of base
+- **Decks evolve independently** through gameplay
 
-## 📊 COMPILATION ERROR STATUS
+### Token Mechanics
+- **Tokens ONLY boost matching card types** (+5% per token)
+- Trust tokens → Trust cards only
+- Commerce tokens → Commerce cards only
+- Status tokens → Status cards only
+- Shadow tokens → Shadow cards only
+- **No generic bonuses**
 
-### Current Errors (~84):
-Most errors relate to incomplete CardTemplateType refactoring:
-- `Template` property no longer exists (now `TemplateId` and `Mechanics`)
-- ExchangeData trying to use wrong properties
-- UI components not fully updated
-- Some ResourceType enum values missing
+### Core Rules
+- **ONE card per SPEAK** (enforced in UI and backend)
+- **Weight pool persists** across SPEAK until LISTEN
+- **Comfort battery -3 to +3** triggers state transitions
+- **Atmosphere persists** until changed or failure
+- **Fleeting cards removed** after ANY SPEAK
+- **Goal "Final Word"** - ends conversation if not played
 
-### What's Fixed:
-- ✅ CardMechanics enum created for mechanical behavior
-- ✅ TemplateId property for display templates
-- ✅ Mechanical checks use Mechanics enum
-- ✅ Exchange type determined from resource type, not template
-- ✅ UI weight derived from card.Weight property, not template matching
+## 📦 IMPLEMENTATION PACKETS
 
-### What Still Needs Fixing:
-- Complete removal of CardTemplateType references
-- Fix remaining Template → TemplateId/Mechanics conversions
-- Add missing ResourceType enum values
-- Fix CardContext.ExchangeData type issues
+Full details in `IMPLEMENTATION-PACKETS.md`. Summary:
 
-## 🏗️ ARCHITECTURAL PRINCIPLES ENFORCED
+### Phase 1: Core Mechanics (Days 1-4)
+1. **PACKET 1**: Card Model Architecture - Single-effect structure
+2. **PACKET 2**: JSON Card System - All cards in cards.json
+3. **PACKET 3**: Single-Card SPEAK - Enforce one selection
+4. **PACKET 4**: Weight Pool - Ensure persistence
+5. **PACKET 5**: Comfort Battery - Implement transitions
+6. **PACKET 6**: Atmosphere - Persist correctly
+7. **PACKET 7**: Fleeting Cards - Remove after SPEAK
 
-### ✅ SUCCESSFULLY ENFORCED:
-1. **JSON as Single Source of Truth**
-   - All content now in JSON files
-   - No cards/letters created in code
-   - Proper loading pipeline through GameWorld
+### Phase 2: Features (Days 5-7)
+8. **PACKET 8**: Token-Type Matching - Only boost matching
+9. **PACKET 9**: Observation Cards - Unique effects
+10. **PACKET 10**: Goal Cards - Final Word mechanic
 
-2. **No String Matching**
-   - Removed all ID == "specific_npc" checks
-   - Removed all Contains() string queries
-   - Using categorical enums instead
+### Phase 3: Content & UI (Days 8-9)
+11. **PACKET 11**: NPC Specialization - Personality decks
+12. **PACKET 12**: UI Card Interface - Replace buttons
+13. **PACKET 13**: Content Migration - JSON definitions
 
-3. **Mechanical Properties on Cards**
-   - Weight is card.Weight, not computed from template
-   - Success rates from card properties
-   - Category determines behavior, not template ID
+### Phase 4: Validation (Days 10-12)
+14. **PACKET 14**: Integration Testing - Full validation
+15. **PACKET 15**: Final Cleanup - Remove legacy code
 
-4. **Delete Legacy Code Entirely**
-   - No compatibility layers
-   - No deprecated methods
-   - Clean breaks when refactoring
+## 🤖 AGENT ASSIGNMENTS
 
-### ⚠️ VIOLATIONS THAT WERE FIXED:
-- Cards being created in code → Now loaded from JSON
-- String matching for game logic → Now uses enums
-- UI computing mechanics → Now reads from card properties
-- Hardcoded content → Now all in JSON files
+Recommended specialized agents:
+- **systems-architect**: Packets 1, 3-6 (core architecture)
+- **content-integrator**: Packets 2, 11, 13 (JSON content)
+- **game-mechanics-designer**: Packets 7-8 (mechanics)
+- **general-purpose**: Packets 9-10, 12, 15 (features/UI)
+- **change-validator**: Packet 14 (testing)
 
-## 🎮 GAME CONTENT STATUS
+## ✅ VERIFICATION PROTOCOL
 
-### Content Now Properly in JSON:
-- **Travel Cards**: 12 encounter cards in `travel_cards.json`
-- **Letter Delivery Cards**: 4 types in `card_templates.json`
-- **Observation Cards**: Loaded from `observations.json`
-- **Exchange Cards**: In `npc_exchange_decks.json`
-- **Conversation Cards**: In `npc_conversation_decks.json`
+After EACH packet:
+1. Compile: `dotnet build`
+2. Run packet tests
+3. Check legacy: `grep -r "TODO\|Legacy\|Compat" src/`
+4. Verify no fallbacks
+5. Confirm production-ready
 
-### Loading Pipeline:
-1. JSON files in `/Content/Templates/`
-2. Loaded by specialized loaders (CardDeckLoader, TravelCardLoader, etc.)
-3. Stored in GameWorld as single source of truth
-4. Referenced by categorical properties (Category, Type)
+## 🎯 SUCCESS CRITERIA
 
-## 🚀 NEXT STEPS TO COMPLETE
+Implementation complete ONLY when:
+- ✅ Single-card SPEAK everywhere
+- ✅ Weight pools persist correctly
+- ✅ Comfort battery -3 to +3 works
+- ✅ Atmosphere persists properly
+- ✅ Tokens only boost matching types
+- ✅ Fleeting cards removed after SPEAK
+- ✅ Goal Final Word triggers
+- ✅ Observation unique effects work
+- ✅ All cards in JSON
+- ✅ UI uses cards not buttons
+- ✅ NO legacy code
+- ✅ NO compatibility layers
+- ✅ NO TODOs
 
-### Immediate Priority - Fix Compilation:
-1. **Complete CardTemplateType removal**
-   - Finish converting all references
-   - Delete the enum entirely
-   - Ensure all card creation uses new properties
+## 🚨 CRITICAL RULES
 
-2. **Fix ResourceType enum**
-   - Add missing values (Work, Favor, Rest, etc.)
-   - Ensure consistency across codebase
+1. **NO FALLBACKS** - Complete or not at all
+2. **NO COMPATIBILITY** - Delete old immediately
+3. **NO TODOS** - Production code only
+4. **NO LEGACY** - Remove entirely
+5. **COMPLETE PACKETS** - No partial work
 
-3. **Fix ExchangeData**
-   - Use correct property names
-   - Ensure proper type determination
+## 📁 KEY FILES
 
-### Then Resume POC Implementation:
-Once compilation is clean, return to implementing POC packages:
-- PACKAGE 1: Core Conversation Mechanics
-- PACKAGE 2: Goal Card System
-- PACKAGE 3: Deck-Driven Conversation Types
-- PACKAGE 4: Queue Displacement System
-- PACKAGE 5: Elena's Letter Scenario
-- PACKAGE 6: Token System Integration
-- PACKAGE 7: UI Matching Mockups
+### Models
+- `/src/GameState/Models/Cards/ConversationCard.cs`
+- `/src/GameState/Models/Cards/ObservationCard.cs`
+- `/src/GameState/Models/Cards/GoalCard.cs`
 
-## 📝 KEY LEARNINGS FROM THIS SESSION
+### Managers
+- `/src/Conversations/Managers/WeightPoolManager.cs`
+- `/src/Conversations/Managers/AtmosphereManager.cs`
+- `/src/Conversations/Managers/ComfortBatteryManager.cs`
+- `/src/Conversations/Managers/TokenMechanicsManager.cs`
 
-### What Went Wrong:
-- Agent deleted functionality without replacement
-- Left TODO comments instead of implementing
-- Didn't understand "content in JSON" meant "implement loading"
+### Core Systems
+- `/src/Conversations/ConversationOrchestrator.cs`
+- `/src/Conversations/ConversationSession.cs`
+- `/src/Services/GameFacade.cs`
 
-### What Went Right:
-- Second agent properly restored with JSON architecture
-- Clean separation of content and mechanics achieved
-- String matching violations eliminated
-- Proper categorical system in place
+### UI Components
+- `/src/Pages/ConversationContent.razor`
+- `/src/Pages/Components/ConversationCard.razor`
 
-### Architectural Wins:
-- CardMechanics enum for behavior
-- TemplateId for display
-- Weight as property, not computed
-- All content in JSON files
-- No hardcoded strings in mechanics
+### Content Files
+- `/src/Content/cards.json` - ALL cards
+- `/src/Content/observations.json`
+- `/src/Content/goals.json`
+- `/src/Content/npcs.json`
 
-## 🔧 FILES TO CHECK NEXT SESSION
-
-### Files with Major Changes:
-- `/src/Game/ConversationSystem/Core/ConversationCard.cs` - New properties
-- `/src/Content/Templates/travel_cards.json` - New travel content
-- `/src/Content/Templates/card_templates.json` - Letter delivery cards
-- `/src/Content/TravelCardLoader.cs` - New loader
-- `/src/Game/ObservationSystem/ObservationManager.cs` - Fixed loading
-
-### Files Still Needing Work:
-- Components using old Template property
-- ExchangeData type issues
-- ResourceType enum completion
-- Remaining CardTemplateType references
-
-## ⚡ QUICK START FOR NEXT SESSION
+## 🚀 NEXT SESSION START
 
 ```bash
-# Check current compilation status
-cd /mnt/c/git/wayfarer/src
-dotnet build 2>&1 | grep -c "error CS"
+# 1. Review implementation plan
+cat IMPLEMENTATION-PACKETS.md
 
-# See specific errors
-dotnet build 2>&1 | grep "error CS" | head -20
+# 2. Start with PACKET 1
+# Assign to systems-architect agent
+# Create card model architecture
 
-# Main issues to fix:
-# 1. Template → TemplateId/Mechanics
-# 2. ResourceType enum values
-# 3. ExchangeData properties
-# 4. Remove CardTemplateType completely
+# 3. Verify after completion
+dotnet build
+grep -r "TODO\|Legacy" src/
+
+# 4. Proceed to PACKET 2
+# Continue until all packets complete
 ```
 
-**Bottom Line**: Architecture is MUCH cleaner but compilation needs to be fixed before continuing POC implementation. The content generation violations have been eliminated and proper JSON-based system is in place.
+## 📝 IMPORTANT NOTES
+
+- The refined design in `/docs/refinements.md` is **authoritative**
+- Each packet must be **100% complete** before moving on
+- **Delete legacy code immediately** when replacing
+- **Test Elena scenario** after Phase 1 completion
+- **No compromises** on design requirements
+
+Ready for execution. Start with PACKET 1.
