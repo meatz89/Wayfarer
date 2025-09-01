@@ -108,11 +108,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 return false;
             }
 
-            // Check if route is discovered
-            if (!IsRouteDiscovered(route.Id))
-            {
-                return false;
-            }
+            // Routes are always available - no discovery mechanic
 
             // Check permits
             if (!_permitValidator.HasRequiredPermit(route))
@@ -147,15 +143,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 };
             }
 
-            // Check discovery
-            if (!IsRouteDiscovered(route.Id))
-            {
-                return new TravelResult
-                {
-                    Success = false,
-                    Reason = "You haven't discovered this route yet"
-                };
-            }
+            // Routes are always available - no discovery mechanic
 
             // Check permits
             if (!_permitValidator.HasRequiredPermit(route))

@@ -186,30 +186,38 @@ public class GameFacade
 
     public async Task<bool> TravelToDestinationAsync(string routeId)
     {
-        string destinationId = string.Empty;
-
-        // Get Destination from the route
-        RouteOption route = _travelFacade.GetRouteBetweenLocations(
-            _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId ?? "",
-            "");
-
         // Get all routes and find the one with matching ID
         List<RouteOption> allRoutes = _travelFacade.GetAvailableRoutesFromCurrentLocation();
         RouteOption? targetRoute = allRoutes.FirstOrDefault(r => r.Id == routeId);
-        if (targetRoute != null)
+        
+        if (targetRoute == null)
         {
-            // Extract destination location ID from the destination spot
-            string destSpotId = targetRoute.DestinationLocationSpot;
-            LocationSpot? destSpot = _gameWorld.WorldState.locations
-                ?.SelectMany(l => l.Spots ?? new List<LocationSpot>())
-                .FirstOrDefault(s => s.SpotID == destSpotId);
-            if (destSpot != null)
-            {
-                destinationId = destSpot.LocationId;
-            }
+            _narrativeFacade.AddSystemMessage($"Route {routeId} not found", SystemMessageTypes.Danger);
+            return false;
         }
 
-        TravelResult travelResult = _travelFacade.TravelTo(destinationId, TravelMethods.Walking);
+        // Routes are always available - no discovery mechanic needed
+
+        // Calculate travel time and cost
+        int travelTime = targetRoute.TravelTimeMinutes;
+        int coinCost = _travelFacade.CalculateTravelCost(targetRoute, TravelMethods.Walking);
+        
+        // Check if player can afford
+        if (coinCost > 0 && _gameWorld.GetPlayer().Coins < coinCost)
+        {
+            _narrativeFacade.AddSystemMessage($"Not enough coins. Need {coinCost}, have {_gameWorld.GetPlayer().Coins}", SystemMessageTypes.Warning);
+            return false;
+        }
+        
+        // Create a successful travel result since we're handling travel directly
+        TravelResult travelResult = new TravelResult
+        {
+            Success = true,
+            TravelTimeMinutes = travelTime,
+            CoinCost = coinCost,
+            RouteId = routeId,
+            TransportMethod = TravelMethods.Walking
+        };
 
         if (travelResult.Success)
         {
@@ -246,7 +254,20 @@ public class GameFacade
                 MinutesAdvanced = travelResult.TravelTimeMinutes
             });
 
-            _narrativeFacade.AddSystemMessage($"Traveled to {destinationId}", SystemMessageTypes.Info);
+            // Get destination location name for the message
+            LocationSpot? finalDestSpot = _gameWorld.WorldState.locations
+                ?.SelectMany(l => l.Spots ?? new List<LocationSpot>())
+                .FirstOrDefault(s => s.SpotID == targetRoute.DestinationLocationSpot);
+            
+            string destinationName = "Unknown";
+            if (finalDestSpot != null)
+            {
+                Location? destLocation = _gameWorld.WorldState.locations
+                    ?.FirstOrDefault(l => l.Id == finalDestSpot.LocationId);
+                destinationName = destLocation?.Name ?? finalDestSpot.Name;
+            }
+            
+            _narrativeFacade.AddSystemMessage($"Traveled to {destinationName}", SystemMessageTypes.Info);
         }
 
         return travelResult.Success;
