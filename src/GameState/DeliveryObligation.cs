@@ -53,6 +53,7 @@ public enum LetterPhysicalProperties
 public class DeliveryObligation
 {
     public string Id { get; set; }
+    public string Title { get; set; }  // Display title for the letter
     public string SenderName { get; set; }  // Just a string for minimal POC
     public string RecipientName { get; set; }
     public int DeadlineInMinutes { get; set; } // Minutes until letter expires

@@ -94,6 +94,14 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         }
         
         /// <summary>
+        /// Get a specific location by ID.
+        /// </summary>
+        public Location GetLocationById(string locationId)
+        {
+            return _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
+        }
+        
+        /// <summary>
         /// Move player to a different spot within the current location.
         /// Movement between spots within a location is FREE (no attention cost).
         /// </summary>
@@ -230,6 +238,22 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             
             var currentTime = _timeManager.GetCurrentTimeBlock();
             return _npcTracker.GetNPCsAtSpot(player.CurrentLocationSpot.SpotID, currentTime);
+        }
+        
+        /// <summary>
+        /// Get a specific NPC by ID.
+        /// </summary>
+        public NPC GetNPCById(string npcId)
+        {
+            return _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
+        }
+        
+        /// <summary>
+        /// Get all NPCs in the game world.
+        /// </summary>
+        public List<NPC> GetAllNPCs()
+        {
+            return _gameWorld.WorldState.NPCs;
         }
         
         // Private helper methods

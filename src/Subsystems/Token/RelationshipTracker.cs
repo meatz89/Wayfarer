@@ -352,5 +352,6 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         public bool HasDebt { get; set; }
         public int TotalDebt { get; set; }
         public DateTime LastInteraction { get; set; }
+        public List<string> AvailableUnlocks { get; set; } = new List<string>();
     }
 }

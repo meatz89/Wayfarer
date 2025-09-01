@@ -96,18 +96,18 @@ namespace Wayfarer.Pages.Components
             AvailableObservations.Clear();
             TakenObservations.Clear();
             Console.WriteLine("[LocationContent] Getting observations from GameFacade...");
-            var allObservations = GameFacade.GetObservationsViewModel();
+            // TODO: Get observations from proper facade method instead of stub
             var takenObservations = GameFacade.GetTakenObservations();
-            Console.WriteLine($"[LocationContent] Got ObservationsViewModel, AvailableObservations count: {allObservations?.AvailableObservations?.Count ?? 0}");
             Console.WriteLine($"[LocationContent] Got {takenObservations?.Count ?? 0} taken observations");
             
-            if (allObservations?.AvailableObservations != null)
+            // Temporarily disable observations until proper implementation
+            if (false) // allObservations?.AvailableObservations != null)
             {
-                AvailableObservations = allObservations.AvailableObservations
+                AvailableObservations = new List<LocationObservationViewModel>()
                     .Select(obs => new LocationObservationViewModel
                     {
                         Id = obs.Id,
-                        Name = obs.Title,
+                        Name = obs.Name,
                         Type = obs.Type
                     }).ToList();
                 Console.WriteLine($"[LocationContent] Final AvailableObservations count: {AvailableObservations.Count}");

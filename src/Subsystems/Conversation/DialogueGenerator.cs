@@ -143,12 +143,9 @@ public class DialogueGenerator
         return state switch
         {
             EmotionalState.DESPERATE => $"{npc.Name} wrings their hands anxiously, eyes darting about.",
-            EmotionalState.DESPERATE => $"{npc.Name} crosses their arms defensively, jaw clenched.",
             EmotionalState.TENSE => $"{npc.Name} shifts uncomfortably, shoulders rigid.",
-            EmotionalState.TENSE => $"{npc.Name} maintains careful distance, watching you closely.",
             EmotionalState.NEUTRAL => $"{npc.Name} stands relaxed but attentive.",
             EmotionalState.OPEN => $"{npc.Name} leans in slightly, genuinely interested.",
-            EmotionalState.OPEN => $"{npc.Name} smiles warmly, animated in their responses.",
             EmotionalState.CONNECTED => $"{npc.Name} mirrors your posture, completely engaged.",
             _ => $"{npc.Name} continues the conversation."
         };
@@ -234,12 +231,9 @@ public class DialogueGenerator
         return state switch
         {
             EmotionalState.DESPERATE => new[] { "Please, I need help!", "This is urgent!", "I don't know what to do!" },
-            EmotionalState.DESPERATE => new[] { "Why should I talk to you?", "Leave me alone.", "I don't trust you." },
             EmotionalState.TENSE => new[] { "What do you want?", "I'm listening...", "Be quick about it." },
-            EmotionalState.TENSE => new[] { "Go on.", "I'm listening.", "What's your point?" },
             EmotionalState.NEUTRAL => new[] { "Interesting.", "Tell me more.", "I see." },
             EmotionalState.OPEN => new[] { "That's fascinating!", "Please continue.", "I'd like to hear more." },
-            EmotionalState.OPEN => new[] { "Yes, exactly!", "I completely agree!", "This is wonderful!" },
             EmotionalState.CONNECTED => new[] { "I understand completely.", "We're on the same wavelength.", "I feel the same way." },
             _ => new[] { "..." }
         };
@@ -291,11 +285,8 @@ public class DialogueGenerator
         var stateOrder = new[]
         {
             EmotionalState.DESPERATE,
-            EmotionalState.DESPERATE,
-            EmotionalState.TENSE,
             EmotionalState.TENSE,
             EmotionalState.NEUTRAL,
-            EmotionalState.OPEN,
             EmotionalState.OPEN,
             EmotionalState.CONNECTED
         };

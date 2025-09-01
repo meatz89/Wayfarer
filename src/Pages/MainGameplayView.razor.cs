@@ -324,10 +324,10 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public async Task HandleTravelStart(string travelDestination)
     {
-        List<TravelRouteViewModel> routes = GameFacade.GetRoutesToDestination(travelDestination);
+        List<RouteOption> routes = GameFacade.GetRoutesToDestination(travelDestination);
         if (routes.Any())
         {
-            await GameFacade.TravelToDestinationAsync(travelDestination, routes.First().RouteId);
+            await GameFacade.TravelToDestinationAsync(travelDestination, routes.First().Id);
         }
 
         OnNavigate?.Invoke(CurrentViews.LocationScreen);

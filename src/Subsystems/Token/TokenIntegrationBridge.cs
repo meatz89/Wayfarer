@@ -56,8 +56,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 Tokens = _tokenFacade.GetTokensWithNPC(npcId),
                 RelationshipTier = _tokenFacade.GetRelationshipTier(npcId),
                 PrimaryConnection = _tokenFacade.GetPrimaryConnection(npcId),
-                HasDebt = _tokenFacade.GetTotalLeverage(npcId) > 0,
-                AvailableUnlocks = _tokenFacade.GetAvailableUnlocks(npcId)
+                HasDebt = _tokenFacade.GetTotalLeverage(npcId) > 0
             };
         }
         

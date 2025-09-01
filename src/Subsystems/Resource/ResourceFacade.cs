@@ -54,6 +54,11 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             return _coinManager.SpendCoins(_gameWorld.GetPlayer(), amount, reason, _messageSystem);
         }
         
+        public bool SpendCoins(int amount)
+        {
+            return SpendCoins(amount, "Travel cost");
+        }
+        
         public void AddCoins(int amount, string source)
         {
             _coinManager.AddCoins(_gameWorld.GetPlayer(), amount, source, _messageSystem);
@@ -120,6 +125,12 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             return _attentionManager.SpendAttention(_gameWorld.GetPlayer(), amount, timeBlock, reason, _messageSystem);
         }
         
+        public bool SpendAttention(int amount)
+        {
+            var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+            return SpendAttention(amount, currentTimeBlock, "Observation");
+        }
+        
         public void RefreshAttentionForNewTimeBlock(TimeBlocks newTimeBlock)
         {
             int hunger = GetHunger();
@@ -150,11 +161,90 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             RefreshAttentionForNewTimeBlock(newBlock);
         }
         
+        // ========== COMBINED RESOURCE OPERATIONS ==========
+        
+        /// <summary>
+        /// Get complete player resources for UI display
+        /// </summary>
+        public (int Coins, int Health, int Hunger, int CurrentAttention, int MaxAttention) GetPlayerResources()
+        {
+            var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+            var (currentAttention, maxAttention) = GetAttention(currentTimeBlock);
+            
+            return (
+                Coins: GetCoins(),
+                Health: GetHealth(),
+                Hunger: GetHunger(),
+                CurrentAttention: currentAttention,
+                MaxAttention: maxAttention
+            );
+        }
+        
         // ========== INVENTORY OPERATIONS (delegated from Player) ==========
         
         public Inventory GetInventory()
         {
             return _gameWorld.GetPlayer().Inventory;
+        }
+        
+        public InventoryViewModel GetInventoryViewModel()
+        {
+            var inventory = GetInventory();
+            return new InventoryViewModel
+            {
+                Items = inventory.GetItemIds().Select(itemId => new InventoryItemViewModel
+                {
+                    ItemId = itemId,
+                    Name = itemId, // TODO: Get actual item name from repository
+                    Description = "", // TODO: Get actual item description from repository
+                    Weight = 1, // TODO: Get actual item weight from repository
+                    Value = 0, // TODO: Get actual item value from repository
+                    CanRead = false
+                }).ToList(),
+                TotalWeight = CalculateTotalWeight(),
+                MaxSlots = inventory.GetCapacity(),
+                UsedSlots = inventory.UsedCapacity,
+                Coins = GetCoins()
+            };
+        }
+        
+        public int CalculateTotalWeight()
+        {
+            // TODO: Get actual item weights from repository
+            return GetInventory().UsedCapacity; // Simplified - 1 weight per item
+        }
+        
+        // ========== WORK AND REST OPERATIONS ==========
+        
+        /// <summary>
+        /// Execute a rest action to recover resources
+        /// </summary>
+        public RestActionResult ExecuteRestAction(string actionType)
+        {
+            // Simple rest implementation - would be expanded based on rest system
+            return new RestActionResult
+            {
+                Success = true,
+                TimeAdvanced = 60, // 1 hour
+                StaminaRecovered = 2,
+                HealthRecovered = 1
+            };
+        }
+        
+        /// <summary>
+        /// Perform work to earn coins
+        /// </summary>
+        public WorkResult PerformWork()
+        {
+            // Simple work implementation
+            var coinsEarned = 5;
+            AddCoins(coinsEarned, "Work performed");
+            
+            return new WorkResult
+            {
+                Success = true,
+                CoinsEarned = coinsEarned
+            };
         }
         
         public bool HasItem(string itemId)
@@ -176,5 +266,16 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         {
             return _gameWorld.GetPlayer().Inventory.RemoveItem(itemId);
         }
+    }
+    
+    /// <summary>
+    /// Result of a rest action
+    /// </summary>
+    public class RestActionResult
+    {
+        public bool Success { get; set; }
+        public int TimeAdvanced { get; set; }
+        public int StaminaRecovered { get; set; }
+        public int HealthRecovered { get; set; }
     }
 }

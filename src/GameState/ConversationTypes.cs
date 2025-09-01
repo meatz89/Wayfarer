@@ -685,7 +685,7 @@ public class CardPlayResult
             }
             return false;
         } 
-        set; // Make it settable
+        set { } // Make it settable
     }
 }
 

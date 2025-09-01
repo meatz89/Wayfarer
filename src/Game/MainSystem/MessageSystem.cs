@@ -69,4 +69,20 @@
     }
 
     // Special letter requests now handled through new conversation card system
+
+    /// <summary>
+    /// Get all current system messages
+    /// </summary>
+    public List<SystemMessage> GetMessages()
+    {
+        return _gameWorld.SystemMessages.ToList();
+    }
+
+    /// <summary>
+    /// Clear all current system messages
+    /// </summary>
+    public void ClearMessages()
+    {
+        _gameWorld.SystemMessages.Clear();
+    }
 }

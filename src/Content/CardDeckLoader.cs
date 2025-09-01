@@ -252,10 +252,10 @@ public class CardDeckLoader
             var typeStr = template.GetProperty("type").GetString();
 
             // Parse connection type
-            var cardType = template.TryGetProperty("cardType", out var cardTypeElem);
+            var hasCardType = template.TryGetProperty("cardType", out var cardTypeElem);
             var connectionStr = template.TryGetProperty("connectionType", out var connElem) 
                 ? connElem.GetString() : "Trust";
-            var cardType = ParseCardType(cardTypeElem);
+            var cardType = hasCardType ? ParseCardType(cardTypeElem.GetString()) : CardType.Normal;
             var cardTokenType = ParseCardTokenType(connectionStr);
             
             // Parse persistence

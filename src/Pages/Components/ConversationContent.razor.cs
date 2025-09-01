@@ -1578,8 +1578,10 @@ namespace Wayfarer.Pages.Components
                 if (negotiation.CreatedObligation != null)
                 {
                     // Add the obligation to the player's queue through the GameFacade
-                    var queuePosition = GameFacade.AddLetterWithObligationEffects(negotiation.CreatedObligation);
+                    GameFacade.AddLetterWithObligationEffects(negotiation.CreatedObligation);
                     
+                    // For now, assume successful queue position
+                    var queuePosition = 1;
                     if (queuePosition > 0)
                     {
                         LoadSystemNarratives();

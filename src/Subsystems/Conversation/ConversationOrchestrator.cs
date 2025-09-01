@@ -477,4 +477,31 @@ public class ConversationOrchestrator
             Description = $"Letter from {session.NPC.Name} (State: {session.CurrentState}, Comfort: {session.ComfortBattery})"
         };
     }
+
+    /// <summary>
+    /// Create an urgent letter from an NPC in distress
+    /// </summary>
+    public DeliveryObligation CreateUrgentLetter(NPC npc)
+    {
+        // Find a suitable recipient (family member, friend, etc.)
+        var allNpcs = _gameWorld.GetAllNPCs();
+        var recipient = allNpcs.FirstOrDefault(n => n.ID != npc.ID) ?? allNpcs.FirstOrDefault();
+        
+        return new DeliveryObligation
+        {
+            Id = Guid.NewGuid().ToString(),
+            Title = $"Urgent Letter from {npc.Name}",
+            SenderId = npc.ID,
+            SenderName = npc.Name,
+            RecipientId = recipient?.ID ?? "unknown",
+            RecipientName = recipient?.Name ?? "Someone",
+            TokenType = ConnectionType.Trust,
+            Stakes = StakeType.SAFETY,
+            DeadlineInMinutes = 240, // 4 hours for urgent letters
+            Payment = 15, // Higher payment for urgent delivery
+            Tier = (TierLevel)npc.Tier,
+            EmotionalWeight = EmotionalWeight.HIGH, // High emotional weight for urgency
+            Description = $"Urgent letter from {npc.Name} - they desperately need help!"
+        };
+    }
 }

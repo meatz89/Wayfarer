@@ -365,8 +365,8 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             List<PricingInfo> prices = GetItemPriceComparison(itemId);
             if (prices.Count < 2) return 0;
 
-            float avgPrice = prices.Average(p => p.AdjustedBuyPrice);
-            float variance = prices.Sum(p => (float)Math.Pow(p.AdjustedBuyPrice - avgPrice, 2)) / prices.Count;
+            float avgPrice = (float)prices.Average(p => p.AdjustedBuyPrice);
+            float variance = (float)(prices.Sum(p => Math.Pow(p.AdjustedBuyPrice - avgPrice, 2)) / prices.Count);
             float stdDev = (float)Math.Sqrt(variance);
 
             return stdDev / avgPrice; // Coefficient of variation

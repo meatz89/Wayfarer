@@ -38,12 +38,12 @@ namespace Wayfarer.Pages.Components
             AvailableRoutes = routes.Select(r => new RouteViewModel
             {
                 Id = r.Id,
-                DestinationName = r.Destination,
-                District = GetDestinationDistrict(r.Destination),
-                TransportType = r.TransportType,
-                TravelTime = r.TravelTimeInMinutes,
-                Cost = r.Cost,
-                Familiarity = r.FamiliarityLevel.ToString(),
+                DestinationName = r.DestinationLocationSpot,
+                District = GetDestinationDistrict(r.DestinationLocationSpot),
+                TransportType = r.Method.ToString(),
+                TravelTime = r.TravelTimeMinutes,
+                Cost = r.BaseCoinCost,
+                Familiarity = r.IsDiscovered ? "Known" : "Unknown",
                 Requirements = new List<string>() // TODO: Map requirements from SimpleRouteViewModel
             }).ToList();
         }

@@ -640,5 +640,70 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             return info;
         }
+        
+        // ========== MISSING METHODS (STUBS) ==========
+        
+        public LetterQueueViewModel GetLetterQueue()
+        {
+            // TODO: Implement proper letter queue view model
+            return new LetterQueueViewModel
+            {
+                QueueSlots = new List<QueueSlotViewModel>(),
+                Status = new QueueStatusViewModel
+                {
+                    LetterCount = 0,
+                    MaxCapacity = 8,
+                    ExpiredCount = 0,
+                    UrgentCount = 0,
+                    WarningCount = 0,
+                    TotalSize = 0,
+                    MaxSize = 12,
+                    RemainingSize = 12,
+                    SizeDisplay = "0/12"
+                },
+                Actions = new QueueActionsViewModel
+                {
+                    CanMorningSwap = false,
+                    MorningSwapReason = "No obligations to swap",
+                    HasBottomDeliveryObligation = false,
+                    TotalAvailableTokens = 0,
+                    PurgeTokenOptions = new List<TokenOptionViewModel>()
+                }
+            };
+        }
+        
+        public LetterBoardViewModel GetLetterBoard()
+        {
+            // TODO: Implement proper letter board view model
+            return new LetterBoardViewModel
+            {
+                IsAvailable = true,
+                UnavailableReason = null,
+                Offers = new List<LetterOfferViewModel>(),
+                CurrentTime = TimeBlocks.Dawn
+            };
+        }
+        
+        public bool DisplaceObligation(string obligationId, int targetPosition)
+        {
+            // TODO: Implement obligation displacement
+            return false;
+        }
+        
+        public bool AcceptLetterOffer(string offerId)
+        {
+            // TODO: Implement letter offer acceptance
+            return false;
+        }
+        
+        public int GetLetterQueueCount()
+        {
+            return GetLetterCount(); // Use existing method
+        }
+        
+        public bool IsLetterQueueFull()
+        {
+            return IsQueueFull(); // Use existing method
+        }
     }
 }

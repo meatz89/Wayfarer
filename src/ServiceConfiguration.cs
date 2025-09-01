@@ -150,6 +150,13 @@ public static class ServiceConfiguration
         services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.TravelTimeCalculator>();
         services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.TravelFacade>();
 
+        // Market Subsystem
+        services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.MarketSubsystemManager>();
+        services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.PriceManager>();
+        services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.ArbitrageCalculator>();
+        services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.MarketStateTracker>();
+        services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.MarketFacade>();
+
         // Token Subsystem
         services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.ConnectionTokenManager>();
         services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.TokenEffectProcessor>();

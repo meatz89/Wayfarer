@@ -40,6 +40,41 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             return _routeManager.GetAvailableRoutesFromCurrentLocation();
         }
         
+        /// <summary>
+        /// Get travel destinations with full view model data for UI
+        /// </summary>
+        public List<TravelDestinationViewModel> GetTravelDestinations()
+        {
+            var routes = GetAvailableRoutesFromCurrentLocation();
+            var destinations = new List<TravelDestinationViewModel>();
+
+            foreach (var route in routes)
+            {
+                // Extract location ID from destination spot (format: locationId.spotName)
+                var locationId = route.DestinationLocationSpot.Split('.')[0];
+                var destination = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
+                if (destination != null)
+                {
+                    var canTravel = IsRouteDiscovered(route.Id);
+                    
+                    destinations.Add(new TravelDestinationViewModel
+                    {
+                        LocationId = destination.Id,
+                        LocationName = destination.Name,
+                        Description = destination.Description ?? "",
+                        CanTravel = canTravel,
+                        CannotTravelReason = !canTravel ? "Route not discovered" : null,
+                        MinimumCost = CalculateTravelCost(route, TravelMethods.Walking),
+                        MinimumTime = route.TravelTimeMinutes,
+                        IsCurrent = false,
+                        Routes = new List<TravelRouteViewModel>() // This would be populated by a more detailed method
+                    });
+                }
+            }
+
+            return destinations;
+        }
+        
         public List<RouteOption> GetDiscoveredRoutes()
         {
             return _routeManager.GetDiscoveredRoutes();

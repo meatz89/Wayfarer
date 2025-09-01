@@ -140,6 +140,14 @@ public bool IsEndlessModeActive()
 }
 
 /// <summary>
+/// Get all NPCs in the game world
+/// </summary>
+public List<NPC> GetAllNPCs()
+{
+    return NPCs ?? new List<NPC>();
+}
+
+/// <summary>
 /// Get domain tags from the current location spot
 /// </summary>
 public List<string> GetCurrentSpotDomainTags()

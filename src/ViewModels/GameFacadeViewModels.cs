@@ -14,6 +14,9 @@ public int MinimumCost { get; set; }
 public int MinimumTime { get; set; }
 public bool IsCurrent { get; set; }
 public List<TravelRouteViewModel> Routes { get; set; } = new();
+public int TravelTime { get; set; }
+public bool IsLocked { get; set; }
+public string LockReason { get; set; }
 }
 
 // New travel context ViewModel

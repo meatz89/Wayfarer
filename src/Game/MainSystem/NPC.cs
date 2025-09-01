@@ -213,4 +213,13 @@ public class NPC
             _knownRoutes.Add(route);
         }
     }
+
+    /// <summary>
+    /// Check if NPC has valid goal cards for Promise conversations
+    /// </summary>
+    public bool HasValidGoalCard(EmotionalState currentState)
+    {
+        return GoalDeck != null && GoalDeck.RemainingCards > 0;
+    }
+
 }

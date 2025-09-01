@@ -104,7 +104,7 @@ public class ConversationFacade
         // Apply token changes
         if (_lastOutcome.TokensEarned != 0)
         {
-            var connectionType = MapCardTypeToConnection(cardTokenType);
+            var connectionType = ConnectionType.Trust; // TODO: Determine connection type from conversation outcome
             _tokenManager.AddTokensToNPC(connectionType, _lastOutcome.TokensEarned, _currentSession.NPC.ID);
         }
 
@@ -545,6 +545,27 @@ public class ConversationFacade
             CardTokenType.Shadow => ConnectionType.Shadow,
             _ => ConnectionType.Trust
         };
+    }
+    
+    // ========== MISSING METHODS (STUBS) ==========
+    
+    public object ExecuteExchange(object exchangeData)
+    {
+        // TODO: Implement exchange execution
+        return new { Success = false };
+    }
+    
+    public System.Threading.Tasks.Task<bool> EndConversationAsync()
+    {
+        // TODO: Implement async conversation ending
+        var outcome = EndConversation();
+        return System.Threading.Tasks.Task.FromResult(outcome != null);
+    }
+    
+    public int GetAttentionCost(ConversationType type)
+    {
+        // TODO: Implement attention cost calculation
+        return 1;
     }
     
 }

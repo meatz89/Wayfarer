@@ -382,7 +382,7 @@ public class CardDeckManager
     private ConversationCard FindCardTemplateById(string cardId)
     {
         // Search in all card collections in GameWorld
-        if (_gameWorld.CardTemplates.TryGetValue(cardId, out var template))
+        if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out var template))
         {
             return template;
         }
@@ -395,7 +395,7 @@ public class CardDeckManager
             Type = CardType.Normal,
             Weight = 1,
             Difficulty = Difficulty.Medium,
-            Persistence = PersistenceType.Session,
+            Persistence = PersistenceType.Fleeting,
             EffectType = CardEffectType.FixedComfort,
             EffectValue = "1"
         };

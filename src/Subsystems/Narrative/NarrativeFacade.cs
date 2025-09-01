@@ -54,11 +54,38 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             if (card != null)
             {
                 // Generate narrative for the observation
-                var narrative = $"You observe {observation.Name} and gain insight.";
+                var narrative = $"You observe {observation.Text} and gain insight.";
                 _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
             }
 
             return card;
+        }
+
+        /// <summary>
+        /// Take an observation (simplified version for facade delegation)
+        /// </summary>
+        public bool TakeObservation(string observationId)
+        {
+            var observation = _observationManager.GetObservation(observationId);
+            if (observation == null)
+            {
+                Console.WriteLine($"[NarrativeFacade] Observation {observationId} not found");
+                return false;
+            }
+
+            // For now, pass null for token manager since observation taking doesn't require complex token mechanics
+            var tokenManager = (TokenMechanicsManager)null;
+            var card = _observationManager.TakeObservation(observation, tokenManager);
+            
+            if (card != null)
+            {
+                // Generate narrative for the observation
+                var narrative = $"You observe {observation.Text} and gain insight.";
+                _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
