@@ -81,8 +81,7 @@ public static class ServiceConfiguration
         services.AddSingleton<ConversationFacade>();
 
         // Dialogue generation services (NO hardcoded text)
-        services.AddSingleton<DialogueGenerationService>(provider => 
-            new DialogueGenerationService("Content"));  // Content directory path
+        services.AddSingleton<DialogueGenerationService>();
 
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();

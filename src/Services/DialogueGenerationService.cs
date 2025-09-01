@@ -13,9 +13,10 @@ public class DialogueGenerationService
     private DialogueTemplates _templates;
     private readonly Random _random = new Random();
     
-    public DialogueGenerationService(string contentPath)
+    public DialogueGenerationService(IContentDirectory contentDirectory)
     {
-        LoadTemplates(Path.Combine(contentPath, "dialogue_templates.json"));
+        var contentPath = contentDirectory.Path;
+        LoadTemplates(Path.Combine(contentPath, @"Templates\dialogue_templates.json"));
     }
     
     private void LoadTemplates(string path)
