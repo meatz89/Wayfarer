@@ -675,33 +675,69 @@ public class ConversationSession
     public static ConversationSession StartConversation(NPC npc, object queueManager, object tokenManager, 
         object observationCards, object conversationType, object playerResourceState, object gameWorld)
     {
-        return new ConversationSession
+        // Cast parameters to proper types
+        var obsCards = observationCards as List<CardInstance> ?? new List<CardInstance>();
+        var convType = (ConversationType)conversationType;
+        var world = (GameWorld)gameWorld;
+        
+        // Determine initial state
+        var initialState = ConversationRules.DetermineInitialState(npc, queueManager as ObligationQueueManager);
+        
+        // Create session deck from NPC's conversation cards
+        var sessionDeck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck?.GetAllCards() ?? new List<ConversationCard>(), npc.ID);
+        
+        // Add observation cards if provided
+        foreach (var obsCard in obsCards)
+        {
+            sessionDeck.AddCard(obsCard);
+        }
+        
+        // Create session with proper initialization
+        var session = new ConversationSession
         {
             NPC = npc,
-            ConversationType = ConversationType.FriendlyChat,
-            CurrentState = EmotionalState.GUARDED,
-            InitialState = EmotionalState.GUARDED,
+            ConversationType = convType,
+            CurrentState = initialState,
+            InitialState = initialState,
             CurrentComfort = 0,
             CurrentPatience = 10,
             MaxPatience = 10,
-            TurnNumber = 0
+            TurnNumber = 0,
+            Deck = sessionDeck,
+            Hand = new HandDeck(),
+            TokenManager = tokenManager as TokenMechanicsManager,
+            ObservationCards = obsCards
         };
+        
+        return session;
     }
     
-    public static ConversationSession StartExchange(NPC npc, object queueManager, object tokenManager,
-        object cardDeckManager, object emotionalStateManager, object comfortManager)
+    public static ConversationSession StartExchange(NPC npc, object playerResourceState, object tokenManager,
+        object spotDomainTags, object queueManager, object gameWorld)
     {
-        return new ConversationSession
+        // Create session deck from NPC's exchange cards
+        var exchangeCards = npc.ExchangeDeck?.GetAllCards() ?? new List<ConversationCard>();
+        var sessionDeck = SessionCardDeck.CreateFromTemplates(exchangeCards, npc.ID);
+        
+        // Determine initial state  
+        var initialState = ConversationRules.DetermineInitialState(npc, queueManager as ObligationQueueManager);
+        
+        var session = new ConversationSession
         {
             NPC = npc,
             ConversationType = ConversationType.Commerce,
-            CurrentState = EmotionalState.GUARDED,
-            InitialState = EmotionalState.GUARDED,
+            CurrentState = initialState,
+            InitialState = initialState,
             CurrentComfort = 0,
             CurrentPatience = 10,
             MaxPatience = 10,
-            TurnNumber = 0
+            TurnNumber = 0,
+            Deck = sessionDeck,
+            Hand = new HandDeck(),
+            TokenManager = tokenManager as TokenMechanicsManager
         };
+        
+        return session;
     }
 }
 
