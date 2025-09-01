@@ -1,4 +1,5 @@
-﻿
+﻿using System.Linq;
+
 public class Inventory
 {
     public string[] ItemSlots;
@@ -17,6 +18,11 @@ public class Inventory
     public List<string> GetAllItems()
     {
         return ItemSlots.ToList();
+    }
+
+    public List<string> GetItemIds()
+    {
+        return ItemSlots.Where(s => !string.IsNullOrEmpty(s)).Distinct().ToList();
     }
 
     public void Clear()

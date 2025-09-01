@@ -72,18 +72,13 @@ public static class ServiceConfiguration
         
         // ConversationSubsystem services
         services.AddSingleton<CardDeckManager>();
-        services.AddSingleton<EmotionalStateManager>();
-        services.AddSingleton<ComfortManager>();
         services.AddSingleton<DialogueGenerator>();
         services.AddSingleton<ExchangeHandler>();
-        services.AddSingleton<ConversationStateTracker>();
         services.AddSingleton<ConversationOrchestrator>();
         services.AddSingleton<ConversationFacade>();
-        
+
         // Dialogue generation services (NO hardcoded text)
-        services.AddSingleton<DialogueGenerationService>(provider => 
-            new DialogueGenerationService(Path.Combine("Content", "Templates")));
-        services.AddSingleton<NarrativeRenderer>();
+        services.AddSingleton<DialogueGenerationService>();
 
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();
@@ -161,6 +156,14 @@ public static class ServiceConfiguration
         services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.TokenUnlockManager>();
         services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.RelationshipTracker>();
         services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.TokenFacade>();
+
+        // Narrative Subsystem
+        services.AddSingleton<Wayfarer.Subsystems.NarrativeSubsystem.ObservationManagerWrapper>();
+        services.AddSingleton<MessageSystem>();
+        services.AddSingleton<NarrativeService>();
+        services.AddSingleton<Wayfarer.Subsystems.NarrativeSubsystem.NarrativeRenderer>();
+        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationNarrativeGenerator>();
+        services.AddSingleton<Wayfarer.Subsystems.NarrativeSubsystem.NarrativeFacade>();
 
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();

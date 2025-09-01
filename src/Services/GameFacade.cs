@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using static DailyActivitiesManager;
+using Wayfarer.Subsystems.NarrativeSubsystem;
 
 /// <summary>
 /// GameFacade - THE single entry point for all UI-Backend communication.

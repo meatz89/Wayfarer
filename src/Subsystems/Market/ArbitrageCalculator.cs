@@ -185,7 +185,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         public List<ArbitrageOpportunity> FindOpportunitiesFromCurrentLocation()
         {
             Player player = _gameWorld.GetPlayer();
-            string currentLocationId = player.LocationId;
+            string currentLocationId = player.CurrentLocationSpot?.LocationId;
             List<ArbitrageOpportunity> opportunities = new List<ArbitrageOpportunity>();
             List<Item> allItems = _itemRepository.GetAllItems();
 
@@ -241,7 +241,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         public List<ArbitrageOpportunity> FindOpportunitiesForInventory()
         {
             Player player = _gameWorld.GetPlayer();
-            string currentLocationId = player.LocationId;
+            string currentLocationId = player.CurrentLocationSpot?.LocationId;
             List<ArbitrageOpportunity> opportunities = new List<ArbitrageOpportunity>();
             
             foreach (string itemId in player.Inventory.GetItemIds())
@@ -300,7 +300,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         public TradeRoute PlanOptimalRoute(int maxStops = 3)
         {
             Player player = _gameWorld.GetPlayer();
-            string startLocation = player.LocationId;
+            string startLocation = player.CurrentLocationSpot?.LocationId;
             int availableCapital = player.Coins;
 
             TradeRoute bestRoute = new TradeRoute();

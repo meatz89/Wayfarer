@@ -290,6 +290,9 @@ public class CardInstance
     public string DisplayName { get; init; }
     public List<EmotionalState> DrawableStates { get; init; } = new List<EmotionalState>();
     
+    // Convenience property for fleeting cards
+    public bool IsFleeting => Persistence == PersistenceType.Fleeting;
+    
     public CardInstance() { }
     
     public CardInstance(ConversationCard template, string sourceContext = null)

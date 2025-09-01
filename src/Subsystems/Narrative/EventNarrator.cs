@@ -63,10 +63,11 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         {
             string reasonText = reason switch
             {
-                LetterPositioningReason.HighRelationship => $"strong relationship (strength: {strength})",
-                LetterPositioningReason.Debt => $"outstanding debt (debt: {debt})",
-                LetterPositioningReason.Urgency => "urgent matter",
-                LetterPositioningReason.StandingObligation => "standing obligation",
+                LetterPositioningReason.Obligation => "standing obligation",
+                LetterPositioningReason.CommerceDebt => $"commerce debt (debt: {debt})",
+                LetterPositioningReason.PoorStanding => $"poor standing (debt: {debt})",
+                LetterPositioningReason.GoodStanding => $"good relationship (strength: {strength})",
+                LetterPositioningReason.Neutral => "standard priority",
                 _ => "standard priority"
             };
 
@@ -80,12 +81,13 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         {
             return letterEvent.EventType switch
             {
-                SpecialLetterEventType.UrgentRequest => $"URGENT: {letterEvent.TargetNPCId} requires immediate assistance!",
-                SpecialLetterEventType.RelationshipBonus => $"Your relationship with {letterEvent.TargetNPCId} has deepened significantly.",
-                SpecialLetterEventType.DeadlineApproaching => $"WARNING: {letterEvent.TargetNPCId}'s letter deadline approaches!",
-                SpecialLetterEventType.LetterFailed => $"FAILURE: {letterEvent.TargetNPCId}'s letter has expired.",
-                SpecialLetterEventType.LetterDelivered => $"SUCCESS: Letter delivered to {letterEvent.TargetNPCId}!",
-                _ => $"Event: {letterEvent.EventType} involving {letterEvent.TargetNPCId}"
+                SpecialLetterEventType.IntroductionLetterGenerated => $"Introduction letter generated for {letterEvent.TargetNPCId}.",
+                SpecialLetterEventType.NPCIntroduced => $"You've been introduced to {letterEvent.TargetNPCId}!",
+                SpecialLetterEventType.AccessPermitGenerated => $"Access permit generated for {letterEvent.TargetLocationId}.",
+                SpecialLetterEventType.LocationAccessGranted => $"Access granted to {letterEvent.TargetLocationId}!",
+                SpecialLetterEventType.SpecialLetterTokenBonus => $"Token bonus earned: +{letterEvent.TokenAmount} {letterEvent.TokenType}!",
+                SpecialLetterEventType.SpecialLetterDelivered => $"Special letter delivered successfully!",
+                _ => $"Event: {letterEvent.EventType}"
             };
         }
 

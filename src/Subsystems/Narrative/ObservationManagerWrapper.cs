@@ -32,7 +32,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             // Search through all locations for the observation
             foreach (var location in _gameWorld.Locations)
             {
-                var observations = _observationSystem.GetAllObservationsForLocation(location.ID);
+                var observations = _observationSystem.GetAllObservationsForLocation(location.Id);
                 var observation = observations.FirstOrDefault(o => o.Id == observationId);
                 if (observation != null)
                 {

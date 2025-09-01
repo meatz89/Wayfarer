@@ -272,7 +272,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         /// </summary>
         public List<MarketSubsystemManager.TradeRecommendation> GetTradeRecommendations()
         {
-            string currentLocation = _gameWorld.GetPlayer().LocationId;
+            string currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId;
             return _marketManager.GetTradeRecommendations(currentLocation);
         }
 

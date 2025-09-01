@@ -544,7 +544,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
             // Check player location
             Player player = _gameWorld.GetPlayer();
-            if (player.LocationId != locationId)
+            if (player.CurrentLocationSpot?.LocationId != locationId)
             {
                 error = "You must be at the location to trade";
                 return false;
