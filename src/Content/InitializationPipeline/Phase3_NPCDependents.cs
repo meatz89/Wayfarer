@@ -196,7 +196,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                         Mechanics = CardMechanicsType.Promise,
                         Category = CardCategory.Promise.ToString(),
                         Type = CardType.Goal, // Promise cards are goal cards
-                        TokenType = CardTokenType.Trust,
+                        TokenType = ConnectionType.Trust,
                         Persistence = PersistenceType.Fleeting, // Use valid persistence type
                         Weight = 2, // Standard weight for promise cards
                         BaseComfort = 0, // No comfort for goal cards

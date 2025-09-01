@@ -535,14 +535,14 @@ public class ConversationFacade
         }
     }
 
-    private ConnectionType MapCardTypeToConnection(CardTokenType cardType)
+    private ConnectionType MapCardTypeToConnection(ConnectionType cardType)
     {
         return cardType switch
         {
-            CardTokenType.Trust => ConnectionType.Trust,
-            CardTokenType.Commerce => ConnectionType.Commerce,
-            CardTokenType.Status => ConnectionType.Status,
-            CardTokenType.Shadow => ConnectionType.Shadow,
+            ConnectionType.Trust => ConnectionType.Trust,
+            ConnectionType.Commerce => ConnectionType.Commerce,
+            ConnectionType.Status => ConnectionType.Status,
+            ConnectionType.Shadow => ConnectionType.Shadow,
             _ => ConnectionType.Trust
         };
     }

@@ -116,7 +116,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public bool IsTutorialActive()
     {
-        return GameFacade.IsTutorialActive();
+        return false; // Tutorial not implemented yet
     }
 
     public void HandleMessagesExpired()

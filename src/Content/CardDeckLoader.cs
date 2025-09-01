@@ -608,15 +608,15 @@ public class CardDeckLoader
         };
     }
 
-    private CardTokenType ParseCardTokenType(string connectionStr)
+    private ConnectionType ParseCardTokenType(string connectionStr)
     {
         return connectionStr?.ToLower() switch
         {
-            "trust" => CardTokenType.Trust,
-            "commerce" => CardTokenType.Commerce,
-            "status" => CardTokenType.Status,
-            "shadow" => CardTokenType.Shadow,
-            _ => CardTokenType.Trust
+            "trust" => ConnectionType.Trust,
+            "commerce" => ConnectionType.Commerce,
+            "status" => ConnectionType.Status,
+            "shadow" => ConnectionType.Shadow,
+            _ => ConnectionType.Trust
         };
     }
     

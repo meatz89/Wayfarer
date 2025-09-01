@@ -98,7 +98,7 @@ namespace Wayfarer.Pages
 
         private void RefreshTravelData()
         {
-            TravelContext = GameFacade.GetTravelContext();
+            TravelContext = new TravelContextViewModel(); // Initialize empty context
             Destinations = GameFacade.GetTravelDestinationsWithRoutes();
         }
 

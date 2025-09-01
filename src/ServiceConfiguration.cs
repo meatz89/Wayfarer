@@ -71,6 +71,9 @@ public static class ServiceConfiguration
 
         
         // ConversationSubsystem services
+        services.AddSingleton<AtmosphereManager>();
+        services.AddSingleton<WeightPoolManager>();
+        services.AddSingleton<CardEffectProcessor>();
         services.AddSingleton<CardDeckManager>();
         services.AddSingleton<DialogueGenerator>();
         services.AddSingleton<ExchangeHandler>();
@@ -78,7 +81,8 @@ public static class ServiceConfiguration
         services.AddSingleton<ConversationFacade>();
 
         // Dialogue generation services (NO hardcoded text)
-        services.AddSingleton<DialogueGenerationService>();
+        services.AddSingleton<DialogueGenerationService>(provider => 
+            new DialogueGenerationService("Content"));  // Content directory path
 
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();

@@ -7,7 +7,6 @@ using Wayfarer.Subsystems.ObligationSubsystem;
 using Wayfarer.Subsystems.ResourceSubsystem;
 using Wayfarer.Subsystems.TimeSubsystem;
 using Wayfarer.Subsystems.TravelSubsystem;
-using Wayfarer.Subsystems.MarketSubsystem;
 using Wayfarer.Subsystems.TokenSubsystem;
 using Wayfarer.Subsystems.NarrativeSubsystem;
 
@@ -18,18 +17,14 @@ using Wayfarer.Subsystems.NarrativeSubsystem;
 /// </summary>
 public class GameFacade
 {
-    // Core dependencies
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
     private readonly ConversationFacade _conversationFacade;
-    
-    // Subsystem facades
     private readonly LocationFacade _locationFacade;
     private readonly ObligationFacade _obligationFacade;
     private readonly ResourceFacade _resourceFacade;
     private readonly TimeFacade _timeFacade;
     private readonly TravelFacade _travelFacade;
-    private readonly MarketFacade _marketFacade;
     private readonly TokenFacade _tokenFacade;
     private readonly NarrativeFacade _narrativeFacade;
 
@@ -42,7 +37,6 @@ public class GameFacade
         ResourceFacade resourceFacade,
         TimeFacade timeFacade,
         TravelFacade travelFacade,
-        MarketFacade marketFacade,
         TokenFacade tokenFacade,
         NarrativeFacade narrativeFacade)
     {
@@ -54,89 +48,71 @@ public class GameFacade
         _resourceFacade = resourceFacade;
         _timeFacade = timeFacade;
         _travelFacade = travelFacade;
-        _marketFacade = marketFacade;
         _tokenFacade = tokenFacade;
         _narrativeFacade = narrativeFacade;
     }
 
     // ========== CORE GAME STATE ==========
 
-    public GameWorldSnapshot GetGameSnapshot()
-    {
-        return new GameWorldSnapshot(_gameWorld);
-    }
+    public GameWorldSnapshot GetGameSnapshot() => new GameWorldSnapshot(_gameWorld);
 
-    public Player GetPlayer()
-    {
-        return _gameWorld.GetPlayer();
-    }
+    public Player GetPlayer() => _gameWorld.GetPlayer();
 
-    public MessageSystem GetMessageSystem()
-    {
-        return _messageSystem;
-    }
+    public List<SystemMessage> GetSystemMessages() => _messageSystem.GetMessages();
 
-    public List<SystemMessage> GetSystemMessages()
-    {
-        return _messageSystem.GetMessages();
-    }
-
-    public void ClearSystemMessages()
-    {
-        _messageSystem.ClearMessages();
-    }
-
-    // ========== ATTENTION STATE ==========
+    public void ClearSystemMessages() => _messageSystem.ClearMessages();
 
     public (int Current, int Max, TimeBlocks TimeBlock) GetCurrentAttentionState()
     {
-        TimeBlocks currentTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        var (current, max) = _resourceFacade.GetAttention(currentTimeBlock);
-        return (current, max, currentTimeBlock);
+        var timeBlock = _timeFacade.GetCurrentTimeBlock();
+        var (current, max) = _resourceFacade.GetAttention(timeBlock);
+        return (current, max, timeBlock);
     }
 
     // ========== LOCATION OPERATIONS ==========
 
-    public Location GetCurrentLocation()
-    {
-        return _locationFacade.GetCurrentLocation();
-    }
+    public Location GetCurrentLocation() => _locationFacade.GetCurrentLocation();
 
-    public LocationSpot GetCurrentLocationSpot()
-    {
-        return _locationFacade.GetCurrentLocationSpot();
-    }
+    public LocationSpot GetCurrentLocationSpot() => _locationFacade.GetCurrentLocationSpot();
 
-    public Location GetLocationById(string locationId)
-    {
-        return _locationFacade.GetLocationById(locationId);
-    }
+    public Location GetLocationById(string locationId) => _locationFacade.GetLocationById(locationId);
 
-    public bool MoveToSpot(string spotName)
-    {
-        return _locationFacade.MoveToSpot(spotName);
-    }
+    public bool MoveToSpot(string spotName) => _locationFacade.MoveToSpot(spotName);
+
+    public NPC GetNPCById(string npcId) => _locationFacade.GetNPCById(npcId);
+
+    public List<NPC> GetNPCsAtLocation(string locationId) => _locationFacade.GetNPCsAtLocation(locationId);
+
+    public List<NPC> GetNPCsAtCurrentSpot() => _locationFacade.GetNPCsAtCurrentSpot();
 
     public LocationScreenViewModel GetLocationScreen()
     {
-        // Get conversation options from ConversationFacade
         var npcConversationOptions = GetNPCConversationOptionsForCurrentLocation();
         return _locationFacade.GetLocationScreen(npcConversationOptions);
     }
 
-    public void RefreshLocationState()
+    private List<NPCConversationOptions> GetNPCConversationOptionsForCurrentLocation()
     {
-        _locationFacade.RefreshLocationState();
-    }
+        var npcs = _locationFacade.GetNPCsAtCurrentSpot();
+        var options = new List<NPCConversationOptions>();
 
-    public List<NPC> GetNPCsAtLocation(string locationId)
-    {
-        return _locationFacade.GetNPCsAtLocation(locationId);
-    }
+        foreach (var npc in npcs)
+        {
+            var conversationTypes = _conversationFacade.GetAvailableConversationTypes(npc);
+            var attentionCost = _conversationFacade.GetAttentionCost(ConversationType.FriendlyChat);
+            var (currentAttention, _) = _resourceFacade.GetAttention(_timeFacade.GetCurrentTimeBlock());
+            
+            options.Add(new NPCConversationOptions
+            {
+                NpcId = npc.ID,
+                NpcName = npc.Name,
+                AvailableTypes = conversationTypes,
+                AttentionCost = attentionCost,
+                CanAfford = currentAttention >= attentionCost
+            });
+        }
 
-    public List<NPC> GetNPCsAtCurrentSpot()
-    {
-        return _locationFacade.GetNPCsAtCurrentSpot();
+        return options;
     }
 
     // ========== TIME OPERATIONS ==========
@@ -373,11 +349,6 @@ public class GameFacade
         }).ToList();
     }
 
-    // ========== MARKET OPERATIONS ==========
-
-    // Market operations would be added here when needed
-    // Currently delegated to MarketFacade
-
     // ========== GAME INITIALIZATION ==========
 
     public async Task StartGameAsync()
@@ -487,18 +458,6 @@ public class GameFacade
         return false;
     }
 
-    // ========== MISSING METHODS (STUBS) ==========
-    
-    public bool IsTutorialActive()
-    {
-        return false; // TODO: Implement tutorial system
-    }
-    
-    public TravelContextViewModel GetTravelContext()
-    {
-        return new TravelContextViewModel(); // TODO: Implement travel context
-    }
-    
     public List<TravelDestinationViewModel> GetTravelDestinationsWithRoutes()
     {
         return GetTravelDestinations(); // Use existing method

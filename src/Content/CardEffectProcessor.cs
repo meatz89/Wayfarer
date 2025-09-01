@@ -14,18 +14,6 @@ public class CardEffectProcessor
         this.atmosphereManager = atmosphereManager;
         this.weightPoolManager = weightPoolManager;
     }
-    
-    private ConnectionType ConvertCardTokenType(CardTokenType cardTokenType)
-    {
-        return cardTokenType switch
-        {
-            CardTokenType.Trust => ConnectionType.Trust,
-            CardTokenType.Commerce => ConnectionType.Commerce,
-            CardTokenType.Status => ConnectionType.Status,
-            CardTokenType.Shadow => ConnectionType.Shadow,
-            _ => ConnectionType.Trust // Default to Trust
-        };
-    }
 
     // Process a single card effect and return the result
     public CardEffectResult ProcessCardEffect(ConversationCard card, ConversationSession session)
@@ -193,7 +181,7 @@ public class CardEffectProcessor
         int baseSuccess = card.GetBaseSuccessPercentage();
         
         // Get the card's token type (Trust, Commerce, Status, or Shadow)
-        ConnectionType cardTokenType = ConvertCardTokenType(card.TokenType);
+        ConnectionType cardTokenType = card.TokenType;
         
         // Add token bonus (5% per MATCHING token only)
         int matchingTokens = tokenManager.GetTokenCount(cardTokenType, session.NPC.ID);

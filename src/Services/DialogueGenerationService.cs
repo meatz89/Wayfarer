@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 /// <summary>
 /// Generates dialogue from categorical templates - NO hardcoded text
@@ -13,57 +12,6 @@ public class DialogueGenerationService
 {
     private DialogueTemplates _templates;
     private readonly Random _random = new Random();
-    
-    public class DialogueTemplates
-    {
-        [JsonPropertyName("emotionalStateDialogue")]
-        public Dictionary<string, EmotionalStateTemplate> EmotionalStateDialogue { get; set; }
-        
-        [JsonPropertyName("cardDialogue")]
-        public CardDialogueTemplate CardDialogue { get; set; }
-        
-        [JsonPropertyName("npcDescriptions")]
-        public NpcDescriptionTemplate NpcDescriptions { get; set; }
-        
-        [JsonPropertyName("narrativeElements")]
-        public Dictionary<string, Dictionary<string, string>> NarrativeElements { get; set; }
-    }
-    
-    public class EmotionalStateTemplate
-    {
-        [JsonPropertyName("contextual")]
-        public Dictionary<string, object> Contextual { get; set; }
-        
-        [JsonPropertyName("personality")]
-        public Dictionary<string, List<string>> Personality { get; set; }
-        
-        [JsonPropertyName("default")]
-        public List<string> Default { get; set; }
-    }
-    
-    public class CardDialogueTemplate
-    {
-        [JsonPropertyName("categories")]
-        public Dictionary<string, CardCategoryDialogue> Categories { get; set; }
-    }
-    
-    public class CardCategoryDialogue
-    {
-        [JsonPropertyName("player")]
-        public List<string> Player { get; set; }
-        
-        [JsonPropertyName("npc")]
-        public List<string> Npc { get; set; }
-    }
-    
-    public class NpcDescriptionTemplate
-    {
-        [JsonPropertyName("professionBase")]
-        public Dictionary<string, List<string>> ProfessionBase { get; set; }
-        
-        [JsonPropertyName("emotionalModifiers")]
-        public Dictionary<string, Dictionary<string, List<string>>> EmotionalModifiers { get; set; }
-    }
     
     public DialogueGenerationService(string contentPath)
     {
