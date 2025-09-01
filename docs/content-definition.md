@@ -580,7 +580,7 @@ W5 Very Hard goal, 1 Trust token:
 ## Success Metrics
 
 ### Perfect Run (Master Strategist)
-- "Personal Letter" obtained (Connected state)
+- Letter obtained (Connected state)
 - 8-hour deadline negotiated
 - Position 5+ (no displacement)
 - Complete by 3 PM
