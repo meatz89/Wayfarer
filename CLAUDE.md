@@ -272,6 +272,13 @@ This architecture ensures:
 - game mechanical values, that could be changed during balancing, should be read from GameRules configuration file.
 - strictly avoid defensive programming like checking for null values, try catch blocks, throwing exceptions, using defaults or fallback values and so on. this increases complexity of the code and hides errors. just let it fail and let the program crash fast
 
+### Critical Rules
+- ALL content from JSON files, no hardcoded text
+- Perfect Information: All mechanics visible
+- One effect per mechanic, no double duty
+- Resources flow through multiple systems
+- Delete legacy code, no compatibility layers
+
 **🔥 MANDATORY UI VERIFICATION STRATEGY 🔥**
 
 When evaluating UI implementation, you MUST follow this EXACT process:
