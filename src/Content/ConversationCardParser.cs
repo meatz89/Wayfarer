@@ -146,7 +146,6 @@ public class ConversationCardParser
             Description = card.Description,
             SuccessRate = card.SuccessRate,
             SuccessState = card.SuccessState,
-            DrawableStates = card.DrawableStates,
             PatienceBonus = card.PatienceBonus
         };
     }
@@ -198,19 +197,6 @@ public class ConversationCardParser
             }
         }
         
-        // Parse DrawableStates list
-        List<EmotionalState> drawableStates = null;
-        if (dto.DrawableStates != null && dto.DrawableStates.Any())
-        {
-            drawableStates = new List<EmotionalState>();
-            foreach (var stateString in dto.DrawableStates)
-            {
-                if (Enum.TryParse<EmotionalState>(stateString, true, out var state))
-                {
-                    drawableStates.Add(state);
-                }
-            }
-        }
 
         // Parse new target system properties
         Difficulty difficulty = Difficulty.Medium; // Default
@@ -259,7 +245,6 @@ public class ConversationCardParser
             Description = dto.Description,
             SuccessRate = dto.SuccessRate ?? 0,
             SuccessState = successState,
-            DrawableStates = drawableStates,
             PatienceBonus = dto.PatienceBonus ?? 0,
             
             // New target system properties
@@ -318,7 +303,6 @@ public class ConversationCardDTO
     public bool? GeneratesLetterOnSuccess { get; set; }
     public bool? IsStateCard { get; set; }
     public string SuccessState { get; set; }
-    public List<string> DrawableStates { get; set; } // NEW: States this card can be drawn in
     public int? PatienceBonus { get; set; } // Patience added when this card succeeds
     
     // New target system properties

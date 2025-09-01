@@ -65,8 +65,6 @@ public class GoalCardStateFilteringTest
         TestGoalSelectionForState(npc, EmotionalState.Neutral, false);
         TestGoalSelectionForState(npc, EmotionalState.Connected, false);
         
-        // Test 3: Verify DrawableStates is set when shuffled into deck
-        TestDrawableStatesInDeck(npc, goalCard);
         
         Console.WriteLine("\n=== Goal Card State Filtering Test Complete ===\n");
     }
@@ -103,44 +101,6 @@ public class GoalCardStateFilteringTest
         return stateFilteredGoals.FirstOrDefault();
     }
     
-    private static void TestDrawableStatesInDeck(NPC npc, ConversationCard originalGoal)
-    {
-        Console.WriteLine("\n--- Testing DrawableStates when shuffled into deck ---");
-        
-        // Create a copy of the conversation deck
-        var testDeck = new CardDeck();
-        testDeck.InitializeForNPC(npc);
-        
-        // Shuffle the goal card into the deck
-        testDeck.ShuffleInGoalCard(originalGoal);
-        
-        // Find the goal card in the deck
-        var goalInDeck = testDeck.GetAllCards().FirstOrDefault(c => c.Id == originalGoal.Id);
-        
-        if (goalInDeck != null)
-        {
-            if (goalInDeck.DrawableStates != null && goalInDeck.DrawableStates.Any())
-            {
-                Console.WriteLine($"✓ Goal card in deck has DrawableStates: {string.Join(", ", goalInDeck.DrawableStates)}");
-                
-                // Test drawing in valid states
-                TestDrawingInState(testDeck, EmotionalState.Tense, true);
-                TestDrawingInState(testDeck, EmotionalState.Open, true);
-                
-                // Test drawing in invalid states
-                TestDrawingInState(testDeck, EmotionalState.Desperate, false);
-                TestDrawingInState(testDeck, EmotionalState.Neutral, false);
-            }
-            else
-            {
-                Console.WriteLine("✗ Goal card in deck has NO DrawableStates set!");
-            }
-        }
-        else
-        {
-            Console.WriteLine("✗ Goal card not found in deck after shuffling!");
-        }
-    }
     
     private static void TestDrawingInState(CardDeck deck, EmotionalState state, bool shouldBeDrawable)
     {

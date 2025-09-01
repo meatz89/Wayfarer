@@ -284,20 +284,6 @@ public class CardDeckLoader
             
             var isStateCard = template.TryGetProperty("isStateCard", out var stateCardElem) && stateCardElem.GetBoolean();
             
-            // Parse DrawableStates list
-            List<EmotionalState> drawableStates = null;
-            if (template.TryGetProperty("drawableStates", out var drawableElem))
-            {
-                drawableStates = new List<EmotionalState>();
-                foreach (var stateElem in drawableElem.EnumerateArray())
-                {
-                    var stateStr = stateElem.GetString();
-                    if (Enum.TryParse<EmotionalState>(stateStr, true, out var state))
-                    {
-                        drawableStates.Add(state);
-                    }
-                }
-            }
             
             // Parse template type
             var templateType = ParseTemplateType(id);
@@ -344,7 +330,6 @@ public class CardDeckLoader
                 BaseComfort = baseComfort,
                 IsStateCard = isStateCard,
                 SuccessState = successState,
-                DrawableStates = drawableStates,
                 PatienceBonus = patienceBonus,
                 DisplayName = template.TryGetProperty("displayName", out var displayNameElem) 
                     ? displayNameElem.GetString() 
@@ -431,7 +416,6 @@ public class CardDeckLoader
                 BaseComfort = 0,
                 IsGoalCard = true,
                 GoalCardType = goalType.ToString(),
-                DrawableStates = validStates,  // CRITICAL: Set DrawableStates to control when card can be drawn
                 DisplayName = goalData.TryGetProperty("displayName", out var displayNameElem) 
                     ? displayNameElem.GetString() 
                     : id.Replace("_", " "), // Fallback to formatted ID

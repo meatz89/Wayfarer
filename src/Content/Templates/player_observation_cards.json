@@ -17,7 +17,6 @@
         "from": "DESPERATE",
         "to": "OPEN"
       },
-      "drawableStates": ["DESPERATE", "TENSE", "OPEN"],
       "displayName": "Merchant Route Knowledge"
     },
     {
@@ -109,7 +108,6 @@
         "from": "ANY",
         "to": "TENSE"
       },
-      "drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN"],
       "displayName": "Noble Seal Recognition"
     },
     {
@@ -129,7 +127,6 @@
         "from": "ANY",
         "to": "TENSE"
       },
-      "drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN"],
       "displayName": "Tavern Warmth"
     },
     {
@@ -149,7 +146,6 @@
         "from": "ANY",
         "to": "TENSE"
       },
-      "drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN"],
       "displayName": "Private Insight"
     }
   ]

@@ -133,22 +133,53 @@ public class GameFacade
 
     public List<TravelDestinationViewModel> GetTravelDestinationsWithRoutes() => GetTravelDestinations();
 
-    public async Task<bool> TravelToDestinationAsync(string destinationId, string routeId)
+    public async Task<bool> TravelToDestinationAsync(string routeId)
     {
+        string destinationId = string.Empty;
+
+        // Get Destination from the route
+        var route = _travelFacade.GetRouteBetweenLocations(
+            _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId ?? "", 
+            "");
+        
+        // Get all routes and find the one with matching ID
+        var allRoutes = _travelFacade.GetAvailableRoutesFromCurrentLocation();
+        var targetRoute = allRoutes.FirstOrDefault(r => r.Id == routeId);
+        if (targetRoute != null)
+        {
+            // Extract destination location ID from the destination spot
+            var destSpotId = targetRoute.DestinationLocationSpot;
+            var destSpot = _gameWorld.WorldState.locations
+                ?.SelectMany(l => l.Spots ?? new List<LocationSpot>())
+                .FirstOrDefault(s => s.SpotID == destSpotId);
+            if (destSpot != null)
+            {
+                destinationId = destSpot.LocationId;
+            }
+        }
+        
         var travelResult = _travelFacade.TravelTo(destinationId, TravelMethods.Walking);
         
         if (travelResult.Success)
         {
             _resourceFacade.SpendCoins(travelResult.CoinCost);
             
-            var destination = _locationFacade.GetLocationById(destinationId);
-            if (destination != null)
+            // Get the actual destination spot from the route
+            var targetRoute = _travelFacade.GetAvailableRoutesFromCurrentLocation()
+                .FirstOrDefault(r => r.Id == routeId);
+            
+            if (targetRoute != null)
             {
                 var player = _gameWorld.GetPlayer();
-                var entrySpot = destination.Spots?.FirstOrDefault();
-                if (entrySpot != null)
+                // Find the destination spot by its ID
+                var destSpot = _gameWorld.WorldState.locations
+                    ?.SelectMany(l => l.Spots ?? new List<LocationSpot>())
+                    .FirstOrDefault(s => s.SpotID == targetRoute.DestinationLocationSpot);
+                    
+                if (destSpot != null)
                 {
-                    player.CurrentLocationSpot = entrySpot;
+                    player.CurrentLocationSpot = destSpot;
+                    Console.WriteLine($"[GameFacade] Player moved to spot: {destSpot.SpotID} at location: {destSpot.LocationId}");
                 }
             }
 
@@ -280,7 +311,7 @@ public class GameFacade
     {
         return intent switch
         {
-            TravelIntent travel => await TravelToDestinationAsync("", travel.RouteId),
+            TravelIntent travel => await TravelToDestinationAsync(travel.RouteId),
             MoveIntent move => MoveToSpot(move.TargetSpotId),
             WaitIntent => ProcessWaitIntent(),
             RestIntent rest => ProcessRestIntent(rest.Hours),

@@ -16,7 +16,7 @@ public class DialogueGenerationService
     public DialogueGenerationService(IContentDirectory contentDirectory)
     {
         var contentPath = contentDirectory.Path;
-        LoadTemplates(Path.Combine(contentPath, @"Templates\dialogue_templates.json"));
+        LoadTemplates(Path.Combine(contentPath, @"Templates/dialogue_templates.json"));
     }
     
     private void LoadTemplates(string path)

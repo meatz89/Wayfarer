@@ -41,7 +41,6 @@ public class PatienceCardTests
             PatienceBonus = 2,
             DisplayName = "Keep Talking",
             Description = "Ask them to continue the conversation",
-            DrawableStates = new List<EmotionalState> { EmotionalState.NEUTRAL, EmotionalState.OPEN }
         };
         
         // Start a conversation

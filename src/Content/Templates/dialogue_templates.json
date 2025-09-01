@@ -1,180 +1,44 @@
 {
-  "emotionalStateDialogue": {
-    "DESPERATE": {
-      "contextual": {
-        "hasUrgentLetter": {
-          "SAFETY": [
-            "denial:no_understand threat:sunset_departure consequence:marriage_contract plea:begging deadline:tonight fate:trapped_forever",
-            "gesture:white_knuckles time_pressure:{hours} urgency:desperate stakes:family_safety"
-          ],
-          "REPUTATION": [
-            "gesture:pacing time_pressure:{hours} urgency:critical stakes:social_ruin",
-            "gesture:sweating time_pressure:{hours} urgency:desperate stakes:standing_destroyed"
-          ],
-          "WEALTH": [
-            "gesture:counting_coins time_pressure:{hours} urgency:critical stakes:financial_ruin",
-            "gesture:ledger_clutching time_pressure:{hours} urgency:desperate stakes:business_collapse"
-          ],
-          "SECRET": [
-            "gesture:whispering time_pressure:{hours} urgency:critical stakes:exposure",
-            "gesture:looking_around time_pressure:{hours} urgency:desperate stakes:dangerous_reveal"
-          ]
-        },
-        "default": [
-          "emotional:desperate need:immediate_help",
-          "emotional:panicked need:urgent_assistance"
-        ]
-      }
+  "templates": [
+    {
+      "id": "greeting_default",
+      "text": "Hello, {playerName}. What brings you here today?"
     },
-    "TENSE": {
-      "personality": {
-        "DEVOTED": ["emotional:worried concern:family_troubles"],
-        "CUNNING": ["emotional:cautious concern:information_leak"],
-        "MERCANTILE": ["emotional:stressed concern:business_complications"],
-        "PROUD": ["emotional:stiff concern:matters_of_importance"],
-        "STEADFAST": ["emotional:burdened concern:duty_weight"]
-      }
+    {
+      "id": "greeting_morning",
+      "text": "Good morning, {playerName}. Early start today?"
     },
-    "GUARDED": {
-      "personality": {
-        "DEVOTED": ["stance:withdrawn reason:not_ready_to_talk"],
-        "CUNNING": ["stance:suspicious demand:state_business"],
-        "MERCANTILE": ["stance:impatient demand:time_is_money"],
-        "PROUD": ["stance:dismissive limitation:limited_time"],
-        "STEADFAST": ["stance:direct demand:plain_business"]
-      }
+    {
+      "id": "greeting_evening",
+      "text": "Good evening, {playerName}. Long day?"
     },
-    "NEUTRAL": {
-      "personality": {
-        "DEVOTED": ["greeting:blessing offer:help"],
-        "CUNNING": ["greeting:acknowledgment query:information_sought"],
-        "MERCANTILE": ["greeting:commercial query:business_interest"],
-        "PROUD": ["greeting:formal offer:assistance"],
-        "STEADFAST": ["greeting:simple query:purpose"]
-      }
+    {
+      "id": "letter_offer",
+      "text": "I have a letter that needs delivering to {recipientName}. Can you help?"
     },
-    "OPEN": {
-      "personality": {
-        "DEVOTED": ["emotional:glad willingness:share_burdens"],
-        "CUNNING": ["emotional:trusting willingness:share_secrets"],
-        "MERCANTILE": ["emotional:pleased relationship:reliable_partner"],
-        "PROUD": ["emotional:respectful relationship:equals"],
-        "STEADFAST": ["emotional:honored acknowledgment:good_character"]
-      }
+    {
+      "id": "letter_urgent",
+      "text": "This is urgent! Please deliver this to {recipientName} before {deadline}!"
     },
-    "CONNECTED": {
-      "personality": {
-        "DEVOTED": ["emotional:blessed feeling:prayers_answered"],
-        "CUNNING": ["emotional:surprised depth:unexpected_trust"],
-        "MERCANTILE": ["emotional:satisfied relationship:valued_partner"],
-        "PROUD": ["emotional:impressed achievement:earned_respect"],
-        "STEADFAST": ["emotional:honored relationship:true_companion"]
-      }
+    {
+      "id": "thanks_delivery",
+      "text": "Thank you for delivering that letter. You've been most helpful."
     },
-    "EAGER": {
-      "personality": {
-        "DEVOTED": ["emotional:hopeful reaction:blessed_news"],
-        "CUNNING": ["emotional:intrigued reaction:interesting_information"],
-        "MERCANTILE": ["emotional:excited reaction:profitable_opportunity"],
-        "PROUD": ["emotional:attentive reaction:complete_attention"],
-        "STEADFAST": ["emotional:energized reaction:exactly_needed"]
-      }
+    {
+      "id": "disappointed_failed",
+      "text": "I'm disappointed you couldn't deliver my letter on time."
     },
-    "OVERWHELMED": {
-      "personality": {
-        "DEVOTED": ["emotional:overwhelmed need:prayer_time"],
-        "CUNNING": ["emotional:processing need:information_processing"],
-        "MERCANTILE": ["emotional:calculating need:number_review"],
-        "PROUD": ["emotional:composed need:consideration_time"],
-        "STEADFAST": ["emotional:conflicted need:duty_reflection"]
-      }
+    {
+      "id": "exchange_offer",
+      "text": "Care to make a trade? I have {itemName} for {price} coins."
     },
-    "HOSTILE": {
-      "default": ["stance:hostile demand:immediate_departure"]
+    {
+      "id": "exchange_accept",
+      "text": "Excellent choice! Here's your {itemName}."
+    },
+    {
+      "id": "exchange_decline",
+      "text": "Perhaps another time then."
     }
-  },
-  "cardDialogue": {
-    "categories": {
-      "SimpleGreeting": {
-        "player": ["greeting:polite inquiry:wellbeing"],
-        "npc": ["greeting:acknowledgment query:presence_reason"]
-      },
-      "PromiseToHelp": {
-        "player": ["commitment:assistance sincerity:genuine"],
-        "npc": ["reaction:grateful hope:renewed"]
-      },
-      "CalmReassurance": {
-        "player": ["action:soothing intent:calm_emotions"],
-        "npc": ["response:slight_relaxation state:less_tense"]
-      },
-      "DesperatePromise": {
-        "player": ["commitment:immediate oath:solemn"],
-        "npc": ["reaction:desperate_hope grip:last_chance"]
-      },
-      "ShareSecret": {
-        "player": ["action:confiding content:personal_information"],
-        "npc": ["reaction:surprised trust:acknowledged"]
-      },
-      "DiscussBusiness": {
-        "player": ["topic:commerce approach:practical"],
-        "npc": ["response:engaged mode:business"]
-      },
-      "ShowRespect": {
-        "player": ["gesture:deference acknowledgment:status"],
-        "npc": ["reaction:pleased recognition:proper_behavior"]
-      }
-    }
-  },
-  "npcDescriptions": {
-    "professionBase": {
-      "Scribe": ["posture:hunched_over activity:documenting"],
-      "Merchant": ["activity:arranging_goods manner:practiced_efficiency"],
-      "Innkeeper": ["activity:polishing_glasses location:behind_bar"],
-      "Soldier": ["stance:attention readiness:alert"],
-      "Noble": ["activity:reviewing_correspondence manner:dignified"],
-      "Scholar": ["activity:studying_texts focus:intense"]
-    },
-    "emotionalModifiers": {
-      "DESPERATE": {
-        "hasLetter": ["gesture:clutching_letter appearance:white_knuckles attention:door_watching"],
-        "default": ["appearance:visibly_distressed movement:agitated"]
-      },
-      "TENSE": {
-        "default": ["behavior:glancing_nervously frequency:occasional"]
-      },
-      "HOSTILE": {
-        "default": ["behavior:glaring target:anyone_approaching"]
-      },
-      "OPEN": {
-        "default": ["demeanor:welcoming expression:genuine"]
-      },
-      "GUARDED": {
-        "default": ["behavior:watchful focus:surroundings"]
-      },
-      "NEUTRAL": {
-        "default": ["focus:task_at_hand manner:steady"]
-      }
-    }
-  },
-  "narrativeElements": {
-    "time": {
-      "Dawn": "early_light",
-      "Morning": "rising_activity", 
-      "Afternoon": "peak_bustle",
-      "Evening": "winding_down",
-      "Night": "quiet_shadows",
-      "LateNight": "deep_stillness"
-    },
-    "urgency": {
-      "urgent": "pressing_need",
-      "moderate": "steady_concern",
-      "low": "manageable_pace"
-    },
-    "stakes": {
-      "SAFETY": "life_and_death",
-      "REPUTATION": "social_standing",
-      "WEALTH": "financial_security",
-      "SECRET": "hidden_knowledge"
-    }
-  }
+  ]
 }

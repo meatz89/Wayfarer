@@ -54,7 +54,6 @@ public class CardInstance
     public CardMechanicsType Mechanics { get; init; }
     public string ObservationSource { get; init; }
     public string DisplayName { get; init; }
-    public List<EmotionalState> DrawableStates { get; init; } = new List<EmotionalState>();
     
     // Convenience property for fleeting cards
     public bool IsFleeting => Persistence == PersistenceType.Fleeting;
@@ -97,7 +96,6 @@ public class CardInstance
         Mechanics = template.Mechanics;
         ObservationSource = template.ObservationSource;
         DisplayName = template.DisplayName ?? template.Name;
-        DrawableStates = template.DrawableStates ?? new List<EmotionalState>();
         
         // Set context for special cards
         if (template.IsExchange && template.ExchangeDetails != null)

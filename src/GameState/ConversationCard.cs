@@ -43,7 +43,6 @@ public class ConversationCard
     public int SuccessRate { get; set; }
     public EmotionalState? SuccessState { get; set; }
     public EmotionalState? FailureState { get; set; }
-    public List<EmotionalState> DrawableStates { get; set; }
     public int PatienceBonus { get; set; }
     
     // Missing properties from old system

@@ -1015,37 +1015,6 @@ namespace Wayfarer.Pages.Components
             return card.DisplayName ?? "Let me think about this...";
         }
         
-        protected string GetDrawableStatesText(CardInstance card)
-        {
-            if (card.Category == nameof(CardCategory.Exchange))
-                return "Exchange • Instant resolution";
-            
-            if (card.Category == nameof(CardCategory.Burden))
-            {
-                // Burden cards are typically too heavy in desperate state
-                if (Session?.CurrentState == EmotionalState.DESPERATE && card.Weight > 1)
-                    return $"Too heavy for Desperate state (W{card.Weight})";
-                return "Burden • Must resolve";
-            }
-            
-            if (card.IsObservation)
-            {
-                if (IsObservationExpired(card))
-                    return "Observation • EXPIRED";
-                return "Observation • State change";
-            }
-            
-            if (card.DrawableStates != null && card.DrawableStates.Any())
-            {
-                var states = card.DrawableStates.Select(s => GetEmotionalStateForCard(s));
-                return $"Drawable: {string.Join(", ", states.Select(s => char.ToUpper(s[0]) + s.Substring(1)))}";
-            }
-            
-            if (card.Category == nameof(CardCategory.State))
-                return "State card • All non-Hostile";
-            
-            return $"{card.Category} • Weight {card.Weight}";
-        }
         
 
         protected string GetTransitionHint()

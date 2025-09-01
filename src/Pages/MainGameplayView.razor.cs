@@ -240,7 +240,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
         // Use the route's ID property
         string routeId = route.Id;
-        bool success = await GameFacade.TravelToDestinationAsync(route.DestinationLocationSpot, routeId);
+        bool success = await GameFacade.TravelToDestinationAsync(routeId);
 
         if (success)
         {
@@ -330,7 +330,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         List<RouteOption> routes = GameFacade.GetRoutesToDestination(travelDestination);
         if (routes.Any())
         {
-            await GameFacade.TravelToDestinationAsync(travelDestination, routes.First().Id);
+            await GameFacade.TravelToDestinationAsync(routes.First().Id);
         }
 
         OnNavigate?.Invoke(CurrentViews.LocationScreen);

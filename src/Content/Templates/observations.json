@@ -23,7 +23,6 @@
 						"to": "OPEN"
 					},
 					"expiresAfter": 24,
-					"drawableStates": ["DESPERATE", "TENSE", "OPEN"]
 				}
 			},
 			{

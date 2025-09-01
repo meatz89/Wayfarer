@@ -40,11 +40,6 @@
                 }
             </div>
             
-            @* Drawable States (for conversation cards) *@
-            @if (!string.IsNullOrEmpty(DrawableStates))
-            {
-                <div class="card-drawable-states">@DrawableStates</div>
-            }
             
             @* Card Text/Dialogue *@
             <div class="card-text">
@@ -102,8 +97,6 @@
     [Parameter] public bool IsUnavailable { get; set; }
     [Parameter] public string CardCategory { get; set; } = "comfort";
     
-    // Drawable states
-    [Parameter] public string DrawableStates { get; set; }
     
     // Outcomes for conversation cards
     [Parameter] public bool ShowOutcomes { get; set; }
