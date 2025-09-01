@@ -47,7 +47,7 @@ public class CardEffectProcessor
                 result.WeightAdded = ProcessAddWeight(card.GetEffectValueOrFormula());
                 break;
 
-            case CardEffectType.SetAtmosphereType:
+            case CardEffectType.SetAtmosphere:
                 result.AtmosphereTypeChange = ProcessSetAtmosphereType(card.GetEffectValueOrFormula());
                 break;
 
