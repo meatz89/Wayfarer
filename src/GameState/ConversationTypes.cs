@@ -715,7 +715,15 @@ public class ConversationSession
             };
         }
         
-        return null;
+        // Conversation ended normally without hitting thresholds
+        return new ConversationOutcome
+        {
+            Success = true,
+            FinalComfort = CurrentComfort,
+            FinalState = CurrentState,
+            TokensEarned = CalculateTokenReward(),
+            Reason = "Conversation ended"
+        };
     }
     
     private int CalculateTokenReward()
