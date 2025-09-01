@@ -9,15 +9,16 @@ This scenario demonstrates all three core game loops working together to create 
 ## Core Mechanical Principles
 
 ### Strict Effect Separation
-- Each card type has ONE effect pool
+- Each card has ONE effect (fixed or scaling)
 - No cards do multiple things
 - Perfect information - all effects visible
 
 ### Strategic Layers
-- **Emotional State Navigation**: States filter drawable cards only
+- **Weight Pool Management**: Capacity 3-6, persists until refreshed
 - **Comfort Building**: Battery system (-3 to +3) triggers state transitions
-- **Token Investment**: Linear +5% per token for all cards including negotiations
+- **Token Investment**: Linear +5% per token, only from deliveries
 - **Queue Management**: Position 1 must complete first, multiple obligations compete
+- **Atmosphere Control**: Persistent effects shape entire conversations
 
 ## Starting Configuration
 
@@ -65,8 +66,8 @@ Lower Wards → Market District → Central Square → Fountain
 
 **Guard Post** (Authority, Tense):
 - Guard Captain always present
-- Day shift: Tense state (until 6 PM)
-- Night shift: Neutral state (after 6 PM)
+- Day shift: Tense atmosphere default
+- Night shift: Neutral atmosphere default
 
 **North Alcove** (Discrete):
 - Hidden from authority
@@ -135,58 +136,69 @@ From Copper Kettle Common Room:
 
 **Conversation Deck** (20 cards):
 
-**Comfort Cards** (8 total):
-- 4 cards at W1: +1 comfort/-1 comfort, 60% base
-  - "I understand" - Drawable: [Desperate, Tense, Open]
-  - "Let me help" - Drawable: [Desperate, Tense, Open]
-  - "You're not alone" - Drawable: [Open, Connected]
-  - "We'll solve this" - Drawable: [Open, Connected]
-- 3 cards at W2: +2 comfort/-2 comfort, 60% base
-  - "Trust in me" - Drawable: [Neutral, Open]
-  - "I promise to help" - Drawable: [Open, Connected]
-  - "Together we're strong" - Drawable: [Connected]
-- 1 card at W3: +3 comfort/-3 comfort, 60% base
-  - "Soul connection" - Drawable: [Connected]
+**Fixed Comfort Cards** (6 total):
+- "I understand" (W1, Easy 70%): +1 comfort
+- "Let me help" (W1, Easy 70%): +1 comfort  
+- "You're safe with me" (W2, Medium 60%): +2 comfort
+- "Trust in our bond" (W2, Medium 60%): +2 comfort
+- "Together we're strong" (W3, Medium 60%): +3 comfort
+- "Soul connection" (W5, Very Hard 40%, Fleeting): +5 comfort
 
-**Token Cards** (4 total):
-- "Build Trust" (W1): +1 Trust token, 60% base - Drawable: [Open, Connected]
-- "Prove Reliability" (W2): +1 Trust token, 60% base - Drawable: [Open]
-- "Deep Connection" (W2): +1 Trust token, 60% base - Drawable: [Connected]
-- "Sacred Promise" (W3): +1 Trust token, 60% base - Drawable: [Connected]
+**Scaled Comfort Cards** (4 total):
+- "Our trust runs deep" (W2, Hard 50%): +X comfort where X = Trust tokens
+- "Remember our history" (W3, Hard 50%): +X comfort where X = Trust tokens
+- "Lean on me" (W3, Hard 50%): +X comfort where X = 4 - current comfort
+- "Crisis shared" (W4, Hard 50%, Fleeting): +X comfort where X = patience ÷ 3
 
-**State Cards** (4 total, all W1 for accessibility):
-- "Calm Reassurance": Desperate→Tense, 60% base - Drawable: [Desperate]
-- "Find Balance": Tense→Neutral, 60% base - Drawable: [Tense]
-- "Open Hearts": Neutral→Open, 60% base - Drawable: [Neutral]
-- "Soul Bond": Open→Connected, 60% base - Drawable: [Open]
+**Utility Cards** (4 total):
+- "Let me think" (W1, Medium 60%): Draw 1 card
+- "Consider options" (W1, Medium 60%): Draw 1 card
+- "Gather strength" (W2, Medium 60%): Add 1 weight to pool
+- "Deep breath" (W2, Medium 60%): Add 1 weight to pool
 
-**Burden Cards** (2 starting - past failure):
-- "Broken Promise" (W2): Remove on success, 55% base - Drawable: [All non-Hostile]
-- "Lost Faith" (W2): Remove on success, 55% base - Drawable: [All non-Hostile]
+**Setup Cards** (3 total, 0 weight):
+- "Careful approach" (W0, Easy 70%): No effect, Atmosphere: Prepared
+- "Open my heart" (W0, Easy 70%): No effect, Atmosphere: Receptive
+- "This is critical" (W0, Easy 70%): No effect, Atmosphere: Final
+
+**Dramatic Cards** (2 total, fleeting):
+- "Desperate plea" (W4, Hard 50%, Fleeting): +4 comfort, Atmosphere: Volatile
+- "All or nothing" (W6, Very Hard 40%, Fleeting): +5 comfort, Atmosphere: Final
+
+**Flex Slot** (1):
+- "Shared pain" (W2, Medium 60%): -2 comfort (represents emotional overflow)
 
 **Goal Deck** (Separate from conversation deck):
 
 - **"Crisis Refusal"** (Trust Letter)
-  - Valid States: [Desperate, Tense]
-  - Base Negotiation: 50% + (Trust tokens × 5%)
+  - Weight: 5
+  - Difficulty: Very Hard (40% base + Trust tokens × 5%)
   - Success Terms: 4hr deadline, position 3, 10 coins
   - Failure Terms: 1hr deadline, position 1, 5 coins
+  - Has "Final Word" property
 
 - **"Formal Refusal"** (Trust Letter)
-  - Valid States: [Neutral, Open]
-  - Base Negotiation: 50% + (Trust tokens × 5%)
+  - Weight: 6
+  - Difficulty: Very Hard (40% base + Trust tokens × 5%)
   - Success Terms: 6hr deadline, lowest available, 15 coins
   - Failure Terms: 3hr deadline, position 2, 10 coins
+  - Has "Final Word" property
 
 - **"Personal Letter"** (Trust Letter)
-  - Valid States: [Open, Connected]
-  - Base Negotiation: 50% + (Trust tokens × 5%)
+  - Weight: 5
+  - Difficulty: Very Hard (40% base + Trust tokens × 5%)
   - Success Terms: 8hr deadline, flexible position, 20 coins
   - Failure Terms: 4hr deadline, position 3, 15 coins
+  - Has "Final Word" property
 
 - **"Clear the Air"** (Resolution Goal)
-  - Valid States: [Any]
-  - Effect: Remove burden cards on success
+  - Weight: 5
+  - Difficulty: Hard (50% base + Trust tokens × 5%)
+  - Effect: Remove burden cards from relationship record
+  - Has "Final Word" property
+
+**Relationship Record**:
+- 2 burden cards from past failure (visible marker of damaged trust)
 
 ### Marcus - The Merchant
 
@@ -194,34 +206,43 @@ From Copper Kettle Common Room:
 - Type: Mercantile (12 base patience)
 - Location: Merchant Row
 - Available: Morning-Evening (6 AM - 10 PM, shop hours)
-- Starting State: Neutral (Morning-Afternoon), Eager (Evening)
+- Starting State: Neutral (commerce-minded)
 
-**Conversation Deck** (16 cards total):
-- 10 Commerce comfort cards
-  - 5 at W1: +1/-1 comfort, 60% base - Drawable: [Neutral, Eager]
-  - 4 at W2: +2/-2 comfort, 60% base - Drawable: [Eager]
-  - 1 at W3: +3/-3 comfort, 60% base - Drawable: [Eager]
-- 2 Token cards: Commerce (W1), Shadow (W2) - Drawable: [Eager]
-- 2 State cards: Neutral→Eager (W1), Any→Neutral (W1) - Drawable: [All non-Hostile]
-- 2 Burden cards (if relationship damaged)
+**Conversation Deck** (20 cards):
+
+**Fixed Comfort Cards** (6):
+- 3 at W1 (Easy 70%): +1 comfort each
+- 2 at W2 (Medium 60%): +2 comfort each
+- 1 at W3 (Medium 60%): +3 comfort
+
+**Scaled Comfort Cards** (4):
+- 2 "Good business" (W2, Hard 50%): +X where X = Commerce tokens
+- 1 "Profitable relationship" (W3, Hard 50%): +X where X = Commerce tokens
+- 1 "Time is money" (W3, Hard 50%): +X where X = weight remaining
+
+**Utility Cards** (4):
+- 2 Draw cards (W1, Medium 60%)
+- 2 Weight-add cards (W2, Medium 60%)
+
+**Setup Cards** (3, W0):
+- "Let's negotiate" (Easy 70%): Atmosphere: Focused
+- "Time for business" (Easy 70%): Atmosphere: Patient
+- "High stakes" (Easy 70%): Atmosphere: Final
+
+**Dramatic Cards** (2, fleeting):
+- "Deal of lifetime" (W5, Very Hard 40%): +5 comfort
+- "All in" (W4, Hard 50%): +4 comfort, Atmosphere: Volatile
+
+**Flex**: 1 negative comfort card
 
 **Goal Deck**:
-- "Package Delivery" (Commerce Promise)
-  - Valid States: [Eager, Neutral]
-  - Base Negotiation: 45% + (Commerce tokens × 5%)
-  - Success: 6hr deadline, position 3, 8 coins
-  - Failure: 3hr deadline, position 2, 8 coins
-
-- "Noble Permit Sale" (Commerce Promise)
-  - Valid States: [Eager only]
-  - Base Negotiation: 50% + (Commerce tokens × 5%)
-  - Success: Pay 12 coins, get permit
-  - Failure: Pay 15 coins, get permit
+- "Package Delivery" (Commerce Promise, W5, Very Hard 40%)
+- "Noble Permit Sale" (Commerce Promise, W6, Very Hard 40%)
 
 **Exchange Deck** (Quick Trade Options, 0 attention):
 - "Buy Provisions": 3 coins → Hunger = 0
 - "Purchase Medicine": 5 coins → Health +20
-- "Buy Access Permit": 15 coins → Noble District Permit (you can't afford!)
+- "Buy Access Permit": 15 coins → Noble District Permit
 - "Accept Quick Job": Accept → New obligation (8 coins, 3hr deadline)
 - "Trade Information": Give observation card → Alternative route knowledge
 
@@ -231,26 +252,36 @@ From Copper Kettle Common Room:
 - Type: Steadfast (13 base patience)
 - Location: Guard Post
 - Available: Always
-- State: Tense (day shift until 6 PM) / Neutral (night shift after 6 PM)
+- Default Atmosphere: Tense (day) / Neutral (night)
 
-**Conversation Deck** (13 cards total):
-- 6 Status comfort cards - Drawable: [Neutral, Open]
-- 3 Shadow comfort cards - Drawable: [Tense, Guarded]
-- 1 Token card: Shadow (W2) - Drawable: [Tense]
-- 2 State cards: Tense→Neutral (W1), Guarded→Open (W1) - Drawable: [All non-Hostile]
-- 1 Burden card (if damaged)
+**Conversation Deck** (20 cards):
+
+**Fixed Comfort Cards** (6):
+- Mix of W1-W3, difficulties Easy to Medium
+- Authority-themed responses
+
+**Scaled Comfort Cards** (4):
+- 2 scaling with Status tokens
+- 2 scaling with Shadow tokens
+
+**Utility Cards** (4): Standard draw and weight-add
+
+**Setup Cards** (3, W0):
+- "Official business" (Easy 70%): Atmosphere: Volatile
+- "By the book" (Easy 70%): Atmosphere: Prepared
+- "Under scrutiny" (Easy 70%): Atmosphere: Pressured
+
+**Dramatic Cards** (2): Authority demonstrations
 
 **Goal Deck**:
-- "Checkpoint Pass" (Shadow Promise/Permit)
-  - Valid States: [Neutral only]
-  - Base Negotiation: 35% + (Shadow tokens × 5%)
+- "Checkpoint Pass" (Shadow Promise, W5, Hard 50%)
   - Success: 24hr access permit, no cost
   - Failure: 2hr access permit, 5 coin fee
 
 ### Bertram - The Innkeeper
 
 **Mechanical Identity**:
-- Type: Mercantile (no conversation deck)
+- Type: Mercantile (no conversation deck needed)
 - Location: The Bar
 - Available: Always (lives upstairs)
 - Pure exchange NPC
@@ -280,132 +311,125 @@ From Copper Kettle Common Room:
 ### Building Your Deck
 The player maintains their own observation deck (max 20 cards):
 - Cost: 1 attention at specific locations
-- Effect: State change card added to player deck
-- Weight: 1 (always playable except in Hostile)
-- Success rate: 85%
-- Expiration: 24-48 hours (no decay)
+- Weight: 1 (minimal requirement)
+- Success rate: 85% (Very Easy)
+- Always persistent
+- Expiration: 24-48 hours
 
 ### Location-Based Observations
 
 **Market Square - Morning**:
-- "Guard Routes" → Any state to Tense (expires 24hr)
+- "Guard Routes": Set Pressured atmosphere (expires 24hr)
 
 **Market Square - Afternoon**:
-- "Market Gossip" → Tense to Eager (expires 24hr)
+- "Market Gossip": Set Receptive atmosphere (expires 24hr)
 
 **Market Square - Evening**:
-- "Night Paths" → Any to Shadow-compatible state (expires 12hr)
+- "Night Paths": Next SPEAK costs 0 weight (expires 12hr)
 
 **Copper Kettle - When Elena Present**:
-- "Shared Hardship" → Desperate to Open (expires 48hr, powerful!)
+- "Shared Hardship": Set Informed atmosphere (expires 48hr, powerful!)
 
 **Guard Post - Night**:
-- "Bribery Option" → Hostile to Neutral (expires 6hr)
+- "Bribery Option": Comfort = 0 (expires 6hr, emergency reset)
 
 ### Conversation-Generated Observations
 NPCs can reward observation cards:
-- "Noble Routes" → Neutral to Open (travel context)
-- "Guard Timing" → Tense to Neutral (authority context)
-- "Hidden Path" → Any to Eager (commerce context)
+- "Noble Routes": Next action costs 0 patience
+- "Guard Timing": Set Synchronized atmosphere
+- "Hidden Path": Weight pool = maximum
 
 ## Emotional State Effects
 
-### State Web and Comfort Transitions
+### State Transitions and Weight Capacity
 
 **DESPERATE** (Elena's starting state):
-- Weight limit: 1
-- Draws: Cards listing Desperate as drawable
-- Comfort: +3→Tense (escape!), -3→Hostile (crisis explodes)
+- Weight capacity: 3
+- Cards drawn: 1
+- Comfort: +3→Tense (escape!), -3→Conversation ends
 - Goals Available: Crisis promises, urgent letters
 
 **TENSE** (Cautious):
-- Weight limit: 2
-- Draws: Cards listing Tense as drawable
-- Comfort: +3→Neutral, -3→Hostile
+- Weight capacity: 4
+- Cards drawn: 2
+- Comfort: +3→Neutral, -3→Desperate
 - Goals Available: Shadow promises, burden resolution
 
 **NEUTRAL** (Balanced):
-- Weight limit: 3
-- Draws: Cards listing Neutral as drawable
+- Weight capacity: 5
+- Cards drawn: 2
 - Comfort: +3→Open, -3→Tense
 - Goals Available: Commerce promises, routine letters
 
 **OPEN** (Receptive):
-- Weight limit: 3
-- Draws: Cards listing Open as drawable
-- Comfort: +3→Connected, -3→Guarded
+- Weight capacity: 5
+- Cards drawn: 3
+- Comfort: +3→Connected, -3→Neutral
 - Goals Available: Trust promises, personal requests
 
-**EAGER** (Excited):
-- Weight limit: 3
-- Draws: Cards listing Eager as drawable
-- Comfort: +3→Connected, -3→Neutral
-- Goals Available: Commerce promises with bonus potential
-
 **CONNECTED** (Deep Bond):
-- Weight limit: 4
-- Draws: Cards listing Connected as drawable
-- Comfort: +3→Stays Connected (maxed), -3→Tense (devastating)
+- Weight capacity: 6
+- Cards drawn: 3
+- Comfort: +3→Stays Connected (maxed), -3→Open
 - Goals Available: All promise types
 
 ## Strategic Decision Framework
 
-### Emotional State Navigation Paths
+### Weight Pool Navigation
 
-**Elena's Optimal Journey**:
-1. **Desperate** → Use observation for direct jump to Open
-2. **Desperate** → Build +3 comfort → Tense → Build +3 → Neutral → Build +3 → Open
+**Elena's Challenge in Desperate (3 capacity)**:
+- Can play three W1 cards before refresh
+- Can play one W3 card then need LISTEN
+- Cannot play W4+ cards without Prepared atmosphere
+- Cannot play W5 goal cards without state change
 
-Each path has trade-offs:
-- Direct jump costs observation but saves turns
-- Traditional path reliable but slow
+**Reaching Goal Cards**:
+- Need 5+ weight capacity (Open/Connected states)
+- OR use Prepared atmosphere (+1 capacity)
+- OR use observation to set Informed (auto-success)
 
 ### Comfort Building Mathematics
 
 **Turn Economy with 16 Patience**:
 - Comfort starts at 0
-- Need Open or Connected for best letters
-- Desperate → Tense requires +3 comfort
-- Tense → Neutral requires +3 comfort
-- Neutral → Open requires +3 comfort
+- Need +3 to transition states
+- Desperate → Tense → Neutral → Open (9 comfort total)
 
-**Build Rates**:
-- W1 cards: +1 comfort (success) / -1 comfort (failure) at 65% with 1 Trust
-- W2 cards: +2 comfort (success) / -2 comfort (failure) at 65% with 1 Trust
-- W3 cards: +3 comfort (success) / -3 comfort (failure) at 65% with 1 Trust
+**Build Rates with 1 Trust Token (45-75% success)**:
+- W1 cards: +1 comfort at 75% (Easy + token)
+- W2 cards: +2 comfort at 65% (Medium + token)
+- W3 cards: +3 comfort at 65% (Medium + token)
+- W5 cards: +5 comfort at 45% (Very Hard + token)
 
-Perfect play: 1 turn per state transition if using W3 cards successfully
+**Scaled Options**:
+- Trust scaling: +1 comfort (only 1 token)
+- Comfort scaling: +4 when at 0 comfort
+- Patience scaling: +5 comfort (16 patience ÷ 3)
 
 ### Token Economics
 
-**Linear Benefits (ALL cards including negotiations)**:
-- 0 tokens: Base 60% success
-- 2 tokens: +10% success (70%)
-- 4 tokens: +20% success (80%)
-- 6 tokens: +30% success (90%)
+**Linear Benefits (ALL cards)**:
+- 0 tokens: Base difficulty rate
+- 2 tokens: +10% success 
+- 4 tokens: +20% success
+- 6 tokens: +30% success
 
-**Letter Negotiation Advantage**:
-- Trust tokens help Trust letter negotiations
-- Commerce tokens help Commerce letter negotiations
-- Each matching token type adds 5% to negotiation success
-- Better success = better deadlines, payment, queue position
-- Letters accessible at any token level, just harder negotiation
+**Letter Negotiation with Elena's 1 Trust**:
+- Crisis Letter: 45% success (40% + 5%)
+- Better success = better deadlines, payment, position
+- Failed negotiation = 1hr deadline crisis
 
-**Displacement Costs**:
-- Each token burned adds burden card
-- Permanent relationship damage
-- Future conversations harder
+**No Token Generation in Conversations**:
+- Must complete deliveries to gain tokens
+- Each successful delivery: +1-3 tokens with recipient
+- Failed delivery: -2 tokens with sender
 
 ## Queue Management Strategies
 
 ### Position Negotiation Outcomes
 
 **Elena's Letter Negotiation**:
-- Crisis Letter: Attempts position 1 (Desperate personality)
-- Formal Letter: Attempts lowest available
-- Personal Letter: Flexible positioning
-
-Success gives your terms, failure gives NPC terms.
+- Crisis Letter: 45% chance of 4hr/position 3 vs 1hr/position 1
 
 ### Displacement Calculations
 
@@ -417,7 +441,7 @@ Starting queue:
 To deliver Elena immediately from position 3:
 - Displace Marcus: -2 Commerce tokens, +2 burden cards
 - Displace Guard: -1 Shadow token, +1 burden card
-- Total cost: 3 tokens, 3 burden cards added
+- Total cost: 3 tokens burned, 3 burden cards added
 
 ### Strategic Queue Timing
 - Complete other obligations first if time allows
@@ -430,34 +454,34 @@ To deliver Elena immediately from position 3:
 **Morning** (8 attention, 10 coins, 60 hunger):
 1. Work at Merchant Row (-2 att, +8 coins, →Midday)
 2. Exchange: Buy food (-3 coins, hunger→0)
-3. Observe "Guard Routes" (-1 att, gain observation card)
+3. Observe "Guard Routes" (-1 att, gain Pressured atmosphere card)
 
 **Midday** (5 attention, 15 coins, 0 hunger):
 4. Complete Marcus delivery (-2 Commerce for displacement)
 5. Wait to Afternoon (preserve attention)
 
 **Afternoon** (5 attention, 15 coins):
-6. Observe "Shared Hardship" at Copper Kettle (-1 att)
+6. Observe "Shared Hardship" at Copper Kettle (-1 att, Informed atmosphere)
 7. Converse with Elena (-2 att, 16 patience)
-8. Use observation: Desperate→Open directly
-9. Build comfort to trigger Connected transition
-10. Access "Personal Letter"
+8. Use observation: Set Informed atmosphere (next card auto-succeeds)
+9. Play high comfort card with guaranteed success
+10. Build to Open state, access goal cards
 
 **Results**: Good terms, queue cleared, profitable
 
-### Path B: Token Investment
+### Path B: Weight Management
 **Morning**:
 1. Exchange: Buy food immediately (-3 coins)
 2. Wait to Afternoon (preserve 8 attention)
 
 **Afternoon** (8 attention, 7 coins):
 3. Full Elena conversation (-2 att)
-4. Stay Desperate, carefully manage comfort
-5. Focus on token cards in drawable states
-6. Build tokens to 3-4 Trust
-7. Accept Crisis Letter quickly
+4. Carefully manage 3 weight capacity in Desperate
+5. Use setup cards (W0) for Prepared atmosphere
+6. Now 4 capacity - still need state change
+7. Focus on scaled comfort for efficiency
 
-**Results**: Poor letter terms but maximum tokens for future
+**Results**: Challenging but possible with good atmosphere use
 
 ### Path C: Crisis Management
 **Morning**:
@@ -466,7 +490,7 @@ To deliver Elena immediately from position 3:
 
 **Afternoon** (limited resources):
 3. Elena conversation with whatever remains
-4. Accept any available letter
+4. Accept any available letter at poor odds
 5. Heavy displacement if needed
 
 **Evening**:
@@ -477,41 +501,35 @@ To deliver Elena immediately from position 3:
 
 ### Path D: Guard Captain Route
 **Morning**:
-1. Build Shadow tokens with Guard Captain
-2. Multiple conversations to reach 5+ Shadow tokens
+1. Cannot build Shadow tokens (no token cards exist)
+2. Must rely on existing 1 Shadow token
+3. Conversation for permit goal card
 
 **Evening**:
-3. Guard in Neutral state
-4. Build comfort for transitions
-5. Negotiate Checkpoint Pass letter
-6. Free access to Noble District
+4. Guard in Neutral atmosphere (better than Tense)
+5. 45% chance for free permit (Hard + 1 Shadow)
+6. Success: Free access to Noble District
 
-**Results**: No bribe needed but requires heavy token investment
+**Results**: Risky but preserves resources
 
-## Work and Rest Options
+## Atmosphere Management
 
-### Work Actions
-**Market Square - Merchant Row**:
-- Available: Morning-Evening
-- Cost: 2 attention
-- Gain: 8 coins
-- Time: +4 hours
+### Strategic Atmosphere Chains
 
-**Copper Kettle - Bar**:
-- Available: All day
-- Cost: 2 attention
-- Gain: 8 coins
-- Time: +4 hours
+**Setup for Success**:
+1. Play "Careful approach" (W0) → Prepared atmosphere
+2. Now have 4 weight capacity in Desperate (3+1)
+3. Play multiple cards before refresh needed
 
-### Rest Exchanges (Bertram)
-- "Quick Meal": 2 coins → Hunger = 0
-- "Short Rest": 2 coins → +3 attention, +2 hours
-- "Full Night": 5 coins → Skip to morning (fails Elena!)
+**High Risk/Reward**:
+1. Play "This is critical" (W0) → Final atmosphere
+2. Any failure ends conversation
+3. But can attempt dramatic plays
 
-### Wait Actions
-- Wait 30 minutes: Free, no cost
-- Wait to next period: Free, strategic positioning
-- Wait for NPC availability: Essential for Elena
+**Information Advantage**:
+1. Use "Shared Hardship" observation → Informed atmosphere
+2. Next card cannot fail
+3. Guarantee critical comfort gain or goal play
 
 ## Resource Calculations
 
@@ -525,23 +543,23 @@ At 60 hunger: 10 - 2 = 8 attention
 
 ### Success Rate Examples
 ```
-W1 Trust card, 1 Trust token with Elena:
-60% + (1 × 5%) = 65%
+W1 Easy card, 1 Trust token with Elena:
+70% + (1 × 5%) = 75%
 
-W2 Commerce card, 2 Commerce with Marcus:
-60% + (2 × 5%) = 70%
+W2 Hard scaled card, 1 Trust token:
+50% + (1 × 5%) = 55%
 
-W3 card, 0 tokens:
-60% + 0 = 60%
+W5 Very Hard goal, 1 Trust token:
+40% + (1 × 5%) = 45%
 ```
 
 ## Failure Cascades
 
 ### Hard Failure
 - 5 PM passes without delivery
-- Elena→Hostile permanently
+- Elena permanently hostile
 - -3 Trust tokens with Elena
-- 3 burden cards added to her deck
+- 3 burden cards added to relationship
 - Cannot retry for 24 hours
 - Lord Blackwood gone forever
 
@@ -550,12 +568,14 @@ W3 card, 0 tokens:
 - Forced position 1: Must displace everything
 - Token burning: Permanent relationship damage
 - Resource depletion: Cannot afford checkpoint
+- Fleeting goal discarded: Conversation fails
 
 ### Recovery Options
 - Work for emergency coins (loses 4 hours)
 - Rest for attention (costs coins)
 - Displace obligations (burns tokens)
 - Accept any terms (poor rewards)
+- Use observations for emergency advantages
 
 ## Success Metrics
 
@@ -564,7 +584,7 @@ W3 card, 0 tokens:
 - 8-hour deadline negotiated
 - Position 5+ (no displacement)
 - Complete by 3 PM
-- +2 Trust tokens gained
+- Gain +3 Trust tokens from delivery
 - 20+ coins earned
 - No tokens burned
 
@@ -573,7 +593,7 @@ W3 card, 0 tokens:
 - 4-6 hour deadline
 - Reasonable position
 - Complete by 4 PM
-- Tokens maintained
+- Gain +2 Trust tokens
 - Break even on coins
 
 ### Acceptable Run (Desperate Success)
@@ -589,17 +609,17 @@ W3 card, 0 tokens:
 
 **Scenario 1**: Elena Desperate, You have 3 Trust tokens
 - +15% success on all cards
-- Letter negotiations much more favorable
-- Can manage comfort carefully
+- Trust scaling gives +3 comfort
+- Can manage weight pool carefully
 
-**Scenario 2**: Elena Open, You have -2 Trust tokens (from past failures)
-- Weight 3 cards available
-- -10% success penalty
-- Must rely on high-weight cards
+**Scenario 2**: Elena Open, You have 0 Trust tokens
+- 5 weight capacity available
+- Base success rates only
+- Can play goal cards immediately
 
-**Scenario 3**: Elena Neutral, 4 burden cards in deck
-- Standard rules but diluted draws
-- Must persist through bad hands
+**Scenario 3**: Elena Neutral, 4 burden cards in record
+- Standard capacity but damaged relationship
+- Must persist through mistrust
 - Patience becomes critical resource
 
 **Scenario 4**: Queue full (8 obligations already)
@@ -613,19 +633,24 @@ Each combination creates unique tactical challenge.
 
 ### Deck Evolution
 Successful delivery adds cards to Lord Blackwood's deck:
-- Trust comfort cards with appropriate drawable states
+- Trust-scaling comfort cards
 - Makes future Trust conversations easier
 - Permanent world change
 
-Failed delivery adds burdens to Elena's deck:
-- 3 burden cards clog her draws
-- Future conversations much harder
+Failed delivery adds burdens to Elena's relationship:
+- 3 burden cards in record
+- Future conversations require resolution
 - Relationship permanently scarred
 
 ### Token Economy
+Successful delivery creates cascading benefits:
+- +1-3 Trust tokens with Lord Blackwood
+- Better future negotiations
+- Easier Trust-scaling cards
+
 Burned tokens create cascading damage:
 - -1 token = -5% success forever
-- +1 burden = harder conversations
+- +1 burden = damaged relationship
 - Negative tokens = relationship debt
 
 Twenty deliveries create twenty permanent changes.
@@ -633,11 +658,11 @@ Twenty deliveries create twenty permanent changes.
 ## Core Innovation Summary
 
 The scenario demonstrates elegant complexity through simple rules:
-- **State Filtering**: Different states enable different drawable cards
+- **Weight Pools**: Persistent capacity creates multi-turn planning
 - **Token Linearity**: Every token adds exactly 5% success
-- **One Card Per Turn**: Authentic conversation rhythm
+- **Atmosphere Persistence**: Environmental effects shape conversations
 - **Comfort Battery**: ±3 triggers state transitions
 - **Queue Displacement**: Permanent sacrifice for flexibility
-- **Player Observation Deck**: Built knowledge provides tactical advantages
+- **Observation Effects**: Unique advantages from exploration
 
 No thresholds (except comfort ±3), no hidden mechanics, no soft locks. Every mechanic serves one purpose while resources flow through multiple systems. The puzzle emerges from interaction, not complication.
