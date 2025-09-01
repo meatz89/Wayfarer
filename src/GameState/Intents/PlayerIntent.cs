@@ -26,7 +26,7 @@ public class MoveIntent : PlayerIntent
 
     public MoveIntent(string targetSpotId)
     {
-        TargetSpotId = targetSpotId ?? throw new ArgumentNullException(nameof(targetSpotId));
+        TargetSpotId = targetSpotId;
     }
 }
 
@@ -39,7 +39,7 @@ public class TalkIntent : PlayerIntent
 
     public TalkIntent(string npcId)
     {
-        NpcId = npcId ?? throw new ArgumentNullException(nameof(npcId));
+        NpcId = npcId;
     }
 }
 
@@ -52,7 +52,7 @@ public class RestIntent : PlayerIntent
 
     public RestIntent(int hours)
     {
-        if (hours <= 0) throw new ArgumentException("Rest hours must be positive", nameof(hours));
+        // No validation - let it fail naturally if hours <= 0
         Hours = hours;
     }
 }
@@ -77,7 +77,7 @@ public class DeliverLetterIntent : PlayerIntent
 
     public DeliverLetterIntent(string letterId)
     {
-        LetterId = letterId ?? throw new ArgumentNullException(nameof(letterId));
+        LetterId = letterId;
     }
 }
 
@@ -90,7 +90,7 @@ public class CollectLetterIntent : PlayerIntent
 
     public CollectLetterIntent(string letterId)
     {
-        LetterId = letterId ?? throw new ArgumentNullException(nameof(letterId));
+        LetterId = letterId;
     }
 }
 
@@ -124,7 +124,7 @@ public class AcceptLetterOfferIntent : PlayerIntent
 
     public AcceptLetterOfferIntent(string offerId)
     {
-        OfferId = offerId ?? throw new ArgumentNullException(nameof(offerId));
+        OfferId = offerId;
     }
 }
 
@@ -137,7 +137,7 @@ public class TravelIntent : PlayerIntent
 
     public TravelIntent(string routeId)
     {
-        RouteId = routeId ?? throw new ArgumentNullException(nameof(routeId));
+        RouteId = routeId;
     }
 }
 
@@ -151,8 +151,8 @@ public class DiscoverRouteIntent : PlayerIntent
 
     public DiscoverRouteIntent(string npcId, string routeId)
     {
-        NpcId = npcId ?? throw new ArgumentNullException(nameof(npcId));
-        RouteId = routeId ?? throw new ArgumentNullException(nameof(routeId));
+        NpcId = npcId;
+        RouteId = routeId;
     }
 }
 

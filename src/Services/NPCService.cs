@@ -14,9 +14,9 @@ public class NPCService
 
     public NPCService(NPCRepository repository, TimeManager timeManager, ILogger<NPCService> logger)
     {
-        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _repository = repository;
+        _timeManager = timeManager;
+        _logger = logger;
     }
 
     /// <summary>

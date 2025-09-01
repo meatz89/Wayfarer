@@ -23,9 +23,9 @@ public class TimeManager
         MessageSystem messageSystem,
         ILogger<TimeManager> logger)
     {
-        _timeModel = timeModel ?? throw new ArgumentNullException(nameof(timeModel));
-        _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeModel = timeModel;
+        _messageSystem = messageSystem;
+        _logger = logger;
 
         // Events removed per architecture guidelines - handle results directly
     }

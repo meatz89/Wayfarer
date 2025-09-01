@@ -20,8 +20,8 @@ public class DayTransitionOrchestrator
         ILogger<DayTransitionOrchestrator> logger)
     {
         _handlers = handlers.OrderBy(h => h.Priority).ToList();
-        _timeModel = timeModel ?? throw new ArgumentNullException(nameof(timeModel));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeModel = timeModel;
+        _logger = logger;
     }
 
     /// <summary>
