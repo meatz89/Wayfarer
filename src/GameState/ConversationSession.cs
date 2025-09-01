@@ -33,7 +33,7 @@ public class ConversationSession
     public int ComfortBattery { get; set; } = 0; // -3 to +3
     public int CurrentWeightPool { get; set; } = 0; // Current spent weight
     public int WeightCapacity { get; set; } = 5; // Based on state
-    public ConversationAtmosphere CurrentAtmosphere { get; set; } = ConversationAtmosphere.Neutral;
+    public AtmosphereType CurrentAtmosphere { get; set; } = AtmosphereType.Neutral;
 
     // Legacy properties for compatibility
     public CardInstance GoalCard { get; set; }
@@ -58,7 +58,7 @@ public class ConversationSession
         };
 
         // Prepared atmosphere adds +1 capacity
-        if (CurrentAtmosphere == ConversationAtmosphere.Prepared)
+        if (CurrentAtmosphere == AtmosphereType.Prepared)
             baseCapacity += 1;
 
         return baseCapacity;
@@ -76,10 +76,10 @@ public class ConversationSession
             _ => 2
         };
 
-        // ConversationAtmosphere modifiers
-        if (CurrentAtmosphere == ConversationAtmosphere.Receptive)
+        // AtmosphereType modifiers
+        if (CurrentAtmosphere == AtmosphereType.Receptive)
             baseCount += 1;
-        else if (CurrentAtmosphere == ConversationAtmosphere.Pressured)
+        else if (CurrentAtmosphere == AtmosphereType.Pressured)
             baseCount = Math.Max(1, baseCount - 1);
 
         return baseCount;

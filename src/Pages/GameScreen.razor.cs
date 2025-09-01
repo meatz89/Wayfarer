@@ -367,16 +367,22 @@ namespace Wayfarer.Pages
         public async Task StartConversation(string npcId, ConversationType type)
         {
             CurrentConversationContext = await GameFacade.CreateConversationContext(npcId, type);
+            
+            // Always refresh UI after GameFacade action
+            await RefreshResourceDisplay();
+            await RefreshTimeDisplay();
+            
             if (CurrentConversationContext != null && CurrentConversationContext.IsValid)
             {
                 CurrentScreen = ScreenMode.Conversation;
                 ContentVersion++; // Force re-render
-                StateHasChanged();
+                await InvokeAsync(StateHasChanged);
             }
             else if (CurrentConversationContext != null)
             {
                 // Show error message
                 Console.WriteLine($"[GameScreen] Cannot start conversation: {CurrentConversationContext.ErrorMessage}");
+                await InvokeAsync(StateHasChanged);
             }
         }
 
@@ -427,7 +433,11 @@ namespace Wayfarer.Pages
         {
             Console.WriteLine("[GameScreen] Conversation ended");
             CurrentConversationContext = null;
-            await RefreshResourceDisplay(); // Refresh resources after conversation
+            
+            // Always refresh UI after conversation ends
+            await RefreshResourceDisplay();
+            await RefreshTimeDisplay();
+            await RefreshLocationDisplay();
 
             // Special case: allow navigation from conversation when it ends properly
             CurrentScreen = ScreenMode.Location;

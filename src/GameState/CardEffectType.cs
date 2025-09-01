@@ -4,7 +4,7 @@ public enum CardEffectType
     ScaledComfort,
     DrawCards,
     AddWeight,
-    SetConversationAtmosphere,
+    SetAtmosphereType,
     ResetComfort,     // Observation only
     MaxWeight,        // Observation only
     FreeAction        // Observation only

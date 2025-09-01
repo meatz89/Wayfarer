@@ -1,4 +1,4 @@
-public enum ConversationAtmosphere
+public enum AtmosphereType
 {
     Neutral,      // No effect (default)
     Prepared,     // +1 weight capacity

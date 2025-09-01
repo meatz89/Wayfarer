@@ -65,7 +65,7 @@ public class ConversationOrchestrator
             ComfortBattery = 0, // Start at 0
             CurrentWeightPool = 0,
             WeightCapacity = _weightPoolManager.CurrentCapacity,
-            CurrentAtmosphere = ConversationAtmosphere.Neutral,
+            CurrentAtmosphere = AtmosphereType.Neutral,
             CurrentPatience = 10,
             MaxPatience = 10,
             TurnNumber = 0,

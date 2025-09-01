@@ -3,14 +3,14 @@ using System;
 // AtmosphereManager handles persistence and effects of conversation atmospheres
 public class AtmosphereManager
 {
-    private ConversationAtmosphere currentAtmosphere = ConversationAtmosphere.Neutral;
+    private AtmosphereType currentAtmosphere = AtmosphereType.Neutral;
     private bool atmosphereSet = false;
 
-    public ConversationAtmosphere CurrentAtmosphere => currentAtmosphere;
-    public bool HasActiveAtmosphere => currentAtmosphere != ConversationAtmosphere.Neutral;
+    public AtmosphereType CurrentAtmosphere => currentAtmosphere;
+    public bool HasActiveAtmosphere => currentAtmosphere != AtmosphereType.Neutral;
 
     // Set new atmosphere (from card effects or observation cards)
-    public void SetAtmosphere(ConversationAtmosphere atmosphere)
+    public void SetAtmosphere(AtmosphereType atmosphere)
     {
         currentAtmosphere = atmosphere;
         atmosphereSet = true;
@@ -19,14 +19,14 @@ public class AtmosphereManager
     // Clear atmosphere on failure (resets to Neutral)
     public void ClearAtmosphereOnFailure()
     {
-        currentAtmosphere = ConversationAtmosphere.Neutral;
+        currentAtmosphere = AtmosphereType.Neutral;
         atmosphereSet = false;
     }
 
     // Get weight capacity bonus from atmosphere
     public int GetWeightCapacityBonus()
     {
-        return currentAtmosphere == ConversationAtmosphere.Prepared ? 1 : 0;
+        return currentAtmosphere == AtmosphereType.Prepared ? 1 : 0;
     }
 
     // Get draw count modifier from atmosphere
@@ -34,8 +34,8 @@ public class AtmosphereManager
     {
         return currentAtmosphere switch
         {
-            ConversationAtmosphere.Receptive => 1,
-            ConversationAtmosphere.Pressured => -1,
+            AtmosphereType.Receptive => 1,
+            AtmosphereType.Pressured => -1,
             _ => 0
         };
     }
@@ -43,19 +43,19 @@ public class AtmosphereManager
     // Get success percentage bonus
     public int GetSuccessPercentageBonus()
     {
-        return currentAtmosphere == ConversationAtmosphere.Focused ? 20 : 0;
+        return currentAtmosphere == AtmosphereType.Focused ? 20 : 0;
     }
 
     // Check if next action should have zero patience cost
     public bool ShouldWaivePatienceCost()
     {
-        return currentAtmosphere == ConversationAtmosphere.Patient;
+        return currentAtmosphere == AtmosphereType.Patient;
     }
 
     // Check if card should auto-succeed (bypasses dice roll)
     public bool ShouldAutoSucceed()
     {
-        return currentAtmosphere == ConversationAtmosphere.Informed;
+        return currentAtmosphere == AtmosphereType.Informed;
     }
 
     // Modify comfort change based on atmosphere
@@ -64,7 +64,7 @@ public class AtmosphereManager
         int modified = baseComfort;
 
         // Volatile: ±1 to all changes
-        if (currentAtmosphere == ConversationAtmosphere.Volatile)
+        if (currentAtmosphere == AtmosphereType.Volatile)
         {
             if (baseComfort > 0)
                 modified = baseComfort + 1;
@@ -74,7 +74,7 @@ public class AtmosphereManager
         }
 
         // Exposed: Double all changes
-        if (currentAtmosphere == ConversationAtmosphere.Exposed)
+        if (currentAtmosphere == AtmosphereType.Exposed)
         {
             modified = baseComfort * 2;
         }
@@ -85,44 +85,44 @@ public class AtmosphereManager
     // Check if failure should end conversation immediately
     public bool ShouldEndOnFailure()
     {
-        return currentAtmosphere == ConversationAtmosphere.Final;
+        return currentAtmosphere == AtmosphereType.Final;
     }
 
     // Check if next effect should happen twice
     public bool ShouldDoubleNextEffect()
     {
-        return currentAtmosphere == ConversationAtmosphere.Synchronized;
+        return currentAtmosphere == AtmosphereType.Synchronized;
     }
 
     // Get atmosphere description for UI
-    public string GetConversationAtmosphereDescription()
+    public string GetAtmosphereTypeDescription()
     {
         return currentAtmosphere switch
         {
-            ConversationAtmosphere.Neutral => "No special effects",
-            ConversationAtmosphere.Prepared => "+1 weight capacity on all SPEAK actions",
-            ConversationAtmosphere.Receptive => "+1 card on all LISTEN actions",
-            ConversationAtmosphere.Focused => "+20% success on all cards",
-            ConversationAtmosphere.Patient => "All actions cost 0 patience",
-            ConversationAtmosphere.Volatile => "All comfort changes ±1",
-            ConversationAtmosphere.Final => "Any failure ends conversation immediately",
-            ConversationAtmosphere.Informed => "Next card cannot fail (automatic success)",
-            ConversationAtmosphere.Exposed => "Double all comfort changes",
-            ConversationAtmosphere.Synchronized => "Next card effect happens twice",
-            ConversationAtmosphere.Pressured => "-1 card on all LISTEN actions",
+            AtmosphereType.Neutral => "No special effects",
+            AtmosphereType.Prepared => "+1 weight capacity on all SPEAK actions",
+            AtmosphereType.Receptive => "+1 card on all LISTEN actions",
+            AtmosphereType.Focused => "+20% success on all cards",
+            AtmosphereType.Patient => "All actions cost 0 patience",
+            AtmosphereType.Volatile => "All comfort changes ±1",
+            AtmosphereType.Final => "Any failure ends conversation immediately",
+            AtmosphereType.Informed => "Next card cannot fail (automatic success)",
+            AtmosphereType.Exposed => "Double all comfort changes",
+            AtmosphereType.Synchronized => "Next card effect happens twice",
+            AtmosphereType.Pressured => "-1 card on all LISTEN actions",
             _ => "Unknown atmosphere"
         };
     }
 
     // Check if atmosphere is observation-only (can only be set by observation cards)
-    public bool IsObservationOnlyConversationAtmosphere(ConversationAtmosphere atmosphere)
+    public bool IsObservationOnlyAtmosphereType(AtmosphereType atmosphere)
     {
         return atmosphere switch
         {
-            ConversationAtmosphere.Informed => true,
-            ConversationAtmosphere.Exposed => true,
-            ConversationAtmosphere.Synchronized => true,
-            ConversationAtmosphere.Pressured => true,
+            AtmosphereType.Informed => true,
+            AtmosphereType.Exposed => true,
+            AtmosphereType.Synchronized => true,
+            AtmosphereType.Pressured => true,
             _ => false
         };
     }
@@ -130,7 +130,7 @@ public class AtmosphereManager
     // Reset atmosphere (for new conversation)
     public void Reset()
     {
-        currentAtmosphere = ConversationAtmosphere.Neutral;
+        currentAtmosphere = AtmosphereType.Neutral;
         atmosphereSet = false;
     }
 }

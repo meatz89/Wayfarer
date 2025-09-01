@@ -114,9 +114,9 @@ public class CardDeckManager
             }
 
             // Handle atmosphere change
-            if (effectResult.ConversationAtmosphereChange.HasValue)
+            if (effectResult.AtmosphereTypeChange.HasValue)
             {
-                _atmosphereManager.SetAtmosphere(effectResult.ConversationAtmosphereChange.Value);
+                _atmosphereManager.SetAtmosphere(effectResult.AtmosphereTypeChange.Value);
             }
         }
         else
@@ -257,7 +257,7 @@ public class CardDeckManager
             Persistence = instance.Persistence,
             EffectType = GuessEffectType(instance),
             EffectValue = GuessEffectValue(instance),
-            ConversationAtmosphereChange = null, // Would need to be set from JSON
+            AtmosphereTypeChange = null, // Would need to be set from JSON
             HasFinalWord = instance.IsGoalCard,
             DialogueText = instance.DialogueFragment
         };

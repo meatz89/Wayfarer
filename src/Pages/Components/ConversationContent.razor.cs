@@ -1743,17 +1743,17 @@ namespace Wayfarer.Pages.Components
 
             return Session.CurrentAtmosphere switch
             {
-                ConversationAtmosphere.Neutral => "Neutral",
-                ConversationAtmosphere.Prepared => "Prepared (+1 weight)",
-                ConversationAtmosphere.Receptive => "Receptive (+1 card on LISTEN)",
-                ConversationAtmosphere.Focused => "Focused (+20% success)",
-                ConversationAtmosphere.Patient => "Patient (0 patience cost)",
-                ConversationAtmosphere.Volatile => "Volatile (±1 comfort changes)",
-                ConversationAtmosphere.Final => "Final (failure ends conversation)",
-                ConversationAtmosphere.Informed => "Informed (next card auto-succeeds)",
-                ConversationAtmosphere.Exposed => "Exposed (double comfort changes)",
-                ConversationAtmosphere.Synchronized => "Synchronized (effects happen twice)",
-                ConversationAtmosphere.Pressured => "Pressured (-1 card on LISTEN)",
+                AtmosphereType.Neutral => "Neutral",
+                AtmosphereType.Prepared => "Prepared (+1 weight)",
+                AtmosphereType.Receptive => "Receptive (+1 card on LISTEN)",
+                AtmosphereType.Focused => "Focused (+20% success)",
+                AtmosphereType.Patient => "Patient (0 patience cost)",
+                AtmosphereType.Volatile => "Volatile (±1 comfort changes)",
+                AtmosphereType.Final => "Final (failure ends conversation)",
+                AtmosphereType.Informed => "Informed (next card auto-succeeds)",
+                AtmosphereType.Exposed => "Exposed (double comfort changes)",
+                AtmosphereType.Synchronized => "Synchronized (effects happen twice)",
+                AtmosphereType.Pressured => "Pressured (-1 card on LISTEN)",
                 _ => Session.CurrentAtmosphere.ToString()
             };
         }
@@ -1776,16 +1776,16 @@ namespace Wayfarer.Pages.Components
 
             return Session.CurrentAtmosphere switch
             {
-                ConversationAtmosphere.Prepared => "Weight capacity increased by 1",
-                ConversationAtmosphere.Receptive => "Draw 1 extra card on LISTEN",
-                ConversationAtmosphere.Focused => "All cards get +20% success chance",
-                ConversationAtmosphere.Patient => "Conversation actions cost no patience",
-                ConversationAtmosphere.Volatile => "Comfort changes are amplified by ±1",
-                ConversationAtmosphere.Final => "Any failure will end the conversation",
-                ConversationAtmosphere.Informed => "Your next card will automatically succeed",
-                ConversationAtmosphere.Exposed => "All comfort changes are doubled",
-                ConversationAtmosphere.Synchronized => "Card effects will happen twice",
-                ConversationAtmosphere.Pressured => "Draw 1 fewer card on LISTEN",
+                AtmosphereType.Prepared => "Weight capacity increased by 1",
+                AtmosphereType.Receptive => "Draw 1 extra card on LISTEN",
+                AtmosphereType.Focused => "All cards get +20% success chance",
+                AtmosphereType.Patient => "Conversation actions cost no patience",
+                AtmosphereType.Volatile => "Comfort changes are amplified by ±1",
+                AtmosphereType.Final => "Any failure will end the conversation",
+                AtmosphereType.Informed => "Your next card will automatically succeed",
+                AtmosphereType.Exposed => "All comfort changes are doubled",
+                AtmosphereType.Synchronized => "Card effects will happen twice",
+                AtmosphereType.Pressured => "Draw 1 fewer card on LISTEN",
                 _ => ""
             };
         }

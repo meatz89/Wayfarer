@@ -24,7 +24,7 @@ public class CardEffectProcessor
             ComfortChange = 0,
             CardsToAdd = new List<CardInstance>(),
             WeightAdded = 0,
-            ConversationAtmosphereChange = null,
+            AtmosphereTypeChange = null,
             SpecialEffect = ""
         };
 
@@ -47,8 +47,8 @@ public class CardEffectProcessor
                 result.WeightAdded = ProcessAddWeight(card.GetEffectValueOrFormula());
                 break;
 
-            case CardEffectType.SetConversationAtmosphere:
-                result.ConversationAtmosphereChange = ProcessSetConversationAtmosphere(card.GetEffectValueOrFormula());
+            case CardEffectType.SetAtmosphereType:
+                result.AtmosphereTypeChange = ProcessSetAtmosphereType(card.GetEffectValueOrFormula());
                 break;
 
             case CardEffectType.ResetComfort:
@@ -89,9 +89,9 @@ public class CardEffectProcessor
         }
 
         // Handle atmosphere change from card (separate from effect)
-        if (card.ConversationAtmosphereChange.HasValue)
+        if (card.AtmosphereTypeChange.HasValue)
         {
-            result.ConversationAtmosphereChange = card.ConversationAtmosphereChange.Value;
+            result.AtmosphereTypeChange = card.AtmosphereTypeChange.Value;
         }
 
         return result;
@@ -145,14 +145,14 @@ public class CardEffectProcessor
     }
 
     // Process set atmosphere effect
-    private ConversationAtmosphere ProcessSetConversationAtmosphere(string effectValue)
+    private AtmosphereType ProcessSetAtmosphereType(string effectValue)
     {
-        if (Enum.TryParse<ConversationAtmosphere>(effectValue, true, out ConversationAtmosphere atmosphere))
+        if (Enum.TryParse<AtmosphereType>(effectValue, true, out AtmosphereType atmosphere))
         {
             atmosphereManager.SetAtmosphere(atmosphere);
             return atmosphere;
         }
-        return ConversationAtmosphere.Neutral;
+        return AtmosphereType.Neutral;
     }
 
     // Process reset comfort effect (observation only)
@@ -216,7 +216,7 @@ public class CardEffectResult
     public int ComfortChange { get; set; }
     public List<CardInstance> CardsToAdd { get; set; } = new();
     public int WeightAdded { get; set; }
-    public ConversationAtmosphere? ConversationAtmosphereChange { get; set; }
+    public AtmosphereType? AtmosphereTypeChange { get; set; }
     public string SpecialEffect { get; set; } = "";
     public bool Success { get; set; } = true;
     public int Roll { get; set; }

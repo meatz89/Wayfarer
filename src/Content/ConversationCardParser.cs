@@ -211,10 +211,10 @@ public class ConversationCardParser
             Enum.TryParse<CardEffectType>(dto.EffectType, true, out effectType);
         }
 
-        ConversationAtmosphere? atmosphereChange = null;
-        if (!string.IsNullOrEmpty(dto.ConversationAtmosphereChange))
+        AtmosphereType? atmosphereChange = null;
+        if (!string.IsNullOrEmpty(dto.AtmosphereTypeChange))
         {
-            if (Enum.TryParse<ConversationAtmosphere>(dto.ConversationAtmosphereChange, true, out ConversationAtmosphere atmosphere))
+            if (Enum.TryParse<AtmosphereType>(dto.AtmosphereTypeChange, true, out AtmosphereType atmosphere))
             {
                 atmosphereChange = atmosphere;
             }
@@ -252,7 +252,7 @@ public class ConversationCardParser
             EffectType = effectType,
             EffectValue = dto.EffectValue,
             EffectFormula = dto.EffectFormula,
-            ConversationAtmosphereChange = atmosphereChange
+            AtmosphereTypeChange = atmosphereChange
         };
     }
 
@@ -310,7 +310,7 @@ public class ConversationCardDTO
     public string EffectType { get; set; }
     public string EffectValue { get; set; }
     public string EffectFormula { get; set; }
-    public string ConversationAtmosphereChange { get; set; }
+    public string AtmosphereTypeChange { get; set; }
 }
 
 /// <summary>
