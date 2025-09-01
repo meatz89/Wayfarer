@@ -182,7 +182,7 @@ When a fleeting goal card would be discarded (not played during SPEAK), conversa
 ### Goal Challenge Layers
 1. Need state with 5+ weight capacity (or Prepared atmosphere)
 2. Must draw the goal card
-3. Need tokens for reasonable success chance (30% + tokens × 5%)
+3. Need tokens for reasonable success chance (30% + connection tokens × 5%)
 4. Must play before next SPEAK or lose conversation
 
 ### Goal Types by Conversation
@@ -218,7 +218,7 @@ When a fleeting goal card would be discarded (not played during SPEAK), conversa
 
 Four types: Trust, Commerce, Status, Shadow
 
-- Universal effect: +5% success per token on ALL cards
+- Universal effect: +5% success per token on to ALL cards with the same connection type (Trust, Commerce, Status, Shadow)
 - Only gained through successful letter delivery
 - Can go negative from failures
 - Linear scaling, no thresholds
