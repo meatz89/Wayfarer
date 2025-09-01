@@ -223,7 +223,7 @@ namespace Wayfarer.Pages.Components
                 var messageSystem = GameFacade?.GetMessageSystem();
                 
                 // Check if this is an exchange card
-                var exchangeCard = SelectedCards.FirstOrDefault(c => c.Category == CardCategory.Exchange);
+                var exchangeCard = SelectedCards.FirstOrDefault(c => c.Category == nameof(CardCategory.Exchange));
                 if (exchangeCard != null && messageSystem != null)
                 {
                     // For exchanges, show what's being traded
@@ -636,12 +636,13 @@ namespace Wayfarer.Pages.Components
             
             return card.Category switch
             {
-                CardCategory.Comfort => "Comfort",
-                CardCategory.State => "State card",
-                CardCategory.Token => "Token",
-                CardCategory.Patience => "Patience",
-                CardCategory.Exchange or CardCategory.Promise => "Promise",
-                CardCategory.Burden => "Burden",
+                nameof(CardCategory.Comfort) => "Comfort",
+                nameof(CardCategory.State) => "State card",
+                nameof(CardCategory.Token) => "Token",
+                nameof(CardCategory.Patience) => "Patience",
+                nameof(CardCategory.Exchange) => "Exchange",
+                nameof(CardCategory.Promise) => "Promise",
+                nameof(CardCategory.Burden) => "Burden",
                 _ => card.IsObservation ? "Observation" : card.Type.ToString()
             };
         }
@@ -839,13 +840,13 @@ namespace Wayfarer.Pages.Components
         protected string GetProperCardName(CardInstance card)
         {
             // Generate meaningful card names based on type and category
-            if (card.Category == CardCategory.Exchange && card.Context?.ExchangeName != null)
+            if (card.Category == nameof(CardCategory.Exchange) && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
             
-            if (card.Category == CardCategory.Burden)
+            if (card.Category == nameof(CardCategory.Burden))
                 return "Address Past Failure";
             
-            if (card.Category == CardCategory.State)
+            if (card.Category == nameof(CardCategory.State))
             {
                 if (card.SuccessState.HasValue)
                 {
@@ -864,7 +865,7 @@ namespace Wayfarer.Pages.Components
             }
             
             // Comfort cards get contextual names (comfort cards have no specific type)
-            if (card.Category == CardCategory.Comfort && card.Type == CardType.Trust)
+            if (card.Category == nameof(CardCategory.Comfort) && card.Type == CardType.Trust)
             {
                 if (card.BaseComfort >= 2)
                     return "Deep Understanding";
@@ -875,7 +876,7 @@ namespace Wayfarer.Pages.Components
             }
             
             // Token cards are identified by having token types
-            if (card.Type != CardType.Trust && card.Category == CardCategory.Comfort)
+            if (card.Type != CardType.Trust && card.Category == nameof(CardCategory.Comfort))
             {
                 var tokenType = card.GetConnectionType();
                 return tokenType switch
@@ -938,7 +939,7 @@ namespace Wayfarer.Pages.Components
             // Generate actual conversational dialogue instead of technical descriptions
             
             // Exchange cards
-            if (card.Category == CardCategory.Exchange)
+            if (card.Category == nameof(CardCategory.Exchange))
             {
                 if (card.Context?.ExchangeName == "Pass on this offer")
                     return "Thank you, but I'll pass on this offer for now.";
@@ -948,13 +949,13 @@ namespace Wayfarer.Pages.Components
             }
             
             // Burden cards - addressing past failures
-            if (card.Category == CardCategory.Burden)
+            if (card.Category == nameof(CardCategory.Burden))
             {
                 return $"{NpcName}, about last time... I know I let you down when I didn't deliver your previous message.";
             }
             
             // State transition cards
-            if (card.Category == CardCategory.State)
+            if (card.Category == nameof(CardCategory.State))
             {
                 if (card.SuccessState.HasValue)
                 {
@@ -985,7 +986,7 @@ namespace Wayfarer.Pages.Components
             }
             
             // Comfort cards based on weight/intensity
-            if (card.Category == CardCategory.Comfort && card.Type == CardType.Trust && card.BaseComfort > 0)
+            if (card.Category == nameof(CardCategory.Comfort) && card.Type == CardType.Trust && card.BaseComfort > 0)
             {
                 if (card.BaseComfort >= 2)
                     return "I completely understand how you feel. Your situation resonates deeply with me.";
@@ -996,7 +997,7 @@ namespace Wayfarer.Pages.Components
             }
             
             // Token building cards (cards with specific token types)
-            if (card.Type != CardType.Trust && card.Category == CardCategory.Comfort)
+            if (card.Type != CardType.Trust && card.Category == nameof(CardCategory.Comfort))
             {
                 var tokenType = card.GetConnectionType();
                 return tokenType switch
@@ -1025,10 +1026,10 @@ namespace Wayfarer.Pages.Components
         
         protected string GetDrawableStatesText(CardInstance card)
         {
-            if (card.Category == CardCategory.Exchange)
+            if (card.Category == nameof(CardCategory.Exchange))
                 return "Exchange • Instant resolution";
             
-            if (card.Category == CardCategory.Burden)
+            if (card.Category == nameof(CardCategory.Burden))
             {
                 // Burden cards are typically too heavy in desperate state
                 if (Session?.CurrentState == EmotionalState.DESPERATE && card.Weight > 1)
@@ -1049,7 +1050,7 @@ namespace Wayfarer.Pages.Components
                 return $"Drawable: {string.Join(", ", states.Select(s => char.ToUpper(s[0]) + s.Substring(1)))}";
             }
             
-            if (card.Category == CardCategory.State)
+            if (card.Category == nameof(CardCategory.State))
                 return "State card • All non-Hostile";
             
             return $"{card.Category} • Weight {card.Weight}";
@@ -1111,11 +1112,11 @@ namespace Wayfarer.Pages.Components
         protected string GetCardClass(CardInstance card)
         {
             // Map categories to CSS classes
-            if (card.Category == CardCategory.Burden)
+            if (card.Category == nameof(CardCategory.Burden))
                 return "crisis";
-            if (card.Category == CardCategory.State)
+            if (card.Category == nameof(CardCategory.State))
                 return "state";
-            if (card.Category == CardCategory.Exchange)
+            if (card.Category == nameof(CardCategory.Exchange))
                 return "exchange";
             if (card.Persistence == PersistenceType.Fleeting)
                 return "observation";
@@ -1125,7 +1126,7 @@ namespace Wayfarer.Pages.Components
         protected string GetCardName(CardInstance card)
         {
             // For exchange cards, use the exchange name
-            if (card.Category == CardCategory.Exchange && card.Context?.ExchangeName != null)
+            if (card.Category == nameof(CardCategory.Exchange) && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
                 
             // Generate name from template and context
@@ -1153,12 +1154,12 @@ namespace Wayfarer.Pages.Components
         protected string GetSuccessEffect(CardInstance card)
         {
             // For exchange cards, show the reward
-            if (card.Category == CardCategory.Exchange && card.Context?.ExchangeReward != null)
+            if (card.Category == nameof(CardCategory.Exchange) && card.Context?.ExchangeReward != null)
             {
                 return $"Complete exchange: {card.Context.ExchangeReward}";
             }
             
-            if (card.Category == CardCategory.State)
+            if (card.Category == nameof(CardCategory.State))
             {
                 // Use the actual SuccessState property from the card
                 if (card.SuccessState.HasValue)
@@ -1188,14 +1189,14 @@ namespace Wayfarer.Pages.Components
         protected string GetFailureEffect(CardInstance card)
         {
             // For exchange cards, no failure - it's a choice
-            if (card.Category == CardCategory.Exchange)
+            if (card.Category == nameof(CardCategory.Exchange))
             {
                 if (card.Context?.ExchangeName == "Pass on this offer")
                     return "Leave without trading";
                 return "Execute trade";
             }
             
-            if (card.Category == CardCategory.State)
+            if (card.Category == nameof(CardCategory.State))
             {
                 // Check if card has a specific failure state
                 if (card.FailureState.HasValue)
@@ -1254,7 +1255,7 @@ namespace Wayfarer.Pages.Components
             }
             
             // For exchange cards, show the exchange details
-            if (card.Category == CardCategory.Exchange && card.Context != null)
+            if (card.Category == nameof(CardCategory.Exchange) && card.Context != null)
             {
                 if (card.Context.ExchangeCost != null && card.Context.ExchangeReward != null)
                 {
@@ -1661,12 +1662,16 @@ namespace Wayfarer.Pages.Components
             if (!card.IsObservation || card.Context?.ObservationDecayState == null)
                 return "";
                 
-            return card.Context.ObservationDecayState switch
+            if (Enum.TryParse<ObservationDecayState>(card.Context.ObservationDecayState, out var decayState))
             {
-                ObservationDecayState.Active => "observation-fresh",
-                ObservationDecayState.Expired => "observation-expired",
-                _ => ""
-            };
+                return decayState switch
+                {
+                    ObservationDecayState.Fresh => "observation-fresh",
+                    ObservationDecayState.Expired => "observation-expired",
+                    _ => ""
+                };
+            }
+            return "";
         }
         
         /// <summary>
@@ -1686,7 +1691,7 @@ namespace Wayfarer.Pages.Components
         protected bool IsObservationExpired(CardInstance card)
         {
             return card.IsObservation && 
-                   card.Context?.ObservationDecayState == ObservationDecayState.Expired;
+                   card.Context?.ObservationDecayState == nameof(ObservationDecayState.Expired);
         }
         
         /// <summary>

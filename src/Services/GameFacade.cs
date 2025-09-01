@@ -2339,7 +2339,7 @@ public class GameFacade
             ObservationCards = observationCards,
             AttentionSpent = attentionCost,
             InitialState = ConversationRules.DetermineInitialState(worldNpc, _letterQueueManager),
-            PlayerResources = _gameWorld.GetPlayerResourceState(),
+            PlayerResources = ResourceState.FromPlayerResourceState(_gameWorld.GetPlayerResourceState()),
             LocationName = location.Name,
             TimeDisplay = _timeManager.GetFormattedTimeDisplay(),
             IsValid = true,
@@ -2384,7 +2384,7 @@ public class GameFacade
         // Apply costs
         foreach (var cost in exchange.Cost)
         {
-            switch (cost.ResourceType)
+            switch (cost.Key)
             {
                 case ResourceType.Coins:
                     player.Coins -= cost.Value;
@@ -2420,7 +2420,7 @@ public class GameFacade
         // Apply rewards
         foreach (var reward in exchange.Reward)
         {
-            switch (reward.ResourceType)
+            switch (reward.Key)
             {
                 case ResourceType.Coins:
                     player.Coins += reward.Value;

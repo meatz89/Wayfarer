@@ -116,7 +116,7 @@
                                 <div class="card-text">@(card.Description ?? "Template: " + card.TemplateId)</div>
                                 <div class="card-outcomes">
                                     <div class="outcome success">
-                                        <span>Success (@(card.SuccessRate ?? 50)%)</span>
+                                        <span>Success (@card.SuccessRate%)</span>
                                         @if (card.IsStateCard && card.SuccessState != null)
                                         {
                                             <span>State → @card.SuccessState</span>
@@ -127,7 +127,7 @@
                                         }
                                     </div>
                                     <div class="outcome failure">
-                                        <span>Failure (@(100 - (card.SuccessRate ?? 50))%)</span>
+                                        <span>Failure (@(100 - card.SuccessRate)%)</span>
                                         @if (card.IsStateCard && card.FailureState != null)
                                         {
                                             <span>State → @card.FailureState</span>
@@ -213,7 +213,7 @@
                                 <div class="exchange-details">
                                     <div class="costs">
                                         <h4>Costs:</h4>
-                                        @foreach (var cost in (card.Context?.ExchangeData?.Cost ?? new List<ResourceExchange>()))
+                                        @foreach (var cost in (card.Context?.ExchangeData?.Cost ?? new Dictionary<ResourceType, int>()))
                                         {
                                             <div>@cost.GetDisplayText()</div>
                                         }
@@ -286,7 +286,7 @@
     private string GetCategoryClass(ConversationCard card)
     {
         // Determine category based on card properties since Category enum is removed
-        if (card.Mechanics == CardMechanics.Exchange)
+        if (card.Mechanics == CardMechanicsType.Exchange)
             return "exchange";
         if (card.IsObservation)
             return "observation";
@@ -305,7 +305,7 @@
     private string GetCategoryName(ConversationCard card)
     {
         // Determine category name based on card properties since Category enum is removed
-        if (card.Mechanics == CardMechanics.Exchange)
+        if (card.Mechanics == CardMechanicsType.Exchange)
             return "EXCHANGE";
         if (card.IsObservation)
             return "OBSERVATION";

@@ -124,9 +124,9 @@ public class Phase3_NPCDependents : IInitializationPhase
             NPCName = npc.Name,
             NPCPersonality = npc.PersonalityType,
             // Preserve original context properties
-            UrgencyLevel = original.Context?.UrgencyLevel ?? 0,
+            UrgencyLevel = original.Context?.UrgencyLevel ?? "Normal",
             HasDeadline = original.Context?.HasDeadline ?? false,
-            MinutesUntilDeadline = original.Context?.MinutesUntilDeadline,
+            MinutesUntilDeadline = original.Context?.MinutesUntilDeadline ?? 0,
             ObservationType = original.Context?.ObservationType,
             LetterId = original.Context?.LetterId,
             TargetNpcId = original.Context?.TargetNpcId,
@@ -200,14 +200,14 @@ public class Phase3_NPCDependents : IInitializationPhase
                     {
                         Id = $"promise_{npc.ID}_{config.CardId}",
                         TemplateId = config.CardId,
-                        Mechanics = CardMechanics.Promise,
-                        Category = CardCategory.Promise,
+                        Mechanics = CardMechanicsType.Promise,
+                        Category = CardCategory.Promise.ToString(),
                         Type = CardType.Trust, // Promise cards are trust-based
                         Persistence = PersistenceType.Goal,
                         Weight = 2, // Standard weight for promise cards
                         BaseComfort = 0, // No comfort for goal cards
                         IsGoalCard = true,
-                        GoalCardType = ConversationType.Promise,
+                        GoalCardType = ConversationType.Promise.ToString(),
                         DisplayName = $"Letter from {npc.Name}",
                         Description = $"Negotiate terms for a letter delivery",
                         Context = new CardContext

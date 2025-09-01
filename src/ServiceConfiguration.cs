@@ -71,9 +71,9 @@ public static class ServiceConfiguration
         // DeliveryObligation Queue System
         services.AddSingleton<StandingObligationManager>();
 
-        // New card-based conversation system
-        services.AddSingleton<ConversationManager>();
-        services.AddSingleton<NPCDeckFactory>();
+        // New card-based conversation system - removed with ConversationSystem
+        // services.AddSingleton<ConversationManager>();
+        // services.AddSingleton<NPCDeckFactory>();
         
         // ConversationSubsystem services
         services.AddSingleton<CardDeckManager>();

@@ -420,7 +420,7 @@ namespace Wayfarer.Pages
 
         protected string GetStateChangeText(CardInstance card)
         {
-            if (card.Category != CardCategory.State) return "";
+            if (card.Category != nameof(CardCategory.State)) return "";
             
             if (card.SuccessState.HasValue)
             {
@@ -431,7 +431,7 @@ namespace Wayfarer.Pages
         
         protected string GetSuccessEffect(CardInstance card)
         {
-            if (card.Category == CardCategory.State && card.SuccessState.HasValue)
+            if (card.Category == nameof(CardCategory.State) && card.SuccessState.HasValue)
             {
                 return $"{Session.CurrentState} → {card.SuccessState.Value}";
             }
@@ -497,7 +497,7 @@ namespace Wayfarer.Pages
 
         protected string GetFailureEffect(CardInstance card)
         {
-            if (card.Category == CardCategory.State && card.FailureState.HasValue)
+            if (card.Category == nameof(CardCategory.State) && card.FailureState.HasValue)
             {
                 return $"{Session.CurrentState} → {card.FailureState.Value}";
             }
@@ -610,13 +610,13 @@ namespace Wayfarer.Pages
         
         protected bool IsConversationCard(CardInstance card)
         {
-            return card.Mechanics == CardMechanics.Exchange;
+            return card.Mechanics == CardMechanicsType.Exchange;
         }
         
         protected string GetCardDisplayName(CardInstance card)
         {
             // Special handling for exchange cards
-            if (card.Mechanics == CardMechanics.Exchange)
+            if (card.Mechanics == CardMechanicsType.Exchange)
                 return GetConversationCardName(card);
                 
             // Generate a display name based on the template ID

@@ -326,8 +326,8 @@ public class CardDeckLoader
             {
                 Id = id,
                 TemplateId = templateType,
-                Mechanics = CardMechanics.Standard,
-                Category = category,
+                Mechanics = CardMechanicsType.Standard,
+                Category = category.ToString(),
                 Context = new CardContext
                 {
                     Personality = PersonalityType.STEADFAST, // Default, will be overridden per NPC
@@ -411,8 +411,8 @@ public class CardDeckLoader
             {
                 Id = id,
                 TemplateId = "GoalCard",
-                Mechanics = CardMechanics.Promise,
-                Category = parsedCategory,
+                Mechanics = CardMechanicsType.Promise,
+                Category = parsedCategory.ToString(),
                 Context = new CardContext
                 {
                     Personality = PersonalityType.STEADFAST,
@@ -425,7 +425,7 @@ public class CardDeckLoader
                 Weight = weight,
                 BaseComfort = 0,
                 IsGoalCard = true,
-                GoalCardType = goalType,
+                GoalCardType = goalType.ToString(),
                 DrawableStates = validStates,  // CRITICAL: Set DrawableStates to control when card can be drawn
                 DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
                 Description = GetGoalDescription(goalData),
@@ -483,8 +483,8 @@ public class CardDeckLoader
             {
                 ExchangeName = id.Replace("_", " "),
                 NPCPersonality = PersonalityType.MERCANTILE,
-                Cost = new List<ResourceExchange> { costExchange },
-                Reward = new List<ResourceExchange> { rewardExchange },
+                Cost = new Dictionary<ResourceType, int> { { costExchange.ResourceType, costExchange.Amount } },
+                Reward = new Dictionary<ResourceType, int> { { rewardExchange.ResourceType, rewardExchange.Amount } },
                 BaseSuccessRate = 100,
                 CanBarter = false,
                 TemplateId = "SimpleExchange"
@@ -494,13 +494,19 @@ public class CardDeckLoader
             {
                 Id = id,
                 TemplateId = "SimpleExchange",
-                Mechanics = CardMechanics.Exchange,
+                Mechanics = CardMechanicsType.Exchange,
                 Context = new CardContext
                 {
                     Personality = PersonalityType.MERCANTILE,
                     EmotionalState = EmotionalState.NEUTRAL,
                     NPCName = "",
-                    ExchangeOffer = $"{offerAmount} {offerResource}",
+                    ExchangeOffer = new ExchangeOffer 
+                    {
+                        Id = id,
+                        Name = $"{offerAmount} {offerResource}",
+                        Cost = new Dictionary<ResourceType, int> { { costResourceType, requestAmount } },
+                        Reward = new Dictionary<ResourceType, int> { { rewardResourceType, offerAmount } }
+                    },
                     ExchangeRequest = $"{requestAmount} {requestResource}",
                     // Set the ExchangeData properly
                     ExchangeData = exchangeDataObj,
@@ -513,7 +519,7 @@ public class CardDeckLoader
                 Description = description,
                 SuccessRate = 100, // Exchange cards always succeed if affordable
                 IsExchange = true, // Mark as exchange card
-                Category = CardCategory.Exchange // Set the category
+                Category = CardCategory.Exchange.ToString() // Set the category
             };
         }
         catch (Exception ex)
@@ -549,7 +555,7 @@ public class CardDeckLoader
             {
                 Id = id,
                 TemplateId = "ObservationShare",
-                Mechanics = CardMechanics.Standard,
+                Mechanics = CardMechanicsType.Standard,
                 Context = new CardContext
                 {
                     Personality = PersonalityType.STEADFAST,

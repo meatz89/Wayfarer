@@ -154,10 +154,10 @@ public class ConversationCardParser
     private ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null)
     {
         // Parse mechanics from template string or default to Standard
-        CardMechanics mechanics = CardMechanics.Standard;
+        CardMechanicsType mechanics = CardMechanicsType.Standard;
         if (!string.IsNullOrEmpty(dto.Mechanics))
         {
-            Enum.TryParse<CardMechanics>(dto.Mechanics, true, out mechanics);
+            Enum.TryParse<CardMechanicsType>(dto.Mechanics, true, out mechanics);
         }
         
         // Parse category from DTO or infer from mechanics
@@ -171,9 +171,9 @@ public class ConversationCardParser
             // Infer category from mechanics if not specified
             category = mechanics switch
             {
-                CardMechanics.Exchange => CardCategory.Exchange,
-                CardMechanics.Promise => CardCategory.Promise,
-                CardMechanics.StateChange => CardCategory.State,
+                CardMechanicsType.Exchange => CardCategory.Exchange,
+                CardMechanicsType.Promise => CardCategory.Promise,
+                CardMechanicsType.StateChange => CardCategory.State,
                 _ => CardCategory.Comfort
             };
         }
@@ -218,7 +218,7 @@ public class ConversationCardParser
             Id = dto.Id,
             TemplateId = dto.Template,
             Mechanics = mechanics,
-            Category = category,
+            Category = category.ToString(),
             Context = new CardContext
             {
                 Personality = npc?.PersonalityType ?? PersonalityType.STEADFAST,
@@ -231,7 +231,7 @@ public class ConversationCardParser
             Weight = dto.Weight,
             BaseComfort = dto.BaseComfort,
             IsGoalCard = dto.IsGoalCard ?? false,
-            GoalCardType = goalType,
+            GoalCardType = goalType?.ToString(),
             DisplayName = dto.DisplayName,
             Description = dto.Description,
             SuccessRate = dto.SuccessRate ?? 0,

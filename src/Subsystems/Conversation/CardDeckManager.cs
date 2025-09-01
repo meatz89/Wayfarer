@@ -41,7 +41,7 @@ public class CardDeckManager
         {
             // Mix in some letter cards for promise conversations
             var letterCards = npc.GoalDeck.GetAllCards()
-                .Where(c => c.Category == CardCategory.Promise)
+                .Where(c => c.Category == CardCategory.Promise.ToString())
                 .Take(3);
             foreach (var card in letterCards)
             {
@@ -74,7 +74,7 @@ public class CardDeckManager
         // Special handling for HOSTILE state - draw burden cards
         if (currentState == EmotionalState.HOSTILE)
         {
-            var burdenCards = deck.DrawFilteredByCategory(1, CardCategory.Burden);
+            var burdenCards = deck.DrawFilteredByCategory(CardCategory.Burden.ToString(), 1);
             drawnCards.AddRange(burdenCards);
         }
         else
@@ -187,7 +187,7 @@ public class CardDeckManager
         // HOSTILE state can only play burden cards
         if (currentState == EmotionalState.HOSTILE)
         {
-            return card.Category == CardCategory.Burden;
+            return card.Category == CardCategory.Burden.ToString();
         }
 
         // DESPERATE state restrictions
@@ -213,7 +213,7 @@ public class CardDeckManager
     private int CalculateCardComfort(CardInstance card, EmotionalState currentState)
     {
         // Burden cards always negative
-        if (card.Category == CardCategory.Burden)
+        if (card.Category == CardCategory.Burden.ToString())
             return -Math.Max(1, card.Weight);
 
         // Goal cards provide bonus comfort

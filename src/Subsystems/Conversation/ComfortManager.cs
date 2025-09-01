@@ -83,7 +83,7 @@ public class ComfortManager
     private int CalculateSingleCardComfort(CardInstance card, EmotionalState currentState)
     {
         // Burden cards always negative (burden is a CardCategory)
-        if (card.Category == CardCategory.Burden)
+        if (card.Category == CardCategory.Burden.ToString())
         {
             return -Math.Max(1, card.Weight);
         }

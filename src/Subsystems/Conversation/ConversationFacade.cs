@@ -105,7 +105,7 @@ public class ConversationFacade
         // Apply token changes
         if (_lastOutcome.TokensEarned != 0)
         {
-            var primaryType = _deckManager.DeterminePrimaryCardType(_currentSession.HandCards);
+            var primaryType = _deckManager.DeterminePrimaryCardType(_currentSession.HandCards.ToList());
             var connectionType = MapCardTypeToConnection(primaryType);
             _tokenManager.AddTokensToNPC(connectionType, _lastOutcome.TokensEarned, _currentSession.NPC.ID);
         }

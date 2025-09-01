@@ -237,9 +237,9 @@ public class ObservationManager
             {
                 Personality = PersonalityType.STEADFAST,
                 EmotionalState = EmotionalState.NEUTRAL,
-                UrgencyLevel = 0,
+                UrgencyLevel = "Normal",
                 HasDeadline = false,
-                ObservationType = observation.Type,
+                ObservationType = observation.Type.ToString(),
                 ObservationId = observation.Id,
                 ObservationText = observation.Text,
                 ObservationDescription = observation.Description

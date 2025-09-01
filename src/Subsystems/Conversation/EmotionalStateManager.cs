@@ -317,7 +317,7 @@ public class EmotionalStateManager
         // HOSTILE can only play burden cards
         if (state == EmotionalState.HOSTILE)
         {
-            return card.Category == CardCategory.Burden;
+            return card.Category == CardCategory.Burden.ToString();
         }
 
         // Check weight limit

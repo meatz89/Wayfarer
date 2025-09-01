@@ -108,8 +108,8 @@ public class ExchangeHandler
                 ExchangeId = card.TemplateId,
                 Name = exchange.ExchangeName ?? GetExchangeName(exchange),
                 Description = card.Description,
-                Cost = FormatCost(exchange.Cost),
-                Reward = FormatReward(exchange.Reward),
+                Cost = FormatCost(exchange.GetCostAsList()),
+                Reward = FormatReward(exchange.GetRewardAsList()),
                 CanAfford = canAfford,
                 ExchangeData = exchange
             });
@@ -254,7 +254,7 @@ public class ExchangeHandler
     private bool ShouldAdvanceTime(ExchangeData exchange)
     {
         // Work exchanges that cost significant attention advance time
-        return exchange.Cost.Any(c => c.ResourceType == ResourceType.Attention && c.Amount >= 3);
+        return exchange.Cost.Any(c => c.Key == ResourceType.Attention && c.Value >= 3);
     }
 
     /// <summary>

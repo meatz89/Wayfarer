@@ -209,15 +209,15 @@
                         {
                             <div class="card-marker expires">24hr</div>
                         }
-                        @if (convCard.Category == CardCategory.Burden)
+                        @if (convCard.Category == nameof(CardCategory.Burden))
                         {
                             <div class="card-marker blocks">Blocks</div>
                         }
-                        @if (convCard.Category == CardCategory.Promise)
+                        @if (convCard.Category == nameof(CardCategory.Promise))
                         {
                             <div class="card-marker goal">Goal Card</div>
                         }
-                        @if (convCard.Category == CardCategory.Exchange)
+                        @if (convCard.Category == nameof(CardCategory.Exchange))
                         {
                             <div class="card-marker exchange">Exchange</div>
                         }

@@ -129,7 +129,7 @@ public class NPC
     public bool HasPromiseCards()
     {
         if (GoalDeck == null) return false;
-        return GoalDeck.GetAllCards().Any(c => c.Category == CardCategory.Promise);
+        return GoalDeck.GetAllCards().Any(c => c.Category == CardCategory.Promise.ToString());
     }
     
     // Check if NPC has burden history (cards in conversation deck)
@@ -145,7 +145,7 @@ public class NPC
         
         // Burden cards are identified by their category
         return ConversationDeck.GetAllCards()
-            .Count(card => card.Category == CardCategory.Burden);
+            .Count(card => card.Category == CardCategory.Burden.ToString());
     }
     
     // Check if NPC has exchange cards available
