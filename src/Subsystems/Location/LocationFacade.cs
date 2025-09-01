@@ -5,6 +5,17 @@ using System.Linq;
 namespace Wayfarer.Subsystems.LocationSubsystem
 {
     /// <summary>
+    /// Represents conversation options available for a specific NPC
+    /// </summary>
+    public class NPCConversationOptions
+    {
+        public string NpcId { get; set; }
+        public string NpcName { get; set; }
+        public List<ConversationType> AvailableTypes { get; set; } = new List<ConversationType>();
+        public int AttentionCost { get; set; }
+        public bool CanAfford { get; set; }
+    }
+    /// <summary>
     /// Public facade for all location-related operations.
     /// Coordinates between location managers and provides a clean API for GameFacade.
     /// </summary>
@@ -28,7 +39,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         private readonly ObligationQueueManager _letterQueueManager;
         private readonly DialogueGenerationService _dialogueGenerator;
         private readonly NarrativeRenderer _narrativeRenderer;
-        private readonly ConversationFacade _conversationFacade;
         
         public LocationFacade(
             GameWorld gameWorld,
@@ -46,8 +56,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             MessageSystem messageSystem,
             ObligationQueueManager letterQueueManager,
             DialogueGenerationService dialogueGenerator,
-            NarrativeRenderer narrativeRenderer,
-            ConversationFacade conversationFacade)
+            NarrativeRenderer narrativeRenderer)
         {
             _gameWorld = gameWorld;
             _locationManager = locationManager;
@@ -65,7 +74,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             _letterQueueManager = letterQueueManager;
             _dialogueGenerator = dialogueGenerator;
             _narrativeRenderer = narrativeRenderer;
-            _conversationFacade = conversationFacade;
         }
         
         /// <summary>
@@ -141,7 +149,8 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         /// <summary>
         /// Get the complete location screen view model with all location data.
         /// </summary>
-        public LocationScreenViewModel GetLocationScreen()
+        /// <param name="npcConversationOptions">List of NPCs with their available conversation types, provided by GameFacade from ConversationFacade</param>
+        public LocationScreenViewModel GetLocationScreen(List<NPCConversationOptions> npcConversationOptions = null)
         {
             Console.WriteLine("[LocationFacade.GetLocationScreen] Starting...");
             
@@ -174,7 +183,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 
                 // Add NPCs with emotional states
                 TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-                viewModel.NPCsPresent = GetNPCsWithInteractions(spot, currentTime);
+                viewModel.NPCsPresent = GetNPCsWithInteractions(spot, currentTime, npcConversationOptions);
                 
                 // Add observations
                 viewModel.Observations = GetLocationObservations(location.Id, spot.SpotID);
@@ -224,7 +233,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         
         // Private helper methods
         
-        private List<NPCPresenceViewModel> GetNPCsWithInteractions(LocationSpot spot, TimeBlocks currentTime)
+        private List<NPCPresenceViewModel> GetNPCsWithInteractions(LocationSpot spot, TimeBlocks currentTime, List<NPCConversationOptions> npcConversationOptions)
         {
             var result = new List<NPCPresenceViewModel>();
             
@@ -235,15 +244,19 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             foreach (var npc in npcs)
             {
                 var emotionalState = GetNPCEmotionalState(npc);
-                var availableConversationTypes = _conversationFacade.GetAvailableConversationTypes(npc);
                 var interactions = new List<InteractionOptionViewModel>();
                 
-                foreach (var conversationType in availableConversationTypes)
+                // Find conversation options for this NPC if provided
+                var npcOptions = npcConversationOptions?.FirstOrDefault(opt => opt.NpcId == npc.ID);
+                if (npcOptions != null && npcOptions.AvailableTypes != null)
                 {
-                    var interaction = GenerateConversationInteraction(npc, conversationType, emotionalState);
-                    if (interaction != null)
+                    foreach (var conversationType in npcOptions.AvailableTypes)
                     {
-                        interactions.Add(interaction);
+                        var interaction = GenerateConversationInteraction(npc, conversationType, emotionalState);
+                        if (interaction != null)
+                        {
+                            interactions.Add(interaction);
+                        }
                     }
                 }
                 
