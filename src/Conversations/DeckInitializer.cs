@@ -27,13 +27,23 @@ public class DeckInitializer
         {
             // Create conversation deck
             var conversationDeck = CreateDeckInstance(npc.ID, npc.PersonalityType);
-            npc.ConversationDeck = conversationDeck;
+            var cardDeck = new CardDeck();
+            foreach (var card in conversationDeck)
+            {
+                cardDeck.AddCard(card);
+            }
+            npc.ConversationDeck = cardDeck;
             
             // Create goal deck
             var goalDeck = CreateGoalDeck(npc.ID);
-            npc.GoalDeck = goalDeck;
+            var goalCardDeck = new CardDeck();
+            foreach (var goal in goalDeck)
+            {
+                goalCardDeck.AddCard(goal);
+            }
+            npc.GoalDeck = goalCardDeck;
             
-            Console.WriteLine($"Initialized deck for {npc.Name}: {conversationDeck.Count} conversation cards, {goalDeck.Count} goal cards");
+            Console.WriteLine($"Initialized deck for {npc.Name}: {cardDeck.Count} conversation cards, {goalCardDeck.Count} goal cards");
         }
     }
     

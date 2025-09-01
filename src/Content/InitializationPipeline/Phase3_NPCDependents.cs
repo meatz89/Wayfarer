@@ -21,13 +21,17 @@ public class Phase3_NPCDependents : IInitializationPhase
         // 2. Load DeliveryObligation Templates (depends on NPCs for validation)
         LoadLetterTemplates(context);
 
-        // 3. Initialize all NPC decks using new JSON-based system
-        string contentPath = Path.Combine(Directory.GetCurrentDirectory(), "Content");
-        var cardDatabase = CardDatabase.LoadFromJson(contentPath);
-        var deckInitializer = new DeckInitializer(cardDatabase);
-        deckInitializer.InitializeAllNPCDecks(context.GameWorld);
-        
-        Console.WriteLine("[Phase3] NPC deck initialization complete using JSON card database.");
+        // 3. Initialize all NPC decks using CardDatabase loaded in Phase0
+        if (context.CardDatabase != null)
+        {
+            var deckInitializer = new DeckInitializer(context.CardDatabase);
+            deckInitializer.InitializeAllNPCDecks(context.GameWorld);
+            Console.WriteLine("[Phase3] NPC deck initialization complete using JSON card database.");
+        }
+        else
+        {
+            Console.WriteLine("[Phase3] WARNING: CardDatabase not found in context, skipping NPC deck initialization.");
+        }
     }
 
     // REMOVED: InitializeNPCDecks - replaced by DeckInitializer.InitializeAllNPCDecks

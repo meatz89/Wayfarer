@@ -137,6 +137,9 @@ public class InitializationContext
 
     // Goal deck repository for loading letter configurations
     public GoalDeckRepository GoalDeckRepository { get; set; }
+    
+    // Card database loaded in Phase0 for use by other phases
+    public CardDatabase CardDatabase { get; set; }
 
     /// <summary>
     /// Gets the content path based on game mode
