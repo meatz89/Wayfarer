@@ -43,6 +43,7 @@
 
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
+    public List<string> DiscoveredRoutes { get; set; } = new List<string>();
 
 
     public bool IsInitialized { get; set; } = false;

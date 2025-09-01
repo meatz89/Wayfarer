@@ -8,8 +8,6 @@ public class GameUIBase : ComponentBase, IDisposable
     [Inject] public GameFacade GameFacade { get; set; }
     [Inject] public TimeManager TimeManager { get; set; }
     [Inject] public LoadingStateService LoadingStateService { get; set; }
-    [Inject] public FlagService FlagService { get; set; }
-    // Simple state management - GameScreen handles actual navigation
     public CurrentViews CurrentView { get; set; } = CurrentViews.LocationScreen;
 
     protected override async Task OnInitializedAsync()

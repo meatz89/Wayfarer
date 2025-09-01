@@ -94,8 +94,6 @@ public class TravelManager
     private readonly TransportCompatibilityValidator _transportValidator;
     private readonly RouteRepository _routeRepository;
     private readonly AccessRequirementChecker _accessChecker;
-    private readonly FlagService _flagService;
-    // REMOVED: TravelEventManager - hardcoded content generation system deleted
     public ItemRepository ItemRepository { get; }
 
     public TravelManager(
@@ -104,9 +102,7 @@ public class TravelManager
         TransportCompatibilityValidator transportValidator,
         RouteRepository routeRepository,
         AccessRequirementChecker accessChecker,
-        TimeManager timeManager,
-        FlagService flagService
-        // TravelEventManager travelEventManager - REMOVED
+        TimeManager timeManager
         )
     {
         _gameWorld = gameWorld;
@@ -114,8 +110,6 @@ public class TravelManager
         _transportValidator = transportValidator;
         _routeRepository = routeRepository;
         _accessChecker = accessChecker;
-        _flagService = flagService;
-        // _travelEventManager = travelEventManager; // REMOVED
         ItemRepository = itemRepository;
     }
 
@@ -192,27 +186,8 @@ public class TravelManager
 
         string? currentLocation = targetLocation?.Id;
 
-        // First visit tracking handled by GameWorld
-        // Discovery bonuses removed - new locations provide natural opportunities through different markets
-
-        // Set tutorial flags for movement tracking
-        if (!_flagService.HasFlag(FlagService.TUTORIAL_FIRST_MOVEMENT))
-        {
-            _flagService.SetFlag(FlagService.TUTORIAL_FIRST_MOVEMENT);
-        }
-
-        // Check if arriving at docks for tutorial
-        if (targetLocation.Id == "millbrook_docks" && !_flagService.HasFlag("tutorial_docks_visited"))
-        {
-            _flagService.SetFlag("tutorial_docks_visited");
-        }
     }
 
-
-    // Discovery bonuses removed - emergent gameplay provides rewards through:
-    // - New market prices for arbitrage
-    // - Different contract opportunities
-    // - Unique items available at new locations
 
     public List<RouteOption> GetAvailableRoutes(string fromLocationId, string toLocationId)
     {

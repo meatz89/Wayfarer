@@ -61,19 +61,14 @@ public static class ServiceConfiguration
         services.AddTimeSystem();
 
         // Managers that depend on TimeManager
-        // TravelEventManager removed - use categorical mechanics instead
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();
-        // services.AddSingleton<RestManager>(); // Commented out - class doesn't exist
         services.AddSingleton<TransportCompatibilityValidator>();
 
         // DeliveryObligation Queue System
         services.AddSingleton<StandingObligationManager>();
 
-        // New card-based conversation system - removed with ConversationSystem
-        // services.AddSingleton<ConversationManager>();
-        // services.AddSingleton<NPCDeckFactory>();
         
         // ConversationSubsystem services
         services.AddSingleton<CardDeckManager>();
@@ -118,8 +113,6 @@ public static class ServiceConfiguration
         services.AddSingleton<ActionGenerator>();
 
         // Core services
-        services.AddSingleton<FlagService>();
-
         services.AddScoped<MusicService>();
         services.AddScoped<TimeImpactCalculator>();
 
@@ -154,6 +147,13 @@ public static class ServiceConfiguration
         services.AddSingleton<Wayfarer.Subsystems.TimeSubsystem.TimeProgressionManager>();
         services.AddSingleton<Wayfarer.Subsystems.TimeSubsystem.TimeDisplayFormatter>();
         services.AddSingleton<Wayfarer.Subsystems.TimeSubsystem.TimeFacade>();
+
+        // Travel Subsystem
+        services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.RouteManager>();
+        services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.RouteDiscoveryManager>();
+        services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.PermitValidator>();
+        services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.TravelTimeCalculator>();
+        services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.TravelFacade>();
 
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();

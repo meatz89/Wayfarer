@@ -23,7 +23,7 @@ public static class GameWorldSerializer
         };
     }
 
-    public static string SerializeGameWorld(GameWorld gameWorld, FlagService flagService = null)
+    public static string SerializeGameWorld(GameWorld gameWorld)
     {
         SerializableGameWorld serialized = new SerializableGameWorld
         {
@@ -82,8 +82,6 @@ public static class GameWorldSerializer
                 // Patron system removed - deleted patron tracking
             },
 
-            // Narrative state
-            FlagServiceState = flagService?.GetState()
         };
 
         return JsonSerializer.Serialize(serialized, _jsonOptions);
@@ -358,7 +356,7 @@ public static class GameWorldSerializer
         return obligation;
     }
 
-    public static GameWorld DeserializeGameWorld(string json, List<Location> locations, List<LocationSpot> spots, FlagService flagService = null)
+    public static GameWorld DeserializeGameWorld(string json, List<Location> locations, List<LocationSpot> spots)
     {
         SerializableGameWorld serialized = JsonSerializer.Deserialize<SerializableGameWorld>(json, _jsonOptions);
         if (serialized == null)
@@ -507,13 +505,6 @@ public static class GameWorldSerializer
                 }
             }
         }
-
-        // Restore narrative state
-        if (flagService != null && serialized.FlagServiceState != null)
-        {
-            flagService.RestoreState(serialized.FlagServiceState);
-        }
-
 
         return gameWorld;
     }

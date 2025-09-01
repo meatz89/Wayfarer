@@ -97,7 +97,6 @@ public GameWorld()
 
     StreamingContentState = new StreamingContentState();
 
-    // FlagService and NarrativeManager are created by DI, not GameWorld
 }
 
 public Player GetPlayer()

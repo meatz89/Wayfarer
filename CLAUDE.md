@@ -272,12 +272,35 @@ This architecture ensures:
 - game mechanical values, that could be changed during balancing, should be read from GameRules configuration file.
 - strictly avoid defensive programming like checking for null values, try catch blocks, throwing exceptions, using defaults or fallback values and so on. this increases complexity of the code and hides errors. just let it fail and let the program crash fast
 
-### Critical Rules
-- ALL content from JSON files, no hardcoded text
-- Perfect Information: All mechanics visible
-- One effect per mechanic, no double duty
-- Resources flow through multiple systems
-- Delete legacy code, no compatibility layers
+## CRITICAL REFACTORING RULES
+
+  ### NO FALLBACKS
+  - When implementing a subsystem, implement it COMPLETELY
+  - NO placeholder methods
+  - NO "will implement later" comments
+  - NO partial functionality
+  - If a method exists in old code, it MUST exist in new code IMMEDIATELY
+
+  ### NO COMPATIBILITY LAYERS
+  - Delete old code as soon as new code is ready
+  - NO keeping both versions
+  - NO switch statements choosing implementations
+  - NO gradual migration
+  - Cut over COMPLETELY or not at all
+
+  ### NO TODOS
+  - Every work packet produces COMPLETE, WORKING code
+  - NO TODO comments in code
+  - NO stub implementations
+  - NO "temporary" solutions
+  - Production-ready code from day one
+
+  ### COMPLETE MIGRATION ONLY
+  - When moving code, move ALL related code
+  - Delete source immediately after migration
+  - Update ALL references at once
+  - NO partial migrations
+  - NO leaving code in both places
 
 **🔥 MANDATORY UI VERIFICATION STRATEGY 🔥**
 
