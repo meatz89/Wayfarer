@@ -1,6 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// Player initial configuration data
+public class PlayerInitialConfig
+{
+    public int? Coins { get; set; }
+    public int? StaminaPoints { get; set; }
+    public int? MaxStamina { get; set; }
+    public int? Health { get; set; }
+    public int? MaxHealth { get; set; }
+    public int? Food { get; set; }
+    public int? MaxFood { get; set; }
+    public string Personality { get; set; }
+    public string Archetype { get; set; }
+    public Dictionary<string, int> InitialItems { get; set; }
+}
 
 public class GameWorld
 {
@@ -62,7 +76,7 @@ public List<TravelCard> TravelCards { get; set; } = new List<TravelCard>();
 // This eliminates the need for SharedData dictionary
 public string InitialLocationId { get; set; }
 public string InitialLocationSpotId { get; set; }
-public dynamic InitialPlayerConfig { get; set; }
+public PlayerInitialConfig InitialPlayerConfig { get; set; }
 
 // Note: Pending command system has been removed in favor of intent-based architecture
 

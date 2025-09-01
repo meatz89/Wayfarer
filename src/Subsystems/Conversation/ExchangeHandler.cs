@@ -76,7 +76,8 @@ public class ExchangeHandler
     public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources)
     {
         var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        var currentAttention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        var currentAttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        var currentAttention = currentAttentionManager?.Current ?? 0;
         
         return exchange.CanAfford(playerResources, _tokenManager, currentAttention);
     }

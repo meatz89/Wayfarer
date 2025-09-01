@@ -89,9 +89,9 @@ public class DialogueGenerationService
     public string GenerateNPCDialogue(
         EmotionalState state, 
         PersonalityType personality,
-        DeliveryObligation obligation = null,
-        MeetingObligation meeting = null,
-        int turnNumber = 0)
+        DeliveryObligation obligation,
+        MeetingObligation meeting,
+        int turnNumber)
     {
         var stateKey = state.ToString();
         

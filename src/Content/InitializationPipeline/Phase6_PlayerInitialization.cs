@@ -103,40 +103,40 @@ public class Phase6_PlayerInitialization : IInitializationPhase
         // Load player config from GameWorld if available
         if (context.GameWorld.InitialPlayerConfig != null)
         {
-            dynamic playerConfig = context.GameWorld.InitialPlayerConfig;
+            var playerConfig = context.GameWorld.InitialPlayerConfig;
 
             if (playerConfig.Coins != null)
             {
-                player.Coins = (int)playerConfig.Coins;
+                player.Coins = playerConfig.Coins.Value;
                 Console.WriteLine($"  Set starting coins: {player.Coins}");
             }
 
             if (playerConfig.StaminaPoints != null)
             {
-                player.Stamina = (int)playerConfig.StaminaPoints;
+                player.Stamina = playerConfig.StaminaPoints.Value;
             }
 
             if (playerConfig.MaxStamina != null)
             {
-                player.MaxStamina = (int)playerConfig.MaxStamina;
+                player.MaxStamina = playerConfig.MaxStamina.Value;
                 Console.WriteLine($"  Set stamina: {player.Stamina}/{player.MaxStamina}");
             }
 
             if (playerConfig.Health != null)
             {
-                player.Health = (int)playerConfig.Health;
+                player.Health = playerConfig.Health.Value;
                 Console.WriteLine($"  Set starting health: {player.Health}");
             }
 
             if (playerConfig.MaxHealth != null)
             {
-                player.MaxHealth = (int)playerConfig.MaxHealth;
+                player.MaxHealth = playerConfig.MaxHealth.Value;
                 Console.WriteLine($"  Set max health: {player.MaxHealth}");
             }
 
             if (playerConfig.Food != null)
             {
-                player.Food = (int)playerConfig.Food;
+                player.Food = playerConfig.Food.Value;
                 Console.WriteLine($"  Set starting food: {player.Food}");
             }
         }

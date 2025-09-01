@@ -6,23 +6,35 @@ using System;
 public class LoadingStateService
 {
     public bool IsLoading { get; private set; }
-    public string LoadingMessage { get; private set; } = "";
-    public string Message => LoadingMessage; // Alias for UI compatibility
-    public int Progress { get; private set; } = 0;
+    public string LoadingMessage { get; private set; }
+    public string Message { get { return LoadingMessage; } } // Alias for UI compatibility
+    public int Progress { get; private set; }
+    private bool stateChangedFlag;
     
-    public event Action OnLoadingStateChanged;
+    public LoadingStateService()
+    {
+        LoadingMessage = "";
+        Progress = 0;
+    }
     
-    public void StartLoading(string message = "Loading...")
+    public void StartLoading(string message)
     {
         IsLoading = true;
         LoadingMessage = message;
-        OnLoadingStateChanged?.Invoke();
+        stateChangedFlag = true;
     }
     
     public void StopLoading()
     {
         IsLoading = false;
         LoadingMessage = "";
-        OnLoadingStateChanged?.Invoke();
+        stateChangedFlag = true;
+    }
+    
+    public bool HasStateChanged()
+    {
+        var changed = stateChangedFlag;
+        stateChangedFlag = false;
+        return changed;
     }
 }

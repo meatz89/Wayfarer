@@ -328,9 +328,15 @@ public class CardInstance
         return GetEffectiveSuccessChance(currentState);
     }
     
-    public int CalculateSuccessChance(object tokens)
+    public int CalculateSuccessChance(TokenMechanicsManager tokenManager)
     {
-        // Simplified version for compatibility with different calling patterns
+        // Token-based calculation if needed
+        return BaseSuccessChance;
+    }
+    
+    public int CalculateSuccessChance(Dictionary<ConnectionType, int> tokens)
+    {
+        // Dictionary-based calculation for UI compatibility
         return BaseSuccessChance;
     }
     
@@ -343,14 +349,11 @@ public class CardInstance
     public ConnectionType GetConnectionType()
     {
         // Determine connection type from card properties
-        return Type switch
-        {
-            CardType.Trust => ConnectionType.Trust,
-            CardType.Commerce => ConnectionType.Commerce,
-            CardType.Status => ConnectionType.Status,
-            CardType.Shadow => ConnectionType.Shadow,
-            _ => ConnectionType.Trust // Default
-        };
+        if (Type == CardType.Trust) return ConnectionType.Trust;
+        if (Type == CardType.Commerce) return ConnectionType.Commerce;
+        if (Type == CardType.Status) return ConnectionType.Status;
+        if (Type == CardType.Shadow) return ConnectionType.Shadow;
+        return ConnectionType.Trust; // Default
     }
 }
 
@@ -443,25 +446,67 @@ public class ExchangeData
         return true;
     }
     
-    public bool CanAfford(object playerResources, object tokenManager, object currentAttention)
+    public bool CanAfford(PlayerResourceState playerResources, TokenMechanicsManager tokenManager, int currentAttention)
     {
-        // Simplified implementation for compatibility
+        // Check if player can afford the exchange
+        if (playerResources == null) return false;
+        
+        foreach (var cost in Cost)
+        {
+            switch (cost.Key)
+            {
+                case ResourceType.Coins:
+                    if (playerResources.Coins < cost.Value) return false;
+                    break;
+                case ResourceType.Health:
+                    if (playerResources.Health < cost.Value) return false;
+                    break;
+                case ResourceType.Food:
+                    if (playerResources.Stamina < cost.Value) return false;
+                    break;
+                case ResourceType.Attention:
+                    if (currentAttention < cost.Value) return false;
+                    break;
+            }
+        }
         return true;
     }
     
     public string GetNarrativeContext()
     {
-        return $"Trading {string.Join(", ", PlayerGives.Select(kv => $"{kv.Value} {kv.Key}"))} for {string.Join(", ", PlayerReceives.Select(kv => $"{kv.Value} {kv.Key}"))}";
+        var givesList = new List<string>();
+        foreach (var kv in PlayerGives)
+        {
+            givesList.Add($"{kv.Value} {kv.Key}");
+        }
+        
+        var receivesList = new List<string>();
+        foreach (var kv in PlayerReceives)
+        {
+            receivesList.Add($"{kv.Value} {kv.Key}");
+        }
+        
+        return $"Trading {string.Join(", ", givesList)} for {string.Join(", ", receivesList)}";
     }
     
     public List<ResourceExchange> GetCostAsList()
     {
-        return Cost.Select(kv => new ResourceExchange { ResourceType = kv.Key, Amount = kv.Value }).ToList();
+        var list = new List<ResourceExchange>();
+        foreach (var kv in Cost)
+        {
+            list.Add(new ResourceExchange { ResourceType = kv.Key, Amount = kv.Value });
+        }
+        return list;
     }
     
     public List<ResourceExchange> GetRewardAsList()
     {
-        return Reward.Select(kv => new ResourceExchange { ResourceType = kv.Key, Amount = kv.Value }).ToList();
+        var list = new List<ResourceExchange>();
+        foreach (var kv in Reward)
+        {
+            list.Add(new ResourceExchange { ResourceType = kv.Key, Amount = kv.Value });
+        }
+        return list;
     }
 }
 
@@ -519,14 +564,20 @@ public class ObservationCard : ConversationCard
         };
     }
     
-    public void UpdateDecayState(object currentGameTime = null)
+    public void UpdateDecayState(DateTime currentGameTime)
     {
         // Simple decay based on creation time
-        var age = DateTime.Now - CreatedAt;
+        var age = currentGameTime - CreatedAt;
         if (age.TotalHours > 24)
         {
             IsPlayable = false;
         }
+    }
+    
+    public void UpdateDecayState()
+    {
+        // Overload with current time
+        UpdateDecayState(DateTime.Now);
     }
     
     public string GetDecayStateDescription()
@@ -560,7 +611,18 @@ public class CardPlayResult
     public bool DeliveredLetter { get; init; }
     public bool ManipulatedObligations { get; init; }
     public List<LetterNegotiationResult> LetterNegotiations { get; init; } = new List<LetterNegotiationResult>();
-    public bool Success => Results?.Any(r => r.Success) ?? false;
+    public bool Success 
+    { 
+        get 
+        { 
+            if (Results == null) return false;
+            foreach (var r in Results)
+            {
+                if (r.Success) return true;
+            }
+            return false;
+        } 
+    }
 }
 
 public class SingleCardResult
@@ -600,7 +662,14 @@ public class ConversationSession
     public bool GoalCardPlayed { get; set; }
     public SessionCardDeck Deck { get; set; }
     public HandDeck Hand { get; set; }
-    public HashSet<CardInstance> HandCards => Hand?.Cards ?? new HashSet<CardInstance>();
+    public HashSet<CardInstance> HandCards 
+    { 
+        get 
+        { 
+            if (Hand?.Cards != null) return Hand.Cards;
+            return new HashSet<CardInstance>();
+        } 
+    }
     public List<CardInstance> PlayedCards { get; set; } = new();
     public List<CardInstance> DiscardedCards { get; set; } = new();
     public TokenMechanicsManager TokenManager { get; set; }
@@ -672,16 +741,16 @@ public class ConversationSession
         };
     }
     
-    public static ConversationSession StartConversation(NPC npc, object queueManager, object tokenManager, 
-        object observationCards, object conversationType, object playerResourceState, object gameWorld)
+    public static ConversationSession StartConversation(NPC npc, ObligationQueueManager queueManager, TokenMechanicsManager tokenManager, 
+        List<CardInstance> observationCards, ConversationType conversationType, PlayerResourceState playerResourceState, GameWorld gameWorld)
     {
-        // Cast parameters to proper types
-        var obsCards = observationCards as List<CardInstance> ?? new List<CardInstance>();
-        var convType = (ConversationType)conversationType;
-        var world = (GameWorld)gameWorld;
+        // Use properly typed parameters
+        var obsCards = observationCards ?? new List<CardInstance>();
+        var convType = conversationType;
+        var world = gameWorld;
         
         // Determine initial state
-        var initialState = ConversationRules.DetermineInitialState(npc, queueManager as ObligationQueueManager);
+        var initialState = ConversationRules.DetermineInitialState(npc, queueManager);
         
         // Create session deck from NPC's conversation cards
         var sessionDeck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck?.GetAllCards() ?? new List<ConversationCard>(), npc.ID);
@@ -705,22 +774,22 @@ public class ConversationSession
             TurnNumber = 0,
             Deck = sessionDeck,
             Hand = new HandDeck(),
-            TokenManager = tokenManager as TokenMechanicsManager,
+            TokenManager = tokenManager,
             ObservationCards = obsCards
         };
         
         return session;
     }
     
-    public static ConversationSession StartExchange(NPC npc, object playerResourceState, object tokenManager,
-        object spotDomainTags, object queueManager, object gameWorld)
+    public static ConversationSession StartExchange(NPC npc, PlayerResourceState playerResourceState, TokenMechanicsManager tokenManager,
+        List<string> spotDomainTags, ObligationQueueManager queueManager, GameWorld gameWorld)
     {
         // Create session deck from NPC's exchange cards
         var exchangeCards = npc.ExchangeDeck?.GetAllCards() ?? new List<ConversationCard>();
         var sessionDeck = SessionCardDeck.CreateFromTemplates(exchangeCards, npc.ID);
         
         // Determine initial state  
-        var initialState = ConversationRules.DetermineInitialState(npc, queueManager as ObligationQueueManager);
+        var initialState = ConversationRules.DetermineInitialState(npc, queueManager);
         
         var session = new ConversationSession
         {
@@ -750,7 +819,7 @@ public class ConversationOutcome
     public int TokensEarned { get; set; }
     public string Reason { get; set; }
     public bool GoalAchieved { get; set; }
-    public int TotalComfort => FinalComfort; // Alias for compatibility
+    public int TotalComfort { get { return FinalComfort; } } // Alias for compatibility
 }
 
 // Card decks
@@ -759,8 +828,19 @@ public class CardDeck
     protected List<ConversationCard> cards = new();
     protected HashSet<string> drawnCardIds = new();
     
-    public int RemainingCards => cards.Count(c => !drawnCardIds.Contains(c.Id));
-    public int Count => cards.Count;
+    public int RemainingCards 
+    { 
+        get 
+        {
+            int count = 0;
+            foreach (var c in cards)
+            {
+                if (!drawnCardIds.Contains(c.Id)) count++;
+            }
+            return count;
+        }
+    }
+    public int Count { get { return cards.Count; } }
     
     public void AddCard(ConversationCard card)
     {
@@ -774,7 +854,11 @@ public class CardDeck
     
     public ConversationCard DrawCard()
     {
-        var available = cards.Where(c => !drawnCardIds.Contains(c.Id)).ToList();
+        var available = new List<ConversationCard>();
+        foreach (var c in cards)
+        {
+            if (!drawnCardIds.Contains(c.Id)) available.Add(c);
+        }
         if (!available.Any()) return null;
         
         var card = available[new Random().Next(available.Count)];
@@ -853,7 +937,12 @@ public class SessionCardDeck
     
     public CardInstance DrawCard()
     {
-        var available = allCards.Where(c => !drawnCardIds.Contains(c.InstanceId) && !discardedCardIds.Contains(c.InstanceId)).ToList();
+        var available = new List<CardInstance>();
+        foreach (var c in allCards)
+        {
+            if (!drawnCardIds.Contains(c.InstanceId) && !discardedCardIds.Contains(c.InstanceId))
+                available.Add(c);
+        }
         if (!available.Any()) return null;
         
         var card = available[new Random().Next(available.Count)];
@@ -900,9 +989,16 @@ public class SessionCardDeck
     
     public List<CardInstance> DrawFilteredByCategory(string category, int count)
     {
-        var available = allCards.Where(c => !drawnCardIds.Contains(c.InstanceId) && 
-                                           !discardedCardIds.Contains(c.InstanceId) &&
-                                           c.Category == category).ToList();
+        var available = new List<CardInstance>();
+        foreach (var c in allCards)
+        {
+            if (!drawnCardIds.Contains(c.InstanceId) && 
+                !discardedCardIds.Contains(c.InstanceId) &&
+                c.Category == category)
+            {
+                available.Add(c);
+            }
+        }
         
         var drawn = new List<CardInstance>();
         for (int i = 0; i < Math.Min(count, available.Count); i++)
@@ -914,7 +1010,19 @@ public class SessionCardDeck
         return drawn;
     }
     
-    public int RemainingCards => allCards.Count(c => !drawnCardIds.Contains(c.InstanceId) && !discardedCardIds.Contains(c.InstanceId));
+    public int RemainingCards 
+    { 
+        get 
+        {
+            int count = 0;
+            foreach (var c in allCards)
+            {
+                if (!drawnCardIds.Contains(c.InstanceId) && !discardedCardIds.Contains(c.InstanceId)) 
+                    count++;
+            }
+            return count;
+        }
+    }
     
     public bool HasCardsAvailable()
     {
@@ -1111,7 +1219,7 @@ public class ConversationStateRules
     public EmotionalState? ListenTransition { get; set; }
     public bool ListenEndsConversation { get; set; }
     
-    public ConversationStateRules(string description, int cardsOnListen, int maxWeight, bool checksGoalDeck = false, int comfortThreshold = 100, int patienceReduction = 1, int autoAdvanceDepth = 0, EmotionalState? listenTransition = null, bool listenEndsConversation = false)
+    public ConversationStateRules(string description, int cardsOnListen, int maxWeight, bool checksGoalDeck, int comfortThreshold, int patienceReduction, int autoAdvanceDepth, EmotionalState? listenTransition, bool listenEndsConversation)
     {
         Description = description;
         CardsOnListen = cardsOnListen;
@@ -1130,16 +1238,16 @@ public static class ConversationRules
 {
     public static Dictionary<EmotionalState, ConversationStateRules> States = new Dictionary<EmotionalState, ConversationStateRules>
     {
-        { EmotionalState.EAGER, new ConversationStateRules("Eager and enthusiastic", 3, 8, true) },
-        { EmotionalState.CONNECTED, new ConversationStateRules("Feeling connected and open", 3, 10) },
-        { EmotionalState.GUARDED, new ConversationStateRules("Cautious and reserved", 2, 6) },
-        { EmotionalState.TENSE, new ConversationStateRules("Stressed and anxious", 2, 5) },
-        { EmotionalState.DEFENSIVE, new ConversationStateRules("Protective and closed off", 1, 4) },
-        { EmotionalState.NEUTRAL, new ConversationStateRules("Balanced and composed", 2, 7) },
-        { EmotionalState.OPEN, new ConversationStateRules("Open and receptive", 3, 9) },
-        { EmotionalState.OVERWHELMED, new ConversationStateRules("Feeling overwhelmed", 1, 3) },
-        { EmotionalState.DESPERATE, new ConversationStateRules("In desperate need", 2, 5, true) },
-        { EmotionalState.HOSTILE, new ConversationStateRules("Hostile and aggressive", 1, 2) }
+        { EmotionalState.EAGER, new ConversationStateRules("Eager and enthusiastic", 3, 8, true, 100, 1, 0, null, false) },
+        { EmotionalState.CONNECTED, new ConversationStateRules("Feeling connected and open", 3, 10, false, 100, 1, 0, null, false) },
+        { EmotionalState.GUARDED, new ConversationStateRules("Cautious and reserved", 2, 6, false, 100, 1, 0, null, false) },
+        { EmotionalState.TENSE, new ConversationStateRules("Stressed and anxious", 2, 5, false, 100, 1, 0, null, false) },
+        { EmotionalState.DEFENSIVE, new ConversationStateRules("Protective and closed off", 1, 4, false, 100, 1, 0, null, false) },
+        { EmotionalState.NEUTRAL, new ConversationStateRules("Balanced and composed", 2, 7, false, 100, 1, 0, null, false) },
+        { EmotionalState.OPEN, new ConversationStateRules("Open and receptive", 3, 9, false, 100, 1, 0, null, false) },
+        { EmotionalState.OVERWHELMED, new ConversationStateRules("Feeling overwhelmed", 1, 3, false, 100, 1, 0, null, false) },
+        { EmotionalState.DESPERATE, new ConversationStateRules("In desperate need", 2, 5, true, 100, 1, 0, null, false) },
+        { EmotionalState.HOSTILE, new ConversationStateRules("Hostile and aggressive", 1, 2, false, 100, 1, 0, null, false) }
     };
     
     public static EmotionalState DetermineInitialState(NPC npc, ObligationQueueManager queueManager = null)
@@ -1155,7 +1263,12 @@ public static class ConversationRules
     
     public static Dictionary<EmotionalState, string> GetAllStateEffects()
     {
-        return States.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Description);
+        var dict = new Dictionary<EmotionalState, string>();
+        foreach (var kvp in States)
+        {
+            dict[kvp.Key] = kvp.Value.Description;
+        }
+        return dict;
     }
 }
 
@@ -1164,15 +1277,12 @@ public static class ConversationTypeConfig
 {
     public static int GetAttentionCost(ConversationType type)
     {
-        return type switch
-        {
-            ConversationType.FriendlyChat => 1,
-            ConversationType.Commerce => 1,
-            ConversationType.Promise => 2,
-            ConversationType.Resolution => 2,
-            ConversationType.Delivery => 1,
-            _ => 1
-        };
+        if (type == ConversationType.FriendlyChat) return 1;
+        if (type == ConversationType.Commerce) return 1;
+        if (type == ConversationType.Promise) return 2;
+        if (type == ConversationType.Resolution) return 2;
+        if (type == ConversationType.Delivery) return 1;
+        return 1; // Default
     }
 }
 
@@ -1199,20 +1309,18 @@ public static class ResourceExtensions
 {
     public static string GetDisplayText(this KeyValuePair<ResourceType, int> resourcePair)
     {
-        var resourceName = resourcePair.Key switch
-        {
-            ResourceType.Coins => "coins",
-            ResourceType.Health => "health",
-            ResourceType.Hunger => "hunger",
-            ResourceType.Food => "food",
-            ResourceType.Attention => "attention",
-            ResourceType.TrustToken => "trust tokens",
-            ResourceType.CommerceToken => "commerce tokens",
-            ResourceType.StatusToken => "status tokens",
-            ResourceType.ShadowToken => "shadow tokens",
-            ResourceType.Item => "items",
-            _ => resourcePair.Key.ToString().ToLower()
-        };
+        string resourceName;
+        if (resourcePair.Key == ResourceType.Coins) resourceName = "coins";
+        else if (resourcePair.Key == ResourceType.Health) resourceName = "health";
+        else if (resourcePair.Key == ResourceType.Hunger) resourceName = "hunger";
+        else if (resourcePair.Key == ResourceType.Food) resourceName = "food";
+        else if (resourcePair.Key == ResourceType.Attention) resourceName = "attention";
+        else if (resourcePair.Key == ResourceType.TrustToken) resourceName = "trust tokens";
+        else if (resourcePair.Key == ResourceType.CommerceToken) resourceName = "commerce tokens";
+        else if (resourcePair.Key == ResourceType.StatusToken) resourceName = "status tokens";
+        else if (resourcePair.Key == ResourceType.ShadowToken) resourceName = "shadow tokens";
+        else if (resourcePair.Key == ResourceType.Item) resourceName = "items";
+        else resourceName = resourcePair.Key.ToString().ToLower();
         
         return $"{resourcePair.Value} {resourceName}";
     }
@@ -1242,8 +1350,17 @@ public class CardSelectionManager
         if (!_selectedCards.Any())
             return "No cards selected";
             
-        var totalWeight = _selectedCards.Sum(c => c.GetEffectiveWeight(_currentState));
-        var cardNames = _selectedCards.Select(c => c.Name);
+        int totalWeight = 0;
+        foreach (var c in _selectedCards)
+        {
+            totalWeight += c.GetEffectiveWeight(_currentState);
+        }
+        
+        var cardNames = new List<string>();
+        foreach (var c in _selectedCards)
+        {
+            cardNames.Add(c.Name);
+        }
         
         return $"Playing {string.Join(", ", cardNames)} (weight: {totalWeight})";
     }

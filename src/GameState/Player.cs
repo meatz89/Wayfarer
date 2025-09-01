@@ -319,8 +319,9 @@
         return 1;
     }
 
-    public void UpdateRelationship(object characterId, object delta)
+    public void UpdateRelationship(string characterId, int delta)
     {
+        // Implementation for updating relationship
     }
 
 

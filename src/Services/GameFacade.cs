@@ -2373,7 +2373,8 @@ public class GameFacade
         
         // Check if player can afford
         var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        var currentAttention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        var currentAttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        var currentAttention = currentAttentionManager?.Current ?? 0;
         if (!exchange.CanAfford(playerResources, _connectionTokenManager, currentAttention))
         {
             Console.WriteLine("[ExecuteExchange] Player cannot afford exchange");

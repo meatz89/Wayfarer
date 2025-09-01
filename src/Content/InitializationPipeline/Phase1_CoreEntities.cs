@@ -3,6 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+// Configuration data loaded from gameWorld.json
+public class GameWorldConfigData
+{
+    public string CurrentLocationId { get; set; }
+    public string CurrentLocationSpotId { get; set; }
+    public PlayerInitialConfig Player { get; set; }
+}
+
 /// <summary>
 /// Phase 1: Load core entities that have no dependencies on other entities.
 /// This includes: GameWorld base, Locations, Items
@@ -41,7 +49,7 @@ public class Phase1_CoreEntities : IInitializationPhase
         {
             // Actually load and parse the gameWorld.json
             string json = File.ReadAllText(gameWorldPath);
-            dynamic? gameWorldData = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(json);
+            var gameWorldData = Newtonsoft.Json.JsonConvert.DeserializeObject<GameWorldConfigData>(json);
 
             // Store initialization data directly in GameWorld
             // GameWorld is the single source of truth - no SharedData dictionary
@@ -49,11 +57,11 @@ public class Phase1_CoreEntities : IInitializationPhase
             {
                 if (gameWorldData.CurrentLocationId != null)
                 {
-                    context.GameWorld.InitialLocationId = (string)gameWorldData.CurrentLocationId;
+                    context.GameWorld.InitialLocationId = gameWorldData.CurrentLocationId;
                 }
                 if (gameWorldData.CurrentLocationSpotId != null)
                 {
-                    context.GameWorld.InitialLocationSpotId = (string)gameWorldData.CurrentLocationSpotId;
+                    context.GameWorld.InitialLocationSpotId = gameWorldData.CurrentLocationSpotId;
                 }
                 if (gameWorldData.Player != null)
                 {
