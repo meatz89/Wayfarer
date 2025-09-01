@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Wayfarer.Subsystems.TravelSubsystem  
+namespace Wayfarer.Subsystems.TravelSubsystem
 {
     /// <summary>
     /// Public facade for all travel-related operations.
@@ -16,7 +16,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         private readonly PermitValidator _permitValidator;
         private readonly TravelTimeCalculator _travelTimeCalculator;
         private readonly MessageSystem _messageSystem;
-        
+
         public TravelFacade(
             GameWorld gameWorld,
             RouteManager routeManager,
@@ -32,31 +32,31 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             _travelTimeCalculator = travelTimeCalculator;
             _messageSystem = messageSystem;
         }
-        
+
         // ========== ROUTE OPERATIONS ==========
-        
+
         public List<RouteOption> GetAvailableRoutesFromCurrentLocation()
         {
             return _routeManager.GetAvailableRoutesFromCurrentLocation();
         }
-        
+
         /// <summary>
         /// Get travel destinations with full view model data for UI
         /// </summary>
         public List<TravelDestinationViewModel> GetTravelDestinations()
         {
-            var routes = GetAvailableRoutesFromCurrentLocation();
-            var destinations = new List<TravelDestinationViewModel>();
+            List<RouteOption> routes = GetAvailableRoutesFromCurrentLocation();
+            List<TravelDestinationViewModel> destinations = new List<TravelDestinationViewModel>();
 
-            foreach (var route in routes)
+            foreach (RouteOption route in routes)
             {
                 // Extract location ID from destination spot (format: locationId.spotName)
-                var locationId = route.DestinationLocationSpot.Split('.')[0];
-                var destination = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
+                string locationId = route.DestinationLocationSpot.Split('.')[0];
+                Location? destination = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
                 if (destination != null)
                 {
-                    var canTravel = IsRouteDiscovered(route.Id);
-                    
+                    bool canTravel = IsRouteDiscovered(route.Id);
+
                     destinations.Add(new TravelDestinationViewModel
                     {
                         LocationId = destination.Id,
@@ -74,58 +74,58 @@ namespace Wayfarer.Subsystems.TravelSubsystem
 
             return destinations;
         }
-        
+
         public List<RouteOption> GetDiscoveredRoutes()
         {
             return _routeManager.GetDiscoveredRoutes();
         }
-        
+
         public RouteOption GetRouteBetweenLocations(string fromLocationId, string toLocationId)
         {
             return _routeManager.GetRouteBetweenLocations(fromLocationId, toLocationId);
         }
-        
+
         public bool IsRouteDiscovered(string routeId)
         {
             return _routeManager.IsRouteDiscovered(routeId);
         }
-        
+
         // ========== TRAVEL OPERATIONS ==========
-        
+
         public bool CanTravelTo(string locationId)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             string currentLocationId = player.CurrentLocationSpot?.LocationId;
             if (currentLocationId == null)
             {
                 return false;
             }
-            
+
             // Check if route exists
-            var route = GetRouteBetweenLocations(currentLocationId, locationId);
+            RouteOption route = GetRouteBetweenLocations(currentLocationId, locationId);
             if (route == null)
             {
                 return false;
             }
-            
+
             // Check if route is discovered
             if (!IsRouteDiscovered(route.Id))
             {
                 return false;
             }
-            
+
             // Check permits
             if (!_permitValidator.HasRequiredPermit(route))
             {
                 return false;
             }
-            
+
             return true;
         }
-        
+
         public TravelResult TravelTo(string locationId, TravelMethods transportMethod)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             string currentLocationId = player.CurrentLocationSpot?.LocationId;
             if (currentLocationId == null)
             {
@@ -135,9 +135,9 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                     Reason = "Current location is unknown"
                 };
             }
-            
+
             // Get route
-            var route = GetRouteBetweenLocations(currentLocationId, locationId);
+            RouteOption route = GetRouteBetweenLocations(currentLocationId, locationId);
             if (route == null)
             {
                 return new TravelResult
@@ -146,7 +146,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                     Reason = "No route exists to that location"
                 };
             }
-            
+
             // Check discovery
             if (!IsRouteDiscovered(route.Id))
             {
@@ -156,18 +156,18 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                     Reason = "You haven't discovered this route yet"
                 };
             }
-            
+
             // Check permits
             if (!_permitValidator.HasRequiredPermit(route))
             {
-                var missingPermits = _permitValidator.GetMissingPermits(route);
+                List<string> missingPermits = _permitValidator.GetMissingPermits(route);
                 return new TravelResult
                 {
                     Success = false,
                     Reason = $"Missing required permits: {string.Join(", ", missingPermits)}"
                 };
             }
-            
+
             // Check transport compatibility
             if (!_permitValidator.IsTransportCompatible(route, transportMethod))
             {
@@ -177,11 +177,11 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                     Reason = $"{transportMethod} cannot be used on this route"
                 };
             }
-            
+
             // Calculate time and cost
             int travelTime = _travelTimeCalculator.CalculateTravelTime(currentLocationId, locationId, transportMethod);
             int coinCost = _travelTimeCalculator.CalculateTravelCost(route, transportMethod);
-            
+
             // Check if player can afford
             if (coinCost > 0 && _gameWorld.GetPlayer().Coins < coinCost)
             {
@@ -191,7 +191,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                     Reason = $"Not enough coins. Need {coinCost}, have {_gameWorld.GetPlayer().Coins}"
                 };
             }
-            
+
             // Return travel information for GameFacade to execute
             // GameFacade will handle coin deduction and location update
             return new TravelResult
@@ -204,12 +204,12 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 TransportMethod = transportMethod
             };
         }
-        
+
         // ========== DISCOVERY OPERATIONS ==========
-        
+
         public bool AttemptRouteDiscovery(string toLocationId)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             string currentLocationId = player.CurrentLocationSpot?.LocationId;
             if (currentLocationId == null)
             {
@@ -217,49 +217,49 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             }
             return _routeDiscoveryManager.AttemptRouteDiscovery(currentLocationId, toLocationId);
         }
-        
+
         public List<RouteOption> GetUndiscoveredRoutes()
         {
             return _routeDiscoveryManager.GetUndiscoveredRoutesFromCurrentLocation();
         }
-        
+
         public DiscoveryProgressInfo GetDiscoveryProgress()
         {
             return _routeDiscoveryManager.GetDiscoveryProgress();
         }
-        
+
         public bool CanExploreFromCurrentLocation()
         {
             return _routeDiscoveryManager.CanExploreFromCurrentLocation();
         }
-        
+
         // ========== PERMIT OPERATIONS ==========
-        
+
         public bool HasRequiredPermit(RouteOption route)
         {
             return _permitValidator.HasRequiredPermit(route);
         }
-        
+
         public List<string> GetMissingPermits(RouteOption route)
         {
             return _permitValidator.GetMissingPermits(route);
         }
-        
+
         public string GetAccessRequirementDescription(RouteOption route)
         {
             return _permitValidator.GetAccessRequirementDescription(route);
         }
-        
+
         public bool IsTransportCompatible(RouteOption route, TravelMethods transportMethod)
         {
             return _permitValidator.IsTransportCompatible(route, transportMethod);
         }
-        
+
         // ========== TIME CALCULATIONS ==========
-        
+
         public int CalculateTravelTime(string toLocationId, TravelMethods transportMethod)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             string currentLocationId = player.CurrentLocationSpot?.LocationId;
             if (currentLocationId == null)
             {
@@ -267,15 +267,15 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             }
             return _travelTimeCalculator.CalculateTravelTime(currentLocationId, toLocationId, transportMethod);
         }
-        
+
         public int CalculateTravelCost(RouteOption route, TravelMethods transportMethod)
         {
             return _travelTimeCalculator.CalculateTravelCost(route, transportMethod);
         }
-        
+
         public Dictionary<string, int> GetTravelTimesFromCurrentLocation()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             string currentLocationId = player.CurrentLocationSpot?.LocationId;
             if (currentLocationId == null)
             {
@@ -283,37 +283,37 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             }
             return _travelTimeCalculator.GetTravelTimesFrom(currentLocationId);
         }
-        
+
         // ========== TRANSPORT METHODS ==========
-        
+
         public List<TravelMethods> GetAvailableTransportMethods()
         {
-            var player = _gameWorld.GetPlayer();
-            var methods = new List<TravelMethods> { TravelMethods.Walking }; // Always can walk
-            
+            Player player = _gameWorld.GetPlayer();
+            List<TravelMethods> methods = new List<TravelMethods> { TravelMethods.Walking }; // Always can walk
+
             // Check for unlocked transport methods
             if (player.UnlockedTravelMethods != null)
             {
-                foreach (var method in player.UnlockedTravelMethods)
+                foreach (string method in player.UnlockedTravelMethods)
                 {
-                    if (Enum.TryParse<TravelMethods>(method, out var travelMethod))
+                    if (Enum.TryParse<TravelMethods>(method, out TravelMethods travelMethod))
                     {
                         methods.Add(travelMethod);
                     }
                 }
             }
-            
+
             return methods.Distinct().ToList();
         }
-        
+
         public void UnlockTransportMethod(TravelMethods method)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             if (player.UnlockedTravelMethods == null)
             {
                 player.UnlockedTravelMethods = new List<string>();
             }
-            
+
             string methodName = method.ToString();
             if (!player.UnlockedTravelMethods.Contains(methodName))
             {
@@ -324,7 +324,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             }
         }
     }
-    
+
     /// <summary>
     /// Result of a travel attempt.
     /// </summary>

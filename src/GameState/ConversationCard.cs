@@ -26,7 +26,7 @@ public class ConversationCard
     public bool IsObservation { get; init; }
     public string ObservationType { get; init; }
     public string SourceItem { get; init; }
-    
+
     // New properties for target system
     public Difficulty Difficulty { get; init; } = Difficulty.Medium;
     public CardEffectType EffectType { get; init; } = CardEffectType.FixedComfort;
@@ -44,32 +44,32 @@ public class ConversationCard
     public EmotionalState? SuccessState { get; set; }
     public EmotionalState? FailureState { get; set; }
     public int PatienceBonus { get; set; }
-    
+
     // Missing properties from old system
     public bool IsStateCard { get; set; }
     public bool GrantsToken { get; set; }
     public string ObservationSource { get; set; }
     public string DeliveryObligationId { get; set; }
     public bool ManipulatesObligations { get; set; }
-    
+
     // Exchange properties
     public bool IsExchange { get; init; }
     public ExchangeData ExchangeDetails { get; init; }
-    
+
     // Letter delivery properties
     public bool CanDeliverLetter { get; init; }
-    
+
     // Promise card properties
     public bool IsPromise { get; init; }
     public PromiseCardData PromiseDetails { get; init; }
-    
+
     // Burden card properties
     public bool IsBurden { get; init; }
-    
+
     // Goal card properties
     public bool IsGoal { get; init; }
     public string GoalContext { get; init; }
-    
+
     // New methods for target system
     public int GetBaseSuccessPercentage()
     {
@@ -82,16 +82,16 @@ public class ConversationCard
             _ => 60
         };
     }
-    
+
     public string GetEffectValueOrFormula()
     {
         return string.IsNullOrEmpty(EffectFormula) ? EffectValue : EffectFormula;
     }
-    
+
     public bool IsFleeting => Persistence == PersistenceType.Fleeting;
     public bool IsGoalCard { get; set; }
     public bool IsObservationCard => Type == CardType.Observation;
-    
+
     // Legacy method compatibility - will be removed
     public int GetEffectiveWeight(EmotionalState state)
     {
@@ -101,18 +101,18 @@ public class ConversationCard
         }
         return Weight;
     }
-    
+
     // Legacy method compatibility - will be removed
     public int GetEffectiveSuccessChance(EmotionalState state)
     {
-        var baseChance = BaseSuccessChance;
+        int baseChance = BaseSuccessChance;
         if (StateModifiers?.ContainsKey(state) == true)
         {
             baseChance += StateModifiers[state];
         }
         return Math.Clamp(baseChance, 0, 100);
     }
-    
+
     // Missing properties needed by the system
     public bool HasFinalWord { get; init; } = false;
     public string DialogueText { get; init; }

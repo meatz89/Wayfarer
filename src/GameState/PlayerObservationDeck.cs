@@ -9,15 +9,15 @@ using System.Linq;
 /// </summary>
 public class PlayerObservationDeck
 {
-    
+
     private readonly List<ObservationCardEntry> _cards;
     private const int MaxCards = 20;
-    
+
     public PlayerObservationDeck()
     {
         _cards = new List<ObservationCardEntry>();
     }
-    
+
     /// <summary>
     /// Add an observation card to the deck
     /// Returns false if deck is full
@@ -26,27 +26,27 @@ public class PlayerObservationDeck
     {
         // Remove expired cards first
         RemoveExpiredCards(currentDay, currentTimeBlock);
-        
+
         // Check deck size limit
         if (_cards.Count >= MaxCards)
         {
             Console.WriteLine($"[PlayerObservationDeck] Deck full ({MaxCards} cards), cannot add new card");
             return false;
         }
-        
-        var entry = new ObservationCardEntry
+
+        ObservationCardEntry entry = new ObservationCardEntry
         {
             Card = card,
             AcquiredAt = card.CreatedAt,
             DayAcquired = currentDay,
             TimeBlockAcquired = currentTimeBlock
         };
-        
+
         _cards.Add(entry);
         Console.WriteLine($"[PlayerObservationDeck] Added observation card {card.Id}, deck now has {_cards.Count} cards");
         return true;
     }
-    
+
     /// <summary>
     /// Get all active (non-expired) observation cards
     /// </summary>
@@ -55,7 +55,7 @@ public class PlayerObservationDeck
         RemoveExpiredCards(currentDay, currentTimeBlock);
         return _cards.Select(e => e.Card).ToList();
     }
-    
+
     /// <summary>
     /// Get observation cards as conversation cards for use in conversations
     /// Updates decay states and filters out expired cards
@@ -63,52 +63,52 @@ public class PlayerObservationDeck
     public List<ConversationCard> GetAsConversationCards(DateTime currentGameTime, int currentDay, TimeBlocks currentTimeBlock)
     {
         RemoveExpiredCards(currentDay, currentTimeBlock);
-        
-        var conversationCards = new List<ConversationCard>();
-        
-        foreach (var entry in _cards)
+
+        List<ConversationCard> conversationCards = new List<ConversationCard>();
+
+        foreach (ObservationCardEntry entry in _cards)
         {
-            var obsCard = entry.Card;
-            
+            ObservationCard obsCard = entry.Card;
+
             // Update decay state based on current game time
             obsCard.UpdateDecayState(currentGameTime);
-            
+
             // Skip expired cards
             if (!obsCard.IsPlayable)
                 continue;
-            
+
             // Return the underlying conversation card
             conversationCards.Add(obsCard.ConversationCard);
         }
-        
+
         return conversationCards;
     }
-    
+
     /// <summary>
     /// Remove a specific card after it's been played
     /// </summary>
     public void RemoveCard(string cardId)
     {
-        var entry = _cards.FirstOrDefault(e => e.Card.Id == cardId);
+        ObservationCardEntry? entry = _cards.FirstOrDefault(e => e.Card.Id == cardId);
         if (entry != null)
         {
             _cards.Remove(entry);
             Console.WriteLine($"[PlayerObservationDeck] Removed card {cardId}, {_cards.Count} cards remaining");
         }
     }
-    
+
     /// <summary>
     /// Remove all expired cards from the deck
     /// </summary>
     public void RemoveExpiredCards(int currentDay, TimeBlocks currentTimeBlock)
     {
-        var expiredCount = _cards.RemoveAll(e => e.IsExpired(currentDay, currentTimeBlock));
+        int expiredCount = _cards.RemoveAll(e => e.IsExpired(currentDay, currentTimeBlock));
         if (expiredCount > 0)
         {
             Console.WriteLine($"[PlayerObservationDeck] Removed {expiredCount} expired cards");
         }
     }
-    
+
     /// <summary>
     /// Clear all cards (for new game, etc)
     /// </summary>
@@ -117,17 +117,17 @@ public class PlayerObservationDeck
         _cards.Clear();
         Console.WriteLine("[PlayerObservationDeck] Cleared all observation cards");
     }
-    
+
     /// <summary>
     /// Get current card count
     /// </summary>
     public int Count => _cards.Count;
-    
+
     /// <summary>
     /// Check if deck is full
     /// </summary>
     public bool IsFull => _cards.Count >= MaxCards;
-    
+
     /// <summary>
     /// Get info about deck state for UI
     /// </summary>
@@ -135,25 +135,25 @@ public class PlayerObservationDeck
     {
         return new DeckInfo(_cards.Count, MaxCards);
     }
-    
+
     /// <summary>
     /// Get detailed card info for UI display
     /// </summary>
     public List<ObservationCardDetail> GetCardDetails(int currentDay, TimeBlocks currentTimeBlock)
     {
         RemoveExpiredCards(currentDay, currentTimeBlock);
-        
-        var details = new List<ObservationCardDetail>();
-        foreach (var entry in _cards)
+
+        List<ObservationCardDetail> details = new List<ObservationCardDetail>();
+        foreach (ObservationCardEntry entry in _cards)
         {
             int daysElapsed = currentDay - entry.DayAcquired;
             int timeBlocksElapsed = (daysElapsed * 6) + (currentTimeBlock - entry.TimeBlockAcquired);
             int hoursElapsed = timeBlocksElapsed * 4;
             int hoursRemaining = Math.Max(0, 48 - hoursElapsed); // 48 hour default expiration
-            
+
             details.Add(new ObservationCardDetail(entry.Card, hoursRemaining));
         }
-        
+
         return details;
     }
 }

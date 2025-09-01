@@ -8,10 +8,10 @@ public class EmotionalStateTemplate
 {
     [JsonPropertyName("contextual")]
     public Dictionary<string, object> Contextual { get; set; }
-    
+
     [JsonPropertyName("personality")]
     public Dictionary<string, List<string>> Personality { get; set; }
-    
+
     [JsonPropertyName("default")]
     public List<string> Default { get; set; }
 }

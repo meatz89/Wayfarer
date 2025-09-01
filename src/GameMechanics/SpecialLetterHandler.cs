@@ -163,7 +163,7 @@ public class SpecialLetterHandler
             // Mark route as accessible
             route.IsDiscovered = true;
             route.HasPermitUnlock = true;
-            
+
             player.AddMemory(
                 $"route_permit_{route.Id}",
                 $"Access permit for {route.Name} granted by {obligation.SenderName}",
@@ -268,7 +268,7 @@ public class SpecialLetterHandler
     private void UnlockRouteFromCurrentLocation(DeliveryObligation obligation)
     {
         Player player = _gameWorld.GetPlayer();
-        Location currentLocation = player.CurrentLocationSpot?.LocationId != null ? 
+        Location currentLocation = player.CurrentLocationSpot?.LocationId != null ?
             _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == player.CurrentLocationSpot.LocationId) : null;
         if (currentLocation == null) return;
 

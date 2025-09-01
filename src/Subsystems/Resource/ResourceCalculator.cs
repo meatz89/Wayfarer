@@ -11,10 +11,10 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         private const int BASE_ATTENTION = 10;
         private const int MIN_ATTENTION = 2;
         private const int HUNGER_ATTENTION_DIVISOR = 25;
-        
+
         private const int INJURED_WEIGHT_PENALTY = -1;
         private const int HEALTH_THRESHOLD_FOR_CARRY = 50;
-        
+
         /// <summary>
         /// Calculate morning attention based on hunger level.
         /// Higher hunger = less attention available.
@@ -26,7 +26,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             int reduction = hunger / HUNGER_ATTENTION_DIVISOR;
             return Math.Max(MIN_ATTENTION, BASE_ATTENTION - reduction);
         }
-        
+
         /// <summary>
         /// Calculate weight carrying capacity based on health.
         /// Injured players have reduced carrying capacity.

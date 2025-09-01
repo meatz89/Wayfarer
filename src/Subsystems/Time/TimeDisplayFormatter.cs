@@ -8,12 +8,12 @@ namespace Wayfarer.Subsystems.TimeSubsystem
     public class TimeDisplayFormatter
     {
         private readonly TimeManager _timeManager;
-        
+
         public TimeDisplayFormatter(TimeManager timeManager)
         {
             _timeManager = timeManager;
         }
-        
+
         /// <summary>
         /// Get formatted time display with day name and time.
         /// Returns format like "MON 3:30 PM"
@@ -22,7 +22,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         {
             return _timeManager.GetFormattedTimeDisplay();
         }
-        
+
         /// <summary>
         /// Get simple time string.
         /// </summary>
@@ -30,7 +30,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         {
             return _timeManager.GetTimeString();
         }
-        
+
         /// <summary>
         /// Get descriptive time text.
         /// </summary>
@@ -38,7 +38,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         {
             return _timeManager.GetTimeDescription();
         }
-        
+
         /// <summary>
         /// Format duration in hours for display.
         /// </summary>
@@ -47,21 +47,21 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             if (hours == 0) return "No time";
             if (hours == 1) return "1 hour";
             if (hours < 24) return $"{hours} hours";
-            
+
             int days = hours / 24;
             int remainingHours = hours % 24;
-            
+
             if (remainingHours == 0)
             {
                 return days == 1 ? "1 day" : $"{days} days";
             }
-            
+
             string dayPart = days == 1 ? "1 day" : $"{days} days";
             string hourPart = remainingHours == 1 ? "1 hour" : $"{remainingHours} hours";
-            
+
             return $"{dayPart}, {hourPart}";
         }
-        
+
         /// <summary>
         /// Format minutes for display.
         /// </summary>
@@ -83,7 +83,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
                     return $"{hours} hours and {mins} minutes";
             }
         }
-        
+
         /// <summary>
         /// Get day name from day number.
         /// </summary>
@@ -92,7 +92,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             string[] dayNames = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
             return dayNames[(day - 1) % 7];
         }
-        
+
         /// <summary>
         /// Get short day name from day number.
         /// </summary>

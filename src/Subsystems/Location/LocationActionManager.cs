@@ -14,9 +14,9 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         private readonly ActionGenerator _actionGenerator;
         private readonly TimeManager _timeManager;
         private readonly NPCRepository _npcRepository;
-        
+
         public LocationActionManager(
-            GameWorld gameWorld, 
+            GameWorld gameWorld,
             ActionGenerator actionGenerator,
             TimeManager timeManager,
             NPCRepository npcRepository)
@@ -26,51 +26,51 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
             _npcRepository = npcRepository ?? throw new ArgumentNullException(nameof(npcRepository));
         }
-        
+
         /// <summary>
         /// Get available actions for a location and spot.
         /// </summary>
         public List<LocationActionViewModel> GetLocationActions(Location location, LocationSpot spot)
         {
             if (location == null || spot == null) return new List<LocationActionViewModel>();
-            
+
             // Use ActionGenerator for systematic action generation
             return _actionGenerator.GenerateActionsForLocation(location, spot);
         }
-        
+
         /// <summary>
         /// Generate actions based on spot properties.
         /// </summary>
         public List<LocationActionViewModel> GenerateSpotActions(LocationSpot spot)
         {
-            var actions = new List<LocationActionViewModel>();
-            
+            List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
+
             if (spot == null) return actions;
-            
-            var currentTime = _timeManager.GetCurrentTimeBlock();
-            var activeProperties = spot.GetActiveProperties(currentTime);
-            
+
+            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+            List<SpotPropertyType> activeProperties = spot.GetActiveProperties(currentTime);
+
             // Generate actions based on active properties
-            foreach (var property in activeProperties)
+            foreach (SpotPropertyType property in activeProperties)
             {
-                var propertyActions = GenerateActionsForProperty(property, spot);
+                List<LocationActionViewModel> propertyActions = GenerateActionsForProperty(property, spot);
                 actions.AddRange(propertyActions);
             }
-            
+
             // Add NPC-specific actions
-            var npcActions = GenerateNPCActions(spot, currentTime);
+            List<LocationActionViewModel> npcActions = GenerateNPCActions(spot, currentTime);
             actions.AddRange(npcActions);
-            
+
             return actions;
         }
-        
+
         /// <summary>
         /// Generate actions for a specific spot property.
         /// </summary>
         private List<LocationActionViewModel> GenerateActionsForProperty(SpotPropertyType property, LocationSpot spot)
         {
-            var actions = new List<LocationActionViewModel>();
-            
+            List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
+
             switch (property)
             {
                 case SpotPropertyType.Commercial:
@@ -83,40 +83,40 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                         IsAvailable = CanPerformWork()
                     });
                     break;
-                    
-                // Removed invalid property types - only Commercial exists
-                // Other actions should be NPC-based services
+
+                    // Removed invalid property types - only Commercial exists
+                    // Other actions should be NPC-based services
             }
-            
+
             return actions;
         }
-        
+
         /// <summary>
         /// Generate NPC-specific actions for a spot.
         /// </summary>
         private List<LocationActionViewModel> GenerateNPCActions(LocationSpot spot, TimeBlocks currentTime)
         {
-            var actions = new List<LocationActionViewModel>();
-            
+            List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
+
             // Get NPCs at this spot
-            var npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
-            
-            foreach (var npc in npcs)
+            List<NPC> npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
+
+            foreach (NPC npc in npcs)
             {
                 // Check what services this NPC provides
-                foreach (var service in npc.ProvidedServices)
+                foreach (ServiceTypes service in npc.ProvidedServices)
                 {
-                    var serviceAction = GenerateServiceAction(service, npc);
+                    LocationActionViewModel serviceAction = GenerateServiceAction(service, npc);
                     if (serviceAction != null)
                     {
                         actions.Add(serviceAction);
                     }
                 }
             }
-            
+
             return actions;
         }
-        
+
         /// <summary>
         /// Generate an action for a specific service.
         /// </summary>
@@ -132,7 +132,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                         Detail = "View available letters for delivery",
                         IsAvailable = true
                     };
-                    
+
                 case ServiceTypes.Market:
                     return new LocationActionViewModel
                     {
@@ -141,7 +141,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                         Detail = "Buy or sell goods",
                         IsAvailable = true
                     };
-                    
+
                 case ServiceTypes.Information:
                     return new LocationActionViewModel
                     {
@@ -151,15 +151,15 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                         Cost = "1 attention",
                         IsAvailable = HasAttention(1)
                     };
-                    
+
                 default:
                     return null;
             }
         }
-        
+
         // Method removed - LocationActionsViewModel doesn't have ClosedServices property
         // This functionality would need to be redesigned if needed
-        
+
         /// <summary>
         /// Get a message for a closed service.
         /// </summary>
@@ -171,65 +171,65 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 _ => null
             };
         }
-        
+
         // Validation methods
-        
+
         private bool CanPerformWork()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             // Need at least 2 attention to work
             return HasAttention(2);
         }
-        
+
         private bool CanBuyFood()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             return player.Coins >= 5;
         }
-        
+
         private bool CanBuyDrink()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             return player.Coins >= 2;
         }
-        
+
         private bool CanRest()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             // Can rest if health is not full
             return player.Health < player.MaxHealth;
         }
-        
+
         private bool CanSeekTreatment()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             return player.Coins >= 10 && player.Health < player.MaxHealth;
         }
-        
+
         private bool CanRegister()
         {
             // Registration might have specific requirements
             return HasAttention(1);
         }
-        
+
         private bool HasAttention(int amount)
         {
             // This would need proper attention checking through the attention manager
             // For now, return true to avoid null reference issues
             return true;
         }
-        
+
         /// <summary>
         /// Check if a specific action is available at the current location.
         /// </summary>
         public bool IsActionAvailable(string actionType, LocationSpot spot)
         {
             if (string.IsNullOrEmpty(actionType) || spot == null) return false;
-            
-            var actions = GetLocationActions(null, spot);
+
+            List<LocationActionViewModel> actions = GetLocationActions(null, spot);
             return actions.Any(a => a.ActionType.Equals(actionType, StringComparison.OrdinalIgnoreCase) && a.IsAvailable);
         }
-        
+
         /// <summary>
         /// Get the cost for performing an action.
         /// </summary>
@@ -247,7 +247,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             };
         }
     }
-    
+
     /// <summary>
     /// Represents the cost of performing an action.
     /// </summary>

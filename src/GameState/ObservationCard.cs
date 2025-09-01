@@ -6,12 +6,12 @@ public class ObservationCard : ConversationCard
     public string ItemName { get; init; }
     public string LocationDiscovered { get; init; }
     public string TimeDiscovered { get; init; }
-    
+
     // Additional properties needed by PlayerObservationDeck
     public DateTime CreatedAt { get; set; }
     public bool IsPlayable { get; set; } = true;
     public ConversationCard ConversationCard { get; set; }
-    
+
     public ObservationCard()
     {
         Type = CardType.Observation;
@@ -19,7 +19,7 @@ public class ObservationCard : ConversationCard
         Persistence = PersistenceType.Fleeting;
         IsSingleUse = true;
     }
-    
+
     public static ObservationCard FromConversationCard(ConversationCard card)
     {
         return new ObservationCard
@@ -38,35 +38,35 @@ public class ObservationCard : ConversationCard
             ConversationCard = card
         };
     }
-    
+
     public void UpdateDecayState(DateTime currentGameTime)
     {
         // Simple decay based on creation time
-        var age = currentGameTime - CreatedAt;
+        TimeSpan age = currentGameTime - CreatedAt;
         if (age.TotalHours > 24)
         {
             IsPlayable = false;
         }
     }
-    
+
     public void UpdateDecayState()
     {
         // Overload with current time
         UpdateDecayState(DateTime.Now);
     }
-    
+
     public string GetDecayStateDescription()
     {
-        var age = DateTime.Now - CreatedAt;
+        TimeSpan age = DateTime.Now - CreatedAt;
         if (age.TotalHours < 1) return "Fresh";
         if (age.TotalHours < 6) return "Recent";
         if (age.TotalHours < 24) return "Aging";
         return "Stale";
     }
-    
+
     public string GetDecayStateDescription(DateTime currentTime)
     {
-        var age = currentTime - CreatedAt;
+        TimeSpan age = currentTime - CreatedAt;
         if (age.TotalHours < 1) return "Fresh";
         if (age.TotalHours < 6) return "Recent";
         if (age.TotalHours < 24) return "Aging";

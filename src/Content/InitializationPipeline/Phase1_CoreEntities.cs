@@ -216,7 +216,7 @@ public class Phase1_CoreEntities : IInitializationPhase
         if (environmentalProperties == null)
             return null;
 
-        var converted = new Dictionary<TimeBlocks, List<string>>();
+        Dictionary<TimeBlocks, List<string>> converted = new Dictionary<TimeBlocks, List<string>>();
 
         if (environmentalProperties.Morning != null && environmentalProperties.Morning.Count > 0)
             converted[TimeBlocks.Morning] = environmentalProperties.Morning;
@@ -238,16 +238,16 @@ public class Phase1_CoreEntities : IInitializationPhase
         if (availableProfessionsByTime == null || availableProfessionsByTime.Count == 0)
             return null;
 
-        var converted = new Dictionary<TimeBlocks, List<Professions>>();
+        Dictionary<TimeBlocks, List<Professions>> converted = new Dictionary<TimeBlocks, List<Professions>>();
 
-        foreach (var kvp in availableProfessionsByTime)
+        foreach (KeyValuePair<string, List<string>> kvp in availableProfessionsByTime)
         {
-            if (Enum.TryParse<TimeBlocks>(kvp.Key, true, out var timeBlock) && kvp.Value != null)
+            if (Enum.TryParse<TimeBlocks>(kvp.Key, true, out TimeBlocks timeBlock) && kvp.Value != null)
             {
-                var professions = new List<Professions>();
-                foreach (var professionString in kvp.Value)
+                List<Professions> professions = new List<Professions>();
+                foreach (string professionString in kvp.Value)
                 {
-                    if (Enum.TryParse<Professions>(professionString, true, out var profession))
+                    if (Enum.TryParse<Professions>(professionString, true, out Professions profession))
                     {
                         professions.Add(profession);
                     }

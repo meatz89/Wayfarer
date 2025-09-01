@@ -121,21 +121,21 @@ public class DeliveryObligation
         if (IsExpired) return "EXPIRED!";
         if (DeadlineInMinutes <= 30) return $"{DeadlineInMinutes}m ⚡ CRITICAL!";
         if (DeadlineInMinutes <= 120) return $"{DeadlineInMinutes}m 🔥 URGENT";
-        
+
         int hours = DeadlineInMinutes / 60;
         int minutes = DeadlineInMinutes % 60;
-        
-        if (hours <= 6) 
+
+        if (hours <= 6)
         {
             if (minutes == 0) return $"{hours}h ⚠️ urgent";
             return $"{hours}h {minutes}m ⚠️ urgent";
         }
-        if (hours <= 16) 
+        if (hours <= 16)
         {
             if (minutes == 0) return $"{hours}h today";
             return $"{hours}h {minutes}m today";
         }
-        
+
         int days = hours / 24;
         int remainingHours = hours % 24;
         if (days == 0) return $"{hours}h";

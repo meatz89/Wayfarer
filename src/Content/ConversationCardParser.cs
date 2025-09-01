@@ -53,7 +53,7 @@ public class ConversationCardParser
     /// </summary>
     public ConversationCard GetCard(string cardId)
     {
-        if (!_cardTemplates.TryGetValue(cardId, out var dto))
+        if (!_cardTemplates.TryGetValue(cardId, out ConversationCardDTO? dto))
             return null;
 
         return ConvertDTOToCard(dto);
@@ -64,24 +64,24 @@ public class ConversationCardParser
     /// </summary>
     public List<ConversationCard> GetCardsForNPC(NPC npc, Dictionary<ConnectionType, int> tokens = null)
     {
-        var cards = new List<ConversationCard>();
+        List<ConversationCard> cards = new List<ConversationCard>();
 
         // Add universal cards
-        var universalCards = _cardTemplates.Values
+        IEnumerable<ConversationCardDTO> universalCards = _cardTemplates.Values
             .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID)
             .Where(c => c.IsGoalCard != true);
 
-        foreach (var cardDto in universalCards)
+        foreach (ConversationCardDTO? cardDto in universalCards)
         {
             cards.Add(ConvertDTOToCard(cardDto, npc));
         }
 
         // Add personality-specific cards
-        if (_personalityMappings.TryGetValue(npc.PersonalityType, out var mapping))
+        if (_personalityMappings.TryGetValue(npc.PersonalityType, out PersonalityCardMapping? mapping))
         {
-            foreach (var cardId in mapping.Cards)
+            foreach (string cardId in mapping.Cards)
             {
-                if (_cardTemplates.TryGetValue(cardId, out var cardDto))
+                if (_cardTemplates.TryGetValue(cardId, out ConversationCardDTO? cardDto))
                 {
                     cards.Add(ConvertDTOToCard(cardDto, npc));
                 }
@@ -91,12 +91,12 @@ public class ConversationCardParser
         // Add token-unlocked cards
         if (tokens != null)
         {
-            var totalTokens = tokens.Values.Sum();
-            foreach (var kvp in _tokenUnlocks.Where(u => u.Key <= totalTokens))
+            int totalTokens = tokens.Values.Sum();
+            foreach (KeyValuePair<int, List<string>> kvp in _tokenUnlocks.Where(u => u.Key <= totalTokens))
             {
-                foreach (var cardId in kvp.Value)
+                foreach (string? cardId in kvp.Value)
                 {
-                    if (_cardTemplates.TryGetValue(cardId, out var cardDto))
+                    if (_cardTemplates.TryGetValue(cardId, out ConversationCardDTO? cardDto))
                     {
                         cards.Add(ConvertDTOToCard(cardDto, npc));
                     }
@@ -112,16 +112,16 @@ public class ConversationCardParser
     /// </summary>
     public ConversationCard GetGoalCard(ConversationType conversationType, string npcId, string npcName)
     {
-        var goalType = GetGoalTypeForConversation(conversationType);
+        ConversationType? goalType = GetGoalTypeForConversation(conversationType);
         if (!goalType.HasValue)
             return null;
 
-        var cardId = $"goal_{goalType.Value.ToString().ToLower()}";
-        if (!_cardTemplates.TryGetValue(cardId, out var dto))
+        string cardId = $"goal_{goalType.Value.ToString().ToLower()}";
+        if (!_cardTemplates.TryGetValue(cardId, out ConversationCardDTO? dto))
             return null;
 
-        var card = ConvertDTOToCard(dto);
-        
+        ConversationCard card = ConvertDTOToCard(dto);
+
         // Create new card with customized values (init-only properties)
         return new ConversationCard
         {
@@ -158,7 +158,7 @@ public class ConversationCardParser
         {
             Enum.TryParse<CardMechanicsType>(dto.Mechanics, true, out mechanics);
         }
-        
+
         // Parse category from DTO or infer from mechanics
         CardCategory category = CardCategory.Comfort; // Default
         if (!string.IsNullOrEmpty(dto.Category))
@@ -181,7 +181,7 @@ public class ConversationCardParser
         ConversationType? goalType = null;
         if (dto.IsGoalCard == true && !string.IsNullOrEmpty(dto.GoalCardType))
         {
-            if (Enum.TryParse<ConversationType>(dto.GoalCardType, true, out var parsed))
+            if (Enum.TryParse<ConversationType>(dto.GoalCardType, true, out ConversationType parsed))
             {
                 goalType = parsed;
             }
@@ -191,12 +191,12 @@ public class ConversationCardParser
         EmotionalState? successState = null;
         if (dto.IsStateCard == true && !string.IsNullOrEmpty(dto.SuccessState))
         {
-            if (Enum.TryParse<EmotionalState>(dto.SuccessState, true, out var parsed))
+            if (Enum.TryParse<EmotionalState>(dto.SuccessState, true, out EmotionalState parsed))
             {
                 successState = parsed;
             }
         }
-        
+
 
         // Parse new target system properties
         Difficulty difficulty = Difficulty.Medium; // Default
@@ -214,7 +214,7 @@ public class ConversationCardParser
         ConversationAtmosphere? atmosphereChange = null;
         if (!string.IsNullOrEmpty(dto.ConversationAtmosphereChange))
         {
-            if (Enum.TryParse<ConversationAtmosphere>(dto.ConversationAtmosphereChange, true, out var atmosphere))
+            if (Enum.TryParse<ConversationAtmosphere>(dto.ConversationAtmosphereChange, true, out ConversationAtmosphere atmosphere))
             {
                 atmosphereChange = atmosphere;
             }
@@ -246,7 +246,7 @@ public class ConversationCardParser
             SuccessRate = dto.SuccessRate ?? 0,
             SuccessState = successState,
             PatienceBonus = dto.PatienceBonus ?? 0,
-            
+
             // New target system properties
             Difficulty = difficulty,
             EffectType = effectType,
@@ -304,7 +304,7 @@ public class ConversationCardDTO
     public bool? IsStateCard { get; set; }
     public string SuccessState { get; set; }
     public int? PatienceBonus { get; set; } // Patience added when this card succeeds
-    
+
     // New target system properties
     public string Difficulty { get; set; }
     public string EffectType { get; set; }

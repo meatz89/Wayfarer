@@ -134,7 +134,7 @@ public class InitializationContext
     // Validation tracking - used only during initialization for cross-reference checks
     // This is NOT game state and is discarded after initialization completes
     public ValidationTracker ValidationTracker { get; set; } = new();
-    
+
     // Goal deck repository for loading letter configurations
     public GoalDeckRepository GoalDeckRepository { get; set; }
 
@@ -157,7 +157,7 @@ public class ValidationTracker
 {
     // Track obligation source NPCs for validation
     public Dictionary<string, string> ObligationNPCs { get; set; } = new();
-    
+
     // Track route discovery references for validation  
     public Dictionary<string, List<string>> RouteDiscoveryNPCs { get; set; } = new();
     public HashSet<string> RouteDiscoveryRoutes { get; set; } = new();

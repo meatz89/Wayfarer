@@ -9,13 +9,13 @@ namespace Wayfarer.Subsystems.TimeSubsystem
     {
         private readonly TimeManager _timeManager;
         private readonly MessageSystem _messageSystem;
-        
+
         public TimeProgressionManager(TimeManager timeManager, MessageSystem messageSystem)
         {
             _timeManager = timeManager;
             _messageSystem = messageSystem;
         }
-        
+
         /// <summary>
         /// Advance time by a specified number of hours.
         /// </summary>
@@ -25,7 +25,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             _timeManager.AdvanceTime(hours);
             return _timeManager.CurrentTimeBlock;
         }
-        
+
         /// <summary>
         /// Advance time by a specified number of minutes.
         /// </summary>
@@ -35,7 +35,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             _timeManager.AdvanceTimeMinutes(minutes);
             return _timeManager.CurrentTimeBlock;
         }
-        
+
         /// <summary>
         /// Wait until a specific time block.
         /// </summary>
@@ -43,7 +43,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         {
             TimeBlocks currentTime = _timeManager.CurrentTimeBlock;
             int currentHour = _timeManager.CurrentHour;
-            
+
             // Calculate hours to wait
             int hoursToWait = currentTime switch
             {
@@ -55,20 +55,20 @@ namespace Wayfarer.Subsystems.TimeSubsystem
                 TimeBlocks.LateNight => 30 - currentHour, // Late Night (22-6) -> Next Dawn (+6)
                 _ => 0
             };
-            
+
             if (hoursToWait > 0)
             {
                 // Get narrative description
                 string narrative = calculator.GetWaitingNarrative(targetTime);
                 _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
-                
+
                 // Advance time
                 AdvanceTimeByHours(hoursToWait);
             }
-            
+
             return hoursToWait;
         }
-        
+
         /// <summary>
         /// Check if player can perform an action requiring specified hours.
         /// </summary>
@@ -76,7 +76,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         {
             return _timeManager.CanPerformAction(hoursRequired);
         }
-        
+
         /// <summary>
         /// Spend time for an action.
         /// </summary>
@@ -84,7 +84,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         {
             return _timeManager.SpendTime(hours, actionDescription).Result;
         }
-        
+
         /// <summary>
         /// Get hours remaining in current day.
         /// </summary>

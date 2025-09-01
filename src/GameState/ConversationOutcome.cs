@@ -8,5 +8,5 @@ public class ConversationOutcome
     public int TokensEarned { get; set; }
     public string Reason { get; set; }
     public bool GoalAchieved { get; set; }
-    public int TotalComfort { get { return FinalComfort; } } // Alias for compatibility
+    public int TotalComfort => FinalComfort;  // Alias for compatibility
 }

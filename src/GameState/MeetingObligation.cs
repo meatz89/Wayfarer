@@ -12,12 +12,12 @@ public class MeetingObligation
     public int DeadlineInMinutes { get; set; }  // Minutes until meeting deadline
     public StakeType Stakes { get; set; } = StakeType.REPUTATION;
     public string Reason { get; set; }  // Why they need to meet
-    
+
     // Calculated properties for urgency levels
     public bool IsUrgent => DeadlineInMinutes < 360;  // <6 hours
     public bool IsCritical => DeadlineInMinutes < 180;  // <3 hours
-    
+
     // For UI display
     public int DeadlineInHours => (int)Math.Ceiling(DeadlineInMinutes / 60.0);
-    
+
 }

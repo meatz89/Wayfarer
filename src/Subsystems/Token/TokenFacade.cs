@@ -16,7 +16,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         private readonly TokenUnlockManager _tokenUnlockManager;
         private readonly RelationshipTracker _relationshipTracker;
         private readonly MessageSystem _messageSystem;
-        
+
         public TokenFacade(
             GameWorld gameWorld,
             ConnectionTokenManager connectionTokenManager,
@@ -32,9 +32,9 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             _relationshipTracker = relationshipTracker;
             _messageSystem = messageSystem;
         }
-        
+
         // ========== TOKEN BALANCE OPERATIONS ==========
-        
+
         /// <summary>
         /// Get all tokens with a specific NPC
         /// </summary>
@@ -42,7 +42,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _connectionTokenManager.GetTokensWithNPC(npcId);
         }
-        
+
         /// <summary>
         /// Get total tokens of a type across all NPCs (only positive values count)
         /// </summary>
@@ -50,7 +50,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _connectionTokenManager.GetTotalTokensOfType(type);
         }
-        
+
         /// <summary>
         /// Check if player has enough tokens of a type (aggregated across all NPCs)
         /// </summary>
@@ -58,7 +58,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _connectionTokenManager.HasTokens(type, amount);
         }
-        
+
         /// <summary>
         /// Get specific token count with an NPC
         /// </summary>
@@ -66,49 +66,49 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _connectionTokenManager.GetTokenCount(npcId, type);
         }
-        
+
         // ========== TOKEN GENERATION OPERATIONS ==========
-        
+
         /// <summary>
         /// Add tokens to a specific NPC relationship (applies equipment modifiers)
         /// </summary>
         public void AddTokensToNPC(ConnectionType type, int count, string npcId)
         {
             if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
-            
+
             // Apply equipment modifiers
             int modifiedCount = _tokenEffectProcessor.ApplyGenerationModifiers(type, count);
-            
+
             // Add tokens
             _connectionTokenManager.AddTokensToNPC(type, modifiedCount, npcId);
-            
+
             // Check for relationship milestones
             int totalWithNPC = GetTotalTokensWithNPC(npcId);
             _relationshipTracker.CheckRelationshipMilestone(npcId, totalWithNPC);
-            
+
             // Check for unlocks
             _tokenUnlockManager.CheckAndProcessUnlocks(npcId, type, GetTokenCount(npcId, type));
-            
+
             // Notify relationship change
             _relationshipTracker.UpdateRelationshipState(npcId);
         }
-        
+
         // ========== TOKEN SPENDING OPERATIONS ==========
-        
+
         /// <summary>
         /// Spend tokens with a specific NPC (can go negative to represent debt)
         /// </summary>
         public bool SpendTokensWithNPC(ConnectionType type, int amount, string npcId)
         {
             if (amount <= 0) return true;
-            
+
             bool result = _connectionTokenManager.SpendTokensWithNPC(type, amount, npcId);
-            
+
             if (result)
             {
                 // Update relationship state after spending
                 _relationshipTracker.UpdateRelationshipState(npcId);
-                
+
                 // Check if we now owe the NPC
                 int currentTokens = GetTokenCount(npcId, type);
                 if (currentTokens < 0)
@@ -116,34 +116,34 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                     _relationshipTracker.RecordDebt(npcId, type, Math.Abs(currentTokens));
                 }
             }
-            
+
             return result;
         }
-        
+
         /// <summary>
         /// Spend tokens of a type from any NPCs that have them
         /// </summary>
         public bool SpendTokensOfType(ConnectionType type, int amount)
         {
             if (amount <= 0) return true;
-            
+
             return _connectionTokenManager.SpendTokensOfType(type, amount);
         }
-        
+
         // ========== TOKEN REMOVAL OPERATIONS ==========
-        
+
         /// <summary>
         /// Remove tokens from NPC relationship (for expired letters or relationship damage)
         /// </summary>
         public void RemoveTokensFromNPC(ConnectionType type, int count, string npcId)
         {
             if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
-            
+
             _connectionTokenManager.RemoveTokensFromNPC(type, count, npcId);
-            
+
             // Update relationship state after removal
             _relationshipTracker.UpdateRelationshipState(npcId);
-            
+
             // Check if this created debt
             int currentTokens = GetTokenCount(npcId, type);
             if (currentTokens < 0)
@@ -151,9 +151,9 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 _relationshipTracker.RecordDebt(npcId, type, Math.Abs(currentTokens));
             }
         }
-        
+
         // ========== LEVERAGE OPERATIONS ==========
-        
+
         /// <summary>
         /// Get leverage an NPC has over the player (negative tokens)
         /// </summary>
@@ -161,7 +161,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _connectionTokenManager.GetLeverage(npcId, type);
         }
-        
+
         /// <summary>
         /// Get total leverage an NPC has across all token types
         /// </summary>
@@ -177,9 +177,9 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             }
             return totalLeverage;
         }
-        
+
         // ========== RELATIONSHIP OPERATIONS ==========
-        
+
         /// <summary>
         /// Get total tokens with an NPC across all types (only positive values)
         /// </summary>
@@ -188,7 +188,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
             return tokens.Values.Where(v => v > 0).Sum();
         }
-        
+
         /// <summary>
         /// Get the primary connection type with an NPC (highest token count)
         /// </summary>
@@ -196,7 +196,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _relationshipTracker.GetPrimaryConnection(npcId);
         }
-        
+
         /// <summary>
         /// Get relationship tier with an NPC based on total tokens
         /// </summary>
@@ -204,7 +204,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _relationshipTracker.GetRelationshipTier(npcId);
         }
-        
+
         /// <summary>
         /// Check if player has any relationship with an NPC
         /// </summary>
@@ -212,9 +212,9 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return GetTotalTokensWithNPC(npcId) > 0;
         }
-        
+
         // ========== EFFECT CALCULATIONS ==========
-        
+
         /// <summary>
         /// Calculate success bonus from tokens for a specific action
         /// </summary>
@@ -222,7 +222,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _tokenEffectProcessor.CalculateSuccessBonus(type, baseChance);
         }
-        
+
         /// <summary>
         /// Get all active token modifiers from equipment
         /// </summary>
@@ -230,7 +230,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _tokenEffectProcessor.GetActiveModifiers();
         }
-        
+
         /// <summary>
         /// Check if a token type is enabled for generation (via equipment)
         /// </summary>
@@ -238,9 +238,9 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _tokenEffectProcessor.IsTokenTypeEnabled(type);
         }
-        
+
         // ========== UNLOCK OPERATIONS ==========
-        
+
         /// <summary>
         /// Get all available unlocks for an NPC based on current tokens
         /// </summary>
@@ -248,7 +248,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _tokenUnlockManager.GetAvailableUnlocks(npcId);
         }
-        
+
         /// <summary>
         /// Check if a specific unlock is available
         /// </summary>
@@ -256,7 +256,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _tokenUnlockManager.IsUnlockAvailable(npcId, unlockId);
         }
-        
+
         /// <summary>
         /// Get unlock requirements for an NPC
         /// </summary>
@@ -264,9 +264,9 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _tokenUnlockManager.GetUnlockRequirements(npcId);
         }
-        
+
         // ========== DEBT OPERATIONS ==========
-        
+
         /// <summary>
         /// Get all NPCs the player owes tokens to
         /// </summary>
@@ -274,7 +274,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _relationshipTracker.GetAllDebts();
         }
-        
+
         /// <summary>
         /// Check if player has any debts
         /// </summary>
@@ -282,7 +282,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _relationshipTracker.HasAnyDebt();
         }
-        
+
         /// <summary>
         /// Get debt to a specific NPC
         /// </summary>
@@ -302,9 +302,9 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             }
             return debt;
         }
-        
+
         // ========== QUERY OPERATIONS ==========
-        
+
         /// <summary>
         /// Get all NPCs with whom the player has tokens
         /// </summary>
@@ -312,7 +312,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _connectionTokenManager.GetNPCsWithTokens();
         }
-        
+
         /// <summary>
         /// Get summary of all token relationships
         /// </summary>
@@ -330,9 +330,9 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             };
         }
     }
-    
+
     // ========== SUPPORTING TYPES ==========
-    
+
     public class TokenSummary
     {
         public int TotalTrust { get; set; }
@@ -343,7 +343,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         public int TotalDebts { get; set; }
         public Dictionary<ConnectionType, float> ActiveModifiers { get; set; }
     }
-    
+
     public class DebtInfo
     {
         public string NPCId { get; set; }
@@ -351,7 +351,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         public Dictionary<ConnectionType, int> Debts { get; set; }
         public int TotalDebt { get; set; }
     }
-    
+
     public class TokenUnlock
     {
         public string UnlockId { get; set; }
@@ -360,7 +360,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         public TokenRequirement Requirement { get; set; }
         public bool IsAvailable { get; set; }
     }
-    
+
     public enum RelationshipTier
     {
         None = 0,

@@ -12,13 +12,13 @@ public class GoalDeckRepository
 {
     private readonly string _goalDecksPath;
     private Dictionary<string, List<PromiseCardConfiguration>> _npcGoalDecks;
-    
+
     public GoalDeckRepository(string contentPath)
     {
         _goalDecksPath = Path.Combine(contentPath, "letter_decks.json");
         _npcGoalDecks = new Dictionary<string, List<PromiseCardConfiguration>>();
     }
-    
+
     /// <summary>
     /// Load Goal deck configurations from JSON
     /// </summary>
@@ -29,13 +29,13 @@ public class GoalDeckRepository
             Console.WriteLine($"[GoalDeckRepository] letter_decks.json not found at {_goalDecksPath}");
             return;
         }
-        
+
         try
         {
             string json = File.ReadAllText(_goalDecksPath);
             using JsonDocument doc = JsonDocument.Parse(json);
             JsonElement root = doc.RootElement;
-            
+
             if (root.TryGetProperty("GoalDecks", out JsonElement GoalDecksArray))
             {
                 foreach (JsonElement deckElement in GoalDecksArray.EnumerateArray())
@@ -43,7 +43,7 @@ public class GoalDeckRepository
                     ParseGoalDeck(deckElement);
                 }
             }
-            
+
             Console.WriteLine($"[GoalDeckRepository] Loaded Goal decks for {_npcGoalDecks.Count} NPCs");
         }
         catch (Exception ex)
@@ -51,50 +51,50 @@ public class GoalDeckRepository
             Console.WriteLine($"[GoalDeckRepository] Error loading letter_decks.json: {ex.Message}");
         }
     }
-    
+
     private void ParseGoalDeck(JsonElement deckElement)
     {
         string npcId = GetStringProperty(deckElement, "npcId", "");
         if (string.IsNullOrEmpty(npcId)) return;
-        
-        var promiseCards = new List<PromiseCardConfiguration>();
-        
+
+        List<PromiseCardConfiguration> promiseCards = new List<PromiseCardConfiguration>();
+
         if (deckElement.TryGetProperty("promiseCards", out JsonElement cardsArray))
         {
             foreach (JsonElement cardElement in cardsArray.EnumerateArray())
             {
-                var config = ParsePromiseCardConfiguration(cardElement);
+                PromiseCardConfiguration config = ParsePromiseCardConfiguration(cardElement);
                 if (config != null)
                 {
                     promiseCards.Add(config);
                 }
             }
         }
-        
+
         if (promiseCards.Any())
         {
             _npcGoalDecks[npcId] = promiseCards;
             Console.WriteLine($"[GoalDeckRepository] Loaded {promiseCards.Count} letter cards for NPC {npcId}");
         }
     }
-    
+
     private PromiseCardConfiguration ParsePromiseCardConfiguration(JsonElement cardElement)
     {
-        var config = new PromiseCardConfiguration
+        PromiseCardConfiguration config = new PromiseCardConfiguration
         {
             CardId = GetStringProperty(cardElement, "cardId", ""),
             EligibilityRequirements = ParseEligibilityRequirements(cardElement.GetProperty("eligibilityRequirements")),
             NegotiationTerms = ParseNegotiationTerms(cardElement.GetProperty("negotiationTerms")),
             LetterDetails = ParseLetterDetails(cardElement.GetProperty("letterDetails"))
         };
-        
+
         return config;
     }
-    
+
     private EligibilityRequirements ParseEligibilityRequirements(JsonElement element)
     {
-        var requirements = new EligibilityRequirements();
-        
+        EligibilityRequirements requirements = new EligibilityRequirements();
+
         // Parse required states
         if (element.TryGetProperty("requiredStates", out JsonElement statesArray))
         {
@@ -107,7 +107,7 @@ public class GoalDeckRepository
                 }
             }
         }
-        
+
         // Parse required tokens
         if (element.TryGetProperty("requiredTokens", out JsonElement tokensElement))
         {
@@ -119,24 +119,24 @@ public class GoalDeckRepository
                 }
             }
         }
-        
+
         requirements.MinTokens = GetIntProperty(element, "minTokens", 0);
-        
+
         return requirements;
     }
-    
+
     private NegotiationTerms ParseNegotiationTerms(JsonElement element)
     {
-        var terms = new NegotiationTerms
+        NegotiationTerms terms = new NegotiationTerms
         {
             BaseSuccessRate = GetIntProperty(element, "baseSuccessRate", 50),
             SuccessTerms = ParseTermDetails(element.GetProperty("successTerms")),
             FailureTerms = ParseTermDetails(element.GetProperty("failureTerms"))
         };
-        
+
         return terms;
     }
-    
+
     private TermDetails ParseTermDetails(JsonElement element)
     {
         return new TermDetails
@@ -147,52 +147,52 @@ public class GoalDeckRepository
             ForcesPositionOne = GetBoolProperty(element, "forcesPositionOne", false)
         };
     }
-    
+
     private LetterDetails ParseLetterDetails(JsonElement element)
     {
-        var details = new LetterDetails
+        LetterDetails details = new LetterDetails
         {
             RecipientId = GetStringProperty(element, "recipientId", ""),
             RecipientName = GetStringProperty(element, "recipientName", ""),
             Description = GetStringProperty(element, "description", "")
         };
-        
+
         // Parse token type
         string tokenTypeStr = GetStringProperty(element, "tokenType", "Trust");
         if (Enum.TryParse<ConnectionType>(tokenTypeStr, true, out ConnectionType tokenType))
         {
             details.TokenType = tokenType;
         }
-        
+
         // Parse stakes
         string stakesStr = GetStringProperty(element, "stakes", "REPUTATION");
         if (Enum.TryParse<StakeType>(stakesStr, true, out StakeType stakes))
         {
             details.Stakes = stakes;
         }
-        
+
         // Parse emotional weight
         string weightStr = GetStringProperty(element, "emotionalWeight", "MEDIUM");
         if (Enum.TryParse<EmotionalWeight>(weightStr, true, out EmotionalWeight weight))
         {
             details.EmotionalWeight = weight;
         }
-        
+
         return details;
     }
-    
+
     /// <summary>
     /// Get promise card configurations for a specific NPC
     /// </summary>
     public List<PromiseCardConfiguration> GetPromiseCardsForNPC(string npcId)
     {
-        if (_npcGoalDecks.TryGetValue(npcId, out var cards))
+        if (_npcGoalDecks.TryGetValue(npcId, out List<PromiseCardConfiguration>? cards))
         {
             return cards;
         }
         return new List<PromiseCardConfiguration>();
     }
-    
+
     /// <summary>
     /// Check if NPC has any letter cards
     /// </summary>
@@ -200,7 +200,7 @@ public class GoalDeckRepository
     {
         return _npcGoalDecks.ContainsKey(npcId) && _npcGoalDecks[npcId].Any();
     }
-    
+
     private string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
     {
         if (element.TryGetProperty(propertyName, out JsonElement property) &&
@@ -210,7 +210,7 @@ public class GoalDeckRepository
         }
         return defaultValue;
     }
-    
+
     private int GetIntProperty(JsonElement element, string propertyName, int defaultValue)
     {
         if (element.TryGetProperty(propertyName, out JsonElement property) &&
@@ -220,7 +220,7 @@ public class GoalDeckRepository
         }
         return defaultValue;
     }
-    
+
     private bool GetBoolProperty(JsonElement element, string propertyName, bool defaultValue)
     {
         if (element.TryGetProperty(propertyName, out JsonElement property))

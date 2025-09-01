@@ -12,13 +12,13 @@ namespace Wayfarer.Subsystems.MarketSubsystem
     {
         private readonly GameWorld _gameWorld;
         private readonly ItemRepository _itemRepository;
-        
+
         // Track supply and demand per location per item
         private Dictionary<string, Dictionary<string, MarketMetrics>> _marketMetrics;
-        
+
         // Track trade history for trend analysis
         private List<TradeRecord> _tradeHistory;
-        
+
         // Maximum trade history to keep
         private const int MAX_TRADE_HISTORY = 100;
 
@@ -105,7 +105,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         private void UpdateSupplyLevel(string locationId, string itemId, TradeType tradeType)
         {
             MarketMetrics metrics = GetOrCreateMetrics(locationId, itemId);
-            
+
             if (tradeType == TradeType.Purchase)
             {
                 // Player bought item - supply decreases slightly
@@ -124,7 +124,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         private void UpdateDemandLevel(string locationId, string itemId, TradeType tradeType)
         {
             MarketMetrics metrics = GetOrCreateMetrics(locationId, itemId);
-            
+
             if (tradeType == TradeType.Purchase)
             {
                 // Player bought item - demand increases (others might want it too)
@@ -154,11 +154,11 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 Quantity = 1,
                 TraderId = _gameWorld.GetPlayer().Name
             };
-            
+
             AddTradeRecord(record);
             UpdateSupplyLevel(locationId, itemId, TradeType.Purchase);
             UpdateDemandLevel(locationId, itemId, TradeType.Purchase);
-            
+
             MarketMetrics metrics = GetOrCreateMetrics(locationId, itemId);
             metrics.RecentPurchases++;
             metrics.LastTradeTime = DateTime.Now;
@@ -180,11 +180,11 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 Quantity = 1,
                 TraderId = _gameWorld.GetPlayer().Name
             };
-            
+
             AddTradeRecord(record);
             UpdateSupplyLevel(locationId, itemId, TradeType.Sale);
             UpdateDemandLevel(locationId, itemId, TradeType.Sale);
-            
+
             MarketMetrics metrics = GetOrCreateMetrics(locationId, itemId);
             metrics.RecentSales++;
             metrics.LastTradeTime = DateTime.Now;
@@ -197,7 +197,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         private void AddTradeRecord(TradeRecord record)
         {
             _tradeHistory.Add(record);
-            
+
             // Keep only recent history
             if (_tradeHistory.Count > MAX_TRADE_HISTORY)
             {
@@ -233,7 +233,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 LocationId = locationId,
                 TrendingItems = new List<string>()
             };
-            
+
             if (!_marketMetrics.ContainsKey(locationId))
             {
                 // Return default conditions if no data
@@ -241,32 +241,32 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 conditions.OverallDemandIndex = 1.0f;
                 return conditions;
             }
-            
+
             Dictionary<string, MarketMetrics> locationMetrics = _marketMetrics[locationId];
-            
+
             float totalSupply = 0;
             float totalDemand = 0;
-            
-            foreach (var kvp in locationMetrics)
+
+            foreach (KeyValuePair<string, MarketMetrics> kvp in locationMetrics)
             {
                 MarketMetrics metrics = kvp.Value;
-                
+
                 conditions.TotalItems++;
                 totalSupply += metrics.SupplyLevel;
                 totalDemand += metrics.DemandLevel;
-                
+
                 if (metrics.SupplyLevel < 0.7f) conditions.ScarcityItems++;
                 if (metrics.SupplyLevel > 1.5f) conditions.AbundantItems++;
                 if (metrics.DemandLevel > 1.3f) conditions.HighDemandItems++;
                 if (metrics.DemandLevel < 0.7f) conditions.LowDemandItems++;
-                
+
                 // Items traded in last hour are trending
                 if (metrics.LastTradeTime > DateTime.Now.AddHours(-1))
                 {
                     conditions.TrendingItems.Add(kvp.Key);
                 }
             }
-            
+
             if (conditions.TotalItems > 0)
             {
                 conditions.OverallSupplyIndex = totalSupply / conditions.TotalItems;
@@ -277,7 +277,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 conditions.OverallSupplyIndex = 1.0f;
                 conditions.OverallDemandIndex = 1.0f;
             }
-            
+
             return conditions;
         }
 
@@ -288,7 +288,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         {
             if (!_marketMetrics.ContainsKey(locationId))
                 return new List<string>();
-            
+
             return _marketMetrics[locationId]
                 .Where(kvp => kvp.Value.DemandLevel > 1.2f && kvp.Value.SupplyLevel < 0.8f)
                 .OrderByDescending(kvp => kvp.Value.DemandLevel / kvp.Value.SupplyLevel)
@@ -304,7 +304,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         {
             if (!_marketMetrics.ContainsKey(locationId))
                 return new List<string>();
-            
+
             return _marketMetrics[locationId]
                 .Where(kvp => kvp.Value.SupplyLevel > 1.5f && kvp.Value.DemandLevel < 1.0f)
                 .Select(kvp => kvp.Key)
@@ -381,12 +381,12 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             {
                 _marketMetrics[locationId] = new Dictionary<string, MarketMetrics>();
             }
-            
+
             if (!_marketMetrics[locationId].ContainsKey(itemId))
             {
                 _marketMetrics[locationId][itemId] = new MarketMetrics();
             }
-            
+
             return _marketMetrics[locationId][itemId];
         }
 
@@ -405,16 +405,16 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         public void SimulateMarketEvolution()
         {
             // Gradually normalize supply and demand levels
-            foreach (var locationMetrics in _marketMetrics.Values)
+            foreach (Dictionary<string, MarketMetrics> locationMetrics in _marketMetrics.Values)
             {
-                foreach (var metrics in locationMetrics.Values)
+                foreach (MarketMetrics metrics in locationMetrics.Values)
                 {
                     // Supply trends toward normal
                     if (metrics.SupplyLevel > 1.0f)
                         metrics.SupplyLevel = Math.Max(1.0f, metrics.SupplyLevel - 0.02f);
                     else if (metrics.SupplyLevel < 1.0f)
                         metrics.SupplyLevel = Math.Min(1.0f, metrics.SupplyLevel + 0.02f);
-                    
+
                     // Demand trends toward normal
                     if (metrics.DemandLevel > 1.0f)
                         metrics.DemandLevel = Math.Max(1.0f, metrics.DemandLevel - 0.01f);

@@ -15,7 +15,7 @@ public class GameUIBase : ComponentBase, IDisposable
         // IMPORTANT: For testing purposes, this ALWAYS starts a fresh game
         // No save/load functionality is implemented or desired
         // The game state is never persisted between sessions
-        
+
         try
         {
             Console.WriteLine("[GameUIBase.OnInitializedAsync] Starting initialization...");
@@ -97,7 +97,7 @@ public class GameUIBase : ComponentBase, IDisposable
         StateHasChanged();
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] Navigation to LocationScreen completed.");
     }
-    
+
     public void Dispose()
     {
         // Cleanup if needed

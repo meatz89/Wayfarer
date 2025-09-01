@@ -30,11 +30,11 @@ namespace Wayfarer.Pages.Components
 
         private void LoadAvailableRoutes()
         {
-            var currentLoc = GameFacade.GetCurrentLocation();
+            Location currentLoc = GameFacade.GetCurrentLocation();
             if (currentLoc == null) return;
-            
-            var routes = GameFacade.GetAvailableRoutes();
-            
+
+            List<RouteOption> routes = GameFacade.GetAvailableRoutes();
+
             AvailableRoutes = routes.Select(r => new RouteViewModel
             {
                 Id = r.Id,
@@ -67,10 +67,10 @@ namespace Wayfarer.Pages.Components
 
         private List<string> ExtractRouteRequirements(RouteOption route)
         {
-            var requirements = new List<string>();
-            
+            List<string> requirements = new List<string>();
+
             // Extract terrain requirements
-            foreach (var terrain in route.TerrainCategories)
+            foreach (TerrainCategory terrain in route.TerrainCategories)
             {
                 switch (terrain)
                 {
@@ -97,20 +97,20 @@ namespace Wayfarer.Pages.Components
                         break;
                 }
             }
-            
+
             // Add tier requirements
             if (route.TierRequired > TierLevel.T1)
             {
                 requirements.Add($"Requires {route.TierRequired} access");
             }
-            
+
             // Add access requirements if any
             if (route.AccessRequirement != null)
             {
                 // Add specific access requirement descriptions based on the AccessRequirement
                 requirements.Add("Special access required");
             }
-            
+
             return requirements;
         }
 
@@ -123,39 +123,39 @@ namespace Wayfarer.Pages.Components
         protected async Task TravelRoute(RouteViewModel route)
         {
             if (!CanTakeRoute(route)) return;
-            
+
             await OnTravelRoute.InvokeAsync(route.Id);
         }
 
         protected bool CanTakeRoute(RouteViewModel route)
         {
             // Check coin cost
-            var player = GameFacade.GetPlayer();
+            Player player = GameFacade.GetPlayer();
             if (player.Coins < route.Cost)
                 return false;
-                
+
             // Check stamina cost (base 2 for any travel)
             if (player.Stamina < 2)
                 return false;
-                
+
             // Check requirements (includes token requirements, time restrictions, etc.)
             // Requirements list is populated by GetRouteRequirements which checks tokens
             // If there are any unmet requirements, the route cannot be taken
             // The actual token checking happens in GameFacade when building the requirements list
-            
+
             return true; // All basic checks passed
         }
 
         protected string GetCannotTravelReason(RouteViewModel route)
         {
-            var player = GameFacade.GetPlayer();
-            
+            Player player = GameFacade.GetPlayer();
+
             if (player.Coins < route.Cost)
                 return $"Need {route.Cost} coins";
-                
+
             if (route.Requirements.Any())
                 return "Requirements not met";
-                
+
             return "Cannot travel";
         }
 
@@ -163,10 +163,10 @@ namespace Wayfarer.Pages.Components
         {
             if (!CanTakeRoute(route))
                 return "disabled";
-                
+
             if (route == SelectedRoute)
                 return "selected";
-                
+
             return "";
         }
 
@@ -186,13 +186,13 @@ namespace Wayfarer.Pages.Components
         {
             if (minutes < 60)
                 return $"{minutes} minutes";
-                
-            var hours = minutes / 60;
-            var mins = minutes % 60;
-            
+
+            int hours = minutes / 60;
+            int mins = minutes % 60;
+
             if (mins == 0)
                 return $"{hours} hour{(hours > 1 ? "s" : "")}";
-                
+
             return $"{hours}h {mins}m";
         }
 

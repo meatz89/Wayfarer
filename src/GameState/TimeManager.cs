@@ -85,7 +85,7 @@ public class TimeManager
         // Log the time advancement
         _logger.LogDebug($"Advanced time by {minutes} minutes. New time: Day {result.NewState.CurrentDay}, {result.NewState.CurrentHour:D2}:{result.NewState.CurrentMinute:D2}");
     }
-    
+
     private string GetTimePassingDescription(int minutes)
     {
         if (minutes < 60)

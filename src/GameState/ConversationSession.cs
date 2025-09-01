@@ -17,31 +17,34 @@ public class ConversationSession
     public bool GoalCardPlayed { get; set; }
     public SessionCardDeck Deck { get; set; }
     public HandDeck Hand { get; set; }
-    public HashSet<CardInstance> HandCards 
-    { 
-        get 
-        { 
+    public HashSet<CardInstance> HandCards
+    {
+        get
+        {
             if (Hand?.Cards != null) return Hand.Cards;
             return new HashSet<CardInstance>();
-        } 
+        }
     }
     public List<CardInstance> PlayedCards { get; set; } = new();
     public List<CardInstance> DiscardedCards { get; set; } = new();
     public TokenMechanicsManager TokenManager { get; set; }
-    
+
     // New weight pool and atmosphere system
     public int ComfortBattery { get; set; } = 0; // -3 to +3
     public int CurrentWeightPool { get; set; } = 0; // Current spent weight
     public int WeightCapacity { get; set; } = 5; // Based on state
     public ConversationAtmosphere CurrentAtmosphere { get; set; } = ConversationAtmosphere.Neutral;
-    
+
     // Legacy properties for compatibility
     public CardInstance GoalCard { get; set; }
     public List<CardInstance> ObservationCards { get; set; } = new();
-    
+
     // New helper methods
-    public int GetAvailableWeight() => Math.Max(0, GetEffectiveWeightCapacity() - CurrentWeightPool);
-    
+    public int GetAvailableWeight()
+    {
+        return Math.Max(0, GetEffectiveWeightCapacity() - CurrentWeightPool);
+    }
+
     public int GetEffectiveWeightCapacity()
     {
         int baseCapacity = CurrentState switch
@@ -53,14 +56,14 @@ public class ConversationSession
             EmotionalState.CONNECTED => 6,
             _ => 5
         };
-        
+
         // Prepared atmosphere adds +1 capacity
         if (CurrentAtmosphere == ConversationAtmosphere.Prepared)
             baseCapacity += 1;
-            
+
         return baseCapacity;
     }
-    
+
     public int GetDrawCount()
     {
         int baseCount = CurrentState switch
@@ -72,33 +75,33 @@ public class ConversationSession
             EmotionalState.CONNECTED => 3,
             _ => 2
         };
-        
+
         // ConversationAtmosphere modifiers
         if (CurrentAtmosphere == ConversationAtmosphere.Receptive)
             baseCount += 1;
         else if (CurrentAtmosphere == ConversationAtmosphere.Pressured)
             baseCount = Math.Max(1, baseCount - 1);
-            
+
         return baseCount;
     }
-    
+
     public void RefreshWeightPool()
     {
         CurrentWeightPool = 0;
         WeightCapacity = GetEffectiveWeightCapacity();
     }
-    
+
     public bool IsHandOverflowing()
     {
         return HandCards.Count > 10; // Simplified overflow check
     }
-    
+
     public bool ShouldEnd()
     {
         // End if patience exhausted or at desperate with -3 comfort
         return CurrentPatience <= 0 || (CurrentState == EmotionalState.DESPERATE && ComfortBattery <= -3);
     }
-    
+
     public ConversationOutcome CheckThresholds()
     {
         if (CurrentComfort >= 100)
@@ -112,7 +115,7 @@ public class ConversationSession
                 Reason = "Comfort threshold reached"
             };
         }
-        
+
         if (CurrentPatience <= 0)
         {
             return new ConversationOutcome
@@ -124,7 +127,7 @@ public class ConversationSession
                 Reason = "Patience exhausted"
             };
         }
-        
+
         // Conversation ended normally without hitting thresholds
         return new ConversationOutcome
         {
@@ -135,7 +138,7 @@ public class ConversationSession
             Reason = "Conversation ended"
         };
     }
-    
+
     private int CalculateTokenReward()
     {
         if (CurrentComfort >= 100) return 3;
@@ -143,12 +146,12 @@ public class ConversationSession
         if (CurrentComfort >= 50) return 1;
         return 0;
     }
-    
+
     public void ExecuteListen(TokenMechanicsManager tokenManager, ObligationQueueManager queueManager, GameWorld gameWorld)
     {
         // Implementation handled by ConversationOrchestrator
     }
-    
+
     public CardPlayResult ExecuteSpeak(HashSet<CardInstance> selectedCards)
     {
         // Implementation handled by ConversationOrchestrator
@@ -158,29 +161,29 @@ public class ConversationSession
             Results = new List<SingleCardResult>()
         };
     }
-    
-    public static ConversationSession StartConversation(NPC npc, ObligationQueueManager queueManager, TokenMechanicsManager tokenManager, 
+
+    public static ConversationSession StartConversation(NPC npc, ObligationQueueManager queueManager, TokenMechanicsManager tokenManager,
         List<CardInstance> observationCards, ConversationType conversationType, PlayerResourceState playerResourceState, GameWorld gameWorld)
     {
         // Use properly typed parameters
-        var obsCards = observationCards ?? new List<CardInstance>();
-        var convType = conversationType;
-        var world = gameWorld;
-        
+        List<CardInstance> obsCards = observationCards ?? new List<CardInstance>();
+        ConversationType convType = conversationType;
+        GameWorld world = gameWorld;
+
         // Determine initial state
-        var initialState = ConversationRules.DetermineInitialState(npc, queueManager);
-        
+        EmotionalState initialState = ConversationRules.DetermineInitialState(npc, queueManager);
+
         // Create session deck from NPC's conversation cards
-        var sessionDeck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck?.GetAllCards() ?? new List<ConversationCard>(), npc.ID);
-        
+        SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck?.GetAllCards() ?? new List<ConversationCard>(), npc.ID);
+
         // Add observation cards if provided
-        foreach (var obsCard in obsCards)
+        foreach (CardInstance obsCard in obsCards)
         {
             sessionDeck.AddCard(obsCard);
         }
-        
+
         // Create session with proper initialization
-        var session = new ConversationSession
+        ConversationSession session = new ConversationSession
         {
             NPC = npc,
             ConversationType = convType,
@@ -195,21 +198,21 @@ public class ConversationSession
             TokenManager = tokenManager,
             ObservationCards = obsCards
         };
-        
+
         return session;
     }
-    
+
     public static ConversationSession StartExchange(NPC npc, PlayerResourceState playerResourceState, TokenMechanicsManager tokenManager,
         List<string> spotDomainTags, ObligationQueueManager queueManager, GameWorld gameWorld)
     {
         // Create session deck from NPC's exchange cards
-        var exchangeCards = npc.ExchangeDeck?.GetAllCards() ?? new List<ConversationCard>();
-        var sessionDeck = SessionCardDeck.CreateFromTemplates(exchangeCards, npc.ID);
-        
+        List<ConversationCard> exchangeCards = npc.ExchangeDeck?.GetAllCards() ?? new List<ConversationCard>();
+        SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(exchangeCards, npc.ID);
+
         // Determine initial state  
-        var initialState = ConversationRules.DetermineInitialState(npc, queueManager);
-        
-        var session = new ConversationSession
+        EmotionalState initialState = ConversationRules.DetermineInitialState(npc, queueManager);
+
+        ConversationSession session = new ConversationSession
         {
             NPC = npc,
             ConversationType = ConversationType.Commerce,
@@ -223,7 +226,7 @@ public class ConversationSession
             Hand = new HandDeck(),
             TokenManager = tokenManager as TokenMechanicsManager
         };
-        
+
         return session;
     }
 }

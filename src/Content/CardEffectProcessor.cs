@@ -18,7 +18,7 @@ public class CardEffectProcessor
     // Process a single card effect and return the result
     public CardEffectResult ProcessCardEffect(ConversationCard card, ConversationSession session)
     {
-        var result = new CardEffectResult
+        CardEffectResult result = new CardEffectResult
         {
             Card = card,
             ComfortChange = 0,
@@ -83,7 +83,7 @@ public class CardEffectProcessor
             if (result.CardsToAdd.Count > 0)
             {
                 // Double the cards drawn
-                var additionalCards = ProcessDrawCards(card.GetEffectValueOrFormula(), session);
+                List<CardInstance> additionalCards = ProcessDrawCards(card.GetEffectValueOrFormula(), session);
                 result.CardsToAdd.AddRange(additionalCards);
             }
         }
@@ -129,7 +129,7 @@ public class CardEffectProcessor
         if (!int.TryParse(effectValue, out int cardCount))
             return new List<CardInstance>();
 
-        var drawnCards = session.Deck.DrawCards(cardCount);
+        List<CardInstance> drawnCards = session.Deck.DrawCards(cardCount);
         return drawnCards;
     }
 
@@ -179,17 +179,17 @@ public class CardEffectProcessor
     public int CalculateSuccessPercentage(ConversationCard card, ConversationSession session)
     {
         int baseSuccess = card.GetBaseSuccessPercentage();
-        
+
         // Get the card's token type (Trust, Commerce, Status, or Shadow)
         ConnectionType cardTokenType = card.TokenType;
-        
+
         // Add token bonus (5% per MATCHING token only)
         int matchingTokens = tokenManager.GetTokenCount(cardTokenType, session.NPC.ID);
         int tokenBonus = matchingTokens * 5;
-        
+
         // Add atmosphere bonus
         int atmosphereBonus = atmosphereManager.GetSuccessPercentageBonus();
-        
+
         // Calculate final percentage (clamped to 5-95%)
         int finalPercentage = baseSuccess + tokenBonus + atmosphereBonus;
         return Math.Clamp(finalPercentage, 5, 95);
@@ -203,7 +203,7 @@ public class CardEffectProcessor
             return true;
 
         // Roll 1-100
-        var random = new Random();
+        Random random = new Random();
         int roll = random.Next(1, 101);
         return roll <= successPercentage;
     }

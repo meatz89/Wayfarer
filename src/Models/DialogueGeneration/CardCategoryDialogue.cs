@@ -8,7 +8,7 @@ public class CardCategoryDialogue
 {
     [JsonPropertyName("player")]
     public List<string> Player { get; set; }
-    
+
     [JsonPropertyName("npc")]
     public List<string> Npc { get; set; }
 }

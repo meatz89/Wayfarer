@@ -7,7 +7,7 @@ public class TokenMechanicsManager
     private readonly MessageSystem _messageSystem;
     private readonly NPCRepository _npcRepository;
     private readonly ItemRepository _itemRepository;
-    
+
     public TokenMechanicsManager(GameWorld gameWorld, MessageSystem messageSystem, NPCRepository npcRepository, ItemRepository itemRepository)
     {
         _gameWorld = gameWorld;
@@ -81,7 +81,7 @@ public class TokenMechanicsManager
         // Token change notifications are handled by GameFacade orchestration
     }
 
-    
+
     // Spend tokens with specific NPC context (for queue manipulation)
     public bool SpendTokensWithNPC(ConnectionType type, int count, string npcId)
     {
@@ -128,7 +128,7 @@ public class TokenMechanicsManager
     {
         Player player = _gameWorld.GetPlayer();
         int totalOfType = 0;
-        foreach (var npcTokens in player.NPCTokens.Values)
+        foreach (Dictionary<ConnectionType, int> npcTokens in player.NPCTokens.Values)
         {
             int tokensWithNpc = npcTokens.GetValueOrDefault(type, 0);
             if (tokensWithNpc > 0) totalOfType += tokensWithNpc;
@@ -141,7 +141,7 @@ public class TokenMechanicsManager
     {
         Player player = _gameWorld.GetPlayer();
         int totalOfType = 0;
-        foreach (var npcTokens in player.NPCTokens.Values)
+        foreach (Dictionary<ConnectionType, int> npcTokens in player.NPCTokens.Values)
         {
             int tokensWithNpc = npcTokens.GetValueOrDefault(type, 0);
             if (tokensWithNpc > 0) totalOfType += tokensWithNpc;
@@ -152,7 +152,7 @@ public class TokenMechanicsManager
     // Get tokens of a specific type with a specific NPC
     public int GetTokenCount(ConnectionType type, string npcId)
     {
-        var tokensWithNPC = GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokensWithNPC = GetTokensWithNPC(npcId);
         return tokensWithNPC.GetValueOrDefault(type, 0);
     }
 
@@ -231,7 +231,7 @@ public class TokenMechanicsManager
     {
         Player player = _gameWorld.GetPlayer();
         int totalOfType = 0;
-        foreach (var npcTokens in player.NPCTokens.Values)
+        foreach (Dictionary<ConnectionType, int> npcTokens in player.NPCTokens.Values)
         {
             int tokensWithNpc = npcTokens.GetValueOrDefault(type, 0);
             if (tokensWithNpc > 0) totalOfType += tokensWithNpc;
@@ -245,7 +245,7 @@ public class TokenMechanicsManager
         if (amount <= 0) return true;
 
         Player player = _gameWorld.GetPlayer();
-        
+
         // Calculate total available across all NPCs
         int totalAvailable = GetTotalTokensOfType(type);
         if (totalAvailable < amount)
@@ -267,7 +267,7 @@ public class TokenMechanicsManager
                 int toSpend = Math.Min(tokensWithNpc, remaining);
                 npcDict[type] = tokensWithNpc - toSpend;
                 remaining -= toSpend;
-                
+
                 // Add narrative feedback for each NPC
                 NPC npc = _npcRepository.GetById(npcId);
                 if (npc != null && toSpend > 0)
@@ -313,7 +313,7 @@ public class TokenMechanicsManager
             }
         }
         player.NPCTokens[npcId][type] = tokensOfType - amount;
-        
+
         // Add narrative feedback
         NPC npc = _npcRepository.GetById(npcId);
         if (npc != null)
@@ -370,5 +370,5 @@ public class TokenMechanicsManager
 
         return totalModifier;
     }
-    
+
 }

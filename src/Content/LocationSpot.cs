@@ -29,13 +29,7 @@ public class LocationSpot
     public AccessRequirement AccessRequirement { get; set; }
 
     // UI compatibility - converts SpotPropertyType enum to string list
-    public List<string> Properties 
-    { 
-        get 
-        { 
-            return SpotProperties.Select(p => p.ToString()).ToList(); 
-        } 
-    }
+    public List<string> Properties => SpotProperties.Select(p => p.ToString()).ToList();
 
     public LocationSpot(string id, string name)
     {
@@ -48,7 +42,7 @@ public class LocationSpot
     /// </summary>
     public List<SpotPropertyType> GetActiveProperties(TimeBlocks currentTime)
     {
-        var activeProperties = new List<SpotPropertyType>(SpotProperties);
+        List<SpotPropertyType> activeProperties = new List<SpotPropertyType>(SpotProperties);
 
         if (TimeSpecificProperties.ContainsKey(currentTime))
         {
@@ -67,14 +61,14 @@ public class LocationSpot
         int modifier = ComfortModifier; // Base modifier from spot
 
         // Get all active properties (base + time-specific)
-        var activeProperties = new List<SpotPropertyType>(SpotProperties);
+        List<SpotPropertyType> activeProperties = new List<SpotPropertyType>(SpotProperties);
         if (TimeSpecificProperties.ContainsKey(currentTime))
         {
             activeProperties.AddRange(TimeSpecificProperties[currentTime]);
         }
 
         // Apply property-based modifiers
-        foreach (var property in activeProperties)
+        foreach (SpotPropertyType property in activeProperties)
         {
             switch (property)
             {

@@ -13,7 +13,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         private readonly GameWorld _gameWorld;
         private readonly ItemRepository _itemRepository;
         private readonly MarketStateTracker _marketStateTracker;
-        
+
         // Price adjustment factors
         private const float MIN_PRICE_MULTIPLIER = 0.5f;
         private const float MAX_PRICE_MULTIPLIER = 2.5f;
@@ -99,7 +99,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             pricing.SupplyModifier = CalculateSupplyModifier(itemId, locationId);
             pricing.DemandModifier = CalculateDemandModifier(itemId, locationId);
             pricing.LocationModifier = CalculateLocationModifier(itemId, locationId);
-            
+
             // Combine modifiers
             pricing.FinalModifier = pricing.SupplyModifier * pricing.DemandModifier * pricing.LocationModifier;
             pricing.FinalModifier = Math.Max(MIN_PRICE_MULTIPLIER, Math.Min(MAX_PRICE_MULTIPLIER, pricing.FinalModifier));
@@ -127,7 +127,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         private float CalculateSupplyModifier(string itemId, string locationId)
         {
             float supplyLevel = _marketStateTracker.GetSupplyLevel(itemId, locationId);
-            
+
             // Low supply = higher prices, high supply = lower prices
             // Supply 0.5 = 1.3x price, Supply 1.0 = 1.0x price, Supply 2.0 = 0.7x price
             if (supplyLevel < 1.0f)
@@ -146,7 +146,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         private float CalculateDemandModifier(string itemId, string locationId)
         {
             float demandLevel = _marketStateTracker.GetDemandLevel(itemId, locationId);
-            
+
             // High demand = higher prices, low demand = lower prices
             // Demand 0.5 = 0.85x price, Demand 1.0 = 1.0x price, Demand 2.0 = 1.2x price
             if (demandLevel < 1.0f)
@@ -179,13 +179,13 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                     // Town has slightly higher prices for most goods
                     modifier = 1.1f;
                     // But lower prices for common items
-                    if (item.Categories.Contains(ItemCategory.Food) || 
+                    if (item.Categories.Contains(ItemCategory.Food) ||
                         item.Categories.Contains(ItemCategory.Materials))
                     {
                         modifier = 0.95f;
                     }
                     break;
-                    
+
                 case "dusty_flagon":
                     // Tavern has lower general prices
                     modifier = 0.9f;
@@ -195,7 +195,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                         modifier = 1.15f;
                     }
                     break;
-                    
+
                 case "old_mill":
                     // Mill has good prices for materials and tools
                     if (item.Categories.Contains(ItemCategory.Materials) ||
@@ -208,7 +208,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                         modifier = 1.05f;
                     }
                     break;
-                    
+
                 case "merchant_quarter":
                     // Merchant quarter has competitive prices for trade goods
                     if (item.Categories.Contains(ItemCategory.Trade_Goods) ||
@@ -221,7 +221,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                         modifier = 1.0f;
                     }
                     break;
-                    
+
                 case "harbor":
                     // Harbor has good prices for water-related items
                     if (item.Categories.Contains(ItemCategory.Water_Transport))
@@ -233,7 +233,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                         modifier = 1.1f;
                     }
                     break;
-                    
+
                 default:
                     modifier = 1.0f;
                     break;
@@ -318,7 +318,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         public List<PricingInfo> GetHighMarginItems(string locationId, int topN = 5)
         {
             List<PricingInfo> prices = GetLocationPrices(locationId);
-            
+
             return prices
                 .OrderByDescending(p => (float)(p.AdjustedSellPrice - p.AdjustedBuyPrice) / p.AdjustedBuyPrice)
                 .Take(topN)
@@ -337,7 +337,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
             // Get market conditions
             MarketStateTracker.MarketConditions conditions = _marketStateTracker.GetMarketConditions(locationId);
-            
+
             float trendModifier = 1.0f;
 
             // If item is trending, prices might increase
@@ -385,8 +385,8 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                     // Food and luxury items more expensive during festivals
                     // This would update the market state tracker's demand levels
                     List<Item> items = _itemRepository.GetAllItems();
-                    foreach (Item item in items.Where(i => 
-                        i.Categories.Contains(ItemCategory.Food) || 
+                    foreach (Item item in items.Where(i =>
+                        i.Categories.Contains(ItemCategory.Food) ||
                         i.Categories.Contains(ItemCategory.Luxury_Items)))
                     {
                         // Increase demand during festival
@@ -394,12 +394,12 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                         // Note: Would need to add SetDemandLevel method to MarketStateTracker
                     }
                     break;
-                    
+
                 case "shortage":
                     // Specific items become scarce
                     // This would update supply levels in market state tracker
                     break;
-                    
+
                 case "merchant_arrival":
                     // New merchant increases supply
                     // This would update supply levels in market state tracker

@@ -12,41 +12,41 @@ public class TravelCardLoader
     private readonly string _contentPath;
     private readonly JsonSerializerOptions _jsonOptions;
     private List<TravelCard> _travelCards = new();
-    
+
     public TravelCardLoader(string contentPath)
     {
         _contentPath = contentPath;
-        _jsonOptions = new JsonSerializerOptions 
-        { 
+        _jsonOptions = new JsonSerializerOptions
+        {
             PropertyNameCaseInsensitive = true,
             Converters = { new JsonStringEnumConverter() },
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip
         };
     }
-    
+
     /// <summary>
     /// Load travel cards from travel_cards.json
     /// </summary>
     public List<TravelCard> LoadTravelCards()
     {
-        var filePath = Path.Combine(_contentPath, "travel_cards.json");
+        string filePath = Path.Combine(_contentPath, "travel_cards.json");
         if (!File.Exists(filePath))
         {
             Console.WriteLine($"WARNING: travel_cards.json not found at {filePath}");
             return new List<TravelCard>();
         }
-        
-        var json = File.ReadAllText(filePath);
-        var data = JsonSerializer.Deserialize<JsonElement>(json, _jsonOptions);
-        
-        if (data.TryGetProperty("travelCards", out var travelCards))
+
+        string json = File.ReadAllText(filePath);
+        JsonElement data = JsonSerializer.Deserialize<JsonElement>(json, _jsonOptions);
+
+        if (data.TryGetProperty("travelCards", out JsonElement travelCards))
         {
-            foreach (var cardElement in travelCards.EnumerateArray())
+            foreach (JsonElement cardElement in travelCards.EnumerateArray())
             {
                 try
                 {
-                    var travelCard = JsonSerializer.Deserialize<TravelCard>(cardElement.GetRawText(), _jsonOptions);
+                    TravelCard? travelCard = JsonSerializer.Deserialize<TravelCard>(cardElement.GetRawText(), _jsonOptions);
                     if (travelCard != null)
                     {
                         _travelCards.Add(travelCard);
@@ -58,30 +58,30 @@ public class TravelCardLoader
                 }
             }
         }
-        
+
         Console.WriteLine($"[TravelCardLoader] Loaded {_travelCards.Count} travel cards");
         return _travelCards;
     }
-    
+
     /// <summary>
     /// Get travel cards filtered by category and terrain type
     /// </summary>
     public List<TravelCard> GetTravelCardsByCategory(string category, string terrainType = null)
     {
-        var filteredCards = new List<TravelCard>();
-        
-        foreach (var card in _travelCards)
+        List<TravelCard> filteredCards = new List<TravelCard>();
+
+        foreach (TravelCard card in _travelCards)
         {
             if (card.Category?.Equals(category, StringComparison.OrdinalIgnoreCase) == true)
             {
-                if (terrainType == null || 
+                if (terrainType == null ||
                     card.Context?.TerrainType?.Equals(terrainType, StringComparison.OrdinalIgnoreCase) == true)
                 {
                     filteredCards.Add(card);
                 }
             }
         }
-        
+
         return filteredCards;
     }
 }

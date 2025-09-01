@@ -13,19 +13,19 @@ namespace Wayfarer.Subsystems.LocationSubsystem
     {
         private readonly GameWorld _gameWorld;
         private readonly TimeManager _timeManager;
-        
+
         public LocationNarrativeGenerator(GameWorld gameWorld, TimeManager timeManager)
         {
             _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
             _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         }
-        
+
         /// <summary>
         /// Generate atmosphere text for a location spot.
         /// </summary>
         public string GenerateAtmosphereText(
-            LocationSpot spot, 
-            Location location, 
+            LocationSpot spot,
+            Location location,
             TimeBlocks currentTime,
             int urgentObligations,
             int npcsPresent)
@@ -38,27 +38,27 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             {
                 return GenerateLocationAtmosphere(location, currentTime);
             }
-            
+
             return "An undefined location.";
         }
-        
+
         /// <summary>
         /// Generate atmosphere text specific to a spot.
         /// </summary>
         private string GenerateSpotAtmosphere(
-            LocationSpot spot, 
+            LocationSpot spot,
             TimeBlocks currentTime,
             int urgentObligations,
             int npcsPresent)
         {
-            var descGenerator = new SpotDescriptionGenerator();
-            var activeProperties = spot.GetActiveProperties(currentTime);
-            
+            SpotDescriptionGenerator descGenerator = new SpotDescriptionGenerator();
+            List<SpotPropertyType> activeProperties = spot.GetActiveProperties(currentTime);
+
             // Debug log
             Console.WriteLine($"[LocationNarrativeGenerator] Generating atmosphere for: {spot.SpotID}");
             Console.WriteLine($"  Properties: {string.Join(", ", activeProperties)}");
             Console.WriteLine($"  Time: {currentTime}, NPCs: {npcsPresent}, Urgent: {urgentObligations}");
-            
+
             return descGenerator.GenerateDescription(
                 activeProperties,
                 currentTime,
@@ -66,7 +66,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 npcsPresent
             );
         }
-        
+
         /// <summary>
         /// Generate atmosphere text for a general location.
         /// </summary>
@@ -76,17 +76,17 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             {
                 return GenerateDefaultLocationDescription(location, currentTime);
             }
-            
+
             // Add time-specific modifiers to the base description
             string timeModifier = GetTimeModifier(currentTime);
             if (!string.IsNullOrEmpty(timeModifier))
             {
                 return $"{location.Description} {timeModifier}";
             }
-            
+
             return location.Description;
         }
-        
+
         /// <summary>
         /// Generate a default description when none is provided.
         /// </summary>
@@ -94,10 +94,10 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             string timeDesc = GetTimeDescription(currentTime);
             string locationType = DetermineLocationType(location);
-            
+
             return $"{timeDesc} at {location.Name}, {locationType}.";
         }
-        
+
         /// <summary>
         /// Get a time-specific modifier for descriptions.
         /// </summary>
@@ -114,7 +114,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 _ => ""
             };
         }
-        
+
         /// <summary>
         /// Get a general time description.
         /// </summary>
@@ -131,7 +131,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 _ => "The time is uncertain"
             };
         }
-        
+
         /// <summary>
         /// Determine the type of location for generic descriptions.
         /// </summary>
@@ -146,42 +146,42 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 return "an upscale district";
             if (location.DomainTags?.Contains("Dock") == true)
                 return "a busy port area";
-            
+
             return "an interesting location";
         }
-        
+
         /// <summary>
         /// Generate a brief description for entering a new location.
         /// </summary>
         public string GenerateArrivalText(Location location, LocationSpot entrySpot)
         {
             if (location == null) return "You arrive at an unknown location.";
-            
+
             string spotDesc = "";
             if (entrySpot != null)
             {
                 spotDesc = $" at {entrySpot.Name}";
             }
-            
+
             return $"You arrive at {location.Name}{spotDesc}.";
         }
-        
+
         /// <summary>
         /// Generate text for leaving a location.
         /// </summary>
         public string GenerateDepartureText(Location location, LocationSpot exitSpot)
         {
             if (location == null) return "You depart from your current location.";
-            
+
             string spotDesc = "";
             if (exitSpot != null)
             {
                 spotDesc = $" from {exitSpot.Name}";
             }
-            
+
             return $"You leave {location.Name}{spotDesc}.";
         }
-        
+
         /// <summary>
         /// Generate a description for movement between spots.
         /// </summary>
@@ -189,17 +189,17 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             if (fromSpot == null || toSpot == null)
                 return "You move to a new area.";
-            
+
             return $"You move from {fromSpot.Name} to {toSpot.Name}.";
         }
-        
+
         /// <summary>
         /// Generate contextual flavor text based on current conditions.
         /// </summary>
         public string GenerateContextualFlavor(LocationSpot spot, Dictionary<string, object> context)
         {
-            var flavorParts = new List<string>();
-            
+            List<string> flavorParts = new List<string>();
+
             // Check for weather effects
             if (context.ContainsKey("weather"))
             {
@@ -207,31 +207,31 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 if (!string.IsNullOrEmpty(weatherFlavor))
                     flavorParts.Add(weatherFlavor);
             }
-            
+
             // Check for crowding
             if (context.ContainsKey("npc_count") && (int)context["npc_count"] > 3)
             {
                 flavorParts.Add("The area is quite crowded.");
             }
-            
+
             // Check for urgent business
             if (context.ContainsKey("urgent_letters") && (int)context["urgent_letters"] > 0)
             {
                 flavorParts.Add("You feel the weight of urgent obligations.");
             }
-            
+
             return string.Join(" ", flavorParts);
         }
-        
+
         /// <summary>
         /// Get weather-specific flavor text.
         /// </summary>
         private string GetWeatherFlavor(string weather, LocationSpot spot)
         {
             // Assume we're outdoors unless spot has warm/shaded properties (indicating shelter)
-            bool isIndoor = spot?.SpotProperties?.Contains(SpotPropertyType.Warm) == true || 
+            bool isIndoor = spot?.SpotProperties?.Contains(SpotPropertyType.Warm) == true ||
                            spot?.SpotProperties?.Contains(SpotPropertyType.Shaded) == true;
-            
+
             return weather switch
             {
                 "Rain" when !isIndoor => "Rain patters steadily around you.",
@@ -243,7 +243,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 _ => null
             };
         }
-        
+
         /// <summary>
         /// Generate observation prompt text.
         /// </summary>
@@ -251,13 +251,13 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             if (spot != null)
             {
-                var properties = spot.GetActiveProperties(_timeManager.GetCurrentTimeBlock());
+                List<SpotPropertyType> properties = spot.GetActiveProperties(_timeManager.GetCurrentTimeBlock());
                 if (properties.Contains(SpotPropertyType.ViewsMarket))
                     return "The area has several interesting details worth observing.";
                 if (properties.Contains(SpotPropertyType.Commercial))
                     return "The bustling commerce provides many things to notice.";
             }
-            
+
             return "There might be something worth observing here.";
         }
     }

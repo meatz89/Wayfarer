@@ -16,7 +16,7 @@ public static class ResourceExtensions
         else if (resourcePair.Key == ResourceType.ShadowToken) resourceName = "shadow tokens";
         else if (resourcePair.Key == ResourceType.Item) resourceName = "items";
         else resourceName = resourcePair.Key.ToString().ToLower();
-        
+
         return $"{resourcePair.Value} {resourceName}";
     }
 }

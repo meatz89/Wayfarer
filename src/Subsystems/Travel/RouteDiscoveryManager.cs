@@ -12,7 +12,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         private readonly RouteManager _routeManager;
         private readonly GameWorld _gameWorld;
         private readonly MessageSystem _messageSystem;
-        
+
         public RouteDiscoveryManager(
             RouteManager routeManager,
             GameWorld gameWorld,
@@ -22,14 +22,14 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             _gameWorld = gameWorld;
             _messageSystem = messageSystem;
         }
-        
+
         /// <summary>
         /// Attempt to discover a new route.
         /// </summary>
         public bool AttemptRouteDiscovery(string fromLocationId, string toLocationId)
         {
             // Check if route exists
-            var route = _routeManager.GetRouteBetweenLocations(fromLocationId, toLocationId);
+            RouteOption route = _routeManager.GetRouteBetweenLocations(fromLocationId, toLocationId);
             if (route == null)
             {
                 _messageSystem.AddSystemMessage(
@@ -37,7 +37,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                     SystemMessageTypes.Warning);
                 return false;
             }
-            
+
             // Check if already discovered
             if (_routeManager.IsRouteDiscovered(route.Id))
             {
@@ -46,64 +46,64 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                     SystemMessageTypes.Info);
                 return false;
             }
-            
+
             // Discover the route
             _routeManager.DiscoverRoute(route.Id);
-            
+
             _messageSystem.AddSystemMessage(
                 $"🗺️ Discovered new route: {route.Name}",
                 SystemMessageTypes.Success);
-            
+
             return true;
         }
-        
+
         /// <summary>
         /// Get all undiscovered routes from current location.
         /// </summary>
         public List<RouteOption> GetUndiscoveredRoutesFromCurrentLocation()
         {
-            var allRoutes = _routeManager.GetAvailableRoutesFromCurrentLocation();
+            List<RouteOption> allRoutes = _routeManager.GetAvailableRoutesFromCurrentLocation();
             return allRoutes.Where(r => !_routeManager.IsRouteDiscovered(r.Id)).ToList();
         }
-        
+
         /// <summary>
         /// Get discovery progress statistics.
         /// </summary>
         public DiscoveryProgressInfo GetDiscoveryProgress()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             string currentLocationId = player.CurrentLocationSpot?.LocationId;
             if (currentLocationId == null)
             {
                 return new DiscoveryProgressInfo(0, 0);
             }
-            
-            var allRoutes = _routeManager.GetRoutesFromLocation(currentLocationId);
-            var discoveredCount = allRoutes.Count(r => _routeManager.IsRouteDiscovered(r.Id));
-            
+
+            List<RouteOption> allRoutes = _routeManager.GetRoutesFromLocation(currentLocationId);
+            int discoveredCount = allRoutes.Count(r => _routeManager.IsRouteDiscovered(r.Id));
+
             return new DiscoveryProgressInfo(discoveredCount, allRoutes.Count);
         }
-        
+
         /// <summary>
         /// Discover all basic routes (called during game initialization).
         /// </summary>
         public void DiscoverBasicRoutes()
         {
             // Basic routes that are always known
-            var basicRouteIds = new List<string>
+            List<string> basicRouteIds = new List<string>
             {
                 "your_room_to_market_square",
                 "market_square_to_your_room"
             };
-            
-            foreach (var routeId in basicRouteIds)
+
+            foreach (string routeId in basicRouteIds)
             {
                 _routeManager.DiscoverRoute(routeId);
             }
-            
+
             Console.WriteLine("[RouteDiscoveryManager] Basic routes discovered");
         }
-        
+
         /// <summary>
         /// Check if player can explore from current location.
         /// </summary>

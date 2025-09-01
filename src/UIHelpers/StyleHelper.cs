@@ -3,85 +3,85 @@
 
 public static class StyleHelper
 {
-public static List<PropertyDisplay> GetSpotProperties(Location location, LocationSpot spot)
-{
-    List<PropertyDisplay> properties = new List<PropertyDisplay>();
-
-    if (location.Population != null)
+    public static List<PropertyDisplay> GetSpotProperties(Location location, LocationSpot spot)
     {
-        properties.Add(new(
-        "📐",
-        FormatEnumString(location.Population.ToString()),
-        "",
-        "",
-        ""
-        ));
+        List<PropertyDisplay> properties = new List<PropertyDisplay>();
+
+        if (location.Population != null)
+        {
+            properties.Add(new(
+            "📐",
+            FormatEnumString(location.Population.ToString()),
+            "",
+            "",
+            ""
+            ));
+        }
+
+        if (location.Physical != null)
+        {
+            properties.Add(new(
+            "🧩",
+            FormatEnumString(location.Physical.ToString()),
+            "",
+            "",
+            ""
+            ));
+        }
+
+        if (location.Illumination != null)
+        {
+            properties.Add(new(
+            "☀️",
+            FormatEnumString(location.Illumination.ToString()),
+            "",
+            "",
+            ""
+            ));
+        }
+
+        return properties;
     }
 
-    if (location.Physical != null)
+    public static string FormatEnumString(string value)
     {
-        properties.Add(new(
-        "🧩",
-        FormatEnumString(location.Physical.ToString()),
-        "",
-        "",
-        ""
-        ));
+        return string.Concat(value
+            .Select((x, i) => i > 0 && char.IsUpper(x) ? " " + x : x.ToString()))
+            .Replace("Type", "")
+            .Replace("Types", "");
     }
 
-    if (location.Illumination != null)
+    public static string GetIconForCurrentTimeBlock(TimeBlocks time)
     {
-        properties.Add(new(
-        "☀️",
-        FormatEnumString(location.Illumination.ToString()),
-        "",
-        "",
-        ""
-        ));
+        return time switch
+        {
+            TimeBlocks.Night => "🌙",
+            TimeBlocks.Morning => "🌄",
+            TimeBlocks.Afternoon => "☀️",
+            TimeBlocks.Evening => "🌆",
+            _ => "❓"
+        };
+    }
+    public static string GetArchetypeIcon(Professions archetype)
+    {
+        return archetype switch
+        {
+            Professions.Soldier => "⚔️",
+            Professions.Scholar => "📚",
+            Professions.Merchant => "🎵",
+            _ => "❓"
+        };
     }
 
-    return properties;
-}
-
-public static string FormatEnumString(string value)
-{
-    return string.Concat(value
-        .Select((x, i) => i > 0 && char.IsUpper(x) ? " " + x : x.ToString()))
-        .Replace("Type", "")
-        .Replace("Types", "");
-}
-
-public static string GetIconForCurrentTimeBlock(TimeBlocks time)
-{
-    return time switch
+    public static string GetTimeBlocksStyle(TimeBlocks currentTime)
     {
-        TimeBlocks.Night => "🌙",
-        TimeBlocks.Morning => "🌄",
-        TimeBlocks.Afternoon => "☀️",
-        TimeBlocks.Evening => "🌆",
-        _ => "❓"
-    };
-}
-public static string GetArchetypeIcon(Professions archetype)
-{
-    return archetype switch
-    {
-        Professions.Soldier => "⚔️",
-        Professions.Scholar => "📚",
-        Professions.Merchant => "🎵",
-        _ => "❓"
-    };
-}
-
-public static string GetTimeBlocksStyle(TimeBlocks currentTime)
-{
-    return currentTime switch
-    {
-        TimeBlocks.Morning => "time-morning",
-        TimeBlocks.Afternoon => "time-afternoon",
-        TimeBlocks.Evening => "time-evening",
-        TimeBlocks.Night => "time-night",
-        _ => ""
-    };
-}
+        return currentTime switch
+        {
+            TimeBlocks.Morning => "time-morning",
+            TimeBlocks.Afternoon => "time-afternoon",
+            TimeBlocks.Evening => "time-evening",
+            TimeBlocks.Night => "time-night",
+            _ => ""
+        };
+    }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
 
 /// <summary>
 /// Provides observation data for locations from JSON templates
@@ -17,38 +17,38 @@ public class ObservationSystem
     {
         Console.WriteLine("[ObservationSystem] Constructor called");
         Console.WriteLine($"[ObservationSystem] ContentDirectory null? {contentDirectory == null}");
-        
+
         _contentDirectory = contentDirectory;
         _revealedObservations = new HashSet<string>();
         _observationsByLocationAndSpot = LoadObservationsFromJson();
-        
+
         Console.WriteLine("[ObservationSystem] Constructor completed");
     }
 
     private Dictionary<string, Dictionary<string, List<Observation>>> LoadObservationsFromJson()
     {
-        var observationsByLocationAndSpot = new Dictionary<string, Dictionary<string, List<Observation>>>();
-        
+        Dictionary<string, Dictionary<string, List<Observation>>> observationsByLocationAndSpot = new Dictionary<string, Dictionary<string, List<Observation>>>();
+
         try
         {
             string filePath = Path.Combine(_contentDirectory.Path, "Templates", "observations.json");
             Console.WriteLine($"[ObservationSystem] Looking for observations at: {filePath}");
-            
+
             if (File.Exists(filePath))
             {
                 Console.WriteLine($"[ObservationSystem] Found observations.json, loading...");
                 string json = File.ReadAllText(filePath);
-                var data = ObservationParser.ParseObservations(json);
-                
+                ObservationsData data = ObservationParser.ParseObservations(json);
+
                 if (data?.locations != null)
                 {
-                    foreach (var locationKvp in data.locations)
+                    foreach (KeyValuePair<string, List<Observation>> locationKvp in data.locations)
                     {
                         string locationId = locationKvp.Key;
-                        var spotObservations = new Dictionary<string, List<Observation>>();
-                        
+                        Dictionary<string, List<Observation>> spotObservations = new Dictionary<string, List<Observation>>();
+
                         // Group observations by spot
-                        foreach (var obs in locationKvp.Value)
+                        foreach (Observation obs in locationKvp.Value)
                         {
                             string spotId = obs.SpotId ?? "default";
                             if (!spotObservations.ContainsKey(spotId))
@@ -57,7 +57,7 @@ public class ObservationSystem
                             }
                             spotObservations[spotId].Add(obs);
                         }
-                        
+
                         observationsByLocationAndSpot[locationId] = spotObservations;
                         Console.WriteLine($"[ObservationSystem] Loaded observations for location {locationId}: {string.Join(", ", spotObservations.Select(s => $"{s.Key}({s.Value.Count})"))}");
                     }
@@ -76,7 +76,7 @@ public class ObservationSystem
         {
             Console.WriteLine($"[ObservationSystem] Error loading observations.json: {ex.Message}");
         }
-        
+
         Console.WriteLine($"[ObservationSystem] Total locations with observations: {observationsByLocationAndSpot.Count}");
         return observationsByLocationAndSpot;
     }
@@ -87,40 +87,40 @@ public class ObservationSystem
     public List<Observation> GetObservationsForLocationSpot(string locationId, string spotId)
     {
         Console.WriteLine($"[ObservationSystem] Looking for observations at {locationId}/{spotId}");
-        
-        if (_observationsByLocationAndSpot.TryGetValue(locationId, out var spotMap))
+
+        if (_observationsByLocationAndSpot.TryGetValue(locationId, out Dictionary<string, List<Observation>>? spotMap))
         {
             Console.WriteLine($"[ObservationSystem] Found location {locationId}, available spots: {string.Join(", ", spotMap.Keys)}");
-            
-            if (spotMap.TryGetValue(spotId, out var observations))
+
+            if (spotMap.TryGetValue(spotId, out List<Observation>? observations))
             {
                 Console.WriteLine($"[ObservationSystem] Found {observations.Count} observations for {locationId}/{spotId}");
                 return observations;
             }
         }
-        
+
         Console.WriteLine($"[ObservationSystem] No observations found for {locationId}/{spotId}");
         return new List<Observation>();
     }
-    
+
     /// <summary>
     /// Get all observations for a location (all spots combined)
     /// </summary>
     public List<Observation> GetAllObservationsForLocation(string locationId)
     {
         Console.WriteLine($"[ObservationSystem] Getting all observations for location: {locationId}");
-        
-        if (_observationsByLocationAndSpot.TryGetValue(locationId, out var spotMap))
+
+        if (_observationsByLocationAndSpot.TryGetValue(locationId, out Dictionary<string, List<Observation>>? spotMap))
         {
-            var allObservations = spotMap.Values.SelectMany(list => list).ToList();
+            List<Observation> allObservations = spotMap.Values.SelectMany(list => list).ToList();
             Console.WriteLine($"[ObservationSystem] Found {allObservations.Count} total observations for {locationId}");
             return allObservations;
         }
-        
+
         Console.WriteLine($"[ObservationSystem] No observations found for {locationId}");
         return new List<Observation>();
     }
-    
+
     /// <summary>
     /// Mark an observation as revealed
     /// </summary>
@@ -128,7 +128,7 @@ public class ObservationSystem
     {
         _revealedObservations.Add(observationId);
     }
-    
+
     /// <summary>
     /// Check if an observation has been revealed
     /// </summary>

@@ -5,7 +5,7 @@ public class CardContext
     public ExchangeData ExchangeData { get; set; }
     public PromiseCardData PromiseData { get; set; }
     public bool GeneratesLetterOnSuccess { get; set; }
-    
+
     // Additional context properties  
     public string ExchangeRequest { get; set; }
     public string ObservationLocation { get; set; }

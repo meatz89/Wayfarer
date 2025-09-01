@@ -63,7 +63,7 @@ public class ObligationQueueManager
 
         return activeObligations;
     }
-    
+
     // Get active meeting obligations
     public List<MeetingObligation> GetActiveMeetingObligations()
     {
@@ -72,25 +72,25 @@ public class ObligationQueueManager
             .Where(m => m.DeadlineInMinutes > 0)
             .ToList();
     }
-    
+
     // Get meeting obligation with specific NPC
     public MeetingObligation GetMeetingWithNPC(string npcId)
     {
         return GetActiveMeetingObligations()
             .FirstOrDefault(m => m.RequesterId == npcId);
     }
-    
+
     // Add a meeting obligation
     public void AddMeetingObligation(MeetingObligation meeting)
     {
         _gameWorld.GetPlayer().MeetingObligations.Add(meeting);
         _messageSystem.AddSystemMessage($"{meeting.RequesterName} urgently requests to meet you!", SystemMessageTypes.Warning);
     }
-    
+
     // Complete a meeting obligation
     public void CompleteMeeting(string meetingId)
     {
-        var meeting = _gameWorld.GetPlayer().MeetingObligations
+        MeetingObligation? meeting = _gameWorld.GetPlayer().MeetingObligations
             .FirstOrDefault(m => m.Id == meetingId);
         if (meeting != null)
         {
@@ -98,13 +98,13 @@ public class ObligationQueueManager
             _messageSystem.AddSystemMessage($"Met with {meeting.RequesterName}", SystemMessageTypes.Success);
         }
     }
-    
+
     // Get the queue position of an obligation (1-based)
     public int GetQueuePosition(DeliveryObligation obligation)
     {
         if (obligation == null) return -1;
-        
-        var queue = GetPlayerQueue();
+
+        DeliveryObligation[] queue = GetPlayerQueue();
         for (int i = 0; i < queue.Length; i++)
         {
             if (queue[i]?.Id == obligation.Id)
@@ -112,33 +112,33 @@ public class ObligationQueueManager
                 return i + 1; // Return 1-based position
             }
         }
-        
+
         return -1; // Not found
     }
-    
+
     // Deliver an obligation (mark as completed)
     public bool DeliverObligation(string obligationId)
     {
-        var obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
+        DeliveryObligation? obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
         if (obligation == null) return false;
-        
-        var position = GetQueuePosition(obligation);
+
+        int position = GetQueuePosition(obligation);
         if (position <= 0) return false;
-        
+
         // Remove from queue
         RemoveObligationFromQueue(position);
-        
+
         // Grant tokens for successful delivery
         if (obligation.TokenType != ConnectionType.None)
         {
             _connectionTokenManager.AddTokensToNPC(obligation.TokenType, 1, obligation.RecipientId);
         }
-        
+
         _messageSystem.AddSystemMessage(
             $"✅ Letter delivered to {obligation.RecipientName}!",
             SystemMessageTypes.Success
         );
-        
+
         return true;
     }
 
@@ -197,16 +197,16 @@ public class ObligationQueueManager
 
         // Check for automatic displacement scenarios (POC Package 4)
         bool shouldForcePosition = CheckForAutomaticDisplacement(obligation);
-        
+
         if (shouldForcePosition)
         {
             // Determine forced position and reason
             int forcedPosition = DetermineForcedPosition(obligation);
             string displacementReason = GetDisplacementReason(obligation);
-            
+
             // Use automatic displacement system
             bool success = AutomaticDisplacement(obligation, forcedPosition, displacementReason);
-            
+
             if (success)
             {
                 // Add to satchel
@@ -220,7 +220,7 @@ public class ObligationQueueManager
 
         // Add to queue
         int queuePosition = AddObligationWithLeverage(obligation, targetPosition);
-        
+
         // Also add to satchel (physical inventory) - regular letters take physical space
         if (queuePosition > 0)
         {
@@ -229,36 +229,36 @@ public class ObligationQueueManager
 
         return queuePosition;
     }
-    
+
     /// <summary>
     /// Check if this obligation should force automatic displacement
     /// </summary>
     private bool CheckForAutomaticDisplacement(DeliveryObligation obligation)
     {
         // Failed letter negotiations force position 1
-        if (obligation.GenerationReason != null && 
+        if (obligation.GenerationReason != null &&
             obligation.GenerationReason.Contains("failure", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
-        
+
         // Lord Blackwood (proud NPC) attempts position 1
-        if (obligation.SenderName == "Lord Blackwood" || 
+        if (obligation.SenderName == "Lord Blackwood" ||
             obligation.RecipientName == "Lord Blackwood")
         {
             return true;
         }
-        
+
         // Check if obligation is marked as desperate
         // (This would be set during conversation based on NPC's emotional state)
         if (obligation.EmotionalWeight == EmotionalWeight.CRITICAL)
         {
             return true;
         }
-        
+
         return false;
     }
-    
+
     /// <summary>
     /// Determine the forced position for automatic displacement
     /// </summary>
@@ -268,33 +268,33 @@ public class ObligationQueueManager
         // Could be extended to support other positions
         return 1;
     }
-    
+
     /// <summary>
     /// Get the reason for automatic displacement
     /// </summary>
     private string GetDisplacementReason(DeliveryObligation obligation)
     {
-        if (obligation.GenerationReason != null && 
+        if (obligation.GenerationReason != null &&
             obligation.GenerationReason.Contains("failure", StringComparison.OrdinalIgnoreCase))
         {
             return "Failed negotiation - NPC's terms are non-negotiable!";
         }
-        
+
         // Crisis system removed - use categorical mechanics instead
-        
+
         if (obligation.SenderName == "Lord Blackwood")
         {
             return "Lord Blackwood's pride demands immediate attention!";
         }
-        
+
         if (obligation.EmotionalWeight == EmotionalWeight.CRITICAL)
         {
             return $"{obligation.SenderName} is DESPERATE - their letter takes priority!";
         }
-        
+
         return "Urgent circumstances demand immediate delivery!";
     }
-    
+
     /// <summary>
     /// Add physical letter to satchel
     /// </summary>
@@ -309,7 +309,7 @@ public class ObligationQueueManager
             PhysicalProperties = LetterPhysicalProperties.None,
             SpecialType = LetterSpecialType.None // Physical letters default to regular type
         };
-        
+
         _gameWorld.GetPlayer().CarriedLetters.Add(physicalLetter);
     }
 
@@ -1467,9 +1467,9 @@ public class ObligationQueueManager
     public void MoveLetterToPosition(DeliveryObligation letter, int targetPosition)
     {
         if (targetPosition < 1 || targetPosition > _gameWorld.GetPlayer().ObligationQueue.Length) return;
-        
+
         DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
-        
+
         // Clear current position
         for (int i = 0; i < queue.Length; i++)
         {
@@ -1479,7 +1479,7 @@ public class ObligationQueueManager
                 break;
             }
         }
-        
+
         // Set new position
         queue[targetPosition - 1] = letter;
         letter.QueuePosition = targetPosition;
@@ -2015,29 +2015,29 @@ public class ObligationQueueManager
     /// </summary>
     public bool ManipulateObligation(string obligationId, ObligationManipulationType manipulation, string npcId)
     {
-        var obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
+        DeliveryObligation? obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
         if (obligation == null) return false;
 
         switch (manipulation)
         {
             case ObligationManipulationType.Prioritize:
                 return PrioritizeObligation(obligation);
-            
+
             case ObligationManipulationType.BurnToClear:
                 return BurnTokensToClearPath(obligation, npcId);
-            
+
             case ObligationManipulationType.Purge:
                 return PurgeObligation(obligation, npcId);
-            
+
             case ObligationManipulationType.ExtendDeadline:
                 return ExtendObligationDeadline(obligation, npcId);
-            
+
             case ObligationManipulationType.Transfer:
                 return TransferObligation(obligation, npcId);
-            
+
             case ObligationManipulationType.Cancel:
                 return CancelObligation(obligation, npcId);
-            
+
             default:
                 return false;
         }
@@ -2048,11 +2048,11 @@ public class ObligationQueueManager
     /// </summary>
     private bool PrioritizeObligation(DeliveryObligation obligation)
     {
-        var currentPos = GetQueuePosition(obligation);
+        int currentPos = GetQueuePosition(obligation);
         if (currentPos == 1) return true; // Already at position 1
-        
+
         // Check if position 1 is empty
-        var queue = GetPlayerQueue();
+        DeliveryObligation[] queue = GetPlayerQueue();
         if (queue[0] != null)
         {
             _messageSystem.AddSystemMessage(
@@ -2061,7 +2061,7 @@ public class ObligationQueueManager
             );
             return false;
         }
-        
+
         MoveObligationToPosition(obligation, 1);
         _messageSystem.AddSystemMessage(
             $"📌 Moved {obligation.SenderName}'s letter to position 1",
@@ -2075,12 +2075,12 @@ public class ObligationQueueManager
     /// </summary>
     private bool BurnTokensToClearPath(DeliveryObligation obligation, string npcId)
     {
-        var currentPos = GetQueuePosition(obligation);
+        int currentPos = GetQueuePosition(obligation);
         if (currentPos == 1) return true; // Already at top
-        
-        var queue = GetPlayerQueue();
-        var tokenCost = 0;
-        
+
+        DeliveryObligation[] queue = GetPlayerQueue();
+        int tokenCost = 0;
+
         // Calculate cost - 2 tokens per letter to purge
         for (int i = 0; i < currentPos - 1; i++)
         {
@@ -2089,13 +2089,13 @@ public class ObligationQueueManager
                 tokenCost += 2;
             }
         }
-        
+
         if (tokenCost == 0) return true; // Path already clear
-        
+
         // Check if player has enough tokens
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
-        var totalTokens = tokens.Values.Sum();
-        
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        int totalTokens = tokens.Values.Sum();
+
         if (totalTokens < tokenCost)
         {
             _messageSystem.AddSystemMessage(
@@ -2104,10 +2104,10 @@ public class ObligationQueueManager
             );
             return false;
         }
-        
+
         // Spend tokens and clear path
         _connectionTokenManager.SpendTokens(obligation.TokenType, tokenCost, npcId);
-        
+
         // Remove all letters above
         for (int i = 0; i < currentPos - 1; i++)
         {
@@ -2116,10 +2116,10 @@ public class ObligationQueueManager
                 RemoveObligationFromQueue(i + 1);
             }
         }
-        
+
         // Move obligation to position 1
         MoveObligationToPosition(obligation, 1);
-        
+
         _messageSystem.AddSystemMessage(
             $"🔥 Burned {tokenCost} tokens to clear path for {obligation.SenderName}'s letter",
             SystemMessageTypes.Success
@@ -2132,12 +2132,12 @@ public class ObligationQueueManager
     /// </summary>
     private bool PurgeObligation(DeliveryObligation obligation, string npcId)
     {
-        var purgeTokenCost = 3; // Cost to purge
-        
+        int purgeTokenCost = 3; // Cost to purge
+
         // Check if player has enough tokens
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
-        var availableTokens = tokens.GetValueOrDefault(obligation.TokenType, 0);
-        
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        int availableTokens = tokens.GetValueOrDefault(obligation.TokenType, 0);
+
         if (availableTokens < purgeTokenCost)
         {
             _messageSystem.AddSystemMessage(
@@ -2146,11 +2146,11 @@ public class ObligationQueueManager
             );
             return false;
         }
-        
+
         // Spend tokens and remove obligation
         _connectionTokenManager.SpendTokens(obligation.TokenType, purgeTokenCost, npcId);
         RemoveObligationFromQueue(GetQueuePosition(obligation));
-        
+
         _messageSystem.AddSystemMessage(
             $"💨 Purged {obligation.SenderName}'s letter using {purgeTokenCost} {obligation.TokenType} tokens",
             SystemMessageTypes.Success
@@ -2163,13 +2163,13 @@ public class ObligationQueueManager
     /// </summary>
     private bool ExtendObligationDeadline(DeliveryObligation obligation, string npcId)
     {
-        var extensionCost = 2; // Tokens to extend deadline
-        var extensionMinutes = 1440; // 1 day extension
-        
+        int extensionCost = 2; // Tokens to extend deadline
+        int extensionMinutes = 1440; // 1 day extension
+
         // Check if player has enough tokens
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
-        var availableTokens = tokens.GetValueOrDefault(obligation.TokenType, 0);
-        
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        int availableTokens = tokens.GetValueOrDefault(obligation.TokenType, 0);
+
         if (availableTokens < extensionCost)
         {
             _messageSystem.AddSystemMessage(
@@ -2178,11 +2178,11 @@ public class ObligationQueueManager
             );
             return false;
         }
-        
+
         // Spend tokens and extend deadline
         _connectionTokenManager.SpendTokens(obligation.TokenType, extensionCost, npcId);
         obligation.DeadlineInMinutes += extensionMinutes;
-        
+
         _messageSystem.AddSystemMessage(
             $"⏰ Extended deadline for {obligation.SenderName}'s letter by 1 day",
             SystemMessageTypes.Success
@@ -2195,12 +2195,12 @@ public class ObligationQueueManager
     /// </summary>
     private bool TransferObligation(DeliveryObligation obligation, string newRecipientId)
     {
-        var transferCost = 4; // High cost to transfer
-        
+        int transferCost = 4; // High cost to transfer
+
         // Check if player has enough tokens with original sender
-        var tokens = _connectionTokenManager.GetTokensWithNPC(obligation.SenderId);
-        var availableTokens = tokens.GetValueOrDefault(obligation.TokenType, 0);
-        
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(obligation.SenderId);
+        int availableTokens = tokens.GetValueOrDefault(obligation.TokenType, 0);
+
         if (availableTokens < transferCost)
         {
             _messageSystem.AddSystemMessage(
@@ -2209,16 +2209,16 @@ public class ObligationQueueManager
             );
             return false;
         }
-        
+
         // Get new recipient
-        var newRecipient = _npcRepository.GetById(newRecipientId);
+        NPC newRecipient = _npcRepository.GetById(newRecipientId);
         if (newRecipient == null) return false;
-        
+
         // Spend tokens and transfer
         _connectionTokenManager.SpendTokens(obligation.TokenType, transferCost, obligation.SenderId);
         obligation.RecipientId = newRecipientId;
         obligation.RecipientName = newRecipient.Name;
-        
+
         _messageSystem.AddSystemMessage(
             $"📤 Transferred letter from {obligation.SenderName} to {newRecipient.Name}",
             SystemMessageTypes.Success
@@ -2231,12 +2231,12 @@ public class ObligationQueueManager
     /// </summary>
     private bool CancelObligation(DeliveryObligation obligation, string npcId)
     {
-        var cancelTokenRequirement = 10; // Need high relationship to cancel
-        
+        int cancelTokenRequirement = 10; // Need high relationship to cancel
+
         // Check relationship level
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
-        var totalTokens = tokens.Values.Sum();
-        
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        int totalTokens = tokens.Values.Sum();
+
         if (totalTokens < cancelTokenRequirement)
         {
             _messageSystem.AddSystemMessage(
@@ -2245,10 +2245,10 @@ public class ObligationQueueManager
             );
             return false;
         }
-        
+
         // Don't spend tokens, just require the relationship
         RemoveObligationFromQueue(GetQueuePosition(obligation));
-        
+
         _messageSystem.AddSystemMessage(
             $"❌ {obligation.SenderName} agrees to cancel the letter delivery",
             SystemMessageTypes.Success
@@ -2257,17 +2257,17 @@ public class ObligationQueueManager
     }
 
     #endregion
-    
+
     /// <summary>
     /// Prepare to skip an obligation (queue manipulation)
     /// </summary>
     public bool PrepareSkipAction(string obligationId)
     {
-        var obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
+        DeliveryObligation? obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
         if (obligation == null) return false;
-        
+
         // For now, skip moves obligation to end of queue
-        var position = GetQueuePosition(obligation);
+        int position = GetQueuePosition(obligation);
         if (position > 0)
         {
             MoveObligationToPosition(obligation, _config.LetterQueue.MaxQueueSize);
@@ -2279,17 +2279,17 @@ public class ObligationQueueManager
         }
         return false;
     }
-    
+
     /// <summary>
     /// Prepare to purge an obligation (remove from queue)
     /// </summary>
     public bool PreparePurgeAction(string obligationId)
     {
-        var obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
+        DeliveryObligation? obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
         if (obligation == null) return false;
-        
+
         // Purge requires token cost or consequences
-        var position = GetQueuePosition(obligation);
+        int position = GetQueuePosition(obligation);
         if (position > 0)
         {
             RemoveObligationFromQueue(position);
@@ -2310,10 +2310,10 @@ public class ObligationQueueManager
     /// </summary>
     public QueueDisplacementResult TryDisplaceObligation(string obligationId, int targetPosition)
     {
-        var result = new QueueDisplacementResult();
-        
+        QueueDisplacementResult result = new QueueDisplacementResult();
+
         // Find the obligation
-        var obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
+        DeliveryObligation? obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
         if (obligation == null)
         {
             result.ErrorMessage = "Obligation not found in queue";
@@ -2342,7 +2342,7 @@ public class ObligationQueueManager
         }
 
         // Calculate displacement plan
-        var displacementPlan = CalculateDisplacementCost(obligation, currentPosition, targetPosition);
+        ObligationDisplacementPlan displacementPlan = CalculateDisplacementCost(obligation, currentPosition, targetPosition);
         if (displacementPlan.TotalTokenCost == 0)
         {
             result.ErrorMessage = "No displacement needed";
@@ -2351,7 +2351,7 @@ public class ObligationQueueManager
 
         result.DisplacementPlan = displacementPlan;
         result.CanExecute = ValidateTokenAvailability(displacementPlan);
-        
+
         if (!result.CanExecute)
         {
             result.ErrorMessage = "Insufficient tokens for displacement";
@@ -2372,23 +2372,23 @@ public class ObligationQueueManager
             return false;
         }
 
-        var plan = displacementResult.DisplacementPlan;
-        var obligation = plan.ObligationToMove;
-        
+        ObligationDisplacementPlan plan = displacementResult.DisplacementPlan;
+        DeliveryObligation obligation = plan.ObligationToMove;
+
         _messageSystem.AddSystemMessage(
             $"🔥 BURNING TOKENS: Moving {obligation.SenderName}'s letter from position {plan.OriginalPosition} to {plan.TargetPosition}",
             SystemMessageTypes.Warning
         );
 
         // Burn tokens with each displaced NPC
-        foreach (var displacement in plan.Displacements)
+        foreach (ObligationDisplacement displacement in plan.Displacements)
         {
-            var npcId = GetNPCIdByName(displacement.DisplacedObligation.SenderName);
+            string npcId = GetNPCIdByName(displacement.DisplacedObligation.SenderName);
             if (!string.IsNullOrEmpty(npcId))
             {
                 bool success = _connectionTokenManager.SpendTokensWithNPC(
-                    displacement.DisplacedObligation.TokenType, 
-                    displacement.TokenCost, 
+                    displacement.DisplacedObligation.TokenType,
+                    displacement.TokenCost,
                     npcId
                 );
 
@@ -2431,32 +2431,32 @@ public class ObligationQueueManager
     /// </summary>
     private ObligationDisplacementPlan CalculateDisplacementCost(DeliveryObligation obligation, int currentPosition, int targetPosition)
     {
-        var plan = new ObligationDisplacementPlan
+        ObligationDisplacementPlan plan = new ObligationDisplacementPlan
         {
             ObligationToMove = obligation,
             OriginalPosition = currentPosition,
             TargetPosition = targetPosition
         };
 
-        var queue = GetPlayerQueue();
-        
+        DeliveryObligation[] queue = GetPlayerQueue();
+
         // Calculate jumps and affected obligations
         int positionsJumped = currentPosition - targetPosition;
-        
+
         // Each obligation that gets displaced costs tokens equal to the jump distance
         for (int pos = targetPosition; pos < currentPosition; pos++)
         {
-            var displacedObligation = queue[pos - 1];
+            DeliveryObligation displacedObligation = queue[pos - 1];
             if (displacedObligation != null)
             {
-                var displacement = new ObligationDisplacement
+                ObligationDisplacement displacement = new ObligationDisplacement
                 {
                     DisplacedObligation = displacedObligation,
                     OriginalPosition = pos,
                     NewPosition = pos + 1,
                     TokenCost = positionsJumped // Cost equals positions jumped
                 };
-                
+
                 plan.Displacements.Add(displacement);
                 plan.TotalTokenCost += displacement.TokenCost;
             }
@@ -2470,14 +2470,14 @@ public class ObligationQueueManager
     /// </summary>
     private bool ValidateTokenAvailability(ObligationDisplacementPlan plan)
     {
-        foreach (var displacement in plan.Displacements)
+        foreach (ObligationDisplacement displacement in plan.Displacements)
         {
-            var npcId = GetNPCIdByName(displacement.DisplacedObligation.SenderName);
+            string npcId = GetNPCIdByName(displacement.DisplacedObligation.SenderName);
             if (string.IsNullOrEmpty(npcId)) continue;
 
-            var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
-            var availableTokens = tokens.GetValueOrDefault(displacement.DisplacedObligation.TokenType, 0);
-            
+            Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+            int availableTokens = tokens.GetValueOrDefault(displacement.DisplacedObligation.TokenType, 0);
+
             if (availableTokens < displacement.TokenCost)
             {
                 return false;
@@ -2491,22 +2491,22 @@ public class ObligationQueueManager
     /// </summary>
     private void PerformQueueDisplacement(ObligationDisplacementPlan plan)
     {
-        var queue = GetPlayerQueue();
-        
+        DeliveryObligation[] queue = GetPlayerQueue();
+
         // Remove the obligation from its current position
         queue[plan.OriginalPosition - 1] = null;
-        
+
         // Shift affected obligations down by one position
         for (int pos = plan.TargetPosition; pos < plan.OriginalPosition; pos++)
         {
             if (queue[pos - 1] != null)
             {
-                var shiftedObligation = queue[pos - 1];
+                DeliveryObligation shiftedObligation = queue[pos - 1];
                 queue[pos] = shiftedObligation; // Move to next position (pos + 1, 0-indexed)
                 shiftedObligation.QueuePosition = pos + 1;
             }
         }
-        
+
         // Insert the displaced obligation at the target position
         queue[plan.TargetPosition - 1] = plan.ObligationToMove;
         plan.ObligationToMove.QueuePosition = plan.TargetPosition;
@@ -2517,9 +2517,9 @@ public class ObligationQueueManager
     /// </summary>
     public QueueDisplacementPreview GetDisplacementPreview(string obligationId, int targetPosition)
     {
-        var result = TryDisplaceObligation(obligationId, targetPosition);
-        
-        var preview = new QueueDisplacementPreview
+        QueueDisplacementResult result = TryDisplaceObligation(obligationId, targetPosition);
+
+        QueueDisplacementPreview preview = new QueueDisplacementPreview
         {
             CanExecute = result.CanExecute,
             ErrorMessage = result.ErrorMessage,
@@ -2529,7 +2529,7 @@ public class ObligationQueueManager
 
         if (result.DisplacementPlan != null)
         {
-            foreach (var displacement in result.DisplacementPlan.Displacements)
+            foreach (ObligationDisplacement displacement in result.DisplacementPlan.Displacements)
             {
                 preview.DisplacementDetails.Add(new DisplacementDetail
                 {
@@ -2548,7 +2548,7 @@ public class ObligationQueueManager
     #endregion
 
     #region Automatic Queue Displacement System (POC Package 4)
-    
+
     /// <summary>
     /// Automatically displace obligations when a new obligation forces position 1
     /// Used for failed letter negotiations, crisis letters, and proud NPCs
@@ -2564,8 +2564,8 @@ public class ObligationQueueManager
             return false;
         }
 
-        var queue = GetPlayerQueue();
-        
+        DeliveryObligation[] queue = GetPlayerQueue();
+
         // Announce the forced displacement
         _messageSystem.AddSystemMessage(
             $"⚡ {newObligation.SenderName}'s letter FORCES position {forcedPosition}!",
@@ -2580,49 +2580,49 @@ public class ObligationQueueManager
         if (queue[forcedPosition - 1] != null)
         {
             // Calculate and execute displacement cascade
-            var displacedObligations = CalculateDisplacementCascade(queue, forcedPosition);
-            
+            List<DisplacedObligation> displacedObligations = CalculateDisplacementCascade(queue, forcedPosition);
+
             if (displacedObligations.Count > 0)
             {
                 _messageSystem.AddSystemMessage(
                     $"📦 QUEUE CASCADE: {displacedObligations.Count} obligations displaced!",
                     SystemMessageTypes.Warning
                 );
-                
+
                 // Burn tokens with each displaced NPC
-                foreach (var displaced in displacedObligations)
+                foreach (DisplacedObligation displaced in displacedObligations)
                 {
                     BurnDisplacementTokens(displaced.Obligation, displaced.DisplacementAmount);
                 }
-                
+
                 // Execute the cascade
                 ExecuteDisplacementCascade(queue, forcedPosition, displacedObligations);
             }
         }
-        
+
         // Place the new obligation at the forced position
         queue[forcedPosition - 1] = newObligation;
         newObligation.QueuePosition = forcedPosition;
-        
+
         // Set positioning metadata for UI display
         newObligation.PositioningReason = DeterminePositioningReasonForForced(newObligation, displacementReason);
         newObligation.FinalQueuePosition = forcedPosition;
-        
+
         _messageSystem.AddSystemMessage(
             $"✅ {newObligation.SenderName}'s letter locked into position {forcedPosition}",
             SystemMessageTypes.Success
         );
-        
+
         return true;
     }
-    
+
     /// <summary>
     /// Calculate which obligations will be displaced and by how much
     /// </summary>
     private List<DisplacedObligation> CalculateDisplacementCascade(DeliveryObligation[] queue, int forcedPosition)
     {
-        var displaced = new List<DisplacedObligation>();
-        
+        List<DisplacedObligation> displaced = new List<DisplacedObligation>();
+
         // Starting from the forced position, cascade everything down
         for (int i = forcedPosition - 1; i < queue.Length - 1; i++)
         {
@@ -2638,7 +2638,7 @@ public class ObligationQueueManager
                 });
             }
         }
-        
+
         // Check if any obligation falls off the end
         if (queue[queue.Length - 1] != null)
         {
@@ -2650,35 +2650,35 @@ public class ObligationQueueManager
                 DisplacementAmount = 1
             });
         }
-        
+
         return displaced;
     }
-    
+
     /// <summary>
     /// Burn tokens with an NPC when their obligation is displaced
     /// </summary>
     private void BurnDisplacementTokens(DeliveryObligation displacedObligation, int positionsDisplaced)
     {
-        var npcId = GetNPCIdByName(displacedObligation.SenderName);
+        string npcId = GetNPCIdByName(displacedObligation.SenderName);
         if (string.IsNullOrEmpty(npcId)) return;
-        
+
         // Calculate token cost based on displacement distance
         int tokenCost = Math.Min(3, positionsDisplaced);  // Cap at 3 tokens max
-        
+
         // Try to burn tokens with this NPC
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
-        var availableTokens = tokens.GetValueOrDefault(displacedObligation.TokenType, 0);
-        
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        int availableTokens = tokens.GetValueOrDefault(displacedObligation.TokenType, 0);
+
         if (availableTokens >= tokenCost)
         {
             // Burn the tokens
             _connectionTokenManager.RemoveTokensFromNPC(displacedObligation.TokenType, tokenCost, npcId);
-            
+
             _messageSystem.AddSystemMessage(
                 $"💔 Burned {tokenCost} {displacedObligation.TokenType} token(s) with {displacedObligation.SenderName}",
                 SystemMessageTypes.Danger
             );
-            
+
             // Add burden cards to the NPC's deck for each burned token
             for (int i = 0; i < tokenCost; i++)
             {
@@ -2689,12 +2689,12 @@ public class ObligationQueueManager
         {
             // Burn what we can
             _connectionTokenManager.RemoveTokensFromNPC(displacedObligation.TokenType, availableTokens, npcId);
-            
+
             _messageSystem.AddSystemMessage(
                 $"💔 Burned {availableTokens} {displacedObligation.TokenType} token(s) with {displacedObligation.SenderName} (all they had)",
                 SystemMessageTypes.Danger
             );
-            
+
             // Add burden cards
             for (int i = 0; i < availableTokens; i++)
             {
@@ -2710,15 +2710,15 @@ public class ObligationQueueManager
             );
         }
     }
-    
+
     /// <summary>
     /// Add burden cards to an NPC's conversation deck when tokens are burned
     /// </summary>
     private void AddBurdenCardToNPC(string npcId, ConnectionType tokenType)
     {
-        var npc = _npcRepository.GetById(npcId);
+        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return;
-        
+
         // This would normally add burden cards to the NPC's deck
         // For POC, we just track the narrative
         _messageSystem.AddSystemMessage(
@@ -2726,32 +2726,32 @@ public class ObligationQueueManager
             SystemMessageTypes.Info
         );
     }
-    
+
     /// <summary>
     /// Execute the displacement cascade, moving obligations down
     /// </summary>
     private void ExecuteDisplacementCascade(DeliveryObligation[] queue, int forcedPosition, List<DisplacedObligation> displacements)
     {
         // First, clear the forced position and everything after it
-        var tempQueue = new DeliveryObligation[queue.Length];
-        
+        DeliveryObligation[] tempQueue = new DeliveryObligation[queue.Length];
+
         // Copy obligations before the forced position
         for (int i = 0; i < forcedPosition - 1; i++)
         {
             tempQueue[i] = queue[i];
         }
-        
+
         // Leave the forced position empty (will be filled by new obligation)
         tempQueue[forcedPosition - 1] = null;
-        
+
         // Place displaced obligations in their new positions
-        foreach (var displaced in displacements)
+        foreach (DisplacedObligation displaced in displacements)
         {
             if (displaced.NewPosition > 0 && displaced.NewPosition <= queue.Length)
             {
                 tempQueue[displaced.NewPosition - 1] = displaced.Obligation;
                 displaced.Obligation.QueuePosition = displaced.NewPosition;
-                
+
                 _messageSystem.AddSystemMessage(
                     $"  • {displaced.Obligation.SenderName}'s letter displaced: position {displaced.OriginalPosition} → {displaced.NewPosition}",
                     SystemMessageTypes.Info
@@ -2764,25 +2764,25 @@ public class ObligationQueueManager
                     $"💥 {displaced.Obligation.SenderName}'s letter FORCED OUT of queue!",
                     SystemMessageTypes.Danger
                 );
-                
+
                 // Apply severe relationship penalty for being forced out
-                var senderId = GetNPCIdByName(displaced.Obligation.SenderName);
+                string senderId = GetNPCIdByName(displaced.Obligation.SenderName);
                 _connectionTokenManager.RemoveTokensFromNPC(displaced.Obligation.TokenType, 3, senderId);
-                
+
                 _messageSystem.AddSystemMessage(
                     $"  • Lost 3 additional {displaced.Obligation.TokenType} tokens for forcing their letter out completely",
                     SystemMessageTypes.Danger
                 );
             }
         }
-        
+
         // Copy the rearranged queue back
         for (int i = 0; i < queue.Length; i++)
         {
             queue[i] = tempQueue[i];
         }
     }
-    
+
     /// <summary>
     /// Determine the positioning reason for forced displacement
     /// </summary>
@@ -2792,7 +2792,7 @@ public class ObligationQueueManager
         {
             return LetterPositioningReason.PoorStanding;
         }
-        else if (displacementReason.Contains("proud", StringComparison.OrdinalIgnoreCase) || 
+        else if (displacementReason.Contains("proud", StringComparison.OrdinalIgnoreCase) ||
                  displacementReason.Contains("Lord Blackwood", StringComparison.OrdinalIgnoreCase))
         {
             return LetterPositioningReason.CommerceDebt;  // Using this to indicate power/status
@@ -2802,7 +2802,7 @@ public class ObligationQueueManager
             return LetterPositioningReason.Neutral;
         }
     }
-    
+
     /// <summary>
     /// Helper class for tracking displaced obligations
     /// </summary>
@@ -2813,7 +2813,7 @@ public class ObligationQueueManager
         public int NewPosition { get; set; }
         public int DisplacementAmount { get; set; }
     }
-    
+
     #endregion
 
 }

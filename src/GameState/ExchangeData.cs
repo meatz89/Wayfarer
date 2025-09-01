@@ -13,16 +13,16 @@ public class ExchangeData
     public int TrustRequirement { get; set; }
     public bool IsAvailable { get; set; } = true;
     public bool SingleUse { get; set; }
-    
+
     // Additional properties used in CardDeckLoader
     public PersonalityType NPCPersonality { get; set; }
     public int BaseSuccessRate { get; set; }
     public bool CanBarter { get; set; }
     public string TemplateId { get; set; }
-    
+
     public bool CanAfford(Player player)
     {
-        foreach (var cost in Cost)
+        foreach (KeyValuePair<ResourceType, int> cost in Cost)
         {
             switch (cost.Key)
             {
@@ -39,13 +39,13 @@ public class ExchangeData
         }
         return true;
     }
-    
+
     public bool CanAfford(PlayerResourceState playerResources, TokenMechanicsManager tokenManager, int currentAttention)
     {
         // Check if player can afford the exchange
         if (playerResources == null) return false;
-        
-        foreach (var cost in Cost)
+
+        foreach (KeyValuePair<ResourceType, int> cost in Cost)
         {
             switch (cost.Key)
             {
@@ -65,38 +65,38 @@ public class ExchangeData
         }
         return true;
     }
-    
+
     public string GetNarrativeContext()
     {
-        var givesList = new List<string>();
-        foreach (var kv in PlayerGives)
+        List<string> givesList = new List<string>();
+        foreach (KeyValuePair<string, int> kv in PlayerGives)
         {
             givesList.Add($"{kv.Value} {kv.Key}");
         }
-        
-        var receivesList = new List<string>();
-        foreach (var kv in PlayerReceives)
+
+        List<string> receivesList = new List<string>();
+        foreach (KeyValuePair<string, int> kv in PlayerReceives)
         {
             receivesList.Add($"{kv.Value} {kv.Key}");
         }
-        
+
         return $"Trading {string.Join(", ", givesList)} for {string.Join(", ", receivesList)}";
     }
-    
+
     public List<ResourceExchange> GetCostAsList()
     {
-        var list = new List<ResourceExchange>();
-        foreach (var kv in Cost)
+        List<ResourceExchange> list = new List<ResourceExchange>();
+        foreach (KeyValuePair<ResourceType, int> kv in Cost)
         {
             list.Add(new ResourceExchange { ResourceType = kv.Key, Amount = kv.Value });
         }
         return list;
     }
-    
+
     public List<ResourceExchange> GetRewardAsList()
     {
-        var list = new List<ResourceExchange>();
-        foreach (var kv in Reward)
+        List<ResourceExchange> list = new List<ResourceExchange>();
+        foreach (KeyValuePair<ResourceType, int> kv in Reward)
         {
             list.Add(new ResourceExchange { ResourceType = kv.Key, Amount = kv.Value });
         }

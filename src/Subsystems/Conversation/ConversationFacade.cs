@@ -17,7 +17,7 @@ public class ConversationFacade
     private readonly WeightPoolManager _weightPoolManager;
     private readonly AtmosphereManager _atmosphereManager;
     private readonly CardEffectProcessor _effectProcessor;
-    
+
     // External dependencies
     private readonly ObligationQueueManager _queueManager;
     private readonly ObservationManager _observationManager;
@@ -25,7 +25,7 @@ public class ConversationFacade
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
-    
+
     private ConversationSession _currentSession;
     private ConversationOutcome _lastOutcome;
 
@@ -72,14 +72,14 @@ public class ConversationFacade
             EndConversation();
         }
 
-        var npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
             throw new ArgumentException($"NPC with ID {npcId} not found");
         }
 
         // Validate conversation type is available
-        var availableTypes = GetAvailableConversationTypes(npc);
+        List<ConversationType> availableTypes = GetAvailableConversationTypes(npc);
         if (!availableTypes.Contains(conversationType))
         {
             throw new InvalidOperationException($"Conversation type {conversationType} is not available for {npc.Name}");
@@ -87,7 +87,7 @@ public class ConversationFacade
 
         // Create session based on conversation type
         _currentSession = _orchestrator.CreateSession(npc, conversationType, observationCards);
-        
+
         return _currentSession;
     }
 
@@ -100,25 +100,25 @@ public class ConversationFacade
             return null;
 
         _lastOutcome = _orchestrator.FinalizeConversation(_currentSession);
-        
+
         // Apply token changes
         if (_lastOutcome.TokensEarned != 0)
         {
-            var connectionType = DetermineConnectionTypeFromConversation(_currentSession);
+            ConnectionType connectionType = DetermineConnectionTypeFromConversation(_currentSession);
             _tokenManager.AddTokensToNPC(connectionType, _lastOutcome.TokensEarned, _currentSession.NPC.ID);
         }
 
         // Generate letter if eligible
         if (_orchestrator.ShouldGenerateLetter(_currentSession))
         {
-            var obligation = _orchestrator.CreateLetterObligation(_currentSession);
+            DeliveryObligation obligation = _orchestrator.CreateLetterObligation(_currentSession);
             _queueManager.AddObligation(obligation);
             _currentSession.LetterGenerated = true;
         }
 
         _currentSession.Deck.ResetForNewConversation();
         _currentSession = null;
-        
+
         return _lastOutcome;
     }
 
@@ -133,7 +133,7 @@ public class ConversationFacade
         }
 
         ConversationTurnResult result;
-        
+
         if (action.ActionType == ActionType.Listen)
         {
             result = _orchestrator.ProcessListenAction(_currentSession);
@@ -141,12 +141,12 @@ public class ConversationFacade
         else if (action.ActionType == ActionType.Speak)
         {
             result = _orchestrator.ProcessSpeakAction(_currentSession, action.SelectedCards);
-            
+
             // Handle special card effects
             HandleSpecialCardEffects(action.SelectedCards, result);
-            
+
             // Remove used observation cards
-            foreach (var card in action.SelectedCards)
+            foreach (CardInstance card in action.SelectedCards)
             {
                 if (card.IsObservation && card.Persistence == PersistenceType.Fleeting)
                 {
@@ -181,7 +181,7 @@ public class ConversationFacade
     /// </summary>
     public async Task<ConversationContext> CreateConversationContext(string npcId, ConversationType conversationType)
     {
-        var npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
             return new ConversationContext
@@ -192,10 +192,10 @@ public class ConversationFacade
         }
 
         // Check attention cost
-        var attentionCost = ConversationTypeConfig.GetAttentionCost(conversationType);
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        var currentAttention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
-        
+        int attentionCost = ConversationTypeConfig.GetAttentionCost(conversationType);
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        AttentionManager currentAttention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+
         if (!currentAttention.CanAfford(attentionCost))
         {
             return new ConversationContext
@@ -216,11 +216,11 @@ public class ConversationFacade
         }
 
         // Get observation cards
-        var observationCardsTemplates = _observationManager.GetObservationCardsAsConversationCards();
-        var observationCards = observationCardsTemplates.Select(card => new CardInstance(card, "observation")).ToList();
+        List<ConversationCard> observationCardsTemplates = _observationManager.GetObservationCardsAsConversationCards();
+        List<CardInstance> observationCards = observationCardsTemplates.Select(card => new CardInstance(card, "observation")).ToList();
 
         // Start conversation
-        var session = StartConversation(npcId, conversationType, observationCards);
+        ConversationSession session = StartConversation(npcId, conversationType, observationCards);
 
         return new ConversationContext
         {
@@ -288,7 +288,7 @@ public class ConversationFacade
         if (memento == null)
             return;
 
-        var npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == memento.NpcId);
+        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == memento.NpcId);
         if (npc == null)
             return;
 
@@ -328,10 +328,10 @@ public class ConversationFacade
     /// </summary>
     public List<ConversationType> GetAvailableConversationTypes(NPC npc)
     {
-        var available = new List<ConversationType>();
-        
+        List<ConversationType> available = new List<ConversationType>();
+
         // Check exchange deck
-        if (_gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out var exchangeCards))
+        if (_gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out List<ConversationCard>? exchangeCards))
         {
             npc.InitializeExchangeDeck(exchangeCards);
         }
@@ -339,47 +339,47 @@ public class ConversationFacade
         {
             npc.InitializeExchangeDeck(null);
         }
-        
+
         if (npc.HasExchangeCards())
         {
             available.Add(ConversationType.Commerce);
         }
-        
+
         // Check for promise cards with valid states
         if (npc.HasPromiseCards())
         {
-            var currentState = ConversationRules.DetermineInitialState(npc, _queueManager);
+            EmotionalState currentState = ConversationRules.DetermineInitialState(npc, _queueManager);
             if (npc.HasValidGoalCard(currentState))
             {
                 available.Add(ConversationType.Promise);
             }
         }
-        
+
         // Check for burden cards
         if (npc.CountBurdenCards() >= 2)
         {
             available.Add(ConversationType.Resolution);
         }
-        
+
         // Check for letter delivery
         if (_queueManager != null)
         {
-            var activeObligations = _queueManager.GetActiveObligations();
-            var hasLetterForNpc = activeObligations.Any(o => 
+            DeliveryObligation[] activeObligations = _queueManager.GetActiveObligations();
+            bool hasLetterForNpc = activeObligations.Any(o =>
                 o != null && (o.RecipientId == npc.ID || o.RecipientName == npc.Name));
-            
+
             if (hasLetterForNpc)
             {
                 available.Add(ConversationType.Delivery);
             }
         }
-        
+
         // Standard conversation
         if (npc.ConversationDeck != null && npc.ConversationDeck.RemainingCards > 0)
         {
             available.Add(ConversationType.FriendlyChat);
         }
-        
+
         return available;
     }
 
@@ -401,7 +401,7 @@ public class ConversationFacade
             throw new InvalidOperationException("No active conversation");
         }
 
-        var result = ProcessAction(new ConversationAction
+        ConversationTurnResult result = ProcessAction(new ConversationAction
         {
             ActionType = ActionType.Listen,
             SelectedCards = new HashSet<CardInstance>()
@@ -418,14 +418,14 @@ public class ConversationFacade
             throw new InvalidOperationException("No active conversation");
         }
 
-        var result = ProcessAction(new ConversationAction
+        ConversationTurnResult result = ProcessAction(new ConversationAction
         {
             ActionType = ActionType.Speak,
             SelectedCards = selectedCards
         });
 
         // Convert ConversationTurnResult to CardPlayResult for backward compatibility
-        var cardPlayResult = new CardPlayResult
+        CardPlayResult cardPlayResult = new CardPlayResult
         {
             TotalComfort = result.ComfortChange ?? 0,
             Results = selectedCards.Select(card => new SingleCardResult
@@ -462,9 +462,9 @@ public class ConversationFacade
             return true; // Can deselect
 
         // Check weight limit
-        var currentWeight = currentSelection.Sum(c => c.GetEffectiveWeight(_currentSession.CurrentState));
-        var newWeight = currentWeight + card.GetEffectiveWeight(_currentSession.CurrentState);
-        
+        int currentWeight = currentSelection.Sum(c => c.GetEffectiveWeight(_currentSession.CurrentState));
+        int newWeight = currentWeight + card.GetEffectiveWeight(_currentSession.CurrentState);
+
         return newWeight <= _currentSession.CurrentComfort;
     }
 
@@ -473,34 +473,34 @@ public class ConversationFacade
     /// </summary>
     private void HandleSpecialCardEffects(HashSet<CardInstance> playedCards, ConversationTurnResult result)
     {
-        foreach (var card in playedCards)
+        foreach (CardInstance card in playedCards)
         {
             // Handle exchange cards
             if (card.Context?.ExchangeData != null)
             {
-                var exchangeSuccess = _exchangeHandler.ExecuteExchange(
-                    card.Context.ExchangeData, 
+                bool exchangeSuccess = _exchangeHandler.ExecuteExchange(
+                    card.Context.ExchangeData,
                     _currentSession.NPC,
                     _gameWorld.GetPlayer(),
                     _gameWorld.GetPlayerResourceState());
-                    
+
                 if (!exchangeSuccess)
                 {
                     _messageSystem.AddSystemMessage("Exchange failed - insufficient resources", SystemMessageTypes.Warning);
                 }
             }
-            
+
             // Handle letter delivery
             if (card.CanDeliverLetter && !string.IsNullOrEmpty(card.DeliveryObligationId))
             {
-                var obligations = _queueManager.GetActiveObligations();
-                var deliveredObligation = obligations.FirstOrDefault(o => o.Id == card.DeliveryObligationId);
-                
+                DeliveryObligation[] obligations = _queueManager.GetActiveObligations();
+                DeliveryObligation? deliveredObligation = obligations.FirstOrDefault(o => o.Id == card.DeliveryObligationId);
+
                 if (deliveredObligation != null && _queueManager.DeliverObligation(card.DeliveryObligationId))
                 {
                     // Grant rewards
                     _gameWorld.GetPlayer().Coins += deliveredObligation.Payment;
-                    
+
                     int tokenReward = deliveredObligation.EmotionalWeight switch
                     {
                         EmotionalWeight.CRITICAL => 3,
@@ -508,10 +508,10 @@ public class ConversationFacade
                         EmotionalWeight.MEDIUM => 1,
                         _ => 1
                     };
-                    
+
                     _tokenManager.AddTokensToNPC(deliveredObligation.TokenType, tokenReward, _currentSession.NPC.ID);
                     _currentSession.CurrentComfort += 5;
-                    
+
                     _messageSystem.AddSystemMessage(
                         $"Successfully delivered {deliveredObligation.SenderName}'s letter to {_currentSession.NPC.Name}!",
                         SystemMessageTypes.Success);
@@ -520,11 +520,11 @@ public class ConversationFacade
                         SystemMessageTypes.Success);
                 }
             }
-            
+
             // Handle crisis letter generation
             if (card.Context?.GeneratesLetterOnSuccess == true)
             {
-                var urgentLetter = _orchestrator.CreateUrgentLetter(_currentSession.NPC);
+                DeliveryObligation urgentLetter = _orchestrator.CreateUrgentLetter(_currentSession.NPC);
                 _queueManager.AddObligation(urgentLetter);
                 _messageSystem.AddSystemMessage(
                     $"{_currentSession.NPC.Name} desperately hands you a letter for her family!",
@@ -546,9 +546,9 @@ public class ConversationFacade
             _ => ConnectionType.Trust
         };
     }
-    
+
     // ========== MISSING METHODS (STUBS) ==========
-    
+
     public object ExecuteExchange(object exchangeData)
     {
         if (!IsConversationActive())
@@ -563,14 +563,14 @@ public class ConversationFacade
             {
                 throw new ArgumentException("exchangeData must be of type ExchangeData");
             }
-            
+
             // Delegate to the exchange handler
-            var success = _exchangeHandler.ExecuteExchange(
-                exchange, 
-                _currentSession.NPC, 
+            bool success = _exchangeHandler.ExecuteExchange(
+                exchange,
+                _currentSession.NPC,
                 _gameWorld.GetPlayer(),
                 _gameWorld.GetPlayerResourceState());
-            
+
             return new { Success = success };
         }
         catch (Exception ex)
@@ -579,19 +579,19 @@ public class ConversationFacade
             return new { Success = false, Error = ex.Message };
         }
     }
-    
+
     public async System.Threading.Tasks.Task<bool> EndConversationAsync()
     {
         // Run the synchronous EndConversation on a background thread to avoid blocking
-        var outcome = await System.Threading.Tasks.Task.Run(() => EndConversation());
+        ConversationOutcome outcome = await System.Threading.Tasks.Task.Run(() => EndConversation());
         return outcome != null;
     }
-    
+
     public int GetAttentionCost(ConversationType type)
     {
         return ConversationTypeConfig.GetAttentionCost(type);
     }
-    
+
     /// <summary>
     /// Determine the connection type based on the conversation type and outcome
     /// </summary>
@@ -608,5 +608,5 @@ public class ConversationFacade
             _ => ConnectionType.Trust  // Default fallback
         };
     }
-    
+
 }

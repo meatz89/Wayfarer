@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Wayfarer.Subsystems.LocationSubsystem;
+using Wayfarer.Subsystems.NarrativeSubsystem;
 using Wayfarer.Subsystems.ObligationSubsystem;
 using Wayfarer.Subsystems.ResourceSubsystem;
 using Wayfarer.Subsystems.TimeSubsystem;
-using Wayfarer.Subsystems.TravelSubsystem;
 using Wayfarer.Subsystems.TokenSubsystem;
-using Wayfarer.Subsystems.NarrativeSubsystem;
+using Wayfarer.Subsystems.TravelSubsystem;
 
 /// <summary>
 /// GameFacade - Pure orchestrator for UI-Backend communication.
@@ -54,57 +54,93 @@ public class GameFacade
 
     // ========== CORE GAME STATE ==========
 
-    public GameWorldSnapshot GetGameSnapshot() => new GameWorldSnapshot(_gameWorld);
+    public GameWorldSnapshot GetGameSnapshot()
+    {
+        return new GameWorldSnapshot(_gameWorld);
+    }
 
-    public Player GetPlayer() => _gameWorld.GetPlayer();
+    public Player GetPlayer()
+    {
+        return _gameWorld.GetPlayer();
+    }
 
-    public List<SystemMessage> GetSystemMessages() => _messageSystem.GetMessages();
+    public List<SystemMessage> GetSystemMessages()
+    {
+        return _messageSystem.GetMessages();
+    }
 
-    public void ClearSystemMessages() => _messageSystem.ClearMessages();
+    public void ClearSystemMessages()
+    {
+        _messageSystem.ClearMessages();
+    }
 
-    public MessageSystem GetMessageSystem() => _messageSystem;
+    public MessageSystem GetMessageSystem()
+    {
+        return _messageSystem;
+    }
 
     public AttentionStateInfo GetCurrentAttentionState()
     {
-        var timeBlock = _timeFacade.GetCurrentTimeBlock();
-        var attention = _resourceFacade.GetAttention(timeBlock);
+        TimeBlocks timeBlock = _timeFacade.GetCurrentTimeBlock();
+        AttentionInfo attention = _resourceFacade.GetAttention(timeBlock);
         return new AttentionStateInfo(attention.Current, attention.Max, timeBlock);
     }
 
     // ========== LOCATION OPERATIONS ==========
 
-    public Location GetCurrentLocation() => _locationFacade.GetCurrentLocation();
+    public Location GetCurrentLocation()
+    {
+        return _locationFacade.GetCurrentLocation();
+    }
 
-    public LocationSpot GetCurrentLocationSpot() => _locationFacade.GetCurrentLocationSpot();
+    public LocationSpot GetCurrentLocationSpot()
+    {
+        return _locationFacade.GetCurrentLocationSpot();
+    }
 
-    public Location GetLocationById(string locationId) => _locationFacade.GetLocationById(locationId);
+    public Location GetLocationById(string locationId)
+    {
+        return _locationFacade.GetLocationById(locationId);
+    }
 
-    public bool MoveToSpot(string spotName) => _locationFacade.MoveToSpot(spotName);
+    public bool MoveToSpot(string spotName)
+    {
+        return _locationFacade.MoveToSpot(spotName);
+    }
 
-    public NPC GetNPCById(string npcId) => _locationFacade.GetNPCById(npcId);
+    public NPC GetNPCById(string npcId)
+    {
+        return _locationFacade.GetNPCById(npcId);
+    }
 
-    public List<NPC> GetNPCsAtLocation(string locationId) => _locationFacade.GetNPCsAtLocation(locationId);
+    public List<NPC> GetNPCsAtLocation(string locationId)
+    {
+        return _locationFacade.GetNPCsAtLocation(locationId);
+    }
 
-    public List<NPC> GetNPCsAtCurrentSpot() => _locationFacade.GetNPCsAtCurrentSpot();
+    public List<NPC> GetNPCsAtCurrentSpot()
+    {
+        return _locationFacade.GetNPCsAtCurrentSpot();
+    }
 
     public LocationScreenViewModel GetLocationScreen()
     {
-        var npcConversationOptions = GetNPCConversationOptionsForCurrentLocation();
+        List<NPCConversationOptions> npcConversationOptions = GetNPCConversationOptionsForCurrentLocation();
         return _locationFacade.GetLocationScreen(npcConversationOptions);
     }
 
     private List<NPCConversationOptions> GetNPCConversationOptionsForCurrentLocation()
     {
-        var npcs = _locationFacade.GetNPCsAtCurrentSpot();
-        var options = new List<NPCConversationOptions>();
+        List<NPC> npcs = _locationFacade.GetNPCsAtCurrentSpot();
+        List<NPCConversationOptions> options = new List<NPCConversationOptions>();
 
-        foreach (var npc in npcs)
+        foreach (NPC npc in npcs)
         {
-            var conversationTypes = _conversationFacade.GetAvailableConversationTypes(npc);
-            var attentionCost = _conversationFacade.GetAttentionCost(ConversationType.FriendlyChat);
-            var attentionInfo = _resourceFacade.GetAttention(_timeFacade.GetCurrentTimeBlock());
-            var currentAttention = attentionInfo.Current;
-            
+            List<ConversationType> conversationTypes = _conversationFacade.GetAvailableConversationTypes(npc);
+            int attentionCost = _conversationFacade.GetAttentionCost(ConversationType.FriendlyChat);
+            AttentionInfo attentionInfo = _resourceFacade.GetAttention(_timeFacade.GetCurrentTimeBlock());
+            int currentAttention = attentionInfo.Current;
+
             options.Add(new NPCConversationOptions
             {
                 NpcId = npc.ID,
@@ -120,36 +156,51 @@ public class GameFacade
 
     // ========== TIME OPERATIONS ==========
 
-    public TimeInfo GetTimeInfo() => _timeFacade.GetTimeInfo();
+    public TimeInfo GetTimeInfo()
+    {
+        return _timeFacade.GetTimeInfo();
+    }
 
-    public int GetCurrentHour() => _timeFacade.GetCurrentHour();
+    public int GetCurrentHour()
+    {
+        return _timeFacade.GetCurrentHour();
+    }
 
-    public string GetFormattedTimeDisplay() => _timeFacade.GetFormattedTimeDisplay();
+    public string GetFormattedTimeDisplay()
+    {
+        return _timeFacade.GetFormattedTimeDisplay();
+    }
 
 
     // ========== TRAVEL OPERATIONS ==========
 
-    public List<TravelDestinationViewModel> GetTravelDestinations() => _travelFacade.GetTravelDestinations();
+    public List<TravelDestinationViewModel> GetTravelDestinations()
+    {
+        return _travelFacade.GetTravelDestinations();
+    }
 
-    public List<TravelDestinationViewModel> GetTravelDestinationsWithRoutes() => GetTravelDestinations();
+    public List<TravelDestinationViewModel> GetTravelDestinationsWithRoutes()
+    {
+        return GetTravelDestinations();
+    }
 
     public async Task<bool> TravelToDestinationAsync(string routeId)
     {
         string destinationId = string.Empty;
 
         // Get Destination from the route
-        var route = _travelFacade.GetRouteBetweenLocations(
-            _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId ?? "", 
+        RouteOption route = _travelFacade.GetRouteBetweenLocations(
+            _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId ?? "",
             "");
-        
+
         // Get all routes and find the one with matching ID
-        var allRoutes = _travelFacade.GetAvailableRoutesFromCurrentLocation();
-        var targetRoute = allRoutes.FirstOrDefault(r => r.Id == routeId);
+        List<RouteOption> allRoutes = _travelFacade.GetAvailableRoutesFromCurrentLocation();
+        RouteOption? targetRoute = allRoutes.FirstOrDefault(r => r.Id == routeId);
         if (targetRoute != null)
         {
             // Extract destination location ID from the destination spot
-            var destSpotId = targetRoute.DestinationLocationSpot;
-            var destSpot = _gameWorld.WorldState.locations
+            string destSpotId = targetRoute.DestinationLocationSpot;
+            LocationSpot? destSpot = _gameWorld.WorldState.locations
                 ?.SelectMany(l => l.Spots ?? new List<LocationSpot>())
                 .FirstOrDefault(s => s.SpotID == destSpotId);
             if (destSpot != null)
@@ -157,25 +208,25 @@ public class GameFacade
                 destinationId = destSpot.LocationId;
             }
         }
-        
-        var travelResult = _travelFacade.TravelTo(destinationId, TravelMethods.Walking);
-        
+
+        TravelResult travelResult = _travelFacade.TravelTo(destinationId, TravelMethods.Walking);
+
         if (travelResult.Success)
         {
             _resourceFacade.SpendCoins(travelResult.CoinCost);
-            
+
             // Get the actual destination spot from the route
-            var targetRoute = _travelFacade.GetAvailableRoutesFromCurrentLocation()
+            RouteOption? actualRoute = _travelFacade.GetAvailableRoutesFromCurrentLocation()
                 .FirstOrDefault(r => r.Id == routeId);
-            
-            if (targetRoute != null)
+
+            if (actualRoute != null)
             {
-                var player = _gameWorld.GetPlayer();
+                Player player = _gameWorld.GetPlayer();
                 // Find the destination spot by its ID
-                var destSpot = _gameWorld.WorldState.locations
+                LocationSpot? destSpot = _gameWorld.WorldState.locations
                     ?.SelectMany(l => l.Spots ?? new List<LocationSpot>())
                     .FirstOrDefault(s => s.SpotID == targetRoute.DestinationLocationSpot);
-                    
+
                 if (destSpot != null)
                 {
                     player.CurrentLocationSpot = destSpot;
@@ -183,9 +234,9 @@ public class GameFacade
                 }
             }
 
-            var oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-            var newTimeBlock = _timeFacade.AdvanceTimeByMinutes(travelResult.TravelTimeMinutes);
-            
+            TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+            TimeBlocks newTimeBlock = _timeFacade.AdvanceTimeByMinutes(travelResult.TravelTimeMinutes);
+
             ProcessTimeAdvancement(new TimeAdvancementResult
             {
                 OldTimeBlock = oldTimeBlock,
@@ -195,7 +246,7 @@ public class GameFacade
                 MinutesAdvanced = travelResult.TravelTimeMinutes
             });
 
-            _narrativeFacade.AddSystemMessage($"Traveled to {destination?.Name}", SystemMessageTypes.Info);
+            _narrativeFacade.AddSystemMessage($"Traveled to {destinationId}", SystemMessageTypes.Info);
         }
 
         return travelResult.Success;
@@ -203,33 +254,51 @@ public class GameFacade
 
     // ========== OBLIGATION OPERATIONS ==========
 
-    public LetterQueueViewModel GetLetterQueue() => _obligationFacade.GetLetterQueue();
+    public LetterQueueViewModel GetLetterQueue()
+    {
+        return _obligationFacade.GetLetterQueue();
+    }
 
-    public QueueDisplacementPreview GetDisplacementPreview(string obligationId, int targetPosition) 
-        => _obligationFacade.GetDisplacementPreview(obligationId, targetPosition);
+    public QueueDisplacementPreview GetDisplacementPreview(string obligationId, int targetPosition)
+    {
+        return _obligationFacade.GetDisplacementPreview(obligationId, targetPosition);
+    }
 
-    public async Task<bool> DisplaceObligation(string obligationId, int targetPosition) 
-        => _obligationFacade.DisplaceObligation(obligationId, targetPosition);
+    public async Task<bool> DisplaceObligation(string obligationId, int targetPosition)
+    {
+        return _obligationFacade.DisplaceObligation(obligationId, targetPosition);
+    }
 
-    public async Task<bool> AcceptLetterOfferAsync(string offerId) 
-        => _obligationFacade.AcceptLetterOffer(offerId);
+    public async Task<bool> AcceptLetterOfferAsync(string offerId)
+    {
+        return _obligationFacade.AcceptLetterOffer(offerId);
+    }
 
-    public int GetLetterQueueCount() => _obligationFacade.GetLetterQueueCount();
+    public int GetLetterQueueCount()
+    {
+        return _obligationFacade.GetLetterQueueCount();
+    }
 
-    public ObligationFacade GetObligationQueueManager() => _obligationFacade;
+    public ObligationFacade GetObligationQueueManager()
+    {
+        return _obligationFacade;
+    }
 
     // ========== RESOURCE OPERATIONS ==========
 
-    public InventoryViewModel GetInventory() => _resourceFacade.GetInventoryViewModel();
+    public InventoryViewModel GetInventory()
+    {
+        return _resourceFacade.GetInventoryViewModel();
+    }
 
     public async Task<WorkResult> PerformWork()
     {
-        var result = _resourceFacade.PerformWork();
+        WorkResult result = _resourceFacade.PerformWork();
         if (result.Success)
         {
-            var oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-            var newTimeBlock = _timeFacade.AdvanceTimeByMinutes(120);
-            
+            TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+            TimeBlocks newTimeBlock = _timeFacade.AdvanceTimeByMinutes(120);
+
             ProcessTimeAdvancement(new TimeAdvancementResult
             {
                 OldTimeBlock = oldTimeBlock,
@@ -246,13 +315,13 @@ public class GameFacade
 
     public NPCTokenBalance GetTokensWithNPC(string npcId)
     {
-        var tokens = _tokenFacade.GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokens = _tokenFacade.GetTokensWithNPC(npcId);
         return new NPCTokenBalance
         {
-            Balances = tokens.Select(kvp => new TokenBalance 
-            { 
-                TokenType = kvp.Key, 
-                Amount = kvp.Value 
+            Balances = tokens.Select(kvp => new TokenBalance
+            {
+                TokenType = kvp.Key,
+                Amount = kvp.Value
             }).ToList()
         };
     }
@@ -260,23 +329,28 @@ public class GameFacade
 
     // ========== CONVERSATION OPERATIONS ==========
 
-    public ConversationFacade GetConversationFacade() => _conversationFacade;
+    public ConversationFacade GetConversationFacade()
+    {
+        return _conversationFacade;
+    }
 
     public async Task<ConversationContext> CreateConversationContext(string npcId, ConversationType conversationType = ConversationType.FriendlyChat)
-        => await _conversationFacade.CreateConversationContext(npcId, conversationType);
+    {
+        return await _conversationFacade.CreateConversationContext(npcId, conversationType);
+    }
 
     // ========== NARRATIVE OPERATIONS ==========
 
     public async Task<bool> TakeObservationAsync(string observationId)
     {
-        var currentLocation = _locationFacade.GetCurrentLocation();
-        var currentSpot = _locationFacade.GetCurrentLocationSpot();
-        
-        var observation = _narrativeFacade.GetLocationObservations(
-            currentLocation?.Id, 
+        Location currentLocation = _locationFacade.GetCurrentLocation();
+        LocationSpot currentSpot = _locationFacade.GetCurrentLocationSpot();
+
+        Observation? observation = _narrativeFacade.GetLocationObservations(
+            currentLocation?.Id,
             currentSpot?.SpotID)
             .FirstOrDefault(o => o.Id == observationId);
-            
+
         if (observation != null && _resourceFacade.SpendAttention(observation.AttentionCost))
         {
             return _narrativeFacade.TakeObservation(observationId);
@@ -324,9 +398,9 @@ public class GameFacade
 
     private bool ProcessWaitIntent()
     {
-        var oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        var newTimeBlock = _timeFacade.AdvanceTimeByMinutes(60);
-        
+        TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+        TimeBlocks newTimeBlock = _timeFacade.AdvanceTimeByMinutes(60);
+
         ProcessTimeAdvancement(new TimeAdvancementResult
         {
             OldTimeBlock = oldTimeBlock,
@@ -335,17 +409,17 @@ public class GameFacade
             HoursAdvanced = 1,
             MinutesAdvanced = 60
         });
-        
+
         _narrativeFacade.AddSystemMessage("You wait and time passes", SystemMessageTypes.Info);
         return true;
     }
 
     private bool ProcessRestIntent(int hours)
     {
-        var oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        var minutesToRest = hours * 60;
-        var newTimeBlock = _timeFacade.AdvanceTimeByMinutes(minutesToRest);
-        
+        TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+        int minutesToRest = hours * 60;
+        TimeBlocks newTimeBlock = _timeFacade.AdvanceTimeByMinutes(minutesToRest);
+
         ProcessTimeAdvancement(new TimeAdvancementResult
         {
             OldTimeBlock = oldTimeBlock,
@@ -354,7 +428,7 @@ public class GameFacade
             HoursAdvanced = hours,
             MinutesAdvanced = minutesToRest
         });
-        
+
         _narrativeFacade.AddSystemMessage($"You rest for {hours} hour(s)", SystemMessageTypes.Info);
         return true;
     }
@@ -367,15 +441,27 @@ public class GameFacade
 
     // ========== LEGACY/STUB METHODS ==========
 
-    public EmotionalState GetNPCEmotionalState(string npcId) => EmotionalState.NEUTRAL;
-    
-    public List<RouteOption> GetAvailableRoutes() => _travelFacade.GetAvailableRoutesFromCurrentLocation();
-    
-    public DailyActivityResult GetDailyActivities() => new DailyActivityResult();
-    
-    public List<RouteOption> GetRoutesToDestination(string destinationId) => new List<RouteOption>();
-    
-    public void AddLetterWithObligationEffects(object letterData) 
+    public EmotionalState GetNPCEmotionalState(string npcId)
+    {
+        return EmotionalState.NEUTRAL;
+    }
+
+    public List<RouteOption> GetAvailableRoutes()
+    {
+        return _travelFacade.GetAvailableRoutesFromCurrentLocation();
+    }
+
+    public DailyActivityResult GetDailyActivities()
+    {
+        return new DailyActivityResult();
+    }
+
+    public List<RouteOption> GetRoutesToDestination(string destinationId)
+    {
+        return new List<RouteOption>();
+    }
+
+    public void AddLetterWithObligationEffects(object letterData)
     {
         if (letterData is DeliveryObligation obligation)
         {

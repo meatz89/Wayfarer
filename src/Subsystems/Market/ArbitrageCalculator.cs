@@ -155,12 +155,12 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         {
             int buyPrice = _priceManager.GetBuyPrice(itemId, buyLocationId);
             int sellPrice = _priceManager.GetSellPrice(itemId, sellLocationId);
-            
+
             if (buyPrice <= 0 || sellPrice <= 0) return -1;
 
             int distance = CalculateDistance(buyLocationId, sellLocationId);
             int travelCost = CalculateTravelCost(distance);
-            
+
             return sellPrice - buyPrice - travelCost;
         }
 
@@ -173,7 +173,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         {
             Player player = _gameWorld.GetPlayer();
             int availableCoins = player.Coins;
-            
+
             return FindAllOpportunities()
                 .Where(o => o.RequiredCapital <= availableCoins)
                 .ToList();
@@ -243,7 +243,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             Player player = _gameWorld.GetPlayer();
             string currentLocationId = player.CurrentLocationSpot?.LocationId;
             List<ArbitrageOpportunity> opportunities = new List<ArbitrageOpportunity>();
-            
+
             foreach (string itemId in player.Inventory.GetItemIds())
             {
                 Item item = _itemRepository.GetItemById(itemId);
@@ -251,7 +251,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
                 int currentSellPrice = _priceManager.GetSellPrice(itemId, currentLocationId);
                 List<Location> locations = _gameWorld.WorldState.locations ?? new List<Location>();
-                
+
                 foreach (Location sellLocation in locations)
                 {
                     if (sellLocation.Id == currentLocationId) continue;
@@ -323,7 +323,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 ArbitrageOpportunity bestOpp = opportunities.First();
                 bestRoute.Trades.Add(bestOpp);
                 bestRoute.LocationSequence.Add(bestOpp.SellLocationId);
-                
+
                 // Update capital and profit
                 currentCapital = currentCapital - bestOpp.BuyPrice + bestOpp.SellPrice - bestOpp.TravelCost;
                 totalProfit += bestOpp.NetProfit;
@@ -333,8 +333,8 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             bestRoute.TotalProfit = totalProfit;
             bestRoute.RequiredCapital = availableCapital;
             bestRoute.TotalDistance = bestRoute.Trades.Sum(t => t.DistanceBetweenLocations);
-            bestRoute.AverageProfitMargin = bestRoute.Trades.Count > 0 
-                ? bestRoute.Trades.Average(t => t.ProfitMargin) 
+            bestRoute.AverageProfitMargin = bestRoute.Trades.Count > 0
+                ? bestRoute.Trades.Average(t => t.ProfitMargin)
                 : 0;
             bestRoute.RouteDescription = GenerateRouteDescription(bestRoute);
 
@@ -404,7 +404,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             // Simplified distance calculation
             // In a real implementation, this would use actual route data
             if (fromLocationId == toLocationId) return 0;
-            
+
             // Define some basic distances between known locations
             Dictionary<string, Dictionary<string, int>> distances = new Dictionary<string, Dictionary<string, int>>
             {
@@ -445,7 +445,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 }
             };
 
-            if (distances.ContainsKey(fromLocationId) && 
+            if (distances.ContainsKey(fromLocationId) &&
                 distances[fromLocationId].ContainsKey(toLocationId))
             {
                 return distances[fromLocationId][toLocationId];
@@ -495,7 +495,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             if (route.Trades.Count == 0)
                 return "No profitable trades found";
 
-            List<string> trades = route.Trades.Select(t => 
+            List<string> trades = route.Trades.Select(t =>
                 $"{t.ItemName} ({t.BuyLocationName} → {t.SellLocationName})"
             ).ToList();
 

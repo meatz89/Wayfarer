@@ -6,7 +6,7 @@ public static class GoalCardFactory
     {
         // Goal cards are loaded from JSON
     }
-    
+
     public static void InitializeGameWorld(GameWorld gameWorld)
     {
         // Goal cards are loaded from JSON

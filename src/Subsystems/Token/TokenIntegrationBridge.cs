@@ -11,7 +11,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
     {
         private readonly TokenFacade _tokenFacade;
         private readonly TokenMechanicsManager _legacyTokenManager;
-        
+
         public TokenIntegrationBridge(
             TokenFacade tokenFacade,
             TokenMechanicsManager legacyTokenManager)
@@ -19,7 +19,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             _tokenFacade = tokenFacade;
             _legacyTokenManager = legacyTokenManager;
         }
-        
+
         /// <summary>
         /// Migrate token operations to use the new facade while maintaining compatibility
         /// </summary>
@@ -28,7 +28,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             // Use the new facade for all operations
             _tokenFacade.AddTokensToNPC(type, count, npcId);
         }
-        
+
         /// <summary>
         /// Get tokens using the new facade
         /// </summary>
@@ -36,7 +36,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _tokenFacade.GetTokensWithNPC(npcId);
         }
-        
+
         /// <summary>
         /// Spend tokens using the new facade
         /// </summary>
@@ -44,7 +44,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _tokenFacade.SpendTokensWithNPC(type, amount, npcId);
         }
-        
+
         /// <summary>
         /// Check relationship status using new subsystem features
         /// </summary>
@@ -59,7 +59,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 HasDebt = _tokenFacade.GetTotalLeverage(npcId) > 0
             };
         }
-        
+
         /// <summary>
         /// Calculate token effects for conversations
         /// </summary>
@@ -68,16 +68,16 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             // Use facade's effect calculation
             int baseChance = 50; // Default base chance
             int tokenBonus = _tokenFacade.CalculateTokenBonus(cardType, baseChance);
-            
+
             // Add relationship-specific bonus
             if (_tokenFacade.GetRelationshipTier(npcId) >= RelationshipTier.Friend)
             {
                 tokenBonus += 10; // Friend bonus
             }
-            
+
             return tokenBonus;
         }
-        
+
         /// <summary>
         /// Check if player can access special content
         /// </summary>
@@ -87,21 +87,21 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             {
                 case "personal_letter":
                     return _tokenFacade.GetTokenCount(npcId, ConnectionType.Trust) >= 3;
-                    
+
                 case "business_deal":
                     return _tokenFacade.GetTokenCount(npcId, ConnectionType.Commerce) >= 4;
-                    
+
                 case "noble_invitation":
                     return _tokenFacade.GetTokenCount(npcId, ConnectionType.Status) >= 5;
-                    
+
                 case "secret_mission":
                     return _tokenFacade.GetTokenCount(npcId, ConnectionType.Shadow) >= 4;
-                    
+
                 default:
                     return true;
             }
         }
-        
+
         /// <summary>
         /// Process relationship decay (to be called periodically)
         /// </summary>
@@ -109,10 +109,10 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             // The RelationshipTracker handles decay internally
             // This would be called by a time system update
-            
+
             // For now, we can check for NPCs that haven't been interacted with
             List<string> allNPCsWithTokens = _tokenFacade.GetNPCsWithTokens();
-            
+
             foreach (string npcId in allNPCsWithTokens)
             {
                 // In a full implementation, this would check last interaction time
@@ -120,6 +120,6 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             }
         }
     }
-    
+
     // RelationshipSummary class removed - use the one in RelationshipTracker.cs instead
 }

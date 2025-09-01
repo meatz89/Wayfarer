@@ -20,10 +20,10 @@ public class WeightPoolManager
     private int GetEffectiveCapacity()
     {
         int capacity = baseCapacity;
-        
+
         // Prepared atmosphere adds +1 capacity
         capacity += atmosphereManager.GetWeightCapacityBonus();
-        
+
         return capacity;
     }
 

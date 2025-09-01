@@ -68,15 +68,15 @@ public class Phase6_PlayerInitialization : IInitializationPhase
                 {
                     // Use mechanical property to find starting location
                     // First check if any location is marked as starting location
-                    var startingLocation = worldState.locations.FirstOrDefault(l => l.IsStartingLocation);
+                    Location? startingLocation = worldState.locations.FirstOrDefault(l => l.IsStartingLocation);
                     if (startingLocation != null)
                     {
-                        var spotsInStartingLocation = worldState.locationSpots
+                        List<LocationSpot> spotsInStartingLocation = worldState.locationSpots
                             .Where(s => s.LocationId == startingLocation.Id)
                             .ToList();
                         startingSpot = spotsInStartingLocation.FirstOrDefault();
                     }
-                    
+
                     player.CurrentLocationSpot = startingSpot;
                     Console.WriteLine($"  Set player to starting spot: {startingSpot.SpotID}");
                 }
@@ -103,7 +103,7 @@ public class Phase6_PlayerInitialization : IInitializationPhase
         // Load player config from GameWorld if available
         if (context.GameWorld.InitialPlayerConfig != null)
         {
-            var playerConfig = context.GameWorld.InitialPlayerConfig;
+            PlayerInitialConfig playerConfig = context.GameWorld.InitialPlayerConfig;
 
             if (playerConfig.Coins != null)
             {
@@ -174,30 +174,30 @@ public class Phase6_PlayerInitialization : IInitializationPhase
         }
 
         // Location is now derived from CurrentLocationSpot, no need for separate validation
-        
+
         // INITIALIZE PLAYER OBSERVATION DECK (POC Architecture)
         InitializePlayerObservationDeck(player, context);
     }
-    
+
     private void InitializePlayerObservationDeck(Player player, InitializationContext context)
     {
         Console.WriteLine("Initializing Player Observation Deck...");
-        
+
         // Get observation cards from GameWorld (loaded in Phase0)
-        var observationCards = context.GameWorld.PlayerObservationCards;
-        
+        List<ConversationCard> observationCards = context.GameWorld.PlayerObservationCards;
+
         if (observationCards == null || !observationCards.Any())
         {
             Console.WriteLine("  No observation cards loaded - player starts with empty deck");
             return;
         }
-        
+
         // Initialize the player's observation deck
         if (player.ObservationDeck == null)
         {
             player.ObservationDeck = new PlayerObservationDeck();
         }
-        
+
         // CRITICAL FIX: Players start with EMPTY observation deck
         // Observation cards must be EARNED by spending attention at locations
         // They are NOT given for free at game start

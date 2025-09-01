@@ -3,7 +3,7 @@ using Serilog;
 // Suppress security warnings
 Environment.SetEnvironmentVariable("ASPNETCORE_SUPPRESSSTATUSMESSAGES", "true");
 
-var options = new WebApplicationOptions
+WebApplicationOptions options = new WebApplicationOptions
 {
     Args = args,
     ContentRootPath = Directory.GetCurrentDirectory(),
@@ -64,7 +64,7 @@ app.Use(async (context, next) =>
 
 app.UseStaticFiles();
 app.UseRouting();
-app.MapRazorPages(); 
+app.MapRazorPages();
 app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

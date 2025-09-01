@@ -34,7 +34,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
                 $"You carefully observe {observation.Text}.",
                 $"The details of {observation.Text} catch your attention."
             };
-            
+
             return templates[_random.Next(templates.Length)];
         }
 
@@ -50,7 +50,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
                 "New observations become available.",
                 "Fresh details emerge as time moves forward."
             };
-            
+
             return templates[_random.Next(templates.Length)];
         }
 
@@ -484,13 +484,13 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         public string GenerateArrivalText(Location location, LocationSpot entrySpot)
         {
             if (location == null) return "You arrive at an unknown location.";
-            
+
             string spotDesc = "";
             if (entrySpot != null)
             {
                 spotDesc = $" at {entrySpot.Name}";
             }
-            
+
             return $"You arrive at {location.Name}{spotDesc}.";
         }
 
@@ -500,13 +500,13 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         public string GenerateDepartureText(Location location, LocationSpot exitSpot)
         {
             if (location == null) return "You depart from your current location.";
-            
+
             string spotDesc = "";
             if (exitSpot != null)
             {
                 spotDesc = $" from {exitSpot.Name}";
             }
-            
+
             return $"You leave {location.Name}{spotDesc}.";
         }
 
@@ -517,7 +517,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         {
             if (fromSpot == null || toSpot == null)
                 return "You move to a new area.";
-            
+
             return $"You move from {fromSpot.Name} to {toSpot.Name}.";
         }
 

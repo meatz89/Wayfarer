@@ -10,9 +10,9 @@ namespace Wayfarer.Pages.Components
     {
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected DevModeService DevMode { get; set; }
-        
+
         [Parameter] public EventCallback OnActionExecuted { get; set; }
-        
+
         [CascadingParameter] protected GameScreenBase GameScreen { get; set; }
 
         protected LocationSpot CurrentSpot { get; set; }
@@ -39,36 +39,36 @@ namespace Wayfarer.Pages.Components
 
         private async Task RefreshLocationData()
         {
-            var location = GameFacade.GetCurrentLocation();
+            Location location = GameFacade.GetCurrentLocation();
             CurrentLocation = location;
-            var spot = GameFacade.GetCurrentLocationSpot();
+            LocationSpot? spot = GameFacade.GetCurrentLocationSpot();
             CurrentSpot = spot;
-            var timeInfo = GameFacade.GetTimeInfo();
+            TimeInfo timeInfo = GameFacade.GetTimeInfo();
             CurrentTime = timeInfo.TimeBlock;
-            
+
             // Get NPCs at current spot
             AvailableNpcs.Clear();
             NPCsAtSpot.Clear();
             if (CurrentSpot != null)
             {
                 // Get NPCs at the current spot for the current time
-                var npcsAtSpot = GameFacade.GetNPCsAtCurrentSpot();
+                List<NPC> npcsAtSpot = GameFacade.GetNPCsAtCurrentSpot();
                 NPCsAtSpot = npcsAtSpot ?? new List<NPC>();
-                foreach (var npc in NPCsAtSpot)
+                foreach (NPC npc in NPCsAtSpot)
                 {
-                    var options = new List<ConversationOptionViewModel>();
-                    
+                    List<ConversationOptionViewModel> options = new List<ConversationOptionViewModel>();
+
                     // Get ACTUAL available conversation types from ConversationManager
-                    var conversationFacade = GameFacade.GetConversationFacade();
-                    var availableTypes = conversationFacade.GetAvailableConversationTypes(npc);
-                    
+                    ConversationFacade conversationFacade = GameFacade.GetConversationFacade();
+                    List<ConversationType> availableTypes = conversationFacade.GetAvailableConversationTypes(npc);
+
                     // Add each available type as an option
-                    foreach (var type in availableTypes)
+                    foreach (ConversationType type in availableTypes)
                     {
                         // Get attention cost from backend mechanics
-                        var attentionCost = conversationFacade.GetConversationAttentionCost(type);
-                        
-                        var option = new ConversationOptionViewModel
+                        int attentionCost = conversationFacade.GetConversationAttentionCost(type);
+
+                        ConversationOptionViewModel option = new ConversationOptionViewModel
                         {
                             Type = type,
                             Label = GetConversationLabel(type),
@@ -77,10 +77,10 @@ namespace Wayfarer.Pages.Components
                         };
                         options.Add(option);
                     }
-                    
+
                     // Get actual emotional state using the same logic as conversations
-                    var emotionalState = GameFacade.GetNPCEmotionalState(npc.ID);
-                    
+                    EmotionalState emotionalState = GameFacade.GetNPCEmotionalState(npc.ID);
+
                     AvailableNpcs.Add(new NpcViewModel
                     {
                         Id = npc.ID,
@@ -91,15 +91,15 @@ namespace Wayfarer.Pages.Components
                     });
                 }
             }
-            
+
             // Get available observations
             AvailableObservations.Clear();
             TakenObservations.Clear();
             Console.WriteLine("[LocationContent] Getting observations from GameFacade...");
             // GetTakenObservations() works correctly, but need to implement GetAvailableObservations() method
-            var takenObservations = GameFacade.GetTakenObservations();
+            List<TakenObservation>? takenObservations = GameFacade.GetTakenObservations();
             Console.WriteLine($"[LocationContent] Got {takenObservations?.Count ?? 0} taken observations");
-            
+
             // Temporarily disable observations until proper implementation
             if (false) // allObservations?.AvailableObservations != null)
             {
@@ -116,12 +116,12 @@ namespace Wayfarer.Pages.Components
             {
                 Console.WriteLine("[LocationContent] No observations available or null");
             }
-            
+
             if (takenObservations != null)
             {
                 TakenObservations = takenObservations;
             }
-            
+
             // Get other spots in this location
             AvailableSpots.Clear();
             if (location != null && location.Spots != null)
@@ -135,19 +135,19 @@ namespace Wayfarer.Pages.Components
                         Properties = s.Properties ?? new List<string>()
                     }).ToList();
             }
-            
+
             // Check if can travel from this spot
             CanTravel = spot?.SpotProperties?.Contains(SpotPropertyType.Crossroads) ?? false;
             Console.WriteLine($"[LocationContent] Spot: {spot?.Name}, Properties: {string.Join(", ", spot?.SpotProperties ?? new List<SpotPropertyType>())}, CanTravel: {CanTravel}");
-            
+
             // Check if can work at this spot
             CanWork = spot?.SpotProperties?.Contains(SpotPropertyType.Commercial) ?? false;
-            
+
             // Get active obligations from the queue manager
-            var queueManager = GameFacade.GetObligationQueueManager();
+            Subsystems.ObligationSubsystem.ObligationFacade queueManager = GameFacade.GetObligationQueueManager();
             if (queueManager != null)
             {
-                var obligations = queueManager.GetActiveObligations();
+                DeliveryObligation[] obligations = queueManager.GetActiveObligations();
                 // Take only the first 3 for the preview panel
                 ActiveObligations = obligations?.Take(3) ?? new List<DeliveryObligation>();
                 Console.WriteLine($"[LocationContent] Got {ActiveObligations.Count()} obligations for display");
@@ -166,7 +166,7 @@ namespace Wayfarer.Pages.Components
         protected async Task StartTypedConversation(string npcId, ConversationType type)
         {
             Console.WriteLine($"[LocationContent] Starting {type} conversation with NPC ID: '{npcId}'");
-            
+
             if (GameScreen != null)
             {
                 await GameScreen.StartConversation(npcId, type);
@@ -185,23 +185,23 @@ namespace Wayfarer.Pages.Components
                 await GameScreen.NavigateToDeckViewer(npcId);
             }
         }
-        
+
         protected async Task TakeObservation(string observationId)
         {
             Console.WriteLine($"[LocationContent] Taking observation: {observationId}");
-            
+
             // Check attention first (quick check before calling facade)
-            var attentionState = GameFacade.GetCurrentAttentionState();
+            AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
             if (attentionState.Current < 1)
             {
                 Console.WriteLine("[LocationContent] Not enough attention for observation");
                 return;
             }
-            
+
             // Call GameFacade to take the observation
             // This will handle attention spending, card generation, and adding to hand
-            var success = await GameFacade.TakeObservationAsync(observationId);
-            
+            bool success = await GameFacade.TakeObservationAsync(observationId);
+
             if (success)
             {
                 Console.WriteLine($"[LocationContent] Successfully took observation {observationId}");
@@ -218,10 +218,10 @@ namespace Wayfarer.Pages.Components
         protected async Task MoveToSpot(string spotId)
         {
             Console.WriteLine($"[LocationContent] Moving to spot: {spotId}");
-            
+
             // Call GameFacade to move to the spot (free movement within location)
             bool success = GameFacade.MoveToSpot(spotId);
-            
+
             if (success)
             {
                 Console.WriteLine($"[LocationContent] Successfully moved to spot {spotId}");
@@ -250,9 +250,9 @@ namespace Wayfarer.Pages.Components
         protected async Task PerformWork()
         {
             Console.WriteLine("[LocationContent] Performing work action");
-            
-            var result = await GameFacade.PerformWork();
-            
+
+            WorkResult result = await GameFacade.PerformWork();
+
             if (result.Success)
             {
                 Console.WriteLine($"[LocationContent] Work successful: {result.Message}");
@@ -290,7 +290,7 @@ namespace Wayfarer.Pages.Components
                 _ => ""
             };
         }
-        
+
         protected List<NPC> GetNPCsAtSpot(string spotId)
         {
             // For the current spot, use the cached NPCs
@@ -298,49 +298,49 @@ namespace Wayfarer.Pages.Components
             {
                 return NPCsAtSpot;
             }
-            
+
             // For other spots, get all NPCs at the current location and filter by spot
-            var currentLocation = GameFacade.GetCurrentLocation();
+            Location currentLocation = GameFacade.GetCurrentLocation();
             if (currentLocation == null) return new List<NPC>();
-            
+
             // Get the spot we're checking
-            var spot = currentLocation.Spots?.FirstOrDefault(s => s.Name == spotId);
+            LocationSpot? spot = currentLocation.Spots?.FirstOrDefault(s => s.Name == spotId);
             if (spot == null) return new List<NPC>();
-            
+
             // Get ALL NPCs at this location and filter by SpotId
-            var npcsAtLocation = GameFacade.GetNPCsAtLocation(currentLocation.Id);
+            List<NPC> npcsAtLocation = GameFacade.GetNPCsAtLocation(currentLocation.Id);
             return npcsAtLocation.Where(n => n.SpotId == spot.SpotID).ToList();
         }
-        
+
         protected bool HasUrgentLetter(string npcId)
         {
             // Check if NPC has urgent letter in queue position 1
-            var queueManager = GameFacade.GetObligationQueueManager();
+            Subsystems.ObligationSubsystem.ObligationFacade queueManager = GameFacade.GetObligationQueueManager();
             if (queueManager == null) return false;
-            
-            var obligations = queueManager.GetActiveObligations();
+
+            DeliveryObligation[] obligations = queueManager.GetActiveObligations();
             if (obligations == null || !obligations.Any()) return false;
-            
+
             // Check if position 1 has this NPC's letter
-            var firstObligation = obligations.FirstOrDefault();
-            return firstObligation != null && 
+            DeliveryObligation? firstObligation = obligations.FirstOrDefault();
+            return firstObligation != null &&
                    (firstObligation.SenderId == npcId || firstObligation.SenderName == GetNPCName(npcId)) &&
                    firstObligation.DeadlineInMinutes < 360; // Urgent if less than 6 hours
         }
-        
+
         protected string GetNPCName(string npcId)
         {
-            var npc = GameFacade.GetNPCById(npcId);
+            NPC npc = GameFacade.GetNPCById(npcId);
             return npc?.Name ?? "";
         }
-        
+
         protected string GetNPCStateDisplay(NPC npc)
         {
             // Get display text for NPC emotional state
-            var emotionalState = GameFacade.GetNPCEmotionalState(npc.ID);
+            EmotionalState emotionalState = GameFacade.GetNPCEmotionalState(npc.ID);
             return emotionalState.ToString();
         }
-        
+
         protected string GetConversationLabel(ConversationType type)
         {
             return type switch
@@ -365,20 +365,20 @@ namespace Wayfarer.Pages.Components
             else
                 return "normal";
         }
-        
+
         protected string GetNPCDescription(NpcViewModel npc)
         {
             // Get the actual NPC object to access its description from JSON data
-            var actualNPC = GameFacade.GetNPCById(npc.Id);
+            NPC actualNPC = GameFacade.GetNPCById(npc.Id);
             if (actualNPC != null && !string.IsNullOrEmpty(actualNPC.Description))
             {
                 return actualNPC.Description;
             }
-            
+
             // Fallback to generic descriptions if no specific description is available
-            var state = npc.EmotionalState?.ToLower();
-            var personality = npc.PersonalityType?.ToLower();
-            
+            string? state = npc.EmotionalState?.ToLower();
+            string? personality = npc.PersonalityType?.ToLower();
+
             if (state == "hostile")
             {
                 return "Glaring at anyone who approaches, clearly not in a talking mood.";
@@ -396,15 +396,15 @@ namespace Wayfarer.Pages.Components
                 return "Focused on the task at hand.";
             }
         }
-        
+
         protected string GetDeadlineText(int deadlineInMinutes)
         {
             if (deadlineInMinutes <= 0)
                 return "EXPIRED!";
-            
+
             int hours = deadlineInMinutes / 60;
             int minutes = deadlineInMinutes % 60;
-            
+
             if (hours == 0)
                 return $"{minutes}m";
             else if (minutes == 0)
@@ -412,49 +412,49 @@ namespace Wayfarer.Pages.Components
             else
                 return $"{hours}h {minutes}m";
         }
-        
+
         protected string GetTokenCount(string npcId, ConnectionType tokenType)
         {
             // This would get the actual token count from the ConnectionTokenManager
             // For now returning placeholder
             return "0";
         }
-        
+
         protected string GetTokenEffect(string npcId, ConnectionType tokenType)
         {
             // This would calculate the effect based on token count
             // For now returning placeholder
             return "+0%";
         }
-        
+
         protected string GetNPCPersonalityDescription(NpcViewModel npc)
         {
             // Format personality type for display
             if (string.IsNullOrEmpty(npc.PersonalityType))
                 return "";
-                
+
             return $"{npc.PersonalityType} type";
         }
-        
+
         protected bool HasLetterGoal(string npcId)
         {
             // Check if this NPC has an active letter goal
             // This would check against the game state
             return false;
         }
-        
+
         protected int GetBurdenCount(string npcId)
         {
             // Get burden count for this NPC
             // This would check against the game state
             return 0;
         }
-        
+
         protected int GetPatience(NpcViewModel npc, LocationSpot spot)
         {
             // Get base patience based on personality
             int basePatience = GetBasePatience(npc);
-            
+
             // Apply spot modifiers
             if (spot?.Properties != null)
             {
@@ -463,50 +463,50 @@ namespace Wayfarer.Pages.Components
                 else if (spot.Properties.Contains("Private"))
                     basePatience += 1;
             }
-            
+
             return Math.Max(1, basePatience); // Minimum 1 patience
         }
-        
+
         protected string GetTimeOfDayTrait()
         {
             // Show time-specific location traits based on current time and location context
-            var timeStr = CurrentTime switch
+            string timeStr = CurrentTime switch
             {
                 TimeBlocks.Dawn => "Dawn",
-                TimeBlocks.Morning => "Morning", 
+                TimeBlocks.Morning => "Morning",
                 TimeBlocks.Afternoon => "Afternoon",
                 TimeBlocks.Evening => "Evening",
                 TimeBlocks.Night => "Night",
                 TimeBlocks.LateNight => "Late Night",
                 _ => "Unknown"
             };
-            
+
             // Add context-specific modifiers based on location and time
-            var modifier = GetLocationTimeModifier();
-            
+            string modifier = GetLocationTimeModifier();
+
             return string.IsNullOrEmpty(modifier) ? timeStr : $"{timeStr}: {modifier}";
         }
-        
+
         protected string GetLocationTimeModifier()
         {
             // Generate time-specific location traits based on location type and current time
             if (CurrentLocation == null) return "";
-            
-            var locationName = CurrentLocation.Name?.ToLower() ?? "";
-            
+
+            string locationName = CurrentLocation.Name?.ToLower() ?? "";
+
             // Market locations during different times
             if (locationName.Contains("market") || locationName.Contains("square"))
             {
                 return CurrentTime switch
                 {
                     TimeBlocks.Morning => "Opening",
-                    TimeBlocks.Afternoon => "Busy", 
+                    TimeBlocks.Afternoon => "Busy",
                     TimeBlocks.Evening => "Closing",
                     TimeBlocks.Night => "Empty",
                     _ => ""
                 };
             }
-            
+
             // Tavern locations
             if (locationName.Contains("tavern") || locationName.Contains("kettle"))
             {
@@ -515,27 +515,27 @@ namespace Wayfarer.Pages.Components
                     TimeBlocks.Morning => "Quiet",
                     TimeBlocks.Afternoon => "Quiet",
                     TimeBlocks.Evening => "Busy",
-                    TimeBlocks.Night => "Lively", 
+                    TimeBlocks.Night => "Lively",
                     _ => ""
                 };
             }
-            
+
             // Noble/Manor locations
             if (locationName.Contains("noble") || locationName.Contains("manor"))
             {
                 return CurrentTime switch
                 {
                     TimeBlocks.Morning => "Formal",
-                    TimeBlocks.Afternoon => "Active", 
+                    TimeBlocks.Afternoon => "Active",
                     TimeBlocks.Evening => "Reception",
                     TimeBlocks.Night => "Private",
                     _ => ""
                 };
             }
-            
+
             return "";
         }
-        
+
         protected string GetObservationReward(LocationObservationViewModel obs)
         {
             // Generate state transition display based on observation type and name
@@ -543,10 +543,10 @@ namespace Wayfarer.Pages.Components
             {
                 // For now, use type-based logic and name analysis to generate realistic transitions
                 // This matches the mockup which shows context-appropriate state transitions
-                
-                var name = obs.Name?.ToLower() ?? "";
-                var type = obs.Type?.ToLower() ?? "";
-                
+
+                string name = obs.Name?.ToLower() ?? "";
+                string type = obs.Type?.ToLower() ?? "";
+
                 // Analyze observation name for context clues
                 if (name.Contains("checkpoint") || name.Contains("guard"))
                 {
@@ -564,12 +564,12 @@ namespace Wayfarer.Pages.Components
                 {
                     return "Desperate→Open";
                 }
-                
+
                 // Fall back to type-based display
                 return type switch
                 {
                     "authority" => "Any→Tense",
-                    "commerce" => "Tense→Eager", 
+                    "commerce" => "Tense→Eager",
                     "social" => "Neutral→Open",
                     "secret" => "Any→Shadow",
                     _ => "Any→Neutral"
@@ -581,20 +581,20 @@ namespace Wayfarer.Pages.Components
                 return "Any→Neutral";
             }
         }
-        
+
         protected string GetSpotTraitClass(SpotPropertyType prop)
         {
             // Return a CSS class based on the property type
             return prop.ToString().ToLower().Replace("_", "-");
         }
-        
+
         protected string GetSpotTraitDisplay(SpotPropertyType prop)
         {
             // Display spot properties with their mechanical effects
             return prop switch
             {
                 SpotPropertyType.Private => "Private (+1 patience)",
-                SpotPropertyType.Public => "Public (-1 patience)", 
+                SpotPropertyType.Public => "Public (-1 patience)",
                 SpotPropertyType.Discrete => "Discrete (+1 patience)",
                 SpotPropertyType.Exposed => "Exposed (-1 patience)",
                 SpotPropertyType.Crossroads => "Crossroads",
@@ -605,8 +605,8 @@ namespace Wayfarer.Pages.Components
                 _ => prop.ToString()
             };
         }
-        
-        
+
+
         protected int GetBasePatience(NpcViewModel npc)
         {
             // Base patience by personality type

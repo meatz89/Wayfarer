@@ -36,17 +36,17 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public DisplacementResult CalculateDisplacement(string obligationId, int targetPosition)
         {
-            var result = new DisplacementResult();
+            DisplacementResult result = new DisplacementResult();
 
             // Find the obligation in the queue
-            var obligation = FindObligationById(obligationId);
+            DeliveryObligation obligation = FindObligationById(obligationId);
             if (obligation == null)
             {
                 result.ErrorMessage = "Obligation not found in queue";
                 return result;
             }
 
-            var currentPosition = GetQueuePosition(obligation);
+            int currentPosition = GetQueuePosition(obligation);
             if (currentPosition <= 0)
             {
                 result.ErrorMessage = "Unable to determine obligation position";
@@ -54,7 +54,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Validate displacement parameters
-            var validation = ValidateDisplacementRequest(obligation, currentPosition, targetPosition);
+            DisplacementResult validation = ValidateDisplacementRequest(obligation, currentPosition, targetPosition);
             if (!validation.CanExecute)
             {
                 result.ErrorMessage = validation.ErrorMessage;
@@ -62,7 +62,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Calculate displacement plan
-            var displacementPlan = CreateDisplacementPlan(obligation, currentPosition, targetPosition);
+            ObligationDisplacementPlan displacementPlan = CreateDisplacementPlan(obligation, currentPosition, targetPosition);
             result.DisplacementPlan = displacementPlan;
 
             // Check token availability
@@ -83,7 +83,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public DisplacementResult ExecuteDisplacement(DisplacementResult displacementResult)
         {
-            var result = new DisplacementResult();
+            DisplacementResult result = new DisplacementResult();
 
             if (!displacementResult.CanExecute || displacementResult.DisplacementPlan == null)
             {
@@ -91,7 +91,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return result;
             }
 
-            var plan = displacementResult.DisplacementPlan;
+            ObligationDisplacementPlan plan = displacementResult.DisplacementPlan;
 
             _messageSystem.AddSystemMessage(
                 $"🔥 BURNING TOKENS: Moving {plan.ObligationToMove.SenderName}'s letter from position {plan.OriginalPosition} to {plan.TargetPosition}",
@@ -99,7 +99,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             );
 
             // Execute token burning for each displaced obligation
-            foreach (var displacement in plan.Displacements)
+            foreach (ObligationDisplacement displacement in plan.Displacements)
             {
                 if (!BurnTokensForDisplacement(displacement))
                 {
@@ -133,7 +133,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public DisplacementResult ExecuteAutomaticDisplacement(DeliveryObligation newObligation, int forcedPosition, string displacementReason)
         {
-            var result = new DisplacementResult();
+            DisplacementResult result = new DisplacementResult();
 
             if (newObligation == null || forcedPosition < 1 || forcedPosition > _config.LetterQueue.MaxQueueSize)
             {
@@ -141,7 +141,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return result;
             }
 
-            var queue = GetPlayerQueue();
+            DeliveryObligation[] queue = GetPlayerQueue();
 
             // Announce the forced displacement
             _messageSystem.AddSystemMessage(
@@ -157,8 +157,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             if (queue[forcedPosition - 1] != null)
             {
                 // Calculate displacement cascade
-                var displacementInfo = CalculateAutomaticDisplacementCascade(queue, forcedPosition);
-                
+                AutoDisplacementInfo displacementInfo = CalculateAutomaticDisplacementCascade(queue, forcedPosition);
+
                 if (displacementInfo.DisplacedObligations.Any())
                 {
                     _messageSystem.AddSystemMessage(
@@ -167,7 +167,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     );
 
                     // Burn tokens for each displaced obligation
-                    foreach (var displaced in displacementInfo.DisplacedObligations)
+                    foreach (DisplacedObligation displaced in displacementInfo.DisplacedObligations)
                     {
                         BurnTokensForAutomaticDisplacement(displaced.Obligation, displaced.DisplacementAmount);
                     }
@@ -200,9 +200,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public QueueDisplacementPreview GetDisplacementPreview(string obligationId, int targetPosition)
         {
-            var displacementResult = CalculateDisplacement(obligationId, targetPosition);
+            DisplacementResult displacementResult = CalculateDisplacement(obligationId, targetPosition);
 
-            var preview = new QueueDisplacementPreview
+            QueueDisplacementPreview preview = new QueueDisplacementPreview
             {
                 CanExecute = displacementResult.CanExecute,
                 ErrorMessage = displacementResult.ErrorMessage,
@@ -212,7 +212,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             if (displacementResult.DisplacementPlan != null)
             {
-                foreach (var displacement in displacementResult.DisplacementPlan.Displacements)
+                foreach (ObligationDisplacement displacement in displacementResult.DisplacementPlan.Displacements)
                 {
                     preview.DisplacementDetails.Add(new DisplacementDetail
                     {
@@ -233,7 +233,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public bool CanAffordDisplacement(string obligationId, int targetPosition)
         {
-            var displacementResult = CalculateDisplacement(obligationId, targetPosition);
+            DisplacementResult displacementResult = CalculateDisplacement(obligationId, targetPosition);
             return displacementResult.CanExecute;
         }
 
@@ -242,7 +242,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public int CalculateDisplacementCost(string obligationId, int targetPosition)
         {
-            var displacementResult = CalculateDisplacement(obligationId, targetPosition);
+            DisplacementResult displacementResult = CalculateDisplacement(obligationId, targetPosition);
             return displacementResult.TotalTokenCost;
         }
 
@@ -251,12 +251,12 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public List<string> GetAffectedNPCs(string obligationId, int targetPosition)
         {
-            var displacementResult = CalculateDisplacement(obligationId, targetPosition);
-            var affectedNPCs = new List<string>();
+            DisplacementResult displacementResult = CalculateDisplacement(obligationId, targetPosition);
+            List<string> affectedNPCs = new List<string>();
 
             if (displacementResult.DisplacementPlan != null)
             {
-                foreach (var displacement in displacementResult.DisplacementPlan.Displacements)
+                foreach (ObligationDisplacement displacement in displacementResult.DisplacementPlan.Displacements)
                 {
                     affectedNPCs.Add(displacement.DisplacedObligation.SenderName);
                 }
@@ -269,7 +269,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private DisplacementResult ValidateDisplacementRequest(DeliveryObligation obligation, int currentPosition, int targetPosition)
         {
-            var result = new DisplacementResult();
+            DisplacementResult result = new DisplacementResult();
 
             // Can't displace backwards (position must be lower number = earlier in queue)
             if (targetPosition >= currentPosition)
@@ -293,23 +293,23 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private ObligationDisplacementPlan CreateDisplacementPlan(DeliveryObligation obligation, int currentPosition, int targetPosition)
         {
-            var plan = new ObligationDisplacementPlan
+            ObligationDisplacementPlan plan = new ObligationDisplacementPlan
             {
                 ObligationToMove = obligation,
                 OriginalPosition = currentPosition,
                 TargetPosition = targetPosition
             };
 
-            var queue = GetPlayerQueue();
+            DeliveryObligation[] queue = GetPlayerQueue();
             int positionsJumped = currentPosition - targetPosition;
 
             // Each obligation that gets displaced costs tokens equal to the jump distance
             for (int pos = targetPosition; pos < currentPosition; pos++)
             {
-                var displacedObligation = queue[pos - 1];
+                DeliveryObligation displacedObligation = queue[pos - 1];
                 if (displacedObligation != null)
                 {
-                    var displacement = new ObligationDisplacement
+                    ObligationDisplacement displacement = new ObligationDisplacement
                     {
                         DisplacedObligation = displacedObligation,
                         OriginalPosition = pos,
@@ -327,13 +327,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private bool ValidateTokenAvailability(ObligationDisplacementPlan plan)
         {
-            foreach (var displacement in plan.Displacements)
+            foreach (ObligationDisplacement displacement in plan.Displacements)
             {
-                var npcId = GetNPCIdByName(displacement.DisplacedObligation.SenderName);
+                string npcId = GetNPCIdByName(displacement.DisplacedObligation.SenderName);
                 if (string.IsNullOrEmpty(npcId)) continue;
 
-                var tokens = _tokenManager.GetTokensWithNPC(npcId);
-                var availableTokens = tokens.GetValueOrDefault(displacement.DisplacedObligation.TokenType, 0);
+                Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
+                int availableTokens = tokens.GetValueOrDefault(displacement.DisplacedObligation.TokenType, 0);
 
                 if (availableTokens < displacement.TokenCost)
                 {
@@ -345,11 +345,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private Dictionary<ConnectionType, int> CalculateRequiredTokens(ObligationDisplacementPlan plan)
         {
-            var required = new Dictionary<ConnectionType, int>();
+            Dictionary<ConnectionType, int> required = new Dictionary<ConnectionType, int>();
 
-            foreach (var displacement in plan.Displacements)
+            foreach (ObligationDisplacement displacement in plan.Displacements)
             {
-                var tokenType = displacement.DisplacedObligation.TokenType;
+                ConnectionType tokenType = displacement.DisplacedObligation.TokenType;
                 if (!required.ContainsKey(tokenType))
                 {
                     required[tokenType] = 0;
@@ -362,10 +362,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private bool BurnTokensForDisplacement(ObligationDisplacement displacement)
         {
-            var npcId = GetNPCIdByName(displacement.DisplacedObligation.SenderName);
+            string npcId = GetNPCIdByName(displacement.DisplacedObligation.SenderName);
             if (string.IsNullOrEmpty(npcId)) return false;
 
-            var success = _tokenManager.SpendTokensWithNPC(
+            bool success = _tokenManager.SpendTokensWithNPC(
                 displacement.DisplacedObligation.TokenType,
                 displacement.TokenCost,
                 npcId
@@ -394,7 +394,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void PerformQueueDisplacement(ObligationDisplacementPlan plan)
         {
-            var queue = GetPlayerQueue();
+            DeliveryObligation[] queue = GetPlayerQueue();
 
             // Remove the obligation from its current position
             queue[plan.OriginalPosition - 1] = null;
@@ -404,7 +404,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             {
                 if (queue[pos - 1] != null)
                 {
-                    var shiftedObligation = queue[pos - 1];
+                    DeliveryObligation shiftedObligation = queue[pos - 1];
                     queue[pos] = shiftedObligation;
                     shiftedObligation.QueuePosition = pos + 1;
                 }
@@ -417,7 +417,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private AutoDisplacementInfo CalculateAutomaticDisplacementCascade(DeliveryObligation[] queue, int forcedPosition)
         {
-            var info = new AutoDisplacementInfo
+            AutoDisplacementInfo info = new AutoDisplacementInfo
             {
                 ShouldForceDisplacement = true,
                 ForcedPosition = forcedPosition,
@@ -456,15 +456,15 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void BurnTokensForAutomaticDisplacement(DeliveryObligation displacedObligation, int positionsDisplaced)
         {
-            var npcId = GetNPCIdByName(displacedObligation.SenderName);
+            string npcId = GetNPCIdByName(displacedObligation.SenderName);
             if (string.IsNullOrEmpty(npcId)) return;
 
             // Calculate token cost based on displacement distance (capped at 3)
             int tokenCost = Math.Min(3, positionsDisplaced);
 
             // Try to burn tokens with this NPC
-            var tokens = _tokenManager.GetTokensWithNPC(npcId);
-            var availableTokens = tokens.GetValueOrDefault(displacedObligation.TokenType, 0);
+            Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
+            int availableTokens = tokens.GetValueOrDefault(displacedObligation.TokenType, 0);
 
             if (availableTokens >= tokenCost)
             {
@@ -508,7 +508,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Place displaced obligations in their new positions
-            foreach (var displaced in displacedObligations)
+            foreach (DisplacedObligation displaced in displacedObligations)
             {
                 if (displaced.NewPosition > 0 && displaced.NewPosition <= _config.LetterQueue.MaxQueueSize)
                 {
@@ -543,7 +543,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             // This would add a burden card to the NPC's conversation deck
             // Burden cards represent damaged relationships and make future interactions harder
             // Implementation would depend on the card system architecture
-            
+
             _messageSystem.AddSystemMessage(
                 $"⚡ Added burden card to affect future interactions with {GetNPCNameById(npcId)}",
                 SystemMessageTypes.Warning
@@ -558,8 +558,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             );
 
             // Apply relationship damage for overflow
-            var senderId = GetNPCIdByName(overflowObligation.SenderName);
-            var tokenPenalty = 2; // Same penalty as expiration
+            string senderId = GetNPCIdByName(overflowObligation.SenderName);
+            int tokenPenalty = 2; // Same penalty as expiration
 
             _tokenManager.RemoveTokensFromNPC(overflowObligation.TokenType, tokenPenalty, senderId);
 
@@ -588,7 +588,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void RecordOverflowInHistory(string senderId)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             if (!player.NPCLetterHistory.ContainsKey(senderId))
             {
                 player.NPCLetterHistory[senderId] = new LetterHistory();
@@ -603,7 +603,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private DeliveryObligation[] GetActiveObligations()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             return player.ObligationQueue.Where(o => o != null).ToArray();
         }
 
@@ -616,7 +616,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         {
             if (obligation == null) return -1;
 
-            var queue = GetPlayerQueue();
+            DeliveryObligation[] queue = GetPlayerQueue();
             for (int i = 0; i < queue.Length; i++)
             {
                 if (queue[i]?.Id == obligation.Id)
@@ -630,13 +630,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private string GetNPCIdByName(string npcName)
         {
-            var npc = _npcRepository.GetByName(npcName);
+            NPC npc = _npcRepository.GetByName(npcName);
             return npc?.ID ?? "";
         }
 
         private string GetNPCNameById(string npcId)
         {
-            var npc = _npcRepository.GetById(npcId);
+            NPC npc = _npcRepository.GetById(npcId);
             return npc?.Name ?? "Unknown";
         }
     }

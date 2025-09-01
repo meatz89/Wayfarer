@@ -82,11 +82,11 @@ public class RouteRepository : IRouteRepository
     public IEnumerable<RouteOption> GetAvailableRoutes(string fromLocationId, Player player)
     {
         // Get routes from the player's current spot
-        var currentSpot = player.CurrentLocationSpot;
+        LocationSpot currentSpot = player.CurrentLocationSpot;
         if (currentSpot == null) return new List<RouteOption>();
-        
+
         // Get all routes that start from the current spot
-        var allRoutes = GetAll().Where(r => r.OriginLocationSpot == currentSpot.SpotID);
+        IEnumerable<RouteOption> allRoutes = GetAll().Where(r => r.OriginLocationSpot == currentSpot.SpotID);
         List<RouteOption> availableRoutes = new List<RouteOption>();
 
         foreach (RouteOption route in allRoutes)

@@ -29,7 +29,7 @@ public partial class LocationScreen : ComponentBase
 
     // View Model
     private LocationScreenViewModel Model { get; set; }
-    
+
     // Modal state
     private bool ShowTravelModal { get; set; }
 
@@ -51,10 +51,10 @@ public partial class LocationScreen : ComponentBase
 
     private async Task ExecuteAction(LocationActionViewModel action)
     {
-        var intent = CreateIntentFromAction(action);
+        PlayerIntent intent = CreateIntentFromAction(action);
         if (intent != null)
         {
-            var result = await GameFacade.ProcessIntent(intent);
+            bool result = await GameFacade.ProcessIntent(intent);
             if (result)
             {
                 await HandleActionExecuted();
@@ -92,7 +92,7 @@ public partial class LocationScreen : ComponentBase
         {
             // ConversationContext is now passed directly to ConversationScreen
             // No need to store state in NavigationCoordinator
-            
+
             // Only navigate if conversation was successfully started
             await OnNavigate.InvokeAsync(CurrentViews.ConversationScreen);
         }
@@ -105,7 +105,7 @@ public partial class LocationScreen : ComponentBase
     private async Task TravelTo(RouteOptionViewModel route)
     {
         Console.WriteLine($"[LocationScreen.TravelTo] Starting travel to {route.Destination}");
-        
+
         // Routes represent actual inter-location travel paths
         if (string.IsNullOrEmpty(route.RouteId))
         {
@@ -114,7 +114,7 @@ public partial class LocationScreen : ComponentBase
         }
 
         Console.WriteLine($"[LocationScreen.TravelTo] Using RouteId: {route.RouteId}");
-        
+
         // Use TravelIntent for inter-location movement
         TravelIntent travelIntent = new TravelIntent(route.RouteId);
         bool success = await GameFacade.ProcessIntent(travelIntent);
@@ -132,7 +132,7 @@ public partial class LocationScreen : ComponentBase
 
         await HandleActionExecuted();
     }
-    
+
     private async Task NavigateToArea(AreaWithinLocationViewModel area)
     {
         if (!area.IsCurrent && !string.IsNullOrEmpty(area.SpotId))
@@ -140,7 +140,7 @@ public partial class LocationScreen : ComponentBase
             // Navigate to area within location (no travel time)
             MoveIntent moveIntent = new MoveIntent(area.SpotId);
             bool success = await GameFacade.ProcessIntent(moveIntent);
-            
+
             if (success)
             {
                 Console.WriteLine($"[LocationScreen] Successfully moved to {area.Name}");
@@ -183,7 +183,7 @@ public partial class LocationScreen : ComponentBase
             await OnActionExecuted.InvokeAsync();
         }
     }
-    
+
     // Modal handling methods
     private void OpenTravelModal()
     {
@@ -205,25 +205,47 @@ public partial class LocationScreen : ComponentBase
     }
 
     // Resource display methods for unified header
-    protected int GetPlayerCoins() => GameFacade?.GetPlayer()?.Coins ?? 0;
-    protected int GetPlayerHealth() => GameFacade?.GetPlayer()?.Health ?? 0;
-    protected int GetPlayerHunger() => GameFacade?.GetPlayer()?.Food ?? 0;
-    
+    protected int GetPlayerCoins()
+    {
+        return GameFacade?.GetPlayer()?.Coins ?? 0;
+    }
+
+    protected int GetPlayerHealth()
+    {
+        return GameFacade?.GetPlayer()?.Health ?? 0;
+    }
+
+    protected int GetPlayerHunger()
+    {
+        return GameFacade?.GetPlayer()?.Food ?? 0;
+    }
+
     protected int GetPlayerAttention()
     {
-        var attentionState = GameFacade?.GetCurrentAttentionState();
+        AttentionStateInfo? attentionState = GameFacade?.GetCurrentAttentionState();
         return attentionState?.Current ?? 0;
     }
-    
+
     protected int GetMaxAttention()
     {
-        var attentionState = GameFacade?.GetCurrentAttentionState();
+        AttentionStateInfo? attentionState = GameFacade?.GetCurrentAttentionState();
         return attentionState?.Max ?? 10;
     }
-    
-    protected string GetCurrentTimeDisplay() => Model?.CurrentTime ?? "";
-    protected string GetCurrentTimeBlock() => TimeManager?.GetCurrentTimeBlock().ToString() ?? "";
-    protected string GetUrgentDeadline() => Model?.DeadlineTimer;
+
+    protected string GetCurrentTimeDisplay()
+    {
+        return Model?.CurrentTime ?? "";
+    }
+
+    protected string GetCurrentTimeBlock()
+    {
+        return TimeManager?.GetCurrentTimeBlock().ToString() ?? "";
+    }
+
+    protected string GetUrgentDeadline()
+    {
+        return Model?.DeadlineTimer;
+    }
 
     private async Task TakeObservation(ObservationViewModel observation)
     {
@@ -247,14 +269,14 @@ public partial class LocationScreen : ComponentBase
 
         Console.WriteLine($"[LocationScreen] Taking observation: {observation.Id}");
         bool success = await GameFacade.TakeObservationAsync(observation.Id);
-        
+
         if (success)
         {
             await LoadLocation(); // Refresh the location to update observation status
             await HandleActionExecuted();
         }
     }
-    
+
     private async Task OpenObligationQueue()
     {
         Console.WriteLine("[LocationScreen] OpenObligationQueue called");
@@ -264,7 +286,7 @@ public partial class LocationScreen : ComponentBase
             await OnNavigate.InvokeAsync(CurrentViews.ObligationQueueScreen);
         }
     }
-    
+
     // Obligation display helpers
     private class ObligationItem
     {
@@ -273,27 +295,27 @@ public partial class LocationScreen : ComponentBase
         public string Time { get; set; }
         public int DeadlineInMinutes { get; set; }
     }
-    
+
     private bool HasActiveObligations()
     {
-        var deliveries = QueueManager?.GetPlayerQueue();
-        var meetings = QueueManager?.GetActiveMeetingObligations();
+        DeliveryObligation[]? deliveries = QueueManager?.GetPlayerQueue();
+        List<MeetingObligation>? meetings = QueueManager?.GetActiveMeetingObligations();
         return (deliveries?.Any(d => d?.DeadlineInMinutes > 0) == true) ||
                (meetings?.Any(m => m?.DeadlineInMinutes > 0) == true);
     }
-    
+
     private List<ObligationItem> GetTopObligations()
     {
-        var obligations = new List<ObligationItem>();
-        
+        List<ObligationItem> obligations = new List<ObligationItem>();
+
         // Add delivery obligations
-        var deliveries = QueueManager?.GetPlayerQueue();
+        DeliveryObligation[]? deliveries = QueueManager?.GetPlayerQueue();
         if (deliveries != null)
         {
-            foreach (var d in deliveries.Where(d => d?.DeadlineInMinutes > 0).Take(2))
+            foreach (DeliveryObligation? d in deliveries.Where(d => d?.DeadlineInMinutes > 0).Take(2))
             {
-                var npc = NPCRepository.GetByName(d.RecipientName);
-                var location = npc != null ? GameFacade.GetLocationById(npc.Location) : null;
+                NPC npc = NPCRepository.GetByName(d.RecipientName);
+                Location? location = npc != null ? GameFacade.GetLocationById(npc.Location) : null;
                 obligations.Add(new ObligationItem
                 {
                     Action = "Deliver",
@@ -303,15 +325,15 @@ public partial class LocationScreen : ComponentBase
                 });
             }
         }
-        
+
         // Add meeting obligations
-        var meetings = QueueManager?.GetActiveMeetingObligations();
+        List<MeetingObligation>? meetings = QueueManager?.GetActiveMeetingObligations();
         if (meetings != null)
         {
-            foreach (var m in meetings.Where(m => m?.DeadlineInMinutes > 0).Take(1))
+            foreach (MeetingObligation? m in meetings.Where(m => m?.DeadlineInMinutes > 0).Take(1))
             {
-                var npc = NPCRepository.GetByName(m.RequesterName);
-                var location = npc != null ? GameFacade.GetLocationById(npc.Location) : null;
+                NPC npc = NPCRepository.GetByName(m.RequesterName);
+                Location? location = npc != null ? GameFacade.GetLocationById(npc.Location) : null;
                 obligations.Add(new ObligationItem
                 {
                     Action = "Meet",
@@ -321,32 +343,32 @@ public partial class LocationScreen : ComponentBase
                 });
             }
         }
-        
+
         // Sort by deadline and take top 3
         return obligations
             .OrderBy(o => o.DeadlineInMinutes)
             .Take(3)
             .ToList();
     }
-    
+
     private string GetObligationClass(ObligationItem item)
     {
         if (item.DeadlineInMinutes <= 120) return "critical"; // 2 hours
         if (item.DeadlineInMinutes <= 480) return "urgent"; // 8 hours
         return "normal";
     }
-    
+
     private string FormatDeadlineTime(int minutes)
     {
         if (minutes <= 0) return "EXPIRED";
         if (minutes < 60) return $"{minutes}m";
         if (minutes < 120) return $"1h {minutes - 60}m";
         if (minutes < 1440) return $"{minutes / 60}h";
-        
+
         int days = minutes / 1440;
         return days == 1 ? "Tomorrow" : $"{days} days";
     }
-    
+
     private async Task NavigateToLetterQueue()
     {
         if (OnNavigate.HasDelegate)

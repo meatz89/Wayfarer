@@ -35,10 +35,10 @@ namespace Wayfarer.Pages
             {
                 // ConversationType is now passed directly as parameter
                 // No need to get from NavigationCoordinator
-                
+
                 // Get any observation cards from GameFacade
-                var observationCards = GetObservationCards();
-                
+                List<CardInstance> observationCards = GetObservationCards();
+
                 // Start the conversation with the specified type
                 Session = ConversationFacade.StartConversation(NpcId, ConversationType, observationCards);
             }
@@ -70,7 +70,7 @@ namespace Wayfarer.Pages
             else if (CanSelectCard(card))
             {
                 // Check if we can add this card
-                var tempSelection = new HashSet<CardInstance>(SelectedCards) { card };
+                HashSet<CardInstance> tempSelection = new HashSet<CardInstance>(SelectedCards) { card };
                 if (ConversationFacade.CanSelectCard(card, SelectedCards))
                 {
                     SelectedCards.Add(card);
@@ -94,7 +94,7 @@ namespace Wayfarer.Pages
                 await OnConversationEnd.InvokeAsync();
                 return;
             }
-            
+
             if (SelectedAction == ActionType.Listen)
             {
                 ConversationFacade.ExecuteListen();
@@ -107,16 +107,16 @@ namespace Wayfarer.Pages
             }
 
             SelectedAction = ActionType.None;
-            
+
             // Check if conversation ended
             if (!ConversationFacade.IsConversationActive())
             {
-                var outcome = Session.CheckThresholds();
+                ConversationOutcome outcome = Session.CheckThresholds();
                 // Show outcome and navigate back
                 await Task.Delay(2000);
                 await OnConversationEnd.InvokeAsync();
             }
-            
+
             StateHasChanged();
         }
 
@@ -124,13 +124,13 @@ namespace Wayfarer.Pages
         {
             if (SelectedAction == ActionType.Listen)
                 return true;
-            
+
             if (SelectedAction == ActionType.Speak)
             {
                 // ONE-CARD RULE: Must have exactly one card selected
                 return SelectedCards.Count == 1;
             }
-            
+
             return false;
         }
 
@@ -142,10 +142,10 @@ namespace Wayfarer.Pages
 
         protected string GetUrgentDeadline()
         {
-            var queue = GameFacade.GetLetterQueue();
-            var urgentSlot = queue?.QueueSlots?
+            LetterQueueViewModel queue = GameFacade.GetLetterQueue();
+            QueueSlotViewModel? urgentSlot = queue?.QueueSlots?
                 .FirstOrDefault(s => s.IsOccupied && s.DeliveryObligation?.DeadlineInHours < 6);
-            
+
             if (urgentSlot?.DeliveryObligation != null)
             {
                 return $"{urgentSlot.DeliveryObligation.SenderName}'s letter: {urgentSlot.DeliveryObligation.DeadlineInHours}h remain";
@@ -155,37 +155,37 @@ namespace Wayfarer.Pages
 
         protected List<string> GetLocationPath()
         {
-            var location = GameFacade.GetCurrentLocation();
-            var spot = GameFacade.GetCurrentLocationSpot();
+            Location location = GameFacade.GetCurrentLocation();
+            LocationSpot spot = GameFacade.GetCurrentLocationSpot();
             return new List<string> { location?.Name ?? "Unknown", spot?.Name ?? "Somewhere" };
         }
 
         protected string GetCurrentSpot()
         {
-            var spot = GameFacade.GetCurrentLocationSpot();
+            LocationSpot spot = GameFacade.GetCurrentLocationSpot();
             return spot?.Name ?? "Somewhere";
         }
 
         protected string GetSpotAtmosphere()
         {
-            var spot = GameFacade.GetCurrentLocationSpot();
-            if (spot == null) 
+            LocationSpot spot = GameFacade.GetCurrentLocationSpot();
+            if (spot == null)
             {
                 return "";
             }
 
-            var currentTime = TimeManager.GetCurrentTimeBlock();
-            
+            TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
+
             // Get all active properties (base + time-specific)
-            var activeProperties = new List<SpotPropertyType>(spot.SpotProperties);
+            List<SpotPropertyType> activeProperties = new List<SpotPropertyType>(spot.SpotProperties);
             if (spot.TimeSpecificProperties.ContainsKey(currentTime))
             {
                 activeProperties.AddRange(spot.TimeSpecificProperties[currentTime]);
             }
 
             // Create immersive descriptions based on properties
-            var descriptions = new List<string>();
-            
+            List<string> descriptions = new List<string>();
+
             // Privacy descriptions
             if (activeProperties.Contains(SpotPropertyType.Private))
                 descriptions.Add("away from prying eyes");
@@ -193,44 +193,44 @@ namespace Wayfarer.Pages
                 descriptions.Add("tucked into a quiet corner");
             else if (activeProperties.Contains(SpotPropertyType.Exposed))
                 descriptions.Add("in full view of everyone");
-                
+
             // Atmosphere descriptions
             if (activeProperties.Contains(SpotPropertyType.Quiet))
                 descriptions.Add("peaceful and undisturbed");
             else if (activeProperties.Contains(SpotPropertyType.Loud))
                 descriptions.Add("bustling with activity");
-                
+
             // Comfort descriptions
             if (activeProperties.Contains(SpotPropertyType.Warm))
                 descriptions.Add("warmed by the nearby hearth");
             else if (activeProperties.Contains(SpotPropertyType.Shaded))
                 descriptions.Add("cool in the shade");
-                
+
             // Social descriptions
             if (activeProperties.Contains(SpotPropertyType.Crossroads))
                 descriptions.Add("where paths cross");
             else if (activeProperties.Contains(SpotPropertyType.Isolated))
                 descriptions.Add("removed from the crowds");
-                
+
             // Build final description
             if (descriptions.Count == 0)
                 return "";
-                
+
             if (descriptions.Count == 1)
                 return $"A spot {descriptions[0]}.";
-                
+
             if (descriptions.Count == 2)
                 return $"A spot {descriptions[0]} and {descriptions[1]}.";
-                
+
             // More than 2 descriptions
-            var allButLast = string.Join(", ", descriptions.Take(descriptions.Count - 1));
+            string allButLast = string.Join(", ", descriptions.Take(descriptions.Count - 1));
             return $"A spot {allButLast}, and {descriptions.Last()}.";
         }
-        
+
         protected List<string> GetSpotProperties()
         {
-            var spot = GameFacade.GetCurrentLocationSpot();
-            if (spot == null) 
+            LocationSpot spot = GameFacade.GetCurrentLocationSpot();
+            if (spot == null)
             {
                 Console.WriteLine("[GetSpotProperties] Spot is null");
                 return new List<string>();
@@ -238,16 +238,16 @@ namespace Wayfarer.Pages
 
             Console.WriteLine($"[GetSpotProperties] Spot: {spot.Name}, ID: {spot.SpotID}");
             Console.WriteLine($"[GetSpotProperties] Base properties count: {spot.SpotProperties.Count}");
-            foreach (var prop in spot.SpotProperties)
+            foreach (SpotPropertyType prop in spot.SpotProperties)
             {
                 Console.WriteLine($"[GetSpotProperties] Base property: {prop}");
             }
 
-            var properties = new List<string>();
-            var currentTime = TimeManager.GetCurrentTimeBlock();
-            
+            List<string> properties = new List<string>();
+            TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
+
             // Get all active properties (base + time-specific)
-            var activeProperties = new List<SpotPropertyType>(spot.SpotProperties);
+            List<SpotPropertyType> activeProperties = new List<SpotPropertyType>(spot.SpotProperties);
             if (spot.TimeSpecificProperties.ContainsKey(currentTime))
             {
                 activeProperties.AddRange(spot.TimeSpecificProperties[currentTime]);
@@ -255,7 +255,7 @@ namespace Wayfarer.Pages
 
             // Map relevant properties to display strings
             Console.WriteLine($"[GetSpotProperties] Active properties count: {activeProperties.Count}");
-            foreach (var prop in activeProperties)
+            foreach (SpotPropertyType prop in activeProperties)
             {
                 Console.WriteLine($"[GetSpotProperties] Processing property: {prop}");
                 switch (prop)
@@ -287,10 +287,10 @@ namespace Wayfarer.Pages
 
         protected int GetSpotComfortModifier()
         {
-            var spot = GameFacade.GetCurrentLocationSpot();
+            LocationSpot spot = GameFacade.GetCurrentLocationSpot();
             if (spot == null || Session == null) return 0;
-            
-            var currentTime = TimeManager.GetCurrentTimeBlock();
+
+            TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
             return spot.CalculateComfortModifier(Session.NPC.PersonalityType, currentTime);
         }
 
@@ -301,20 +301,20 @@ namespace Wayfarer.Pages
 
         protected string GetStateDescription()
         {
-            var state = Session.CurrentState;
-            var description = state.ToString();
-            
+            EmotionalState state = Session.CurrentState;
+            string description = state.ToString();
+
             if (state == EmotionalState.DESPERATE)
             {
-                var queue = GameFacade.GetLetterQueue();
-                var urgentSlot = queue?.QueueSlots?
+                LetterQueueViewModel queue = GameFacade.GetLetterQueue();
+                QueueSlotViewModel? urgentSlot = queue?.QueueSlots?
                     .FirstOrDefault(s => s.IsOccupied && s.DeliveryObligation?.SenderName == Session.NPC.Name);
                 if (urgentSlot?.DeliveryObligation != null)
                 {
                     description += $" • Letter deadline in {urgentSlot.DeliveryObligation.DeadlineInHours}h!";
                 }
             }
-            
+
             return description;
         }
 
@@ -326,12 +326,12 @@ namespace Wayfarer.Pages
 
         protected string GetTokenEffect(ConnectionType type)
         {
-            var count = GetTokenCount(type);
+            int count = GetTokenCount(type);
             return type switch
             {
-                ConnectionType.Trust => count >= 2 ? $"+{count/2} turns" : "no bonus",
+                ConnectionType.Trust => count >= 2 ? $"+{count / 2} turns" : "no bonus",
                 ConnectionType.Commerce => count > 0 ? $"+{count} coin mult" : "no bonus",
-                ConnectionType.Status => count > 0 ? $"+{count*3}% success" : "no bonus",
+                ConnectionType.Status => count > 0 ? $"+{count * 3}% success" : "no bonus",
                 ConnectionType.Shadow => count >= 3 ? "protects cards" : "no bonus",
                 _ => "no bonus"
             };
@@ -401,26 +401,26 @@ namespace Wayfarer.Pages
 
         protected string GetCardClasses(CardInstance card)
         {
-            var classes = new List<string>();
-            
+            List<string> classes = new List<string>();
+
             classes.Add(card.Type.ToString().ToLower());
             classes.Add(card.Persistence.ToString().ToLower());
-            
+
             // Add card category class for visual styling
             classes.Add(card.GetCategoryClass());
-            
+
             return string.Join(" ", classes);
         }
-        
+
         protected string GetObservationSourceDisplay(string source)
         {
             if (string.IsNullOrEmpty(source)) return "";
-            
+
             // Convert internal IDs to human-readable text
             return source switch
             {
                 "merchant_negotiations" => "From Observation",
-                "guard_movements" => "From Observation", 
+                "guard_movements" => "From Observation",
                 "noble_gossip" => "From Observation",
                 "worker_complaints" => "From Observation",
                 _ => "From Observation"
@@ -430,14 +430,14 @@ namespace Wayfarer.Pages
         protected string GetStateChangeText(CardInstance card)
         {
             if (card.Category != nameof(CardCategory.State)) return "";
-            
+
             if (card.SuccessState.HasValue)
             {
                 return $"{Session.CurrentState} → {card.SuccessState.Value}";
             }
             return "State change";
         }
-        
+
         protected string GetSuccessEffect(CardInstance card)
         {
             if (card.Category == nameof(CardCategory.State) && card.SuccessState.HasValue)
@@ -456,49 +456,49 @@ namespace Wayfarer.Pages
         {
             if (Session?.NPC == null || ConversationType != ConversationType.Commerce)
                 return null;
-                
+
             // Exchange cards are just regular conversation cards in the hand
             if (Session.HandCards.Count > 0)
             {
                 // Return the first exchange card in hand
                 return Session.HandCards.FirstOrDefault(c => c.IsExchange);
             }
-            
+
             return null;
         }
 
         // DELETED AcceptExchange, DeclineExchange, and CanAffordExchange methods
         // Exchanges now use standard SPEAK action with card selection
-        
+
         // Player Resource Methods
         protected int GetPlayerCoins()
         {
             return GameFacade?.GetPlayer()?.Coins ?? 0;
         }
-        
+
         protected int GetPlayerHealth()
         {
             return GameFacade?.GetPlayer()?.Health ?? 100;
         }
-        
+
         protected int GetPlayerHunger()
         {
             // Hunger is tracked in Player.Food, managed by HungerManager
             return GameFacade?.GetPlayer()?.Food ?? 0;
         }
-        
+
         protected int GetPlayerAttention()
         {
-            var currentTime = TimeManager?.GetCurrentTimeBlock() ?? TimeBlocks.Morning;
-            var attentionMgr = AttentionManager?.GetCurrentAttention(currentTime);
+            TimeBlocks currentTime = TimeManager?.GetCurrentTimeBlock() ?? TimeBlocks.Morning;
+            AttentionManager? attentionMgr = AttentionManager?.GetCurrentAttention(currentTime);
             return attentionMgr?.Current ?? 0;
         }
-        
+
         protected int GetMaxAttention()
         {
             return 10; // Base max attention
         }
-        
+
         protected string GetCurrentTimeBlock()
         {
             return TimeManager?.GetCurrentTimeBlock().ToString() ?? "Unknown";
@@ -517,24 +517,24 @@ namespace Wayfarer.Pages
         {
             if (SelectedAction == ActionType.None)
                 return "Select LISTEN or SPEAK";
-            
+
             if (SelectedAction == ActionType.Listen)
                 return $"Listen to {Session.NPC.Name} (costs 1 turn)";
-            
+
             if (SelectedAction == ActionType.Speak)
             {
                 if (!SelectedCards.Any())
                     return "Choose your response...";
-                
-                var manager = new CardSelectionManager(Session.CurrentState);
-                foreach (var card in SelectedCards)
+
+                CardSelectionManager manager = new CardSelectionManager(Session.CurrentState);
+                foreach (CardInstance card in SelectedCards)
                 {
                     manager.ToggleCard(card);
                 }
-                
+
                 return manager.GetSelectionDescription() + " (costs 1 turn)";
             }
-            
+
             return "Select action";
         }
 
@@ -542,18 +542,18 @@ namespace Wayfarer.Pages
         {
             if (SelectedAction == ActionType.Listen)
             {
-                var rules = ConversationRules.States[Session.CurrentState];
+                ConversationStateRules rules = ConversationRules.States[Session.CurrentState];
                 return $"Draw {rules.CardsOnListen} new thoughts, but fleeting opportunities pass";
             }
-            
+
             if (SelectedAction == ActionType.Speak && SelectedCards.Any())
             {
-                var totalComfort = SelectedCards.Sum(c => c.BaseComfort);
-                var types = SelectedCards.Select(c => c.Type).Distinct();
-                
+                int totalComfort = SelectedCards.Sum(c => c.BaseComfort);
+                IEnumerable<CardType> types = SelectedCards.Select(c => c.Type).Distinct();
+
                 if (types.Count() == 1 && SelectedCards.Count > 1)
                 {
-                    var bonus = SelectedCards.Count switch
+                    int bonus = SelectedCards.Count switch
                     {
                         2 => 2,
                         3 => 5,
@@ -561,10 +561,10 @@ namespace Wayfarer.Pages
                     };
                     return $"Expected: {totalComfort} comfort +{bonus} set bonus! (if all succeed)";
                 }
-                
+
                 return $"Expected: {totalComfort} comfort (if all succeed)";
             }
-            
+
             return $"{Session.CurrentPatience} turns remaining • Each turn advances time";
         }
 
@@ -572,13 +572,13 @@ namespace Wayfarer.Pages
         {
             if (card.Context?.ExchangeData == null)
                 return "Exchange";
-                
-            var exchange = card.Context.ExchangeData;
-            
+
+            ExchangeData exchange = card.Context.ExchangeData;
+
             // Use ExchangeName if available
             if (!string.IsNullOrEmpty(exchange.ExchangeName))
                 return exchange.ExchangeName;
-            
+
             // Use template ID to determine exchange type
             if (!string.IsNullOrEmpty(exchange.TemplateId))
             {
@@ -593,41 +593,41 @@ namespace Wayfarer.Pages
                     _ => "Resource Exchange"
                 };
             }
-            
+
             return "Resource Exchange";
         }
-        
+
         protected string GetExchangeCostText(CardInstance card)
         {
             if (card.Context?.ExchangeData == null)
                 return "";
-                
-            var exchange = card.Context.ExchangeData;
-            var costs = exchange.Cost.Select(c => c.GetDisplayText());
+
+            ExchangeData exchange = card.Context.ExchangeData;
+            IEnumerable<string> costs = exchange.Cost.Select(c => c.GetDisplayText());
             return string.Join(", ", costs);
         }
-        
+
         protected string GetExchangeRewardText(CardInstance card)
         {
             if (card.Context?.ExchangeData == null)
                 return "";
-                
-            var exchange = card.Context.ExchangeData;
-            var rewards = exchange.Reward.Select(r => r.GetDisplayText());
+
+            ExchangeData exchange = card.Context.ExchangeData;
+            IEnumerable<string> rewards = exchange.Reward.Select(r => r.GetDisplayText());
             return string.Join(", ", rewards);
         }
-        
+
         protected bool IsConversationCard(CardInstance card)
         {
             return card.Mechanics == CardMechanicsType.Exchange;
         }
-        
+
         protected string GetCardDisplayName(CardInstance card)
         {
             // Special handling for exchange cards
             if (card.Mechanics == CardMechanicsType.Exchange)
                 return GetConversationCardName(card);
-                
+
             // Generate a display name based on the template ID
             return card.TemplateId switch
             {
@@ -678,14 +678,14 @@ namespace Wayfarer.Pages
         private List<CardInstance> GetObservationCards()
         {
             // Get observation cards from the ObservationManager and convert to card instances
-            var observationCards = ObservationManager.GetObservationCardsAsConversationCards();
+            List<ConversationCard> observationCards = ObservationManager.GetObservationCardsAsConversationCards();
             return observationCards.Select(card => new CardInstance(card, "conversation")).ToList();
         }
 
         protected EmotionalState GetNPCStartingState()
         {
             if (Session?.NPC == null) return EmotionalState.NEUTRAL;
-            
+
             // In the new 5-state system, all conversations start NEUTRAL
             // State changes happen through conversation mechanics
             return EmotionalState.NEUTRAL;
@@ -694,18 +694,18 @@ namespace Wayfarer.Pages
         protected int? GetMinutesUntilDeadline()
         {
             if (Session?.NPC == null) return null;
-            
+
             // Check for meeting obligation first
-            var meeting = GetMeetingObligation();
+            MeetingObligation meeting = GetMeetingObligation();
             if (meeting != null)
             {
                 return meeting.DeadlineInMinutes;
             }
-            
-            var obligations = LetterQueueManager.GetActiveObligations();
-            var npcLetters = obligations.Where(o => o.SenderId == Session.NPC.ID || o.SenderName == Session.NPC.Name);
-            var mostUrgent = npcLetters.OrderBy(o => o.DeadlineInMinutes).FirstOrDefault();
-            
+
+            DeliveryObligation[] obligations = LetterQueueManager.GetActiveObligations();
+            IEnumerable<DeliveryObligation> npcLetters = obligations.Where(o => o.SenderId == Session.NPC.ID || o.SenderName == Session.NPC.Name);
+            DeliveryObligation? mostUrgent = npcLetters.OrderBy(o => o.DeadlineInMinutes).FirstOrDefault();
+
             return mostUrgent?.DeadlineInMinutes;
         }
 

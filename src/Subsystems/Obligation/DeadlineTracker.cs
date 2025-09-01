@@ -37,17 +37,17 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public DeadlineTrackingInfo ProcessHourlyDeadlines(int hoursElapsed = 1)
         {
-            var trackingInfo = new DeadlineTrackingInfo
+            DeadlineTrackingInfo trackingInfo = new DeadlineTrackingInfo
             {
                 HoursElapsed = hoursElapsed
             };
 
             if (hoursElapsed <= 0) return trackingInfo;
 
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
             // Phase 1: Update deadlines and identify expired obligations
-            var expiredObligations = new List<DeliveryObligation>();
+            List<DeliveryObligation> expiredObligations = new List<DeliveryObligation>();
             for (int i = 0; i < _config.LetterQueue.MaxQueueSize; i++)
             {
                 if (queue[i] != null)
@@ -61,14 +61,14 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Phase 2: Process expired obligations
-            foreach (var expiredObligation in expiredObligations)
+            foreach (DeliveryObligation expiredObligation in expiredObligations)
             {
                 ProcessExpiredObligation(expiredObligation);
                 trackingInfo.ExpiredObligationIds.Add(expiredObligation.Id);
             }
 
             // Phase 3: Process expired meetings
-            var expiredMeetings = ProcessExpiredMeetings(hoursElapsed);
+            List<MeetingObligation> expiredMeetings = ProcessExpiredMeetings(hoursElapsed);
             trackingInfo.ExpiredMeetingIds.AddRange(expiredMeetings.Select(m => m.Id));
 
             // Phase 4: Compact queue removing expired items
@@ -86,8 +86,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public List<DeliveryObligation> GetExpiringObligations(int hoursThreshold)
         {
-            var minutesThreshold = hoursThreshold * 60;
-            
+            int minutesThreshold = hoursThreshold * 60;
+
             return GetActiveObligations()
                 .Where(o => o.DeadlineInMinutes <= minutesThreshold && o.DeadlineInMinutes > 0)
                 .OrderBy(o => o.DeadlineInMinutes)
@@ -99,9 +99,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public List<MeetingObligation> GetExpiringMeetings(int hoursThreshold)
         {
-            var minutesThreshold = hoursThreshold * 60;
-            
-            var player = _gameWorld.GetPlayer();
+            int minutesThreshold = hoursThreshold * 60;
+
+            Player player = _gameWorld.GetPlayer();
             return player.MeetingObligations
                 .Where(m => m.DeadlineInMinutes <= minutesThreshold && m.DeadlineInMinutes > 0)
                 .OrderBy(m => m.DeadlineInMinutes)
@@ -124,7 +124,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public MeetingObligation GetMostUrgentMeeting()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             return player.MeetingObligations
                 .Where(m => m.DeadlineInMinutes > 0)
                 .OrderBy(m => m.DeadlineInMinutes)
@@ -136,7 +136,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public QueueManipulationResult TryExtendDeadline(int position)
         {
-            var result = new QueueManipulationResult
+            QueueManipulationResult result = new QueueManipulationResult
             {
                 OperationType = "Extend Deadline",
                 Position = position
@@ -148,14 +148,14 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return result;
             }
 
-            var letter = GetLetterAt(position);
+            DeliveryObligation letter = GetLetterAt(position);
             if (letter == null)
             {
                 result.ErrorMessage = "No letter at specified position";
                 return result;
             }
 
-            var senderId = GetNPCIdByName(letter.SenderName);
+            string senderId = GetNPCIdByName(letter.SenderName);
 
             // Show negotiation attempt
             _messageSystem.AddSystemMessage(
@@ -164,21 +164,21 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             );
 
             // Show current deadline pressure
-            var urgency = letter.DeadlineInMinutes <= 48 * 60 ? " 🆘 CRITICAL!" : "";
-            var currentDays = letter.DeadlineInMinutes / (24 * 60);
+            string urgency = letter.DeadlineInMinutes <= 48 * 60 ? " 🆘 CRITICAL!" : "";
+            int currentDays = letter.DeadlineInMinutes / (24 * 60);
             _messageSystem.AddSystemMessage(
                 $"  • Current deadline: {currentDays} days{urgency}",
                 letter.DeadlineInMinutes <= 48 * 60 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
             );
 
             // Check token cost (2 matching tokens)
-            var extensionCost = new Dictionary<ConnectionType, int> { { letter.TokenType, 2 } };
-            
+            Dictionary<ConnectionType, int> extensionCost = new Dictionary<ConnectionType, int> { { letter.TokenType, 2 } };
+
             if (!ValidateTokenAvailability(extensionCost))
             {
                 result.ErrorMessage = $"Insufficient {letter.TokenType} tokens! Need 2";
                 result.TokensCost = extensionCost;
-                
+
                 _messageSystem.AddSystemMessage(
                     $"  ❌ Insufficient {letter.TokenType} tokens! Need 2, have {_tokenManager.GetTokenCount(letter.TokenType)}",
                     SystemMessageTypes.Danger
@@ -199,7 +199,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Extend the deadline by 2 days (2880 minutes)
-            var oldDeadlineHours = letter.DeadlineInMinutes / 60;
+            int oldDeadlineHours = letter.DeadlineInMinutes / 60;
             letter.DeadlineInMinutes += 2880;
 
             result.Success = true;
@@ -212,8 +212,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 SystemMessageTypes.Success
             );
 
-            var newDeadlineDays = letter.DeadlineInMinutes / (24 * 60);
-            var oldDeadlineDays = oldDeadlineHours / 24;
+            int newDeadlineDays = letter.DeadlineInMinutes / (24 * 60);
+            int oldDeadlineDays = oldDeadlineHours / 24;
             _messageSystem.AddSystemMessage(
                 $"  • New deadline: {newDeadlineDays} days (was {oldDeadlineDays})",
                 SystemMessageTypes.Info
@@ -232,13 +232,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public string GetNextDeadlineDisplay()
         {
-            var mostUrgent = GetMostUrgentObligation();
+            DeliveryObligation mostUrgent = GetMostUrgentObligation();
             if (mostUrgent != null)
             {
                 return $"⏰ {mostUrgent.HoursUntilDeadline}h";
             }
 
-            var mostUrgentMeeting = GetMostUrgentMeeting();
+            MeetingObligation mostUrgentMeeting = GetMostUrgentMeeting();
             if (mostUrgentMeeting != null)
             {
                 return $"📅 {mostUrgentMeeting.DeadlineInHours}h";
@@ -252,9 +252,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public bool HasCriticalDeadlines()
         {
-            var criticalObligations = GetExpiringObligations(3); // 3 hours
-            var criticalMeetings = GetExpiringMeetings(3);
-            
+            List<DeliveryObligation> criticalObligations = GetExpiringObligations(3); // 3 hours
+            List<MeetingObligation> criticalMeetings = GetExpiringMeetings(3);
+
             return criticalObligations.Any() || criticalMeetings.Any();
         }
 
@@ -263,8 +263,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public DeadlineUrgencyStats GetUrgencyStats()
         {
-            var activeObligations = GetActiveObligations();
-            var activeMeetings = GetActiveMeetings();
+            DeliveryObligation[] activeObligations = GetActiveObligations();
+            List<MeetingObligation> activeMeetings = GetActiveMeetings();
 
             return new DeadlineUrgencyStats
             {
@@ -282,13 +282,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public int GetMinutesUntilNextDeadline()
         {
-            var nextObligation = GetMostUrgentObligation();
-            var nextMeeting = GetMostUrgentMeeting();
+            DeliveryObligation nextObligation = GetMostUrgentObligation();
+            MeetingObligation nextMeeting = GetMostUrgentMeeting();
 
-            var obligationMinutes = nextObligation?.DeadlineInMinutes ?? int.MaxValue;
-            var meetingMinutes = nextMeeting?.DeadlineInMinutes ?? int.MaxValue;
+            int obligationMinutes = nextObligation?.DeadlineInMinutes ?? int.MaxValue;
+            int meetingMinutes = nextMeeting?.DeadlineInMinutes ?? int.MaxValue;
 
-            var nextDeadline = Math.Min(obligationMinutes, meetingMinutes);
+            int nextDeadline = Math.Min(obligationMinutes, meetingMinutes);
             return nextDeadline == int.MaxValue ? -1 : nextDeadline;
         }
 
@@ -297,10 +297,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public List<DeadlineInfo> GetAllDeadlinesSortedByUrgency()
         {
-            var deadlines = new List<DeadlineInfo>();
+            List<DeadlineInfo> deadlines = new List<DeadlineInfo>();
 
             // Add obligation deadlines
-            foreach (var obligation in GetActiveObligations())
+            foreach (DeliveryObligation obligation in GetActiveObligations())
             {
                 deadlines.Add(new DeadlineInfo
                 {
@@ -315,7 +315,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Add meeting deadlines
-            foreach (var meeting in GetActiveMeetings())
+            foreach (MeetingObligation meeting in GetActiveMeetings())
             {
                 deadlines.Add(new DeadlineInfo
                 {
@@ -336,7 +336,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void ProcessExpiredObligation(DeliveryObligation expiredObligation)
         {
-            var senderId = GetNPCIdByName(expiredObligation.SenderName);
+            string senderId = GetNPCIdByName(expiredObligation.SenderName);
             if (string.IsNullOrEmpty(senderId)) return;
 
             // Record expiry in history first
@@ -351,13 +351,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private List<MeetingObligation> ProcessExpiredMeetings(int hoursElapsed)
         {
-            var player = _gameWorld.GetPlayer();
-            var expiredMeetings = new List<MeetingObligation>();
+            Player player = _gameWorld.GetPlayer();
+            List<MeetingObligation> expiredMeetings = new List<MeetingObligation>();
 
-            foreach (var meeting in player.MeetingObligations.ToList())
+            foreach (MeetingObligation? meeting in player.MeetingObligations.ToList())
             {
                 meeting.DeadlineInMinutes -= (hoursElapsed * 60);
-                
+
                 if (meeting.DeadlineInMinutes <= 0)
                 {
                     expiredMeetings.Add(meeting);
@@ -366,7 +366,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Remove expired meetings from player's list
-            foreach (var expiredMeeting in expiredMeetings)
+            foreach (MeetingObligation expiredMeeting in expiredMeetings)
             {
                 player.MeetingObligations.Remove(expiredMeeting);
             }
@@ -382,7 +382,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             );
 
             // Apply relationship penalty
-            var tokenPenalty = 2; // Meetings are important social commitments
+            int tokenPenalty = 2; // Meetings are important social commitments
             _tokenManager.RemoveTokensFromNPC(ConnectionType.Trust, tokenPenalty, expiredMeeting.RequesterId);
 
             _messageSystem.AddSystemMessage(
@@ -393,8 +393,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void CompactQueueAfterExpiration()
         {
-            var player = _gameWorld.GetPlayer();
-            var queue = player.ObligationQueue;
+            Player player = _gameWorld.GetPlayer();
+            DeliveryObligation[] queue = player.ObligationQueue;
             int writeIndex = 0;
 
             // Compact array in-place, removing expired obligations
@@ -421,8 +421,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void ApplyExpirationPenalty(DeliveryObligation expiredObligation, string senderId)
         {
-            var tokenPenalty = _config.LetterQueue.DeadlinePenaltyTokens;
-            var senderNpc = _npcRepository.GetById(senderId);
+            int tokenPenalty = _config.LetterQueue.DeadlinePenaltyTokens;
+            NPC senderNpc = _npcRepository.GetById(senderId);
 
             _tokenManager.RemoveTokensFromNPC(expiredObligation.TokenType, tokenPenalty, senderId);
 
@@ -449,7 +449,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void ShowConsequenceNarrative(NPC senderNpc, DeliveryObligation expiredObligation)
         {
-            var consequence = GetExpiryConsequence(senderNpc, expiredObligation);
+            string consequence = GetExpiryConsequence(senderNpc, expiredObligation);
             _messageSystem.AddSystemMessage(
                 $"  • {consequence}",
                 SystemMessageTypes.Warning
@@ -458,10 +458,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void ShowCumulativeDamage(DeliveryObligation expiredObligation, string senderId)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             if (!player.NPCLetterHistory.ContainsKey(senderId)) return;
 
-            var history = player.NPCLetterHistory[senderId];
+            LetterHistory history = player.NPCLetterHistory[senderId];
             if (history.ExpiredCount > 1)
             {
                 _messageSystem.AddSystemMessage(
@@ -497,7 +497,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void RecordExpiryInHistory(string senderId)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             if (!player.NPCLetterHistory.ContainsKey(senderId))
             {
                 player.NPCLetterHistory[senderId] = new LetterHistory();
@@ -507,7 +507,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private bool ValidateTokenAvailability(Dictionary<ConnectionType, int> requiredTokens)
         {
-            foreach (var tokenRequirement in requiredTokens)
+            foreach (KeyValuePair<ConnectionType, int> tokenRequirement in requiredTokens)
             {
                 if (!_tokenManager.HasTokens(tokenRequirement.Key, tokenRequirement.Value))
                 {
@@ -541,7 +541,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private string GetNPCIdByName(string npcName)
         {
-            var npc = _npcRepository.GetByName(npcName);
+            NPC npc = _npcRepository.GetByName(npcName);
             return npc?.ID ?? "";
         }
 

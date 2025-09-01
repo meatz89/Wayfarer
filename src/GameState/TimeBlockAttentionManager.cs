@@ -45,7 +45,7 @@ public class TimeBlockAttentionManager
         int baseAttention = 10;
         int hungerPenalty = hunger / 25;
         int refreshAmount = Math.Max(2, baseAttention - hungerPenalty);
-        
+
         Console.WriteLine($"[Attention] Morning refresh calculation: hunger={hunger}, penalty={hungerPenalty}, result={refreshAmount}");
         return refreshAmount;
     }

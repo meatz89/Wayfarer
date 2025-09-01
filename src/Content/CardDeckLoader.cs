@@ -13,7 +13,7 @@ public class CardDeckLoader
 {
     private readonly string _contentPath;
     private readonly JsonSerializerOptions _jsonOptions;
-    
+
     // Storage for all loaded data
     private Dictionary<string, ConversationCard> _allCards = new();
     private Dictionary<string, List<string>> _npcConversationDecks = new();
@@ -22,12 +22,12 @@ public class CardDeckLoader
     private List<ConversationCard> _playerObservationCards = new();
     private List<TravelCard> _travelCards = new();
     private TravelCardLoader _travelCardLoader;
-    
+
     public CardDeckLoader(string contentPath)
     {
         _contentPath = contentPath;
-        _jsonOptions = new JsonSerializerOptions 
-        { 
+        _jsonOptions = new JsonSerializerOptions
+        {
             PropertyNameCaseInsensitive = true,
             Converters = { new JsonStringEnumConverter() },
             AllowTrailingCommas = true,
@@ -35,7 +35,7 @@ public class CardDeckLoader
         };
         _travelCardLoader = new TravelCardLoader(contentPath);
     }
-    
+
     /// <summary>
     /// Load all deck configurations from JSON files
     /// </summary>
@@ -43,22 +43,22 @@ public class CardDeckLoader
     {
         // 1. Load card templates first (base definitions)
         LoadCardTemplates();
-        
+
         // 2. Load NPC conversation deck mappings
         LoadNPCConversationDecks();
-        
+
         // 3. Load NPC goal decks (full card definitions)
         LoadNPCGoalDecks();
-        
+
         // 4. Load NPC exchange decks (mercantile NPCs only)
         LoadNPCExchangeDecks();
-        
+
         // 5. Load player observation cards
         LoadPlayerObservationCards();
-        
+
         // 6. Load travel cards
         LoadTravelCards();
-        
+
         Console.WriteLine($"[CardDeckLoader] Loaded {_allCards.Count} total cards");
         Console.WriteLine($"[CardDeckLoader] Loaded {_npcConversationDecks.Count} NPC conversation decks");
         Console.WriteLine($"[CardDeckLoader] Loaded {_npcGoalDecks.Count} NPC goal decks");
@@ -66,66 +66,66 @@ public class CardDeckLoader
         Console.WriteLine($"[CardDeckLoader] Loaded {_playerObservationCards.Count} player observation cards");
         Console.WriteLine($"[CardDeckLoader] Loaded {_travelCards.Count} travel cards");
     }
-    
+
     /// <summary>
     /// Load card templates from card_templates.json
     /// </summary>
     private void LoadCardTemplates()
     {
-        var filePath = Path.Combine(_contentPath, "card_templates.json");
+        string filePath = Path.Combine(_contentPath, "card_templates.json");
         if (!File.Exists(filePath))
         {
             Console.WriteLine($"WARNING: card_templates.json not found");
             return;
         }
-        
-        var json = File.ReadAllText(filePath);
-        var data = JsonSerializer.Deserialize<JsonElement>(json, _jsonOptions);
-        
-        if (data.TryGetProperty("templates", out var templates))
+
+        string json = File.ReadAllText(filePath);
+        JsonElement data = JsonSerializer.Deserialize<JsonElement>(json, _jsonOptions);
+
+        if (data.TryGetProperty("templates", out JsonElement templates))
         {
-            foreach (var prop in templates.EnumerateObject())
+            foreach (JsonProperty prop in templates.EnumerateObject())
             {
-                var cardId = prop.Name;
-                var template = prop.Value;
-                
-                var card = CreateCardFromTemplate(cardId, template);
+                string cardId = prop.Name;
+                JsonElement template = prop.Value;
+
+                ConversationCard card = CreateCardFromTemplate(cardId, template);
                 if (card != null)
                 {
                     _allCards[cardId] = card;
                 }
             }
         }
-        
+
         Console.WriteLine($"[CardDeckLoader] Loaded {_allCards.Count} card templates");
     }
-    
+
     /// <summary>
     /// Load NPC conversation deck mappings from npc_conversation_decks.json
     /// </summary>
     private void LoadNPCConversationDecks()
     {
-        var filePath = Path.Combine(_contentPath, "npc_conversation_decks.json");
+        string filePath = Path.Combine(_contentPath, "npc_conversation_decks.json");
         if (!File.Exists(filePath))
         {
             Console.WriteLine($"WARNING: npc_conversation_decks.json not found");
             return;
         }
-        
-        var json = File.ReadAllText(filePath);
-        var data = JsonSerializer.Deserialize<JsonElement>(json, _jsonOptions);
-        
-        if (data.TryGetProperty("conversationDecks", out var decks))
+
+        string json = File.ReadAllText(filePath);
+        JsonElement data = JsonSerializer.Deserialize<JsonElement>(json, _jsonOptions);
+
+        if (data.TryGetProperty("conversationDecks", out JsonElement decks))
         {
-            foreach (var prop in decks.EnumerateObject())
+            foreach (JsonProperty prop in decks.EnumerateObject())
             {
-                var npcId = prop.Name;
-                var deckData = prop.Value;
-                
-                if (deckData.TryGetProperty("cards", out var cards))
+                string npcId = prop.Name;
+                JsonElement deckData = prop.Value;
+
+                if (deckData.TryGetProperty("cards", out JsonElement cards))
                 {
-                    var cardIds = new List<string>();
-                    foreach (var card in cards.EnumerateArray())
+                    List<string> cardIds = new List<string>();
+                    foreach (JsonElement card in cards.EnumerateArray())
                     {
                         cardIds.Add(card.GetString());
                     }
@@ -134,32 +134,32 @@ public class CardDeckLoader
             }
         }
     }
-    
+
     /// <summary>
     /// Load NPC goal decks from npc_goal_decks.json
     /// </summary>
     private void LoadNPCGoalDecks()
     {
-        var filePath = Path.Combine(_contentPath, "npc_goal_decks.json");
+        string filePath = Path.Combine(_contentPath, "npc_goal_decks.json");
         if (!File.Exists(filePath))
         {
             Console.WriteLine($"WARNING: npc_goal_decks.json not found");
             return;
         }
-        
-        var json = File.ReadAllText(filePath);
-        var data = JsonSerializer.Deserialize<JsonElement>(json, _jsonOptions);
-        
-        if (data.TryGetProperty("goalDecks", out var decks))
+
+        string json = File.ReadAllText(filePath);
+        JsonElement data = JsonSerializer.Deserialize<JsonElement>(json, _jsonOptions);
+
+        if (data.TryGetProperty("goalDecks", out JsonElement decks))
         {
-            foreach (var prop in decks.EnumerateObject())
+            foreach (JsonProperty prop in decks.EnumerateObject())
             {
-                var npcId = prop.Name;
-                var goals = new List<ConversationCard>();
-                
-                foreach (var goalData in prop.Value.EnumerateArray())
+                string npcId = prop.Name;
+                List<ConversationCard> goals = new List<ConversationCard>();
+
+                foreach (JsonElement goalData in prop.Value.EnumerateArray())
                 {
-                    var goal = CreateGoalCard(goalData);
+                    ConversationCard goal = CreateGoalCard(goalData);
                     if (goal != null)
                     {
                         goals.Add(goal);
@@ -167,37 +167,37 @@ public class CardDeckLoader
                         _allCards[goal.Id] = goal;
                     }
                 }
-                
+
                 _npcGoalDecks[npcId] = goals;
             }
         }
     }
-    
+
     /// <summary>
     /// Load NPC exchange decks from npc_exchange_decks.json
     /// </summary>
     private void LoadNPCExchangeDecks()
     {
-        var filePath = Path.Combine(_contentPath, "npc_exchange_decks.json");
+        string filePath = Path.Combine(_contentPath, "npc_exchange_decks.json");
         if (!File.Exists(filePath))
         {
             Console.WriteLine($"WARNING: npc_exchange_decks.json not found");
             return;
         }
-        
-        var json = File.ReadAllText(filePath);
-        var data = JsonSerializer.Deserialize<JsonElement>(json, _jsonOptions);
-        
-        if (data.TryGetProperty("exchangeDecks", out var decks))
+
+        string json = File.ReadAllText(filePath);
+        JsonElement data = JsonSerializer.Deserialize<JsonElement>(json, _jsonOptions);
+
+        if (data.TryGetProperty("exchangeDecks", out JsonElement decks))
         {
-            foreach (var prop in decks.EnumerateObject())
+            foreach (JsonProperty prop in decks.EnumerateObject())
             {
-                var npcId = prop.Name;
-                var exchanges = new List<ConversationCard>();
-                
-                foreach (var exchangeData in prop.Value.EnumerateArray())
+                string npcId = prop.Name;
+                List<ConversationCard> exchanges = new List<ConversationCard>();
+
+                foreach (JsonElement exchangeData in prop.Value.EnumerateArray())
                 {
-                    var exchange = CreateExchangeCard(exchangeData);
+                    ConversationCard exchange = CreateExchangeCard(exchangeData);
                     if (exchange != null)
                     {
                         exchanges.Add(exchange);
@@ -205,32 +205,32 @@ public class CardDeckLoader
                         _allCards[exchange.Id] = exchange;
                     }
                 }
-                
+
                 _npcExchangeDecks[npcId] = exchanges;
             }
         }
     }
-    
+
     /// <summary>
     /// Load player observation cards from player_observation_cards.json
     /// </summary>
     private void LoadPlayerObservationCards()
     {
-        var filePath = Path.Combine(_contentPath, "player_observation_cards.json");
+        string filePath = Path.Combine(_contentPath, "player_observation_cards.json");
         if (!File.Exists(filePath))
         {
             Console.WriteLine($"WARNING: player_observation_cards.json not found");
             return;
         }
-        
-        var json = File.ReadAllText(filePath);
-        var data = JsonSerializer.Deserialize<JsonElement>(json, _jsonOptions);
-        
-        if (data.TryGetProperty("observationCards", out var cards))
+
+        string json = File.ReadAllText(filePath);
+        JsonElement data = JsonSerializer.Deserialize<JsonElement>(json, _jsonOptions);
+
+        if (data.TryGetProperty("observationCards", out JsonElement cards))
         {
-            foreach (var cardData in cards.EnumerateArray())
+            foreach (JsonElement cardData in cards.EnumerateArray())
             {
-                var card = CreateObservationCard(cardData);
+                ConversationCard card = CreateObservationCard(cardData);
                 if (card != null)
                 {
                     _playerObservationCards.Add(card);
@@ -240,7 +240,7 @@ public class CardDeckLoader
             }
         }
     }
-    
+
     /// <summary>
     /// Create a ConversationCard from template JSON
     /// </summary>
@@ -249,51 +249,51 @@ public class CardDeckLoader
         try
         {
             // Parse card type
-            var typeStr = template.GetProperty("type").GetString();
+            string? typeStr = template.GetProperty("type").GetString();
 
             // Parse connection type
-            var hasCardType = template.TryGetProperty("cardType", out var cardTypeElem);
-            var connectionStr = template.TryGetProperty("connectionType", out var connElem) 
+            bool hasCardType = template.TryGetProperty("cardType", out JsonElement cardTypeElem);
+            string? connectionStr = template.TryGetProperty("connectionType", out JsonElement connElem)
                 ? connElem.GetString() : "Trust";
-            var cardType = hasCardType ? ParseCardType(cardTypeElem.GetString()) : CardType.Normal;
-            var cardTokenType = ParseCardTokenType(connectionStr);
-            
+            CardType cardType = hasCardType ? ParseCardType(cardTypeElem.GetString()) : CardType.Normal;
+            ConnectionType cardTokenType = ParseCardTokenType(connectionStr);
+
             // Parse persistence
-            var persistenceStr = template.TryGetProperty("persistence", out var persElem) 
+            string? persistenceStr = template.TryGetProperty("persistence", out JsonElement persElem)
                 ? persElem.GetString() : "Persistent";
-            var persistence = ParsePersistence(persistenceStr);
-            
+            PersistenceType persistence = ParsePersistence(persistenceStr);
+
             // Get numeric values
-            var weight = template.TryGetProperty("weight", out var weightElem) ? weightElem.GetInt32() : 1;
-            var baseComfort = template.TryGetProperty("baseComfort", out var comfortElem) ? comfortElem.GetInt32() : 0;
-            var depth = template.TryGetProperty("depth", out var depthElem) ? depthElem.GetInt32() : 0;
-            
+            int weight = template.TryGetProperty("weight", out JsonElement weightElem) ? weightElem.GetInt32() : 1;
+            int baseComfort = template.TryGetProperty("baseComfort", out JsonElement comfortElem) ? comfortElem.GetInt32() : 0;
+            int depth = template.TryGetProperty("depth", out JsonElement depthElem) ? depthElem.GetInt32() : 0;
+
             // Get description
-            var description = template.TryGetProperty("description", out var descElem) ? descElem.GetString() : "";
-            
+            string? description = template.TryGetProperty("description", out JsonElement descElem) ? descElem.GetString() : "";
+
             // Check for state card properties
             EmotionalState? successState = null;
-            if (template.TryGetProperty("successState", out var successStateElem))
+            if (template.TryGetProperty("successState", out JsonElement successStateElem))
             {
-                var stateStr = successStateElem.GetString();
-                if (Enum.TryParse<EmotionalState>(stateStr, true, out var state))
+                string? stateStr = successStateElem.GetString();
+                if (Enum.TryParse<EmotionalState>(stateStr, true, out EmotionalState state))
                 {
                     successState = state;
                 }
             }
-            
-            var isStateCard = template.TryGetProperty("isStateCard", out var stateCardElem) && stateCardElem.GetBoolean();
-            
-            
+
+            bool isStateCard = template.TryGetProperty("isStateCard", out JsonElement stateCardElem) && stateCardElem.GetBoolean();
+
+
             // Parse template type
-            var templateType = ParseTemplateType(id);
-            
+            string templateType = ParseTemplateType(id);
+
             // Parse category if specified
             CardCategory category = CardCategory.Comfort; // Default
-            if (template.TryGetProperty("category", out var categoryElem))
+            if (template.TryGetProperty("category", out JsonElement categoryElem))
             {
-                var categoryStr = categoryElem.GetString();
-                if (Enum.TryParse<CardCategory>(categoryStr, true, out var parsedCategory))
+                string? categoryStr = categoryElem.GetString();
+                if (Enum.TryParse<CardCategory>(categoryStr, true, out CardCategory parsedCategory))
                 {
                     category = parsedCategory;
                 }
@@ -302,14 +302,14 @@ public class CardDeckLoader
             {
                 category = CardCategory.State;
             }
-            
+
             // Parse patience bonus for patience cards
-            var patienceBonus = 0;
-            if (template.TryGetProperty("patienceBonus", out var patienceElem))
+            int patienceBonus = 0;
+            if (template.TryGetProperty("patienceBonus", out JsonElement patienceElem))
             {
                 patienceBonus = patienceElem.GetInt32();
             }
-            
+
             return new ConversationCard
             {
                 Id = id,
@@ -321,7 +321,7 @@ public class CardDeckLoader
                     Personality = PersonalityType.STEADFAST, // Default, will be overridden per NPC
                     EmotionalState = EmotionalState.NEUTRAL,
                     NPCName = "",
-                    GeneratesLetterOnSuccess = template.TryGetProperty("generatesLetter", out var letterElem) && letterElem.GetBoolean()
+                    GeneratesLetterOnSuccess = template.TryGetProperty("generatesLetter", out JsonElement letterElem) && letterElem.GetBoolean()
                 },
                 Type = cardType,
                 TokenType = cardTokenType,
@@ -331,8 +331,8 @@ public class CardDeckLoader
                 IsStateCard = isStateCard,
                 SuccessState = successState,
                 PatienceBonus = patienceBonus,
-                DisplayName = template.TryGetProperty("displayName", out var displayNameElem) 
-                    ? displayNameElem.GetString() 
+                DisplayName = template.TryGetProperty("displayName", out JsonElement displayNameElem)
+                    ? displayNameElem.GetString()
                     : id.Replace("_", " "), // Fallback to formatted ID
                 Description = description,
                 SuccessRate = 70 - (weight * 10) // Base success rate calculation
@@ -344,7 +344,7 @@ public class CardDeckLoader
             return null;
         }
     }
-    
+
     /// <summary>
     /// Create a goal card from JSON
     /// </summary>
@@ -352,19 +352,19 @@ public class CardDeckLoader
     {
         try
         {
-            var id = goalData.GetProperty("id").GetString();
-            var template = goalData.GetProperty("template").GetString();
-            var type = goalData.GetProperty("type").GetString();
-            var category = goalData.GetProperty("category").GetString();
-            var weight = goalData.GetProperty("weight").GetInt32();
-            
+            string? id = goalData.GetProperty("id").GetString();
+            string? template = goalData.GetProperty("template").GetString();
+            string? type = goalData.GetProperty("type").GetString();
+            string? category = goalData.GetProperty("category").GetString();
+            int weight = goalData.GetProperty("weight").GetInt32();
+
             // Get valid states
-            var validStates = new List<EmotionalState>();
-            if (goalData.TryGetProperty("validStates", out var states))
+            List<EmotionalState> validStates = new List<EmotionalState>();
+            if (goalData.TryGetProperty("validStates", out JsonElement states))
             {
-                foreach (var state in states.EnumerateArray())
+                foreach (JsonElement state in states.EnumerateArray())
                 {
-                    var stateStr = state.GetString();
+                    string? stateStr = state.GetString();
                     if (stateStr == "ANY")
                     {
                         // Add all states
@@ -373,13 +373,13 @@ public class CardDeckLoader
                             validStates.Add(s);
                         }
                     }
-                    else if (Enum.TryParse<EmotionalState>(stateStr, true, out var emotionalState))
+                    else if (Enum.TryParse<EmotionalState>(stateStr, true, out EmotionalState emotionalState))
                     {
                         validStates.Add(emotionalState);
                     }
                 }
             }
-            
+
             // Determine goal type
             ConversationType goalType = template switch
             {
@@ -389,14 +389,14 @@ public class CardDeckLoader
                 "CommerceGoal" => ConversationType.Commerce,
                 _ => ConversationType.Promise
             };
-            
+
             // Parse category from JSON or default based on goal type
             CardCategory parsedCategory = CardCategory.Promise; // Default for goals
-            if (category != null && Enum.TryParse<CardCategory>(category, true, out var cat))
+            if (category != null && Enum.TryParse<CardCategory>(category, true, out CardCategory cat))
             {
                 parsedCategory = cat;
             }
-            
+
             return new ConversationCard
             {
                 Id = id,
@@ -416,8 +416,8 @@ public class CardDeckLoader
                 BaseComfort = 0,
                 IsGoalCard = true,
                 GoalCardType = goalType.ToString(),
-                DisplayName = goalData.TryGetProperty("displayName", out var displayNameElem) 
-                    ? displayNameElem.GetString() 
+                DisplayName = goalData.TryGetProperty("displayName", out JsonElement displayNameElem)
+                    ? displayNameElem.GetString()
                     : id.Replace("_", " "), // Fallback to formatted ID
                 Description = GetGoalDescription(goalData),
                 SuccessRate = 50 // Goal cards have base 50% success
@@ -429,7 +429,7 @@ public class CardDeckLoader
             return null;
         }
     }
-    
+
     /// <summary>
     /// Create an exchange card from JSON
     /// </summary>
@@ -437,40 +437,40 @@ public class CardDeckLoader
     {
         try
         {
-            var id = exchangeData.GetProperty("id").GetString();
-            var type = exchangeData.GetProperty("type").GetString();
-            
+            string? id = exchangeData.GetProperty("id").GetString();
+            string? type = exchangeData.GetProperty("type").GetString();
+
             // Get offer and request
-            var offer = exchangeData.GetProperty("offer");
-            var request = exchangeData.GetProperty("request");
-            
-            var offerResource = offer.GetProperty("resource").GetString();
-            var offerAmount = offer.GetProperty("amount").GetInt32();
-            var requestResource = request.GetProperty("resource").GetString();
-            var requestAmount = request.GetProperty("amount").GetInt32();
-            
-            var description = $"Trade {requestAmount} {requestResource} for {offerAmount} {offerResource}";
-            
+            JsonElement offer = exchangeData.GetProperty("offer");
+            JsonElement request = exchangeData.GetProperty("request");
+
+            string? offerResource = offer.GetProperty("resource").GetString();
+            int offerAmount = offer.GetProperty("amount").GetInt32();
+            string? requestResource = request.GetProperty("resource").GetString();
+            int requestAmount = request.GetProperty("amount").GetInt32();
+
+            string description = $"Trade {requestAmount} {requestResource} for {offerAmount} {offerResource}";
+
             // Create ResourceExchange objects for Cost and Reward
-            var costResourceType = ParseResourceType(requestResource);
-            var rewardResourceType = ParseResourceType(offerResource);
-            
-            var costExchange = new ResourceExchange
+            ResourceType costResourceType = ParseResourceType(requestResource);
+            ResourceType rewardResourceType = ParseResourceType(offerResource);
+
+            ResourceExchange costExchange = new ResourceExchange
             {
                 ResourceType = costResourceType,
                 Amount = requestAmount,
                 IsAbsolute = false
             };
-            
-            var rewardExchange = new ResourceExchange
+
+            ResourceExchange rewardExchange = new ResourceExchange
             {
                 ResourceType = rewardResourceType,
                 Amount = offerAmount,
                 IsAbsolute = false
             };
-            
+
             // Create ExchangeData with proper Cost and Reward
-            var exchangeDataObj = new ExchangeData
+            ExchangeData exchangeDataObj = new ExchangeData
             {
                 ExchangeName = id.Replace("_", " "),
                 NPCPersonality = PersonalityType.MERCANTILE,
@@ -480,7 +480,7 @@ public class CardDeckLoader
                 CanBarter = false,
                 TemplateId = "SimpleExchange"
             };
-            
+
             return new ConversationCard
             {
                 Id = id,
@@ -491,7 +491,7 @@ public class CardDeckLoader
                     Personality = PersonalityType.MERCANTILE,
                     EmotionalState = EmotionalState.NEUTRAL,
                     NPCName = "",
-                    ExchangeOffer = new ExchangeOffer 
+                    ExchangeOffer = new ExchangeOffer
                     {
                         Id = id,
                         Name = $"{offerAmount} {offerResource}",
@@ -506,8 +506,8 @@ public class CardDeckLoader
                 Persistence = PersistenceType.Fleeting,
                 Weight = 0, // Exchange cards have no weight
                 BaseComfort = 0,
-                DisplayName = exchangeData.TryGetProperty("displayName", out var displayNameElem) 
-                    ? displayNameElem.GetString() 
+                DisplayName = exchangeData.TryGetProperty("displayName", out JsonElement displayNameElem)
+                    ? displayNameElem.GetString()
                     : id.Replace("_", " "), // Fallback to formatted ID
                 Description = description,
                 SuccessRate = 100, // Exchange cards always succeed if affordable
@@ -521,7 +521,7 @@ public class CardDeckLoader
             return null;
         }
     }
-    
+
     /// <summary>
     /// Create an observation card from JSON
     /// </summary>
@@ -529,21 +529,21 @@ public class CardDeckLoader
     {
         try
         {
-            var id = cardData.GetProperty("id").GetString();
-            var location = cardData.GetProperty("location").GetString();
-            var spot = cardData.TryGetProperty("spot", out var spotElem) ? spotElem.GetString() : "";
-            var description = cardData.GetProperty("description").GetString();
-            
+            string? id = cardData.GetProperty("id").GetString();
+            string? location = cardData.GetProperty("location").GetString();
+            string? spot = cardData.TryGetProperty("spot", out JsonElement spotElem) ? spotElem.GetString() : "";
+            string? description = cardData.GetProperty("description").GetString();
+
             // Parse state change if present
             EmotionalState? targetState = null;
-            if (cardData.TryGetProperty("createsState", out var stateElem))
+            if (cardData.TryGetProperty("createsState", out JsonElement stateElem))
             {
-                if (Enum.TryParse<EmotionalState>(stateElem.GetString(), true, out var state))
+                if (Enum.TryParse<EmotionalState>(stateElem.GetString(), true, out EmotionalState state))
                 {
                     targetState = state;
                 }
             }
-            
+
             return new ConversationCard
             {
                 Id = id,
@@ -576,7 +576,7 @@ public class CardDeckLoader
             return null;
         }
     }
-    
+
     /// <summary>
     /// Load travel cards from travel_cards.json
     /// </summary>
@@ -584,9 +584,9 @@ public class CardDeckLoader
     {
         _travelCards = _travelCardLoader.LoadTravelCards();
     }
-    
+
     // Helper methods for parsing enums
-    
+
     private CardType ParseCardType(string connectionStr)
     {
         return connectionStr?.ToLower() switch
@@ -609,7 +609,7 @@ public class CardDeckLoader
             _ => ConnectionType.Trust
         };
     }
-    
+
     private PersistenceType ParsePersistence(string persistenceStr)
     {
         return persistenceStr switch
@@ -621,30 +621,30 @@ public class CardDeckLoader
             _ => PersistenceType.Persistent
         };
     }
-    
+
     private string ParseTemplateType(string id)
     {
         // Just return the ID as the template - no mapping needed
         return id;
     }
-    
+
     private string GetGoalDescription(JsonElement goalData)
     {
-        if (goalData.TryGetProperty("letterContent", out var letter))
+        if (goalData.TryGetProperty("letterContent", out JsonElement letter))
         {
-            var subject = letter.GetProperty("subject").GetString();
-            var recipient = letter.GetProperty("recipient").GetString();
+            string? subject = letter.GetProperty("subject").GetString();
+            string? recipient = letter.GetProperty("recipient").GetString();
             return $"{subject} to {recipient}";
         }
-        
-        if (goalData.TryGetProperty("requirement", out var req))
+
+        if (goalData.TryGetProperty("requirement", out JsonElement req))
         {
             return req.GetString();
         }
-        
+
         return "Complete goal";
     }
-    
+
     private ResourceType ParseResourceType(string resourceStr)
     {
         return resourceStr?.ToLower() switch
@@ -661,27 +661,50 @@ public class CardDeckLoader
             _ => ResourceType.Coins // Default to coins if unknown
         };
     }
-    
+
     // Public accessors for loaded data
-    public Dictionary<string, ConversationCard> GetAllCards() => new(_allCards);
-    public Dictionary<string, List<string>> GetNPCConversationDecks() => new(_npcConversationDecks);
-    public Dictionary<string, List<ConversationCard>> GetNPCGoalDecks() => new(_npcGoalDecks);
-    public Dictionary<string, List<ConversationCard>> GetNPCExchangeDecks() => new(_npcExchangeDecks);
-    public List<ConversationCard> GetPlayerObservationCards() => new(_playerObservationCards);
-    public List<TravelCard> GetTravelCards() => new(_travelCards);
-    
+    public Dictionary<string, ConversationCard> GetAllCards()
+    {
+        return new(_allCards);
+    }
+
+    public Dictionary<string, List<string>> GetNPCConversationDecks()
+    {
+        return new(_npcConversationDecks);
+    }
+
+    public Dictionary<string, List<ConversationCard>> GetNPCGoalDecks()
+    {
+        return new(_npcGoalDecks);
+    }
+
+    public Dictionary<string, List<ConversationCard>> GetNPCExchangeDecks()
+    {
+        return new(_npcExchangeDecks);
+    }
+
+    public List<ConversationCard> GetPlayerObservationCards()
+    {
+        return new(_playerObservationCards);
+    }
+
+    public List<TravelCard> GetTravelCards()
+    {
+        return new(_travelCards);
+    }
+
     /// <summary>
     /// Get conversation cards for a specific NPC
     /// </summary>
     public List<ConversationCard> GetConversationCardsForNPC(string npcId)
     {
-        var cards = new List<ConversationCard>();
-        
-        if (_npcConversationDecks.TryGetValue(npcId, out var cardIds))
+        List<ConversationCard> cards = new List<ConversationCard>();
+
+        if (_npcConversationDecks.TryGetValue(npcId, out List<string>? cardIds))
         {
-            foreach (var cardId in cardIds)
+            foreach (string cardId in cardIds)
             {
-                if (_allCards.TryGetValue(cardId, out var card))
+                if (_allCards.TryGetValue(cardId, out ConversationCard? card))
                 {
                     cards.Add(card);
                 }
@@ -691,28 +714,28 @@ public class CardDeckLoader
                 }
             }
         }
-        
+
         return cards;
     }
-    
+
     /// <summary>
     /// Get goal cards for a specific NPC
     /// </summary>
     public List<ConversationCard> GetGoalCardsForNPC(string npcId)
     {
-        if (_npcGoalDecks.TryGetValue(npcId, out var cards))
+        if (_npcGoalDecks.TryGetValue(npcId, out List<ConversationCard>? cards))
         {
             return new List<ConversationCard>(cards);
         }
         return new List<ConversationCard>();
     }
-    
+
     /// <summary>
     /// Get exchange cards for a specific NPC
     /// </summary>
     public List<ConversationCard> GetExchangeCardsForNPC(string npcId)
     {
-        if (_npcExchangeDecks.TryGetValue(npcId, out var cards))
+        if (_npcExchangeDecks.TryGetValue(npcId, out List<ConversationCard>? cards))
         {
             return new List<ConversationCard>(cards);
         }

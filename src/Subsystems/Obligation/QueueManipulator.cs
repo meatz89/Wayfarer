@@ -43,7 +43,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public ObligationAddResult AddObligation(DeliveryObligation obligation)
         {
-            var result = new ObligationAddResult();
+            ObligationAddResult result = new ObligationAddResult();
 
             if (obligation == null)
             {
@@ -51,7 +51,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return result;
             }
 
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
             // Find the first empty slot, filling from position 1
             for (int i = 0; i < _config.LetterQueue.MaxQueueSize; i++)
@@ -83,7 +83,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public ObligationAddResult AddObligationToPosition(DeliveryObligation obligation, int position)
         {
-            var result = new ObligationAddResult();
+            ObligationAddResult result = new ObligationAddResult();
 
             if (obligation == null || position < 1 || position > _config.LetterQueue.MaxQueueSize)
             {
@@ -91,8 +91,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return result;
             }
 
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
-            
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
+
             if (queue[position - 1] != null)
             {
                 result.ErrorMessage = "Position is already occupied";
@@ -119,7 +119,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public ObligationAddResult AddObligationWithLeverage(DeliveryObligation obligation)
         {
-            var result = new ObligationAddResult();
+            ObligationAddResult result = new ObligationAddResult();
 
             if (obligation == null)
             {
@@ -134,9 +134,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Calculate leverage-based position
-            var leverageCalc = CalculateLeveragePosition(obligation);
-            
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
+            LeverageCalculation leverageCalc = CalculateLeveragePosition(obligation);
+
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
             // If target position is empty, simple insertion
             if (queue[leverageCalc.FinalPosition - 1] == null)
@@ -153,7 +153,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public QueueManipulationResult RemoveObligationFromQueue(int position)
         {
-            var result = new QueueManipulationResult
+            QueueManipulationResult result = new QueueManipulationResult
             {
                 OperationType = "Remove",
                 Position = position
@@ -165,9 +165,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return result;
             }
 
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
-            var obligation = queue[position - 1];
-            
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
+            DeliveryObligation obligation = queue[position - 1];
+
             if (obligation == null)
             {
                 result.ErrorMessage = "No obligation at specified position";
@@ -192,7 +192,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public QueueManipulationResult MoveObligationToPosition(DeliveryObligation obligation, int targetPosition)
         {
-            var result = new QueueManipulationResult
+            QueueManipulationResult result = new QueueManipulationResult
             {
                 OperationType = "Move",
                 Position = targetPosition
@@ -204,10 +204,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return result;
             }
 
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
             // Find current position
-            var currentPosition = GetQueuePosition(obligation);
+            int currentPosition = GetQueuePosition(obligation);
             if (currentPosition <= 0)
             {
                 result.ErrorMessage = "Obligation not found in queue";
@@ -237,7 +237,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public QueueManipulationResult TryMorningSwap(int position1, int position2)
         {
-            var result = new QueueManipulationResult
+            QueueManipulationResult result = new QueueManipulationResult
             {
                 OperationType = "Morning Swap"
             };
@@ -264,14 +264,14 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Execute the swap
-            var swapResult = SwapObligations(position1, position2);
+            QueueManipulationResult swapResult = SwapObligations(position1, position2);
             if (swapResult.Success)
             {
                 MarkMorningSwapUsed();
-                
+
                 result.Success = true;
                 result.AffectedObligation = swapResult.AffectedObligation;
-                
+
                 _messageSystem.AddSystemMessage(
                     "🌅 Morning swap completed - letters exchanged positions",
                     SystemMessageTypes.Success
@@ -290,7 +290,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public QueueManipulationResult SwapObligations(int position1, int position2)
         {
-            var result = new QueueManipulationResult
+            QueueManipulationResult result = new QueueManipulationResult
             {
                 OperationType = "Swap"
             };
@@ -302,9 +302,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return result;
             }
 
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
-            var obligation1 = queue[position1 - 1];
-            var obligation2 = queue[position2 - 1];
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
+            DeliveryObligation obligation1 = queue[position1 - 1];
+            DeliveryObligation obligation2 = queue[position2 - 1];
 
             if (obligation1 == null || obligation2 == null)
             {
@@ -315,7 +315,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             // Perform the swap
             queue[position1 - 1] = obligation2;
             queue[position2 - 1] = obligation1;
-            
+
             obligation1.QueuePosition = position2;
             obligation2.QueuePosition = position1;
 
@@ -335,7 +335,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public QueueManipulationResult TrySkipToPosition1(int fromPosition)
         {
-            var result = new QueueManipulationResult
+            QueueManipulationResult result = new QueueManipulationResult
             {
                 OperationType = "Skip to Position 1",
                 Position = fromPosition
@@ -347,7 +347,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return result;
             }
 
-            var letter = GetLetterAt(fromPosition);
+            DeliveryObligation letter = GetLetterAt(fromPosition);
             if (letter == null)
             {
                 result.ErrorMessage = "No letter at specified position";
@@ -361,8 +361,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Calculate token cost
-            var tokenCost = CalculateSkipCost(fromPosition, letter);
-            var senderId = GetNPCIdByName(letter.SenderName);
+            int tokenCost = CalculateSkipCost(fromPosition, letter);
+            string senderId = GetNPCIdByName(letter.SenderName);
 
             if (!ValidateTokenAvailability(letter, tokenCost))
             {
@@ -399,8 +399,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public void CompressQueue()
         {
-            var player = _gameWorld.GetPlayer();
-            var queue = player.ObligationQueue;
+            Player player = _gameWorld.GetPlayer();
+            DeliveryObligation[] queue = player.ObligationQueue;
             int writeIndex = 0;
 
             for (int i = 0; i < _config.LetterQueue.MaxQueueSize; i++)
@@ -425,7 +425,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         {
             if (obligation == null) return -1;
 
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
             for (int i = 0; i < queue.Length; i++)
             {
                 if (queue[i]?.Id == obligation.Id)
@@ -469,13 +469,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public List<QueuePositionInfo> GetQueuePositionInfo()
         {
-            var positions = new List<QueuePositionInfo>();
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
+            List<QueuePositionInfo> positions = new List<QueuePositionInfo>();
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
             for (int i = 0; i < _config.LetterQueue.MaxQueueSize; i++)
             {
-                var position = i + 1;
-                var obligation = queue[i];
+                int position = i + 1;
+                DeliveryObligation? obligation = queue[i];
 
                 positions.Add(new QueuePositionInfo
                 {
@@ -484,7 +484,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     CurrentObligation = obligation,
                     CanInsertHere = obligation == null,
                     BlockingReason = obligation != null ? "Position occupied" : "",
-                    RequiredTokensToDisplace = obligation != null ? 
+                    RequiredTokensToDisplace = obligation != null ?
                         CalculateDisplacementCost(obligation) : new Dictionary<ConnectionType, int>()
                 });
             }
@@ -496,13 +496,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private LeverageCalculation CalculateLeveragePosition(DeliveryObligation obligation)
         {
-            var calc = new LeverageCalculation
+            LeverageCalculation calc = new LeverageCalculation
             {
                 NPCName = obligation.SenderName,
                 BasePosition = _config.LetterQueue.MaxQueueSize
             };
 
-            var senderId = GetNPCIdByName(obligation.SenderName);
+            string senderId = GetNPCIdByName(obligation.SenderName);
             calc.NPCId = senderId;
 
             if (string.IsNullOrEmpty(senderId))
@@ -531,9 +531,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             calc.CalculatedPosition = calc.BasePosition - calc.HighestPositiveToken + calc.WorstNegativeTokenPenalty;
 
             // Apply Commerce debt leverage override
-            calc.HasCommerceDebtOverride = calc.AllTokens.ContainsKey(ConnectionType.Commerce) && 
+            calc.HasCommerceDebtOverride = calc.AllTokens.ContainsKey(ConnectionType.Commerce) &&
                                           calc.AllTokens[ConnectionType.Commerce] <= -3;
-            
+
             if (calc.HasCommerceDebtOverride)
             {
                 calc.FinalPosition = 2; // Commerce debt >= 3 forces position 2
@@ -558,9 +558,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private ObligationAddResult InsertObligationAtPosition(DeliveryObligation obligation, int position, LeverageCalculation leverageCalc)
         {
-            var result = new ObligationAddResult();
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
-            
+            ObligationAddResult result = new ObligationAddResult();
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
+
             queue[position - 1] = obligation;
             obligation.QueuePosition = position;
 
@@ -586,15 +586,15 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private ObligationAddResult DisplaceAndInsertObligation(DeliveryObligation obligation, LeverageCalculation leverageCalc)
         {
-            var result = new ObligationAddResult();
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
-            var targetPosition = leverageCalc.FinalPosition;
+            ObligationAddResult result = new ObligationAddResult();
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
+            int targetPosition = leverageCalc.FinalPosition;
 
             // Announce displacement
             ShowLeverageDisplacement(obligation, targetPosition, leverageCalc);
 
             // Collect all letters from target position downward
-            var lettersToDisplace = new List<DeliveryObligation>();
+            List<DeliveryObligation> lettersToDisplace = new List<DeliveryObligation>();
             for (int i = targetPosition - 1; i < _config.LetterQueue.MaxQueueSize; i++)
             {
                 if (queue[i] != null)
@@ -616,10 +616,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Reinsert displaced letters
-            var displacedIds = new List<string>();
+            List<string> displacedIds = new List<string>();
             int nextAvailable = targetPosition;
-            
-            foreach (var displaced in lettersToDisplace)
+
+            foreach (DeliveryObligation displaced in lettersToDisplace)
             {
                 nextAvailable++;
                 if (nextAvailable <= _config.LetterQueue.MaxQueueSize)
@@ -648,10 +648,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void ShiftQueueUp(int removedPosition)
         {
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
             // Collect remaining letters after removed position
-            var remainingLetters = new List<DeliveryObligation>();
+            List<DeliveryObligation> remainingLetters = new List<DeliveryObligation>();
             for (int i = removedPosition; i < _config.LetterQueue.MaxQueueSize; i++)
             {
                 if (queue[i] != null)
@@ -670,7 +670,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             // Place remaining letters starting from removed position
             int writePosition = removedPosition - 1; // Convert to 0-based
-            foreach (var letter in remainingLetters)
+            foreach (DeliveryObligation letter in remainingLetters)
             {
                 while (writePosition < _config.LetterQueue.MaxQueueSize && queue[writePosition] != null)
                 {
@@ -683,8 +683,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     queue[writePosition] = letter;
                     letter.QueuePosition = writePosition + 1;
 
-                    var urgencyText = letter.DeadlineInMinutes <= 48 ? " ⚠️ URGENT!" : "";
-                    var deadlineText = letter.DeadlineInMinutes <= 1440 ? "expires today!" : $"{letter.DeadlineInMinutes / 1440} days left";
+                    string urgencyText = letter.DeadlineInMinutes <= 48 ? " ⚠️ URGENT!" : "";
+                    string deadlineText = letter.DeadlineInMinutes <= 1440 ? "expires today!" : $"{letter.DeadlineInMinutes / 1440} days left";
 
                     _messageSystem.AddSystemMessage(
                         $"  • {letter.SenderName}'s letter moves from slot {oldPosition} → {letter.QueuePosition} ({deadlineText}){urgencyText}",
@@ -757,7 +757,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void MoveLetterToPosition1(DeliveryObligation letter, int fromPosition)
         {
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
             queue[0] = letter;
             queue[fromPosition - 1] = null;
             letter.QueuePosition = 1;
@@ -765,7 +765,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private bool HasActiveObligationWithNPC(string npcId)
         {
-            var activeObligations = _obligationManager.GetActiveObligations();
+            List<StandingObligation> activeObligations = _obligationManager.GetActiveObligations();
             return activeObligations.Any(obligation => obligation.RelatedNPCId == npcId);
         }
 
@@ -814,14 +814,14 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void ShowLeverageNarrative(DeliveryObligation letter, int actualPosition, LeverageCalculation leverageCalc)
         {
-            var basePosition = leverageCalc.BasePosition;
+            int basePosition = leverageCalc.BasePosition;
 
             if (actualPosition < basePosition)
             {
-                var senderId = leverageCalc.NPCId;
+                string senderId = leverageCalc.NPCId;
                 if (!string.IsNullOrEmpty(senderId))
                 {
-                    var balance = leverageCalc.AllTokens.ContainsKey(letter.TokenType) ? 
+                    int balance = leverageCalc.AllTokens.ContainsKey(letter.TokenType) ?
                                  leverageCalc.AllTokens[letter.TokenType] : 0;
 
                     if (balance < 0)
@@ -851,7 +851,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void ShowLeverageDisplacement(DeliveryObligation letter, int targetPosition, LeverageCalculation leverageCalc)
         {
-            var balance = leverageCalc.AllTokens.ContainsKey(letter.TokenType) ?
+            int balance = leverageCalc.AllTokens.ContainsKey(letter.TokenType) ?
                          leverageCalc.AllTokens[letter.TokenType] : 0;
 
             if (balance < 0)
@@ -876,7 +876,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void NotifyLetterShifted(DeliveryObligation letter, int newPosition)
         {
-            var urgency = letter.DeadlineInMinutes <= 48 ? " 🆘" : "";
+            string urgency = letter.DeadlineInMinutes <= 48 ? " 🆘" : "";
             _messageSystem.AddSystemMessage(
                 $"  • {letter.SenderName}'s letter pushed to position {newPosition}{urgency}",
                 letter.DeadlineInMinutes <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
@@ -891,8 +891,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             );
 
             // Apply relationship damage
-            var senderId = GetNPCIdByName(overflowLetter.SenderName);
-            var tokenPenalty = 2; // Same penalty as expiration
+            string senderId = GetNPCIdByName(overflowLetter.SenderName);
+            int tokenPenalty = 2; // Same penalty as expiration
 
             _tokenManager.RemoveTokensFromNPC(overflowLetter.TokenType, tokenPenalty, senderId);
 
@@ -902,7 +902,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             );
 
             // Record in history
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             if (!player.NPCLetterHistory.ContainsKey(senderId))
             {
                 player.NPCLetterHistory[senderId] = new LetterHistory();
@@ -926,19 +926,19 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private Dictionary<ConnectionType, int> CalculateDisplacementCost(DeliveryObligation obligation)
         {
             // Calculate the cost to displace this obligation
-            var cost = new Dictionary<ConnectionType, int>();
-            
+            Dictionary<ConnectionType, int> cost = new Dictionary<ConnectionType, int>();
+
             if (obligation.TokenType != ConnectionType.None)
             {
                 cost[obligation.TokenType] = 1; // Base displacement cost
             }
-            
+
             return cost;
         }
 
         private string GetNPCIdByName(string npcName)
         {
-            var npc = _npcRepository.GetByName(npcName);
+            NPC npc = _npcRepository.GetByName(npcName);
             return npc?.ID ?? "";
         }
     }

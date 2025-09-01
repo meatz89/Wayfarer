@@ -116,7 +116,7 @@ public class TravelManager
     public bool CanTravelTo(string locationId)
     {
         Location destination = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
-        Location currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId != null ? 
+        Location currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId != null ?
             _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == _gameWorld.GetPlayer().CurrentLocationSpot.LocationId) : null;
 
         if (destination == null || currentLocation == null)
@@ -138,7 +138,7 @@ public class TravelManager
     public RouteOption StartLocationTravel(string locationId, TravelMethods method = TravelMethods.Walking)
     {
         Location destination = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
-        Location currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId != null ? 
+        Location currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId != null ?
             _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == _gameWorld.GetPlayer().CurrentLocationSpot.LocationId) : null;
 
         // Find the appropriate route
@@ -174,7 +174,7 @@ public class TravelManager
         {
             return; // Invalid destination spot
         }
-        
+
         Location targetLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == targetSpot.LocationId);
         if (targetLocation == null)
         {
@@ -346,7 +346,7 @@ public class TravelManager
 
     // REMOVED: GetTravelEvents method - TravelEventManager system deleted
     // Travel events should be loaded from JSON templates, not generated in code
-    
+
     /// <summary>
     /// Check if boat schedule is available based on weather conditions and river state
     /// </summary>

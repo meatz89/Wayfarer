@@ -18,25 +18,25 @@ namespace Wayfarer.Game.MainSystem
             [SpotPropertyType.Discrete] = new[] { "a discreet corner", "away from the main thoroughfare", "partially concealed" },
             [SpotPropertyType.Public] = new[] { "open to all", "in full view", "a public gathering place" },
             [SpotPropertyType.Exposed] = new[] { "completely exposed", "under watchful eyes", "lacking any privacy" },
-            
+
             // Atmosphere properties
             [SpotPropertyType.Quiet] = new[] { "peaceful silence", "hushed tranquility", "undisturbed calm" },
             [SpotPropertyType.Loud] = new[] { "bustling with noise", "filled with clamor", "alive with sound" },
             [SpotPropertyType.Warm] = new[] { "comfortably warm", "heated by hearth", "protected from cold" },
             [SpotPropertyType.Shaded] = new[] { "cool shade", "sheltered from sun", "dimly lit" },
-            
+
             // View properties
             [SpotPropertyType.ViewsMainEntrance] = new[] { "overlooking arrivals", "watching the gates", "seeing who comes and goes" },
             [SpotPropertyType.ViewsBackAlley] = new[] { "glimpsing shadowed dealings", "observing discrete meetings", "watching the back ways" },
             [SpotPropertyType.ViewsMarket] = new[] { "surveying commerce", "watching trade flow", "observing merchant activity" },
             [SpotPropertyType.ViewsTemple] = new[] { "facing the sacred", "viewing devotions", "watching the faithful" },
-            
+
             // Social properties
             [SpotPropertyType.Crossroads] = new[] { "where paths converge", "a natural meeting point", "drawing diverse crowds" },
             [SpotPropertyType.Isolated] = new[] { "removed from others", "deliberately separate", "few visitors" },
             [SpotPropertyType.BusyEvening] = new[] { "crowded after dark", "evening gatherings", "nighttime activity" },
             [SpotPropertyType.QuietMorning] = new[] { "peaceful at dawn", "morning stillness", "early tranquility" },
-            
+
             // Special properties
             [SpotPropertyType.NobleFavored] = new[] { "preferred by nobility", "aristocratic atmosphere", "refined surroundings" },
             [SpotPropertyType.CommonerHaunt] = new[] { "common folk gathering", "working class refuge", "unpretentious comfort" },
@@ -69,7 +69,7 @@ namespace Wayfarer.Game.MainSystem
         /// Generate a complete atmospheric description from categorical properties
         /// </summary>
         public string GenerateDescription(
-            List<SpotPropertyType> properties, 
+            List<SpotPropertyType> properties,
             TimeBlocks currentTime,
             int urgentObligationCount,
             int npcsPresent)
@@ -77,22 +77,22 @@ namespace Wayfarer.Game.MainSystem
             if (properties == null || !properties.Any())
                 return "An unremarkable location.";
 
-            var description = new List<string>();
+            List<string> description = new List<string>();
 
             // Start with primary atmosphere
-            var primaryProperty = SelectPrimaryProperty(properties);
-            var atmosphereBase = PropertyAtmosphere[primaryProperty][GetVariantIndex(primaryProperty)];
+            SpotPropertyType primaryProperty = SelectPrimaryProperty(properties);
+            string atmosphereBase = PropertyAtmosphere[primaryProperty][GetVariantIndex(primaryProperty)];
             description.Add(char.ToUpper(atmosphereBase[0]) + atmosphereBase.Substring(1));
 
             // Add secondary properties if multiple
             if (properties.Count > 1)
             {
-                var secondaryProps = properties.Where(p => p != primaryProperty).Take(2);
-                foreach (var prop in secondaryProps)
+                IEnumerable<SpotPropertyType> secondaryProps = properties.Where(p => p != primaryProperty).Take(2);
+                foreach (SpotPropertyType prop in secondaryProps)
                 {
                     if (PropertyAtmosphere.ContainsKey(prop))
                     {
-                        var fragment = PropertyAtmosphere[prop][GetVariantIndex(prop)];
+                        string fragment = PropertyAtmosphere[prop][GetVariantIndex(prop)];
                         description.Add($", {fragment}");
                     }
                 }
@@ -110,7 +110,7 @@ namespace Wayfarer.Game.MainSystem
             // Add tension if urgent obligations exist
             if (urgentObligationCount > 0)
             {
-                var tensionPhrase = TensionModifiers[Math.Min(urgentObligationCount - 1, TensionModifiers.Length - 1)];
+                string tensionPhrase = TensionModifiers[Math.Min(urgentObligationCount - 1, TensionModifiers.Length - 1)];
                 description.Add($", {tensionPhrase}");
             }
 
@@ -125,8 +125,8 @@ namespace Wayfarer.Game.MainSystem
             if (properties == null || !properties.Any())
                 return "Unremarkable spot";
 
-            var primary = SelectPrimaryProperty(properties);
-            
+            SpotPropertyType primary = SelectPrimaryProperty(properties);
+
             // Create brief categorical description
             return primary switch
             {
@@ -134,25 +134,25 @@ namespace Wayfarer.Game.MainSystem
                 SpotPropertyType.Discrete => "Discrete spot",
                 SpotPropertyType.Public => "Public space",
                 SpotPropertyType.Exposed => "Exposed location",
-                
+
                 SpotPropertyType.Quiet => "Quiet place",
                 SpotPropertyType.Loud => "Noisy area",
                 SpotPropertyType.Warm => "Warm shelter",
                 SpotPropertyType.Shaded => "Shaded spot",
-                
+
                 SpotPropertyType.ViewsMainEntrance => "Gate view",
                 SpotPropertyType.ViewsBackAlley => "Alley overlook",
                 SpotPropertyType.ViewsMarket => "Market view",
                 SpotPropertyType.ViewsTemple => "Temple view",
-                
+
                 SpotPropertyType.Crossroads => "Crossroads",
                 SpotPropertyType.Isolated => "Isolated spot",
-                
+
                 SpotPropertyType.NobleFavored => "Noble quarter",
                 SpotPropertyType.CommonerHaunt => "Common area",
                 SpotPropertyType.MerchantHub => "Trade center",
                 SpotPropertyType.SacredGround => "Sacred place",
-                
+
                 _ => "Notable spot"
             };
         }
@@ -163,7 +163,7 @@ namespace Wayfarer.Game.MainSystem
         private SpotPropertyType SelectPrimaryProperty(List<SpotPropertyType> properties)
         {
             // Priority order for primary description
-            var priorityOrder = new[]
+            SpotPropertyType[] priorityOrder = new[]
             {
                 SpotPropertyType.Private,
                 SpotPropertyType.SacredGround,
@@ -177,7 +177,7 @@ namespace Wayfarer.Game.MainSystem
                 SpotPropertyType.Public
             };
 
-            foreach (var priority in priorityOrder)
+            foreach (SpotPropertyType priority in priorityOrder)
             {
                 if (properties.Contains(priority))
                     return priority;
@@ -192,7 +192,7 @@ namespace Wayfarer.Game.MainSystem
         /// </summary>
         private int GetVariantIndex(object input)
         {
-            var hash = input.GetHashCode();
+            int hash = input.GetHashCode();
             return Math.Abs(hash) % 3; // We have 3 variants per property
         }
     }

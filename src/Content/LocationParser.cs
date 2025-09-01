@@ -3,114 +3,114 @@
 
 public static class LocationParser
 {
-public static Location ParseLocation(string json)
-{
-    JsonDocumentOptions options = new JsonDocumentOptions
+    public static Location ParseLocation(string json)
     {
-        AllowTrailingCommas = true
-    };
-
-    using JsonDocument doc = JsonDocument.Parse(json, options);
-    JsonElement root = doc.RootElement;
-
-    string id = GetStringProperty(root, "id", "");
-    string name = GetStringProperty(root, "name", "");
-
-    Location location = new Location(id, name)
-    {
-        Description = GetStringProperty(root, "description", ""),
-        ConnectedLocationIds = GetStringArrayFromProperty(root, "connectedTo"),
-        LocationSpotIds = GetStringArrayFromProperty(root, "locationSpots"),
-        DomainTags = GetStringArrayFromProperty(root, "domainTags")
-    };
-
-    if (root.TryGetProperty("environmentalProperties", out JsonElement envProps) &&
-        envProps.ValueKind == JsonValueKind.Object)
-    {
-        location.MorningProperties = GetStringArrayFromProperty(envProps, "morning");
-        location.AfternoonProperties = GetStringArrayFromProperty(envProps, "afternoon");
-        location.EveningProperties = GetStringArrayFromProperty(envProps, "evening");
-        location.NightProperties = GetStringArrayFromProperty(envProps, "night");
-    }
-
-    // Parse available professions by time
-    if (root.TryGetProperty("availableProfessionsByTime", out JsonElement professionsByTime) &&
-        professionsByTime.ValueKind == JsonValueKind.Object)
-    {
-        foreach (JsonProperty timeProperty in professionsByTime.EnumerateObject())
+        JsonDocumentOptions options = new JsonDocumentOptions
         {
-            if (EnumParser.TryParse<TimeBlocks>(timeProperty.Name, out TimeBlocks timeBlock))
+            AllowTrailingCommas = true
+        };
+
+        using JsonDocument doc = JsonDocument.Parse(json, options);
+        JsonElement root = doc.RootElement;
+
+        string id = GetStringProperty(root, "id", "");
+        string name = GetStringProperty(root, "name", "");
+
+        Location location = new Location(id, name)
+        {
+            Description = GetStringProperty(root, "description", ""),
+            ConnectedLocationIds = GetStringArrayFromProperty(root, "connectedTo"),
+            LocationSpotIds = GetStringArrayFromProperty(root, "locationSpots"),
+            DomainTags = GetStringArrayFromProperty(root, "domainTags")
+        };
+
+        if (root.TryGetProperty("environmentalProperties", out JsonElement envProps) &&
+            envProps.ValueKind == JsonValueKind.Object)
+        {
+            location.MorningProperties = GetStringArrayFromProperty(envProps, "morning");
+            location.AfternoonProperties = GetStringArrayFromProperty(envProps, "afternoon");
+            location.EveningProperties = GetStringArrayFromProperty(envProps, "evening");
+            location.NightProperties = GetStringArrayFromProperty(envProps, "night");
+        }
+
+        // Parse available professions by time
+        if (root.TryGetProperty("availableProfessionsByTime", out JsonElement professionsByTime) &&
+            professionsByTime.ValueKind == JsonValueKind.Object)
+        {
+            foreach (JsonProperty timeProperty in professionsByTime.EnumerateObject())
             {
-                List<Professions> professions = new List<Professions>();
-                if (timeProperty.Value.ValueKind == JsonValueKind.Array)
+                if (EnumParser.TryParse<TimeBlocks>(timeProperty.Name, out TimeBlocks timeBlock))
                 {
-                    foreach (JsonElement professionElement in timeProperty.Value.EnumerateArray())
+                    List<Professions> professions = new List<Professions>();
+                    if (timeProperty.Value.ValueKind == JsonValueKind.Array)
                     {
-                        if (professionElement.ValueKind == JsonValueKind.String)
+                        foreach (JsonElement professionElement in timeProperty.Value.EnumerateArray())
                         {
-                            string professionStr = professionElement.GetString() ?? "";
-                            if (EnumParser.TryParse<Professions>(professionStr, out Professions profession))
+                            if (professionElement.ValueKind == JsonValueKind.String)
                             {
-                                professions.Add(profession);
+                                string professionStr = professionElement.GetString() ?? "";
+                                if (EnumParser.TryParse<Professions>(professionStr, out Professions profession))
+                                {
+                                    professions.Add(profession);
+                                }
                             }
                         }
                     }
+                    location.AvailableProfessionsByTime[timeBlock] = professions;
                 }
-                location.AvailableProfessionsByTime[timeBlock] = professions;
             }
         }
-    }
 
-    // Parse access requirements
-    if (root.TryGetProperty("accessRequirement", out JsonElement accessReqElement) &&
-        accessReqElement.ValueKind == JsonValueKind.Object)
-    {
-        location.AccessRequirement = AccessRequirementParser.ParseAccessRequirement(accessReqElement);
-    }
-    
-    // Parse new mechanical properties that replace hardcoded location checks
-    location.LocationTypeString = GetStringProperty(root, "locationType", "");
-    
-    if (root.TryGetProperty("isStartingLocation", out JsonElement isStartingElement) && 
-        isStartingElement.ValueKind == JsonValueKind.True)
-    {
-        location.IsStartingLocation = true;
-    }
-
-    return location;
-}
-
-private static List<string> GetStringArrayFromProperty(JsonElement element, string propertyName)
-{
-    List<string> results = new List<string>();
-
-    if (element.TryGetProperty(propertyName, out JsonElement arrayElement) &&
-        arrayElement.ValueKind == JsonValueKind.Array)
-    {
-        foreach (JsonElement item in arrayElement.EnumerateArray())
+        // Parse access requirements
+        if (root.TryGetProperty("accessRequirement", out JsonElement accessReqElement) &&
+            accessReqElement.ValueKind == JsonValueKind.Object)
         {
-            if (item.ValueKind == JsonValueKind.String)
+            location.AccessRequirement = AccessRequirementParser.ParseAccessRequirement(accessReqElement);
+        }
+
+        // Parse new mechanical properties that replace hardcoded location checks
+        location.LocationTypeString = GetStringProperty(root, "locationType", "");
+
+        if (root.TryGetProperty("isStartingLocation", out JsonElement isStartingElement) &&
+            isStartingElement.ValueKind == JsonValueKind.True)
+        {
+            location.IsStartingLocation = true;
+        }
+
+        return location;
+    }
+
+    private static List<string> GetStringArrayFromProperty(JsonElement element, string propertyName)
+    {
+        List<string> results = new List<string>();
+
+        if (element.TryGetProperty(propertyName, out JsonElement arrayElement) &&
+            arrayElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement item in arrayElement.EnumerateArray())
             {
-                string value = item.GetString() ?? string.Empty;
-                if (!string.IsNullOrWhiteSpace(value))
+                if (item.ValueKind == JsonValueKind.String)
                 {
-                    results.Add(value);
+                    string value = item.GetString() ?? string.Empty;
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        results.Add(value);
+                    }
                 }
             }
         }
+
+        return results;
     }
 
-    return results;
-}
-
-private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
-{
-    if (element.TryGetProperty(propertyName, out JsonElement property) &&
-        property.ValueKind == JsonValueKind.String)
+    private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
     {
-        string value = property.GetString() ?? defaultValue;
-        return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
+        if (element.TryGetProperty(propertyName, out JsonElement property) &&
+            property.ValueKind == JsonValueKind.String)
+        {
+            string value = property.GetString() ?? defaultValue;
+            return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
+        }
+        return defaultValue;
     }
-    return defaultValue;
-}
 }

@@ -20,42 +20,42 @@ public class Phase3_NPCDependents : IInitializationPhase
 
         // 2. Load DeliveryObligation Templates (depends on NPCs for validation)
         LoadLetterTemplates(context);
-        
+
         // 3. Load Goal deck configurations
         LoadGoalDecks(context);
-        
+
         // 4. Initialize NPC Conversation Decks (CRITICAL - was missing!)
         InitializeNPCDecks(context);
     }
-    
+
     private void InitializeNPCDecks(InitializationContext context)
     {
         Console.WriteLine("[Phase3] Initializing NPC THREE-DECK ARCHITECTURE...");
-        
-        var npcs = context.GameWorld.WorldState.NPCs;
-        
+
+        List<NPC> npcs = context.GameWorld.WorldState.NPCs;
+
         if (npcs == null || !npcs.Any())
         {
             Console.WriteLine("[Phase3] No NPCs found to initialize decks for");
             return;
         }
-        
+
         // Cards are already loaded in GameWorld from Phase0
-        var gameWorld = context.GameWorld;
-        
-        foreach (var npc in npcs)
+        GameWorld gameWorld = context.GameWorld;
+
+        foreach (NPC npc in npcs)
         {
             // DECK 1: CONVERSATION DECK (20-30 cards)
             // Load from NPCConversationDeckMappings
-            if (gameWorld.NPCConversationDeckMappings.TryGetValue(npc.ID.ToLower(), out var cardIds))
+            if (gameWorld.NPCConversationDeckMappings.TryGetValue(npc.ID.ToLower(), out List<string>? cardIds))
             {
                 npc.ConversationDeck = new CardDeck();
-                foreach (var cardId in cardIds)
+                foreach (string cardId in cardIds)
                 {
-                    if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
+                    if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard? card))
                     {
                         // Clone card with NPC-specific context
-                        var npcCard = CloneCardForNPC(card, npc);
+                        ConversationCard npcCard = CloneCardForNPC(card, npc);
                         npc.ConversationDeck.AddCard(npcCard);
                     }
                 }
@@ -63,13 +63,13 @@ public class Phase3_NPCDependents : IInitializationPhase
             }
             // DECK 2: GOAL DECK (2-8 cards)
             // Load from NPCGoalDecks
-            if (gameWorld.NPCGoalDecks.TryGetValue(npc.ID.ToLower(), out var goalCards))
+            if (gameWorld.NPCGoalDecks.TryGetValue(npc.ID.ToLower(), out List<ConversationCard>? goalCards))
             {
                 npc.GoalDeck = new CardDeck();
-                foreach (var goalCard in goalCards)
+                foreach (ConversationCard goalCard in goalCards)
                 {
                     // Clone goal card with NPC-specific context
-                    var npcGoal = CloneCardForNPC(goalCard, npc);
+                    ConversationCard npcGoal = CloneCardForNPC(goalCard, npc);
                     npc.GoalDeck.AddCard(npcGoal);
                 }
                 Console.WriteLine($"[Phase3] {npc.Name}: Goal deck has {npc.GoalDeck.Count} cards (Letters: {npc.HasPromiseCards()})");
@@ -78,19 +78,19 @@ public class Phase3_NPCDependents : IInitializationPhase
             // Only for MERCANTILE personality
             if (npc.PersonalityType == PersonalityType.MERCANTILE)
             {
-                if (gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out var exchangeCards))
+                if (gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out List<ConversationCard>? exchangeCards))
                 {
                     npc.ExchangeDeck = new CardDeck();
-                    foreach (var exchangeCard in exchangeCards)
+                    foreach (ConversationCard exchangeCard in exchangeCards)
                     {
                         // Clone exchange card with NPC-specific context
-                        var npcExchange = CloneCardForNPC(exchangeCard, npc);
+                        ConversationCard npcExchange = CloneCardForNPC(exchangeCard, npc);
                         npc.ExchangeDeck.AddCard(npcExchange);
                     }
                     Console.WriteLine($"[Phase3] {npc.Name}: Exchange deck has {npc.ExchangeDeck.Count} cards");
                 }
             }
-            
+
             // Report deck status
             Console.WriteLine($"[Phase3] {npc.Name} deck summary:");
             Console.WriteLine($"  - Conversation: {npc.ConversationDeck?.Count ?? 0} cards");
@@ -100,17 +100,17 @@ public class Phase3_NPCDependents : IInitializationPhase
             Console.WriteLine($"  - Has Burdens: {npc.HasBurdenHistory()} ({npc.CountBurdenCards()} cards)");
             // Crisis system removed - no special cases
         }
-        
+
         Console.WriteLine($"[Phase3] Initialized THREE-DECK ARCHITECTURE for {npcs.Count} NPCs");
     }
-    
+
     /// <summary>
     /// Clone a card with NPC-specific context
     /// </summary>
     private ConversationCard CloneCardForNPC(ConversationCard original, NPC npc)
     {
         // Create new context with NPC-specific values
-        var npcContext = new CardContext
+        CardContext npcContext = new CardContext
         {
             Personality = npc.PersonalityType,
             EmotionalState = npc.CurrentEmotionalState,
@@ -146,7 +146,7 @@ public class Phase3_NPCDependents : IInitializationPhase
             ObservationLocation = original.Context?.ObservationLocation,
             ObservationSpot = original.Context?.ObservationSpot
         };
-        
+
         // Create cloned card with NPC context
         return new ConversationCard
         {
@@ -175,21 +175,21 @@ public class Phase3_NPCDependents : IInitializationPhase
             GoalCardType = original.GoalCardType
         };
     }
-    
+
     private void InitializeGoalDeckForNPC(NPC npc, InitializationContext context)
     {
         // Get letter cards from the Goal deck repository
         if (context.GoalDeckRepository != null)
         {
-            var letterConfigs = context.GoalDeckRepository.GetPromiseCardsForNPC(npc.ID);
+            List<PromiseCardConfiguration> letterConfigs = context.GoalDeckRepository.GetPromiseCardsForNPC(npc.ID);
             if (letterConfigs != null && letterConfigs.Any())
             {
                 // Convert configurations to ConversationCards  
-                var goalCards = new List<ConversationCard>();
-                foreach (var config in letterConfigs)
+                List<ConversationCard> goalCards = new List<ConversationCard>();
+                foreach (PromiseCardConfiguration config in letterConfigs)
                 {
                     // Create a goal card from the promise configuration
-                    var card = new ConversationCard
+                    ConversationCard card = new ConversationCard
                     {
                         Id = $"promise_{npc.ID}_{config.CardId}",
                         TemplateId = config.CardId,
@@ -213,32 +213,32 @@ public class Phase3_NPCDependents : IInitializationPhase
                     };
                     goalCards.Add(card);
                 }
-                
+
                 npc.InitializeGoalDeck(goalCards);
                 Console.WriteLine($"[Phase3] Initialized Goal deck for {npc.Name} with {goalCards.Count} cards from letter_decks.json");
-                
-                foreach (var card in goalCards)
+
+                foreach (ConversationCard card in goalCards)
                 {
                     Console.WriteLine($"  - {card.DisplayName ?? card.Id} (Weight: {card.Weight})");
                 }
             }
         }
     }
-    
+
     private void LoadGoalDecks(InitializationContext context)
     {
         Console.WriteLine("[Phase3] Loading Goal deck configurations...");
-        
+
         // Create and initialize Goal deck repository
-        var GoalDeckRepo = new GoalDeckRepository(context.ContentPath);
+        GoalDeckRepository GoalDeckRepo = new GoalDeckRepository(context.ContentPath);
         GoalDeckRepo.LoadGoalDecks();
-        
+
         // Store in context for later use
         context.GoalDeckRepository = GoalDeckRepo;
-        
+
         Console.WriteLine("[Phase3] Goal deck configurations loaded");
     }
-    
+
     private TierLevel ParseTierLevel(string tierString)
     {
         if (string.IsNullOrEmpty(tierString))
@@ -548,13 +548,13 @@ public class Phase3_NPCDependents : IInitializationPhase
         }
 
         // Group routes by origin spot's location
-        var routesByOriginLocation = routes.GroupBy(r => 
+        IEnumerable<IGrouping<string?, RouteOption>> routesByOriginLocation = routes.GroupBy(r =>
         {
-            var originSpot = spots.FirstOrDefault(s => s.SpotID == r.OriginLocationSpot);
+            LocationSpot? originSpot = spots.FirstOrDefault(s => s.SpotID == r.OriginLocationSpot);
             return originSpot?.LocationId;
         }).Where(g => g.Key != null);
 
-        foreach (var group in routesByOriginLocation)
+        foreach (IGrouping<string?, RouteOption>? group in routesByOriginLocation)
         {
             Location? originLocation = locations.FirstOrDefault(l => l.Id == group.Key);
             if (originLocation == null)
@@ -564,13 +564,13 @@ public class Phase3_NPCDependents : IInitializationPhase
             }
 
             // Group by destination spot's location
-            var routesByDestinationLocation = group.GroupBy(r => 
+            IEnumerable<IGrouping<string?, RouteOption>> routesByDestinationLocation = group.GroupBy(r =>
             {
-                var destSpot = spots.FirstOrDefault(s => s.SpotID == r.DestinationLocationSpot);
+                LocationSpot? destSpot = spots.FirstOrDefault(s => s.SpotID == r.DestinationLocationSpot);
                 return destSpot?.LocationId;
             }).Where(g => g.Key != null);
 
-            foreach (var destGroup in routesByDestinationLocation)
+            foreach (IGrouping<string?, RouteOption>? destGroup in routesByDestinationLocation)
             {
                 LocationConnection connection = new LocationConnection
                 {

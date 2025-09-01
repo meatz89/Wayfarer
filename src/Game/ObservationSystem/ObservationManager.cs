@@ -40,7 +40,7 @@ public class ObservationManager
     /// </summary>
     public bool HasTakenObservation(string observationId)
     {
-        var currentTimeBlock = GetCurrentTimeBlockKey();
+        string currentTimeBlock = GetCurrentTimeBlockKey();
         return _takenObservationsByTimeBlock.ContainsKey(currentTimeBlock) &&
                _takenObservationsByTimeBlock[currentTimeBlock].Contains(observationId);
     }
@@ -54,8 +54,8 @@ public class ObservationManager
         if (observation == null)
             return null;
 
-        var currentTimeBlock = GetCurrentTimeBlockKey();
-        
+        string currentTimeBlock = GetCurrentTimeBlockKey();
+
         // Check if already taken this time block
         if (HasTakenObservation(observation.Id))
         {
@@ -71,26 +71,26 @@ public class ObservationManager
         _takenObservationsByTimeBlock[currentTimeBlock].Add(observation.Id);
 
         // Generate conversation card first
-        var conversationCard = GenerateConversationCard(observation, tokenManager);
-        
+        ConversationCard conversationCard = GenerateConversationCard(observation, tokenManager);
+
         if (conversationCard != null)
         {
             // Create observation card with decay tracking
-            var currentGameTime = GetCurrentGameTime();
-            var observationCard = ObservationCard.FromConversationCard(conversationCard);
+            DateTime currentGameTime = GetCurrentGameTime();
+            ObservationCard observationCard = ObservationCard.FromConversationCard(conversationCard);
             // Note: SourceObservationId is set in the FromConversationCard method using the card.Id
-            
+
             // Add to player's observation deck instead of internal storage
-            var currentDay = _timeManager.GetCurrentDay();
-            var timeBlock = _timeManager.GetCurrentTimeBlock();
+            int currentDay = _timeManager.GetCurrentDay();
+            TimeBlocks timeBlock = _timeManager.GetCurrentTimeBlock();
             bool addedToDeck = _gameWorld.GetPlayer().ObservationDeck.AddCard(observationCard, currentDay, timeBlock);
-            
+
             if (addedToDeck)
             {
                 Console.WriteLine($"[ObservationManager] Generated observation card {observationCard.Id} from {observation.Id} at {currentGameTime}");
-                
+
                 // Store taken observation details for UI display
-                var takenObs = new TakenObservation
+                TakenObservation takenObs = new TakenObservation
                 {
                     Id = observation.Id,
                     Name = observation.Text,
@@ -101,7 +101,7 @@ public class ObservationManager
                     TimeBlockTaken = _timeManager.GetCurrentTimeBlock()
                 };
                 _takenObservations[observation.Id] = takenObs;
-                
+
                 return observationCard;
             }
             else
@@ -120,23 +120,23 @@ public class ObservationManager
     /// </summary>
     public List<ObservationCard> GetObservationCards()
     {
-        var currentDay = _timeManager.GetCurrentDay();
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        
+        int currentDay = _timeManager.GetCurrentDay();
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+
         // Get cards from player's deck with automatic expiration handling
         return _gameWorld.GetPlayer().ObservationDeck.GetActiveCards(currentDay, currentTimeBlock);
     }
-    
+
     /// <summary>
     /// Get observation cards as conversation cards for use in conversation system
     /// Delegates to player's observation deck
     /// </summary>
     public List<ConversationCard> GetObservationCardsAsConversationCards()
     {
-        var currentGameTime = GetCurrentGameTime();
-        var currentDay = _timeManager.GetCurrentDay();
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        
+        DateTime currentGameTime = GetCurrentGameTime();
+        int currentDay = _timeManager.GetCurrentDay();
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+
         // Get cards from player's deck already formatted as conversation cards
         return _gameWorld.GetPlayer().ObservationDeck.GetAsConversationCards(currentGameTime, currentDay, currentTimeBlock);
     }
@@ -149,13 +149,13 @@ public class ObservationManager
     {
         _gameWorld.GetPlayer().ObservationDeck.RemoveCard(observationCardId);
     }
-    
+
     /// <summary>
     /// Get all taken observations for the current time block
     /// </summary>
     public List<TakenObservation> GetTakenObservations()
     {
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
         return _takenObservations.Values
             .Where(o => o.TimeBlockTaken == currentTimeBlock)
             .ToList();
@@ -167,19 +167,19 @@ public class ObservationManager
     /// </summary>
     public void RefreshForNewTimeBlock()
     {
-        var currentTimeBlock = GetCurrentTimeBlockKey();
-        var currentTimeBlockEnum = _timeManager.GetCurrentTimeBlock();
+        string currentTimeBlock = GetCurrentTimeBlockKey();
+        TimeBlocks currentTimeBlockEnum = _timeManager.GetCurrentTimeBlock();
         Console.WriteLine($"[ObservationManager] Refreshing observations for time block {currentTimeBlock}");
-        
+
         // Clear taken observations for this time block
         if (_takenObservationsByTimeBlock.ContainsKey(currentTimeBlock))
         {
             _takenObservationsByTimeBlock[currentTimeBlock].Clear();
         }
-        
+
         // Clear taken observations from previous time blocks
-        var toRemove = _takenObservations.Where(kvp => kvp.Value.TimeBlockTaken != currentTimeBlockEnum).Select(kvp => kvp.Key).ToList();
-        foreach (var id in toRemove)
+        List<string> toRemove = _takenObservations.Where(kvp => kvp.Value.TimeBlockTaken != currentTimeBlockEnum).Select(kvp => kvp.Key).ToList();
+        foreach (string? id in toRemove)
         {
             _takenObservations.Remove(id);
         }
@@ -207,14 +207,14 @@ public class ObservationManager
         }
 
         // Load the base card template from GameWorld's AllCardDefinitions
-        if (!_gameWorld.AllCardDefinitions.TryGetValue(observation.CardTemplate, out var baseCard))
+        if (!_gameWorld.AllCardDefinitions.TryGetValue(observation.CardTemplate, out ConversationCard? baseCard))
         {
             Console.WriteLine($"[ObservationManager] Card template '{observation.CardTemplate}' not found in AllCardDefinitions for observation {observation.Id}");
             return null;
         }
 
         // Create a new card instance based on the template, customized for this observation
-        var observationCard = new ConversationCard
+        ConversationCard observationCard = new ConversationCard
         {
             Id = $"{observation.Id}_card_{Guid.NewGuid()}",
             TemplateId = baseCard.TemplateId,
@@ -252,10 +252,10 @@ public class ObservationManager
 
     // REMOVED: DetermineCardType - hardcoded type assignment violates architecture
     // Card types should come from observation JSON properties, not switch statements
-    
+
     // REMOVED: DetermineCardTemplate - hardcoded template assignment violates architecture  
     // Card templates should be specified in observation JSON, not defaulted in code
-    
+
     // REMOVED: GetObservationTypeData - hardcoded values violate architecture
     // All card properties (weight, comfort) should come from JSON templates
 
@@ -266,20 +266,20 @@ public class ObservationManager
     {
         // Convert game time to a DateTime for decay calculations
         // Day 1, Hour 0 = DateTime base, each game day = 24 real hours for decay purposes
-        var baseDate = new DateTime(2024, 1, 1, 0, 0, 0); // Arbitrary base date
-        var gameDay = _timeManager.GetCurrentDay();
-        var gameHour = _timeManager.GetCurrentTimeHours();
-        var gameMinutes = _timeManager.GetCurrentMinutes();
-        
+        DateTime baseDate = new DateTime(2024, 1, 1, 0, 0, 0); // Arbitrary base date
+        int gameDay = _timeManager.GetCurrentDay();
+        int gameHour = _timeManager.GetCurrentTimeHours();
+        int gameMinutes = _timeManager.GetCurrentMinutes();
+
         return baseDate.AddDays(gameDay - 1).AddHours(gameHour).AddMinutes(gameMinutes);
     }
-    
+
     /// <summary>
     /// Get the current time block as a string key
     /// </summary>
     private string GetCurrentTimeBlockKey()
     {
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
         return currentTimeBlock switch
         {
             TimeBlocks.Dawn => "dawn",

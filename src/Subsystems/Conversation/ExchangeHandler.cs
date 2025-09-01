@@ -31,41 +31,41 @@ public class ExchangeHandler
     public bool ExecuteExchange(ExchangeData exchange, NPC npc, Player player, PlayerResourceState playerResources)
     {
         Console.WriteLine($"[ExchangeHandler] Executing exchange: {exchange?.ExchangeName ?? "NULL"}");
-        
+
         if (exchange == null)
         {
             Console.WriteLine("[ExchangeHandler] Exchange is null");
             return false;
         }
-        
+
         // Validate player can afford
         if (!CanAffordExchange(exchange, playerResources))
         {
             _messageSystem.AddSystemMessage("You don't have enough resources for this exchange", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Apply costs
         if (!ApplyCosts(exchange, player, npc))
         {
             Console.WriteLine("[ExchangeHandler] Failed to apply costs");
             return false;
         }
-        
+
         // Apply rewards
         ApplyRewards(exchange, player, npc);
-        
+
         // Generate success message
-        var exchangeName = GetExchangeName(exchange);
+        string exchangeName = GetExchangeName(exchange);
         _messageSystem.AddSystemMessage($"You {exchangeName} with {npc.Name}", SystemMessageTypes.Success);
-        
+
         // Handle time advancement for work exchanges
         if (ShouldAdvanceTime(exchange))
         {
             _timeManager.AdvanceTime(1);
             _messageSystem.AddSystemMessage("Time passes as you work...", SystemMessageTypes.Info);
         }
-        
+
         Console.WriteLine($"[ExchangeHandler] Successfully completed exchange {exchange.ExchangeName}");
         return true;
     }
@@ -75,10 +75,10 @@ public class ExchangeHandler
     /// </summary>
     public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources)
     {
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        var currentAttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
-        var currentAttention = currentAttentionManager?.Current ?? 0;
-        
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        AttentionManager currentAttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        int currentAttention = currentAttentionManager?.Current ?? 0;
+
         return exchange.CanAfford(playerResources, _tokenManager, currentAttention);
     }
 
@@ -87,23 +87,23 @@ public class ExchangeHandler
     /// </summary>
     public List<ExchangeOption> GetAvailableExchanges(NPC npc, List<string> spotDomainTags, PlayerResourceState playerResources)
     {
-        var exchanges = new List<ExchangeOption>();
-        
+        List<ExchangeOption> exchanges = new List<ExchangeOption>();
+
         if (npc.ExchangeDeck == null || !npc.ExchangeDeck.HasCardsAvailable())
             return exchanges;
-        
-        foreach (var card in npc.ExchangeDeck.GetAllCards())
+
+        foreach (ConversationCard card in npc.ExchangeDeck.GetAllCards())
         {
             if (card.Context?.ExchangeData == null)
                 continue;
-            
+
             // Check domain requirements
             if (!CheckDomainRequirements(card, spotDomainTags))
                 continue;
-            
-            var exchange = card.Context.ExchangeData;
-            var canAfford = CanAffordExchange(exchange, playerResources);
-            
+
+            ExchangeData exchange = card.Context.ExchangeData;
+            bool canAfford = CanAffordExchange(exchange, playerResources);
+
             exchanges.Add(new ExchangeOption
             {
                 ExchangeId = card.TemplateId,
@@ -115,7 +115,7 @@ public class ExchangeHandler
                 ExchangeData = exchange
             });
         }
-        
+
         return exchanges;
     }
 
@@ -124,7 +124,7 @@ public class ExchangeHandler
     /// </summary>
     private bool ApplyCosts(ExchangeData exchange, Player player, NPC npc)
     {
-        foreach (var cost in exchange.Cost)
+        foreach (KeyValuePair<ResourceType, int> cost in exchange.Cost)
         {
             switch (cost.Key)
             {
@@ -133,42 +133,42 @@ public class ExchangeHandler
                         return false;
                     player.Coins -= cost.Value;
                     break;
-                    
+
                 case ResourceType.Health:
                     if (player.Health < cost.Value)
                         return false;
                     player.Health -= cost.Value;
                     break;
-                    
+
                 case ResourceType.Attention:
-                    var timeBlock = _timeManager.GetCurrentTimeBlock();
-                    var attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(timeBlock);
+                    TimeBlocks timeBlock = _timeManager.GetCurrentTimeBlock();
+                    AttentionManager attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(timeBlock);
                     if (!attentionMgr.TrySpend(cost.Value))
                         return false;
                     break;
-                    
+
                 case ResourceType.TrustToken:
                     if (!_tokenManager.SpendTokens(ConnectionType.Trust, cost.Value, npc.ID))
                         return false;
                     break;
-                    
+
                 case ResourceType.CommerceToken:
                     if (!_tokenManager.SpendTokens(ConnectionType.Commerce, cost.Value, npc.ID))
                         return false;
                     break;
-                    
+
                 case ResourceType.StatusToken:
                     if (!_tokenManager.SpendTokens(ConnectionType.Status, cost.Value, npc.ID))
                         return false;
                     break;
-                    
+
                 case ResourceType.ShadowToken:
                     if (!_tokenManager.SpendTokens(ConnectionType.Shadow, cost.Value, npc.ID))
                         return false;
                     break;
             }
         }
-        
+
         return true;
     }
 
@@ -177,41 +177,41 @@ public class ExchangeHandler
     /// </summary>
     private void ApplyRewards(ExchangeData exchange, Player player, NPC npc)
     {
-        foreach (var reward in exchange.Reward)
+        foreach (KeyValuePair<ResourceType, int> reward in exchange.Reward)
         {
             switch (reward.Key)
             {
                 case ResourceType.Coins:
                     player.Coins += reward.Value;
                     break;
-                    
+
                 case ResourceType.Health:
                     player.Health = Math.Min(100, player.Health + reward.Value);
                     break;
-                    
+
                 case ResourceType.Hunger:
                     // Hunger maps to Food (0 = not hungry, 100 = very hungry)
                     player.Food = Math.Max(0, Math.Min(100, player.Food - reward.Value));
                     break;
-                    
+
                 case ResourceType.Attention:
-                    var timeBlock = _timeManager.GetCurrentTimeBlock();
-                    var attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(timeBlock);
+                    TimeBlocks timeBlock = _timeManager.GetCurrentTimeBlock();
+                    AttentionManager attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(timeBlock);
                     attentionMgr.AddAttention(reward.Value);
                     break;
-                    
+
                 case ResourceType.TrustToken:
                     _tokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Value, npc.ID);
                     break;
-                    
+
                 case ResourceType.CommerceToken:
                     _tokenManager.AddTokensToNPC(ConnectionType.Commerce, reward.Value, npc.ID);
                     break;
-                    
+
                 case ResourceType.StatusToken:
                     _tokenManager.AddTokensToNPC(ConnectionType.Status, reward.Value, npc.ID);
                     break;
-                    
+
                 case ResourceType.ShadowToken:
                     _tokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Value, npc.ID);
                     break;
@@ -235,7 +235,7 @@ public class ExchangeHandler
     {
         if (!string.IsNullOrEmpty(exchange.ExchangeName))
             return exchange.ExchangeName;
-        
+
         return exchange.TemplateId switch
         {
             "food_exchange" => "bought travel provisions",
@@ -263,7 +263,7 @@ public class ExchangeHandler
     /// </summary>
     private string FormatCost(List<ResourceExchange> costs)
     {
-        var parts = costs.Select(c => $"{c.Amount} {GetResourceName(c.ResourceType)}");
+        IEnumerable<string> parts = costs.Select(c => $"{c.Amount} {GetResourceName(c.ResourceType)}");
         return string.Join(", ", parts);
     }
 
@@ -272,7 +272,7 @@ public class ExchangeHandler
     /// </summary>
     private string FormatReward(List<ResourceExchange> rewards)
     {
-        var parts = rewards.Select(r => 
+        IEnumerable<string> parts = rewards.Select(r =>
         {
             if (r.IsAbsolute)
                 return $"Set {GetResourceName(r.ResourceType)} to {r.Amount}";

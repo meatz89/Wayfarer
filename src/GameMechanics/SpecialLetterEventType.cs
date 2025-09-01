@@ -55,7 +55,7 @@ public class SpecialLetterEvent
     public ConnectionType TokenType { get; set; }
     public int TokenAmount { get; set; }
     public NarrativeSeverity Severity { get; set; } = NarrativeSeverity.Info;
-    
+
     // Additional fields for letter generation events
     public int Position { get; set; }        // Position in satchel (always 0 for special letters)
     public int TokenCost { get; set; }       // Tokens spent to generate the letter

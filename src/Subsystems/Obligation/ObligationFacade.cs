@@ -19,7 +19,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private readonly DisplacementCalculator _displacementCalculator;
         private readonly DeadlineTracker _deadlineTracker;
         private readonly ObligationStatistics _statistics;
-        
+
         // External dependencies for references
         private readonly NPCRepository _npcRepository;
         private readonly MessageSystem _messageSystem;
@@ -73,7 +73,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public DeliveryObligation[] GetActiveObligations()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             return player.ObligationQueue
                 .Where(o => o != null)
                 .ToArray();
@@ -122,20 +122,20 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             ApplyDeadlineBonuses(obligation);
 
             // Check for automatic displacement scenarios
-            var autoDisplacement = CheckForAutomaticDisplacement(obligation);
+            AutoDisplacementInfo autoDisplacement = CheckForAutomaticDisplacement(obligation);
             if (autoDisplacement.ShouldForceDisplacement)
             {
-                var displacementResult = _displacementCalculator.ExecuteAutomaticDisplacement(
-                    obligation, 
-                    autoDisplacement.ForcedPosition, 
+                DisplacementResult displacementResult = _displacementCalculator.ExecuteAutomaticDisplacement(
+                    obligation,
+                    autoDisplacement.ForcedPosition,
                     autoDisplacement.DisplacementReason);
 
                 if (displacementResult.CanExecute)
                 {
                     _deliveryManager.AddPhysicalLetter(obligation);
-                    return new ObligationAddResult 
-                    { 
-                        Success = true, 
+                    return new ObligationAddResult
+                    {
+                        Success = true,
                         Position = autoDisplacement.ForcedPosition,
                         AddedObligation = obligation,
                         CausedDisplacement = true
@@ -144,8 +144,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Normal leverage-based positioning
-            var addResult = _queueManipulator.AddObligationWithLeverage(obligation);
-            
+            ObligationAddResult addResult = _queueManipulator.AddObligationWithLeverage(obligation);
+
             // Add to physical satchel if queue addition succeeded
             if (addResult.Success)
             {
@@ -160,13 +160,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public ObligationAddResult AddObligation(DeliveryObligation obligation)
         {
-            var result = _queueManipulator.AddObligation(obligation);
-            
+            ObligationAddResult result = _queueManipulator.AddObligation(obligation);
+
             if (result.Success)
             {
                 _deliveryManager.AddPhysicalLetter(obligation);
             }
-            
+
             return result;
         }
 
@@ -175,13 +175,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public QueueManipulationResult RemoveObligationFromQueue(int position)
         {
-            var result = _queueManipulator.RemoveObligationFromQueue(position);
-            
+            QueueManipulationResult result = _queueManipulator.RemoveObligationFromQueue(position);
+
             if (result.Success && result.AffectedObligation != null)
             {
                 _deliveryManager.RemovePhysicalLetter(result.AffectedObligation.Id);
             }
-            
+
             return result;
         }
 
@@ -394,11 +394,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public DeadlineTrackingInfo ProcessHourlyDeadlines(int hoursElapsed = 1)
         {
-            var trackingInfo = _deadlineTracker.ProcessHourlyDeadlines(hoursElapsed);
-            
+            DeadlineTrackingInfo trackingInfo = _deadlineTracker.ProcessHourlyDeadlines(hoursElapsed);
+
             // Process expired meetings as well
-            var expiredMeetings = _meetingManager.ProcessExpiredMeetings();
-            
+            List<MeetingResult> expiredMeetings = _meetingManager.ProcessExpiredMeetings();
+
             return trackingInfo;
         }
 
@@ -519,10 +519,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public int? GetObligationPosition(string obligationId)
         {
-            var obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
+            DeliveryObligation? obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
             if (obligation == null) return null;
-            
-            var position = _queueManipulator.GetQueuePosition(obligation);
+
+            int position = _queueManipulator.GetQueuePosition(obligation);
             return position > 0 ? position : (int?)null;
         }
 
@@ -539,7 +539,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public int AddLetterWithObligationEffects(DeliveryObligation obligation)
         {
-            var result = AddObligationWithEffects(obligation);
+            ObligationAddResult result = AddObligationWithEffects(obligation);
             return result.Success ? result.Position : 0;
         }
 
@@ -573,9 +573,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void ApplyDeadlineBonuses(DeliveryObligation obligation)
         {
-            var activeObligations = _standingObligationManager.GetActiveObligations();
+            List<StandingObligation> activeObligations = _standingObligationManager.GetActiveObligations();
 
-            foreach (var standingObligation in activeObligations)
+            foreach (StandingObligation standingObligation in activeObligations)
             {
                 // Check if obligation applies to this letter type
                 if (!standingObligation.AppliesTo(obligation.TokenType)) continue;
@@ -586,7 +586,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     // Check if the letter is from the specific NPC if obligation is NPC-specific
                     if (!string.IsNullOrEmpty(standingObligation.RelatedNPCId))
                     {
-                        var npc = _npcRepository.GetByName(obligation.SenderName);
+                        NPC npc = _npcRepository.GetByName(obligation.SenderName);
                         if (npc == null || npc.ID != standingObligation.RelatedNPCId) continue;
                     }
 
@@ -604,10 +604,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private AutoDisplacementInfo CheckForAutomaticDisplacement(DeliveryObligation obligation)
         {
-            var info = new AutoDisplacementInfo();
+            AutoDisplacementInfo info = new AutoDisplacementInfo();
 
             // Failed letter negotiations force position 1
-            if (obligation.GenerationReason != null && 
+            if (obligation.GenerationReason != null &&
                 obligation.GenerationReason.Contains("failure", StringComparison.OrdinalIgnoreCase))
             {
                 info.ShouldForceDisplacement = true;
@@ -618,7 +618,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Proud NPCs attempt position 1
-            if (obligation.SenderName == "Lord Blackwood" || 
+            if (obligation.SenderName == "Lord Blackwood" ||
                 obligation.RecipientName == "Lord Blackwood")
             {
                 info.ShouldForceDisplacement = true;
@@ -640,23 +640,23 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             return info;
         }
-        
-        
+
+
         public LetterQueueViewModel GetLetterQueue()
         {
-            var activeObligations = GetActiveObligations();
-            var queuePositionInfo = _queueManipulator.GetQueuePositionInfo();
-            var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-            var metrics = _statistics.GenerateObligationMetrics();
-            var totalSize = _deliveryManager.GetTotalSatchelSize();
-            
-            var queueSlots = new List<QueueSlotViewModel>();
-            
+            DeliveryObligation[] activeObligations = GetActiveObligations();
+            List<QueuePositionInfo> queuePositionInfo = _queueManipulator.GetQueuePositionInfo();
+            TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+            ObligationMetrics metrics = _statistics.GenerateObligationMetrics();
+            int totalSize = _deliveryManager.GetTotalSatchelSize();
+
+            List<QueueSlotViewModel> queueSlots = new List<QueueSlotViewModel>();
+
             // Create slots for each position (1-8)
             for (int position = 1; position <= 8; position++)
             {
-                var obligation = GetLetterAt(position);
-                var slot = new QueueSlotViewModel
+                DeliveryObligation? obligation = GetLetterAt(position);
+                QueueSlotViewModel slot = new QueueSlotViewModel
                 {
                     Position = position,
                     IsOccupied = obligation != null,
@@ -667,9 +667,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 };
                 queueSlots.Add(slot);
             }
-            
-            var urgencyStats = _deadlineTracker.GetUrgencyStats();
-            
+
+            DeadlineUrgencyStats urgencyStats = _deadlineTracker.GetUrgencyStats();
+
             return new LetterQueueViewModel
             {
                 QueueSlots = queueSlots,
@@ -698,17 +698,17 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 LastMorningSwapDay = _statistics.GetLastMorningSwapDay()
             };
         }
-        
+
         public LetterBoardViewModel GetLetterBoard()
         {
-            var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-            
+            TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+
             // Letter board is typically available during specific time blocks
-            var isAvailable = currentTimeBlock == TimeBlocks.Morning || currentTimeBlock == TimeBlocks.Afternoon;
-            var unavailableReason = !isAvailable ? "Letter board is only available during morning and afternoon hours" : null;
-            
-            var offers = new List<LetterOfferViewModel>();
-            
+            bool isAvailable = currentTimeBlock == TimeBlocks.Morning || currentTimeBlock == TimeBlocks.Afternoon;
+            string? unavailableReason = !isAvailable ? "Letter board is only available during morning and afternoon hours" : null;
+
+            List<LetterOfferViewModel> offers = new List<LetterOfferViewModel>();
+
             // In a full implementation, this would query actual letter offers
             // For now, we'll provide an empty list but with proper structure
             if (isAvailable)
@@ -716,7 +716,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 // This would normally come from a letter offer repository or generator
                 // offers = GetAvailableLetterOffers();
             }
-            
+
             return new LetterBoardViewModel
             {
                 IsAvailable = isAvailable,
@@ -725,37 +725,37 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 CurrentTime = currentTimeBlock
             };
         }
-        
+
         public bool DisplaceObligation(string obligationId, int targetPosition)
         {
-            var displacementResult = _displacementCalculator.CalculateDisplacement(obligationId, targetPosition);
-            
+            DisplacementResult displacementResult = _displacementCalculator.CalculateDisplacement(obligationId, targetPosition);
+
             if (!displacementResult.CanExecute)
             {
                 _messageSystem.AddSystemMessage(
-                    $"Cannot displace obligation: {displacementResult.ErrorMessage}", 
+                    $"Cannot displace obligation: {displacementResult.ErrorMessage}",
                     SystemMessageTypes.Warning);
                 return false;
             }
-            
-            var executionResult = _displacementCalculator.ExecuteDisplacement(displacementResult);
-            
+
+            DisplacementResult executionResult = _displacementCalculator.ExecuteDisplacement(displacementResult);
+
             if (executionResult.CanExecute)
             {
                 _messageSystem.AddSystemMessage(
-                    $"Successfully displaced obligation to position {targetPosition}", 
+                    $"Successfully displaced obligation to position {targetPosition}",
                     SystemMessageTypes.Success);
                 return true;
             }
             else
             {
                 _messageSystem.AddSystemMessage(
-                    $"Failed to execute displacement: {executionResult.ErrorMessage}", 
+                    $"Failed to execute displacement: {executionResult.ErrorMessage}",
                     SystemMessageTypes.Warning);
                 return false;
             }
         }
-        
+
         public bool AcceptLetterOffer(string offerId)
         {
             // In a full implementation, this would:
@@ -764,32 +764,32 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             // 3. Create a DeliveryObligation from the offer
             // 4. Add it to the queue
             // 5. Remove the offer from available offers
-            
+
             _messageSystem.AddSystemMessage(
-                "Letter offer system not fully implemented yet", 
+                "Letter offer system not fully implemented yet",
                 SystemMessageTypes.Info);
-            
+
             // For now, return false to indicate the feature needs implementation
             return false;
         }
-        
+
         public int GetLetterQueueCount()
         {
             return GetLetterCount(); // Use existing method
         }
-        
+
         public bool IsLetterQueueFull()
         {
             return IsQueueFull(); // Use existing method
         }
-        
+
         // ========== HELPER METHODS FOR VIEW MODEL CREATION ==========
-        
+
         private LetterViewModel CreateLetterViewModel(DeliveryObligation obligation)
         {
-            var leverageInfo = CalculateLeverageInfo(obligation);
-            var deadlineInfo = CalculateDeadlineInfo(obligation);
-            
+            LeverageInfo leverageInfo = CalculateLeverageInfo(obligation);
+            (string CssClass, string Icon, string Description) deadlineInfo = CalculateDeadlineInfo(obligation);
+
             return new LetterViewModel
             {
                 Id = obligation.Id,
@@ -832,17 +832,17 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 ActiveObligationEffects = new List<string>()
             };
         }
-        
+
         private SkipActionViewModel CreateSkipActionViewModel(DeliveryObligation obligation)
         {
-            var npc = _npcRepository.GetByName(obligation.SenderName);
-            var tokens = npc != null ? _tokenManager.GetTokensWithNPC(npc.ID) : new Dictionary<ConnectionType, int>();
-            var availableTokens = tokens.GetValueOrDefault(obligation.TokenType, 0);
-            
-            var baseCost = 1;
-            var multiplier = 1;
-            var totalCost = baseCost * multiplier;
-            
+            NPC npc = _npcRepository.GetByName(obligation.SenderName);
+            Dictionary<ConnectionType, int> tokens = npc != null ? _tokenManager.GetTokensWithNPC(npc.ID) : new Dictionary<ConnectionType, int>();
+            int availableTokens = tokens.GetValueOrDefault(obligation.TokenType, 0);
+
+            int baseCost = 1;
+            int multiplier = 1;
+            int totalCost = baseCost * multiplier;
+
             return new SkipActionViewModel
             {
                 BaseCost = baseCost,
@@ -854,7 +854,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 MultiplierReason = multiplier > 1 ? $"x{multiplier} due to conditions" : "Base cost"
             };
         }
-        
+
         private string GetMorningSwapReason(TimeBlocks currentTime, int obligationCount)
         {
             if (currentTime != TimeBlocks.Morning)
@@ -863,45 +863,45 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return "Need at least 2 obligations to swap";
             return "Ready for morning swap";
         }
-        
+
         private int GetTotalAvailableTokens()
         {
-            var player = _gameWorld.GetPlayer();
-            var totalTokens = 0;
-            
-            foreach (var npcTokens in player.NPCTokens.Values)
+            Player player = _gameWorld.GetPlayer();
+            int totalTokens = 0;
+
+            foreach (Dictionary<ConnectionType, int> npcTokens in player.NPCTokens.Values)
             {
-                foreach (var tokenCount in npcTokens.Values)
+                foreach (int tokenCount in npcTokens.Values)
                 {
                     totalTokens += Math.Max(0, tokenCount); // Only count positive tokens
                 }
             }
-            
+
             return totalTokens;
         }
-        
+
         private List<TokenOptionViewModel> CreatePurgeTokenOptions()
         {
-            var options = new List<TokenOptionViewModel>();
-            var player = _gameWorld.GetPlayer();
-            var tokenTotals = new Dictionary<ConnectionType, int>
+            List<TokenOptionViewModel> options = new List<TokenOptionViewModel>();
+            Player player = _gameWorld.GetPlayer();
+            Dictionary<ConnectionType, int> tokenTotals = new Dictionary<ConnectionType, int>
             {
                 [ConnectionType.Trust] = 0,
                 [ConnectionType.Commerce] = 0,
                 [ConnectionType.Status] = 0,
                 [ConnectionType.Shadow] = 0
             };
-            
+
             // Sum up all tokens by type
-            foreach (var npcTokens in player.NPCTokens.Values)
+            foreach (Dictionary<ConnectionType, int> npcTokens in player.NPCTokens.Values)
             {
-                foreach (var kvp in npcTokens)
+                foreach (KeyValuePair<ConnectionType, int> kvp in npcTokens)
                 {
                     tokenTotals[kvp.Key] += Math.Max(0, kvp.Value);
                 }
             }
-            
-            foreach (var kvp in tokenTotals.Where(t => t.Value > 0))
+
+            foreach (KeyValuePair<ConnectionType, int> kvp in tokenTotals.Where(t => t.Value > 0))
             {
                 options.Add(new TokenOptionViewModel
                 {
@@ -910,24 +910,24 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     Available = kvp.Value
                 });
             }
-            
+
             return options;
         }
-        
+
         private LeverageInfo CalculateLeverageInfo(DeliveryObligation obligation)
         {
-            var npc = _npcRepository.GetByName(obligation.SenderName);
+            NPC npc = _npcRepository.GetByName(obligation.SenderName);
             if (npc == null)
             {
                 return new LeverageInfo { HasLeverage = false, Indicator = "", Tooltip = "", TokenBalance = 0, LeverageStrength = 0 };
             }
-            
-            var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
-            var balance = tokens.GetValueOrDefault(obligation.TokenType, 0);
-            
-            var hasLeverage = balance < 0;
-            var leverageStrength = Math.Abs(Math.Min(0, balance));
-            
+
+            Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc.ID);
+            int balance = tokens.GetValueOrDefault(obligation.TokenType, 0);
+
+            bool hasLeverage = balance < 0;
+            int leverageStrength = Math.Abs(Math.Min(0, balance));
+
             return new LeverageInfo
             {
                 HasLeverage = hasLeverage,
@@ -937,11 +937,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 Tooltip = hasLeverage ? $"NPC owes you {leverageStrength} {obligation.TokenType} tokens" : "No leverage"
             };
         }
-        
+
         private (string CssClass, string Icon, string Description) CalculateDeadlineInfo(DeliveryObligation obligation)
         {
-            var hoursRemaining = obligation.DeadlineInMinutes / 60;
-            
+            int hoursRemaining = obligation.DeadlineInMinutes / 60;
+
             if (hoursRemaining <= 0)
                 return ("deadline-expired", "💀", "Expired");
             else if (hoursRemaining <= 6)
@@ -953,7 +953,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             else
                 return ("deadline-safe", "📅", $"{hoursRemaining / 24}d left");
         }
-        
+
         private string GetTokenIcon(ConnectionType tokenType)
         {
             return tokenType switch
@@ -965,7 +965,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 _ => "?"
             };
         }
-        
+
         private string GetSizeIcon(int size)
         {
             return size switch
@@ -976,16 +976,16 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 _ => "❓"
             };
         }
-        
+
         private string GetSizeDisplay(int size)
         {
             return new string('■', size);
         }
-        
+
         private string GetPhysicalConstraintIcon(string constraints)
         {
             if (string.IsNullOrEmpty(constraints)) return "";
-            
+
             return constraints.ToLower() switch
             {
                 var c when c.Contains("fragile") => "🔍",

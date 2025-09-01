@@ -19,11 +19,11 @@ public class NPCDTO
     public string Role { get; set; }
     public string AvailabilitySchedule { get; set; }
     public int Tier { get; set; }
-    
+
     // REMOVED: Boolean flags violate deck-based architecture
     // Letters are detected by checking Goal deck contents
     // Burden history detected by counting burden cards in conversation deck
-    
+
     // Properties from JSON that weren't being parsed
     public string CurrentState { get; set; }
 }

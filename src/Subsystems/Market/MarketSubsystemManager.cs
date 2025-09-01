@@ -107,7 +107,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         public string GetMarketAvailabilityStatus(string locationId, TimeBlocks currentTime)
         {
             List<NPC> currentTraders = GetTradersAtTime(locationId, currentTime);
-            
+
             if (currentTraders.Count > 0)
             {
                 string traderNames = string.Join(", ", currentTraders.Select(t => t.Name));
@@ -121,13 +121,13 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 return "No traders at this location";
             }
 
-            TimeBlocks[] allTimes = { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon, 
+            TimeBlocks[] allTimes = { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon,
                                      TimeBlocks.Evening, TimeBlocks.Night, TimeBlocks.LateNight };
-            
+
             foreach (TimeBlocks time in allTimes)
             {
                 if (time <= currentTime) continue; // Skip past and current times
-                
+
                 List<NPC> futureTraders = GetTradersAtTime(locationId, time);
                 if (futureTraders.Count > 0)
                 {
@@ -171,7 +171,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 return false;
 
             Player player = _gameWorld.GetPlayer();
-            
+
             // Check if player has the item
             if (!player.Inventory.HasItem(itemId))
                 return false;
@@ -188,7 +188,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         {
             Player player = _gameWorld.GetPlayer();
             Item item = _itemRepository.GetItemById(itemId);
-            
+
             TradeResult result = new TradeResult
             {
                 ItemId = itemId,
@@ -213,7 +213,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
             // Attempt purchase through legacy manager
             bool success = _legacyMarketManager.BuyItem(itemId, locationId);
-            
+
             result.Success = success;
             result.CoinsAfter = player.Coins;
             result.HasItemAfter = player.Inventory.HasItem(itemId);
@@ -251,7 +251,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         {
             Player player = _gameWorld.GetPlayer();
             Item item = _itemRepository.GetItemById(itemId);
-            
+
             TradeResult result = new TradeResult
             {
                 ItemId = itemId,
@@ -276,7 +276,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
             // Attempt sale through legacy manager
             bool success = _legacyMarketManager.SellItem(itemId, locationId);
-            
+
             result.Success = success;
             result.CoinsAfter = player.Coins;
             result.HasItemAfter = player.Inventory.HasItem(itemId);
@@ -319,7 +319,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
             // Use legacy manager to get items with location-specific pricing
             List<Item> items = _legacyMarketManager.GetAvailableItems(locationId);
-            
+
             // Convert to MarketItem format
             return items.Select(item => new MarketItem
             {
@@ -356,7 +356,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 List<Location> locations = _gameWorld.WorldState.locations ?? new List<Location>();
                 int avgSellPrice = 0;
                 int validLocations = 0;
-                
+
                 foreach (Location loc in locations)
                 {
                     int price = _legacyMarketManager.GetItemPrice(loc.Id, itemId, false);
@@ -366,11 +366,11 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                         validLocations++;
                     }
                 }
-                
+
                 if (validLocations > 0)
                 {
                     avgSellPrice /= validLocations;
-                    
+
                     if (sellPriceHere > avgSellPrice * 1.1f) // 10% above average
                     {
                         recommendations.Add(new TradeRecommendation
@@ -392,7 +392,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             if (player.Coins > 10) // Only if player has money to invest
             {
                 List<Item> availableItems = _legacyMarketManager.GetAvailableItems(currentLocationId);
-                
+
                 foreach (Item item in availableItems)
                 {
                     if (!player.Inventory.CanAddItem(item, _itemRepository)) continue;
@@ -403,7 +403,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                     List<Location> locations = _gameWorld.WorldState.locations ?? new List<Location>();
                     int maxSellPrice = 0;
                     string bestSellLocation = null;
-                    
+
                     foreach (Location loc in locations)
                     {
                         if (loc.Id == currentLocationId) continue;
@@ -414,7 +414,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                             bestSellLocation = loc.Id;
                         }
                     }
-                    
+
                     int profit = maxSellPrice - buyPriceHere;
                     if (profit > 5) // Minimum profit threshold
                     {
@@ -446,7 +446,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         {
             TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             Player player = _gameWorld.GetPlayer();
-            
+
             MarketSummary summary = new MarketSummary
             {
                 LocationId = locationId,
@@ -458,11 +458,11 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             {
                 List<NPC> traders = GetAvailableTraders(locationId, currentTime);
                 summary.AvailableTraders = traders.Select(t => t.Name).ToList();
-                
+
                 List<Item> items = _legacyMarketManager.GetAvailableItems(locationId);
                 summary.TotalItemsAvailable = items.Count;
                 summary.AffordableItems = items.Count(i => i.BuyPrice <= player.Coins);
-                
+
                 // Count items profitable to sell
                 foreach (string itemId in player.Inventory.GetItemIds())
                 {
@@ -472,15 +472,15 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                         summary.ProfitableToSell++;
                     }
                 }
-                
+
                 summary.MarketStatus = $"Open with {summary.AvailableTraders.Count} trader(s)";
             }
             else
             {
                 summary.MarketStatus = GetMarketAvailabilityStatus(locationId, currentTime);
-                
+
                 // Find next open time
-                TimeBlocks[] futureTimes = { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon, 
+                TimeBlocks[] futureTimes = { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon,
                                             TimeBlocks.Evening, TimeBlocks.Night, TimeBlocks.LateNight };
                 foreach (TimeBlocks time in futureTimes)
                 {
@@ -533,7 +533,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         private bool ValidateTradeConditions(string locationId, out string error)
         {
             error = null;
-            
+
             // Check time
             TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             if (!IsMarketAvailable(locationId, currentTime))

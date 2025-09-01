@@ -49,12 +49,12 @@ public class NPC
 
     // Known routes (for HELP verb sharing)
     private List<RouteOption> _knownRoutes = new List<RouteOption>();
-    
+
     // REMOVED: Boolean flags violate deck-based architecture
     // Letters are detected by checking GoalDeck contents
     // Burden history detected by counting burden cards in ConversationDeck
     // Crisis detected by checking CurrentState == EmotionalState.DESPERATE
-    
+
     // Emotional state
     public EmotionalState CurrentState { get; set; } = EmotionalState.NEUTRAL;
     public EmotionalState CurrentEmotionalState => CurrentState; // Alias for compatibility
@@ -66,7 +66,7 @@ public class NPC
 
     // Daily exchange selection (removed - handled by GetTodaysExchange method)
 
-    
+
     // Initialize goal deck from content repository
     public void InitializeGoalDeck(List<ConversationCard> goalCards = null)
     {
@@ -76,7 +76,7 @@ public class NPC
             GoalDeck = new CardDeck();
             if (goalCards != null)
             {
-                foreach (var card in goalCards)
+                foreach (ConversationCard card in goalCards)
                 {
                     GoalDeck.AddCard(card);
                 }
@@ -94,26 +94,26 @@ public class NPC
             if (PersonalityType == PersonalityType.MERCANTILE && exchangeCards != null)
             {
                 Console.WriteLine($"[NPC.InitializeExchangeDeck] Adding {exchangeCards.Count} exchange cards for {Name}");
-                foreach (var card in exchangeCards)
+                foreach (ConversationCard card in exchangeCards)
                 {
                     Console.WriteLine($"[NPC.InitializeExchangeDeck] Card {card.Id}:");
                     Console.WriteLine($"  - Context null: {card.Context == null}");
                     Console.WriteLine($"  - ExchangeData null: {card.Context?.ExchangeData == null}");
                     if (card.Context?.ExchangeData != null)
                     {
-                        var ed = card.Context.ExchangeData;
+                        ExchangeData ed = card.Context.ExchangeData;
                         Console.WriteLine($"  - Cost items: {ed.Cost?.Count ?? 0}");
                         Console.WriteLine($"  - Reward items: {ed.Reward?.Count ?? 0}");
                         if (ed.Cost?.Any() == true)
                         {
-                            foreach (var cost in ed.Cost)
+                            foreach (KeyValuePair<ResourceType, int> cost in ed.Cost)
                             {
                                 Console.WriteLine($"    Cost: {cost.Value} {cost.Key}");
                             }
                         }
                         if (ed.Reward?.Any() == true)
                         {
-                            foreach (var reward in ed.Reward)
+                            foreach (KeyValuePair<ResourceType, int> reward in ed.Reward)
                             {
                                 Console.WriteLine($"    Reward: {reward.Value} {reward.Key}");
                             }
@@ -131,23 +131,23 @@ public class NPC
         if (GoalDeck == null) return false;
         return GoalDeck.GetAllCards().Any(c => c.Category == CardCategory.Promise.ToString());
     }
-    
+
     // Check if NPC has burden history (cards in conversation deck)
     public bool HasBurdenHistory()
     {
         return CountBurdenCards() > 0;
     }
-    
+
     // Count burden cards in conversation deck
     public int CountBurdenCards()
     {
         if (ConversationDeck == null) return 0;
-        
+
         // Burden cards are identified by their category
         return ConversationDeck.GetAllCards()
             .Count(card => card.Category == CardCategory.Burden.ToString());
     }
-    
+
     // Check if NPC has exchange cards available
     public bool HasExchangeCards()
     {
@@ -160,12 +160,12 @@ public class NPC
         // Exchange cards only for Mercantile NPCs
         if (PersonalityType != PersonalityType.MERCANTILE || ExchangeDeck == null || !ExchangeDeck.Any())
             return null;
-            
+
         // Use deterministic selection based on day and NPC ID
-        var cards = ExchangeDeck.GetAllCards();
+        List<ConversationCard> cards = ExchangeDeck.GetAllCards();
         if (cards.Count == 0) return null;
-        
-        var index = (currentDay * ID.GetHashCode()) % cards.Count;
+
+        int index = (currentDay * ID.GetHashCode()) % cards.Count;
         return cards[Math.Abs(index)];
     }
 

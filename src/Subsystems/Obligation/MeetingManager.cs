@@ -36,7 +36,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public List<MeetingObligation> GetActiveMeetingObligations()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             return player.MeetingObligations
                 .Where(m => m.DeadlineInMinutes > 0)
                 .OrderBy(m => m.DeadlineInMinutes)
@@ -57,7 +57,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public MeetingObligation GetMeetingById(string meetingId)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             return player.MeetingObligations
                 .FirstOrDefault(m => m.Id == meetingId);
         }
@@ -67,7 +67,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public MeetingResult AddMeetingObligation(MeetingObligation meeting)
         {
-            var result = new MeetingResult
+            MeetingResult result = new MeetingResult
             {
                 Operation = MeetingOperation.Add,
                 NPCId = meeting.RequesterId,
@@ -75,7 +75,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             };
 
             // Validate the meeting request
-            var validation = ValidateMeetingRequest(meeting);
+            MeetingResult validation = ValidateMeetingRequest(meeting);
             if (!validation.Success)
             {
                 result.ErrorMessage = validation.ErrorMessage;
@@ -83,7 +83,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Check if there's already a meeting with this NPC
-            var existingMeeting = GetMeetingWithNPC(meeting.RequesterId);
+            MeetingObligation existingMeeting = GetMeetingWithNPC(meeting.RequesterId);
             if (existingMeeting != null)
             {
                 result.ErrorMessage = $"Already have a meeting scheduled with {meeting.RequesterName}";
@@ -92,13 +92,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             // Add the meeting
             _gameWorld.GetPlayer().MeetingObligations.Add(meeting);
-            
+
             result.Success = true;
             result.AffectedMeeting = meeting;
 
             // Send appropriate message based on urgency
-            var urgencyLevel = GetMeetingUrgencyLevel(meeting);
-            var messageType = urgencyLevel switch
+            MeetingUrgency urgencyLevel = GetMeetingUrgencyLevel(meeting);
+            SystemMessageTypes messageType = urgencyLevel switch
             {
                 MeetingUrgency.Critical => SystemMessageTypes.Danger,
                 MeetingUrgency.Urgent => SystemMessageTypes.Warning,
@@ -118,12 +118,12 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public MeetingResult CompleteMeeting(string meetingId)
         {
-            var result = new MeetingResult
+            MeetingResult result = new MeetingResult
             {
                 Operation = MeetingOperation.Complete
             };
 
-            var meeting = GetMeetingById(meetingId);
+            MeetingObligation meeting = GetMeetingById(meetingId);
             if (meeting == null)
             {
                 result.ErrorMessage = "Meeting not found";
@@ -134,7 +134,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             result.NPCName = meeting.RequesterName;
 
             // Validate the meeting can be completed
-            var validation = ValidateMeetingCompletion(meeting);
+            MeetingResult validation = ValidateMeetingCompletion(meeting);
             if (!validation.Success)
             {
                 result.ErrorMessage = validation.ErrorMessage;
@@ -163,12 +163,12 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public MeetingResult CancelMeeting(string meetingId)
         {
-            var result = new MeetingResult
+            MeetingResult result = new MeetingResult
             {
                 Operation = MeetingOperation.Cancel
             };
 
-            var meeting = GetMeetingById(meetingId);
+            MeetingObligation meeting = GetMeetingById(meetingId);
             if (meeting == null)
             {
                 result.ErrorMessage = "Meeting not found";
@@ -207,12 +207,12 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public List<MeetingResult> ProcessExpiredMeetings()
         {
-            var results = new List<MeetingResult>();
-            var player = _gameWorld.GetPlayer();
-            var expiredMeetings = new List<MeetingObligation>();
+            List<MeetingResult> results = new List<MeetingResult>();
+            Player player = _gameWorld.GetPlayer();
+            List<MeetingObligation> expiredMeetings = new List<MeetingObligation>();
 
             // Find expired meetings
-            foreach (var meeting in player.MeetingObligations.ToList())
+            foreach (MeetingObligation? meeting in player.MeetingObligations.ToList())
             {
                 if (meeting.DeadlineInMinutes <= 0)
                 {
@@ -221,9 +221,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Process each expired meeting
-            foreach (var expiredMeeting in expiredMeetings)
+            foreach (MeetingObligation expiredMeeting in expiredMeetings)
             {
-                var result = ExpireMeeting(expiredMeeting);
+                MeetingResult result = ExpireMeeting(expiredMeeting);
                 results.Add(result);
             }
 
@@ -235,8 +235,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public List<MeetingObligation> GetExpiringMeetings(int hoursThreshold)
         {
-            var minutesThreshold = hoursThreshold * 60;
-            
+            int minutesThreshold = hoursThreshold * 60;
+
             return GetActiveMeetingObligations()
                 .Where(m => m.DeadlineInMinutes <= minutesThreshold && m.DeadlineInMinutes > 0)
                 .OrderBy(m => m.DeadlineInMinutes)
@@ -258,7 +258,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public bool CanMeetWithNPC(string npcId)
         {
-            var meeting = GetMeetingWithNPC(npcId);
+            MeetingObligation meeting = GetMeetingWithNPC(npcId);
             if (meeting == null) return false;
 
             // Check if player is at NPC's location
@@ -270,18 +270,18 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public MeetingStatistics GetMeetingStatistics()
         {
-            var activeMeetings = GetActiveMeetingObligations();
-            
+            List<MeetingObligation> activeMeetings = GetActiveMeetingObligations();
+
             return new MeetingStatistics
             {
                 TotalActiveMeetings = activeMeetings.Count,
                 CriticalMeetings = activeMeetings.Count(m => m.IsCritical),
                 UrgentMeetings = activeMeetings.Count(m => m.IsUrgent && !m.IsCritical),
-                NextMeetingDeadlineMinutes = activeMeetings.Any() ? 
+                NextMeetingDeadlineMinutes = activeMeetings.Any() ?
                     activeMeetings.Min(m => m.DeadlineInMinutes) : -1,
                 MostUrgentMeeting = activeMeetings.OrderBy(m => m.DeadlineInMinutes).FirstOrDefault(),
                 MeetingsByStakes = GroupMeetingsByStakes(activeMeetings),
-                AverageDeadlineHours = activeMeetings.Any() ? 
+                AverageDeadlineHours = activeMeetings.Any() ?
                     activeMeetings.Average(m => m.DeadlineInHours) : 0
             };
         }
@@ -291,7 +291,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public MeetingResult ScheduleMeeting(string npcId, string reason, int deadlineInMinutes, StakeType stakes = StakeType.REPUTATION)
         {
-            var npc = _npcRepository.GetById(npcId);
+            NPC npc = _npcRepository.GetById(npcId);
             if (npc == null)
             {
                 return new MeetingResult
@@ -301,7 +301,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 };
             }
 
-            var meeting = new MeetingObligation
+            MeetingObligation meeting = new MeetingObligation
             {
                 Id = Guid.NewGuid().ToString(),
                 RequesterId = npcId,
@@ -318,7 +318,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private MeetingResult ValidateMeetingRequest(MeetingObligation meeting)
         {
-            var result = new MeetingResult { Success = true };
+            MeetingResult result = new MeetingResult { Success = true };
 
             if (string.IsNullOrEmpty(meeting.RequesterId))
             {
@@ -327,7 +327,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return result;
             }
 
-            var npc = _npcRepository.GetById(meeting.RequesterId);
+            NPC npc = _npcRepository.GetById(meeting.RequesterId);
             if (npc == null)
             {
                 result.Success = false;
@@ -347,7 +347,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private MeetingResult ValidateMeetingCompletion(MeetingObligation meeting)
         {
-            var result = new MeetingResult { Success = true };
+            MeetingResult result = new MeetingResult { Success = true };
 
             // Check if meeting has expired
             if (meeting.DeadlineInMinutes <= 0)
@@ -370,7 +370,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private MeetingResult ExpireMeeting(MeetingObligation expiredMeeting)
         {
-            var result = new MeetingResult
+            MeetingResult result = new MeetingResult
             {
                 Operation = MeetingOperation.Expire,
                 NPCId = expiredMeeting.RequesterId,
@@ -396,8 +396,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void AwardMeetingCompletionTokens(MeetingObligation meeting)
         {
-            var tokensAwarded = 1; // Base reward
-            var tokenType = ConnectionType.Trust; // Meetings typically build trust
+            int tokensAwarded = 1; // Base reward
+            ConnectionType tokenType = ConnectionType.Trust; // Meetings typically build trust
 
             // Bonus for early completion
             if (meeting.DeadlineInMinutes > 180) // More than 3 hours remaining
@@ -419,8 +419,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void ApplyMeetingExpirationPenalty(MeetingObligation expiredMeeting)
         {
-            var tokenPenalty = 2; // Meetings are important social commitments
-            var tokenType = ConnectionType.Trust;
+            int tokenPenalty = 2; // Meetings are important social commitments
+            ConnectionType tokenType = ConnectionType.Trust;
 
             _tokenManager.RemoveTokensFromNPC(tokenType, tokenPenalty, expiredMeeting.RequesterId);
 
@@ -439,13 +439,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private bool IsPlayerAtNPCLocation(string npcId)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             if (player.CurrentLocationSpot == null) return false;
 
             // Get current time block for NPC location checking
-            var currentTime = GetCurrentTimeBlock();
-            var npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationSpotAndTime(
-                player.CurrentLocationSpot.SpotID, 
+            TimeBlocks currentTime = GetCurrentTimeBlock();
+            List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationSpotAndTime(
+                player.CurrentLocationSpot.SpotID,
                 currentTime);
 
             return npcsAtCurrentSpot.Any(npc => npc.ID == npcId);

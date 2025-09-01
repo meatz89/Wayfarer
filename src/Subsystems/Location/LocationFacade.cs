@@ -29,7 +29,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         private readonly NPCLocationTracker _npcTracker;
         private readonly LocationActionManager _actionManager;
         private readonly LocationNarrativeGenerator _narrativeGenerator;
-        
+
         // External dependencies for references
         private readonly ObservationSystem _observationSystem;
         private readonly ObservationManager _observationManager;
@@ -40,7 +40,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         private readonly ObligationQueueManager _letterQueueManager;
         private readonly DialogueGenerationService _dialogueGenerator;
         private readonly NarrativeRenderer _narrativeRenderer;
-        
+
         public LocationFacade(
             GameWorld gameWorld,
             LocationManager locationManager,
@@ -76,7 +76,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             _dialogueGenerator = dialogueGenerator;
             _narrativeRenderer = narrativeRenderer;
         }
-        
+
         /// <summary>
         /// Get the player's current location.
         /// </summary>
@@ -84,7 +84,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             return _locationManager.GetCurrentLocation();
         }
-        
+
         /// <summary>
         /// Get the player's current location spot.
         /// </summary>
@@ -92,7 +92,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             return _locationManager.GetCurrentLocationSpot();
         }
-        
+
         /// <summary>
         /// Get a specific location by ID.
         /// </summary>
@@ -100,7 +100,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             return _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
         }
-        
+
         /// <summary>
         /// Move player to a different spot within the current location.
         /// Movement between spots within a location is FREE (no attention cost).
@@ -113,24 +113,24 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 _messageSystem.AddSystemMessage("Invalid spot name", SystemMessageTypes.Warning);
                 return false;
             }
-            
+
             // Get current state
             Player player = _gameWorld.GetPlayer();
             Location currentLocation = GetCurrentLocation();
             LocationSpot currentSpot = GetCurrentLocationSpot();
-            
+
             if (!_movementValidator.ValidateCurrentState(player, currentLocation, currentSpot))
             {
                 _messageSystem.AddSystemMessage("Cannot determine current location", SystemMessageTypes.Danger);
                 return false;
             }
-            
+
             // Check if already at target
             if (_movementValidator.IsAlreadyAtSpot(currentSpot, spotName))
             {
                 return true; // Already there - no-op success
             }
-            
+
             // Find target spot
             LocationSpot targetSpot = _spotManager.FindSpotInLocation(currentLocation, spotName);
             if (targetSpot == null)
@@ -138,23 +138,23 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 _messageSystem.AddSystemMessage($"Spot '{spotName}' not found in {currentLocation.Name}", SystemMessageTypes.Warning);
                 return false;
             }
-            
+
             // Validate movement
-            var validationResult = _movementValidator.ValidateMovement(currentLocation, currentSpot, targetSpot);
+            MovementValidationResult validationResult = _movementValidator.ValidateMovement(currentLocation, currentSpot, targetSpot);
             if (!validationResult.IsValid)
             {
                 _messageSystem.AddSystemMessage(validationResult.ErrorMessage, SystemMessageTypes.Warning);
                 return false;
             }
-            
+
             // Execute movement
             _locationManager.SetCurrentSpot(targetSpot);
             player.AddKnownLocationSpot(targetSpot.SpotID);
             _messageSystem.AddSystemMessage($"Moved to {targetSpot.Name}", SystemMessageTypes.Info);
-            
+
             return true;
         }
-        
+
         /// <summary>
         /// Get the complete location screen view model with all location data.
         /// </summary>
@@ -162,14 +162,14 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         public LocationScreenViewModel GetLocationScreen(List<NPCConversationOptions> npcConversationOptions = null)
         {
             Console.WriteLine("[LocationFacade.GetLocationScreen] Starting...");
-            
+
             Player player = _gameWorld.GetPlayer();
             Location location = GetCurrentLocation();
             LocationSpot spot = GetCurrentLocationSpot();
-            
+
             Console.WriteLine($"[LocationFacade.GetLocationScreen] Location: {location?.Name}, Spot: {spot?.Name} ({spot?.SpotID})");
-            
-            var viewModel = new LocationScreenViewModel
+
+            LocationScreenViewModel viewModel = new LocationScreenViewModel
             {
                 CurrentTime = _timeManager.GetFormattedTimeDisplay(),
                 DeadlineTimer = GetNextDeadlineDisplay(),
@@ -184,42 +184,42 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 AreasWithinLocation = new List<AreaWithinLocationViewModel>(),
                 Routes = new List<RouteOptionViewModel>()
             };
-            
+
             if (location != null && spot != null)
             {
                 // Add location-specific actions
                 viewModel.QuickActions = _actionManager.GetLocationActions(location, spot);
-                
+
                 // Add NPCs with emotional states
                 TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
                 viewModel.NPCsPresent = GetNPCsWithInteractions(spot, currentTime, npcConversationOptions);
-                
+
                 // Add observations
                 viewModel.Observations = GetLocationObservations(location.Id, spot.SpotID);
-                
+
                 // Add areas within location
                 viewModel.AreasWithinLocation = _spotManager.GetAreasWithinLocation(location, spot, currentTime, _npcRepository);
-                
+
                 // Add routes to other locations
                 viewModel.Routes = GetRoutesFromLocation(location);
             }
-            
+
             Console.WriteLine($"[LocationFacade.GetLocationScreen] Returning viewModel with {viewModel.NPCsPresent.Count} NPCs");
             return viewModel;
         }
-        
+
         /// <summary>
         /// Refresh the current location state.
         /// </summary>
         public void RefreshLocationState()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             if (player.CurrentLocationSpot != null)
             {
                 _messageSystem.AddSystemMessage("Location refreshed", SystemMessageTypes.Info);
             }
         }
-        
+
         /// <summary>
         /// Get all NPCs at a specific location.
         /// </summary>
@@ -227,19 +227,19 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             return _npcTracker.GetNPCsAtLocation(locationId);
         }
-        
+
         /// <summary>
         /// Get all NPCs at the player's current spot.
         /// </summary>
         public List<NPC> GetNPCsAtCurrentSpot()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             if (player?.CurrentLocationSpot == null) return new List<NPC>();
-            
-            var currentTime = _timeManager.GetCurrentTimeBlock();
+
+            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             return _npcTracker.GetNPCsAtSpot(player.CurrentLocationSpot.SpotID, currentTime);
         }
-        
+
         /// <summary>
         /// Get a specific NPC by ID.
         /// </summary>
@@ -247,7 +247,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             return _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
         }
-        
+
         /// <summary>
         /// Get all NPCs in the game world.
         /// </summary>
@@ -255,36 +255,36 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             return _gameWorld.WorldState.NPCs;
         }
-        
+
         // Private helper methods
-        
+
         private List<NPCPresenceViewModel> GetNPCsWithInteractions(LocationSpot spot, TimeBlocks currentTime, List<NPCConversationOptions> npcConversationOptions)
         {
-            var result = new List<NPCPresenceViewModel>();
-            
+            List<NPCPresenceViewModel> result = new List<NPCPresenceViewModel>();
+
             Console.WriteLine($"[LocationFacade.GetNPCsWithInteractions] Looking for NPCs at {spot.SpotID} during {currentTime}");
-            var npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
+            List<NPC> npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
             Console.WriteLine($"[LocationFacade.GetNPCsWithInteractions] Found {npcs.Count} NPCs");
-            
-            foreach (var npc in npcs)
+
+            foreach (NPC npc in npcs)
             {
-                var emotionalState = GetNPCEmotionalState(npc);
-                var interactions = new List<InteractionOptionViewModel>();
-                
+                EmotionalState emotionalState = GetNPCEmotionalState(npc);
+                List<InteractionOptionViewModel> interactions = new List<InteractionOptionViewModel>();
+
                 // Find conversation options for this NPC if provided
-                var npcOptions = npcConversationOptions?.FirstOrDefault(opt => opt.NpcId == npc.ID);
+                NPCConversationOptions? npcOptions = npcConversationOptions?.FirstOrDefault(opt => opt.NpcId == npc.ID);
                 if (npcOptions != null && npcOptions.AvailableTypes != null)
                 {
-                    foreach (var conversationType in npcOptions.AvailableTypes)
+                    foreach (ConversationType conversationType in npcOptions.AvailableTypes)
                     {
-                        var interaction = GenerateConversationInteraction(npc, conversationType, emotionalState);
+                        InteractionOptionViewModel interaction = GenerateConversationInteraction(npc, conversationType, emotionalState);
                         if (interaction != null)
                         {
                             interactions.Add(interaction);
                         }
                     }
                 }
-                
+
                 if (!interactions.Any())
                 {
                     interactions.Add(new InteractionOptionViewModel
@@ -293,7 +293,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                         Cost = "—"
                     });
                 }
-                
+
                 result.Add(new NPCPresenceViewModel
                 {
                     Id = npc.ID,
@@ -303,24 +303,24 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                     Interactions = interactions
                 });
             }
-            
+
             return result;
         }
-        
+
         private EmotionalState GetNPCEmotionalState(NPC npc)
         {
             Console.WriteLine($"[LocationFacade.GetNPCEmotionalState] Called for NPC: {npc?.Name ?? "null"}");
             return ConversationRules.DetermineInitialState(npc, _letterQueueManager);
         }
-        
+
         private InteractionOptionViewModel GenerateConversationInteraction(NPC npc, ConversationType conversationType, EmotionalState emotionalState)
         {
             // Generate interaction based on conversation type
-            var interaction = new InteractionOptionViewModel
+            InteractionOptionViewModel interaction = new InteractionOptionViewModel
             {
                 ConversationType = conversationType
             };
-            
+
             // Set display text based on type
             switch (conversationType)
             {
@@ -343,44 +343,44 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                     interaction.Text = "Talk";
                     break;
             }
-            
+
             // Set attention cost
             // Default attention cost - should be determined by conversation rules
             int attentionCost = 1;
             interaction.Cost = $"Need {attentionCost} attention";
-            
+
             return interaction;
         }
-        
+
         private string GetNPCDescription(NPC npc, EmotionalState state)
         {
-            var obligations = _letterQueueManager.GetActiveObligations();
-            var hasUrgentLetter = obligations.Any(o => 
-                (o.SenderId == npc.ID || o.SenderName == npc.Name) && 
+            DeliveryObligation[] obligations = _letterQueueManager.GetActiveObligations();
+            bool hasUrgentLetter = obligations.Any(o =>
+                (o.SenderId == npc.ID || o.SenderName == npc.Name) &&
                 o.DeadlineInMinutes < 360);
-            
-            var template = _dialogueGenerator.GenerateNPCDescription(npc, state, hasUrgentLetter);
+
+            string template = _dialogueGenerator.GenerateNPCDescription(npc, state, hasUrgentLetter);
             return _narrativeRenderer.RenderTemplate(template);
         }
-        
+
         private List<ObservationViewModel> GetLocationObservations(string locationId, string currentSpotId)
         {
-            var observations = new List<ObservationViewModel>();
-            
+            List<ObservationViewModel> observations = new List<ObservationViewModel>();
+
             Console.WriteLine($"[LocationFacade.GetLocationObservations] Looking for observations at {locationId}, spot {currentSpotId}");
-            
-            var locationObservations = _observationSystem?.GetObservationsForLocationSpot(locationId, currentSpotId);
-            
+
+            List<Observation>? locationObservations = _observationSystem?.GetObservationsForLocationSpot(locationId, currentSpotId);
+
             Console.WriteLine($"[LocationFacade.GetLocationObservations] Got {locationObservations?.Count ?? 0} observations");
-            
+
             if (locationObservations != null)
             {
-                var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-                var currentHour = _timeManager.GetCurrentTimeHours();
-                var npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpotId, currentTimeBlock);
-                var npcIdsAtCurrentSpot = npcsAtCurrentSpot.Select(n => n.ID).ToHashSet();
-                
-                foreach (var obs in locationObservations)
+                TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+                int currentHour = _timeManager.GetCurrentTimeHours();
+                List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpotId, currentTimeBlock);
+                HashSet<string> npcIdsAtCurrentSpot = npcsAtCurrentSpot.Select(n => n.ID).ToHashSet();
+
+                foreach (Observation obs in locationObservations)
                 {
                     // For observations that require specific NPCs, only show if NPC is present
                     if (obs.Automatic == true && obs.RelevantNPCs?.Any() == true)
@@ -388,7 +388,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                         bool hasNpcAtSpot = obs.RelevantNPCs.Any(npcId => npcIdsAtCurrentSpot.Contains(npcId));
                         if (!hasNpcAtSpot) continue;
                     }
-                    
+
                     observations.Add(new ObservationViewModel
                     {
                         Id = obs.Id,
@@ -400,17 +400,17 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                     });
                 }
             }
-            
+
             return observations;
         }
-        
+
         private string BuildRelevanceString(Observation obs)
         {
             if (obs.RelevantNPCs?.Any() == true)
             {
-                var npcs = string.Join(", ", obs.RelevantNPCs.Select(id => 
+                string npcs = string.Join(", ", obs.RelevantNPCs.Select(id =>
                     _npcRepository.GetById(id)?.Name ?? id));
-                
+
                 if (obs.CreatesState.HasValue)
                     return $"→ {npcs} ({obs.CreatesState.Value})";
                 else
@@ -418,17 +418,17 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             }
             return "";
         }
-        
+
         private List<RouteOptionViewModel> GetRoutesFromLocation(Location location)
         {
-            var routes = new List<RouteOptionViewModel>();
-            var availableRoutes = _routeRepository.GetRoutesFromLocation(location.Id);
-            
-            foreach (var route in availableRoutes)
+            List<RouteOptionViewModel> routes = new List<RouteOptionViewModel>();
+            IEnumerable<RouteOption> availableRoutes = _routeRepository.GetRoutesFromLocation(location.Id);
+
+            foreach (RouteOption route in availableRoutes)
             {
-                var destSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == route.DestinationLocationSpot);
-                var destination = destSpot != null ? _locationManager.GetLocation(destSpot.LocationId) : null;
-                
+                LocationSpot? destSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == route.DestinationLocationSpot);
+                Location? destination = destSpot != null ? _locationManager.GetLocation(destSpot.LocationId) : null;
+
                 if (destination != null)
                 {
                     routes.Add(new RouteOptionViewModel
@@ -447,34 +447,34 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                     });
                 }
             }
-            
+
             return routes;
         }
-        
+
         private string GetNextDeadlineDisplay()
         {
-            var obligations = _letterQueueManager.GetActiveObligations();
+            DeliveryObligation[] obligations = _letterQueueManager.GetActiveObligations();
             if (obligations == null || !obligations.Any()) return "";
-            
-            var mostUrgent = obligations
+
+            DeliveryObligation? mostUrgent = obligations
                 .Where(o => o != null)
                 .OrderBy(o => o.DeadlineInMinutes)
                 .FirstOrDefault();
-            
+
             if (mostUrgent != null)
             {
                 return $"⏰ {mostUrgent.HoursUntilDeadline}h";
             }
-            
+
             return "";
         }
-        
+
         private int GetUrgentObligationCount()
         {
             return _letterQueueManager.GetActiveObligations()
                 .Count(o => o.DeadlineInMinutes < 360);
         }
-        
+
         private int GetNPCCountAtSpot(LocationSpot spot)
         {
             if (spot == null) return 0;

@@ -43,20 +43,20 @@ public class ConversationOrchestrator
     public ConversationSession CreateSession(NPC npc, ConversationType conversationType, List<CardInstance> observationCards)
     {
         // All conversations start in NEUTRAL state
-        var initialState = EmotionalState.NEUTRAL;
-        
+        EmotionalState initialState = EmotionalState.NEUTRAL;
+
         // Initialize weight pool manager
         _weightPoolManager.SetBaseCapacity(initialState);
         _weightPoolManager.Reset();
-        
+
         // Reset atmosphere manager
         _atmosphereManager.Reset();
 
         // Create session deck
-        var deck = _deckManager.CreateConversationDeck(npc, conversationType, observationCards);
+        SessionCardDeck deck = _deckManager.CreateConversationDeck(npc, conversationType, observationCards);
 
         // Create session with new properties
-        var session = new ConversationSession
+        ConversationSession session = new ConversationSession
         {
             NPC = npc,
             ConversationType = conversationType,
@@ -87,7 +87,7 @@ public class ConversationOrchestrator
             throw new ArgumentNullException(nameof(session));
 
         session.TurnNumber++;
-        
+
         // Deduct patience cost (unless Patient atmosphere)
         if (!_atmosphereManager.ShouldWaivePatienceCost())
         {
@@ -95,14 +95,14 @@ public class ConversationOrchestrator
         }
 
         // Execute LISTEN through deck manager
-        var drawnCards = _deckManager.ExecuteListen(session);
-        
+        List<CardInstance> drawnCards = _deckManager.ExecuteListen(session);
+
         // Update session weight pool state
         session.CurrentWeightPool = _weightPoolManager.CurrentSpentWeight;
         session.WeightCapacity = _weightPoolManager.CurrentCapacity;
 
         // Generate NPC response
-        var npcResponse = _dialogueGenerator.GenerateListenResponse(session.NPC, session.CurrentState, drawnCards);
+        string npcResponse = _dialogueGenerator.GenerateListenResponse(session.NPC, session.CurrentState, drawnCards);
 
         return new ConversationTurnResult
         {
@@ -125,7 +125,7 @@ public class ConversationOrchestrator
             throw new ArgumentException("Must select a card to speak");
 
         session.TurnNumber++;
-        
+
         // Deduct patience cost (unless Patient atmosphere)
         if (!_atmosphereManager.ShouldWaivePatienceCost())
         {
@@ -133,16 +133,16 @@ public class ConversationOrchestrator
         }
 
         // Play the card through deck manager
-        var playResult = _deckManager.PlayCard(session, selectedCard);
-        
-        var oldComfort = session.ComfortBattery;
-        var comfortChange = playResult.TotalComfort;
-        
+        CardPlayResult playResult = _deckManager.PlayCard(session, selectedCard);
+
+        int oldComfort = session.ComfortBattery;
+        int comfortChange = playResult.TotalComfort;
+
         // Update comfort battery (clamped to -3 to +3)
         session.ComfortBattery = Math.Clamp(session.ComfortBattery + comfortChange, -3, 3);
-        
+
         // Check for state transitions at ±3
-        var newState = session.CurrentState;
+        EmotionalState newState = session.CurrentState;
         if (Math.Abs(session.ComfortBattery) >= 3)
         {
             newState = ProcessStateTransition(session.CurrentState, session.ComfortBattery);
@@ -150,33 +150,33 @@ public class ConversationOrchestrator
             {
                 session.CurrentState = newState;
                 session.ComfortBattery = 0; // Reset battery on transition
-                
+
                 // Update weight pool capacity for new state
                 _weightPoolManager.SetBaseCapacity(newState);
             }
         }
-        
+
         // Check if conversation should end (DESPERATE at -3)
         bool conversationEnded = false;
         if (session.CurrentState == EmotionalState.DESPERATE && session.ComfortBattery <= -3)
         {
             conversationEnded = true;
         }
-        
+
         // Update session atmosphere
         session.CurrentAtmosphere = _atmosphereManager.CurrentAtmosphere;
         session.CurrentWeightPool = _weightPoolManager.CurrentSpentWeight;
         session.WeightCapacity = _weightPoolManager.CurrentCapacity;
 
         // Generate NPC response
-        var npcResponse = _dialogueGenerator.GenerateSpeakResponse(
-            session.NPC, 
-            session.CurrentState, 
+        string npcResponse = _dialogueGenerator.GenerateSpeakResponse(
+            session.NPC,
+            session.CurrentState,
             new HashSet<CardInstance> { selectedCard },
             playResult,
             comfortChange);
 
-        var result = new ConversationTurnResult
+        ConversationTurnResult result = new ConversationTurnResult
         {
             Success = playResult.Success,
             NewState = newState,
@@ -229,7 +229,7 @@ public class ConversationOrchestrator
                 _ => EmotionalState.NEUTRAL
             };
         }
-        
+
         return currentState; // No transition
     }
 
@@ -245,7 +245,7 @@ public class ConversationOrchestrator
         // End if DESPERATE with -3 comfort (handled in ProcessSpeakAction)
         if (session.CurrentState == EmotionalState.DESPERATE && session.ComfortBattery <= -3)
             return true;
-            
+
         // End if Final atmosphere and any card failed (handled by AtmosphereManager)
         if (_atmosphereManager.ShouldEndOnFailure())
             return true;
@@ -262,7 +262,7 @@ public class ConversationOrchestrator
     /// </summary>
     public List<ConversationAction> GetAvailableActions(ConversationSession session)
     {
-        var actions = new List<ConversationAction>();
+        List<ConversationAction> actions = new List<ConversationAction>();
 
         // Can always listen if deck has cards and have patience
         if (session.Deck.HasCardsAvailable() && session.CurrentPatience > 0)
@@ -277,9 +277,9 @@ public class ConversationOrchestrator
         // Can speak if have cards with available weight
         if (session.HandCards.Any())
         {
-            var playableCards = session.HandCards.Where(c => 
+            List<CardInstance> playableCards = session.HandCards.Where(c =>
                 _deckManager.CanPlayCard(c, session)).ToList();
-                
+
             if (playableCards.Any())
             {
                 actions.Add(new ConversationAction
@@ -301,7 +301,7 @@ public class ConversationOrchestrator
     {
         bool success = true;
         string reason = "Conversation completed";
-        
+
         // Check ending conditions
         if (session.CurrentPatience <= 0)
         {
@@ -313,10 +313,10 @@ public class ConversationOrchestrator
             success = false;
             reason = "Relationship damaged beyond repair";
         }
-        
+
         // Calculate token rewards based on final state
         int tokensEarned = CalculateTokenReward(session.CurrentState, session.ComfortBattery);
-        
+
         // Check if any goal cards were played
         bool goalAchieved = session.PlayedCards?.Any(c => c.IsGoalCard) ?? false;
         if (goalAchieved)
@@ -350,13 +350,13 @@ public class ConversationOrchestrator
             EmotionalState.DESPERATE => -1,
             _ => 0
         };
-        
+
         // Bonus for positive comfort
         if (finalComfort > 0)
             baseReward += 1;
         else if (finalComfort < 0)
             baseReward -= 1;
-            
+
         return Math.Max(0, baseReward);
     }
 
@@ -365,12 +365,12 @@ public class ConversationOrchestrator
     /// </summary>
     public ConversationTurnResult ProcessSpeakAction(ConversationSession session, HashSet<CardInstance> selectedCards)
     {
-        var firstCard = selectedCards?.FirstOrDefault();
+        CardInstance? firstCard = selectedCards?.FirstOrDefault();
         if (firstCard == null)
         {
             throw new ArgumentException("Must select exactly one card to speak");
         }
-        
+
         return ProcessSpeakAction(session, firstCard);
     }
 
@@ -380,7 +380,7 @@ public class ConversationOrchestrator
     public ConversationSession CreateExchangeSession(NPC npc)
     {
         // Initialize exchange deck from GameWorld
-        if (_gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out var exchangeCards))
+        if (_gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out List<ConversationCard>? exchangeCards))
         {
             npc.InitializeExchangeDeck(exchangeCards);
         }
@@ -413,7 +413,7 @@ public class ConversationOrchestrator
         {
             npcResponse = _dialogueGenerator.GenerateExchangeDeclinedResponse(session.NPC);
         }
-        
+
         return new ConversationTurnResult
         {
             Success = true,
@@ -431,7 +431,7 @@ public class ConversationOrchestrator
             return false;
 
         // Generate letters from positive connections
-        return session.CurrentState == EmotionalState.CONNECTED || 
+        return session.CurrentState == EmotionalState.CONNECTED ||
                (session.CurrentState == EmotionalState.OPEN && session.ComfortBattery > 1);
     }
 
@@ -440,26 +440,26 @@ public class ConversationOrchestrator
     /// </summary>
     public DeliveryObligation CreateLetterObligation(ConversationSession session)
     {
-        var stateValue = (int)session.CurrentState; // Use state as base value
-        var comfortBonus = Math.Max(0, session.ComfortBattery);
-        
+        int stateValue = (int)session.CurrentState; // Use state as base value
+        int comfortBonus = Math.Max(0, session.ComfortBattery);
+
         // Calculate deadline and payment based on relationship quality
         int baseMinutes = 720; // 12 hours base
         int deadlineMinutes = Math.Max(120, baseMinutes - (stateValue * 60) - (comfortBonus * 30));
         int payment = 5 + stateValue + comfortBonus;
-        
+
         // Determine tier and weight
-        TierLevel tier = stateValue >= 4 ? TierLevel.T3 : 
+        TierLevel tier = stateValue >= 4 ? TierLevel.T3 :
                         stateValue >= 2 ? TierLevel.T2 : TierLevel.T1;
-        
+
         EmotionalWeight weight = deadlineMinutes <= 180 ? EmotionalWeight.CRITICAL :
                                 deadlineMinutes <= 360 ? EmotionalWeight.HIGH :
                                 deadlineMinutes <= 720 ? EmotionalWeight.MEDIUM :
                                 EmotionalWeight.LOW;
 
         // Find recipient
-        var otherNpcs = _gameWorld.NPCs.Where(n => n.ID != session.NPC.ID).ToList();
-        var recipient = otherNpcs.Any() ? otherNpcs[new Random().Next(otherNpcs.Count)] : null;
+        List<NPC> otherNpcs = _gameWorld.NPCs.Where(n => n.ID != session.NPC.ID).ToList();
+        NPC? recipient = otherNpcs.Any() ? otherNpcs[new Random().Next(otherNpcs.Count)] : null;
 
         return new DeliveryObligation
         {
@@ -484,9 +484,9 @@ public class ConversationOrchestrator
     public DeliveryObligation CreateUrgentLetter(NPC npc)
     {
         // Find a suitable recipient (family member, friend, etc.)
-        var allNpcs = _gameWorld.GetAllNPCs();
-        var recipient = allNpcs.FirstOrDefault(n => n.ID != npc.ID) ?? allNpcs.FirstOrDefault();
-        
+        List<NPC> allNpcs = _gameWorld.GetAllNPCs();
+        NPC? recipient = allNpcs.FirstOrDefault(n => n.ID != npc.ID) ?? allNpcs.FirstOrDefault();
+
         return new DeliveryObligation
         {
             Id = Guid.NewGuid().ToString(),

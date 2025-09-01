@@ -113,16 +113,16 @@ public class Phase7_FinalValidation : IInitializationPhase
 
         // Collect all NPC references from ValidationTracker
         // Check obligation NPCs
-        foreach (var kvp in context.ValidationTracker.ObligationNPCs)
+        foreach (KeyValuePair<string, string> kvp in context.ValidationTracker.ObligationNPCs)
         {
             if (!npcIds.Contains(kvp.Value))
             {
                 missingNPCs.Add(kvp.Value);
             }
         }
-        
+
         // Check route discovery NPCs
-        foreach (var routeNPCs in context.ValidationTracker.RouteDiscoveryNPCs.Values)
+        foreach (List<string> routeNPCs in context.ValidationTracker.RouteDiscoveryNPCs.Values)
         {
             foreach (string npcId in routeNPCs)
             {

@@ -12,13 +12,13 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         private readonly GameWorld _gameWorld;
         private readonly ItemRepository _itemRepository;
         private readonly ConnectionTokenManager _tokenManager;
-        
+
         // Base success bonus per token (configurable via GameRules)
         private const int BASE_TRUST_BONUS = 5;      // +5% per Trust token
         private const int BASE_COMMERCE_BONUS = 5;   // +5% per Commerce token
         private const int BASE_STATUS_BONUS = 10;    // +10% per Status token
         private const int BASE_SHADOW_BONUS = 8;     // +8% per Shadow token
-        
+
         public TokenEffectProcessor(
             GameWorld gameWorld,
             ItemRepository itemRepository,
@@ -28,20 +28,20 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             _itemRepository = itemRepository;
             _tokenManager = tokenManager;
         }
-        
+
         /// <summary>
         /// Apply equipment modifiers to token generation
         /// </summary>
         public int ApplyGenerationModifiers(ConnectionType tokenType, int baseAmount)
         {
             if (baseAmount <= 0) return baseAmount;
-            
+
             float totalModifier = GetEquipmentTokenModifier(tokenType);
             int modifiedAmount = (int)Math.Ceiling(baseAmount * totalModifier);
-            
+
             return modifiedAmount;
         }
-        
+
         /// <summary>
         /// Calculate success bonus from tokens for a specific action
         /// </summary>
@@ -49,41 +49,41 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             int tokenCount = _tokenManager.GetTotalTokensOfType(type);
             if (tokenCount <= 0) return 0;
-            
+
             int bonusPerToken = GetBonusPerToken(type);
             int totalBonus = tokenCount * bonusPerToken;
-            
+
             // Cap bonus at 50% to prevent trivializing challenges
             int maxBonus = baseChance / 2;
             return Math.Min(totalBonus, maxBonus);
         }
-        
+
         /// <summary>
         /// Calculate relationship effect on action success
         /// </summary>
         public int CalculateRelationshipBonus(string npcId, ConnectionType actionType)
         {
             if (string.IsNullOrEmpty(npcId)) return 0;
-            
+
             Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
             int relevantTokens = tokens.GetValueOrDefault(actionType, 0);
-            
+
             // Negative tokens (debt) apply penalties
             if (relevantTokens < 0)
             {
                 int penalty = Math.Abs(relevantTokens) * GetBonusPerToken(actionType);
                 return -penalty; // Return negative for penalty
             }
-            
+
             // Positive tokens apply bonuses
             int bonus = relevantTokens * GetBonusPerToken(actionType);
-            
+
             // Additional synergy bonus if multiple token types are high
             int synergyBonus = CalculateSynergyBonus(tokens);
-            
+
             return bonus + synergyBonus;
         }
-        
+
         /// <summary>
         /// Get all active token modifiers from equipment
         /// </summary>
@@ -91,7 +91,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             Player player = _gameWorld.GetPlayer();
             Dictionary<ConnectionType, float> activeModifiers = new Dictionary<ConnectionType, float>();
-            
+
             // Initialize all types to 1.0 (no modifier)
             foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
             {
@@ -100,12 +100,12 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                     activeModifiers[type] = 1.0f;
                 }
             }
-            
+
             // Apply equipment modifiers
             foreach (string itemId in player.Inventory.GetAllItems())
             {
                 if (string.IsNullOrEmpty(itemId)) continue;
-                
+
                 Item item = _itemRepository.GetItemById(itemId);
                 if (item != null && item.TokenGenerationModifiers != null)
                 {
@@ -116,10 +116,10 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                     }
                 }
             }
-            
+
             return activeModifiers;
         }
-        
+
         /// <summary>
         /// Check if a token type is enabled for generation (via equipment)
         /// </summary>
@@ -130,14 +130,14 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             {
                 return true;
             }
-            
+
             // Status and Shadow might require special equipment
             Player player = _gameWorld.GetPlayer();
-            
+
             foreach (string itemId in player.Inventory.GetAllItems())
             {
                 if (string.IsNullOrEmpty(itemId)) continue;
-                
+
                 Item item = _itemRepository.GetItemById(itemId);
                 if (item != null && item.EnablesTokenGeneration != null)
                 {
@@ -147,31 +147,31 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                     }
                 }
             }
-            
+
             // Check if player has any tokens of this type already (grandfathered in)
             return _tokenManager.GetTotalTokensOfType(type) > 0;
         }
-        
+
         /// <summary>
         /// Calculate token decay over time (for relationship degradation)
         /// </summary>
         public int CalculateTokenDecay(ConnectionType type, int currentTokens, int daysSinceInteraction)
         {
             if (currentTokens <= 0 || daysSinceInteraction < 7) return 0;
-            
+
             // Different token types decay at different rates
             float decayRate = GetDecayRate(type);
-            
+
             // Decay accelerates with time
             int weeksWithoutContact = daysSinceInteraction / 7;
             float decayMultiplier = 1.0f + (weeksWithoutContact * 0.1f);
-            
+
             int decay = (int)Math.Ceiling(currentTokens * decayRate * decayMultiplier);
-            
+
             // Never decay more than half of current tokens in one go
             return Math.Min(decay, currentTokens / 2);
         }
-        
+
         /// <summary>
         /// Get equipment-based token generation modifier
         /// </summary>
@@ -179,12 +179,12 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             Player player = _gameWorld.GetPlayer();
             float totalModifier = 1.0f;
-            
+
             // Check all items in inventory for token modifiers
             foreach (string itemId in player.Inventory.GetAllItems())
             {
                 if (string.IsNullOrEmpty(itemId)) continue;
-                
+
                 Item item = _itemRepository.GetItemById(itemId);
                 if (item != null && item.TokenGenerationModifiers != null &&
                     item.TokenGenerationModifiers.TryGetValue(tokenType, out float modifier))
@@ -193,10 +193,10 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                     totalModifier *= modifier;
                 }
             }
-            
+
             return totalModifier;
         }
-        
+
         /// <summary>
         /// Get base bonus per token based on type
         /// </summary>
@@ -216,7 +216,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                     return 0;
             }
         }
-        
+
         /// <summary>
         /// Calculate synergy bonus from having multiple token types
         /// </summary>
@@ -224,11 +224,11 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             int typesWithTokens = 0;
             int totalTokens = 0;
-            
+
             foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
             {
                 if (type == ConnectionType.None) continue;
-                
+
                 int count = tokens.GetValueOrDefault(type, 0);
                 if (count > 0)
                 {
@@ -236,17 +236,17 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                     totalTokens += count;
                 }
             }
-            
+
             // No synergy with only one type
             if (typesWithTokens <= 1) return 0;
-            
+
             // Synergy bonus: 2% per additional type, multiplied by average tokens
             int averageTokens = totalTokens / typesWithTokens;
             int synergyBonus = (typesWithTokens - 1) * 2 * averageTokens;
-            
+
             return Math.Min(synergyBonus, 20); // Cap at 20% bonus
         }
-        
+
         /// <summary>
         /// Get decay rate for token type
         /// </summary>

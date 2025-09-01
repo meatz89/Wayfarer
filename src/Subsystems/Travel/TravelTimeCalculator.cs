@@ -9,7 +9,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
     public class TravelTimeCalculator
     {
         private readonly GameWorld _gameWorld;
-        
+
         // Travel time matrix in minutes
         private static readonly Dictionary<(string, string), int> TravelTimes = new Dictionary<(string, string), int>
         {
@@ -51,12 +51,12 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             { ("your_room", "riverside"), 55 },
             { ("riverside", "your_room"), 55 },
         };
-        
+
         public TravelTimeCalculator(GameWorld gameWorld)
         {
             _gameWorld = gameWorld;
         }
-        
+
         /// <summary>
         /// Get base travel time between two locations in minutes.
         /// </summary>
@@ -67,36 +67,36 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             {
                 return 0;
             }
-            
+
             // Look up travel time
-            var key = (fromLocationId, toLocationId);
+            (string fromLocationId, string toLocationId) key = (fromLocationId, toLocationId);
             if (TravelTimes.TryGetValue(key, out int time))
             {
                 return time;
             }
-            
+
             // No fallback - route must be defined
             Console.WriteLine($"[TravelTimeCalculator] Warning: No travel time defined for {fromLocationId} -> {toLocationId}");
             return 60; // Default to 1 hour if not found
         }
-        
+
         /// <summary>
         /// Calculate actual travel time with transport method modifier.
         /// </summary>
         public int CalculateTravelTime(string fromLocationId, string toLocationId, TravelMethods transportMethod)
         {
             int baseTime = GetBaseTravelTime(fromLocationId, toLocationId);
-            
+
             // Apply transport method modifier
             double modifier = GetTransportModifier(transportMethod);
             int actualTime = (int)(baseTime * modifier);
-            
+
             // Apply weather effects if any
             actualTime = ApplyWeatherEffects(actualTime);
-            
+
             return Math.Max(5, actualTime); // Minimum 5 minutes travel time
         }
-        
+
         /// <summary>
         /// Get transport method speed modifier.
         /// </summary>
@@ -112,14 +112,14 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 _ => 1.0
             };
         }
-        
+
         /// <summary>
         /// Apply weather effects to travel time.
         /// </summary>
         private int ApplyWeatherEffects(int baseTime)
         {
-            var weather = _gameWorld.WorldState.CurrentWeather;
-            
+            WeatherCondition weather = _gameWorld.WorldState.CurrentWeather;
+
             return weather switch
             {
                 WeatherCondition.Rain => (int)(baseTime * 1.2),      // 20% slower in rain
@@ -128,14 +128,14 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 _ => baseTime                                         // No effect
             };
         }
-        
+
         /// <summary>
         /// Calculate coin cost for travel.
         /// </summary>
         public int CalculateTravelCost(RouteOption route, TravelMethods transportMethod)
         {
             int baseCost = route.BaseCoinCost;
-            
+
             // Apply transport method cost modifier
             baseCost = transportMethod switch
             {
@@ -146,28 +146,28 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 TravelMethods.Boat => baseCost * 2,          // Moderate cost
                 _ => baseCost
             };
-            
+
             return baseCost;
         }
-        
+
         /// <summary>
         /// Get all travel times from a specific location.
         /// </summary>
         public Dictionary<string, int> GetTravelTimesFrom(string locationId)
         {
-            var result = new Dictionary<string, int>();
-            
-            foreach (var kvp in TravelTimes)
+            Dictionary<string, int> result = new Dictionary<string, int>();
+
+            foreach (KeyValuePair<(string, string), int> kvp in TravelTimes)
             {
                 if (kvp.Key.Item1 == locationId)
                 {
                     result[kvp.Key.Item2] = kvp.Value;
                 }
             }
-            
+
             return result;
         }
-        
+
         /// <summary>
         /// Check if travel is possible given current time constraints.
         /// </summary>

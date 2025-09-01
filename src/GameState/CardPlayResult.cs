@@ -11,17 +11,17 @@ public class CardPlayResult
     public bool DeliveredLetter { get; init; }
     public bool ManipulatedObligations { get; init; }
     public List<LetterNegotiationResult> LetterNegotiations { get; init; } = new List<LetterNegotiationResult>();
-    public bool Success 
-    { 
-        get 
-        { 
+    public bool Success
+    {
+        get
+        {
             if (Results == null) return false;
-            foreach (var r in Results)
+            foreach (SingleCardResult r in Results)
             {
                 if (r.Success) return true;
             }
             return false;
-        } 
+        }
         set { } // Make it settable
     }
 }

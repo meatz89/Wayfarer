@@ -131,13 +131,13 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         public MarketSubsystemManager.TradeResult BuyItem(string itemId, string locationId)
         {
             MarketSubsystemManager.TradeResult result = _marketManager.BuyItem(itemId, locationId);
-            
+
             if (result.Success)
             {
                 // Track the purchase in market state
                 _marketStateTracker.RecordPurchase(itemId, locationId, result.Price);
             }
-            
+
             return result;
         }
 
@@ -147,13 +147,13 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         public MarketSubsystemManager.TradeResult SellItem(string itemId, string locationId)
         {
             MarketSubsystemManager.TradeResult result = _marketManager.SellItem(itemId, locationId);
-            
+
             if (result.Success)
             {
                 // Track the sale in market state
                 _marketStateTracker.RecordSale(itemId, locationId, result.Price);
             }
-            
+
             return result;
         }
 

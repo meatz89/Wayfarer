@@ -68,7 +68,7 @@ public class SerializableLetter
     public List<string> UnlocksLetterIds { get; set; }
     public string ParentLetterId { get; set; }
     public string Message { get; set; }
-    
+
     // Physical Letter Properties
     public string SpecialType { get; set; }
     public int Size { get; set; }

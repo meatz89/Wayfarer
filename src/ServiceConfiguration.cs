@@ -8,7 +8,7 @@ public static class ServiceConfiguration
 
         // Register dev mode service (needs to be early for other services to use)
         services.AddSingleton<DevModeService>();
-        
+
         // Register configuration
         services.AddSingleton<IContentDirectory>(_ => new ContentDirectory { Path = "Content" });
 
@@ -34,7 +34,7 @@ public static class ServiceConfiguration
         {
             Console.WriteLine("[SERVICE] Creating GameWorld instance...");
             // Call GameWorldInitializer statically - no DI dependencies needed
-            var gameWorld = GameWorldInitializer.CreateGameWorld();
+            GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
             Console.WriteLine("[SERVICE] GameWorld instance created");
             return gameWorld;
         });
@@ -69,7 +69,7 @@ public static class ServiceConfiguration
         // DeliveryObligation Queue System
         services.AddSingleton<StandingObligationManager>();
 
-        
+
         // ConversationSubsystem services
         services.AddSingleton<AtmosphereManager>();
         services.AddSingleton<WeightPoolManager>();
@@ -122,7 +122,7 @@ public static class ServiceConfiguration
         services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationActionManager>();
         services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationNarrativeGenerator>();
         services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationFacade>();
-        
+
         // Obligation Subsystem
         services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.DeliveryManager>();
         services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.MeetingManager>();

@@ -51,11 +51,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public ObligationMetrics GenerateObligationMetrics()
         {
-            var player = _gameWorld.GetPlayer();
-            var activeObligations = GetActiveObligations();
-            var activeMeetings = GetActiveMeetings();
+            Player player = _gameWorld.GetPlayer();
+            DeliveryObligation[] activeObligations = GetActiveObligations();
+            List<MeetingObligation> activeMeetings = GetActiveMeetings();
 
-            var metrics = new ObligationMetrics
+            ObligationMetrics metrics = new ObligationMetrics
             {
                 ActiveObligationCount = activeObligations.Length,
                 ActiveMeetingCount = activeMeetings.Count,
@@ -68,12 +68,12 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             {
                 metrics.AverageDeadlineHours = activeObligations.Average(o => o.DeadlineInMinutes) / 60.0;
                 metrics.MostUrgentObligation = activeObligations.OrderBy(o => o.DeadlineInMinutes).First();
-                
-                var nextDeadline = Math.Min(
+
+                int nextDeadline = Math.Min(
                     activeObligations.Min(o => o.DeadlineInMinutes),
                     activeMeetings.Any() ? activeMeetings.Min(m => m.DeadlineInMinutes) : int.MaxValue
                 );
-                
+
                 if (nextDeadline != int.MaxValue)
                 {
                     metrics.TotalMinutesUntilNextDeadline = nextDeadline;
@@ -88,7 +88,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             metrics.OverdueObligationCount = metrics.ExpiredObligationCount;
 
             // Position 1 status
-            var position1Obligation = player.ObligationQueue[0];
+            DeliveryObligation position1Obligation = player.ObligationQueue[0];
             if (position1Obligation == null)
             {
                 metrics.Position1Status = Position1Status.Empty;
@@ -105,12 +105,12 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             // Calculate token leverage metrics
             metrics.TotalTokenLeverage = CalculateTokenLeverage(activeObligations);
-            var leverageAnalysis = AnalyzeLeverageEffects(activeObligations);
+            LeverageAnalysis leverageAnalysis = AnalyzeLeverageEffects(activeObligations);
             metrics.PositionsGainedFromLeverage = leverageAnalysis.PositionsGained;
             metrics.PositionsLostFromDebt = leverageAnalysis.PositionsLost;
 
             // Performance metrics from history
-            var deliveryStats = CalculateDeliveryPerformance(player);
+            DeliveryPerformance deliveryStats = CalculateDeliveryPerformance(player);
             metrics.TotalDeliveredToday = deliveryStats.DeliveredToday;
             metrics.TotalSkippedToday = deliveryStats.SkippedToday;
             metrics.DeliverySuccessRate = deliveryStats.SuccessRate;
@@ -123,14 +123,14 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public QueueActivity GetQueueActivity()
         {
-            var player = _gameWorld.GetPlayer();
-            var activity = new QueueActivity();
+            Player player = _gameWorld.GetPlayer();
+            QueueActivity activity = new QueueActivity();
 
             // Calculate daily statistics from letter history
-            foreach (var npcHistory in player.NPCLetterHistory)
+            foreach (KeyValuePair<string, LetterHistory> npcHistory in player.NPCLetterHistory)
             {
-                var history = npcHistory.Value;
-                
+                LetterHistory history = npcHistory.Value;
+
                 // These would ideally be time-filtered for "today"
                 activity.LettersDeliveredToday += history.DeliveredCount;
                 activity.LettersSkippedToday += history.SkippedCount;
@@ -138,7 +138,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Meeting statistics
-            foreach (var meeting in player.MeetingObligations)
+            foreach (MeetingObligation meeting in player.MeetingObligations)
             {
                 if (meeting.DeadlineInMinutes <= 0)
                 {
@@ -158,8 +158,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public QueueSnapshot CreateQueueSnapshot()
         {
-            var player = _gameWorld.GetPlayer();
-            
+            Player player = _gameWorld.GetPlayer();
+
             return new QueueSnapshot
             {
                 SnapshotTime = DateTime.UtcNow,
@@ -177,15 +177,15 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public Dictionary<string, RelationshipHealth> AnalyzeRelationshipHealth()
         {
-            var player = _gameWorld.GetPlayer();
-            var relationshipHealth = new Dictionary<string, RelationshipHealth>();
+            Player player = _gameWorld.GetPlayer();
+            Dictionary<string, RelationshipHealth> relationshipHealth = new Dictionary<string, RelationshipHealth>();
 
-            foreach (var npc in _npcRepository.GetAllNPCs())
+            foreach (NPC npc in _npcRepository.GetAllNPCs())
             {
-                var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
-                var history = player.NPCLetterHistory.GetValueOrDefault(npc.ID, new LetterHistory());
+                Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc.ID);
+                LetterHistory history = player.NPCLetterHistory.GetValueOrDefault(npc.ID, new LetterHistory());
 
-                var health = new RelationshipHealth
+                RelationshipHealth health = new RelationshipHealth
                 {
                     NPCId = npc.ID,
                     NPCName = npc.Name,
@@ -210,13 +210,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public List<NPCPerformanceMetric> GetNPCPerformanceMetrics()
         {
-            var player = _gameWorld.GetPlayer();
-            var metrics = new List<NPCPerformanceMetric>();
+            Player player = _gameWorld.GetPlayer();
+            List<NPCPerformanceMetric> metrics = new List<NPCPerformanceMetric>();
 
-            foreach (var npc in _npcRepository.GetAllNPCs())
+            foreach (NPC npc in _npcRepository.GetAllNPCs())
             {
-                var history = player.NPCLetterHistory.GetValueOrDefault(npc.ID, new LetterHistory());
-                var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
+                LetterHistory history = player.NPCLetterHistory.GetValueOrDefault(npc.ID, new LetterHistory());
+                Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc.ID);
 
                 metrics.Add(new NPCPerformanceMetric
                 {
@@ -241,10 +241,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public QueueEfficiencyMetrics CalculateQueueEfficiency()
         {
-            var activeObligations = GetActiveObligations();
-            var player = _gameWorld.GetPlayer();
+            DeliveryObligation[] activeObligations = GetActiveObligations();
+            Player player = _gameWorld.GetPlayer();
 
-            var metrics = new QueueEfficiencyMetrics
+            QueueEfficiencyMetrics metrics = new QueueEfficiencyMetrics
             {
                 CurrentUtilization = (double)activeObligations.Length / _config.LetterQueue.MaxQueueSize,
                 AverageTimeInQueue = CalculateAverageTimeInQueue(activeObligations),
@@ -253,7 +253,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             };
 
             // Analyze position distribution
-            var positionDistribution = new Dictionary<int, int>();
+            Dictionary<int, int> positionDistribution = new Dictionary<int, int>();
             for (int i = 1; i <= _config.LetterQueue.MaxQueueSize; i++)
             {
                 positionDistribution[i] = player.ObligationQueue[i - 1] != null ? 1 : 0;
@@ -270,8 +270,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         {
             // This would require historical data tracking over time
             // For now, provide current state analysis
-            var activeObligations = GetActiveObligations();
-            var activeMeetings = GetActiveMeetings();
+            DeliveryObligation[] activeObligations = GetActiveObligations();
+            List<MeetingObligation> activeMeetings = GetActiveMeetings();
 
             return new ObligationTrends
             {
@@ -304,29 +304,29 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         {
             if (minutes <= 30) return $"{minutes}m ⚡ CRITICAL!";
             if (minutes <= 120) return $"{minutes}m 🔥 URGENT";
-            
-            var hours = minutes / 60;
-            var remainingMinutes = minutes % 60;
-            
+
+            int hours = minutes / 60;
+            int remainingMinutes = minutes % 60;
+
             if (hours <= 6)
             {
                 return remainingMinutes == 0 ? $"{hours}h ⚠️ urgent" : $"{hours}h {remainingMinutes}m ⚠️ urgent";
             }
-            
+
             return hours <= 16 ? $"{hours}h today" : $"{hours / 24}d {hours % 24}h";
         }
 
         private Dictionary<ConnectionType, int> CalculateTokenLeverage(DeliveryObligation[] obligations)
         {
-            var leverage = new Dictionary<ConnectionType, int>();
-            
-            foreach (var obligation in obligations)
+            Dictionary<ConnectionType, int> leverage = new Dictionary<ConnectionType, int>();
+
+            foreach (DeliveryObligation obligation in obligations)
             {
-                var senderId = GetNPCIdByName(obligation.SenderName);
+                string senderId = GetNPCIdByName(obligation.SenderName);
                 if (!string.IsNullOrEmpty(senderId))
                 {
-                    var tokens = _tokenManager.GetTokensWithNPC(senderId);
-                    foreach (var token in tokens)
+                    Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(senderId);
+                    foreach (KeyValuePair<ConnectionType, int> token in tokens)
                     {
                         if (!leverage.ContainsKey(token.Key))
                             leverage[token.Key] = 0;
@@ -334,21 +334,21 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     }
                 }
             }
-            
+
             return leverage;
         }
 
         private LeverageAnalysis AnalyzeLeverageEffects(DeliveryObligation[] obligations)
         {
-            var analysis = new LeverageAnalysis();
-            var basePosition = _config.LetterQueue.MaxQueueSize;
+            LeverageAnalysis analysis = new LeverageAnalysis();
+            int basePosition = _config.LetterQueue.MaxQueueSize;
 
-            foreach (var obligation in obligations)
+            foreach (DeliveryObligation obligation in obligations)
             {
                 if (obligation.OriginalQueuePosition.HasValue)
                 {
-                    var originalPos = obligation.OriginalQueuePosition.Value;
-                    var currentPos = obligation.QueuePosition;
+                    int originalPos = obligation.OriginalQueuePosition.Value;
+                    int currentPos = obligation.QueuePosition;
 
                     if (currentPos < originalPos)
                     {
@@ -366,12 +366,12 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private DeliveryPerformance CalculateDeliveryPerformance(Player player)
         {
-            var performance = new DeliveryPerformance();
-            var totalDelivered = 0;
-            var totalExpired = 0;
-            var totalSkipped = 0;
+            DeliveryPerformance performance = new DeliveryPerformance();
+            int totalDelivered = 0;
+            int totalExpired = 0;
+            int totalSkipped = 0;
 
-            foreach (var history in player.NPCLetterHistory.Values)
+            foreach (LetterHistory history in player.NPCLetterHistory.Values)
             {
                 totalDelivered += history.DeliveredCount;
                 totalExpired += history.ExpiredCount;
@@ -380,8 +380,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             performance.DeliveredToday = totalDelivered; // Would need date filtering
             performance.SkippedToday = totalSkipped;
-            
-            var totalAttempts = totalDelivered + totalExpired;
+
+            int totalAttempts = totalDelivered + totalExpired;
             performance.SuccessRate = totalAttempts > 0 ? (double)totalDelivered / totalAttempts : 1.0;
 
             return performance;
@@ -413,13 +413,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private List<QueuePositionInfo> GetQueuePositionAnalysis()
         {
-            var positions = new List<QueuePositionInfo>();
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
+            List<QueuePositionInfo> positions = new List<QueuePositionInfo>();
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
             for (int i = 0; i < _config.LetterQueue.MaxQueueSize; i++)
             {
-                var position = i + 1;
-                var obligation = queue[i];
+                int position = i + 1;
+                DeliveryObligation? obligation = queue[i];
 
                 positions.Add(new QueuePositionInfo
                 {
@@ -436,8 +436,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private SatchelInfo GetSatchelAnalysis()
         {
-            var player = _gameWorld.GetPlayer();
-            var info = new SatchelInfo
+            Player player = _gameWorld.GetPlayer();
+            SatchelInfo info = new SatchelInfo
             {
                 CarriedLetters = new List<Letter>(player.CarriedLetters),
                 TotalSize = player.CarriedLetters.Sum(l => l.Size),
@@ -465,10 +465,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         {
             if (health.DeliveredCount + health.ExpiredCount == 0) return 1.0; // No history = neutral
 
-            var totalInteractions = health.DeliveredCount + health.ExpiredCount + health.SkippedCount;
-            var successRate = (double)health.DeliveredCount / (health.DeliveredCount + health.ExpiredCount);
-            var tokenBonus = Math.Max(0, health.TotalPositiveTokens) * 0.1;
-            var tokenPenalty = Math.Min(0, health.TotalNegativeTokens) * 0.1;
+            int totalInteractions = health.DeliveredCount + health.ExpiredCount + health.SkippedCount;
+            double successRate = (double)health.DeliveredCount / (health.DeliveredCount + health.ExpiredCount);
+            double tokenBonus = Math.Max(0, health.TotalPositiveTokens) * 0.1;
+            double tokenPenalty = Math.Min(0, health.TotalNegativeTokens) * 0.1;
 
             return Math.Max(0, Math.Min(1, successRate + tokenBonus + tokenPenalty));
         }
@@ -489,7 +489,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private double CalculateSuccessRate(LetterHistory history)
         {
-            var total = history.DeliveredCount + history.ExpiredCount;
+            int total = history.DeliveredCount + history.ExpiredCount;
             return total > 0 ? (double)history.DeliveredCount / total : 1.0;
         }
 
@@ -513,15 +513,15 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             // Measure how well positioned obligations are based on deadlines
             if (!obligations.Any()) return 1.0;
 
-            var score = 0.0;
+            double score = 0.0;
             for (int i = 0; i < obligations.Length; i++)
             {
-                var obligation = obligations[i];
-                var expectedPosition = i + 1; // Current position
-                var idealPosition = CalculateIdealPosition(obligation, obligations);
-                
+                DeliveryObligation obligation = obligations[i];
+                int expectedPosition = i + 1; // Current position
+                int idealPosition = CalculateIdealPosition(obligation, obligations);
+
                 // Score based on how close to ideal position
-                var positionDiff = Math.Abs(expectedPosition - idealPosition);
+                int positionDiff = Math.Abs(expectedPosition - idealPosition);
                 score += Math.Max(0, 1.0 - (positionDiff / (double)_config.LetterQueue.MaxQueueSize));
             }
 
@@ -531,7 +531,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private int CalculateIdealPosition(DeliveryObligation obligation, DeliveryObligation[] allObligations)
         {
             // Ideal position based on deadline urgency
-            var moreUrgentCount = allObligations.Count(o => o.DeadlineInMinutes < obligation.DeadlineInMinutes);
+            int moreUrgentCount = allObligations.Count(o => o.DeadlineInMinutes < obligation.DeadlineInMinutes);
             return moreUrgentCount + 1;
         }
 
@@ -539,7 +539,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         {
             if (!obligations.Any()) return 0.0;
 
-            var totalPressure = obligations.Sum(o => 
+            double totalPressure = obligations.Sum(o =>
             {
                 if (o.DeadlineInMinutes <= 180) return 1.0; // Critical
                 if (o.DeadlineInMinutes <= 360) return 0.7; // Urgent
@@ -553,8 +553,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private TrendDirection CalculateDeadlinePressureTrend(DeliveryObligation[] obligations)
         {
             // Would need historical data to calculate trends
-            var currentPressure = CalculateDeadlinePressure(obligations);
-            
+            double currentPressure = CalculateDeadlinePressure(obligations);
+
             // Simplified logic based on current state
             if (currentPressure > 0.7) return TrendDirection.Increasing;
             if (currentPressure < 0.3) return TrendDirection.Decreasing;
@@ -569,7 +569,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private List<string> GetMostActiveNPCs(int count)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             return player.NPCLetterHistory
                 .OrderByDescending(h => h.Value.DeliveredCount + h.Value.ExpiredCount + h.Value.SkippedCount)
                 .Take(count)
@@ -579,7 +579,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private List<string> GetMostProblematicNPCs(int count)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             return player.NPCLetterHistory
                 .Where(h => h.Value.ExpiredCount > 0)
                 .OrderByDescending(h => h.Value.ExpiredCount)
@@ -590,13 +590,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private string GetNPCIdByName(string npcName)
         {
-            var npc = _npcRepository.GetByName(npcName);
+            NPC npc = _npcRepository.GetByName(npcName);
             return npc?.ID ?? "";
         }
 
         private string GetNPCNameById(string npcId)
         {
-            var npc = _npcRepository.GetById(npcId);
+            NPC npc = _npcRepository.GetById(npcId);
             return npc?.Name ?? "Unknown";
         }
     }

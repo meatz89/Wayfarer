@@ -16,8 +16,15 @@ public class AttentionManager
     /// </summary>
     public int Current
     {
-        get => _currentAttention;
-        private set => _currentAttention = Math.Max(0, value);
+        get
+        {
+            return _currentAttention;
+        }
+
+        private set
+        {
+            _currentAttention = Math.Max(0, value);
+        }
     }
 
     /// <summary>
@@ -102,7 +109,7 @@ public class AttentionManager
         int newAttention = _currentAttention + amount;
         _currentAttention = Math.Min(newAttention, GameRules.ATTENTION_REFRESH_MAX_TOTAL);
     }
-    
+
     /// <summary>
     /// Set attention to a specific value (e.g., from lodging/rest).
     /// </summary>

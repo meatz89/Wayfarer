@@ -14,7 +14,7 @@ namespace Wayfarer.Pages.Components
         public Dictionary<string, CardDialogue> dialogues { get; set; }
         public Dictionary<string, Dictionary<string, Dictionary<string, string>>> narrativeTemplates { get; set; }
     }
-    
+
     public class SystemNarratives
     {
         public ConversationNarratives conversationNarratives { get; set; }
@@ -28,7 +28,7 @@ namespace Wayfarer.Pages.Components
         public string letterCardDialogue { get; set; }
         public string defaultCardDialogue { get; set; }
     }
-    
+
     public class ConversationNarratives
     {
         public string initialNarrative { get; set; }
@@ -40,7 +40,7 @@ namespace Wayfarer.Pages.Components
         public Dictionary<string, string> stateTransitionVerbs { get; set; }
         public Dictionary<string, string> cardStateTransitionDialogues { get; set; }
     }
-    
+
     public class SystemMessages
     {
         public string listeningCarefully { get; set; }
@@ -75,20 +75,20 @@ namespace Wayfarer.Pages.Components
         protected bool IsProcessing { get; set; }
         protected bool IsConversationExhausted { get; set; } = false;
         protected string ExhaustionReason { get; set; } = "";
-        
+
         protected string NpcName { get; set; }
         protected string LastNarrative { get; set; }
         protected string LastDialogue { get; set; }
         // Letter generation is handled by ConversationManager based on emotional state
-        
+
         // Card dialogues cache
         private static CardDialogues _cardDialogues;
         private static bool _cardDialoguesLoaded = false;
-        
+
         // System narratives cache
         private static SystemNarratives _systemNarratives;
         private static bool _systemNarrativesLoaded = false;
-        
+
         // Get current token balances with this NPC
         protected Dictionary<ConnectionType, int> CurrentTokens
         {
@@ -96,9 +96,9 @@ namespace Wayfarer.Pages.Components
             {
                 if (Context?.NpcId != null && GameFacade != null)
                 {
-                    var tokenBalance = GameFacade.GetTokensWithNPC(Context.NpcId);
-                    var result = new Dictionary<ConnectionType, int>();
-                    foreach (var balance in tokenBalance.Balances)
+                    NPCTokenBalance tokenBalance = GameFacade.GetTokensWithNPC(Context.NpcId);
+                    Dictionary<ConnectionType, int> result = new Dictionary<ConnectionType, int>();
+                    foreach (TokenBalance balance in tokenBalance.Balances)
                     {
                         result[balance.TokenType] = balance.Amount;
                     }
@@ -134,11 +134,11 @@ namespace Wayfarer.Pages.Components
                 }
 
                 Console.WriteLine($"[ConversationContent.InitializeFromContext] Initializing with NpcId: '{Context.NpcId}'");
-                
+
                 // Use the conversation session from the context
                 Session = Context.Session;
                 NpcName = Context.Npc?.Name ?? "Unknown";
-                
+
                 // Generate initial narrative
                 LoadSystemNarratives();
                 LastNarrative = _systemNarratives?.conversationNarratives?.initialNarrative ?? "The conversation begins...";
@@ -155,51 +155,51 @@ namespace Wayfarer.Pages.Components
         protected async Task ExecuteListen()
         {
             if (IsProcessing || Session == null) return;
-            
+
             IsProcessing = true;
             SelectedCards.Clear();
-            
+
             try
             {
                 // Add notification for listening
-                var messageSystem = GameFacade?.GetMessageSystem();
+                MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
                 if (messageSystem != null)
                 {
                     LoadSystemNarratives();
-                    var message = _systemNarratives?.systemMessages?.listeningCarefully ?? "You listen carefully...";
+                    string message = _systemNarratives?.systemMessages?.listeningCarefully ?? "You listen carefully...";
                     messageSystem.AddSystemMessage(message, SystemMessageTypes.Info);
                 }
-                
+
                 ConversationFacade.ExecuteListen();
-                
+
                 // Generate narrative for the action
                 GenerateListenNarrative();
-                
+
                 // Notify about cards drawn
                 if (messageSystem != null && Session.HandCards.Any())
                 {
-                    var drewMessage = _systemNarratives?.systemMessages?.drewCards ?? "Drew {0} cards";
+                    string drewMessage = _systemNarratives?.systemMessages?.drewCards ?? "Drew {0} cards";
                     messageSystem.AddSystemMessage(string.Format(drewMessage, Session.HandCards.Count), SystemMessageTypes.Success);
                 }
-                
+
                 // Refresh resources after listen action
                 if (GameScreen != null)
                 {
                     await GameScreen.RefreshResourceDisplay();
                 }
-                
+
                 if (Session.ShouldEnd())
                 {
                     // Don't auto-exit! Set exhaustion state instead
                     IsConversationExhausted = true;
                     ExhaustionReason = GetConversationEndReason();
-                    
+
                     // Add notification about conversation ending
                     if (messageSystem != null)
                     {
                         messageSystem.AddSystemMessage(ExhaustionReason, SystemMessageTypes.Info);
                     }
-                    
+
                     // Don't invoke end - let player click button
                     // await OnConversationEnd.InvokeAsync();
                 }
@@ -214,16 +214,16 @@ namespace Wayfarer.Pages.Components
         protected async Task ExecuteSpeak()
         {
             if (IsProcessing || Session == null || !SelectedCards.Any()) return;
-            
+
             IsProcessing = true;
-            
+
             try
             {
                 // Add notification for speaking
-                var messageSystem = GameFacade?.GetMessageSystem();
-                
+                MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
+
                 // Check if this is an exchange card
-                var exchangeCard = SelectedCards.FirstOrDefault(c => c.Category == nameof(CardCategory.Exchange));
+                CardInstance? exchangeCard = SelectedCards.FirstOrDefault(c => c.Category == nameof(CardCategory.Exchange));
                 if (exchangeCard != null && messageSystem != null)
                 {
                     // For exchanges, show what's being traded
@@ -231,12 +231,12 @@ namespace Wayfarer.Pages.Components
                     {
                         if (exchangeCard.Context.ExchangeName == "Pass on this offer")
                         {
-                            var decliningMsg = _systemNarratives?.systemMessages?.decliningExchange ?? "Declining the exchange...";
+                            string decliningMsg = _systemNarratives?.systemMessages?.decliningExchange ?? "Declining the exchange...";
                             messageSystem.AddSystemMessage(decliningMsg, SystemMessageTypes.Info);
                         }
                         else
                         {
-                            var tradingMsg = _systemNarratives?.systemMessages?.tradingExchange ?? "Trading: {0} for {1}";
+                            string tradingMsg = _systemNarratives?.systemMessages?.tradingExchange ?? "Trading: {0} for {1}";
                             messageSystem.AddSystemMessage(string.Format(tradingMsg, exchangeCard.Context.ExchangeCost, exchangeCard.Context.ExchangeReward), SystemMessageTypes.Info);
                         }
                     }
@@ -244,19 +244,19 @@ namespace Wayfarer.Pages.Components
                 else if (messageSystem != null)
                 {
                     // ONE-CARD RULE: Always exactly one card
-                    var selectedCard = SelectedCards.FirstOrDefault();
+                    CardInstance? selectedCard = SelectedCards.FirstOrDefault();
                     if (selectedCard != null)
                     {
-                        var playingMsg = _systemNarratives?.systemMessages?.playingCard ?? "Playing {0}...";
+                        string playingMsg = _systemNarratives?.systemMessages?.playingCard ?? "Playing {0}...";
                         messageSystem.AddSystemMessage(string.Format(playingMsg, GetCardName(selectedCard)), SystemMessageTypes.Info);
                     }
                 }
-                
+
                 // ExecuteSpeak expects HashSet<ConversationCard>
                 // CRITICAL: Must use ConversationManager.ExecuteSpeak to handle special card effects like letter delivery
-                var result = await ConversationFacade.ExecuteSpeak(SelectedCards);
+                CardPlayResult result = await ConversationFacade.ExecuteSpeak(SelectedCards);
                 ProcessSpeakResult(result);
-                
+
                 // Add detailed notification for result
                 // NOTE: Exchange handling is done in ConversationManager.HandleSpecialCardEffectsAsync
                 // Letter delivery is also handled there - no need to duplicate logic here
@@ -264,42 +264,42 @@ namespace Wayfarer.Pages.Components
                 {
                     if (result.Results?.Any() == true)
                     {
-                        var successes = result.Results.Count(r => r.Success);
-                        var failures = result.Results.Count(r => !r.Success);
-                        
+                        int successes = result.Results.Count(r => r.Success);
+                        int failures = result.Results.Count(r => !r.Success);
+
                         if (successes > 0)
                         {
-                            var successMsg = _systemNarratives?.systemMessages?.cardsSucceeded ?? "{0} card(s) succeeded! +{1} comfort";
+                            string successMsg = _systemNarratives?.systemMessages?.cardsSucceeded ?? "{0} card(s) succeeded! +{1} comfort";
                             messageSystem.AddSystemMessage(string.Format(successMsg, successes, result.TotalComfort), SystemMessageTypes.Success);
                         }
                         if (failures > 0)
                         {
-                            var failureMsg = _systemNarratives?.systemMessages?.cardsFailed ?? "{0} card(s) failed";
+                            string failureMsg = _systemNarratives?.systemMessages?.cardsFailed ?? "{0} card(s) failed";
                             messageSystem.AddSystemMessage(string.Format(failureMsg, failures), SystemMessageTypes.Warning);
                         }
                     }
                 }
-                
+
                 SelectedCards.Clear();
-                
+
                 // Refresh resources after exchange/card play
                 if (GameScreen != null)
                 {
                     await GameScreen.RefreshResourceDisplay();
                 }
-                
+
                 if (Session.ShouldEnd())
                 {
                     // Don't auto-exit! Set exhaustion state instead
                     IsConversationExhausted = true;
                     ExhaustionReason = GetConversationEndReason();
-                    
+
                     // Add notification about conversation ending
                     if (messageSystem != null)
                     {
                         messageSystem.AddSystemMessage(ExhaustionReason, SystemMessageTypes.Info);
                     }
-                    
+
                     // Don't invoke end - let player click button
                     // await OnConversationEnd.InvokeAsync();
                 }
@@ -317,7 +317,7 @@ namespace Wayfarer.Pages.Components
             {
                 // Generate narrative based on the result
                 GenerateSpeakNarrative(result);
-                
+
                 // Process letter negotiations first (new system)
                 if (result.LetterNegotiations?.Any() == true)
                 {
@@ -327,17 +327,17 @@ namespace Wayfarer.Pages.Components
                 // Special cards that force letter generation are handled in ConversationManager.HandleSpecialCardEffectsAsync()
             }
         }
-        
+
         private void GenerateListenNarrative()
         {
             // Generate narrative for listen action based on state
             LoadSystemNarratives();
-            var stateRules = ConversationRules.States[Session.CurrentState];
-            
+            ConversationStateRules stateRules = ConversationRules.States[Session.CurrentState];
+
             if (_systemNarratives?.conversationNarratives?.listenNarratives != null)
             {
-                var stateKey = Session.CurrentState.ToString();
-                if (_systemNarratives.conversationNarratives.listenNarratives.TryGetValue(stateKey, out var narrative))
+                string stateKey = Session.CurrentState.ToString();
+                if (_systemNarratives.conversationNarratives.listenNarratives.TryGetValue(stateKey, out string? narrative))
                 {
                     LastNarrative = narrative;
                 }
@@ -350,19 +350,19 @@ namespace Wayfarer.Pages.Components
             {
                 LastNarrative = "You listen attentively...";
             }
-            
+
             LastDialogue = GetStateTransitionDialogue(Session.CurrentState);
         }
-        
+
         private void GenerateSpeakNarrative(CardPlayResult result)
         {
             LoadSystemNarratives();
             // Generate narrative based on cards played and result
             if (result.Results != null && result.Results.Any())
             {
-                var successCount = result.Results.Count(r => r.Success);
-                var totalCards = result.Results.Count;
-                
+                int successCount = result.Results.Count(r => r.Success);
+                int totalCards = result.Results.Count;
+
                 if (_systemNarratives?.conversationNarratives?.speakNarratives != null)
                 {
                     if (successCount == totalCards)
@@ -388,7 +388,7 @@ namespace Wayfarer.Pages.Components
                     else
                         LastNarrative = "Your words fall flat...";
                 }
-                
+
                 // Add comfort gained info
                 if (result.TotalComfort > 0)
                 {
@@ -399,7 +399,7 @@ namespace Wayfarer.Pages.Components
             {
                 LastNarrative = _systemNarratives?.conversationNarratives?.speakNarratives?.GetValueOrDefault("default", "You speak your mind...") ?? "You speak your mind...";
             }
-            
+
             // Update dialogue based on new state if changed
             if (result.NewState.HasValue)
             {
@@ -410,20 +410,20 @@ namespace Wayfarer.Pages.Components
                 LastDialogue = GetResponseDialogue();
             }
         }
-        
+
         private string GetStateTransitionDialogue(EmotionalState newState)
         {
             LoadSystemNarratives();
             if (_systemNarratives?.conversationNarratives?.stateDialogues != null)
             {
-                var stateKey = newState.ToString();
-                if (_systemNarratives.conversationNarratives.stateDialogues.TryGetValue(stateKey, out var dialogue))
+                string stateKey = newState.ToString();
+                if (_systemNarratives.conversationNarratives.stateDialogues.TryGetValue(stateKey, out string? dialogue))
                 {
                     return dialogue;
                 }
                 return _systemNarratives.conversationNarratives.stateDialogues.GetValueOrDefault("default", "Hmm...");
             }
-            
+
             // Fallback if JSON not loaded - 5 states only
             return newState switch
             {
@@ -435,7 +435,7 @@ namespace Wayfarer.Pages.Components
                 _ => "Hmm..."
             };
         }
-        
+
         private string GetResponseDialogue()
         {
             LoadSystemNarratives();
@@ -459,7 +459,7 @@ namespace Wayfarer.Pages.Components
                     return _systemNarratives.conversationNarratives.comfortResponses.GetValueOrDefault("negative", "I'm not sure about this...");
                 }
             }
-            
+
             // Fallback if JSON not loaded
             if (Session.CurrentComfort >= 2)
                 return "This conversation has been wonderful!";
@@ -478,32 +478,32 @@ namespace Wayfarer.Pages.Components
             // This method is no longer used
             // Letter generation is handled by ConversationManager based on emotional state
         }
-        
+
         // Letter tier determination removed - handled by ConversationManager
         private LetterTier DetermineLetterTier(int comfort)
         {
             // No longer used - ConversationManager determines letter properties based on linear scaling
             return LetterTier.Simple;
         }
-        
+
         // Letter creation removed - handled by ConversationManager
         private DeliveryObligation CreateLetterFromComfort(LetterTier tier)
         {
             // For now, hardcode a recipient since we don't have access to all NPCs
             // In a real implementation, this would select from available NPCs
-            var recipientId = "merchant_thomas"; // Default recipient
-            var recipientName = "Thomas the Merchant";
-            
+            string recipientId = "merchant_thomas"; // Default recipient
+            string recipientName = "Thomas the Merchant";
+
             // Determine letter parameters based on tier
-            var (deadline, payment, stakes, weight) = GetTierParameters(tier);
-            
+            (int deadline, int payment, StakeType stakes, EmotionalWeight weight) = GetTierParameters(tier);
+
             // Get the NPC from context
-            var npc = Context?.Npc;
+            NPC? npc = Context?.Npc;
             if (npc == null) return null;
-            
+
             // Determine token type from NPC's available types
-            var tokenType = DetermineTokenType(npc);
-            
+            ConnectionType tokenType = DetermineTokenType(npc);
+
             return new DeliveryObligation
             {
                 Id = Guid.NewGuid().ToString(),
@@ -521,7 +521,7 @@ namespace Wayfarer.Pages.Components
                 GenerationReason = $"Generated from conversation with {npc.Name}"
             };
         }
-        
+
         private (int deadline, int payment, StakeType stakes, EmotionalWeight weight) GetTierParameters(LetterTier tier)
         {
             // EXACT specifications as requested
@@ -534,7 +534,7 @@ namespace Wayfarer.Pages.Components
                 _ => (1440, 5, StakeType.REPUTATION, EmotionalWeight.LOW)
             };
         }
-        
+
         private ConnectionType DetermineTokenType(NPC npc)
         {
             // Use NPC's primary letter token type, or default to Trust
@@ -544,7 +544,7 @@ namespace Wayfarer.Pages.Components
             }
             return ConnectionType.Trust;
         }
-        
+
         private TierLevel ConvertToTierLevel(LetterTier tier)
         {
             return tier switch
@@ -556,7 +556,7 @@ namespace Wayfarer.Pages.Components
                 _ => TierLevel.T1
             };
         }
-        
+
         private string GenerateLetterDescription(string senderName, string recipientName, LetterTier tier)
         {
             return tier switch
@@ -568,7 +568,7 @@ namespace Wayfarer.Pages.Components
                 _ => $"Letter from {senderName}"
             };
         }
-        
+
         private string GetTierDescription(LetterTier tier)
         {
             return tier switch
@@ -580,7 +580,7 @@ namespace Wayfarer.Pages.Components
                 _ => "standard"
             };
         }
-        
+
         // Internal enum for letter tiers
         private enum LetterTier
         {
@@ -593,7 +593,7 @@ namespace Wayfarer.Pages.Components
         protected void ToggleCardSelection(CardInstance card)
         {
             // ONE CARD RULE: Only one card can be selected at a time for SPEAK action
-            
+
             if (SelectedCards.Contains(card))
             {
                 // Deselect the card
@@ -606,19 +606,19 @@ namespace Wayfarer.Pages.Components
                 SelectedCards.Add(card);
             }
             // If card can't be selected (over weight limit), do nothing
-            
+
             StateHasChanged();
         }
 
         protected bool CanSelectCard(CardInstance card)
         {
             if (Session == null) return false;
-            
+
             // Check if observation card is expired
             if (IsObservationExpired(card)) return false;
-            
+
             // Check weight limit - card must not exceed current state's max weight
-            var effectiveWeight = card.GetEffectiveWeight(Session.CurrentState);
+            int effectiveWeight = card.GetEffectiveWeight(Session.CurrentState);
             return effectiveWeight <= GetWeightLimit();
         }
 
@@ -626,11 +626,11 @@ namespace Wayfarer.Pages.Components
         {
             return SelectedCards.Contains(card);
         }
-        
+
         protected string GetCardTypeLabel(CardInstance card)
         {
             if (card == null) return "Card";
-            
+
             return card.Category switch
             {
                 nameof(CardCategory.Comfort) => "Comfort",
@@ -654,26 +654,26 @@ namespace Wayfarer.Pages.Components
             // End the conversation properly to calculate and award tokens
             if (Session != null)
             {
-                var outcome = ConversationFacade.EndConversation();
+                ConversationOutcome outcome = ConversationFacade.EndConversation();
                 Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Comfort={outcome.TotalComfort}, TokensEarned={outcome.TokensEarned}");
             }
-            
+
             Session = null;
             await OnConversationEnd.InvokeAsync();
         }
-        
+
         protected async Task ExitConversation()
         {
             // Allow player to manually exit conversation
             Console.WriteLine("[ConversationContent] Player manually exiting conversation");
-            
+
             // End the conversation properly to calculate and award tokens
             if (Session != null)
             {
-                var outcome = ConversationFacade.EndConversation();
+                ConversationOutcome outcome = ConversationFacade.EndConversation();
                 Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Comfort={outcome.TotalComfort}, TokensEarned={outcome.TokensEarned}");
             }
-            
+
             Session = null;
             await OnConversationEnd.InvokeAsync();
         }
@@ -681,7 +681,7 @@ namespace Wayfarer.Pages.Components
         // UI Helper Methods
         protected string GetConversationModeTitle()
         {
-            var conversationType = Context?.Type ?? ConversationType.FriendlyChat;
+            ConversationType conversationType = Context?.Type ?? ConversationType.FriendlyChat;
             return conversationType switch
             {
                 ConversationType.Commerce => "Quick Exchange",
@@ -707,20 +707,20 @@ namespace Wayfarer.Pages.Components
         protected int GetWeightLimit()
         {
             if (Session == null) return 3;
-            
+
             // Use actual values from ConversationRules.States
-            if (ConversationRules.States.TryGetValue(Session.CurrentState, out var rules))
+            if (ConversationRules.States.TryGetValue(Session.CurrentState, out ConversationStateRules? rules))
             {
                 return rules.MaxWeight;
             }
-            
+
             return 3; // Default fallback
         }
 
         protected string GetListenDetails()
         {
             if (Session == null) return "";
-            
+
             return Session.CurrentState switch
             {
                 EmotionalState.DESPERATE => "Draw 1 card",
@@ -740,7 +740,7 @@ namespace Wayfarer.Pages.Components
         protected string GetStateEffects()
         {
             if (Session == null) return "";
-            
+
             return Session.CurrentState switch
             {
                 EmotionalState.DESPERATE => "• Draw 1 • Weight limit 3 • Ends at -3 comfort",
@@ -779,27 +779,27 @@ namespace Wayfarer.Pages.Components
         protected string GetComfortDotClass(int dotPosition)
         {
             if (Session == null) return "";
-            
-            var classes = new List<string>();
-            
+
+            List<string> classes = new List<string>();
+
             // Always add color class based on position
             if (dotPosition < 0)
                 classes.Add("negative");
             else if (dotPosition > 0)
                 classes.Add("positive");
             // Position 0 gets no color class (neutral)
-            
+
             // Add current class if this is the current position
             if (dotPosition == Session.CurrentComfort)
                 classes.Add("current");
-            
+
             return string.Join(" ", classes);
         }
 
         protected string GetEmotionalStateDisplay()
         {
             if (Session == null) return "Unknown";
-            
+
             return Session.CurrentState switch
             {
                 EmotionalState.DESPERATE => "Desperate",
@@ -810,11 +810,11 @@ namespace Wayfarer.Pages.Components
                 _ => Session.CurrentState.ToString()
             };
         }
-        
+
         protected string GetListenActionText()
         {
             if (Session == null) return "Draw cards";
-            
+
             return Session.CurrentState switch
             {
                 EmotionalState.DESPERATE => "Draw desperate cards",
@@ -825,32 +825,32 @@ namespace Wayfarer.Pages.Components
                 _ => "Draw cards"
             };
         }
-        
+
         protected string GetSpeakActionText()
         {
-            var limit = GetWeightLimit();
+            int limit = GetWeightLimit();
             return $"Play weight {limit} cards";
         }
-        
+
         protected string GetProperCardName(CardInstance card)
         {
             // Generate meaningful card names based on type and category
             if (card.Category == nameof(CardCategory.Exchange) && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
-            
+
             if (card.Category == nameof(CardCategory.Burden))
                 return "Address Past Failure";
-            
+
             if (card.Category == nameof(CardCategory.State))
             {
                 if (card.SuccessState.HasValue)
                 {
-                    var targetState = GetEmotionalStateForCard(card.SuccessState.Value);
+                    string targetState = GetEmotionalStateForCard(card.SuccessState.Value);
                     return $"Let's {GetStateTransitionVerb(card.SuccessState.Value)}";
                 }
                 return "Change Approach";
             }
-            
+
             if (card.IsObservation)
             {
                 // Use context for observation names
@@ -858,7 +858,7 @@ namespace Wayfarer.Pages.Components
                     return card.DisplayName;
                 return "Share Observation";
             }
-            
+
             // Comfort cards get contextual names (comfort cards have no specific type)
             if (card.Category == nameof(CardCategory.Comfort) && card.Type == CardType.Normal)
             {
@@ -869,38 +869,38 @@ namespace Wayfarer.Pages.Components
                 else
                     return "Simple Response";
             }
-            
+
             // Token cards are identified by having token types
             if (card.Type != CardType.Normal && card.Category == nameof(CardCategory.Comfort))
             {
-                var tokenType = card.GetConnectionType();
+                ConnectionType tokenType = card.GetConnectionType();
                 return tokenType switch
                 {
                     ConnectionType.Trust => "Build Trust",
-                    ConnectionType.Commerce => "Discuss Business", 
+                    ConnectionType.Commerce => "Discuss Business",
                     ConnectionType.Status => "Show Respect",
                     ConnectionType.Shadow => "Share Secret",
                     _ => "Connect"
                 };
             }
-            
+
             // Default to template ID with formatting
             return card.TemplateId?.Replace("_", " ") ?? "Unknown Card";
         }
-        
+
         private string GetStateTransitionVerb(EmotionalState targetState)
         {
             LoadSystemNarratives();
             if (_systemNarratives?.conversationNarratives?.stateTransitionVerbs != null)
             {
-                var stateKey = targetState.ToString();
-                if (_systemNarratives.conversationNarratives.stateTransitionVerbs.TryGetValue(stateKey, out var verb))
+                string stateKey = targetState.ToString();
+                if (_systemNarratives.conversationNarratives.stateTransitionVerbs.TryGetValue(stateKey, out string? verb))
                 {
                     return verb;
                 }
                 return _systemNarratives.conversationNarratives.stateTransitionVerbs.GetValueOrDefault("default", "change topics");
             }
-            
+
             // Fallback if JSON not loaded
             return targetState switch
             {
@@ -912,7 +912,7 @@ namespace Wayfarer.Pages.Components
                 _ => "change topics"
             };
         }
-        
+
         private string GetEmotionalStateForCard(EmotionalState state)
         {
             return state switch
@@ -925,11 +925,11 @@ namespace Wayfarer.Pages.Components
                 _ => state.ToString().ToLower()
             };
         }
-        
+
         protected string GetProperCardDialogue(CardInstance card)
         {
             // Generate actual conversational dialogue instead of technical descriptions
-            
+
             // Exchange cards
             if (card.Category == nameof(CardCategory.Exchange))
             {
@@ -939,13 +939,13 @@ namespace Wayfarer.Pages.Components
                     return $"I'll take that deal - {card.Context.ExchangeCost} for {card.Context.ExchangeReward}.";
                 return "Let's make a trade.";
             }
-            
+
             // Burden cards - addressing past failures
             if (card.Category == nameof(CardCategory.Burden))
             {
                 return $"{NpcName}, about last time... I know I let you down when I didn't deliver your previous message.";
             }
-            
+
             // State transition cards
             if (card.Category == nameof(CardCategory.State))
             {
@@ -963,7 +963,7 @@ namespace Wayfarer.Pages.Components
                 }
                 return "Let me try a different approach...";
             }
-            
+
             // Observation cards
             if (card.IsObservation)
             {
@@ -975,7 +975,7 @@ namespace Wayfarer.Pages.Components
                     return "I overheard something at court that might interest you...";
                 return "I noticed something earlier that might help...";
             }
-            
+
             // Comfort cards based on weight/intensity
             if (card.Category == nameof(CardCategory.Comfort) && card.Type == CardType.Normal && card.BaseComfort > 0)
             {
@@ -986,11 +986,11 @@ namespace Wayfarer.Pages.Components
                 else
                     return "I hear what you're saying.";
             }
-            
+
             // Token building cards (cards with specific token types)
             if (card.Type != CardType.Normal && card.Category == nameof(CardCategory.Comfort))
             {
-                var tokenType = card.GetConnectionType();
+                ConnectionType tokenType = card.GetConnectionType();
                 return tokenType switch
                 {
                     ConnectionType.Trust => "You can trust me with this. I'll handle it with the care it deserves.",
@@ -1000,27 +1000,27 @@ namespace Wayfarer.Pages.Components
                     _ => "I want to help you with this."
                 };
             }
-            
+
             // Promise/Letter cards
             if (card.DisplayName?.Contains("Letter") == true || card.DisplayName?.Contains("Accept") == true)
             {
                 return "I'll take your letter to Lord Blackwood. For something this urgent, I'll do whatever it takes.";
             }
-            
+
             // Default fallback - try to get from loaded dialogues or use display name
-            var playerText = GetPlayerDialogueText(card.TemplateId, Session?.CurrentState);
+            string playerText = GetPlayerDialogueText(card.TemplateId, Session?.CurrentState);
             if (!string.IsNullOrEmpty(playerText))
                 return playerText;
-            
+
             return card.DisplayName ?? "Let me think about this...";
         }
-        
-        
+
+
 
         protected string GetTransitionHint()
         {
             if (Session == null) return "";
-            
+
             if (Session.CurrentComfort == 3)
             {
                 return Session.CurrentState switch
@@ -1045,7 +1045,7 @@ namespace Wayfarer.Pages.Components
                     _ => ""
                 };
             }
-            
+
             return "";
         }
 
@@ -1056,7 +1056,7 @@ namespace Wayfarer.Pages.Components
 
         protected string GetTokenBonus(ConnectionType tokenType)
         {
-            var count = GetTokenCount(tokenType);
+            int count = GetTokenCount(tokenType);
             if (count > 0)
             {
                 return $"(+{count * 5}%)";
@@ -1083,7 +1083,7 @@ namespace Wayfarer.Pages.Components
             // For exchange cards, use the exchange name
             if (card.Category == nameof(CardCategory.Exchange) && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
-                
+
             // Generate name from template and context
             if (card.Context?.NPCName != null)
                 return $"{card.TemplateId} ({card.Context.NPCName})";
@@ -1092,17 +1092,17 @@ namespace Wayfarer.Pages.Components
 
         protected List<string> GetCardTags(CardInstance card)
         {
-            var tags = new List<string>();
-            
+            List<string> tags = new List<string>();
+
             // Add card type
             tags.Add(card.Type.ToString());
-            
+
             // Add persistence type
             tags.Add(card.Persistence.ToString());
-            
+
             // Add category
             tags.Add(card.Category.ToString());
-            
+
             return tags;
         }
 
@@ -1113,7 +1113,7 @@ namespace Wayfarer.Pages.Components
             {
                 return $"Complete exchange: {card.Context.ExchangeReward}";
             }
-            
+
             if (card.Category == nameof(CardCategory.State))
             {
                 // Use the actual SuccessState property from the card
@@ -1132,7 +1132,7 @@ namespace Wayfarer.Pages.Components
                     return $"→ {stateName}";
                 }
             }
-            
+
             // Show comfort gain without redundant success percentage
             return $"+{card.BaseComfort} comfort";
         }
@@ -1146,7 +1146,7 @@ namespace Wayfarer.Pages.Components
                     return "Leave without trading";
                 return "Execute trade";
             }
-            
+
             if (card.Category == nameof(CardCategory.State))
             {
                 // Check if card has a specific failure state
@@ -1165,11 +1165,11 @@ namespace Wayfarer.Pages.Components
                 }
                 return "State unchanged";
             }
-            
+
             // Failure typically gives 0 comfort
             return "+0 comfort";
         }
-        
+
         protected string GetTagClass(string tag)
         {
             // Apply special classes to certain tags
@@ -1183,24 +1183,24 @@ namespace Wayfarer.Pages.Components
                 return "persistence";
             return "";
         }
-        
+
         protected string GetCardText(CardInstance card)
         {
             // Load card dialogues if not loaded
             LoadCardDialogues();
-            
+
             // For decline cards, show simple message
             if (card.Context?.IsDeclineCard == true)
             {
                 return "Politely decline the offer and leave";
             }
-            
+
             // For accept cards, we handle details in the exchange-details div
             if (card.Context?.IsAcceptCard == true)
             {
                 return "Accept the merchant's offer";
             }
-            
+
             // For exchange cards, show the exchange details
             if (card.Category == nameof(CardCategory.Exchange) && card.Context != null)
             {
@@ -1209,14 +1209,14 @@ namespace Wayfarer.Pages.Components
                     return $"{card.Context.ExchangeCost} → {card.Context.ExchangeReward}";
                 }
             }
-            
+
             // Try to get player dialogue from JSON based on template ID
-            var playerText = GetPlayerDialogueText(card.TemplateId, Session?.CurrentState);
+            string playerText = GetPlayerDialogueText(card.TemplateId, Session?.CurrentState);
             if (!string.IsNullOrEmpty(playerText))
             {
                 return playerText;
             }
-            
+
             // Get the narrative text for the card - use template ID or display name
             return card.DisplayName ?? card.TemplateId?.Replace("_", " ") ?? "Unknown Card";
         }
@@ -1224,14 +1224,14 @@ namespace Wayfarer.Pages.Components
         private void LoadCardDialogues()
         {
             if (_cardDialoguesLoaded) return;
-            
+
             try
             {
-                var contentPath = Path.Combine("Content", "Dialogues", "card_dialogues.json");
+                string contentPath = Path.Combine("Content", "Dialogues", "card_dialogues.json");
                 if (File.Exists(contentPath))
                 {
-                    var json = File.ReadAllText(contentPath);
-                    var options = new JsonSerializerOptions
+                    string json = File.ReadAllText(contentPath);
+                    JsonSerializerOptions options = new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
                     };
@@ -1246,18 +1246,18 @@ namespace Wayfarer.Pages.Components
                 _cardDialoguesLoaded = true;
             }
         }
-        
+
         private void LoadSystemNarratives()
         {
             if (_systemNarrativesLoaded) return;
-            
+
             try
             {
-                var contentPath = Path.Combine("Content", "Dialogues", "system_narratives.json");
+                string contentPath = Path.Combine("Content", "Dialogues", "system_narratives.json");
                 if (File.Exists(contentPath))
                 {
-                    var json = File.ReadAllText(contentPath);
-                    var options = new JsonSerializerOptions
+                    string json = File.ReadAllText(contentPath);
+                    JsonSerializerOptions options = new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
                     };
@@ -1279,28 +1279,28 @@ namespace Wayfarer.Pages.Components
                 return null;
 
             // Try direct template ID match first
-            if (_cardDialogues.dialogues.TryGetValue(templateId, out var dialogue))
+            if (_cardDialogues.dialogues.TryGetValue(templateId, out CardDialogue? dialogue))
             {
                 // Check for contextual dialogue based on current state
-                if (currentState.HasValue && dialogue.contextual?.TryGetValue(currentState.Value.ToString(), out var contextualText) == true)
+                if (currentState.HasValue && dialogue.contextual?.TryGetValue(currentState.Value.ToString(), out string? contextualText) == true)
                 {
                     return contextualText;
                 }
-                
+
                 // Return base player text
                 return dialogue.playerText;
             }
 
             // Try common mappings for template IDs
-            var mappedId = MapTemplateIdToDialogueKey(templateId);
-            if (!string.IsNullOrEmpty(mappedId) && _cardDialogues.dialogues.TryGetValue(mappedId, out var mappedDialogue))
+            string mappedId = MapTemplateIdToDialogueKey(templateId);
+            if (!string.IsNullOrEmpty(mappedId) && _cardDialogues.dialogues.TryGetValue(mappedId, out CardDialogue? mappedDialogue))
             {
                 // Check for contextual dialogue based on current state
-                if (currentState.HasValue && mappedDialogue.contextual?.TryGetValue(currentState.Value.ToString(), out var contextualText) == true)
+                if (currentState.HasValue && mappedDialogue.contextual?.TryGetValue(currentState.Value.ToString(), out string? contextualText) == true)
                 {
                     return contextualText;
                 }
-                
+
                 return mappedDialogue.playerText;
             }
 
@@ -1312,7 +1312,7 @@ namespace Wayfarer.Pages.Components
             if (string.IsNullOrEmpty(templateId)) return null;
 
             // Map common template IDs to dialogue keys
-            var mappings = new Dictionary<string, string>
+            Dictionary<string, string> mappings = new Dictionary<string, string>
             {
                 { "promise_to_help", "PromiseToHelp" },
                 { "mention_guards", "MentionGuards" },
@@ -1337,19 +1337,19 @@ namespace Wayfarer.Pages.Components
                 { "exchange_barter", "ExchangeBarter" }
             };
 
-            return mappings.TryGetValue(templateId.ToLower(), out var mapped) ? mapped : null;
+            return mappings.TryGetValue(templateId.ToLower(), out string? mapped) ? mapped : null;
         }
-        
+
         protected string GetSuccessChance(CardInstance card)
         {
             // Calculate success chance based on card type and state, including token bonuses
             return card.CalculateSuccessChance(CurrentTokens).ToString();
         }
-        
+
         protected string GetFailureChance(CardInstance card)
         {
             // Calculate failure chance (inverse of success)
-            var success = card.CalculateSuccessChance(CurrentTokens);
+            int success = card.CalculateSuccessChance(CurrentTokens);
             return (100 - success).ToString();
         }
 
@@ -1358,14 +1358,14 @@ namespace Wayfarer.Pages.Components
             LoadSystemNarratives();
             if (_systemNarratives?.conversationNarratives?.initialDialogues != null && Session != null)
             {
-                var stateKey = Session.CurrentState.ToString();
-                if (_systemNarratives.conversationNarratives.initialDialogues.TryGetValue(stateKey, out var dialogue))
+                string stateKey = Session.CurrentState.ToString();
+                if (_systemNarratives.conversationNarratives.initialDialogues.TryGetValue(stateKey, out string? dialogue))
                 {
                     return dialogue;
                 }
                 return _systemNarratives.conversationNarratives.initialDialogues.GetValueOrDefault("default", "Hello, what brings you here?");
             }
-            
+
             // Fallback if JSON not loaded - 5 states only
             return Session?.CurrentState switch
             {
@@ -1377,150 +1377,150 @@ namespace Wayfarer.Pages.Components
                 _ => "Hello, what brings you here?"
             };
         }
-        
+
         protected int GetExchangeSuccessRate(CardInstance card)
         {
             if (card?.Context?.ExchangeData == null) return 0;
-            
-            var exchange = card.Context.ExchangeData;
-            var baseRate = exchange.BaseSuccessRate;
-            
+
+            ExchangeData exchange = card.Context.ExchangeData;
+            int baseRate = exchange.BaseSuccessRate;
+
             // Add Commerce token bonus (+5% per token)
             if (GameFacade != null && !string.IsNullOrEmpty(Context?.NpcId))
             {
-                var tokenBalance = GameFacade.GetTokensWithNPC(Context.NpcId);
-                var commerceTokens = tokenBalance.GetBalance(ConnectionType.Commerce);
+                NPCTokenBalance tokenBalance = GameFacade.GetTokensWithNPC(Context.NpcId);
+                int commerceTokens = tokenBalance.GetBalance(ConnectionType.Commerce);
                 baseRate += commerceTokens * 5;
             }
-            
+
             // Clamp between 5% and 95%
             return Math.Clamp(baseRate, 5, 95);
         }
-        
+
         protected string GetTokenBonusText(CardInstance card)
         {
-            if (card == null || CurrentTokens == null) 
+            if (card == null || CurrentTokens == null)
             {
                 Console.WriteLine($"[GetTokenBonusText] Card null: {card == null}, CurrentTokens null: {CurrentTokens == null}");
                 return "";
             }
-            
+
             // Get the relevant token type from the card using its built-in method
             ConnectionType tokenType = card.GetConnectionType();
-            
+
             // Get the token count
             int tokenCount = CurrentTokens.GetValueOrDefault(tokenType, 0);
             Console.WriteLine($"[GetTokenBonusText] Card: {card.TemplateId}, TokenType: {tokenType}, Count: {tokenCount}");
-            
+
             if (tokenCount > 0)
             {
                 // All cards (including goals) get +10% per token
                 int bonusPerToken = 10;
                 int bonus = tokenCount * bonusPerToken;
-                var result = $"(+{bonus}% from {tokenCount} {tokenType})";
+                string result = $"(+{bonus}% from {tokenCount} {tokenType})";
                 Console.WriteLine($"[GetTokenBonusText] Returning: {result}");
                 return result;
             }
-            
+
             return "";
         }
-        
+
         protected string GetExchangeCostDisplay(CardInstance card)
         {
             // Debug logging
             Console.WriteLine($"[GetExchangeCostDisplay] Card ID: {card?.TemplateId}");
             Console.WriteLine($"[GetExchangeCostDisplay] Context null: {card?.Context == null}");
             Console.WriteLine($"[GetExchangeCostDisplay] ExchangeData null: {card?.Context?.ExchangeData == null}");
-            
+
             // Check for cost in Context.ExchangeData
-            var exchangeData = card?.Context?.ExchangeData;
+            ExchangeData? exchangeData = card?.Context?.ExchangeData;
             if (exchangeData != null)
             {
                 Console.WriteLine($"[GetExchangeCostDisplay] ExchangeData.Cost null: {exchangeData.Cost == null}");
                 Console.WriteLine($"[GetExchangeCostDisplay] ExchangeData.Cost count: {exchangeData.Cost?.Count ?? 0}");
             }
-            
+
             if (exchangeData?.Cost != null && exchangeData.Cost.Any())
             {
-                var costParts = exchangeData.Cost.Select(c => c.GetDisplayText());
-                var result = string.Join(", ", costParts);
+                IEnumerable<string> costParts = exchangeData.Cost.Select(c => c.GetDisplayText());
+                string result = string.Join(", ", costParts);
                 Console.WriteLine($"[GetExchangeCostDisplay] Returning: {result}");
                 return result;
             }
-            
+
             Console.WriteLine($"[GetExchangeCostDisplay] Returning default: Nothing");
             return "Nothing";
         }
-        
+
         protected string GetExchangeRewardDisplay(CardInstance card)
         {
             // Check for reward in Context.ExchangeData
-            var exchangeData = card?.Context?.ExchangeData;
+            ExchangeData? exchangeData = card?.Context?.ExchangeData;
             if (exchangeData?.Reward != null && exchangeData.Reward.Any())
             {
-                var rewardParts = exchangeData.Reward.Select(r => r.GetDisplayText());
+                IEnumerable<string> rewardParts = exchangeData.Reward.Select(r => r.GetDisplayText());
                 return string.Join(", ", rewardParts);
             }
-                        
+
             return "Nothing";
         }
-        
+
         protected ConnectionType GetExchangeTokenType(CardInstance card)
         {
             // For merchants, exchanges typically use Commerce tokens
             // Could be expanded based on card context or NPC type
             return ConnectionType.Commerce;
         }
-        
+
         protected string GetTokenBonusPercentage(CardInstance card)
         {
-            var tokenType = GetExchangeTokenType(card);
-            var tokenCount = GetTokenCount(tokenType);
-            var bonusPercentage = tokenCount * 5; // 5% per token
-            
+            ConnectionType tokenType = GetExchangeTokenType(card);
+            int tokenCount = GetTokenCount(tokenType);
+            int bonusPercentage = tokenCount * 5; // 5% per token
+
             return bonusPercentage > 0 ? $"+{bonusPercentage}" : "+0";
         }
-        
+
         protected string GetConversationEndReason()
         {
             LoadSystemNarratives();
             if (Session == null) return "Conversation ended";
-            
-            var exhaustedMessages = _systemNarratives?.systemMessages?.conversationExhausted;
-            
+
+            Dictionary<string, string>? exhaustedMessages = _systemNarratives?.systemMessages?.conversationExhausted;
+
             // Check various end conditions in priority order
             if (Session.LetterGenerated)
             {
-                var msg = exhaustedMessages?.GetValueOrDefault("letterObtained", "Letter obtained! Check your queue. (Comfort: {0})") ?? "Letter obtained! Check your queue. (Comfort: {0})";
+                string msg = exhaustedMessages?.GetValueOrDefault("letterObtained", "Letter obtained! Check your queue. (Comfort: {0})") ?? "Letter obtained! Check your queue. (Comfort: {0})";
                 return string.Format(msg, Session.CurrentComfort);
             }
-                
+
             if (Session.CurrentPatience <= 0)
             {
-                var msg = exhaustedMessages?.GetValueOrDefault("patienceExhausted", "{0}'s patience has been exhausted. They have no more time for you today.") ?? "{0}'s patience has been exhausted. They have no more time for you today.";
+                string msg = exhaustedMessages?.GetValueOrDefault("patienceExhausted", "{0}'s patience has been exhausted. They have no more time for you today.") ?? "{0}'s patience has been exhausted. They have no more time for you today.";
                 return string.Format(msg, NpcName);
             }
-                
+
             if (Session.CurrentState == EmotionalState.DESPERATE && Session.ComfortBattery <= -3)
             {
-                var msg = exhaustedMessages?.GetValueOrDefault("conversationBroken", "{0} is too distressed to continue. The conversation has broken down.") ?? "{0} is too distressed to continue. The conversation has broken down.";
+                string msg = exhaustedMessages?.GetValueOrDefault("conversationBroken", "{0} is too distressed to continue. The conversation has broken down.") ?? "{0} is too distressed to continue. The conversation has broken down.";
                 return string.Format(msg, NpcName);
             }
-                
+
             if (Context?.Type == ConversationType.Commerce)
             {
                 return exhaustedMessages?.GetValueOrDefault("exchangeCompleted", "Exchange completed - conversation ended") ?? "Exchange completed - conversation ended";
             }
-                
+
             if (!Session.HandCards.Any() && Session.Deck.RemainingCards == 0)
             {
                 return exhaustedMessages?.GetValueOrDefault("noCardsAvailable", "No more cards available - conversation ended") ?? "No more cards available - conversation ended";
             }
-                
+
             // Default reason based on comfort level
             if (Session.CurrentComfort >= 2)
             {
-                var msg = exhaustedMessages?.GetValueOrDefault("endedNaturally", "Conversation ended naturally (Comfort: {0})") ?? "Conversation ended naturally (Comfort: {0})";
+                string msg = exhaustedMessages?.GetValueOrDefault("endedNaturally", "Conversation ended naturally (Comfort: {0})") ?? "Conversation ended naturally (Comfort: {0})";
                 return string.Format(msg, Session.CurrentComfort);
             }
             else
@@ -1528,70 +1528,70 @@ namespace Wayfarer.Pages.Components
                 return exhaustedMessages?.GetValueOrDefault("default", "Conversation ended") ?? "Conversation ended";
             }
         }
-        
+
         protected async Task ManuallyEndConversation()
         {
             // Player clicked "End Conversation" button
             await OnConversationEnd.InvokeAsync();
         }
-        
+
         /// <summary>
         /// Process letter negotiations and add resulting obligations to the player's queue
         /// </summary>
         private void ProcessLetterNegotiations(List<LetterNegotiationResult> negotiations)
         {
-            var messageSystem = GameFacade?.GetMessageSystem();
-            
-            foreach (var negotiation in negotiations)
+            MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
+
+            foreach (LetterNegotiationResult negotiation in negotiations)
             {
                 if (negotiation.CreatedObligation != null)
                 {
                     // Add the obligation to the player's queue through the GameFacade
                     GameFacade.AddLetterWithObligationEffects(negotiation.CreatedObligation);
-                    
+
                     // For now, assume successful queue position
-                    var queuePosition = 1;
+                    int queuePosition = 1;
                     if (queuePosition > 0)
                     {
                         LoadSystemNarratives();
-                        var letterMessages = _systemNarratives?.systemMessages?.letterNegotiation;
-                        
+                        Dictionary<string, string>? letterMessages = _systemNarratives?.systemMessages?.letterNegotiation;
+
                         // Generate appropriate message based on negotiation success
-                        var negotiationOutcome = negotiation.NegotiationSuccess ? "Successfully negotiated" : "Failed to negotiate";
-                        var deadlineHours = negotiation.FinalTerms.DeadlineMinutes / 60.0;
-                        
-                        var urgencySuffix = "";
+                        string negotiationOutcome = negotiation.NegotiationSuccess ? "Successfully negotiated" : "Failed to negotiate";
+                        double deadlineHours = negotiation.FinalTerms.DeadlineMinutes / 60.0;
+
+                        string urgencySuffix = "";
                         if (deadlineHours <= 2)
                             urgencySuffix = letterMessages?.GetValueOrDefault("criticalUrgency", " - CRITICAL!") ?? " - CRITICAL!";
                         else if (deadlineHours <= 6)
                             urgencySuffix = letterMessages?.GetValueOrDefault("urgentUrgency", " - URGENT") ?? " - URGENT";
-                        
-                        var msgTemplate = negotiation.NegotiationSuccess
+
+                        string? msgTemplate = negotiation.NegotiationSuccess
                             ? letterMessages?.GetValueOrDefault("successfulNegotiation", "{0} letter: '{1}' - {2}h deadline, {3} coins")
                             : letterMessages?.GetValueOrDefault("failedNegotiation", "{0} letter: '{1}' - {2}h deadline, {3} coins");
-                        
+
                         if (msgTemplate == null)
                             msgTemplate = "{0} letter: '{1}' - {2}h deadline, {3} coins";
-                        
-                        var message = string.Format(msgTemplate, negotiationOutcome,
+
+                        string message = string.Format(msgTemplate, negotiationOutcome,
                             negotiation.SourcePromiseCard.DisplayName ?? negotiation.SourcePromiseCard.TemplateId,
                             deadlineHours.ToString("F1"),
                             negotiation.FinalTerms.Payment) + urgencySuffix;
-                        
+
                         messageSystem?.AddSystemMessage(
                             message,
                             deadlineHours <= 2 ? SystemMessageTypes.Danger : SystemMessageTypes.Success
                         );
-                        
+
                         // Mark the letter as generated in the session
                         Session.LetterGenerated = true;
-                        
+
                         Console.WriteLine($"[ProcessLetterNegotiations] Added letter obligation '{negotiation.CreatedObligation.Id}' to queue position {queuePosition}");
                     }
                     else
                     {
                         LoadSystemNarratives();
-                        var queueFullMsg = _systemNarratives?.systemMessages?.letterNegotiation?.GetValueOrDefault("queueFull", "Could not accept letter - queue may be full") ?? "Could not accept letter - queue may be full";
+                        string queueFullMsg = _systemNarratives?.systemMessages?.letterNegotiation?.GetValueOrDefault("queueFull", "Could not accept letter - queue may be full") ?? "Could not accept letter - queue may be full";
                         messageSystem?.AddSystemMessage(
                             queueFullMsg,
                             SystemMessageTypes.Warning
@@ -1604,7 +1604,7 @@ namespace Wayfarer.Pages.Components
                 }
             }
         }
-        
+
         /// <summary>
         /// Get decay state CSS class for observation cards
         /// </summary>
@@ -1612,8 +1612,8 @@ namespace Wayfarer.Pages.Components
         {
             if (!card.IsObservation || card.Context?.ObservationDecayState == null)
                 return "";
-                
-            if (Enum.TryParse<ObservationDecayState>(card.Context.ObservationDecayState, out var decayState))
+
+            if (Enum.TryParse<ObservationDecayState>(card.Context.ObservationDecayState, out ObservationDecayState decayState))
             {
                 return decayState switch
                 {
@@ -1624,7 +1624,7 @@ namespace Wayfarer.Pages.Components
             }
             return "";
         }
-        
+
         /// <summary>
         /// Get decay state description for observation cards
         /// </summary>
@@ -1632,36 +1632,36 @@ namespace Wayfarer.Pages.Components
         {
             if (!card.IsObservation)
                 return "";
-                
+
             return card.Context?.ObservationDecayDescription ?? "";
         }
-        
+
         /// <summary>
         /// Check if observation card is expired (should show as unplayable)
         /// </summary>
         protected bool IsObservationExpired(CardInstance card)
         {
-            return card.IsObservation && 
+            return card.IsObservation &&
                    card.Context?.ObservationDecayState == nameof(ObservationDecayState.Expired);
         }
-        
+
         /// <summary>
         /// Get the location context string for display in the location bar
         /// </summary>
         protected string GetLocationContext()
         {
             if (GameFacade == null) return "Unknown Location";
-            
-            var currentLocation = GameFacade.GetCurrentLocation();
-            var currentSpot = GameFacade.GetCurrentLocationSpot();
-            
+
+            Location currentLocation = GameFacade.GetCurrentLocation();
+            LocationSpot currentSpot = GameFacade.GetCurrentLocationSpot();
+
             if (currentLocation == null || currentSpot == null)
                 return "Unknown Location";
-            
-            var locationName = currentLocation.Name ?? "Unknown";
-            var spotName = currentSpot.Name ?? "Unknown";
-            var spotTraits = GetSpotTraits(currentSpot);
-            
+
+            string locationName = currentLocation.Name ?? "Unknown";
+            string spotName = currentSpot.Name ?? "Unknown";
+            string spotTraits = GetSpotTraits(currentSpot);
+
             if (!string.IsNullOrEmpty(spotTraits))
             {
                 return $"{locationName} → {spotName} ({spotTraits})";
@@ -1671,7 +1671,7 @@ namespace Wayfarer.Pages.Components
                 return $"{locationName} → {spotName}";
             }
         }
-        
+
         /// <summary>
         /// Get spot properties formatted for display
         /// </summary>
@@ -1679,19 +1679,19 @@ namespace Wayfarer.Pages.Components
         {
             if (spot?.SpotProperties == null || !spot.SpotProperties.Any())
                 return "";
-            
-            var propertyDescriptions = new List<string>();
-            
-            foreach (var property in spot.SpotProperties)
+
+            List<string> propertyDescriptions = new List<string>();
+
+            foreach (SpotPropertyType property in spot.SpotProperties)
             {
                 // Convert property enum to user-friendly description
-                var description = property switch
+                string description = property switch
                 {
                     SpotPropertyType.Private => "Private",
                     SpotPropertyType.Discrete => "Discrete",
                     SpotPropertyType.Public => "Public",
                     SpotPropertyType.Exposed => "Exposed",
-                    SpotPropertyType.Quiet => "Quiet", 
+                    SpotPropertyType.Quiet => "Quiet",
                     SpotPropertyType.Loud => "Loud",
                     SpotPropertyType.Warm => "Warm",
                     SpotPropertyType.Shaded => "Shaded",
@@ -1704,20 +1704,20 @@ namespace Wayfarer.Pages.Components
                     SpotPropertyType.Commercial => "Commercial",
                     _ => property.ToString()
                 };
-                
+
                 // Add patience bonus if this property provides it
-                var patienceBonus = GetPropertyPatienceBonus(property);
+                int patienceBonus = GetPropertyPatienceBonus(property);
                 if (patienceBonus != 0)
                 {
                     description += $", {(patienceBonus > 0 ? "+" : "")}{patienceBonus} patience";
                 }
-                
+
                 propertyDescriptions.Add(description);
             }
-            
+
             return string.Join(", ", propertyDescriptions);
         }
-        
+
         /// <summary>
         /// Get patience bonus for a specific spot property
         /// </summary>
@@ -1740,7 +1740,7 @@ namespace Wayfarer.Pages.Components
         protected string GetCurrentAtmosphereDisplay()
         {
             if (Session == null) return "Neutral";
-            
+
             return Session.CurrentAtmosphere switch
             {
                 ConversationAtmosphere.Neutral => "Neutral",

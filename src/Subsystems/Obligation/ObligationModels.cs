@@ -70,23 +70,23 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         public int UrgentObligationCount { get; set; } // < 6 hours
         public int CriticalObligationCount { get; set; } // < 3 hours
         public int OverdueObligationCount { get; set; }
-        
+
         // Time-based metrics
         public int TotalMinutesUntilNextDeadline { get; set; }
         public string NextDeadlineDescription { get; set; } = "";
         public DeliveryObligation MostUrgentObligation { get; set; }
-        
+
         // Token leverage metrics
         public Dictionary<ConnectionType, int> TotalTokenLeverage { get; set; } = new Dictionary<ConnectionType, int>();
         public int PositionsGainedFromLeverage { get; set; }
         public int PositionsLostFromDebt { get; set; }
-        
+
         // Queue efficiency metrics
         public bool IsQueueFull => EmptyQueueSlots == 0;
         public double QueueUtilizationPercentage => TotalQueueSize > 0 ? ((double)(TotalQueueSize - EmptyQueueSlots) / TotalQueueSize) * 100 : 0;
         public bool HasPosition1Available => Position1Status == Position1Status.Empty;
         public Position1Status Position1Status { get; set; } = Position1Status.Empty;
-        
+
         // Delivery performance
         public int TotalDeliveredToday { get; set; }
         public int TotalSkippedToday { get; set; }

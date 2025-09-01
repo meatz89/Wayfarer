@@ -11,7 +11,7 @@ public class ConversationStateRules
     public int AutoAdvanceDepth { get; set; }
     public EmotionalState? ListenTransition { get; set; }
     public bool ListenEndsConversation { get; set; }
-    
+
     public ConversationStateRules(string description, int cardsOnListen, int maxWeight, bool checksGoalDeck, int comfortThreshold, int patienceReduction, int autoAdvanceDepth, EmotionalState? listenTransition, bool listenEndsConversation)
     {
         Description = description;

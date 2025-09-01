@@ -101,7 +101,7 @@ public class Phase2_LocationDependents : IInitializationPhase
                     // Parse and add time-specific properties from DTO
                     if (dto.TimeSpecificProperties != null && dto.TimeSpecificProperties.Any())
                     {
-                        foreach (var kvp in dto.TimeSpecificProperties)
+                        foreach (KeyValuePair<string, List<string>> kvp in dto.TimeSpecificProperties)
                         {
                             if (Enum.TryParse<TimeBlocks>(kvp.Key, true, out TimeBlocks timeBlock))
                             {
@@ -191,8 +191,8 @@ public class Phase2_LocationDependents : IInitializationPhase
                     }
 
                     // Convert DTO to JSON string for NPCParser
-                    string npcJson = System.Text.Json.JsonSerializer.Serialize(dto, new System.Text.Json.JsonSerializerOptions 
-                    { 
+                    string npcJson = System.Text.Json.JsonSerializer.Serialize(dto, new System.Text.Json.JsonSerializerOptions
+                    {
                         PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
                         WriteIndented = true
                     });
@@ -211,7 +211,7 @@ public class Phase2_LocationDependents : IInitializationPhase
                     // Add to both collections
                     context.GameWorld.WorldState.NPCs.Add(npc);
                     context.GameWorld.NPCs.Add(npc); // Also add to GameWorld.NPCs for conversation system
-                    
+
                     Console.WriteLine($"  Loaded NPC: {npc.Name} ({npc.ID}) at {npc.Location} with PersonalityType: {npc.PersonalityType}");
                 }
                 catch (Exception ex)

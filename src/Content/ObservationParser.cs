@@ -35,7 +35,7 @@ public static class ObservationParser
                     foreach (JsonProperty spotProp in locationProp.Value.EnumerateObject())
                     {
                         string spotId = spotProp.Name;
-                        
+
                         if (spotProp.Value.ValueKind == JsonValueKind.Array)
                         {
                             foreach (JsonElement obsElement in spotProp.Value.EnumerateArray())

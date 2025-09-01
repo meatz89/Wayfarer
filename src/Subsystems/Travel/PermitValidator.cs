@@ -11,7 +11,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
     {
         private readonly GameWorld _gameWorld;
         private readonly ItemRepository _itemRepository;
-        
+
         public PermitValidator(
             GameWorld gameWorld,
             ItemRepository itemRepository)
@@ -19,7 +19,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             _gameWorld = gameWorld;
             _itemRepository = itemRepository;
         }
-        
+
         /// <summary>
         /// Check if player has required permit for a route.
         /// </summary>
@@ -30,15 +30,15 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             {
                 return true; // No permits required
             }
-            
-            var player = _gameWorld.GetPlayer();
-            
+
+            Player player = _gameWorld.GetPlayer();
+
             // Check if permit has been received (using HasReceivedPermit flag)
             if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
             {
                 return false; // Permit letter required but not received
             }
-            
+
             // Check if player has required items
             if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
             {
@@ -49,62 +49,62 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                     return false;
                 }
             }
-            
+
             return true;
         }
-        
+
         /// <summary>
         /// Get missing permits for a route.
         /// </summary>
         public List<string> GetMissingPermits(RouteOption route)
         {
-            var missingPermits = new List<string>();
-            
+            List<string> missingPermits = new List<string>();
+
             if (route.AccessRequirement == null)
             {
                 return missingPermits;
             }
-            
+
             // Check if permit has not been received
             if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
             {
                 string permitName = route.AccessRequirement.Name ?? "Travel Permit";
                 missingPermits.Add(permitName);
             }
-            
+
             // Check for missing required items
             if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
             {
-                var player = _gameWorld.GetPlayer();
-                foreach (var itemId in route.AccessRequirement.RequiredItemIds)
+                Player player = _gameWorld.GetPlayer();
+                foreach (string itemId in route.AccessRequirement.RequiredItemIds)
                 {
                     if (!player.Inventory.ItemSlots.Contains(itemId))
                     {
-                        var item = _itemRepository.GetItemById(itemId);
+                        Item item = _itemRepository.GetItemById(itemId);
                         missingPermits.Add(item?.Name ?? itemId);
                     }
                 }
             }
-            
+
             return missingPermits;
         }
-        
+
         /// <summary>
         /// Check if a location requires special access.
         /// </summary>
         public bool LocationRequiresSpecialAccess(string locationId)
         {
             // Certain locations always require permits
-            var restrictedLocations = new List<string>
+            List<string> restrictedLocations = new List<string>
             {
                 "noble_district",
                 "merchant_guild",
                 "royal_palace"
             };
-            
+
             return restrictedLocations.Contains(locationId);
         }
-        
+
         /// <summary>
         /// Validate transport method compatibility with route.
         /// </summary>
@@ -114,7 +114,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             // For now, we'll check if the transport method matches the route's method
             return route.Method == transportMethod || transportMethod == TravelMethods.Walking;
         }
-        
+
         /// <summary>
         /// Get access requirement description for UI.
         /// </summary>
@@ -124,24 +124,24 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             {
                 return "No special requirements";
             }
-            
-            var descriptions = new List<string>();
-            
+
+            List<string> descriptions = new List<string>();
+
             if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
             {
                 string permitName = route.AccessRequirement.Name ?? "Special Permit";
                 descriptions.Add($"Requires: {permitName}");
             }
-            
+
             if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
             {
-                foreach (var itemId in route.AccessRequirement.RequiredItemIds)
+                foreach (string itemId in route.AccessRequirement.RequiredItemIds)
                 {
-                    var item = _itemRepository.GetItemById(itemId);
+                    Item item = _itemRepository.GetItemById(itemId);
                     descriptions.Add($"Requires: {item?.Name ?? itemId}");
                 }
             }
-            
+
             return string.Join(", ", descriptions);
         }
     }

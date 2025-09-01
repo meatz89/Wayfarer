@@ -10,13 +10,13 @@ public static class ConversationRules
         { EmotionalState.OPEN, new ConversationStateRules("Open and receptive", 3, 5, false, 0, 1, 0, null, false) },
         { EmotionalState.CONNECTED, new ConversationStateRules("Maximum positive connection", 3, 6, false, 0, 1, 0, null, false) }
     };
-    
+
     public static EmotionalState DetermineInitialState(NPC npc, ObligationQueueManager queueManager = null)
     {
         // All conversations start in NEUTRAL
         return EmotionalState.NEUTRAL;
     }
-    
+
     public static EmotionalState TransitionState(EmotionalState current, int comfortChange)
     {
         // Linear progression: DESPERATE ← TENSE ← NEUTRAL → OPEN → CONNECTED
@@ -44,19 +44,19 @@ public static class ConversationRules
                 _ => EmotionalState.NEUTRAL
             };
         }
-        
+
         return current; // No transition
     }
-    
+
     public static string GetStateEffects(EmotionalState state)
     {
         return States.ContainsKey(state) ? States[state].Description : "Unknown state";
     }
-    
+
     public static Dictionary<EmotionalState, string> GetAllStateEffects()
     {
-        var dict = new Dictionary<EmotionalState, string>();
-        foreach (var kvp in States)
+        Dictionary<EmotionalState, string> dict = new Dictionary<EmotionalState, string>();
+        foreach (KeyValuePair<EmotionalState, ConversationStateRules> kvp in States)
         {
             dict[kvp.Key] = kvp.Value.Description;
         }

@@ -21,20 +21,20 @@ public class DialogueGenerator
     /// </summary>
     public string GenerateListenResponse(NPC npc, EmotionalState state, List<CardInstance> drawnCards)
     {
-        var response = new StringBuilder();
-        
+        StringBuilder response = new StringBuilder();
+
         // Add emotional cue
         response.AppendLine(GenerateEmotionalCue(npc, state));
-        
+
         // Describe drawn cards narratively
         if (drawnCards.Any())
         {
             response.AppendLine(GenerateCardDrawDescription(npc, drawnCards, state));
         }
-        
+
         // Add state-specific dialogue
         response.AppendLine(GenerateStateDialogue(npc, state, "listen"));
-        
+
         return response.ToString().Trim();
     }
 
@@ -43,29 +43,29 @@ public class DialogueGenerator
     /// </summary>
     public string GenerateSpeakResponse(NPC npc, EmotionalState state, HashSet<CardInstance> playedCards, CardPlayResult result, int comfortChange)
     {
-        var response = new StringBuilder();
-        
+        StringBuilder response = new StringBuilder();
+
         // React to played cards
         response.AppendLine(GenerateCardReaction(npc, playedCards, state));
-        
+
         // Describe comfort change
         if (comfortChange != 0)
         {
             response.AppendLine(GenerateComfortChangeDescription(npc, comfortChange, state));
         }
-        
+
         // Add state transition if occurred
         if (result.NewState != state)
         {
             response.AppendLine(GenerateStateTransitionText(npc, state, result.NewState ?? state));
         }
-        
+
         // Add bonus descriptions
         if (result.SetBonus > 0)
         {
             response.AppendLine($"{npc.Name} appreciates the thoughtful combination of topics.");
         }
-        
+
         return response.ToString().Trim();
     }
 
@@ -89,7 +89,7 @@ public class DialogueGenerator
     public string GenerateStateTransitionText(NPC npc, EmotionalState fromState, EmotionalState toState)
     {
         bool isPositive = IsPositiveTransition(fromState, toState);
-        
+
         if (isPositive)
         {
             return toState switch
@@ -124,7 +124,7 @@ public class DialogueGenerator
         {
             return card.Description.Replace("{npc}", npc.Name);
         }
-        
+
         // Generate based on card type
         return card.Type switch
         {
@@ -156,14 +156,14 @@ public class DialogueGenerator
     /// </summary>
     public string GenerateExchangeAcceptedResponse(NPC npc, ExchangeData exchange)
     {
-        var responses = new[]
+        string[] responses = new[]
         {
             $"{npc.Name} nods and completes the exchange.",
             $"\"Fair deal,\" {npc.Name} says, making the trade.",
             $"{npc.Name} accepts your offer with a brief smile.",
             $"\"Agreed,\" says {npc.Name}, finalizing the exchange."
         };
-        
+
         return responses[_random.Next(responses.Length)];
     }
 
@@ -172,14 +172,14 @@ public class DialogueGenerator
     /// </summary>
     public string GenerateExchangeDeclinedResponse(NPC npc)
     {
-        var responses = new[]
+        string[] responses = new[]
         {
             $"{npc.Name} shakes their head. \"Perhaps another time.\"",
             $"\"I'll pass,\" {npc.Name} says politely.",
             $"{npc.Name} declines with a apologetic gesture.",
             $"\"Not interested right now,\" says {npc.Name}."
         };
-        
+
         return responses[_random.Next(responses.Length)];
     }
 
@@ -216,13 +216,13 @@ public class DialogueGenerator
     private string GenerateStateDialogue(NPC npc, EmotionalState state, string context)
     {
         // Generate contextual dialogue based on state
-        var dialogueOptions = GetStateDialogueOptions(state, context);
+        string[] dialogueOptions = GetStateDialogueOptions(state, context);
         if (dialogueOptions.Any())
         {
-            var dialogue = dialogueOptions[_random.Next(dialogueOptions.Length)];
+            string dialogue = dialogueOptions[_random.Next(dialogueOptions.Length)];
             return $"\"{dialogue}\" says {npc.Name}.";
         }
-        
+
         return "";
     }
 
@@ -241,9 +241,9 @@ public class DialogueGenerator
 
     private string GenerateCardReaction(NPC npc, HashSet<CardInstance> cards, EmotionalState state)
     {
-        var cardCount = cards.Count;
-        var primaryType = cards.GroupBy(c => c.Type).OrderByDescending(g => g.Count()).First().Key;
-        
+        int cardCount = cards.Count;
+        CardType primaryType = cards.GroupBy(c => c.Type).OrderByDescending(g => g.Count()).First().Key;
+
         if (cardCount == 1)
         {
             return $"{npc.Name} considers your words carefully.";
@@ -282,7 +282,7 @@ public class DialogueGenerator
 
     private bool IsPositiveTransition(EmotionalState from, EmotionalState to)
     {
-        var stateOrder = new[]
+        EmotionalState[] stateOrder = new[]
         {
             EmotionalState.DESPERATE,
             EmotionalState.TENSE,
@@ -290,10 +290,10 @@ public class DialogueGenerator
             EmotionalState.OPEN,
             EmotionalState.CONNECTED
         };
-        
-        var fromIndex = Array.IndexOf(stateOrder, from);
-        var toIndex = Array.IndexOf(stateOrder, to);
-        
+
+        int fromIndex = Array.IndexOf(stateOrder, from);
+        int toIndex = Array.IndexOf(stateOrder, to);
+
         return toIndex > fromIndex;
     }
 }

@@ -5,7 +5,7 @@ public class PlayerResourcesInfo
     public int Hunger { get; init; }
     public int CurrentAttention { get; init; }
     public int MaxAttention { get; init; }
-    
+
     public PlayerResourcesInfo(int coins, int health, int hunger, int currentAttention, int maxAttention)
     {
         Coins = coins;

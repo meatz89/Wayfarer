@@ -14,7 +14,7 @@ public class ConversationTurnResult
     public List<CardInstance> PlayedCards { get; set; }
     public CardPlayResult CardPlayResult { get; set; }
     public bool ExchangeAccepted { get; set; }
-    
+
     public ConversationTurnResult()
     {
         DrawnCards = new List<CardInstance>();

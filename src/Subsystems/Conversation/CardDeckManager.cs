@@ -14,7 +14,7 @@ public class CardDeckManager
     private readonly WeightPoolManager _weightPoolManager;
     private readonly AtmosphereManager _atmosphereManager;
 
-    public CardDeckManager(GameWorld gameWorld, CardEffectProcessor effectProcessor, 
+    public CardDeckManager(GameWorld gameWorld, CardEffectProcessor effectProcessor,
         WeightPoolManager weightPoolManager, AtmosphereManager atmosphereManager)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
@@ -29,13 +29,13 @@ public class CardDeckManager
     /// </summary>
     public SessionCardDeck CreateConversationDeck(NPC npc, ConversationType conversationType, List<CardInstance> observationCards = null)
     {
-        var sessionId = Guid.NewGuid().ToString();
-        var deck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck.GetAllCards(), sessionId);
-        
+        string sessionId = Guid.NewGuid().ToString();
+        SessionCardDeck deck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck.GetAllCards(), sessionId);
+
         // Add observation cards if provided
         if (observationCards != null && observationCards.Any())
         {
-            foreach (var card in observationCards)
+            foreach (CardInstance card in observationCards)
             {
                 deck.AddCard(card);
             }
@@ -44,7 +44,7 @@ public class CardDeckManager
         // Add goal cards based on conversation type
         if (conversationType == ConversationType.Promise || conversationType == ConversationType.Resolution)
         {
-            var goalCard = SelectValidGoalCard(npc, conversationType);
+            CardInstance goalCard = SelectValidGoalCard(npc, conversationType);
             if (goalCard != null)
             {
                 deck.AddCard(goalCard);
@@ -88,9 +88,9 @@ public class CardDeckManager
         }
 
         // Calculate success percentage
-        var card = ConvertToNewCard(selectedCard);
+        ConversationCard card = ConvertToNewCard(selectedCard);
         int successPercentage = _effectProcessor.CalculateSuccessPercentage(card, session);
-        
+
         // Roll for success
         bool success = _effectProcessor.RollForSuccess(successPercentage);
         int roll = _random.Next(1, 101);
@@ -102,17 +102,17 @@ public class CardDeckManager
         {
             // Spend weight
             _weightPoolManager.SpendWeight(selectedCard.Weight);
-            
+
             // Process card effect
             effectResult = _effectProcessor.ProcessCardEffect(card, session);
             comfortChange = effectResult.ComfortChange;
-            
+
             // Add drawn cards to hand
             if (effectResult.CardsToAdd.Any())
             {
                 session.Hand.AddCards(effectResult.CardsToAdd);
             }
-            
+
             // Handle atmosphere change
             if (effectResult.ConversationAtmosphereChange.HasValue)
             {
@@ -123,7 +123,7 @@ public class CardDeckManager
         {
             // Clear atmosphere on failure
             _atmosphereManager.ClearAtmosphereOnFailure();
-            
+
             // Check if failure should end conversation (Final atmosphere)
             if (_atmosphereManager.ShouldEndOnFailure())
             {
@@ -133,11 +133,11 @@ public class CardDeckManager
 
         // Remove fleeting cards from hand after SPEAK
         RemoveFleetingCardsFromHand(session.Hand);
-        
+
         // Check Final Word for unplayed goal cards
         bool finalWordTriggered = CheckFinalWordFailure(session.Hand);
 
-        var result = new CardPlayResult
+        CardPlayResult result = new CardPlayResult
         {
             Results = new List<SingleCardResult>
             {
@@ -169,16 +169,16 @@ public class CardDeckManager
     {
         // Refresh weight pool
         _weightPoolManager.RefreshPool();
-        
+
         // Calculate draw count based on state and atmosphere
         int drawCount = session.GetDrawCount();
-        
+
         // Draw cards (no type filtering)
-        var drawnCards = session.Deck.DrawCards(drawCount);
-        
+        List<CardInstance> drawnCards = session.Deck.DrawCards(drawCount);
+
         // Add to hand
         session.Hand.AddCards(drawnCards);
-        
+
         return drawnCards;
     }
 
@@ -187,7 +187,7 @@ public class CardDeckManager
     /// </summary>
     private void RemoveFleetingCardsFromHand(HandDeck hand)
     {
-        var fleetingCards = hand.Cards.Where(c => c.IsFleeting).ToList();
+        List<CardInstance> fleetingCards = hand.Cards.Where(c => c.IsFleeting).ToList();
         hand.RemoveCards(fleetingCards);
     }
 
@@ -216,14 +216,14 @@ public class CardDeckManager
         if (npc.GoalDeck == null || !npc.GoalDeck.HasCardsAvailable())
             return null;
 
-        var goalCards = npc.GoalDeck.GetAllCards()
+        List<ConversationCard> goalCards = npc.GoalDeck.GetAllCards()
             .Where(card => IsGoalCardValidForConversation(card, conversationType))
             .ToList();
 
         if (!goalCards.Any())
             return null;
 
-        var selectedGoal = goalCards[_random.Next(goalCards.Count)];
+        ConversationCard selectedGoal = goalCards[_random.Next(goalCards.Count)];
         return new CardInstance(selectedGoal, npc.ID);
     }
 
@@ -249,7 +249,7 @@ public class CardDeckManager
         {
             Id = instance.TemplateId,
             Name = instance.Name,
-            Type = instance.IsGoalCard ? CardType.Goal : 
+            Type = instance.IsGoalCard ? CardType.Goal :
                    instance.IsObservation ? CardType.Observation : CardType.Normal,
             TokenType = instance.TokenType,
             Weight = instance.Weight,
@@ -284,7 +284,7 @@ public class CardDeckManager
     {
         if (instance.IsObservation)
             return CardEffectType.ResetComfort; // Default observation effect
-        
+
         return CardEffectType.FixedComfort; // Default to fixed comfort
     }
 
@@ -295,7 +295,7 @@ public class CardDeckManager
     {
         if (instance.IsObservation)
             return "0";
-            
+
         return instance.BaseComfortReward.ToString();
     }
 
@@ -304,16 +304,16 @@ public class CardDeckManager
     /// </summary>
     public List<CardInstance> CreateExchangeDeck(NPC npc, List<string> domainTags)
     {
-        var exchangeCards = new List<CardInstance>();
-        
+        List<CardInstance> exchangeCards = new List<CardInstance>();
+
         if (npc.ExchangeDeck != null)
         {
-            foreach (var template in npc.ExchangeDeck.GetAllCards())
+            foreach (ConversationCard template in npc.ExchangeDeck.GetAllCards())
             {
                 exchangeCards.Add(new CardInstance(template, npc.ID));
             }
         }
-        
+
         return exchangeCards;
     }
 
@@ -323,7 +323,7 @@ public class CardDeckManager
     public CardPlayResult PlayCards(ConversationSession session, HashSet<CardInstance> selectedCards)
     {
         // Convert to single card play (take first card)
-        var firstCard = selectedCards.FirstOrDefault();
+        CardInstance? firstCard = selectedCards.FirstOrDefault();
         if (firstCard == null)
         {
             return new CardPlayResult { Results = new List<SingleCardResult>(), TotalComfort = 0 };
@@ -338,9 +338,9 @@ public class CardDeckManager
     public bool ValidateCardSelection(HashSet<CardInstance> cards, EmotionalState currentState)
     {
         // In new system, only validate single card weight
-        var firstCard = cards.FirstOrDefault();
+        CardInstance? firstCard = cards.FirstOrDefault();
         if (firstCard == null) return false;
-        
+
         return _weightPoolManager.CanAffordCard(firstCard.Weight);
     }
 
@@ -352,41 +352,41 @@ public class CardDeckManager
         // Clear existing cards
         session.Hand.Clear();
         session.Deck.Clear();
-        
+
         // Restore hand cards
-        foreach (var cardId in handCardIds)
+        foreach (string cardId in handCardIds)
         {
-            var cardTemplate = FindCardTemplateById(cardId);
+            ConversationCard cardTemplate = FindCardTemplateById(cardId);
             if (cardTemplate != null)
             {
-                var cardInstance = new CardInstance(cardTemplate, session.NPC.ID);
+                CardInstance cardInstance = new CardInstance(cardTemplate, session.NPC.ID);
                 session.Hand.AddCard(cardInstance);
             }
         }
-        
+
         // Restore deck cards
-        foreach (var cardId in deckCardIds)
+        foreach (string cardId in deckCardIds)
         {
-            var cardTemplate = FindCardTemplateById(cardId);
+            ConversationCard cardTemplate = FindCardTemplateById(cardId);
             if (cardTemplate != null)
             {
-                var cardInstance = new CardInstance(cardTemplate, session.NPC.ID);
+                CardInstance cardInstance = new CardInstance(cardTemplate, session.NPC.ID);
                 session.Deck.AddCard(cardInstance);
             }
         }
     }
-    
+
     /// <summary>
     /// Find a card template by ID from game world data
     /// </summary>
     private ConversationCard FindCardTemplateById(string cardId)
     {
         // Search in all card collections in GameWorld
-        if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out var template))
+        if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard? template))
         {
             return template;
         }
-        
+
         // If not found in main templates, create a basic one
         return new ConversationCard
         {

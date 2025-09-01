@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Wayfarer.Pages
 {
@@ -28,7 +28,7 @@ namespace Wayfarer.Pages
         [Inject] protected LoadingStateService LoadingStateService { get; set; }
         [Inject] protected TimeBlockAttentionManager AttentionManager { get; set; }
         [Inject] protected ObligationQueueManager ObligationQueueManager { get; set; }
-        
+
         public GameScreenBase()
         {
             Console.WriteLine("[GameScreenBase] Constructor called");
@@ -39,7 +39,7 @@ namespace Wayfarer.Pages
         protected ScreenMode PreviousScreen { get; set; } = ScreenMode.Location;
         protected int ContentVersion { get; set; } = 0;
         protected bool IsTransitioning { get; set; } = false;
-        
+
         private Stack<ScreenContext> _navigationStack = new(10);
         private SemaphoreSlim _stateLock = new(1, 1);
         private HashSet<IDisposable> _subscriptions = new();
@@ -68,21 +68,21 @@ namespace Wayfarer.Pages
         protected override async Task OnInitializedAsync()
         {
             Console.WriteLine("[GameScreen] OnInitializedAsync started");
-            
+
             try
             {
                 Console.WriteLine("[GameScreen] Calling RefreshResourceDisplay...");
                 await RefreshResourceDisplay();
                 Console.WriteLine("[GameScreen] RefreshResourceDisplay completed");
-                
+
                 Console.WriteLine("[GameScreen] Calling RefreshTimeDisplay...");
                 await RefreshTimeDisplay();
                 Console.WriteLine("[GameScreen] RefreshTimeDisplay completed");
-                
+
                 Console.WriteLine("[GameScreen] Calling RefreshLocationDisplay...");
                 await RefreshLocationDisplay();
                 Console.WriteLine("[GameScreen] RefreshLocationDisplay completed");
-                
+
                 Console.WriteLine("[GameScreen] Calling base.OnInitializedAsync...");
                 await base.OnInitializedAsync();
                 Console.WriteLine("[GameScreen] base.OnInitializedAsync completed");
@@ -93,7 +93,7 @@ namespace Wayfarer.Pages
                 Console.WriteLine($"[GameScreen] Stack trace: {ex.StackTrace}");
                 throw;
             }
-            
+
             Console.WriteLine("[GameScreen] OnInitializedAsync completed");
         }
 
@@ -101,17 +101,17 @@ namespace Wayfarer.Pages
         {
             Console.WriteLine("[GameScreen.RefreshResourceDisplay] Starting...");
             Console.WriteLine($"[GameScreen.RefreshResourceDisplay] GameFacade null? {GameFacade == null}");
-            
+
             if (GameFacade == null)
             {
                 Console.WriteLine("[GameScreen.RefreshResourceDisplay] GameFacade is null, skipping");
                 return;
             }
-            
+
             Console.WriteLine("[GameScreen.RefreshResourceDisplay] Getting player...");
-            var player = GameFacade.GetPlayer();
+            Player? player = GameFacade.GetPlayer();
             Console.WriteLine($"[GameScreen.RefreshResourceDisplay] Player null? {player == null}");
-            
+
             if (player != null)
             {
                 Coins = player.Coins;
@@ -119,20 +119,20 @@ namespace Wayfarer.Pages
                 Food = player.Food;
                 Console.WriteLine($"[GameScreen.RefreshResourceDisplay] Player resources: Coins={Coins}, Health={Health}, Food={Food}");
             }
-            
+
             Console.WriteLine("[GameScreen.RefreshResourceDisplay] Getting attention state...");
-            var attentionState = GameFacade.GetCurrentAttentionState();
+            AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
             Attention = attentionState.Current;
             MaxAttention = attentionState.Max;
             Console.WriteLine($"[GameScreen.RefreshResourceDisplay] Attention: {Attention}/{MaxAttention}");
-            
+
             Console.WriteLine("[GameScreen.RefreshResourceDisplay] Completed");
         }
 
         protected async Task RefreshTimeDisplay()
         {
-            var hour = GameFacade.GetCurrentHour();
-            var period = hour switch
+            int hour = GameFacade.GetCurrentHour();
+            string period = hour switch
             {
                 >= 6 and < 10 => "Morning",
                 >= 10 and < 14 => "Midday",
@@ -141,16 +141,16 @@ namespace Wayfarer.Pages
                 >= 22 or < 2 => "Night",
                 _ => "Deep Night"
             };
-            
+
             CurrentTime = $"{hour % 12:00}:00 {(hour >= 12 ? "PM" : "AM")}";
             TimePeriod = period;
-            
+
             // Get most urgent deadline from queue
-            var queueVM = GameFacade.GetLetterQueue();
+            LetterQueueViewModel queueVM = GameFacade.GetLetterQueue();
             if (queueVM?.QueueSlots != null)
             {
                 LetterViewModel mostUrgent = null;
-                foreach (var slot in queueVM.QueueSlots)
+                foreach (QueueSlotViewModel slot in queueVM.QueueSlots)
                 {
                     if (slot.IsOccupied && slot.DeliveryObligation != null)
                     {
@@ -160,7 +160,7 @@ namespace Wayfarer.Pages
                         }
                     }
                 }
-                
+
                 if (mostUrgent != null && mostUrgent.DeadlineInHours > 0)
                 {
                     MostUrgentDeadline = $"Next deadline: {mostUrgent.DeadlineInHours}h - {mostUrgent.SenderName} → {mostUrgent.RecipientName}";
@@ -178,14 +178,14 @@ namespace Wayfarer.Pages
 
         protected async Task RefreshLocationDisplay()
         {
-            var location = GameFacade.GetCurrentLocation();
-            var spot = GameFacade.GetCurrentLocationSpot();
-            
+            Location location = GameFacade.GetCurrentLocation();
+            LocationSpot spot = GameFacade.GetCurrentLocationSpot();
+
             if (location != null)
             {
                 // Build location breadcrumb path based on location name
                 CurrentLocationPath = BuildLocationPath(location.Name);
-                
+
                 if (spot != null)
                 {
                     CurrentSpot = spot.Name;
@@ -196,18 +196,18 @@ namespace Wayfarer.Pages
                 }
             }
         }
-        
+
         private string BuildLocationPath(string locationName)
         {
             // Build breadcrumb path based on location patterns
-            var path = new List<string>();
-            
+            List<string> path = new List<string>();
+
             // Determine district from location name
-            var locationLower = locationName?.ToLower() ?? "";
-            
+            string locationLower = locationName?.ToLower() ?? "";
+
             // Add city/ward level
             path.Add("Lower Wards");
-            
+
             // Add district based on location
             if (locationLower.Contains("market") || locationLower.Contains("merchant"))
             {
@@ -233,10 +233,10 @@ namespace Wayfarer.Pages
             {
                 path.Add("Market District"); // Taverns are often in market areas
             }
-            
+
             // Add the specific location
             path.Add(locationName);
-            
+
             return string.Join(" → ", path);
         }
 
@@ -244,10 +244,10 @@ namespace Wayfarer.Pages
         {
             // Can't navigate while already transitioning
             if (IsTransitioning) return false;
-            
+
             // Can't navigate to same screen
             if (CurrentScreen == targetMode) return false;
-            
+
             // Conversation-specific rules
             if (CurrentScreen == ScreenMode.Conversation)
             {
@@ -255,14 +255,14 @@ namespace Wayfarer.Pages
                 // This is handled by HandleConversationEnd
                 return false;
             }
-            
+
             // Travel screen rules
             if (CurrentScreen == ScreenMode.Travel)
             {
                 // Can cancel travel to go back to location
                 return targetMode == ScreenMode.Location;
             }
-            
+
             // All other transitions are allowed
             return true;
         }
@@ -274,7 +274,7 @@ namespace Wayfarer.Pages
                 Console.WriteLine($"[GameScreen] Cannot navigate from {CurrentScreen} to {newMode}");
                 return;
             }
-            
+
             if (!await _stateLock.WaitAsync(5000))
             {
                 Console.WriteLine("[GameScreen] State transition timeout");
@@ -285,9 +285,9 @@ namespace Wayfarer.Pages
             {
                 IsTransitioning = true;
                 Console.WriteLine($"[GameScreen] Navigating from {CurrentScreen} to {newMode}");
-                
+
                 // Save current state
-                var currentContext = new ScreenContext
+                ScreenContext currentContext = new ScreenContext
                 {
                     Mode = CurrentScreen,
                     StateData = SerializeCurrentState(),
@@ -316,8 +316,8 @@ namespace Wayfarer.Pages
 
         private Dictionary<string, object> SerializeCurrentState()
         {
-            var state = new Dictionary<string, object>();
-            
+            Dictionary<string, object> state = new Dictionary<string, object>();
+
             // Save screen-specific state
             switch (CurrentScreen)
             {
@@ -325,7 +325,7 @@ namespace Wayfarer.Pages
                     state["NpcId"] = CurrentConversationContext?.NpcId;
                     break;
             }
-            
+
             return state;
         }
 
@@ -338,7 +338,7 @@ namespace Wayfarer.Pages
                     await RefreshLocationDisplay();
                     break;
             }
-            
+
             // Always refresh resources
             await RefreshResourceDisplay();
             await RefreshTimeDisplay();
@@ -347,7 +347,7 @@ namespace Wayfarer.Pages
         public async Task HandleNavigation(string target)
         {
             Console.WriteLine($"[GameScreen] HandleNavigation: {target}");
-            
+
             switch (target.ToLower())
             {
                 case "location":
@@ -379,21 +379,21 @@ namespace Wayfarer.Pages
                 Console.WriteLine($"[GameScreen] Cannot start conversation: {CurrentConversationContext.ErrorMessage}");
             }
         }
-        
+
         public async Task NavigateToQueue()
         {
             await NavigateToScreen(ScreenMode.ObligationQueue);
         }
-        
+
         public async Task NavigateToDeckViewer(string npcId)
         {
             Console.WriteLine($"[GameScreen] Navigating to deck viewer for NPC: {npcId}");
-            
+
             // Store the NPC ID for the deck viewer to use
             CurrentDeckViewerNpcId = npcId;
-            
+
             // Store the NPC ID in the context for the deck viewer to use
-            var context = new ScreenContext
+            ScreenContext context = new ScreenContext
             {
                 Mode = ScreenMode.DeckViewer,
                 EnteredAt = DateTime.Now,
@@ -403,20 +403,20 @@ namespace Wayfarer.Pages
                 }
             };
             _navigationStack.Push(context);
-            
+
             await NavigateToScreen(ScreenMode.DeckViewer);
         }
 
         protected void HandleNavigationEvent(string eventType, object data)
         {
             Console.WriteLine($"[GameScreen] Navigation event: {eventType}");
-            
+
             switch (eventType)
             {
                 case "ConversationEnded":
                     _ = NavigateToScreen(ScreenMode.Location);
                     break;
-                    
+
                 case "TravelCompleted":
                     _ = NavigateToScreen(ScreenMode.Location);
                     break;
@@ -428,7 +428,7 @@ namespace Wayfarer.Pages
             Console.WriteLine("[GameScreen] Conversation ended");
             CurrentConversationContext = null;
             await RefreshResourceDisplay(); // Refresh resources after conversation
-            
+
             // Special case: allow navigation from conversation when it ends properly
             CurrentScreen = ScreenMode.Location;
             ContentVersion++;
@@ -439,14 +439,14 @@ namespace Wayfarer.Pages
         {
             Console.WriteLine($"[GameScreen] Travel route selected: {routeId}");
             // Execute travel via intent system
-            var travelIntent = new TravelIntent(routeId);
+            TravelIntent travelIntent = new TravelIntent(routeId);
             await GameFacade.ProcessIntent(travelIntent);
             await NavigateToScreen(ScreenMode.Location);
         }
 
         protected string GetCurrentLocation()
         {
-            var location = GameFacade.GetCurrentLocation();
+            Location location = GameFacade.GetCurrentLocation();
             return location?.Name ?? "Unknown";
         }
 
@@ -460,11 +460,11 @@ namespace Wayfarer.Pages
 
         public async ValueTask DisposeAsync()
         {
-            foreach (var subscription in _subscriptions)
+            foreach (IDisposable subscription in _subscriptions)
             {
                 subscription?.Dispose();
             }
-            
+
             _stateLock?.Dispose();
         }
     }

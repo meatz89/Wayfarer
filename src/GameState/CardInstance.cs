@@ -23,27 +23,27 @@ public class CardInstance
     public string ObservationType { get; init; }
     public string SourceItem { get; init; }
     public string SourceContext { get; init; }
-    
+
     // Exchange properties
     public bool IsExchange { get; init; }
-    
+
     // Letter delivery properties
     public bool CanDeliverLetter { get; init; }
     public string DeliveryObligationId { get; init; }
-    
+
     // Special context for runtime behavior
     public CardContext Context { get; set; }
-    
+
     // Burden properties
     public bool IsBurden { get; init; }
-    
+
     // Promise properties
     public bool IsPromise { get; init; }
-    
+
     // Goal properties
     public bool IsGoal { get; init; }
     public string GoalContext { get; init; }
-    
+
     // Additional properties needed by other classes
     public string Category { get; init; }
     public bool IsGoalCard { get; init; }
@@ -54,12 +54,12 @@ public class CardInstance
     public CardMechanicsType Mechanics { get; init; }
     public string ObservationSource { get; init; }
     public string DisplayName { get; init; }
-    
+
     // Convenience property for fleeting cards
     public bool IsFleeting => Persistence == PersistenceType.Fleeting;
-    
+
     public CardInstance() { }
-    
+
     public CardInstance(ConversationCard template, string sourceContext = null)
     {
         TemplateId = template.Id;
@@ -96,7 +96,7 @@ public class CardInstance
         Mechanics = template.Mechanics;
         ObservationSource = template.ObservationSource;
         DisplayName = template.DisplayName ?? template.Name;
-        
+
         // Set context for special cards
         if (template.IsExchange && template.ExchangeDetails != null)
         {
@@ -105,7 +105,7 @@ public class CardInstance
                 ExchangeData = template.ExchangeDetails
             };
         }
-        
+
         if (template.IsPromise && template.PromiseDetails != null)
         {
             Context = new CardContext
@@ -114,7 +114,7 @@ public class CardInstance
             };
         }
     }
-    
+
     public int GetEffectiveWeight(EmotionalState state)
     {
         if (WeightModifiers?.ContainsKey(state) == true)
@@ -123,45 +123,45 @@ public class CardInstance
         }
         return Weight;
     }
-    
+
     public int GetEffectiveSuccessChance(EmotionalState state)
     {
-        var baseChance = BaseSuccessChance;
+        int baseChance = BaseSuccessChance;
         if (StateModifiers?.ContainsKey(state) == true)
         {
             baseChance += StateModifiers[state];
         }
         return Math.Clamp(baseChance, 0, 100);
     }
-    
+
     public string GetCategoryClass()
     {
         return $"card-{Category?.ToLower() ?? "standard"}";
     }
-    
+
     public int CalculateSuccessChance(EmotionalState currentState = EmotionalState.NEUTRAL)
     {
         return GetEffectiveSuccessChance(currentState);
     }
-    
+
     public int CalculateSuccessChance(TokenMechanicsManager tokenManager)
     {
         // Token-based calculation if needed
         return BaseSuccessChance;
     }
-    
+
     public int CalculateSuccessChance(Dictionary<ConnectionType, int> tokens)
     {
         // Dictionary-based calculation for UI compatibility
         return BaseSuccessChance;
     }
-    
+
     public int CalculateSuccessChance()
     {
         // Parameterless version for simple calls
         return BaseSuccessChance;
     }
-    
+
     public ConnectionType GetConnectionType()
     {
         // For the new simplified system, determine connection type based on card properties

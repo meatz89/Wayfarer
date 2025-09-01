@@ -57,7 +57,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// </summary>
         public void AddNarrativeSequence(string[] messages, SystemMessageTypes type = SystemMessageTypes.Info)
         {
-            foreach (var message in messages)
+            foreach (string message in messages)
             {
                 if (!string.IsNullOrEmpty(message))
                 {
@@ -157,7 +157,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         public void AddProgressMessage(string action, int current, int total)
         {
             string message = $"{action}: {current}/{total}";
-            
+
             SystemMessageTypes type = SystemMessageTypes.Info;
             if (current == total)
             {

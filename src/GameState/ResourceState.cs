@@ -8,12 +8,12 @@ public class ResourceState
     public int Food { get; set; }
     public int Attention { get; set; }
     public Dictionary<ConnectionType, int> Tokens { get; set; }
-    
+
     public ResourceState()
     {
         Tokens = new Dictionary<ConnectionType, int>();
     }
-    
+
     public static ResourceState FromPlayerResourceState(PlayerResourceState playerState)
     {
         return new ResourceState

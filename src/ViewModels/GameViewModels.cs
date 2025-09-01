@@ -70,7 +70,7 @@ public class ObservationsViewModel
 }
 
 // Summary view model for UI display of observations
-public class ObservationSummaryViewModel  
+public class ObservationSummaryViewModel
 {
     public string Id { get; set; }
     public string Title { get; set; }
@@ -96,7 +96,7 @@ public class RouteOptionViewModel
     public string LockReason { get; set; }
     public TierLevel RequiredTier { get; set; }
     public bool CanUnlockWithPermit { get; set; }
-    
+
     // Modal-specific properties
     public string Familiarity { get; set; }
     public bool SupportsCart { get; set; } = true;
@@ -150,7 +150,7 @@ public class LeverageViewModel
     public int DisplacementCost { get; set; }
     public string Level { get; set; }
     public string Narrative { get; set; }
-    
+
     public string LeverageIcon => TotalLeverage switch
     {
         >= 10 => "🔴",
@@ -159,7 +159,7 @@ public class LeverageViewModel
         >= 1 => "⚪",
         _ => ""
     };
-    
+
     public string LeverageColor => TotalLeverage switch
     {
         >= 10 => "danger",

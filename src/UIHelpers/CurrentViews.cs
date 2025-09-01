@@ -5,7 +5,7 @@
     ConversationScreen,     // CONVERSATION MODE - NPC interactions
     ObligationQueueScreen,  // QUEUE MODE - Obligation management interface
     TravelScreen,           // ROUTE PLANNING MODE - Travel decision interface
-    
+
     // ADDITIONAL SCREENS (Not part of core modal system)
     LetterBoardScreen,      // Morning letter selection and acceptance
     RelationshipScreen,     // Character relationships and connection tokens

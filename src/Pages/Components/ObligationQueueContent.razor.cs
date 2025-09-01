@@ -31,13 +31,13 @@ namespace Wayfarer.Pages.Components
 
         private void RefreshObligations()
         {
-            var allObligations = ObligationQueueManager.GetActiveObligations();
-            
+            DeliveryObligation[] allObligations = ObligationQueueManager.GetActiveObligations();
+
             ActiveObligations = allObligations
                 .Where(o => o.DeadlineInMinutes > 0)
                 .OrderBy(o => o.DeadlineInMinutes)
                 .ToList();
-                
+
             ExpiredObligations = allObligations
                 .Where(o => o.DeadlineInMinutes <= 0)
                 .ToList();
@@ -46,10 +46,10 @@ namespace Wayfarer.Pages.Components
         protected async Task DeliverLetter(DeliveryObligation letter)
         {
             if (!CanDeliver(letter)) return;
-            
+
             // Use the ExecuteIntent system to deliver the letter
-            var deliverIntent = new DeliverLetterIntent(letter.Id);
-            var result = await GameFacade.ProcessIntent(deliverIntent);
+            DeliverLetterIntent deliverIntent = new DeliverLetterIntent(letter.Id);
+            bool result = await GameFacade.ProcessIntent(deliverIntent);
             if (result)
             {
                 RefreshObligations();
@@ -60,7 +60,7 @@ namespace Wayfarer.Pages.Components
         protected async Task DisplaceLetterToPosition(DeliveryObligation letter, int targetPosition)
         {
             // Use the new token-burning displacement system
-            var result = await GameFacade.DisplaceObligation(letter.Id, targetPosition);
+            bool result = await GameFacade.DisplaceObligation(letter.Id, targetPosition);
             if (result)
             {
                 RefreshObligations();
@@ -93,8 +93,8 @@ namespace Wayfarer.Pages.Components
         protected bool CanDeliver(DeliveryObligation letter)
         {
             // Check if we're at the recipient's location
-            var currentLocation = GameFacade.GetCurrentLocation();
-            var recipientLocation = GetRecipientLocation(letter);
+            Location currentLocation = GameFacade.GetCurrentLocation();
+            string recipientLocation = GetRecipientLocation(letter);
             return currentLocation?.Name == recipientLocation;
         }
 
@@ -113,42 +113,42 @@ namespace Wayfarer.Pages.Components
 
         protected string GetLetterUrgencyClass(DeliveryObligation letter)
         {
-            var minutesRemaining = letter.DeadlineInMinutes;
-            
+            int minutesRemaining = letter.DeadlineInMinutes;
+
             if (minutesRemaining < 60) // Less than 1 hour
                 return "critical";
             if (minutesRemaining < 180) // Less than 3 hours
                 return "urgent";
             if (minutesRemaining < 360) // Less than 6 hours
                 return "moderate";
-                
+
             return "normal";
         }
 
         protected string GetDeadlineClass(DeliveryObligation letter)
         {
-            var minutesRemaining = letter.DeadlineInMinutes;
-            
+            int minutesRemaining = letter.DeadlineInMinutes;
+
             if (minutesRemaining < 60) // Less than 1 hour
                 return "critical";
             if (minutesRemaining < 180) // Less than 3 hours
                 return "warning";
-                
+
             return "";
         }
 
         protected string GetTimeRemaining(DeliveryObligation letter)
         {
-            var minutesRemaining = letter.DeadlineInMinutes;
-            
+            int minutesRemaining = letter.DeadlineInMinutes;
+
             if (minutesRemaining <= 0)
                 return "EXPIRED";
-                
+
             if (minutesRemaining < 60)
                 return $"{minutesRemaining} minutes";
-                
-            var hours = minutesRemaining / 60;
-            var minutes = minutesRemaining % 60;
+
+            int hours = minutesRemaining / 60;
+            int minutes = minutesRemaining % 60;
             return $"{hours}h {minutes}m";
         }
 

@@ -41,7 +41,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// </summary>
         public ObservationCard TakeObservation(string observationId, TokenMechanicsManager tokenManager)
         {
-            var observation = _observationManager.GetObservation(observationId);
+            Observation observation = _observationManager.GetObservation(observationId);
             if (observation == null)
             {
                 Console.WriteLine($"[NarrativeFacade] Observation {observationId} not found");
@@ -49,12 +49,12 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             }
 
             // Take the observation through the manager
-            var card = _observationManager.TakeObservation(observation, tokenManager);
-            
+            ObservationCard? card = _observationManager.TakeObservation(observation, tokenManager);
+
             if (card != null)
             {
                 // Generate narrative for the observation
-                var narrative = $"You observe {observation.Text} and gain insight.";
+                string narrative = $"You observe {observation.Text} and gain insight.";
                 _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
             }
 
@@ -66,7 +66,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// </summary>
         public bool TakeObservation(string observationId)
         {
-            var observation = _observationManager.GetObservation(observationId);
+            Observation observation = _observationManager.GetObservation(observationId);
             if (observation == null)
             {
                 Console.WriteLine($"[NarrativeFacade] Observation {observationId} not found");
@@ -74,13 +74,13 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             }
 
             // For now, pass null for token manager since observation taking doesn't require complex token mechanics
-            var tokenManager = (TokenMechanicsManager)null;
-            var card = _observationManager.TakeObservation(observation, tokenManager);
-            
+            TokenMechanicsManager? tokenManager = (TokenMechanicsManager)null;
+            ObservationCard card = _observationManager.TakeObservation(observation, tokenManager);
+
             if (card != null)
             {
                 // Generate narrative for the observation
-                var narrative = $"You observe {observation.Text} and gain insight.";
+                string narrative = $"You observe {observation.Text} and gain insight.";
                 _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
                 return true;
             }
@@ -141,7 +141,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         public void RefreshObservationsForNewTimeBlock()
         {
             _observationManager.RefreshForNewTimeBlock();
-            var narrative = "New opportunities become available as time passes.";
+            string narrative = "New opportunities become available as time passes.";
             _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
         }
 
@@ -168,7 +168,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// </summary>
         public void AddLetterPositioningNarrative(string senderName, LetterPositioningReason reason, int position, int strength, int debt)
         {
-            var narrative = $"{senderName}'s letter positioned at {position} based on relationship strength {strength}.";
+            string narrative = $"{senderName}'s letter positioned at {position} based on relationship strength {strength}.";
             _messageSystem.AddLetterPositioningMessage(senderName, reason, position, strength, debt);
             _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
         }
@@ -178,10 +178,10 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// </summary>
         public void AddSpecialLetterEvent(SpecialLetterEvent letterEvent)
         {
-            var narrative = $"Special letter event: {letterEvent.EventType}";
+            string narrative = $"Special letter event: {letterEvent.EventType}";
             _messageSystem.AddSpecialLetterEvent(letterEvent);
-            
-            var severity = GetSeverityForLetterEvent(letterEvent);
+
+            SystemMessageTypes severity = GetSeverityForLetterEvent(letterEvent);
             _messageSystem.AddSystemMessage(narrative, severity);
         }
 

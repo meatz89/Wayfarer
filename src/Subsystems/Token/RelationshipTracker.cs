@@ -14,13 +14,13 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         private readonly ConnectionTokenManager _tokenManager;
         private readonly NPCRepository _npcRepository;
         private readonly MessageSystem _messageSystem;
-        
+
         // Track debts separately for easier querying
         private readonly Dictionary<string, Dictionary<ConnectionType, int>> _activeDebts;
-        
+
         // Track last interaction times for decay calculations
         private readonly Dictionary<string, DateTime> _lastInteractionTimes;
-        
+
         // Relationship milestones
         private readonly Dictionary<int, string> _relationshipMilestones = new Dictionary<int, string>
         {
@@ -31,7 +31,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             { 15, "would trust you with their life" },
             { 20, "shares an unbreakable bond with you" }
         };
-        
+
         public RelationshipTracker(
             GameWorld gameWorld,
             ConnectionTokenManager tokenManager,
@@ -45,30 +45,30 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             _activeDebts = new Dictionary<string, Dictionary<ConnectionType, int>>();
             _lastInteractionTimes = new Dictionary<string, DateTime>();
         }
-        
+
         /// <summary>
         /// Update relationship state after token changes
         /// </summary>
         public void UpdateRelationshipState(string npcId)
         {
             if (string.IsNullOrEmpty(npcId)) return;
-            
+
             // Update last interaction time
             _lastInteractionTimes[npcId] = DateTime.Now;
-            
+
             // Check for new debts
             Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
             bool hasDebt = false;
-            
+
             foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
             {
                 if (type == ConnectionType.None) continue;
-                
+
                 int tokenCount = tokens.GetValueOrDefault(type, 0);
                 if (tokenCount < 0)
                 {
                     hasDebt = true;
-                    
+
                     // Track this debt
                     if (!_activeDebts.ContainsKey(npcId))
                     {
@@ -86,11 +86,11 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                     }
                 }
             }
-            
+
             // Update NPC state if needed
             UpdateNPCDisposition(npcId, hasDebt);
         }
-        
+
         /// <summary>
         /// Check and announce relationship milestones
         /// </summary>
@@ -98,7 +98,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             NPC npc = _npcRepository.GetById(npcId);
             if (npc == null) return;
-            
+
             foreach (KeyValuePair<int, string> milestone in _relationshipMilestones)
             {
                 if (totalTokens == milestone.Key)
@@ -107,7 +107,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                         $"{npc.Name} {milestone.Value}.",
                         SystemMessageTypes.Success
                     );
-                    
+
                     // Special announcements for major milestones
                     if (milestone.Key >= 10)
                     {
@@ -116,26 +116,26 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                             SystemMessageTypes.Success
                         );
                     }
-                    
+
                     break;
                 }
             }
         }
-        
+
         /// <summary>
         /// Record a debt to an NPC
         /// </summary>
         public void RecordDebt(string npcId, ConnectionType type, int amount)
         {
             if (amount <= 0) return;
-            
+
             if (!_activeDebts.ContainsKey(npcId))
             {
                 _activeDebts[npcId] = new Dictionary<ConnectionType, int>();
             }
-            
+
             _activeDebts[npcId][type] = amount;
-            
+
             NPC npc = _npcRepository.GetById(npcId);
             if (npc != null)
             {
@@ -145,17 +145,17 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 );
             }
         }
-        
+
         /// <summary>
         /// Get the primary connection type with an NPC (highest positive token count)
         /// </summary>
         public ConnectionType GetPrimaryConnection(string npcId)
         {
             Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
-            
+
             ConnectionType primaryType = ConnectionType.None;
             int highestCount = 0;
-            
+
             foreach (KeyValuePair<ConnectionType, int> kvp in tokens)
             {
                 if (kvp.Key != ConnectionType.None && kvp.Value > highestCount)
@@ -164,17 +164,17 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                     primaryType = kvp.Key;
                 }
             }
-            
+
             return primaryType;
         }
-        
+
         /// <summary>
         /// Get relationship tier based on total tokens
         /// </summary>
         public RelationshipTier GetRelationshipTier(string npcId)
         {
             int totalTokens = GetTotalPositiveTokens(npcId);
-            
+
             if (totalTokens >= 13) return RelationshipTier.InnerCircle;
             if (totalTokens >= 9) return RelationshipTier.Confidant;
             if (totalTokens >= 6) return RelationshipTier.CloseFriend;
@@ -182,19 +182,19 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             if (totalTokens >= 1) return RelationshipTier.Acquaintance;
             return RelationshipTier.None;
         }
-        
+
         /// <summary>
         /// Get all NPCs the player owes tokens to
         /// </summary>
         public List<DebtInfo> GetAllDebts()
         {
             List<DebtInfo> debts = new List<DebtInfo>();
-            
+
             foreach (KeyValuePair<string, Dictionary<ConnectionType, int>> npcDebt in _activeDebts)
             {
                 NPC npc = _npcRepository.GetById(npcDebt.Key);
                 if (npc == null) continue;
-                
+
                 DebtInfo debtInfo = new DebtInfo
                 {
                     NPCId = npcDebt.Key,
@@ -202,13 +202,13 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                     Debts = new Dictionary<ConnectionType, int>(npcDebt.Value),
                     TotalDebt = npcDebt.Value.Values.Sum()
                 };
-                
+
                 debts.Add(debtInfo);
             }
-            
+
             return debts.OrderByDescending(d => d.TotalDebt).ToList();
         }
-        
+
         /// <summary>
         /// Check if player has any debts
         /// </summary>
@@ -216,7 +216,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             return _activeDebts.Count > 0;
         }
-        
+
         /// <summary>
         /// Get relationship summary for an NPC
         /// </summary>
@@ -224,9 +224,9 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         {
             NPC npc = _npcRepository.GetById(npcId);
             if (npc == null) return null;
-            
+
             Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
-            
+
             return new RelationshipSummary
             {
                 NPCId = npcId,
@@ -240,34 +240,34 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 LastInteraction = _lastInteractionTimes.ContainsKey(npcId) ? _lastInteractionTimes[npcId] : DateTime.MinValue
             };
         }
-        
+
         /// <summary>
         /// Process relationship decay over time
         /// </summary>
         public void ProcessRelationshipDecay()
         {
             DateTime now = DateTime.Now;
-            
+
             foreach (string npcId in _tokenManager.GetNPCsWithTokens())
             {
                 if (!_lastInteractionTimes.ContainsKey(npcId)) continue;
-                
+
                 DateTime lastInteraction = _lastInteractionTimes[npcId];
                 int daysSinceInteraction = (int)(now - lastInteraction).TotalDays;
-                
+
                 // Only decay after a week of no interaction
                 if (daysSinceInteraction < 7) continue;
-                
+
                 Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
                 bool hadDecay = false;
-                
+
                 foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
                 {
                     if (type == ConnectionType.None) continue;
-                    
+
                     int currentTokens = tokens.GetValueOrDefault(type, 0);
                     if (currentTokens <= 0) continue;
-                    
+
                     // Calculate decay based on time and token type
                     int decay = CalculateDecay(type, currentTokens, daysSinceInteraction);
                     if (decay > 0)
@@ -276,7 +276,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                         hadDecay = true;
                     }
                 }
-                
+
                 if (hadDecay)
                 {
                     NPC npc = _npcRepository.GetById(npcId);
@@ -290,27 +290,27 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 }
             }
         }
-        
+
         // ========== PRIVATE HELPER METHODS ==========
-        
+
         private void UpdateNPCDisposition(string npcId, bool hasDebt)
         {
             // This would update NPC's disposition/attitude towards player
             // For now, we just track the state
-            
+
             if (hasDebt)
             {
                 // NPC is less friendly when owed favors
                 // This could affect conversation options, prices, etc.
             }
         }
-        
+
         private int GetTotalPositiveTokens(string npcId)
         {
             Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
             return tokens.Values.Where(v => v > 0).Sum();
         }
-        
+
         private int CalculateDecay(ConnectionType type, int currentTokens, int daysSinceInteraction)
         {
             // Different token types decay at different rates
@@ -322,25 +322,25 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 ConnectionType.Shadow => 0.05f,   // Shadow decays fastest
                 _ => 0.02f
             };
-            
+
             // Decay accelerates with time
             int weeksWithoutContact = daysSinceInteraction / 7;
             float decayMultiplier = 1.0f + (weeksWithoutContact * 0.1f);
-            
+
             int decay = (int)Math.Floor(currentTokens * decayRate * decayMultiplier);
-            
+
             // Never decay more than 1 token per week for low token counts
             if (currentTokens <= 3)
             {
                 decay = Math.Min(decay, weeksWithoutContact);
             }
-            
+
             return decay;
         }
     }
-    
+
     // ========== SUPPORTING TYPES ==========
-    
+
     public class RelationshipSummary
     {
         public string NPCId { get; set; }

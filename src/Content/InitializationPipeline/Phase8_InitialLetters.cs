@@ -16,7 +16,7 @@ public class Phase8_InitialLetters : IInitializationPhase
 
         GameWorld gameWorld = context.GameWorld;
         List<DeliveryObligation> obligations = new System.Collections.Generic.List<DeliveryObligation>();
-        
+
         // Load initial obligations from NPCs with letter cards
         // NPCs with letter cards in their deck should have them offered initially
         // This is now handled through the conversation system when player talks to them

@@ -74,7 +74,7 @@
 
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
-    
+
     // PLAYER OBSERVATION DECK - Cards gained from exploring locations
     // Maximum 20 cards, tracks acquisition time for expiration
     public PlayerObservationDeck ObservationDeck { get; set; } = new();
@@ -91,7 +91,7 @@
     public int TotalLettersDelivered { get; set; } = 0;
     public int TotalLettersExpired { get; set; } = 0;
     public int TotalTokensSpent { get; set; } = 0;
-    
+
     // Route Familiarity System (0-5 scale per route)
     // Key is route ID, value is familiarity level (0=Unknown, 5=Mastered)
     public Dictionary<string, int> RouteFamiliarity { get; set; } = new Dictionary<string, int>();
@@ -112,7 +112,7 @@
         }
     }
 
-    
+
     /// <summary>
     /// Get familiarity level for a route (0-5 scale)
     /// </summary>
@@ -120,7 +120,7 @@
     {
         return RouteFamiliarity.TryGetValue(routeId, out int familiarity) ? familiarity : 0;
     }
-    
+
     /// <summary>
     /// Increase route familiarity after successful travel (max 5)
     /// </summary>
@@ -129,7 +129,7 @@
         int current = GetRouteFamiliarity(routeId);
         RouteFamiliarity[routeId] = Math.Min(5, current + amount);
     }
-    
+
     /// <summary>
     /// Check if route is mastered (familiarity = 5)
     /// </summary>
@@ -640,7 +640,7 @@ public static class PlayerExtensions
             player.DiscoveredLocationIds.Add(locationId);
         }
     }
-    
+
     public static void AddKnownLocationSpot(this Player player, string spotId)
     {
         // Track location spots in the LocationActionAvailability set

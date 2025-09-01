@@ -16,10 +16,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private readonly MessageSystem _messageSystem;
         private readonly TokenMechanicsManager _tokenManager;
         private readonly GameConfiguration _config;
-        
+
         public DeliveryManager(
             GameWorld gameWorld,
-            NPCRepository npcRepository, 
+            NPCRepository npcRepository,
             MessageSystem messageSystem,
             TokenMechanicsManager tokenManager,
             GameConfiguration config)
@@ -37,9 +37,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public DeliveryResult DeliverFromPosition1()
         {
-            var result = new DeliveryResult();
-            
-            var letter = GetLetterAt(1);
+            DeliveryResult result = new DeliveryResult();
+
+            DeliveryObligation letter = GetLetterAt(1);
             if (letter == null)
             {
                 result.ErrorMessage = "No letter at position 1";
@@ -47,7 +47,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Validate delivery is possible
-            var validation = ValidateDelivery(letter);
+            DeliveryResult validation = ValidateDelivery(letter);
             if (!validation.Success)
             {
                 result.ErrorMessage = validation.ErrorMessage;
@@ -60,10 +60,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             {
                 // Remove from queue and shift remaining letters up
                 RemoveFromQueueAndShift(1);
-                
+
                 // Record successful delivery
                 RecordLetterDelivery(letter);
-                
+
                 _messageSystem.AddSystemMessage(
                     $"✅ Letter delivered to {letter.RecipientName}!",
                     SystemMessageTypes.Success
@@ -78,22 +78,22 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public DeliveryResult DeliverObligation(string obligationId)
         {
-            var result = new DeliveryResult();
-            
-            var obligation = FindObligationById(obligationId);
+            DeliveryResult result = new DeliveryResult();
+
+            DeliveryObligation obligation = FindObligationById(obligationId);
             if (obligation == null)
             {
                 result.ErrorMessage = "Obligation not found in queue";
                 return result;
             }
-            
-            var position = GetQueuePosition(obligation);
+
+            int position = GetQueuePosition(obligation);
             if (position <= 0)
             {
                 result.ErrorMessage = "Obligation not in queue";
                 return result;
             }
-            
+
             // Can only deliver from position 1
             if (position != 1)
             {
@@ -110,7 +110,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public bool CanDeliverFromPosition1()
         {
-            var letter = GetLetterAt(1);
+            DeliveryObligation letter = GetLetterAt(1);
             if (letter == null) return false;
 
             return ValidatePlayerLocation(letter).Success;
@@ -121,9 +121,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public DeliveryResult GetDeliveryValidation(int position)
         {
-            var result = new DeliveryResult();
-            
-            var letter = GetLetterAt(position);
+            DeliveryResult result = new DeliveryResult();
+
+            DeliveryObligation letter = GetLetterAt(position);
             if (letter == null)
             {
                 result.ErrorMessage = $"No letter at position {position}";
@@ -138,7 +138,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public void AddPhysicalLetter(DeliveryObligation obligation)
         {
-            var physicalLetter = new Letter
+            Letter physicalLetter = new Letter
             {
                 Id = obligation.Id,
                 SenderName = obligation.SenderName,
@@ -147,9 +147,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 PhysicalProperties = DeterminePhysicalProperties(obligation),
                 SpecialType = LetterSpecialType.None
             };
-            
+
             _gameWorld.GetPlayer().CarriedLetters.Add(physicalLetter);
-            
+
             _messageSystem.AddSystemMessage(
                 $"📨 Physical letter from {obligation.SenderName} added to satchel",
                 SystemMessageTypes.Info
@@ -161,13 +161,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public void RemovePhysicalLetter(string letterId)
         {
-            var player = _gameWorld.GetPlayer();
-            var physicalLetter = player.CarriedLetters.FirstOrDefault(l => l.Id == letterId);
-            
+            Player player = _gameWorld.GetPlayer();
+            Letter? physicalLetter = player.CarriedLetters.FirstOrDefault(l => l.Id == letterId);
+
             if (physicalLetter != null)
             {
                 player.CarriedLetters.Remove(physicalLetter);
-                
+
                 _messageSystem.AddSystemMessage(
                     $"📮 Physical letter to {physicalLetter.RecipientName} removed from satchel",
                     SystemMessageTypes.Info
@@ -180,7 +180,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public int GetTotalSatchelSize()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             return player.CarriedLetters.Sum(letter => letter.Size);
         }
 
@@ -197,9 +197,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public void RecordLetterDelivery(DeliveryObligation letter)
         {
-            var player = _gameWorld.GetPlayer();
-            var senderId = GetNPCIdByName(letter.SenderName);
-            
+            Player player = _gameWorld.GetPlayer();
+            string senderId = GetNPCIdByName(letter.SenderName);
+
             if (!string.IsNullOrEmpty(senderId))
             {
                 // Track delivery history
@@ -208,7 +208,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     player.NPCLetterHistory[senderId] = new LetterHistory();
                 }
                 player.NPCLetterHistory[senderId].RecordDelivery();
-                
+
                 // Award reputation bonus for on-time delivery
                 if (letter.DeadlineInMinutes > 0)
                 {
@@ -225,9 +225,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public void RecordLetterSkip(DeliveryObligation letter)
         {
-            var player = _gameWorld.GetPlayer();
-            var senderId = GetNPCIdByName(letter.SenderName);
-            
+            Player player = _gameWorld.GetPlayer();
+            string senderId = GetNPCIdByName(letter.SenderName);
+
             if (!string.IsNullOrEmpty(senderId))
             {
                 if (!player.NPCLetterHistory.ContainsKey(senderId))
@@ -243,8 +243,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public DeliveryObligation[] GetExpiringLetters(int daysThreshold)
         {
-            var minutesThreshold = daysThreshold * 24 * 60;
-            
+            int minutesThreshold = daysThreshold * 24 * 60;
+
             return GetActiveObligations()
                 .Where(o => o.DeadlineInMinutes <= minutesThreshold && o.DeadlineInMinutes > 0)
                 .OrderBy(o => o.DeadlineInMinutes)
@@ -256,49 +256,49 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public QueueManipulationResult TrySkipDelivery(int position)
         {
-            var result = new QueueManipulationResult
+            QueueManipulationResult result = new QueueManipulationResult
             {
                 OperationType = "Skip Delivery",
                 Position = position
             };
-            
-            var letter = GetLetterAt(position);
+
+            DeliveryObligation letter = GetLetterAt(position);
             if (letter == null)
             {
                 result.ErrorMessage = "No letter at specified position";
                 return result;
             }
-            
+
             // Only position 1 can be skipped
             if (position != 1)
             {
                 result.ErrorMessage = "Can only skip delivery from position 1";
                 return result;
             }
-            
+
             // Calculate skip cost (typically requires tokens)
-            var skipCost = CalculateSkipCost(letter);
+            Dictionary<ConnectionType, int> skipCost = CalculateSkipCost(letter);
             if (!CanAffordSkipCost(skipCost))
             {
                 result.ErrorMessage = "Cannot afford skip cost";
                 result.TokensCost = skipCost;
                 return result;
             }
-            
+
             // Execute skip
             PaySkipCost(skipCost);
             RecordLetterSkip(letter);
             RemoveFromQueueAndShift(position);
-            
+
             result.Success = true;
             result.AffectedObligation = letter;
             result.TokensCost = skipCost;
-            
+
             _messageSystem.AddSystemMessage(
                 $"⏭️ Skipped delivery to {letter.RecipientName}",
                 SystemMessageTypes.Warning
             );
-            
+
             return result;
         }
 
@@ -309,11 +309,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         {
             if (letter == null) return false;
 
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             if (player.CurrentLocationSpot == null) return false;
 
             // Get the recipient NPC
-            var recipient = _npcRepository.GetById(letter.RecipientId);
+            NPC recipient = _npcRepository.GetById(letter.RecipientId);
             if (recipient == null)
             {
                 // Fallback: try to find by name
@@ -322,9 +322,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Check if NPC is at player's current location
-            var currentTime = GetCurrentTimeBlock();
-            var npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationSpotAndTime(
-                player.CurrentLocationSpot.SpotID, 
+            TimeBlocks currentTime = GetCurrentTimeBlock();
+            List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationSpotAndTime(
+                player.CurrentLocationSpot.SpotID,
                 currentTime);
 
             return npcsAtCurrentSpot.Any(npc => npc.ID == recipient.ID);
@@ -334,15 +334,15 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private DeliveryObligation GetLetterAt(int position)
         {
-            if (position < 1 || position > _config.LetterQueue.MaxQueueSize) 
+            if (position < 1 || position > _config.LetterQueue.MaxQueueSize)
                 return null;
-                
+
             return _gameWorld.GetPlayer().ObligationQueue[position - 1];
         }
 
         private DeliveryObligation[] GetActiveObligations()
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             return player.ObligationQueue
                 .Where(o => o != null)
                 .ToArray();
@@ -357,8 +357,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private int GetQueuePosition(DeliveryObligation obligation)
         {
             if (obligation == null) return -1;
-            
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
+
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
             for (int i = 0; i < queue.Length; i++)
             {
                 if (queue[i]?.Id == obligation.Id)
@@ -366,13 +366,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     return i + 1; // Return 1-based position
                 }
             }
-            
+
             return -1; // Not found
         }
 
         private DeliveryResult ValidateDelivery(DeliveryObligation letter)
         {
-            var result = new DeliveryResult();
+            DeliveryResult result = new DeliveryResult();
 
             // Check if letter has expired
             if (letter.IsExpired)
@@ -382,7 +382,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Validate player location
-            var locationValidation = ValidatePlayerLocation(letter);
+            DeliveryResult locationValidation = ValidatePlayerLocation(letter);
             if (!locationValidation.Success)
             {
                 result.ErrorMessage = locationValidation.ErrorMessage;
@@ -395,14 +395,14 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private DeliveryResult ValidatePlayerLocation(DeliveryObligation letter)
         {
-            var result = new DeliveryResult();
+            DeliveryResult result = new DeliveryResult();
 
             if (!IsPlayerAtRecipientLocation(letter))
             {
-                var recipient = _npcRepository.GetById(letter.RecipientId) ?? 
+                NPC recipient = _npcRepository.GetById(letter.RecipientId) ??
                                _npcRepository.GetByName(letter.RecipientName);
-                               
-                var recipientName = recipient?.Name ?? letter.RecipientName;
+
+                string recipientName = recipient?.Name ?? letter.RecipientName;
                 result.ErrorMessage = $"You must be at {recipientName}'s location to deliver";
                 return result;
             }
@@ -413,7 +413,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private DeliveryResult ExecuteDelivery(DeliveryObligation letter)
         {
-            var result = new DeliveryResult
+            DeliveryResult result = new DeliveryResult
             {
                 Success = true,
                 DeliveredObligation = letter
@@ -422,13 +422,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             // Grant tokens for successful delivery
             if (letter.TokenType != ConnectionType.None)
             {
-                var tokensGranted = 1; // Standard delivery reward
+                int tokensGranted = 1; // Standard delivery reward
                 _tokenManager.AddTokensToNPC(letter.TokenType, tokensGranted, letter.RecipientId);
-                
+
                 result.TokensGranted = tokensGranted;
                 result.TokenType = letter.TokenType;
                 result.RecipientId = letter.RecipientId;
-                
+
                 _messageSystem.AddSystemMessage(
                     $"🎖️ Gained {tokensGranted} {letter.TokenType} token with {letter.RecipientName}",
                     SystemMessageTypes.Success
@@ -443,11 +443,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void RemoveFromQueueAndShift(int position)
         {
-            var queue = _gameWorld.GetPlayer().ObligationQueue;
-            
+            DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
+
             // Clear the position
             queue[position - 1] = null;
-            
+
             // Shift all letters below up by one position
             for (int i = position - 1; i < _config.LetterQueue.MaxQueueSize - 1; i++)
             {
@@ -463,48 +463,48 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private int CalculateLetterSize(DeliveryObligation obligation)
         {
             // Standard letters are size 1, could be modified based on letter properties
-            var baseSize = 1;
-            
+            int baseSize = 1;
+
             // Future: could factor in tier, special properties, etc.
             if (obligation.Tier == TierLevel.T3)
                 baseSize += 1;
-                
+
             return baseSize;
         }
 
         private LetterPhysicalProperties DeterminePhysicalProperties(DeliveryObligation obligation)
         {
-            var properties = LetterPhysicalProperties.None;
-            
+            LetterPhysicalProperties properties = LetterPhysicalProperties.None;
+
             // Determine properties based on obligation characteristics
             if (obligation.Stakes == StakeType.WEALTH)
                 properties |= LetterPhysicalProperties.Valuable;
-                
+
             if (obligation.DeadlineInMinutes < 180) // Less than 3 hours
                 properties |= LetterPhysicalProperties.Perishable;
-                
+
             if (obligation.Tier == TierLevel.T3)
                 properties |= LetterPhysicalProperties.Fragile;
-                
+
             return properties;
         }
 
         private Dictionary<ConnectionType, int> CalculateSkipCost(DeliveryObligation letter)
         {
             // Skip cost is typically 1 token of the same type as the letter
-            var cost = new Dictionary<ConnectionType, int>();
-            
+            Dictionary<ConnectionType, int> cost = new Dictionary<ConnectionType, int>();
+
             if (letter.TokenType != ConnectionType.None)
             {
                 cost[letter.TokenType] = 1;
             }
-            
+
             return cost;
         }
 
         private bool CanAffordSkipCost(Dictionary<ConnectionType, int> cost)
         {
-            foreach (var tokenCost in cost)
+            foreach (KeyValuePair<ConnectionType, int> tokenCost in cost)
             {
                 // Check if player has enough tokens with any NPC
                 // This would need access to token balances across all NPCs
@@ -520,7 +520,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void PaySkipCost(Dictionary<ConnectionType, int> cost)
         {
-            foreach (var tokenCost in cost)
+            foreach (KeyValuePair<ConnectionType, int> tokenCost in cost)
             {
                 // Deduct tokens from player's reserves
                 // Implementation would depend on how player tokens are managed
@@ -533,7 +533,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private string GetNPCIdByName(string npcName)
         {
-            var npc = _npcRepository.GetByName(npcName);
+            NPC npc = _npcRepository.GetByName(npcName);
             return npc?.ID ?? "";
         }
 

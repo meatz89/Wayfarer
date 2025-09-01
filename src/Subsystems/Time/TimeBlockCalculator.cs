@@ -24,7 +24,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
                 _ => 0
             };
         }
-        
+
         /// <summary>
         /// Get the ending hour for a time block.
         /// </summary>
@@ -41,43 +41,43 @@ namespace Wayfarer.Subsystems.TimeSubsystem
                 _ => 24
             };
         }
-        
+
         /// <summary>
         /// Calculate hours until a specific time block from current position.
         /// </summary>
         public int CalculateHoursUntilTimeBlock(TimeBlocks current, TimeBlocks target, int currentHour)
         {
             int targetStartHour = GetTimeBlockStartHour(target);
-            
+
             // If target is later today
             if (targetStartHour > currentHour)
             {
                 return targetStartHour - currentHour;
             }
-            
+
             // Target is tomorrow
             return (24 - currentHour) + targetStartHour;
         }
-        
+
         /// <summary>
         /// Get the next available time block from a list of available times.
         /// </summary>
         public TimeBlocks? GetNextAvailableTimeBlock(TimeBlocks current, List<TimeBlocks> availableTimes)
         {
             if (availableTimes.Count == 0) return null;
-            
-            TimeBlocks[] timeOrder = new[] 
-            { 
-                TimeBlocks.Dawn, 
-                TimeBlocks.Morning, 
-                TimeBlocks.Afternoon, 
-                TimeBlocks.Evening, 
+
+            TimeBlocks[] timeOrder = new[]
+            {
+                TimeBlocks.Dawn,
+                TimeBlocks.Morning,
+                TimeBlocks.Afternoon,
+                TimeBlocks.Evening,
                 TimeBlocks.Night,
                 TimeBlocks.LateNight
             };
-            
+
             int currentIndex = Array.IndexOf(timeOrder, current);
-            
+
             // Look for next available time after current
             for (int i = currentIndex + 1; i < timeOrder.Length; i++)
             {
@@ -86,7 +86,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
                     return timeOrder[i];
                 }
             }
-            
+
             // Wrap around to tomorrow
             for (int i = 0; i <= currentIndex; i++)
             {
@@ -95,10 +95,10 @@ namespace Wayfarer.Subsystems.TimeSubsystem
                     return timeOrder[i];
                 }
             }
-            
+
             return null;
         }
-        
+
         /// <summary>
         /// Get display name for a time block.
         /// </summary>
@@ -115,7 +115,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
                 _ => "Unknown"
             };
         }
-        
+
         /// <summary>
         /// Get narrative description for waiting until a time block.
         /// </summary>
