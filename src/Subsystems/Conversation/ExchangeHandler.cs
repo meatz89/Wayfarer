@@ -125,44 +125,44 @@ public class ExchangeHandler
     {
         foreach (var cost in exchange.Cost)
         {
-            switch (cost.ResourceType)
+            switch (cost.Key)
             {
                 case ResourceType.Coins:
-                    if (player.Coins < cost.Amount)
+                    if (player.Coins < cost.Value)
                         return false;
-                    player.Coins -= cost.Amount;
+                    player.Coins -= cost.Value;
                     break;
                     
                 case ResourceType.Health:
-                    if (player.Health < cost.Amount)
+                    if (player.Health < cost.Value)
                         return false;
-                    player.Health -= cost.Amount;
+                    player.Health -= cost.Value;
                     break;
                     
                 case ResourceType.Attention:
                     var timeBlock = _timeManager.GetCurrentTimeBlock();
                     var attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(timeBlock);
-                    if (!attentionMgr.TrySpend(cost.Amount))
+                    if (!attentionMgr.TrySpend(cost.Value))
                         return false;
                     break;
                     
                 case ResourceType.TrustToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Trust, cost.Amount, npc.ID))
+                    if (!_tokenManager.SpendTokens(ConnectionType.Trust, cost.Value, npc.ID))
                         return false;
                     break;
                     
                 case ResourceType.CommerceToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Commerce, cost.Amount, npc.ID))
+                    if (!_tokenManager.SpendTokens(ConnectionType.Commerce, cost.Value, npc.ID))
                         return false;
                     break;
                     
                 case ResourceType.StatusToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Status, cost.Amount, npc.ID))
+                    if (!_tokenManager.SpendTokens(ConnectionType.Status, cost.Value, npc.ID))
                         return false;
                     break;
                     
                 case ResourceType.ShadowToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Shadow, cost.Amount, npc.ID))
+                    if (!_tokenManager.SpendTokens(ConnectionType.Shadow, cost.Value, npc.ID))
                         return false;
                     break;
             }
@@ -178,50 +178,41 @@ public class ExchangeHandler
     {
         foreach (var reward in exchange.Reward)
         {
-            switch (reward.ResourceType)
+            switch (reward.Key)
             {
                 case ResourceType.Coins:
-                    player.Coins += reward.Amount;
+                    player.Coins += reward.Value;
                     break;
                     
                 case ResourceType.Health:
-                    if (reward.IsAbsolute)
-                        player.Health = reward.Amount;
-                    else
-                        player.Health = Math.Min(100, player.Health + reward.Amount);
+                    player.Health = Math.Min(100, player.Health + reward.Value);
                     break;
                     
                 case ResourceType.Hunger:
                     // Hunger maps to Food (0 = not hungry, 100 = very hungry)
-                    if (reward.IsAbsolute)
-                        player.Food = reward.Amount == 0 ? 100 : (100 - reward.Amount);
-                    else
-                        player.Food = Math.Max(0, Math.Min(100, player.Food - reward.Amount));
+                    player.Food = Math.Max(0, Math.Min(100, player.Food - reward.Value));
                     break;
                     
                 case ResourceType.Attention:
                     var timeBlock = _timeManager.GetCurrentTimeBlock();
                     var attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(timeBlock);
-                    if (reward.IsAbsolute)
-                        attentionMgr.SetAttention(reward.Amount);
-                    else
-                        attentionMgr.AddAttention(reward.Amount);
+                    attentionMgr.AddAttention(reward.Value);
                     break;
                     
                 case ResourceType.TrustToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Amount, npc.ID);
+                    _tokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Value, npc.ID);
                     break;
                     
                 case ResourceType.CommerceToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Commerce, reward.Amount, npc.ID);
+                    _tokenManager.AddTokensToNPC(ConnectionType.Commerce, reward.Value, npc.ID);
                     break;
                     
                 case ResourceType.StatusToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Status, reward.Amount, npc.ID);
+                    _tokenManager.AddTokensToNPC(ConnectionType.Status, reward.Value, npc.ID);
                     break;
                     
                 case ResourceType.ShadowToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Amount, npc.ID);
+                    _tokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Value, npc.ID);
                     break;
             }
         }

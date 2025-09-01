@@ -9,7 +9,13 @@ public enum ResourceType
     Coins,
     Health,
     Hunger,
-    Food
+    Food,
+    Attention,
+    TrustToken,
+    CommerceToken,
+    StatusToken,
+    ShadowToken,
+    Item
 }
 
 public enum ConversationType
@@ -27,7 +33,8 @@ public enum EmotionalState
     CONNECTED,
     GUARDED,
     TENSE,
-    DEFENSIVE
+    DEFENSIVE,
+    NEUTRAL
 }
 
 public enum CardType
@@ -64,6 +71,7 @@ public enum ActionType
 public class ConversationCard
 {
     public string Id { get; init; }
+    public string TemplateId { get; set; }
     public string Name { get; init; }
     public CardType Type { get; init; }
     public int Weight { get; init; }
@@ -82,6 +90,19 @@ public class ConversationCard
     public bool IsObservation { get; init; }
     public string ObservationType { get; init; }
     public string SourceItem { get; init; }
+    public CardMechanics Mechanics { get; set; }
+    public string Category { get; set; }
+    public CardContext Context { get; set; }
+    public int BaseComfort { get; set; }
+    public bool IsGoalCard { get; set; }
+    public string GoalCardType { get; set; }
+    public string DisplayName { get; set; }
+    public string Description { get; set; }
+    public int SuccessRate { get; set; }
+    public EmotionalState? SuccessState { get; set; }
+    public EmotionalState? FailureState { get; set; }
+    public List<EmotionalState> DrawableStates { get; set; }
+    public int PatienceBonus { get; set; }
     
     // Exchange properties
     public bool IsExchange { get; init; }
@@ -233,12 +254,49 @@ public class CardInstance
     }
 }
 
+// Card mechanics
+public class CardMechanics
+{
+    public int SuccessChance { get; set; }
+    public int ComfortReward { get; set; }
+    public Dictionary<EmotionalState, int> StateModifiers { get; set; } = new();
+}
+
 // Card context for special behaviors
 public class CardContext
 {
     public ExchangeData ExchangeData { get; set; }
     public PromiseCardData PromiseData { get; set; }
     public bool GeneratesLetterOnSuccess { get; set; }
+    
+    // Additional context properties
+    public string NPCName { get; set; }
+    public PersonalityType Personality { get; set; }
+    public PersonalityType NPCPersonality { get; set; }
+    public EmotionalState EmotionalState { get; set; }
+    public string UrgencyLevel { get; set; }
+    public bool HasDeadline { get; set; }
+    public int MinutesUntilDeadline { get; set; }
+    public string ObservationType { get; set; }
+    public string LetterId { get; set; }
+    public string TargetNpcId { get; set; }
+    public string ObservationId { get; set; }
+    public string ObservationText { get; set; }
+    public string ObservationDescription { get; set; }
+    public string ExchangeName { get; set; }
+    public Dictionary<ResourceType, int> ExchangeCost { get; set; }
+    public Dictionary<ResourceType, int> ExchangeReward { get; set; }
+    public string ObservationDecayState { get; set; }
+    public string ObservationDecayDescription { get; set; }
+    public bool IsOfferCard { get; set; }
+    public bool GrantsToken { get; set; }
+    public bool IsAcceptCard { get; set; }
+    public bool IsDeclineCard { get; set; }
+    public string OfferCardId { get; set; }
+    public string CustomText { get; set; }
+    public LetterDetails LetterDetails { get; set; }
+    public List<EmotionalState> ValidStates { get; set; }
+    public ExchangeOffer ExchangeOffer { get; set; }
 }
 
 // Exchange data for commerce cards
@@ -246,12 +304,40 @@ public class ExchangeData
 {
     public string Id { get; set; }
     public string Name { get; set; }
+    public string ExchangeName => Name;
     public string Description { get; set; }
     public Dictionary<string, int> PlayerGives { get; set; } = new();
     public Dictionary<string, int> PlayerReceives { get; set; } = new();
+    public Dictionary<ResourceType, int> Cost { get; set; } = new();
+    public Dictionary<ResourceType, int> Reward { get; set; } = new();
     public int TrustRequirement { get; set; }
     public bool IsAvailable { get; set; } = true;
     public bool SingleUse { get; set; }
+    
+    public bool CanAfford(Player player)
+    {
+        foreach (var cost in Cost)
+        {
+            switch (cost.Key)
+            {
+                case ResourceType.Coins:
+                    if (player.Coins < cost.Value) return false;
+                    break;
+                case ResourceType.Health:
+                    if (player.Health < cost.Value) return false;
+                    break;
+                case ResourceType.Food:
+                    if (player.Food < cost.Value) return false;
+                    break;
+            }
+        }
+        return true;
+    }
+    
+    public string GetNarrativeContext()
+    {
+        return $"Trading {string.Join(", ", PlayerGives.Select(kv => $"{kv.Value} {kv.Key}"))} for {string.Join(", ", PlayerReceives.Select(kv => $"{kv.Value} {kv.Key}"))}";
+    }
 }
 
 // Promise card data
@@ -417,6 +503,7 @@ public class CardDeck
     protected HashSet<string> drawnCardIds = new();
     
     public int RemainingCards => cards.Count(c => !drawnCardIds.Contains(c.Id));
+    public int Count => cards.Count;
     
     public void AddCard(ConversationCard card)
     {
@@ -462,6 +549,11 @@ public class CardDeck
     public bool HasCards()
     {
         return RemainingCards > 0;
+    }
+    
+    public static void InitializeGameWorld(GameWorld gameWorld)
+    {
+        // Card decks are initialized from JSON
     }
 }
 
@@ -577,6 +669,10 @@ public class ConversationContext
     public ConversationSession Session { get; set; }
     public List<CardInstance> ObservationCards { get; set; }
     public int AttentionSpent { get; set; }
+    public ResourceState PlayerResources { get; set; }
+    public string LocationName { get; set; }
+    public string TimeDisplay { get; set; }
+    public List<DeliveryObligation> LettersCarriedForNpc { get; set; }
 }
 
 // Conversation action
@@ -644,6 +740,58 @@ public class ResourceExchange
     public Dictionary<ResourceType, int> PlayerReceives { get; set; } = new();
     public int RequiredTrust { get; set; }
     public bool SingleUse { get; set; }
+}
+
+// LetterDetails is defined in LetterDeckRepository.cs
+
+// Exchange offer
+public class ExchangeOffer
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public Dictionary<ResourceType, int> Cost { get; set; }
+    public Dictionary<ResourceType, int> Reward { get; set; }
+}
+
+// Goal card factory
+public static class GoalCardFactory
+{
+    public static void Initialize(GameWorld gameWorld)
+    {
+        // Goal cards are loaded from JSON
+    }
+    
+    public static void InitializeGameWorld(GameWorld gameWorld)
+    {
+        // Goal cards are loaded from JSON
+    }
+}
+
+// Conversation rules
+public static class ConversationRules
+{
+    public static EmotionalState DetermineInitialState(NPC npc, ObligationQueueManager queueManager = null)
+    {
+        // Default implementation
+        return EmotionalState.GUARDED;
+    }
+}
+
+// Conversation type config
+public static class ConversationTypeConfig
+{
+    public static int GetAttentionCost(ConversationType type)
+    {
+        return type switch
+        {
+            ConversationType.FriendlyChat => 1,
+            ConversationType.Commerce => 1,
+            ConversationType.Promise => 2,
+            ConversationType.Resolution => 2,
+            ConversationType.Delivery => 1,
+            _ => 1
+        };
+    }
 }
 
 // Conversation memento for save/load

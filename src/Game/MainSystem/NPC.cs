@@ -108,14 +108,14 @@ public class NPC
                         {
                             foreach (var cost in ed.Cost)
                             {
-                                Console.WriteLine($"    Cost: {cost.Amount} {cost.ResourceType}");
+                                Console.WriteLine($"    Cost: {cost.Value} {cost.Key}");
                             }
                         }
                         if (ed.Reward?.Any() == true)
                         {
                             foreach (var reward in ed.Reward)
                             {
-                                Console.WriteLine($"    Reward: {reward.Amount} {reward.ResourceType}");
+                                Console.WriteLine($"    Reward: {reward.Value} {reward.Key}");
                             }
                         }
                     }

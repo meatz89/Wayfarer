@@ -2387,32 +2387,32 @@ public class GameFacade
             switch (cost.ResourceType)
             {
                 case ResourceType.Coins:
-                    player.Coins -= cost.Amount;
+                    player.Coins -= cost.Value;
                     break;
                 case ResourceType.Health:
-                    player.Health -= cost.Amount;
+                    player.Health -= cost.Value;
                     break;
                 case ResourceType.Attention:
                     // Attention is managed by TimeBlockAttentionManager
                     var costTimeBlock = _timeManager.GetCurrentTimeBlock();
                     var attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(costTimeBlock);
-                    if (!attentionMgr.TrySpend(cost.Amount))
+                    if (!attentionMgr.TrySpend(cost.Value))
                     {
-                        Console.WriteLine($"[ExecuteExchange] Failed to spend {cost.Amount} attention");
+                        Console.WriteLine($"[ExecuteExchange] Failed to spend {cost.Value} attention");
                         return false;
                     }
                     break;
                 case ResourceType.TrustToken:
-                    _connectionTokenManager.SpendTokens(ConnectionType.Trust, cost.Amount, npcId);
+                    _connectionTokenManager.SpendTokens(ConnectionType.Trust, cost.Value, npcId);
                     break;
                 case ResourceType.CommerceToken:
-                    _connectionTokenManager.SpendTokens(ConnectionType.Commerce, cost.Amount, npcId);
+                    _connectionTokenManager.SpendTokens(ConnectionType.Commerce, cost.Value, npcId);
                     break;
                 case ResourceType.StatusToken:
-                    _connectionTokenManager.SpendTokens(ConnectionType.Status, cost.Amount, npcId);
+                    _connectionTokenManager.SpendTokens(ConnectionType.Status, cost.Value, npcId);
                     break;
                 case ResourceType.ShadowToken:
-                    _connectionTokenManager.SpendTokens(ConnectionType.Shadow, cost.Amount, npcId);
+                    _connectionTokenManager.SpendTokens(ConnectionType.Shadow, cost.Value, npcId);
                     break;
             }
         }
@@ -2423,63 +2423,43 @@ public class GameFacade
             switch (reward.ResourceType)
             {
                 case ResourceType.Coins:
-                    player.Coins += reward.Amount;
+                    player.Coins += reward.Value;
                     break;
                 case ResourceType.Health:
-                    if (reward.IsAbsolute)
-                        player.Health = reward.Amount;
-                    else
-                        player.Health = Math.Min(100, player.Health + reward.Amount);
+                        player.Health = reward.Value;
+                        player.Health = Math.Min(100, player.Health + reward.Value);
                     break;
                 case ResourceType.Attention:
                     // Attention rewards add to current time block's attention
                     var rewardTimeBlock = _timeManager.GetCurrentTimeBlock();
                     var rewardAttentionMgr = _timeBlockAttentionManager.GetCurrentAttention(rewardTimeBlock);
-                    if (reward.IsAbsolute)
-                    {
-                        // For rest/lodging, calculate attention based on hunger formula
-                        // Formula: 10 - (hunger ÷ 25), minimum 2
-                        int playerHunger = player.Food;
-                        int calculatedAttention = _timeBlockAttentionManager.GetMorningRefreshAmount(playerHunger);
-                        rewardAttentionMgr.SetAttention(calculatedAttention);
-                        
-                        _messageSystem.AddSystemMessage(
-                            $"🌅 You wake refreshed. Attention restored to {calculatedAttention} (affected by hunger level {playerHunger})",
-                            SystemMessageTypes.Success);
-                    }
-                    else
-                    {
-                        // Add to current attention
-                        rewardAttentionMgr.AddAttention(reward.Amount);
-                    }
+                    // Add to current attention
+                    rewardAttentionMgr.AddAttention(reward.Value);
                     break;
                 case ResourceType.Hunger:
                     // Hunger maps to Food (0 = not hungry, 100 = very hungry)
                     // So setting Hunger to 0 means setting Food to max
-                    if (reward.IsAbsolute)
-                        player.Food = reward.Amount == 0 ? 100 : (100 - reward.Amount);
-                    else
-                        player.Food = Math.Max(0, Math.Min(100, player.Food - reward.Amount));
+                    player.Food = Math.Max(0, Math.Min(100, player.Food - reward.Value));
                     break;
                 case ResourceType.TrustToken:
-                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Amount, npcId);
+                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Value, npcId);
                     break;
                 case ResourceType.CommerceToken:
-                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Commerce, reward.Amount, npcId);
+                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Commerce, reward.Value, npcId);
                     break;
                 case ResourceType.StatusToken:
-                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Status, reward.Amount, npcId);
+                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Status, reward.Value, npcId);
                     break;
                 case ResourceType.ShadowToken:
-                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Amount, npcId);
+                    _connectionTokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Value, npcId);
                     break;
                 case ResourceType.Item:
                     // Add item to player inventory
-                    if (!string.IsNullOrEmpty(reward.ItemId))
+                    if (!string.IsNullOrEmpty(reward.Key.ToString()))
                     {
                         // First check if item exists or needs to be created
-                        var item = _itemRepository.GetItemById(reward.ItemId);
-                        if (item == null && reward.ItemId == "fine_silk")
+                        var item = _itemRepository.GetItemById(reward.Key.ToString());
+                        if (item == null && reward.Key.ToString() == "fine_silk")
                         {
                             // Create Fine Silk item on-demand if it doesn't exist
                             item = new Item
@@ -2500,9 +2480,9 @@ public class GameFacade
                         if (item != null)
                         {
                             // Add item to player inventory
-                            for (int i = 0; i < reward.Amount; i++)
+                            for (int i = 0; i < reward.Value; i++)
                             {
-                                if (!player.Inventory.AddItem(reward.ItemId))
+                                if (!player.Inventory.AddItem(reward.Key.ToString()))
                                 {
                                     _messageSystem.AddSystemMessage($"Your inventory is full! Could not receive {item.Name}.", SystemMessageTypes.Warning);
                                     break;
@@ -2511,7 +2491,7 @@ public class GameFacade
                         }
                         else
                         {
-                            Console.WriteLine($"[ExecuteExchange] Warning: Item '{reward.ItemId}' not found");
+                            Console.WriteLine($"[ExecuteExchange] Warning: Item '{reward.Key.ToString()}' not found");
                         }
                     }
                     break;
