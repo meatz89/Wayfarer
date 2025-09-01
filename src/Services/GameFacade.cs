@@ -64,11 +64,11 @@ public class GameFacade
 
     public MessageSystem GetMessageSystem() => _messageSystem;
 
-    public (int Current, int Max, TimeBlocks TimeBlock) GetCurrentAttentionState()
+    public AttentionStateInfo GetCurrentAttentionState()
     {
         var timeBlock = _timeFacade.GetCurrentTimeBlock();
-        var (current, max) = _resourceFacade.GetAttention(timeBlock);
-        return (current, max, timeBlock);
+        var attention = _resourceFacade.GetAttention(timeBlock);
+        return new AttentionStateInfo(attention.Current, attention.Max, timeBlock);
     }
 
     // ========== LOCATION OPERATIONS ==========
@@ -119,7 +119,7 @@ public class GameFacade
 
     // ========== TIME OPERATIONS ==========
 
-    public (TimeBlocks timeBlock, int hoursRemaining, int currentDay) GetTimeInfo() => _timeFacade.GetTimeInfo();
+    public TimeInfo GetTimeInfo() => _timeFacade.GetTimeInfo();
 
     public int GetCurrentHour() => _timeFacade.GetCurrentHour();
 
@@ -343,7 +343,17 @@ public class GameFacade
     
     public List<RouteOption> GetRoutesToDestination(string destinationId) => new List<RouteOption>();
     
-    public void AddLetterWithObligationEffects(object letterData) { /* TODO */ }
+    public void AddLetterWithObligationEffects(object letterData) 
+    {
+        if (letterData is DeliveryObligation obligation)
+        {
+            _obligationFacade.AddLetterWithObligationEffects(obligation);
+        }
+        else
+        {
+            Console.WriteLine($"Warning: AddLetterWithObligationEffects called with invalid data type: {letterData?.GetType()?.Name ?? "null"}");
+        }
+    }
 
     // ========== PRIVATE HELPERS ==========
 

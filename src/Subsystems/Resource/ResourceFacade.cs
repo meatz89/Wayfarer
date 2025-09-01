@@ -110,9 +110,10 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         
         // ========== ATTENTION OPERATIONS ==========
         
-        public (int Current, int Max) GetAttention(TimeBlocks timeBlock)
+        public AttentionInfo GetAttention(TimeBlocks timeBlock)
         {
-            return _attentionManager.GetAttentionForTimeBlock(_gameWorld.GetPlayer(), timeBlock);
+            var attention = _attentionManager.GetAttentionForTimeBlock(_gameWorld.GetPlayer(), timeBlock);
+            return new AttentionInfo(attention.Current, attention.Max);
         }
         
         public bool CanAffordAttention(int amount, TimeBlocks timeBlock)

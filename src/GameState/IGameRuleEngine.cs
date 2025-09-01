@@ -34,8 +34,8 @@ public interface IGameRuleEngine
     bool ShouldOfferEmergencyActions(Player player);
     int CalculateDebtLeverage(int tokenBalance);
 
-    // DeliveryObligation payments and deadlines
-    (int min, int max) GetPaymentRangeForCategory(LetterCategory category);
+    // Letter payments and deadlines
+    PaymentRange GetPaymentRangeForCategory(LetterCategory category);
     int CalculateLateDeliveryPenalty(DeliveryObligation letter, int daysLate);
 
     // Patron mechanics  

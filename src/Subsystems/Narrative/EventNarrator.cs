@@ -96,27 +96,27 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Generate narrative for token gains with NPC-specific reactions
         /// </summary>
-        public (string reaction, string summary) GenerateTokenGainNarrative(ConnectionType type, int count, string npcId)
+        public TokenNarrativeResult GenerateTokenGainNarrative(ConnectionType type, int count, string npcId)
         {
-            if (string.IsNullOrEmpty(npcId)) return (null, null);
+            if (string.IsNullOrEmpty(npcId)) return null;
 
             NPC npc = _npcRepository.GetById(npcId);
-            if (npc == null) return (null, null);
+            if (npc == null) return null;
 
             string[] reactions = GetTokenGainReactions(type, npc.Name);
             string reaction = reactions[_random.Next(reactions.Length)];
             string summary = $"+{count} {type} connection with {npc.Name}";
 
-            return (reaction, summary);
+            return new TokenNarrativeResult(reaction, summary);
         }
 
         /// <summary>
         /// Generate narrative for relationship milestones
         /// </summary>
-        public (string milestone, string additional) GenerateRelationshipMilestone(string npcId, int totalTokens)
+        public MilestoneNarrativeResult GenerateRelationshipMilestone(string npcId, int totalTokens)
         {
             NPC npc = _npcRepository.GetById(npcId);
-            if (npc == null) return (null, null);
+            if (npc == null) return null;
 
             Dictionary<int, string> milestones = new Dictionary<int, string>
             {
@@ -133,10 +133,10 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
                 string additional = totalTokens == 3
                     ? $"📮 {npc.Name} may now offer you letter delivery opportunities!"
                     : null;
-                return (message, additional);
+                return new MilestoneNarrativeResult(message, additional);
             }
 
-            return (null, null);
+            return null;
         }
 
         /// <summary>

@@ -131,19 +131,19 @@ public class PlayerObservationDeck
     /// <summary>
     /// Get info about deck state for UI
     /// </summary>
-    public (int current, int max) GetDeckInfo()
+    public DeckInfo GetDeckInfo()
     {
-        return (_cards.Count, MaxCards);
+        return new DeckInfo(_cards.Count, MaxCards);
     }
     
     /// <summary>
     /// Get detailed card info for UI display
     /// </summary>
-    public List<(ObservationCard card, int hoursRemaining)> GetCardDetails(int currentDay, TimeBlocks currentTimeBlock)
+    public List<ObservationCardDetail> GetCardDetails(int currentDay, TimeBlocks currentTimeBlock)
     {
         RemoveExpiredCards(currentDay, currentTimeBlock);
         
-        var details = new List<(ObservationCard, int)>();
+        var details = new List<ObservationCardDetail>();
         foreach (var entry in _cards)
         {
             int daysElapsed = currentDay - entry.DayAcquired;
@@ -151,7 +151,7 @@ public class PlayerObservationDeck
             int hoursElapsed = timeBlocksElapsed * 4;
             int hoursRemaining = Math.Max(0, 48 - hoursElapsed); // 48 hour default expiration
             
-            details.Add((entry.Card, hoursRemaining));
+            details.Add(new ObservationCardDetail(entry.Card, hoursRemaining));
         }
         
         return details;

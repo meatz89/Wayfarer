@@ -8,6 +8,7 @@
     [Parameter] public CardContext Context { get; set; }
     [Parameter] public string NPCName { get; set; }
     [Parameter] public bool IsPlayerCard { get; set; } = true;
+    [Parameter] public ConversationCard Card { get; set; }
 
     private string GetCardText()
     {
@@ -35,10 +36,8 @@
 
     private int GetCardWeight()
     {
-        // Weight should come from the card data, not template matching!
-        // This is a mechanical property that should be on the card itself
-        // TODO: Get this from card.Weight property instead
-        return 1; // Default weight until properly connected
+        // Get weight directly from the card's mechanical properties
+        return Card?.Weight ?? 1; // Default to 1 if Card is null
     }
 
     private string GetCardTypeClass()

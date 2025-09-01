@@ -215,15 +215,15 @@ public class GameRuleEngine : IGameRuleEngine
         return 0;
     }
 
-    // DeliveryObligation payments and deadlines
-    public (int min, int max) GetPaymentRangeForCategory(LetterCategory category)
+    // Letter payments and deadlines
+    public PaymentRange GetPaymentRangeForCategory(LetterCategory category)
     {
         return category switch
         {
-            LetterCategory.Basic => (_config.LetterPayment.BasicMin, _config.LetterPayment.BasicMax),
-            LetterCategory.Quality => (_config.LetterPayment.QualityMin, _config.LetterPayment.QualityMax),
-            LetterCategory.Premium => (_config.LetterPayment.PremiumMin, _config.LetterPayment.PremiumMax),
-            _ => (_config.LetterPayment.BasicMin, _config.LetterPayment.BasicMax)
+            LetterCategory.Basic => new PaymentRange(_config.LetterPayment.BasicMin, _config.LetterPayment.BasicMax),
+            LetterCategory.Quality => new PaymentRange(_config.LetterPayment.QualityMin, _config.LetterPayment.QualityMax),
+            LetterCategory.Premium => new PaymentRange(_config.LetterPayment.PremiumMin, _config.LetterPayment.PremiumMax),
+            _ => new PaymentRange(_config.LetterPayment.BasicMin, _config.LetterPayment.BasicMax)
         };
     }
 

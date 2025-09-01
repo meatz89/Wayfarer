@@ -145,8 +145,35 @@ namespace Wayfarer.Pages
             CurrentTime = $"{hour % 12:00}:00 {(hour >= 12 ? "PM" : "AM")}";
             TimePeriod = period;
             
-            // TODO: Get most urgent deadline from queue
-            MostUrgentDeadline = "";
+            // Get most urgent deadline from queue
+            var queueVM = GameFacade.GetLetterQueue();
+            if (queueVM?.QueueSlots != null)
+            {
+                LetterViewModel mostUrgent = null;
+                foreach (var slot in queueVM.QueueSlots)
+                {
+                    if (slot.IsOccupied && slot.DeliveryObligation != null)
+                    {
+                        if (mostUrgent == null || slot.DeliveryObligation.DeadlineInHours < mostUrgent.DeadlineInHours)
+                        {
+                            mostUrgent = slot.DeliveryObligation;
+                        }
+                    }
+                }
+                
+                if (mostUrgent != null && mostUrgent.DeadlineInHours > 0)
+                {
+                    MostUrgentDeadline = $"Next deadline: {mostUrgent.DeadlineInHours}h - {mostUrgent.Name}";
+                }
+                else
+                {
+                    MostUrgentDeadline = "";
+                }
+            }
+            else
+            {
+                MostUrgentDeadline = "";
+            }
         }
 
         protected async Task RefreshLocationDisplay()

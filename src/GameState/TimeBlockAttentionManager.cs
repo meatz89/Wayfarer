@@ -61,12 +61,12 @@ public class TimeBlockAttentionManager
     /// <summary>
     /// Get a summary of attention state for UI display
     /// </summary>
-    public (int current, int max) GetAttentionState()
+    public AttentionInfo GetAttentionState()
     {
         if (_attention == null)
-            return (0, 7);
+            return new AttentionInfo(0, 7);
 
-        return (_attention.GetAvailableAttention(), _attention.GetMaxAttention());
+        return new AttentionInfo(_attention.GetAvailableAttention(), _attention.GetMaxAttention());
     }
 
     /// <summary>

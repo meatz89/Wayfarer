@@ -57,9 +57,9 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             return _timeManager.HoursRemaining;
         }
         
-        public (TimeBlocks timeBlock, int hoursRemaining, int currentDay) GetTimeInfo()
+        public TimeInfo GetTimeInfo()
         {
-            return (
+            return new TimeInfo(
                 GetCurrentTimeBlock(),
                 GetHoursRemaining(),
                 GetCurrentDay());

@@ -22,31 +22,31 @@ public class NarrativeService
 
     /// <summary>
     /// Generate narrative for token gains with NPC-specific reactions
-    /// Returns: (reaction narrative, token summary)
+    /// Returns: TokenNarrativeResult or null if invalid NPC
     /// </summary>
-    public (string reaction, string summary) GenerateTokenGainNarrative(ConnectionType type, int count, string npcId)
+    public TokenNarrativeResult GenerateTokenGainNarrative(ConnectionType type, int count, string npcId)
     {
-        if (string.IsNullOrEmpty(npcId)) return (null, null);
+        if (string.IsNullOrEmpty(npcId)) return null;
 
         NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null) return (null, null);
+        if (npc == null) return null;
 
         // Get type-specific reactions
         string[] reactions = GetTokenGainReactions(type, npc.Name);
         string reaction = reactions[_random.Next(reactions.Length)];
         string summary = $"+{count} {type} connection with {npc.Name}";
 
-        return (reaction, summary);
+        return new TokenNarrativeResult(reaction, summary);
     }
 
     /// <summary>
     /// Generate narrative for relationship milestones when reaching token thresholds
-    /// Returns: (milestone message, additional info) or (null, null) if no milestone
+    /// Returns: MilestoneNarrativeResult or null if no milestone
     /// </summary>
-    public (string milestone, string additional) GenerateRelationshipMilestone(string npcId, int totalTokens)
+    public MilestoneNarrativeResult GenerateRelationshipMilestone(string npcId, int totalTokens)
     {
         NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null) return (null, null);
+        if (npc == null) return null;
 
         Dictionary<int, string> milestones = new Dictionary<int, string>
             {
@@ -63,32 +63,32 @@ public class NarrativeService
             string additional = totalTokens == 3
                 ? $"📮 {npc.Name} may now offer you letter delivery opportunities!"
                 : null;
-            return (message, additional);
+            return new MilestoneNarrativeResult(message, additional);
         }
 
-        return (null, null);
+        return null;
     }
 
     /// <summary>
     /// Generate narrative for relationship damage when tokens are removed
-    /// Returns: (message, severity level)
+    /// Returns: NarrativeResult or null if invalid NPC
     /// </summary>
-    public (string message, string severity) GenerateRelationshipDamageNarrative(string npcId, ConnectionType type, int remainingTokens)
+    public NarrativeResult GenerateRelationshipDamageNarrative(string npcId, ConnectionType type, int remainingTokens)
     {
         NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null) return (null, null);
+        if (npc == null) return null;
 
         if (remainingTokens < 0)
         {
-            return ($"{npc.Name} feels you owe them for past failures.", "danger");
+            return new NarrativeResult($"{npc.Name} feels you owe them for past failures.", "danger");
         }
         else if (remainingTokens == 0)
         {
-            return ($"Your {type} relationship with {npc.Name} has been completely severed.", "warning");
+            return new NarrativeResult($"Your {type} relationship with {npc.Name} has been completely severed.", "warning");
         }
         else
         {
-            return ($"Your relationship with {npc.Name} has been damaged.", "warning");
+            return new NarrativeResult($"Your relationship with {npc.Name} has been damaged.", "warning");
         }
     }
 
@@ -115,9 +115,9 @@ public class NarrativeService
 
     /// <summary>
     /// Generate narrative for morning letter generation
-    /// Returns: (morning narrative, letter count narrative, severity)
+    /// Returns: MorningNarrativeResult
     /// </summary>
-    public (string morning, string letterCount, string severity) GenerateMorningLetterNarrative(int lettersGenerated, bool queueFull)
+    public MorningNarrativeResult GenerateMorningLetterNarrative(int lettersGenerated, bool queueFull)
     {
         // Morning arrival narrative
         string[] morningNarratives = new[]
@@ -147,7 +147,7 @@ public class NarrativeService
             letterCount = "No new letters have arrived this morning.";
         }
 
-        return (morning, letterCount, severity);
+        return new MorningNarrativeResult(morning, letterCount, severity);
     }
 
     /// <summary>
@@ -181,9 +181,9 @@ public class NarrativeService
 
     /// <summary>
     /// Generate narrative for time block transitions
-    /// Returns: (transition narrative, action narrative)
+    /// Returns: TransitionNarrativeResult
     /// </summary>
-    public (string transition, string action) GenerateTimeTransitionNarrative(TimeBlocks from, TimeBlocks to, string actionDescription = null)
+    public TransitionNarrativeResult GenerateTimeTransitionNarrative(TimeBlocks from, TimeBlocks to, string actionDescription = null)
     {
         string transition = GetTimeTransitionNarrative(from, to);
         string action = null;
@@ -193,32 +193,32 @@ public class NarrativeService
             action = $"You spent time {actionDescription}.";
         }
 
-        return (transition, action);
+        return new TransitionNarrativeResult(transition, action);
     }
 
     /// <summary>
     /// Generate narrative for standing obligation warnings
-    /// Returns: (message, severity) or (null, null) if no warning needed
+    /// Returns: NarrativeResult or null if no warning needed
     /// </summary>
-    public (string message, string severity) GenerateObligationWarning(StandingObligation obligation, int daysUntilForced)
+    public NarrativeResult GenerateObligationWarning(StandingObligation obligation, int daysUntilForced)
     {
         if (daysUntilForced == 1)
         {
-            return ($"⚠️ Your {obligation.Name} obligation will demand action tomorrow!", "warning");
+            return new NarrativeResult($"⚠️ Your {obligation.Name} obligation will demand action tomorrow!", "warning");
         }
         else if (daysUntilForced == 0)
         {
-            return ($"📮 Your {obligation.Name} obligation forces a letter into your queue!", "danger");
+            return new NarrativeResult($"📮 Your {obligation.Name} obligation forces a letter into your queue!", "danger");
         }
 
-        return (null, null);
+        return null;
     }
 
     /// <summary>
     /// Generate narrative for letter deadline warnings
-    /// Returns: (message, severity)
+    /// Returns: NarrativeResult
     /// </summary>
-    public (string message, string severity) GenerateDeadlineWarning(DeliveryObligation letter, int daysRemaining)
+    public NarrativeResult GenerateDeadlineWarning(DeliveryObligation letter, int daysRemaining)
     {
         string urgency = daysRemaining switch
         {
@@ -231,7 +231,7 @@ public class NarrativeService
         string severity = daysRemaining <= 1 ? "warning" : "info";
         string message = $"⏰ DeliveryObligation from {letter.SenderName} {urgency}!";
 
-        return (message, severity);
+        return new NarrativeResult(message, severity);
     }
 
 

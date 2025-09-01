@@ -9,22 +9,22 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
     /// </summary>
     public class AttentionManager
     {
-        private Dictionary<TimeBlocks, (int Current, int Max)> _attentionByTimeBlock = new Dictionary<TimeBlocks, (int, int)>();
+        private Dictionary<TimeBlocks, AttentionInfo> _attentionByTimeBlock = new Dictionary<TimeBlocks, AttentionInfo>();
         
-        public (int Current, int Max) GetAttentionForTimeBlock(Player player, TimeBlocks timeBlock)
+        public AttentionInfo GetAttentionForTimeBlock(Player player, TimeBlocks timeBlock)
         {
             if (!_attentionByTimeBlock.ContainsKey(timeBlock))
             {
                 // Initialize with default values if not set
-                return (0, 0);
+                return new AttentionInfo(0, 0);
             }
             return _attentionByTimeBlock[timeBlock];
         }
         
         public bool CanAfford(Player player, int amount, TimeBlocks timeBlock)
         {
-            var (current, max) = GetAttentionForTimeBlock(player, timeBlock);
-            return current >= amount;
+            var attention = GetAttentionForTimeBlock(player, timeBlock);
+            return attention.Current >= amount;
         }
         
         public bool SpendAttention(Player player, int amount, TimeBlocks timeBlock, string reason, MessageSystem messageSystem)
@@ -37,20 +37,20 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
                 return false;
             }
             
-            var (current, max) = _attentionByTimeBlock[timeBlock];
-            _attentionByTimeBlock[timeBlock] = (current - amount, max);
+            var attention = _attentionByTimeBlock[timeBlock];
+            _attentionByTimeBlock[timeBlock] = new AttentionInfo(attention.Current - amount, attention.Max);
             
             messageSystem.AddSystemMessage(
-                $"🧠 Spent {amount} attention on {reason} ({current - amount}/{max} remaining)",
+                $"🧠 Spent {amount} attention on {reason} ({attention.Current - amount}/{attention.Max} remaining)",
                 SystemMessageTypes.Info);
             
-            Console.WriteLine($"[AttentionManager] Spent {amount} attention on {reason} during {timeBlock}. Remaining: {current - amount}/{max}");
+            Console.WriteLine($"[AttentionManager] Spent {amount} attention on {reason} during {timeBlock}. Remaining: {attention.Current - amount}/{attention.Max}");
             return true;
         }
         
         public void RefreshForTimeBlock(Player player, TimeBlocks timeBlock, int maxAttention, MessageSystem messageSystem)
         {
-            _attentionByTimeBlock[timeBlock] = (maxAttention, maxAttention);
+            _attentionByTimeBlock[timeBlock] = new AttentionInfo(maxAttention, maxAttention);
             
             messageSystem.AddSystemMessage(
                 $"🧠 Attention refreshed for {timeBlock}: {maxAttention} points available",
@@ -67,18 +67,18 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
                 return;
             }
             
-            var (current, max) = _attentionByTimeBlock[timeBlock];
-            int newCurrent = Math.Min(max, current + amount);
-            int actualRestore = newCurrent - current;
+            var attention = _attentionByTimeBlock[timeBlock];
+            int newCurrent = Math.Min(attention.Max, attention.Current + amount);
+            int actualRestore = newCurrent - attention.Current;
             
             if (actualRestore > 0)
             {
-                _attentionByTimeBlock[timeBlock] = (newCurrent, max);
+                _attentionByTimeBlock[timeBlock] = new AttentionInfo(newCurrent, attention.Max);
                 messageSystem.AddSystemMessage(
-                    $"🧠 Restored {actualRestore} attention from {source} ({newCurrent}/{max})",
+                    $"🧠 Restored {actualRestore} attention from {source} ({newCurrent}/{attention.Max})",
                     SystemMessageTypes.Success);
                 
-                Console.WriteLine($"[AttentionManager] Restored {actualRestore} attention from {source}. Current: {newCurrent}/{max}");
+                Console.WriteLine($"[AttentionManager] Restored {actualRestore} attention from {source}. Current: {newCurrent}/{attention.Max}");
             }
         }
     }

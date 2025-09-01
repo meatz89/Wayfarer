@@ -105,9 +105,9 @@ public sealed class InventoryState
 
     /// <summary>
     /// Creates a new InventoryState with multiple items added.
-    /// Returns the new state and the number of items actually added.
+    /// Returns AddItemResult with the new state and the number of items actually added.
     /// </summary>
-    public (InventoryState newState, int addedCount) WithAddedItems(string item, int count)
+    public AddItemResult WithAddedItems(string item, int count)
     {
         InventoryState currentState = this;
         int addedCount = 0;
@@ -121,14 +121,14 @@ public sealed class InventoryState
             addedCount++;
         }
 
-        return (currentState, addedCount);
+        return new AddItemResult(currentState, addedCount);
     }
 
     /// <summary>
     /// Creates a new InventoryState with multiple items removed.
-    /// Returns the new state and the number of items actually removed.
+    /// Returns RemoveItemResult with the new state and the number of items actually removed.
     /// </summary>
-    public (InventoryState newState, int removedCount) WithRemovedItems(string item, int count)
+    public RemoveItemResult WithRemovedItems(string item, int count)
     {
         InventoryState currentState = this;
         int removedCount = 0;
@@ -142,7 +142,7 @@ public sealed class InventoryState
             removedCount++;
         }
 
-        return (currentState, removedCount);
+        return new RemoveItemResult(currentState, removedCount);
     }
 
     /// <summary>

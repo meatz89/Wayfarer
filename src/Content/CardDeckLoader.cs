@@ -346,7 +346,9 @@ public class CardDeckLoader
                 SuccessState = successState,
                 DrawableStates = drawableStates,
                 PatienceBonus = patienceBonus,
-                DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
+                DisplayName = template.TryGetProperty("displayName", out var displayNameElem) 
+                    ? displayNameElem.GetString() 
+                    : id.Replace("_", " "), // Fallback to formatted ID
                 Description = description,
                 SuccessRate = 70 - (weight * 10) // Base success rate calculation
             };
@@ -430,7 +432,9 @@ public class CardDeckLoader
                 IsGoalCard = true,
                 GoalCardType = goalType.ToString(),
                 DrawableStates = validStates,  // CRITICAL: Set DrawableStates to control when card can be drawn
-                DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
+                DisplayName = goalData.TryGetProperty("displayName", out var displayNameElem) 
+                    ? displayNameElem.GetString() 
+                    : id.Replace("_", " "), // Fallback to formatted ID
                 Description = GetGoalDescription(goalData),
                 SuccessRate = 50 // Goal cards have base 50% success
             };
@@ -518,7 +522,9 @@ public class CardDeckLoader
                 Persistence = PersistenceType.Fleeting,
                 Weight = 0, // Exchange cards have no weight
                 BaseComfort = 0,
-                DisplayName = id.Replace("_", " "), // TODO: Read displayName from JSON template
+                DisplayName = exchangeData.TryGetProperty("displayName", out var displayNameElem) 
+                    ? displayNameElem.GetString() 
+                    : id.Replace("_", " "), // Fallback to formatted ID
                 Description = description,
                 SuccessRate = 100, // Exchange cards always succeed if affordable
                 IsExchange = true, // Mark as exchange card

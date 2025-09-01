@@ -132,7 +132,10 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         GameWorldSnapshot snapshot = GameFacade.GetGameSnapshot();
 
         // Update time info
-        (TimeBlocks timeBlock, int hoursRemaining, int currentDay) = GameFacade.GetTimeInfo();
+        var timeInfo = GameFacade.GetTimeInfo();
+        TimeBlocks timeBlock = timeInfo.TimeBlock;
+        int hoursRemaining = timeInfo.HoursRemaining;
+        int currentDay = timeInfo.CurrentDay;
         CurrentTimeBlock = timeBlock;
         CurrentHour = GameFacade.GetCurrentHour(); // Get actual hour (0-23), not hours remaining
 

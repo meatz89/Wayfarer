@@ -65,7 +65,8 @@
         var attentionState = GameFacade.GetCurrentAttentionState();
         CurrentAttention = attentionState.Current;
         MaxAttention = attentionState.Max;
-        var (timeBlock, _, _) = GameFacade.GetTimeInfo();
+        var timeInfo = GameFacade.GetTimeInfo();
+        var timeBlock = timeInfo.TimeBlock;
         CurrentTimeBlock = timeBlock;
     }
 
