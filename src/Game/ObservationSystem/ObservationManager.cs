@@ -213,39 +213,22 @@ public class ObservationManager
             return null;
         }
 
-        // Create a new card instance based on the template, customized for this observation
-        ConversationCard observationCard = new ConversationCard
-        {
-            Id = $"{observation.Id}_card_{Guid.NewGuid()}",
-            Mechanics = baseCard.Mechanics,
-            Category = baseCard.Category,
-            Type = baseCard.Type,
-            Persistence = PersistenceType.Fleeting, // Observation cards are fleeting
-            Weight = baseCard.Weight,
-            BaseComfort = baseCard.BaseComfort,
-            IsObservation = true,
-            ObservationSource = observation.Id,
-            CanDeliverLetter = baseCard.CanDeliverLetter,
-            ManipulatesObligations = baseCard.ManipulatesObligations,
-            SuccessState = baseCard.SuccessState,
-            FailureState = baseCard.FailureState,
-            SuccessRate = baseCard.SuccessRate,
-            DisplayName = baseCard.DisplayName ?? observation.Text,
-            Description = baseCard.Description ?? observation.Description,
-            Context = new CardContext
-            {
-                Personality = PersonalityType.STEADFAST,
-                EmotionalState = EmotionalState.NEUTRAL,
-                UrgencyLevel = "Normal",
-                HasDeadline = false,
-                ObservationType = observation.Type.ToString(),
-                ObservationId = observation.Id,
-                ObservationText = observation.Text,
-                ObservationDescription = observation.Description
-            }
-        };
+        // Deep clone the card from the template - no procedural generation
+        ConversationCard observationCard = baseCard.DeepClone();
+        
+        // Only update the ID and observation-specific metadata
+        observationCard.Id = $"{observation.Id}_card_{Guid.NewGuid()}";
+        observationCard.IsObservation = true;
+        observationCard.ObservationSource = observation.Id;
+        observationCard.Persistence = PersistenceType.Fleeting; // Observation cards are always fleeting
+        
+        // Update display information if not already set
+        if (string.IsNullOrEmpty(observationCard.DisplayName))
+            observationCard.DisplayName = observation.Text;
+        if (string.IsNullOrEmpty(observationCard.Description))
+            observationCard.Description = observation.Description;
 
-        Console.WriteLine($"[ObservationManager] Generated observation card {observationCard.Id} from template {observation.CardTemplate} for observation {observation.Id}");
+        Console.WriteLine($"[ObservationManager] Cloned observation card {observationCard.Id} from template {observation.CardTemplate} for observation {observation.Id}");
         return observationCard;
     }
 

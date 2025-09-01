@@ -1,0 +1,395 @@
+{
+  "locationObservations": {
+    "market_square": {
+      "morning": [
+        {
+          "id": "guard_routes",
+          "name": "Guard Patrol Routes",
+          "description": "You notice the guards follow predictable patterns",
+          "uniqueEffect": "SetPressured",
+          "expirationHours": 24,
+          "tokenType": "Shadow",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "I've been watching the guards. They change shifts at dawn and dusk."
+        },
+        {
+          "id": "merchant_gossip",
+          "name": "Merchant Gossip",
+          "description": "Overhear traders discussing prices",
+          "uniqueEffect": "SetInformed",
+          "expirationHours": 12,
+          "tokenType": "Commerce",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The merchants are saying silk prices will rise next week."
+        },
+        {
+          "id": "noble_carriage",
+          "name": "Noble Presence",
+          "description": "A noble's carriage arrives at the square",
+          "uniqueEffect": "SetExposed",
+          "expirationHours": 6,
+          "tokenType": "Status",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "I saw Lord Blackwood's carriage this morning. He seemed agitated."
+        }
+      ],
+      "afternoon": [
+        {
+          "id": "crowded_market",
+          "name": "Busy Crowds",
+          "description": "The afternoon rush provides cover",
+          "uniqueEffect": "FreePatience",
+          "expirationHours": 4,
+          "tokenType": "Shadow",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The market is so crowded now, no one would notice us talking."
+        },
+        {
+          "id": "vendor_dispute",
+          "name": "Vendor Argument",
+          "description": "Two merchants argue over territory",
+          "uniqueEffect": "SetSynchronized",
+          "expirationHours": 8,
+          "tokenType": "Commerce",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "Those vendors fighting over stall space revealed interesting information."
+        }
+      ],
+      "evening": [
+        {
+          "id": "closing_deals",
+          "name": "Last Minute Deals",
+          "description": "Merchants eager to sell before closing",
+          "uniqueEffect": "FreeWeight",
+          "expirationHours": 2,
+          "tokenType": "Commerce",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The merchants are desperate to clear inventory before closing."
+        },
+        {
+          "id": "guard_shift_change",
+          "name": "Shift Change",
+          "description": "Guards are distracted during shift change",
+          "uniqueEffect": "ResetComfort",
+          "expirationHours": 1,
+          "tokenType": "Shadow",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The guards are changing shifts. This is our opportunity."
+        }
+      ]
+    },
+    "copper_kettle": {
+      "withElena": [
+        {
+          "id": "shared_hardship",
+          "name": "Shared Hardship",
+          "description": "Elena's struggle resonates with you",
+          "uniqueEffect": "SetInformed",
+          "expirationHours": 48,
+          "tokenType": "Trust",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "I understand Elena's situation better now. We have more in common than I thought."
+        },
+        {
+          "id": "elena_tells",
+          "name": "Elena's Tells",
+          "description": "You notice when Elena is nervous",
+          "uniqueEffect": "SetSynchronized",
+          "expirationHours": 24,
+          "tokenType": "Trust",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "Elena touches her necklace when she's anxious. She's doing it now."
+        }
+      ],
+      "withMarcus": [
+        {
+          "id": "marcus_contacts",
+          "name": "Marcus's Network",
+          "description": "Learn about his trade connections",
+          "uniqueEffect": "SetInformed",
+          "expirationHours": 36,
+          "tokenType": "Commerce",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "Marcus mentioned his contacts in the silk guild. That could be useful."
+        },
+        {
+          "id": "marcus_weakness",
+          "name": "Marcus's Greed",
+          "description": "His love of gold is obvious",
+          "uniqueEffect": "FreeWeight",
+          "expirationHours": 24,
+          "tokenType": "Commerce",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "Marcus's eyes lit up at the mention of profit. He can't resist a good deal."
+        }
+      ],
+      "mainHall": [
+        {
+          "id": "tavern_atmosphere",
+          "name": "Tavern Warmth",
+          "description": "The cozy atmosphere loosens tongues",
+          "uniqueEffect": "SetReceptive",
+          "expirationHours": 12,
+          "tokenType": "Trust",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The warmth and ale make everyone more talkative here."
+        },
+        {
+          "id": "regular_patrons",
+          "name": "Regular Customers",
+          "description": "The regulars know everything",
+          "uniqueEffect": "SetInformed",
+          "expirationHours": 24,
+          "tokenType": "Shadow",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "These regulars hear everything. They're better than spies."
+        }
+      ]
+    },
+    "noble_district": {
+      "morning": [
+        {
+          "id": "servant_gossip",
+          "name": "Servant Network",
+          "description": "Servants share noble secrets",
+          "uniqueEffect": "SetInformed",
+          "expirationHours": 24,
+          "tokenType": "Shadow",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The servants talk when they think no one's listening."
+        },
+        {
+          "id": "noble_protocol",
+          "name": "Court Etiquette",
+          "description": "Understanding of noble customs",
+          "uniqueEffect": "FreePatience",
+          "expirationHours": 48,
+          "tokenType": "Status",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "I've learned the proper way to address nobility. It opens doors."
+        }
+      ],
+      "withBlackwood": [
+        {
+          "id": "blackwood_ambition",
+          "name": "Blackwood's Ambition",
+          "description": "His political aspirations are clear",
+          "uniqueEffect": "SetExposed",
+          "expirationHours": 36,
+          "tokenType": "Status",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "Lord Blackwood wants a seat on the royal council. The marriage is political."
+        },
+        {
+          "id": "blackwood_pressure",
+          "name": "Under Pressure",
+          "description": "Blackwood is facing deadlines",
+          "uniqueEffect": "SetPressured",
+          "expirationHours": 12,
+          "tokenType": "Status",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "Blackwood needs this marriage soon. The king's summons approaches."
+        }
+      ]
+    },
+    "guard_tower": {
+      "withCaptain": [
+        {
+          "id": "captain_pragmatic",
+          "name": "Captain's Pragmatism",
+          "description": "The captain values results over rules",
+          "uniqueEffect": "FreeWeight",
+          "expirationHours": 24,
+          "tokenType": "Shadow",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The captain cares more about keeping peace than following every law."
+        },
+        {
+          "id": "captain_network",
+          "name": "Guard Intelligence",
+          "description": "The guards know everything",
+          "uniqueEffect": "SetInformed",
+          "expirationHours": 36,
+          "tokenType": "Shadow",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The captain's guards report everything. He knows more than he lets on."
+        }
+      ],
+      "morning": [
+        {
+          "id": "guard_training",
+          "name": "Training Schedule",
+          "description": "Guards are busy with drills",
+          "uniqueEffect": "FreePatience",
+          "expirationHours": 6,
+          "tokenType": "Shadow",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The guards train every morning. They're too busy to patrol properly."
+        }
+      ]
+    },
+    "library": {
+      "general": [
+        {
+          "id": "hidden_knowledge",
+          "name": "Forbidden Section",
+          "description": "Discovery of restricted books",
+          "uniqueEffect": "SetInformed",
+          "expirationHours": 72,
+          "tokenType": "Shadow",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "I found books the nobles don't want commoners reading."
+        },
+        {
+          "id": "research_insight",
+          "name": "Research Discovery",
+          "description": "Uncovered useful information",
+          "uniqueEffect": "SetSynchronized",
+          "expirationHours": 48,
+          "tokenType": "Trust",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "This old text mentions something relevant to our situation."
+        }
+      ],
+      "withScholar": [
+        {
+          "id": "scholar_wisdom",
+          "name": "Scholar's Insight",
+          "description": "Academic perspective on events",
+          "uniqueEffect": "RefreshWeight",
+          "expirationHours": 36,
+          "tokenType": "Status",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The scholar explained the historical context. Everything makes more sense now."
+        }
+      ]
+    },
+    "docks": {
+      "night": [
+        {
+          "id": "smuggler_activity",
+          "name": "Smuggler Routes",
+          "description": "Witness illegal shipments",
+          "uniqueEffect": "SetExposed",
+          "expirationHours": 12,
+          "tokenType": "Shadow",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "I saw smugglers unloading at the third pier. They paid off the guards."
+        },
+        {
+          "id": "ship_schedules",
+          "name": "Departure Times",
+          "description": "Learn when ships leave port",
+          "uniqueEffect": "SetInformed",
+          "expirationHours": 24,
+          "tokenType": "Commerce",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "Ships to the capital leave at dawn. Passage costs 20 coins."
+        }
+      ],
+      "withSailor": [
+        {
+          "id": "sailor_tales",
+          "name": "Sailor Stories",
+          "description": "Tales from distant lands",
+          "uniqueEffect": "FreePatience",
+          "expirationHours": 24,
+          "tokenType": "Trust",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The sailor's stories of foreign lands give perspective on our troubles."
+        }
+      ]
+    },
+    "temple": {
+      "general": [
+        {
+          "id": "divine_insight",
+          "name": "Spiritual Clarity",
+          "description": "Meditation brings understanding",
+          "uniqueEffect": "ResetComfort",
+          "expirationHours": 48,
+          "tokenType": "Trust",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The temple's peace helped me see things clearly."
+        },
+        {
+          "id": "priest_wisdom",
+          "name": "Priestly Counsel",
+          "description": "Spiritual guidance on moral choices",
+          "uniqueEffect": "SetInformed",
+          "expirationHours": 36,
+          "tokenType": "Trust",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The priest's words about duty and conscience ring true."
+        }
+      ],
+      "withPriest": [
+        {
+          "id": "confession_booth",
+          "name": "Confession Secrets",
+          "description": "The priest hints at others' sins",
+          "uniqueEffect": "SetSynchronized",
+          "expirationHours": 24,
+          "tokenType": "Shadow",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "The priest can't break the seal, but his hints are revealing."
+        }
+      ]
+    },
+    "theater": {
+      "evening": [
+        {
+          "id": "performance_parallel",
+          "name": "Life Imitates Art",
+          "description": "The play mirrors real events",
+          "uniqueEffect": "SetExposed",
+          "expirationHours": 12,
+          "tokenType": "Status",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "This play about forbidden love and arranged marriages... it's too familiar."
+        },
+        {
+          "id": "actor_gossip",
+          "name": "Actor Network",
+          "description": "Performers know everyone's secrets",
+          "uniqueEffect": "SetInformed",
+          "expirationHours": 24,
+          "tokenType": "Shadow",
+          "weight": 1,
+          "difficulty": "VeryEasy",
+          "dialogueFragment": "Actors perform for nobles and beggars alike. They hear everything."
+        }
+      ]
+    }
+  }
+}

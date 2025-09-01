@@ -21,15 +21,19 @@ public class Phase3_NPCDependents : IInitializationPhase
         // 2. Load DeliveryObligation Templates (depends on NPCs for validation)
         LoadLetterTemplates(context);
 
-        // 3. Load Goal deck configurations
-        LoadGoalDecks(context);
-
-        // 4. Initialize NPC Conversation Decks (CRITICAL - was missing!)
-        InitializeNPCDecks(context);
+        // 3. Initialize all NPC decks using new JSON-based system
+        string contentPath = Path.Combine(Directory.GetCurrentDirectory(), "Content");
+        var cardDatabase = CardDatabase.LoadFromJson(contentPath);
+        var deckInitializer = new DeckInitializer(cardDatabase);
+        deckInitializer.InitializeAllNPCDecks(context.GameWorld);
+        
+        Console.WriteLine("[Phase3] NPC deck initialization complete using JSON card database.");
     }
 
-    private void InitializeNPCDecks(InitializationContext context)
+    // REMOVED: InitializeNPCDecks - replaced by DeckInitializer.InitializeAllNPCDecks
+    private void InitializeNPCDecks_REMOVED(InitializationContext context)
     {
+        // This method is no longer used - replaced by DeckInitializer
         Console.WriteLine("[Phase3] Initializing NPC THREE-DECK ARCHITECTURE...");
 
         List<NPC> npcs = context.GameWorld.WorldState.NPCs;
@@ -224,8 +228,10 @@ public class Phase3_NPCDependents : IInitializationPhase
         }
     }
 
-    private void LoadGoalDecks(InitializationContext context)
+    // REMOVED: LoadGoalDecks - replaced by CardDatabase.LoadFromJson
+    private void LoadGoalDecks_REMOVED(InitializationContext context)
     {
+        // This method is no longer used - goals loaded from goals.json by CardDatabase
         Console.WriteLine("[Phase3] Loading Goal deck configurations...");
 
         // Create and initialize Goal deck repository
