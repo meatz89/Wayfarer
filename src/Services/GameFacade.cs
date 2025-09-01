@@ -225,7 +225,7 @@ public class GameFacade
                 // Find the destination spot by its ID
                 LocationSpot? destSpot = _gameWorld.WorldState.locations
                     ?.SelectMany(l => l.Spots ?? new List<LocationSpot>())
-                    .FirstOrDefault(s => s.SpotID == targetRoute.DestinationLocationSpot);
+                    .FirstOrDefault(s => s.SpotID == actualRoute.DestinationLocationSpot);
 
                 if (destSpot != null)
                 {
