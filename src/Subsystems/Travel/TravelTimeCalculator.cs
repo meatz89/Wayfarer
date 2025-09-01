@@ -118,21 +118,21 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         /// </summary>
         private int ApplyWeatherEffects(int baseTime)
         {
-            var weather = _gameWorld.CurrentWeather;
+            var weather = _gameWorld.WorldState.CurrentWeather;
             
             return weather switch
             {
-                Weather.Rain => (int)(baseTime * 1.2),      // 20% slower in rain
-                Weather.Snow => (int)(baseTime * 1.5),      // 50% slower in snow
-                Weather.Storm => (int)(baseTime * 2.0),     // Double time in storm
-                _ => baseTime                                // No effect
+                WeatherCondition.Rain => (int)(baseTime * 1.2),      // 20% slower in rain
+                WeatherCondition.Snow => (int)(baseTime * 1.5),      // 50% slower in snow
+                WeatherCondition.Storm => (int)(baseTime * 2.0),     // Double time in storm
+                _ => baseTime                                         // No effect
             };
         }
         
         /// <summary>
         /// Calculate coin cost for travel.
         /// </summary>
-        public int CalculateTravelCost(Route route, TravelMethods transportMethod)
+        public int CalculateTravelCost(RouteOption route, TravelMethods transportMethod)
         {
             int baseCost = route.BaseCoinCost;
             

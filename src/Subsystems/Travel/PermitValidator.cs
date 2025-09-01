@@ -23,24 +23,30 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         /// <summary>
         /// Check if player has required permit for a route.
         /// </summary>
-        public bool HasRequiredPermit(Route route)
+        public bool HasRequiredPermit(RouteOption route)
         {
-            if (route.AccessRequirements == null || !route.AccessRequirements.Any())
+            // RouteOption has AccessRequirement (singular), not AccessRequirements (plural)
+            if (route.AccessRequirement == null)
             {
                 return true; // No permits required
             }
             
             var player = _gameWorld.GetPlayer();
             
-            foreach (var requirement in route.AccessRequirements)
+            // Check if permit has been received (using HasReceivedPermit flag)
+            if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
             {
-                if (requirement.Type == "permit")
+                return false; // Permit letter required but not received
+            }
+            
+            // Check if player has required items
+            if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
+            {
+                bool hasRequiredItem = route.AccessRequirement.RequiredItemIds
+                    .Any(itemId => player.Inventory.ItemSlots.Contains(itemId));
+                if (!hasRequiredItem)
                 {
-                    // Check if player has the permit item
-                    if (!player.Inventory.HasItem(requirement.Value))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
             
@@ -50,22 +56,33 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         /// <summary>
         /// Get missing permits for a route.
         /// </summary>
-        public List<string> GetMissingPermits(Route route)
+        public List<string> GetMissingPermits(RouteOption route)
         {
             var missingPermits = new List<string>();
             
-            if (route.AccessRequirements == null)
+            if (route.AccessRequirement == null)
             {
                 return missingPermits;
             }
             
-            var player = _gameWorld.GetPlayer();
-            
-            foreach (var requirement in route.AccessRequirements)
+            // Check if permit has not been received
+            if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
             {
-                if (requirement.Type == "permit" && !player.Inventory.HasItem(requirement.Value))
+                string permitName = route.AccessRequirement.Name ?? "Travel Permit";
+                missingPermits.Add(permitName);
+            }
+            
+            // Check for missing required items
+            if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
+            {
+                var player = _gameWorld.GetPlayer();
+                foreach (var itemId in route.AccessRequirement.RequiredItemIds)
                 {
-                    missingPermits.Add(requirement.Value);
+                    if (!player.Inventory.ItemSlots.Contains(itemId))
+                    {
+                        var item = _itemRepository.GetItemById(itemId);
+                        missingPermits.Add(item?.Name ?? itemId);
+                    }
                 }
             }
             
@@ -91,39 +108,37 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         /// <summary>
         /// Validate transport method compatibility with route.
         /// </summary>
-        public bool IsTransportCompatible(Route route, TravelMethods transportMethod)
+        public bool IsTransportCompatible(RouteOption route, TravelMethods transportMethod)
         {
-            if (route.RestrictedTransportMethods == null || !route.RestrictedTransportMethods.Any())
-            {
-                return true; // No restrictions
-            }
-            
-            // Check if transport method is restricted
-            return !route.RestrictedTransportMethods.Contains(transportMethod);
+            // RouteOption has a Method property that defines what transport it uses
+            // For now, we'll check if the transport method matches the route's method
+            return route.Method == transportMethod || transportMethod == TravelMethods.Walking;
         }
         
         /// <summary>
         /// Get access requirement description for UI.
         /// </summary>
-        public string GetAccessRequirementDescription(Route route)
+        public string GetAccessRequirementDescription(RouteOption route)
         {
-            if (route.AccessRequirements == null || !route.AccessRequirements.Any())
+            if (route.AccessRequirement == null)
             {
                 return "No special requirements";
             }
             
             var descriptions = new List<string>();
             
-            foreach (var requirement in route.AccessRequirements)
+            if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
             {
-                if (requirement.Type == "permit")
+                string permitName = route.AccessRequirement.Name ?? "Special Permit";
+                descriptions.Add($"Requires: {permitName}");
+            }
+            
+            if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
+            {
+                foreach (var itemId in route.AccessRequirement.RequiredItemIds)
                 {
-                    var item = _itemRepository.GetItemById(requirement.Value);
-                    descriptions.Add($"Requires: {item?.Name ?? requirement.Value}");
-                }
-                else if (requirement.Type == "flag")
-                {
-                    descriptions.Add($"Requires: {requirement.DisplayName ?? requirement.Value}");
+                    var item = _itemRepository.GetItemById(itemId);
+                    descriptions.Add($"Requires: {item?.Name ?? itemId}");
                 }
             }
             
