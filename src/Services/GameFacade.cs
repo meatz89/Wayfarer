@@ -562,28 +562,19 @@ public class GameFacade
     {
         await Task.Yield(); // Maintain async signature
         
-        try
+        var displacementResult = _obligationFacade.TryDisplaceObligation(obligationId, targetPosition);
+        
+        if (!displacementResult.CanExecute)
         {
-            var displacementResult = _obligationFacade.TryDisplaceObligation(obligationId, targetPosition);
-            
-            if (!displacementResult.CanExecute)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"❌ Cannot displace: {displacementResult.ErrorMessage}",
-                    SystemMessageTypes.Danger
-                );
-                return false;
-            }
-
-            var result = _obligationFacade.ExecuteDisplacement(displacementResult);
-            return result.CanExecute;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[DisplaceObligation] Exception: {ex}");
-            _messageSystem.AddSystemMessage("Failed to displace obligation", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage(
+                $"❌ Cannot displace: {displacementResult.ErrorMessage}",
+                SystemMessageTypes.Danger
+            );
             return false;
         }
+
+        var result = _obligationFacade.ExecuteDisplacement(displacementResult);
+        return result.CanExecute;
     }
     #endregion
     
@@ -849,30 +840,21 @@ public class GameFacade
     {
         Console.WriteLine($"[GameFacade.ExecuteIntent] Executing {intent.GetType().Name}");
 
-        try
+        return intent switch
         {
-            return intent switch
-            {
-                MoveIntent move => await ExecuteMove(move),
-                TalkIntent talk => await ExecuteTalk(talk),
-                RestIntent rest => await ExecuteRest(rest),
-                WaitIntent wait => await ExecuteWait(wait),
-                DeliverLetterIntent deliver => await ExecuteDeliverLetter(deliver),
-                CollectLetterIntent collect => await ExecuteCollectLetter(collect),
-                ObserveLocationIntent observe => await ExecuteObserve(observe),
-                ExploreAreaIntent explore => await ExecuteExplore(explore),
-                RequestPatronFundsIntent patron => await ExecutePatronFunds(patron),
-                TravelIntent travel => await ExecuteTravel(travel),
-                DiscoverRouteIntent discover => await ExecuteDiscoverRoute(discover),
-                _ => throw new NotSupportedException($"Unknown intent type: {intent.GetType()}")
-            };
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[GameFacade.ExecuteIntent] Error: {ex.Message}");
-            _messageSystem.AddSystemMessage($"Failed to execute action: {ex.Message}", SystemMessageTypes.Danger);
-            return false;
-        }
+            MoveIntent move => await ExecuteMove(move),
+            TalkIntent talk => await ExecuteTalk(talk),
+            RestIntent rest => await ExecuteRest(rest),
+            WaitIntent wait => await ExecuteWait(wait),
+            DeliverLetterIntent deliver => await ExecuteDeliverLetter(deliver),
+            CollectLetterIntent collect => await ExecuteCollectLetter(collect),
+            ObserveLocationIntent observe => await ExecuteObserve(observe),
+            ExploreAreaIntent explore => await ExecuteExplore(explore),
+            RequestPatronFundsIntent patron => await ExecutePatronFunds(patron),
+            TravelIntent travel => await ExecuteTravel(travel),
+            DiscoverRouteIntent discover => await ExecuteDiscoverRoute(discover),
+            _ => false  // Unknown intent type - return false instead of throwing
+        };
     }
 
     private async Task<bool> ExecuteMove(MoveIntent intent)
@@ -944,26 +926,17 @@ public class GameFacade
             return false;
         }
 
-        try
+        // Start conversation with the new card-based system
+        // Default to Standard conversation type for now (should be passed from UI)
+        var session = _conversationFacade.StartConversation(npc.ID, ConversationType.FriendlyChat, null);
+        if (session == null)
         {
-            // Start conversation with the new card-based system
-            // Default to Standard conversation type for now (should be passed from UI)
-            var session = _conversationFacade.StartConversation(npc.ID, ConversationType.FriendlyChat, null);
-            if (session == null)
-            {
-                _messageSystem.AddSystemMessage($"Cannot talk to {npc.Name} right now", SystemMessageTypes.Warning);
-                return false;
-            }
-
-            _messageSystem.AddSystemMessage($"Started conversation with {npc.Name}", SystemMessageTypes.Success);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[ExecuteTalk] Exception: {ex}");
-            _messageSystem.AddSystemMessage($"Error starting conversation: {ex.Message}", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"Cannot talk to {npc.Name} right now", SystemMessageTypes.Warning);
             return false;
         }
+
+        _messageSystem.AddSystemMessage($"Started conversation with {npc.Name}", SystemMessageTypes.Success);
+        return true;
     }
 
     private async Task<bool> ExecuteWait(WaitIntent intent)
@@ -1802,68 +1775,59 @@ public class GameFacade
     /// </summary>
     public async Task<bool> TakeObservationAsync(string observationId)
     {
-        try
+        // Get current attention state
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        AttentionManager attention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        
+        // Find the observation
+        var currentLocation = GetCurrentLocation();
+        var currentSpot = GetCurrentLocationSpot();
+        var availableObservations = _observationSystem.GetObservationsForLocationSpot(currentLocation.Id, currentSpot.SpotID);
+        var observation = availableObservations.FirstOrDefault(obs => obs.Id == observationId);
+        
+        if (observation == null)
         {
-            // Get current attention state
-            TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-            AttentionManager attention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
-            
-            // Find the observation
-            var currentLocation = GetCurrentLocation();
-            var currentSpot = GetCurrentLocationSpot();
-            var availableObservations = _observationSystem.GetObservationsForLocationSpot(currentLocation.Id, currentSpot.SpotID);
-            var observation = availableObservations.FirstOrDefault(obs => obs.Id == observationId);
-            
-            if (observation == null)
-            {
-                _messageSystem.AddSystemMessage("That observation is no longer available.", SystemMessageTypes.Warning);
-                return false;
-            }
-
-            // Check if already taken this time block
-            if (_observationManager.HasTakenObservation(observationId))
-            {
-                _messageSystem.AddSystemMessage("You have already made that observation this time block.", SystemMessageTypes.Info);
-                return false;
-            }
-
-            // Check attention cost
-            if (attention.GetAvailableAttention() < observation.AttentionCost)
-            {
-                _messageSystem.AddSystemMessage($"Not enough attention (need {observation.AttentionCost})", SystemMessageTypes.Warning);
-                return false;
-            }
-
-            // Spend attention
-            if (!attention.TrySpend(observation.AttentionCost))
-            {
-                _messageSystem.AddSystemMessage("Failed to spend attention.", SystemMessageTypes.Warning);
-                return false;
-            }
-            Console.WriteLine($"[GameFacade.TakeObservation] Spent {observation.AttentionCost} attention for observation {observationId}");
-
-            // Generate observation card
-            var observationCard = _observationManager.TakeObservation(observation, _connectionTokenManager);
-            
-            if (observationCard != null)
-            {
-                // Add message about gaining the card
-                _messageSystem.AddSystemMessage($"Observed: {observation.Text}", SystemMessageTypes.Success);
-                _messageSystem.AddSystemMessage($"Gained conversation card: {observationCard.ConversationCard.DisplayName ?? observationCard.ConversationCard.TemplateId}", SystemMessageTypes.Info);
-                
-                Console.WriteLine($"[GameFacade.TakeObservation] Successfully generated observation card {observationCard.Id}");
-                return true;
-            }
-            else
-            {
-                _messageSystem.AddSystemMessage("Failed to process observation.", SystemMessageTypes.Warning);
-                return false;
-            }
+            _messageSystem.AddSystemMessage("That observation is no longer available.", SystemMessageTypes.Warning);
+            return false;
         }
-        catch (Exception ex)
+
+        // Check if already taken this time block
+        if (_observationManager.HasTakenObservation(observationId))
         {
-            Console.WriteLine($"[GameFacade.TakeObservation] Error taking observation {observationId}: {ex.Message}");
-            _messageSystem.AddSystemMessage("Failed to make observation.", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("You have already made that observation this time block.", SystemMessageTypes.Info);
+            return false;
+        }
+
+        // Check attention cost
+        if (attention.GetAvailableAttention() < observation.AttentionCost)
+        {
+            _messageSystem.AddSystemMessage($"Not enough attention (need {observation.AttentionCost})", SystemMessageTypes.Warning);
+            return false;
+        }
+
+        // Spend attention
+        if (!attention.TrySpend(observation.AttentionCost))
+        {
+            _messageSystem.AddSystemMessage("Failed to spend attention.", SystemMessageTypes.Warning);
+            return false;
+        }
+        Console.WriteLine($"[GameFacade.TakeObservation] Spent {observation.AttentionCost} attention for observation {observationId}");
+
+        // Generate observation card
+        var observationCard = _observationManager.TakeObservation(observation, _connectionTokenManager);
+        
+        if (observationCard != null)
+        {
+            // Add message about gaining the card
+            _messageSystem.AddSystemMessage($"Observed: {observation.Text}", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"Gained conversation card: {observationCard.ConversationCard.DisplayName ?? observationCard.ConversationCard.TemplateId}", SystemMessageTypes.Info);
+            
+            Console.WriteLine($"[GameFacade.TakeObservation] Successfully generated observation card {observationCard.Id}");
+            return true;
+        }
+        else
+        {
+            _messageSystem.AddSystemMessage("Failed to process observation.", SystemMessageTypes.Warning);
             return false;
         }
     }

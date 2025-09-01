@@ -76,39 +76,25 @@ public class GameWorldInitializationPipeline
         {
             Console.WriteLine($"\n=== PHASE {phase.PhaseNumber}: {phase.Name} ===");
 
-            try
-            {
-                phase.Execute(context);
+            phase.Execute(context);
 
-                if (context.Errors.Any())
+            if (context.Errors.Any())
+            {
+                Console.WriteLine($"ERROR: Phase {phase.PhaseNumber} failed with {context.Errors.Count} errors:");
+                foreach (string error in context.Errors)
                 {
-                    Console.WriteLine($"ERROR: Phase {phase.PhaseNumber} failed with {context.Errors.Count} errors:");
-                    foreach (string error in context.Errors)
-                    {
-                        Console.WriteLine($"  - {error}");
-                    }
-
-                    if (phase.IsCritical)
-                    {
-                        throw new GameWorldInitializationException(
-                            $"Critical phase {phase.PhaseNumber} ({phase.Name}) failed",
-                            context.Errors);
-                    }
+                    Console.WriteLine($"  - {error}");
                 }
-
-                Console.WriteLine($"Phase {phase.PhaseNumber} completed successfully");
-            }
-            catch (Exception ex) when (!(ex is GameWorldInitializationException))
-            {
-                Console.WriteLine($"ERROR: Phase {phase.PhaseNumber} threw exception: {ex.Message}");
 
                 if (phase.IsCritical)
                 {
-                    throw new GameWorldInitializationException(
-                        $"Critical phase {phase.PhaseNumber} ({phase.Name}) failed",
-                        new[] { ex.Message });
+                    // Critical phase failed - let it fail naturally
+                    Console.WriteLine($"CRITICAL FAILURE: Phase {phase.PhaseNumber} ({phase.Name}) failed and cannot continue");
+                    return gameWorld; // Return whatever we have so far
                 }
             }
+
+            Console.WriteLine($"Phase {phase.PhaseNumber} completed successfully");
 
             // Clear errors for next phase (warnings accumulate)
             context.Errors.Clear();
@@ -188,16 +174,4 @@ public interface IInitializationPhase
     void Execute(InitializationContext context);
 }
 
-/// <summary>
-/// Exception thrown when initialization fails
-/// </summary>
-public class GameWorldInitializationException : Exception
-{
-    public IEnumerable<string> Errors { get; }
-
-    public GameWorldInitializationException(string message, IEnumerable<string> errors)
-        : base(message)
-    {
-        Errors = errors;
-    }
-}
+// Exception class removed - fail fast philosophy

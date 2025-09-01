@@ -45,36 +45,29 @@ public class Phase1_CoreEntities : IInitializationPhase
             return;
         }
 
-        try
-        {
-            // Actually load and parse the gameWorld.json
-            string json = File.ReadAllText(gameWorldPath);
-            var gameWorldData = Newtonsoft.Json.JsonConvert.DeserializeObject<GameWorldConfigData>(json);
+        // Actually load and parse the gameWorld.json
+        string json = File.ReadAllText(gameWorldPath);
+        var gameWorldData = Newtonsoft.Json.JsonConvert.DeserializeObject<GameWorldConfigData>(json);
 
-            // Store initialization data directly in GameWorld
-            // GameWorld is the single source of truth - no SharedData dictionary
-            if (gameWorldData != null)
+        // Store initialization data directly in GameWorld
+        // GameWorld is the single source of truth - no SharedData dictionary
+        if (gameWorldData != null)
+        {
+            if (gameWorldData.CurrentLocationId != null)
             {
-                if (gameWorldData.CurrentLocationId != null)
-                {
-                    context.GameWorld.InitialLocationId = gameWorldData.CurrentLocationId;
-                }
-                if (gameWorldData.CurrentLocationSpotId != null)
-                {
-                    context.GameWorld.InitialLocationSpotId = gameWorldData.CurrentLocationSpotId;
-                }
-                if (gameWorldData.Player != null)
-                {
-                    context.GameWorld.InitialPlayerConfig = gameWorldData.Player;
-                }
+                context.GameWorld.InitialLocationId = gameWorldData.CurrentLocationId;
             }
+            if (gameWorldData.CurrentLocationSpotId != null)
+            {
+                context.GameWorld.InitialLocationSpotId = gameWorldData.CurrentLocationSpotId;
+            }
+            if (gameWorldData.Player != null)
+            {
+                context.GameWorld.InitialPlayerConfig = gameWorldData.Player;
+            }
+        }
 
-            Console.WriteLine("Loaded gameWorld.json configuration");
-        }
-        catch (Exception ex)
-        {
-            context.Errors.Add($"Failed to load gameWorld.json: {ex.Message}");
-        }
+        Console.WriteLine("Loaded gameWorld.json configuration");
     }
 
     private void LoadLocations(InitializationContext context)
@@ -87,58 +80,36 @@ public class Phase1_CoreEntities : IInitializationPhase
             return;
         }
 
-        try
+        List<LocationDTO> locationDTOs = context.ContentLoader.LoadValidatedContent<List<LocationDTO>>(locationsPath);
+
+        if (locationDTOs == null || !locationDTOs.Any())
         {
-            List<LocationDTO> locationDTOs = context.ContentLoader.LoadValidatedContent<List<LocationDTO>>(locationsPath);
-
-            if (locationDTOs == null || !locationDTOs.Any())
-            {
-                context.Errors.Add("No locations found in locations.json");
-                return;
-            }
-
-            LocationFactory locationFactory = new LocationFactory();
-
-            foreach (LocationDTO dto in locationDTOs)
-            {
-                try
-                {
-                    Location location = locationFactory.CreateLocation(
-                        dto.Id,
-                        dto.Name,
-                        dto.Description,
-                        dto.ConnectedTo ?? new List<string>(),
-                        dto.LocationSpots ?? new List<string>(),
-                        dto.DomainTags ?? new List<string>(),
-                        dto.TravelHubSpotId,
-                        null, // environmentalProperties - TODO: convert from DTO
-                        null, // availableProfessionsByTime - TODO: convert from DTO
-                        dto.Tier
-                    );
-
-                    context.GameWorld.WorldState.locations.Add(location);
-                    Console.WriteLine($"  Loaded location: {location.Id} - {location.Name}");
-                }
-                catch (Exception ex)
-                {
-                    context.Warnings.Add($"Failed to create location {dto.Id}: {ex.Message}");
-                }
-            }
-
-            Console.WriteLine($"Loaded {context.GameWorld.WorldState.locations.Count} locations");
+            context.Errors.Add("No locations found in locations.json");
+            return;
         }
-        catch (ContentValidationException ex)
+
+        LocationFactory locationFactory = new LocationFactory();
+
+        foreach (LocationDTO dto in locationDTOs)
         {
-            // Validation failed - add all validation errors
-            foreach (ValidationError error in ex.Errors)
-            {
-                context.Errors.Add($"Location validation: {error.Message}");
-            }
+            Location location = locationFactory.CreateLocation(
+                dto.Id,
+                dto.Name,
+                dto.Description,
+                dto.ConnectedTo ?? new List<string>(),
+                dto.LocationSpots ?? new List<string>(),
+                dto.DomainTags ?? new List<string>(),
+                dto.TravelHubSpotId,
+                null, // environmentalProperties - TODO: convert from DTO
+                null, // availableProfessionsByTime - TODO: convert from DTO
+                dto.Tier
+            );
+
+            context.GameWorld.WorldState.locations.Add(location);
+            Console.WriteLine($"  Loaded location: {location.Id} - {location.Name}");
         }
-        catch (Exception ex)
-        {
-            context.Errors.Add($"Failed to load locations: {ex.Message}");
-        }
+
+        Console.WriteLine($"Loaded {context.GameWorld.WorldState.locations.Count} locations");
     }
 
     private void LoadItems(InitializationContext context)
@@ -151,106 +122,92 @@ public class Phase1_CoreEntities : IInitializationPhase
             return;
         }
 
-        try
+        List<ItemDTO> itemDTOs = context.ContentLoader.LoadValidatedContent<List<ItemDTO>>(itemsPath);
+
+        if (itemDTOs == null || !itemDTOs.Any())
         {
-            List<ItemDTO> itemDTOs = context.ContentLoader.LoadValidatedContent<List<ItemDTO>>(itemsPath);
+            Console.WriteLine("WARNING: No items found in items.json");
+            return;
+        }
 
-            if (itemDTOs == null || !itemDTOs.Any())
+        ItemFactory itemFactory = new ItemFactory();
+
+        foreach (ItemDTO dto in itemDTOs)
+        {
+            // Parse size category
+            SizeCategory size = SizeCategory.Small;
+            if (!string.IsNullOrEmpty(dto.SizeCategory))
             {
-                Console.WriteLine("WARNING: No items found in items.json");
-                return;
-            }
-
-            ItemFactory itemFactory = new ItemFactory();
-
-            foreach (ItemDTO dto in itemDTOs)
-            {
-                try
+                if (!Enum.TryParse<SizeCategory>(dto.SizeCategory, true, out size))
                 {
-                    // Parse size category
-                    SizeCategory size = SizeCategory.Small;
-                    if (!string.IsNullOrEmpty(dto.SizeCategory))
-                    {
-                        if (!Enum.TryParse<SizeCategory>(dto.SizeCategory, true, out size))
-                        {
-                            context.Warnings.Add($"Invalid size category '{dto.SizeCategory}' for item {dto.Id}, defaulting to Small");
-                        }
-                    }
-
-                    // Parse item categories
-                    List<ItemCategory> categories = new List<ItemCategory>();
-                    foreach (string catStr in dto.Categories ?? new List<string>())
-                    {
-                        if (Enum.TryParse<ItemCategory>(catStr, true, out ItemCategory category))
-                        {
-                            categories.Add(category);
-                        }
-                    }
-
-                    Item item = new Item
-                    {
-                        Id = dto.Id,
-                        Name = dto.Name,
-                        Description = dto.Description ?? "",
-                        BuyPrice = dto.BuyPrice,
-                        SellPrice = dto.SellPrice,
-                        Weight = dto.Weight,
-                        InventorySlots = dto.InventorySlots,
-                        Size = size,
-                        Categories = categories,
-                    };
-
-                    // Parse token generation modifiers
-                    if (dto.TokenGenerationModifiers != null && dto.TokenGenerationModifiers.Any())
-                    {
-                        foreach (KeyValuePair<string, float> modifier in dto.TokenGenerationModifiers)
-                        {
-                            if (Enum.TryParse<ConnectionType>(modifier.Key, true, out ConnectionType tokenType))
-                            {
-                                item.TokenGenerationModifiers[tokenType] = modifier.Value;
-                            }
-                            else
-                            {
-                                context.Warnings.Add($"Invalid token type '{modifier.Key}' in modifiers for item {dto.Id}");
-                            }
-                        }
-                    }
-
-                    // Parse enabled token types
-                    if (dto.EnablesTokenGeneration != null && dto.EnablesTokenGeneration.Any())
-                    {
-                        foreach (string tokenTypeStr in dto.EnablesTokenGeneration)
-                        {
-                            if (Enum.TryParse<ConnectionType>(tokenTypeStr, true, out ConnectionType tokenType))
-                            {
-                                item.EnablesTokenGeneration.Add(tokenType);
-                            }
-                            else
-                            {
-                                context.Warnings.Add($"Invalid token type '{tokenTypeStr}' in EnablesTokenGeneration for item {dto.Id}");
-                            }
-                        }
-                    }
-
-                    context.GameWorld.WorldState.Items.Add(item);
-
-                    // Validate price logic
-                    if (dto.SellPrice > dto.BuyPrice)
-                    {
-                        context.Warnings.Add($"Item '{dto.Name}' has sell price ({dto.SellPrice}) higher than buy price ({dto.BuyPrice}). This may create infinite money exploits.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    context.Warnings.Add($"Failed to create item {dto.Id}: {ex.Message}");
+                    context.Warnings.Add($"Invalid size category '{dto.SizeCategory}' for item {dto.Id}, defaulting to Small");
                 }
             }
 
-            Console.WriteLine($"Loaded {context.GameWorld.WorldState.Items.Count} items");
+            // Parse item categories
+            List<ItemCategory> categories = new List<ItemCategory>();
+            foreach (string catStr in dto.Categories ?? new List<string>())
+            {
+                if (Enum.TryParse<ItemCategory>(catStr, true, out ItemCategory category))
+                {
+                    categories.Add(category);
+                }
+            }
+
+            Item item = new Item
+            {
+                Id = dto.Id,
+                Name = dto.Name,
+                Description = dto.Description ?? "",
+                BuyPrice = dto.BuyPrice,
+                SellPrice = dto.SellPrice,
+                Weight = dto.Weight,
+                InventorySlots = dto.InventorySlots,
+                Size = size,
+                Categories = categories,
+            };
+
+            // Parse token generation modifiers
+            if (dto.TokenGenerationModifiers != null && dto.TokenGenerationModifiers.Any())
+            {
+                foreach (KeyValuePair<string, float> modifier in dto.TokenGenerationModifiers)
+                {
+                    if (Enum.TryParse<ConnectionType>(modifier.Key, true, out ConnectionType tokenType))
+                    {
+                        item.TokenGenerationModifiers[tokenType] = modifier.Value;
+                    }
+                    else
+                    {
+                        context.Warnings.Add($"Invalid token type '{modifier.Key}' in modifiers for item {dto.Id}");
+                    }
+                }
+            }
+
+            // Parse enabled token types
+            if (dto.EnablesTokenGeneration != null && dto.EnablesTokenGeneration.Any())
+            {
+                foreach (string tokenTypeStr in dto.EnablesTokenGeneration)
+                {
+                    if (Enum.TryParse<ConnectionType>(tokenTypeStr, true, out ConnectionType tokenType))
+                    {
+                        item.EnablesTokenGeneration.Add(tokenType);
+                    }
+                    else
+                    {
+                        context.Warnings.Add($"Invalid token type '{tokenTypeStr}' in EnablesTokenGeneration for item {dto.Id}");
+                    }
+                }
+            }
+
+            context.GameWorld.WorldState.Items.Add(item);
+
+            // Validate price logic
+            if (dto.SellPrice > dto.BuyPrice)
+            {
+                context.Warnings.Add($"Item '{dto.Name}' has sell price ({dto.SellPrice}) higher than buy price ({dto.BuyPrice}). This may create infinite money exploits.");
+            }
         }
-        catch (Exception ex)
-        {
-            context.Warnings.Add($"Failed to load items: {ex.Message}");
-        }
+
+        Console.WriteLine($"Loaded {context.GameWorld.WorldState.Items.Count} items");
     }
 }

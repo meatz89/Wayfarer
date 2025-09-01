@@ -45,67 +45,60 @@ public class Phase3_NPCDependents : IInitializationPhase
         
         foreach (var npc in npcs)
         {
-            try
+            // DECK 1: CONVERSATION DECK (20-30 cards)
+            // Load from NPCConversationDeckMappings
+            if (gameWorld.NPCConversationDeckMappings.TryGetValue(npc.ID.ToLower(), out var cardIds))
             {
-                // DECK 1: CONVERSATION DECK (20-30 cards)
-                // Load from NPCConversationDeckMappings
-                if (gameWorld.NPCConversationDeckMappings.TryGetValue(npc.ID.ToLower(), out var cardIds))
+                npc.ConversationDeck = new CardDeck();
+                foreach (var cardId in cardIds)
                 {
-                    npc.ConversationDeck = new CardDeck();
-                    foreach (var cardId in cardIds)
+                    if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
                     {
-                        if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
-                        {
-                            // Clone card with NPC-specific context
-                            var npcCard = CloneCardForNPC(card, npc);
-                            npc.ConversationDeck.AddCard(npcCard);
-                        }
-                    }
-                    Console.WriteLine($"[Phase3] {npc.Name}: Conversation deck has {npc.ConversationDeck.Count} cards");
-                }
-                // DECK 2: GOAL DECK (2-8 cards)
-                // Load from NPCGoalDecks
-                if (gameWorld.NPCGoalDecks.TryGetValue(npc.ID.ToLower(), out var goalCards))
-                {
-                    npc.GoalDeck = new CardDeck();
-                    foreach (var goalCard in goalCards)
-                    {
-                        // Clone goal card with NPC-specific context
-                        var npcGoal = CloneCardForNPC(goalCard, npc);
-                        npc.GoalDeck.AddCard(npcGoal);
-                    }
-                    Console.WriteLine($"[Phase3] {npc.Name}: Goal deck has {npc.GoalDeck.Count} cards (Letters: {npc.HasPromiseCards()})");
-                }
-                // DECK 3: EXCHANGE DECK (5-10 cards, Mercantile only)
-                // Only for MERCANTILE personality
-                if (npc.PersonalityType == PersonalityType.MERCANTILE)
-                {
-                    if (gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out var exchangeCards))
-                    {
-                        npc.ExchangeDeck = new CardDeck();
-                        foreach (var exchangeCard in exchangeCards)
-                        {
-                            // Clone exchange card with NPC-specific context
-                            var npcExchange = CloneCardForNPC(exchangeCard, npc);
-                            npc.ExchangeDeck.AddCard(npcExchange);
-                        }
-                        Console.WriteLine($"[Phase3] {npc.Name}: Exchange deck has {npc.ExchangeDeck.Count} cards");
+                        // Clone card with NPC-specific context
+                        var npcCard = CloneCardForNPC(card, npc);
+                        npc.ConversationDeck.AddCard(npcCard);
                     }
                 }
-                
-                // Report deck status
-                Console.WriteLine($"[Phase3] {npc.Name} deck summary:");
-                Console.WriteLine($"  - Conversation: {npc.ConversationDeck?.Count ?? 0} cards");
-                Console.WriteLine($"  - Goal: {npc.GoalDeck?.Count ?? 0} cards");
-                Console.WriteLine($"  - Exchange: {npc.ExchangeDeck?.Count ?? 0} cards");
-                Console.WriteLine($"  - Has Letters: {npc.HasPromiseCards()}");
-                Console.WriteLine($"  - Has Burdens: {npc.HasBurdenHistory()} ({npc.CountBurdenCards()} cards)");
-                // Crisis system removed - no special cases
+                Console.WriteLine($"[Phase3] {npc.Name}: Conversation deck has {npc.ConversationDeck.Count} cards");
             }
-            catch (Exception ex)
+            // DECK 2: GOAL DECK (2-8 cards)
+            // Load from NPCGoalDecks
+            if (gameWorld.NPCGoalDecks.TryGetValue(npc.ID.ToLower(), out var goalCards))
             {
-                context.Warnings.Add($"Failed to initialize decks for NPC {npc.Name}: {ex.Message}");
+                npc.GoalDeck = new CardDeck();
+                foreach (var goalCard in goalCards)
+                {
+                    // Clone goal card with NPC-specific context
+                    var npcGoal = CloneCardForNPC(goalCard, npc);
+                    npc.GoalDeck.AddCard(npcGoal);
+                }
+                Console.WriteLine($"[Phase3] {npc.Name}: Goal deck has {npc.GoalDeck.Count} cards (Letters: {npc.HasPromiseCards()})");
             }
+            // DECK 3: EXCHANGE DECK (5-10 cards, Mercantile only)
+            // Only for MERCANTILE personality
+            if (npc.PersonalityType == PersonalityType.MERCANTILE)
+            {
+                if (gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out var exchangeCards))
+                {
+                    npc.ExchangeDeck = new CardDeck();
+                    foreach (var exchangeCard in exchangeCards)
+                    {
+                        // Clone exchange card with NPC-specific context
+                        var npcExchange = CloneCardForNPC(exchangeCard, npc);
+                        npc.ExchangeDeck.AddCard(npcExchange);
+                    }
+                    Console.WriteLine($"[Phase3] {npc.Name}: Exchange deck has {npc.ExchangeDeck.Count} cards");
+                }
+            }
+            
+            // Report deck status
+            Console.WriteLine($"[Phase3] {npc.Name} deck summary:");
+            Console.WriteLine($"  - Conversation: {npc.ConversationDeck?.Count ?? 0} cards");
+            Console.WriteLine($"  - Goal: {npc.GoalDeck?.Count ?? 0} cards");
+            Console.WriteLine($"  - Exchange: {npc.ExchangeDeck?.Count ?? 0} cards");
+            Console.WriteLine($"  - Has Letters: {npc.HasPromiseCards()}");
+            Console.WriteLine($"  - Has Burdens: {npc.HasBurdenHistory()} ({npc.CountBurdenCards()} cards)");
+            // Crisis system removed - no special cases
         }
         
         Console.WriteLine($"[Phase3] Initialized THREE-DECK ARCHITECTURE for {npcs.Count} NPCs");
