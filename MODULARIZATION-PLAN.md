@@ -331,27 +331,8 @@ public class ResourceCalculator
 
 ## Phase 4: Complex Subsystems (Week 4)
 
-### Work Packet 4.1: MarketSubsystem
-**Owner:** Content Integrator Agent
-**Dependencies:** WP 3.3
-**Deliverables:**
-- MarketFacade implementation
-- Arbitrage system
-- Price calculations
-- Market state tracking
-
-**Detailed Steps:**
-1. Analyze MarketManager.cs (825 lines)
-2. Create MarketFacade.cs
-3. Extract:
-   - Core logic → MarketManager (simplified)
-   - Arbitrage → ArbitrageCalculator
-   - Prices → PriceManager
-   - State → MarketStateTracker
-
-### Work Packet 4.2: TokenSubsystem
+### Work Packet 4.1: TokenSubsystem
 **Owner:** Game Mechanics Designer Agent
-**Dependencies:** WP 4.1
 **Deliverables:**
 - TokenFacade implementation
 - Token effect processing
@@ -366,9 +347,9 @@ public class ResourceCalculator
    - Unlocks → TokenUnlockManager
    - Relationships → RelationshipTracker
 
-### Work Packet 4.3: NarrativeSubsystem
+### Work Packet 4.2: NarrativeSubsystem
 **Owner:** Narrative Designer Agent
-**Dependencies:** WP 4.2
+**Dependencies:** WP 4.1
 **Deliverables:**
 - NarrativeFacade implementation
 - Observation system
@@ -392,7 +373,6 @@ public class ResourceCalculator
 - Refactored GameFacade (target: <500 lines)
 - All logic delegated to subsystems
 - Clean dependency injection
-- Backward compatibility maintained
 
 **Detailed Steps:**
 1. Review current GameFacade (3,448 lines)
@@ -560,23 +540,6 @@ public class GameFacade
    - New features added to appropriate subsystem
    - Changes isolated to subsystem
    - Tests run in isolation
-
-## Risk Mitigation
-
-1. **Breaking Changes:**
-   - Maintain GameFacade API
-   - Incremental migration
-   - Comprehensive testing
-
-2. **Performance Regression:**
-   - Benchmark before/after
-   - Profile critical paths
-   - Optimize hot spots
-
-3. **Lost Functionality:**
-   - Complete method inventory
-   - Trace all code paths
-   - Extensive testing
 
 ## EXECUTION ORDER (NO DEVIATIONS)
 

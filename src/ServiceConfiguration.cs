@@ -141,6 +141,20 @@ public static class ServiceConfiguration
         services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.ObligationStatistics>();
         services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.ObligationFacade>();
 
+        // Resource Subsystem
+        services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.CoinManager>();
+        services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.HealthManager>();
+        services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.HungerManager>();
+        services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.AttentionManager>();
+        services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.ResourceCalculator>();
+        services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.ResourceFacade>();
+
+        // Time Subsystem
+        services.AddSingleton<Wayfarer.Subsystems.TimeSubsystem.TimeBlockCalculator>();
+        services.AddSingleton<Wayfarer.Subsystems.TimeSubsystem.TimeProgressionManager>();
+        services.AddSingleton<Wayfarer.Subsystems.TimeSubsystem.TimeDisplayFormatter>();
+        services.AddSingleton<Wayfarer.Subsystems.TimeSubsystem.TimeFacade>();
+
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();
         services.AddSingleton<NPCService>();

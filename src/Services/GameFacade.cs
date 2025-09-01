@@ -18,6 +18,8 @@ public class GameFacade
     private readonly IGameRuleEngine _ruleEngine;
     private readonly Wayfarer.Subsystems.LocationSubsystem.LocationFacade _locationFacade;
     private readonly Wayfarer.Subsystems.ObligationSubsystem.ObligationFacade _obligationFacade;
+    private readonly Wayfarer.Subsystems.ResourceSubsystem.ResourceFacade _resourceFacade;
+    private readonly Wayfarer.Subsystems.TimeSubsystem.TimeFacade _timeFacade;
 
 
     // Managers
@@ -74,7 +76,9 @@ public class GameFacade
         NarrativeRenderer narrativeRenderer,
         AccessRequirementChecker accessChecker,
         Wayfarer.Subsystems.LocationSubsystem.LocationFacade locationFacade,
-        Wayfarer.Subsystems.ObligationSubsystem.ObligationFacade obligationFacade
+        Wayfarer.Subsystems.ObligationSubsystem.ObligationFacade obligationFacade,
+        Wayfarer.Subsystems.ResourceSubsystem.ResourceFacade resourceFacade,
+        Wayfarer.Subsystems.TimeSubsystem.TimeFacade timeFacade
 )
     {
         _gameWorld = gameWorld;
@@ -106,6 +110,8 @@ public class GameFacade
         _accessChecker = accessChecker;
         _locationFacade = locationFacade;
         _obligationFacade = obligationFacade;
+        _resourceFacade = resourceFacade;
+        _timeFacade = timeFacade;
     }
 
     // ========== ATTENTION STATE ACCESS ==========
@@ -116,43 +122,27 @@ public class GameFacade
     /// </summary>
     public (int Current, int Max, TimeBlocks TimeBlock) GetCurrentAttentionState()
     {
-        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        AttentionManager attention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        TimeBlocks currentTimeBlock = _timeFacade.GetCurrentTimeBlock();
+        var (current, max) = _resourceFacade.GetAttention(currentTimeBlock);
 
-        return (
-            attention.GetAvailableAttention(),
-            attention.GetMaxAttention(),
-            currentTimeBlock
-        );
+        return (current, max, currentTimeBlock);
     }
 
     // ========== HELPER METHODS ==========
 
     private void ProcessTimeAdvancement(int hours)
     {
-        TimeBlocks oldTimeBlock = _timeManager.GetCurrentTimeBlock();
-        _timeManager.AdvanceTime(hours);
-        TimeBlocks newTimeBlock = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+        TimeBlocks newTimeBlock = _timeFacade.AdvanceTimeByHours(hours);
 
-        // Handle time block transitions - increase hunger by 20 per period
+        // Handle time block transitions
         if (oldTimeBlock != newTimeBlock)
         {
-            Player player = _gameWorld.GetPlayer();
-            int newHunger = Math.Min(100, player.Food + 20); // Hunger increases by 20 per time period
-            player.Food = newHunger;
-            
-            _messageSystem.AddSystemMessage(
-                $"🍞 Your hunger increases as time passes (now {newHunger}/100)",
-                SystemMessageTypes.Info);
-            
-            Console.WriteLine($"[GameFacade] Time block changed from {oldTimeBlock} to {newTimeBlock} - hunger increased to {newHunger}");
+            _resourceFacade.ProcessTimeBlockTransition(oldTimeBlock, newTimeBlock);
         }
 
         // Update letter deadlines when time advances
         _obligationFacade.ProcessHourlyDeadlines(hours);
-
-        // Process carried information letters after time change
-        // Information revelation handled through other systems now
     }
 
     private void ProcessTimeAdvancementMinutes(int minutes)
@@ -163,28 +153,19 @@ public class GameFacade
         int hours = minutes / 60;
 
         // Get time before advancement
-        var timeBefore = _timeManager.GetFormattedTimeDisplay();
-        TimeBlocks oldTimeBlock = _timeManager.CurrentTimeBlock;
+        var timeBefore = _timeFacade.GetFormattedTimeDisplay();
+        TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
         
-        _timeManager.AdvanceTimeMinutes(minutes);
+        TimeBlocks newTimeBlock = _timeFacade.AdvanceTimeByMinutes(minutes);
         
         // Get time after advancement
-        var timeAfter = _timeManager.GetFormattedTimeDisplay();
-        TimeBlocks newTimeBlock = _timeManager.CurrentTimeBlock;
+        var timeAfter = _timeFacade.GetFormattedTimeDisplay();
         Console.WriteLine($"[ProcessTimeAdvancementMinutes] Time changed from {timeBefore} to {timeAfter}");
 
-        // Handle time block transitions - increase hunger by 20 per period
+        // Handle time block transitions
         if (oldTimeBlock != newTimeBlock)
         {
-            Player player = _gameWorld.GetPlayer();
-            int newHunger = Math.Min(100, player.Food + 20); // Hunger increases by 20 per time period
-            player.Food = newHunger;
-            
-            _messageSystem.AddSystemMessage(
-                $"🍞 Your hunger increases as time passes (now {newHunger}/100)",
-                SystemMessageTypes.Info);
-            
-            Console.WriteLine($"[ProcessTimeAdvancementMinutes] Time block changed from {oldTimeBlock} to {newTimeBlock}, hunger increased to {newHunger}");
+            _resourceFacade.ProcessTimeBlockTransition(oldTimeBlock, newTimeBlock);
         }
 
         // Update letter deadlines when time advances (even partial hours)
@@ -192,9 +173,6 @@ public class GameFacade
         {
             _obligationFacade.ProcessHourlyDeadlines(hours);
         }
-
-        // Process carried information letters after time change
-        // Information revelation handled through other systems now
     }
 
 
@@ -204,7 +182,7 @@ public class GameFacade
         int totalWeight = 0;
 
         // Add item weights
-        foreach (string itemName in player.Inventory.ItemSlots)
+        foreach (string itemName in _resourceFacade.GetInventory().ItemSlots)
         {
             if (!string.IsNullOrEmpty(itemName))
             {
@@ -304,12 +282,12 @@ public class GameFacade
             {
                 Success = false,
                 Message = "You can only work at Commercial locations",
-                RemainingAttention = _timeBlockAttentionManager.GetCurrentAttention(_timeManager.GetCurrentTimeBlock()).GetAvailableAttention()
+                RemainingAttention = _timeBlockAttentionManager.GetCurrentAttention(_timeFacade.GetCurrentTimeBlock()).GetAvailableAttention()
             };
         }
         
         // RESOURCE CHECK: Get current attention
-        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTimeBlock = _timeFacade.GetCurrentTimeBlock();
         AttentionManager currentAttention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
         int availableAttention = currentAttention.GetAvailableAttention();
         
@@ -336,10 +314,10 @@ public class GameFacade
         }
         
         // TRANSACTION: Award coins
-        player.Coins += WORK_COIN_REWARD;
+        _resourceFacade.AddCoins(WORK_COIN_REWARD, "Working");
         
         // TIME ADVANCEMENT: Work takes time (1 period)
-        _timeManager.AdvanceTime(1);
+        _timeFacade.AdvanceTimeByHours(1);
         
         // NOTIFICATION: Log the work action
         _messageSystem.AddSystemMessage($"You worked hard and earned {WORK_COIN_REWARD} coins", SystemMessageTypes.Success);
@@ -357,9 +335,7 @@ public class GameFacade
 
     public (TimeBlocks timeBlock, int hoursRemaining, int currentDay) GetTimeInfo()
     {
-        return (_timeManager.GetCurrentTimeBlock(),
-                _timeManager.HoursRemaining,
-                _gameWorld.CurrentDay);
+        return _timeFacade.GetTimeInfo();
     }
 
     /// <summary>
@@ -367,7 +343,7 @@ public class GameFacade
     /// </summary>
     public int GetCurrentHour()
     {
-        return _timeManager.GetCurrentTimeHours();
+        return _timeFacade.GetCurrentHour();
     }
 
     /// <summary>
@@ -376,7 +352,7 @@ public class GameFacade
     /// </summary>
     public string GetFormattedTimeDisplay()
     {
-        return _timeManager.GetFormattedTimeDisplay();
+        return _timeFacade.GetFormattedTimeDisplay();
     }
 
     // ========== LOCATION ACTIONS ==========
@@ -452,7 +428,7 @@ public class GameFacade
     private List<string> GetLocationTraits(Location location, LocationSpot spot)
     {
         // Use LocationTraitsParser for systematic trait generation from JSON data
-        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
         return LocationTraitsParser.ParseLocationTraits(location, currentTime);
     }
     
@@ -608,8 +584,8 @@ public class GameFacade
         if (locationObservations != null)
         {
             // Get current time for filtering
-            var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-            var currentHour = _timeManager.GetCurrentTimeHours();
+            var currentTimeBlock = _timeFacade.GetCurrentTimeBlock();
+            var currentHour = _timeFacade.GetCurrentHour();
             
             // Get NPCs at current spot
             var npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpotId, currentTimeBlock);
@@ -684,7 +660,7 @@ public class GameFacade
         
         // Get all spots in the same location
         var spots = _gameWorld.WorldState.locationSpots.Where(s => s.LocationId == location.Id).ToList();
-        var currentTime = _timeManager.GetCurrentTimeBlock();
+        var currentTime = _timeFacade.GetCurrentTimeBlock();
         
         foreach (var spot in spots)
         {
@@ -736,7 +712,7 @@ public class GameFacade
         if (spot == null) return "";
         
         var descGenerator = new Wayfarer.Game.MainSystem.SpotDescriptionGenerator();
-        var activeProperties = spot.GetActiveProperties(_timeManager.GetCurrentTimeBlock());
+        var activeProperties = spot.GetActiveProperties(_timeFacade.GetCurrentTimeBlock());
         return descGenerator.GenerateBriefDescription(activeProperties);
     }
     
@@ -745,17 +721,17 @@ public class GameFacade
         if (spot != null)
         {
             var descGenerator = new Wayfarer.Game.MainSystem.SpotDescriptionGenerator();
-            var activeProperties = spot.GetActiveProperties(_timeManager.GetCurrentTimeBlock());
+            var activeProperties = spot.GetActiveProperties(_timeFacade.GetCurrentTimeBlock());
             var urgentObligations = _obligationFacade.GetActiveObligations()
                 .Count(o => o.DeadlineInMinutes < 360);
-            var npcsPresent = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, _timeManager.GetCurrentTimeBlock()).Count();
+            var npcsPresent = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, _timeFacade.GetCurrentTimeBlock()).Count();
             
             // Debug log
-            Console.WriteLine($"[GenerateAtmosphereText] Spot: {spot.SpotID}, Properties: {string.Join(", ", activeProperties)}, Time: {_timeManager.GetCurrentTimeBlock()}");
+            Console.WriteLine($"[GenerateAtmosphereText] Spot: {spot.SpotID}, Properties: {string.Join(", ", activeProperties)}, Time: {_timeFacade.GetCurrentTimeBlock()}");
             
             return descGenerator.GenerateDescription(
                 activeProperties,
-                _timeManager.GetCurrentTimeBlock(),
+                _timeFacade.GetCurrentTimeBlock(),
                 urgentObligations,
                 npcsPresent
             );
@@ -942,8 +918,8 @@ public class GameFacade
     private async Task<bool> ExecuteWait(WaitIntent intent)
     {
         // Calculate time to next period
-        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        int currentHour = _timeManager.GetCurrentTimeHours();
+        TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
+        int currentHour = _timeFacade.GetCurrentHour();
 
         // Determine next time block and hours to advance
         int hoursToAdvance = currentTime switch
@@ -966,7 +942,7 @@ public class GameFacade
         // The TimeBlockAttentionManager will automatically refresh attention for the new time block
 
         // Add narrative message about waiting
-        TimeBlocks newTime = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks newTime = _timeFacade.GetCurrentTimeBlock();
         string message = newTime switch
         {
             TimeBlocks.Dawn => "You wait as the first light breaks over the horizon.",
@@ -1008,7 +984,7 @@ public class GameFacade
         }
 
         // Check if enough time remaining
-        if (_timeManager.HoursRemaining < intent.Hours)
+        if (_timeFacade.GetHoursRemaining() < intent.Hours)
         {
             _messageSystem.AddSystemMessage($"Not enough time remaining (need {intent.Hours} hours)", SystemMessageTypes.Warning);
             return false;
@@ -1070,7 +1046,7 @@ public class GameFacade
         }
 
         // Check if recipient is available
-        if (!recipient.IsAvailable(_timeManager.GetCurrentTimeBlock()))
+        if (!recipient.IsAvailable(_timeFacade.GetCurrentTimeBlock()))
         {
             _messageSystem.AddSystemMessage($"{recipient.Name} is not available right now", SystemMessageTypes.Warning);
             return false;
@@ -1148,7 +1124,7 @@ public class GameFacade
         }
 
         // Check time
-        if (_timeManager.HoursRemaining < 1)
+        if (_timeFacade.GetHoursRemaining() < 1)
         {
             _messageSystem.AddSystemMessage("Not enough time to observe", SystemMessageTypes.Warning);
             return false;
@@ -1162,7 +1138,7 @@ public class GameFacade
         messages.Add($"You carefully observe {currentSpot.Name}.");
 
         // List NPCs
-        List<NPC> npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpot.SpotID, _timeManager.GetCurrentTimeBlock());
+        List<NPC> npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpot.SpotID, _timeFacade.GetCurrentTimeBlock());
         if (npcsHere.Any())
         {
             string npcNames = string.Join(", ", npcsHere.Select(n => n.Name));
@@ -1317,13 +1293,13 @@ public class GameFacade
             return false;
         }
 
-        if (_timeManager.HoursRemaining * 60 < timeCost) // Convert hours to minutes for comparison
+        if (_timeFacade.GetHoursRemaining() * 60 < timeCost) // Convert hours to minutes for comparison
         {
             _messageSystem.AddSystemMessage($"Not enough time (need {timeCost} minutes)", SystemMessageTypes.Warning);
             return false;
         }
 
-        if (player.Coins < route.BaseCoinCost)
+        if (_resourceFacade.GetCoins() < route.BaseCoinCost)
         {
             _messageSystem.AddSystemMessage($"Not enough coins (need {route.BaseCoinCost})", SystemMessageTypes.Warning);
             return false;
@@ -1584,7 +1560,7 @@ public class GameFacade
                 StaminaCost = routeStaminaCost,
                 TravelTimeMinutes = route.TravelTimeMinutes,
                 TransportRequirement = route.Method.ToString(),
-                CanAffordCoins = player.Coins >= coinCost,
+                CanAffordCoins = _resourceFacade.GetCoins() >= coinCost,
                 CanAffordStamina = player.Stamina >= totalStaminaCost,
                 IsBlocked = !accessInfo.IsAllowed,
                 BlockedReason = accessInfo.BlockingReason,
@@ -1631,7 +1607,7 @@ public class GameFacade
                 if (context.RequiredEquipment?.Any() == true)
                 {
                     requiredEquipment = string.Join(", ", context.RequiredEquipment);
-                    hasRequiredEquipment = context.RequiredEquipment.All(item => player.Inventory.HasItem(item));
+                    hasRequiredEquipment = context.RequiredEquipment.All(item => _resourceFacade.HasItem(item));
                     description += $" (requires {requiredEquipment})";
                 }
             }
@@ -1662,7 +1638,7 @@ public class GameFacade
     {
         List<string> categories = new List<string>();
 
-        foreach (string? itemName in player.Inventory.ItemSlots.Where(s => !string.IsNullOrEmpty(s)))
+        foreach (string? itemName in _resourceFacade.GetInventory().ItemSlots.Where(s => !string.IsNullOrEmpty(s)))
         {
             // This would ideally come from item repository
             // For now, return generic categories
@@ -1751,7 +1727,7 @@ public class GameFacade
 
         // Check if player can afford it
         Player player = _gameWorld.GetPlayer();
-        if (coinCost > 0 && player.Coins < coinCost)
+        if (coinCost > 0 && _resourceFacade.GetCoins() < coinCost)
         {
             _messageSystem.AddSystemMessage($"Not enough coins (need {coinCost})", SystemMessageTypes.Warning);
             return false;
@@ -1776,7 +1752,7 @@ public class GameFacade
     public async Task<bool> TakeObservationAsync(string observationId)
     {
         // Get current attention state
-        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTimeBlock = _timeFacade.GetCurrentTimeBlock();
         AttentionManager attention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
         
         // Find the observation
@@ -1970,7 +1946,7 @@ public class GameFacade
 
         // Get equipment categories
         List<ItemCategory> equipmentCategories = new List<ItemCategory>();
-        foreach (string itemName in player.Inventory.ItemSlots)
+        foreach (string itemName in _resourceFacade.GetInventory().ItemSlots)
         {
             if (!string.IsNullOrEmpty(itemName))
             {
@@ -2063,7 +2039,7 @@ public class GameFacade
 
         // Check if can travel
         bool canAffordStamina = player.Stamina >= totalStaminaCost;
-        bool canAffordCoins = player.Coins >= coinCost;
+        bool canAffordCoins = _resourceFacade.GetCoins() >= coinCost;
         RouteAccessResult accessInfo = _travelManager.GetRouteAccessInfo(route);
         AccessCheckResult tokenAccessInfo = _travelManager.GetTokenAccessInfo(route);
 
@@ -2248,7 +2224,7 @@ public class GameFacade
         
         // Check and deduct attention cost BEFORE starting conversation
         int attentionCost = ConversationTypeConfig.GetAttentionCost(conversationType);
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        var currentTimeBlock = _timeFacade.GetCurrentTimeBlock();
         var currentAttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
         
         // Check if player has enough attention
@@ -2305,7 +2281,7 @@ public class GameFacade
             InitialState = ConversationRules.DetermineInitialState(worldNpc, _letterQueueManager),
             PlayerResources = ResourceState.FromPlayerResourceState(_gameWorld.GetPlayerResourceState()),
             LocationName = location.Name,
-            TimeDisplay = _timeManager.GetFormattedTimeDisplay(),
+            TimeDisplay = _timeFacade.GetFormattedTimeDisplay(),
             IsValid = true,
             ErrorMessage = null,
             LettersCarriedForNpc = lettersForNpc
@@ -2336,7 +2312,7 @@ public class GameFacade
         var playerResources = _gameWorld.GetPlayerResourceState();
         
         // Check if player can afford
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        var currentTimeBlock = _timeFacade.GetCurrentTimeBlock();
         var currentAttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
         var currentAttention = currentAttentionManager?.Current ?? 0;
         if (!exchange.CanAfford(playerResources, _connectionTokenManager, currentAttention))
@@ -2352,14 +2328,14 @@ public class GameFacade
             switch (cost.Key)
             {
                 case ResourceType.Coins:
-                    player.Coins -= cost.Value;
+                    _resourceFacade.SpendCoins(cost.Value, "Exchange cost");
                     break;
                 case ResourceType.Health:
-                    player.Health -= cost.Value;
+                    _resourceFacade.TakeDamage(cost.Value, "Exchange cost");
                     break;
                 case ResourceType.Attention:
                     // Attention is managed by TimeBlockAttentionManager
-                    var costTimeBlock = _timeManager.GetCurrentTimeBlock();
+                    var costTimeBlock = _timeFacade.GetCurrentTimeBlock();
                     var attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(costTimeBlock);
                     if (!attentionMgr.TrySpend(cost.Value))
                     {
@@ -2388,15 +2364,14 @@ public class GameFacade
             switch (reward.Key)
             {
                 case ResourceType.Coins:
-                    player.Coins += reward.Value;
+                    _resourceFacade.AddCoins(reward.Value, "Exchange reward");
                     break;
                 case ResourceType.Health:
-                        player.Health = reward.Value;
-                        player.Health = Math.Min(100, player.Health + reward.Value);
+                        _resourceFacade.Heal(reward.Value, "Exchange reward");
                     break;
                 case ResourceType.Attention:
                     // Attention rewards add to current time block's attention
-                    var rewardTimeBlock = _timeManager.GetCurrentTimeBlock();
+                    var rewardTimeBlock = _timeFacade.GetCurrentTimeBlock();
                     var rewardAttentionMgr = _timeBlockAttentionManager.GetCurrentAttention(rewardTimeBlock);
                     // Add to current attention
                     rewardAttentionMgr.AddAttention(reward.Value);
@@ -2404,7 +2379,7 @@ public class GameFacade
                 case ResourceType.Hunger:
                     // Hunger maps to Food (0 = not hungry, 100 = very hungry)
                     // So setting Hunger to 0 means setting Food to max
-                    player.Food = Math.Max(0, Math.Min(100, player.Food - reward.Value));
+                    _resourceFacade.DecreaseHunger(reward.Value, "Exchange reward");
                     break;
                 case ResourceType.TrustToken:
                     _connectionTokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Value, npcId);
@@ -2447,7 +2422,7 @@ public class GameFacade
                             // Add item to player inventory
                             for (int i = 0; i < reward.Value; i++)
                             {
-                                if (!player.Inventory.AddItem(reward.Key.ToString()))
+                                if (!_resourceFacade.AddItem(reward.Key.ToString()))
                                 {
                                     _messageSystem.AddSystemMessage($"Your inventory is full! Could not receive {item.Name}.", SystemMessageTypes.Warning);
                                     break;
@@ -2482,7 +2457,7 @@ public class GameFacade
 
         LetterQueueViewModel viewModel = new LetterQueueViewModel
         {
-            CurrentTimeBlock = _timeManager.GetCurrentTimeBlock(),
+            CurrentTimeBlock = _timeFacade.GetCurrentTimeBlock(),
             CurrentDay = _gameWorld.CurrentDay,
             LastMorningSwapDay = player.LastMorningSwapDay,
             QueueSlots = new List<QueueSlotViewModel>(),
@@ -2500,8 +2475,8 @@ public class GameFacade
             },
             Actions = new QueueActionsViewModel
             {
-                CanMorningSwap = _timeManager.GetCurrentTimeBlock() == TimeBlocks.Morning && player.LastMorningSwapDay < _gameWorld.CurrentDay,
-                MorningSwapReason = _timeManager.GetCurrentTimeBlock() != TimeBlocks.Morning ? "Only available in morning" : 
+                CanMorningSwap = _timeFacade.GetCurrentTimeBlock() == TimeBlocks.Morning && player.LastMorningSwapDay < _gameWorld.CurrentDay,
+                MorningSwapReason = _timeFacade.GetCurrentTimeBlock() != TimeBlocks.Morning ? "Only available in morning" : 
                                    player.LastMorningSwapDay >= _gameWorld.CurrentDay ? "Already swapped today" : 
                                    "Available",
                 HasBottomDeliveryObligation = player.ObligationQueue[7] != null,
@@ -2609,7 +2584,7 @@ public class GameFacade
     public LetterBoardViewModel GetLetterBoard()
     {
         // Check if it's dawn
-        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
         if (currentTime != TimeBlocks.Dawn)
         {
             return new LetterBoardViewModel
@@ -2723,7 +2698,7 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();
         List<InventoryItemViewModel> items = new List<InventoryItemViewModel>();
 
-        foreach (string? itemId in player.Inventory.ItemSlots.Where(s => !string.IsNullOrEmpty(s)))
+        foreach (string? itemId in _resourceFacade.GetInventory().ItemSlots.Where(s => !string.IsNullOrEmpty(s)))
         {
             Item item = _itemRepository.GetItemById(itemId);
             if (item != null)
@@ -2743,9 +2718,9 @@ public class GameFacade
         {
             Items = items,
             TotalWeight = items.Sum(i => i.Weight),
-            MaxSlots = player.Inventory.ItemSlots.Length,
+            MaxSlots = _resourceFacade.GetInventory().ItemSlots.Length,
             UsedSlots = items.Count,
-            Coins = player.Coins
+            Coins = _resourceFacade.GetCoins()
         };
     }
 
@@ -2872,7 +2847,7 @@ public class GameFacade
         }
 
         // Check for DeliveryObligation Board availability
-        if (_timeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
+        if (_timeFacade.GetCurrentTimeBlock() != TimeBlocks.Dawn)
         {
             ActionOptionViewModel letterBoardInfo = new ActionOptionViewModel
             {
@@ -2940,7 +2915,7 @@ public class GameFacade
 
         // Check for missing NPCs and their schedules
         List<NPC> allNPCs = _npcRepository.GetNPCsForLocation(currentSpot.LocationId);
-        List<NPC> currentNPCs = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpot.SpotID, _timeManager.GetCurrentTimeBlock());
+        List<NPC> currentNPCs = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpot.SpotID, _timeFacade.GetCurrentTimeBlock());
         List<NPC> missingNPCs = allNPCs.Where(npc => !currentNPCs.Any(c => c.ID == npc.ID)).ToList();
 
         foreach (NPC missingNPC in missingNPCs)
@@ -2979,8 +2954,8 @@ public class GameFacade
 
     private string GetNextAvailableTime(TimeBlocks targetTime)
     {
-        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        int currentHour = _timeManager.GetCurrentTimeHours();
+        TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
+        int currentHour = _timeFacade.GetCurrentHour();
 
         // Calculate hours until target time
         int hoursUntilTarget = CalculateHoursUntilTimeBlock(currentTime, targetTime, currentHour);
@@ -3049,7 +3024,7 @@ public class GameFacade
 
     private string GetNextNPCAvailable(NPC npc)
     {
-        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
         List<TimeBlocks> availableTimes = GetNPCAvailableTimes(npc);
 
         if (!availableTimes.Any())
@@ -3069,7 +3044,7 @@ public class GameFacade
 
     private string GetNextMarketAvailable(string locationId, List<NPC> traders)
     {
-        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
 
         // Find all times when at least one trader is available
         HashSet<TimeBlocks> marketTimes = new HashSet<TimeBlocks>();
