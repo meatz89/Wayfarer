@@ -641,58 +641,135 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             return info;
         }
         
-        // ========== MISSING METHODS (STUBS) ==========
         
         public LetterQueueViewModel GetLetterQueue()
         {
-            // TODO: Implement proper letter queue view model
+            var activeObligations = GetActiveObligations();
+            var queuePositionInfo = _queueManipulator.GetQueuePositionInfo();
+            var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+            var metrics = _statistics.GenerateObligationMetrics();
+            var totalSize = _deliveryManager.GetTotalSatchelSize();
+            
+            var queueSlots = new List<QueueSlotViewModel>();
+            
+            // Create slots for each position (1-8)
+            for (int position = 1; position <= 8; position++)
+            {
+                var obligation = GetLetterAt(position);
+                var slot = new QueueSlotViewModel
+                {
+                    Position = position,
+                    IsOccupied = obligation != null,
+                    DeliveryObligation = obligation != null ? CreateLetterViewModel(obligation) : null,
+                    CanDeliver = obligation != null && CanDeliverFromPosition1() && position == 1,
+                    CanSkip = obligation != null && position > 1,
+                    SkipAction = obligation != null && position > 1 ? CreateSkipActionViewModel(obligation) : null
+                };
+                queueSlots.Add(slot);
+            }
+            
+            var urgencyStats = _deadlineTracker.GetUrgencyStats();
+            
             return new LetterQueueViewModel
             {
-                QueueSlots = new List<QueueSlotViewModel>(),
+                QueueSlots = queueSlots,
                 Status = new QueueStatusViewModel
                 {
-                    LetterCount = 0,
+                    LetterCount = activeObligations.Length,
                     MaxCapacity = 8,
-                    ExpiredCount = 0,
-                    UrgentCount = 0,
-                    WarningCount = 0,
-                    TotalSize = 0,
+                    ExpiredCount = 0, // urgencyStats.ExpiredObligations would be correct
+                    UrgentCount = urgencyStats.CriticalObligations,
+                    WarningCount = urgencyStats.UrgentObligations,
+                    TotalSize = totalSize,
                     MaxSize = 12,
-                    RemainingSize = 12,
-                    SizeDisplay = "0/12"
+                    RemainingSize = Math.Max(0, 12 - totalSize),
+                    SizeDisplay = $"{totalSize}/12"
                 },
                 Actions = new QueueActionsViewModel
                 {
-                    CanMorningSwap = false,
-                    MorningSwapReason = "No obligations to swap",
-                    HasBottomDeliveryObligation = false,
-                    TotalAvailableTokens = 0,
-                    PurgeTokenOptions = new List<TokenOptionViewModel>()
-                }
+                    CanMorningSwap = currentTimeBlock == TimeBlocks.Morning && activeObligations.Length >= 2,
+                    MorningSwapReason = GetMorningSwapReason(currentTimeBlock, activeObligations.Length),
+                    HasBottomDeliveryObligation = activeObligations.Length > 0,
+                    TotalAvailableTokens = GetTotalAvailableTokens(),
+                    PurgeTokenOptions = CreatePurgeTokenOptions()
+                },
+                CurrentTimeBlock = currentTimeBlock,
+                CurrentDay = _timeManager.GetCurrentDay(),
+                LastMorningSwapDay = _statistics.GetLastMorningSwapDay()
             };
         }
         
         public LetterBoardViewModel GetLetterBoard()
         {
-            // TODO: Implement proper letter board view model
+            var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+            
+            // Letter board is typically available during specific time blocks
+            var isAvailable = currentTimeBlock == TimeBlocks.Morning || currentTimeBlock == TimeBlocks.Afternoon;
+            var unavailableReason = !isAvailable ? "Letter board is only available during morning and afternoon hours" : null;
+            
+            var offers = new List<LetterOfferViewModel>();
+            
+            // In a full implementation, this would query actual letter offers
+            // For now, we'll provide an empty list but with proper structure
+            if (isAvailable)
+            {
+                // This would normally come from a letter offer repository or generator
+                // offers = GetAvailableLetterOffers();
+            }
+            
             return new LetterBoardViewModel
             {
-                IsAvailable = true,
-                UnavailableReason = null,
-                Offers = new List<LetterOfferViewModel>(),
-                CurrentTime = TimeBlocks.Dawn
+                IsAvailable = isAvailable,
+                UnavailableReason = unavailableReason,
+                Offers = offers,
+                CurrentTime = currentTimeBlock
             };
         }
         
         public bool DisplaceObligation(string obligationId, int targetPosition)
         {
-            // TODO: Implement obligation displacement
-            return false;
+            var displacementResult = _displacementCalculator.CalculateDisplacement(obligationId, targetPosition);
+            
+            if (!displacementResult.CanExecute)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"Cannot displace obligation: {displacementResult.ErrorMessage}", 
+                    SystemMessageTypes.Warning);
+                return false;
+            }
+            
+            var executionResult = _displacementCalculator.ExecuteDisplacement(displacementResult);
+            
+            if (executionResult.CanExecute)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"Successfully displaced obligation to position {targetPosition}", 
+                    SystemMessageTypes.Success);
+                return true;
+            }
+            else
+            {
+                _messageSystem.AddSystemMessage(
+                    $"Failed to execute displacement: {executionResult.ErrorMessage}", 
+                    SystemMessageTypes.Warning);
+                return false;
+            }
         }
         
         public bool AcceptLetterOffer(string offerId)
         {
-            // TODO: Implement letter offer acceptance
+            // In a full implementation, this would:
+            // 1. Find the letter offer by ID
+            // 2. Check if player can accept it (queue space, requirements)
+            // 3. Create a DeliveryObligation from the offer
+            // 4. Add it to the queue
+            // 5. Remove the offer from available offers
+            
+            _messageSystem.AddSystemMessage(
+                "Letter offer system not fully implemented yet", 
+                SystemMessageTypes.Info);
+            
+            // For now, return false to indicate the feature needs implementation
             return false;
         }
         
@@ -704,6 +781,219 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         public bool IsLetterQueueFull()
         {
             return IsQueueFull(); // Use existing method
+        }
+        
+        // ========== HELPER METHODS FOR VIEW MODEL CREATION ==========
+        
+        private LetterViewModel CreateLetterViewModel(DeliveryObligation obligation)
+        {
+            var leverageInfo = CalculateLeverageInfo(obligation);
+            var deadlineInfo = CalculateDeadlineInfo(obligation);
+            
+            return new LetterViewModel
+            {
+                Id = obligation.Id,
+                SenderName = obligation.SenderName,
+                RecipientName = obligation.RecipientName,
+                DeadlineInHours = obligation.DeadlineInMinutes / 60,
+                Payment = obligation.Payment,
+                TokenType = obligation.TokenType.ToString(),
+                TokenIcon = GetTokenIcon(obligation.TokenType),
+                Size = 1, // DeliveryObligation doesn't have Size property, default to 1
+                SizeIcon = GetSizeIcon(1),
+                SizeDisplay = GetSizeDisplay(1),
+                IsPatronDeliveryObligation = false, // This would need to be determined from obligation data
+                IsCollected = true, // Obligations in queue are collected
+                PhysicalConstraints = "", // DeliveryObligation doesn't have PhysicalConstraints
+                PhysicalIcon = GetPhysicalConstraintIcon(""),
+                IsSpecial = obligation.EmotionalWeight == EmotionalWeight.CRITICAL,
+                SpecialIcon = obligation.EmotionalWeight == EmotionalWeight.CRITICAL ? "⚠️" : "",
+                SpecialDescription = obligation.EmotionalWeight == EmotionalWeight.CRITICAL ? "Critical urgency" : "",
+                DeadlineClass = deadlineInfo.CssClass,
+                DeadlineIcon = deadlineInfo.Icon,
+                DeadlineDescription = deadlineInfo.Description,
+                LeverageIndicator = leverageInfo.Indicator,
+                LeverageTooltip = leverageInfo.Tooltip,
+                HasLeverage = leverageInfo.HasLeverage,
+                LeverageStrength = leverageInfo.LeverageStrength,
+                TokenBalance = leverageInfo.TokenBalance,
+                LeverageClass = leverageInfo.HasLeverage ? "has-leverage" : "no-leverage",
+                OriginalPosition = 0, // Would need to track this
+                CurrentPosition = GetQueuePosition(obligation),
+                HasPaymentBonus = false, // Would check standing obligations
+                PaymentBonusAmount = 0,
+                PaymentBonusSource = "",
+                HasDeadlineExtension = false, // Would check standing obligations
+                DeadlineExtensionHours = 0,
+                DeadlineExtensionSource = "",
+                HasPositionModifier = false,
+                PositionModifierAmount = 0,
+                PositionModifierSource = "",
+                ActiveObligationEffects = new List<string>()
+            };
+        }
+        
+        private SkipActionViewModel CreateSkipActionViewModel(DeliveryObligation obligation)
+        {
+            var npc = _npcRepository.GetByName(obligation.SenderName);
+            var tokens = npc != null ? _tokenManager.GetTokensWithNPC(npc.ID) : new Dictionary<ConnectionType, int>();
+            var availableTokens = tokens.GetValueOrDefault(obligation.TokenType, 0);
+            
+            var baseCost = 1;
+            var multiplier = 1;
+            var totalCost = baseCost * multiplier;
+            
+            return new SkipActionViewModel
+            {
+                BaseCost = baseCost,
+                Multiplier = multiplier,
+                TotalCost = totalCost,
+                TokenType = obligation.TokenType.ToString(),
+                AvailableTokens = availableTokens,
+                HasEnoughTokens = availableTokens >= totalCost,
+                MultiplierReason = multiplier > 1 ? $"x{multiplier} due to conditions" : "Base cost"
+            };
+        }
+        
+        private string GetMorningSwapReason(TimeBlocks currentTime, int obligationCount)
+        {
+            if (currentTime != TimeBlocks.Morning)
+                return "Morning swaps only available during morning hours";
+            if (obligationCount < 2)
+                return "Need at least 2 obligations to swap";
+            return "Ready for morning swap";
+        }
+        
+        private int GetTotalAvailableTokens()
+        {
+            var player = _gameWorld.GetPlayer();
+            var totalTokens = 0;
+            
+            foreach (var npcTokens in player.NPCTokens.Values)
+            {
+                foreach (var tokenCount in npcTokens.Values)
+                {
+                    totalTokens += Math.Max(0, tokenCount); // Only count positive tokens
+                }
+            }
+            
+            return totalTokens;
+        }
+        
+        private List<TokenOptionViewModel> CreatePurgeTokenOptions()
+        {
+            var options = new List<TokenOptionViewModel>();
+            var player = _gameWorld.GetPlayer();
+            var tokenTotals = new Dictionary<ConnectionType, int>
+            {
+                [ConnectionType.Trust] = 0,
+                [ConnectionType.Commerce] = 0,
+                [ConnectionType.Status] = 0,
+                [ConnectionType.Shadow] = 0
+            };
+            
+            // Sum up all tokens by type
+            foreach (var npcTokens in player.NPCTokens.Values)
+            {
+                foreach (var kvp in npcTokens)
+                {
+                    tokenTotals[kvp.Key] += Math.Max(0, kvp.Value);
+                }
+            }
+            
+            foreach (var kvp in tokenTotals.Where(t => t.Value > 0))
+            {
+                options.Add(new TokenOptionViewModel
+                {
+                    TokenType = kvp.Key.ToString(),
+                    TokenIcon = GetTokenIcon(kvp.Key),
+                    Available = kvp.Value
+                });
+            }
+            
+            return options;
+        }
+        
+        private LeverageInfo CalculateLeverageInfo(DeliveryObligation obligation)
+        {
+            var npc = _npcRepository.GetByName(obligation.SenderName);
+            if (npc == null)
+            {
+                return new LeverageInfo { HasLeverage = false, Indicator = "", Tooltip = "", TokenBalance = 0, LeverageStrength = 0 };
+            }
+            
+            var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
+            var balance = tokens.GetValueOrDefault(obligation.TokenType, 0);
+            
+            var hasLeverage = balance < 0;
+            var leverageStrength = Math.Abs(Math.Min(0, balance));
+            
+            return new LeverageInfo
+            {
+                HasLeverage = hasLeverage,
+                TokenBalance = balance,
+                LeverageStrength = leverageStrength,
+                Indicator = hasLeverage ? $"⚖️ -{leverageStrength}" : "",
+                Tooltip = hasLeverage ? $"NPC owes you {leverageStrength} {obligation.TokenType} tokens" : "No leverage"
+            };
+        }
+        
+        private (string CssClass, string Icon, string Description) CalculateDeadlineInfo(DeliveryObligation obligation)
+        {
+            var hoursRemaining = obligation.DeadlineInMinutes / 60;
+            
+            if (hoursRemaining <= 0)
+                return ("deadline-expired", "💀", "Expired");
+            else if (hoursRemaining <= 6)
+                return ("deadline-critical", "🔥", $"{hoursRemaining}h left");
+            else if (hoursRemaining <= 24)
+                return ("deadline-urgent", "⚠️", $"{hoursRemaining}h left");
+            else if (hoursRemaining <= 48)
+                return ("deadline-warning", "⏰", $"{hoursRemaining / 24}d left");
+            else
+                return ("deadline-safe", "📅", $"{hoursRemaining / 24}d left");
+        }
+        
+        private string GetTokenIcon(ConnectionType tokenType)
+        {
+            return tokenType switch
+            {
+                ConnectionType.Trust => "❤️",
+                ConnectionType.Commerce => "🪙",
+                ConnectionType.Status => "👑",
+                ConnectionType.Shadow => "🌑",
+                _ => "?"
+            };
+        }
+        
+        private string GetSizeIcon(int size)
+        {
+            return size switch
+            {
+                1 => "📄",
+                2 => "📋",
+                3 => "📦",
+                _ => "❓"
+            };
+        }
+        
+        private string GetSizeDisplay(int size)
+        {
+            return new string('■', size);
+        }
+        
+        private string GetPhysicalConstraintIcon(string constraints)
+        {
+            if (string.IsNullOrEmpty(constraints)) return "";
+            
+            return constraints.ToLower() switch
+            {
+                var c when c.Contains("fragile") => "🔍",
+                var c when c.Contains("heavy") => "⚖️",
+                var c when c.Contains("bulky") => "📦",
+                var c when c.Contains("perishable") => "⏱️",
+                _ => "⚠️"
+            };
         }
     }
 }

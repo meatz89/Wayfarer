@@ -102,7 +102,8 @@ public class GameFacade
         {
             var conversationTypes = _conversationFacade.GetAvailableConversationTypes(npc);
             var attentionCost = _conversationFacade.GetAttentionCost(ConversationType.FriendlyChat);
-            var (currentAttention, _) = _resourceFacade.GetAttention(_timeFacade.GetCurrentTimeBlock());
+            var attentionInfo = _resourceFacade.GetAttention(_timeFacade.GetCurrentTimeBlock());
+            var currentAttention = attentionInfo.Current;
             
             options.Add(new NPCConversationOptions
             {

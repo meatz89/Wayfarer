@@ -44,7 +44,7 @@ namespace Wayfarer.Pages.Components
             var spot = GameFacade.GetCurrentLocationSpot();
             CurrentSpot = spot;
             var timeInfo = GameFacade.GetTimeInfo();
-            CurrentTime = timeInfo.timeBlock;
+            CurrentTime = timeInfo.TimeBlock;
             
             // Get NPCs at current spot
             AvailableNpcs.Clear();

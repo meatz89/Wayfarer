@@ -100,8 +100,8 @@ public class Phase1_CoreEntities : IInitializationPhase
                 dto.LocationSpots ?? new List<string>(),
                 dto.DomainTags ?? new List<string>(),
                 dto.TravelHubSpotId,
-                null, // environmentalProperties - TODO: convert from DTO
-                null, // availableProfessionsByTime - TODO: convert from DTO
+                ConvertEnvironmentalProperties(dto.EnvironmentalProperties),
+                ConvertAvailableProfessionsByTime(dto.AvailableProfessionsByTime),
                 dto.Tier
             );
 
@@ -209,5 +209,63 @@ public class Phase1_CoreEntities : IInitializationPhase
         }
 
         Console.WriteLine($"Loaded {context.GameWorld.WorldState.Items.Count} items");
+    }
+
+    private Dictionary<TimeBlocks, List<string>> ConvertEnvironmentalProperties(EnvironmentalPropertiesDTO environmentalProperties)
+    {
+        if (environmentalProperties == null)
+            return null;
+
+        var converted = new Dictionary<TimeBlocks, List<string>>();
+
+        if (environmentalProperties.Morning != null && environmentalProperties.Morning.Count > 0)
+            converted[TimeBlocks.Morning] = environmentalProperties.Morning;
+
+        if (environmentalProperties.Afternoon != null && environmentalProperties.Afternoon.Count > 0)
+            converted[TimeBlocks.Afternoon] = environmentalProperties.Afternoon;
+
+        if (environmentalProperties.Evening != null && environmentalProperties.Evening.Count > 0)
+            converted[TimeBlocks.Evening] = environmentalProperties.Evening;
+
+        if (environmentalProperties.Night != null && environmentalProperties.Night.Count > 0)
+            converted[TimeBlocks.Night] = environmentalProperties.Night;
+
+        return converted.Count > 0 ? converted : null;
+    }
+
+    private Dictionary<TimeBlocks, List<Professions>> ConvertAvailableProfessionsByTime(Dictionary<string, List<string>> availableProfessionsByTime)
+    {
+        if (availableProfessionsByTime == null || availableProfessionsByTime.Count == 0)
+            return null;
+
+        var converted = new Dictionary<TimeBlocks, List<Professions>>();
+
+        foreach (var kvp in availableProfessionsByTime)
+        {
+            if (Enum.TryParse<TimeBlocks>(kvp.Key, true, out var timeBlock) && kvp.Value != null)
+            {
+                var professions = new List<Professions>();
+                foreach (var professionString in kvp.Value)
+                {
+                    if (Enum.TryParse<Professions>(professionString, true, out var profession))
+                    {
+                        professions.Add(profession);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"WARNING: Unknown profession '{professionString}' in location data");
+                    }
+                }
+
+                if (professions.Count > 0)
+                    converted[timeBlock] = professions;
+            }
+            else
+            {
+                Console.WriteLine($"WARNING: Unknown time block '{kvp.Key}' in location data");
+            }
+        }
+
+        return converted.Count > 0 ? converted : null;
     }
 }

@@ -16,6 +16,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         private readonly ResourceCalculator _resourceCalculator;
         private readonly MessageSystem _messageSystem;
         private readonly TimeManager _timeManager;
+        private readonly ItemRepository _itemRepository;
         
         public ResourceFacade(
             GameWorld gameWorld,
@@ -25,7 +26,8 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             AttentionManager attentionManager,
             ResourceCalculator resourceCalculator,
             MessageSystem messageSystem,
-            TimeManager timeManager)
+            TimeManager timeManager,
+            ItemRepository itemRepository)
         {
             _gameWorld = gameWorld;
             _coinManager = coinManager;
@@ -35,6 +37,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             _resourceCalculator = resourceCalculator;
             _messageSystem = messageSystem;
             _timeManager = timeManager;
+            _itemRepository = itemRepository;
         }
         
         // ========== COIN OPERATIONS ==========
@@ -193,14 +196,18 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             var inventory = GetInventory();
             return new InventoryViewModel
             {
-                Items = inventory.GetItemIds().Select(itemId => new InventoryItemViewModel
+                Items = inventory.GetItemIds().Select(itemId => 
                 {
-                    ItemId = itemId,
-                    Name = itemId, // TODO: Get actual item name from repository
-                    Description = "", // TODO: Get actual item description from repository
-                    Weight = 1, // TODO: Get actual item weight from repository
-                    Value = 0, // TODO: Get actual item value from repository
-                    CanRead = false
+                    var item = _itemRepository.GetItemById(itemId);
+                    return new InventoryItemViewModel
+                    {
+                        ItemId = itemId,
+                        Name = item?.Name ?? itemId,
+                        Description = item?.Description ?? "",
+                        Weight = item?.Weight ?? 1,
+                        Value = item?.SellPrice ?? 0,
+                        CanRead = item?.Categories.Contains(ItemCategory.Special_Document) ?? false
+                    };
                 }).ToList(),
                 TotalWeight = CalculateTotalWeight(),
                 MaxSlots = inventory.GetCapacity(),
@@ -211,8 +218,16 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         
         public int CalculateTotalWeight()
         {
-            // TODO: Get actual item weights from repository
-            return GetInventory().UsedCapacity; // Simplified - 1 weight per item
+            var inventory = GetInventory();
+            var totalWeight = 0;
+            
+            foreach (var itemId in inventory.GetItemIds())
+            {
+                var item = _itemRepository.GetItemById(itemId);
+                totalWeight += item?.Weight ?? 1;
+            }
+            
+            return totalWeight;
         }
         
         // ========== WORK AND REST OPERATIONS ==========

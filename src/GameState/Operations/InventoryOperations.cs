@@ -55,7 +55,9 @@ public static InventoryOperationResult AddItems(InventoryState inventory, string
     if (count <= 0)
         return InventoryOperationResult.Failure("Count must be positive");
 
-    (InventoryState newInventory, int addedCount) = inventory.WithAddedItems(itemId, count);
+    var addItemResult = inventory.WithAddedItems(itemId, count);
+    InventoryState newInventory = addItemResult.NewState;
+    int addedCount = addItemResult.AddedCount;
 
     if (addedCount == 0)
         return InventoryOperationResult.Failure($"Inventory is full ({inventory.UsedCapacity}/{inventory.Capacity} items)");
@@ -82,7 +84,9 @@ public static InventoryOperationResult RemoveItems(InventoryState inventory, str
     if (currentCount == 0)
         return InventoryOperationResult.Failure($"Item '{itemId}' not found in inventory");
 
-    (InventoryState newInventory, int removedCount) = inventory.WithRemovedItems(itemId, count);
+    var removeItemResult = inventory.WithRemovedItems(itemId, count);
+    InventoryState newInventory = removeItemResult.NewState;
+    int removedCount = removeItemResult.RemovedCount;
 
     if (removedCount < count)
         return InventoryOperationResult.PartialSuccess(newInventory,

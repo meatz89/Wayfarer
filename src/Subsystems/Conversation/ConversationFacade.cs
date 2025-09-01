@@ -104,7 +104,7 @@ public class ConversationFacade
         // Apply token changes
         if (_lastOutcome.TokensEarned != 0)
         {
-            var connectionType = ConnectionType.Trust; // TODO: Determine connection type from conversation outcome
+            var connectionType = DetermineConnectionTypeFromConversation(_currentSession);
             _tokenManager.AddTokensToNPC(connectionType, _lastOutcome.TokensEarned, _currentSession.NPC.ID);
         }
 
@@ -551,21 +551,62 @@ public class ConversationFacade
     
     public object ExecuteExchange(object exchangeData)
     {
-        // TODO: Implement exchange execution
-        return new { Success = false };
+        if (!IsConversationActive())
+        {
+            return new { Success = false, Error = "No active conversation" };
+        }
+
+        try
+        {
+            // Cast exchangeData to ExchangeData type
+            if (exchangeData is not ExchangeData exchange)
+            {
+                throw new ArgumentException("exchangeData must be of type ExchangeData");
+            }
+            
+            // Delegate to the exchange handler
+            var success = _exchangeHandler.ExecuteExchange(
+                exchange, 
+                _currentSession.NPC, 
+                _gameWorld.GetPlayer(),
+                _gameWorld.GetPlayerResourceState());
+            
+            return new { Success = success };
+        }
+        catch (Exception ex)
+        {
+            _messageSystem.AddSystemMessage($"Exchange failed: {ex.Message}", SystemMessageTypes.Warning);
+            return new { Success = false, Error = ex.Message };
+        }
     }
     
-    public System.Threading.Tasks.Task<bool> EndConversationAsync()
+    public async System.Threading.Tasks.Task<bool> EndConversationAsync()
     {
-        // TODO: Implement async conversation ending
-        var outcome = EndConversation();
-        return System.Threading.Tasks.Task.FromResult(outcome != null);
+        // Run the synchronous EndConversation on a background thread to avoid blocking
+        var outcome = await System.Threading.Tasks.Task.Run(() => EndConversation());
+        return outcome != null;
     }
     
     public int GetAttentionCost(ConversationType type)
     {
-        // TODO: Implement attention cost calculation
-        return 1;
+        return ConversationTypeConfig.GetAttentionCost(type);
+    }
+    
+    /// <summary>
+    /// Determine the connection type based on the conversation type and outcome
+    /// </summary>
+    private ConnectionType DetermineConnectionTypeFromConversation(ConversationSession session)
+    {
+        // Map conversation types to their corresponding connection types
+        return session.ConversationType switch
+        {
+            ConversationType.Commerce => ConnectionType.Commerce,
+            ConversationType.Promise => ConnectionType.Trust,
+            ConversationType.Resolution => ConnectionType.Trust,
+            ConversationType.Delivery => ConnectionType.Trust,
+            ConversationType.FriendlyChat => ConnectionType.Trust,
+            _ => ConnectionType.Trust  // Default fallback
+        };
     }
     
 }

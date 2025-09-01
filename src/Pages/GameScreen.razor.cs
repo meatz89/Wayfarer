@@ -163,7 +163,7 @@ namespace Wayfarer.Pages
                 
                 if (mostUrgent != null && mostUrgent.DeadlineInHours > 0)
                 {
-                    MostUrgentDeadline = $"Next deadline: {mostUrgent.DeadlineInHours}h - {mostUrgent.Name}";
+                    MostUrgentDeadline = $"Next deadline: {mostUrgent.DeadlineInHours}h - {mostUrgent.SenderName} → {mostUrgent.RecipientName}";
                 }
                 else
                 {

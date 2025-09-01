@@ -16,6 +16,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private readonly TokenMechanicsManager _tokenManager;
         private readonly GameConfiguration _config;
 
+        private int _lastMorningSwapDay = 0;
+
         public ObligationStatistics(
             GameWorld gameWorld,
             NPCRepository npcRepository,
@@ -26,6 +28,22 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             _npcRepository = npcRepository;
             _tokenManager = tokenManager;
             _config = config;
+        }
+
+        /// <summary>
+        /// Get the last day a morning swap was performed.
+        /// </summary>
+        public int GetLastMorningSwapDay()
+        {
+            return _lastMorningSwapDay;
+        }
+
+        /// <summary>
+        /// Update the last morning swap day when a swap is performed.
+        /// </summary>
+        public void RecordMorningSwap(int currentDay)
+        {
+            _lastMorningSwapDay = currentDay;
         }
 
         /// <summary>

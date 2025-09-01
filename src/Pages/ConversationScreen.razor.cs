@@ -483,8 +483,8 @@ namespace Wayfarer.Pages
         
         protected int GetPlayerHunger()
         {
-            // Hunger is tracked separately from Player in the game rules
-            return 0; // TODO: Get from hunger tracking system when implemented
+            // Hunger is tracked in Player.Food, managed by HungerManager
+            return GameFacade?.GetPlayer()?.Food ?? 0;
         }
         
         protected int GetPlayerAttention()

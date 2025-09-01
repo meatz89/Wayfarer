@@ -44,7 +44,7 @@ namespace Wayfarer.Pages.Components
                 TravelTime = r.TravelTimeMinutes,
                 Cost = r.BaseCoinCost,
                 Familiarity = r.IsDiscovered ? "Known" : "Unknown",
-                Requirements = new List<string>() // TODO: Map requirements from SimpleRouteViewModel
+                Requirements = ExtractRouteRequirements(r)
             }).ToList();
         }
 
@@ -65,12 +65,51 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        private List<string> GetRouteRequirements(SimpleRouteViewModel route)
+        private List<string> ExtractRouteRequirements(RouteOption route)
         {
             var requirements = new List<string>();
             
-            // SimpleRouteViewModel doesn't have these properties yet
-            // TODO: Add requirements to SimpleRouteViewModel
+            // Extract terrain requirements
+            foreach (var terrain in route.TerrainCategories)
+            {
+                switch (terrain)
+                {
+                    case TerrainCategory.Requires_Climbing:
+                        requirements.Add("Requires climbing equipment");
+                        break;
+                    case TerrainCategory.Requires_Water_Transport:
+                        requirements.Add("Requires water transport");
+                        break;
+                    case TerrainCategory.Requires_Permission:
+                        requirements.Add("Requires special permission");
+                        break;
+                    case TerrainCategory.Wilderness_Terrain:
+                        requirements.Add("Wilderness terrain (navigation tools recommended)");
+                        break;
+                    case TerrainCategory.Exposed_Weather:
+                        requirements.Add("Exposed to weather (protection recommended)");
+                        break;
+                    case TerrainCategory.Heavy_Cargo_Route:
+                        requirements.Add("Heavy cargo route (load distribution recommended)");
+                        break;
+                    case TerrainCategory.Dark_Passage:
+                        requirements.Add("Dark passage (light source recommended)");
+                        break;
+                }
+            }
+            
+            // Add tier requirements
+            if (route.TierRequired > TierLevel.T1)
+            {
+                requirements.Add($"Requires {route.TierRequired} access");
+            }
+            
+            // Add access requirements if any
+            if (route.AccessRequirement != null)
+            {
+                // Add specific access requirement descriptions based on the AccessRequirement
+                requirements.Add("Special access required");
+            }
             
             return requirements;
         }

@@ -34,9 +34,9 @@ public List<LocationActionViewModel> GenerateActionsForLocation(Location locatio
     TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
     // Check attention state to determine if wait/rest is needed
-    (int current, int max) attentionState = _timeBlockAttention?.GetAttentionState() ?? (3, 5);
-    bool isExhausted = attentionState.current == 0;
-    bool isLowAttention = attentionState.current <= 1;
+    AttentionInfo attentionState = _timeBlockAttention?.GetAttentionState() ?? new AttentionInfo(3, 5);
+    bool isExhausted = attentionState.Current == 0;
+    bool isLowAttention = attentionState.Current <= 1;
 
     // ALWAYS show Wait action for testing purposes
     // Previously only showed when exhausted, but need it visible for testing time block transitions
