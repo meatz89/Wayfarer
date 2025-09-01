@@ -28,8 +28,8 @@ The same card has different strategic importance based on:
 
 ## Card Anatomy
 
-Every card contains:
-- **Connection Type**: Either Trust, Commerce, Status or Shadow
+Every card has:
+- **Token Type**: Trust, Commerce, Status, or Shadow
 - **Weight**: 0-6, cost from weight pool
 - **Difficulty**: Very Easy (85%), Easy (70%), Medium (60%), Hard (50%), Very Hard (40%)
 - **Persistence**: Fleeting (25% of deck) or Persistent (75% of deck)
@@ -159,36 +159,44 @@ When a fleeting goal card would be discarded (not played during SPEAK), conversa
 
 ## Standard NPC Deck Composition (20 cards)
 
-Every NPC deck follows this template with personality variations:
+Every NPC deck follows this template with personality-based token types:
 
 - **6 Fixed comfort cards** (various weights)
+  - 4-5 cards of NPC's primary token type
+  - 1-2 cards of secondary types
   - Mix of Easy (70%) and Medium (60%) difficulty
   - Range from W1 (+1 comfort) to W5 (+5 comfort)
   
 - **4 Scaled comfort cards** (matching NPC personality)
+  - ALL same token type as NPC's primary
   - All Hard difficulty (50%)
-  - Devoted: Trust scaling
-  - Mercantile: Commerce scaling
-  - Proud: Status scaling
-  - Cunning: Shadow scaling
+  - Devoted NPCs: Trust-type, scale with Trust tokens
+  - Mercantile NPCs: Commerce-type, scale with Commerce tokens
+  - Proud NPCs: Status-type, scale with Status tokens
+  - Cunning NPCs: Shadow-type, scale with Shadow tokens
   
 - **2 Draw cards** (W1 each, Medium 60%)
+  - Same token type as NPC's primary
   - Simple card advantage
   
 - **2 Weight-add cards** (W2 each, Medium 60%)
+  - Same token type as NPC's primary
   - Pool expansion for multi-turn plays
   
 - **3 Setup cards** (W0, Easy 70%)
+  - Mixed token types for flexibility
   - Each sets different atmosphere
   - No other effect
   
 - **2 High-weight dramatic cards** (W4-6, fleeting)
+  - Primary token type for maximum synergy
   - Hard or Very Hard difficulty
   - Major comfort swings
   - Often set Final atmosphere
   
 - **1 Flex slot**
-  - Personality-specific card
+  - Primary token type
+  - Personality-specific effect
   - May be negative comfort for emotional NPCs
 
 ## Emotional State Effects on Cards
@@ -256,21 +264,28 @@ Fleeting cards create timing decisions:
 ## Token Investment Strategies
 
 Tokens only gained through successful deliveries:
-- Standard delivery: +1 token with recipient
-- Excellent delivery: +2-3 tokens with recipient
-- Failed delivery: -2 tokens with sender
+- Trust letter delivery: +1-3 Trust tokens with recipient
+- Commerce letter delivery: +1-3 Commerce tokens with recipient
+- Status letter delivery: +1-3 Status tokens with recipient
+- Shadow letter delivery: +1-3 Shadow tokens with recipient
+- Failed delivery: -2 tokens (matching type) with sender
 
-**Token Effects**:
-- +5% success on ALL cards (linear)
-- Scales certain comfort cards
-- Better goal negotiation outcomes
-- Can be burned for queue displacement
+**Token-Type Matching Effects**:
+- +5% success ONLY on cards of matching type
+- Trust tokens boost Trust-type cards only
+- Commerce tokens boost Commerce-type cards only
+- Status tokens boost Status-type cards only
+- Shadow tokens boost Shadow-type cards only
 
-**Building Token Economies**:
-- Focus deliveries on specific NPCs
-- Compound success rates over time
-- Preserve tokens by accepting poor positions
-- Emergency burns damage long-term prospects
+**Building Specialized Economies**:
+- Focus deliveries based on district needs
+  - Noble District: Build Status tokens for Proud NPCs
+  - Market District: Build Commerce tokens for Merchants
+  - Temple District: Build Trust tokens for Devoted NPCs
+  - Shadow District: Build Shadow tokens for Cunning NPCs
+- Wrong token types provide zero benefit
+- 5 Trust tokens useless when talking to Commerce-focused merchant
+- Must match tokens to NPC personality for effectiveness
 
 ## Atmosphere Management
 
@@ -312,10 +327,19 @@ Hard: 50% (Scaled comfort, dramatic)
 Very Hard: 40% (Goals, major effects)
 
 Token Bonus:
-Each token: +5% (linear)
+Each MATCHING token: +5%
+Trust tokens only boost Trust-type cards
+Commerce tokens only boost Commerce-type cards
+Status tokens only boost Status-type cards
+Shadow tokens only boost Shadow-type cards
 
 Final Rate:
-Base + (Tokens × 5%), clamped 5%-95%
+Base + (Matching Tokens × 5%), clamped 5%-95%
+
+Example:
+Trust-type card with 3 Trust tokens: +15% bonus
+Trust-type card with 3 Commerce tokens: +0% bonus
+Commerce-type card with 3 Commerce tokens: +15% bonus
 ```
 
 ### Failure Mitigation
@@ -366,31 +390,48 @@ Observation cards as tactical tools:
 
 ### NPC Variety Through Deck Composition
 
-Same mechanics, different puzzles:
+Same mechanics, different token-type puzzles:
 
 **Devoted NPC** (Elena):
+- ~75% Trust-type cards (15+ cards)
 - Trust-scaling comfort cards
+- Trust tokens essential for success
 - Patient atmosphere setup
 - High patience (15 base)
-- Personal dramatic cards
+- Worthless Commerce/Status/Shadow tokens
 
 **Mercantile NPC** (Marcus):
+- ~75% Commerce-type cards (15+ cards)
 - Commerce-scaling comfort
+- Commerce tokens essential for success
 - Focused atmosphere for business
 - Moderate patience (12 base)
 - Exchange deck available
+- Trust tokens provide no benefit
 
 **Proud NPC** (Lord Blackwood):
+- ~75% Status-type cards (15+ cards)
 - Status-scaling comfort
+- Status tokens essential for success
 - Final atmosphere common
 - Low patience (10 base)
 - Letters demand position 1
+- Shadow tokens useless here
 
 **Cunning NPC** (Spy):
+- ~75% Shadow-type cards (15+ cards)
 - Shadow-scaling comfort
+- Shadow tokens essential for success
 - Pressured atmosphere tactics
 - Calculating patience (12)
-- Misdirection flex cards
+- Trust tokens provide no advantage
+
+**Steadfast NPC** (Guards):
+- ~25% each token type (balanced)
+- Any tokens provide some benefit
+- Mixed scaling cards
+- Reliable patience (13)
+- No specialization needed
 
 ### Infinite Puzzle Generation
 
@@ -410,34 +451,36 @@ Same framework, endless variations.
 ### Evaluating Card Value
 
 A card's true value depends on:
-1. **Weight efficiency**: Effect per weight spent
-2. **Success probability**: Base + token modifier
-3. **Timing**: Persistent vs fleeting
-4. **Context**: Current state, atmosphere, comfort
-5. **Opportunity cost**: What else could you play?
+1. **Token-type match**: Do you have matching tokens for bonus?
+2. **Weight efficiency**: Effect per weight spent
+3. **Success probability**: Base + matching token modifier
+4. **Timing**: Persistent vs fleeting
+5. **Context**: Current state, atmosphere, comfort
+6. **Opportunity cost**: What else could you play?
 
-### Example: Comparing Two Cards
+### Example: Token-Type Importance
 
-**"Simple Comfort"** (W1, Easy 70%, +1 comfort)
-vs
-**"Trust Building"** (W3, Hard 50%, +X where X = Trust tokens)
+**"Trust Bond"** (Trust-type, W2, Medium 60%, +2 comfort)
+With 3 Trust tokens: 75% chance (60% + 15%)
+With 3 Commerce tokens: 60% chance (no bonus!)
 
-With 3 Trust tokens:
-- Simple: 85% chance of +1 comfort for 1 weight
-- Trust: 65% chance of +3 comfort for 3 weight
+**"Good Business"** (Commerce-type, W2, Hard 50%, +X where X = Commerce tokens)
+With 3 Commerce tokens: 65% chance of +3 comfort
+With 3 Trust tokens: 50% chance of +0 comfort (no tokens match!)
 
-Simple is more weight-efficient but Trust advances faster toward transition.
+The same tokens have completely different value depending on card type. Building the RIGHT tokens for each NPC is crucial.
 
 ## The Elegance
 
 Every mechanic maintains its single purpose while creating cascading strategic implications:
 
 - Weight capacity ONLY limits playability → but capacity changes everything
-- Tokens ONLY modify success rates → but linearly, so every token matters
+- Tokens ONLY modify success rates of matching types → creating specialization not generic power
+- Token types ONLY match specific cards → forcing strategic relationship focus
 - Comfort ONLY triggers state transitions → but states determine capacity
 - Atmosphere ONLY modifies one rule → but persists across all actions
 - Observations ONLY provide unique effects → but effects unavailable elsewhere
 
-The strategy isn't in card complexity - it's in recognizing which simple effect is most valuable in the current weight, atmospheric, emotional, and temporal context. The puzzle is resource management, not memorization. The challenge is optimization, not calculation.
+The strategy isn't in card complexity - it's in recognizing which simple effect is most valuable in the current weight, atmospheric, emotional, temporal, and token-type context. You can't be good at everything - you must specialize your token investments based on which NPCs matter most. The puzzle is specialization, not generalization. The challenge is matching, not accumulation.
 
-This creates tactical depth through context rather than card text complexity.
+This creates tactical depth through token-type alignment rather than generic power growth.

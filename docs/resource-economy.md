@@ -75,10 +75,16 @@ Four types, each with distinct identity:
 - **Status**: Social standing  
 - **Shadow**: Shared secrets
 
-**Single Mechanical Effect**: +5% success rate per token (linear, no threshold)
+**Single Mechanical Effect**: +5% success rate per token on MATCHING card types only
+
+**Token-Type Matching**:
+- Trust tokens ONLY boost Trust-type cards
+- Commerce tokens ONLY boost Commerce-type cards
+- Status tokens ONLY boost Status-type cards
+- Shadow tokens ONLY boost Shadow-type cards
 
 **Multiple Uses Through Different Mechanics**:
-1. **Success Modifier**: Every token adds 5% to all card success rates
+1. **Success Modifier**: Every token adds 5% to matching card types only
 2. **Goal Negotiation**: Better terms with matching token types  
 3. **Displacement Cost**: Burn tokens to jump queue positions
 4. **Scaling Effects**: Some comfort cards scale with specific token types
@@ -86,12 +92,15 @@ Four types, each with distinct identity:
 Each use is a separate mechanic. Tokens never gate access to content.
 
 **Token Acquisition** (ONLY through letter delivery):
-- Standard successful delivery: +1 token with recipient
+- Standard successful delivery: +1 token with recipient (type matches letter)
 - Excellent delivery (high negotiation success): +2-3 tokens with recipient
-- Crisis resolution success: +1 token with affected party
+- Trust letters build Trust tokens
+- Commerce letters build Commerce tokens
+- Status letters build Status tokens
+- Shadow letters build Shadow tokens
 
 **Token Loss**:
-- Failed deliveries: -2 tokens with sender
+- Failed deliveries: -2 tokens with sender (matching type)
 - Queue displacement: -1 per position jumped per displaced NPC
 - Can go negative (relationship debt)
 
@@ -437,10 +446,18 @@ No hidden calculations. Perfect information for strategic decisions.
 - Good negotiation (80% success): 15-20 coins, 6+ hour deadline, flexible position
 
 ### Token Investment Return
-- 3 tokens: +15% success (noticeable improvement)
-- 6 tokens: +30% success (reliable plays)
-- 10 tokens: +50% success (dominant position)
-- But burning 10 tokens destroys multiple relationships
+- 3 matching tokens: +15% success on same-type cards
+- 6 matching tokens: +30% success on same-type cards
+- 10 matching tokens: +50% success on same-type cards
+- But wrong token type: +0% (Trust tokens useless on Commerce cards)
+- Burning 10 tokens destroys multiple relationships
+
+### Strategic Token Specialization
+- **Devoted NPCs** (75% Trust cards): Build Trust tokens
+- **Mercantile NPCs** (75% Commerce cards): Build Commerce tokens
+- **Proud NPCs** (75% Status cards): Build Status tokens
+- **Cunning NPCs** (75% Shadow cards): Build Shadow tokens
+- **Steadfast NPCs** (balanced): Any tokens help equally
 
 ### Weight Pool Management
 - Desperate (3 capacity): Can play three 1-weight or one 3-weight card
@@ -453,19 +470,21 @@ No hidden calculations. Perfect information for strategic decisions.
 New content uses same resources differently:
 
 **Desperate Scenario**: Low weight capacity creates severe limitations
-**Political Scenario**: Status tokens critical for Status-scaling comfort
-**Merchant Campaign**: Commerce tokens for Commerce-scaling cards
-**Shadow Path**: Shadow tokens unlock special goal cards
+**Political Scenario**: Status tokens critical for Status-type cards in Noble District
+**Merchant Campaign**: Commerce tokens essential for Commerce-type cards in Markets
+**Shadow Path**: Shadow tokens required for Shadow-type cards with spies
+**Temple Route**: Trust tokens needed for Trust-type cards with clergy
 
-Same resources, same mechanics, different strategic emphasis.
+Same resources, same mechanics, but token-type matching creates distinct strategic paths requiring specialized relationships.
 
 ## Core Innovation
 
 Resources flow through multiple mechanics without any mechanic doing multiple things:
 
-- Tokens affect success (one mechanic) AND enable displacement (different mechanic) AND improve negotiations (third mechanic) AND scale certain comfort cards (fourth mechanic)
+- Tokens affect success (one mechanic) BUT only on matching card types
+- Different token types create specialization rather than generic power
 - Weight pools limit card plays (one mechanic) while atmosphere modifies capacity (different mechanic)
 - Comfort triggers transitions (one mechanic) while atmosphere can modify comfort changes (different mechanic)
 - Attention enables conversations (one mechanic) AND observations (different mechanic) AND work (third mechanic)
 
-This creates strategic depth from simple, intentional rules. Every resource matters in multiple ways, but each way is a distinct, single-purpose mechanic. The economy is the intersection of these mechanics, not their individual complexity.
+This creates strategic depth from simple, intentional rules. Every resource matters in multiple ways, but token-type matching forces players to specialize their approach. The economy is the intersection of these mechanics, not their individual complexity.

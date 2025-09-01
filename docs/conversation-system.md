@@ -187,25 +187,34 @@ When starting a conversation with a goal:
 
 ### Conversation Deck
 - 6 Fixed comfort cards (W0-W4, various difficulties)
+  - 5 Trust-type cards (match her Devoted personality)
+  - 1 Status-type card (secondary option)
 - 4 Scaled comfort cards (Trust-based scaling)
+  - All Trust-type cards
+  - Scale with Trust tokens specifically
 - 2 Draw cards (W1 each)
+  - Both Trust-type cards
 - 2 Weight-add cards (W2 each)
+  - Both Trust-type cards
 - 3 Setup cards (W0 with atmosphere changes)
+  - Mixed types (1 Trust, 1 Commerce, 1 Status)
 - 2 High-weight dramatic cards (W5, fleeting)
+  - Both Trust-type for maximum synergy
 - 1 Flex card
+  - Trust-type emotional overflow card
 
 ### Goal Deck
-- "Marriage Refusal Letter" (Trust, Weight 5)
-- "Personal Letter" (Trust, Weight 6)
-- "Meet Tonight" (Promise, Weight 5)
-- "Clear the Air" (Resolution, Weight 5)
+- "Marriage Refusal Letter" (Trust-type, Weight 5)
+- "Personal Letter" (Trust-type, Weight 6)
+- "Meet Tonight" (Trust-type, Weight 5)
+- "Clear the Air" (Trust-type, Weight 5)
 
 ### Available Conversations at Location
 - **Make Amends** (burden cards in relationship record)
 - **Discuss Letter** (letter goals available)
 - **Chat** (always available)
 
-If player chooses "Discuss Letter" and Elena is Desperate, the appropriate letter goal shuffles into the conversation deck based on urgency and context.
+If player has 3 Trust tokens with Elena, they get +15% success on her Trust-type cards (most of her deck) but +0% on her few non-Trust cards.
 
 ### The Goal Urgency Rule
 
@@ -389,12 +398,21 @@ Atmosphere affects all actions until changed or cleared. Standard atmospheres av
 
 **Conversation Deck** (20 cards standard)
 - 6 Fixed comfort cards (various weights and difficulties)
+  - Primary token type matches NPC personality
+  - 4-5 cards of primary type, 1-2 of secondary types
 - 4 Scaled comfort cards (personality-matched)
+  - All same token type as NPC personality
+  - Scale with specific token type (Trust/Commerce/Status/Shadow)
 - 2 Draw cards (weight 1 each)
+  - Token type matches NPC personality
 - 2 Weight-add cards (weight 2 each)
+  - Token type matches NPC personality
 - 3 Setup cards (weight 0 with atmosphere)
+  - Mixed token types for flexibility
 - 2 Dramatic cards (high weight, fleeting)
+  - Primary token type for best synergy
 - 1 Flex slot
+  - Personality-specific token type
 - Modified by deliveries and outcomes
 
 **Goal Deck** (3-8 cards typical)
@@ -421,29 +439,39 @@ Goal cards require sufficient weight capacity to play (5-6 weight typically), cr
 ### Personality Types
 
 **Devoted** (Elena, Priests, Family)
-- 15 patience, Trust-focused scaling cards
+- 15 patience, Trust-type cards dominate deck
+- Trust-scaling comfort cards
 - Burns Trust tokens when displaced
 - Letters often personal, emotional
+- ~15 Trust-type cards, ~5 mixed other types
 
 **Mercantile** (Marcus, Innkeepers, Traders)
-- 12 patience, Commerce-focused scaling cards
+- 12 patience, Commerce-type cards dominate deck
+- Commerce-scaling comfort cards
 - Burns Commerce tokens when displaced
 - Has exchange deck for instant trades
+- ~15 Commerce-type cards, ~5 mixed other types
 
 **Proud** (Lord Blackwood, Nobles)
-- 10 patience, Status-focused scaling cards
+- 10 patience, Status-type cards dominate deck
+- Status-scaling comfort cards
 - Burns Status tokens when displaced
 - Letters attempt queue position 1
+- ~15 Status-type cards, ~5 mixed other types
 
 **Cunning** (Spies, Informants)
-- 12 patience, Shadow-focused scaling cards
+- 12 patience, Shadow-type cards dominate deck
+- Shadow-scaling comfort cards
 - Burns Shadow tokens when displaced
 - Letters often time-sensitive
+- ~15 Shadow-type cards, ~5 mixed other types
 
 **Steadfast** (Guards, Workers)
-- 13 patience, Balanced scaling cards
+- 13 patience, Balanced deck across all types
+- Mixed scaling comfort cards
 - Burns varied tokens based on context
 - Reliable but rigid
+- ~5 cards of each token type
 
 ## Promise System (Obligations)
 
@@ -756,7 +784,7 @@ No pre-authored content. Mechanical state generates narrative through AI transla
 
 **Atmosphere Persistence**: Environmental effects that shape entire conversations until changed, creating strategic setup plays.
 
-**Token Linearity**: Every token matters equally. No thresholds, pure linear progression from delivery success only.
+**Token-Type Matching**: Tokens only boost cards of the same type, creating specialized relationships. Trust tokens only help with Trust cards, Commerce with Commerce cards, etc. You must build the RIGHT tokens for each NPC.
 
 **Queue Displacement**: Permanent token sacrifice for temporal flexibility.
 
@@ -764,4 +792,4 @@ No pre-authored content. Mechanical state generates narrative through AI transla
 
 **Strict Effect Separation**: Each mechanic does one thing. Each resource has multiple uses through different mechanics.
 
-This is Wayfarer: Where every conversation is a puzzle, every obligation a commitment, and every delivery permanently changes the world. Weight pools create resource management, atmospheres shape tactical landscapes, and every letter negotiation carves your path through a world of mechanical poetry.
+This is Wayfarer: Where every conversation is a puzzle, every obligation a commitment, and every delivery permanently changes the world. Weight pools create resource management, atmospheres shape tactical landscapes, and token-type matching forces strategic specialization through a world of mechanical poetry.

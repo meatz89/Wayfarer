@@ -177,16 +177,20 @@ This forces prioritization between relationship building, information gathering,
 ### Token Economy Integration
 
 Tokens serve multiple purposes through different mechanics:
-- **In Conversations**: +5% success rate per token (linear, all cards)
-- **For Negotiations**: Better terms when playing goal cards
+- **In Conversations**: +5% success rate per token ONLY on matching card types
+  - Trust tokens only boost Trust-type cards
+  - Commerce tokens only boost Commerce-type cards
+  - Status tokens only boost Status-type cards
+  - Shadow tokens only boost Shadow-type cards
+- **For Negotiations**: Better terms when playing goal cards (matching types)
 - **For Displacement**: Burn for queue flexibility (permanent cost)
 
 Tokens only gained through successful letter delivery:
-- Standard delivery: +1 token with recipient
-- Excellent delivery: +2-3 tokens with recipient
+- Standard delivery: +1 token with recipient (type based on letter)
+- Excellent delivery: +2-3 tokens with recipient (type based on letter)
 - Failed delivery: -2 tokens with sender
 
-Each use is a different mechanic with one purpose, but tokens flow through all.
+Each use is a different mechanic with one purpose, but tokens must match card types for conversation bonuses.
 
 ### Time Pressure Cascades
 
@@ -262,12 +266,19 @@ Deadlines create cascading decisions:
 - Planning multi-SPEAK sequences with weight pool
 
 ### Long-term Strategy
-- Which NPCs to focus deliveries on for token accumulation
-- Which districts to gain access to
-- Which token types to prioritize based on NPC personalities
-- How to shape NPC decks through deliveries
-- Building observation deck for specific challenges
-- Managing burden accumulation in relationship records
+- **Which NPCs to focus deliveries on for specific token types**
+  - Devoted NPCs build Trust tokens
+  - Mercantile NPCs build Commerce tokens
+  - Proud NPCs build Status tokens
+  - Cunning NPCs build Shadow tokens
+- **Token specialization based on district focus**
+  - Noble District needs Status tokens
+  - Market District needs Commerce tokens
+  - Temple District needs Trust tokens
+  - Shadow District needs Shadow tokens
+- **How to shape NPC decks through deliveries**
+- **Building observation deck for specific challenges**
+- **Managing burden accumulation in relationship records**
 
 ## No Soft-Lock Architecture
 
@@ -341,14 +352,15 @@ These emerge from mechanical state, not scripted events.
 
 The three loops create a complete game where:
 
-1. **Conversations** provide puzzle challenge through weight pool management, comfort battery navigation, and atmosphere manipulation
+1. **Conversations** provide puzzle challenge through weight pool management, comfort battery navigation, atmosphere manipulation, and token-type matching (Trust tokens only help Trust cards, etc.)
 2. **Queue** provides time pressure through forced sequential completion and token-burning displacement
 3. **Travel** provides exploration through observation effects and permit-locked routes
 
 Each loop uses different mechanics that operate on shared resources:
-- Tokens flow through all three but only gained through delivery success
+- Tokens flow through all three but must match card types for success bonuses
+- Only gained through delivery success, creating specialization arcs
 - Time pressure affects all three but manifests differently
 - Attention enables all three but must be allocated strategically
 - Weight pools create multi-turn tactical planning unique to conversations
 
-The elegance is that no mechanic serves two purposes, yet resources flow through multiple systems creating strategic depth from simple rules. The game is the intersection, not the individual loops.
+The elegance is that no mechanic serves two purposes, yet resources flow through multiple systems creating strategic depth from simple rules. Token-type matching forces players to specialize their relationships rather than building generic power. The game is the intersection, not the individual loops.

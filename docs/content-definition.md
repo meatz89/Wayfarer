@@ -34,10 +34,10 @@ This scenario demonstrates all three core game loops working together to create 
 2. Guard Report - 8hr deadline - 5 coins payment  
 3. [Elena's letter will compete for position]
 
-### Starting Tokens (Linear Bonuses)
-- **Elena**: 1 Trust (+5% success with her)
-- **Marcus**: 2 Commerce (+10% success)
-- **Guard Captain**: 1 Shadow (+5% success)
+### Starting Tokens (Matching Type Bonuses Only)
+- **Elena**: 1 Trust (+5% on her Trust-type cards only)
+- **Marcus**: 2 Commerce (+10% on his Commerce-type cards only)
+- **Guard Captain**: 1 Shadow (+5% on his Shadow-type cards only)
 - **Lord Blackwood**: 0 all types
 
 ### Time Management
@@ -137,36 +137,36 @@ From Copper Kettle Common Room:
 **Conversation Deck** (20 cards):
 
 **Fixed Comfort Cards** (6 total):
-- "I understand" (W1, Easy 70%): +1 comfort
-- "Let me help" (W1, Easy 70%): +1 comfort  
-- "You're safe with me" (W2, Medium 60%): +2 comfort
-- "Trust in our bond" (W2, Medium 60%): +2 comfort
-- "Together we're strong" (W3, Medium 60%): +3 comfort
-- "Soul connection" (W5, Very Hard 40%, Fleeting): +5 comfort
+- "I understand" (Trust-type, W1, Easy 70%): +1 comfort
+- "Let me help" (Trust-type, W1, Easy 70%): +1 comfort  
+- "You're safe with me" (Trust-type, W2, Medium 60%): +2 comfort
+- "Trust in our bond" (Trust-type, W2, Medium 60%): +2 comfort
+- "Together we're strong" (Trust-type, W3, Medium 60%): +3 comfort
+- "Soul connection" (Trust-type, W5, Very Hard 40%, Fleeting): +5 comfort
 
-**Scaled Comfort Cards** (4 total):
-- "Our trust runs deep" (W2, Hard 50%): +X comfort where X = Trust tokens
-- "Remember our history" (W3, Hard 50%): +X comfort where X = Trust tokens
-- "Lean on me" (W3, Hard 50%): +X comfort where X = 4 - current comfort
-- "Crisis shared" (W4, Hard 50%, Fleeting): +X comfort where X = patience ÷ 3
+**Scaled Comfort Cards** (4 total, all Trust-type):
+- "Our trust runs deep" (Trust-type, W2, Hard 50%): +X comfort where X = Trust tokens
+- "Remember our history" (Trust-type, W3, Hard 50%): +X comfort where X = Trust tokens
+- "Lean on me" (Trust-type, W3, Hard 50%): +X comfort where X = 4 - current comfort
+- "Crisis shared" (Trust-type, W4, Hard 50%, Fleeting): +X comfort where X = patience ÷ 3
 
-**Utility Cards** (4 total):
-- "Let me think" (W1, Medium 60%): Draw 1 card
-- "Consider options" (W1, Medium 60%): Draw 1 card
-- "Gather strength" (W2, Medium 60%): Add 1 weight to pool
-- "Deep breath" (W2, Medium 60%): Add 1 weight to pool
+**Utility Cards** (4 total, all Trust-type):
+- "Let me think" (Trust-type, W1, Medium 60%): Draw 1 card
+- "Consider options" (Trust-type, W1, Medium 60%): Draw 1 card
+- "Gather strength" (Trust-type, W2, Medium 60%): Add 1 weight to pool
+- "Deep breath" (Trust-type, W2, Medium 60%): Add 1 weight to pool
 
-**Setup Cards** (3 total, 0 weight):
-- "Careful approach" (W0, Easy 70%): No effect, Atmosphere: Prepared
-- "Open my heart" (W0, Easy 70%): No effect, Atmosphere: Receptive
-- "This is critical" (W0, Easy 70%): No effect, Atmosphere: Final
+**Setup Cards** (3 total, 0 weight, mixed types):
+- "Careful approach" (Trust-type, W0, Easy 70%): No effect, Atmosphere: Prepared
+- "Open my heart" (Commerce-type, W0, Easy 70%): No effect, Atmosphere: Receptive
+- "This is critical" (Status-type, W0, Easy 70%): No effect, Atmosphere: Final
 
-**Dramatic Cards** (2 total, fleeting):
-- "Desperate plea" (W4, Hard 50%, Fleeting): +4 comfort, Atmosphere: Volatile
-- "All or nothing" (W6, Very Hard 40%, Fleeting): +5 comfort, Atmosphere: Final
+**Dramatic Cards** (2 total, fleeting, Trust-type):
+- "Desperate plea" (Trust-type, W4, Hard 50%, Fleeting): +4 comfort, Atmosphere: Volatile
+- "All or nothing" (Trust-type, W6, Very Hard 40%, Fleeting): +5 comfort, Atmosphere: Final
 
-**Flex Slot** (1):
-- "Shared pain" (W2, Medium 60%): -2 comfort (represents emotional overflow)
+**Flex Slot** (1, Trust-type):
+- "Shared pain" (Trust-type, W2, Medium 60%): -2 comfort (represents emotional overflow)
 
 **Goal Deck** (Separate from conversation deck):
 
@@ -210,30 +210,30 @@ From Copper Kettle Common Room:
 
 **Conversation Deck** (20 cards):
 
-**Fixed Comfort Cards** (6):
-- 3 at W1 (Easy 70%): +1 comfort each
-- 2 at W2 (Medium 60%): +2 comfort each
-- 1 at W3 (Medium 60%): +3 comfort
+**Fixed Comfort Cards** (6, mostly Commerce-type):
+- 3 at W1 (Commerce-type, Easy 70%): +1 comfort each
+- 2 at W2 (Commerce-type, Medium 60%): +2 comfort each
+- 1 at W3 (Status-type, Medium 60%): +3 comfort
 
-**Scaled Comfort Cards** (4):
-- 2 "Good business" (W2, Hard 50%): +X where X = Commerce tokens
-- 1 "Profitable relationship" (W3, Hard 50%): +X where X = Commerce tokens
-- 1 "Time is money" (W3, Hard 50%): +X where X = weight remaining
+**Scaled Comfort Cards** (4, all Commerce-type):
+- 2 "Good business" (Commerce-type, W2, Hard 50%): +X where X = Commerce tokens
+- 1 "Profitable relationship" (Commerce-type, W3, Hard 50%): +X where X = Commerce tokens
+- 1 "Time is money" (Commerce-type, W3, Hard 50%): +X where X = weight remaining
 
-**Utility Cards** (4):
-- 2 Draw cards (W1, Medium 60%)
-- 2 Weight-add cards (W2, Medium 60%)
+**Utility Cards** (4, Commerce-type):
+- 2 Draw cards (Commerce-type, W1, Medium 60%)
+- 2 Weight-add cards (Commerce-type, W2, Medium 60%)
 
-**Setup Cards** (3, W0):
-- "Let's negotiate" (Easy 70%): Atmosphere: Focused
-- "Time for business" (Easy 70%): Atmosphere: Patient
-- "High stakes" (Easy 70%): Atmosphere: Final
+**Setup Cards** (3, W0, mixed types):
+- "Let's negotiate" (Commerce-type, Easy 70%): Atmosphere: Focused
+- "Time for business" (Trust-type, Easy 70%): Atmosphere: Patient
+- "High stakes" (Shadow-type, Easy 70%): Atmosphere: Final
 
-**Dramatic Cards** (2, fleeting):
-- "Deal of lifetime" (W5, Very Hard 40%): +5 comfort
-- "All in" (W4, Hard 50%): +4 comfort, Atmosphere: Volatile
+**Dramatic Cards** (2, fleeting, Commerce-type):
+- "Deal of lifetime" (Commerce-type, W5, Very Hard 40%): +5 comfort
+- "All in" (Commerce-type, W4, Hard 50%): +4 comfort, Atmosphere: Volatile
 
-**Flex**: 1 negative comfort card
+**Flex**: 1 negative comfort card (Commerce-type)
 
 **Goal Deck**:
 - "Package Delivery" (Commerce Promise, W5, Very Hard 40%)
@@ -256,22 +256,30 @@ From Copper Kettle Common Room:
 
 **Conversation Deck** (20 cards):
 
-**Fixed Comfort Cards** (6):
-- Mix of W1-W3, difficulties Easy to Medium
-- Authority-themed responses
+**Fixed Comfort Cards** (6, balanced types):
+- 2 at W1 (Status-type, Easy 70%): +1 comfort each
+- 2 at W1 (Shadow-type, Easy 70%): +1 comfort each
+- 1 at W2 (Status-type, Medium 60%): +2 comfort
+- 1 at W3 (Shadow-type, Medium 60%): +3 comfort
 
-**Scaled Comfort Cards** (4):
-- 2 scaling with Status tokens
-- 2 scaling with Shadow tokens
+**Scaled Comfort Cards** (4, mixed):
+- 2 scaling with Status tokens (Status-type, W2, Hard 50%)
+- 2 scaling with Shadow tokens (Shadow-type, W3, Hard 50%)
 
-**Utility Cards** (4): Standard draw and weight-add
+**Utility Cards** (4, mixed types): 
+- 2 Draw cards (1 Status-type, 1 Shadow-type, W1, Medium 60%)
+- 2 Weight-add cards (1 Status-type, 1 Shadow-type, W2, Medium 60%)
 
-**Setup Cards** (3, W0):
-- "Official business" (Easy 70%): Atmosphere: Volatile
-- "By the book" (Easy 70%): Atmosphere: Prepared
-- "Under scrutiny" (Easy 70%): Atmosphere: Pressured
+**Setup Cards** (3, W0, mixed types):
+- "Official business" (Status-type, Easy 70%): Atmosphere: Volatile
+- "By the book" (Trust-type, Easy 70%): Atmosphere: Prepared
+- "Under scrutiny" (Shadow-type, Easy 70%): Atmosphere: Pressured
 
-**Dramatic Cards** (2): Authority demonstrations
+**Dramatic Cards** (2, mixed types): 
+- "Authority demonstrated" (Status-type, W4, Hard 50%, Fleeting): +4 comfort
+- "Secrets revealed" (Shadow-type, W5, Very Hard 40%, Fleeting): +5 comfort
+
+**Flex**: 1 Authority-themed card (Status-type)
 
 **Goal Deck**:
 - "Checkpoint Pass" (Shadow Promise, W5, Hard 50%)
@@ -408,21 +416,24 @@ NPCs can reward observation cards:
 
 ### Token Economics
 
-**Linear Benefits (ALL cards)**:
-- 0 tokens: Base difficulty rate
-- 2 tokens: +10% success 
-- 4 tokens: +20% success
-- 6 tokens: +30% success
+**Token-Type Matching (cards only boosted by matching tokens)**:
+- Trust tokens: +5% only on Trust-type cards
+- Commerce tokens: +5% only on Commerce-type cards
+- Status tokens: +5% only on Status-type cards
+- Shadow tokens: +5% only on Shadow-type cards
 
-**Letter Negotiation with Elena's 1 Trust**:
-- Crisis Letter: 45% success (40% + 5%)
-- Better success = better deadlines, payment, position
-- Failed negotiation = 1hr deadline crisis
+**Elena's Deck with 1 Trust Token**:
+- ~17 Trust-type cards: Get +5% bonus (45-75% success)
+- ~3 non-Trust cards: Get +0% bonus (40-70% success)
 
-**No Token Generation in Conversations**:
-- Must complete deliveries to gain tokens
-- Each successful delivery: +1-3 tokens with recipient
-- Failed delivery: -2 tokens with sender
+**Letter Negotiation with Elena's Trust Goal**:
+- Crisis Letter (Trust-type): 45% success (40% + 1 Trust × 5%)
+- If you had Commerce tokens instead: Still 40% (no bonus!)
+
+**Building the Right Tokens**:
+- Delivering Trust letters → Trust tokens with recipient
+- Delivering Commerce letters → Commerce tokens with recipient
+- Must match NPC personality for effectiveness
 
 ## Queue Management Strategies
 
@@ -430,6 +441,8 @@ NPCs can reward observation cards:
 
 **Elena's Letter Negotiation**:
 - Crisis Letter: 45% chance of 4hr/position 3 vs 1hr/position 1
+- Formal Letter: 45% chance of 6hr/flexible vs 3hr/position 2
+- Personal Letter: 45% chance of 8hr/flexible vs 4hr/position 3
 
 ### Displacement Calculations
 
@@ -543,14 +556,23 @@ At 60 hunger: 10 - 2 = 8 attention
 
 ### Success Rate Examples
 ```
-W1 Easy card, 1 Trust token with Elena:
+Trust-type W1 Easy card, 1 Trust token with Elena:
 70% + (1 × 5%) = 75%
 
-W2 Hard scaled card, 1 Trust token:
+Commerce-type W1 Easy card, 1 Trust token with Elena:
+70% + 0 = 70% (wrong token type!)
+
+Trust-type W2 Hard scaled card, 1 Trust token:
 50% + (1 × 5%) = 55%
 
-W5 Very Hard goal, 1 Trust token:
+Trust-type W5 Very Hard goal, 1 Trust token:
 40% + (1 × 5%) = 45%
+
+Commerce-type card with Marcus, 2 Commerce tokens:
+Base rate + (2 × 5%) = +10% bonus
+
+Shadow-type card with Guard, 1 Shadow token:
+Base rate + (1 × 5%) = +5% bonus
 ```
 
 ## Failure Cascades
@@ -580,7 +602,7 @@ W5 Very Hard goal, 1 Trust token:
 ## Success Metrics
 
 ### Perfect Run (Master Strategist)
-- Letter obtained (Connected state)
+- "Personal Letter" obtained (Connected state)
 - 8-hour deadline negotiated
 - Position 5+ (no displacement)
 - Complete by 3 PM
