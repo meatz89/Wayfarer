@@ -582,11 +582,6 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         public int CriticalMeetings { get; set; }
         public int UrgentMeetings { get; set; }
         public int NormalMeetings { get; set; }
-        
-        public int TotalCritical => CriticalObligations + CriticalMeetings;
-        public int TotalUrgent => UrgentObligations + UrgentMeetings;
-        public int TotalNormal => NormalObligations + NormalMeetings;
-        public int TotalAll => TotalCritical + TotalUrgent + TotalNormal;
     }
 
     /// <summary>
@@ -601,8 +596,5 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         public bool IsUrgent { get; set; }
         public bool IsCritical { get; set; }
         public string ObligationId { get; set; }
-        
-        public int DeadlineInHours => (int)Math.Ceiling(DeadlineInMinutes / 60.0);
-        public string UrgencyIcon => IsCritical ? "🆘" : IsUrgent ? "⚠️" : "";
     }
 }
