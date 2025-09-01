@@ -306,7 +306,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     {
         // Use the new intent-based system for movement
         MoveIntent moveIntent = new MoveIntent(locationSpot.SpotID);
-        bool success = await GameFacade.ExecuteIntent(moveIntent);
+        bool success = await GameFacade.ProcessIntent(moveIntent);
 
         if (success)
         {

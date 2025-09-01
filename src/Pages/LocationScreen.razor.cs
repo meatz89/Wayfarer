@@ -51,32 +51,36 @@ public partial class LocationScreen : ComponentBase
 
     private async Task ExecuteAction(LocationActionViewModel action)
     {
-        // Handle special action types
-        if (action.ActionType == "wait")
+        var intent = CreateIntentFromAction(action);
+        if (intent != null)
         {
-            // Execute wait action to advance time
-            await GameFacade.ExecuteWaitAction();
+            var result = await GameFacade.ProcessIntent(intent);
+            if (result)
+            {
+                await HandleActionExecuted();
+                await LoadLocation();
+            }
         }
         else if (action.ActionType == "travel")
         {
-            // Open travel modal instead of navigating
+            // Travel opens modal instead of processing as intent
             OpenTravelModal();
-            return;
-        }
-        else if (action.ActionType == "rest")
-        {
-            // Execute rest action - this should handle payment and stamina recovery
-            // For now, use the basic 1-hour rest (will be extended for inn rooms later)
-            await GameFacade.ExecuteRestAction(action.ActionType, action.Cost);
         }
         else
         {
-            // Execute normal action through GameFacade
-            // TODO: Implement other action types as needed
+            // Generic actions not yet mapped to intents
+            Console.WriteLine($"[LocationScreen] Action type '{action.ActionType}' not implemented as Intent");
         }
+    }
 
-        await HandleActionExecuted();
-        await LoadLocation();
+    private PlayerIntent CreateIntentFromAction(LocationActionViewModel action)
+    {
+        return action.ActionType switch
+        {
+            "wait" => new WaitIntent(),
+            "rest" => new RestIntent(1), // Default 1 hour rest
+            _ => null
+        };
     }
 
     private async Task StartInteraction(NPCPresenceViewModel npc, InteractionOptionViewModel interaction)
@@ -113,7 +117,7 @@ public partial class LocationScreen : ComponentBase
         
         // Use TravelIntent for inter-location movement
         TravelIntent travelIntent = new TravelIntent(route.RouteId);
-        bool success = await GameFacade.ExecuteIntent(travelIntent);
+        bool success = await GameFacade.ProcessIntent(travelIntent);
 
         if (success)
         {
@@ -135,7 +139,7 @@ public partial class LocationScreen : ComponentBase
         {
             // Navigate to area within location (no travel time)
             MoveIntent moveIntent = new MoveIntent(area.SpotId);
-            bool success = await GameFacade.ExecuteIntent(moveIntent);
+            bool success = await GameFacade.ProcessIntent(moveIntent);
             
             if (success)
             {

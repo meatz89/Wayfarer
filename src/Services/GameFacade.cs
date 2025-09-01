@@ -156,43 +156,6 @@ public class GameFacade
         return _timeFacade.GetFormattedTimeDisplay();
     }
 
-    public async Task<bool> ExecuteWaitAction()
-    {
-        var oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        var newTimeBlock = _timeFacade.AdvanceTimeByMinutes(60); // 1 hour
-        
-        var result = new TimeAdvancementResult
-        {
-            OldTimeBlock = oldTimeBlock,
-            NewTimeBlock = newTimeBlock,
-            CrossedTimeBlock = oldTimeBlock != newTimeBlock,
-            HoursAdvanced = 1,
-            MinutesAdvanced = 60
-        };
-        
-        ProcessTimeAdvancement(result);
-        return true;
-    }
-
-    public async Task<bool> ExecuteRestAction(string actionType, string cost)
-    {
-        // Simple rest action - restore some stamina
-        // TODO: Implement proper rest system
-        var oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        var newTimeBlock = _timeFacade.AdvanceTimeByMinutes(60); // 1 hour rest
-        
-        var result = new TimeAdvancementResult
-        {
-            OldTimeBlock = oldTimeBlock,
-            NewTimeBlock = newTimeBlock,
-            CrossedTimeBlock = oldTimeBlock != newTimeBlock,
-            HoursAdvanced = 1,
-            MinutesAdvanced = 60
-        };
-        
-        ProcessTimeAdvancement(result);
-        return true;
-    }
 
     // ========== TRAVEL OPERATIONS ==========
 
@@ -426,26 +389,102 @@ public class GameFacade
 
     public async Task<bool> ExecuteIntent(PlayerIntent intent)
     {
-        // This orchestrates multiple facades based on intent type
-        switch (intent)
+        return await ProcessIntent(intent);
+    }
+
+    public async Task<bool> ProcessIntent(PlayerIntent intent)
+    {
+        return intent switch
         {
-            case TalkIntent talkIntent:
-                var context = await CreateConversationContext(talkIntent.NpcId, ConversationType.FriendlyChat);
-                return context != null;
-                
-            case TravelIntent travelIntent:
-                // TODO: Extract destination from route
-                return false; // Placeholder until route system is implemented
-                
-            case WaitIntent waitIntent:
-                return await ExecuteWaitAction();
-                
-            case RestIntent restIntent:
-                return await ExecuteRestAction("rest", "1 hour");
-                
-            default:
-                return false;
-        }
+            TalkIntent talkIntent => await ProcessTalkIntent(talkIntent),
+            TravelIntent travelIntent => await ProcessTravelIntent(travelIntent),
+            MoveIntent moveIntent => await ProcessMoveIntent(moveIntent),
+            WaitIntent waitIntent => await ProcessWaitIntent(waitIntent),
+            RestIntent restIntent => await ProcessRestIntent(restIntent),
+            DeliverLetterIntent deliverIntent => await ProcessDeliverLetterIntent(deliverIntent),
+            CollectLetterIntent collectIntent => await ProcessCollectLetterIntent(collectIntent),
+            AcceptLetterOfferIntent acceptIntent => await ProcessAcceptLetterOfferIntent(acceptIntent),
+            _ => ProcessGenericIntent(intent)
+        };
+    }
+
+    private async Task<bool> ProcessTalkIntent(TalkIntent intent)
+    {
+        var context = await CreateConversationContext(intent.NpcId, ConversationType.FriendlyChat);
+        return context != null;
+    }
+
+    private async Task<bool> ProcessTravelIntent(TravelIntent intent)
+    {
+        // Use the route ID to find destination and travel
+        return await TravelToDestinationAsync("", intent.RouteId);
+    }
+
+    private async Task<bool> ProcessMoveIntent(MoveIntent intent)
+    {
+        return MoveToSpot(intent.TargetSpotId);
+    }
+
+    private async Task<bool> ProcessWaitIntent(WaitIntent intent)
+    {
+        var oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+        var newTimeBlock = _timeFacade.AdvanceTimeByMinutes(60);
+        
+        var result = new TimeAdvancementResult
+        {
+            OldTimeBlock = oldTimeBlock,
+            NewTimeBlock = newTimeBlock,
+            CrossedTimeBlock = oldTimeBlock != newTimeBlock,
+            HoursAdvanced = 1,
+            MinutesAdvanced = 60
+        };
+        
+        ProcessTimeAdvancement(result);
+        _narrativeFacade.AddSystemMessage("You wait and time passes", SystemMessageTypes.Info);
+        return true;
+    }
+
+    private async Task<bool> ProcessRestIntent(RestIntent intent)
+    {
+        var oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+        var minutesToRest = intent.Hours * 60;
+        var newTimeBlock = _timeFacade.AdvanceTimeByMinutes(minutesToRest);
+        
+        var result = new TimeAdvancementResult
+        {
+            OldTimeBlock = oldTimeBlock,
+            NewTimeBlock = newTimeBlock,
+            CrossedTimeBlock = oldTimeBlock != newTimeBlock,
+            HoursAdvanced = intent.Hours,
+            MinutesAdvanced = minutesToRest
+        };
+        
+        ProcessTimeAdvancement(result);
+        _narrativeFacade.AddSystemMessage($"You rest for {intent.Hours} hour(s)", SystemMessageTypes.Info);
+        return true;
+    }
+
+    private async Task<bool> ProcessDeliverLetterIntent(DeliverLetterIntent intent)
+    {
+        var result = _obligationFacade.DeliverObligation(intent.LetterId);
+        return result.Success;
+    }
+
+    private async Task<bool> ProcessCollectLetterIntent(CollectLetterIntent intent)
+    {
+        // CollectLetter functionality - for now just accept the letter
+        return await AcceptLetterOfferAsync(intent.LetterId);
+    }
+
+    private async Task<bool> ProcessAcceptLetterOfferIntent(AcceptLetterOfferIntent intent)
+    {
+        return await AcceptLetterOfferAsync(intent.OfferId);
+    }
+
+    private bool ProcessGenericIntent(PlayerIntent intent)
+    {
+        _narrativeFacade.AddSystemMessage($"Intent type '{intent.GetType().Name}' not implemented", SystemMessageTypes.Warning);
+        return false;
     }
 
     // ========== MISSING METHODS (STUBS) ==========

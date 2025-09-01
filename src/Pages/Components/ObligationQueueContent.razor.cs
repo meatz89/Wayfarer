@@ -49,7 +49,7 @@ namespace Wayfarer.Pages.Components
             
             // Use the ExecuteIntent system to deliver the letter
             var deliverIntent = new DeliverLetterIntent(letter.Id);
-            var result = await GameFacade.ExecuteIntent(deliverIntent);
+            var result = await GameFacade.ProcessIntent(deliverIntent);
             if (result)
             {
                 RefreshObligations();

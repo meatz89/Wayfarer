@@ -14,6 +14,18 @@ public class CardEffectProcessor
         this.atmosphereManager = atmosphereManager;
         this.weightPoolManager = weightPoolManager;
     }
+    
+    private ConnectionType ConvertCardTokenType(CardTokenType cardTokenType)
+    {
+        return cardTokenType switch
+        {
+            CardTokenType.Trust => ConnectionType.Trust,
+            CardTokenType.Commerce => ConnectionType.Commerce,
+            CardTokenType.Status => ConnectionType.Status,
+            CardTokenType.Shadow => ConnectionType.Shadow,
+            _ => ConnectionType.Trust // Default to Trust
+        };
+    }
 
     // Process a single card effect and return the result
     public CardEffectResult ProcessCardEffect(ConversationCard card, ConversationSession session)
@@ -180,9 +192,12 @@ public class CardEffectProcessor
     {
         int baseSuccess = card.GetBaseSuccessPercentage();
         
-        // Add token bonus (5% per token)
-        int totalTokens = GetTotalTokensForNPC(session.NPC.ID);
-        int tokenBonus = totalTokens * 5;
+        // Get the card's token type (Trust, Commerce, Status, or Shadow)
+        ConnectionType cardTokenType = ConvertCardTokenType(card.TokenType);
+        
+        // Add token bonus (5% per MATCHING token only)
+        int matchingTokens = tokenManager.GetTokenCount(cardTokenType, session.NPC.ID);
+        int tokenBonus = matchingTokens * 5;
         
         // Add atmosphere bonus
         int atmosphereBonus = atmosphereManager.GetSuccessPercentageBonus();
@@ -190,17 +205,6 @@ public class CardEffectProcessor
         // Calculate final percentage (clamped to 5-95%)
         int finalPercentage = baseSuccess + tokenBonus + atmosphereBonus;
         return Math.Clamp(finalPercentage, 5, 95);
-    }
-
-    // Get total tokens for an NPC
-    private int GetTotalTokensForNPC(string npcId)
-    {
-        int total = 0;
-        total += tokenManager.GetTokenCount(ConnectionType.Trust, npcId);
-        total += tokenManager.GetTokenCount(ConnectionType.Commerce, npcId);
-        total += tokenManager.GetTokenCount(ConnectionType.Status, npcId);
-        total += tokenManager.GetTokenCount(ConnectionType.Shadow, npcId);
-        return total;
     }
 
     // Perform dice roll for success
