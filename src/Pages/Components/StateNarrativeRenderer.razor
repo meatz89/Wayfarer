@@ -25,13 +25,9 @@
         {
             EmotionalState.DESPERATE => "The air crackles with desperation. Every moment counts.",
             EmotionalState.TENSE => "Tension coils through the conversation like a tightening spring.",
-            EmotionalState.GUARDED => "Walls are up. Trust must be earned word by careful word.",
             EmotionalState.NEUTRAL => "The conversation flows at its natural pace.",
             EmotionalState.OPEN => "Openness creates space for genuine connection.",
             EmotionalState.CONNECTED => "A profound connection hums between you, each word perfectly placed.",
-            EmotionalState.EAGER => "Enthusiasm bubbles through every exchange.",
-            EmotionalState.OVERWHELMED => "Too much, too fast. The conversation needs breathing room.",
-            EmotionalState.HOSTILE => "Hostility poisons the air. Words become weapons.",
             _ => "The moment unfolds."
         };
     }
@@ -49,22 +45,14 @@
             // Weight limit
             parts.Add($"Weight limit {rules.MaxWeight}");
             
-            // Special mechanics
+            // Special mechanics for 5-state system
             if (State == EmotionalState.DESPERATE)
             {
-                parts.Add("Burden free");
+                parts.Add("Ends at -3 comfort");
             }
-            else if (State == EmotionalState.CONNECTED && rules.AutoAdvanceDepth > 0)
+            else if (State == EmotionalState.CONNECTED)
             {
-                parts.Add("Auto-depth progress");
-            }
-            else if (State == EmotionalState.EAGER)
-            {
-                parts.Add("+3 bonus for 2+ same type");
-            }
-            else if (State == EmotionalState.HOSTILE)
-            {
-                return "Cannot converse until resolved";
+                parts.Add("Maximum connection");
             }
             
             // Listen transition (only show if different from current state)

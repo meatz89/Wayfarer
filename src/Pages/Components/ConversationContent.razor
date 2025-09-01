@@ -23,15 +23,22 @@
                         <span class="indicator-label">Patience</span>
                         <span class="indicator-value">@Session.CurrentPatience/@Session.MaxPatience</span>
                     </div>
+                    <div class="indicator">
+                        <span class="indicator-label">Weight Pool</span>
+                        <span class="indicator-value">@GetWeightPoolDisplay()</span>
+                    </div>
                     <div class="comfort-indicator">
                         <span class="indicator-label">Comfort</span>
+                        <div class="comfort-battery">
+                            <span class="comfort-value">@GetComfortBatteryDisplay()</span>
+                        </div>
                         <div class="comfort-dots">
                             @for (int i = -3; i <= 3; i++)
                             {
                                 <span class="comfort-dot @GetComfortDotClass(i)"></span>
                             }
                         </div>
-                        @if (Math.Abs(Session.CurrentComfort) == 2)
+                        @if (Math.Abs(Session.ComfortBattery) == 2)
                         {
                             <span class="comfort-transition-hint">→ @GetTransitionHint()</span>
                         }
@@ -39,6 +46,19 @@
                 </div>
             </div>
         </div>
+
+        <!-- Atmosphere Display (new) -->
+        @if (Session.CurrentAtmosphere != ConversationAtmosphere.Neutral)
+        {
+            <div class="atmosphere-bar">
+                <div class="atmosphere-label">Atmosphere:</div>
+                <div class="atmosphere-value">@GetCurrentAtmosphereDisplay()</div>
+                @if (!string.IsNullOrEmpty(GetAtmosphereEffectDescription()))
+                {
+                    <div class="atmosphere-description">@GetAtmosphereEffectDescription()</div>
+                }
+            </div>
+        }
 
         <!-- Token Strip (from mockup) -->
         <div class="token-strip">
@@ -102,8 +122,8 @@
                     <span class="turn-value">@(Session.TurnNumber + 1)/10</span>
                 </div>
                 <div class="turn-detail">
-                    <span>Weight Limit:</span>
-                    <span class="turn-value">@GetWeightLimit()</span>
+                    <span>Weight Pool:</span>
+                    <span class="turn-value">@GetWeightPoolDisplay()</span>
                 </div>
                 <div class="turn-detail">
                     <span>State</span>

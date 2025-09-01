@@ -72,8 +72,8 @@
                 <div class="progress-section">
                     <div class="progress-bar">
                         <div class="progress-label">
-                            <span>Comfort Built</span>
-                            <span>@Session.CurrentComfort/@GetComfortTarget()</span>
+                            <span>Comfort Battery</span>
+                            <span>@Session.ComfortBattery/@GetComfortTarget()</span>
                         </div>
                         <div class="progress-track">
                             <div class="progress-fill" style="width: @GetComfortPercent()%"></div>
@@ -99,10 +99,10 @@
                     <div class="progress-bar">
                         <div class="progress-label">
                             <span>Comfort Level</span>
-                            <span>@Session.CurrentComfort @GetComfortName()</span>
+                            <span>@Session.ComfortBattery @GetComfortName()</span>
                         </div>
                         <div class="progress-track">
-                            <div class="progress-fill" style="width: @(Session.CurrentComfort * 5)%"></div>
+                            <div class="progress-fill" style="width: @GetComfortPercent()%"></div>
                         </div>
                     </div>
                 </div>
@@ -197,9 +197,9 @@
                     }
                 </div>
                 <div class="weight-tracker @(IsOverWeight() ? "overlimit" : "")">
-                    <span>Weight:</span>
+                    <span>Weight Pool:</span>
                     <span class="weight-display">
-                        <text>@GetCurrentWeight()/@GetMaxWeight()</text>
+                        <text>@GetWeightPoolDisplay()</text>
                     </span>
                 </div>
             </div>

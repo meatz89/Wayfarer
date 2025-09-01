@@ -1,267 +1,47 @@
 {
 	"templates": {
 		"IUnderstand": {
-			"type": "COMFORT",
+			"type": "Normal",
+			"cardType": "Normal",
 			"weight": 1,
 			"baseComfort": 1,
 			"persistence": "Persistent",
 			"connectionType": "Trust",
 			"drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN", "CONNECTED"],
-			"description": "I Understand"
+			"description": "I Understand",
+			"difficulty": "Easy",
+			"effectType": "FixedComfort",
+			"effectValue": "1"
 		},
 		"LetsThinkThisThrough": {
-			"type": "STATE",
+			"type": "Normal",
+			"cardType": "Normal",
 			"weight": 1,
-			"persistence": "Opportunity",
+			"persistence": "Fleeting",
 			"connectionType": "Trust",
 			"isStateCard": true,
 			"successState": "TENSE",
 			"failureState": null,
 			"drawableStates": ["DESPERATE"],
-			"description": "Let's Think This Through"
+			"description": "Let's Think This Through",
+			"difficulty": "Medium",
+			"effectType": "FixedComfort",
+			"effectValue": "2",
+			"conversationAtmosphereChange": "Focused"
 		},
 		"MerchantRouteKnowledge": {
-			"type": "OBSERVATION",
+			"type": "Observation",
+			"cardType": "Observation",
 			"weight": 1,
-			"baseComfort": 0,
-			"persistence": "OneShot",
-			"connectionType": "Commerce",
-			"isObservation": true,
-			"drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN", "CONNECTED"],
-			"description": "Merchant Route Knowledge"
-		},
-		"PromiseToHelp": {
-			"type": "COMFORT",
-			"weight": 2,
-			"baseComfort": 4,
-			"persistence": "Opportunity",
-			"connectionType": "Trust",
-			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED"],
-			"description": "A sincere promise to assist with their troubles"
-		},
-		"MentionGuards": {
-			"type": "COMFORT",
-			"weight": 1,
-			"baseComfort": 2,
-			"persistence": "Opportunity",
-			"connectionType": "Shadow",
-			"isObservation": true,
-			"createsState": "TENSE",
-			"drawableStates": ["TENSE", "NEUTRAL", "OVERWHELMED", "CONNECTED"],
-			"description": "Share observed information about guard positions"
-		},
-		"GenericObservation": {
-			"type": "COMFORT",
-			"weight": 1,
-			"baseComfort": 1,
-			"persistence": "Opportunity",
-			"connectionType": "Trust",
-			"isObservation": true,
-			"drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN", "CONNECTED"],
-			"description": "Share an observation about your surroundings"
-		},
-		"CalmReassurance": {
-			"type": "STATE",
-			"weight": 1,
-			"persistence": "Persistent",
-			"connectionType": "Trust",
-			"isStateCard": true,
-			"successState": "TENSE",
-			"failureState": null,
-			"drawableStates": ["GUARDED"],
-			"description": "Attempt to calm their emotional state"
-		},
-		"SimpleGreeting": {
-			"type": "COMFORT",
-			"weight": 0,
-			"baseComfort": 1,
-			"persistence": "Persistent",
-			"connectionType": "Trust",
-			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED", "OVERWHELMED"],
-			"description": "A friendly greeting to start conversation"
-		},
-		"ActiveListening": {
-			"type": "COMFORT",
-			"weight": 1,
-			"baseComfort": 2,
-			"persistence": "Persistent",
-			"connectionType": "Trust",
-			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED", "OVERWHELMED"],
-			"description": "Show genuine interest in their words"
-		},
-		"OfferHelp": {
-			"type": "COMFORT",
-			"weight": 2,
-			"baseComfort": 3,
-			"persistence": "Opportunity",
-			"connectionType": "Trust",
-			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED"],
-			"description": "Offer assistance with their current troubles"
-		},
-		"SharePersonal": {
-			"type": "COMFORT",
-			"weight": 2,
-			"baseComfort": 3,
-			"persistence": "Opportunity",
-			"connectionType": "Trust",
-			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED"],
-			"description": "Share something personal about yourself"
-		},
-		"DiscussBusiness": {
-			"type": "COMFORT",
-			"weight": 1,
-			"baseComfort": 2,
-			"persistence": "Persistent",
-			"connectionType": "Commerce",
-			"drawableStates": ["EAGER", "NEUTRAL", "CONNECTED", "OVERWHELMED"],
-			"description": "Talk about trade and business matters"
-		},
-		"ProposeDeal": {
-			"type": "COMFORT",
-			"weight": 2,
-			"baseComfort": 3,
-			"persistence": "Opportunity",
-			"connectionType": "Commerce",
-			"drawableStates": ["EAGER", "NEUTRAL", "CONNECTED"],
-			"description": "Suggest a mutually beneficial arrangement"
-		},
-		"ShowRespect": {
-			"type": "COMFORT",
-			"weight": 1,
-			"baseComfort": 2,
-			"persistence": "Persistent",
-			"connectionType": "Status",
-			"drawableStates": ["NEUTRAL", "OVERWHELMED", "CONNECTED"],
-			"description": "Acknowledge their position and standing"
-		},
-		"ShareSecret": {
-			"type": "COMFORT",
-			"weight": 3,
-			"baseComfort": 4,
-			"persistence": "OneShot",
-			"connectionType": "Shadow",
-			"drawableStates": ["TENSE", "NEUTRAL", "CONNECTED"],
-			"description": "Reveal confidential information"
-		},
-		"CalmnessAttempt": {
-			"type": "STATE",
-			"weight": 1,
-			"persistence": "Persistent",
-			"connectionType": "Trust",
-			"isStateCard": true,
-			"successState": "NEUTRAL",
-			"drawableStates": ["GUARDED"],
-			"description": "Try to bring them to a calmer state"
-		},
-		"OpeningUp": {
-			"type": "STATE",
-			"weight": 2,
-			"persistence": "Opportunity",
-			"connectionType": "Trust",
-			"isStateCard": true,
-			"successState": "OPEN",
-			"drawableStates": ["GUARDED"],
-			"description": "Create emotional openness"
-		},
-		"DeliverLetter": {
-			"type": "ACTION",
-			"category": "LETTER_DELIVERY",
-			"weight": 2,
-			"baseComfort": 3,
-			"persistence": "OneShot",
-			"connectionType": "Trust",
-			"canDeliverLetter": true,
-			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED", "TENSE", "EAGER", "OVERWHELMED"],
-			"description": "Deliver an important letter to the recipient"
-		},
-		"UrgentDelivery": {
-			"type": "ACTION", 
-			"category": "LETTER_DELIVERY",
-			"weight": 3,
-			"baseComfort": 4,
-			"persistence": "OneShot",
-			"connectionType": "Trust",
-			"canDeliverLetter": true,
-			"urgencyLevel": 2,
-			"drawableStates": ["DESPERATE", "HOSTILE"],
-			"description": "Deliver an urgent letter that cannot wait"
-		},
-		"DiscreetDelivery": {
-			"type": "ACTION",
-			"category": "LETTER_DELIVERY", 
-			"weight": 2,
-			"baseComfort": 2,
-			"persistence": "OneShot",
-			"connectionType": "Shadow",
-			"canDeliverLetter": true,
-			"drawableStates": ["TENSE", "NEUTRAL", "CONNECTED"],
-			"description": "Quietly deliver a letter without drawing attention"
-		},
-		"FormalDelivery": {
-			"type": "ACTION",
-			"category": "LETTER_DELIVERY",
-			"weight": 1,
-			"baseComfort": 2,
-			"persistence": "OneShot", 
-			"connectionType": "Status",
-			"canDeliverLetter": true,
-			"drawableStates": ["NEUTRAL", "CONNECTED"],
-			"description": "Present a letter with proper ceremony and respect"
-		},
-		"KeepTalking": {
-			"type": "PATIENCE",
-			"category": "Patience",
-			"weight": 1,
-			"baseComfort": 0,
-			"persistence": "Opportunity",
-			"connectionType": "Trust",
-			"patienceBonus": 1,
-			"drawableStates": ["DESPERATE", "NEUTRAL", "OPEN", "CONNECTED", "OVERWHELMED", "TENSE", "EAGER"],
-			"description": "Ask them to continue the conversation a bit longer"
-		},
-		"EngagingQuestion": {
-			"type": "PATIENCE", 
-			"category": "Patience",
-			"weight": 2,
-			"baseComfort": 0,
-			"persistence": "Opportunity",
-			"connectionType": "Trust",
-			"patienceBonus": 2,
-			"drawableStates": ["NEUTRAL", "OPEN", "CONNECTED", "EAGER"],
-			"description": "Ask an engaging question that keeps them interested"
-		},
-		"FascinatingStory": {
-			"type": "PATIENCE",
-			"category": "Patience",
-			"weight": 3,
 			"baseComfort": 0,
 			"persistence": "Fleeting",
-			"connectionType": "Trust",
-			"patienceBonus": 3,
-			"drawableStates": ["OPEN", "CONNECTED"],
-			"description": "Tell a fascinating story that captures their full attention"
-		},
-		"QuickTrade": {
-			"type": "PATIENCE",
-			"category": "Patience",
-			"weight": 1,
-			"baseComfort": 0,
-			"persistence": "Opportunity",
 			"connectionType": "Commerce",
-			"patienceBonus": 1,
-			"drawableStates": ["EAGER", "NEUTRAL", "CONNECTED"],
-			"description": "Suggest discussing a quick trade opportunity"
-		},
-		"ImportantNews": {
-			"type": "PATIENCE",
-			"category": "Patience",
-			"weight": 2,
-			"baseComfort": 0,
-			"persistence": "Opportunity",
-			"connectionType": "Shadow",
-			"patienceBonus": 2,
-			"drawableStates": ["TENSE", "NEUTRAL", "CONNECTED"],
-			"description": "Mention you have important news to share"
+			"isObservation": true,
+			"drawableStates": ["DESPERATE", "TENSE", "NEUTRAL", "OPEN", "CONNECTED"],
+			"description": "Merchant Route Knowledge",
+			"difficulty": "Easy",
+			"effectType": "DrawCards",
+			"effectValue": "1"
 		}
 	},
 	"setBonuses": {

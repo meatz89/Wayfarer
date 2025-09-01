@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-/// <summary>
-/// Renders categorical templates into human-readable text
-/// This is the ONLY place where English text should be generated
-/// All text generation is rule-based from categorical properties
-/// </summary>
-public class NarrativeRenderer
+namespace Wayfarer.Subsystems.NarrativeSubsystem
+{
+    /// <summary>
+    /// Renders categorical templates into human-readable text
+    /// This is the ONLY place where English text should be generated
+    /// All text generation is rule-based from categorical properties
+    /// </summary>
+    public class NarrativeRenderer
 {
     private readonly Dictionary<string, Func<string, string>> _categoryRenderers;
     
@@ -386,4 +388,5 @@ public class NarrativeRenderer
         public string Category { get; set; }
         public string Value { get; set; }
     }
+}
 }

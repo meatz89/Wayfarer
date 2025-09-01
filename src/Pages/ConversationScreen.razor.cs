@@ -339,34 +339,37 @@ namespace Wayfarer.Pages
 
         protected int GetComfortTarget()
         {
-            if (Session.CurrentComfort >= 15) return 20;
-            if (Session.CurrentComfort >= 10) return 15;
-            if (Session.CurrentComfort >= 5) return 10;
-            return 5;
+            // New system: comfort is -3 to +3
+            return 3; // Always targeting +3
         }
 
         protected int GetComfortPercent()
         {
-            var target = GetComfortTarget();
-            return Math.Min(100, (Session.CurrentComfort * 100) / target);
+            if (Session == null) return 50; // Center position for 0
+            // Map -3 to +3 to 0% to 100%
+            return (int)((Session.ComfortBattery + 3) * 100 / 6.0);
         }
 
         protected string GetComfortName()
         {
-            return Session.CurrentComfort switch
+            if (Session == null) return "(Unknown)";
+            return Session.ComfortBattery switch
             {
-                >= 20 => "(Perfect)",
-                >= 15 => "(Deep)",
-                >= 10 => "(Good)",
-                >= 5 => "(Basic)",
-                _ => "(Tentative)"
+                3 => "(Perfect)",
+                2 => "(Very Good)",
+                1 => "(Good)",
+                0 => "(Neutral)",
+                -1 => "(Uncertain)",
+                -2 => "(Tense)",
+                -3 => "(Breaking Down)",
+                _ => "(Unknown)"
             };
         }
 
         protected int GetDrawCount()
         {
-            var rules = ConversationRules.States[Session.CurrentState];
-            return rules.CardsOnListen;
+            if (Session == null) return 2;
+            return Session.GetDrawCount();
         }
 
         protected bool HasOpportunities()
@@ -381,13 +384,19 @@ namespace Wayfarer.Pages
 
         protected int GetMaxWeight()
         {
-            var rules = ConversationRules.States[Session.CurrentState];
-            return rules.MaxWeight;
+            if (Session == null) return 5;
+            return Session.GetEffectiveWeightCapacity();
         }
 
         protected bool IsOverWeight()
         {
             return GetCurrentWeight() > GetMaxWeight();
+        }
+
+        protected string GetWeightPoolDisplay()
+        {
+            if (Session == null) return "0/5";
+            return $"{Session.CurrentWeightPool}/{Session.GetEffectiveWeightCapacity()}";
         }
 
         protected string GetCardClasses(CardInstance card)
@@ -677,19 +686,8 @@ namespace Wayfarer.Pages
         {
             if (Session?.NPC == null) return EmotionalState.NEUTRAL;
             
-            // Determine starting state from letter deadlines as per docs
-            var obligations = LetterQueueManager.GetActiveObligations();
-            var npcLetters = obligations.Where(o => o.SenderId == Session.NPC.ID || o.SenderName == Session.NPC.Name);
-            var mostUrgent = npcLetters.OrderBy(o => o.DeadlineInMinutes).FirstOrDefault();
-            
-            if (mostUrgent == null) return EmotionalState.NEUTRAL;
-            
-            // Apply rules from conversation-system.md line 385-391
-            if (mostUrgent.Stakes == StakeType.SAFETY && mostUrgent.DeadlineInMinutes < 360) // <6 hours
-                return EmotionalState.DESPERATE;
-            if (mostUrgent.DeadlineInMinutes < 720) // <12 hours
-                return EmotionalState.TENSE;
-            
+            // In the new 5-state system, all conversations start NEUTRAL
+            // State changes happen through conversation mechanics
             return EmotionalState.NEUTRAL;
         }
 

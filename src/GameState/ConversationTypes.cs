@@ -27,44 +27,63 @@ public enum ConversationType
     Delivery
 }
 
+// Five core emotional states only
 public enum EmotionalState
 {
-    EAGER,
-    CONNECTED,
-    GUARDED,
+    DESPERATE,
     TENSE,
-    DEFENSIVE,
     NEUTRAL,
     OPEN,
-    OVERWHELMED,
-    DESPERATE,
-    HOSTILE
+    CONNECTED
+}
+
+// New enums for target system
+public enum Difficulty
+{
+    Easy,     // 70% base success
+    Medium,   // 60% base success  
+    Hard,     // 50% base success
+    VeryHard  // 40% base success
+}
+
+public enum ConversationAtmosphere
+{
+    Neutral,      // No effect (default)
+    Prepared,     // +1 weight capacity
+    Receptive,    // +1 card on LISTEN
+    Focused,      // +20% success
+    Patient,      // 0 patience cost
+    Volatile,     // ±1 comfort changes
+    Final,        // Failure ends conversation
+    Informed,     // Next card auto-succeeds (observation only)
+    Exposed,      // Double comfort changes (observation only)
+    Synchronized, // Next effect happens twice (observation only)
+    Pressured     // -1 card on LISTEN (observation only)
+}
+
+public enum CardEffectType
+{
+    FixedComfort,
+    ScaledComfort,
+    DrawCards,
+    AddWeight,
+    SetConversationAtmosphere,
+    ResetComfort,     // Observation only
+    MaxWeight,        // Observation only
+    FreeAction        // Observation only
 }
 
 public enum CardType
 {
-    Trust,
-    Commerce,
-    Status,
-    Shadow,
-    Comfort,
-    Observation,
-    Patience,
-    Burden,
-    Letter,
-    Exchange,
-    Promise,
-    Goal,
-    Token
+    Normal,       // Standard conversation cards
+    Observation,  // Special observation cards
+    Goal          // Goal cards with Final Word
 }
 
 public enum PersistenceType
 {
-    Fleeting,
-    Sticky,
-    Persistent,
-    Goal,
-    Opportunity
+    Fleeting,   // Removed after SPEAK
+    Persistent  // Stays in deck
 }
 
 public enum ActionType
@@ -116,7 +135,7 @@ public class ConversationCard
     public string DialogueFragment { get; init; }
     public bool IsSpecial { get; init; }
     public bool IsSingleUse { get; init; }
-    public PersistenceType Persistence { get; init; } = PersistenceType.Sticky;
+    public PersistenceType Persistence { get; init; } = PersistenceType.Persistent;
     public string VerbPhrase { get; init; }
     public Dictionary<EmotionalState, int> StateModifiers { get; init; } = new();
     public Dictionary<EmotionalState, int> WeightModifiers { get; init; } = new();
@@ -126,11 +145,17 @@ public class ConversationCard
     public bool IsObservation { get; init; }
     public string ObservationType { get; init; }
     public string SourceItem { get; init; }
+    
+    // New properties for target system
+    public Difficulty Difficulty { get; init; } = Difficulty.Medium;
+    public CardEffectType EffectType { get; init; } = CardEffectType.FixedComfort;
+    public string EffectValue { get; init; }
+    public string EffectFormula { get; init; }
+    public ConversationAtmosphere? ConversationAtmosphereChange { get; init; }
     public CardMechanicsType Mechanics { get; set; }
     public string Category { get; set; }
     public CardContext Context { get; set; }
     public int BaseComfort { get; set; }
-    public bool IsGoalCard { get; set; }
     public string GoalCardType { get; set; }
     public string DisplayName { get; set; }
     public string Description { get; set; }
@@ -165,6 +190,29 @@ public class ConversationCard
     public bool IsGoal { get; init; }
     public string GoalContext { get; init; }
     
+    // New methods for target system
+    public int GetBaseSuccessPercentage()
+    {
+        return Difficulty switch
+        {
+            Difficulty.Easy => 70,
+            Difficulty.Medium => 60,
+            Difficulty.Hard => 50,
+            Difficulty.VeryHard => 40,
+            _ => 60
+        };
+    }
+    
+    public string GetEffectValueOrFormula()
+    {
+        return string.IsNullOrEmpty(EffectFormula) ? EffectValue : EffectFormula;
+    }
+    
+    public bool IsFleeting => Persistence == PersistenceType.Fleeting;
+    public bool IsGoalCard { get; set; }
+    public bool IsObservationCard => Type == CardType.Observation;
+    
+    // Legacy method compatibility - will be removed
     public int GetEffectiveWeight(EmotionalState state)
     {
         if (WeightModifiers?.ContainsKey(state) == true)
@@ -174,6 +222,7 @@ public class ConversationCard
         return Weight;
     }
     
+    // Legacy method compatibility - will be removed
     public int GetEffectiveSuccessChance(EmotionalState state)
     {
         var baseChance = BaseSuccessChance;
@@ -348,12 +397,9 @@ public class CardInstance
     
     public ConnectionType GetConnectionType()
     {
-        // Determine connection type from card properties
-        if (Type == CardType.Trust) return ConnectionType.Trust;
-        if (Type == CardType.Commerce) return ConnectionType.Commerce;
-        if (Type == CardType.Status) return ConnectionType.Status;
-        if (Type == CardType.Shadow) return ConnectionType.Shadow;
-        return ConnectionType.Trust; // Default
+        // For the new simplified system, determine connection type based on card properties
+        // This method is kept for compatibility but should not be used in the new system
+        return ConnectionType.Trust; // Default - token type now comes from explicit mechanics
     }
 }
 
@@ -674,19 +720,74 @@ public class ConversationSession
     public List<CardInstance> DiscardedCards { get; set; } = new();
     public TokenMechanicsManager TokenManager { get; set; }
     
-    // Missing properties and methods
+    // New weight pool and atmosphere system
+    public int ComfortBattery { get; set; } = 0; // -3 to +3
+    public int CurrentWeightPool { get; set; } = 0; // Current spent weight
+    public int WeightCapacity { get; set; } = 5; // Based on state
+    public ConversationAtmosphere CurrentAtmosphere { get; set; } = ConversationAtmosphere.Neutral;
+    
+    // Legacy properties for compatibility
     public CardInstance GoalCard { get; set; }
     public List<CardInstance> ObservationCards { get; set; } = new();
     
+    // New helper methods
+    public int GetAvailableWeight() => Math.Max(0, GetEffectiveWeightCapacity() - CurrentWeightPool);
+    
+    public int GetEffectiveWeightCapacity()
+    {
+        int baseCapacity = CurrentState switch
+        {
+            EmotionalState.DESPERATE => 3,
+            EmotionalState.TENSE => 4,
+            EmotionalState.NEUTRAL => 5,
+            EmotionalState.OPEN => 5,
+            EmotionalState.CONNECTED => 6,
+            _ => 5
+        };
+        
+        // Prepared atmosphere adds +1 capacity
+        if (CurrentAtmosphere == ConversationAtmosphere.Prepared)
+            baseCapacity += 1;
+            
+        return baseCapacity;
+    }
+    
+    public int GetDrawCount()
+    {
+        int baseCount = CurrentState switch
+        {
+            EmotionalState.DESPERATE => 1,
+            EmotionalState.TENSE => 2,
+            EmotionalState.NEUTRAL => 2,
+            EmotionalState.OPEN => 3,
+            EmotionalState.CONNECTED => 3,
+            _ => 2
+        };
+        
+        // ConversationAtmosphere modifiers
+        if (CurrentAtmosphere == ConversationAtmosphere.Receptive)
+            baseCount += 1;
+        else if (CurrentAtmosphere == ConversationAtmosphere.Pressured)
+            baseCount = Math.Max(1, baseCount - 1);
+            
+        return baseCount;
+    }
+    
+    public void RefreshWeightPool()
+    {
+        CurrentWeightPool = 0;
+        WeightCapacity = GetEffectiveWeightCapacity();
+    }
+    
     public bool IsHandOverflowing()
     {
-        var rules = ConversationRules.States[CurrentState];
-        return HandCards.Count > rules.MaxWeight + 2; // Allow some flexibility
+        return HandCards.Count > 10; // Simplified overflow check
     }
     
     public bool ShouldEnd()
     {
-        return CurrentPatience <= 0 || CurrentComfort >= 100;
+        // End if patience exhausted or at desperate with -3 comfort
+        return CurrentPatience <= 0 || (CurrentState == EmotionalState.DESPERATE && ComfortBattery <= -3);
     }
     
     public ConversationOutcome CheckThresholds()
@@ -1241,27 +1342,53 @@ public class ConversationStateRules
     }
 }
 
-// Conversation rules
+// Conversation rules for new 5-state system
 public static class ConversationRules
 {
     public static Dictionary<EmotionalState, ConversationStateRules> States = new Dictionary<EmotionalState, ConversationStateRules>
     {
-        { EmotionalState.EAGER, new ConversationStateRules("Eager and enthusiastic", 3, 8, true, 100, 1, 0, null, false) },
-        { EmotionalState.CONNECTED, new ConversationStateRules("Feeling connected and open", 3, 10, false, 100, 1, 0, null, false) },
-        { EmotionalState.GUARDED, new ConversationStateRules("Cautious and reserved", 2, 6, false, 100, 1, 0, null, false) },
-        { EmotionalState.TENSE, new ConversationStateRules("Stressed and anxious", 2, 5, false, 100, 1, 0, null, false) },
-        { EmotionalState.DEFENSIVE, new ConversationStateRules("Protective and closed off", 1, 4, false, 100, 1, 0, null, false) },
-        { EmotionalState.NEUTRAL, new ConversationStateRules("Balanced and composed", 2, 7, false, 100, 1, 0, null, false) },
-        { EmotionalState.OPEN, new ConversationStateRules("Open and receptive", 3, 9, false, 100, 1, 0, null, false) },
-        { EmotionalState.OVERWHELMED, new ConversationStateRules("Feeling overwhelmed", 1, 3, false, 100, 1, 0, null, false) },
-        { EmotionalState.DESPERATE, new ConversationStateRules("In desperate need", 2, 5, true, 100, 1, 0, null, false) },
-        { EmotionalState.HOSTILE, new ConversationStateRules("Hostile and aggressive", 1, 2, false, 100, 1, 0, null, false) }
+        { EmotionalState.DESPERATE, new ConversationStateRules("Desperate - conversation ends at -3 comfort", 1, 3, true, -3, 1, 0, null, true) },
+        { EmotionalState.TENSE, new ConversationStateRules("Tense and anxious", 2, 4, false, 0, 1, 0, null, false) },
+        { EmotionalState.NEUTRAL, new ConversationStateRules("Balanced starting state", 2, 5, false, 0, 1, 0, null, false) },
+        { EmotionalState.OPEN, new ConversationStateRules("Open and receptive", 3, 5, false, 0, 1, 0, null, false) },
+        { EmotionalState.CONNECTED, new ConversationStateRules("Maximum positive connection", 3, 6, false, 0, 1, 0, null, false) }
     };
     
     public static EmotionalState DetermineInitialState(NPC npc, ObligationQueueManager queueManager = null)
     {
-        // Default implementation
-        return EmotionalState.GUARDED;
+        // All conversations start in NEUTRAL
+        return EmotionalState.NEUTRAL;
+    }
+    
+    public static EmotionalState TransitionState(EmotionalState current, int comfortChange)
+    {
+        // Linear progression: DESPERATE ← TENSE ← NEUTRAL → OPEN → CONNECTED
+        if (comfortChange >= 3)
+        {
+            return current switch
+            {
+                EmotionalState.DESPERATE => EmotionalState.TENSE,
+                EmotionalState.TENSE => EmotionalState.NEUTRAL,
+                EmotionalState.NEUTRAL => EmotionalState.OPEN,
+                EmotionalState.OPEN => EmotionalState.CONNECTED,
+                EmotionalState.CONNECTED => EmotionalState.CONNECTED, // Stay at max
+                _ => EmotionalState.NEUTRAL
+            };
+        }
+        else if (comfortChange <= -3)
+        {
+            return current switch
+            {
+                EmotionalState.CONNECTED => EmotionalState.OPEN,
+                EmotionalState.OPEN => EmotionalState.NEUTRAL,
+                EmotionalState.NEUTRAL => EmotionalState.TENSE,
+                EmotionalState.TENSE => EmotionalState.DESPERATE,
+                EmotionalState.DESPERATE => EmotionalState.DESPERATE, // Stay - ends conversation
+                _ => EmotionalState.NEUTRAL
+            };
+        }
+        
+        return current; // No transition
     }
     
     public static string GetStateEffects(EmotionalState state)

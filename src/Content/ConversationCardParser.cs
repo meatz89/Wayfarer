@@ -212,6 +212,28 @@ public class ConversationCardParser
             }
         }
 
+        // Parse new target system properties
+        Difficulty difficulty = Difficulty.Medium; // Default
+        if (!string.IsNullOrEmpty(dto.Difficulty))
+        {
+            Enum.TryParse<Difficulty>(dto.Difficulty, true, out difficulty);
+        }
+
+        CardEffectType effectType = CardEffectType.FixedComfort; // Default
+        if (!string.IsNullOrEmpty(dto.EffectType))
+        {
+            Enum.TryParse<CardEffectType>(dto.EffectType, true, out effectType);
+        }
+
+        ConversationAtmosphere? atmosphereChange = null;
+        if (!string.IsNullOrEmpty(dto.ConversationAtmosphereChange))
+        {
+            if (Enum.TryParse<ConversationAtmosphere>(dto.ConversationAtmosphereChange, true, out var atmosphere))
+            {
+                atmosphereChange = atmosphere;
+            }
+        }
+
         // Create card with all init-only properties set at once
         return new ConversationCard
         {
@@ -237,7 +259,14 @@ public class ConversationCardParser
             SuccessRate = dto.SuccessRate ?? 0,
             SuccessState = successState,
             DrawableStates = drawableStates,
-            PatienceBonus = dto.PatienceBonus ?? 0
+            PatienceBonus = dto.PatienceBonus ?? 0,
+            
+            // New target system properties
+            Difficulty = difficulty,
+            EffectType = effectType,
+            EffectValue = dto.EffectValue,
+            EffectFormula = dto.EffectFormula,
+            ConversationAtmosphereChange = atmosphereChange
         };
     }
 
@@ -289,6 +318,13 @@ public class ConversationCardDTO
     public string SuccessState { get; set; }
     public List<string> DrawableStates { get; set; } // NEW: States this card can be drawn in
     public int? PatienceBonus { get; set; } // Patience added when this card succeeds
+    
+    // New target system properties
+    public string Difficulty { get; set; }
+    public string EffectType { get; set; }
+    public string EffectValue { get; set; }
+    public string EffectFormula { get; set; }
+    public string ConversationAtmosphereChange { get; set; }
 }
 
 /// <summary>

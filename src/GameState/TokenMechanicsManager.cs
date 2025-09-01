@@ -149,6 +149,13 @@ public class TokenMechanicsManager
         return totalOfType;
     }
 
+    // Get tokens of a specific type with a specific NPC
+    public int GetTokenCount(ConnectionType type, string npcId)
+    {
+        var tokensWithNPC = GetTokensWithNPC(npcId);
+        return tokensWithNPC.GetValueOrDefault(type, 0);
+    }
+
     // Add tokens without NPC context (DEPRECATED - tokens must be NPC-specific)
     public void AddTokens(ConnectionType type, int count)
     {

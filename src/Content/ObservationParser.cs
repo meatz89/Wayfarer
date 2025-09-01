@@ -144,14 +144,14 @@ public static class ObservationParser
         return stateStr switch
         {
             "NEUTRAL" => EmotionalState.NEUTRAL,
-            "GUARDED" => EmotionalState.GUARDED,
+            "GUARDED" => EmotionalState.TENSE, // Map old GUARDED to TENSE
             "OPEN" => EmotionalState.OPEN,
             "CONNECTED" => EmotionalState.CONNECTED,
             "TENSE" => EmotionalState.TENSE,
-            "EAGER" => EmotionalState.EAGER,
-            "OVERWHELMED" => EmotionalState.OVERWHELMED,
+            "EAGER" => EmotionalState.OPEN, // Map old EAGER to OPEN
+            "OVERWHELMED" => EmotionalState.DESPERATE, // Map old OVERWHELMED to DESPERATE
             "DESPERATE" => EmotionalState.DESPERATE,
-            "HOSTILE" => EmotionalState.HOSTILE,
+            "HOSTILE" => EmotionalState.DESPERATE, // Map old HOSTILE to DESPERATE
             _ => EmotionalState.NEUTRAL
         };
     }

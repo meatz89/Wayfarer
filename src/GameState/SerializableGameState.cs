@@ -7,8 +7,4 @@ public class SerializableGameWorld
     public int CurrentDay { get; set; }
     public int CurrentTimeHours { get; set; }
     public SerializablePlayerState Player { get; set; }
-
-    // Game state
-    public FlagServiceState FlagServiceState { get; set; }
-    // Conversation state now handled by new conversation system
 }

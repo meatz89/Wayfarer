@@ -131,10 +131,9 @@ public class DialogueGenerator
         // Generate based on card type
         return card.Type switch
         {
-            CardType.Trust => $"You share a personal story with {npc.Name}.",
-            CardType.Commerce => $"You discuss practical matters with {npc.Name}.",
-            CardType.Status => $"You talk about reputation and standing with {npc.Name}.",
-            CardType.Shadow => $"You hint at hidden knowledge to {npc.Name}.",
+            CardType.Normal => $"You continue talking with {npc.Name}.",
+            CardType.Observation => $"You share an observation with {npc.Name}.",
+            CardType.Goal => $"You make an important request to {npc.Name}.",
             _ => $"You continue talking with {npc.Name}."
         };
     }
@@ -213,10 +212,9 @@ public class DialogueGenerator
     {
         return card.Type switch
         {
-            CardType.Trust => "a personal matter",
-            CardType.Commerce => "business",
-            CardType.Status => "reputation",
-            CardType.Shadow => "something secretive",
+            CardType.Normal => "something important",
+            CardType.Observation => "your observations",
+            CardType.Goal => "an urgent matter",
             _ => "something"
         };
     }

@@ -12,11 +12,11 @@ public class ConversationFacade
     private readonly GameWorld _gameWorld;
     private readonly ConversationOrchestrator _orchestrator;
     private readonly CardDeckManager _deckManager;
-    private readonly EmotionalStateManager _stateManager;
-    private readonly ComfortManager _comfortManager;
     private readonly DialogueGenerator _dialogueGenerator;
     private readonly ExchangeHandler _exchangeHandler;
-    private readonly ConversationStateTracker _stateTracker;
+    private readonly WeightPoolManager _weightPoolManager;
+    private readonly AtmosphereManager _atmosphereManager;
+    private readonly CardEffectProcessor _effectProcessor;
     
     // External dependencies
     private readonly ObligationQueueManager _queueManager;
@@ -33,11 +33,11 @@ public class ConversationFacade
         GameWorld gameWorld,
         ConversationOrchestrator orchestrator,
         CardDeckManager deckManager,
-        EmotionalStateManager stateManager,
-        ComfortManager comfortManager,
         DialogueGenerator dialogueGenerator,
         ExchangeHandler exchangeHandler,
-        ConversationStateTracker stateTracker,
+        WeightPoolManager weightPoolManager,
+        AtmosphereManager atmosphereManager,
+        CardEffectProcessor effectProcessor,
         ObligationQueueManager queueManager,
         ObservationManager observationManager,
         TimeManager timeManager,
@@ -48,11 +48,11 @@ public class ConversationFacade
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
         _deckManager = deckManager ?? throw new ArgumentNullException(nameof(deckManager));
-        _stateManager = stateManager ?? throw new ArgumentNullException(nameof(stateManager));
-        _comfortManager = comfortManager ?? throw new ArgumentNullException(nameof(comfortManager));
         _dialogueGenerator = dialogueGenerator ?? throw new ArgumentNullException(nameof(dialogueGenerator));
         _exchangeHandler = exchangeHandler ?? throw new ArgumentNullException(nameof(exchangeHandler));
-        _stateTracker = stateTracker ?? throw new ArgumentNullException(nameof(stateTracker));
+        _weightPoolManager = weightPoolManager ?? throw new ArgumentNullException(nameof(weightPoolManager));
+        _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
+        _effectProcessor = effectProcessor ?? throw new ArgumentNullException(nameof(effectProcessor));
         _queueManager = queueManager ?? throw new ArgumentNullException(nameof(queueManager));
         _observationManager = observationManager ?? throw new ArgumentNullException(nameof(observationManager));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
@@ -544,10 +544,11 @@ public class ConversationFacade
     {
         return cardType switch
         {
-            CardType.Trust => ConnectionType.Trust,
-            CardType.Commerce => ConnectionType.Commerce,
-            CardType.Status => ConnectionType.Status,
-            CardType.Shadow => ConnectionType.Shadow,
+            // In the new system, all cards are Normal type
+            // Connection type is determined by card mechanics, not card type
+            CardType.Normal => ConnectionType.Trust,
+            CardType.Observation => ConnectionType.Trust,
+            CardType.Goal => ConnectionType.Trust,
             _ => ConnectionType.Trust
         };
     }

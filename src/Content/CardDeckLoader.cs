@@ -511,7 +511,7 @@ public class CardDeckLoader
                     // Set the ExchangeData properly
                     ExchangeData = exchangeDataObj,
                 },
-                Type = CardType.Commerce,
+                Type = CardType.Normal,
                 Persistence = PersistenceType.Fleeting,
                 Weight = 0, // Exchange cards have no weight
                 BaseComfort = 0,
@@ -564,8 +564,8 @@ public class CardDeckLoader
                     ObservationLocation = location,
                     ObservationSpot = spot
                 },
-                Type = CardType.Trust,
-                Persistence = PersistenceType.Opportunity,
+                Type = CardType.Observation,
+                Persistence = PersistenceType.Fleeting,
                 Weight = 1,
                 BaseComfort = 2,
                 IsObservation = true,
@@ -598,11 +598,14 @@ public class CardDeckLoader
     {
         return connectionStr?.ToLower() switch
         {
-            "trust" => CardType.Trust,
-            "commerce" => CardType.Commerce,
-            "status" => CardType.Status,
-            "shadow" => CardType.Shadow,
-            _ => CardType.Trust
+            "trust" => CardType.Normal,
+            "commerce" => CardType.Normal,
+            "status" => CardType.Normal,
+            "shadow" => CardType.Normal,
+            "normal" => CardType.Normal,
+            "observation" => CardType.Observation,
+            "goal" => CardType.Goal,
+            _ => CardType.Normal
         };
     }
     
@@ -612,7 +615,7 @@ public class CardDeckLoader
         {
             "Persistent" => PersistenceType.Persistent,
             "Fleeting" => PersistenceType.Fleeting,
-            "Opportunity" => PersistenceType.Opportunity,
+            "Opportunity" => PersistenceType.Fleeting, // Map old Opportunity to Fleeting
             "Burden" => PersistenceType.Persistent,
             _ => PersistenceType.Persistent
         };

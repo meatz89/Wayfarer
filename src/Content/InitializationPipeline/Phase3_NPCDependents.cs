@@ -195,8 +195,8 @@ public class Phase3_NPCDependents : IInitializationPhase
                         TemplateId = config.CardId,
                         Mechanics = CardMechanicsType.Promise,
                         Category = CardCategory.Promise.ToString(),
-                        Type = CardType.Trust, // Promise cards are trust-based
-                        Persistence = PersistenceType.Goal,
+                        Type = CardType.Goal, // Promise cards are goal cards
+                        Persistence = PersistenceType.Fleeting, // Use valid persistence type
                         Weight = 2, // Standard weight for promise cards
                         BaseComfort = 0, // No comfort for goal cards
                         IsGoalCard = true,
@@ -228,11 +228,11 @@ public class Phase3_NPCDependents : IInitializationPhase
     {
         return connectionType switch
         {
-            ConnectionType.Trust => CardType.Trust,
-            ConnectionType.Commerce => CardType.Commerce,
-            ConnectionType.Status => CardType.Status,
-            ConnectionType.Shadow => CardType.Shadow,
-            _ => CardType.Trust
+            ConnectionType.Trust => CardType.Normal,
+            ConnectionType.Commerce => CardType.Normal,
+            ConnectionType.Status => CardType.Normal,
+            ConnectionType.Shadow => CardType.Normal,
+            _ => CardType.Normal
         };
     }
 

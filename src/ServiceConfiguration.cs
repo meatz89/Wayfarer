@@ -155,6 +155,13 @@ public static class ServiceConfiguration
         services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.TravelTimeCalculator>();
         services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.TravelFacade>();
 
+        // Token Subsystem
+        services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.ConnectionTokenManager>();
+        services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.TokenEffectProcessor>();
+        services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.TokenUnlockManager>();
+        services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.RelationshipTracker>();
+        services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.TokenFacade>();
+
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();
         services.AddSingleton<NPCService>();

@@ -71,7 +71,7 @@ namespace Wayfarer.Pages.Components
 
         protected ConversationSession Session { get; set; }
         protected HashSet<CardInstance> SelectedCards { get; set; } = new();
-        protected int TotalSelectedWeight => SelectedCards.Sum(c => c.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.GUARDED));
+        protected int TotalSelectedWeight => SelectedCards.Sum(c => c.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL));
         protected bool IsProcessing { get; set; }
         protected bool IsConversationExhausted { get; set; } = false;
         protected string ExhaustionReason { get; set; } = "";
@@ -424,16 +424,13 @@ namespace Wayfarer.Pages.Components
                 return _systemNarratives.conversationNarratives.stateDialogues.GetValueOrDefault("default", "Hmm...");
             }
             
-            // Fallback if JSON not loaded
+            // Fallback if JSON not loaded - 5 states only
             return newState switch
             {
                 EmotionalState.DESPERATE => "Please, I need your help urgently!",
-                EmotionalState.HOSTILE => "I don't want to talk anymore!",
                 EmotionalState.TENSE => "This is making me uncomfortable...",
-                EmotionalState.GUARDED => "I suppose I can spare a moment...",
                 EmotionalState.NEUTRAL => "Alright, let's talk.",
                 EmotionalState.OPEN => "I'm glad we're having this conversation.",
-                EmotionalState.EAGER => "Yes, yes! Tell me more!",
                 EmotionalState.CONNECTED => "I feel like you really understand me.",
                 _ => "Hmm..."
             };
@@ -699,8 +696,10 @@ namespace Wayfarer.Pages.Components
             return Session?.CurrentState switch
             {
                 EmotionalState.DESPERATE => "desperate",
-                EmotionalState.HOSTILE => "hostile",
                 EmotionalState.TENSE => "tense",
+                EmotionalState.NEUTRAL => "neutral",
+                EmotionalState.OPEN => "open",
+                EmotionalState.CONNECTED => "connected",
                 _ => ""
             };
         }
@@ -724,12 +723,12 @@ namespace Wayfarer.Pages.Components
             
             return Session.CurrentState switch
             {
-                EmotionalState.DESPERATE => "Draw 2 + Burden • State → Hostile",
-                EmotionalState.HOSTILE => "Draw 1 + 2 Burden • Ends conversation",
-                EmotionalState.GUARDED => "Draw 1 • State → Neutral",
-                EmotionalState.OPEN => "Draw 3 • State unchanged",
-                EmotionalState.EAGER => "Draw 3 • State unchanged",
-                _ => "Draw 2 • State unchanged"
+                EmotionalState.DESPERATE => "Draw 1 card",
+                EmotionalState.TENSE => "Draw 2 cards",
+                EmotionalState.NEUTRAL => "Draw 2 cards",
+                EmotionalState.OPEN => "Draw 3 cards",
+                EmotionalState.CONNECTED => "Draw 3 cards",
+                _ => "Draw 2 cards"
             };
         }
 
@@ -744,9 +743,11 @@ namespace Wayfarer.Pages.Components
             
             return Session.CurrentState switch
             {
-                EmotionalState.DESPERATE => "• Draw 2 + burden • Burden free • Listen worsens",
-                EmotionalState.CONNECTED => "• Weight limit 4 • All comfort +2",
-                EmotionalState.EAGER => "• 2+ same type → +3 comfort",
+                EmotionalState.DESPERATE => "• Draw 1 • Weight limit 3 • Ends at -3 comfort",
+                EmotionalState.TENSE => "• Draw 2 • Weight limit 4",
+                EmotionalState.NEUTRAL => "• Draw 2 • Weight limit 5",
+                EmotionalState.OPEN => "• Draw 3 • Weight limit 5",
+                EmotionalState.CONNECTED => "• Draw 3 • Weight limit 6",
                 _ => ""
             };
         }
@@ -802,12 +803,9 @@ namespace Wayfarer.Pages.Components
             return Session.CurrentState switch
             {
                 EmotionalState.DESPERATE => "Desperate",
-                EmotionalState.HOSTILE => "Hostile", 
                 EmotionalState.TENSE => "Tense",
-                EmotionalState.GUARDED => "Guarded",
                 EmotionalState.NEUTRAL => "Neutral",
                 EmotionalState.OPEN => "Open",
-                EmotionalState.EAGER => "Eager",
                 EmotionalState.CONNECTED => "Connected",
                 _ => Session.CurrentState.ToString()
             };
@@ -820,12 +818,9 @@ namespace Wayfarer.Pages.Components
             return Session.CurrentState switch
             {
                 EmotionalState.DESPERATE => "Draw desperate cards",
-                EmotionalState.HOSTILE => "Draw burden cards",
                 EmotionalState.TENSE => "Draw tense cards",
-                EmotionalState.GUARDED => "Draw guarded cards",
                 EmotionalState.NEUTRAL => "Draw neutral cards",
                 EmotionalState.OPEN => "Draw open cards",
-                EmotionalState.EAGER => "Draw eager cards",
                 EmotionalState.CONNECTED => "Draw connected cards",
                 _ => "Draw cards"
             };
@@ -865,7 +860,7 @@ namespace Wayfarer.Pages.Components
             }
             
             // Comfort cards get contextual names (comfort cards have no specific type)
-            if (card.Category == nameof(CardCategory.Comfort) && card.Type == CardType.Trust)
+            if (card.Category == nameof(CardCategory.Comfort) && card.Type == CardType.Normal)
             {
                 if (card.BaseComfort >= 2)
                     return "Deep Understanding";
@@ -876,7 +871,7 @@ namespace Wayfarer.Pages.Components
             }
             
             // Token cards are identified by having token types
-            if (card.Type != CardType.Trust && card.Category == nameof(CardCategory.Comfort))
+            if (card.Type != CardType.Normal && card.Category == nameof(CardCategory.Comfort))
             {
                 var tokenType = card.GetConnectionType();
                 return tokenType switch
@@ -909,10 +904,10 @@ namespace Wayfarer.Pages.Components
             // Fallback if JSON not loaded
             return targetState switch
             {
+                EmotionalState.DESPERATE => "stay urgent",
+                EmotionalState.TENSE => "be careful",
                 EmotionalState.NEUTRAL => "calm down",
                 EmotionalState.OPEN => "open up",
-                EmotionalState.TENSE => "be careful",
-                EmotionalState.EAGER => "get excited",
                 EmotionalState.CONNECTED => "connect deeply",
                 _ => "change topics"
             };
@@ -923,12 +918,9 @@ namespace Wayfarer.Pages.Components
             return state switch
             {
                 EmotionalState.DESPERATE => "desperate",
-                EmotionalState.HOSTILE => "hostile",
                 EmotionalState.TENSE => "tense",
-                EmotionalState.GUARDED => "guarded",
                 EmotionalState.NEUTRAL => "neutral",
                 EmotionalState.OPEN => "open",
-                EmotionalState.EAGER => "eager",
                 EmotionalState.CONNECTED => "connected",
                 _ => state.ToString().ToLower()
             };
@@ -961,12 +953,11 @@ namespace Wayfarer.Pages.Components
                 {
                     return card.SuccessState.Value switch
                     {
+                        EmotionalState.DESPERATE => "This is urgent! We need to act now!",
+                        EmotionalState.TENSE => "I understand this is sensitive. We should be careful how we proceed.",
                         EmotionalState.NEUTRAL => "Take a breath. We have time if we're smart about this. Let me help you think through the best approach.",
                         EmotionalState.OPEN => "I can see this matters to you. Please, tell me more about what's happening.",
-                        EmotionalState.TENSE => "I understand this is sensitive. We should be careful how we proceed.",
-                        EmotionalState.EAGER => "This sounds like an opportunity! Tell me everything!",
                         EmotionalState.CONNECTED => "I feel like we really understand each other. Let's work through this together.",
-                        EmotionalState.GUARDED => "Let's take this slowly and carefully.",
                         _ => "Perhaps we should approach this differently."
                     };
                 }
@@ -986,7 +977,7 @@ namespace Wayfarer.Pages.Components
             }
             
             // Comfort cards based on weight/intensity
-            if (card.Category == nameof(CardCategory.Comfort) && card.Type == CardType.Trust && card.BaseComfort > 0)
+            if (card.Category == nameof(CardCategory.Comfort) && card.Type == CardType.Normal && card.BaseComfort > 0)
             {
                 if (card.BaseComfort >= 2)
                     return "I completely understand how you feel. Your situation resonates deeply with me.";
@@ -997,7 +988,7 @@ namespace Wayfarer.Pages.Components
             }
             
             // Token building cards (cards with specific token types)
-            if (card.Type != CardType.Trust && card.Category == nameof(CardCategory.Comfort))
+            if (card.Type != CardType.Normal && card.Category == nameof(CardCategory.Comfort))
             {
                 var tokenType = card.GetConnectionType();
                 return tokenType switch
@@ -1067,10 +1058,8 @@ namespace Wayfarer.Pages.Components
                 {
                     EmotionalState.DESPERATE => "Tense!",
                     EmotionalState.TENSE => "Neutral!",
-                    EmotionalState.GUARDED => "Neutral!",
                     EmotionalState.NEUTRAL => "Open!",
                     EmotionalState.OPEN => "Connected!",
-                    EmotionalState.EAGER => "Connected!",
                     EmotionalState.CONNECTED => "Stays Connected",
                     _ => ""
                 };
@@ -1079,14 +1068,11 @@ namespace Wayfarer.Pages.Components
             {
                 return Session.CurrentState switch
                 {
-                    EmotionalState.DESPERATE => "Hostile!",
-                    EmotionalState.HOSTILE => "Ends!",
-                    EmotionalState.TENSE => "Hostile!",
-                    EmotionalState.GUARDED => "Hostile!",
+                    EmotionalState.DESPERATE => "Ends!",
+                    EmotionalState.TENSE => "Desperate!",
                     EmotionalState.NEUTRAL => "Tense!",
-                    EmotionalState.OPEN => "Guarded!",
-                    EmotionalState.EAGER => "Neutral!",
-                    EmotionalState.CONNECTED => "Tense!",
+                    EmotionalState.OPEN => "Neutral!",
+                    EmotionalState.CONNECTED => "Open!",
                     _ => ""
                 };
             }
@@ -1167,15 +1153,11 @@ namespace Wayfarer.Pages.Components
                     // Format the state name properly
                     string stateName = card.SuccessState.Value switch
                     {
+                        EmotionalState.DESPERATE => "Desperate",
+                        EmotionalState.TENSE => "Tense",
                         EmotionalState.NEUTRAL => "Neutral",
                         EmotionalState.OPEN => "Open",
-                        EmotionalState.GUARDED => "Guarded",
-                        EmotionalState.TENSE => "Tense",
-                        EmotionalState.EAGER => "Eager",
-                        EmotionalState.OVERWHELMED => "Overwhelmed",
                         EmotionalState.CONNECTED => "Connected",
-                        EmotionalState.DESPERATE => "Desperate",
-                        EmotionalState.HOSTILE => "Hostile",
                         _ => card.SuccessState.Value.ToString()
                     };
                     return $"→ {stateName}";
@@ -1203,15 +1185,11 @@ namespace Wayfarer.Pages.Components
                 {
                     string stateName = card.FailureState.Value switch
                     {
+                        EmotionalState.DESPERATE => "Desperate",
+                        EmotionalState.TENSE => "Tense",
                         EmotionalState.NEUTRAL => "Neutral",
                         EmotionalState.OPEN => "Open",
-                        EmotionalState.GUARDED => "Guarded",
-                        EmotionalState.TENSE => "Tense",
-                        EmotionalState.EAGER => "Eager",
-                        EmotionalState.OVERWHELMED => "Overwhelmed",
                         EmotionalState.CONNECTED => "Connected",
-                        EmotionalState.DESPERATE => "Desperate",
-                        EmotionalState.HOSTILE => "Hostile",
                         _ => card.FailureState.Value.ToString()
                     };
                     return $"→ {stateName}";
@@ -1419,12 +1397,14 @@ namespace Wayfarer.Pages.Components
                 return _systemNarratives.conversationNarratives.initialDialogues.GetValueOrDefault("default", "Hello, what brings you here?");
             }
             
-            // Fallback if JSON not loaded
+            // Fallback if JSON not loaded - 5 states only
             return Session?.CurrentState switch
             {
                 EmotionalState.DESPERATE => "Please, I need your help urgently!",
-                EmotionalState.HOSTILE => "What do you want?!",
                 EmotionalState.TENSE => "I don't have much time...",
+                EmotionalState.NEUTRAL => "Hello, what brings you here?",
+                EmotionalState.OPEN => "Good to see you! What can I do for you?",
+                EmotionalState.CONNECTED => "My friend! How can I help?",
                 _ => "Hello, what brings you here?"
             };
         }
@@ -1552,9 +1532,9 @@ namespace Wayfarer.Pages.Components
                 return string.Format(msg, NpcName);
             }
                 
-            if (Session.CurrentState == EmotionalState.HOSTILE)
+            if (Session.CurrentState == EmotionalState.DESPERATE && Session.ComfortBattery <= -3)
             {
-                var msg = exhaustedMessages?.GetValueOrDefault("becameHostile", "{0} has become hostile and refuses to continue speaking with you.") ?? "{0} has become hostile and refuses to continue speaking with you.";
+                var msg = exhaustedMessages?.GetValueOrDefault("conversationBroken", "{0} is too distressed to continue. The conversation has broken down.") ?? "{0} is too distressed to continue. The conversation has broken down.";
                 return string.Format(msg, NpcName);
             }
                 
@@ -1782,6 +1762,60 @@ namespace Wayfarer.Pages.Components
                 SpotPropertyType.Loud => -1,        // Loud locations hurt patience
                 SpotPropertyType.Isolated => 1,     // Isolated spots help
                 _ => 0
+            };
+        }
+
+        // New methods for atmosphere and weight pool display
+        protected string GetCurrentAtmosphereDisplay()
+        {
+            if (Session == null) return "Neutral";
+            
+            return Session.CurrentAtmosphere switch
+            {
+                ConversationAtmosphere.Neutral => "Neutral",
+                ConversationAtmosphere.Prepared => "Prepared (+1 weight)",
+                ConversationAtmosphere.Receptive => "Receptive (+1 card on LISTEN)",
+                ConversationAtmosphere.Focused => "Focused (+20% success)",
+                ConversationAtmosphere.Patient => "Patient (0 patience cost)",
+                ConversationAtmosphere.Volatile => "Volatile (±1 comfort changes)",
+                ConversationAtmosphere.Final => "Final (failure ends conversation)",
+                ConversationAtmosphere.Informed => "Informed (next card auto-succeeds)",
+                ConversationAtmosphere.Exposed => "Exposed (double comfort changes)",
+                ConversationAtmosphere.Synchronized => "Synchronized (effects happen twice)",
+                ConversationAtmosphere.Pressured => "Pressured (-1 card on LISTEN)",
+                _ => Session.CurrentAtmosphere.ToString()
+            };
+        }
+
+        protected string GetWeightPoolDisplay()
+        {
+            if (Session == null) return "0/5";
+            return $"{Session.CurrentWeightPool}/{Session.GetEffectiveWeightCapacity()}";
+        }
+
+        protected string GetComfortBatteryDisplay()
+        {
+            if (Session == null) return "0";
+            return Session.ComfortBattery.ToString("+0;-#;0");
+        }
+
+        protected string GetAtmosphereEffectDescription()
+        {
+            if (Session == null) return "";
+
+            return Session.CurrentAtmosphere switch
+            {
+                ConversationAtmosphere.Prepared => "Weight capacity increased by 1",
+                ConversationAtmosphere.Receptive => "Draw 1 extra card on LISTEN",
+                ConversationAtmosphere.Focused => "All cards get +20% success chance",
+                ConversationAtmosphere.Patient => "Conversation actions cost no patience",
+                ConversationAtmosphere.Volatile => "Comfort changes are amplified by ±1",
+                ConversationAtmosphere.Final => "Any failure will end the conversation",
+                ConversationAtmosphere.Informed => "Your next card will automatically succeed",
+                ConversationAtmosphere.Exposed => "All comfort changes are doubled",
+                ConversationAtmosphere.Synchronized => "Card effects will happen twice",
+                ConversationAtmosphere.Pressured => "Draw 1 fewer card on LISTEN",
+                _ => ""
             };
         }
     }
