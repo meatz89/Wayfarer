@@ -65,7 +65,7 @@ public class ConversationOrchestrator
             ComfortBattery = 0, // Start at 0
             CurrentWeightPool = 0,
             WeightCapacity = _weightPoolManager.CurrentCapacity,
-            CurrentConversationAtmosphere = ConversationAtmosphere.Neutral,
+            CurrentAtmosphere = ConversationAtmosphere.Neutral,
             CurrentPatience = 10,
             MaxPatience = 10,
             TurnNumber = 0,
@@ -164,7 +164,7 @@ public class ConversationOrchestrator
         }
         
         // Update session atmosphere
-        session.CurrentConversationAtmosphere = _atmosphereManager.CurrentConversationAtmosphere;
+        session.CurrentAtmosphere = _atmosphereManager.CurrentAtmosphere;
         session.CurrentWeightPool = _weightPoolManager.CurrentSpentWeight;
         session.WeightCapacity = _weightPoolManager.CurrentCapacity;
 

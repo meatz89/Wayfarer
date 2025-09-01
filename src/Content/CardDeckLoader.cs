@@ -250,11 +250,13 @@ public class CardDeckLoader
         {
             // Parse card type
             var typeStr = template.GetProperty("type").GetString();
-            
+
             // Parse connection type
+            var cardType = template.TryGetProperty("cardType", out var cardTypeElem);
             var connectionStr = template.TryGetProperty("connectionType", out var connElem) 
                 ? connElem.GetString() : "Trust";
-            var cardType = ParseCardType(connectionStr);
+            var cardType = ParseCardType(cardTypeElem);
+            var cardTokenType = ParseCardTokenType(connectionStr);
             
             // Parse persistence
             var persistenceStr = template.TryGetProperty("persistence", out var persElem) 
@@ -336,6 +338,7 @@ public class CardDeckLoader
                     GeneratesLetterOnSuccess = template.TryGetProperty("generatesLetter", out var letterElem) && letterElem.GetBoolean()
                 },
                 Type = cardType,
+                TokenType = cardTokenType,
                 Persistence = persistence,
                 Weight = weight,
                 BaseComfort = baseComfort,
@@ -598,14 +601,22 @@ public class CardDeckLoader
     {
         return connectionStr?.ToLower() switch
         {
-            "trust" => CardType.Normal,
-            "commerce" => CardType.Normal,
-            "status" => CardType.Normal,
-            "shadow" => CardType.Normal,
             "normal" => CardType.Normal,
             "observation" => CardType.Observation,
             "goal" => CardType.Goal,
             _ => CardType.Normal
+        };
+    }
+
+    private CardTokenType ParseCardTokenType(string connectionStr)
+    {
+        return connectionStr?.ToLower() switch
+        {
+            "trust" => CardTokenType.Trust,
+            "commerce" => CardTokenType.Commerce,
+            "status" => CardTokenType.Status,
+            "shadow" => CardTokenType.Shadow,
+            _ => CardTokenType.Trust
         };
     }
     

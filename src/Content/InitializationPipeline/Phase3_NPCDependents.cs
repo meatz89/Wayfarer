@@ -196,6 +196,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                         Mechanics = CardMechanicsType.Promise,
                         Category = CardCategory.Promise.ToString(),
                         Type = CardType.Goal, // Promise cards are goal cards
+                        TokenType = CardTokenType.Trust,
                         Persistence = PersistenceType.Fleeting, // Use valid persistence type
                         Weight = 2, // Standard weight for promise cards
                         BaseComfort = 0, // No comfort for goal cards
@@ -224,18 +225,6 @@ public class Phase3_NPCDependents : IInitializationPhase
         }
     }
     
-    private CardType ConvertConnectionTypeToCardType(ConnectionType connectionType)
-    {
-        return connectionType switch
-        {
-            ConnectionType.Trust => CardType.Normal,
-            ConnectionType.Commerce => CardType.Normal,
-            ConnectionType.Status => CardType.Normal,
-            ConnectionType.Shadow => CardType.Normal,
-            _ => CardType.Normal
-        };
-    }
-
     private void LoadGoalDecks(InitializationContext context)
     {
         Console.WriteLine("[Phase3] Loading Goal deck configurations...");

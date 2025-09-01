@@ -87,7 +87,6 @@ public class ConversationFacade
 
         // Create session based on conversation type
         _currentSession = _orchestrator.CreateSession(npc, conversationType, observationCards);
-        _stateTracker.BeginTracking(_currentSession);
         
         return _currentSession;
     }
@@ -105,8 +104,7 @@ public class ConversationFacade
         // Apply token changes
         if (_lastOutcome.TokensEarned != 0)
         {
-            var primaryType = _deckManager.DeterminePrimaryCardType(_currentSession.HandCards.ToList());
-            var connectionType = MapCardTypeToConnection(primaryType);
+            var connectionType = MapCardTypeToConnection(cardTokenType);
             _tokenManager.AddTokensToNPC(connectionType, _lastOutcome.TokensEarned, _currentSession.NPC.ID);
         }
 
@@ -118,7 +116,6 @@ public class ConversationFacade
             _currentSession.LetterGenerated = true;
         }
 
-        _stateTracker.EndTracking();
         _currentSession.Deck.ResetForNewConversation();
         _currentSession = null;
         
@@ -168,7 +165,6 @@ public class ConversationFacade
             EndConversation();
         }
 
-        _stateTracker.RecordTurn(result);
         return result;
     }
 
@@ -317,7 +313,6 @@ public class ConversationFacade
 
         // Restore hand and deck cards
         _deckManager.RestoreSessionCards(_currentSession, memento.HandCardIds, memento.DeckCardIds);
-        _stateTracker.BeginTracking(_currentSession);
     }
 
     /// <summary>
@@ -354,7 +349,7 @@ public class ConversationFacade
         if (npc.HasPromiseCards())
         {
             var currentState = ConversationRules.DetermineInitialState(npc, _queueManager);
-            if (_stateManager.HasValidGoalCard(npc, currentState))
+            if (npc.HasValidGoalCard(currentState))
             {
                 available.Add(ConversationType.Promise);
             }
@@ -540,15 +535,14 @@ public class ConversationFacade
         }
     }
 
-    private ConnectionType MapCardTypeToConnection(CardType cardType)
+    private ConnectionType MapCardTypeToConnection(CardTokenType cardType)
     {
         return cardType switch
         {
-            // In the new system, all cards are Normal type
-            // Connection type is determined by card mechanics, not card type
-            CardType.Normal => ConnectionType.Trust,
-            CardType.Observation => ConnectionType.Trust,
-            CardType.Goal => ConnectionType.Trust,
+            CardTokenType.Trust => ConnectionType.Trust,
+            CardTokenType.Commerce => ConnectionType.Commerce,
+            CardTokenType.Status => ConnectionType.Status,
+            CardTokenType.Shadow => ConnectionType.Shadow,
             _ => ConnectionType.Trust
         };
     }

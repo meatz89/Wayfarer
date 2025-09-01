@@ -73,6 +73,14 @@ public enum CardEffectType
     FreeAction        // Observation only
 }
 
+public enum CardTokenType
+{
+    Trust,
+    Commerce,
+    Status,
+    Shadow
+}
+
 public enum CardType
 {
     Normal,       // Standard conversation cards
@@ -129,6 +137,7 @@ public class ConversationCard
     public string TemplateId { get; set; }
     public string Name { get; init; }
     public CardType Type { get; init; }
+    public CardTokenType TokenType { get; init; }
     public int Weight { get; init; }
     public int BaseSuccessChance { get; init; }
     public int BaseComfortReward { get; init; }
@@ -232,6 +241,10 @@ public class ConversationCard
         }
         return Math.Clamp(baseChance, 0, 100);
     }
+    
+    // Missing properties needed by the system
+    public bool HasFinalWord { get; init; } = false;
+    public string DialogueText { get; init; }
 }
 
 // Card instance - runtime representation of a card
@@ -241,6 +254,7 @@ public class CardInstance
     public string TemplateId { get; init; }
     public string Name { get; init; }
     public CardType Type { get; init; }
+    public CardTokenType TokenType { get; init; }
     public int Weight { get; init; }
     public int BaseSuccessChance { get; init; }
     public int BaseComfortReward { get; init; }
@@ -671,6 +685,7 @@ public class CardPlayResult
             }
             return false;
         } 
+        set; // Make it settable
     }
 }
 

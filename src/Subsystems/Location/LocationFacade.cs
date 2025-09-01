@@ -265,7 +265,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 {
                     interactions.Add(new InteractionOptionViewModel
                     {
-                        Text = emotionalState == EmotionalState.HOSTILE ? "Too hostile to approach" : "No interactions available",
+                        Text = "No interactions available",
                         Cost = "—"
                     });
                 }

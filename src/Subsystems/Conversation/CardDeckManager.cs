@@ -116,13 +116,13 @@ public class CardDeckManager
             // Handle atmosphere change
             if (effectResult.ConversationAtmosphereChange.HasValue)
             {
-                _atmosphereManager.SetConversationAtmosphere(effectResult.ConversationAtmosphereChange.Value);
+                _atmosphereManager.SetAtmosphere(effectResult.ConversationAtmosphereChange.Value);
             }
         }
         else
         {
             // Clear atmosphere on failure
-            _atmosphereManager.ClearConversationAtmosphereOnFailure();
+            _atmosphereManager.ClearAtmosphereOnFailure();
             
             // Check if failure should end conversation (Final atmosphere)
             if (_atmosphereManager.ShouldEndOnFailure())
@@ -251,6 +251,7 @@ public class CardDeckManager
             Name = instance.Name,
             Type = instance.IsGoalCard ? CardType.Goal : 
                    instance.IsObservation ? CardType.Observation : CardType.Normal,
+            TokenType = instance.TokenType,
             Weight = instance.Weight,
             Difficulty = ConvertToDifficulty(instance.BaseSuccessChance),
             Persistence = instance.Persistence,
@@ -341,5 +342,62 @@ public class CardDeckManager
         if (firstCard == null) return false;
         
         return _weightPoolManager.CanAffordCard(firstCard.Weight);
+    }
+
+    /// <summary>
+    /// Restore cards to a session from saved IDs
+    /// </summary>
+    public void RestoreSessionCards(ConversationSession session, List<string> handCardIds, List<string> deckCardIds)
+    {
+        // Clear existing cards
+        session.Hand.Clear();
+        session.Deck.Clear();
+        
+        // Restore hand cards
+        foreach (var cardId in handCardIds)
+        {
+            var cardTemplate = FindCardTemplateById(cardId);
+            if (cardTemplate != null)
+            {
+                var cardInstance = new CardInstance(cardTemplate, session.NPC.ID);
+                session.Hand.AddCard(cardInstance);
+            }
+        }
+        
+        // Restore deck cards
+        foreach (var cardId in deckCardIds)
+        {
+            var cardTemplate = FindCardTemplateById(cardId);
+            if (cardTemplate != null)
+            {
+                var cardInstance = new CardInstance(cardTemplate, session.NPC.ID);
+                session.Deck.AddCard(cardInstance);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Find a card template by ID from game world data
+    /// </summary>
+    private ConversationCard FindCardTemplateById(string cardId)
+    {
+        // Search in all card collections in GameWorld
+        if (_gameWorld.CardTemplates.TryGetValue(cardId, out var template))
+        {
+            return template;
+        }
+        
+        // If not found in main templates, create a basic one
+        return new ConversationCard
+        {
+            Id = cardId,
+            Name = "Unknown Card",
+            Type = CardType.Normal,
+            Weight = 1,
+            Difficulty = Difficulty.Medium,
+            Persistence = PersistenceType.Session,
+            EffectType = CardEffectType.FixedComfort,
+            EffectValue = "1"
+        };
     }
 }

@@ -249,6 +249,7 @@ public class ConversationCardParser
                 GeneratesLetterOnSuccess = dto.GeneratesLetterOnSuccess ?? false
             },
             Type = Enum.Parse<CardType>(dto.Type, true),
+            TokenType = Enum.Parse<CardTokenType>(dto.TokenType, true),
             Persistence = Enum.Parse<PersistenceType>(dto.Persistence, true),
             Weight = dto.Weight,
             BaseComfort = dto.BaseComfort,
@@ -304,6 +305,7 @@ public class ConversationCardDTO
     public string Mechanics { get; set; } // New mechanics field
     public string Category { get; set; } // New category field
     public string Type { get; set; }
+    public string TokenType { get; set; }
     public string Persistence { get; set; }
     public int Weight { get; set; }
     public int BaseComfort { get; set; }

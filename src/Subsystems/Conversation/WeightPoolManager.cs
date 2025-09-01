@@ -105,7 +105,7 @@ public class WeightPoolManager
             Available = AvailableWeight,
             Capacity = CurrentCapacity,
             Spent = currentSpentWeight,
-            HasPreparedBonus = atmosphereManager.CurrentConversationAtmosphere == ConversationAtmosphere.Prepared
+            HasPreparedBonus = atmosphereManager.CurrentAtmosphere == ConversationAtmosphere.Prepared
         };
     }
 }
