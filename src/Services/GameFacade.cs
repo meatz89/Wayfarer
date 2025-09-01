@@ -338,7 +338,7 @@ public class GameFacade
 
     public EmotionalState GetNPCEmotionalState(string npcId) => EmotionalState.NEUTRAL;
     
-    public List<RouteOption> GetAvailableRoutes() => new List<RouteOption>();
+    public List<RouteOption> GetAvailableRoutes() => _travelFacade.GetAvailableRoutesFromCurrentLocation();
     
     public DailyActivityResult GetDailyActivities() => new DailyActivityResult();
     
