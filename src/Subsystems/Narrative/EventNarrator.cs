@@ -142,22 +142,22 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Generate narrative for relationship damage
         /// </summary>
-        public (string message, string severity) GenerateRelationshipDamageNarrative(string npcId, ConnectionType type, int remainingTokens)
+        public NarrativeResult GenerateRelationshipDamageNarrative(string npcId, ConnectionType type, int remainingTokens)
         {
             NPC npc = _npcRepository.GetById(npcId);
-            if (npc == null) return (null, null);
+            if (npc == null) return null;
 
             if (remainingTokens < 0)
             {
-                return ($"{npc.Name} feels you owe them for past failures.", "danger");
+                return new NarrativeResult($"{npc.Name} feels you owe them for past failures.", "danger");
             }
             else if (remainingTokens == 0)
             {
-                return ($"Your {type} relationship with {npc.Name} has been completely severed.", "warning");
+                return new NarrativeResult($"Your {type} relationship with {npc.Name} has been completely severed.", "warning");
             }
             else
             {
-                return ($"Your relationship with {npc.Name} has been damaged.", "warning");
+                return new NarrativeResult($"Your relationship with {npc.Name} has been damaged.", "warning");
             }
         }
 
@@ -207,7 +207,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Generate narrative for morning letter generation
         /// </summary>
-        public (string morning, string letterCount, string severity) GenerateMorningLetterNarrative(int lettersGenerated, bool queueFull)
+        public MorningNarrativeResult GenerateMorningLetterNarrative(int lettersGenerated, bool queueFull)
         {
             string[] morningNarratives = new[]
             {
@@ -235,7 +235,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
                 letterCount = "No new letters have arrived this morning.";
             }
 
-            return (morning, letterCount, severity);
+            return new MorningNarrativeResult(morning, letterCount, severity);
         }
 
         // ========== NPC NARRATIVES ==========
@@ -270,7 +270,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Generate narrative for time transitions
         /// </summary>
-        public (string transition, string action) GenerateTimeTransitionNarrative(TimeBlocks from, TimeBlocks to, string actionDescription = null)
+        public TransitionNarrativeResult GenerateTimeTransitionNarrative(TimeBlocks from, TimeBlocks to, string actionDescription = null)
         {
             string transition = GetTimeTransitionNarrative(from, to);
             string action = null;
@@ -280,7 +280,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
                 action = $"You spent time {actionDescription}.";
             }
 
-            return (transition, action);
+            return new TransitionNarrativeResult(transition, action);
         }
 
         // ========== OBLIGATION NARRATIVES ==========
@@ -288,24 +288,24 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Generate narrative for obligation warnings
         /// </summary>
-        public (string message, string severity) GenerateObligationWarning(StandingObligation obligation, int daysUntilForced)
+        public NarrativeResult GenerateObligationWarning(StandingObligation obligation, int daysUntilForced)
         {
             if (daysUntilForced == 1)
             {
-                return ($"⚠️ Your {obligation.Name} obligation will demand action tomorrow!", "warning");
+                return new NarrativeResult($"⚠️ Your {obligation.Name} obligation will demand action tomorrow!", "warning");
             }
             else if (daysUntilForced == 0)
             {
-                return ($"📮 Your {obligation.Name} obligation forces a letter into your queue!", "danger");
+                return new NarrativeResult($"📮 Your {obligation.Name} obligation forces a letter into your queue!", "danger");
             }
 
-            return (null, null);
+            return null;
         }
 
         /// <summary>
         /// Generate narrative for deadline warnings
         /// </summary>
-        public (string message, string severity) GenerateDeadlineWarning(DeliveryObligation letter, int daysRemaining)
+        public NarrativeResult GenerateDeadlineWarning(DeliveryObligation letter, int daysRemaining)
         {
             string urgency = daysRemaining switch
             {
@@ -318,7 +318,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             string severity = daysRemaining <= 1 ? "warning" : "info";
             string message = $"⏰ Letter from {letter.SenderName} {urgency}!";
 
-            return (message, severity);
+            return new NarrativeResult(message, severity);
         }
 
         /// <summary>

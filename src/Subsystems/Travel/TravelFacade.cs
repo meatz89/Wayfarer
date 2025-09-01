@@ -223,7 +223,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             return _routeDiscoveryManager.GetUndiscoveredRoutesFromCurrentLocation();
         }
         
-        public (int discovered, int total) GetDiscoveryProgress()
+        public DiscoveryProgressInfo GetDiscoveryProgress()
         {
             return _routeDiscoveryManager.GetDiscoveryProgress();
         }

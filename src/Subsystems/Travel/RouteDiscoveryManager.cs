@@ -69,19 +69,19 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         /// <summary>
         /// Get discovery progress statistics.
         /// </summary>
-        public (int discovered, int total) GetDiscoveryProgress()
+        public DiscoveryProgressInfo GetDiscoveryProgress()
         {
             var player = _gameWorld.GetPlayer();
             string currentLocationId = player.CurrentLocationSpot?.LocationId;
             if (currentLocationId == null)
             {
-                return (0, 0);
+                return new DiscoveryProgressInfo(0, 0);
             }
             
             var allRoutes = _routeManager.GetRoutesFromLocation(currentLocationId);
             var discoveredCount = allRoutes.Count(r => _routeManager.IsRouteDiscovered(r.Id));
             
-            return (discoveredCount, allRoutes.Count);
+            return new DiscoveryProgressInfo(discoveredCount, allRoutes.Count);
         }
         
         /// <summary>

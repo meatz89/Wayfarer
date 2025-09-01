@@ -96,7 +96,7 @@ namespace Wayfarer.Pages.Components
             AvailableObservations.Clear();
             TakenObservations.Clear();
             Console.WriteLine("[LocationContent] Getting observations from GameFacade...");
-            // TODO: Get observations from proper facade method instead of stub
+            // GetTakenObservations() works correctly, but need to implement GetAvailableObservations() method
             var takenObservations = GameFacade.GetTakenObservations();
             Console.WriteLine($"[LocationContent] Got {takenObservations?.Count ?? 0} taken observations");
             

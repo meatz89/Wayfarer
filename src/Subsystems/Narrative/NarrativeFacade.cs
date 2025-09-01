@@ -190,7 +190,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Generate token gain narrative
         /// </summary>
-        public (string reaction, string summary) GenerateTokenGainNarrative(ConnectionType type, int count, string npcId)
+        public TokenNarrativeResult GenerateTokenGainNarrative(ConnectionType type, int count, string npcId)
         {
             return _narrativeService.GenerateTokenGainNarrative(type, count, npcId);
         }
@@ -198,7 +198,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Generate relationship milestone narrative
         /// </summary>
-        public (string milestone, string additional) GenerateRelationshipMilestone(string npcId, int totalTokens)
+        public MilestoneNarrativeResult GenerateRelationshipMilestone(string npcId, int totalTokens)
         {
             return _narrativeService.GenerateRelationshipMilestone(npcId, totalTokens);
         }
@@ -206,7 +206,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Generate relationship damage narrative
         /// </summary>
-        public (string message, string severity) GenerateRelationshipDamageNarrative(string npcId, ConnectionType type, int remainingTokens)
+        public NarrativeResult GenerateRelationshipDamageNarrative(string npcId, ConnectionType type, int remainingTokens)
         {
             return _narrativeService.GenerateRelationshipDamageNarrative(npcId, type, remainingTokens);
         }
@@ -222,7 +222,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Generate morning letter narrative
         /// </summary>
-        public (string morning, string letterCount, string severity) GenerateMorningLetterNarrative(int lettersGenerated, bool queueFull)
+        public MorningNarrativeResult GenerateMorningLetterNarrative(int lettersGenerated, bool queueFull)
         {
             return _narrativeService.GenerateMorningLetterNarrative(lettersGenerated, queueFull);
         }
@@ -238,7 +238,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Generate time transition narrative
         /// </summary>
-        public (string transition, string action) GenerateTimeTransitionNarrative(TimeBlocks from, TimeBlocks to, string actionDescription = null)
+        public TransitionNarrativeResult GenerateTimeTransitionNarrative(TimeBlocks from, TimeBlocks to, string actionDescription = null)
         {
             return _narrativeService.GenerateTimeTransitionNarrative(from, to, actionDescription);
         }
@@ -246,7 +246,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Generate obligation warning narrative
         /// </summary>
-        public (string message, string severity) GenerateObligationWarning(StandingObligation obligation, int daysUntilForced)
+        public NarrativeResult GenerateObligationWarning(StandingObligation obligation, int daysUntilForced)
         {
             return _narrativeService.GenerateObligationWarning(obligation, daysUntilForced);
         }
@@ -254,7 +254,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Generate deadline warning narrative
         /// </summary>
-        public (string message, string severity) GenerateDeadlineWarning(DeliveryObligation letter, int daysRemaining)
+        public NarrativeResult GenerateDeadlineWarning(DeliveryObligation letter, int daysRemaining)
         {
             return _narrativeService.GenerateDeadlineWarning(letter, daysRemaining);
         }

@@ -167,17 +167,17 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         /// <summary>
         /// Get complete player resources for UI display
         /// </summary>
-        public (int Coins, int Health, int Hunger, int CurrentAttention, int MaxAttention) GetPlayerResources()
+        public PlayerResourcesInfo GetPlayerResources()
         {
             var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-            var (currentAttention, maxAttention) = GetAttention(currentTimeBlock);
+            var attentionInfo = GetAttention(currentTimeBlock);
             
-            return (
-                Coins: GetCoins(),
-                Health: GetHealth(),
-                Hunger: GetHunger(),
-                CurrentAttention: currentAttention,
-                MaxAttention: maxAttention
+            return new PlayerResourcesInfo(
+                coins: GetCoins(),
+                health: GetHealth(),
+                hunger: GetHunger(),
+                currentAttention: attentionInfo.Current,
+                maxAttention: attentionInfo.Max
             );
         }
         

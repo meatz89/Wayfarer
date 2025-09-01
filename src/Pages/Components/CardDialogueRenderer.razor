@@ -8,7 +8,7 @@
     [Parameter] public CardContext Context { get; set; }
     [Parameter] public string NPCName { get; set; }
     [Parameter] public bool IsPlayerCard { get; set; } = true;
-    [Parameter] public ConversationCard Card { get; set; }
+    [Parameter] public CardInstance Card { get; set; }
 
     private string GetCardText()
     {
