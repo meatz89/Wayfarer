@@ -95,11 +95,9 @@ public class DialogueGenerator
             return toState switch
             {
                 EmotionalState.CONNECTED => $"{npc.Name}'s eyes light up with genuine warmth. You've formed a real connection.",
-                EmotionalState.EAGER => $"{npc.Name} leans forward with interest, eager to continue the conversation.",
-                EmotionalState.OPEN => $"{npc.Name} relaxes noticeably, becoming more open to discussion.",
+                EmotionalState.OPEN => $"{npc.Name} leans forward with interest, eager to continue the conversation.",
                 EmotionalState.NEUTRAL => $"{npc.Name}'s guard drops slightly as they settle into the conversation.",
-                EmotionalState.GUARDED => $"{npc.Name} seems less hostile, though still wary.",
-                EmotionalState.TENSE => $"{npc.Name} pulls back from the brink, though tension remains.",
+                EmotionalState.TENSE => $"{npc.Name} seems less hostile, though still wary.",
                 _ => $"{npc.Name}'s demeanor shifts."
             };
         }
@@ -107,11 +105,10 @@ public class DialogueGenerator
         {
             return toState switch
             {
-                EmotionalState.DESPERATE => $"{npc.Name} looks desperate, on the verge of panic.",
-                EmotionalState.HOSTILE => $"{npc.Name}'s expression hardens with anger.",
-                EmotionalState.TENSE => $"{npc.Name} tenses up, becoming visibly uncomfortable.",
-                EmotionalState.GUARDED => $"{npc.Name} pulls back, becoming more guarded.",
+                EmotionalState.DESPERATE => $"{npc.Name}'s expression hardens with anger.",
+                EmotionalState.TENSE => $"{npc.Name} pulls back, becoming more guarded.",
                 EmotionalState.NEUTRAL => $"{npc.Name} returns to a neutral stance.",
+                EmotionalState.OPEN => $"{npc.Name} relaxes noticeably, becoming more open to discussion.",
                 _ => $"{npc.Name}'s mood shifts."
             };
         }
@@ -146,12 +143,12 @@ public class DialogueGenerator
         return state switch
         {
             EmotionalState.DESPERATE => $"{npc.Name} wrings their hands anxiously, eyes darting about.",
-            EmotionalState.HOSTILE => $"{npc.Name} crosses their arms defensively, jaw clenched.",
+            EmotionalState.DESPERATE => $"{npc.Name} crosses their arms defensively, jaw clenched.",
             EmotionalState.TENSE => $"{npc.Name} shifts uncomfortably, shoulders rigid.",
-            EmotionalState.GUARDED => $"{npc.Name} maintains careful distance, watching you closely.",
+            EmotionalState.TENSE => $"{npc.Name} maintains careful distance, watching you closely.",
             EmotionalState.NEUTRAL => $"{npc.Name} stands relaxed but attentive.",
             EmotionalState.OPEN => $"{npc.Name} leans in slightly, genuinely interested.",
-            EmotionalState.EAGER => $"{npc.Name} smiles warmly, animated in their responses.",
+            EmotionalState.OPEN => $"{npc.Name} smiles warmly, animated in their responses.",
             EmotionalState.CONNECTED => $"{npc.Name} mirrors your posture, completely engaged.",
             _ => $"{npc.Name} continues the conversation."
         };
@@ -237,12 +234,12 @@ public class DialogueGenerator
         return state switch
         {
             EmotionalState.DESPERATE => new[] { "Please, I need help!", "This is urgent!", "I don't know what to do!" },
-            EmotionalState.HOSTILE => new[] { "Why should I talk to you?", "Leave me alone.", "I don't trust you." },
+            EmotionalState.DESPERATE => new[] { "Why should I talk to you?", "Leave me alone.", "I don't trust you." },
             EmotionalState.TENSE => new[] { "What do you want?", "I'm listening...", "Be quick about it." },
-            EmotionalState.GUARDED => new[] { "Go on.", "I'm listening.", "What's your point?" },
+            EmotionalState.TENSE => new[] { "Go on.", "I'm listening.", "What's your point?" },
             EmotionalState.NEUTRAL => new[] { "Interesting.", "Tell me more.", "I see." },
             EmotionalState.OPEN => new[] { "That's fascinating!", "Please continue.", "I'd like to hear more." },
-            EmotionalState.EAGER => new[] { "Yes, exactly!", "I completely agree!", "This is wonderful!" },
+            EmotionalState.OPEN => new[] { "Yes, exactly!", "I completely agree!", "This is wonderful!" },
             EmotionalState.CONNECTED => new[] { "I understand completely.", "We're on the same wavelength.", "I feel the same way." },
             _ => new[] { "..." }
         };
@@ -294,12 +291,12 @@ public class DialogueGenerator
         var stateOrder = new[]
         {
             EmotionalState.DESPERATE,
-            EmotionalState.HOSTILE,
+            EmotionalState.DESPERATE,
             EmotionalState.TENSE,
-            EmotionalState.GUARDED,
+            EmotionalState.TENSE,
             EmotionalState.NEUTRAL,
             EmotionalState.OPEN,
-            EmotionalState.EAGER,
+            EmotionalState.OPEN,
             EmotionalState.CONNECTED
         };
         
