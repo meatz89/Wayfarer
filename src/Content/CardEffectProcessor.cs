@@ -15,8 +15,43 @@ public class CardEffectProcessor
         this.weightPoolManager = weightPoolManager;
     }
 
-    // Process a single card effect and return the result
-    public CardEffectResult ProcessCardEffect(ConversationCard card, ConversationSession session)
+    /// <summary>
+    /// Process a card's success effect
+    /// </summary>
+    public CardEffectResult ProcessSuccessEffect(ConversationCard card, ConversationSession session)
+    {
+        if (card.SuccessEffect == null || card.SuccessEffect.IsEmpty)
+            return new CardEffectResult { Card = card };
+        
+        return ProcessEffect(card.SuccessEffect, card, session);
+    }
+    
+    /// <summary>
+    /// Process a card's failure effect
+    /// </summary>
+    public CardEffectResult ProcessFailureEffect(ConversationCard card, ConversationSession session)
+    {
+        if (card.FailureEffect == null || card.FailureEffect.IsEmpty)
+            return new CardEffectResult { Card = card };
+        
+        return ProcessEffect(card.FailureEffect, card, session);
+    }
+    
+    /// <summary>
+    /// Process a card's exhaust effect
+    /// </summary>
+    public CardEffectResult ProcessExhaustEffect(ConversationCard card, ConversationSession session)
+    {
+        if (card.ExhaustEffect == null || card.ExhaustEffect.IsEmpty)
+            return new CardEffectResult { Card = card };
+        
+        return ProcessEffect(card.ExhaustEffect, card, session);
+    }
+
+    /// <summary>
+    /// Process any card effect and return the result
+    /// </summary>
+    private CardEffectResult ProcessEffect(CardEffect effect, ConversationCard card, ConversationSession session)
     {
         CardEffectResult result = new CardEffectResult
         {
@@ -25,32 +60,62 @@ public class CardEffectProcessor
             CardsToAdd = new List<CardInstance>(),
             WeightAdded = 0,
             AtmosphereTypeChange = null,
-            SpecialEffect = ""
+            SpecialEffect = "",
+            EndsConversation = false
         };
 
-        // Process the primary effect
-        switch (card.EffectType)
+        // Process the effect based on type
+        switch (effect.Type)
         {
-            case CardEffectType.FixedComfort:
-                result.ComfortChange = ProcessFixedComfort(card.GetEffectValueOrFormula());
+            case CardEffectType.AddComfort:
+            case CardEffectType.FixedComfort: // Legacy compatibility
+                result.ComfortChange = ProcessFixedComfort(effect.Value);
                 break;
 
-            case CardEffectType.ScaledComfort:
-                result.ComfortChange = ProcessScaledComfort(card.GetEffectValueOrFormula(), session);
+            case CardEffectType.ScaleByTokens:
+            case CardEffectType.ScaleByComfort:
+            case CardEffectType.ScaleByPatience:
+            case CardEffectType.ScaleByWeight:
+            case CardEffectType.ScaledComfort: // Legacy compatibility
+                result.ComfortChange = ProcessScaledComfort(effect, session);
                 break;
 
             case CardEffectType.DrawCards:
-                result.CardsToAdd = ProcessDrawCards(card.GetEffectValueOrFormula(), session);
+                result.CardsToAdd = ProcessDrawCards(effect.Value, session);
                 break;
 
             case CardEffectType.AddWeight:
-                result.WeightAdded = ProcessAddWeight(card.GetEffectValueOrFormula());
+                result.WeightAdded = ProcessAddWeight(effect.Value);
                 break;
 
             case CardEffectType.SetAtmosphere:
-                result.AtmosphereTypeChange = ProcessSetAtmosphereType(card.GetEffectValueOrFormula());
+                result.AtmosphereTypeChange = ProcessSetAtmosphereType(effect.Value);
                 break;
-
+                
+            case CardEffectType.EndConversation:
+            case CardEffectType.GoalEffect: // Legacy compatibility
+                result.EndsConversation = true;
+                result.SpecialEffect = "Conversation ends";
+                if (effect.Data != null)
+                {
+                    result.ConversationOutcomeData = effect.Data;
+                }
+                break;
+                
+            case CardEffectType.ComfortReset:
+                result.ComfortChange = -session.CurrentComfort; // Reset to 0
+                result.SpecialEffect = "Comfort reset to 0";
+                break;
+                
+            case CardEffectType.WeightRefresh:
+                result.WeightAdded = weightPoolManager.GetMaxCapacity() - weightPoolManager.GetCurrentCapacity();
+                result.SpecialEffect = "Weight pool refreshed";
+                break;
+                
+            case CardEffectType.FreeNextAction:
+                result.SpecialEffect = "Next action costs 0 patience";
+                // Implementation would set a flag in session
+                break;
         }
 
         // Apply atmosphere modifications to comfort changes
@@ -69,15 +134,9 @@ public class CardEffectProcessor
             if (result.CardsToAdd.Count > 0)
             {
                 // Double the cards drawn
-                List<CardInstance> additionalCards = ProcessDrawCards(card.GetEffectValueOrFormula(), session);
+                List<CardInstance> additionalCards = ProcessDrawCards(effect.Value, session);
                 result.CardsToAdd.AddRange(additionalCards);
             }
-        }
-
-        // Handle atmosphere change from card (separate from effect)
-        if (card.AtmosphereChange.HasValue)
-        {
-            result.AtmosphereTypeChange = card.AtmosphereChange.Value;
         }
 
         return result;
@@ -93,10 +152,51 @@ public class CardEffectProcessor
         return 0;
     }
 
-    // Process scaled comfort based on formulas
-    private int ProcessScaledComfort(string formula, ConversationSession session)
+    // Process scaled comfort based on effect type and formula
+    private int ProcessScaledComfort(CardEffect effect, ConversationSession session)
     {
-        return formula switch
+        // Handle specific scaling types
+        if (effect.Type == CardEffectType.ScaleByTokens)
+        {
+            TokenType tokenType = Enum.Parse<TokenType>(effect.Value);
+            return tokenManager.GetTokenCount(session.NpcId, tokenType);
+        }
+        
+        if (effect.Type == CardEffectType.ScaleByComfort)
+        {
+            // Parse formula like "4 - comfort"
+            if (effect.Value.Contains("-"))
+            {
+                string[] parts = effect.Value.Split('-');
+                if (int.TryParse(parts[0].Trim(), out int baseValue))
+                {
+                    return baseValue - session.CurrentComfort;
+                }
+            }
+            return session.CurrentComfort;
+        }
+        
+        if (effect.Type == CardEffectType.ScaleByPatience)
+        {
+            // Parse formula like "patience / 3"
+            if (effect.Value.Contains("/"))
+            {
+                string[] parts = effect.Value.Split('/');
+                if (int.TryParse(parts[1].Trim(), out int divisor) && divisor > 0)
+                {
+                    return session.CurrentPatience / divisor;
+                }
+            }
+            return session.CurrentPatience;
+        }
+        
+        if (effect.Type == CardEffectType.ScaleByWeight)
+        {
+            return weightPoolManager.GetCurrentCapacity();
+        }
+        
+        // Legacy formula handling
+        return effect.Value switch
         {
             "trust_tokens" => tokenManager.GetTokenCount(ConnectionType.Trust, session.NPC.ID),
             "commerce_tokens" => tokenManager.GetTokenCount(ConnectionType.Commerce, session.NPC.ID),
@@ -207,4 +307,6 @@ public class CardEffectResult
     public bool Success { get; set; } = true;
     public int Roll { get; set; }
     public int SuccessPercentage { get; set; }
+    public bool EndsConversation { get; set; } = false;
+    public Dictionary<string, object> ConversationOutcomeData { get; set; }
 }

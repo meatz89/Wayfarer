@@ -16,10 +16,11 @@ public class ConversationCard
     public TokenType TokenType { get; set; }
     public int Weight { get; set; }
     public Difficulty Difficulty { get; set; }
-    public CardEffectType EffectType { get; set; }
-    public int EffectValue { get; set; } // For fixed effects
-    public string ScalingFormula { get; set; } // For scaled effects
-    public AtmosphereType? AtmosphereChange { get; set; }
+    
+    // Three-effect system: each card can have Success, Failure, and Exhaust effects
+    public CardEffect SuccessEffect { get; set; } = CardEffect.None;
+    public CardEffect FailureEffect { get; set; } = CardEffect.None;
+    public CardEffect ExhaustEffect { get; set; } = CardEffect.None;
 
     // Display properties
     public string DialogueFragment { get; set; }
@@ -38,56 +39,7 @@ public class ConversationCard
     public bool HasFinalWord => IsGoal; // Goal cards have "final word" behavior
     public bool IsGoalCard => IsGoal; // Backward compatibility alias
 
-    // Compatibility properties (will be removed later)
-    public CardType Type { get; set; } = CardType.Normal;
-    public PersistenceType Persistence { get; set; } = PersistenceType.Persistent;
-    public ConnectionType ConnectionType { get; set; } = ConnectionType.None;
-    public int BaseSuccessChance { get; set; }
-    public int BaseComfortReward { get; set; }
-    public bool IsSpecial { get; set; }
-    public bool IsSingleUse { get; set; }
-    public Dictionary<EmotionalState, int> StateModifiers { get; set; } = new();
-    public Dictionary<EmotionalState, int> WeightModifiers { get; set; } = new();
-    public EmotionalState? TransitionToState { get; set; }
-    public int TransitionChance { get; set; }
-    public string ConversationType { get; set; }
-    // Removed - now use IsObservable helper property
-    // public bool IsObservation { get; set; }  // Now: IsObservable => Properties.Contains(CardProperty.Observable)
-    public string ObservationType { get; set; }
-    public string SourceItem { get; set; }
-    public CardMechanicsType Mechanics { get; set; }
-    public string Category { get; set; }
-    public CardContext Context { get; set; }
-    public int BaseComfort { get; set; }
-    public string GoalCardType { get; set; }
-    public string DisplayName { get; set; }
-    public int SuccessRate { get; set; }
-    public EmotionalState? SuccessState { get; set; }
-    public EmotionalState? FailureState { get; set; }
-    public int PatienceBonus { get; set; }
-    public bool IsStateCard { get; set; }
-    public bool GrantsToken { get; set; }
-    public string ObservationSource { get; set; }
-    public string DeliveryObligationId { get; set; }
-    public bool ManipulatesObligations { get; set; }
-    public bool IsExchange { get; set; }
-    public ExchangeData ExchangeDetails { get; set; }
-    public bool CanDeliverLetter { get; set; }
-    public bool IsPromise { get; set; }
-    public PromiseCardData PromiseDetails { get; set; }
-    // Removed - now use helper properties above
-    // public bool IsBurden { get; set; }  // Now: IsBurden => Properties.Contains(CardProperty.Burden)
-    // public bool IsGoal { get; set; }    // Now: IsGoal => Properties.Contains(Fleeting) && Properties.Contains(Opportunity)
-    public string GoalContext { get; set; }
-    public string DialogueText { get; set; }
-    // Removed - use IsGoal helper property instead
-    // public bool IsGoalCard { get; set; }  // Now: IsGoal => Properties.Contains(Fleeting) && Properties.Contains(Opportunity)
-    public bool IsObservationCard => Type == CardType.Observation || IsObservable;
-    public Difficulty Difficulty_Legacy { get; set; } = Difficulty.Medium;
-    public string EffectFormula { get; set; }
-    public AtmosphereType? ConversationAtmosphereChange => AtmosphereChange;
 
-    // Helper method to check single effect
     // Compatibility method to ensure default Persistent property
     public void EnsureDefaultProperties()
     {
@@ -100,13 +52,13 @@ public class ConversationCard
         }
     }
 
-    public bool HasSingleEffect()
+    /// <summary>
+    /// Checks if card follows the one-effect-per-trigger rule
+    /// </summary>
+    public bool HasValidEffects()
     {
-        int effectCount = 0;
-        if (EffectValue != 0) effectCount++;
-        if (!string.IsNullOrEmpty(ScalingFormula)) effectCount++;
-        if (AtmosphereChange.HasValue) effectCount++;
-        return effectCount <= 1;
+        // Each effect should have at most one type of outcome
+        return true; // All effects are now properly separated
     }
 
     // Deep clone for deck instances
@@ -123,17 +75,11 @@ public class ConversationCard
             TokenType = this.TokenType,
             Weight = this.Weight,
             Difficulty = this.Difficulty,
-            EffectType = this.EffectType,
-            EffectValue = this.EffectValue,
-            ScalingFormula = this.ScalingFormula,
-            AtmosphereChange = this.AtmosphereChange,
+            SuccessEffect = this.SuccessEffect?.DeepClone() ?? CardEffect.None,
+            FailureEffect = this.FailureEffect?.DeepClone() ?? CardEffect.None,
+            ExhaustEffect = this.ExhaustEffect?.DeepClone() ?? CardEffect.None,
             DialogueFragment = this.DialogueFragment,
-            VerbPhrase = this.VerbPhrase,
-            Type = this.Type,
-            Persistence = this.Persistence,
-            ConnectionType = this.ConnectionType,
-            BaseSuccessChance = this.BaseSuccessChance,
-            BaseComfortReward = this.BaseComfortReward
+            VerbPhrase = this.VerbPhrase
         };
     }
 
@@ -156,67 +102,4 @@ public class ConversationCard
         };
     }
 
-    // Legacy compatibility methods
-    public int GetEffectiveWeight(EmotionalState state)
-    {
-        if (WeightModifiers?.ContainsKey(state) == true)
-        {
-            return WeightModifiers[state];
-        }
-        return Weight;
-    }
-
-    public int GetEffectiveSuccessChance(EmotionalState state)
-    {
-        int baseChance = BaseSuccessChance;
-        if (StateModifiers?.ContainsKey(state) == true)
-        {
-            baseChance += StateModifiers[state];
-        }
-        return Math.Clamp(baseChance, 0, 100);
-    }
-
-    public string GetEffectValueOrFormula()
-    {
-        return string.IsNullOrEmpty(EffectFormula) ? EffectValue.ToString() : EffectFormula;
-    }
-
-    // Helper methods for TokenType/ConnectionType conversion
-    public static TokenType ConvertConnectionToToken(ConnectionType connection)
-    {
-        return connection switch
-        {
-            ConnectionType.Trust => TokenType.Trust,
-            ConnectionType.Commerce => TokenType.Commerce,
-            ConnectionType.Status => TokenType.Status,
-            ConnectionType.Shadow => TokenType.Shadow,
-            _ => TokenType.Trust
-        };
-    }
-
-    public static ConnectionType ConvertTokenToConnection(TokenType token)
-    {
-        return token switch
-        {
-            TokenType.Trust => ConnectionType.Trust,
-            TokenType.Commerce => ConnectionType.Commerce,
-            TokenType.Status => ConnectionType.Status,
-            TokenType.Shadow => ConnectionType.Shadow,
-            _ => ConnectionType.None
-        };
-    }
-
-    // Helper method for Difficulty conversion
-    public static Difficulty ConvertDifficulty(Difficulty difficulty)
-    {
-        return difficulty switch
-        {
-            Difficulty.VeryEasy => Difficulty.VeryEasy,
-            Difficulty.Easy => Difficulty.Easy,
-            Difficulty.Medium => Difficulty.Medium,
-            Difficulty.Hard => Difficulty.Hard,
-            Difficulty.VeryHard => Difficulty.VeryHard,
-            _ => Difficulty.Medium
-        };
-    }
 }

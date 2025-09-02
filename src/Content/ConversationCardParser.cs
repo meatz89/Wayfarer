@@ -287,10 +287,25 @@ public class ConversationCardDTO
 
     // New target system properties
     public string Difficulty { get; set; }
+    // Three-effect system
+    public CardEffectDTO SuccessEffect { get; set; }
+    public CardEffectDTO FailureEffect { get; set; }
+    public CardEffectDTO ExhaustEffect { get; set; }
+    // Legacy properties for compatibility
     public string EffectType { get; set; }
     public string EffectValue { get; set; }
     public string EffectFormula { get; set; }
     public string AtmosphereTypeChange { get; set; }
+}
+
+/// <summary>
+/// DTO for card effect data
+/// </summary>
+public class CardEffectDTO
+{
+    public string Type { get; set; }
+    public string Value { get; set; }
+    public Dictionary<string, object> Data { get; set; }
 }
 
 /// <summary>

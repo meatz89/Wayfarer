@@ -276,11 +276,10 @@ public class CardDeckManager
             Weight = instance.Weight,
             Difficulty = ConversationCard.ConvertDifficulty(ConvertToDifficulty(instance.BaseSuccessChance)),
             Difficulty_Legacy = ConvertToDifficulty(instance.BaseSuccessChance),
-            Persistence = instance.Persistence,
-            EffectType = GuessEffectType(instance),
-            EffectValue = int.Parse(GuessEffectValue(instance)),
-            EffectFormula = GuessEffectValue(instance),
-            AtmosphereChange = null, // Would need to be set from JSON
+            // Convert effect to new three-effect system
+            SuccessEffect = CreateLegacySuccessEffect(instance),
+            FailureEffect = CardEffect.None,
+            ExhaustEffect = CardEffect.None
             // Don't set HasFinalWord - set Properties instead
             DialogueText = instance.DialogueFragment
         };
@@ -323,25 +322,16 @@ public class CardDeckManager
     }
 
     /// <summary>
-    /// Guess effect type from legacy card properties
+    /// Create a success effect from legacy card properties
     /// </summary>
-    private CardEffectType GuessEffectType(CardInstance instance)
+    private CardEffect CreateLegacySuccessEffect(CardInstance instance)
     {
-        if (instance.IsObservation)
-            return CardEffectType.FixedComfort; // Default observation effect
-
-        return CardEffectType.FixedComfort; // Default to fixed comfort
-    }
-
-    /// <summary>
-    /// Guess effect value from legacy card properties
-    /// </summary>
-    private string GuessEffectValue(CardInstance instance)
-    {
-        if (instance.IsObservation)
-            return "0";
-
-        return instance.BaseComfortReward.ToString();
+        // Default to simple comfort effect for legacy cards
+        return new CardEffect
+        {
+            Type = CardEffectType.AddComfort,
+            Value = instance.BaseComfortReward > 0 ? instance.BaseComfortReward.ToString() : "1"
+        };
     }
 
     /// <summary>
@@ -441,10 +431,9 @@ public class CardDeckManager
             Weight = 1,
             Difficulty = Difficulty.Medium,
             Difficulty_Legacy = global::Difficulty.Medium,
-            Persistence = PersistenceType.Fleeting,
-            EffectType = CardEffectType.FixedComfort,
-            EffectValue = 1,
-            EffectFormula = "1"
+            SuccessEffect = new CardEffect { Type = CardEffectType.AddComfort, Value = "1" },
+            FailureEffect = CardEffect.None,
+            ExhaustEffect = CardEffect.None
         };
     }
 }
