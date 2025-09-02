@@ -127,9 +127,8 @@ public static class LetterTemplateParser
         return connectionTypeStr switch
         {
             "Trust" => ConnectionType.Trust,
-            "Trade" => ConnectionType.Commerce,
-            "Noble" => ConnectionType.Status,
-            "Common" => ConnectionType.Trust,
+            "Commerce" => ConnectionType.Commerce,
+            "Status" => ConnectionType.Status,
             "Shadow" => ConnectionType.Shadow,
             _ => throw new ArgumentException($"Unknown connection type in JSON: '{connectionTypeStr}' - add to connection type mapping")
         };

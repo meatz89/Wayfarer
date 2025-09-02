@@ -87,6 +87,22 @@ public class GameWorld
     // Endless mode flag for post-30 day gameplay
     public bool EndlessMode { get; set; } = false;
 
+    // Skeleton tracking for lazy content resolution
+    public Dictionary<string, string> SkeletonRegistry { get; set; } = new Dictionary<string, string>();
+
+    /// <summary>
+    /// Get a report of all skeletons that need to be populated
+    /// </summary>
+    public List<string> GetSkeletonReport()
+    {
+        var report = new List<string>();
+        foreach (var kvp in SkeletonRegistry)
+        {
+            report.Add($"{kvp.Value}: {kvp.Key}");
+        }
+        return report;
+    }
+
     public GameWorld()
     {
         if (GameInstanceId == Guid.Empty) GameInstanceId = Guid.NewGuid();

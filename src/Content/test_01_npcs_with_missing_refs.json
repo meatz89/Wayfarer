@@ -1,0 +1,48 @@
+{
+  "packageId": "test_npcs_missing_refs",
+  "metadata": {
+    "name": "NPCs with Missing References",
+    "timestamp": "2025-09-02T10:00:00Z",
+    "description": "Test package with NPCs referencing non-existent locations",
+    "author": "Test System",
+    "version": "1.0.0"
+  },
+  "content": {
+    "npcs": [
+      {
+        "id": "traveling_merchant",
+        "name": "Roderick the Wanderer",
+        "profession": "Merchant",
+        "locationId": "mysterious_tower",
+        "spotId": "tower_entrance",
+        "description": "A mysterious merchant who claims to have seen many lands",
+        "personality": "Mercantile",
+        "personalityType": "MERCANTILE",
+        "tier": 2
+      },
+      {
+        "id": "shadow_broker",
+        "name": "The Whisperer",
+        "profession": "Smuggler",
+        "locationId": "hidden_den",
+        "spotId": "secret_room",
+        "description": "Nobody knows their real name or face",
+        "personality": "Cunning",
+        "personalityType": "CUNNING",
+        "tier": 3
+      }
+    ],
+    "cards": [
+      {
+        "id": "mysterious_trade",
+        "type": "Normal",
+        "connectionType": "Commerce",
+        "weight": 2,
+        "persistence": "Persistent",
+        "baseComfort": 2,
+        "displayName": "Mysterious Trade Offer",
+        "description": "The merchant offers items from unknown lands"
+      }
+    ]
+  }
+}

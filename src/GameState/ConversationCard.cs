@@ -6,6 +6,10 @@ public class ConversationCard
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
+    
+    // Skeleton tracking
+    public bool IsSkeleton { get; set; } = false;
+    public string SkeletonSource { get; set; } // What created this skeleton
     public TokenType TokenType { get; set; }
     public int Weight { get; set; }
     public Difficulty Difficulty { get; set; }

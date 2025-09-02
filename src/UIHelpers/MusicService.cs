@@ -139,14 +139,14 @@ public class MusicService
         _stateVersion++; // Signal position change
     }
 
-    public void IncrementPosition(TimeSpan delta)
+    public async Task IncrementPositionAsync(TimeSpan delta)
     {
         _currentPosition += delta;
         _stateVersion++; // Signal position change
 
         if (CurrentTrack != null && _currentPosition >= CurrentTrack.Duration)
         {
-            _ = PlayNextTrackAsync();
+            await PlayNextTrackAsync();
         }
     }
 }

@@ -514,7 +514,7 @@
         "physicalProperties": ["Sealed with family seal", "clutched with white knuckles"],
         "consequenceIfLate": "Elena forced into unwanted marriage, gains 2 burden cards",
         "consequenceIfDelivered": "Elena's freedom preserved, Trust tokens gained",
-        "emotionalWeight": "HEAVY",
+        "emotionalWeight": "HIGH",
         "stakes": "SAFETY"
       },
       {
@@ -539,7 +539,7 @@
         "physicalProperties": ["Heavy package wrapped in oilcloth"],
         "consequenceIfLate": "Trade deal falls through, Marcus loses 2 Commerce tokens",
         "consequenceIfDelivered": "Profitable trade secured, Commerce tokens gained",
-        "emotionalWeight": "LIGHT",
+        "emotionalWeight": "LOW",
         "stakes": "WEALTH"
       },
       {
@@ -560,7 +560,7 @@
         "physicalProperties": [],
         "consequenceIfLate": "Trust broken",
         "consequenceIfDelivered": "Trust strengthened",
-        "emotionalWeight": "LIGHT",
+        "emotionalWeight": "LOW",
         "stakes": "REPUTATION"
       },
       {
@@ -581,7 +581,7 @@
         "physicalProperties": [],
         "consequenceIfLate": "Business opportunity lost",
         "consequenceIfDelivered": "Business relationship maintained",
-        "emotionalWeight": "LIGHT",
+        "emotionalWeight": "LOW",
         "stakes": "WEALTH"
       }
     ],

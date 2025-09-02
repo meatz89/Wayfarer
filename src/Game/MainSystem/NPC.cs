@@ -10,6 +10,10 @@ public class NPC
     public string Description { get; set; }
     public string Location { get; set; }
     public string SpotId { get; set; }
+    
+    // Skeleton tracking
+    public bool IsSkeleton { get; set; } = false;
+    public string SkeletonSource { get; set; } // What created this skeleton (e.g., "letter_template_elena_refusal")
 
     // Categorical Properties for Logical System Interactions
     public Professions Profession { get; set; }

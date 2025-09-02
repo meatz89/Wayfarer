@@ -6,6 +6,10 @@ public class LocationSpot
     public string Name { get; set; }
     // Description removed - generated from SpotPropertyType combinations
     public string LocationId { get; set; }
+    
+    // Skeleton tracking
+    public bool IsSkeleton { get; set; } = false;
+    public string SkeletonSource { get; set; } // What created this skeleton
 
     // Tier system (1-5) for difficulty/content progression
     public int Tier { get; set; } = 1;

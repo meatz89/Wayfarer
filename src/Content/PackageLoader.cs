@@ -170,6 +170,17 @@ public class PackageLoader
 
         foreach (var dto in locationDtos)
         {
+            // Check if this location was previously a skeleton, if so replace it
+            var existingSkeleton = _gameWorld.WorldState.locations
+                .FirstOrDefault(l => l.Id == dto.Id && l.IsSkeleton);
+                
+            if (existingSkeleton != null)
+            {
+                _gameWorld.WorldState.locations.Remove(existingSkeleton);
+                _gameWorld.Locations.Remove(existingSkeleton);
+                _gameWorld.SkeletonRegistry.Remove(dto.Id);
+            }
+            
             var location = LocationParser.ConvertDTOToLocation(dto);
             _gameWorld.Locations.Add(location);
             _gameWorld.WorldState.locations.Add(location);
@@ -182,6 +193,20 @@ public class PackageLoader
 
         foreach (var dto in spotDtos)
         {
+            // Check if this spot was previously a skeleton, if so replace it
+            var existingSkeleton = _gameWorld.WorldState.locationSpots
+                .FirstOrDefault(s => s.SpotID == dto.Id && s.IsSkeleton);
+                
+            if (existingSkeleton != null)
+            {
+                _gameWorld.WorldState.locationSpots.Remove(existingSkeleton);
+                _gameWorld.SkeletonRegistry.Remove(dto.Id);
+                
+                // Also remove from parent location's spots
+                var parentLoc = _gameWorld.Locations.FirstOrDefault(l => l.Id == existingSkeleton.LocationId);
+                parentLoc?.AvailableSpots.Remove(existingSkeleton);
+            }
+            
             var spot = LocationSpotParser.ConvertDTOToLocationSpot(dto);
             _gameWorld.WorldState.locationSpots.Add(spot);
             
@@ -200,11 +225,56 @@ public class PackageLoader
 
         foreach (var dto in npcDtos)
         {
+            // Check if NPC references a location that doesn't exist
+            if (!string.IsNullOrEmpty(dto.LocationId) && 
+                !_gameWorld.WorldState.locations.Any(l => l.Id == dto.LocationId))
+            {
+                // Create skeleton location
+                var skeletonLocation = SkeletonGenerator.GenerateSkeletonLocation(
+                    dto.LocationId, 
+                    $"npc_{dto.Id}_reference");
+                
+                _gameWorld.WorldState.locations.Add(skeletonLocation);
+                _gameWorld.Locations.Add(skeletonLocation);
+                _gameWorld.SkeletonRegistry[dto.LocationId] = "Location";
+                
+                // Also create a skeleton spot for the location
+                var hubSpot = SkeletonGenerator.GenerateSkeletonSpot(
+                    skeletonLocation.TravelHubSpotId,
+                    dto.LocationId,
+                    $"location_{dto.LocationId}_hub");
+                    
+                _gameWorld.WorldState.locationSpots.Add(hubSpot);
+                skeletonLocation.AvailableSpots.Add(hubSpot);
+                _gameWorld.SkeletonRegistry[hubSpot.SpotID] = "LocationSpot";
+            }
+            
+            // Check if NPC references a spot that doesn't exist
+            if (!string.IsNullOrEmpty(dto.SpotId) && 
+                !_gameWorld.WorldState.locationSpots.Any(s => s.SpotID == dto.SpotId))
+            {
+                // Create skeleton spot
+                var skeletonSpot = SkeletonGenerator.GenerateSkeletonSpot(
+                    dto.SpotId,
+                    dto.LocationId ?? "unknown_location", 
+                    $"npc_{dto.Id}_spot_reference");
+                    
+                _gameWorld.WorldState.locationSpots.Add(skeletonSpot);
+                _gameWorld.SkeletonRegistry[dto.SpotId] = "LocationSpot";
+            }
+            
+            // Check if this NPC was previously a skeleton, if so replace it
+            var existingSkeleton = _gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.Id && n.IsSkeleton);
+            if (existingSkeleton != null)
+            {
+                _gameWorld.NPCs.Remove(existingSkeleton);
+                _gameWorld.WorldState.NPCs.Remove(existingSkeleton);
+                _gameWorld.SkeletonRegistry.Remove(dto.Id);
+            }
+            
             var npc = NPCParser.ConvertDTOToNPC(dto);
             _gameWorld.NPCs.Add(npc);
             _gameWorld.WorldState.NPCs.Add(npc);
-            
-            // Note: Conversation deck mappings would be handled elsewhere if needed
         }
     }
 
