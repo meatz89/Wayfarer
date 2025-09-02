@@ -26,13 +26,13 @@
                     <div class="comfort-indicator">
                         <span class="indicator-label">Comfort</span>
                         <div class="comfort-bar">
-                            <span class="comfort-segment @(Session.ComfortBattery <= -3 ? "negative" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery <= -2 ? "negative" : "")"></span>
+                            <span class="comfort-segment @(Session.ComfortBattery <= -3 ? "negative" : "") @(Session.ComfortBattery == -3 ? "current" : "")"></span>
+                            <span class="comfort-segment @(Session.ComfortBattery <= -2 ? "negative" : "") @(Session.ComfortBattery == -2 ? "current" : "")"></span>
                             <span class="comfort-segment @(Session.ComfortBattery <= -1 ? "negative" : "") @(Session.ComfortBattery == -1 ? "current" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery == 0 ? "current" : "")">0</span>
+                            <span class="comfort-segment @(Session.ComfortBattery == 0 ? "current" : "")"></span>
                             <span class="comfort-segment @(Session.ComfortBattery >= 1 ? "positive" : "") @(Session.ComfortBattery == 1 ? "current" : "")"></span>
                             <span class="comfort-segment @(Session.ComfortBattery >= 2 ? "positive" : "") @(Session.ComfortBattery == 2 ? "current" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery >= 3 ? "positive" : "") @(Session.ComfortBattery == 3 ? "current" : "")"></span>
+                            <span class="comfort-segment @(Session.ComfortBattery >= 2 ? "positive" : "") @(Session.ComfortBattery == 3 ? "current" : "")"></span>
                         </div>
                         <span class="comfort-value">@Session.ComfortBattery</span>
                         @if (Math.Abs(Session.ComfortBattery) == 2)
@@ -53,38 +53,25 @@
                             }
                         }
                     </div>
+                    <div class="weight-pool">
+                        <span class="indicator-label">Weight</span>
+                        <div class="weight-dots">
+                            @for (int i = 1; i <= (Session?.GetEffectiveWeightCapacity() ?? 3); i++)
+                            {
+                                <span class="weight-dot @(i <= (Session?.GetAvailableWeight() ?? 0) ? "available" : "spent")"></span>
+                            }
+                        </div>
+                        <span class="indicator-value">@(Session?.GetAvailableWeight() ?? 0)/@(Session?.GetEffectiveWeightCapacity() ?? 3)</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Weight Pool Display -->
-        <div class="weight-pool">
-            <div class="weight-display">
-                <span class="weight-label">Weight Pool</span>
-                <div class="weight-boxes">
-                    @for (int i = 1; i <= (Session?.GetEffectiveWeightCapacity() ?? 5); i++)
-                    {
-                        @if (i <= (Session?.GetAvailableWeight() ?? 0))
-                        {
-                            <div class="weight-box">@i</div>
-                        }
-                        else if (i <= ((Session?.GetEffectiveWeightCapacity() ?? 5) - (Session?.GetAvailableWeight() ?? 0)))
-                        {
-                            <div class="weight-box spent">X</div>
-                        }
-                        else
-                        {
-                            <div class="weight-box unavailable"></div>
-                        }
-                    }
-                </div>
-                <span style="font-size: 11px; color: #7a6250;">@GetWeightPoolDisplay() (@GetEmotionalStateDisplay())</span>
-            </div>
-            <div class="atmosphere-display">
-                <span class="atmosphere-label">Atmosphere</span>
-                <span class="atmosphere-current">@GetCurrentAtmosphereDisplay().ToUpper()</span>
-                <span class="atmosphere-effect">@GetAtmosphereEffectDescription()</span>
-            </div>
+        <!-- Active Atmosphere -->
+        <div class="atmosphere-strip">
+            <span class="atmosphere-label">Active Atmosphere:</span>
+            <span class="atmosphere-current">@GetCurrentAtmosphereDisplay()</span>
+            <span class="atmosphere-effect">@GetAtmosphereEffectDescription()</span>
         </div>
 
         <!-- Token Strip (from mockup) -->
@@ -149,7 +136,7 @@
                      @onmouseenter="ShowListenPreviewHandler" 
                      @onmouseleave="HidePreviewHandler" 
                      disabled="@IsProcessing">
-                    <div>👂 LISTEN</div>
+                    <div>LISTEN</div>
                     <div class="action-details">@GetListenActionText()</div>
                     @if (ShowListenPreview)
                     {
@@ -163,7 +150,7 @@
                      @onmouseenter="ShowSpeakPreviewHandler" 
                      @onmouseleave="HidePreviewHandler" 
                      disabled="@(!CanSpeak() || IsProcessing)">
-                    <div>💬 SPEAK</div>
+                    <div>SPEAK</div>
                     <div class="action-details">@GetSpeakActionText()</div>
                     @if (ShowSpeakPreview)
                     {
@@ -278,19 +265,16 @@
                                     <div class="card-name">@GetProperCardName(convCard)</div>
                                     <div class="card-weight">@convCard.GetEffectiveWeight(Context.Session.CurrentState)</div>
                                 </div>
-                                <div class="card-mechanics">
-                                    @foreach (var property in GetCardProperties(convCard))
+                                @* Card persistence info like in mockup *@
+                                <div class="card-persistence">
+                                    @GetCardTypeLabel(convCard) • Persistent • @GetDifficultyLabel(convCard.Difficulty)
+                                    @if (convCard.Properties.Contains(CardProperty.Fleeting))
                                     {
-                                        <span class="card-tag @GetPropertyTagClass(property)">@GetPropertyLabel(property)</span>
+                                        <text> • Exhausts on SPEAK</text>
                                     }
-                                    <span class="card-tag tag-difficulty">@GetDifficultyLabel(convCard.Difficulty)</span>
-                                    @if (convCard.TokenType != TokenType.Trust)
+                                    @if (convCard.Properties.Contains(CardProperty.Opportunity))
                                     {
-                                        <span class="card-tag tag-token">@convCard.TokenType</span>
-                                    }
-                                    @if (HasAtmosphereEffect(convCard))
-                                    {
-                                        <span class="card-tag tag-atmosphere">@GetAtmosphereEffectLabel(convCard)</span>
+                                        <text> • Exhausts on LISTEN</text>
                                     }
                                 </div>
                                 <div class="card-text">
@@ -303,9 +287,12 @@
                                         <div class="card-scaling">@atmosphereScaling</div>
                                     }
                                 }
+                                @if (HasAtmosphereEffect(convCard))
+                                {
+                                    <div class="atmosphere-change">@GetAtmosphereEffectLabel(convCard)</div>
+                                }
                             </div>
-                        </div>
-                        @* Three-column Success/Failure/Exhaust layout from mockup *@
+                        @* Two-column Success/Failure layout from mockup - INSIDE card-content *@
                         <div class="card-outcomes">
                             <div class="outcome success">
                                 <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
@@ -317,21 +304,16 @@
                                 <div class="outcome-label">Failure</div>
                                 <div class="outcome-effect">@GetFailureEffectDescription(convCard)</div>
                             </div>
-                            <div class="outcome exhaust">
-                                @if (HasExhaustEffect(convCard))
-                                {
-                                    <div class="outcome-chance">100%</div>
-                                    <div class="outcome-label">Exhaust</div>
-                                    <div class="outcome-effect">@GetExhaustEffectDescription(convCard)</div>
-                                }
-                                else
-                                {
-                                    <div class="outcome-chance">—</div>
-                                    <div class="outcome-label">Exhaust</div>
-                                    <div class="outcome-effect">No effect</div>
-                                }
-                            </div>
                         </div>
+                    </div>
+                        @* Exhaust strip separate like in mockup *@
+                        @if (HasExhaustEffect(convCard))
+                        {
+                            <div class="exhaust-strip">
+                                <span class="exhaust-label">On Exhaust:</span>
+                                <span class="exhaust-effect">@GetExhaustEffectDescription(convCard)</span>
+                            </div>
+                        }
                     </div>
                 }
             </div>

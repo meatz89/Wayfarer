@@ -7,7 +7,7 @@
 }
 
 body {
-    font-family: 'Garamond', 'Times New Roman', 'Georgia', serif !important;
+    font-family: 'Garamond', 'Times New Roman', 'Georgia', serif ;
     background: linear-gradient(to bottom, #3d3429, #2e2720);
     color: #2c241a;
     min-height: 100vh;
@@ -16,7 +16,7 @@ body {
 
 /* Force serif fonts on all elements */
 body * {
-    font-family: inherit !important;
+    font-family: inherit ;
 }
 
 .main-container {
@@ -956,16 +956,17 @@ body * {
 }
 
 .comfort-segment {
-    width: 12px;
-    height: 24px;
+    width: 14px;
+    height: 26px;
     border: 1px solid #a68b6f;
     background: #e8dcc4;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: bold;
     color: #5c4a3a;
+    transition: all 0.2s ease;
 }
 
 .comfort-segment.negative {
@@ -1054,12 +1055,29 @@ body * {
 
 /* Weight Pool Display (from mockup) */
 .weight-pool {
-    background: #f9f3e9;
-    padding: 8px 20px;
-    border-bottom: 1px solid #c4a684;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 8px;
+}
+
+.weight-dots {
+    display: flex;
+    gap: 3px;
+}
+
+.weight-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid #8b7355;
+}
+
+.weight-dot.available {
+    background: #d4a76a;
+}
+
+.weight-dot.spent {
+    background: #3d3429;
 }
 
 .weight-display {
@@ -1129,6 +1147,35 @@ body * {
 .atmosphere-effect {
     font-size: 11px;
     color: #5a7a3a;
+    font-style: italic;
+}
+
+/* Active Atmosphere Strip */
+.atmosphere-strip {
+    padding: 8px 20px;
+    background: #f9f3e9;
+    border-bottom: 1px solid #d4c5a0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.atmosphere-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.atmosphere-current {
+    font-size: 13px;
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.atmosphere-effect {
+    font-size: 11px;
+    color: #8b7355;
     font-style: italic;
 }
 
@@ -1265,9 +1312,10 @@ body * {
 .card-grid {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    max-width: 900px;
+    gap: 15px;
+    max-width: 950px;
     margin: 0 auto;
+    padding: 0 20px;
 }
 
 .card {
@@ -1278,6 +1326,8 @@ body * {
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 12px;
 }
 
 .card:hover {
@@ -1340,6 +1390,7 @@ body * {
 .card-content {
     display: flex;
     align-items: stretch;
+    min-height: 100px;
 }
 
 .card-main {
@@ -1475,7 +1526,7 @@ body * {
     font-style: italic;
 }
 
-/* Card Success/Failure Strip */
+/* Card Success/Failure Strip - Two Column Layout from Mockup */
 .card-outcomes {
     display: flex;
     border-left: 1px solid #d4c5a0;
@@ -1486,19 +1537,21 @@ body * {
     width: 120px;
     text-align: center;
     background: #f9f3e9;
-    flex: 1;
+    border-bottom: 1px solid #d4c5a0;
 }
 
 .outcome.success {
     border-right: 1px solid #d4c5a0;
+    background: linear-gradient(to bottom, #f0faf0, #e8f5e9);
 }
 
 .outcome.failure {
     border-right: 1px solid #d4c5a0;
+    background: linear-gradient(to bottom, #faf0f0, #ffe8e8);
 }
 
 .outcome.exhaust {
-    background: #f5f0e6;
+    background: linear-gradient(to bottom, #f5f0fa, #f3e5f5);
     color: #6a1b9a;
 }
 
@@ -1528,11 +1581,13 @@ body * {
     position: absolute;
     top: 0;
     right: 0;
-    padding: 4px 8px;
-    font-size: 9px;
+    padding: 4px 10px;
+    font-size: 10px;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    z-index: 5;
+    border-radius: 0 4px 0 4px;
 }
 
 .warning-fleeting {
@@ -1557,6 +1612,51 @@ body * {
     background: #ffe8e8;
     border-top: 1px solid #d4704a;
     margin-top: 8px;
+}
+
+/* Exhaust Strip from Mockup */
+.exhaust-strip {
+    background: #3d3429;
+    color: #e8dcc4;
+    padding: 6px 15px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.exhaust-label {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8b7355;
+}
+
+.exhaust-effect {
+    color: #d4a76a;
+    font-weight: bold;
+}
+
+/* Persistence Markers from Mockup */
+.persistence-marker {
+    position: absolute;
+    top: 0px;
+    right: 15px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+}
+
+.persistence-marker.fleeting {
+    background: #8b4726;
+    color: #faf4ea;
+}
+
+.persistence-marker.opportunity {
+    background: #5a7a8a;
+    color: #faf4ea;
 }
 
 /* Special Markers */
@@ -2286,8 +2386,7 @@ body * {
 
 /* Fleeting card visual indicators */
 .card.fleeting {
-    border: 2px solid #FF6B6B !important;
-    background: linear-gradient(135deg, #FFF, #FFE5E5) !important;
+    background: linear-gradient(135deg, #FFF, #FFE5E5) ;
     position: relative;
 }
 
@@ -2309,8 +2408,8 @@ body * {
 
 /* Goal cards */
 .card.goal {
-    border-color: #8B0000 !important;
-    background: linear-gradient(135deg, #FFF, #FFCCCC) !important;
+    border-color: #8B0000 ;
+    background: linear-gradient(135deg, #FFF, #FFCCCC) ;
     animation: urgent-pulse 1.5s ease-in-out infinite;
 }
 
@@ -2415,8 +2514,6 @@ body * {
 
 /* Adjust selected fleeting cards */
 .card.fleeting.selected {
-    border-color: #FF4444 !important;
-    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
 }
 
 /* ===== PACKET 6: PROPERTY BADGE SYSTEM ===== */
@@ -2486,8 +2583,8 @@ body * {
 
 /* Goal cards (both fleeting AND opportunity) get critical styling */
 .card.has-fleeting.has-opportunity {
-    border: 3px solid #ff0000 !important;
-    background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%) !important;
+    border: 3px solid #ff0000 ;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%) ;
     animation: urgent-pulse 1.5s ease-in-out infinite;
 }
 
@@ -2755,5 +2852,24 @@ body * {
 .atmosphere-bonus {
     font-size: 10px;
     color: #5a7a3a;
+    font-style: italic;
+}
+
+/* Additional Card Styling from Mockup */
+.atmosphere-change {
+    background: #7a8b5a;
+    color: #faf4ea;
+    padding: 4px 8px;
+    border-radius: 2px;
+    font-size: 10px;
+    margin-top: 6px;
+    display: inline-block;
+}
+
+/* Card persistence styling */
+.card-persistence {
+    font-size: 10px;
+    color: #7a6250;
+    margin-bottom: 6px;
     font-style: italic;
 }
