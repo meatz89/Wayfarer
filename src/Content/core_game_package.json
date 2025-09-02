@@ -8,154 +8,163 @@
     "version": "1.0.0"
   },
   "content": {
-    "cards": {
-      "templates": {
-        "trust_understanding": {
-          "type": "Normal",
-          "cardType": "Normal",
-          "weight": 1,
-          "persistence": "Persistent",
-          "connectionType": "Trust",
-          "description": "I understand",
-          "difficulty": "Easy",
-          "effectType": "FixedComfort",
-          "effectValue": "1",
-          "dialogueFragment": "I understand your situation. You're not alone in this."
-        },
-        "trust_sympathy": {
-          "type": "Normal",
-          "cardType": "Normal",
-          "weight": 2,
-          "persistence": "Persistent",
-          "connectionType": "Trust",
-          "description": "Share sympathy",
-          "difficulty": "Medium",
-          "effectType": "FixedComfort",
-          "effectValue": "2",
-          "dialogueFragment": "I've been through something similar. Let me share what helped me."
-        },
-        "trust_deep_bond": {
-          "type": "Normal",
-          "cardType": "Normal",
-          "weight": 3,
-          "persistence": "Persistent",
-          "connectionType": "Trust",
-          "description": "Express deep trust",
-          "difficulty": "Hard",
-          "effectType": "FixedComfort",
-          "effectValue": "3",
-          "dialogueFragment": "You know you can count on me. We've been through too much together."
-        },
-        "trust_reassurance": {
-          "type": "Normal",
-          "cardType": "Normal",
-          "weight": 0,
-          "persistence": "Persistent",
-          "connectionType": "Trust",
-          "description": "Gentle reassurance",
-          "difficulty": "Easy",
-          "effectType": "FixedComfort",
-          "effectValue": "1",
-          "dialogueFragment": "Take a breath. We'll work through this together."
-        },
-        "trust_vulnerability": {
-          "type": "Normal",
-          "cardType": "Normal",
-          "weight": 4,
-          "persistence": "Fleeting",
-          "connectionType": "Trust",
-          "description": "Share vulnerability",
-          "difficulty": "Very Hard",
-          "effectType": "FixedComfort",
-          "effectValue": "4",
-          "dialogueFragment": "I need to confess something... I trust you enough to be completely honest."
-        },
-        "commerce_fair_deal": {
-          "type": "Normal",
-          "cardType": "Normal",
-          "weight": 1,
-          "persistence": "Persistent",
-          "connectionType": "Commerce",
-          "description": "Propose fair trade",
-          "difficulty": "Easy",
-          "effectType": "FixedComfort",
-          "effectValue": "1",
-          "dialogueFragment": "That seems like a fair arrangement for both of us."
-        },
-        "commerce_opportunity": {
-          "type": "Normal",
-          "cardType": "Normal",
-          "weight": 2,
-          "persistence": "Persistent",
-          "connectionType": "Commerce",
-          "description": "Highlight opportunity",
-          "difficulty": "Medium",
-          "effectType": "FixedComfort",
-          "effectValue": "2",
-          "dialogueFragment": "Think of the profit potential! This could make us both wealthy."
-        },
-        "status_respect": {
-          "type": "Normal",
-          "cardType": "Normal",
-          "weight": 1,
-          "persistence": "Persistent",
-          "connectionType": "Status",
-          "description": "Show respect",
-          "difficulty": "Easy",
-          "effectType": "FixedComfort",
-          "effectValue": "1",
-          "dialogueFragment": "Your reputation precedes you. It's an honor to speak with you."
-        },
-        "shadow_hint": {
-          "type": "Normal",
-          "cardType": "Normal",
-          "weight": 1,
-          "persistence": "Persistent",
-          "connectionType": "Shadow",
-          "description": "Drop hint",
-          "difficulty": "Easy",
-          "effectType": "FixedComfort",
-          "effectValue": "1",
-          "dialogueFragment": "I know things that others don't. Perhaps we can help each other."
-        },
-        "exchange_food_for_coins": {
-          "type": "Exchange",
-          "cardType": "Exchange",
-          "weight": 1,
-          "persistence": "Persistent",
-          "connectionType": "Commerce",
-          "description": "Food for coins",
-          "difficulty": "Easy",
-          "effectType": "Exchange",
-          "exchangeCost": {"coins": 3},
-          "exchangeReward": {"hunger": -20},
-          "dialogueFragment": "3 coins for a hot meal. Fair price."
-        },
-        "listen_carefully": {
-          "type": "Normal",
-          "cardType": "Normal",
-          "weight": 1,
-          "persistence": "Persistent",
-          "connectionType": "Trust",
-          "description": "Listen carefully",
-          "difficulty": "Medium",
-          "effectType": "DrawCards",
-          "effectValue": "1",
-          "dialogueFragment": "Please, tell me more. I'm listening carefully."
-        }
+    "cards": [
+      {
+        "id": "trust_understanding",
+        "type": "Normal",
+        "cardType": "Normal",
+        "weight": 1,
+        "persistence": "Persistent",
+        "connectionType": "Trust",
+        "description": "I understand",
+        "difficulty": "Easy",
+        "effectType": "FixedComfort",
+        "effectValue": "1",
+        "dialogueFragment": "I understand your situation. You're not alone in this."
       },
-      "successFormula": {
-        "difficulties": {
-          "VeryEasy": 85,
-          "Easy": 70,
-          "Medium": 60,
-          "Hard": 50,
-          "VeryHard": 40
-        },
-        "tokenBonus": 5,
-        "min": 5,
-        "max": 95
+      {
+        "id": "trust_sympathy",
+        "type": "Normal",
+        "cardType": "Normal",
+        "weight": 2,
+        "persistence": "Persistent",
+        "connectionType": "Trust",
+        "description": "Share sympathy",
+        "difficulty": "Medium",
+        "effectType": "FixedComfort",
+        "effectValue": "2",
+        "dialogueFragment": "I've been through something similar. Let me share what helped me."
+      },
+      {
+        "id": "trust_deep_bond",
+        "type": "Normal",
+        "cardType": "Normal",
+        "weight": 3,
+        "persistence": "Persistent",
+        "connectionType": "Trust",
+        "description": "Express deep trust",
+        "difficulty": "Hard",
+        "effectType": "FixedComfort",
+        "effectValue": "3",
+        "dialogueFragment": "You know you can count on me. We've been through too much together."
+      },
+      {
+        "id": "trust_reassurance",
+        "type": "Normal",
+        "cardType": "Normal",
+        "weight": 0,
+        "persistence": "Persistent",
+        "connectionType": "Trust",
+        "description": "Gentle reassurance",
+        "difficulty": "Easy",
+        "effectType": "FixedComfort",
+        "effectValue": "1",
+        "dialogueFragment": "Take a breath. We'll work through this together."
+      },
+      {
+        "id": "trust_vulnerability",
+        "type": "Normal",
+        "cardType": "Normal",
+        "weight": 4,
+        "persistence": "Fleeting",
+        "connectionType": "Trust",
+        "description": "Share vulnerability",
+        "difficulty": "Very Hard",
+        "effectType": "FixedComfort",
+        "effectValue": "4",
+        "dialogueFragment": "I need to confess something... I trust you enough to be completely honest."
+      },
+      {
+        "id": "commerce_fair_deal",
+        "type": "Normal",
+        "cardType": "Normal",
+        "weight": 1,
+        "persistence": "Persistent",
+        "connectionType": "Commerce",
+        "description": "Propose fair trade",
+        "difficulty": "Easy",
+        "effectType": "FixedComfort",
+        "effectValue": "1",
+        "dialogueFragment": "That seems like a fair arrangement for both of us."
+      },
+      {
+        "id": "commerce_opportunity",
+        "type": "Normal",
+        "cardType": "Normal",
+        "weight": 2,
+        "persistence": "Persistent",
+        "connectionType": "Commerce",
+        "description": "Highlight opportunity",
+        "difficulty": "Medium",
+        "effectType": "FixedComfort",
+        "effectValue": "2",
+        "dialogueFragment": "Think of the profit potential! This could make us both wealthy."
+      },
+      {
+        "id": "status_respect",
+        "type": "Normal",
+        "cardType": "Normal",
+        "weight": 1,
+        "persistence": "Persistent",
+        "connectionType": "Status",
+        "description": "Show respect",
+        "difficulty": "Easy",
+        "effectType": "FixedComfort",
+        "effectValue": "1",
+        "dialogueFragment": "Your reputation precedes you. It's an honor to speak with you."
+      },
+      {
+        "id": "shadow_hint",
+        "type": "Normal",
+        "cardType": "Normal",
+        "weight": 1,
+        "persistence": "Persistent",
+        "connectionType": "Shadow",
+        "description": "Drop hint",
+        "difficulty": "Easy",
+        "effectType": "FixedComfort",
+        "effectValue": "1",
+        "dialogueFragment": "I know things that others don't. Perhaps we can help each other."
+      },
+      {
+        "id": "exchange_food_for_coins",
+        "type": "Exchange",
+        "cardType": "Exchange",
+        "weight": 1,
+        "persistence": "Persistent",
+        "connectionType": "Commerce",
+        "description": "Food for coins",
+        "difficulty": "Easy",
+        "effectType": "Exchange",
+        "exchangeCost": {"coins": 3},
+        "exchangeReward": {"hunger": -20},
+        "dialogueFragment": "3 coins for a hot meal. Fair price."
+      },
+      {
+        "id": "listen_carefully",
+        "type": "Normal",
+        "cardType": "Normal",
+        "weight": 1,
+        "persistence": "Persistent",
+        "connectionType": "Trust",
+        "description": "Listen carefully",
+        "difficulty": "Medium",
+        "effectType": "DrawCards",
+        "effectValue": "1",
+        "dialogueFragment": "Please, tell me more. I'm listening carefully."
       }
+    ],
+    "successFormula": {
+      "difficulties": {
+        "VeryEasy": 85,
+        "Easy": 70,
+        "Medium": 60,
+        "Hard": 50,
+        "VeryHard": 40
+      },
+      "tokenBonus": 5,
+      "min": 5,
+      "max": 95
     },
     "npcs": [
       {
@@ -637,64 +646,60 @@
       }
     ],
     "items": [],
-    "observations": {
-      "locationObservations": {
-        "market_square": {
-          "morning": [
-            {
-              "id": "guard_routes",
-              "name": "Guard Patrol Routes",
-              "description": "You notice the guards follow predictable patterns",
-              "uniqueEffect": "SetPressured",
-              "expirationHours": 24,
-              "tokenType": "Shadow",
-              "weight": 1,
-              "difficulty": "VeryEasy",
-              "dialogueFragment": "I've been watching the guards. They change shifts at dawn and dusk."
-            },
-            {
-              "id": "merchant_gossip",
-              "name": "Merchant Gossip",
-              "description": "Overhear traders discussing prices",
-              "uniqueEffect": "SetInformed",
-              "expirationHours": 12,
-              "tokenType": "Commerce",
-              "weight": 1,
-              "difficulty": "VeryEasy",
-              "dialogueFragment": "The merchants are saying silk prices will rise next week."
-            }
-          ],
-          "afternoon": [
-            {
-              "id": "crowded_market",
-              "name": "Busy Crowds",
-              "description": "The afternoon rush provides cover",
-              "uniqueEffect": "FreePatience",
-              "expirationHours": 4,
-              "tokenType": "Shadow",
-              "weight": 1,
-              "difficulty": "VeryEasy",
-              "dialogueFragment": "The market is so crowded now, no one would notice us talking."
-            }
-          ]
-        },
-        "copper_kettle": {
-          "withElena": [
-            {
-              "id": "shared_hardship",
-              "name": "Shared Hardship",
-              "description": "Elena's struggle resonates with you",
-              "uniqueEffect": "SetInformed",
-              "expirationHours": 48,
-              "tokenType": "Trust",
-              "weight": 1,
-              "difficulty": "VeryEasy",
-              "dialogueFragment": "I understand Elena's situation better now. We have more in common than I thought."
-            }
-          ]
-        }
+    "observations": [
+      {
+        "id": "guard_routes",
+        "name": "Guard Patrol Routes",
+        "description": "You notice the guards follow predictable patterns",
+        "uniqueEffect": "SetPressured",
+        "expirationHours": 24,
+        "tokenType": "Shadow",
+        "weight": 1,
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "I've been watching the guards. They change shifts at dawn and dusk.",
+        "locationId": "market_square",
+        "timeOfDay": "morning"
+      },
+      {
+        "id": "merchant_gossip",
+        "name": "Merchant Gossip",
+        "description": "Overhear traders discussing prices",
+        "uniqueEffect": "SetInformed",
+        "expirationHours": 12,
+        "tokenType": "Commerce",
+        "weight": 1,
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "The merchants are saying silk prices will rise next week.",
+        "locationId": "market_square",
+        "timeOfDay": "morning"
+      },
+      {
+        "id": "crowded_market",
+        "name": "Busy Crowds",
+        "description": "The afternoon rush provides cover",
+        "uniqueEffect": "FreePatience",
+        "expirationHours": 4,
+        "tokenType": "Shadow",
+        "weight": 1,
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "The market is so crowded now, no one would notice us talking.",
+        "locationId": "market_square",
+        "timeOfDay": "afternoon"
+      },
+      {
+        "id": "shared_hardship",
+        "name": "Shared Hardship",
+        "description": "Elena's struggle resonates with you",
+        "uniqueEffect": "SetInformed",
+        "expirationHours": 48,
+        "tokenType": "Trust",
+        "weight": 1,
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "I understand Elena's situation better now. We have more in common than I thought.",
+        "locationId": "copper_kettle_tavern",
+        "contextType": "withElena"
       }
-    }
+    ]
   },
   "startingConditions": {
     "playerConfig": {
