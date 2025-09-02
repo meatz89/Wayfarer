@@ -118,6 +118,8 @@ public class ConversationCard
             Name = this.Name,
             Description = this.Description,
             Properties = new List<CardProperty>(this.Properties), // Clone the properties list
+            IsSkeleton = this.IsSkeleton,
+            SkeletonSource = this.SkeletonSource,
             TokenType = this.TokenType,
             Weight = this.Weight,
             Difficulty = this.Difficulty,
@@ -127,7 +129,6 @@ public class ConversationCard
             AtmosphereChange = this.AtmosphereChange,
             DialogueFragment = this.DialogueFragment,
             VerbPhrase = this.VerbPhrase,
-            SkeletonSource = this.SkeletonSource,
             Type = this.Type,
             Persistence = this.Persistence,
             ConnectionType = this.ConnectionType,
