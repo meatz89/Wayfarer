@@ -1117,16 +1117,46 @@ namespace Wayfarer.Pages.Components
 
         protected string GetCardClass(CardInstance card)
         {
-            // Map categories to CSS classes
+            // Build class list for card styling
+            List<string> classes = new List<string>();
+            
+            // Primary category class
             if (card.Category == nameof(CardCategory.Burden))
-                return "crisis";
-            if (card.Category == nameof(CardCategory.State))
-                return "state";
-            if (card.Category == nameof(CardCategory.Exchange))
-                return "exchange";
-            if (card.Persistence == PersistenceType.Fleeting)
-                return "observation";
-            return "comfort";
+                classes.Add("crisis");
+            else if (card.Category == nameof(CardCategory.State))
+                classes.Add("state");
+            else if (card.Category == nameof(CardCategory.Exchange))
+                classes.Add("exchange");
+            else if (card.IsObservation)
+                classes.Add("observation");
+            else
+                classes.Add("comfort");
+                
+            // Add fleeting indicator if applicable
+            if (card.IsFleeting)
+                classes.Add("fleeting");
+                
+            // Add final-word indicator for goal cards
+            if (card.IsGoalCard && HasFinalWord(card))
+                classes.Add("final-word");
+                
+            return string.Join(" ", classes);
+        }
+        
+        protected bool HasFinalWord(CardInstance card)
+        {
+            // Goal cards have Final Word if they're fleeting
+            return card.IsGoalCard && card.IsFleeting;
+        }
+        
+        protected int CountFleetingCards()
+        {
+            return Session?.HandCards?.Count(c => c.IsFleeting) ?? 0;
+        }
+        
+        protected bool HasGoalWithFinalWord()
+        {
+            return Session?.HandCards?.Any(c => c.IsGoalCard && c.IsFleeting) ?? false;
         }
 
         protected string GetCardName(CardInstance card)

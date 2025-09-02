@@ -276,6 +276,14 @@
                 {
                     <div class="card @GetCardClass(convCard) @(IsCardSelected(convCard) ? "selected" : "") @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "unavailable" : "")"
                          @onclick="() => ToggleCardSelection(convCard)">
+                        @if (convCard.IsFleeting)
+                        {
+                            <div class="card-marker fleeting" title="Will be discarded after SPEAK">⚡ FLEETING</div>
+                        }
+                        @if (HasFinalWord(convCard))
+                        {
+                            <div class="card-marker final-word" title="Must play or conversation fails!">🎯 FINAL WORD</div>
+                        }
                         @if (convCard.IsObservation)
                         {
                             <div class="card-marker expires">24hr</div>
@@ -319,6 +327,28 @@
                     </div>
                 }
             </div>
+            
+            @* Fleeting card warning indicator *@
+            @if (CountFleetingCards() > 0 || HasGoalWithFinalWord())
+            {
+                <div class="fleeting-indicator">
+                    @if (CountFleetingCards() > 0)
+                    {
+                        <div class="fleeting-warning">
+                            <span class="warning-icon">⚡</span>
+                            <span class="warning-text">@CountFleetingCards() fleeting card(s) will be discarded after SPEAK action</span>
+                        </div>
+                    }
+                    
+                    @if (HasGoalWithFinalWord())
+                    {
+                        <div class="final-word-alert">
+                            <span class="alert-icon">🎯</span>
+                            <span class="alert-text">Goal card with Final Word must be played this turn or conversation fails!</span>
+                        </div>
+                    }
+                </div>
+            }
         }
     </div>
 }

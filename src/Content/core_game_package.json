@@ -1,0 +1,713 @@
+{
+  "packageId": "core_game",
+  "metadata": {
+    "name": "Core Game Content",
+    "timestamp": "2025-09-02T00:00:00Z",
+    "description": "Base Wayfarer game content including all NPCs, locations, cards, letters and travel systems",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "cards": {
+      "templates": {
+        "trust_understanding": {
+          "type": "Normal",
+          "cardType": "Normal",
+          "weight": 1,
+          "persistence": "Persistent",
+          "connectionType": "Trust",
+          "description": "I understand",
+          "difficulty": "Easy",
+          "effectType": "FixedComfort",
+          "effectValue": "1",
+          "dialogueFragment": "I understand your situation. You're not alone in this."
+        },
+        "trust_sympathy": {
+          "type": "Normal",
+          "cardType": "Normal",
+          "weight": 2,
+          "persistence": "Persistent",
+          "connectionType": "Trust",
+          "description": "Share sympathy",
+          "difficulty": "Medium",
+          "effectType": "FixedComfort",
+          "effectValue": "2",
+          "dialogueFragment": "I've been through something similar. Let me share what helped me."
+        },
+        "trust_deep_bond": {
+          "type": "Normal",
+          "cardType": "Normal",
+          "weight": 3,
+          "persistence": "Persistent",
+          "connectionType": "Trust",
+          "description": "Express deep trust",
+          "difficulty": "Hard",
+          "effectType": "FixedComfort",
+          "effectValue": "3",
+          "dialogueFragment": "You know you can count on me. We've been through too much together."
+        },
+        "trust_reassurance": {
+          "type": "Normal",
+          "cardType": "Normal",
+          "weight": 0,
+          "persistence": "Persistent",
+          "connectionType": "Trust",
+          "description": "Gentle reassurance",
+          "difficulty": "Easy",
+          "effectType": "FixedComfort",
+          "effectValue": "1",
+          "dialogueFragment": "Take a breath. We'll work through this together."
+        },
+        "trust_vulnerability": {
+          "type": "Normal",
+          "cardType": "Normal",
+          "weight": 4,
+          "persistence": "Fleeting",
+          "connectionType": "Trust",
+          "description": "Share vulnerability",
+          "difficulty": "Very Hard",
+          "effectType": "FixedComfort",
+          "effectValue": "4",
+          "dialogueFragment": "I need to confess something... I trust you enough to be completely honest."
+        },
+        "commerce_fair_deal": {
+          "type": "Normal",
+          "cardType": "Normal",
+          "weight": 1,
+          "persistence": "Persistent",
+          "connectionType": "Commerce",
+          "description": "Propose fair trade",
+          "difficulty": "Easy",
+          "effectType": "FixedComfort",
+          "effectValue": "1",
+          "dialogueFragment": "That seems like a fair arrangement for both of us."
+        },
+        "commerce_opportunity": {
+          "type": "Normal",
+          "cardType": "Normal",
+          "weight": 2,
+          "persistence": "Persistent",
+          "connectionType": "Commerce",
+          "description": "Highlight opportunity",
+          "difficulty": "Medium",
+          "effectType": "FixedComfort",
+          "effectValue": "2",
+          "dialogueFragment": "Think of the profit potential! This could make us both wealthy."
+        },
+        "status_respect": {
+          "type": "Normal",
+          "cardType": "Normal",
+          "weight": 1,
+          "persistence": "Persistent",
+          "connectionType": "Status",
+          "description": "Show respect",
+          "difficulty": "Easy",
+          "effectType": "FixedComfort",
+          "effectValue": "1",
+          "dialogueFragment": "Your reputation precedes you. It's an honor to speak with you."
+        },
+        "shadow_hint": {
+          "type": "Normal",
+          "cardType": "Normal",
+          "weight": 1,
+          "persistence": "Persistent",
+          "connectionType": "Shadow",
+          "description": "Drop hint",
+          "difficulty": "Easy",
+          "effectType": "FixedComfort",
+          "effectValue": "1",
+          "dialogueFragment": "I know things that others don't. Perhaps we can help each other."
+        },
+        "exchange_food_for_coins": {
+          "type": "Exchange",
+          "cardType": "Exchange",
+          "weight": 1,
+          "persistence": "Persistent",
+          "connectionType": "Commerce",
+          "description": "Food for coins",
+          "difficulty": "Easy",
+          "effectType": "Exchange",
+          "exchangeCost": {"coins": 3},
+          "exchangeReward": {"hunger": -20},
+          "dialogueFragment": "3 coins for a hot meal. Fair price."
+        },
+        "listen_carefully": {
+          "type": "Normal",
+          "cardType": "Normal",
+          "weight": 1,
+          "persistence": "Persistent",
+          "connectionType": "Trust",
+          "description": "Listen carefully",
+          "difficulty": "Medium",
+          "effectType": "DrawCards",
+          "effectValue": "1",
+          "dialogueFragment": "Please, tell me more. I'm listening carefully."
+        }
+      },
+      "successFormula": {
+        "difficulties": {
+          "VeryEasy": 85,
+          "Easy": 70,
+          "Medium": 60,
+          "Hard": 50,
+          "VeryHard": 40
+        },
+        "tokenBonus": 5,
+        "min": 5,
+        "max": 95
+      }
+    },
+    "npcs": [
+      {
+        "id": "elena",
+        "name": "Elena",
+        "profession": "Scribe",
+        "locationId": "copper_kettle_tavern",
+        "spotId": "corner_table",
+        "description": "Clutching her sealed letter, eyes darting to the door with each sound",
+        "personality": "Desperate about Lord Blackwood's marriage proposal - he leaves at sunset",
+        "personalityType": "DEVOTED",
+        "services": [],
+        "letterTokenTypes": ["Trust"],
+        "currentState": "DESPERATE",
+        "initialTokens": {
+          "Trust": 1
+        }
+      },
+      {
+        "id": "marcus",
+        "name": "Marcus",
+        "profession": "Merchant",
+        "locationId": "market_square",
+        "spotId": "merchant_row",
+        "description": "A merchant heading to his stall",
+        "personality": "Businesslike and hurried",
+        "personalityType": "MERCANTILE",
+        "services": ["Trade", "Work"],
+        "letterTokenTypes": ["Commerce"],
+        "currentState": "CALCULATING"
+      },
+      {
+        "id": "lord_blackwood",
+        "name": "Lord Blackwood",
+        "profession": "Noble",
+        "locationId": "noble_district",
+        "spotId": "blackwood_estate",
+        "description": "An influential noble preparing to leave for the capital",
+        "personality": "Impatient and powerful, expecting Elena's answer to his proposal",
+        "personalityType": "PROUD",
+        "services": [],
+        "letterTokenTypes": ["Status"],
+        "currentState": "NEUTRAL"
+      },
+      {
+        "id": "bertram",
+        "name": "Bertram the Innkeeper",
+        "profession": "Innkeeper",
+        "locationId": "copper_kettle_tavern",
+        "spotId": "bar_counter",
+        "description": "Polishing glasses behind the bar, occasionally glancing your way with a welcoming nod",
+        "personality": "Friendly and observant",
+        "personalityType": "STEADFAST",
+        "services": ["Lodging", "Information"],
+        "letterTokenTypes": [],
+        "currentState": "WELCOMING"
+      },
+      {
+        "id": "viktor",
+        "name": "Viktor",
+        "profession": "Soldier",
+        "locationId": "market_square",
+        "spotId": "guard_post",
+        "description": "A guard captain overseeing the market",
+        "personality": "Stern and dutiful",
+        "personalityType": "STEADFAST",
+        "services": [],
+        "letterTokenTypes": ["Shadow"],
+        "currentState": "NEUTRAL"
+      },
+      {
+        "id": "garrett",
+        "name": "Garrett",
+        "profession": "Information_Broker",
+        "locationId": "city_gates",
+        "spotId": "ferry_dock",
+        "description": "A shadowy figure near the cargo crates",
+        "personality": "Secretive and cautious",
+        "personalityType": "CUNNING",
+        "services": ["Shadow"],
+        "letterTokenTypes": ["Shadow"],
+        "currentState": "GUARDED"
+      }
+    ],
+    "locations": [
+      {
+        "id": "courier_office",
+        "name": "Courier Office",
+        "description": "Your small quarters above the courier office. This is your base of operations as a letter carrier.",
+        "environmentalProperties": {
+          "morning": [ "WELL-LIT", "QUIET", "PRIVATE" ],
+          "afternoon": [ "WELL-LIT", "QUIET", "PRIVATE" ],
+          "evening": [ "DIM", "QUIET", "PRIVATE" ],
+          "night": [ "DARK", "QUIET", "PRIVATE" ]
+        },
+        "domainTags": [ "HOME", "REST", "PRIVATE" ],
+        "travelHubSpotId": "office_desk",
+        "locationSpots": [ "your_room", "office_desk", "window_view" ],
+        "connectedTo": [ "market_square" ],
+        "socialExpectation": "Any",
+        "accessLevel": "Private",
+        "requiredSocialClasses": [],
+        "availableProfessionsByTime": {
+          "Morning": [],
+          "Afternoon": [],
+          "Evening": [],
+          "Night": []
+        },
+        "locationType": "Home Base",
+        "isStartingLocation": false
+      },
+      {
+        "id": "market_square",
+        "name": "Market Square",
+        "description": "The bustling heart of the city. Cobblestones worn smooth by countless feet.",
+        "environmentalProperties": {
+          "morning": [ "WELL-LIT", "BUSY", "URBAN" ],
+          "afternoon": [ "WELL-LIT", "CROWDED", "URBAN" ],
+          "evening": [ "SHADOWY", "BUSY", "URBAN" ],
+          "night": [ "DARK", "QUIET", "URBAN" ]
+        },
+        "domainTags": [ "COMMERCE", "SOCIAL", "PUBLIC" ],
+        "travelHubSpotId": "central_fountain",
+        "locationSpots": [ "central_fountain", "merchant_row", "north_entrance", "north_alcove", "guard_post" ],
+        "connectedTo": [ "courier_office", "copper_kettle_tavern", "noble_district", "merchant_row", "city_gates" ],
+        "socialExpectation": "Any",
+        "accessLevel": "Public",
+        "requiredSocialClasses": [],
+        "availableProfessionsByTime": {
+          "Morning": [],
+          "Afternoon": ["Merchant"],
+          "Evening": [],
+          "Night": []
+        },
+        "locationType": "Crossroads",
+        "isStartingLocation": false
+      },
+      {
+        "id": "copper_kettle_tavern",
+        "name": "Copper Kettle Tavern",
+        "description": "A warm, inviting tavern. The copper kettle hangs over the hearth, giving the place its name.",
+        "environmentalProperties": {
+          "morning": [ "WELL-LIT", "QUIET", "COZY" ],
+          "afternoon": [ "WELL-LIT", "SOCIAL", "COZY" ],
+          "evening": [ "WARM", "SOCIAL", "BUSY" ],
+          "night": [ "DIM", "QUIET", "COZY" ]
+        },
+        "domainTags": [ "SOCIAL", "COMMERCE", "REST", "CROSSROADS" ],
+        "travelHubSpotId": "main_hall",
+        "locationSpots": [ "main_hall", "bar_counter", "corner_table", "upstairs_room" ],
+        "connectedTo": [ "market_square" ],
+        "socialExpectation": "Any",
+        "accessLevel": "Public",
+        "requiredSocialClasses": [],
+        "availableProfessionsByTime": {
+          "Morning": ["Innkeeper"],
+          "Afternoon": ["Innkeeper"],
+          "Evening": ["Innkeeper"],
+          "Night": []
+        },
+        "locationType": "Tavern",
+        "isStartingLocation": true
+      },
+      {
+        "id": "noble_district",
+        "name": "Noble District",
+        "description": "Quiet streets lined with grand estates. Guards patrol regularly.",
+        "environmentalProperties": {
+          "morning": [ "WELL-LIT", "QUIET", "WEALTHY" ],
+          "afternoon": [ "WELL-LIT", "QUIET", "WEALTHY" ],
+          "evening": [ "SHADOWY", "QUIET", "WEALTHY" ],
+          "night": [ "DARK", "GUARDED", "WEALTHY" ]
+        },
+        "domainTags": [ "NOBLE", "WEALTH", "EXCLUSIVE" ],
+        "travelHubSpotId": "aldwin_manor",
+        "locationSpots": [ "aldwin_manor", "blackwood_estate" ],
+        "connectedTo": [ "market_square" ],
+        "socialExpectation": "Noble",
+        "accessLevel": "Restricted",
+        "requiredSocialClasses": ["Noble"],
+        "availableProfessionsByTime": {
+          "Morning": [],
+          "Afternoon": ["Noble"],
+          "Evening": [],
+          "Night": []
+        },
+        "locationType": "Elite Quarter",
+        "isStartingLocation": false
+      },
+      {
+        "id": "city_gates",
+        "name": "City Gates",
+        "description": "Guards check papers. Travelers rest before journeys. The road stretches beyond.",
+        "environmentalProperties": {
+          "morning": [ "WELL-LIT", "BUSY", "EDGE" ],
+          "afternoon": [ "WELL-LIT", "BUSY", "EDGE" ],
+          "evening": [ "SHADOWY", "QUIET", "EDGE" ],
+          "night": [ "DARK", "GUARDED", "EDGE" ]
+        },
+        "domainTags": [ "TRAVEL", "EDGE", "TRANSITION" ],
+        "travelHubSpotId": "gate_entrance",
+        "locationSpots": [ "gate_entrance", "traveler_rest", "ferry_dock" ],
+        "connectedTo": [ "market_square", "merchant_row" ],
+        "socialExpectation": "Any",
+        "accessLevel": "Public",
+        "requiredSocialClasses": [],
+        "availableProfessionsByTime": {
+          "Morning": ["Guard"],
+          "Afternoon": ["Guard", "Traveler"],
+          "Evening": ["Guard"],
+          "Night": ["Guard"]
+        },
+        "locationType": "Gateway",
+        "isStartingLocation": false
+      }
+    ],
+    "spots": [
+      {
+        "id": "your_room",
+        "name": "Your Room",
+        "description": "Your small private room above the courier office. A bed, desk, and everything you need.",
+        "initialState": "Unmade bed, papers scattered on desk. The morning's letters await your attention.",
+        "locationId": "courier_office",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+        "domainTags": [ "REST", "PRIVATE", "HOME" ],
+        "spotProperties": [ "Private", "Quiet", "Safe", "PersonalSpace" ],
+        "timeSpecificProperties": {
+          "Morning": [ "WellLit", "Peaceful" ],
+          "Night": [ "Dark", "Restful" ]
+        }
+      },
+      {
+        "id": "corner_table",
+        "name": "Corner Table",
+        "description": "A quiet table in the corner, perfect for private conversations and intimate gatherings.",
+        "initialState": "A small wooden table with two chairs. Dimly lit and away from the main crowd.",
+        "locationId": "copper_kettle_tavern",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+        "domainTags": [ "PRIVATE", "QUIET", "INTIMATE" ],
+        "spotProperties": [ "Private", "Quiet", "Warm" ],
+        "timeSpecificProperties": {
+          "Evening": [ "BusyEvening" ],
+          "Night": [ "QuietMorning", "Isolated" ]
+        }
+      },
+      {
+        "id": "central_fountain",
+        "name": "The Fountain",
+        "description": "The ornate fountain at the heart of Market Square. A gathering place for all.",
+        "initialState": "Clear water sparkles in the light. Citizens gather on benches around the fountain's edge.",
+        "locationId": "market_square",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+        "domainTags": [ "PUBLIC_SQUARE", "CROWDED", "CROSSROADS", "COMMERCE" ],
+        "spotProperties": [ "Public", "Crossroads", "Exposed", "Central" ],
+        "timeSpecificProperties": {
+          "Morning": [ "QuietMorning", "WellLit" ],
+          "Afternoon": [ "Loud", "BusyEvening", "Crowded" ],
+          "Evening": [ "BusyEvening", "Loud" ]
+        }
+      },
+      {
+        "id": "blackwood_estate",
+        "name": "Lord Blackwood's Estate",
+        "description": "A grand estate known for hosting influential gatherings and political dealings.",
+        "initialState": "Impressive architecture with tall windows. The sound of a fountain echoes from within.",
+        "locationId": "noble_district",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+        "domainTags": [ "NOBLE", "EXCLUSIVE", "WEALTHY" ],
+        "spotProperties": [ "Private", "Prestigious", "NobleHaunt", "Political" ],
+        "timeSpecificProperties": {
+          "Morning": [ "Quiet" ],
+          "Afternoon": [ "Busy" ],
+          "Evening": [ "Social", "Exclusive" ]
+        }
+      },
+      {
+        "id": "ferry_dock",
+        "name": "Ferry Dock",
+        "description": "A wooden dock where the city ferry operates, connecting to routes across the water.",
+        "initialState": "The ferry bobs at the dock. Passengers wait with their belongings while the ferryman prepares.",
+        "locationId": "city_gates",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+        "domainTags": [ "TRANSPORT", "WATER", "CROSSING" ],
+        "spotProperties": [ "Public", "TransitHub", "ViewsRiver", "Exposed" ],
+        "timeSpecificProperties": {
+          "Morning": [ "Busy", "WellLit" ],
+          "Afternoon": [ "Crowded" ],
+          "Evening": [ "Quiet", "Peaceful" ]
+        }
+      }
+    ],
+    "routes": [
+      {
+        "id": "market_to_tavern",
+        "name": "To Copper Kettle",
+        "originLocationSpot": "central_fountain",
+        "destinationLocationSpot": "main_hall",
+        "method": "Walking",
+        "baseCoinCost": 0,
+        "baseStaminaCost": 1,
+        "travelTimeMinutes": 15,
+        "departureTime": null,
+        "isDiscovered": true,
+        "terrainCategories": [],
+        "maxItemCapacity": 5,
+        "description": "A short walk to the tavern.",
+        "tierRequired": "T1"
+      },
+      {
+        "id": "tavern_to_market",
+        "name": "Back to Market",
+        "originLocationSpot": "main_hall",
+        "destinationLocationSpot": "central_fountain",
+        "method": "Walking",
+        "baseCoinCost": 0,
+        "baseStaminaCost": 1,
+        "travelTimeMinutes": 15,
+        "departureTime": null,
+        "isDiscovered": true,
+        "terrainCategories": [],
+        "maxItemCapacity": 5,
+        "description": "Return to the market square.",
+        "tierRequired": "T1"
+      }
+    ],
+    "letterTemplates": [
+      {
+        "id": "elena_refusal",
+        "description": "Elena's urgent refusal of Lord Blackwood's marriage proposal",
+        "narrative": "No, no, no... you don't understand! Lord Blackwood leaves at sunset. If this letter doesn't reach him, my father will sign the marriage contract tonight. I'll be trapped forever. Please, I'm begging you!",
+        "letterType": "Trust",
+        "tokenType": "Trust",
+        "minDeadlineInMinutes": 73,
+        "maxDeadlineInMinutes": 73,
+        "urgencyHours": 1.2,
+        "minPayment": 10,
+        "maxPayment": 10,
+        "category": "Safety",
+        "minTokensRequired": 1,
+        "tierLevel": "T2",
+        "specialType": "None",
+        "forcesQueuePosition1": true,
+        "possibleSenders": [ "elena" ],
+        "possibleRecipients": [ "lord_blackwood" ],
+        "recipientId": "lord_blackwood",
+        "size": "Small",
+        "physicalProperties": "Sealed with family seal, clutched with white knuckles",
+        "consequenceIfLate": "Elena forced into unwanted marriage, gains 2 burden cards",
+        "consequenceIfDelivered": "Elena's freedom preserved, Trust tokens gained",
+        "emotionalWeight": "HEAVY",
+        "stakes": "SAFETY"
+      },
+      {
+        "id": "marcus_trade",
+        "description": "Marcus's package of trade documents",
+        "narrative": "Marcus needs these documents delivered to secure an important trade deal. The package is heavier than it looks.",
+        "letterType": "Commerce",
+        "tokenType": "Commerce",
+        "minDeadlineInMinutes": 300,
+        "maxDeadlineInMinutes": 300,
+        "urgencyHours": 5,
+        "minPayment": 5,
+        "maxPayment": 5,
+        "category": "Basic",
+        "minTokensRequired": 1,
+        "tierLevel": "T1",
+        "specialType": "None",
+        "possibleSenders": ["marcus"],
+        "possibleRecipients": ["noble_district_merchant"],
+        "recipientId": "noble_district_merchant",
+        "size": "Large",
+        "physicalProperties": "Heavy package wrapped in oilcloth",
+        "consequenceIfLate": "Trade deal falls through, Marcus loses 2 Commerce tokens",
+        "consequenceIfDelivered": "Profitable trade secured, Commerce tokens gained",
+        "emotionalWeight": "LIGHT",
+        "stakes": "WEALTH"
+      },
+      {
+        "id": "standard_trust_letter",
+        "description": "A personal letter requiring trust",
+        "tokenType": "Trust",
+        "minDeadlineInMinutes": 1440,
+        "maxDeadlineInMinutes": 4320,
+        "minPayment": 2,
+        "maxPayment": 8,
+        "category": "Basic",
+        "minTokensRequired": 1,
+        "tierLevel": "T1",
+        "specialType": "None",
+        "possibleSenders": ["*"],
+        "possibleRecipients": ["*"],
+        "size": "Small",
+        "physicalProperties": "None",
+        "consequenceIfLate": "Trust broken",
+        "consequenceIfDelivered": "Trust strengthened",
+        "emotionalWeight": "LIGHT",
+        "stakes": "REPUTATION"
+      },
+      {
+        "id": "standard_commerce_letter",
+        "description": "A business correspondence",
+        "tokenType": "Commerce",
+        "minDeadlineInMinutes": 720,
+        "maxDeadlineInMinutes": 2880,
+        "minPayment": 3,
+        "maxPayment": 10,
+        "category": "Basic",
+        "minTokensRequired": 1,
+        "tierLevel": "T1",
+        "specialType": "None",
+        "possibleSenders": ["*"],
+        "possibleRecipients": ["*"],
+        "size": "Medium",
+        "physicalProperties": "None",
+        "consequenceIfLate": "Business opportunity lost",
+        "consequenceIfDelivered": "Business relationship maintained",
+        "emotionalWeight": "LIGHT",
+        "stakes": "WEALTH"
+      }
+    ],
+    "standingObligations": [],
+    "travelCards": [
+      {
+        "id": "guard_checkpoint_1",
+        "category": "ENCOUNTER",
+        "type": "AUTHORITY",
+        "displayName": "Guard Checkpoint",
+        "description": "City guards are checking papers and questioning travelers",
+        "weight": 2,
+        "baseComfort": 0,
+        "persistence": "Opportunity",
+        "connectionType": "Authority",
+        "mechanics": {
+          "requiresPermit": true,
+          "alternativeRoutes": ["merchant_path", "forest_path"]
+        },
+        "context": {
+          "terrainType": "Official",
+          "threatLevel": "Medium"
+        }
+      },
+      {
+        "id": "merchant_caravan",
+        "category": "ENCOUNTER",
+        "type": "COMMERCE",
+        "displayName": "Merchant Caravan",
+        "description": "A traveling merchant offers to share the road for safety",
+        "weight": 1,
+        "baseComfort": 2,
+        "persistence": "Opportunity",
+        "connectionType": "Commerce",
+        "mechanics": {
+          "providesProtection": true,
+          "tradingOpportunity": true
+        },
+        "context": {
+          "terrainType": "Trade_Route",
+          "threatLevel": "Low"
+        }
+      },
+      {
+        "id": "weather_delay",
+        "category": "ENCOUNTER",
+        "type": "WEATHER",
+        "displayName": "Sudden Weather",
+        "description": "Heavy rain forces you to seek shelter",
+        "weight": 2,
+        "baseComfort": -1,
+        "persistence": "Opportunity",
+        "connectionType": "Natural",
+        "mechanics": {
+          "delayTravel": true,
+          "shelterRequired": true
+        },
+        "context": {
+          "terrainType": "Exposed",
+          "threatLevel": "Medium"
+        }
+      }
+    ],
+    "items": [],
+    "observations": {
+      "locationObservations": {
+        "market_square": {
+          "morning": [
+            {
+              "id": "guard_routes",
+              "name": "Guard Patrol Routes",
+              "description": "You notice the guards follow predictable patterns",
+              "uniqueEffect": "SetPressured",
+              "expirationHours": 24,
+              "tokenType": "Shadow",
+              "weight": 1,
+              "difficulty": "VeryEasy",
+              "dialogueFragment": "I've been watching the guards. They change shifts at dawn and dusk."
+            },
+            {
+              "id": "merchant_gossip",
+              "name": "Merchant Gossip",
+              "description": "Overhear traders discussing prices",
+              "uniqueEffect": "SetInformed",
+              "expirationHours": 12,
+              "tokenType": "Commerce",
+              "weight": 1,
+              "difficulty": "VeryEasy",
+              "dialogueFragment": "The merchants are saying silk prices will rise next week."
+            }
+          ],
+          "afternoon": [
+            {
+              "id": "crowded_market",
+              "name": "Busy Crowds",
+              "description": "The afternoon rush provides cover",
+              "uniqueEffect": "FreePatience",
+              "expirationHours": 4,
+              "tokenType": "Shadow",
+              "weight": 1,
+              "difficulty": "VeryEasy",
+              "dialogueFragment": "The market is so crowded now, no one would notice us talking."
+            }
+          ]
+        },
+        "copper_kettle": {
+          "withElena": [
+            {
+              "id": "shared_hardship",
+              "name": "Shared Hardship",
+              "description": "Elena's struggle resonates with you",
+              "uniqueEffect": "SetInformed",
+              "expirationHours": 48,
+              "tokenType": "Trust",
+              "weight": 1,
+              "difficulty": "VeryEasy",
+              "dialogueFragment": "I understand Elena's situation better now. We have more in common than I thought."
+            }
+          ]
+        }
+      }
+    }
+  },
+  "startingConditions": {
+    "playerConfig": {
+      "coins": 2,
+      "staminaPoints": 7,
+      "maxStamina": 10,
+      "health": 10,
+      "maxHealth": 10,
+      "food": 10,
+      "maxFood": 10
+    },
+    "startingSpotId": "corner_table",
+    "startingObligations": [],
+    "startingTokens": {}
+  }
+}

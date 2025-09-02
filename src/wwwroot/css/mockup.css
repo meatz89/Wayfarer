@@ -2095,3 +2095,139 @@ body {
     background: linear-gradient(to bottom, #9b8365, #8b7355);
     transform: translateY(-1px);
 }
+
+/* ===== FLEETING CARD STYLES ===== */
+
+/* Fleeting card visual indicators */
+.card.fleeting {
+    border: 2px solid #FF6B6B !important;
+    background: linear-gradient(135deg, #FFF, #FFE5E5) !important;
+    position: relative;
+}
+
+.card.fleeting::before {
+    content: "⚡";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 20px;
+    color: #FF6B6B;
+    animation: fleeting-pulse 2s infinite;
+    z-index: 10;
+}
+
+@keyframes fleeting-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Final Word goal cards */
+.card.final-word {
+    border-color: #8B0000 !important;
+    background: linear-gradient(135deg, #FFF, #FFCCCC) !important;
+}
+
+/* Card markers for fleeting and final word */
+.card-marker.fleeting {
+    background: #FF6B6B;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-right: 5px;
+    display: inline-block;
+}
+
+.card-marker.final-word {
+    background: #8B0000;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+    animation: urgent-pulse 1s infinite;
+    display: inline-block;
+}
+
+@keyframes urgent-pulse {
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1); 
+    }
+    50% { 
+        opacity: 0.8; 
+        transform: scale(1.05); 
+    }
+}
+
+/* Fleeting indicator panel below cards */
+.fleeting-indicator {
+    margin: 15px 20px;
+    padding: 12px 16px;
+    background: #FFF8DC;
+    border: 2px solid #FFD700;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.fleeting-warning {
+    display: flex;
+    align-items: center;
+    color: #FF6B6B;
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.fleeting-warning:last-child {
+    margin-bottom: 0;
+}
+
+.warning-icon {
+    font-size: 20px;
+    margin-right: 8px;
+}
+
+.warning-text {
+    flex: 1;
+}
+
+.final-word-alert {
+    display: flex;
+    align-items: center;
+    color: #8B0000;
+    font-weight: bold;
+    animation: urgent-pulse 1s infinite;
+    font-size: 14px;
+}
+
+.alert-icon {
+    font-size: 20px;
+    margin-right: 8px;
+}
+
+.alert-text {
+    flex: 1;
+}
+
+/* Persistent card subtle indicator */
+.card:not(.fleeting):not(.unavailable) {
+    position: relative;
+}
+
+.card:not(.fleeting):not(.unavailable)::after {
+    content: "✓";
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-size: 14px;
+    color: #90EE90;
+    opacity: 0.3;
+}
+
+/* Adjust selected fleeting cards */
+.card.fleeting.selected {
+    border-color: #FF4444 !important;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
+}

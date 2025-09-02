@@ -137,11 +137,12 @@ public class CardDeckManager
             }
         }
 
-        // Remove fleeting cards from hand after SPEAK
-        RemoveFleetingCardsFromHand(session.Hand);
-
-        // Check Final Word for unplayed goal cards
+        // Check Final Word for unplayed goal cards BEFORE removing fleeting
+        // This is critical - we need to check before the cards are removed!
         bool finalWordTriggered = CheckFinalWordFailure(session.Hand);
+
+        // Remove fleeting cards from hand after SPEAK (after checking Final Word)
+        RemoveFleetingCardsFromHand(session.Hand);
 
         CardPlayResult result = new CardPlayResult
         {
@@ -190,19 +191,32 @@ public class CardDeckManager
 
     /// <summary>
     /// Remove all fleeting cards from hand (happens after every SPEAK)
+    /// Also checks for Final Word failures
     /// </summary>
     private void RemoveFleetingCardsFromHand(HandDeck hand)
     {
+        // First get all fleeting cards
         List<CardInstance> fleetingCards = hand.Cards.Where(c => c.IsFleeting).ToList();
+        
+        // Move them to discard
         hand.RemoveCards(fleetingCards);
     }
 
     /// <summary>
-    /// Check if any fleeting goal cards with Final Word are being discarded
+    /// Check if any goal cards with Final Word are being discarded unplayed
+    /// This must be checked BEFORE removing fleeting cards
     /// </summary>
     private bool CheckFinalWordFailure(HandDeck hand)
     {
-        return hand.Cards.Any(c => c.IsGoalCard && c.IsFleeting && ConvertToNewCard(c).HasFinalWord);
+        // Check for any goal cards with Final Word that are fleeting (will be discarded)
+        // Note: We check this before removal to catch the failure
+        var unplayedFinalWordGoals = hand.Cards
+            .Where(c => c.IsGoalCard && c.IsFleeting)
+            .Select(c => ConvertToNewCard(c))
+            .Where(card => card.HasFinalWord)
+            .ToList();
+            
+        return unplayedFinalWordGoals.Any();
     }
 
     /// <summary>
