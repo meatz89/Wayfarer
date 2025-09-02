@@ -309,7 +309,7 @@
                         </div>
                         
                         @* Special goal card warning *@
-                        @if (convCard.IsGoal)
+                        @if (convCard.Properties.Contains(CardProperty.Fleeting) && convCard.Properties.Contains(CardProperty.Opportunity))
                         {
                             <div class="goal-warning">
                                 ⚠️ MUST PLAY NOW - Exhausts on ANY action!

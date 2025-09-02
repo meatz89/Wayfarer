@@ -216,7 +216,7 @@
                                 <div class="card-tags">
                                     <span class="tag type-@card.GetCategoryClass()">@GetCardCategory(card)</span>
                                     <span class="tag persistence">@GetPersistenceIcon(card) @GetPersistenceText(card)</span>
-                                    @if (card.IsObservable)
+                                    @if (card.Properties.Contains(CardProperty.Observable))
                                     {
                                         <span class="tag observation">Observable</span>
                                     }

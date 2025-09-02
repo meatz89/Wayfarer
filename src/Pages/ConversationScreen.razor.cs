@@ -375,7 +375,7 @@ namespace Wayfarer.Pages
 
         protected bool HasOpportunities()
         {
-            return Session.HandCards.Any(c => c.IsFleeting);
+            return Session.HandCards.Any(c => c.Properties.Contains(CardProperty.Fleeting));
         }
 
         protected int GetCurrentWeight()
@@ -404,13 +404,13 @@ namespace Wayfarer.Pages
         {
             List<string> classes = new List<string>();
 
-            classes.Add(card.Type.ToString().ToLower());
+            classes.Add(card.TokenType.ToString().ToLower());
             
             // Add persistence class based on properties
-            if (card.IsFleeting && card.IsOpportunity) classes.Add("goal");
-            else if (card.IsFleeting) classes.Add("fleeting");
-            else if (card.IsOpportunity) classes.Add("opportunity");
-            else if (card.IsPersistent) classes.Add("persistent");
+            if (card.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity)) classes.Add("goal");
+            else if (card.Properties.Contains(CardProperty.Fleeting)) classes.Add("fleeting");
+            else if (card.Properties.Contains(CardProperty.Opportunity)) classes.Add("opportunity");
+            else if (!(card.Properties.Contains(CardProperty.Fleeting)) && !(card.Properties.Contains(CardProperty.Opportunity))) classes.Add("persistent");
 
             // Add card category class for visual styling
             classes.Add(card.GetCategoryClass());
@@ -435,7 +435,8 @@ namespace Wayfarer.Pages
 
         protected string GetStateChangeText(CardInstance card)
         {
-            if (card.Category != nameof(CardCategory.State)) return "";
+            // State category no longer exists
+            return "";
 
             if (card.SuccessState.HasValue)
             {
@@ -446,7 +447,8 @@ namespace Wayfarer.Pages
 
         protected string GetSuccessEffect(CardInstance card)
         {
-            if (card.Category == nameof(CardCategory.State) && card.SuccessState.HasValue)
+            // State category no longer exists
+            if (false && card.SuccessState.HasValue)
             {
                 return $"{Session.CurrentState} → {card.SuccessState.Value}";
             }
@@ -512,7 +514,8 @@ namespace Wayfarer.Pages
 
         protected string GetFailureEffect(CardInstance card)
         {
-            if (card.Category == nameof(CardCategory.State) && card.FailureState.HasValue)
+            // State category no longer exists
+            if (false && card.FailureState.HasValue)
             {
                 return $"{Session.CurrentState} → {card.FailureState.Value}";
             }
@@ -616,9 +619,9 @@ namespace Wayfarer.Pages
 
         protected string GetCardCategory(CardInstance card)
         {
-            if (card.IsGoal) return "Goal";
-            if (card.IsObservable) return nameof(CardCategory.Observation);
-            if (card.IsBurden) return nameof(CardCategory.Burden);
+            if (card.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity)) return "Goal";
+            if (card.Properties.Contains(CardProperty.Observable)) return nameof(CardCategory.Observation);
+            if (card.Properties.Contains(CardProperty.Burden)) return nameof(CardCategory.Burden);
             if (card.Properties.Contains(CardProperty.Exchange)) return nameof(CardCategory.Exchange);
             return "Standard";
         }
@@ -668,18 +671,18 @@ namespace Wayfarer.Pages
 
         protected string GetPersistenceIcon(CardInstance card)
         {
-            if (card.IsFleeting) return "⏱";
-            if (card.IsOpportunity) return "🎯";
-            if (card.IsPersistent) return "♻";
+            if (card.Properties.Contains(CardProperty.Fleeting)) return "⏱";
+            if (card.Properties.Contains(CardProperty.Opportunity)) return "🎯";
+            if (!(card.Properties.Contains(CardProperty.Fleeting)) && !(card.Properties.Contains(CardProperty.Opportunity))) return "♻";
             return "";
         }
         
         protected string GetPersistenceText(CardInstance card)
         {
-            if (card.IsFleeting && card.IsOpportunity) return "Goal";  // Both properties = Goal
-            if (card.IsFleeting) return "Fleeting";
-            if (card.IsOpportunity) return "Opportunity";
-            if (card.IsPersistent) return "Persistent";
+            if (card.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity)) return "Goal";  // Both properties = Goal
+            if (card.Properties.Contains(CardProperty.Fleeting)) return "Fleeting";
+            if (card.Properties.Contains(CardProperty.Opportunity)) return "Opportunity";
+            if (!(card.Properties.Contains(CardProperty.Fleeting)) && !(card.Properties.Contains(CardProperty.Opportunity))) return "Persistent";
             return "";
         }
 

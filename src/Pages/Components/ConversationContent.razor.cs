@@ -1240,14 +1240,15 @@ namespace Wayfarer.Pages.Components
         protected string GetFailureEffect(CardInstance card)
         {
             // For exchange cards, no failure - it's a choice
-            if (card.Category == nameof(CardCategory.Exchange))
+            if (card.Properties.Contains(CardProperty.Exchange))
             {
                 if (card.Context?.ExchangeName == "Pass on this offer")
                     return "Leave without trading";
                 return "Execute trade";
             }
 
-            if (card.Category == nameof(CardCategory.State))
+            // State category no longer exists in Properties system
+            if (false)
             {
                 // Check if card has a specific failure state
                 if (card.FailureState.HasValue)
@@ -1302,7 +1303,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // For exchange cards, show the exchange details
-            if (card.Category == nameof(CardCategory.Exchange) && card.Context != null)
+            if (card.Properties.Contains(CardProperty.Exchange) && card.Context != null)
             {
                 if (card.Context.ExchangeCost != null && card.Context.ExchangeReward != null)
                 {
@@ -1919,7 +1920,7 @@ namespace Wayfarer.Pages.Components
             
             if (card?.Properties.Contains(CardProperty.Fleeting) == true)
                 classes.Add("has-fleeting");
-            if (card?.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity) == true)
+            if (card?.Properties.Contains(CardProperty.Fleeting) == true && card.Properties.Contains(CardProperty.Opportunity) == true)
                 classes.Add("has-opportunity"); // Goal cards have Opportunity
             if (card?.Properties.Contains(CardProperty.Burden) == true)
                 classes.Add("has-burden");
@@ -1933,7 +1934,7 @@ namespace Wayfarer.Pages.Components
         protected bool HasExhaustEffect(CardInstance card)
         {
             // CardInstance doesn't have ExhaustEffect yet, but we can infer from properties
-            return card?.Properties.Contains(CardProperty.Fleeting) == true || card?.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity) == true;
+            return card?.Properties.Contains(CardProperty.Fleeting) == true || card?.Properties.Contains(CardProperty.Fleeting) == true && card.Properties.Contains(CardProperty.Opportunity) == true;
         }
 
         /// <summary>
@@ -1962,7 +1963,7 @@ namespace Wayfarer.Pages.Components
         protected string GetExhaustEffectDescription(CardInstance card)
         {
             // Default exhaust effects based on card properties
-            if (card?.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity) == true)
+            if (card?.Properties.Contains(CardProperty.Fleeting) == true && card.Properties.Contains(CardProperty.Opportunity) == true)
             {
                 return "Conversation ends"; // Goal cards end conversation when exhausted
             }
@@ -2383,7 +2384,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetPreviewExhaustEffect(CardInstance card)
         {
-            if (card?.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity) == true)
+            if (card?.Properties.Contains(CardProperty.Fleeting) == true && card.Properties.Contains(CardProperty.Opportunity) == true)
             {
                 return "ENDS CONVERSATION!";
             }
