@@ -126,10 +126,9 @@ public static class ConversationCardParser
         }
 
         // Parse three-effect system from DTO
-        CardEffect successEffect = ParseEffect(dto.SuccessEffect) ?? 
-            ParseLegacyEffect(dto.EffectType, dto.EffectValue, dto.EffectFormula, dto.AtmosphereTypeChange);
-        CardEffect failureEffect = ParseEffect(dto.FailureEffect);
-        CardEffect exhaustEffect = ParseEffect(dto.ExhaustEffect);
+        CardEffect successEffect = ParseEffect(dto.SuccessEffect) ?? CardEffect.None;
+        CardEffect failureEffect = ParseEffect(dto.FailureEffect) ?? CardEffect.None;
+        CardEffect exhaustEffect = ParseEffect(dto.ExhaustEffect) ?? CardEffect.None;
 
         // Create card with essential properties
         var card = new ConversationCard
@@ -148,7 +147,7 @@ public static class ConversationCardParser
             VerbPhrase = "" // Will be set later if needed
         };
         
-        // Parse properties array if present (new format)
+        // Parse properties array
         if (dto.Properties != null && dto.Properties.Count > 0)
         {
             foreach (string prop in dto.Properties)
@@ -160,40 +159,6 @@ public static class ConversationCardParser
                 }
             }
         }
-        else
-        {
-            // Legacy property handling for backwards compatibility
-            if (dto.IsGoalCard ?? false)
-            {
-                card.Properties.Add(CardProperty.Fleeting);
-                card.Properties.Add(CardProperty.Opportunity);
-            }
-            
-            // Handle observation cards
-            if (dto.Type == "Observation")
-            {
-                card.Properties.Add(CardProperty.Observable);
-            }
-            
-            // Set persistence property from legacy field
-            if (dto.Persistence == "Fleeting")
-            {
-                if (!card.Properties.Contains(CardProperty.Fleeting))
-                    card.Properties.Add(CardProperty.Fleeting);
-            }
-            else if (dto.Persistence == "Opportunity")
-            {
-                if (!card.Properties.Contains(CardProperty.Opportunity))
-                    card.Properties.Add(CardProperty.Opportunity);
-            }
-            else
-            {
-                if (!card.Properties.Contains(CardProperty.Persistent))
-                    card.Properties.Add(CardProperty.Persistent);
-            }
-        }
-        
-        // Ensure at least one property is set
         
         return card;
     }
@@ -230,53 +195,6 @@ public static class ConversationCardParser
         };
     }
     
-    /// <summary>
-    /// Parse legacy effect properties into new CardEffect
-    /// </summary>
-    private static CardEffect ParseLegacyEffect(string effectTypeStr, string effectValue, string effectFormula, string atmosphereChange)
-    {
-        if (string.IsNullOrEmpty(effectTypeStr) && string.IsNullOrEmpty(effectValue) && 
-            string.IsNullOrEmpty(effectFormula) && string.IsNullOrEmpty(atmosphereChange))
-            return null;
-            
-        // Handle atmosphere change
-        if (!string.IsNullOrEmpty(atmosphereChange))
-        {
-            return new CardEffect
-            {
-                Type = CardEffectType.SetAtmosphere,
-                Value = atmosphereChange
-            };
-        }
-        
-        // Parse effect type
-        CardEffectType effectType = CardEffectType.AddComfort; // Default
-        if (!string.IsNullOrEmpty(effectTypeStr))
-        {
-            if (!Enum.TryParse<CardEffectType>(effectTypeStr, true, out effectType))
-            {
-                // Map legacy types
-                effectType = effectTypeStr.ToLower() switch
-                {
-                    "fixedcomfort" => CardEffectType.AddComfort,
-                    "scaledcomfort" => CardEffectType.ScaleByTokens,
-                    "drawcards" => CardEffectType.DrawCards,
-                    "addweight" => CardEffectType.AddWeight,
-                    _ => CardEffectType.AddComfort
-                };
-            }
-        }
-        
-        // Determine value
-        string value = !string.IsNullOrEmpty(effectFormula) ? effectFormula : 
-                      !string.IsNullOrEmpty(effectValue) ? effectValue : "0";
-        
-        return new CardEffect
-        {
-            Type = effectType,
-            Value = value
-        };
-    }
 }
 
 /// <summary>
@@ -324,11 +242,6 @@ public class ConversationCardDTO
     public CardEffectDTO SuccessEffect { get; set; }
     public CardEffectDTO FailureEffect { get; set; }
     public CardEffectDTO ExhaustEffect { get; set; }
-    // Legacy properties for compatibility
-    public string EffectType { get; set; }
-    public string EffectValue { get; set; }
-    public string EffectFormula { get; set; }
-    public string AtmosphereTypeChange { get; set; }
 }
 
 /// <summary>
