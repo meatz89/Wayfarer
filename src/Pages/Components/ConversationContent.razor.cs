@@ -775,6 +775,28 @@ namespace Wayfarer.Pages.Components
             return (int)((Session.CurrentComfort + 3) * 100 / 6.0);
         }
 
+        protected string GetComfortDotTooltip(int dotPosition)
+        {
+            if (Session == null) return "";
+            
+            int comfort = Math.Clamp(Session.ComfortBattery, -3, 3);
+            
+            if (dotPosition == comfort)
+                return "Current comfort level";
+            else if (dotPosition == 0)
+                return "Neutral (battery reset point)";
+            else if (dotPosition == 3)
+                return "Positive transition threshold";
+            else if (dotPosition == -3)
+                return Session.CurrentState == EmotionalState.DESPERATE ? 
+                    "DANGER: Conversation ends here!" : 
+                    "Negative transition threshold";
+            else if (dotPosition > 0)
+                return $"Comfort +{dotPosition}";
+            else
+                return $"Comfort {dotPosition}";
+        }
+        
         protected string GetComfortDotClass(int dotPosition)
         {
             if (Session == null) return "";

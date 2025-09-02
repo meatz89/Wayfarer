@@ -40,19 +40,38 @@
                         </div>
                     </div>
                     <div class="comfort-indicator">
-                        <span class="indicator-label">Comfort</span>
+                        <span class="indicator-label">Comfort Battery</span>
                         <div class="comfort-battery">
                             <span class="comfort-value">@GetComfortBatteryDisplay()</span>
-                        </div>
-                        <div class="comfort-dots">
-                            @for (int i = -3; i <= 3; i++)
-                            {
-                                <span class="comfort-dot @GetComfortDotClass(i)"></span>
-                            }
+                            <div class="comfort-dots">
+                                @for (int i = -3; i <= 3; i++)
+                                {
+                                    <span class="comfort-dot @GetComfortDotClass(i)" title="@GetComfortDotTooltip(i)">
+                                        @if (i == Session.ComfortBattery)
+                                        {
+                                            <span class="dot-marker">●</span>
+                                        }
+                                        else if (i == 0)
+                                        {
+                                            <span class="dot-marker">○</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="dot-marker">·</span>
+                                        }
+                                    </span>
+                                }
+                            </div>
                         </div>
                         @if (Math.Abs(Session.ComfortBattery) == 2)
                         {
-                            <span class="comfort-transition-hint">→ @GetTransitionHint()</span>
+                            <div class="comfort-transition-hint @(Session.CurrentState == EmotionalState.DESPERATE && Session.ComfortBattery == -2 ? "danger" : "")">
+                                @GetTransitionHint()
+                            </div>
+                        }
+                        @if (Session.CurrentState == EmotionalState.DESPERATE && Session.ComfortBattery <= -2)
+                        {
+                            <div class="comfort-warning">⚠ Conversation ends at -3!</div>
                         }
                     </div>
                 </div>

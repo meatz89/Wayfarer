@@ -46,9 +46,9 @@ public class PackageContent
     public List<StandingObligationDTO> StandingObligations { get; set; }
     
     /// <summary>
-    /// Travel cards - uses existing TravelCard
+    /// Travel cards - uses TravelCardDTO for consistency
     /// </summary>
-    public List<TravelCard> TravelCards { get; set; }
+    public List<TravelCardDTO> TravelCards { get; set; }
     
     /// <summary>
     /// Items - uses existing ItemDTO

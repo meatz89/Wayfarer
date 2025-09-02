@@ -103,7 +103,6 @@ public class CardDeckManager
 
         if (success)
         {
-
             // Process card effect
             effectResult = _effectProcessor.ProcessCardEffect(card, session);
             comfortChange = effectResult.ComfortChange;
@@ -119,6 +118,9 @@ public class CardDeckManager
             {
                 _atmosphereManager.SetAtmosphere(effectResult.AtmosphereTypeChange.Value);
             }
+            
+            // Consume one-time atmosphere effects after successful card play
+            _atmosphereManager.OnCardSuccess();
         }
         else
         {
