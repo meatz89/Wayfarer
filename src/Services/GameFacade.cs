@@ -410,6 +410,10 @@ public class GameFacade
             }
         }
         
+        // Initialize attention for testing
+        _timeBlockAttentionManager.RefreshAttention();
+        Console.WriteLine($"[GameFacade.StartGameAsync] Attention initialized");
+        
         _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success);
     }
 
