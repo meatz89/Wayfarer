@@ -932,35 +932,19 @@ namespace Wayfarer.Pages.Components
                 return "Share Observation";
             }
 
-            // Standard cards get contextual names
+            // Standard cards get contextual names based on comfort or token type
             if (!card.Properties.Contains(CardProperty.Exchange) && !card.Properties.Contains(CardProperty.Observable) && !card.Properties.Contains(CardProperty.Burden))
             {
-                if (card.BaseComfort >= 2)
-                    return "Deep Understanding";
-                else if (card.BaseComfort == 1)
-                    return "I Understand";
-                else
-                    return "Simple Response";
-            }
-
-            // Token cards are identified by having specific token types
-            if (card.TokenType == TokenType.Trust && !card.Properties.Contains(CardProperty.Exchange))
-            {
-                ConnectionType tokenType = card.TokenType switch
+                // Check for token type first
+                return card.TokenType switch
                 {
-                    TokenType.Trust => ConnectionType.Trust,
-                    TokenType.Commerce => ConnectionType.Commerce,
-                    TokenType.Status => ConnectionType.Status,
-                    TokenType.Shadow => ConnectionType.Shadow,
-                    _ => ConnectionType.None
-                };
-                return tokenType switch
-                {
-                    ConnectionType.Trust => "Build Trust",
-                    ConnectionType.Commerce => "Discuss Business",
-                    ConnectionType.Status => "Show Respect",
-                    ConnectionType.Shadow => "Share Secret",
-                    _ => "Connect"
+                    TokenType.Trust => "Build Trust",
+                    TokenType.Commerce => "Discuss Business", 
+                    TokenType.Status => "Show Respect",
+                    TokenType.Shadow => "Share Secret",
+                    _ => card.BaseComfort >= 2 ? "Deep Understanding" :
+                         card.BaseComfort == 1 ? "I Understand" :
+                         "Simple Response"
                 };
             }
 
@@ -1011,7 +995,7 @@ namespace Wayfarer.Pages.Components
             // Generate actual conversational dialogue instead of technical descriptions
 
             // Exchange cards
-            if (card.Category == nameof(CardCategory.Exchange))
+            if (card.Properties.Contains(CardProperty.Exchange))
             {
                 if (card.Context?.ExchangeName == "Pass on this offer")
                     return "Thank you, but I'll pass on this offer for now.";
@@ -1021,13 +1005,13 @@ namespace Wayfarer.Pages.Components
             }
 
             // Burden cards - addressing past failures
-            if (card.Category == nameof(CardCategory.Burden))
+            if (card.Properties.Contains(CardProperty.Burden))
             {
                 return $"{NpcName}, about last time... I know I let you down when I didn't deliver your previous message.";
             }
 
-            // State transition cards
-            if (card.Category == nameof(CardCategory.State))
+            // State transition cards (no longer exist in Properties system)
+            if (false)
             {
                 if (card.SuccessState.HasValue)
                 {
@@ -1045,7 +1029,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Observation cards
-            if (card.IsObservable)
+            if (card.Properties.Contains(CardProperty.Observable))
             {
                 if (card.DisplayName == "Merchant Route Knowledge")
                     return "I know a route through the merchant quarter that avoids the checkpoint entirely. We can reach Lord Blackwood faster.";
@@ -1056,8 +1040,8 @@ namespace Wayfarer.Pages.Components
                 return "I noticed something earlier that might help...";
             }
 
-            // Comfort cards based on weight/intensity
-            if (card.Category == nameof(CardCategory.Comfort) && card.Type == CardType.Normal && card.BaseComfort > 0)
+            // Standard cards based on comfort value
+            if (!card.Properties.Contains(CardProperty.Exchange) && !card.Properties.Contains(CardProperty.Observable) && !card.Properties.Contains(CardProperty.Burden) && card.BaseComfort > 0)
             {
                 if (card.BaseComfort >= 2)
                     return "I completely understand how you feel. Your situation resonates deeply with me.";
@@ -1067,8 +1051,8 @@ namespace Wayfarer.Pages.Components
                     return "I hear what you're saying.";
             }
 
-            // Token building cards (cards with specific token types)
-            if (card.Type != CardType.Normal && card.Category == nameof(CardCategory.Comfort))
+            // Token building cards (based on token types)
+            if (!card.Properties.Contains(CardProperty.Exchange) && !card.Properties.Contains(CardProperty.Observable) && !card.Properties.Contains(CardProperty.Burden))
             {
                 ConnectionType tokenType = card.TokenType switch
                 {
@@ -1156,24 +1140,22 @@ namespace Wayfarer.Pages.Components
             // Build class list for card styling
             List<string> classes = new List<string>();
             
-            // Primary category class
-            if (card.Category == nameof(CardCategory.Burden))
+            // Primary property-based classes
+            if (card.Properties.Contains(CardProperty.Burden))
                 classes.Add("crisis");
-            else if (card.Category == nameof(CardCategory.State))
-                classes.Add("state");
-            else if (card.Category == nameof(CardCategory.Exchange))
+            else if (card.Properties.Contains(CardProperty.Exchange))
                 classes.Add("exchange");
-            else if (card.IsObservable)
+            else if (card.Properties.Contains(CardProperty.Observable))
                 classes.Add("observation");
             else
                 classes.Add("comfort");
                 
             // Add fleeting indicator if applicable
-            if (card.IsFleeting)
+            if (card.Properties.Contains(CardProperty.Fleeting))
                 classes.Add("fleeting");
                 
-            // Goal cards get special styling through IsGoal property
-            if (card.IsGoal)
+            // Goal cards get special styling (Fleeting + Opportunity)
+            if (card.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity))
                 classes.Add("goal");
                 
             return string.Join(" ", classes);
