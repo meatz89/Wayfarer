@@ -181,7 +181,7 @@ public static class SkeletonGenerator
             Id = id,
             DisplayName = $"Generic Interaction #{hash % 100}",
             Description = "The conversation continues.",
-            IsSkeleton = true,
+            Properties = new List<CardProperty> { CardProperty.Skeleton },
             SkeletonSource = source,
             
             // Random but deterministic mechanical values

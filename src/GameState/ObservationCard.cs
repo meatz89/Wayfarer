@@ -36,11 +36,11 @@ public class ObservationCard : ConversationCard
     {
         Weight = 1;
         Difficulty = Difficulty.VeryEasy; // 85%
-        IsFleeting = false; // Always persistent
+        Properties.Add(CardProperty.Persistent); // Always persistent
+        Properties.Add(CardProperty.Observable); // Mark as observation
         EffectType = CardEffectType.ObservationEffect;
         CreatedAt = DateTime.Now;
         Type = CardType.Observation;
-        IsObservation = true;
         Persistence = PersistenceType.Persistent;
         IsSingleUse = true;
     }

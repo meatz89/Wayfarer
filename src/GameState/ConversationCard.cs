@@ -7,22 +7,36 @@ public class ConversationCard
     public string Name { get; set; }
     public string Description { get; set; }
     
-    // Skeleton tracking
-    public bool IsSkeleton { get; set; } = false;
+    // Properties list replaces all boolean flags
+    public List<CardProperty> Properties { get; set; } = new List<CardProperty>();
+    
+    // Skeleton tracking (for backward compatibility temporarily)
     public string SkeletonSource { get; set; } // What created this skeleton
     public TokenType TokenType { get; set; }
     public int Weight { get; set; }
     public Difficulty Difficulty { get; set; }
-    public bool IsFleeting { get; set; }
     public CardEffectType EffectType { get; set; }
     public int EffectValue { get; set; } // For fixed effects
     public string ScalingFormula { get; set; } // For scaled effects
     public AtmosphereType? AtmosphereChange { get; set; }
-    public bool HasFinalWord { get; set; } // For goal cards
 
     // Display properties
     public string DialogueFragment { get; set; }
     public string VerbPhrase { get; set; }
+
+    // Helper properties that use Properties list as source of truth
+    public bool IsFleeting => Properties.Contains(CardProperty.Fleeting);
+    public bool IsOpportunity => Properties.Contains(CardProperty.Opportunity);
+    public bool IsPersistent => !Properties.Contains(CardProperty.Fleeting) 
+                                && !Properties.Contains(CardProperty.Opportunity);
+    public bool IsGoal => Properties.Contains(CardProperty.Fleeting) 
+                          && Properties.Contains(CardProperty.Opportunity);
+    public bool IsSkeleton => Properties.Contains(CardProperty.Skeleton);
+    public bool IsBurden => Properties.Contains(CardProperty.Burden);
+    public bool IsObservable => Properties.Contains(CardProperty.Observable);
+    public bool IsObservation => IsObservable; // Backward compatibility alias
+    public bool HasFinalWord => IsGoal; // Goal cards have "final word" behavior
+    public bool IsGoalCard => IsGoal; // Backward compatibility alias
 
     // Compatibility properties (will be removed later)
     public CardType Type { get; set; } = CardType.Normal;
@@ -37,7 +51,8 @@ public class ConversationCard
     public EmotionalState? TransitionToState { get; set; }
     public int TransitionChance { get; set; }
     public string ConversationType { get; set; }
-    public bool IsObservation { get; set; }
+    // Removed - now use IsObservable helper property
+    // public bool IsObservation { get; set; }  // Now: IsObservable => Properties.Contains(CardProperty.Observable)
     public string ObservationType { get; set; }
     public string SourceItem { get; set; }
     public CardMechanicsType Mechanics { get; set; }
@@ -60,17 +75,31 @@ public class ConversationCard
     public bool CanDeliverLetter { get; set; }
     public bool IsPromise { get; set; }
     public PromiseCardData PromiseDetails { get; set; }
-    public bool IsBurden { get; set; }
-    public bool IsGoal { get; set; }
+    // Removed - now use helper properties above
+    // public bool IsBurden { get; set; }  // Now: IsBurden => Properties.Contains(CardProperty.Burden)
+    // public bool IsGoal { get; set; }    // Now: IsGoal => Properties.Contains(Fleeting) && Properties.Contains(Opportunity)
     public string GoalContext { get; set; }
     public string DialogueText { get; set; }
-    public bool IsGoalCard { get; set; }
-    public bool IsObservationCard => Type == CardType.Observation;
+    // Removed - use IsGoal helper property instead
+    // public bool IsGoalCard { get; set; }  // Now: IsGoal => Properties.Contains(Fleeting) && Properties.Contains(Opportunity)
+    public bool IsObservationCard => Type == CardType.Observation || IsObservable;
     public Difficulty Difficulty_Legacy { get; set; } = Difficulty.Medium;
     public string EffectFormula { get; set; }
     public AtmosphereType? ConversationAtmosphereChange => AtmosphereChange;
 
     // Helper method to check single effect
+    // Compatibility method to ensure default Persistent property
+    public void EnsureDefaultProperties()
+    {
+        // If no exhaustion properties set, default to Persistent
+        if (!Properties.Contains(CardProperty.Fleeting) && 
+            !Properties.Contains(CardProperty.Opportunity) && 
+            !Properties.Contains(CardProperty.Persistent))
+        {
+            Properties.Add(CardProperty.Persistent);
+        }
+    }
+
     public bool HasSingleEffect()
     {
         int effectCount = 0;
@@ -88,17 +117,17 @@ public class ConversationCard
             Id = this.Id,
             Name = this.Name,
             Description = this.Description,
+            Properties = new List<CardProperty>(this.Properties), // Clone the properties list
             TokenType = this.TokenType,
             Weight = this.Weight,
             Difficulty = this.Difficulty,
-            IsFleeting = this.IsFleeting,
             EffectType = this.EffectType,
             EffectValue = this.EffectValue,
             ScalingFormula = this.ScalingFormula,
             AtmosphereChange = this.AtmosphereChange,
-            HasFinalWord = this.HasFinalWord,
             DialogueFragment = this.DialogueFragment,
             VerbPhrase = this.VerbPhrase,
+            SkeletonSource = this.SkeletonSource,
             Type = this.Type,
             Persistence = this.Persistence,
             ConnectionType = this.ConnectionType,

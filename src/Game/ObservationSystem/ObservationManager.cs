@@ -218,9 +218,14 @@ public class ObservationManager
         
         // Only update the ID and observation-specific metadata
         observationCard.Id = $"{observation.Id}_card_{Guid.NewGuid()}";
-        observationCard.IsObservation = true;
+        observationCard.Properties.Add(CardProperty.Observable);
         observationCard.ObservationSource = observation.Id;
         observationCard.Persistence = PersistenceType.Fleeting; // Observation cards are always fleeting
+        // Add fleeting property since observation cards are fleeting
+        if (!observationCard.Properties.Contains(CardProperty.Fleeting))
+        {
+            observationCard.Properties.Add(CardProperty.Fleeting);
+        }
         
         // Update display information if not already set
         if (string.IsNullOrEmpty(observationCard.DisplayName))

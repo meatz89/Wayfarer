@@ -265,7 +265,7 @@ public class CardDeckManager
     {
         // This is a temporary conversion method
         // In the full implementation, cards would be loaded with new format
-        return new ConversationCard
+        var card = new ConversationCard
         {
             Id = instance.Id,
             Name = instance.Name,
@@ -281,9 +281,31 @@ public class CardDeckManager
             EffectValue = int.Parse(GuessEffectValue(instance)),
             EffectFormula = GuessEffectValue(instance),
             AtmosphereChange = null, // Would need to be set from JSON
-            HasFinalWord = instance.IsGoalCard,
+            // Don't set HasFinalWord - set Properties instead
             DialogueText = instance.DialogueFragment
         };
+        
+        // Set properties based on instance state
+        if (instance.IsGoalCard)
+        {
+            card.Properties.Add(CardProperty.Fleeting);
+            card.Properties.Add(CardProperty.Opportunity);
+        }
+        else if (instance.Persistence == PersistenceType.Fleeting)
+        {
+            card.Properties.Add(CardProperty.Fleeting);
+        }
+        else
+        {
+            card.Properties.Add(CardProperty.Persistent);
+        }
+        
+        if (instance.IsObservation)
+        {
+            card.Properties.Add(CardProperty.Observable);
+        }
+        
+        return card;
     }
 
     /// <summary>

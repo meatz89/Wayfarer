@@ -76,7 +76,7 @@ public static class ConversationCardParser
         ConversationCard card = ConvertDTOToCard(dto);
 
         // Create new card with customized values (init-only properties)
-        return new ConversationCard
+        var newCard = new ConversationCard
         {
             Id = $"{cardId}_{npcId}",
             Mechanics = card.Mechanics,
@@ -92,14 +92,17 @@ public static class ConversationCardParser
             Persistence = card.Persistence,
             Weight = card.Weight,
             BaseComfort = card.BaseComfort,
-            IsGoalCard = card.IsGoalCard,
+            // Don't set IsGoalCard directly - it's computed from Properties
             GoalCardType = card.GoalCardType,
             DisplayName = card.DisplayName,
             Description = card.Description,
             SuccessRate = card.SuccessRate,
             SuccessState = card.SuccessState,
-            PatienceBonus = card.PatienceBonus
+            PatienceBonus = card.PatienceBonus,
+            Properties = new List<CardProperty>(card.Properties) // Copy properties from source
         };
+        
+        return newCard;
     }
 
     /// <summary>
@@ -176,7 +179,7 @@ public static class ConversationCardParser
         }
 
         // Create card with all init-only properties set at once
-        return new ConversationCard
+        var card = new ConversationCard
         {
             Id = dto.Id,
             Mechanics = mechanics,
@@ -194,7 +197,7 @@ public static class ConversationCardParser
             Persistence = Enum.Parse<PersistenceType>(dto.Persistence, true),
             Weight = dto.Weight,
             BaseComfort = dto.BaseComfort,
-            IsGoalCard = dto.IsGoalCard ?? false,
+            // Don't set IsGoalCard directly - set Properties instead
             GoalCardType = goalType?.ToString(),
             DisplayName = dto.DisplayName,
             Description = dto.Description,
@@ -210,6 +213,27 @@ public static class ConversationCardParser
             EffectFormula = dto.EffectFormula,
             AtmosphereChange = atmosphereChange
         };
+        
+        // Set properties based on DTO
+        if (dto.IsGoalCard ?? false)
+        {
+            card.Properties.Add(CardProperty.Fleeting);
+            card.Properties.Add(CardProperty.Opportunity);
+        }
+        
+        // Set persistence property
+        if (dto.Persistence == "Fleeting")
+        {
+            if (!card.Properties.Contains(CardProperty.Fleeting))
+                card.Properties.Add(CardProperty.Fleeting);
+        }
+        else
+        {
+            if (!card.Properties.Contains(CardProperty.Persistent))
+                card.Properties.Add(CardProperty.Persistent);
+        }
+        
+        return card;
     }
 
     private static ConversationType? GetGoalTypeForConversation(ConversationType type)

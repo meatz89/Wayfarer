@@ -177,7 +177,14 @@ public class CardDatabase
         // Parse persistence
         if (element.TryGetProperty("persistent", out JsonElement persistentElement))
         {
-            card.IsFleeting = !persistentElement.GetBoolean();
+            if (!persistentElement.GetBoolean())
+            {
+                card.Properties.Add(CardProperty.Fleeting);
+            }
+            else
+            {
+                card.Properties.Add(CardProperty.Persistent);
+            }
             card.Persistence = persistentElement.GetBoolean() ? 
                 PersistenceType.Persistent : PersistenceType.Fleeting;
         }

@@ -16,12 +16,11 @@ public class GoalCard : ConversationCard
     {
         Weight = 5; // Can be 5 or 6
         Difficulty = Difficulty.VeryHard; // 40%
-        IsFleeting = true;
-        HasFinalWord = true; // If discarded, conversation fails
+        // Goal cards have both Fleeting and Opportunity properties
+        Properties.Add(CardProperty.Fleeting);
+        Properties.Add(CardProperty.Opportunity);
         EffectType = CardEffectType.GoalEffect;
         Type = CardType.Goal;
-        IsGoal = true;
-        IsGoalCard = true;
         Persistence = PersistenceType.Fleeting;
     }
 
