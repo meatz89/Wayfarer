@@ -201,7 +201,7 @@ public static class ConversationCardParser
             Type = Enum.Parse<CardType>(dto.Type, true),
             TokenType = ConversationCard.ConvertConnectionToToken(Enum.Parse<ConnectionType>(dto.ConnectionType, true)),
             ConnectionType = Enum.Parse<ConnectionType>(dto.ConnectionType, true),
-            Persistence = Enum.Parse<PersistenceType>(dto.Persistence, true),
+            Persistence = dto.Persistence != null ? Enum.Parse<PersistenceType>(dto.Persistence, true) : PersistenceType.Persistent,
             Weight = dto.Weight,
             BaseComfort = dto.BaseComfort,
             // Don't set IsGoalCard directly - set Properties instead
@@ -223,27 +223,51 @@ public static class ConversationCardParser
             EffectType = effectType,
             EffectValue = string.IsNullOrEmpty(dto.EffectValue) ? 0 : int.Parse(dto.EffectValue),
             EffectFormula = dto.EffectFormula,
-            AtmosphereChange = atmosphereChange
+            AtmosphereChange = atmosphereChange,
+            DialogueFragment = dto.DialogueFragment
         };
         
-        // Set properties based on DTO
-        if (dto.IsGoalCard ?? false)
+        // Parse properties array if present (new format)
+        if (dto.Properties != null && dto.Properties.Count > 0)
         {
-            card.Properties.Add(CardProperty.Fleeting);
-            card.Properties.Add(CardProperty.Opportunity);
-        }
-        
-        // Set persistence property
-        if (dto.Persistence == "Fleeting")
-        {
-            if (!card.Properties.Contains(CardProperty.Fleeting))
-                card.Properties.Add(CardProperty.Fleeting);
+            foreach (string prop in dto.Properties)
+            {
+                if (Enum.TryParse<CardProperty>(prop, true, out CardProperty cardProp))
+                {
+                    if (!card.Properties.Contains(cardProp))
+                        card.Properties.Add(cardProp);
+                }
+            }
         }
         else
         {
-            if (!card.Properties.Contains(CardProperty.Persistent))
-                card.Properties.Add(CardProperty.Persistent);
+            // Legacy property handling for backwards compatibility
+            if (dto.IsGoalCard ?? false)
+            {
+                card.Properties.Add(CardProperty.Fleeting);
+                card.Properties.Add(CardProperty.Opportunity);
+            }
+            
+            // Set persistence property from legacy field
+            if (dto.Persistence == "Fleeting")
+            {
+                if (!card.Properties.Contains(CardProperty.Fleeting))
+                    card.Properties.Add(CardProperty.Fleeting);
+            }
+            else if (dto.Persistence == "Opportunity")
+            {
+                if (!card.Properties.Contains(CardProperty.Opportunity))
+                    card.Properties.Add(CardProperty.Opportunity);
+            }
+            else
+            {
+                if (!card.Properties.Contains(CardProperty.Persistent))
+                    card.Properties.Add(CardProperty.Persistent);
+            }
         }
+        
+        // Ensure at least one property is set
+        card.EnsureDefaultProperties();
         
         return card;
     }
@@ -363,7 +387,11 @@ public class ConversationCardDTO
     public bool? IsStateCard { get; set; }
     public string SuccessState { get; set; }
     public int? PatienceBonus { get; set; } // Patience added when this card succeeds
+    public string DialogueFragment { get; set; } // Added dialogue fragment
 
+    // New properties array replaces persistence and special flags
+    public List<string> Properties { get; set; }
+    
     // New target system properties
     public string Difficulty { get; set; }
     // Three-effect system
