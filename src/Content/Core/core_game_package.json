@@ -1718,6 +1718,137 @@
         "maxItemCapacity": 5,
         "description": "Return to the market square.",
         "tierRequired": "T1"
+      },
+      {
+        "id": "market_to_office",
+        "name": "To Courier Office",
+        "originLocationSpot": "central_fountain",
+        "destinationLocationSpot": "office_desk",
+        "method": "Walking",
+        "baseCoinCost": 0,
+        "baseStaminaCost": 1,
+        "travelTimeMinutes": 10,
+        "departureTime": null,
+        "isDiscovered": true,
+        "terrainCategories": ["Urban"],
+        "maxItemCapacity": 5,
+        "description": "Return to your office.",
+        "tierRequired": "T1"
+      },
+      {
+        "id": "office_to_market",
+        "name": "To Market Square",
+        "originLocationSpot": "office_desk",
+        "destinationLocationSpot": "central_fountain",
+        "method": "Walking",
+        "baseCoinCost": 0,
+        "baseStaminaCost": 1,
+        "travelTimeMinutes": 10,
+        "departureTime": null,
+        "isDiscovered": true,
+        "terrainCategories": ["Urban"],
+        "maxItemCapacity": 5,
+        "description": "Head to the market.",
+        "tierRequired": "T1"
+      },
+      {
+        "id": "tavern_to_office",
+        "name": "To Courier Office",
+        "originLocationSpot": "main_hall",
+        "destinationLocationSpot": "office_desk",
+        "method": "Walking",
+        "baseCoinCost": 0,
+        "baseStaminaCost": 2,
+        "travelTimeMinutes": 20,
+        "departureTime": null,
+        "isDiscovered": true,
+        "terrainCategories": ["Urban"],
+        "maxItemCapacity": 5,
+        "description": "Return to your office.",
+        "tierRequired": "T1"
+      },
+      {
+        "id": "office_to_tavern",
+        "name": "To Copper Kettle",
+        "originLocationSpot": "office_desk",
+        "destinationLocationSpot": "main_hall",
+        "method": "Walking",
+        "baseCoinCost": 0,
+        "baseStaminaCost": 2,
+        "travelTimeMinutes": 20,
+        "departureTime": null,
+        "isDiscovered": true,
+        "terrainCategories": ["Urban"],
+        "maxItemCapacity": 5,
+        "description": "Head to the tavern.",
+        "tierRequired": "T1"
+      },
+      {
+        "id": "market_to_noble_main",
+        "name": "To Noble District (Main Gate)",
+        "originLocationSpot": "central_fountain",
+        "destinationLocationSpot": "aldwin_manor",
+        "method": "Walking",
+        "baseCoinCost": 0,
+        "baseStaminaCost": 2,
+        "travelTimeMinutes": 25,
+        "departureTime": null,
+        "isDiscovered": true,
+        "terrainCategories": ["Urban", "Guarded"],
+        "maxItemCapacity": 5,
+        "description": "The main gate to the Noble District - requires permit.",
+        "tierRequired": "T1",
+        "requiresItem": "noble_district_permit"
+      },
+      {
+        "id": "market_to_noble_merchant",
+        "name": "To Noble District (Merchant Route)",
+        "originLocationSpot": "merchant_row",
+        "destinationLocationSpot": "blackwood_estate",
+        "method": "Walking",
+        "baseCoinCost": 0,
+        "baseStaminaCost": 3,
+        "travelTimeMinutes": 35,
+        "departureTime": null,
+        "isDiscovered": false,
+        "terrainCategories": ["Urban", "Discrete"],
+        "maxItemCapacity": 5,
+        "description": "A discrete route through merchant alleys.",
+        "tierRequired": "T1",
+        "requiresKnowledge": "merchant_route_knowledge"
+      },
+      {
+        "id": "noble_to_market_main",
+        "name": "To Market Square",
+        "originLocationSpot": "aldwin_manor",
+        "destinationLocationSpot": "central_fountain",
+        "method": "Walking",
+        "baseCoinCost": 0,
+        "baseStaminaCost": 2,
+        "travelTimeMinutes": 25,
+        "departureTime": null,
+        "isDiscovered": true,
+        "terrainCategories": ["Urban"],
+        "maxItemCapacity": 5,
+        "description": "Return to Market Square.",
+        "tierRequired": "T1"
+      },
+      {
+        "id": "noble_to_market_merchant",
+        "name": "To Market Square (Merchant Route)",
+        "originLocationSpot": "blackwood_estate",
+        "destinationLocationSpot": "merchant_row",
+        "method": "Walking",
+        "baseCoinCost": 0,
+        "baseStaminaCost": 3,
+        "travelTimeMinutes": 35,
+        "departureTime": null,
+        "isDiscovered": false,
+        "terrainCategories": ["Urban", "Discrete"],
+        "maxItemCapacity": 5,
+        "description": "Return via merchant alleys.",
+        "tierRequired": "T1",
+        "requiresKnowledge": "merchant_route_knowledge"
       }
     ],
     "letterTemplates": [
@@ -1907,6 +2038,84 @@
       }
     ],
     "items": [],
+    "locationActions": [
+      {
+        "id": "work_haul_goods",
+        "name": "Work: Haul Goods",
+        "description": "Spend attention to earn coins hauling goods",
+        "locationId": "market_square",
+        "spotIds": ["central_fountain", "merchant_row"],
+        "cost": {
+          "attention": 2
+        },
+        "reward": {
+          "coins": 8
+        },
+        "timeRequired": 30,
+        "availability": ["Morning", "Afternoon", "Evening"]
+      },
+      {
+        "id": "work_scribe_letters",
+        "name": "Work: Scribe Letters",
+        "description": "Use your literacy to earn coins writing letters",
+        "locationId": "market_square",
+        "spotIds": ["central_fountain"],
+        "cost": {
+          "attention": 3
+        },
+        "reward": {
+          "coins": 12
+        },
+        "timeRequired": 45,
+        "availability": ["Morning", "Afternoon"]
+      },
+      {
+        "id": "rest_by_fire",
+        "name": "Rest by Fire",
+        "description": "Pay to rest and restore stamina",
+        "locationId": "copper_kettle_tavern",
+        "spotIds": ["main_hall", "corner_table"],
+        "cost": {
+          "coins": 5
+        },
+        "reward": {
+          "stamina": 10,
+          "health": 2
+        },
+        "timeRequired": 60,
+        "availability": ["Morning", "Afternoon", "Evening", "Night"]
+      },
+      {
+        "id": "order_food",
+        "name": "Order Food",
+        "description": "Buy a meal to reduce hunger",
+        "locationId": "copper_kettle_tavern",
+        "spotIds": ["bar_counter", "main_hall"],
+        "cost": {
+          "coins": 3
+        },
+        "reward": {
+          "hunger": -20
+        },
+        "timeRequired": 30,
+        "availability": ["Morning", "Afternoon", "Evening"]
+      },
+      {
+        "id": "noble_errands",
+        "name": "Work: Noble Errands",
+        "description": "Run errands for nobles for high pay",
+        "locationId": "noble_district",
+        "spotIds": ["aldwin_manor", "blackwood_estate"],
+        "cost": {
+          "attention": 2
+        },
+        "reward": {
+          "coins": 15
+        },
+        "timeRequired": 45,
+        "availability": ["Afternoon", "Evening"]
+      }
+    ],
     "observations": [
       {
         "id": "guard_routes",
@@ -1991,6 +2200,51 @@
         "dialogueFragment": "I understand Elena's situation better now. We have more in common than I thought.",
         "locationId": "copper_kettle_tavern",
         "contextType": "withElena"
+      },
+      {
+        "id": "merchant_route_knowledge",
+        "name": "Merchant Route Knowledge",
+        "description": "You've learned about the merchant's back route to the Noble District",
+        "properties": ["Observable"],
+        "uniqueEffect": "UnlockRoute",
+        "expirationHours": null,
+        "tokenType": "Shadow",
+        "weight": 1,
+        "difficulty": "VeryEasy",
+        "successEffect": {
+          "type": "UnlockRoute",
+          "value": "merchant_route_to_noble"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "I know a way through the merchant alleys that avoids the guards.",
+        "locationId": "market_square",
+        "spotId": "merchant_row",
+        "observationCost": 1
+      },
+      {
+        "id": "elena_desperation",
+        "name": "Elena's Desperation",
+        "description": "You understand the urgency of Elena's situation",
+        "properties": ["Observable"],
+        "uniqueEffect": "SetInformed",
+        "expirationHours": 48,
+        "tokenType": "Trust",
+        "weight": 1,
+        "difficulty": "VeryEasy",
+        "successEffect": {
+          "type": "SetAtmosphere",
+          "value": "Informed"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "I understand Elena's desperation. Time is running out for her.",
+        "locationId": "copper_kettle_tavern",
+        "spotId": "corner_table",
+        "contextType": "withElena",
+        "observationCost": 1
       }
     ]
   },
