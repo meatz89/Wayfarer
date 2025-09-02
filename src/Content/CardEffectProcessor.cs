@@ -108,7 +108,7 @@ public class CardEffectProcessor
                 break;
                 
             case CardEffectType.WeightRefresh:
-                result.WeightAdded = weightPoolManager.GetMaxCapacity() - weightPoolManager.GetCurrentCapacity();
+                result.WeightAdded = weightPoolManager.CurrentCapacity - weightPoolManager.CurrentSpentWeight;
                 result.SpecialEffect = "Weight pool refreshed";
                 break;
                 
@@ -159,7 +159,7 @@ public class CardEffectProcessor
         if (effect.Type == CardEffectType.ScaleByTokens)
         {
             TokenType tokenType = Enum.Parse<TokenType>(effect.Value);
-            return tokenManager.GetTokenCount(session.NpcId, tokenType);
+            return tokenManager.GetTokenCount(ConversationCard.ConvertTokenToConnection(tokenType), session.NPC.ID);
         }
         
         if (effect.Type == CardEffectType.ScaleByComfort)
@@ -192,7 +192,7 @@ public class CardEffectProcessor
         
         if (effect.Type == CardEffectType.ScaleByWeight)
         {
-            return weightPoolManager.GetCurrentCapacity();
+            return weightPoolManager.AvailableWeight;
         }
         
         // Legacy formula handling
@@ -205,7 +205,7 @@ public class CardEffectProcessor
             "inverse_comfort" => 4 - Math.Abs(session.ComfortBattery),
             "patience_third" => session.CurrentPatience / 3,
             "weight_remaining" => weightPoolManager.AvailableWeight,
-            _ => int.TryParse(formula, out int value) ? value : 0
+            _ => int.TryParse(effect.Value, out int value) ? value : 0
         };
     }
 

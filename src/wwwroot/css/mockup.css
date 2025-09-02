@@ -2121,13 +2121,14 @@ body {
     50% { opacity: 0.5; }
 }
 
-/* Final Word goal cards */
-.card.final-word {
+/* Goal cards */
+.card.goal {
     border-color: #8B0000 !important;
     background: linear-gradient(135deg, #FFF, #FFCCCC) !important;
+    animation: urgent-pulse 1.5s ease-in-out infinite;
 }
 
-/* Card markers for fleeting and final word */
+/* Card markers for fleeting and goals */
 .card-marker.fleeting {
     background: #FF6B6B;
     color: white;
@@ -2139,7 +2140,7 @@ body {
     display: inline-block;
 }
 
-.card-marker.final-word {
+.card-marker.goal {
     background: #8B0000;
     color: white;
     padding: 2px 8px;
@@ -2193,7 +2194,7 @@ body {
     flex: 1;
 }
 
-.final-word-alert {
+.goal-alert {
     display: flex;
     align-items: center;
     color: #8B0000;

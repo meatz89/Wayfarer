@@ -280,9 +280,9 @@
                         {
                             <div class="card-marker fleeting" title="Will be discarded after SPEAK">⚡ FLEETING</div>
                         }
-                        @if (HasFinalWord(convCard))
+                        @if (convCard.IsGoalCard)
                         {
-                            <div class="card-marker final-word" title="Must play or conversation fails!">🎯 FINAL WORD</div>
+                            <div class="card-marker goal" title="Must play immediately! Exhausts on any action.">🎯 GOAL</div>
                         }
                         @if (convCard.IsObservation)
                         {
@@ -329,7 +329,7 @@
             </div>
             
             @* Fleeting card warning indicator *@
-            @if (CountFleetingCards() > 0 || HasGoalWithFinalWord())
+            @if (CountFleetingCards() > 0 || HasGoalCards())
             {
                 <div class="fleeting-indicator">
                     @if (CountFleetingCards() > 0)
@@ -340,11 +340,11 @@
                         </div>
                     }
                     
-                    @if (HasGoalWithFinalWord())
+                    @if (HasGoalCards())
                     {
-                        <div class="final-word-alert">
+                        <div class="goal-alert">
                             <span class="alert-icon">🎯</span>
-                            <span class="alert-text">Goal card with Final Word must be played this turn or conversation fails!</span>
+                            <span class="alert-text">Goal cards exhaust on any action - play immediately or conversation will fail!</span>
                         </div>
                     }
                 </div>

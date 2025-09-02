@@ -4,23 +4,25 @@ using System.Linq;
 
 /// <summary>
 /// Manages the player's hand of cards during conversations.
-/// Handles fleeting card removal after SPEAK actions and Final Word enforcement.
+/// Handles exhaust mechanics for Fleeting and Opportunity cards.
 /// </summary>
 public class HandManager
 {
     private List<ConversationCard> currentHand = new();
     private List<ConversationCard> drawPile = new();
     private List<ConversationCard> discardPile = new();
+    private List<ConversationCard> exhaustedPile = new();
     
     public IReadOnlyList<ConversationCard> CurrentHand => currentHand.AsReadOnly();
     public IReadOnlyList<ConversationCard> DrawPile => drawPile.AsReadOnly();
     public IReadOnlyList<ConversationCard> DiscardPile => discardPile.AsReadOnly();
+    public IReadOnlyList<ConversationCard> ExhaustedPile => exhaustedPile.AsReadOnly();
     
     /// <summary>
     /// Process effects of SPEAK action on hand
     /// </summary>
     /// <param name="playedCard">The card that was played (can be null)</param>
-    /// <returns>True if conversation should continue, false if Final Word triggered</returns>
+    /// <returns>True if conversation should continue, false if exhaust effect ended it</returns>
     public bool OnSpeakAction(ConversationCard playedCard)
     {
         // Remove played card from hand if it was played
@@ -30,39 +32,64 @@ public class HandManager
             discardPile.Add(playedCard);
         }
         
-        // Check for unplayed goal with Final Word BEFORE removing fleeting
-        var unplayedGoals = currentHand
-            .Where(c => c.HasFinalWord && c != playedCard)
+        // Exhaust ALL fleeting cards after SPEAK (including goals with Fleeting + Opportunity)
+        var fleetingCards = currentHand
+            .Where(c => c.IsFleeting && c != playedCard)
             .ToList();
-            
-        if (unplayedGoals.Any())
-        {
-            // Final Word triggers - conversation fails
-            // Remove all cards from hand to discard
-            discardPile.AddRange(currentHand);
-            currentHand.Clear();
-            return false; // Signal conversation failure
-        }
         
-        // Remove ALL fleeting cards after SPEAK (whether played or not)
-        var fleetingCards = currentHand.Where(c => c.IsFleeting).ToList();
-        foreach (var fleeting in fleetingCards)
+        foreach (var card in fleetingCards)
         {
-            currentHand.Remove(fleeting);
-            discardPile.Add(fleeting);
+            // Execute exhaust effect if it exists
+            if (card.ExhaustEffect?.Type != CardEffectType.None)
+            {
+                var continueConversation = ExecuteExhaustEffect(card);
+                if (!continueConversation)
+                {
+                    // Exhaust effect ended conversation (e.g., goal card)
+                    currentHand.Remove(card);
+                    exhaustedPile.Add(card);
+                    return false;
+                }
+            }
+            
+            currentHand.Remove(card);
+            exhaustedPile.Add(card); // Track separately from discard
         }
         
         return true; // Conversation continues
     }
     
     /// <summary>
-    /// Process LISTEN action - fleeting cards are NOT removed
+    /// Process LISTEN action - exhaust opportunity cards
     /// </summary>
-    public void OnListenAction()
+    /// <returns>True if conversation should continue, false if exhaust effect ended it</returns>
+    public bool OnListenAction()
     {
-        // Fleeting cards are NOT removed on LISTEN
-        // This is critical - they persist until next SPEAK
-        // This allows strategic timing of when to play them
+        // Exhaust all Opportunity cards (including goals with Fleeting + Opportunity)
+        var opportunityCards = currentHand
+            .Where(c => c.IsOpportunity)
+            .ToList();
+        
+        foreach (var card in opportunityCards)
+        {
+            // Execute exhaust effect if it exists
+            if (card.ExhaustEffect?.Type != CardEffectType.None)
+            {
+                var continueConversation = ExecuteExhaustEffect(card);
+                if (!continueConversation)
+                {
+                    // Exhaust effect ended conversation
+                    currentHand.Remove(card);
+                    exhaustedPile.Add(card);
+                    return false;
+                }
+            }
+            
+            currentHand.Remove(card);
+            exhaustedPile.Add(card);
+        }
+        
+        return true;
     }
     
     /// <summary>
@@ -101,6 +128,54 @@ public class HandManager
     }
     
     /// <summary>
+    /// Execute a card's exhaust effect
+    /// </summary>
+    /// <param name="card">The card being exhausted</param>
+    /// <returns>True if conversation should continue, false if it should end</returns>
+    private bool ExecuteExhaustEffect(ConversationCard card)
+    {
+        if (card.ExhaustEffect == null || card.ExhaustEffect.Type == CardEffectType.None)
+            return true; // No exhaust effect, conversation continues
+
+        switch (card.ExhaustEffect.Type)
+        {
+            case CardEffectType.EndConversation:
+                // Goal cards typically have this - conversation ends in failure
+                return false; // Signal conversation should end
+
+            case CardEffectType.SetAtmosphere:
+                // Would need atmosphere manager reference to apply
+                // For standalone HandManager, just log
+                Console.WriteLine($"[HandManager] Card exhaust would set atmosphere: {card.ExhaustEffect.Value}");
+                return true;
+
+            case CardEffectType.DrawCards:
+                if (int.TryParse(card.ExhaustEffect.Value, out int count))
+                {
+                    DrawCards(count);
+                }
+                return true;
+
+            case CardEffectType.AddComfort:
+                // Would need comfort manager reference to apply
+                // For standalone HandManager, just log
+                Console.WriteLine($"[HandManager] Card exhaust would add comfort: {card.ExhaustEffect.Value}");
+                return true;
+
+            case CardEffectType.AddWeight:
+                // Would need weight manager reference to apply
+                // For standalone HandManager, just log
+                Console.WriteLine($"[HandManager] Card exhaust would add weight: {card.ExhaustEffect.Value}");
+                return true;
+
+            default:
+                // Unknown exhaust effect, log and continue
+                Console.WriteLine($"[HandManager] Unknown exhaust effect type: {card.ExhaustEffect.Type}");
+                return true;
+        }
+    }
+    
+    /// <summary>
     /// Count fleeting cards in current hand
     /// </summary>
     public int CountFleetingCards()
@@ -109,11 +184,19 @@ public class HandManager
     }
     
     /// <summary>
-    /// Check if any goal cards with Final Word are in hand
+    /// Count opportunity cards in current hand
     /// </summary>
-    public bool HasUnplayedFinalWordGoals()
+    public int CountOpportunityCards()
     {
-        return currentHand.Any(c => c.HasFinalWord);
+        return currentHand.Count(c => c.IsOpportunity);
+    }
+    
+    /// <summary>
+    /// Check if any goal cards (Fleeting + Opportunity) are in hand
+    /// </summary>
+    public bool HasUnplayedGoalCards()
+    {
+        return currentHand.Any(c => c.IsGoal);
     }
     
     /// <summary>
@@ -125,11 +208,19 @@ public class HandManager
     }
     
     /// <summary>
-    /// Get all goal cards with Final Word in hand
+    /// Get all opportunity cards in hand
     /// </summary>
-    public List<ConversationCard> GetFinalWordGoals()
+    public List<ConversationCard> GetOpportunityCards()
     {
-        return currentHand.Where(c => c.HasFinalWord).ToList();
+        return currentHand.Where(c => c.IsOpportunity).ToList();
+    }
+    
+    /// <summary>
+    /// Get all goal cards (Fleeting + Opportunity) in hand
+    /// </summary>
+    public List<ConversationCard> GetGoalCards()
+    {
+        return currentHand.Where(c => c.IsGoal).ToList();
     }
     
     /// <summary>
@@ -141,6 +232,7 @@ public class HandManager
         currentHand.Clear();
         drawPile.Clear();
         discardPile.Clear();
+        exhaustedPile.Clear();
         
         // Add all cards to draw pile
         drawPile.AddRange(deck);
@@ -208,7 +300,7 @@ public class HandManager
 }
 
 /// <summary>
-/// Exception thrown when conversation must end due to Final Word
+/// Exception thrown when conversation must end due to exhaust effect
 /// </summary>
 public class ConversationEndedException : Exception
 {

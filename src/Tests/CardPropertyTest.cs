@@ -39,7 +39,7 @@ public class CardPropertyTest
         Assert.False(goalCard.IsPersistent);
         Assert.True(goalCard.IsOpportunity);
         Assert.True(goalCard.IsGoal);
-        Assert.True(goalCard.HasFinalWord); // Backward compatibility
+        // Goal cards are identified by having both Fleeting and Opportunity properties
         Assert.True(goalCard.IsGoalCard); // Backward compatibility
         
         // Test skeleton card
@@ -102,7 +102,9 @@ public class CardPropertyTest
         Assert.Contains(CardProperty.Fleeting, goalCard.Properties);
         Assert.Contains(CardProperty.Opportunity, goalCard.Properties);
         Assert.True(goalCard.IsGoal);
-        Assert.True(goalCard.HasFinalWord);
+        // Verify goal card properties - must have both Fleeting and Opportunity
+        Assert.Contains(CardProperty.Fleeting, goalCard.Properties);
+        Assert.Contains(CardProperty.Opportunity, goalCard.Properties);
         Assert.True(goalCard.IsFleeting);
         Assert.True(goalCard.IsOpportunity);
     }

@@ -1136,17 +1136,11 @@ namespace Wayfarer.Pages.Components
             if (card.IsFleeting)
                 classes.Add("fleeting");
                 
-            // Add final-word indicator for goal cards
-            if (card.IsGoalCard && HasFinalWord(card))
-                classes.Add("final-word");
+            // Goal cards get special styling through IsGoal property
+            if (card.IsGoalCard)
+                classes.Add("goal");
                 
             return string.Join(" ", classes);
-        }
-        
-        protected bool HasFinalWord(CardInstance card)
-        {
-            // Goal cards have Final Word if they're fleeting
-            return card.IsGoalCard && card.IsFleeting;
         }
         
         protected int CountFleetingCards()
@@ -1154,9 +1148,9 @@ namespace Wayfarer.Pages.Components
             return Session?.HandCards?.Count(c => c.IsFleeting) ?? 0;
         }
         
-        protected bool HasGoalWithFinalWord()
+        protected bool HasGoalCards()
         {
-            return Session?.HandCards?.Any(c => c.IsGoalCard && c.IsFleeting) ?? false;
+            return Session?.HandCards?.Any(c => c.IsGoalCard) ?? false;
         }
 
         protected string GetCardName(CardInstance card)

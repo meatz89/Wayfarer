@@ -17,13 +17,13 @@ namespace Wayfarer.Tests
             { 
                 Id = "persistent_1",
                 Name = "Persistent Card",
-                IsFleeting = false 
+                Properties = new List<CardProperty> { CardProperty.Persistent }
             };
             var fleetingCard = new ConversationCard 
             { 
                 Id = "fleeting_1",
                 Name = "Fleeting Card",
-                IsFleeting = true 
+                Properties = new List<CardProperty> { CardProperty.Fleeting }
             };
             
             var deck = new List<ConversationCard> { persistentCard, fleetingCard };
@@ -49,7 +49,7 @@ namespace Wayfarer.Tests
             { 
                 Id = "fleeting_1",
                 Name = "Fleeting Card",
-                IsFleeting = true 
+                Properties = new List<CardProperty> { CardProperty.Fleeting }
             };
             
             handManager.InitializeDeck(new List<ConversationCard> { fleetingCard });
@@ -66,7 +66,7 @@ namespace Wayfarer.Tests
         }
         
         [Test]
-        public void TestFinalWordTriggersOnUnplayedGoal()
+        public void TestGoalCardExhaustsOnUnplayedAction()
         {
             // Arrange
             var handManager = new HandManager();
@@ -74,27 +74,27 @@ namespace Wayfarer.Tests
             { 
                 Id = "goal_1",
                 Name = "Goal Card",
-                HasFinalWord = true, 
-                IsFleeting = true 
+                Properties = new List<CardProperty> { CardProperty.Fleeting, CardProperty.Opportunity },
+                ExhaustEffect = new CardEffect { Type = CardEffectType.EndConversation }
             };
             var otherCard = new ConversationCard 
             { 
                 Id = "other_1",
                 Name = "Other Card",
-                IsFleeting = false 
+                Properties = new List<CardProperty> { CardProperty.Persistent }
             };
             
             handManager.InitializeDeck(new List<ConversationCard> { goalCard, otherCard });
             handManager.DrawCards(2);
             
-            // Act - Play the other card, not the goal
+            // Act - Play the other card, goal should exhaust with EndConversation effect
             bool continueConversation = handManager.OnSpeakAction(otherCard);
             
             // Assert
             Assert.IsFalse(continueConversation, 
-                "Conversation should fail due to Final Word not being played");
+                "Conversation should fail due to goal exhaust effect");
             Assert.AreEqual(0, handManager.CurrentHand.Count, 
-                "Hand should be cleared after Final Word failure");
+                "Hand should be cleared after goal exhaust");
         }
         
         [Test]
@@ -104,10 +104,10 @@ namespace Wayfarer.Tests
             var handManager = new HandManager();
             var cards = new List<ConversationCard>
             {
-                new ConversationCard { Id = "fleeting_1", IsFleeting = true },
-                new ConversationCard { Id = "fleeting_2", IsFleeting = true },
-                new ConversationCard { Id = "fleeting_3", IsFleeting = true },
-                new ConversationCard { Id = "persistent_1", IsFleeting = false }
+                new ConversationCard { Id = "fleeting_1", Properties = new List<CardProperty> { CardProperty.Fleeting } },
+                new ConversationCard { Id = "fleeting_2", Properties = new List<CardProperty> { CardProperty.Fleeting } },
+                new ConversationCard { Id = "fleeting_3", Properties = new List<CardProperty> { CardProperty.Fleeting } },
+                new ConversationCard { Id = "persistent_1", Properties = new List<CardProperty> { CardProperty.Persistent } }
             };
             
             handManager.InitializeDeck(cards);
@@ -137,7 +137,9 @@ namespace Wayfarer.Tests
                 {
                     Id = $"card_{i}",
                     Name = $"Card {i}",
-                    IsFleeting = i % 4 == 0 // 25% fleeting
+                    Properties = i % 4 == 0 
+                        ? new List<CardProperty> { CardProperty.Fleeting }
+                        : new List<CardProperty> { CardProperty.Persistent }
                 });
             }
             
@@ -158,13 +160,13 @@ namespace Wayfarer.Tests
             { 
                 Id = "fleeting_1",
                 Name = "Fleeting Card",
-                IsFleeting = true 
+                Properties = new List<CardProperty> { CardProperty.Fleeting }
             };
             var otherFleetingCard = new ConversationCard 
             { 
                 Id = "fleeting_2",
                 Name = "Other Fleeting",
-                IsFleeting = true 
+                Properties = new List<CardProperty> { CardProperty.Fleeting }
             };
             
             handManager.InitializeDeck(new List<ConversationCard> { fleetingCard, otherFleetingCard });
@@ -181,35 +183,35 @@ namespace Wayfarer.Tests
         }
         
         [Test]
-        public void TestGoalWithoutFinalWordDoesNotFailConversation()
+        public void TestFleetingCardWithoutExhaustEffectDoesNotFailConversation()
         {
             // Arrange
             var handManager = new HandManager();
-            var goalCard = new ConversationCard 
+            var fleetingCard = new ConversationCard 
             { 
-                Id = "goal_1",
-                Name = "Goal Card",
-                HasFinalWord = false, // No Final Word
-                IsFleeting = true 
+                Id = "fleeting_1",
+                Name = "Fleeting Card",
+                Properties = new List<CardProperty> { CardProperty.Fleeting },
+                ExhaustEffect = CardEffect.None // No exhaust effect
             };
             var otherCard = new ConversationCard 
             { 
                 Id = "other_1",
                 Name = "Other Card",
-                IsFleeting = false 
+                Properties = new List<CardProperty> { CardProperty.Persistent }
             };
             
-            handManager.InitializeDeck(new List<ConversationCard> { goalCard, otherCard });
+            handManager.InitializeDeck(new List<ConversationCard> { fleetingCard, otherCard });
             handManager.DrawCards(2);
             
-            // Act - Play the other card
+            // Act - Play the other card, fleeting exhausts with no effect
             bool continueConversation = handManager.OnSpeakAction(otherCard);
             
             // Assert
             Assert.IsTrue(continueConversation, 
-                "Conversation should continue since goal has no Final Word");
+                "Conversation should continue since exhaust has no effect");
             Assert.AreEqual(0, handManager.CurrentHand.Count,
-                "Only fleeting cards should be removed");
+                "All cards should be removed (played + exhausted)");
         }
     }
 }

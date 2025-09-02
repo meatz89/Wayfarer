@@ -163,6 +163,13 @@ public static class ConversationCardParser
             Enum.TryParse<Difficulty>(dto.Difficulty, true, out difficulty);
         }
 
+        // Parse three-effect system from DTO
+        CardEffect successEffect = ParseEffect(dto.SuccessEffect) ?? 
+            ParseLegacyEffect(dto.EffectType, dto.EffectValue, dto.EffectFormula, dto.AtmosphereTypeChange);
+        CardEffect failureEffect = ParseEffect(dto.FailureEffect);
+        CardEffect exhaustEffect = ParseEffect(dto.ExhaustEffect);
+        
+        // Keep legacy parsing for compatibility
         CardEffectType effectType = CardEffectType.FixedComfort; // Default
         if (!string.IsNullOrEmpty(dto.EffectType))
         {
@@ -208,6 +215,11 @@ public static class ConversationCardParser
             // New target system properties
             Difficulty = ConversationCard.ConvertDifficulty(difficulty),
             Difficulty_Legacy = difficulty,
+            // Three-effect system
+            SuccessEffect = successEffect ?? CardEffect.None,
+            FailureEffect = failureEffect ?? CardEffect.None,
+            ExhaustEffect = exhaustEffect ?? CardEffect.None,
+            // Legacy properties for compatibility
             EffectType = effectType,
             EffectValue = string.IsNullOrEmpty(dto.EffectValue) ? 0 : int.Parse(dto.EffectValue),
             EffectFormula = dto.EffectFormula,
@@ -246,6 +258,73 @@ public static class ConversationCardParser
             ConversationType.Delivery => ConversationType.Delivery,
             ConversationType.Commerce => null,
             _ => null
+        };
+    }
+    
+    /// <summary>
+    /// Parse a CardEffect from DTO
+    /// </summary>
+    private static CardEffect ParseEffect(CardEffectDTO dto)
+    {
+        if (dto == null || string.IsNullOrEmpty(dto.Type))
+            return null;
+            
+        if (!Enum.TryParse<CardEffectType>(dto.Type, true, out CardEffectType effectType))
+            return null;
+            
+        return new CardEffect
+        {
+            Type = effectType,
+            Value = dto.Value,
+            Data = dto.Data
+        };
+    }
+    
+    /// <summary>
+    /// Parse legacy effect properties into new CardEffect
+    /// </summary>
+    private static CardEffect ParseLegacyEffect(string effectTypeStr, string effectValue, string effectFormula, string atmosphereChange)
+    {
+        if (string.IsNullOrEmpty(effectTypeStr) && string.IsNullOrEmpty(effectValue) && 
+            string.IsNullOrEmpty(effectFormula) && string.IsNullOrEmpty(atmosphereChange))
+            return null;
+            
+        // Handle atmosphere change
+        if (!string.IsNullOrEmpty(atmosphereChange))
+        {
+            return new CardEffect
+            {
+                Type = CardEffectType.SetAtmosphere,
+                Value = atmosphereChange
+            };
+        }
+        
+        // Parse effect type
+        CardEffectType effectType = CardEffectType.AddComfort; // Default
+        if (!string.IsNullOrEmpty(effectTypeStr))
+        {
+            if (!Enum.TryParse<CardEffectType>(effectTypeStr, true, out effectType))
+            {
+                // Map legacy types
+                effectType = effectTypeStr.ToLower() switch
+                {
+                    "fixedcomfort" => CardEffectType.AddComfort,
+                    "scaledcomfort" => CardEffectType.ScaleByTokens,
+                    "drawcards" => CardEffectType.DrawCards,
+                    "addweight" => CardEffectType.AddWeight,
+                    _ => CardEffectType.AddComfort
+                };
+            }
+        }
+        
+        // Determine value
+        string value = !string.IsNullOrEmpty(effectFormula) ? effectFormula : 
+                      !string.IsNullOrEmpty(effectValue) ? effectValue : "0";
+        
+        return new CardEffect
+        {
+            Type = effectType,
+            Value = value
         };
     }
 }

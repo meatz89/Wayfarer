@@ -13,6 +13,7 @@ public class CardDeckManager
     private readonly CardEffectProcessor _effectProcessor;
     private readonly WeightPoolManager _weightPoolManager;
     private readonly AtmosphereManager _atmosphereManager;
+    private readonly List<CardInstance> _exhaustedPile = new();
 
     public CardDeckManager(GameWorld gameWorld, CardEffectProcessor effectProcessor,
         WeightPoolManager weightPoolManager, AtmosphereManager atmosphereManager)
@@ -106,8 +107,8 @@ public class CardDeckManager
 
         if (success)
         {
-            // Process card effect
-            effectResult = _effectProcessor.ProcessCardEffect(card, session);
+            // Process card's success effect
+            effectResult = _effectProcessor.ProcessSuccessEffect(card, session);
             comfortChange = effectResult.ComfortChange;
 
             // Add drawn cards to hand
@@ -127,6 +128,10 @@ public class CardDeckManager
         }
         else
         {
+            // Process card's failure effect
+            effectResult = _effectProcessor.ProcessFailureEffect(card, session);
+            comfortChange = effectResult.ComfortChange;
+            
             // Clear atmosphere on failure
             _atmosphereManager.ClearAtmosphereOnFailure();
 
@@ -137,12 +142,8 @@ public class CardDeckManager
             }
         }
 
-        // Check Final Word for unplayed goal cards BEFORE removing fleeting
-        // This is critical - we need to check before the cards are removed!
-        bool finalWordTriggered = CheckFinalWordFailure(session.Hand);
-
-        // Remove fleeting cards from hand after SPEAK (after checking Final Word)
-        RemoveFleetingCardsFromHand(session.Hand);
+        // Remove fleeting cards from hand after SPEAK, executing exhaust effects
+        bool conversationContinues = RemoveFleetingCardsFromHand(session);
 
         CardPlayResult result = new CardPlayResult
         {
@@ -160,8 +161,8 @@ public class CardDeckManager
             TotalComfort = comfortChange
         };
 
-        // Handle Final Word failure
-        if (finalWordTriggered)
+        // Handle exhaust ending conversation
+        if (!conversationContinues)
         {
             result.Success = false; // Override to mark conversation as failed
         }
@@ -170,10 +171,17 @@ public class CardDeckManager
     }
 
     /// <summary>
-    /// Execute LISTEN action - refresh weight pool and draw cards
+    /// Execute LISTEN action - refresh weight pool, draw cards, and exhaust opportunity cards
     /// </summary>
     public List<CardInstance> ExecuteListen(ConversationSession session)
     {
+        // First, exhaust all Opportunity cards in hand
+        if (!ExhaustOpportunityCards(session))
+        {
+            // Exhaust effect ended conversation
+            return new List<CardInstance>();
+        }
+
         // Refresh weight pool
         _weightPoolManager.RefreshPool();
 
@@ -191,32 +199,134 @@ public class CardDeckManager
 
     /// <summary>
     /// Remove all fleeting cards from hand (happens after every SPEAK)
-    /// Also checks for Final Word failures
+    /// Executes exhaust effects before removing cards
     /// </summary>
-    private void RemoveFleetingCardsFromHand(HandDeck hand)
+    private bool RemoveFleetingCardsFromHand(ConversationSession session)
     {
-        // First get all fleeting cards
-        List<CardInstance> fleetingCards = hand.Cards.Where(c => c.IsFleeting).ToList();
+        // Get all fleeting cards (including goals with both Fleeting + Opportunity)
+        List<CardInstance> fleetingCards = session.Hand.Cards.Where(c => c.IsFleeting).ToList();
         
-        // Move them to discard
-        hand.RemoveCards(fleetingCards);
+        foreach (var card in fleetingCards)
+        {
+            var conversationCard = ConvertToNewCard(card);
+            
+            // Execute exhaust effect if it exists
+            if (conversationCard.ExhaustEffect?.Type != CardEffectType.None)
+            {
+                if (!ExecuteExhaustEffect(conversationCard, session))
+                {
+                    // Exhaust effect ended conversation
+                    return false;
+                }
+            }
+            
+            // Remove from hand and add to exhausted pile
+            session.Hand.RemoveCard(card);
+            _exhaustedPile.Add(card);
+        }
+        
+        return true; // Conversation continues
     }
 
     /// <summary>
-    /// Check if any goal cards with Final Word are being discarded unplayed
-    /// This must be checked BEFORE removing fleeting cards
+    /// Exhaust all opportunity cards in hand (happens on LISTEN)
     /// </summary>
-    private bool CheckFinalWordFailure(HandDeck hand)
+    private bool ExhaustOpportunityCards(ConversationSession session)
     {
-        // Check for any goal cards with Final Word that are fleeting (will be discarded)
-        // Note: We check this before removal to catch the failure
-        var unplayedFinalWordGoals = hand.Cards
-            .Where(c => c.IsGoalCard && c.IsFleeting)
-            .Select(c => ConvertToNewCard(c))
-            .Where(card => card.HasFinalWord)
+        // Get all opportunity cards (including goals with both Fleeting + Opportunity)
+        List<CardInstance> opportunityCards = session.Hand.Cards
+            .Where(c => IsOpportunityCard(c))
             .ToList();
+        
+        foreach (var card in opportunityCards)
+        {
+            var conversationCard = ConvertToNewCard(card);
             
-        return unplayedFinalWordGoals.Any();
+            // Execute exhaust effect if it exists
+            if (conversationCard.ExhaustEffect?.Type != CardEffectType.None)
+            {
+                if (!ExecuteExhaustEffect(conversationCard, session))
+                {
+                    // Exhaust effect ended conversation
+                    return false;
+                }
+            }
+            
+            // Remove from hand and add to exhausted pile
+            session.Hand.RemoveCard(card);
+            _exhaustedPile.Add(card);
+        }
+        
+        return true; // Conversation continues
+    }
+
+    /// <summary>
+    /// Check if a card has the Opportunity property
+    /// </summary>
+    private bool IsOpportunityCard(CardInstance card)
+    {
+        var conversationCard = ConvertToNewCard(card);
+        return conversationCard.IsOpportunity;
+    }
+
+    /// <summary>
+    /// Execute a card's exhaust effect
+    /// </summary>
+    private bool ExecuteExhaustEffect(ConversationCard card, ConversationSession session)
+    {
+        if (card.ExhaustEffect == null || card.ExhaustEffect.Type == CardEffectType.None)
+            return true; // No exhaust effect, conversation continues
+
+        switch (card.ExhaustEffect.Type)
+        {
+            case CardEffectType.EndConversation:
+                // Goal cards typically have this - conversation ends in failure
+                // The orchestrator will handle the actual ending
+                return false; // Signal conversation should end
+
+            case CardEffectType.SetAtmosphere:
+                if (Enum.TryParse<AtmosphereType>(card.ExhaustEffect.Value, out var atmosphere))
+                {
+                    _atmosphereManager.SetAtmosphere(atmosphere);
+                }
+                return true;
+
+            case CardEffectType.DrawCards:
+                if (int.TryParse(card.ExhaustEffect.Value, out int count))
+                {
+                    var drawnCards = session.Deck.DrawCards(count);
+                    session.Hand.AddCards(drawnCards);
+                }
+                return true;
+
+            case CardEffectType.AddComfort:
+                if (int.TryParse(card.ExhaustEffect.Value, out int comfort))
+                {
+                    session.ComfortBattery += comfort;
+                    session.ComfortBattery = Math.Clamp(session.ComfortBattery, -3, 3);
+                }
+                return true;
+
+            case CardEffectType.AddWeight:
+                if (int.TryParse(card.ExhaustEffect.Value, out int weight))
+                {
+                    _weightPoolManager.AddWeight(weight);
+                }
+                return true;
+
+            default:
+                // Unknown exhaust effect, log and continue
+                Console.WriteLine($"[CardDeckManager] Unknown exhaust effect type: {card.ExhaustEffect.Type}");
+                return true;
+        }
+    }
+
+    /// <summary>
+    /// Get all exhausted cards (separate from discard)
+    /// </summary>
+    public IReadOnlyList<CardInstance> GetExhaustedCards()
+    {
+        return _exhaustedPile.AsReadOnly();
     }
 
     /// <summary>
@@ -279,16 +389,28 @@ public class CardDeckManager
             // Convert effect to new three-effect system
             SuccessEffect = CreateLegacySuccessEffect(instance),
             FailureEffect = CardEffect.None,
-            ExhaustEffect = CardEffect.None
-            // Don't set HasFinalWord - set Properties instead
+            ExhaustEffect = CardEffect.None,
+            // Goal cards are identified by Properties list (Fleeting + Opportunity)
             DialogueText = instance.DialogueFragment
         };
         
         // Set properties based on instance state
         if (instance.IsGoalCard)
         {
+            // Goal cards have both Fleeting and Opportunity properties
             card.Properties.Add(CardProperty.Fleeting);
             card.Properties.Add(CardProperty.Opportunity);
+            
+            // Set exhaust effect to end conversation for goal cards
+            card.ExhaustEffect = new CardEffect
+            {
+                Type = CardEffectType.EndConversation,
+                Value = "goal_exhausted",
+                Data = new Dictionary<string, object>
+                {
+                    { "reason", "Goal card exhausted without being played" }
+                }
+            };
         }
         else if (instance.Persistence == PersistenceType.Fleeting)
         {

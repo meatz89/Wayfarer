@@ -4,7 +4,7 @@ using System.Linq;
 
 /// <summary>
 /// Orchestrates the new conversation system with comfort battery, atmosphere persistence, and single-card mechanics.
-/// Handles state transitions at ±3, weight pool management, and Final Word goals.
+/// Handles state transitions at ±3, weight pool management, and goal card exhaust mechanics.
 /// </summary>
 public class ConversationOrchestrator
 {
