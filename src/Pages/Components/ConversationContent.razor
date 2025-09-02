@@ -23,9 +23,21 @@
                         <span class="indicator-label">Patience</span>
                         <span class="indicator-value">@Session.CurrentPatience/@Session.MaxPatience</span>
                     </div>
-                    <div class="indicator">
+                    <div class="weight-pool-indicator">
                         <span class="indicator-label">Weight Pool</span>
-                        <span class="indicator-value">@GetWeightPoolDisplay()</span>
+                        <div class="weight-pool-display">
+                            <span class="weight-value">@GetWeightPoolDisplay()</span>
+                            <div class="weight-dots">
+                                @for (int i = 0; i < (Session?.GetEffectiveWeightCapacity() ?? 5); i++)
+                                {
+                                    <span class="weight-dot @(i < (Session?.GetAvailableWeight() ?? 0) ? "filled" : "empty")">●</span>
+                                }
+                            </div>
+                            @if (Session?.CurrentAtmosphere == AtmosphereType.Prepared)
+                            {
+                                <span class="atmosphere-bonus">(+1 from Prepared)</span>
+                            }
+                        </div>
                     </div>
                     <div class="comfort-indicator">
                         <span class="indicator-label">Comfort</span>

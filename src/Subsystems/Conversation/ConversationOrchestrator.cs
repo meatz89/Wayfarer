@@ -16,6 +16,7 @@ public class ConversationOrchestrator
     private readonly AtmosphereManager _atmosphereManager;
     private readonly CardEffectProcessor _effectProcessor;
     private readonly GameWorld _gameWorld;
+    private ComfortBatteryManager? _comfortBatteryManager;
 
     public ConversationOrchestrator(
         CardDeckManager deckManager,
@@ -44,6 +45,11 @@ public class ConversationOrchestrator
     {
         // All conversations start in NEUTRAL state
         EmotionalState initialState = EmotionalState.NEUTRAL;
+
+        // Initialize comfort battery manager
+        _comfortBatteryManager = new ComfortBatteryManager(initialState);
+        _comfortBatteryManager.StateTransitioned += OnStateTransitioned;
+        _comfortBatteryManager.ConversationEnded += OnConversationEnded;
 
         // Initialize weight pool manager
         _weightPoolManager.SetBaseCapacity(initialState);
@@ -138,29 +144,26 @@ public class ConversationOrchestrator
         int oldComfort = session.ComfortBattery;
         int comfortChange = playResult.TotalComfort;
 
-        // Update comfort battery (clamped to -3 to +3)
-        session.ComfortBattery = Math.Clamp(session.ComfortBattery + comfortChange, -3, 3);
-
-        // Check for state transitions at ±3
+        // Apply comfort change through battery manager
+        bool conversationEnded = false;
         EmotionalState newState = session.CurrentState;
-        if (Math.Abs(session.ComfortBattery) >= 3)
+        
+        if (_comfortBatteryManager != null && comfortChange != 0)
         {
-            newState = ProcessStateTransition(session.CurrentState, session.ComfortBattery);
-            if (newState != session.CurrentState)
+            var (stateChanged, resultState, shouldEnd) = 
+                _comfortBatteryManager.ApplyComfortChange(comfortChange, session.CurrentAtmosphere);
+            
+            session.ComfortBattery = _comfortBatteryManager.CurrentComfort;
+            conversationEnded = shouldEnd;
+            
+            if (stateChanged)
             {
+                newState = resultState;
                 session.CurrentState = newState;
-                session.ComfortBattery = 0; // Reset battery on transition
-
+                
                 // Update weight pool capacity for new state
                 _weightPoolManager.SetBaseCapacity(newState);
             }
-        }
-
-        // Check if conversation should end (DESPERATE at -3)
-        bool conversationEnded = false;
-        if (session.CurrentState == EmotionalState.DESPERATE && session.ComfortBattery <= -3)
-        {
-            conversationEnded = true;
         }
 
         // Update session atmosphere
@@ -199,38 +202,19 @@ public class ConversationOrchestrator
     }
 
     /// <summary>
-    /// Process state transition at ±3 comfort
+    /// Handle state transition event from comfort battery
     /// </summary>
-    private EmotionalState ProcessStateTransition(EmotionalState currentState, int comfortLevel)
+    private void OnStateTransitioned(EmotionalState oldState, EmotionalState newState)
     {
-        if (comfortLevel >= 3)
-        {
-            // Move right (toward Connected)
-            return currentState switch
-            {
-                EmotionalState.DESPERATE => EmotionalState.TENSE,
-                EmotionalState.TENSE => EmotionalState.NEUTRAL,
-                EmotionalState.NEUTRAL => EmotionalState.OPEN,
-                EmotionalState.OPEN => EmotionalState.CONNECTED,
-                EmotionalState.CONNECTED => EmotionalState.CONNECTED, // Stay at max
-                _ => EmotionalState.NEUTRAL
-            };
-        }
-        else if (comfortLevel <= -3)
-        {
-            // Move left (toward Desperate)
-            return currentState switch
-            {
-                EmotionalState.CONNECTED => EmotionalState.OPEN,
-                EmotionalState.OPEN => EmotionalState.NEUTRAL,
-                EmotionalState.NEUTRAL => EmotionalState.TENSE,
-                EmotionalState.TENSE => EmotionalState.DESPERATE,
-                EmotionalState.DESPERATE => EmotionalState.DESPERATE, // Stay - conversation ends
-                _ => EmotionalState.NEUTRAL
-            };
-        }
+        // Log or handle state transition if needed
+    }
 
-        return currentState; // No transition
+    /// <summary>
+    /// Handle conversation ended event from comfort battery
+    /// </summary>
+    private void OnConversationEnded()
+    {
+        // Conversation ends due to DESPERATE at -3
     }
 
     /// <summary>
@@ -242,8 +226,10 @@ public class ConversationOrchestrator
         if (session.CurrentPatience <= 0)
             return true;
 
-        // End if DESPERATE with -3 comfort (handled in ProcessSpeakAction)
-        if (session.CurrentState == EmotionalState.DESPERATE && session.ComfortBattery <= -3)
+        // Check with comfort battery manager
+        if (_comfortBatteryManager != null && 
+            _comfortBatteryManager.CurrentState == EmotionalState.DESPERATE && 
+            _comfortBatteryManager.CurrentComfort <= -3)
             return true;
 
         // End if Final atmosphere and any card failed (handled by AtmosphereManager)

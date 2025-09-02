@@ -781,16 +781,25 @@ namespace Wayfarer.Pages.Components
 
             List<string> classes = new List<string>();
 
+            // Clamp comfort to valid range
+            int comfort = Math.Clamp(Session.ComfortBattery, -3, 3);
+
             // Always add color class based on position
             if (dotPosition < 0)
                 classes.Add("negative");
             else if (dotPosition > 0)
                 classes.Add("positive");
-            // Position 0 gets no color class (neutral)
+            else
+                classes.Add("neutral");
 
             // Add current class if this is the current position
-            if (dotPosition == Session.CurrentComfort)
+            if (dotPosition == comfort)
                 classes.Add("current");
+                
+            // Add filled class for intermediate positions
+            if ((comfort > 0 && dotPosition > 0 && dotPosition < comfort) ||
+                (comfort < 0 && dotPosition < 0 && dotPosition > comfort))
+                classes.Add("filled");
 
             return string.Join(" ", classes);
         }
@@ -814,15 +823,23 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return "Draw cards";
 
-            return Session.CurrentState switch
+            string drawText = Session.CurrentState switch
             {
-                EmotionalState.DESPERATE => "Draw desperate cards",
-                EmotionalState.TENSE => "Draw tense cards",
-                EmotionalState.NEUTRAL => "Draw neutral cards",
-                EmotionalState.OPEN => "Draw open cards",
-                EmotionalState.CONNECTED => "Draw connected cards",
+                EmotionalState.DESPERATE => "Draw 1 card",
+                EmotionalState.TENSE => "Draw 2 cards",
+                EmotionalState.NEUTRAL => "Draw 2 cards",
+                EmotionalState.OPEN => "Draw 3 cards",
+                EmotionalState.CONNECTED => "Draw 3 cards",
                 _ => "Draw cards"
             };
+            
+            // Add atmosphere modifier info
+            if (Session.CurrentAtmosphere == AtmosphereType.Receptive)
+                drawText += " (+1 from Receptive)";
+            else if (Session.CurrentAtmosphere == AtmosphereType.Pressured)
+                drawText += " (-1 from Pressured)";
+                
+            return drawText + " & refresh weight pool";
         }
 
         protected string GetSpeakActionText()
@@ -830,10 +847,18 @@ namespace Wayfarer.Pages.Components
             if (SelectedCard != null)
             {
                 int weight = SelectedCard.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL);
-                return $"Play {GetProperCardName(SelectedCard)} ({weight} weight)";
+                int remainingAfter = (Session?.GetAvailableWeight() ?? 0) - weight;
+                string continueHint = remainingAfter > 0 ? $" (Can SPEAK {remainingAfter} more)" : " (Must LISTEN after)";
+                return $"Play {GetProperCardName(SelectedCard)} ({weight} weight){continueHint}";
             }
-            int limit = GetWeightLimit();
-            return $"Select a card to play (max weight: {limit})";
+            
+            int availableWeight = Session?.GetAvailableWeight() ?? 0;
+            if (availableWeight == 0)
+                return "No weight remaining - must LISTEN to refresh";
+            else if (availableWeight == 1)
+                return "Select a card to play (1 weight remaining)";
+            else
+                return $"Select a card to play ({availableWeight} weight available)";
         }
 
         protected string GetProperCardName(CardInstance card)
@@ -1765,7 +1790,8 @@ namespace Wayfarer.Pages.Components
         protected string GetWeightPoolDisplay()
         {
             if (Session == null) return "0/5";
-            return $"{Session.CurrentWeightPool}/{Session.GetEffectiveWeightCapacity()}";
+            // Display available weight / max capacity (not spent weight)
+            return $"{Session.GetAvailableWeight()}/{Session.GetEffectiveWeightCapacity()}";
         }
 
         protected string GetComfortBatteryDisplay()

@@ -95,13 +95,14 @@ public class CardDeckManager
         bool success = _effectProcessor.RollForSuccess(successPercentage);
         int roll = _random.Next(1, 101);
 
+        // Spend weight regardless of success - weight represents effort of speaking
+        _weightPoolManager.SpendWeight(selectedCard.Weight);
+
         CardEffectResult effectResult = null;
         int comfortChange = 0;
 
         if (success)
         {
-            // Spend weight
-            _weightPoolManager.SpendWeight(selectedCard.Weight);
 
             // Process card effect
             effectResult = _effectProcessor.ProcessCardEffect(card, session);

@@ -826,40 +826,116 @@ body {
     gap: 10px;
 }
 
+.comfort-battery {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.comfort-value {
+    font-weight: bold;
+    font-size: 14px;
+    min-width: 25px;
+    text-align: center;
+}
+
 .comfort-dots {
     display: flex;
     gap: 4px;
     align-items: center;
+    padding: 0 8px;
 }
 
 .comfort-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+    width: 12px;
+    height: 20px;
     background: #e8dcc4;
     border: 1px solid #a68b6f;
     transition: all 0.3s ease;
+    position: relative;
 }
 
+/* -3 to -1 positions */
 .comfort-dot.negative {
-    background: #d4704a;
+    background: linear-gradient(to bottom, #d4704a, #b85030);
+    border-color: #8b4726;
 }
 
+.comfort-dot.negative.filled {
+    background: linear-gradient(to bottom, #ff6040, #d4704a);
+    box-shadow: 0 0 4px rgba(212, 112, 74, 0.5);
+}
+
+/* 0 position */
+.comfort-dot.neutral {
+    background: linear-gradient(to bottom, #f0e68c, #d4c5a0);
+    border-color: #a68b6f;
+    width: 14px;
+}
+
+/* +1 to +3 positions */
 .comfort-dot.positive {
-    background: #7a8b5a;
+    background: linear-gradient(to bottom, #7a8b5a, #5a6b3a);
+    border-color: #4a5b2a;
 }
 
+.comfort-dot.positive.filled {
+    background: linear-gradient(to bottom, #8aab6a, #7a8b5a);
+    box-shadow: 0 0 4px rgba(122, 139, 90, 0.5);
+}
+
+/* Current position marker */
 .comfort-dot.current {
-    width: 12px;
-    height: 12px;
-    background: #5c4a3a;
     border: 2px solid #3d3429;
+    box-shadow: 0 0 8px rgba(60, 52, 41, 0.8);
+    transform: scale(1.2);
+}
+
+.comfort-dot.current::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid #3d3429;
 }
 
 .comfort-transition-hint {
-    font-size: 10px;
+    font-size: 11px;
     color: #8b4726;
     font-style: italic;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Warning states */
+.comfort-transition-hint:contains("WARNING") {
+    color: #d4704a;
+    font-weight: bold;
+    animation: warning-pulse 1s infinite;
+}
+
+@keyframes warning-pulse {
+    0%, 100% { 
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
 }
 
 /* Token Strip */

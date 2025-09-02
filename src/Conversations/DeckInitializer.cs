@@ -111,10 +111,26 @@ public class DeckInitializer
             {
                 deck.Add(fillerCards[random.Next(fillerCards.Count)].DeepClone());
             }
-            else
+            else if (fixedComfortCards.Count > 0)
             {
                 // Fallback to any card
                 deck.Add(fixedComfortCards[random.Next(fixedComfortCards.Count)].DeepClone());
+            }
+            else
+            {
+                // Emergency fallback - create a basic card
+                deck.Add(new ConversationCard
+                {
+                    Id = $"emergency_{Guid.NewGuid()}",
+                    Name = "Basic Talk",
+                    Description = "A simple conversation",
+                    TokenType = primaryType,
+                    Weight = 1,
+                    Difficulty = Difficulty.Easy,
+                    EffectType = CardEffectType.FixedComfort,
+                    EffectValue = 1,
+                    Persistence = PersistenceType.Persistent
+                });
             }
         }
         

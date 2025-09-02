@@ -46,61 +46,59 @@ namespace Wayfarer.Tests
                 },
                 Content = new PackageContent
                 {
-                    Cards = new List<CardData>
+                    Cards = new List<ConversationCardDTO>
                     {
-                        new CardData
+                        new ConversationCardDTO
                         {
                             Id = "test_card_1",
-                            TokenType = "Trust",
+                            Type = "Single",
+                            ConnectionType = "Trust",
                             Weight = 1,
-                            Difficulty = "Easy",
                             Persistence = "Persistent",
-                            EffectType = "FixedComfort",
-                            EffectValue = 1
+                            BaseComfort = 1
                         }
                     },
-                    Npcs = new List<NpcData>
+                    Npcs = new List<NPCDTO>
                     {
-                        new NpcData
+                        new NPCDTO
                         {
                             Id = "test_npc_1",
                             Name = "Test NPC",
                             PersonalityType = "Devoted",
                             BasePatience = 15,
-                            CurrentState = "Neutral",
+                            InitialEmotionalState = "Neutral",
                             ConversationDeckCardIds = new List<string> { "test_card_1" }
                         }
                     },
-                    Spots = new List<SpotData>
+                    Spots = new List<LocationSpotDTO>
                     {
-                        new SpotData
+                        new LocationSpotDTO
                         {
                             Id = "test_spot_1",
                             Name = "Test Spot",
-                            LocationName = "Test Location",
+                            LocationId = "Test Location",
                             District = "Test District",
-                            Properties = new List<string> { "Crossroads" }
+                            SpotTraits = new List<string> { "Crossroads" }
                         }
                     },
-                    Routes = new List<RouteData>
+                    Routes = new List<RouteDTO>
                     {
-                        new RouteData
+                        new RouteDTO
                         {
                             Id = "test_route_1",
                             FromSpotId = "test_spot_1",
                             ToSpotId = "test_spot_2",
-                            TravelMinutes = 10
+                            TravelTimeMinutes = 10
                         }
                     },
-                    Observations = new List<ObservationData>
+                    Observations = new List<ObservationDTO>
                     {
-                        new ObservationData
+                        new ObservationDTO
                         {
                             Id = "test_obs_1",
-                            SpotId = "test_spot_1",
-                            TimePeriod = "Morning",
-                            AttentionCost = 1,
-                            ObservationCardId = "test_obs_card_1"
+                            DisplayText = "Test observation",
+                            Category = "Normal",
+                            Weight = 1
                         }
                     }
                 }
@@ -115,9 +113,9 @@ namespace Wayfarer.Tests
             // Assert
             Assert.That(gameWorld.AllCardDefinitions.Count, Is.EqualTo(1));
             Assert.That(gameWorld.NPCs.Count, Is.EqualTo(1));
-            Assert.That(gameWorld.Locations.Count, Is.GreaterThan(0));
-            Assert.That(gameWorld.Routes.Count, Is.EqualTo(1));
-            Assert.That(gameWorld.Observations.Count, Is.EqualTo(1));
+            Assert.That(gameWorld.WorldState.locationSpots.Count, Is.GreaterThan(0));
+            Assert.That(gameWorld.WorldState.Routes.Count, Is.EqualTo(1));
+            Assert.That(gameWorld.PlayerObservationCards.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -129,27 +127,25 @@ namespace Wayfarer.Tests
                 PackageId = "test_cards_only",
                 Content = new PackageContent
                 {
-                    Cards = new List<CardData>
+                    Cards = new List<ConversationCardDTO>
                     {
-                        new CardData
+                        new ConversationCardDTO
                         {
                             Id = "test_card_1",
-                            TokenType = "Trust",
+                            Type = "Single",
+                            ConnectionType = "Trust",
                             Weight = 1,
-                            Difficulty = "Easy",
                             Persistence = "Persistent",
-                            EffectType = "FixedComfort",
-                            EffectValue = 1
+                            BaseComfort = 1
                         },
-                        new CardData
+                        new ConversationCardDTO
                         {
                             Id = "test_card_2",
-                            TokenType = "Commerce",
+                            Type = "Combine",
+                            ConnectionType = "Commerce",
                             Weight = 2,
-                            Difficulty = "Medium",
                             Persistence = "Fleeting",
-                            EffectType = "Draw",
-                            EffectValue = 2
+                            BaseComfort = 2
                         }
                     }
                 }
@@ -173,31 +169,31 @@ namespace Wayfarer.Tests
             var package = new Package
             {
                 PackageId = "test_starting",
-                StartingConditions = new StartingConditions
+                StartingConditions = new PackageStartingConditions
                 {
-                    PlayerResources = new PlayerResources
+                    PlayerConfig = new PlayerInitialConfig
                     {
                         Coins = 50,
                         Health = 100,
-                        Hunger = 25,
-                        Attention = 8
+                        Food = 25,
+                        StaminaPoints = 8
                     },
                     StartingSpotId = "test_spot_1",
-                    StartingQueue = new List<ObligationData>
+                    StartingObligations = new List<StandingObligationDTO>
                     {
-                        new ObligationData
+                        new StandingObligationDTO
                         {
                             Id = "test_obligation_1",
                             Type = "Letter",
-                            SenderId = "test_npc_1",
-                            RecipientId = "test_npc_2",
-                            DeadlineHours = 24,
+                            FromNpcId = "test_npc_1",
+                            ToNpcId = "test_npc_2",
+                            DeadlineDay = 2,
                             Payment = 10
                         }
                     },
-                    StartingTokens = new Dictionary<string, TokenSet>
+                    StartingTokens = new Dictionary<string, NPCTokenRelationship>
                     {
-                        ["test_npc_1"] = new TokenSet { Trust = 2, Commerce = 1 }
+                        ["test_npc_1"] = new NPCTokenRelationship { Trust = 2, Commerce = 1 }
                     }
                 }
             };
@@ -210,10 +206,10 @@ namespace Wayfarer.Tests
 
             // Assert
             Assert.That(gameWorld.PlayerCoins, Is.EqualTo(50));
-            Assert.That(gameWorld.Player.Health, Is.EqualTo(100));
-            Assert.That(gameWorld.Player.Hunger, Is.EqualTo(25));
-            Assert.That(gameWorld.WorldState.CurrentLocationSpotId, Is.EqualTo("test_spot_1"));
-            Assert.That(gameWorld.ObligationQueue.Count, Is.EqualTo(1));
+            Assert.That(gameWorld.GetPlayer().Health, Is.EqualTo(100));
+            Assert.That(gameWorld.GetPlayer().Food, Is.EqualTo(25));
+            Assert.That(gameWorld.GetPlayer().CurrentLocationSpot?.SpotID, Is.EqualTo("test_spot_1"));
+            Assert.That(gameWorld.GetPlayer().ObligationQueue.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -225,13 +221,13 @@ namespace Wayfarer.Tests
                 PackageId = "test_package_1",
                 Content = new PackageContent
                 {
-                    Cards = new List<CardData>
+                    Cards = new List<ConversationCardDTO>
                     {
-                        new CardData { Id = "card_1", TokenType = "Trust", Weight = 1 }
+                        new ConversationCardDTO { Id = "card_1", ConnectionType = "Trust", Weight = 1 }
                     },
-                    Npcs = new List<NpcData>
+                    Npcs = new List<NPCDTO>
                     {
-                        new NpcData { Id = "npc_1", Name = "NPC 1" }
+                        new NPCDTO { Id = "npc_1", Name = "NPC 1" }
                     }
                 }
             };
@@ -241,13 +237,13 @@ namespace Wayfarer.Tests
                 PackageId = "test_package_2",
                 Content = new PackageContent
                 {
-                    Cards = new List<CardData>
+                    Cards = new List<ConversationCardDTO>
                     {
-                        new CardData { Id = "card_2", TokenType = "Commerce", Weight = 2 }
+                        new ConversationCardDTO { Id = "card_2", ConnectionType = "Commerce", Weight = 2 }
                     },
-                    Npcs = new List<NpcData>
+                    Npcs = new List<NPCDTO>
                     {
-                        new NpcData { Id = "npc_2", Name = "NPC 2" }
+                        new NPCDTO { Id = "npc_2", Name = "NPC 2" }
                     }
                 }
             };
@@ -284,22 +280,22 @@ namespace Wayfarer.Tests
                 },
                 Content = new PackageContent
                 {
-                    Cards = new List<CardData>
+                    Cards = new List<ConversationCardDTO>
                     {
-                        new CardData
+                        new ConversationCardDTO
                         {
                             Id = "gen001_card_1",
-                            TokenType = "Shadow",
+                            ConnectionType = "Shadow",
                             Weight = 3,
                             Difficulty = "Hard",
                             Persistence = "Opportunity",
                             EffectType = "ScaledComfort",
-                            ScalingFormula = "TokenCount:Shadow"
+                            EffectFormula = "TokenCount:Shadow"
                         }
                     },
-                    Npcs = new List<NpcData>
+                    Npcs = new List<NPCDTO>
                     {
-                        new NpcData
+                        new NPCDTO
                         {
                             Id = "gen001_npc_silva",
                             Name = "Silva the Whisperer",
@@ -319,7 +315,7 @@ namespace Wayfarer.Tests
             // Assert
             Assert.That(gameWorld.AllCardDefinitions.ContainsKey("gen001_card_1"), Is.True);
             Assert.That(gameWorld.NPCs.Count, Is.EqualTo(1));
-            Assert.That(gameWorld.NPCs[0].Id, Is.EqualTo("gen001_npc_silva"));
+            Assert.That(gameWorld.NPCs[0].ID, Is.EqualTo("gen001_npc_silva"));
         }
 
         [Test]

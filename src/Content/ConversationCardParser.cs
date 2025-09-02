@@ -149,7 +149,7 @@ public class ConversationCardParser
         };
     }
 
-    private ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null)
+    public ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null)
     {
         // Parse mechanics from template string or default to Standard
         CardMechanicsType mechanics = CardMechanicsType.Standard;
