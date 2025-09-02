@@ -109,8 +109,7 @@ public class ObservationCard : ConversationCard
             SuccessEffect = card.SuccessEffect,
             FailureEffect = card.FailureEffect,
             ExhaustEffect = card.ExhaustEffect,
-            CreatedAt = DateTime.Now,
-            ConversationCard = card
+            CreatedAt = DateTime.Now
         };
 
         return observation;
@@ -145,4 +144,6 @@ public class ObservationCard : ConversationCard
 
         return observation;
     }
+    
+    public ConversationCard ConversationCard { get; set; }
 }

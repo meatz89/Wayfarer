@@ -193,7 +193,8 @@ public class ConversationSession
             TurnNumber = 0,
             Deck = sessionDeck,
             Hand = new HandDeck(),
-            TokenManager = tokenManager
+            TokenManager = tokenManager,
+            ObservationCards = obsCards
         };
 
         return session;

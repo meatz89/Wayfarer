@@ -511,6 +511,12 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         }
 
         #endregion
+        
+        public int AddLetterWithObligationEffects(DeliveryObligation obligation)
+        {
+            ObligationAddResult result = AddObligationWithEffects(obligation);
+            return result.Success ? result.Position : 0;
+        }
 
         // Private helper methods
 

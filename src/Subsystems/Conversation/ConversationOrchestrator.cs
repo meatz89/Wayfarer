@@ -345,7 +345,17 @@ public class ConversationOrchestrator
 
         return Math.Max(0, baseReward);
     }
+    
+    public ConversationTurnResult ProcessSpeakAction(ConversationSession session, HashSet<CardInstance> selectedCards)
+    {
+        CardInstance? firstCard = selectedCards?.FirstOrDefault();
+        if (firstCard == null)
+        {
+            throw new ArgumentException("Must select exactly one card to speak");
+        }
 
+        return ProcessSpeakAction(session, firstCard);
+    }
 
     /// <summary>
     /// Create exchange session (simplified for new system)

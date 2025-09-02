@@ -49,6 +49,60 @@ public class CardInstance
         if (Properties.Contains(CardProperty.Exchange)) return "card-exchange";
         return "card-standard";
     }
+    
+    public string Category
+    {
+        get
+        {
+            if (Properties.Contains(CardProperty.Exchange)) return nameof(CardCategory.Exchange);
+            if (IsBurden) return nameof(CardCategory.Burden);
+            if (IsGoal) return nameof(CardCategory.Promise);
+            if (IsObservable) return "Observation";
+            return nameof(CardCategory.Comfort);
+        }
+    }
+    
+    public CardType Type
+    {
+        get
+        {
+            if (IsGoal) return CardType.Goal;
+            if (IsObservable) return CardType.Observation;
+            return CardType.Normal;
+        }
+    }
+    
+    public EmotionalState? SuccessState => null;
+    public EmotionalState? FailureState => null;
+    public int BaseComfort => 1;
+    public string DisplayName => Name;
+    public bool CanDeliverLetter => Properties.Contains(CardProperty.DeliveryEligible);
+    public string DeliveryObligationId => "";
+    public string ObservationSource => "";
+    public bool IsExchange => Properties.Contains(CardProperty.Exchange);
+    public CardMechanicsType Mechanics => Properties.Contains(CardProperty.Exchange) ? CardMechanicsType.Exchange : CardMechanicsType.Standard;
+    
+    public int GetEffectiveWeight(EmotionalState state) => Weight;
+    public int CalculateSuccessChance() => GetBaseSuccessPercentage();
+    public int CalculateSuccessChance(EmotionalState state) => GetBaseSuccessPercentage();
+    public ConnectionType GetConnectionType() => TokenType switch
+    {
+        TokenType.Trust => ConnectionType.Trust,
+        TokenType.Commerce => ConnectionType.Commerce,
+        TokenType.Status => ConnectionType.Status,
+        TokenType.Shadow => ConnectionType.Shadow,
+        _ => ConnectionType.None
+    };
+    
+    private int GetBaseSuccessPercentage() => Difficulty switch
+    {
+        Difficulty.VeryEasy => 85,
+        Difficulty.Easy => 70,
+        Difficulty.Medium => 60,
+        Difficulty.Hard => 50,
+        Difficulty.VeryHard => 40,
+        _ => 60
+    };
 
     public CardInstance() { }
 
