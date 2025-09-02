@@ -1089,22 +1089,24 @@
         "dialogueFragment": "Give me a moment to consider this properly."
       },
       {
-        "id": "goal_letter_delivery",
+        "id": "elena_urgent_refusal",
         "type": "Goal",
         "cardType": "Goal",
-        "personalityTypes": ["ALL"],
+        "personalityTypes": ["DEVOTED"],
         "weight": 5,
         "properties": ["Fleeting", "Opportunity"],
         "connectionType": "Trust",
-        "description": "Deliver urgent letter",
+        "description": "Please take my letter!",
         "difficulty": "VeryHard",
         "successEffect": {
-          "type": "EndConversation",
-          "value": "success",
+          "type": "CreateObligation",
+          "value": "letter_delivery",
           "data": {
-            "createsObligation": true,
             "obligationType": "delivery",
+            "position": 1,
             "deadline": 73,
+            "recipientId": "lord_blackwood",
+            "letterId": "elena_refusal",
             "payment": 10,
             "tokenReward": {"Trust": 2}
           }
@@ -1113,22 +1115,19 @@
           "type": "EndConversation",
           "value": "failure",
           "data": {
-            "createsObligation": true,
-            "obligationType": "delivery",
-            "deadline": 24,
-            "payment": -5,
-            "penalty": "burden_card"
+            "reason": "Failed to accept letter",
+            "consequence": "Elena forced into marriage"
           }
         },
         "exhaustEffect": {
           "type": "EndConversation",
           "value": "abandoned",
           "data": {
-            "reason": "Failed to act on urgent letter",
+            "reason": "Failed to help Elena",
             "relationshipPenalty": -2
           }
         },
-        "dialogueFragment": "Please, take this letter before it's too late!"
+        "dialogueFragment": "No, no, no... you don't understand! Lord Blackwood leaves at sunset. If this letter doesn't reach him, my father will sign the marriage contract tonight!"
       },
       {
         "id": "goal_meeting",
@@ -1247,6 +1246,127 @@
           "type": "None"
         },
         "dialogueFragment": "5 coins for a room and a good night's rest."
+      },
+      {
+        "id": "marcus_trade_goods",
+        "type": "Exchange",
+        "cardType": "Exchange",
+        "personalityTypes": ["MERCANTILE"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Commerce",
+        "description": "Trade goods",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "Exchange",
+          "value": "trade",
+          "data": {
+            "cost": {"coins": 5},
+            "reward": {"item": "common_goods"}
+          }
+        },
+        "dialogueFragment": "5 coins for quality goods. Fair price in this market."
+      },
+      {
+        "id": "marcus_bulk_purchase",
+        "type": "Exchange",
+        "cardType": "Exchange",
+        "personalityTypes": ["MERCANTILE"],
+        "weight": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Commerce",
+        "description": "Bulk purchase",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "Exchange",
+          "value": "bulk_trade",
+          "data": {
+            "cost": {"coins": 10},
+            "reward": {"items": 3}
+          }
+        },
+        "dialogueFragment": "Buy in bulk and save! 10 coins for three items."
+      },
+      {
+        "id": "bertram_hot_meal",
+        "type": "Exchange",
+        "cardType": "Exchange",
+        "personalityTypes": ["STEADFAST"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Commerce",
+        "description": "Hot meal",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "Exchange",
+          "value": "food",
+          "data": {
+            "cost": {"coins": 3},
+            "reward": {"hunger": -20}
+          }
+        },
+        "dialogueFragment": "3 coins for a hot meal. Best stew in the district!"
+      },
+      {
+        "id": "bertram_room_for_night",
+        "type": "Exchange",
+        "cardType": "Exchange",
+        "personalityTypes": ["STEADFAST"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Commerce",
+        "description": "Room for the night",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "Exchange",
+          "value": "lodging",
+          "data": {
+            "cost": {"coins": 5},
+            "reward": {"stamina": 10, "health": 5}
+          }
+        },
+        "dialogueFragment": "5 coins for a clean room and a good night's rest."
+      },
+      {
+        "id": "bertram_mug_of_ale",
+        "type": "Exchange",
+        "cardType": "Exchange",
+        "personalityTypes": ["STEADFAST"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Commerce",
+        "description": "Mug of ale",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "Exchange",
+          "value": "drink",
+          "data": {
+            "cost": {"coins": 2},
+            "reward": {"patience": 3}
+          }
+        },
+        "dialogueFragment": "2 coins for our finest ale. It'll ease your troubles."
+      },
+      {
+        "id": "guard_noble_permit",
+        "type": "Exchange",
+        "cardType": "Exchange",
+        "personalityTypes": ["STEADFAST", "PROUD"],
+        "weight": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Status",
+        "description": "Noble District Permit",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "Exchange",
+          "value": "permit",
+          "data": {
+            "cost": {"coins": 10},
+            "reward": {"item": "noble_district_permit"},
+            "unlocks": "noble_district_main_gate"
+          }
+        },
+        "dialogueFragment": "10 coins for a day pass to the Noble District. Don't cause trouble."
       }
     ],
     "successFormula": {
@@ -1882,7 +2002,9 @@
       "health": 10,
       "maxHealth": 10,
       "food": 10,
-      "maxFood": 10
+      "maxFood": 10,
+      "currentAttention": 10,
+      "maxAttention": 10
     },
     "startingSpotId": "corner_table",
     "startingObligations": [],
