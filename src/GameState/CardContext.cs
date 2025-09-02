@@ -38,3 +38,43 @@ public class CardContext
     public List<EmotionalState> ValidStates { get; set; }
     public ExchangeOffer ExchangeOffer { get; set; }
 }
+
+public class LetterDetails
+{
+    public string RecipientId { get; set; }
+    public string RecipientName { get; set; }
+    public string Description { get; set; }
+    public ConnectionType TokenType { get; set; }
+    public StakeType Stakes { get; set; }
+    public EmotionalWeight EmotionalWeight { get; set; }
+}
+
+public class EligibilityRequirements
+{
+    public List<EmotionalState> RequiredStates { get; set; } = new();
+    public Dictionary<ConnectionType, int> RequiredTokens { get; set; } = new();
+    public int MinTokens { get; set; }
+}
+
+public class NegotiationTerms
+{
+    public int BaseSuccessRate { get; set; }
+    public TermDetails SuccessTerms { get; set; }
+    public TermDetails FailureTerms { get; set; }
+}
+
+public class TermDetails
+{
+    public int DeadlineMinutes { get; set; }
+    public int QueuePosition { get; set; }
+    public int Payment { get; set; }
+    public bool ForcesPositionOne { get; set; }
+}
+
+public class PromiseCardConfiguration
+{
+    public string CardId { get; set; }
+    public EligibilityRequirements EligibilityRequirements { get; set; }
+    public NegotiationTerms NegotiationTerms { get; set; }
+    public LetterDetails LetterDetails { get; set; }
+}

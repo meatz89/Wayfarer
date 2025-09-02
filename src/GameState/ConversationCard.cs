@@ -10,7 +10,8 @@ public class ConversationCard
     // Properties list replaces all boolean flags
     public List<CardProperty> Properties { get; set; } = new List<CardProperty>();
     
-    // Skeleton tracking (for backward compatibility temporarily)
+    // Skeleton tracking - consistent with other entities
+    public bool IsSkeleton { get; set; } = false;
     public string SkeletonSource { get; set; } // What created this skeleton
     public TokenType TokenType { get; set; }
     public int Weight { get; set; }
@@ -31,7 +32,6 @@ public class ConversationCard
                                 && !Properties.Contains(CardProperty.Opportunity);
     public bool IsGoal => Properties.Contains(CardProperty.Fleeting) 
                           && Properties.Contains(CardProperty.Opportunity);
-    public bool IsSkeleton => Properties.Contains(CardProperty.Skeleton);
     public bool IsBurden => Properties.Contains(CardProperty.Burden);
     public bool IsObservable => Properties.Contains(CardProperty.Observable);
     public bool IsObservation => IsObservable; // Backward compatibility alias
