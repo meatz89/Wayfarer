@@ -591,11 +591,10 @@ public class ConversationFacade
         }
     }
 
-    public async System.Threading.Tasks.Task<bool> EndConversationAsync()
+    public System.Threading.Tasks.Task<bool> EndConversationAsync()
     {
-        // Run the synchronous EndConversation on a background thread to avoid blocking
-        ConversationOutcome outcome = await System.Threading.Tasks.Task.Run(() => EndConversation());
-        return outcome != null;
+        ConversationOutcome outcome = EndConversation();
+        return System.Threading.Tasks.Task.FromResult(outcome != null);
     }
 
     public int GetAttentionCost(ConversationType type)

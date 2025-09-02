@@ -448,23 +448,19 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     /// <summary>
     /// Accept a letter offer from an NPC by offer ID
     /// </summary>
-    public void AcceptLetterOfferId(string offerId)
+    public async Task AcceptLetterOfferIdAsync(string offerId)
     {
         if (CurrentLetterOffer == null) return;
 
-        // Use the facade to accept the offer
-        Task.Run(async () =>
-        {
-            bool success = await GameFacade.AcceptLetterOfferAsync(offerId);
+        bool success = await GameFacade.AcceptLetterOfferAsync(offerId);
 
-            if (success)
-            {
-                ShowLetterOfferDialog = false;
-                CurrentLetterOffer = null;
-                CurrentNPCOfferId = null;
-                StateHasChanged();
-            }
-        });
+        if (success)
+        {
+            ShowLetterOfferDialog = false;
+            CurrentLetterOffer = null;
+            CurrentNPCOfferId = null;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     /// <summary>
@@ -526,19 +522,15 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     /// <summary>
     /// Debug command to start tutorial manually
     /// </summary>
-    public void StartTutorialManually()
+    public async Task StartTutorialManuallyAsync()
     {
         try
         {
-            // Start game through facade
-            Task.Run(async () =>
-            {
-                await GameFacade.StartGameAsync();
+            await GameFacade.StartGameAsync();
 
-                List<SystemMessage> messages = GameFacade.GetSystemMessages();
-                Console.WriteLine($"Tutorial manually started. Messages: {messages.Count}");
-                StateHasChanged();
-            });
+            List<SystemMessage> messages = GameFacade.GetSystemMessages();
+            Console.WriteLine($"Tutorial manually started. Messages: {messages.Count}");
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {

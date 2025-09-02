@@ -80,9 +80,9 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         /// <summary>
         /// Spend time for an action.
         /// </summary>
-        public bool SpendTimeForAction(int hours, string actionDescription)
+        public async Task<bool> SpendTimeForActionAsync(int hours, string actionDescription)
         {
-            return _timeManager.SpendTime(hours, actionDescription).Result;
+            return await _timeManager.SpendTime(hours, actionDescription);
         }
 
         /// <summary>

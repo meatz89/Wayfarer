@@ -146,7 +146,7 @@
                         @foreach (var option in npc.ConversationOptions)
                         {
                             <div class="npc-action @GetActionClass(option.Type) @(!option.IsAvailable ? "unavailable" : "")" 
-                                 @onclick="() => { if (option.IsAvailable) StartTypedConversation(npc.Id, option.Type); }">
+                                 @onclick="async () => { if (option.IsAvailable) await StartTypedConversation(npc.Id, option.Type); }">
                                 <span class="action-type">@option.Label</span>
                                 <span class="action-details">
                                     @if (option.AttentionCost == 0)
@@ -225,7 +225,7 @@
                 {
                     var isCurrentSpot = spot.Id == CurrentSpot?.Name;
                     <div class="spot-card @(isCurrentSpot ? "current" : "")" 
-                         @onclick="() => { if (!isCurrentSpot) MoveToSpot(spot.Id); }">
+                         @onclick="async () => { if (!isCurrentSpot) await MoveToSpot(spot.Id); }">
                         <div class="spot-card-name">@spot.Name</div>
                         @{
                             var npcsAtSpot = GetNPCsAtSpot(spot.Id);
