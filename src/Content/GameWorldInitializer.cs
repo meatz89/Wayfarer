@@ -21,9 +21,11 @@ public static class GameWorldInitializer
         // Create new GameWorld instance
         GameWorld gameWorld = new GameWorld();
         
-        // Create PackageLoader and load content from the Content directory
+        // Create PackageLoader and load content from the Core directory
+        // AI-generated content will go in Content/Generated
+        // Test packages are in Content/TestPackages
         PackageLoader packageLoader = new PackageLoader(gameWorld);
-        packageLoader.LoadPackagesFromDirectory("Content");
+        packageLoader.LoadPackagesFromDirectory("Content/Core");
 
         Console.WriteLine("[FACTORY] GameWorldInitializer.CreateGameWorld completed");
         return gameWorld;

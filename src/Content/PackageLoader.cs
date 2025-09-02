@@ -47,7 +47,7 @@ public class PackageLoader
     /// </summary>
     public void LoadPackagesFromDirectory(string directoryPath)
     {
-        List<string> packageFiles = Directory.GetFiles(directoryPath, "*.json")
+        List<string> packageFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.AllDirectories)
             .OrderBy(f => 
             {
                 // Core packages first (priority 0)

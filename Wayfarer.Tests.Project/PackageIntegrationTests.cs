@@ -16,7 +16,7 @@ namespace Wayfarer.Tests
         {
             gameWorld = new GameWorld();
             packageLoader = new PackageLoader(gameWorld);
-            contentPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "src", "Content");
+            contentPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "src", "Content", "Core");
         }
 
         [Test]
