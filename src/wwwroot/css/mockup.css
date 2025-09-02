@@ -2232,3 +2232,163 @@ body {
     border-color: #FF4444 !important;
     box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
 }
+
+/* ===== PACKET 6: PROPERTY BADGE SYSTEM ===== */
+
+/* Property badges container */
+.card-properties {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    padding: 6px 10px 0 10px;
+}
+
+/* Individual property badges */
+.property-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Property-specific badge colors */
+.property-badge.fleeting {
+    background: #f4c430;
+    color: #000;
+}
+
+.property-badge.opportunity {
+    background: #ff8c00;
+    color: #fff;
+}
+
+.property-badge.burden {
+    background: #4a3a2a;
+    color: #fff;
+}
+
+.property-badge.skeleton {
+    background: #8b7355;
+    color: #fff;
+}
+
+.property-badge.observable {
+    background: #5a7a8a;
+    color: #fff;
+}
+
+.property-badge.persistent {
+    background: #7a8b5a;
+    color: #fff;
+    opacity: 0.6;  /* Less prominent since it's default */
+}
+
+/* Card property-based styling */
+.card.has-fleeting {
+    border-left: 4px solid #f4c430;
+}
+
+.card.has-opportunity {
+    border-left: 4px solid #ff8c00;
+}
+
+/* Goal cards (both fleeting AND opportunity) get critical styling */
+.card.has-fleeting.has-opportunity {
+    border: 3px solid #ff0000 !important;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%) !important;
+    animation: urgent-pulse 1.5s ease-in-out infinite;
+}
+
+/* Goal warning banner */
+.goal-warning {
+    background: #ff0000;
+    color: white;
+    padding: 4px 8px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 12px;
+    margin: 0 -2px 8px -2px;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0.5; }
+}
+
+/* ===== THREE-EFFECT DISPLAY SYSTEM ===== */
+
+/* Replace old card-outcomes with new card-effects */
+.card-effects {
+    border-left: 1px solid #d4c5a0;
+    min-width: 280px;
+}
+
+.effect {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e8dcc4;
+}
+
+.effect:last-child {
+    border-bottom: none;
+}
+
+/* Success effect styling */
+.effect.success {
+    background: linear-gradient(135deg, #e8f5e9, #d4e6d4);
+    color: #2e7d32;
+}
+
+/* Failure effect styling */
+.effect.failure {
+    background: linear-gradient(135deg, #ffebee, #f5d6d6);
+    color: #c62828;
+}
+
+/* Exhaust effect styling */
+.effect.exhaust {
+    background: linear-gradient(135deg, #f3e5f5, #e6d3f0);
+    color: #6a1b9a;
+}
+
+/* Effect content styling */
+.effect-chance {
+    font-weight: bold;
+    min-width: 40px;
+    font-size: 16px;
+}
+
+.effect-label {
+    font-weight: 600;
+    min-width: 80px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.effect-description {
+    flex: 1;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.effect-icon {
+    font-size: 16px;
+}
+
+/* No effect styling */
+.effect .no-effect {
+    opacity: 0.6;
+    font-style: italic;
+    font-weight: normal;
+}

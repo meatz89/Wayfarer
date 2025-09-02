@@ -34,5 +34,15 @@ public enum CardProperty
     /// <summary>
     /// Card comes from observation system
     /// </summary>
-    Observable
+    Observable,
+    
+    /// <summary>
+    /// Card represents an exchange offer
+    /// </summary>
+    Exchange,
+    
+    /// <summary>
+    /// Card can be used to deliver a letter
+    /// </summary>
+    DeliveryEligible
 }

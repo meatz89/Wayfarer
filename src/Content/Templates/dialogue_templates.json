@@ -1,0 +1,14 @@
+{
+  "templates": [
+    {
+      "state": "NEUTRAL",
+      "personality": "DEVOTED",
+      "template": "Elena looks up from her work with genuine warmth."
+    },
+    {
+      "state": "DESPERATE",
+      "personality": "DEVOTED",
+      "template": "Elena's eyes are red from crying, but she tries to compose herself."
+    }
+  ]
+}

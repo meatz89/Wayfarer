@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 public class ConversationCard
 {
+    // Core identity
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
@@ -13,6 +14,8 @@ public class ConversationCard
     // Skeleton tracking - consistent with other entities
     public bool IsSkeleton { get; set; } = false;
     public string SkeletonSource { get; set; } // What created this skeleton
+    
+    // Core mechanics
     public TokenType TokenType { get; set; }
     public int Weight { get; set; }
     public Difficulty Difficulty { get; set; }
@@ -35,9 +38,19 @@ public class ConversationCard
                           && Properties.Contains(CardProperty.Opportunity);
     public bool IsBurden => Properties.Contains(CardProperty.Burden);
     public bool IsObservable => Properties.Contains(CardProperty.Observable);
-    public bool IsObservation => IsObservable; // Backward compatibility alias
-    public bool HasFinalWord => IsGoal; // Goal cards have "final word" behavior
-    public bool IsGoalCard => IsGoal; // Backward compatibility alias
+    
+    // Legacy compatibility properties for UI
+    public string DisplayName => Name;
+    public string Category => GetCategoryString();
+    public CardType Type => IsGoal ? CardType.Goal : 
+                           IsObservable ? CardType.Observation : 
+                           CardType.Normal;
+    public PersistenceType Persistence => 
+        IsFleeting ? PersistenceType.Fleeting :
+        IsOpportunity ? PersistenceType.Opportunity :
+        PersistenceType.Persistent;
+    public int SuccessRate => GetBaseSuccessPercentage();
+    public string GoalCardType => IsGoal ? "Goal" : null;
 
 
     // Compatibility method to ensure default Persistent property
@@ -86,12 +99,7 @@ public class ConversationCard
     // Get base success percentage from difficulty tier
     public int GetBaseSuccessPercentage()
     {
-        // Use DifficultyTier if set, otherwise convert from old Difficulty
-        if (Difficulty != default(Difficulty))
-            return (int)Difficulty;
-
-        // Fallback to old Difficulty_Legacy
-        return Difficulty_Legacy switch
+        return Difficulty switch
         {
             Difficulty.VeryEasy => 85,
             Difficulty.Easy => 70,
@@ -100,6 +108,15 @@ public class ConversationCard
             Difficulty.VeryHard => 40,
             _ => 60
         };
+    }
+    
+    private string GetCategoryString()
+    {
+        if (IsGoal) return "Goal";
+        if (IsObservable) return "Observation";
+        if (IsBurden) return "Burden";
+        if (Properties.Contains(CardProperty.Exchange)) return "Exchange";
+        return "Standard";
     }
 
 }

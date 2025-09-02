@@ -364,44 +364,35 @@ public class CardDeckManager
     {
         // Implementation depends on how goal cards are categorized
         // For now, allow all goal cards in any conversation
-        return card.IsGoalCard;
+        return card.IsGoal;
     }
 
     /// <summary>
-    /// Convert legacy CardInstance to new ConversationCard format
-    /// This is a compatibility method during transition
+    /// Convert CardInstance to ConversationCard format
     /// </summary>
     private ConversationCard ConvertToNewCard(CardInstance instance)
     {
-        // This is a temporary conversion method
-        // In the full implementation, cards would be loaded with new format
+        // Since CardInstance now mirrors ConversationCard structure,
+        // we can create a direct mapping
         var card = new ConversationCard
         {
             Id = instance.Id,
             Name = instance.Name,
-            Type = instance.IsGoalCard ? CardType.Goal :
-                   instance.IsObservation ? CardType.Observation : CardType.Normal,
-            TokenType = ConversationCard.ConvertConnectionToToken(instance.TokenType),
-            ConnectionType = instance.TokenType,
+            Description = instance.Description,
+            Properties = new List<CardProperty>(instance.Properties),
+            TokenType = instance.TokenType,
             Weight = instance.Weight,
-            Difficulty = ConversationCard.ConvertDifficulty(ConvertToDifficulty(instance.BaseSuccessChance)),
-            Difficulty_Legacy = ConvertToDifficulty(instance.BaseSuccessChance),
-            // Convert effect to new three-effect system
-            SuccessEffect = CreateLegacySuccessEffect(instance),
-            FailureEffect = CardEffect.None,
-            ExhaustEffect = CardEffect.None,
-            // Goal cards are identified by Properties list (Fleeting + Opportunity)
-            DialogueText = instance.DialogueFragment
+            Difficulty = instance.Difficulty,
+            SuccessEffect = instance.SuccessEffect ?? CardEffect.None,
+            FailureEffect = instance.FailureEffect ?? CardEffect.None,
+            ExhaustEffect = instance.ExhaustEffect ?? CardEffect.None,
+            DialogueFragment = instance.DialogueFragment,
+            VerbPhrase = instance.VerbPhrase
         };
         
-        // Set properties based on instance state
-        if (instance.IsGoalCard)
+        // Ensure goal cards have proper exhaust effect
+        if (card.IsGoal && (card.ExhaustEffect == null || card.ExhaustEffect.Type == CardEffectType.None))
         {
-            // Goal cards have both Fleeting and Opportunity properties
-            card.Properties.Add(CardProperty.Fleeting);
-            card.Properties.Add(CardProperty.Opportunity);
-            
-            // Set exhaust effect to end conversation for goal cards
             card.ExhaustEffect = new CardEffect
             {
                 Type = CardEffectType.EndConversation,
@@ -411,19 +402,6 @@ public class CardDeckManager
                     { "reason", "Goal card exhausted without being played" }
                 }
             };
-        }
-        else if (instance.Persistence == PersistenceType.Fleeting)
-        {
-            card.Properties.Add(CardProperty.Fleeting);
-        }
-        else
-        {
-            card.Properties.Add(CardProperty.Persistent);
-        }
-        
-        if (instance.IsObservation)
-        {
-            card.Properties.Add(CardProperty.Observable);
         }
         
         return card;
@@ -443,18 +421,6 @@ public class CardDeckManager
         };
     }
 
-    /// <summary>
-    /// Create a success effect from legacy card properties
-    /// </summary>
-    private CardEffect CreateLegacySuccessEffect(CardInstance instance)
-    {
-        // Default to simple comfort effect for legacy cards
-        return new CardEffect
-        {
-            Type = CardEffectType.AddComfort,
-            Value = instance.BaseComfortReward > 0 ? instance.BaseComfortReward.ToString() : "1"
-        };
-    }
 
     /// <summary>
     /// Create exchange deck for commerce conversations
@@ -516,7 +482,7 @@ public class CardDeckManager
             ConversationCard cardTemplate = FindCardTemplateById(cardId);
             if (cardTemplate != null)
             {
-                CardInstance cardInstance = new CardInstance(cardTemplate, session.NPC.ID);
+                CardInstance cardInstance = new CardInstance(cardTemplate, session.NPC?.ID ?? "unknown");
                 session.Hand.AddCard(cardInstance);
             }
         }
@@ -527,7 +493,7 @@ public class CardDeckManager
             ConversationCard cardTemplate = FindCardTemplateById(cardId);
             if (cardTemplate != null)
             {
-                CardInstance cardInstance = new CardInstance(cardTemplate, session.NPC.ID);
+                CardInstance cardInstance = new CardInstance(cardTemplate, session.NPC?.ID ?? "unknown");
                 session.Deck.AddCard(cardInstance);
             }
         }
@@ -549,10 +515,10 @@ public class CardDeckManager
         {
             Id = cardId,
             Name = "Unknown Card",
-            Type = CardType.Normal,
+            Description = "Placeholder card",
             Weight = 1,
             Difficulty = Difficulty.Medium,
-            Difficulty_Legacy = global::Difficulty.Medium,
+            TokenType = TokenType.Trust,
             SuccessEffect = new CardEffect { Type = CardEffectType.AddComfort, Value = "1" },
             FailureEffect = CardEffect.None,
             ExhaustEffect = CardEffect.None

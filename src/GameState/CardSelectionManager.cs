@@ -26,7 +26,7 @@ public class CardSelectionManager
         int totalWeight = 0;
         foreach (CardInstance c in _selectedCards)
         {
-            totalWeight += c.GetEffectiveWeight(_currentState);
+            totalWeight += c.Weight; // No state modifiers in new system
         }
 
         List<string> cardNames = new List<string>();

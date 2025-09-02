@@ -213,10 +213,7 @@
                                 <div class="exchange-details">
                                     <div class="costs">
                                         <h4>Costs:</h4>
-                                        @foreach (var cost in (card.Context?.ExchangeData?.Cost ?? new Dictionary<ResourceType, int>()))
-                                        {
-                                            <div>@cost.GetDisplayText()</div>
-                                        }
+                                        <div>Exchange costs defined in effects</div>
                                     </div>
                                     <div class="exchange-info">
                                         <h4>Exchange Properties:</h4>

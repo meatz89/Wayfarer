@@ -100,29 +100,8 @@ public class NPC
                 Console.WriteLine($"[NPC.InitializeExchangeDeck] Adding {exchangeCards.Count} exchange cards for {Name}");
                 foreach (ConversationCard card in exchangeCards)
                 {
-                    Console.WriteLine($"[NPC.InitializeExchangeDeck] Card {card.Id}:");
-                    Console.WriteLine($"  - Context null: {card.Context == null}");
-                    Console.WriteLine($"  - ExchangeData null: {card.Context?.ExchangeData == null}");
-                    if (card.Context?.ExchangeData != null)
-                    {
-                        ExchangeData ed = card.Context.ExchangeData;
-                        Console.WriteLine($"  - Cost items: {ed.Cost?.Count ?? 0}");
-                        Console.WriteLine($"  - Reward items: {ed.Reward?.Count ?? 0}");
-                        if (ed.Cost?.Any() == true)
-                        {
-                            foreach (KeyValuePair<ResourceType, int> cost in ed.Cost)
-                            {
-                                Console.WriteLine($"    Cost: {cost.Value} {cost.Key}");
-                            }
-                        }
-                        if (ed.Reward?.Any() == true)
-                        {
-                            foreach (KeyValuePair<ResourceType, int> reward in ed.Reward)
-                            {
-                                Console.WriteLine($"    Reward: {reward.Value} {reward.Key}");
-                            }
-                        }
-                    }
+                    Console.WriteLine($"[NPC.InitializeExchangeDeck] Card {card.Id}");
+                    // Exchange data now stored in card effects, not context
                     ExchangeDeck.AddCard(card);
                 }
             }
@@ -147,9 +126,9 @@ public class NPC
     {
         if (ConversationDeck == null) return 0;
 
-        // Burden cards are identified by their category
+        // Burden cards are identified by their properties
         return ConversationDeck.GetAllCards()
-            .Count(card => card.Category == CardCategory.Burden.ToString());
+            .Count(card => card.IsBurden);
     }
 
     // Check if NPC has exchange cards available

@@ -94,14 +94,16 @@ public class ExchangeHandler
 
         foreach (ConversationCard card in npc.ExchangeDeck.GetAllCards())
         {
-            if (card.Context?.ExchangeData == null)
+            // Exchange cards should have Exchange property
+            if (!card.Properties.Contains(CardProperty.Exchange))
                 continue;
 
             // Check domain requirements
             if (!CheckDomainRequirements(card, spotDomainTags))
                 continue;
 
-            ExchangeData exchange = card.Context.ExchangeData;
+            // Create exchange data from card effects
+            ExchangeData exchange = ExtractExchangeData(card);
             bool canAfford = CanAffordExchange(exchange, playerResources);
 
             exchanges.Add(new ExchangeOption
@@ -298,6 +300,17 @@ public class ExchangeHandler
             ResourceType.StatusToken => "status",
             ResourceType.ShadowToken => "shadow",
             _ => type.ToString().ToLower()
+        };
+    }
+    
+    private ExchangeData ExtractExchangeData(ConversationCard card)
+    {
+        // Extract exchange data from card effects
+        // For now, return a basic exchange
+        return new ExchangeData
+        {
+            Cost = new Dictionary<ResourceType, int>(),
+            Reward = new Dictionary<ResourceType, int>()
         };
     }
 }

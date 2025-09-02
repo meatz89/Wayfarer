@@ -19,9 +19,12 @@ public class GoalCard : ConversationCard
         // Goal cards have both Fleeting and Opportunity properties
         Properties.Add(CardProperty.Fleeting);
         Properties.Add(CardProperty.Opportunity);
-        EffectType = CardEffectType.GoalEffect;
-        Type = CardType.Goal;
-        Persistence = PersistenceType.Fleeting;
+        // Set exhaust effect to end conversation
+        ExhaustEffect = new CardEffect
+        {
+            Type = CardEffectType.EndConversation,
+            Value = "goal_exhausted"
+        };
     }
 
     // Helper to set weight within valid range

@@ -367,29 +367,40 @@ public class PackageLoader
     private ConversationCard ConvertObservationDTOToCard(ObservationDTO dto)
     {
         // Observations become player cards
-        return new ConversationCard
+        var card = new ConversationCard
         {
             Id = dto.Id,
-            DisplayName = dto.DisplayText,
-            Category = dto.Category ?? "Observation",
-            Type = CardType.Observation,
+            Name = dto.DisplayText ?? dto.Id,
+            Description = dto.DisplayText ?? "",
             Weight = dto.Weight,
-            Persistence = PersistenceType.Persistent,
-            Mechanics = CardMechanicsType.Standard
+            TokenType = TokenType.Trust,
+            Difficulty = Difficulty.Medium
         };
+        card.Properties.Add(CardProperty.Observable);
+        card.Properties.Add(CardProperty.Persistent);
+        return card;
     }
 
     private ConversationCard ConvertTravelCardDTOToModel(TravelCardDTO dto)
     {
-        return new ConversationCard
+        var card = new ConversationCard
         {
             Id = dto.Id,
-            DisplayName = dto.Title ?? dto.DisplayName ?? "Travel Card",
-            Category = dto.Category ?? "Travel",
-            Type = CardType.Normal,
+            Name = dto.Title ?? dto.DisplayName ?? "Travel Card",
+            Description = "Travel card",
             Weight = dto.Weight ?? 1,
-            BaseComfort = dto.BaseComfort ?? 0,
-            Persistence = Enum.TryParse<PersistenceType>(dto.Persistence, out var persistence) ? persistence : PersistenceType.Persistent
+            TokenType = TokenType.Trust,
+            Difficulty = Difficulty.Medium
         };
+        
+        // Parse persistence
+        if (dto.Persistence == "Fleeting")
+            card.Properties.Add(CardProperty.Fleeting);
+        else if (dto.Persistence == "Opportunity")
+            card.Properties.Add(CardProperty.Opportunity);
+        else
+            card.Properties.Add(CardProperty.Persistent);
+            
+        return card;
     }
 }

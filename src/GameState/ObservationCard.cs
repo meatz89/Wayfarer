@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 public enum ObservationEffectType
 {
@@ -38,11 +39,7 @@ public class ObservationCard : ConversationCard
         Difficulty = Difficulty.VeryEasy; // 85%
         Properties.Add(CardProperty.Persistent); // Always persistent
         Properties.Add(CardProperty.Observable); // Mark as observation
-        EffectType = CardEffectType.ObservationEffect;
         CreatedAt = DateTime.Now;
-        Type = CardType.Observation;
-        Persistence = PersistenceType.Persistent;
-        IsSingleUse = true;
     }
 
     public bool IsExpired()
@@ -99,14 +96,19 @@ public class ObservationCard : ConversationCard
         {
             Id = card.Id,
             Name = card.Name,
-            ObservationId = card.ObservationSource ?? card.Id,
-            ItemName = card.SourceItem,
-            LocationDiscovered = card.Context?.ObservationLocation,
+            Description = card.Description,
+            ObservationId = card.Id,
+            ItemName = "Unknown",
+            LocationDiscovered = "Unknown",
             TimeDiscovered = DateTime.Now.ToString(),
             DialogueFragment = card.DialogueFragment,
+            VerbPhrase = card.VerbPhrase,
             Weight = card.Weight,
-            BaseSuccessChance = card.BaseSuccessChance,
-            BaseComfortReward = card.BaseComfortReward,
+            Difficulty = card.Difficulty,
+            TokenType = card.TokenType,
+            SuccessEffect = card.SuccessEffect,
+            FailureEffect = card.FailureEffect,
+            ExhaustEffect = card.ExhaustEffect,
             CreatedAt = DateTime.Now,
             ConversationCard = card
         };
@@ -124,15 +126,21 @@ public class ObservationCard : ConversationCard
             DialogueFragment = card.DialogueFragment,
             VerbPhrase = card.VerbPhrase,
             TokenType = card.TokenType,
-            ObservationSource = source,
+            Weight = card.Weight,
+            Difficulty = card.Difficulty,
+            SuccessEffect = card.SuccessEffect,
+            FailureEffect = card.FailureEffect,
+            ExhaustEffect = card.ExhaustEffect,
+            ObservationId = source,
             LocationDiscovered = location,
             CreatedAt = DateTime.Now
         };
 
-        // Set unique effect based on card properties if available
-        if (card.AtmosphereChange.HasValue)
+        // Copy properties
+        observation.Properties = new List<CardProperty>(card.Properties);
+        if (!observation.Properties.Contains(CardProperty.Observable))
         {
-            observation.AtmosphereChange = card.AtmosphereChange;
+            observation.Properties.Add(CardProperty.Observable);
         }
 
         return observation;

@@ -274,31 +274,26 @@
             <div class="card-grid">
                 @foreach (var convCard in Session.HandCards)
                 {
-                    <div class="card @GetCardClass(convCard) @(IsCardSelected(convCard) ? "selected" : "") @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "unavailable" : "")"
+                    <div class="card @GetCardClass(convCard) @(IsCardSelected(convCard) ? "selected" : "") @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "unavailable" : "") @GetCardPropertyClasses(convCard)"
                          @onclick="() => ToggleCardSelection(convCard)">
-                        @if (convCard.IsFleeting)
-                        {
-                            <div class="card-marker fleeting" title="Will be discarded after SPEAK">⚡ FLEETING</div>
-                        }
+                        
+                        @* Property badges *@
+                        <div class="card-properties">
+                            @foreach (var property in GetCardProperties(convCard))
+                            {
+                                <span class="property-badge @GetPropertyClass(property)" 
+                                      title="@GetPropertyTooltip(property)">
+                                    @GetPropertyIcon(property) @GetPropertyLabel(property)
+                                </span>
+                            }
+                        </div>
+                        
+                        @* Special goal card warning *@
                         @if (convCard.IsGoalCard)
                         {
-                            <div class="card-marker goal" title="Must play immediately! Exhausts on any action.">🎯 GOAL</div>
-                        }
-                        @if (convCard.IsObservation)
-                        {
-                            <div class="card-marker expires">24hr</div>
-                        }
-                        @if (convCard.Category == nameof(CardCategory.Burden))
-                        {
-                            <div class="card-marker blocks">Blocks</div>
-                        }
-                        @if (convCard.Category == nameof(CardCategory.Promise))
-                        {
-                            <div class="card-marker goal">Goal Card</div>
-                        }
-                        @if (convCard.Category == nameof(CardCategory.Exchange))
-                        {
-                            <div class="card-marker exchange">Exchange</div>
+                            <div class="goal-warning">
+                                ⚠️ MUST PLAY NOW - Exhausts on ANY action!
+                            </div>
                         }
                         <div class="card-content">
                             <div class="card-main">
@@ -311,17 +306,31 @@
                                     "@GetProperCardDialogue(convCard)"
                                 </div>
                             </div>
-                            <div class="card-outcomes">
-                                <div class="outcome success">
-                                    <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
-                                    <div class="outcome-label">Success</div>
-                                    <div class="outcome-effect">@GetSuccessEffect(convCard)</div>
+                            @* Enhanced three-effect display *@
+                            <div class="card-effects">
+                                @* Success effect *@
+                                <div class="effect success">
+                                    <span class="effect-chance">@GetSuccessChance(convCard)%</span>
+                                    <span class="effect-label">Success</span>
+                                    <span class="effect-description">@GetSuccessEffectDescription(convCard)</span>
                                 </div>
-                                <div class="outcome">
-                                    <div class="outcome-chance">@GetFailureChance(convCard)%</div>
-                                    <div class="outcome-label">Failure</div>
-                                    <div class="outcome-effect">@GetFailureEffect(convCard)</div>
+                                
+                                @* Failure effect *@
+                                <div class="effect failure">
+                                    <span class="effect-chance">@GetFailureChance(convCard)%</span>
+                                    <span class="effect-label">Failure</span>
+                                    <span class="effect-description">@GetFailureEffectDescription(convCard)</span>
                                 </div>
+                                
+                                @* Exhaust effect (only show if exists) *@
+                                @if (HasExhaustEffect(convCard))
+                                {
+                                    <div class="effect exhaust">
+                                        <span class="effect-icon">💨</span>
+                                        <span class="effect-label">If not played</span>
+                                        <span class="effect-description">@GetExhaustEffectDescription(convCard)</span>
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>

@@ -159,7 +159,15 @@ public class CardEffectProcessor
         if (effect.Type == CardEffectType.ScaleByTokens)
         {
             TokenType tokenType = Enum.Parse<TokenType>(effect.Value);
-            return tokenManager.GetTokenCount(ConversationCard.ConvertTokenToConnection(tokenType), session.NPC.ID);
+            ConnectionType connectionType = tokenType switch
+            {
+                TokenType.Trust => ConnectionType.Trust,
+                TokenType.Commerce => ConnectionType.Commerce,
+                TokenType.Status => ConnectionType.Status,
+                TokenType.Shadow => ConnectionType.Shadow,
+                _ => ConnectionType.None
+            };
+            return tokenManager.GetTokenCount(connectionType, session.NPC.ID);
         }
         
         if (effect.Type == CardEffectType.ScaleByComfort)
@@ -267,7 +275,14 @@ public class CardEffectProcessor
         int baseSuccess = card.GetBaseSuccessPercentage();
 
         // Get the card's token type (Trust, Commerce, Status, or Shadow)
-        ConnectionType cardTokenType = ConversationCard.ConvertTokenToConnection(card.TokenType);
+        ConnectionType cardTokenType = card.TokenType switch
+        {
+            TokenType.Trust => ConnectionType.Trust,
+            TokenType.Commerce => ConnectionType.Commerce,
+            TokenType.Status => ConnectionType.Status,
+            TokenType.Shadow => ConnectionType.Shadow,
+            _ => ConnectionType.None
+        };
 
         // Add token bonus (5% per MATCHING token only)
         int matchingTokens = tokenManager.GetTokenCount(cardTokenType, session.NPC.ID);

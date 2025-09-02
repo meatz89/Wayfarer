@@ -75,30 +75,20 @@ public static class ConversationCardParser
 
         ConversationCard card = ConvertDTOToCard(dto);
 
-        // Create new card with customized values (init-only properties)
+        // Create new card with customized values
         var newCard = new ConversationCard
         {
             Id = $"{cardId}_{npcId}",
-            Mechanics = card.Mechanics,
-            Category = card.Category,
-            Context = new CardContext
-            {
-                NPCName = npcName,
-                Personality = card.Context?.Personality ?? PersonalityType.STEADFAST,
-                EmotionalState = card.Context?.EmotionalState ?? EmotionalState.NEUTRAL,
-                GeneratesLetterOnSuccess = card.Context?.GeneratesLetterOnSuccess ?? false
-            },
-            Type = card.Type,
-            Persistence = card.Persistence,
-            Weight = card.Weight,
-            BaseComfort = card.BaseComfort,
-            // Don't set IsGoalCard directly - it's computed from Properties
-            GoalCardType = card.GoalCardType,
-            DisplayName = card.DisplayName,
+            Name = card.Name,
             Description = card.Description,
-            SuccessRate = card.SuccessRate,
-            SuccessState = card.SuccessState,
-            PatienceBonus = card.PatienceBonus,
+            Weight = card.Weight,
+            TokenType = card.TokenType,
+            Difficulty = card.Difficulty,
+            SuccessEffect = card.SuccessEffect,
+            FailureEffect = card.FailureEffect,
+            ExhaustEffect = card.ExhaustEffect,
+            DialogueFragment = card.DialogueFragment,
+            VerbPhrase = card.VerbPhrase,
             Properties = new List<CardProperty>(card.Properties) // Copy properties from source
         };
         
@@ -110,53 +100,25 @@ public static class ConversationCardParser
     /// </summary>
     public static ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null)
     {
-        // Parse mechanics from template string or default to Standard
-        CardMechanicsType mechanics = CardMechanicsType.Standard;
-        if (!string.IsNullOrEmpty(dto.Mechanics))
+        // Parse token type from connection type
+        TokenType tokenType = TokenType.Trust; // Default
+        if (!string.IsNullOrEmpty(dto.ConnectionType))
         {
-            Enum.TryParse<CardMechanicsType>(dto.Mechanics, true, out mechanics);
-        }
-
-        // Parse category from DTO or infer from mechanics
-        CardCategory category = CardCategory.Comfort; // Default
-        if (!string.IsNullOrEmpty(dto.Category))
-        {
-            Enum.TryParse<CardCategory>(dto.Category, true, out category);
-        }
-        else
-        {
-            // Infer category from mechanics if not specified
-            category = mechanics switch
+            ConnectionType connType = ConnectionType.None;
+            if (Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out connType))
             {
-                CardMechanicsType.Exchange => CardCategory.Exchange,
-                CardMechanicsType.Promise => CardCategory.Promise,
-                CardMechanicsType.StateChange => CardCategory.State,
-                _ => CardCategory.Comfort
-            };
-        }
-
-        // Parse goal type if goal card
-        ConversationType? goalType = null;
-        if (dto.IsGoalCard == true && !string.IsNullOrEmpty(dto.GoalCardType))
-        {
-            if (Enum.TryParse<ConversationType>(dto.GoalCardType, true, out ConversationType parsed))
-            {
-                goalType = parsed;
+                tokenType = connType switch
+                {
+                    ConnectionType.Trust => TokenType.Trust,
+                    ConnectionType.Commerce => TokenType.Commerce,
+                    ConnectionType.Status => TokenType.Status,
+                    ConnectionType.Shadow => TokenType.Shadow,
+                    _ => TokenType.Trust
+                };
             }
         }
 
-        // Parse success state for state cards
-        EmotionalState? successState = null;
-        if (dto.IsStateCard == true && !string.IsNullOrEmpty(dto.SuccessState))
-        {
-            if (Enum.TryParse<EmotionalState>(dto.SuccessState, true, out EmotionalState parsed))
-            {
-                successState = parsed;
-            }
-        }
-
-
-        // Parse new target system properties
+        // Parse difficulty
         Difficulty difficulty = Difficulty.Medium; // Default
         if (!string.IsNullOrEmpty(dto.Difficulty))
         {
@@ -168,63 +130,22 @@ public static class ConversationCardParser
             ParseLegacyEffect(dto.EffectType, dto.EffectValue, dto.EffectFormula, dto.AtmosphereTypeChange);
         CardEffect failureEffect = ParseEffect(dto.FailureEffect);
         CardEffect exhaustEffect = ParseEffect(dto.ExhaustEffect);
-        
-        // Keep legacy parsing for compatibility
-        CardEffectType effectType = CardEffectType.FixedComfort; // Default
-        if (!string.IsNullOrEmpty(dto.EffectType))
-        {
-            Enum.TryParse<CardEffectType>(dto.EffectType, true, out effectType);
-        }
 
-        AtmosphereType? atmosphereChange = null;
-        if (!string.IsNullOrEmpty(dto.AtmosphereTypeChange))
-        {
-            if (Enum.TryParse<AtmosphereType>(dto.AtmosphereTypeChange, true, out AtmosphereType atmosphere))
-            {
-                atmosphereChange = atmosphere;
-            }
-        }
-
-        // Create card with all init-only properties set at once
+        // Create card with essential properties
         var card = new ConversationCard
         {
             Id = dto.Id,
-            Mechanics = mechanics,
-            Category = category.ToString(),
-            Context = new CardContext
-            {
-                Personality = npc?.PersonalityType ?? PersonalityType.STEADFAST,
-                EmotionalState = npc?.CurrentEmotionalState ?? EmotionalState.NEUTRAL,
-                NPCName = npc?.Name,
-                GeneratesLetterOnSuccess = dto.GeneratesLetterOnSuccess ?? false
-            },
-            Type = Enum.Parse<CardType>(dto.Type, true),
-            TokenType = ConversationCard.ConvertConnectionToToken(Enum.Parse<ConnectionType>(dto.ConnectionType, true)),
-            ConnectionType = Enum.Parse<ConnectionType>(dto.ConnectionType, true),
-            Persistence = dto.Persistence != null ? Enum.Parse<PersistenceType>(dto.Persistence, true) : PersistenceType.Persistent,
+            Name = dto.DisplayName ?? dto.Id,
+            Description = dto.Description ?? "",
+            TokenType = tokenType,
             Weight = dto.Weight,
-            BaseComfort = dto.BaseComfort,
-            // Don't set IsGoalCard directly - set Properties instead
-            GoalCardType = goalType?.ToString(),
-            DisplayName = dto.DisplayName,
-            Description = dto.Description,
-            SuccessRate = dto.SuccessRate ?? 0,
-            SuccessState = successState,
-            PatienceBonus = dto.PatienceBonus ?? 0,
-
-            // New target system properties
-            Difficulty = ConversationCard.ConvertDifficulty(difficulty),
-            Difficulty_Legacy = difficulty,
+            Difficulty = difficulty,
             // Three-effect system
             SuccessEffect = successEffect ?? CardEffect.None,
             FailureEffect = failureEffect ?? CardEffect.None,
             ExhaustEffect = exhaustEffect ?? CardEffect.None,
-            // Legacy properties for compatibility
-            EffectType = effectType,
-            EffectValue = string.IsNullOrEmpty(dto.EffectValue) ? 0 : int.Parse(dto.EffectValue),
-            EffectFormula = dto.EffectFormula,
-            AtmosphereChange = atmosphereChange,
-            DialogueFragment = dto.DialogueFragment
+            DialogueFragment = dto.DialogueFragment,
+            VerbPhrase = "" // Will be set later if needed
         };
         
         // Parse properties array if present (new format)
@@ -246,6 +167,12 @@ public static class ConversationCardParser
             {
                 card.Properties.Add(CardProperty.Fleeting);
                 card.Properties.Add(CardProperty.Opportunity);
+            }
+            
+            // Handle observation cards
+            if (dto.Type == "Observation")
+            {
+                card.Properties.Add(CardProperty.Observable);
             }
             
             // Set persistence property from legacy field

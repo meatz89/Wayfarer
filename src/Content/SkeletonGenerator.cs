@@ -179,23 +179,16 @@ public static class SkeletonGenerator
         var card = new ConversationCard
         {
             Id = id,
-            DisplayName = $"Generic Interaction #{hash % 100}",
+            Name = $"Generic Interaction #{hash % 100}",
             Description = "The conversation continues.",
-            Properties = new List<CardProperty> { CardProperty.Skeleton },
+            Properties = new List<CardProperty> { CardProperty.Skeleton, CardProperty.Persistent },
             SkeletonSource = source,
+            IsSkeleton = true,
             
             // Random but deterministic mechanical values
             TokenType = tokenTypes[hash % tokenTypes.Length],
-            ConnectionType = connectionTypes[hash % connectionTypes.Length],
             Weight = 1 + (hash % 3),
             Difficulty = (Difficulty)(hash % 3), // Easy, Medium, or Hard
-            BaseComfort = 1 + (hash % 3),
-            
-            // Standard card properties
-            Type = CardType.Normal,
-            Persistence = PersistenceType.Persistent,
-            Mechanics = CardMechanicsType.Standard,
-            Category = "Comfort",
             
             // Generic dialogue
             DialogueFragment = "You discuss matters of mutual interest.",

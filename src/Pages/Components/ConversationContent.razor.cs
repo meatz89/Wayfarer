@@ -1811,6 +1811,206 @@ namespace Wayfarer.Pages.Components
             };
         }
 
+        /// <summary>
+        /// PACKET 6: Get all properties for a card for display
+        /// </summary>
+        protected IEnumerable<CardProperty> GetCardProperties(CardInstance card)
+        {
+            var properties = new List<CardProperty>();
+            
+            // CardInstance doesn't have Properties list yet, so we map from legacy booleans
+            if (card?.IsFleeting == true)
+                properties.Add(CardProperty.Fleeting);
+            if (card?.IsGoalCard == true && card?.IsFleeting != true) // Goal cards are Fleeting + Opportunity
+                properties.Add(CardProperty.Opportunity);
+            if (card?.IsGoalCard == true && card?.IsFleeting == true)
+                properties.Add(CardProperty.Opportunity); // Goal = Fleeting + Opportunity
+            if (card?.IsBurden == true)
+                properties.Add(CardProperty.Burden);
+            if (card?.IsObservation == true)
+                properties.Add(CardProperty.Observable);
+                
+            // If no special properties, default to persistent
+            if (properties.Count == 0)
+                properties.Add(CardProperty.Persistent);
+            
+            return properties;
+        }
+
+        /// <summary>
+        /// PACKET 6: Get CSS class for property badge
+        /// </summary>
+        protected string GetPropertyClass(CardProperty property)
+        {
+            return property.ToString().ToLower();
+        }
+
+        /// <summary>
+        /// PACKET 6: Get icon for property badge
+        /// </summary>
+        protected string GetPropertyIcon(CardProperty property)
+        {
+            return property switch
+            {
+                CardProperty.Fleeting => "⚡",
+                CardProperty.Opportunity => "⏰",
+                CardProperty.Burden => "⛓️",
+                CardProperty.Skeleton => "💀",
+                CardProperty.Observable => "👁️",
+                CardProperty.Persistent => "✓",
+                _ => ""
+            };
+        }
+
+        /// <summary>
+        /// PACKET 6: Get label for property badge
+        /// </summary>
+        protected string GetPropertyLabel(CardProperty property)
+        {
+            return property switch
+            {
+                CardProperty.Fleeting => "Fleeting",
+                CardProperty.Opportunity => "Opportunity",
+                CardProperty.Burden => "Burden",
+                CardProperty.Skeleton => "Skeleton",
+                CardProperty.Observable => "Observable",
+                CardProperty.Persistent => "Persistent",
+                _ => property.ToString()
+            };
+        }
+
+        /// <summary>
+        /// PACKET 6: Get tooltip for property badge
+        /// </summary>
+        protected string GetPropertyTooltip(CardProperty property)
+        {
+            return property switch
+            {
+                CardProperty.Fleeting => "Removed after SPEAK if unplayed",
+                CardProperty.Opportunity => "Removed after LISTEN if unplayed",
+                CardProperty.Burden => "Blocks a deck slot",
+                CardProperty.Observable => "From an observation",
+                CardProperty.Skeleton => "System-generated card",
+                CardProperty.Persistent => "Stays until played",
+                _ => ""
+            };
+        }
+
+        /// <summary>
+        /// PACKET 6: Get additional CSS classes based on card properties
+        /// </summary>
+        protected string GetCardPropertyClasses(CardInstance card)
+        {
+            var classes = new List<string>();
+            
+            if (card?.IsFleeting == true)
+                classes.Add("has-fleeting");
+            if (card?.IsGoalCard == true)
+                classes.Add("has-opportunity"); // Goal cards have Opportunity
+            if (card?.IsBurden == true)
+                classes.Add("has-burden");
+                
+            return string.Join(" ", classes);
+        }
+
+        /// <summary>
+        /// PACKET 6: Check if card has an exhaust effect
+        /// </summary>
+        protected bool HasExhaustEffect(CardInstance card)
+        {
+            // CardInstance doesn't have ExhaustEffect yet, but we can infer from properties
+            return card?.IsFleeting == true || card?.IsGoalCard == true;
+        }
+
+        /// <summary>
+        /// PACKET 6: Get enhanced success effect description
+        /// </summary>
+        protected string GetSuccessEffectDescription(CardInstance card)
+        {
+            // CardInstance doesn't have SuccessEffect yet, so fall back to old system
+            return GetSuccessEffect(card);
+        }
+
+        /// <summary>
+        /// PACKET 6: Get enhanced failure effect description
+        /// </summary>
+        protected string GetFailureEffectDescription(CardInstance card)
+        {
+            // CardInstance doesn't have FailureEffect yet, so fall back to old system
+            string oldEffect = GetFailureEffect(card);
+            return string.IsNullOrEmpty(oldEffect) || oldEffect == "+0 comfort" ? 
+                "No effect" : oldEffect;
+        }
+
+        /// <summary>
+        /// PACKET 6: Get exhaust effect description
+        /// </summary>
+        protected string GetExhaustEffectDescription(CardInstance card)
+        {
+            // Default exhaust effects based on card properties
+            if (card?.IsGoalCard == true)
+            {
+                return "Conversation ends"; // Goal cards end conversation when exhausted
+            }
+            else if (card?.IsFleeting == true)
+            {
+                return "Removed after SPEAK";
+            }
+            
+            return "No exhaust effect";
+        }
+
+        /// <summary>
+        /// PACKET 6: Describe a card effect in user-friendly terms
+        /// </summary>
+        private string DescribeCardEffect(CardEffect effect)
+        {
+            if (effect == null || effect.Type == CardEffectType.None)
+                return "No effect";
+                
+            return effect.Type switch
+            {
+                CardEffectType.AddComfort => $"{(effect.Value?.StartsWith("-") == true ? "" : "+")}{effect.Value} comfort",
+                CardEffectType.DrawCards => $"Draw {effect.Value} card{(effect.Value == "1" ? "" : "s")}",
+                CardEffectType.AddWeight => $"Add {effect.Value} weight",
+                CardEffectType.SetAtmosphere => $"Atmosphere: {effect.Value}",
+                CardEffectType.EndConversation => GetEndConversationDescription(effect),
+                CardEffectType.ScaleByTokens => $"+X comfort (X = {effect.Value} tokens)",
+                CardEffectType.ScaleByComfort => $"+X comfort (X = {effect.Value})",
+                CardEffectType.ScaleByPatience => $"+X comfort (X = {effect.Value})",
+                CardEffectType.ScaleByWeight => $"+X comfort (X = {effect.Value})",
+                CardEffectType.ComfortReset => "Reset comfort to 0",
+                CardEffectType.WeightRefresh => "Refresh weight pool",
+                CardEffectType.FreeNextAction => "Next action costs no patience",
+                _ => effect.Type.ToString()
+            };
+        }
+
+        /// <summary>
+        /// PACKET 6: Get description for EndConversation effects
+        /// </summary>
+        private string GetEndConversationDescription(CardEffect effect)
+        {
+            if (effect?.Data?.ContainsKey("reason") == true)
+            {
+                return effect.Data["reason"]?.ToString() ?? "End conversation";
+            }
+            
+            if (effect?.Value != null)
+            {
+                return effect.Value switch
+                {
+                    "success" => "End conversation (success)",
+                    "failure" => "End conversation (failure)",
+                    "abandoned" => "End conversation (abandoned)",
+                    "goal_exhausted" => "Conversation fails",
+                    _ => "End conversation"
+                };
+            }
+            
+            return "End conversation";
+        }
+
         // New methods for atmosphere and weight pool display
         protected string GetCurrentAtmosphereDisplay()
         {
