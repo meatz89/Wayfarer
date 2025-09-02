@@ -13,6 +13,7 @@
         "id": "trust_understanding",
         "type": "Normal",
         "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 1,
         "properties": ["Persistent"],
         "connectionType": "Trust",
@@ -31,6 +32,7 @@
         "id": "trust_sympathy",
         "type": "Normal",
         "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 2,
         "properties": ["Persistent"],
         "connectionType": "Trust",
@@ -49,6 +51,7 @@
         "id": "trust_deep_bond",
         "type": "Normal",
         "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 3,
         "properties": ["Persistent"],
         "connectionType": "Trust",
@@ -68,6 +71,7 @@
         "id": "trust_reassurance",
         "type": "Normal",
         "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 0,
         "properties": ["Persistent"],
         "connectionType": "Trust",
@@ -86,6 +90,7 @@
         "id": "trust_vulnerability",
         "type": "Normal",
         "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 4,
         "properties": ["Fleeting"],
         "connectionType": "Trust",
@@ -109,6 +114,7 @@
         "id": "trust_scaling",
         "type": "Normal",
         "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 3,
         "properties": ["Persistent"],
         "connectionType": "Trust",
@@ -125,274 +131,10 @@
         "dialogueFragment": "We've built something here, haven't we? This trust between us."
       },
       {
-        "id": "commerce_fair_deal",
+        "id": "trust_desperate_plea",
         "type": "Normal",
         "cardType": "Normal",
-        "weight": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Commerce",
-        "description": "Propose fair trade",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddComfort",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "That seems like a fair arrangement for both of us."
-      },
-      {
-        "id": "commerce_opportunity",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Commerce",
-        "description": "Highlight opportunity",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddComfort",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Think of the profit potential! This could make us both wealthy."
-      },
-      {
-        "id": "commerce_scaling",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 3,
-        "properties": ["Persistent"],
-        "connectionType": "Commerce",
-        "description": "Leverage connections",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "ScaleByTokens",
-          "value": "Commerce"
-        },
-        "failureEffect": {
-          "type": "AddComfort",
-          "value": "-1"
-        },
-        "dialogueFragment": "My business connections speak highly of you. Let's make this profitable."
-      },
-      {
-        "id": "commerce_final_offer",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 5,
-        "properties": ["Fleeting"],
-        "connectionType": "Commerce",
-        "description": "Final offer",
-        "difficulty": "VeryHard",
-        "successEffect": {
-          "type": "AddComfort",
-          "value": "5"
-        },
-        "failureEffect": {
-          "type": "SetAtmosphere",
-          "value": "Final"
-        },
-        "exhaustEffect": {
-          "type": "AddComfort",
-          "value": "-2"
-        },
-        "dialogueFragment": "This is my final offer. Take it or leave it."
-      },
-      {
-        "id": "status_respect",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Status",
-        "description": "Show respect",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddComfort",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Your reputation precedes you. It's an honor to speak with you."
-      },
-      {
-        "id": "status_formality",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 0,
-        "properties": ["Persistent"],
-        "connectionType": "Status",
-        "description": "Observe formalities",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "SetAtmosphere",
-          "value": "Focused"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Let us observe the proper protocols, as befits your station."
-      },
-      {
-        "id": "status_scaling",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 3,
-        "properties": ["Persistent"],
-        "connectionType": "Status",
-        "description": "Invoke status",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "ScaleByTokens",
-          "value": "Status"
-        },
-        "failureEffect": {
-          "type": "AddComfort",
-          "value": "-1"
-        },
-        "dialogueFragment": "Your standing in society demands this consideration."
-      },
-      {
-        "id": "shadow_hint",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Shadow",
-        "description": "Drop hint",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddComfort",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I know things that others don't. Perhaps we can help each other."
-      },
-      {
-        "id": "shadow_leverage",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 3,
-        "properties": ["Persistent"],
-        "connectionType": "Shadow",
-        "description": "Apply leverage",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "ScaleByTokens",
-          "value": "Shadow"
-        },
-        "failureEffect": {
-          "type": "AddComfort",
-          "value": "-1"
-        },
-        "dialogueFragment": "I have information that could be... useful to you."
-      },
-      {
-        "id": "shadow_threat",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 4,
-        "properties": ["Opportunity"],
-        "connectionType": "Shadow",
-        "description": "Veiled threat",
-        "difficulty": "VeryHard",
-        "successEffect": {
-          "type": "AddComfort",
-          "value": "4"
-        },
-        "failureEffect": {
-          "type": "AddComfort",
-          "value": "-3"
-        },
-        "exhaustEffect": {
-          "type": "SetAtmosphere",
-          "value": "Pressured"
-        },
-        "dialogueFragment": "It would be unfortunate if certain information became public."
-      },
-      {
-        "id": "listen_carefully",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Listen carefully",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "DrawCards",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Please, tell me more. I'm listening carefully."
-      },
-      {
-        "id": "gather_thoughts",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Gather thoughts",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "DrawCards",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Let me think about what you've said..."
-      },
-      {
-        "id": "build_momentum",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Build momentum",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddWeight",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I feel we're making progress here."
-      },
-      {
-        "id": "prepare_argument",
-        "type": "Normal",
-        "cardType": "Normal",
-        "weight": 3,
-        "properties": ["Persistent"],
-        "connectionType": "Commerce",
-        "description": "Prepare argument",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddWeight",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Let me lay out my case systematically."
-      },
-      {
-        "id": "desperate_plea",
-        "type": "Normal",
-        "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 3,
         "properties": ["Fleeting"],
         "connectionType": "Trust",
@@ -413,9 +155,10 @@
         "dialogueFragment": "Please, you have to understand!"
       },
       {
-        "id": "patient_approach",
+        "id": "trust_patient_approach",
         "type": "Normal",
         "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 2,
         "properties": ["Persistent"],
         "connectionType": "Trust",
@@ -431,9 +174,48 @@
         "dialogueFragment": "We have time. Let's work through this together."
       },
       {
-        "id": "setup_prepared",
+        "id": "trust_listen_carefully",
         "type": "Normal",
         "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Listen carefully",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "DrawCards",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Please, tell me more. I'm listening carefully."
+      },
+      {
+        "id": "trust_emotional_support",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
+        "weight": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Offer support",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "I'm here for you. Whatever you need."
+      },
+      {
+        "id": "trust_prepare_ground",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 0,
         "properties": ["Persistent"],
         "connectionType": "Trust",
@@ -449,9 +231,10 @@
         "dialogueFragment": "First, let me set the context..."
       },
       {
-        "id": "setup_receptive",
+        "id": "trust_open_mind",
         "type": "Normal",
         "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 0,
         "properties": ["Persistent"],
         "connectionType": "Trust",
@@ -467,9 +250,759 @@
         "dialogueFragment": "I'm open to hearing your perspective."
       },
       {
-        "id": "interrupt",
+        "id": "trust_heartfelt_confession",
         "type": "Normal",
         "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
+        "weight": 4,
+        "properties": ["Fleeting"],
+        "connectionType": "Trust",
+        "description": "Heartfelt confession",
+        "difficulty": "VeryHard",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "4"
+        },
+        "failureEffect": {
+          "type": "AddComfort",
+          "value": "-2"
+        },
+        "exhaustEffect": {
+          "type": "DrawCards",
+          "value": "2"
+        },
+        "dialogueFragment": "I need to be completely honest with you about something..."
+      },
+      {
+        "id": "trust_gentle_encouragement",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["DEVOTED", "ALL"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Gentle encouragement",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "You're stronger than you know. I believe in you."
+      },
+      {
+        "id": "commerce_fair_deal",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Commerce",
+        "description": "Propose fair trade",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "That seems like a fair arrangement for both of us."
+      },
+      {
+        "id": "commerce_opportunity",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Commerce",
+        "description": "Highlight opportunity",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Think of the profit potential! This could make us both wealthy."
+      },
+      {
+        "id": "commerce_scaling",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 3,
+        "properties": ["Persistent"],
+        "connectionType": "Commerce",
+        "description": "Leverage connections",
+        "difficulty": "Hard",
+        "successEffect": {
+          "type": "ScaleByTokens",
+          "value": "Commerce"
+        },
+        "failureEffect": {
+          "type": "AddComfort",
+          "value": "-1"
+        },
+        "dialogueFragment": "My business connections speak highly of you. Let's make this profitable."
+      },
+      {
+        "id": "commerce_final_offer",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 5,
+        "properties": ["Fleeting"],
+        "connectionType": "Commerce",
+        "description": "Final offer",
+        "difficulty": "VeryHard",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "5"
+        },
+        "failureEffect": {
+          "type": "SetAtmosphere",
+          "value": "Final"
+        },
+        "exhaustEffect": {
+          "type": "AddComfort",
+          "value": "-2"
+        },
+        "dialogueFragment": "This is my final offer. Take it or leave it."
+      },
+      {
+        "id": "commerce_prepare_argument",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 3,
+        "properties": ["Persistent"],
+        "connectionType": "Commerce",
+        "description": "Prepare argument",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddWeight",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Let me lay out my case systematically."
+      },
+      {
+        "id": "commerce_business_proposition",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Commerce",
+        "description": "Business proposition",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "I have a business proposition that could benefit us both."
+      },
+      {
+        "id": "commerce_market_knowledge",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 1,
+        "properties": ["Opportunity"],
+        "connectionType": "Commerce",
+        "description": "Market knowledge",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "DrawCards",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "exhaustEffect": {
+          "type": "DrawCards",
+          "value": "1"
+        },
+        "dialogueFragment": "I know something about the market trends that might interest you."
+      },
+      {
+        "id": "commerce_trade_secrets",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 3,
+        "properties": ["Fleeting"],
+        "connectionType": "Commerce",
+        "description": "Trade secrets",
+        "difficulty": "Hard",
+        "successEffect": {
+          "type": "SetAtmosphere",
+          "value": "Informed"
+        },
+        "failureEffect": {
+          "type": "AddComfort",
+          "value": "-1"
+        },
+        "exhaustEffect": {
+          "type": "SetAtmosphere",
+          "value": "Volatile"
+        },
+        "dialogueFragment": "There are things about this trade that others don't know..."
+      },
+      {
+        "id": "commerce_negotiate_terms",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 2,
+        "properties": ["Opportunity"],
+        "connectionType": "Commerce",
+        "description": "Negotiate terms",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddWeight",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "exhaustEffect": {
+          "type": "AddWeight",
+          "value": "1"
+        },
+        "dialogueFragment": "Perhaps we can adjust the terms to suit both parties."
+      },
+      {
+        "id": "commerce_close_deal",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 4,
+        "properties": ["Fleeting"],
+        "connectionType": "Commerce",
+        "description": "Close the deal",
+        "difficulty": "Hard",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "4"
+        },
+        "failureEffect": {
+          "type": "AddComfort",
+          "value": "-1"
+        },
+        "exhaustEffect": {
+          "type": "SetAtmosphere",
+          "value": "Final"
+        },
+        "dialogueFragment": "I think we have the basis for a solid agreement here."
+      },
+      {
+        "id": "commerce_mutual_benefit",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Commerce",
+        "description": "Mutual benefit",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "When we both profit, we both win."
+      },
+      {
+        "id": "commerce_calculate_value",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Commerce",
+        "description": "Calculate value",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Let me show you the numbers - they speak for themselves."
+      },
+      {
+        "id": "commerce_market_timing",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 3,
+        "properties": ["Opportunity"],
+        "connectionType": "Commerce",
+        "description": "Market timing",
+        "difficulty": "Hard",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "3"
+        },
+        "failureEffect": {
+          "type": "AddComfort",
+          "value": "-1"
+        },
+        "exhaustEffect": {
+          "type": "AddComfort",
+          "value": "-2"
+        },
+        "dialogueFragment": "The timing is perfect for this opportunity - but it won't last."
+      },
+      {
+        "id": "commerce_competitive_edge",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["MERCANTILE", "ALL"],
+        "weight": 4,
+        "properties": ["Fleeting"],
+        "connectionType": "Commerce",
+        "description": "Competitive edge",
+        "difficulty": "VeryHard",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "4"
+        },
+        "failureEffect": {
+          "type": "AddComfort",
+          "value": "-2"
+        },
+        "exhaustEffect": {
+          "type": "DrawCards",
+          "value": "1"
+        },
+        "dialogueFragment": "This gives us a significant advantage over our competitors."
+      },
+      {
+        "id": "steadfast_gather_thoughts",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Gather thoughts",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "DrawCards",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Let me think about what you've said..."
+      },
+      {
+        "id": "steadfast_build_momentum",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Build momentum",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddWeight",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "I feel we're making progress here."
+      },
+      {
+        "id": "steadfast_take_breath",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 0,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Take a breath",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "SetAtmosphere",
+          "value": "Patient"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Let's take this one step at a time."
+      },
+      {
+        "id": "steadfast_find_common_ground",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Find common ground",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "We have more in common than we might think."
+      },
+      {
+        "id": "steadfast_steady_approach",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Steady approach",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Slow and steady often wins the day."
+      },
+      {
+        "id": "steadfast_stay_focused",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 0,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Stay focused",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "SetAtmosphere",
+          "value": "Focused"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Let's keep our attention on what matters most."
+      },
+      {
+        "id": "steadfast_press_advantage",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 3,
+        "properties": ["Opportunity"],
+        "connectionType": "Trust",
+        "description": "Press advantage",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddWeight",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "exhaustEffect": {
+          "type": "AddWeight",
+          "value": "1"
+        },
+        "dialogueFragment": "Now is the time to move forward decisively."
+      },
+      {
+        "id": "steadfast_make_time",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 2,
+        "properties": ["Opportunity"],
+        "connectionType": "Trust",
+        "description": "Make time",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "DrawCards",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "exhaustEffect": {
+          "type": "DrawCards",
+          "value": "1"
+        },
+        "dialogueFragment": "Good things take time. Let's make sure we have it."
+      },
+      {
+        "id": "steadfast_honor_duty",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 3,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Honor duty",
+        "difficulty": "Hard",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "3"
+        },
+        "failureEffect": {
+          "type": "AddComfort",
+          "value": "-1"
+        },
+        "dialogueFragment": "We both know what's right. Let's do our duty."
+      },
+      {
+        "id": "steadfast_plain_speaking",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Plain speaking",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Let me speak plainly - no fancy words needed."
+      },
+      {
+        "id": "steadfast_reliable_support",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Reliable support",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "You can count on me to be there when needed."
+      },
+      {
+        "id": "steadfast_practical_wisdom",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 3,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Practical wisdom",
+        "difficulty": "Hard",
+        "successEffect": {
+          "type": "ScaleByTokens",
+          "value": "Trust"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Experience has taught me a few things about situations like this."
+      },
+      {
+        "id": "steadfast_clear_path",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 4,
+        "properties": ["Fleeting"],
+        "connectionType": "Trust",
+        "description": "Clear path forward",
+        "difficulty": "VeryHard",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "4"
+        },
+        "failureEffect": {
+          "type": "AddComfort",
+          "value": "-1"
+        },
+        "exhaustEffect": {
+          "type": "SetAtmosphere",
+          "value": "Prepared"
+        },
+        "dialogueFragment": "The path forward is clear. We just need to take the first step."
+      },
+      {
+        "id": "steadfast_unwavering_resolve",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["STEADFAST", "ALL"],
+        "weight": 5,
+        "properties": ["Fleeting"],
+        "connectionType": "Trust",
+        "description": "Unwavering resolve",
+        "difficulty": "VeryHard",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "5"
+        },
+        "failureEffect": {
+          "type": "AddComfort",
+          "value": "-2"
+        },
+        "exhaustEffect": {
+          "type": "SetAtmosphere",
+          "value": "Final"
+        },
+        "dialogueFragment": "My resolve is unshakeable. This is how it must be."
+      },
+      {
+        "id": "proud_show_respect",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["PROUD", "ALL"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Status",
+        "description": "Show respect",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Your reputation precedes you. It's an honor to speak with you."
+      },
+      {
+        "id": "proud_observe_formalities",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["PROUD", "ALL"],
+        "weight": 0,
+        "properties": ["Persistent"],
+        "connectionType": "Status",
+        "description": "Observe formalities",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "SetAtmosphere",
+          "value": "Focused"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Let us observe the proper protocols, as befits your station."
+      },
+      {
+        "id": "proud_invoke_status",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["PROUD", "ALL"],
+        "weight": 3,
+        "properties": ["Persistent"],
+        "connectionType": "Status",
+        "description": "Invoke status",
+        "difficulty": "Hard",
+        "successEffect": {
+          "type": "ScaleByTokens",
+          "value": "Status"
+        },
+        "failureEffect": {
+          "type": "AddComfort",
+          "value": "-1"
+        },
+        "dialogueFragment": "Your standing in society demands this consideration."
+      },
+      {
+        "id": "cunning_drop_hint",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["CUNNING", "ALL"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Shadow",
+        "description": "Drop hint",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "I know things that others don't. Perhaps we can help each other."
+      },
+      {
+        "id": "cunning_apply_leverage",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["CUNNING", "ALL"],
+        "weight": 3,
+        "properties": ["Persistent"],
+        "connectionType": "Shadow",
+        "description": "Apply leverage",
+        "difficulty": "Hard",
+        "successEffect": {
+          "type": "ScaleByTokens",
+          "value": "Shadow"
+        },
+        "failureEffect": {
+          "type": "AddComfort",
+          "value": "-1"
+        },
+        "dialogueFragment": "I have information that could be... useful to you."
+      },
+      {
+        "id": "cunning_veiled_threat",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["CUNNING", "ALL"],
+        "weight": 4,
+        "properties": ["Opportunity"],
+        "connectionType": "Shadow",
+        "description": "Veiled threat",
+        "difficulty": "VeryHard",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "4"
+        },
+        "failureEffect": {
+          "type": "AddComfort",
+          "value": "-3"
+        },
+        "exhaustEffect": {
+          "type": "SetAtmosphere",
+          "value": "Pressured"
+        },
+        "dialogueFragment": "It would be unfortunate if certain information became public."
+      },
+      {
+        "id": "universal_interrupt",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["ALL"],
         "weight": 1,
         "properties": ["Opportunity"],
         "connectionType": "Status",
@@ -490,9 +1023,10 @@
         "dialogueFragment": "Wait, let me say something..."
       },
       {
-        "id": "final_statement",
+        "id": "universal_final_statement",
         "type": "Normal",
         "cardType": "Normal",
+        "personalityTypes": ["ALL"],
         "weight": 5,
         "properties": ["Fleeting"],
         "connectionType": "Status",
@@ -513,9 +1047,52 @@
         "dialogueFragment": "This is my final word on the matter."
       },
       {
+        "id": "universal_quick_response",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["ALL"],
+        "weight": 1,
+        "properties": ["Opportunity"],
+        "connectionType": "Trust",
+        "description": "Quick response",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "AddComfort",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "exhaustEffect": {
+          "type": "DrawCards",
+          "value": "1"
+        },
+        "dialogueFragment": "Let me respond quickly to that."
+      },
+      {
+        "id": "universal_thoughtful_pause",
+        "type": "Normal",
+        "cardType": "Normal",
+        "personalityTypes": ["ALL"],
+        "weight": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Thoughtful pause",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "DrawCards",
+          "value": "1"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Give me a moment to consider this properly."
+      },
+      {
         "id": "goal_letter_delivery",
         "type": "Goal",
         "cardType": "Goal",
+        "personalityTypes": ["ALL"],
         "weight": 5,
         "properties": ["Fleeting", "Opportunity"],
         "connectionType": "Trust",
@@ -557,6 +1134,7 @@
         "id": "goal_meeting",
         "type": "Goal",
         "cardType": "Goal",
+        "personalityTypes": ["ALL"],
         "weight": 6,
         "properties": ["Fleeting", "Opportunity"],
         "connectionType": "Trust",
@@ -593,6 +1171,7 @@
         "id": "goal_resolution",
         "type": "Goal",
         "cardType": "Goal",
+        "personalityTypes": ["ALL"],
         "weight": 5,
         "properties": ["Fleeting", "Opportunity"],
         "connectionType": "Trust",
@@ -627,6 +1206,7 @@
         "id": "exchange_food_for_coins",
         "type": "Exchange",
         "cardType": "Exchange",
+        "personalityTypes": ["ALL"],
         "weight": 1,
         "properties": ["Persistent"],
         "connectionType": "Commerce",
@@ -649,6 +1229,7 @@
         "id": "exchange_rest_for_coins",
         "type": "Exchange",
         "cardType": "Exchange",
+        "personalityTypes": ["ALL"],
         "weight": 1,
         "properties": ["Persistent"],
         "connectionType": "Commerce",
