@@ -34,7 +34,7 @@
     font-size: 12px;
 }
 
-.card-grid {
+.npc-deck-viewer .card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 12px;
@@ -179,7 +179,7 @@
 
 /* Responsive design for smaller screens */
 @media (max-width: 768px) {
-    .card-grid {
+    .npc-deck-viewer .card-grid {
         grid-template-columns: 1fr;
     }
     

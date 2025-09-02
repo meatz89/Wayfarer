@@ -846,7 +846,14 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             {
                 foreach (KeyValuePair<ConnectionType, int> kvp in npcTokens)
                 {
-                    tokenTotals[kvp.Key] += Math.Max(0, kvp.Value);
+                    // Skip None type as it's not a valid token type
+                    if (kvp.Key == ConnectionType.None)
+                        continue;
+                        
+                    if (tokenTotals.ContainsKey(kvp.Key))
+                    {
+                        tokenTotals[kvp.Key] += Math.Max(0, kvp.Value);
+                    }
                 }
             }
 
