@@ -285,7 +285,8 @@
       "Bash(/mnt/c/git/wayfarer/test-package-loading.sh)",
       "Bash(verbosity=minimal)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5420\" dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5420\" timeout 30 dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5420\" timeout 30 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5421\" dotnet run --no-build)"
     ],
     "deny": []
   }
