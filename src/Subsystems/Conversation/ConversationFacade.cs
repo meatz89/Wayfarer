@@ -148,7 +148,7 @@ public class ConversationFacade
             // Remove used observation cards that are fleeting
             foreach (CardInstance card in action.SelectedCards)
             {
-                if (card.IsObservable && card.IsFleeting)
+                if (card.Properties.Contains(CardProperty.Observable) && card.Properties.Contains(CardProperty.Fleeting))
                 {
                     _observationManager.RemoveObservationCard(card.Id);
                 }

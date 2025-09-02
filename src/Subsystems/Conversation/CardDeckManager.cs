@@ -204,7 +204,7 @@ public class CardDeckManager
     private bool RemoveFleetingCardsFromHand(ConversationSession session)
     {
         // Get all fleeting cards (including goals with both Fleeting + Opportunity)
-        List<CardInstance> fleetingCards = session.Hand.Cards.Where(c => c.IsFleeting).ToList();
+        List<CardInstance> fleetingCards = session.Hand.Cards.Where(c => c.Properties.Contains(CardProperty.Fleeting)).ToList();
         
         foreach (var card in fleetingCards)
         {

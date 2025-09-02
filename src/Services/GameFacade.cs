@@ -399,7 +399,7 @@ public class GameFacade
     {
         // Initialize player at starting location
         var player = _gameWorld.GetPlayer();
-        var startingLocation = _gameWorld.worldState.locations.FirstOrDefault(l => l.Id == "market_square");
+        var startingLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "market_square");
         if (startingLocation != null)
         {
             var startingSpot = startingLocation.AvailableSpots?.FirstOrDefault(s => s.SpotID == "central_fountain");

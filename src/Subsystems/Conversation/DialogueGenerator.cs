@@ -125,14 +125,23 @@ public class DialogueGenerator
             return card.Description.Replace("{npc}", npc.Name);
         }
 
-        // Generate based on card type
-        return card.Type switch
+        // Generate based on card properties
+        if (card.Properties.Contains(CardProperty.Observable))
         {
-            CardType.Normal => $"You continue talking with {npc.Name}.",
-            CardType.Observation => $"You share an observation with {npc.Name}.",
-            CardType.Goal => $"You make an important request to {npc.Name}.",
-            _ => $"You continue talking with {npc.Name}."
-        };
+            return $"You share an observation with {npc.Name}.";
+        }
+        else if (card.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity))
+        {
+            return $"You make an important request to {npc.Name}.";
+        }
+        else if (card.Properties.Contains(CardProperty.Exchange))
+        {
+            return $"You make a trade offer to {npc.Name}.";
+        }
+        else
+        {
+            return $"You continue talking with {npc.Name}.";
+        }
     }
 
     /// <summary>
@@ -204,13 +213,22 @@ public class DialogueGenerator
 
     private string GetCardTopic(CardInstance card)
     {
-        return card.Type switch
+        if (card.Properties.Contains(CardProperty.Observable))
         {
-            CardType.Normal => "something important",
-            CardType.Observation => "your observations",
-            CardType.Goal => "an urgent matter",
-            _ => "something"
-        };
+            return "your observations";
+        }
+        else if (card.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity))
+        {
+            return "an urgent matter";
+        }
+        else if (card.Properties.Contains(CardProperty.Exchange))
+        {
+            return "a trade proposal";
+        }
+        else
+        {
+            return "something important";
+        }
     }
 
     private string GenerateStateDialogue(NPC npc, EmotionalState state, string context)
@@ -242,7 +260,10 @@ public class DialogueGenerator
     private string GenerateCardReaction(NPC npc, HashSet<CardInstance> cards, EmotionalState state)
     {
         int cardCount = cards.Count;
-        CardType primaryType = cards.GroupBy(c => c.Type).OrderByDescending(g => g.Count()).First().Key;
+        // Determine primary card property for reaction
+        var hasObservation = cards.Any(c => c.Properties.Contains(CardProperty.Observable));
+        var hasGoal = cards.Any(c => c.Properties.Contains(CardProperty.Fleeting) && c.Properties.Contains(CardProperty.Opportunity));
+        var hasExchange = cards.Any(c => c.Properties.Contains(CardProperty.Exchange));
 
         if (cardCount == 1)
         {

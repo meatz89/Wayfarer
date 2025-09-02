@@ -30,47 +30,34 @@ public class CardInstance
     public string SourceContext { get; init; }
     public CardContext Context { get; set; } // For exchange data and other context
     
-    // Helper properties that use Properties list
-    public bool IsFleeting => Properties.Contains(CardProperty.Fleeting);
-    public bool IsOpportunity => Properties.Contains(CardProperty.Opportunity);
-    public bool IsPersistent => !Properties.Contains(CardProperty.Fleeting) 
-                                && !Properties.Contains(CardProperty.Opportunity);
-    public bool IsGoal => Properties.Contains(CardProperty.Fleeting) 
-                          && Properties.Contains(CardProperty.Opportunity);
-    public bool IsBurden => Properties.Contains(CardProperty.Burden);
-    public bool IsObservable => Properties.Contains(CardProperty.Observable);
+    // Use Properties list directly - no legacy boolean helpers
 
     public string GetCategoryClass()
     {
-        // Determine category from properties
-        if (IsGoal) return "card-goal";
-        if (IsObservable) return "card-observation";
-        if (IsBurden) return "card-burden";
-        if (Properties.Contains(CardProperty.Exchange)) return "card-exchange";
-        return "card-standard";
+        // Return ALL properties as CSS classes
+        var classes = new List<string>();
+        
+        foreach (var property in Properties)
+        {
+            classes.Add($"card-{property.ToString().ToLower()}");
+        }
+        
+        // Add special combined classes
+        if (Properties.Contains(CardProperty.Fleeting) && Properties.Contains(CardProperty.Opportunity))
+        {
+            classes.Add("card-goal");
+        }
+        
+        // If no properties, add default
+        if (classes.Count == 0)
+        {
+            classes.Add("card-standard");
+        }
+        
+        return string.Join(" ", classes);
     }
     
-    public string Category
-    {
-        get
-        {
-            if (Properties.Contains(CardProperty.Exchange)) return nameof(CardCategory.Exchange);
-            if (IsBurden) return nameof(CardCategory.Burden);
-            if (IsGoal) return nameof(CardCategory.Promise);
-            if (IsObservable) return nameof(CardCategory.Observation);
-            return nameof(CardCategory.Comfort);
-        }
-    }
-    
-    public CardType Type
-    {
-        get
-        {
-            if (IsGoal) return CardType.Goal;
-            if (IsObservable) return CardType.Observation;
-            return CardType.Normal;
-        }
-    }
+    // Removed misleading Category and Type properties - use Properties list directly
     
     public EmotionalState? SuccessState => null;
     public EmotionalState? FailureState => null;

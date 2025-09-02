@@ -618,8 +618,8 @@ namespace Wayfarer.Pages
         {
             if (card.IsGoal) return "Goal";
             if (card.IsObservable) return nameof(CardCategory.Observation);
-            if (card.IsBurden) return "Burden";
-            if (card.Properties.Contains(CardProperty.Exchange)) return "Exchange";
+            if (card.IsBurden) return nameof(CardCategory.Burden);
+            if (card.Properties.Contains(CardProperty.Exchange)) return nameof(CardCategory.Exchange);
             return "Standard";
         }
 

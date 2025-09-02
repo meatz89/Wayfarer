@@ -240,7 +240,7 @@ namespace Wayfarer.Pages.Components
                 MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
 
                 // Check if this is an exchange card
-                if (SelectedCard.Category == nameof(CardCategory.Exchange) && messageSystem != null)
+                if (SelectedCard.Properties.Contains(CardProperty.Exchange) && messageSystem != null)
                 {
                     // For exchanges, show what's being traded
                     if (SelectedCard.Context?.ExchangeCost != null && SelectedCard.Context?.ExchangeReward != null)
@@ -642,17 +642,21 @@ namespace Wayfarer.Pages.Components
         {
             if (card == null) return "Card";
 
-            return card.Category switch
+            // Show ALL properties as labels
+            var labels = new List<string>();
+            
+            foreach (var property in card.Properties)
             {
-                nameof(CardCategory.Comfort) => "Comfort",
-                nameof(CardCategory.State) => "State card",
-                nameof(CardCategory.Token) => "Token",
-                nameof(CardCategory.Patience) => "Patience",
-                nameof(CardCategory.Exchange) => "Exchange",
-                nameof(CardCategory.Promise) => "Promise",
-                nameof(CardCategory.Burden) => "Burden",
-                _ => card.IsObservable ? nameof(CardCategory.Observation) : card.Type.ToString()
-            };
+                labels.Add(property.ToString());
+            }
+            
+            // If no properties, show "Standard"
+            if (labels.Count == 0)
+            {
+                labels.Add("Standard");
+            }
+            
+            return string.Join(" • ", labels);
         }
 
         protected bool CanSpeak()
@@ -902,14 +906,15 @@ namespace Wayfarer.Pages.Components
 
         protected string GetProperCardName(CardInstance card)
         {
-            // Generate meaningful card names based on type and category
-            if (card.Category == nameof(CardCategory.Exchange) && card.Context?.ExchangeName != null)
+            // Generate meaningful card names based on properties
+            if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
 
-            if (card.Category == nameof(CardCategory.Burden))
+            if (card.Properties.Contains(CardProperty.Burden))
                 return "Address Past Failure";
 
-            if (card.Category == nameof(CardCategory.State))
+            // State category no longer exists in Properties system
+            if (false)
             {
                 if (card.SuccessState.HasValue)
                 {
@@ -919,7 +924,7 @@ namespace Wayfarer.Pages.Components
                 return "Change Approach";
             }
 
-            if (card.IsObservable)
+            if (card.Properties.Contains(CardProperty.Observable))
             {
                 // Use context for observation names
                 if (card.DisplayName != null)
@@ -927,8 +932,8 @@ namespace Wayfarer.Pages.Components
                 return "Share Observation";
             }
 
-            // Comfort cards get contextual names (comfort cards have no specific type)
-            if (card.Category == nameof(CardCategory.Comfort) && card.Type == CardType.Normal)
+            // Standard cards get contextual names
+            if (!card.Properties.Contains(CardProperty.Exchange) && !card.Properties.Contains(CardProperty.Observable) && !card.Properties.Contains(CardProperty.Burden))
             {
                 if (card.BaseComfort >= 2)
                     return "Deep Understanding";
@@ -938,8 +943,8 @@ namespace Wayfarer.Pages.Components
                     return "Simple Response";
             }
 
-            // Token cards are identified by having token types
-            if (card.Type != CardType.Normal && card.Category == nameof(CardCategory.Comfort))
+            // Token cards are identified by having specific token types
+            if (card.TokenType == TokenType.Trust && !card.Properties.Contains(CardProperty.Exchange))
             {
                 ConnectionType tokenType = card.TokenType switch
                 {
@@ -1850,25 +1855,14 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected IEnumerable<CardProperty> GetCardProperties(CardInstance card)
         {
-            var properties = new List<CardProperty>();
+            // Return ALL properties directly from the card
+            if (card?.Properties != null && card.Properties.Count > 0)
+            {
+                return card.Properties;
+            }
             
-            // CardInstance doesn't have Properties list yet, so we map from legacy booleans
-            if (card?.IsFleeting == true)
-                properties.Add(CardProperty.Fleeting);
-            if (card?.IsGoal == true && card?.IsFleeting != true) // Goal cards are Fleeting + Opportunity
-                properties.Add(CardProperty.Opportunity);
-            if (card?.IsGoal == true && card?.IsFleeting == true)
-                properties.Add(CardProperty.Opportunity); // Goal = Fleeting + Opportunity
-            if (card?.IsBurden == true)
-                properties.Add(CardProperty.Burden);
-            if (card?.IsObservable == true)
-                properties.Add(CardProperty.Observable);
-                
-            // If no special properties, default to persistent
-            if (properties.Count == 0)
-                properties.Add(CardProperty.Persistent);
-            
-            return properties;
+            // If no properties defined, default to Persistent
+            return new List<CardProperty> { CardProperty.Persistent };
         }
 
         /// <summary>
