@@ -12,11 +12,7 @@ public static class ServiceConfiguration
         // Register configuration
         services.AddSingleton<IContentDirectory>(_ => new ContentDirectory { Path = "Content" });
 
-        // Register content validation
-        services.AddSingleton<ValidatedContentLoader>();
-
         // Register game configuration and rule engine
-        services.AddSingleton<GameConfigurationLoader>();
         services.AddSingleton<GameConfiguration>();
         services.AddSingleton<IGameRuleEngine, GameRuleEngine>();
 

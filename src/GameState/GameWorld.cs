@@ -70,7 +70,8 @@ public class GameWorld
     public Dictionary<string, List<ConversationCard>> NPCGoalDecks { get; set; } = new Dictionary<string, List<ConversationCard>>();
     public Dictionary<string, List<ConversationCard>> NPCExchangeDecks { get; set; } = new Dictionary<string, List<ConversationCard>>();
     public List<ConversationCard> PlayerObservationCards { get; set; } = new List<ConversationCard>();
-    public List<TravelCard> TravelCards { get; set; } = new List<TravelCard>();
+    // Travel cards are now stored as ConversationCards with category "Travel"
+    public List<ConversationCard> TravelCards { get; set; } = new List<ConversationCard>();
 
     // Initialization data - stored in GameWorld, not passed between phases
     // This eliminates the need for SharedData dictionary

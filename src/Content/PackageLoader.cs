@@ -237,6 +237,7 @@ public class PackageLoader
         foreach (var dto in travelCardDtos)
         {
             var travelCard = ConvertTravelCardDTOToModel(dto);
+            _gameWorld.TravelCards.Add(travelCard);
             _gameWorld.AllCardDefinitions[travelCard.Id] = travelCard;
         }
     }
