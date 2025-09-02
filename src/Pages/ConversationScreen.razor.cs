@@ -24,7 +24,7 @@ namespace Wayfarer.Pages
         [Inject] protected ObservationManager ObservationManager { get; set; }
 
         protected ConversationSession Session { get; set; }
-        protected HashSet<CardInstance> SelectedCards { get; set; } = new();
+        protected CardInstance? SelectedCard { get; set; } = null;
         protected ActionType SelectedAction { get; set; } = ActionType.None;
         protected CardPlayResult LastResult { get; set; }
         protected CardInstance CurrentConversationCard { get; set; }
@@ -54,7 +54,7 @@ namespace Wayfarer.Pages
             SelectedAction = action;
             if (action == ActionType.Listen)
             {
-                SelectedCards.Clear();
+                SelectedCard = null;
             }
             StateHasChanged();
         }
@@ -63,18 +63,15 @@ namespace Wayfarer.Pages
         {
             if (SelectedAction != ActionType.Speak) return;
 
-            if (SelectedCards.Contains(card))
+            // ONE CARD RULE: Only one card can be selected at a time
+            if (SelectedCard == card)
             {
-                SelectedCards.Remove(card);
+                SelectedCard = null;
             }
             else if (CanSelectCard(card))
             {
-                // Check if we can add this card
-                HashSet<CardInstance> tempSelection = new HashSet<CardInstance>(SelectedCards) { card };
-                if (ConversationFacade.CanSelectCard(card, SelectedCards))
-                {
-                    SelectedCards.Add(card);
-                }
+                // Replace any existing selection with new card
+                SelectedCard = card;
             }
             StateHasChanged();
         }
@@ -82,7 +79,8 @@ namespace Wayfarer.Pages
         protected bool CanSelectCard(CardInstance card)
         {
             if (SelectedAction != ActionType.Speak) return false;
-            return ConversationFacade.CanSelectCard(card, SelectedCards);
+            // For single card selection, just check weight limit
+            return card.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL) <= (Session?.GetWeightLimit() ?? 5);
         }
 
         protected async Task ExecuteAction()
@@ -98,12 +96,12 @@ namespace Wayfarer.Pages
             if (SelectedAction == ActionType.Listen)
             {
                 ConversationFacade.ExecuteListen();
-                SelectedCards.Clear();
+                SelectedCard = null;
             }
-            else if (SelectedAction == ActionType.Speak && SelectedCards.Any())
+            else if (SelectedAction == ActionType.Speak && SelectedCard != null)
             {
-                LastResult = await ConversationFacade.ExecuteSpeak(SelectedCards);
-                SelectedCards.Clear();
+                LastResult = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
+                SelectedCard = null;
             }
 
             SelectedAction = ActionType.None;
@@ -128,7 +126,7 @@ namespace Wayfarer.Pages
             if (SelectedAction == ActionType.Speak)
             {
                 // ONE-CARD RULE: Must have exactly one card selected
-                return SelectedCards.Count == 1;
+                return SelectedCard != null;
             }
 
             return false;
@@ -379,7 +377,7 @@ namespace Wayfarer.Pages
 
         protected int GetCurrentWeight()
         {
-            return SelectedCards.Sum(c => c.GetEffectiveWeight(Session.CurrentState));
+            return SelectedCard?.GetEffectiveWeight(Session.CurrentState) ?? 0;
         }
 
         protected int GetMaxWeight()
@@ -523,14 +521,11 @@ namespace Wayfarer.Pages
 
             if (SelectedAction == ActionType.Speak)
             {
-                if (!SelectedCards.Any())
+                if (SelectedCard == null)
                     return "Choose your response...";
 
                 CardSelectionManager manager = new CardSelectionManager(Session.CurrentState);
-                foreach (CardInstance card in SelectedCards)
-                {
-                    manager.ToggleCard(card);
-                }
+                manager.SelectCard(SelectedCard);
 
                 return manager.GetSelectionDescription() + " (costs 1 turn)";
             }
@@ -546,23 +541,12 @@ namespace Wayfarer.Pages
                 return $"Draw {rules.CardsOnListen} new thoughts, but fleeting opportunities pass";
             }
 
-            if (SelectedAction == ActionType.Speak && SelectedCards.Any())
+            if (SelectedAction == ActionType.Speak && SelectedCard != null)
             {
-                int totalComfort = SelectedCards.Sum(c => c.BaseComfort);
-                IEnumerable<CardType> types = SelectedCards.Select(c => c.Type).Distinct();
-
-                if (types.Count() == 1 && SelectedCards.Count > 1)
-                {
-                    int bonus = SelectedCards.Count switch
-                    {
-                        2 => 2,
-                        3 => 5,
-                        _ => 8
-                    };
-                    return $"Expected: {totalComfort} comfort +{bonus} set bonus! (if all succeed)";
-                }
-
-                return $"Expected: {totalComfort} comfort (if all succeed)";
+                int totalComfort = SelectedCard.BaseComfort;
+                // Single card - no set bonus logic needed
+                
+                return $"Expected: {totalComfort} comfort (if successful)";
             }
 
             return $"{Session.CurrentPatience} turns remaining • Each turn advances time";

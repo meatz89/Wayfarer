@@ -409,34 +409,45 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Execute SPEAK action with selected cards
+    /// Execute SPEAK action with a single selected card (ONE CARD RULE)
     /// </summary>
-    public async Task<CardPlayResult> ExecuteSpeak(HashSet<CardInstance> selectedCards)
+    public async Task<CardPlayResult> ExecuteSpeakSingleCard(CardInstance selectedCard)
     {
         if (!IsConversationActive())
         {
             throw new InvalidOperationException("No active conversation");
         }
 
+        if (selectedCard == null)
+        {
+            throw new ArgumentNullException(nameof(selectedCard), "Must select exactly one card to speak");
+        }
+
+        // Create a HashSet with single card for ProcessAction (will be refactored later)
+        HashSet<CardInstance> singleCardSet = new HashSet<CardInstance> { selectedCard };
+        
         ConversationTurnResult result = ProcessAction(new ConversationAction
         {
             ActionType = ActionType.Speak,
-            SelectedCards = selectedCards
+            SelectedCards = singleCardSet
         });
 
         // Convert ConversationTurnResult to CardPlayResult for backward compatibility
         CardPlayResult cardPlayResult = new CardPlayResult
         {
             TotalComfort = result.ComfortChange ?? 0,
-            Results = selectedCards.Select(card => new SingleCardResult
+            Results = new List<SingleCardResult>
             {
-                Card = card,
-                Success = result.Success,
-                Comfort = (result.ComfortChange ?? 0) / Math.Max(1, selectedCards.Count), // Distribute comfort evenly
-                Roll = 50, // Default roll value
-                SuccessChance = 75, // Default success chance
-                PatienceAdded = 0
-            }).ToList(),
+                new SingleCardResult
+                {
+                    Card = selectedCard,
+                    Success = result.Success,
+                    Comfort = result.ComfortChange ?? 0,
+                    Roll = 50, // Default roll value
+                    SuccessChance = 75, // Default success chance
+                    PatienceAdded = 0
+                }
+            },
             NewState = result.NewState,
             SetBonus = 0,
             ConnectedBonus = 0,

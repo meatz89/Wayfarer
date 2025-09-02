@@ -70,8 +70,8 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameFacade GameFacade { get; set; }
 
         protected ConversationSession Session { get; set; }
-        protected HashSet<CardInstance> SelectedCards { get; set; } = new();
-        protected int TotalSelectedWeight => SelectedCards.Sum(c => c.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL));
+        protected CardInstance? SelectedCard { get; set; } = null;
+        protected int TotalSelectedWeight => SelectedCard?.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL) ?? 0;
         protected bool IsProcessing { get; set; }
         protected bool IsConversationExhausted { get; set; } = false;
         protected string ExhaustionReason { get; set; } = "";
@@ -157,7 +157,7 @@ namespace Wayfarer.Pages.Components
             if (IsProcessing || Session == null) return;
 
             IsProcessing = true;
-            SelectedCards.Clear();
+            SelectedCard = null;
 
             try
             {
@@ -213,7 +213,7 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteSpeak()
         {
-            if (IsProcessing || Session == null || !SelectedCards.Any()) return;
+            if (IsProcessing || Session == null || SelectedCard == null) return;
 
             IsProcessing = true;
 
@@ -223,13 +223,12 @@ namespace Wayfarer.Pages.Components
                 MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
 
                 // Check if this is an exchange card
-                CardInstance? exchangeCard = SelectedCards.FirstOrDefault(c => c.Category == nameof(CardCategory.Exchange));
-                if (exchangeCard != null && messageSystem != null)
+                if (SelectedCard.Category == nameof(CardCategory.Exchange) && messageSystem != null)
                 {
                     // For exchanges, show what's being traded
-                    if (exchangeCard.Context?.ExchangeCost != null && exchangeCard.Context?.ExchangeReward != null)
+                    if (SelectedCard.Context?.ExchangeCost != null && SelectedCard.Context?.ExchangeReward != null)
                     {
-                        if (exchangeCard.Context.ExchangeName == "Pass on this offer")
+                        if (SelectedCard.Context.ExchangeName == "Pass on this offer")
                         {
                             string decliningMsg = _systemNarratives?.systemMessages?.decliningExchange ?? "Declining the exchange...";
                             messageSystem.AddSystemMessage(decliningMsg, SystemMessageTypes.Info);
@@ -237,24 +236,20 @@ namespace Wayfarer.Pages.Components
                         else
                         {
                             string tradingMsg = _systemNarratives?.systemMessages?.tradingExchange ?? "Trading: {0} for {1}";
-                            messageSystem.AddSystemMessage(string.Format(tradingMsg, exchangeCard.Context.ExchangeCost, exchangeCard.Context.ExchangeReward), SystemMessageTypes.Info);
+                            messageSystem.AddSystemMessage(string.Format(tradingMsg, SelectedCard.Context.ExchangeCost, SelectedCard.Context.ExchangeReward), SystemMessageTypes.Info);
                         }
                     }
                 }
                 else if (messageSystem != null)
                 {
                     // ONE-CARD RULE: Always exactly one card
-                    CardInstance? selectedCard = SelectedCards.FirstOrDefault();
-                    if (selectedCard != null)
-                    {
-                        string playingMsg = _systemNarratives?.systemMessages?.playingCard ?? "Playing {0}...";
-                        messageSystem.AddSystemMessage(string.Format(playingMsg, GetCardName(selectedCard)), SystemMessageTypes.Info);
-                    }
+                    string playingMsg = _systemNarratives?.systemMessages?.playingCard ?? "Playing {0}...";
+                    messageSystem.AddSystemMessage(string.Format(playingMsg, GetCardName(SelectedCard)), SystemMessageTypes.Info);
                 }
 
-                // ExecuteSpeak expects HashSet<ConversationCard>
+                // ExecuteSpeak expects a single card
                 // CRITICAL: Must use ConversationManager.ExecuteSpeak to handle special card effects like letter delivery
-                CardPlayResult result = await ConversationFacade.ExecuteSpeak(SelectedCards);
+                CardPlayResult result = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
                 ProcessSpeakResult(result);
 
                 // Add detailed notification for result
@@ -280,7 +275,7 @@ namespace Wayfarer.Pages.Components
                     }
                 }
 
-                SelectedCards.Clear();
+                SelectedCard = null;
 
                 // Refresh resources after exchange/card play
                 if (GameScreen != null)
@@ -594,16 +589,15 @@ namespace Wayfarer.Pages.Components
         {
             // ONE CARD RULE: Only one card can be selected at a time for SPEAK action
 
-            if (SelectedCards.Contains(card))
+            if (SelectedCard == card)
             {
                 // Deselect the card
-                SelectedCards.Remove(card);
+                SelectedCard = null;
             }
             else if (CanSelectCard(card))
             {
-                // ONE CARD RULE: Clear any existing selection before selecting new card
-                SelectedCards.Clear();
-                SelectedCards.Add(card);
+                // Select the new card (replaces any existing selection)
+                SelectedCard = card;
             }
             // If card can't be selected (over weight limit), do nothing
 
@@ -624,7 +618,7 @@ namespace Wayfarer.Pages.Components
 
         protected bool IsCardSelected(CardInstance card)
         {
-            return SelectedCards.Contains(card);
+            return SelectedCard == card;
         }
 
         protected string GetCardTypeLabel(CardInstance card)
@@ -646,7 +640,7 @@ namespace Wayfarer.Pages.Components
 
         protected bool CanSpeak()
         {
-            return SelectedCards.Any() && TotalSelectedWeight <= GetWeightLimit();
+            return SelectedCard != null && TotalSelectedWeight <= GetWeightLimit();
         }
 
         protected async Task EndConversation()
@@ -734,7 +728,12 @@ namespace Wayfarer.Pages.Components
 
         protected string GetSpeakDetails()
         {
-            return $"Weight limit: {GetWeightLimit()}";
+            if (SelectedCard != null)
+            {
+                int weight = SelectedCard.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL);
+                return $"Play {GetCardName(SelectedCard)} (Weight: {weight})";
+            }
+            return $"Select a card (Weight limit: {GetWeightLimit()})";
         }
 
         protected string GetStateEffects()
@@ -828,8 +827,13 @@ namespace Wayfarer.Pages.Components
 
         protected string GetSpeakActionText()
         {
+            if (SelectedCard != null)
+            {
+                int weight = SelectedCard.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL);
+                return $"Play {GetProperCardName(SelectedCard)} ({weight} weight)";
+            }
             int limit = GetWeightLimit();
-            return $"Play weight {limit} cards";
+            return $"Select a card to play (max weight: {limit})";
         }
 
         protected string GetProperCardName(CardInstance card)
