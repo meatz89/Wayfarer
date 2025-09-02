@@ -59,8 +59,7 @@ public static class SkeletonGenerator
             
             // Empty collections
             ProvidedServices = new List<ServiceTypes>(),
-            LetterTokenTypes = new List<ConnectionType>(),
-            DailySchedule = new List<ScheduleEntry>()
+            LetterTokenTypes = new List<ConnectionType>()
         };
         
         // Initialize card decks (required for NPC to function)

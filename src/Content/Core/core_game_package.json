@@ -1289,15 +1289,7 @@
         "personalityType": "MERCANTILE",
         "services": ["Trade", "Work"],
         "letterTokenTypes": ["Commerce"],
-        "currentState": "CALCULATING",
-        "schedule": {
-          "Dawn": ["central_fountain"],
-          "Morning": ["central_fountain"],
-          "Afternoon": ["central_fountain"],
-          "Evening": ["central_fountain"],
-          "Night": ["central_fountain"],
-          "LateNight": ["central_fountain"]
-        }
+        "currentState": "CALCULATING"
       },
       {
         "id": "lord_blackwood",

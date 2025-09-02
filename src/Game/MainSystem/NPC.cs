@@ -42,9 +42,6 @@ public class NPC
 
     // DeliveryObligation offering system
 
-    // Schedule tracking (for INVESTIGATE verb discoveries)
-    public List<ScheduleEntry> DailySchedule { get; set; } = new List<ScheduleEntry>();
-
     // Work and Home locations (for deeper world building)
     public string WorkLocationId { get; set; }
     public string WorkSpotId { get; set; }
