@@ -1417,6 +1417,27 @@ body {
     border: 1px solid #8b7355;
 }
 
+/* Card scaling info */
+.card-scaling {
+    font-size: 11px;
+    color: #7a6250;
+    font-style: italic;
+    margin-top: 4px;
+    padding: 2px 6px;
+    background: rgba(212, 167, 106, 0.1);
+    border-radius: 2px;
+    display: inline-block;
+}
+
+/* Comfort threshold preview */
+.comfort-threshold-preview {
+    font-size: 10px;
+    color: #8b4726;
+    font-weight: bold;
+    margin-top: 2px;
+    font-style: italic;
+}
+
 .card-text {
     font-size: 13px;
     line-height: 1.5;
@@ -2555,14 +2576,15 @@ body {
     background: #faf4ea;
     border: 2px solid #8b7355;
     border-radius: 4px;
-    padding: 12px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-    max-width: 400px;
-    min-width: 300px;
+    padding: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    max-width: 450px;
+    min-width: 350px;
     z-index: 20;
-    font-size: 13px;
-    line-height: 1.4;
+    font-size: 12px;
+    line-height: 1.5;
     color: #2c241a;
+    font-family: 'Garamond', 'Times New Roman', 'Georgia', serif;
 }
 
 /* Arrow pointing to button */
@@ -2601,28 +2623,30 @@ body {
 }
 
 .critical-warning {
-    background: #ff0000;
+    background: linear-gradient(135deg, #d4704a, #8b4726);
     color: white;
-    padding: 8px;
-    margin: 8px 0;
+    padding: 10px;
+    margin: 10px 0;
     border-radius: 4px;
     font-weight: bold;
-    font-size: 14px;
-    animation: critical-flash 1s infinite;
+    font-size: 12px;
+    animation: critical-pulse 1.5s infinite;
+    border: 2px solid #8b4726;
+    box-shadow: 0 4px 12px rgba(212, 112, 74, 0.4);
 }
 
 .critical-warning div {
     margin: 2px 0;
 }
 
-@keyframes critical-flash {
+@keyframes critical-pulse {
     0%, 100% { 
-        background: #ff0000;
-        box-shadow: 0 0 5px rgba(255,0,0,0.5);
+        box-shadow: 0 4px 12px rgba(212, 112, 74, 0.4);
+        transform: scale(1);
     }
     50% { 
-        background: #cc0000;
-        box-shadow: 0 0 10px rgba(255,0,0,0.8);
+        box-shadow: 0 6px 20px rgba(212, 112, 74, 0.6);
+        transform: scale(1.02);
     }
 }
 

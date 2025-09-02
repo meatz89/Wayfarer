@@ -16,7 +16,7 @@
             <div class="npc-header">
                 <div class="npc-identity">
                     <div class="npc-name">@NpcName</div>
-                    <div class="emotional-state">@GetEmotionalStateDisplay()</div>
+                    <div class="emotional-state">@GetEmotionalStateDisplay() (@GetEmotionalStateInfo())</div>
                 </div>
                 <div class="state-indicators">
                     <div class="indicator">
@@ -44,6 +44,13 @@
                         @if (Session.CurrentState == EmotionalState.DESPERATE && Session.ComfortBattery <= -2)
                         {
                             <div class="comfort-warning">⚠ Conversation ends at -3!</div>
+                        }
+                        @{
+                            var thresholdPreview = GetComfortThresholdPreview();
+                            if (!string.IsNullOrEmpty(thresholdPreview))
+                            {
+                                <div class="comfort-threshold-preview">@thresholdPreview</div>
+                            }
                         }
                     </div>
                 </div>
@@ -289,6 +296,13 @@
                                 <div class="card-text">
                                     "@GetProperCardDialogue(convCard)"
                                 </div>
+                                @{
+                                    var atmosphereScaling = GetAtmosphereScaling(convCard);
+                                    if (!string.IsNullOrEmpty(atmosphereScaling))
+                                    {
+                                        <div class="card-scaling">@atmosphereScaling</div>
+                                    }
+                                }
                             </div>
                         </div>
                         @* Success/Failure Strip from mockup *@
