@@ -145,10 +145,10 @@ public class ConversationFacade
             // Handle special card effects
             HandleSpecialCardEffects(action.SelectedCards, result);
 
-            // Remove used observation cards
+            // Remove used observation cards that are fleeting
             foreach (CardInstance card in action.SelectedCards)
             {
-                if (card.IsObservation && card.Persistence == PersistenceType.Fleeting)
+                if (card.IsObservable && card.IsFleeting)
                 {
                     _observationManager.RemoveObservationCard(card.Id);
                 }
@@ -473,8 +473,8 @@ public class ConversationFacade
             return true; // Can deselect
 
         // Check weight limit
-        int currentWeight = currentSelection.Sum(c => c.GetEffectiveWeight(_currentSession.CurrentState));
-        int newWeight = currentWeight + card.GetEffectiveWeight(_currentSession.CurrentState);
+        int currentWeight = currentSelection.Sum(c => c.Weight);
+        int newWeight = currentWeight + card.Weight;
 
         return newWeight <= _currentSession.CurrentComfort;
     }

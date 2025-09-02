@@ -77,27 +77,63 @@ public class SessionCardDeck
         // Shuffle is handled by randomized drawing
     }
 
-    public List<CardInstance> DrawFilteredByCategory(string category, int count)
+    public List<CardInstance> DrawFilteredByProperties(List<CardProperty> requiredProperties, int count)
     {
         List<CardInstance> available = new List<CardInstance>();
         foreach (CardInstance c in allCards)
         {
             if (!drawnCardIds.Contains(c.InstanceId) &&
-                !discardedCardIds.Contains(c.InstanceId) &&
-                c.Category == category)
+                !discardedCardIds.Contains(c.InstanceId))
             {
-                available.Add(c);
+                // Check if card has all required properties
+                bool hasAllProperties = true;
+                foreach (CardProperty prop in requiredProperties)
+                {
+                    if (!c.Properties.Contains(prop))
+                    {
+                        hasAllProperties = false;
+                        break;
+                    }
+                }
+                if (hasAllProperties)
+                {
+                    available.Add(c);
+                }
             }
         }
 
         List<CardInstance> drawn = new List<CardInstance>();
+        Random random = new Random();
         for (int i = 0; i < Math.Min(count, available.Count); i++)
         {
-            CardInstance card = available[new Random().Next(available.Count)];
+            CardInstance card = available[random.Next(available.Count)];
             drawnCardIds.Add(card.InstanceId);
             drawn.Add(card);
+            available.Remove(card); // Prevent drawing same card twice
         }
         return drawn;
+    }
+    
+    // Helper methods for common property-based filtering
+    public List<CardInstance> DrawGoalCards(int count)
+    {
+        // Goal cards have both Fleeting AND Opportunity properties
+        return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Fleeting, CardProperty.Opportunity }, count);
+    }
+    
+    public List<CardInstance> DrawBurdenCards(int count)
+    {
+        return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Burden }, count);
+    }
+    
+    public List<CardInstance> DrawObservableCards(int count)
+    {
+        return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Observable }, count);
+    }
+    
+    public List<CardInstance> DrawExchangeCards(int count)
+    {
+        return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Exchange }, count);
     }
 
     public int RemainingCards

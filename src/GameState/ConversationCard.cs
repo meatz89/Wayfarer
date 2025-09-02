@@ -38,41 +38,39 @@ public class ConversationCard
                           && Properties.Contains(CardProperty.Opportunity);
     public bool IsBurden => Properties.Contains(CardProperty.Burden);
     public bool IsObservable => Properties.Contains(CardProperty.Observable);
-    
-    // Legacy compatibility properties for UI
-    public string DisplayName => Name;
-    public string Category => GetCategoryString();
-    public CardType Type => IsGoal ? CardType.Goal : 
-                           IsObservable ? CardType.Observation : 
-                           CardType.Normal;
-    public PersistenceType Persistence => 
-        IsFleeting ? PersistenceType.Fleeting :
-        IsOpportunity ? PersistenceType.Opportunity :
-        PersistenceType.Persistent;
-    public int SuccessRate => GetBaseSuccessPercentage();
-    public string GoalCardType => IsGoal ? "Goal" : null;
 
-
-    // Compatibility method to ensure default Persistent property
-    public void EnsureDefaultProperties()
+    // Get base success percentage from difficulty tier
+    public int GetBaseSuccessPercentage()
     {
-        // If no exhaustion properties set, default to Persistent
-        if (!Properties.Contains(CardProperty.Fleeting) && 
-            !Properties.Contains(CardProperty.Opportunity) && 
-            !Properties.Contains(CardProperty.Persistent))
+        return Difficulty switch
         {
-            Properties.Add(CardProperty.Persistent);
+            Difficulty.VeryEasy => 85,
+            Difficulty.Easy => 70,
+            Difficulty.Medium => 60,
+            Difficulty.Hard => 50,
+            Difficulty.VeryHard => 40,
+            _ => 60
+        };
+    }
+    
+    // Helper to get category name for compatibility
+    public string Category
+    {
+        get
+        {
+            if (Properties.Contains(CardProperty.Exchange)) return nameof(CardCategory.Exchange);
+            if (IsBurden) return nameof(CardCategory.Burden);
+            if (IsGoal) return nameof(CardCategory.Promise);
+            if (IsObservable) return "Observation";
+            // Default to Comfort for backwards compatibility
+            return nameof(CardCategory.Comfort);
         }
     }
-
-    /// <summary>
-    /// Checks if card follows the one-effect-per-trigger rule
-    /// </summary>
-    public bool HasValidEffects()
-    {
-        // Each effect should have at most one type of outcome
-        return true; // All effects are now properly separated
-    }
+    
+    // Additional compatibility properties for UI
+    public CardType Type => IsGoal ? CardType.Goal : IsObservable ? CardType.Observation : CardType.Normal;
+    public CardContext Context => null;
+    public string GoalCardType => IsGoal ? "Goal" : null;
 
     // Deep clone for deck instances
     public ConversationCard DeepClone()
@@ -96,27 +94,5 @@ public class ConversationCard
         };
     }
 
-    // Get base success percentage from difficulty tier
-    public int GetBaseSuccessPercentage()
-    {
-        return Difficulty switch
-        {
-            Difficulty.VeryEasy => 85,
-            Difficulty.Easy => 70,
-            Difficulty.Medium => 60,
-            Difficulty.Hard => 50,
-            Difficulty.VeryHard => 40,
-            _ => 60
-        };
-    }
-    
-    private string GetCategoryString()
-    {
-        if (IsGoal) return "Goal";
-        if (IsObservable) return "Observation";
-        if (IsBurden) return "Burden";
-        if (Properties.Contains(CardProperty.Exchange)) return "Exchange";
-        return "Standard";
-    }
 
 }

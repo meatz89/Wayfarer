@@ -9,7 +9,6 @@ public class CardPropertyTest
     {
         // Test default card (no properties)
         var defaultCard = new ConversationCard();
-        defaultCard.EnsureDefaultProperties();
         Assert.True(defaultCard.IsPersistent);
         Assert.False(defaultCard.IsFleeting);
         Assert.False(defaultCard.IsOpportunity);
@@ -40,7 +39,7 @@ public class CardPropertyTest
         Assert.True(goalCard.IsOpportunity);
         Assert.True(goalCard.IsGoal);
         // Goal cards are identified by having both Fleeting and Opportunity properties
-        Assert.True(goalCard.IsGoalCard); // Backward compatibility
+        Assert.True(goalCard.IsGoal); // Backward compatibility
         
         // Test skeleton card
         var skeletonCard = new ConversationCard();
@@ -61,7 +60,7 @@ public class CardPropertyTest
         observationCard.Properties.Add(CardProperty.Observable);
         observationCard.Properties.Add(CardProperty.Persistent);
         Assert.True(observationCard.IsObservable);
-        Assert.True(observationCard.IsObservation); // Backward compatibility
+        Assert.True(observationCard.IsObservable); // Backward compatibility
         Assert.True(observationCard.IsPersistent);
     }
     

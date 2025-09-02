@@ -194,7 +194,6 @@ public static class ConversationCardParser
         }
         
         // Ensure at least one property is set
-        card.EnsureDefaultProperties();
         
         return card;
     }

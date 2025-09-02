@@ -182,13 +182,33 @@
                 </div>
             </div>
             <div class="action-choices">
-                <div class="action-button" @onclick="ExecuteListen" disabled="@IsProcessing">
+                <div class="action-button @(ShowListenPreview ? "preview-active" : "")" 
+                     @onclick="ExecuteListen" 
+                     @onmouseenter="ShowListenPreviewHandler" 
+                     @onmouseleave="HidePreviewHandler" 
+                     disabled="@IsProcessing">
                     <div>👂 LISTEN</div>
                     <div class="action-details">@GetListenActionText()</div>
+                    @if (ShowListenPreview)
+                    {
+                        <div class="action-preview listen-preview">
+                            @GetListenPreviewContent()
+                        </div>
+                    }
                 </div>
-                <div class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsProcessing)">
+                <div class="action-button @(ShowSpeakPreview ? "preview-active" : "")" 
+                     @onclick="ExecuteSpeak" 
+                     @onmouseenter="ShowSpeakPreviewHandler" 
+                     @onmouseleave="HidePreviewHandler" 
+                     disabled="@(!CanSpeak() || IsProcessing)">
                     <div>💬 SPEAK</div>
                     <div class="action-details">@GetSpeakActionText()</div>
+                    @if (ShowSpeakPreview)
+                    {
+                        <div class="action-preview speak-preview">
+                            @GetSpeakPreviewContent()
+                        </div>
+                    }
                 </div>
             </div>
         }
@@ -289,7 +309,7 @@
                         </div>
                         
                         @* Special goal card warning *@
-                        @if (convCard.IsGoalCard)
+                        @if (convCard.IsGoal)
                         {
                             <div class="goal-warning">
                                 ⚠️ MUST PLAY NOW - Exhausts on ANY action!

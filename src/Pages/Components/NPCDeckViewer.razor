@@ -105,32 +105,28 @@
                             <div class="debug-card conversation-card">
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@(card.DisplayName ?? card.Id)</span>
+                                    <span class="card-name">@(card.Name ?? card.Id)</span>
                                     <span class="card-category @GetCategoryClass(card)">@GetCategoryName(card)</span>
                                 </div>
                                 <div class="card-properties">
-                                    <span>Type: @card.Type</span>
+                                    <span>Token: @card.TokenType</span>
                                     <span>Weight: @card.Weight</span>
-                                    <span>Persistence: @card.Persistence</span>
+                                    <span>Persistence: @GetPersistenceText(card)</span>
                                 </div>
                                 <div class="card-text">@(card.Description ?? "Template: " + card.Id)</div>
                                 <div class="card-outcomes">
                                     <div class="outcome success">
-                                        <span>Success (@card.SuccessRate%)</span>
-                                        @if (card.IsStateCard && card.SuccessState != null)
+                                        <span>Success Effect</span>
+                                        @if (card.SuccessEffect != null && !card.SuccessEffect.IsEmpty)
                                         {
-                                            <span>State → @card.SuccessState</span>
-                                        }
-                                        else if (card.BaseComfort > 0)
-                                        {
-                                            <span>+@card.BaseComfort comfort</span>
+                                            <span>@card.SuccessEffect.ToString()</span>
                                         }
                                     </div>
                                     <div class="outcome failure">
-                                        <span>Failure (@(100 - card.SuccessRate)%)</span>
-                                        @if (card.IsStateCard && card.FailureState != null)
+                                        <span>Failure Effect</span>
+                                        @if (card.FailureEffect != null && !card.FailureEffect.IsEmpty)
                                         {
-                                            <span>State → @card.FailureState</span>
+                                            <span>@card.FailureEffect.ToString()</span>
                                         }
                                         else
                                         {
@@ -165,7 +161,7 @@
                             <div class="debug-card letter-card goal-card">
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@(card.DisplayName ?? card.Id)</span>
+                                    <span class="card-name">@(card.Name ?? card.Id)</span>
                                     <span class="goal-type-badge">LETTER GOAL</span>
                                 </div>
                                 <div class="card-properties">
@@ -283,37 +279,38 @@
     private string GetCategoryClass(ConversationCard card)
     {
         // Determine category based on card properties since Category enum is removed
-        if (card.Mechanics == CardMechanicsType.Exchange)
+        if (card.Properties.Contains(CardProperty.Exchange))
             return "exchange";
-        if (card.IsObservation)
+        if (card.IsObservable)
             return "observation";
-        if (card.IsGoalCard)
+        if (card.IsGoal)
             return "promise";
-        if (card.IsStateCard)
-            return "state";
-        if (card.BaseComfort <= 0 && card.Weight >= 2)
+        if (card.IsBurden)
             return "burden";
-        if (card.BaseComfort > 2)
-            return "token";
         
         return "comfort"; // Default
+    }
+    
+    private string GetPersistenceText(ConversationCard card)
+    {
+        if (card.IsFleeting && card.IsOpportunity) return "Goal";  // Both properties = Goal
+        if (card.IsFleeting) return "Fleeting";
+        if (card.IsOpportunity) return "Opportunity";
+        if (card.IsPersistent) return "Persistent";
+        return "";
     }
     
     private string GetCategoryName(ConversationCard card)
     {
         // Determine category name based on card properties since Category enum is removed
-        if (card.Mechanics == CardMechanicsType.Exchange)
+        if (card.Properties.Contains(CardProperty.Exchange))
             return "EXCHANGE";
-        if (card.IsObservation)
+        if (card.IsObservable)
             return "OBSERVATION";
-        if (card.IsGoalCard)
+        if (card.IsGoal)
             return "PROMISE";
-        if (card.IsStateCard)
-            return "STATE";
-        if (card.BaseComfort <= 0 && card.Weight >= 2)
+        if (card.IsBurden)
             return "BURDEN";
-        if (card.BaseComfort > 2)
-            return "TOKEN";
         
         return "COMFORT"; // Default
     }

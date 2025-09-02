@@ -83,7 +83,7 @@ namespace Wayfarer.Pages
             int weightLimit = Session != null && ConversationRules.States.TryGetValue(Session.CurrentState, out var rules) 
                 ? rules.MaxWeight 
                 : 5;
-            return card.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL) <= weightLimit;
+            return card.Weight <= weightLimit;
         }
 
         protected async Task ExecuteAction()
@@ -375,18 +375,18 @@ namespace Wayfarer.Pages
 
         protected bool HasOpportunities()
         {
-            return Session.HandCards.Any(c => c.Persistence == PersistenceType.Fleeting);
+            return Session.HandCards.Any(c => c.IsFleeting);
         }
 
         protected int GetCurrentWeight()
         {
-            return SelectedCard?.GetEffectiveWeight(Session.CurrentState) ?? 0;
+            return SelectedCard?.Weight ?? 0;
         }
 
         protected int GetMaxWeight()
         {
             if (Session == null) return 5;
-            return Session.GetEffectiveWeightCapacity();
+            return Session.WeightCapacity;
         }
 
         protected bool IsOverWeight()
@@ -397,7 +397,7 @@ namespace Wayfarer.Pages
         protected string GetWeightPoolDisplay()
         {
             if (Session == null) return "0/5";
-            return $"{Session.CurrentWeightPool}/{Session.GetEffectiveWeightCapacity()}";
+            return $"{Session.CurrentWeightPool}/{Session.WeightCapacity}";
         }
 
         protected string GetCardClasses(CardInstance card)
@@ -405,7 +405,12 @@ namespace Wayfarer.Pages
             List<string> classes = new List<string>();
 
             classes.Add(card.Type.ToString().ToLower());
-            classes.Add(card.Persistence.ToString().ToLower());
+            
+            // Add persistence class based on properties
+            if (card.IsFleeting && card.IsOpportunity) classes.Add("goal");
+            else if (card.IsFleeting) classes.Add("fleeting");
+            else if (card.IsOpportunity) classes.Add("opportunity");
+            else if (card.IsPersistent) classes.Add("persistent");
 
             // Add card category class for visual styling
             classes.Add(card.GetCategoryClass());
@@ -609,10 +614,19 @@ namespace Wayfarer.Pages
             return card.Mechanics == CardMechanicsType.Exchange;
         }
 
+        protected string GetCardCategory(CardInstance card)
+        {
+            if (card.IsGoal) return "Goal";
+            if (card.IsObservable) return "Observation";
+            if (card.IsBurden) return "Burden";
+            if (card.Properties.Contains(CardProperty.Exchange)) return "Exchange";
+            return "Standard";
+        }
+
         protected string GetCardDisplayName(CardInstance card)
         {
             // Special handling for exchange cards
-            if (card.Mechanics == CardMechanicsType.Exchange)
+            if (card.Properties.Contains(CardProperty.Exchange))
                 return GetConversationCardName(card);
 
             // Generate a display name based on the template ID
@@ -652,14 +666,21 @@ namespace Wayfarer.Pages
             return SelectedAction == ActionType.Listen && HasOpportunities();
         }
 
-        protected string GetPersistenceIcon(PersistenceType persistence)
+        protected string GetPersistenceIcon(CardInstance card)
         {
-            return persistence switch
-            {
-                PersistenceType.Persistent => "♻",
-                PersistenceType.Fleeting => "⏱",
-                _ => ""
-            };
+            if (card.IsFleeting) return "⏱";
+            if (card.IsOpportunity) return "🎯";
+            if (card.IsPersistent) return "♻";
+            return "";
+        }
+        
+        protected string GetPersistenceText(CardInstance card)
+        {
+            if (card.IsFleeting && card.IsOpportunity) return "Goal";  // Both properties = Goal
+            if (card.IsFleeting) return "Fleeting";
+            if (card.IsOpportunity) return "Opportunity";
+            if (card.IsPersistent) return "Persistent";
+            return "";
         }
 
         private List<CardInstance> GetObservationCards()

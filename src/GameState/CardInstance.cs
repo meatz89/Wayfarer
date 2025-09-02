@@ -28,6 +28,7 @@ public class CardInstance
     
     // Runtime context
     public string SourceContext { get; init; }
+    public CardContext Context { get; set; } // For exchange data and other context
     
     // Helper properties that use Properties list
     public bool IsFleeting => Properties.Contains(CardProperty.Fleeting);
@@ -37,15 +38,58 @@ public class CardInstance
     public bool IsGoal => Properties.Contains(CardProperty.Fleeting) 
                           && Properties.Contains(CardProperty.Opportunity);
     public bool IsBurden => Properties.Contains(CardProperty.Burden);
-    public bool IsObservation => Properties.Contains(CardProperty.Observable);
+    public bool IsObservable => Properties.Contains(CardProperty.Observable);
+
+    public string GetCategoryClass()
+    {
+        // Determine category from properties
+        if (IsGoal) return "card-goal";
+        if (IsObservable) return "card-observation";
+        if (IsBurden) return "card-burden";
+        if (Properties.Contains(CardProperty.Exchange)) return "card-exchange";
+        return "card-standard";
+    }
     
-    // Legacy compatibility properties - kept temporarily for UI
-    public PersistenceType Persistence => 
-        IsFleeting ? PersistenceType.Fleeting :
-        IsOpportunity ? PersistenceType.Opportunity :
-        PersistenceType.Persistent;
-    public bool IsGoalCard => IsGoal;
-    public ConnectionType TokenType_Legacy => TokenType switch
+    // Helper to get category name for compatibility
+    public string Category
+    {
+        get
+        {
+            if (Properties.Contains(CardProperty.Exchange)) return nameof(CardCategory.Exchange);
+            if (IsBurden) return nameof(CardCategory.Burden);
+            if (IsGoal) return nameof(CardCategory.Promise);
+            if (IsObservable) return "Observation";
+            // Default to Comfort for backwards compatibility
+            return nameof(CardCategory.Comfort);
+        }
+    }
+    
+    // Helper to get card type for compatibility
+    public CardType Type
+    {
+        get
+        {
+            if (IsGoal) return CardType.Goal;
+            if (IsObservable) return CardType.Observation;
+            return CardType.Normal;
+        }
+    }
+    
+    // Legacy compatibility properties - will be removed after full refactor
+    public EmotionalState? SuccessState => null;
+    public EmotionalState? FailureState => null;
+    public int BaseComfort => 1;
+    public string DisplayName => Name;
+    public bool CanDeliverLetter => Properties.Contains(CardProperty.DeliveryEligible);
+    public string DeliveryObligationId => "";
+    public string ObservationSource => "";
+    public bool IsExchange => Properties.Contains(CardProperty.Exchange);
+    public CardMechanicsType Mechanics => Properties.Contains(CardProperty.Exchange) ? CardMechanicsType.Exchange : CardMechanicsType.Standard;
+    
+    public int GetEffectiveWeight(EmotionalState state) => Weight;
+    public int CalculateSuccessChance() => GetBaseSuccessPercentage();
+    public int CalculateSuccessChance(EmotionalState state) => GetBaseSuccessPercentage();
+    public ConnectionType GetConnectionType() => TokenType switch
     {
         TokenType.Trust => ConnectionType.Trust,
         TokenType.Commerce => ConnectionType.Commerce,
@@ -54,20 +98,15 @@ public class CardInstance
         _ => ConnectionType.None
     };
     
-    // Legacy compatibility properties for UI that still needs them
-    public bool IsExchange => Properties.Contains(CardProperty.Exchange);
-    public bool CanDeliverLetter => Properties.Contains(CardProperty.DeliveryEligible);
-    public string DeliveryObligationId => ""; // No longer used
-    public string Category => GetCategoryClass().Replace("card-", "");
-    public CardType Type => IsGoal ? CardType.Goal : 
-                           IsObservation ? CardType.Observation : 
-                           CardType.Normal;
-    public EmotionalState? SuccessState => null; // No longer used
-    public EmotionalState? FailureState => null; // No longer used
-    public CardContext Context => null; // No longer used
-    public CardMechanicsType Mechanics => CardMechanicsType.Standard; // No longer used
-    public string ObservationSource => ""; // No longer used
-    public string DisplayName => Name; // Alias for Name
+    private int GetBaseSuccessPercentage() => Difficulty switch
+    {
+        Difficulty.VeryEasy => 85,
+        Difficulty.Easy => 70,
+        Difficulty.Medium => 60,
+        Difficulty.Hard => 50,
+        Difficulty.VeryHard => 40,
+        _ => 60
+    };
 
     public CardInstance() { }
 
@@ -88,59 +127,4 @@ public class CardInstance
         SourceContext = sourceContext;
     }
 
-    // Legacy compatibility methods for UI
-    public int GetBaseSuccessPercentage()
-    {
-        return Difficulty switch
-        {
-            Difficulty.VeryEasy => 85,
-            Difficulty.Easy => 70,
-            Difficulty.Medium => 60,
-            Difficulty.Hard => 50,
-            Difficulty.VeryHard => 40,
-            _ => 60
-        };
-    }
-    
-    public int BaseSuccessChance => GetBaseSuccessPercentage();
-    public int BaseComfort => 1; // Default for legacy UI
-    public int BaseComfortReward => 1; // Default for legacy UI
-    
-    public string GetCategoryClass()
-    {
-        // Determine category from properties
-        if (IsGoal) return "card-goal";
-        if (IsObservation) return "card-observation";
-        if (IsBurden) return "card-burden";
-        if (IsExchange) return "card-exchange";
-        return "card-standard";
-    }
-    
-    // Legacy weight calculation methods
-    public int GetEffectiveWeight(EmotionalState state)
-    {
-        return Weight; // No state modifiers in new system
-    }
-    
-    // Legacy success chance calculation
-    public int CalculateSuccessChance()
-    {
-        return GetBaseSuccessPercentage();
-    }
-    
-    public int CalculateSuccessChance(EmotionalState state)
-    {
-        return GetBaseSuccessPercentage();
-    }
-    
-    public int CalculateSuccessChance(Dictionary<ConnectionType, int> tokens)
-    {
-        return GetBaseSuccessPercentage();
-    }
-    
-    // Legacy method for getting connection type
-    public ConnectionType GetConnectionType()
-    {
-        return TokenType_Legacy;
-    }
 }

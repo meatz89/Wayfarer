@@ -71,10 +71,27 @@ namespace Wayfarer.Pages.Components
 
         protected ConversationSession Session { get; set; }
         protected CardInstance? SelectedCard { get; set; } = null;
-        protected int TotalSelectedWeight => SelectedCard?.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL) ?? 0;
+        protected int TotalSelectedWeight => SelectedCard?.Weight ?? 0;
         protected bool IsProcessing { get; set; }
         protected bool IsConversationExhausted { get; set; } = false;
         protected string ExhaustionReason { get; set; } = "";
+        
+        // Action preview state
+        protected bool ShowSpeakPreview { get; set; } = false;
+        protected bool ShowListenPreview { get; set; } = false;
+
+        private int GetBaseSuccessPercentage(Difficulty difficulty)
+        {
+            return difficulty switch
+            {
+                Difficulty.VeryEasy => 85,
+                Difficulty.Easy => 70,
+                Difficulty.Medium => 60,
+                Difficulty.Hard => 50,
+                Difficulty.VeryHard => 40,
+                _ => 60
+            };
+        }
 
         protected string NpcName { get; set; }
         protected string LastNarrative { get; set; }
@@ -612,7 +629,7 @@ namespace Wayfarer.Pages.Components
             if (IsObservationExpired(card)) return false;
 
             // Check weight limit - card must not exceed current state's max weight
-            int effectiveWeight = card.GetEffectiveWeight(Session.CurrentState);
+            int effectiveWeight = card.Weight;
             return effectiveWeight <= GetWeightLimit();
         }
 
@@ -634,7 +651,7 @@ namespace Wayfarer.Pages.Components
                 nameof(CardCategory.Exchange) => "Exchange",
                 nameof(CardCategory.Promise) => "Promise",
                 nameof(CardCategory.Burden) => "Burden",
-                _ => card.IsObservation ? "Observation" : card.Type.ToString()
+                _ => card.IsObservable ? "Observation" : card.Type.ToString()
             };
         }
 
@@ -730,7 +747,7 @@ namespace Wayfarer.Pages.Components
         {
             if (SelectedCard != null)
             {
-                int weight = SelectedCard.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL);
+                int weight = SelectedCard.Weight;
                 return $"Play {GetCardName(SelectedCard)} (Weight: {weight})";
             }
             return $"Select a card (Weight limit: {GetWeightLimit()})";
@@ -868,7 +885,7 @@ namespace Wayfarer.Pages.Components
         {
             if (SelectedCard != null)
             {
-                int weight = SelectedCard.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL);
+                int weight = SelectedCard.Weight;
                 int remainingAfter = (Session?.GetAvailableWeight() ?? 0) - weight;
                 string continueHint = remainingAfter > 0 ? $" (Can SPEAK {remainingAfter} more)" : " (Must LISTEN after)";
                 return $"Play {GetProperCardName(SelectedCard)} ({weight} weight){continueHint}";
@@ -902,7 +919,7 @@ namespace Wayfarer.Pages.Components
                 return "Change Approach";
             }
 
-            if (card.IsObservation)
+            if (card.IsObservable)
             {
                 // Use context for observation names
                 if (card.DisplayName != null)
@@ -924,7 +941,14 @@ namespace Wayfarer.Pages.Components
             // Token cards are identified by having token types
             if (card.Type != CardType.Normal && card.Category == nameof(CardCategory.Comfort))
             {
-                ConnectionType tokenType = card.GetConnectionType();
+                ConnectionType tokenType = card.TokenType switch
+                {
+                    TokenType.Trust => ConnectionType.Trust,
+                    TokenType.Commerce => ConnectionType.Commerce,
+                    TokenType.Status => ConnectionType.Status,
+                    TokenType.Shadow => ConnectionType.Shadow,
+                    _ => ConnectionType.None
+                };
                 return tokenType switch
                 {
                     ConnectionType.Trust => "Build Trust",
@@ -1016,7 +1040,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Observation cards
-            if (card.IsObservation)
+            if (card.IsObservable)
             {
                 if (card.DisplayName == "Merchant Route Knowledge")
                     return "I know a route through the merchant quarter that avoids the checkpoint entirely. We can reach Lord Blackwood faster.";
@@ -1041,7 +1065,14 @@ namespace Wayfarer.Pages.Components
             // Token building cards (cards with specific token types)
             if (card.Type != CardType.Normal && card.Category == nameof(CardCategory.Comfort))
             {
-                ConnectionType tokenType = card.GetConnectionType();
+                ConnectionType tokenType = card.TokenType switch
+                {
+                    TokenType.Trust => ConnectionType.Trust,
+                    TokenType.Commerce => ConnectionType.Commerce,
+                    TokenType.Status => ConnectionType.Status,
+                    TokenType.Shadow => ConnectionType.Shadow,
+                    _ => ConnectionType.None
+                };
                 return tokenType switch
                 {
                     ConnectionType.Trust => "You can trust me with this. I'll handle it with the care it deserves.",
@@ -1127,7 +1158,7 @@ namespace Wayfarer.Pages.Components
                 classes.Add("state");
             else if (card.Category == nameof(CardCategory.Exchange))
                 classes.Add("exchange");
-            else if (card.IsObservation)
+            else if (card.IsObservable)
                 classes.Add("observation");
             else
                 classes.Add("comfort");
@@ -1137,7 +1168,7 @@ namespace Wayfarer.Pages.Components
                 classes.Add("fleeting");
                 
             // Goal cards get special styling through IsGoal property
-            if (card.IsGoalCard)
+            if (card.IsGoal)
                 classes.Add("goal");
                 
             return string.Join(" ", classes);
@@ -1150,7 +1181,7 @@ namespace Wayfarer.Pages.Components
         
         protected bool HasGoalCards()
         {
-            return Session?.HandCards?.Any(c => c.IsGoalCard) ?? false;
+            return Session?.HandCards?.Any(c => c.IsGoal) ?? false;
         }
 
         protected string GetCardName(CardInstance card)
@@ -1172,8 +1203,11 @@ namespace Wayfarer.Pages.Components
             // Add card type
             tags.Add(card.Type.ToString());
 
-            // Add persistence type
-            tags.Add(card.Persistence.ToString());
+            // Add persistence type based on properties
+            if (card.IsFleeting && card.IsOpportunity) tags.Add("Goal");
+            else if (card.IsFleeting) tags.Add("Fleeting");
+            else if (card.IsOpportunity) tags.Add("Opportunity");
+            else if (card.IsPersistent) tags.Add("Persistent");
 
             // Add category
             tags.Add(card.Category.ToString());
@@ -1418,13 +1452,13 @@ namespace Wayfarer.Pages.Components
         protected string GetSuccessChance(CardInstance card)
         {
             // Calculate success chance based on card type and state, including token bonuses
-            return card.CalculateSuccessChance(CurrentTokens).ToString();
+            return GetBaseSuccessPercentage(card.Difficulty).ToString();
         }
 
         protected string GetFailureChance(CardInstance card)
         {
             // Calculate failure chance (inverse of success)
-            int success = card.CalculateSuccessChance(CurrentTokens);
+            int success = GetBaseSuccessPercentage(card.Difficulty);
             return (100 - success).ToString();
         }
 
@@ -1685,7 +1719,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetObservationDecayClass(CardInstance card)
         {
-            if (!card.IsObservation || card.Context?.ObservationDecayState == null)
+            if (!card.IsObservable || card.Context?.ObservationDecayState == null)
                 return "";
 
             if (Enum.TryParse<ObservationDecayState>(card.Context.ObservationDecayState, out ObservationDecayState decayState))
@@ -1705,7 +1739,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetObservationDecayDescription(CardInstance card)
         {
-            if (!card.IsObservation)
+            if (!card.IsObservable)
                 return "";
 
             return card.Context?.ObservationDecayDescription ?? "";
@@ -1716,7 +1750,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected bool IsObservationExpired(CardInstance card)
         {
-            return card.IsObservation &&
+            return card.IsObservable &&
                    card.Context?.ObservationDecayState == nameof(ObservationDecayState.Expired);
         }
 
@@ -1821,13 +1855,13 @@ namespace Wayfarer.Pages.Components
             // CardInstance doesn't have Properties list yet, so we map from legacy booleans
             if (card?.IsFleeting == true)
                 properties.Add(CardProperty.Fleeting);
-            if (card?.IsGoalCard == true && card?.IsFleeting != true) // Goal cards are Fleeting + Opportunity
+            if (card?.IsGoal == true && card?.IsFleeting != true) // Goal cards are Fleeting + Opportunity
                 properties.Add(CardProperty.Opportunity);
-            if (card?.IsGoalCard == true && card?.IsFleeting == true)
+            if (card?.IsGoal == true && card?.IsFleeting == true)
                 properties.Add(CardProperty.Opportunity); // Goal = Fleeting + Opportunity
             if (card?.IsBurden == true)
                 properties.Add(CardProperty.Burden);
-            if (card?.IsObservation == true)
+            if (card?.IsObservable == true)
                 properties.Add(CardProperty.Observable);
                 
             // If no special properties, default to persistent
@@ -1905,7 +1939,7 @@ namespace Wayfarer.Pages.Components
             
             if (card?.IsFleeting == true)
                 classes.Add("has-fleeting");
-            if (card?.IsGoalCard == true)
+            if (card?.IsGoal == true)
                 classes.Add("has-opportunity"); // Goal cards have Opportunity
             if (card?.IsBurden == true)
                 classes.Add("has-burden");
@@ -1919,7 +1953,7 @@ namespace Wayfarer.Pages.Components
         protected bool HasExhaustEffect(CardInstance card)
         {
             // CardInstance doesn't have ExhaustEffect yet, but we can infer from properties
-            return card?.IsFleeting == true || card?.IsGoalCard == true;
+            return card?.IsFleeting == true || card?.IsGoal == true;
         }
 
         /// <summary>
@@ -1948,7 +1982,7 @@ namespace Wayfarer.Pages.Components
         protected string GetExhaustEffectDescription(CardInstance card)
         {
             // Default exhaust effects based on card properties
-            if (card?.IsGoalCard == true)
+            if (card?.IsGoal == true)
             {
                 return "Conversation ends"; // Goal cards end conversation when exhausted
             }
@@ -2119,6 +2153,268 @@ namespace Wayfarer.Pages.Components
             // Get temporary effects description from AtmosphereManager
             // This would need to be exposed through ConversationFacade
             return ""; // For now, until we expose this through the facade
+        }
+
+        // PACKET 7: Action Preview System Implementation
+
+        /// <summary>
+        /// Show SPEAK action preview on hover
+        /// </summary>
+        protected void ShowSpeakPreviewHandler()
+        {
+            ShowSpeakPreview = true;
+            ShowListenPreview = false;
+            StateHasChanged();
+        }
+
+        /// <summary>
+        /// Show LISTEN action preview on hover
+        /// </summary>
+        protected void ShowListenPreviewHandler()
+        {
+            ShowListenPreview = true;
+            ShowSpeakPreview = false;
+            StateHasChanged();
+        }
+
+        /// <summary>
+        /// Hide all action previews
+        /// </summary>
+        protected void HidePreviewHandler()
+        {
+            ShowSpeakPreview = false;
+            ShowListenPreview = false;
+            StateHasChanged();
+        }
+
+        /// <summary>
+        /// Get cards that will exhaust on SPEAK action (Fleeting cards)
+        /// </summary>
+        protected List<CardInstance> GetFleetingCards()
+        {
+            if (Session?.HandCards == null) return new List<CardInstance>();
+            
+            return Session.HandCards
+                .Where(c => c.IsFleeting && c != SelectedCard) // Don't include the played card
+                .ToList();
+        }
+
+        /// <summary>
+        /// Get cards that will exhaust on LISTEN action (Opportunity cards)
+        /// </summary>
+        protected List<CardInstance> GetOpportunityCards()
+        {
+            if (Session?.HandCards == null) return new List<CardInstance>();
+            
+            return Session.HandCards
+                .Where(c => c.IsGoal) // Goal cards have Opportunity property
+                .ToList();
+        }
+
+        /// <summary>
+        /// Get critical exhausts (goal cards) from a list of cards
+        /// </summary>
+        protected List<CardInstance> GetCriticalExhausts(List<CardInstance> cards)
+        {
+            return cards.Where(c => c.IsGoal).ToList();
+        }
+
+        /// <summary>
+        /// Generate SPEAK preview content
+        /// </summary>
+        protected RenderFragment GetSpeakPreviewContent() => builder =>
+        {
+            int sequence = 0;
+
+            // Selected card action
+            if (SelectedCard != null)
+            {
+                builder.OpenElement(sequence++, "div");
+                builder.AddAttribute(sequence++, "class", "selected-action");
+                builder.AddContent(sequence++, $"✓ Play: {GetProperCardName(SelectedCard)} (costs {SelectedCard.Weight} weight)");
+                builder.CloseElement();
+            }
+
+            var exhaustingCards = GetFleetingCards();
+            var criticalExhausts = GetCriticalExhausts(exhaustingCards);
+
+            // Critical goal warnings
+            if (criticalExhausts.Any())
+            {
+                builder.OpenElement(sequence++, "div");
+                builder.AddAttribute(sequence++, "class", "critical-warning");
+                builder.AddContent(sequence++, "⚠️ GOAL CARDS WILL EXHAUST - CONVERSATION WILL END!");
+                
+                foreach (var goal in criticalExhausts)
+                {
+                    builder.OpenElement(sequence++, "div");
+                    builder.AddContent(sequence++, $"• {GetProperCardName(goal)} → CONVERSATION FAILS");
+                    builder.CloseElement();
+                }
+                builder.CloseElement();
+            }
+
+            // Regular fleeting exhausts
+            var regularExhausts = exhaustingCards.Except(criticalExhausts).ToList();
+            if (regularExhausts.Any())
+            {
+                builder.OpenElement(sequence++, "div");
+                builder.AddAttribute(sequence++, "class", "exhaust-list");
+                builder.AddContent(sequence++, "Cards that will exhaust:");
+                
+                foreach (var card in regularExhausts)
+                {
+                    builder.OpenElement(sequence++, "div");
+                    builder.AddContent(sequence++, $"• {GetProperCardName(card)}");
+                    
+                    string exhaustEffect = GetExhaustEffectDescription(card);
+                    if (!string.IsNullOrEmpty(exhaustEffect) && exhaustEffect != "No exhaust effect")
+                    {
+                        builder.OpenElement(sequence++, "span");
+                        builder.AddContent(sequence++, $" → {exhaustEffect}");
+                        builder.CloseElement();
+                    }
+                    builder.CloseElement();
+                }
+                builder.CloseElement();
+            }
+
+            // No exhausts message
+            if (!exhaustingCards.Any())
+            {
+                builder.OpenElement(sequence++, "div");
+                builder.AddAttribute(sequence++, "class", "no-exhausts");
+                builder.AddContent(sequence++, "No cards will exhaust");
+                builder.CloseElement();
+            }
+        };
+
+        /// <summary>
+        /// Generate LISTEN preview content
+        /// </summary>
+        protected RenderFragment GetListenPreviewContent() => builder =>
+        {
+            int sequence = 0;
+
+            // Listen effects
+            builder.OpenElement(sequence++, "div");
+            builder.AddAttribute(sequence++, "class", "listen-effects");
+            
+            int cardsToDraw = GetCardDrawCount();
+            int maxWeight = GetMaxWeight();
+            
+            builder.AddContent(sequence++, $"• Draw {cardsToDraw} cards");
+            builder.OpenElement(sequence++, "br");
+            builder.CloseElement();
+            builder.AddContent(sequence++, $"• Refresh weight to {maxWeight}");
+            builder.CloseElement();
+
+            var exhaustingCards = GetOpportunityCards();
+            var criticalExhausts = GetCriticalExhausts(exhaustingCards);
+
+            // Critical goal warnings
+            if (criticalExhausts.Any())
+            {
+                builder.OpenElement(sequence++, "div");
+                builder.AddAttribute(sequence++, "class", "critical-warning");
+                builder.AddContent(sequence++, "⚠️ GOAL CARDS WILL EXHAUST - CONVERSATION WILL END!");
+                
+                foreach (var goal in criticalExhausts)
+                {
+                    builder.OpenElement(sequence++, "div");
+                    builder.AddContent(sequence++, $"• {GetProperCardName(goal)} → CONVERSATION FAILS");
+                    builder.CloseElement();
+                }
+                builder.CloseElement();
+            }
+
+            // Regular opportunity exhausts (though currently all goals are both Fleeting + Opportunity)
+            var regularExhausts = exhaustingCards.Except(criticalExhausts).ToList();
+            if (regularExhausts.Any())
+            {
+                builder.OpenElement(sequence++, "div");
+                builder.AddAttribute(sequence++, "class", "exhaust-list");
+                builder.AddContent(sequence++, "Cards that will exhaust:");
+                
+                foreach (var card in regularExhausts)
+                {
+                    builder.OpenElement(sequence++, "div");
+                    builder.AddContent(sequence++, $"• {GetProperCardName(card)}");
+                    
+                    string exhaustEffect = GetExhaustEffectDescription(card);
+                    if (!string.IsNullOrEmpty(exhaustEffect) && exhaustEffect != "No exhaust effect")
+                    {
+                        builder.OpenElement(sequence++, "span");
+                        builder.AddContent(sequence++, $" → {exhaustEffect}");
+                        builder.CloseElement();
+                    }
+                    builder.CloseElement();
+                }
+                builder.CloseElement();
+            }
+
+            // No exhausts message
+            if (!exhaustingCards.Any())
+            {
+                builder.OpenElement(sequence++, "div");
+                builder.AddAttribute(sequence++, "class", "no-exhausts");
+                builder.AddContent(sequence++, "No cards will exhaust");
+                builder.CloseElement();
+            }
+        };
+
+        /// <summary>
+        /// Get number of cards to draw on LISTEN
+        /// </summary>
+        protected int GetCardDrawCount()
+        {
+            if (Session == null) return 2;
+
+            int baseDraw = Session.CurrentState switch
+            {
+                EmotionalState.DESPERATE => 1,
+                EmotionalState.TENSE => 2,
+                EmotionalState.NEUTRAL => 2,
+                EmotionalState.OPEN => 3,
+                EmotionalState.CONNECTED => 3,
+                _ => 2
+            };
+
+            // Apply atmosphere modifiers
+            if (Session.CurrentAtmosphere == AtmosphereType.Receptive)
+                baseDraw += 1;
+            else if (Session.CurrentAtmosphere == AtmosphereType.Pressured)
+                baseDraw = Math.Max(1, baseDraw - 1);
+
+            return baseDraw;
+        }
+
+        /// <summary>
+        /// Get max weight capacity
+        /// </summary>
+        protected int GetMaxWeight()
+        {
+            if (Session == null) return 5;
+            return Session.GetEffectiveWeightCapacity();
+        }
+
+        /// <summary>
+        /// Enhanced exhaust effect description for preview system
+        /// </summary>
+        protected string GetPreviewExhaustEffect(CardInstance card)
+        {
+            if (card?.IsGoal == true)
+            {
+                return "ENDS CONVERSATION!";
+            }
+            else if (card?.IsFleeting == true)
+            {
+                // Check if card has specific exhaust effects
+                // For now, use generic effect
+                return "Draw 1 card"; // Default fleeting exhaust effect
+            }
+            
+            return "No effect";
         }
     }
 }

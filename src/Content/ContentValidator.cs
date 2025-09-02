@@ -27,7 +27,7 @@
 
         foreach (Location location in _worldState.locations)
         {
-            if (location.Connections != null)
+            if (location.ConnectedLocationIds != null)
             {
                 foreach (string connectedLocationId in location.ConnectedLocationIds)
                 {

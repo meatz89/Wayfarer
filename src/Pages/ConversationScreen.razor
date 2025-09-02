@@ -214,12 +214,11 @@
                             <div class="card-identity">
                                 <div class="card-name">@GetCardDisplayName(card)</div>
                                 <div class="card-tags">
-                                    <span class="tag type-@card.GetCategoryClass()">@card.Category</span>
-                                    <span class="tag">@card.Type</span>
-                                    <span class="tag persistence">@GetPersistenceIcon(card.Persistence) @card.Persistence</span>
-                                    @if (card.IsObservation)
+                                    <span class="tag type-@card.GetCategoryClass()">@GetCardCategory(card)</span>
+                                    <span class="tag persistence">@GetPersistenceIcon(card) @GetPersistenceText(card)</span>
+                                    @if (card.IsObservable)
                                     {
-                                        <span class="tag observation">@GetObservationSourceDisplay(card.ObservationSource)</span>
+                                        <span class="tag observation">Observable</span>
                                     }
                                 </div>
                             </div>

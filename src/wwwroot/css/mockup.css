@@ -2392,3 +2392,179 @@ body {
     font-style: italic;
     font-weight: normal;
 }
+
+/* ===== PACKET 7: ACTION PREVIEW SYSTEM ===== */
+
+/* Action button preview states */
+.action-button {
+    position: relative;
+}
+
+.action-button.preview-active {
+    background: linear-gradient(to bottom, #faf4ea, #f4e8d0);
+    border-color: #8b6f47;
+    z-index: 10;
+}
+
+/* Action preview overlay */
+.action-preview {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 10px;
+    background: #faf4ea;
+    border: 2px solid #8b7355;
+    border-radius: 4px;
+    padding: 12px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    max-width: 400px;
+    min-width: 300px;
+    z-index: 20;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #2c241a;
+}
+
+/* Arrow pointing to button */
+.action-preview::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #8b7355;
+}
+
+/* Preview content sections */
+.selected-action {
+    background: #e8f5e9;
+    border: 1px solid #7a8b5a;
+    border-radius: 3px;
+    padding: 8px;
+    margin-bottom: 10px;
+    color: #2e7d32;
+    font-weight: bold;
+}
+
+.listen-effects {
+    background: #f0f4fa;
+    border: 1px solid #5a7a8a;
+    border-radius: 3px;
+    padding: 8px;
+    margin-bottom: 10px;
+    color: #3a5a6a;
+    font-weight: bold;
+}
+
+.critical-warning {
+    background: #ff0000;
+    color: white;
+    padding: 8px;
+    margin: 8px 0;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 14px;
+    animation: critical-flash 1s infinite;
+}
+
+.critical-warning div {
+    margin: 2px 0;
+}
+
+@keyframes critical-flash {
+    0%, 100% { 
+        background: #ff0000;
+        box-shadow: 0 0 5px rgba(255,0,0,0.5);
+    }
+    50% { 
+        background: #cc0000;
+        box-shadow: 0 0 10px rgba(255,0,0,0.8);
+    }
+}
+
+.exhaust-list {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    padding: 8px;
+    margin: 8px 0;
+    border-radius: 4px;
+    color: #8b6726;
+}
+
+.exhaust-list div {
+    margin: 2px 0;
+    font-size: 12px;
+}
+
+.no-exhausts {
+    background: #e8f5e9;
+    border: 1px solid #7a8b5a;
+    padding: 8px;
+    border-radius: 3px;
+    color: #2e7d32;
+    text-align: center;
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* SPEAK-specific preview styling */
+.speak-preview {
+    border-color: #5a7a8a;
+}
+
+.speak-preview::after {
+    border-top-color: #5a7a8a;
+}
+
+/* LISTEN-specific preview styling */
+.listen-preview {
+    border-color: #7a8b5a;
+}
+
+.listen-preview::after {
+    border-top-color: #7a8b5a;
+}
+
+/* Enhanced weight pool indicator */
+.weight-pool-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.weight-pool-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.weight-dots {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.weight-dot {
+    font-size: 16px;
+    color: #7a8b5a;
+    opacity: 0.3;
+}
+
+.weight-dot.filled {
+    opacity: 1;
+    color: #5a7a3a;
+}
+
+.atmosphere-bonus {
+    font-size: 10px;
+    color: #5a7a3a;
+    font-style: italic;
+}

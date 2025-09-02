@@ -304,7 +304,7 @@ public class ConversationOrchestrator
         int tokensEarned = CalculateTokenReward(session.CurrentState, session.ComfortBattery);
 
         // Check if any goal cards were played
-        bool goalAchieved = session.PlayedCards?.Any(c => c.IsGoalCard) ?? false;
+        bool goalAchieved = session.PlayedCards?.Any(c => c.IsGoal) ?? false;
         if (goalAchieved)
         {
             tokensEarned += 2; // Bonus for completing goal
