@@ -1536,6 +1536,21 @@
         }
       },
       {
+        "id": "merchant_row",
+        "name": "Merchant Row",
+        "description": "Rows of market stalls selling goods from across the realm",
+        "initialState": "Merchants are setting up their wares, calling out to potential customers",
+        "locationId": "market_square",
+        "CurrentTimeBlocks": ["Morning", "Afternoon", "Evening"],
+        "domainTags": ["COMMERCE", "BUSY", "PUBLIC"],
+        "spotProperties": ["Public", "Commercial", "Busy"],
+        "timeSpecificProperties": {
+          "Morning": ["QuietMorning", "WellLit"],
+          "Afternoon": ["Crowded", "Loud", "BusyEvening"],
+          "Evening": ["BusyEvening"]
+        }
+      },
+      {
         "id": "ferry_dock",
         "name": "Ferry Dock",
         "description": "A wooden dock where the city ferry operates, connecting to routes across the water.",
