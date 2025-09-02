@@ -71,7 +71,10 @@ public class ConversationCard
     }
     
     // Additional compatibility properties for UI
-    public CardType Type => IsGoal ? CardType.Goal : IsObservable ? CardType.Observation : CardType.Normal;
+    public CardType Type => Properties.Contains(CardProperty.Exchange) ? CardType.Exchange :
+                           IsGoal ? CardType.Goal : 
+                           IsObservable ? CardType.Observation : 
+                           CardType.Normal;
     public CardContext Context => null;
     public string GoalCardType => IsGoal ? "Goal" : null;
 

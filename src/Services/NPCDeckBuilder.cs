@@ -24,8 +24,10 @@ public class NPCDeckBuilder
     /// <returns>A deck of exactly 20 cards filtered and shuffled for the NPC</returns>
     public List<ConversationCard> BuildNPCDeck(PersonalityType personalityType)
     {
-        // Get all conversation cards from gameWorld
-        List<ConversationCard> allCards = _gameWorld.AllCardDefinitions.Values.ToList();
+        // Get all normal conversation cards from gameWorld (exclude Goal and Exchange cards)
+        List<ConversationCard> allCards = _gameWorld.AllCardDefinitions.Values
+            .Where(card => card.Type == CardType.Normal)
+            .ToList();
 
         // Filter cards by personality type
         List<ConversationCard> filteredCards = FilterCardsByPersonalityType(allCards, personalityType);
@@ -49,6 +51,42 @@ public class NPCDeckBuilder
         }
 
         return npcDeck;
+    }
+
+    /// <summary>
+    /// Build an NPC's goal deck by finding Goal cards that match their personality type
+    /// </summary>
+    /// <param name="personalityType">The NPC's personality type</param>
+    /// <returns>A list of goal cards for the NPC</returns>
+    public List<ConversationCard> BuildGoalDeck(PersonalityType personalityType)
+    {
+        // Get all goal cards from gameWorld
+        List<ConversationCard> goalCards = _gameWorld.AllCardDefinitions.Values
+            .Where(card => card.Type == CardType.Goal)
+            .ToList();
+
+        // Filter cards by personality type
+        List<ConversationCard> filteredCards = FilterCardsByPersonalityType(goalCards, personalityType);
+
+        return filteredCards;
+    }
+
+    /// <summary>
+    /// Build an NPC's exchange deck by finding Exchange cards that match their personality type
+    /// </summary>
+    /// <param name="personalityType">The NPC's personality type</param>
+    /// <returns>A list of exchange cards for the NPC</returns>
+    public List<ConversationCard> BuildExchangeDeck(PersonalityType personalityType)
+    {
+        // Get all exchange cards from gameWorld
+        List<ConversationCard> exchangeCards = _gameWorld.AllCardDefinitions.Values
+            .Where(card => card.Type == CardType.Exchange)
+            .ToList();
+
+        // Filter cards by personality type
+        List<ConversationCard> filteredCards = FilterCardsByPersonalityType(exchangeCards, personalityType);
+
+        return filteredCards;
     }
 
     /// <summary>

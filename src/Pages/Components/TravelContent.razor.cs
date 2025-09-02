@@ -38,7 +38,7 @@ namespace Wayfarer.Pages.Components
             AvailableRoutes = routes.Select(r => new RouteViewModel
             {
                 Id = r.Id,
-                DestinationName = r.DestinationLocationSpot,
+                DestinationName = r.Name,
                 District = GetDestinationDistrict(r.DestinationLocationSpot),
                 TransportType = r.Method.ToString(),
                 TravelTime = r.TravelTimeMinutes,

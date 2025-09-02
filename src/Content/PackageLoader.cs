@@ -91,8 +91,10 @@ public class PackageLoader
             // Phase 4: NPCs (depend on locations and cards)
             LoadNPCs(package.Content.Npcs);
 
-            // Phase 4.5: Initialize NPC conversation decks (after NPCs and cards are loaded)
+            // Phase 4.5: Initialize all NPC decks (after NPCs and cards are loaded)
             InitializeNPCConversationDecks();
+            InitializeNPCGoalDecks();
+            InitializeNPCExchangeDecks();
 
             // Phase 5: Routes (depend on locations)
             LoadRoutes(package.Content.Routes);
@@ -419,6 +421,66 @@ public class PackageLoader
         }
 
         Console.WriteLine("[PackageLoader] NPC conversation deck initialization completed");
+    }
+
+    /// <summary>
+    /// Initialize goal decks for all NPCs based on their personality types
+    /// </summary>
+    private void InitializeNPCGoalDecks()
+    {
+        Console.WriteLine("[PackageLoader] Initializing NPC goal decks based on personality types...");
+
+        NPCDeckBuilder deckBuilder = new NPCDeckBuilder(_gameWorld);
+
+        foreach (NPC npc in _gameWorld.NPCs)
+        {
+            try
+            {
+                // Build goal deck filtered by NPC's personality type
+                List<ConversationCard> goalCards = deckBuilder.BuildGoalDeck(npc.PersonalityType);
+                
+                // Initialize goal deck with filtered cards
+                npc.InitializeGoalDeck(goalCards);
+
+                Console.WriteLine($"[PackageLoader] Initialized goal deck for {npc.Name} ({npc.PersonalityType}) with {goalCards.Count} cards");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PackageLoader] Failed to initialize goal deck for NPC {npc.Name}: {ex.Message}");
+            }
+        }
+
+        Console.WriteLine("[PackageLoader] NPC goal deck initialization completed");
+    }
+
+    /// <summary>
+    /// Initialize exchange decks for all NPCs based on their personality types
+    /// </summary>
+    private void InitializeNPCExchangeDecks()
+    {
+        Console.WriteLine("[PackageLoader] Initializing NPC exchange decks based on personality types...");
+
+        NPCDeckBuilder deckBuilder = new NPCDeckBuilder(_gameWorld);
+
+        foreach (NPC npc in _gameWorld.NPCs)
+        {
+            try
+            {
+                // Build exchange deck filtered by NPC's personality type
+                List<ConversationCard> exchangeCards = deckBuilder.BuildExchangeDeck(npc.PersonalityType);
+                
+                // Initialize exchange deck with filtered cards
+                npc.InitializeExchangeDeck(exchangeCards);
+
+                Console.WriteLine($"[PackageLoader] Initialized exchange deck for {npc.Name} ({npc.PersonalityType}) with {exchangeCards.Count} cards");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PackageLoader] Failed to initialize exchange deck for NPC {npc.Name}: {ex.Message}");
+            }
+        }
+
+        Console.WriteLine("[PackageLoader] NPC exchange deck initialization completed");
     }
 
     private void LoadItems(List<ItemDTO> itemDtos)

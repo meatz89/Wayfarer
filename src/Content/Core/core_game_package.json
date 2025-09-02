@@ -12,7 +12,6 @@
       {
         "id": "trust_understanding",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 1,
         "properties": ["Persistent"],
@@ -31,7 +30,6 @@
       {
         "id": "trust_sympathy",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 2,
         "properties": ["Persistent"],
@@ -50,7 +48,6 @@
       {
         "id": "trust_deep_bond",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 3,
         "properties": ["Persistent"],
@@ -70,7 +67,6 @@
       {
         "id": "trust_reassurance",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 0,
         "properties": ["Persistent"],
@@ -89,7 +85,6 @@
       {
         "id": "trust_vulnerability",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 4,
         "properties": ["Fleeting"],
@@ -113,7 +108,6 @@
       {
         "id": "trust_scaling",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 3,
         "properties": ["Persistent"],
@@ -133,7 +127,6 @@
       {
         "id": "trust_desperate_plea",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 3,
         "properties": ["Fleeting"],
@@ -157,7 +150,6 @@
       {
         "id": "trust_patient_approach",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 2,
         "properties": ["Persistent"],
@@ -176,7 +168,6 @@
       {
         "id": "trust_listen_carefully",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 1,
         "properties": ["Persistent"],
@@ -195,7 +186,6 @@
       {
         "id": "trust_emotional_support",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 2,
         "properties": ["Persistent"],
@@ -214,7 +204,6 @@
       {
         "id": "trust_prepare_ground",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 0,
         "properties": ["Persistent"],
@@ -233,7 +222,6 @@
       {
         "id": "trust_open_mind",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 0,
         "properties": ["Persistent"],
@@ -252,7 +240,6 @@
       {
         "id": "trust_heartfelt_confession",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 4,
         "properties": ["Fleeting"],
@@ -276,7 +263,6 @@
       {
         "id": "trust_gentle_encouragement",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["DEVOTED", "ALL"],
         "weight": 1,
         "properties": ["Persistent"],
@@ -295,7 +281,6 @@
       {
         "id": "commerce_fair_deal",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 1,
         "properties": ["Persistent"],
@@ -314,7 +299,6 @@
       {
         "id": "commerce_opportunity",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 2,
         "properties": ["Persistent"],
@@ -333,7 +317,6 @@
       {
         "id": "commerce_scaling",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 3,
         "properties": ["Persistent"],
@@ -353,7 +336,6 @@
       {
         "id": "commerce_final_offer",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 5,
         "properties": ["Fleeting"],
@@ -377,7 +359,6 @@
       {
         "id": "commerce_prepare_argument",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 3,
         "properties": ["Persistent"],
@@ -396,7 +377,6 @@
       {
         "id": "commerce_business_proposition",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 2,
         "properties": ["Persistent"],
@@ -415,7 +395,6 @@
       {
         "id": "commerce_market_knowledge",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 1,
         "properties": ["Opportunity"],
@@ -438,7 +417,6 @@
       {
         "id": "commerce_trade_secrets",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 3,
         "properties": ["Fleeting"],
@@ -462,7 +440,6 @@
       {
         "id": "commerce_negotiate_terms",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 2,
         "properties": ["Opportunity"],
@@ -485,7 +462,6 @@
       {
         "id": "commerce_close_deal",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 4,
         "properties": ["Fleeting"],
@@ -509,7 +485,6 @@
       {
         "id": "commerce_mutual_benefit",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 1,
         "properties": ["Persistent"],
@@ -528,7 +503,6 @@
       {
         "id": "commerce_calculate_value",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 2,
         "properties": ["Persistent"],
@@ -547,7 +521,6 @@
       {
         "id": "commerce_market_timing",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 3,
         "properties": ["Opportunity"],
@@ -571,7 +544,6 @@
       {
         "id": "commerce_competitive_edge",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["MERCANTILE", "ALL"],
         "weight": 4,
         "properties": ["Fleeting"],
@@ -595,7 +567,6 @@
       {
         "id": "steadfast_gather_thoughts",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 2,
         "properties": ["Persistent"],
@@ -614,7 +585,6 @@
       {
         "id": "steadfast_build_momentum",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 2,
         "properties": ["Persistent"],
@@ -633,7 +603,6 @@
       {
         "id": "steadfast_take_breath",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 0,
         "properties": ["Persistent"],
@@ -652,7 +621,6 @@
       {
         "id": "steadfast_find_common_ground",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 2,
         "properties": ["Persistent"],
@@ -671,7 +639,6 @@
       {
         "id": "steadfast_steady_approach",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 1,
         "properties": ["Persistent"],
@@ -690,7 +657,6 @@
       {
         "id": "steadfast_stay_focused",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 0,
         "properties": ["Persistent"],
@@ -709,7 +675,6 @@
       {
         "id": "steadfast_press_advantage",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 3,
         "properties": ["Opportunity"],
@@ -732,7 +697,6 @@
       {
         "id": "steadfast_make_time",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 2,
         "properties": ["Opportunity"],
@@ -755,7 +719,6 @@
       {
         "id": "steadfast_honor_duty",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 3,
         "properties": ["Persistent"],
@@ -775,7 +738,6 @@
       {
         "id": "steadfast_plain_speaking",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 1,
         "properties": ["Persistent"],
@@ -794,7 +756,6 @@
       {
         "id": "steadfast_reliable_support",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 2,
         "properties": ["Persistent"],
@@ -813,7 +774,6 @@
       {
         "id": "steadfast_practical_wisdom",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 3,
         "properties": ["Persistent"],
@@ -832,7 +792,6 @@
       {
         "id": "steadfast_clear_path",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 4,
         "properties": ["Fleeting"],
@@ -856,7 +815,6 @@
       {
         "id": "steadfast_unwavering_resolve",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["STEADFAST", "ALL"],
         "weight": 5,
         "properties": ["Fleeting"],
@@ -880,7 +838,6 @@
       {
         "id": "proud_show_respect",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["PROUD", "ALL"],
         "weight": 1,
         "properties": ["Persistent"],
@@ -899,7 +856,6 @@
       {
         "id": "proud_observe_formalities",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["PROUD", "ALL"],
         "weight": 0,
         "properties": ["Persistent"],
@@ -918,7 +874,6 @@
       {
         "id": "proud_invoke_status",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["PROUD", "ALL"],
         "weight": 3,
         "properties": ["Persistent"],
@@ -938,7 +893,6 @@
       {
         "id": "cunning_drop_hint",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["CUNNING", "ALL"],
         "weight": 1,
         "properties": ["Persistent"],
@@ -957,7 +911,6 @@
       {
         "id": "cunning_apply_leverage",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["CUNNING", "ALL"],
         "weight": 3,
         "properties": ["Persistent"],
@@ -977,7 +930,6 @@
       {
         "id": "cunning_veiled_threat",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["CUNNING", "ALL"],
         "weight": 4,
         "properties": ["Opportunity"],
@@ -1001,7 +953,6 @@
       {
         "id": "universal_interrupt",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["ALL"],
         "weight": 1,
         "properties": ["Opportunity"],
@@ -1025,7 +976,6 @@
       {
         "id": "universal_final_statement",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["ALL"],
         "weight": 5,
         "properties": ["Fleeting"],
@@ -1049,7 +999,6 @@
       {
         "id": "universal_quick_response",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["ALL"],
         "weight": 1,
         "properties": ["Opportunity"],
@@ -1072,7 +1021,6 @@
       {
         "id": "universal_thoughtful_pause",
         "type": "Normal",
-        "cardType": "Normal",
         "personalityTypes": ["ALL"],
         "weight": 1,
         "properties": ["Persistent"],
@@ -1091,7 +1039,6 @@
       {
         "id": "elena_urgent_refusal",
         "type": "Goal",
-        "cardType": "Goal",
         "personalityTypes": ["DEVOTED"],
         "weight": 5,
         "properties": ["Fleeting", "Opportunity"],
@@ -1132,7 +1079,6 @@
       {
         "id": "goal_meeting",
         "type": "Goal",
-        "cardType": "Goal",
         "personalityTypes": ["ALL"],
         "weight": 6,
         "properties": ["Fleeting", "Opportunity"],
@@ -1169,7 +1115,6 @@
       {
         "id": "goal_resolution",
         "type": "Goal",
-        "cardType": "Goal",
         "personalityTypes": ["ALL"],
         "weight": 5,
         "properties": ["Fleeting", "Opportunity"],
@@ -1204,10 +1149,9 @@
       {
         "id": "exchange_food_for_coins",
         "type": "Exchange",
-        "cardType": "Exchange",
         "personalityTypes": ["ALL"],
         "weight": 1,
-        "properties": ["Persistent"],
+        "properties": ["Persistent", "Exchange"],
         "connectionType": "Commerce",
         "description": "Food for coins",
         "difficulty": "Easy",
@@ -1227,10 +1171,9 @@
       {
         "id": "exchange_rest_for_coins",
         "type": "Exchange",
-        "cardType": "Exchange",
         "personalityTypes": ["ALL"],
         "weight": 1,
-        "properties": ["Persistent"],
+        "properties": ["Persistent", "Exchange"],
         "connectionType": "Commerce",
         "description": "Rest for coins",
         "difficulty": "Easy",
@@ -1250,10 +1193,9 @@
       {
         "id": "marcus_trade_goods",
         "type": "Exchange",
-        "cardType": "Exchange",
         "personalityTypes": ["MERCANTILE"],
         "weight": 1,
-        "properties": ["Persistent"],
+        "properties": ["Persistent", "Exchange"],
         "connectionType": "Commerce",
         "description": "Trade goods",
         "difficulty": "Easy",
@@ -1270,10 +1212,9 @@
       {
         "id": "marcus_bulk_purchase",
         "type": "Exchange",
-        "cardType": "Exchange",
         "personalityTypes": ["MERCANTILE"],
         "weight": 2,
-        "properties": ["Persistent"],
+        "properties": ["Persistent", "Exchange"],
         "connectionType": "Commerce",
         "description": "Bulk purchase",
         "difficulty": "Medium",
@@ -1290,10 +1231,9 @@
       {
         "id": "bertram_hot_meal",
         "type": "Exchange",
-        "cardType": "Exchange",
         "personalityTypes": ["STEADFAST"],
         "weight": 1,
-        "properties": ["Persistent"],
+        "properties": ["Persistent", "Exchange"],
         "connectionType": "Commerce",
         "description": "Hot meal",
         "difficulty": "Easy",
@@ -1310,10 +1250,9 @@
       {
         "id": "bertram_room_for_night",
         "type": "Exchange",
-        "cardType": "Exchange",
         "personalityTypes": ["STEADFAST"],
         "weight": 1,
-        "properties": ["Persistent"],
+        "properties": ["Persistent", "Exchange"],
         "connectionType": "Commerce",
         "description": "Room for the night",
         "difficulty": "Easy",
@@ -1330,10 +1269,9 @@
       {
         "id": "bertram_mug_of_ale",
         "type": "Exchange",
-        "cardType": "Exchange",
         "personalityTypes": ["STEADFAST"],
         "weight": 1,
-        "properties": ["Persistent"],
+        "properties": ["Persistent", "Exchange"],
         "connectionType": "Commerce",
         "description": "Mug of ale",
         "difficulty": "Easy",
@@ -1350,10 +1288,9 @@
       {
         "id": "guard_noble_permit",
         "type": "Exchange",
-        "cardType": "Exchange",
         "personalityTypes": ["STEADFAST", "PROUD"],
         "weight": 2,
-        "properties": ["Persistent"],
+        "properties": ["Persistent", "Exchange"],
         "connectionType": "Status",
         "description": "Noble District Permit",
         "difficulty": "Medium",
@@ -1653,7 +1590,7 @@
         "locationId": "copper_kettle_tavern",
         "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
         "domainTags": [ "SOCIAL", "WARM", "GATHERING" ],
-        "spotProperties": [ "Public", "Warm", "Social", "Central" ],
+        "spotProperties": [ "Public", "Crossroads", "Warm", "Social", "Central" ],
         "timeSpecificProperties": {
           "Morning": [ "Quiet", "Peaceful" ],
           "Afternoon": [ "Social", "Busy" ],
@@ -1685,7 +1622,7 @@
         "locationId": "noble_district",
         "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
         "domainTags": [ "NOBLE", "EXCLUSIVE", "GUARDED" ],
-        "spotProperties": [ "Private", "Prestigious", "Guarded", "Central" ],
+        "spotProperties": [ "Private", "Crossroads", "Prestigious", "Guarded", "Central" ],
         "timeSpecificProperties": {
           "Morning": [ "Quiet", "Peaceful" ],
           "Afternoon": [ "Formal", "Busy" ],
@@ -1763,7 +1700,7 @@
         "locationId": "city_gates",
         "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
         "domainTags": [ "TRANSIT", "OFFICIAL", "CHECKPOINT" ],
-        "spotProperties": [ "Public", "Official", "Checkpoint", "Transit" ],
+        "spotProperties": [ "Public", "Crossroads", "Official", "Checkpoint", "Transit" ],
         "timeSpecificProperties": {
           "Morning": [ "Busy", "WellLit" ],
           "Afternoon": [ "Crowded", "Scrutinized" ],
