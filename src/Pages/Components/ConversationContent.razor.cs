@@ -1163,18 +1163,18 @@ namespace Wayfarer.Pages.Components
         
         protected int CountFleetingCards()
         {
-            return Session?.HandCards?.Count(c => c.IsFleeting) ?? 0;
+            return Session?.HandCards?.Count(c => c.Properties.Contains(CardProperty.Fleeting)) ?? 0;
         }
         
         protected bool HasGoalCards()
         {
-            return Session?.HandCards?.Any(c => c.IsGoal) ?? false;
+            return Session?.HandCards?.Any(c => c.Properties.Contains(CardProperty.Fleeting) && c.Properties.Contains(CardProperty.Opportunity)) ?? false;
         }
 
         protected string GetCardName(CardInstance card)
         {
             // For exchange cards, use the exchange name
-            if (card.Category == nameof(CardCategory.Exchange) && card.Context?.ExchangeName != null)
+            if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
 
             // Generate name from template and context
@@ -1187,17 +1187,20 @@ namespace Wayfarer.Pages.Components
         {
             List<string> tags = new List<string>();
 
-            // Add card type
-            tags.Add(card.Type.ToString());
+            // Add card properties as tags
+            foreach (var property in card.Properties)
+            {
+                tags.Add(property.ToString());
+            }
 
-            // Add persistence type based on properties
-            if (card.IsFleeting && card.IsOpportunity) tags.Add("Goal");
-            else if (card.IsFleeting) tags.Add("Fleeting");
-            else if (card.IsOpportunity) tags.Add("Opportunity");
-            else if (card.IsPersistent) tags.Add("Persistent");
+            // Add derived property tags
+            if (card.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity)) 
+                tags.Add("Goal");
+            else if (!card.Properties.Contains(CardProperty.Fleeting) && !card.Properties.Contains(CardProperty.Opportunity)) 
+                tags.Add("Persistent");
 
-            // Add category
-            tags.Add(card.Category.ToString());
+            // Category is now represented by properties
+            // Already added above via properties loop
 
             return tags;
         }
@@ -1205,12 +1208,13 @@ namespace Wayfarer.Pages.Components
         protected string GetSuccessEffect(CardInstance card)
         {
             // For exchange cards, show the reward
-            if (card.Category == nameof(CardCategory.Exchange) && card.Context?.ExchangeReward != null)
+            if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeReward != null)
             {
                 return $"Complete exchange: {card.Context.ExchangeReward}";
             }
 
-            if (card.Category == nameof(CardCategory.State))
+            // State category no longer exists in Properties system
+            if (false)
             {
                 // Use the actual SuccessState property from the card
                 if (card.SuccessState.HasValue)
@@ -1706,7 +1710,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetObservationDecayClass(CardInstance card)
         {
-            if (!card.IsObservable || card.Context?.ObservationDecayState == null)
+            if (!card.Properties.Contains(CardProperty.Observable) || card.Context?.ObservationDecayState == null)
                 return "";
 
             if (Enum.TryParse<ObservationDecayState>(card.Context.ObservationDecayState, out ObservationDecayState decayState))
@@ -1726,7 +1730,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetObservationDecayDescription(CardInstance card)
         {
-            if (!card.IsObservable)
+            if (!card.Properties.Contains(CardProperty.Observable))
                 return "";
 
             return card.Context?.ObservationDecayDescription ?? "";
@@ -1737,7 +1741,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected bool IsObservationExpired(CardInstance card)
         {
-            return card.IsObservable &&
+            return card.Properties.Contains(CardProperty.Observable) &&
                    card.Context?.ObservationDecayState == nameof(ObservationDecayState.Expired);
         }
 
@@ -1913,11 +1917,11 @@ namespace Wayfarer.Pages.Components
         {
             var classes = new List<string>();
             
-            if (card?.IsFleeting == true)
+            if (card?.Properties.Contains(CardProperty.Fleeting) == true)
                 classes.Add("has-fleeting");
-            if (card?.IsGoal == true)
+            if (card?.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity) == true)
                 classes.Add("has-opportunity"); // Goal cards have Opportunity
-            if (card?.IsBurden == true)
+            if (card?.Properties.Contains(CardProperty.Burden) == true)
                 classes.Add("has-burden");
                 
             return string.Join(" ", classes);
@@ -1929,7 +1933,7 @@ namespace Wayfarer.Pages.Components
         protected bool HasExhaustEffect(CardInstance card)
         {
             // CardInstance doesn't have ExhaustEffect yet, but we can infer from properties
-            return card?.IsFleeting == true || card?.IsGoal == true;
+            return card?.Properties.Contains(CardProperty.Fleeting) == true || card?.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity) == true;
         }
 
         /// <summary>
@@ -1958,11 +1962,11 @@ namespace Wayfarer.Pages.Components
         protected string GetExhaustEffectDescription(CardInstance card)
         {
             // Default exhaust effects based on card properties
-            if (card?.IsGoal == true)
+            if (card?.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity) == true)
             {
                 return "Conversation ends"; // Goal cards end conversation when exhausted
             }
-            else if (card?.IsFleeting == true)
+            else if (card?.Properties.Contains(CardProperty.Fleeting) == true)
             {
                 return "Removed after SPEAK";
             }
@@ -2171,7 +2175,7 @@ namespace Wayfarer.Pages.Components
             if (Session?.HandCards == null) return new List<CardInstance>();
             
             return Session.HandCards
-                .Where(c => c.IsFleeting && c != SelectedCard) // Don't include the played card
+                .Where(c => c.Properties.Contains(CardProperty.Fleeting) && c != SelectedCard) // Don't include the played card
                 .ToList();
         }
 
@@ -2183,7 +2187,7 @@ namespace Wayfarer.Pages.Components
             if (Session?.HandCards == null) return new List<CardInstance>();
             
             return Session.HandCards
-                .Where(c => c.IsGoal) // Goal cards have Opportunity property
+                .Where(c => c.Properties.Contains(CardProperty.Fleeting) && c.Properties.Contains(CardProperty.Opportunity)) // Goal cards have Opportunity property
                 .ToList();
         }
 
@@ -2192,7 +2196,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<CardInstance> GetCriticalExhausts(List<CardInstance> cards)
         {
-            return cards.Where(c => c.IsGoal).ToList();
+            return cards.Where(c => c.Properties.Contains(CardProperty.Fleeting) && c.Properties.Contains(CardProperty.Opportunity)).ToList();
         }
 
         /// <summary>
@@ -2379,11 +2383,11 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetPreviewExhaustEffect(CardInstance card)
         {
-            if (card?.IsGoal == true)
+            if (card?.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity) == true)
             {
                 return "ENDS CONVERSATION!";
             }
-            else if (card?.IsFleeting == true)
+            else if (card?.Properties.Contains(CardProperty.Fleeting) == true)
             {
                 // Check if card has specific exhaust effects
                 // For now, use generic effect
