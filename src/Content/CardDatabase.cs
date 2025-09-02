@@ -51,7 +51,12 @@ public class CardDatabase
         if (File.Exists(cardsPath))
         {
             string cardsJson = File.ReadAllText(cardsPath);
-            var cardsDoc = JsonDocument.Parse(cardsJson);
+            var options = new JsonDocumentOptions
+            {
+                AllowTrailingCommas = true,
+                CommentHandling = JsonCommentHandling.Skip
+            };
+            var cardsDoc = JsonDocument.Parse(cardsJson, options);
             database.LoadConversationCards(cardsDoc.RootElement);
         }
         
@@ -60,7 +65,12 @@ public class CardDatabase
         if (File.Exists(obsPath))
         {
             string obsJson = File.ReadAllText(obsPath);
-            var obsDoc = JsonDocument.Parse(obsJson);
+            var options = new JsonDocumentOptions
+            {
+                AllowTrailingCommas = true,
+                CommentHandling = JsonCommentHandling.Skip
+            };
+            var obsDoc = JsonDocument.Parse(obsJson, options);
             database.LoadObservationCards(obsDoc.RootElement);
         }
         
@@ -69,7 +79,12 @@ public class CardDatabase
         if (File.Exists(goalsPath))
         {
             string goalsJson = File.ReadAllText(goalsPath);
-            var goalsDoc = JsonDocument.Parse(goalsJson);
+            var options = new JsonDocumentOptions
+            {
+                AllowTrailingCommas = true,
+                CommentHandling = JsonCommentHandling.Skip
+            };
+            var goalsDoc = JsonDocument.Parse(goalsJson, options);
             database.LoadGoalCards(goalsDoc.RootElement);
         }
         
