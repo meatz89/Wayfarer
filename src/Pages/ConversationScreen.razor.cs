@@ -80,7 +80,10 @@ namespace Wayfarer.Pages
         {
             if (SelectedAction != ActionType.Speak) return false;
             // For single card selection, just check weight limit
-            return card.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL) <= (Session?.GetWeightLimit() ?? 5);
+            int weightLimit = Session != null && ConversationRules.States.TryGetValue(Session.CurrentState, out var rules) 
+                ? rules.MaxWeight 
+                : 5;
+            return card.GetEffectiveWeight(Session?.CurrentState ?? EmotionalState.NEUTRAL) <= weightLimit;
         }
 
         protected async Task ExecuteAction()
@@ -525,7 +528,7 @@ namespace Wayfarer.Pages
                     return "Choose your response...";
 
                 CardSelectionManager manager = new CardSelectionManager(Session.CurrentState);
-                manager.SelectCard(SelectedCard);
+                manager.ToggleCard(SelectedCard);
 
                 return manager.GetSelectionDescription() + " (costs 1 turn)";
             }

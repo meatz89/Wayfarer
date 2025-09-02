@@ -207,7 +207,7 @@
             <div class="dialog-options">
                 @foreach (var card in Session.HandCards)
                 {
-                    <div class="dialog-card @GetCardClasses(card) @(SelectedCards.Contains(card) ? "selected" : "")"
+                    <div class="dialog-card @GetCardClasses(card) @(SelectedCard == card ? "selected" : "")"
                          @onclick="() => ToggleCard(card)">
                         
                         <div class="card-header">
