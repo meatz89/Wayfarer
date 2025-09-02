@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wayfarer - Elena Conversation (Refined)</title>
+    <title>Wayfarer - Elena Conversation (Refined System)</title>
     <style>
         * {
             margin: 0;
@@ -71,42 +71,7 @@
             color: #d4a76a;
         }
 
-        .resource.low {
-            color: #d4704a;
-        }
-
-        /* Time and Location Header */
-        .header {
-            background: #2c241a;
-            color: #e8dcc4;
-            padding: 10px 20px;
-            border-bottom: 2px solid #5c4a3a;
-        }
-
-        .time-bar {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-        }
-
-        .deadline-warning {
-            color: #d4704a;
-            font-weight: bold;
-        }
-
-        /* Location Context */
-        .location-context {
-            background: #f9f3e9;
-            padding: 8px 20px;
-            border-bottom: 1px solid #c4a684;
-            font-size: 11px;
-            color: #7a6250;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Streamlined Conversation State Bar */
+        /* Conversation State Bar */
         .conversation-state-bar {
             background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
             padding: 15px 20px;
@@ -140,7 +105,7 @@
             margin-top: 3px;
         }
 
-        /* Minimal State Indicators */
+        /* State Indicators */
         .state-indicators {
             display: flex;
             gap: 20px;
@@ -166,50 +131,130 @@
             color: #5c4a3a;
         }
 
-        /* Elegant Comfort Display */
+        /* Comfort Display */
         .comfort-indicator {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .comfort-dots {
+        .comfort-bar {
             display: flex;
-            gap: 4px;
+            gap: 2px;
             align-items: center;
+            padding: 0 10px;
         }
 
-        .comfort-dot {
-            width: 8px;
+        .comfort-segment {
+            width: 20px;
             height: 8px;
-            border-radius: 50%;
             background: #e8dcc4;
             border: 1px solid #a68b6f;
-            transition: all 0.3s ease;
         }
 
-        .comfort-dot.negative {
-            background: #d4704a;
-        }
-
-        .comfort-dot.positive {
+        .comfort-segment.filled.positive {
             background: #7a8b5a;
         }
 
-        .comfort-dot.current {
-            width: 12px;
-            height: 12px;
-            background: #5c4a3a;
-            border: 2px solid #3d3429;
+        .comfort-segment.filled.negative {
+            background: #d4704a;
         }
 
-        .comfort-transition-hint {
+        .comfort-zero {
+            width: 4px;
+            height: 20px;
+            background: #3d3429;
+            margin: 0 4px;
+        }
+
+        .comfort-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #5c4a3a;
+            margin-left: 8px;
+        }
+
+        /* Weight Pool Display */
+        .weight-pool {
+            background: #f9f3e9;
+            padding: 8px 20px;
+            border-bottom: 1px solid #c4a684;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .weight-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .weight-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .weight-boxes {
+            display: flex;
+            gap: 3px;
+        }
+
+        .weight-box {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border: 2px solid #5c4a3a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 10px;
-            color: #8b4726;
+            font-weight: bold;
+        }
+
+        .weight-box.spent {
+            background: #d4c5a0;
+            border-color: #a68b6f;
+            color: #8b7355;
+        }
+
+        .weight-box.unavailable {
+            background: #e8dcc4;
+            border: 1px dashed #a68b6f;
+            opacity: 0.4;
+        }
+
+        /* Atmosphere Display */
+        .atmosphere-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .atmosphere-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+        }
+
+        .atmosphere-current {
+            padding: 4px 12px;
+            background: #7a8b5a;
+            color: white;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .atmosphere-effect {
+            font-size: 11px;
+            color: #5a7a3a;
             font-style: italic;
         }
 
-        /* Token Strip */
+        /* Token Display */
         .token-strip {
             display: flex;
             gap: 15px;
@@ -236,9 +281,9 @@
             color: #5a7a3a;
         }
 
-        /* Narrative Section - CENTRAL FOCUS */
+        /* Narrative Section */
         .narrative-section {
-            padding: 30px;
+            padding: 25px;
             background: #f4e8d0;
             border-bottom: 2px solid #a68b6f;
         }
@@ -284,16 +329,6 @@
             letter-spacing: 0.5px;
         }
 
-        .turn-detail {
-            display: flex;
-            gap: 5px;
-        }
-
-        .turn-value {
-            color: #5c4a3a;
-            font-weight: bold;
-        }
-
         .action-choices {
             display: flex;
             justify-content: center;
@@ -319,13 +354,7 @@
             transform: translateY(-2px);
         }
 
-        .action-details {
-            font-size: 11px;
-            margin-top: 4px;
-            color: #7a6250;
-        }
-
-        /* Cards Section - CENTRAL FOCUS */
+        /* Cards Section */
         .cards-section {
             padding: 25px;
             background: #f4e8d0;
@@ -369,33 +398,15 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        .card.comfort {
-            border-left: 5px solid #7a8b5a;
-        }
-
-        .card.state {
-            border-left: 5px solid #8b7355;
-        }
-
-        .card.crisis {
-            border-left: 5px solid #8b4726;
-            background: #faf0e6;
-        }
-
-        .card.burden {
-            border-left: 5px solid #4a3a2a;
-            background: #e8dcc4;
-            opacity: 0.9;
-        }
-
-        .card.letter {
-            border-left: 5px solid #d4a76a;
-            background: #fff9f0;
-        }
-
         .card.observation {
             border-left: 5px solid #5a7a8a;
             background: #f0f4fa;
+        }
+
+        .card.goal {
+            border-left: 5px solid #d4a76a;
+            background: #fff9f0;
+            border-width: 3px;
         }
 
         .card.unavailable {
@@ -404,7 +415,7 @@
             background: #d4c5a0;
         }
 
-        /* Simplified Card Layout */
+        /* Card Layout */
         .card-content {
             display: flex;
             align-items: stretch;
@@ -441,11 +452,45 @@
             font-size: 13px;
         }
 
-        .card-drawable {
-            font-size: 10px;
-            color: #7a6250;
+        .card-mechanics {
+            display: flex;
+            gap: 8px;
             margin-bottom: 10px;
-            font-style: italic;
+            flex-wrap: wrap;
+        }
+
+        .card-tag {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+        }
+
+        .tag-persistent {
+            background: #e8f5e9;
+            color: #5a7a3a;
+        }
+
+        .tag-fleeting {
+            background: #ffe8e8;
+            color: #8b4726;
+        }
+
+        .tag-opportunity {
+            background: #fff3e0;
+            color: #d4704a;
+        }
+
+        .tag-atmosphere {
+            background: #e8e8ff;
+            color: #5a5a8a;
+        }
+
+        .tag-difficulty {
+            background: #f0f0f0;
+            color: #5c4a3a;
         }
 
         .card-text {
@@ -453,9 +498,32 @@
             line-height: 1.5;
             color: #2c241a;
             font-style: italic;
+            margin-bottom: 8px;
         }
 
-        /* Card Success/Failure Strip */
+        .card-effect {
+            font-size: 12px;
+            color: #5c4a3a;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .card-scaling {
+            font-size: 11px;
+            color: #7a6250;
+            font-style: italic;
+        }
+
+        .card-exhaust {
+            font-size: 11px;
+            color: #8b4726;
+            padding: 4px;
+            background: #ffe8e8;
+            border-top: 1px solid #d4704a;
+            margin-top: 8px;
+        }
+
+        /* Success/Failure Strip */
         .card-outcomes {
             display: flex;
             border-left: 1px solid #d4c5a0;
@@ -466,10 +534,6 @@
             width: 120px;
             text-align: center;
             background: #f9f3e9;
-        }
-
-        .outcome.success {
-            border-right: 1px solid #d4c5a0;
         }
 
         .outcome-chance {
@@ -493,32 +557,31 @@
             font-weight: bold;
         }
 
-        /* Special Markers */
-        .card-marker {
+        /* Persistence Warning */
+        .persistence-warning {
             position: absolute;
-            top: 0px;
-            right: 15px;
-            background: #8b4726;
-            color: #faf4ea;
-            padding: 2px 8px;
-            border-radius: 2px;
+            top: 0;
+            right: 0;
+            padding: 4px 8px;
             font-size: 9px;
+            font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-weight: bold;
         }
 
-        .card-marker.expires {
-            background: #5a7a8a;
+        .warning-fleeting {
+            background: #8b4726;
+            color: white;
         }
 
-        .card-marker.blocks {
-            background: #4a3a2a;
+        .warning-opportunity {
+            background: #d4704a;
+            color: white;
         }
 
-        .card-marker.goal {
-            background: #d4a76a;
-            color: #3d3429;
+        .warning-both {
+            background: linear-gradient(135deg, #8b4726 50%, #d4704a 50%);
+            color: white;
         }
     </style>
 </head>
@@ -537,7 +600,7 @@
                     <div class="resource-value">75</div>
                     <span>Health</span>
                 </div>
-                <div class="resource low">
+                <div class="resource">
                     <div class="resource-icon">🍞</div>
                     <div class="resource-value">60</div>
                     <span>Hunger</span>
@@ -555,45 +618,53 @@
             </div>
         </div>
 
-        <!-- Time and Location Header -->
-        <div class="header">
-            <div class="time-bar">
-                <span class="current-time">Tuesday, 3:47 PM</span>
-                <span class="deadline-warning">⚠ Elena needs her letter delivered: 1h 13m</span>
-            </div>
-        </div>
-
-        <!-- Location Context -->
-        <div class="location-context">
-            Copper Kettle Tavern → Corner Table (Private, +1 patience)
-        </div>
-
-        <!-- Streamlined Conversation State -->
+        <!-- Conversation State -->
         <div class="conversation-state-bar">
             <div class="npc-header">
                 <div class="npc-identity">
                     <div class="npc-name">Elena</div>
-                    <div class="emotional-state">Desperate</div>
+                    <div class="emotional-state">Desperate State</div>
                 </div>
                 <div class="state-indicators">
                     <div class="indicator">
                         <span class="indicator-label">Patience</span>
-                        <span class="indicator-value">8/10</span>
+                        <span class="indicator-value">5/10</span>
                     </div>
                     <div class="comfort-indicator">
                         <span class="indicator-label">Comfort</span>
-                        <div class="comfort-dots">
-                            <span class="comfort-dot negative"></span>
-                            <span class="comfort-dot negative"></span>
-                            <span class="comfort-dot negative current"></span>
-                            <span class="comfort-dot"></span>
-                            <span class="comfort-dot"></span>
-                            <span class="comfort-dot"></span>
-                            <span class="comfort-dot"></span>
+                        <div class="comfort-bar">
+                            <span class="comfort-segment filled negative"></span>
+                            <span class="comfort-segment filled negative"></span>
+                            <span class="comfort-segment"></span>
+                            <span class="comfort-zero"></span>
+                            <span class="comfort-segment"></span>
+                            <span class="comfort-segment"></span>
+                            <span class="comfort-segment"></span>
                         </div>
-                        <span class="comfort-transition-hint">→ Hostile!</span>
+                        <span class="comfort-value">-2</span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Weight Pool Display -->
+        <div class="weight-pool">
+            <div class="weight-display">
+                <span class="weight-label">Weight Pool</span>
+                <div class="weight-boxes">
+                    <div class="weight-box">1</div>
+                    <div class="weight-box spent">X</div>
+                    <div class="weight-box spent">X</div>
+                    <div class="weight-box unavailable"></div>
+                    <div class="weight-box unavailable"></div>
+                    <div class="weight-box unavailable"></div>
+                </div>
+                <span style="font-size: 11px; color: #7a6250;">1/3 remaining (Desperate: max 3)</span>
+            </div>
+            <div class="atmosphere-display">
+                <span class="atmosphere-label">Atmosphere</span>
+                <span class="atmosphere-current">VOLATILE</span>
+                <span class="atmosphere-effect">All comfort ±1</span>
             </div>
         </div>
 
@@ -617,45 +688,40 @@
             </div>
         </div>
 
-        <!-- CENTRAL: Narrative Section -->
+        <!-- Narrative Section -->
         <div class="narrative-section">
             <div class="narrative-text">
-                Elena's breathing comes in short gasps. Her fingers trace the seal on the letter obsessively. The comfort you've tried to offer hasn't reached her - she's spiraling deeper into panic.
+                Elena barely lets you speak. Her desperate state limits your options - you can only draw one card at a time. The volatile atmosphere makes every comfort change more extreme. Your weight pool is nearly depleted.
             </div>
             <div class="npc-dialogue desperate">
-                "No, no, no... you don't understand! Lord Blackwood leaves at sunset. If this letter doesn't reach him, my father will sign the marriage contract tonight. I'll be trapped forever. Please, I'm begging you!"
+                "You don't understand! Lord Blackwood leaves at sunset. Without this letter delivered, my father will sign the marriage contract. Please, I have nowhere else to turn!"
             </div>
         </div>
 
         <!-- Action Choice -->
         <div class="action-section">
             <div class="turn-info">
-                <div class="turn-detail">
-                    <span>Turn</span>
-                    <span class="turn-value">3/10</span>
-                </div>
-                <div class="turn-detail">
-                    <span>Weight Limit</span>
-                    <span class="turn-value">1</span>
-                </div>
-                <div class="turn-detail">
-                    <span>State</span>
-                    <span class="turn-value">Desperate</span>
-                </div>
+                <div>Turn 4</div>
+                <div>•</div>
+                <div>Weight: 1/3</div>
+                <div>•</div>
+                <div>Patience: 5/10</div>
+                <div>•</div>
+                <div>Atmosphere: Volatile (persists until failure)</div>
             </div>
             <div class="action-choices">
                 <div class="action-button">
                     <div>👂 LISTEN</div>
-                    <div class="action-details">Draw desperate cards</div>
+                    <div style="font-size: 11px; margin-top: 4px;">Draw 1 card • Refresh weight to 3 • Trigger opportunity exhausts</div>
                 </div>
                 <div class="action-button">
                     <div>💬 SPEAK</div>
-                    <div class="action-details">Play weight 1 cards</div>
+                    <div style="font-size: 11px; margin-top: 4px;">Play weight ≤1 cards • Trigger fleeting exhausts</div>
                 </div>
             </div>
         </div>
 
-        <!-- CENTRAL: Cards Section -->
+        <!-- Cards Section -->
         <div class="cards-section">
             <div class="cards-header">
                 <div class="cards-title">Your Hand</div>
@@ -664,142 +730,172 @@
             <div class="card-grid">
                 <!-- Observation Card -->
                 <div class="card observation">
-                    <div class="card-marker expires">24hr</div>
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-identity">
-                                <div class="card-name">Merchant Route Knowledge</div>
+                                <div class="card-name">Merchant Routes</div>
                                 <div class="card-weight">1</div>
                             </div>
-                            <div class="card-drawable">Observation • State Change</div>
+                            <div class="card-mechanics">
+                                <span class="card-tag tag-persistent">Persistent</span>
+                                <span class="card-tag tag-difficulty">Very Easy</span>
+                                <span class="card-tag tag-atmosphere">Informed</span>
+                            </div>
                             <div class="card-text">
-                                "I know a route through the merchant quarter that avoids the checkpoint entirely. We can reach Lord Blackwood faster."
+                                "I know a route through the merchant quarter that avoids the checkpoint entirely."
+                            </div>
+                            <div class="card-effect">Set Informed atmosphere (next card auto-succeeds)</div>
+                        </div>
+                        <div class="card-outcomes">
+                            <div class="outcome">
+                                <div class="outcome-chance">90%</div>
+                                <div class="outcome-label">Success</div>
+                                <div class="outcome-effect">Informed</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">10%</div>
+                                <div class="outcome-label">Failure</div>
+                                <div class="outcome-effect">No effect</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interrupt Card (Opportunity) -->
+                <div class="card">
+                    <div class="persistence-warning warning-opportunity">Exhausts on LISTEN!</div>
+                    <div class="card-content">
+                        <div class="card-main">
+                            <div class="card-identity">
+                                <div class="card-name">Interrupt</div>
+                                <div class="card-weight">1</div>
+                            </div>
+                            <div class="card-mechanics">
+                                <span class="card-tag tag-opportunity">Opportunity</span>
+                                <span class="card-tag tag-difficulty">Hard</span>
+                                <span class="card-tag tag-atmosphere">Receptive</span>
+                            </div>
+                            <div class="card-text">
+                                "Elena, stop! Let me speak—"
+                            </div>
+                            <div class="card-effect">Set Receptive atmosphere (+1 card on LISTEN)</div>
+                            <div class="card-effect" style="color: #8b4726;">Failure: -2 comfort (would end conversation!)</div>
+                            <div class="card-exhaust">
+                                <strong>On Exhaust:</strong> Set Pressured atmosphere (-1 weight capacity)
                             </div>
                         </div>
                         <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">85%</div>
+                            <div class="outcome">
+                                <div class="outcome-chance">55%</div>
                                 <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">Desperate→Open</div>
+                                <div class="outcome-effect">Receptive</div>
                             </div>
                             <div class="outcome">
-                                <div class="outcome-chance">15%</div>
+                                <div class="outcome-chance">45%</div>
                                 <div class="outcome-label">Failure</div>
-                                <div class="outcome-effect">No change</div>
+                                <div class="outcome-effect">-2 comfort</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Basic Comfort Card -->
-                <div class="card comfort">
+                <div class="card">
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-identity">
                                 <div class="card-name">I Understand</div>
                                 <div class="card-weight">1</div>
                             </div>
-                            <div class="card-drawable">Drawable: Desperate, Tense, Open</div>
-                            <div class="card-text">
-                                "I understand how important this is, Elena. Your future shouldn't be decided without your consent."
+                            <div class="card-mechanics">
+                                <span class="card-tag tag-persistent">Persistent</span>
+                                <span class="card-tag tag-difficulty">Easy</span>
                             </div>
+                            <div class="card-text">
+                                "I understand your desperation, Elena."
+                            </div>
+                            <div class="card-effect">+1 comfort</div>
+                            <div class="card-scaling">With Volatile: becomes +2 comfort</div>
                         </div>
                         <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">65%</div>
+                            <div class="outcome">
+                                <div class="outcome-chance">75%</div>
                                 <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">+1 comfort</div>
+                                <div class="outcome-effect">+2 comfort</div>
                             </div>
                             <div class="outcome">
-                                <div class="outcome-chance">35%</div>
+                                <div class="outcome-chance">25%</div>
                                 <div class="outcome-label">Failure</div>
-                                <div class="outcome-effect">-1 comfort</div>
+                                <div class="outcome-effect">No effect</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- State Change Card -->
-                <div class="card state">
+                <!-- High Weight Fleeting Card (unplayable) -->
+                <div class="card unavailable">
+                    <div class="persistence-warning warning-fleeting">Exhausts on SPEAK!</div>
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-identity">
-                                <div class="card-name">Let's Think This Through</div>
-                                <div class="card-weight">1</div>
+                                <div class="card-name">Desperate Plea</div>
+                                <div class="card-weight">3</div>
                             </div>
-                            <div class="card-drawable">Drawable: Desperate</div>
+                            <div class="card-mechanics">
+                                <span class="card-tag tag-fleeting">Fleeting</span>
+                                <span class="card-tag tag-difficulty">Hard</span>
+                            </div>
                             <div class="card-text">
-                                "Take a breath. We have time if we're smart about this. Let me help you think through the best approach."
+                                "Elena, I swear on my life I'll help you!"
                             </div>
-                        </div>
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">65%</div>
-                                <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">Desperate→Tense</div>
+                            <div class="card-effect">+X comfort where X = 4 - current comfort</div>
+                            <div class="card-scaling">Currently: +6 comfort (would trigger state change!)</div>
+                            <div class="card-exhaust">
+                                <strong>On Exhaust:</strong> Draw 1 card
                             </div>
-                            <div class="outcome">
-                                <div class="outcome-chance">35%</div>
-                                <div class="outcome-label">Failure</div>
-                                <div class="outcome-effect">No change</div>
+                            <div style="color: #8b4726; font-size: 11px; margin-top: 8px;">
+                                ⚠️ Requires 3 weight (you have 1)
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Burden Card -->
-                <div class="card burden unavailable">
-                    <div class="card-marker blocks">Blocks Slot</div>
-                    <div class="card-content">
-                        <div class="card-main">
-                            <div class="card-identity">
-                                <div class="card-name">Address Past Failure</div>
-                                <div class="card-weight">2</div>
-                            </div>
-                            <div class="card-drawable">Too heavy for Desperate state (W2)</div>
-                            <div class="card-text">
-                                "Elena, about last time... I know I let you down when I didn't deliver your previous message."
-                            </div>
-                        </div>
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">60%</div>
-                                <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">Remove burden</div>
-                            </div>
-                            <div class="outcome">
-                                <div class="outcome-chance">40%</div>
-                                <div class="outcome-label">Failure</div>
-                                <div class="outcome-effect">Remains</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Letter Card (goal card) -->
-                <div class="card letter">
-                    <div class="card-marker goal">Goal Card</div>
+                <!-- Goal Card -->
+                <div class="card goal">
+                    <div class="persistence-warning warning-both">MUST PLAY NOW!</div>
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-identity">
                                 <div class="card-name">Accept Elena's Letter</div>
-                                <div class="card-weight">1</div>
+                                <div class="card-weight">5</div>
                             </div>
-                            <div class="card-drawable">Valid: Desperate, Tense</div>
+                            <div class="card-mechanics">
+                                <span class="card-tag tag-fleeting">Fleeting</span>
+                                <span class="card-tag tag-opportunity">Opportunity</span>
+                                <span class="card-tag tag-difficulty">Very Hard</span>
+                            </div>
                             <div class="card-text">
-                                "I'll take your letter to Lord Blackwood. For something this urgent, I'll do whatever it takes."
+                                "Give me the letter. I'll deliver it to Lord Blackwood before sunset."
+                            </div>
+                            <div class="card-effect">Success: Accept letter (4hr deadline, position 3)</div>
+                            <div class="card-effect" style="color: #8b4726;">Failure: Accept letter (1hr deadline, position 1!)</div>
+                            <div class="card-exhaust">
+                                <strong>On Exhaust:</strong> END CONVERSATION IN FAILURE
+                            </div>
+                            <div style="color: #8b4726; font-size: 11px; margin-top: 8px;">
+                                ⚠️ Requires 5 weight (you have 1) - Need Prepared atmosphere or better state!
                             </div>
                         </div>
                         <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">55%</div>
-                                <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">4hr deadline</div>
-                            </div>
                             <div class="outcome">
                                 <div class="outcome-chance">45%</div>
+                                <div class="outcome-label">Success</div>
+                                <div class="outcome-effect">Good terms</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">55%</div>
                                 <div class="outcome-label">Failure</div>
-                                <div class="outcome-effect">1hr deadline!</div>
+                                <div class="outcome-effect">Poor terms</div>
                             </div>
                         </div>
                     </div>
