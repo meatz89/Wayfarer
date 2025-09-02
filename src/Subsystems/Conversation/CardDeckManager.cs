@@ -440,32 +440,6 @@ public class CardDeckManager
         return exchangeCards;
     }
 
-    /// <summary>
-    /// Legacy compatibility method - will be removed
-    /// </summary>
-    public CardPlayResult PlayCards(ConversationSession session, HashSet<CardInstance> selectedCards)
-    {
-        // Convert to single card play (take first card)
-        CardInstance? firstCard = selectedCards.FirstOrDefault();
-        if (firstCard == null)
-        {
-            return new CardPlayResult { Results = new List<SingleCardResult>(), TotalComfort = 0 };
-        }
-
-        return PlayCard(session, firstCard);
-    }
-
-    /// <summary>
-    /// Legacy compatibility method - will be removed  
-    /// </summary>
-    public bool ValidateCardSelection(HashSet<CardInstance> cards, EmotionalState currentState)
-    {
-        // In new system, only validate single card weight
-        CardInstance? firstCard = cards.FirstOrDefault();
-        if (firstCard == null) return false;
-
-        return _weightPoolManager.CanAffordCard(firstCard.Weight);
-    }
 
     /// <summary>
     /// Restore cards to a session from saved IDs

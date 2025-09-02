@@ -145,7 +145,4 @@ public class ObservationCard : ConversationCard
 
         return observation;
     }
-
-    // Legacy compatibility
-    public ConversationCard ConversationCard { get; set; }
 }

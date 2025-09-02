@@ -293,22 +293,5 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             return _marketManager.GetMarketSummary(locationId);
         }
 
-        // ========== LEGACY COMPATIBILITY ==========
-
-        /// <summary>
-        /// Legacy method - Get item price (buy or sell)
-        /// </summary>
-        public int GetItemPrice(string locationId, string itemId, bool isBuyPrice)
-        {
-            return _legacyMarketManager.GetItemPrice(locationId, itemId, isBuyPrice);
-        }
-
-        /// <summary>
-        /// Legacy method - Get market items with old format
-        /// </summary>
-        public List<Item> GetLegacyAvailableItems(string locationId)
-        {
-            return _legacyMarketManager.GetAvailableItems(locationId);
-        }
     }
 }

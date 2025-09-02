@@ -512,63 +512,6 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         #endregion
 
-        #region Legacy Compatibility Methods
-
-        /// <summary>
-        /// Legacy method for backward compatibility.
-        /// </summary>
-        public int? GetObligationPosition(string obligationId)
-        {
-            DeliveryObligation? obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
-            if (obligation == null) return null;
-
-            int position = _queueManipulator.GetQueuePosition(obligation);
-            return position > 0 ? position : (int?)null;
-        }
-
-        /// <summary>
-        /// Legacy method for backward compatibility.
-        /// </summary>
-        public int? GetLetterPosition(string obligationId)
-        {
-            return GetObligationPosition(obligationId);
-        }
-
-        /// <summary>
-        /// Legacy method for backward compatibility.
-        /// </summary>
-        public int AddLetterWithObligationEffects(DeliveryObligation obligation)
-        {
-            ObligationAddResult result = AddObligationWithEffects(obligation);
-            return result.Success ? result.Position : 0;
-        }
-
-        /// <summary>
-        /// Legacy method for backward compatibility.
-        /// </summary>
-        public void MoveLetterToPosition(DeliveryObligation letter, int targetPosition)
-        {
-            _queueManipulator.MoveObligationToPosition(letter, targetPosition);
-        }
-
-        /// <summary>
-        /// Legacy method for backward compatibility.
-        /// </summary>
-        public void RecordLetterDelivery(DeliveryObligation letter)
-        {
-            _deliveryManager.RecordLetterDelivery(letter);
-        }
-
-        /// <summary>
-        /// Legacy method for backward compatibility.
-        /// </summary>
-        public void RecordLetterSkip(DeliveryObligation letter)
-        {
-            _deliveryManager.RecordLetterSkip(letter);
-        }
-
-        #endregion
-
         // Private helper methods
 
         private void ApplyDeadlineBonuses(DeliveryObligation obligation)

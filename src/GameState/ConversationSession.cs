@@ -35,8 +35,6 @@ public class ConversationSession
     public int WeightCapacity { get; set; } = 5; // Based on state
     public AtmosphereType CurrentAtmosphere { get; set; } = AtmosphereType.Neutral;
 
-    // Legacy properties for compatibility
-    public CardInstance GoalCard { get; set; }
     public List<CardInstance> ObservationCards { get; set; } = new();
 
     // New helper methods
@@ -195,8 +193,7 @@ public class ConversationSession
             TurnNumber = 0,
             Deck = sessionDeck,
             Hand = new HandDeck(),
-            TokenManager = tokenManager,
-            ObservationCards = obsCards
+            TokenManager = tokenManager
         };
 
         return session;
@@ -224,7 +221,7 @@ public class ConversationSession
             TurnNumber = 0,
             Deck = sessionDeck,
             Hand = new HandDeck(),
-            TokenManager = tokenManager as TokenMechanicsManager
+            TokenManager = tokenManager
         };
 
         return session;

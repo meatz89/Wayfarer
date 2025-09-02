@@ -66,11 +66,5 @@ public enum CardEffectType
     /// <summary>
     /// Next action costs 0 patience
     /// </summary>
-    FreeNextAction,
-    
-    // Legacy compatibility (will be removed)
-    FixedComfort,      // Maps to AddComfort
-    ScaledComfort,     // Maps to ScaleByTokens/ScaleByComfort/etc
-    ObservationEffect, // Maps to specific observation effects
-    GoalEffect,        // Maps to EndConversation
+    FreeNextAction
 }

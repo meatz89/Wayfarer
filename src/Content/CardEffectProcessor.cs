@@ -68,7 +68,6 @@ public class CardEffectProcessor
         switch (effect.Type)
         {
             case CardEffectType.AddComfort:
-            case CardEffectType.FixedComfort: // Legacy compatibility
                 result.ComfortChange = ProcessFixedComfort(effect.Value);
                 break;
 
@@ -76,7 +75,6 @@ public class CardEffectProcessor
             case CardEffectType.ScaleByComfort:
             case CardEffectType.ScaleByPatience:
             case CardEffectType.ScaleByWeight:
-            case CardEffectType.ScaledComfort: // Legacy compatibility
                 result.ComfortChange = ProcessScaledComfort(effect, session);
                 break;
 
@@ -93,7 +91,6 @@ public class CardEffectProcessor
                 break;
                 
             case CardEffectType.EndConversation:
-            case CardEffectType.GoalEffect: // Legacy compatibility
                 result.EndsConversation = true;
                 result.SpecialEffect = "Conversation ends";
                 if (effect.Data != null)
@@ -203,18 +200,7 @@ public class CardEffectProcessor
             return weightPoolManager.AvailableWeight;
         }
         
-        // Legacy formula handling
-        return effect.Value switch
-        {
-            "trust_tokens" => tokenManager.GetTokenCount(ConnectionType.Trust, session.NPC.ID),
-            "commerce_tokens" => tokenManager.GetTokenCount(ConnectionType.Commerce, session.NPC.ID),
-            "status_tokens" => tokenManager.GetTokenCount(ConnectionType.Status, session.NPC.ID),
-            "shadow_tokens" => tokenManager.GetTokenCount(ConnectionType.Shadow, session.NPC.ID),
-            "inverse_comfort" => 4 - Math.Abs(session.ComfortBattery),
-            "patience_third" => session.CurrentPatience / 3,
-            "weight_remaining" => weightPoolManager.AvailableWeight,
-            _ => int.TryParse(effect.Value, out int value) ? value : 0
-        };
+        return int.TryParse(effect.Value, out int value) ? value : 0;
     }
 
     // Process draw cards effect
