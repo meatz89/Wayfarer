@@ -7,10 +7,11 @@
 }
 
 body {
-    font-family: 'Garamond', 'Georgia', serif;
+    font-family: 'Garamond', 'Times New Roman', 'Georgia', serif;
     background: linear-gradient(to bottom, #3d3429, #2e2720);
     color: #2c241a;
     min-height: 100vh;
+    font-size: 14px;
 }
 
 .main-container {
@@ -935,92 +936,47 @@ body {
     color: #5c4a3a;
 }
 
-/* Elegant Comfort Display */
+/* Beautiful Comfort Battery (from mockup) */
 .comfort-indicator {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.comfort-battery {
-    display: inline-flex;
+.comfort-bar {
+    display: flex;
+    gap: 2px;
     align-items: center;
-    gap: 8px;
-    padding: 4px 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+    padding: 0 10px;
+}
+
+.comfort-segment {
+    width: 20px;
+    height: 8px;
+    background: #e8dcc4;
+    border: 1px solid #a68b6f;
+}
+
+.comfort-segment.filled.positive {
+    background: #7a8b5a;
+}
+
+.comfort-segment.filled.negative {
+    background: #d4704a;
+}
+
+.comfort-zero {
+    width: 4px;
+    height: 20px;
+    background: #3d3429;
+    margin: 0 4px;
 }
 
 .comfort-value {
-    font-weight: bold;
     font-size: 14px;
-    min-width: 25px;
-    text-align: center;
-}
-
-.comfort-dots {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-    padding: 0 8px;
-}
-
-.comfort-dot {
-    width: 12px;
-    height: 20px;
-    background: #e8dcc4;
-    border: 1px solid #a68b6f;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-/* -3 to -1 positions */
-.comfort-dot.negative {
-    background: linear-gradient(to bottom, #d4704a, #b85030);
-    border-color: #8b4726;
-}
-
-.comfort-dot.negative.filled {
-    background: linear-gradient(to bottom, #ff6040, #d4704a);
-    box-shadow: 0 0 4px rgba(212, 112, 74, 0.5);
-}
-
-/* 0 position */
-.comfort-dot.neutral {
-    background: linear-gradient(to bottom, #f0e68c, #d4c5a0);
-    border-color: #a68b6f;
-    width: 14px;
-}
-
-/* +1 to +3 positions */
-.comfort-dot.positive {
-    background: linear-gradient(to bottom, #7a8b5a, #5a6b3a);
-    border-color: #4a5b2a;
-}
-
-.comfort-dot.positive.filled {
-    background: linear-gradient(to bottom, #8aab6a, #7a8b5a);
-    box-shadow: 0 0 4px rgba(122, 139, 90, 0.5);
-}
-
-/* Current position marker */
-.comfort-dot.current {
-    border: 2px solid #3d3429;
-    box-shadow: 0 0 8px rgba(60, 52, 41, 0.8);
-    transform: scale(1.2);
-}
-
-.comfort-dot.current::after {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 6px solid #3d3429;
+    font-weight: bold;
+    color: #5c4a3a;
+    margin-left: 8px;
 }
 
 .comfort-transition-hint {
@@ -1078,6 +1034,86 @@ body {
         opacity: 0.6;
         color: #8b0000;
     }
+}
+
+/* Weight Pool Display (from mockup) */
+.weight-pool {
+    background: #f9f3e9;
+    padding: 8px 20px;
+    border-bottom: 1px solid #c4a684;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.weight-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.weight-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.weight-boxes {
+    display: flex;
+    gap: 3px;
+}
+
+.weight-box {
+    width: 24px;
+    height: 24px;
+    background: white;
+    border: 2px solid #5c4a3a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.weight-box.spent {
+    background: #d4c5a0;
+    border-color: #a68b6f;
+    color: #8b7355;
+}
+
+.weight-box.unavailable {
+    background: #e8dcc4;
+    border: 1px dashed #a68b6f;
+    opacity: 0.4;
+}
+
+/* Atmosphere Display */
+.atmosphere-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.atmosphere-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+}
+
+.atmosphere-current {
+    padding: 4px 12px;
+    background: #7a8b5a;
+    color: white;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.atmosphere-effect {
+    font-size: 11px;
+    color: #5a7a3a;
+    font-style: italic;
 }
 
 /* Token Strip */
@@ -1328,10 +1364,77 @@ body {
     font-style: italic;
 }
 
+.card-mechanics {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.card-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+}
+
+.tag-persistent {
+    background: #e8f5e9;
+    color: #5a7a3a;
+}
+
+.tag-fleeting {
+    background: #ffe8e8;
+    color: #8b4726;
+}
+
+.tag-opportunity {
+    background: #fff3e0;
+    color: #d4704a;
+}
+
+.tag-atmosphere {
+    background: #e8e8ff;
+    color: #5a5a8a;
+}
+
+.tag-difficulty {
+    background: #f0f0f0;
+    color: #5c4a3a;
+}
+
+.tag-token {
+    background: #f9f3e9;
+    color: #7a6250;
+    border: 1px solid #c4a684;
+}
+
+.tag-burden {
+    background: #f5f0e6;
+    color: #4a3a2a;
+    border: 1px solid #8b7355;
+}
+
 .card-text {
     font-size: 13px;
     line-height: 1.5;
     color: #2c241a;
+    font-style: italic;
+    margin-bottom: 8px;
+}
+
+.card-effect {
+    font-size: 12px;
+    color: #5c4a3a;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.card-scaling {
+    font-size: 11px;
+    color: #7a6250;
     font-style: italic;
 }
 
@@ -1371,6 +1474,42 @@ body {
     font-size: 11px;
     color: #5c4a3a;
     font-weight: bold;
+}
+
+/* Persistence Warning */
+.persistence-warning {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 4px 8px;
+    font-size: 9px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.warning-fleeting {
+    background: #8b4726;
+    color: white;
+}
+
+.warning-opportunity {
+    background: #d4704a;
+    color: white;
+}
+
+.warning-both {
+    background: linear-gradient(135deg, #8b4726 50%, #d4704a 50%);
+    color: white;
+}
+
+.card-exhaust {
+    font-size: 11px;
+    color: #8b4726;
+    padding: 4px;
+    background: #ffe8e8;
+    border-top: 1px solid #d4704a;
+    margin-top: 8px;
 }
 
 /* Special Markers */

@@ -1859,6 +1859,65 @@ namespace Wayfarer.Pages.Components
         {
             return property.ToString().ToLower();
         }
+        
+        /// <summary>
+        /// Get CSS class for property tag (enhanced from mockup)
+        /// </summary>
+        protected string GetPropertyTagClass(CardProperty property)
+        {
+            return property switch
+            {
+                CardProperty.Fleeting => "tag-fleeting",
+                CardProperty.Opportunity => "tag-opportunity",
+                CardProperty.Persistent => "tag-persistent",
+                CardProperty.Burden => "tag-burden",
+                CardProperty.Observable => "tag-atmosphere",
+                _ => "tag-" + property.ToString().ToLower()
+            };
+        }
+        
+        /// <summary>
+        /// Get user-friendly difficulty label
+        /// </summary>
+        protected string GetDifficultyLabel(Difficulty difficulty)
+        {
+            return difficulty switch
+            {
+                Difficulty.VeryEasy => "Very Easy",
+                Difficulty.Easy => "Easy",
+                Difficulty.Medium => "Medium",
+                Difficulty.Hard => "Hard",
+                Difficulty.VeryHard => "Very Hard",
+                _ => difficulty.ToString()
+            };
+        }
+        
+        /// <summary>
+        /// Check if card has atmosphere effect
+        /// </summary>
+        protected bool HasAtmosphereEffect(CardInstance card)
+        {
+            // For now, check if card changes atmosphere based on mockup patterns
+            // This would be enhanced with actual atmosphere effect data
+            return card.Properties.Contains(CardProperty.Observable) || 
+                   GetProperCardName(card).Contains("Interrupt") ||
+                   GetProperCardName(card).Contains("Merchant Routes");
+        }
+        
+        /// <summary>
+        /// Get atmosphere effect label for card
+        /// </summary>
+        protected string GetAtmosphereEffectLabel(CardInstance card)
+        {
+            var cardName = GetProperCardName(card);
+            if (cardName.Contains("Interrupt"))
+                return "Receptive";
+            if (cardName.Contains("Merchant Routes"))
+                return "Informed";
+            if (card.Properties.Contains(CardProperty.Observable))
+                return "Focused";
+            return "";
+        }
 
         /// <summary>
         /// PACKET 6: Get icon for property badge
@@ -2396,6 +2455,91 @@ namespace Wayfarer.Pages.Components
             }
             
             return "No effect";
+        }
+        
+        /// <summary>
+        /// Get atmospheric scaling information for cards based on current atmosphere
+        /// </summary>
+        protected string GetAtmosphereScaling(CardInstance card)
+        {
+            if (Session?.CurrentAtmosphere == AtmosphereType.Volatile)
+            {
+                return "Comfort effects ±1 from Volatile";
+            }
+            else if (Session?.CurrentAtmosphere == AtmosphereType.Focused)
+            {
+                return "Success rate +20% from Focused";
+            }
+            else if (Session?.CurrentAtmosphere == AtmosphereType.Exposed)
+            {
+                return "All effects doubled from Exposed";
+            }
+            
+            return "";
+        }
+        
+        /// <summary>
+        /// Get emotional state transparency info
+        /// </summary>
+        protected string GetEmotionalStateInfo()
+        {
+            if (Session == null) return "";
+            
+            var stateRules = ConversationRules.States.GetValueOrDefault(Session.CurrentState);
+            if (stateRules == null) return "";
+            
+            return $"Weight: {stateRules.MaxWeight}, Draw: {stateRules.CardsDrawn}";
+        }
+        
+        /// <summary>
+        /// Get comfort threshold preview
+        /// </summary>
+        protected string GetComfortThresholdPreview()
+        {
+            if (Session == null) return "";
+            
+            if (Session.ComfortBattery == 2)
+            {
+                var nextState = GetNextPositiveState(Session.CurrentState);
+                return $"At +3: {nextState} state";
+            }
+            else if (Session.ComfortBattery == -2)
+            {
+                var nextState = GetNextNegativeState(Session.CurrentState);
+                if (Session.CurrentState == EmotionalState.DESPERATE)
+                {
+                    return "At -3: Conversation ends!";
+                }
+                return $"At -3: {nextState} state";
+            }
+            
+            return "";
+        }
+        
+        private string GetNextPositiveState(EmotionalState current)
+        {
+            return current switch
+            {
+                EmotionalState.DESPERATE => "Tense",
+                EmotionalState.TENSE => "Neutral",
+                EmotionalState.NEUTRAL => "Open",
+                EmotionalState.OPEN => "Connected",
+                EmotionalState.CONNECTED => "Connected",
+                _ => "Unknown"
+            };
+        }
+        
+        private string GetNextNegativeState(EmotionalState current)
+        {
+            return current switch
+            {
+                EmotionalState.CONNECTED => "Open",
+                EmotionalState.OPEN => "Neutral",
+                EmotionalState.NEUTRAL => "Tense",
+                EmotionalState.TENSE => "Desperate",
+                EmotionalState.DESPERATE => "Ends",
+                _ => "Unknown"
+            };
         }
     }
 }
