@@ -1,7 +1,79 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 public static class LetterTemplateParser
 {
+    /// <summary>
+    /// Convert a LetterTemplateDTO to a LetterTemplate domain model
+    /// </summary>
+    public static LetterTemplate ConvertDTOToLetterTemplate(LetterTemplateDTO dto)
+    {
+        LetterTemplate template = new LetterTemplate
+        {
+            Id = dto.Id ?? "",
+            Description = dto.Description ?? "",
+            MinDeadlineInMinutes = dto.MinDeadlineInMinutes,
+            MaxDeadlineInMinutes = dto.MaxDeadlineInMinutes,
+            MinPayment = dto.MinPayment,
+            MaxPayment = dto.MaxPayment,
+            MinTokensRequired = dto.MinTokensRequired ?? 1
+        };
+
+        // Parse token type
+        if (!string.IsNullOrEmpty(dto.TokenType))
+        {
+            template.TokenType = ParseConnectionType(dto.TokenType);
+        }
+
+        // Parse optional arrays
+        template.PossibleSenders = dto.PossibleSenders?.ToArray() ?? new string[0];
+        template.PossibleRecipients = dto.PossibleRecipients?.ToArray() ?? new string[0];
+
+        // Parse special letter properties
+        template.SpecialType = ParseSpecialType(dto.SpecialType ?? "None");
+        template.SpecialTargetId = dto.SpecialTargetId ?? "";
+
+        // Parse human context and consequences
+        template.ConsequenceIfLate = dto.ConsequenceIfLate ?? "";
+        template.ConsequenceIfDelivered = dto.ConsequenceIfDelivered ?? "";
+
+        // Parse emotional weight
+        template.EmotionalWeight = ParseEmotionalWeight(dto.EmotionalWeight ?? "MEDIUM");
+
+        // Parse stakes
+        template.Stakes = ParseStakeType(dto.Stakes ?? "REPUTATION");
+
+        // Parse category
+        if (!string.IsNullOrEmpty(dto.Category))
+        {
+            if (Enum.TryParse<LetterCategory>(dto.Category, out var category))
+            {
+                template.Category = category;
+            }
+        }
+
+        // Parse tier level
+        if (!string.IsNullOrEmpty(dto.TierLevel))
+        {
+            if (Enum.TryParse<TierLevel>(dto.TierLevel, out var tier))
+            {
+                template.TierLevel = tier;
+            }
+        }
+
+        // Parse size
+        if (!string.IsNullOrEmpty(dto.Size))
+        {
+            if (Enum.TryParse<SizeCategory>(dto.Size, out var size))
+            {
+                template.Size = size;
+            }
+        }
+
+        return template;
+    }
     public static LetterTemplate ParseLetterTemplate(string json)
     {
         JsonDocumentOptions options = new JsonDocumentOptions

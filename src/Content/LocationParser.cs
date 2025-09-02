@@ -1,8 +1,64 @@
-﻿using System.Text.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 
 
 public static class LocationParser
 {
+    /// <summary>
+    /// Convert a LocationDTO to a Location domain model
+    /// </summary>
+    public static Location ConvertDTOToLocation(LocationDTO dto)
+    {
+        Location location = new Location(dto.Id, dto.Name)
+        {
+            Description = dto.Description ?? "",
+            Tier = dto.Tier,
+            TravelHubSpotId = dto.TravelHubSpotId,
+            DomainTags = dto.DomainTags ?? new List<string>(),
+            LocationType = Enum.TryParse<LocationTypes>(dto.LocationType ?? "Connective", out var locationType) ? locationType : LocationTypes.Connective,
+            LocationTypeString = dto.LocationType,
+            IsStartingLocation = dto.IsStartingLocation
+        };
+
+        // Parse environmental properties
+        if (dto.EnvironmentalProperties != null)
+        {
+            location.MorningProperties = dto.EnvironmentalProperties.Morning ?? new List<string>();
+            location.AfternoonProperties = dto.EnvironmentalProperties.Afternoon ?? new List<string>();
+            location.EveningProperties = dto.EnvironmentalProperties.Evening ?? new List<string>();
+            location.NightProperties = dto.EnvironmentalProperties.Night ?? new List<string>();
+        }
+
+        // Parse available professions by time
+        if (dto.AvailableProfessionsByTime != null)
+        {
+            foreach (var kvp in dto.AvailableProfessionsByTime)
+            {
+                if (EnumParser.TryParse<TimeBlocks>(kvp.Key, out TimeBlocks timeBlock))
+                {
+                    List<Professions> professions = new List<Professions>();
+                    foreach (string professionStr in kvp.Value)
+                    {
+                        if (EnumParser.TryParse<Professions>(professionStr, out Professions profession))
+                        {
+                            professions.Add(profession);
+                        }
+                    }
+                    location.AvailableProfessionsByTime[timeBlock] = professions;
+                }
+            }
+        }
+
+        // Parse access requirement
+        if (dto.AccessRequirement != null)
+        {
+            location.AccessRequirement = AccessRequirementParser.ConvertDTOToAccessRequirement(dto.AccessRequirement);
+        }
+
+        return location;
+    }
     public static Location ParseLocation(string json)
     {
         JsonDocumentOptions options = new JsonDocumentOptions

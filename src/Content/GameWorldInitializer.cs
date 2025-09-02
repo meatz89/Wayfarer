@@ -3,7 +3,7 @@ using System;
 
 /// <summary>
 /// Static factory for creating and initializing GameWorld instances.
-/// Uses the new pipeline that gracefully handles missing references.
+/// Uses the new package-based loading system.
 /// This is static to ensure clean initialization during startup without DI dependencies.
 /// </summary>
 public static class GameWorldInitializer
@@ -16,14 +16,14 @@ public static class GameWorldInitializer
     {
         Console.WriteLine("[FACTORY] GameWorldInitializer.CreateGameWorld called");
 
-        // Use default content directory path
-        ContentDirectory contentDirectory = new ContentDirectory { Path = "Content" };
+        Console.WriteLine("[FACTORY] LoadGameFromTemplates started - using new package-based system");
 
-        Console.WriteLine("[FACTORY] LoadGameFromTemplates started - using new pipeline");
-
-        // Use new pipeline that handles missing references gracefully
-        GameWorldInitializationPipeline pipeline = new GameWorldInitializationPipeline(contentDirectory);
-        GameWorld gameWorld = pipeline.Initialize();
+        // Create new GameWorld instance
+        GameWorld gameWorld = new GameWorld();
+        
+        // Create PackageLoader and load content from the Content directory
+        PackageLoader packageLoader = new PackageLoader(gameWorld);
+        packageLoader.LoadPackagesFromDirectory("Content");
 
         Console.WriteLine("[FACTORY] GameWorldInitializer.CreateGameWorld completed");
         return gameWorld;

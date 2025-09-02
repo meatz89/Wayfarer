@@ -20,13 +20,6 @@ public static class ServiceConfiguration
         services.AddSingleton<GameConfiguration>();
         services.AddSingleton<IGameRuleEngine, GameRuleEngine>();
 
-        // Register factories for reference-safe content creation
-        services.AddSingleton<LocationFactory>();
-        services.AddSingleton<LocationSpotFactory>();
-        services.AddSingleton<ItemFactory>();
-        services.AddSingleton<RouteFactory>();
-        services.AddSingleton<RouteDiscoveryFactory>();
-        services.AddSingleton<StandingObligationFactory>();
 
         // Register GameWorld using static GameWorldInitializer
         Console.WriteLine("[SERVICE] Registering GameWorld...");

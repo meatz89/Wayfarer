@@ -78,15 +78,35 @@
             </div>
         </div>
 
-        <!-- Atmosphere Display (new) -->
-        @if (Session.CurrentAtmosphere != AtmosphereType.Neutral)
+        <!-- Atmosphere Display (enhanced with persistence indicator) -->
+        @if (Session.CurrentAtmosphere != AtmosphereType.Neutral || HasTemporaryAtmosphereEffects())
         {
-            <div class="atmosphere-bar">
-                <div class="atmosphere-label">Atmosphere:</div>
-                <div class="atmosphere-value">@GetCurrentAtmosphereDisplay()</div>
+            <div class="atmosphere-bar @GetAtmosphereClass()">
+                <div class="atmosphere-header">
+                    @if (Session.CurrentAtmosphere != AtmosphereType.Neutral)
+                    {
+                        <div class="atmosphere-label">Atmosphere:</div>
+                        <div class="atmosphere-value">
+                            <span class="atmosphere-icon">@GetAtmosphereIcon()</span>
+                            <span class="atmosphere-name">@GetCurrentAtmosphereDisplay()</span>
+                        </div>
+                    }
+                </div>
                 @if (!string.IsNullOrEmpty(GetAtmosphereEffectDescription()))
                 {
-                    <div class="atmosphere-description">@GetAtmosphereEffectDescription()</div>
+                    <div class="atmosphere-description">
+                        @GetAtmosphereEffectDescription()
+                        @if (Session.CurrentAtmosphere != AtmosphereType.Neutral)
+                        {
+                            <span class="persistence-note">(Persists until changed or failure)</span>
+                        }
+                    </div>
+                }
+                @if (HasTemporaryAtmosphereEffects())
+                {
+                    <div class="temporary-effects">
+                        @GetTemporaryEffectsDescription()
+                    </div>
                 }
             </div>
         }

@@ -129,7 +129,7 @@ public class PackageLoader
             foreach (var obligationDto in conditions.StartingObligations)
             {
                 // Convert DTO to domain model and add to player's standing obligations
-                var obligation = ConvertStandingObligationDTOToModel(obligationDto);
+                var obligation = StandingObligationParser.ConvertDTOToStandingObligation(obligationDto);
                 _gameWorld.GetPlayer().StandingObligations.Add(obligation);
             }
         }
@@ -155,13 +155,11 @@ public class PackageLoader
     private void LoadCards(List<ConversationCardDTO> cardDtos)
     {
         if (cardDtos == null) return;
-
-        // Use existing ConversationCardParser for conversion
-        var parser = new ConversationCardParser("content");
         
         foreach (var dto in cardDtos)
         {
-            var card = parser.ConvertDTOToCard(dto);
+            // Use static method from ConversationCardParser
+            var card = ConversationCardParser.ConvertDTOToCard(dto);
             _gameWorld.AllCardDefinitions[card.Id] = card;
         }
     }
@@ -172,7 +170,7 @@ public class PackageLoader
 
         foreach (var dto in locationDtos)
         {
-            var location = ConvertLocationDTOToModel(dto);
+            var location = LocationParser.ConvertDTOToLocation(dto);
             _gameWorld.Locations.Add(location);
             _gameWorld.WorldState.locations.Add(location);
         }
@@ -184,7 +182,7 @@ public class PackageLoader
 
         foreach (var dto in spotDtos)
         {
-            var spot = ConvertLocationSpotDTOToModel(dto);
+            var spot = LocationSpotParser.ConvertDTOToLocationSpot(dto);
             _gameWorld.WorldState.locationSpots.Add(spot);
             
             // Also add to parent location's spots list
@@ -202,7 +200,7 @@ public class PackageLoader
 
         foreach (var dto in npcDtos)
         {
-            var npc = ConvertNPCDTOToModel(dto);
+            var npc = NPCParser.ConvertDTOToNPC(dto);
             _gameWorld.NPCs.Add(npc);
             _gameWorld.WorldState.NPCs.Add(npc);
             
@@ -249,7 +247,7 @@ public class PackageLoader
 
         foreach (var dto in itemDtos)
         {
-            var item = ConvertItemDTOToModel(dto);
+            var item = ItemParser.ConvertDTOToItem(dto);
             _gameWorld.WorldState.Items.Add(item);
         }
     }
@@ -260,7 +258,7 @@ public class PackageLoader
 
         foreach (var dto in letterDtos)
         {
-            var letter = ConvertLetterTemplateDTOToModel(dto);
+            var letter = LetterTemplateParser.ConvertDTOToLetterTemplate(dto);
             _gameWorld.WorldState.LetterTemplates.Add(letter);
         }
     }
@@ -271,89 +269,12 @@ public class PackageLoader
 
         foreach (var dto in obligationDtos)
         {
-            var obligation = ConvertStandingObligationDTOToModel(dto);
+            var obligation = StandingObligationParser.ConvertDTOToStandingObligation(dto);
             _gameWorld.WorldState.StandingObligationTemplates.Add(obligation);
         }
     }
 
-    // Conversion methods - these will be implemented by delegating to parsers or simple mapping
-
-    private Location ConvertLocationDTOToModel(LocationDTO dto)
-    {
-        var location = new Location(dto.Id, dto.Name)
-        {
-            Description = dto.Description,
-            Tier = dto.Tier,
-            TravelHubSpotId = dto.TravelHubSpotId,
-            DomainTags = dto.DomainTags ?? new List<string>(),
-            LocationType = Enum.TryParse<LocationTypes>(dto.LocationType ?? "Connective", out var locationType) ? locationType : LocationTypes.Connective,
-            LocationTypeString = dto.LocationType,
-            IsStartingLocation = dto.IsStartingLocation
-        };
-
-        // Note: AvailableServices not available in LocationDTO
-
-        return location;
-    }
-
-    private LocationSpot ConvertLocationSpotDTOToModel(LocationSpotDTO dto)
-    {
-        var spot = new LocationSpot(dto.Id, dto.Name)
-        {
-            LocationId = dto.LocationId,
-            DomainTags = dto.DomainTags ?? new List<string>()
-        };
-
-        if (dto.SpotProperties != null)
-        {
-            foreach (var property in dto.SpotProperties)
-            {
-                if (Enum.TryParse<SpotPropertyType>(property, out var propertyType))
-                {
-                    spot.SpotProperties.Add(propertyType);
-                }
-            }
-        }
-
-        return spot;
-    }
-
-    private NPC ConvertNPCDTOToModel(NPCDTO dto)
-    {
-        var npc = new NPC
-        {
-            ID = dto.Id,
-            Name = dto.Name,
-            PersonalityDescription = dto.Personality ?? "",
-            PersonalityType = Enum.TryParse<PersonalityType>(dto.PersonalityType, out var personalityType) ? personalityType : PersonalityType.STEADFAST,
-            Description = dto.Description ?? "",
-            Location = dto.LocationId ?? "",
-            SpotId = dto.SpotId ?? "",
-            Role = dto.Role ?? "",
-            Tier = dto.Tier
-        };
-
-        if (!string.IsNullOrEmpty(dto.Profession))
-        {
-            if (Enum.TryParse<Professions>(dto.Profession, out var profession))
-            {
-                npc.Profession = profession;
-            }
-        }
-
-        if (dto.Services != null)
-        {
-            foreach (var service in dto.Services)
-            {
-                if (Enum.TryParse<ServiceTypes>(service, out var serviceType))
-                {
-                    npc.ProvidedServices.Add(serviceType);
-                }
-            }
-        }
-
-        return npc;
-    }
+    // Conversion methods that don't have dedicated parsers yet
 
     private RouteOption ConvertRouteDTOToModel(RouteDTO dto)
     {
@@ -399,194 +320,5 @@ public class PackageLoader
             BaseComfort = dto.BaseComfort ?? 0,
             Persistence = Enum.TryParse<PersistenceType>(dto.Persistence, out var persistence) ? persistence : PersistenceType.Persistent
         };
-    }
-
-    private Item ConvertItemDTOToModel(ItemDTO dto)
-    {
-        var item = new Item
-        {
-            Id = dto.Id,
-            Name = dto.Name ?? "",
-            Description = dto.Description ?? "",
-            Weight = dto.Weight,
-            BuyPrice = dto.BuyPrice,
-            SellPrice = dto.SellPrice,
-            InventorySlots = dto.InventorySlots
-        };
-
-        // Parse size category
-        if (!string.IsNullOrEmpty(dto.SizeCategory))
-        {
-            if (Enum.TryParse<SizeCategory>(dto.SizeCategory, out var size))
-            {
-                item.Size = size;
-            }
-        }
-
-        // Parse item categories
-        if (dto.Categories != null)
-        {
-            foreach (var category in dto.Categories)
-            {
-                if (Enum.TryParse<ItemCategory>(category, out var itemCategory))
-                {
-                    item.Categories.Add(itemCategory);
-                }
-            }
-        }
-
-        // Parse token generation modifiers
-        if (dto.TokenGenerationModifiers != null)
-        {
-            foreach (var kvp in dto.TokenGenerationModifiers)
-            {
-                if (Enum.TryParse<ConnectionType>(kvp.Key, out var connectionType))
-                {
-                    item.TokenGenerationModifiers[connectionType] = kvp.Value;
-                }
-            }
-        }
-
-        // Parse enabled token generation
-        if (dto.EnablesTokenGeneration != null)
-        {
-            foreach (var tokenType in dto.EnablesTokenGeneration)
-            {
-                if (Enum.TryParse<ConnectionType>(tokenType, out var connectionType))
-                {
-                    item.EnablesTokenGeneration.Add(connectionType);
-                }
-            }
-        }
-
-        return item;
-    }
-
-    private LetterTemplate ConvertLetterTemplateDTOToModel(LetterTemplateDTO dto)
-    {
-        var template = new LetterTemplate
-        {
-            Id = dto.Id ?? "",
-            Description = dto.Description ?? "",
-            MinDeadlineInMinutes = dto.MinDeadlineInMinutes,
-            MaxDeadlineInMinutes = dto.MaxDeadlineInMinutes,
-            MinPayment = dto.MinPayment,
-            MaxPayment = dto.MaxPayment,
-            MinTokensRequired = dto.MinTokensRequired ?? 1
-        };
-
-        // Parse token type
-        if (!string.IsNullOrEmpty(dto.TokenType))
-        {
-            if (Enum.TryParse<ConnectionType>(dto.TokenType, out var tokenType))
-            {
-                template.TokenType = tokenType;
-            }
-        }
-
-        // Parse category
-        if (!string.IsNullOrEmpty(dto.Category))
-        {
-            if (Enum.TryParse<LetterCategory>(dto.Category, out var category))
-            {
-                template.Category = category;
-            }
-        }
-
-        // Parse tier level
-        if (!string.IsNullOrEmpty(dto.TierLevel))
-        {
-            if (Enum.TryParse<TierLevel>(dto.TierLevel, out var tier))
-            {
-                template.TierLevel = tier;
-            }
-        }
-
-        // Parse special type
-        if (!string.IsNullOrEmpty(dto.SpecialType))
-        {
-            if (Enum.TryParse<LetterSpecialType>(dto.SpecialType, out var specialType))
-            {
-                template.SpecialType = specialType;
-            }
-        }
-
-        template.SpecialTargetId = dto.SpecialTargetId ?? "";
-
-        // Parse size
-        if (!string.IsNullOrEmpty(dto.Size))
-        {
-            if (Enum.TryParse<SizeCategory>(dto.Size, out var size))
-            {
-                template.Size = size;
-            }
-        }
-
-        return template;
-    }
-
-    private StandingObligation ConvertStandingObligationDTOToModel(StandingObligationDTO dto)
-    {
-        var obligation = new StandingObligation
-        {
-            ID = dto.ID ?? "",
-            Name = dto.Name ?? "",
-            Description = dto.Description ?? "",
-            Source = dto.Source ?? "",
-            RelatedNPCId = dto.RelatedNPCId,
-            ActivationThreshold = dto.ActivationThreshold,
-            DeactivationThreshold = dto.DeactivationThreshold,
-            IsThresholdBased = dto.IsThresholdBased,
-            ActivatesAboveThreshold = dto.ActivatesAboveThreshold,
-            ScalingFactor = dto.ScalingFactor,
-            BaseValue = dto.BaseValue,
-            MinValue = dto.MinValue,
-            MaxValue = dto.MaxValue,
-            SteppedThresholds = dto.SteppedThresholds ?? new Dictionary<int, float>()
-        };
-
-        // Parse related token type
-        if (!string.IsNullOrEmpty(dto.RelatedTokenType))
-        {
-            if (Enum.TryParse<ConnectionType>(dto.RelatedTokenType, out var tokenType))
-            {
-                obligation.RelatedTokenType = tokenType;
-            }
-        }
-
-        // Parse scaling type
-        if (!string.IsNullOrEmpty(dto.ScalingType))
-        {
-            if (Enum.TryParse<ScalingType>(dto.ScalingType, out var scalingType))
-            {
-                obligation.ScalingType = scalingType;
-            }
-        }
-
-        // Parse benefit effects
-        if (dto.BenefitEffects != null)
-        {
-            foreach (var effect in dto.BenefitEffects)
-            {
-                if (Enum.TryParse<ObligationEffect>(effect, out var obligationEffect))
-                {
-                    obligation.BenefitEffects.Add(obligationEffect);
-                }
-            }
-        }
-
-        // Parse constraint effects
-        if (dto.ConstraintEffects != null)
-        {
-            foreach (var effect in dto.ConstraintEffects)
-            {
-                if (Enum.TryParse<ObligationEffect>(effect, out var obligationEffect))
-                {
-                    obligation.ConstraintEffects.Add(obligationEffect);
-                }
-            }
-        }
-
-        return obligation;
     }
 }

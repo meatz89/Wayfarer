@@ -6,6 +6,89 @@ using System.Text.Json;
 /// </summary>
 public static class LocationSpotParser
 {
+    /// <summary>
+    /// Convert a LocationSpotDTO to a LocationSpot domain model
+    /// </summary>
+    public static LocationSpot ConvertDTOToLocationSpot(LocationSpotDTO dto)
+    {
+        LocationSpot spot = new LocationSpot(dto.Id, dto.Name)
+        {
+            InitialState = dto.InitialState ?? "",
+            LocationId = dto.LocationId ?? "",
+            DomainTags = dto.DomainTags ?? new List<string>()
+        };
+
+        // Parse time windows
+        if (dto.CurrentTimeBlocks != null && dto.CurrentTimeBlocks.Count > 0)
+        {
+            foreach (string windowString in dto.CurrentTimeBlocks)
+            {
+                if (EnumParser.TryParse<TimeBlocks>(windowString, out TimeBlocks window))
+                {
+                    spot.CurrentTimeBlocks.Add(window);
+                }
+            }
+        }
+        else
+        {
+            // Add all time windows as default
+            spot.CurrentTimeBlocks.Add(TimeBlocks.Morning);
+            spot.CurrentTimeBlocks.Add(TimeBlocks.Afternoon);
+            spot.CurrentTimeBlocks.Add(TimeBlocks.Evening);
+            spot.CurrentTimeBlocks.Add(TimeBlocks.Night);
+        }
+
+        // Parse spot properties
+        if (dto.SpotProperties != null)
+        {
+            Console.WriteLine($"[LocationSpotParser] Parsing spot {spot.SpotID}, found {dto.SpotProperties.Count} property strings");
+            foreach (string propString in dto.SpotProperties)
+            {
+                Console.WriteLine($"[LocationSpotParser] Trying to parse property: {propString}");
+                if (EnumParser.TryParse<SpotPropertyType>(propString, out SpotPropertyType prop))
+                {
+                    Console.WriteLine($"[LocationSpotParser] Successfully parsed: {prop}");
+                    spot.SpotProperties.Add(prop);
+                }
+                else
+                {
+                    Console.WriteLine($"[LocationSpotParser] Failed to parse property: {propString}");
+                }
+            }
+        }
+
+        // Parse time-specific spot properties
+        if (dto.TimeSpecificProperties != null)
+        {
+            foreach (var kvp in dto.TimeSpecificProperties)
+            {
+                if (EnumParser.TryParse<TimeBlocks>(kvp.Key, out TimeBlocks timeBlock))
+                {
+                    List<SpotPropertyType> properties = new List<SpotPropertyType>();
+                    foreach (string propString in kvp.Value)
+                    {
+                        if (!string.IsNullOrEmpty(propString) &&
+                            EnumParser.TryParse<SpotPropertyType>(propString, out SpotPropertyType prop))
+                        {
+                            properties.Add(prop);
+                        }
+                    }
+                    if (properties.Count > 0)
+                    {
+                        spot.TimeSpecificProperties[timeBlock] = properties;
+                    }
+                }
+            }
+        }
+
+        // Parse access requirements
+        if (dto.AccessRequirement != null)
+        {
+            spot.AccessRequirement = AccessRequirementParser.ConvertDTOToAccessRequirement(dto.AccessRequirement);
+        }
+
+        return spot;
+    }
     public static LocationSpot ParseLocationSpot(string json)
     {
         JsonDocumentOptions options = new JsonDocumentOptions

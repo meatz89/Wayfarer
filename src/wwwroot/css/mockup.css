@@ -291,6 +291,122 @@ body {
     margin-bottom: 20px;
 }
 
+/* Enhanced Atmosphere Display */
+.atmosphere-bar {
+    margin: 15px 0;
+    padding: 15px;
+    border: 2px solid #8b7355;
+    background: linear-gradient(135deg, #f9f3e9, #e8dcc4);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.atmosphere-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 8px;
+}
+
+.atmosphere-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5c4a3a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.atmosphere-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.atmosphere-icon {
+    font-size: 24px;
+}
+
+.atmosphere-name {
+    color: #2c241a;
+}
+
+.atmosphere-description {
+    font-size: 14px;
+    font-style: italic;
+    color: #5c4a3a;
+    margin: 8px 0;
+}
+
+.persistence-note {
+    font-size: 12px;
+    opacity: 0.8;
+    color: #7a6250;
+    display: inline-block;
+    margin-left: 8px;
+}
+
+.temporary-effects {
+    margin-top: 10px;
+    padding: 10px;
+    background: #fffacd;
+    border: 1px dashed #ffd700;
+    border-radius: 4px;
+    font-weight: bold;
+    color: #8b4726;
+}
+
+/* Atmosphere-specific color schemes */
+.atmosphere-neutral { opacity: 0.6; }
+.atmosphere-prepared { 
+    border-color: #2e8b57;
+    background: linear-gradient(135deg, #e6f5ed, #c8e6d3);
+}
+.atmosphere-receptive { 
+    border-color: #4169e1;
+    background: linear-gradient(135deg, #e6eef9, #c8d9f3);
+}
+.atmosphere-focused { 
+    border-color: #ff8c00;
+    background: linear-gradient(135deg, #fff4e6, #ffe4c8);
+}
+.atmosphere-patient { 
+    border-color: #9370db;
+    background: linear-gradient(135deg, #f2ecfb, #e3d3f5);
+}
+.atmosphere-volatile { 
+    border-color: #dc143c;
+    background: linear-gradient(135deg, #fbe6ea, #f5c8d0);
+}
+.atmosphere-final { 
+    border-color: #8b0000;
+    background: linear-gradient(135deg, #f5e6e6, #e6c8c8);
+    animation: pulse 2s infinite;
+}
+.atmosphere-informed { 
+    border-color: #ffd700;
+    background: linear-gradient(135deg, #fffacd, #fff4a3);
+}
+.atmosphere-exposed { 
+    border-color: #ff1493;
+    background: linear-gradient(135deg, #ffeef7, #ffc8e3);
+}
+.atmosphere-synchronized { 
+    border-color: #00ced1;
+    background: linear-gradient(135deg, #e6feff, #c8f3f4);
+}
+.atmosphere-pressured { 
+    border-color: #b22222;
+    background: linear-gradient(135deg, #f5e0e0, #e6c0c0);
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.8; }
+    100% { opacity: 1; }
+}
+
 /* Section Headers */
 .section-header {
     font-size: 12px;

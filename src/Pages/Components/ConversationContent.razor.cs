@@ -1841,5 +1841,60 @@ namespace Wayfarer.Pages.Components
                 _ => ""
             };
         }
+        
+        protected string GetAtmosphereIcon()
+        {
+            if (Session == null) return "";
+            
+            return Session.CurrentAtmosphere switch
+            {
+                AtmosphereType.Prepared => "💪",
+                AtmosphereType.Receptive => "👂",
+                AtmosphereType.Focused => "🎯",
+                AtmosphereType.Patient => "⏳",
+                AtmosphereType.Volatile => "⚡",
+                AtmosphereType.Final => "🎬",
+                AtmosphereType.Informed => "🧠",
+                AtmosphereType.Exposed => "👁",
+                AtmosphereType.Synchronized => "🔄",
+                AtmosphereType.Pressured => "😰",
+                _ => "◯"
+            };
+        }
+        
+        protected string GetAtmosphereClass()
+        {
+            if (Session == null) return "";
+            
+            return Session.CurrentAtmosphere switch
+            {
+                AtmosphereType.Neutral => "atmosphere-neutral",
+                AtmosphereType.Prepared => "atmosphere-prepared",
+                AtmosphereType.Receptive => "atmosphere-receptive",
+                AtmosphereType.Focused => "atmosphere-focused",
+                AtmosphereType.Patient => "atmosphere-patient",
+                AtmosphereType.Volatile => "atmosphere-volatile",
+                AtmosphereType.Final => "atmosphere-final",
+                AtmosphereType.Informed => "atmosphere-informed",
+                AtmosphereType.Exposed => "atmosphere-exposed",
+                AtmosphereType.Synchronized => "atmosphere-synchronized",
+                AtmosphereType.Pressured => "atmosphere-pressured",
+                _ => ""
+            };
+        }
+        
+        protected bool HasTemporaryAtmosphereEffects()
+        {
+            // Check if AtmosphereManager has temporary effects
+            // This would need to be exposed through ConversationFacade
+            return false; // For now, until we expose this through the facade
+        }
+        
+        protected string GetTemporaryEffectsDescription()
+        {
+            // Get temporary effects description from AtmosphereManager
+            // This would need to be exposed through ConversationFacade
+            return ""; // For now, until we expose this through the facade
+        }
     }
 }

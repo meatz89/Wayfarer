@@ -4,6 +4,86 @@ using System.Text.Json;
 
 public static class NPCParser
 {
+    /// <summary>
+    /// Convert an NPCDTO to an NPC domain model
+    /// </summary>
+    public static NPC ConvertDTOToNPC(NPCDTO dto)
+    {
+        NPC npc = new NPC
+        {
+            ID = dto.Id ?? "",
+            Name = dto.Name ?? "",
+            Role = dto.Role ?? dto.Name ?? "", // Use role if provided, otherwise use name
+            Description = dto.Description ?? "",
+            Location = dto.LocationId ?? "",
+            SpotId = dto.SpotId ?? "",
+            Tier = dto.Tier
+        };
+
+        Console.WriteLine($"[DEBUG] NPCParser: Parsing NPC {npc.ID} with locationId: '{dto.LocationId}'");
+
+        // Parse profession with mapping from JSON values to enum
+        npc.Profession = MapProfessionFromJson(dto.Profession ?? "");
+
+        // Parse personality - preserve authentic description and map to categorical type
+        npc.PersonalityDescription = dto.Personality ?? "";
+
+        // Parse personalityType directly from DTO - NO FALLBACKS
+        Console.WriteLine($"[NPCParser] Parsing NPC '{npc.Name}' - personalityType from DTO: '{dto.PersonalityType}'");
+
+        if (!string.IsNullOrEmpty(dto.PersonalityType) && Enum.TryParse<PersonalityType>(dto.PersonalityType, true, out PersonalityType parsedType))
+        {
+            npc.PersonalityType = parsedType;
+            Console.WriteLine($"[NPCParser] Successfully parsed PersonalityType: {parsedType} for {npc.Name}");
+        }
+        else
+        {
+            // NO FALLBACKS - crash if personalityType not in DTO
+            throw new InvalidOperationException($"NPC '{npc.Name}' (ID: {npc.ID}) is missing 'personalityType' in DTO or has invalid value '{dto.PersonalityType}' - fix DTO data");
+        }
+
+        // Parse services and map to ServiceTypes enum
+        if (dto.Services != null)
+        {
+            foreach (string serviceStr in dto.Services)
+            {
+                ServiceTypes? mappedService = MapServiceFromJson(serviceStr);
+                if (mappedService.HasValue)
+                {
+                    npc.ProvidedServices.Add(mappedService.Value);
+                }
+            }
+        }
+
+        // Set default player relationship
+        npc.PlayerRelationship = NPCRelationship.Neutral;
+
+        // Parse letter token types for letter queue system
+        if (dto.LetterTokenTypes != null)
+        {
+            foreach (string tokenTypeStr in dto.LetterTokenTypes)
+            {
+                ConnectionType? tokenType = ParseConnectionType(tokenTypeStr);
+                if (tokenType.HasValue && !npc.LetterTokenTypes.Contains(tokenType.Value))
+                {
+                    npc.LetterTokenTypes.Add(tokenType.Value);
+                }
+            }
+        }
+
+        // Parse CurrentState (emotional state)
+        string currentStateStr = dto.CurrentState ?? "NEUTRAL";
+        if (Enum.TryParse<EmotionalState>(currentStateStr, true, out EmotionalState emotionalState))
+        {
+            npc.CurrentState = emotionalState;
+        }
+        else
+        {
+            npc.CurrentState = EmotionalState.NEUTRAL;
+        }
+
+        return npc;
+    }
     public static NPC ParseNPC(string json)
     {
         JsonDocumentOptions options = new JsonDocumentOptions

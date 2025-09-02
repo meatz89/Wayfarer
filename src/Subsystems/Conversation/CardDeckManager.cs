@@ -67,8 +67,11 @@ public class CardDeckManager
     /// </summary>
     public CardPlayResult PlayCard(ConversationSession session, CardInstance selectedCard)
     {
+        // Check for free weight from observation effect
+        int weightCost = _atmosphereManager.IsNextSpeakFree() ? 0 : selectedCard.Weight;
+        
         // Validate weight availability
-        if (!_weightPoolManager.CanAffordCard(selectedCard.Weight))
+        if (!_weightPoolManager.CanAffordCard(weightCost))
         {
             return new CardPlayResult
             {
@@ -95,8 +98,8 @@ public class CardDeckManager
         bool success = _effectProcessor.RollForSuccess(successPercentage);
         int roll = _random.Next(1, 101);
 
-        // Spend weight regardless of success - weight represents effort of speaking
-        _weightPoolManager.SpendWeight(selectedCard.Weight);
+        // Spend weight (possibly 0 if free) - weight represents effort of speaking
+        _weightPoolManager.SpendWeight(weightCost);
 
         CardEffectResult effectResult = null;
         int comfortChange = 0;

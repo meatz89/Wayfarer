@@ -1,87 +1,39 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 /// <summary>
-/// Parses conversation card definitions from JSON
+/// Stateless parser for converting conversation card DTOs to domain models
 /// </summary>
-public class ConversationCardParser
+public static class ConversationCardParser
 {
-    private readonly string _contentPath;
-    private Dictionary<string, ConversationCardDTO> _cardTemplates;
-    private Dictionary<PersonalityType, PersonalityCardMapping> _personalityMappings;
-    private Dictionary<int, List<string>> _tokenUnlocks;
-
-    public ConversationCardParser(string contentPath)
-    {
-        _contentPath = contentPath;
-        _cardTemplates = new Dictionary<string, ConversationCardDTO>();
-        _personalityMappings = new Dictionary<PersonalityType, PersonalityCardMapping>();
-        _tokenUnlocks = new Dictionary<int, List<string>>();
-    }
-
     /// <summary>
-    /// Get the loaded card templates for transfer to GameWorld
-    /// This allows the parser to be discarded after initialization
+    /// Get all cards for an NPC's personality from provided card data
     /// </summary>
-    public Dictionary<string, ConversationCardDTO> GetCardTemplates()
-    {
-        return new Dictionary<string, ConversationCardDTO>(_cardTemplates);
-    }
-
-    /// <summary>
-    /// Get the loaded personality mappings for transfer to GameWorld
-    /// </summary>
-    public Dictionary<PersonalityType, PersonalityCardMapping> GetPersonalityMappings()
-    {
-        return new Dictionary<PersonalityType, PersonalityCardMapping>(_personalityMappings);
-    }
-
-    /// <summary>
-    /// Get the loaded token unlocks for transfer to GameWorld
-    /// </summary>
-    public Dictionary<int, List<string>> GetTokenUnlocks()
-    {
-        return new Dictionary<int, List<string>>(_tokenUnlocks);
-    }
-
-    /// <summary>
-    /// Get a conversation card by ID
-    /// </summary>
-    public ConversationCard GetCard(string cardId)
-    {
-        if (!_cardTemplates.TryGetValue(cardId, out ConversationCardDTO? dto))
-            return null;
-
-        return ConvertDTOToCard(dto);
-    }
-
-    /// <summary>
-    /// Get all cards for an NPC's personality
-    /// </summary>
-    public List<ConversationCard> GetCardsForNPC(NPC npc, Dictionary<ConnectionType, int> tokens = null)
+    public static List<ConversationCard> GetCardsForNPC(NPC npc, 
+        Dictionary<string, ConversationCardDTO> cardTemplates, 
+        Dictionary<PersonalityType, PersonalityCardMapping> personalityMappings,
+        Dictionary<int, List<string>> tokenUnlocks,
+        Dictionary<ConnectionType, int> tokens = null)
     {
         List<ConversationCard> cards = new List<ConversationCard>();
 
         // Add universal cards
-        IEnumerable<ConversationCardDTO> universalCards = _cardTemplates.Values
+        IEnumerable<ConversationCardDTO> universalCards = cardTemplates.Values
             .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID)
             .Where(c => c.IsGoalCard != true);
 
-        foreach (ConversationCardDTO? cardDto in universalCards)
+        foreach (ConversationCardDTO cardDto in universalCards)
         {
             cards.Add(ConvertDTOToCard(cardDto, npc));
         }
 
         // Add personality-specific cards
-        if (_personalityMappings.TryGetValue(npc.PersonalityType, out PersonalityCardMapping? mapping))
+        if (personalityMappings.TryGetValue(npc.PersonalityType, out PersonalityCardMapping mapping))
         {
             foreach (string cardId in mapping.Cards)
             {
-                if (_cardTemplates.TryGetValue(cardId, out ConversationCardDTO? cardDto))
+                if (cardTemplates.TryGetValue(cardId, out ConversationCardDTO cardDto))
                 {
                     cards.Add(ConvertDTOToCard(cardDto, npc));
                 }
@@ -92,11 +44,11 @@ public class ConversationCardParser
         if (tokens != null)
         {
             int totalTokens = tokens.Values.Sum();
-            foreach (KeyValuePair<int, List<string>> kvp in _tokenUnlocks.Where(u => u.Key <= totalTokens))
+            foreach (KeyValuePair<int, List<string>> kvp in tokenUnlocks.Where(u => u.Key <= totalTokens))
             {
-                foreach (string? cardId in kvp.Value)
+                foreach (string cardId in kvp.Value)
                 {
-                    if (_cardTemplates.TryGetValue(cardId, out ConversationCardDTO? cardDto))
+                    if (cardTemplates.TryGetValue(cardId, out ConversationCardDTO cardDto))
                     {
                         cards.Add(ConvertDTOToCard(cardDto, npc));
                     }
@@ -108,16 +60,17 @@ public class ConversationCardParser
     }
 
     /// <summary>
-    /// Get goal card for conversation type
+    /// Get goal card for conversation type from provided card data
     /// </summary>
-    public ConversationCard GetGoalCard(ConversationType conversationType, string npcId, string npcName)
+    public static ConversationCard GetGoalCard(ConversationType conversationType, string npcId, string npcName, 
+        Dictionary<string, ConversationCardDTO> cardTemplates)
     {
         ConversationType? goalType = GetGoalTypeForConversation(conversationType);
         if (!goalType.HasValue)
             return null;
 
         string cardId = $"goal_{goalType.Value.ToString().ToLower()}";
-        if (!_cardTemplates.TryGetValue(cardId, out ConversationCardDTO? dto))
+        if (!cardTemplates.TryGetValue(cardId, out ConversationCardDTO dto))
             return null;
 
         ConversationCard card = ConvertDTOToCard(dto);
@@ -149,7 +102,10 @@ public class ConversationCardParser
         };
     }
 
-    public ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null)
+    /// <summary>
+    /// Convert a ConversationCardDTO to a ConversationCard domain model
+    /// </summary>
+    public static ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null)
     {
         // Parse mechanics from template string or default to Standard
         CardMechanicsType mechanics = CardMechanicsType.Standard;
@@ -256,7 +212,7 @@ public class ConversationCardParser
         };
     }
 
-    private ConversationType? GetGoalTypeForConversation(ConversationType type)
+    private static ConversationType? GetGoalTypeForConversation(ConversationType type)
     {
         return type switch
         {
