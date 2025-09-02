@@ -68,6 +68,9 @@ public static class ServiceConfiguration
         services.AddSingleton<ExchangeHandler>();
         services.AddSingleton<ConversationOrchestrator>();
         services.AddSingleton<ConversationFacade>();
+        
+        // NPC deck initialization
+        services.AddSingleton<NPCDeckBuilder>();
 
         // Dialogue generation services (NO hardcoded text)
         services.AddSingleton<DialogueGenerationService>();

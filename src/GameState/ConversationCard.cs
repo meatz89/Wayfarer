@@ -20,6 +20,9 @@ public class ConversationCard
     public int Weight { get; set; }
     public Difficulty Difficulty { get; set; }
     
+    // Personality targeting - which NPCs can use this card
+    public List<string> PersonalityTypes { get; set; } = new List<string>();
+    
     // Three-effect system: each card can have Success, Failure, and Exhaust effects
     public CardEffect SuccessEffect { get; set; } = CardEffect.None;
     public CardEffect FailureEffect { get; set; } = CardEffect.None;
@@ -86,6 +89,7 @@ public class ConversationCard
             TokenType = this.TokenType,
             Weight = this.Weight,
             Difficulty = this.Difficulty,
+            PersonalityTypes = new List<string>(this.PersonalityTypes), // Clone personality types
             SuccessEffect = this.SuccessEffect?.DeepClone() ?? CardEffect.None,
             FailureEffect = this.FailureEffect?.DeepClone() ?? CardEffect.None,
             ExhaustEffect = this.ExhaustEffect?.DeepClone() ?? CardEffect.None,

@@ -139,6 +139,7 @@ public static class ConversationCardParser
             TokenType = tokenType,
             Weight = dto.Weight,
             Difficulty = difficulty,
+            PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
             // Three-effect system
             SuccessEffect = successEffect ?? CardEffect.None,
             FailureEffect = failureEffect ?? CardEffect.None,
@@ -235,6 +236,9 @@ public class ConversationCardDTO
 
     // New properties array replaces persistence and special flags
     public List<string> Properties { get; set; }
+    
+    // Personality targeting - which NPCs can use this card
+    public List<string> PersonalityTypes { get; set; }
     
     // New target system properties
     public string Difficulty { get; set; }
