@@ -22,6 +22,7 @@ namespace Wayfarer.Pages.Components
         protected List<SpotViewModel> AvailableSpots { get; set; } = new();
         protected bool CanTravel { get; set; }
         protected bool CanWork { get; set; }
+        protected List<LocationActionViewModel> LocationActions { get; set; } = new();
         protected TimeBlocks CurrentTime { get; set; }
         protected List<NPC> NPCsAtSpot { get; set; } = new();
         protected IEnumerable<DeliveryObligation> ActiveObligations { get; set; } = new List<DeliveryObligation>();
@@ -140,8 +141,29 @@ namespace Wayfarer.Pages.Components
             CanTravel = spot?.SpotProperties?.Contains(SpotPropertyType.Crossroads) ?? false;
             Console.WriteLine($"[LocationContent] Spot: {spot?.Name}, Properties: {string.Join(", ", spot?.SpotProperties ?? new List<SpotPropertyType>())}, CanTravel: {CanTravel}");
 
-            // Check if can work at this spot
+            // Check if can work at this spot (legacy)
             CanWork = spot?.SpotProperties?.Contains(SpotPropertyType.Commercial) ?? false;
+
+            // Get dynamic location actions
+            LocationActions.Clear();
+            if (location != null && spot != null)
+            {
+                try
+                {
+                    var locationActionManager = GameFacade.GetLocationActionManager();
+                    if (locationActionManager != null)
+                    {
+                        var actions = locationActionManager.GetLocationActions(location, spot);
+                        LocationActions = actions ?? new List<LocationActionViewModel>();
+                        Console.WriteLine($"[LocationContent] Got {LocationActions.Count} location actions");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[LocationContent] Error getting location actions: {ex.Message}");
+                    LocationActions = new List<LocationActionViewModel>();
+                }
+            }
 
             // Get active obligations from the queue manager
             Subsystems.ObligationSubsystem.ObligationFacade queueManager = GameFacade.GetObligationQueueManager();
@@ -264,6 +286,30 @@ namespace Wayfarer.Pages.Components
             {
                 // Error is already logged via MessageSystem
                 Console.WriteLine($"[LocationContent] Work failed: {result.Message}");
+            }
+        }
+
+        protected async Task PerformLocationAction(LocationActionViewModel action)
+        {
+            Console.WriteLine($"[LocationContent] Performing location action: {action.ActionType}");
+            
+            // For now, we'll implement a simple placeholder that just logs the action
+            // TODO: Implement proper action handling through GameFacade
+            try
+            {
+                // Eventually this should call GameFacade.PerformLocationAction(action)
+                // For now, just simulate the action
+                Console.WriteLine($"[LocationContent] Simulating action: {action.Title}");
+                Console.WriteLine($"[LocationContent] Action cost: {action.Cost}");
+                Console.WriteLine($"[LocationContent] Action detail: {action.Detail}");
+                
+                // Refresh the UI
+                await RefreshLocationData();
+                await OnActionExecuted.InvokeAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LocationContent] Error performing location action {action.ActionType}: {ex.Message}");
             }
         }
 

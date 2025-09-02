@@ -41,6 +41,7 @@ public class GameWorld
     public Inventory PlayerInventory { get; private set; }
     public List<Location> Locations { get; set; } = new List<Location>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
+    public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
 
     private Player Player;
     public WorldState WorldState { get; private set; }

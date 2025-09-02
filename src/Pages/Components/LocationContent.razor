@@ -81,7 +81,7 @@
         }
 
         <!-- Actions Available Here (from mockup) -->
-        @if (CanTravel || CanWork)
+        @if (CanTravel || LocationActions.Any())
         {
             <div class="section-header">Actions Available Here</div>
             <div class="actions-grid">
@@ -92,13 +92,27 @@
                         <div class="action-cost">From Crossroads spot</div>
                     </div>
                 }
-                @if (CanWork)
+                
+                <!-- Dynamic Location Actions -->
+                @foreach (var action in LocationActions)
                 {
-                    <div class="action-card" @onclick="PerformWork">
-                        <div class="action-name">💼 Work: Haul Goods</div>
+                    <div class="action-card @(!action.IsAvailable ? "unavailable" : "")" 
+                         @onclick="async () => { if (action.IsAvailable) await PerformLocationAction(action); }">
+                        <div class="action-name">@action.Title</div>
                         <div class="action-cost">
-                            <span class="cost-value">2 attention</span> → 8 coins
+                            @if (action.IsAvailable)
+                            {
+                                <span class="cost-value">@action.Cost</span>
+                            }
+                            else
+                            {
+                                <span class="unavailable-reason">Cannot perform action</span>
+                            }
                         </div>
+                        @if (!string.IsNullOrEmpty(action.Detail))
+                        {
+                            <div class="action-detail">@action.Detail</div>
+                        }
                     </div>
                 }
             </div>

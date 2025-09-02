@@ -1466,32 +1466,6 @@
     ],
     "locations": [
       {
-        "id": "courier_office",
-        "name": "Courier Office",
-        "description": "Your small quarters above the courier office. This is your base of operations as a letter carrier.",
-        "environmentalProperties": {
-          "morning": [ "WELL-LIT", "QUIET", "PRIVATE" ],
-          "afternoon": [ "WELL-LIT", "QUIET", "PRIVATE" ],
-          "evening": [ "DIM", "QUIET", "PRIVATE" ],
-          "night": [ "DARK", "QUIET", "PRIVATE" ]
-        },
-        "domainTags": [ "HOME", "REST", "PRIVATE" ],
-        "travelHubSpotId": "office_desk",
-        "locationSpots": [ "your_room", "office_desk", "window_view" ],
-        "connectedTo": [ "market_square" ],
-        "socialExpectation": "Any",
-        "accessLevel": "Private",
-        "requiredSocialClasses": [],
-        "availableProfessionsByTime": {
-          "Morning": [],
-          "Afternoon": [],
-          "Evening": [],
-          "Night": []
-        },
-        "locationType": "Home Base",
-        "isStartingLocation": false
-      },
-      {
         "id": "market_square",
         "name": "Market Square",
         "description": "The bustling heart of the city. Cobblestones worn smooth by countless feet.",
@@ -1504,7 +1478,7 @@
         "domainTags": [ "COMMERCE", "SOCIAL", "PUBLIC" ],
         "travelHubSpotId": "central_fountain",
         "locationSpots": [ "central_fountain", "merchant_row", "north_entrance", "north_alcove", "guard_post" ],
-        "connectedTo": [ "courier_office", "copper_kettle_tavern", "noble_district", "merchant_row", "city_gates" ],
+        "connectedTo": [ "copper_kettle_tavern", "noble_district", "merchant_row", "city_gates" ],
         "socialExpectation": "Any",
         "accessLevel": "Public",
         "requiredSocialClasses": [],
@@ -1598,20 +1572,6 @@
     ],
     "spots": [
       {
-        "id": "your_room",
-        "name": "Your Room",
-        "description": "Your small private room above the courier office. A bed, desk, and everything you need.",
-        "initialState": "Unmade bed, papers scattered on desk. The morning's letters await your attention.",
-        "locationId": "courier_office",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-        "domainTags": [ "REST", "PRIVATE", "HOME" ],
-        "spotProperties": [ "Private", "Quiet", "Safe", "PersonalSpace" ],
-        "timeSpecificProperties": {
-          "Morning": [ "WellLit", "Peaceful" ],
-          "Night": [ "Dark", "Restful" ]
-        }
-      },
-      {
         "id": "corner_table",
         "name": "Corner Table",
         "description": "A quiet table in the corner, perfect for private conversations and intimate gatherings.",
@@ -1684,6 +1644,148 @@
           "Afternoon": [ "Crowded" ],
           "Evening": [ "Quiet", "Peaceful" ]
         }
+      },
+      {
+        "id": "main_hall",
+        "name": "Main Hall",
+        "description": "The heart of the Copper Kettle Tavern. Tables and chairs fill the space, with a warm fire crackling.",
+        "initialState": "The hearth glows warmly. Patrons sit at wooden tables, enjoying food and drink.",
+        "locationId": "copper_kettle_tavern",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+        "domainTags": [ "SOCIAL", "WARM", "GATHERING" ],
+        "spotProperties": [ "Public", "Warm", "Social", "Central" ],
+        "timeSpecificProperties": {
+          "Morning": [ "Quiet", "Peaceful" ],
+          "Afternoon": [ "Social", "Busy" ],
+          "Evening": [ "BusyEvening", "Loud", "Social" ],
+          "Night": [ "Quiet", "Intimate" ]
+        }
+      },
+      {
+        "id": "bar_counter",
+        "name": "Bar Counter",
+        "description": "The polished wooden bar where Bertram serves drinks and meals to guests.",
+        "initialState": "Clean glasses line the shelves. Bertram polishes mugs with a friendly smile.",
+        "locationId": "copper_kettle_tavern",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+        "domainTags": [ "SOCIAL", "SERVICE", "COMMERCE" ],
+        "spotProperties": [ "Public", "Commercial", "Social" ],
+        "timeSpecificProperties": {
+          "Morning": [ "WellLit", "Peaceful" ],
+          "Afternoon": [ "Busy" ],
+          "Evening": [ "BusyEvening", "Social" ],
+          "Night": [ "Quiet" ]
+        }
+      },
+      {
+        "id": "aldwin_manor",
+        "name": "Aldwin Manor",
+        "description": "A stately manor in the Noble District, the main entry point from the central gates.",
+        "initialState": "Elegant architecture and manicured grounds. Guards patrol the perimeter.",
+        "locationId": "noble_district",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+        "domainTags": [ "NOBLE", "EXCLUSIVE", "GUARDED" ],
+        "spotProperties": [ "Private", "Prestigious", "Guarded", "Central" ],
+        "timeSpecificProperties": {
+          "Morning": [ "Quiet", "Peaceful" ],
+          "Afternoon": [ "Formal", "Busy" ],
+          "Evening": [ "Social", "Exclusive" ]
+        }
+      },
+      {
+        "id": "upstairs_room",
+        "name": "Upstairs Room",
+        "description": "A private room above the tavern's main hall, available for rent.",
+        "initialState": "A simple room with a bed and washbasin. Clean and ready for guests.",
+        "locationId": "copper_kettle_tavern",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+        "domainTags": [ "PRIVATE", "REST", "LODGING" ],
+        "spotProperties": [ "Private", "Quiet", "Restful" ],
+        "timeSpecificProperties": {
+          "Morning": [ "WellLit", "Peaceful" ],
+          "Evening": [ "Cozy" ],
+          "Night": [ "Dark", "Restful" ]
+        }
+      },
+      {
+        "id": "north_entrance",
+        "name": "North Entrance",
+        "description": "The northern entrance to Market Square, where merchants enter from the trade routes.",
+        "initialState": "A wide archway with merchants and travelers passing through.",
+        "locationId": "market_square",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+        "domainTags": [ "PUBLIC", "ENTRANCE", "TRANSIT" ],
+        "spotProperties": [ "Public", "Transit", "Busy" ],
+        "timeSpecificProperties": {
+          "Morning": [ "Busy", "WellLit" ],
+          "Afternoon": [ "Crowded" ],
+          "Evening": [ "Quieter" ],
+          "Night": [ "Guarded" ]
+        }
+      },
+      {
+        "id": "north_alcove",
+        "name": "North Alcove",
+        "description": "A quiet alcove near the northern entrance, good for discrete conversations.",
+        "initialState": "A shadowed area between buildings, away from the main flow of people.",
+        "locationId": "market_square",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+        "domainTags": [ "PRIVATE", "HIDDEN", "DISCRETE" ],
+        "spotProperties": [ "Private", "Hidden", "Quiet" ],
+        "timeSpecificProperties": {
+          "Morning": [ "Shadowed" ],
+          "Afternoon": [ "Discrete" ],
+          "Evening": [ "Hidden", "Dark" ],
+          "Night": [ "Very Dark", "Secluded" ]
+        }
+      },
+      {
+        "id": "guard_post",
+        "name": "Guard Post",
+        "description": "The official guard station in Market Square where city watch maintain order.",
+        "initialState": "Guards in uniform stand watch, observing the crowd for any trouble.",
+        "locationId": "market_square",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+        "domainTags": [ "AUTHORITY", "OFFICIAL", "SECURITY" ],
+        "spotProperties": [ "Public", "Official", "Watched", "Secure" ],
+        "timeSpecificProperties": {
+          "Morning": [ "Alert" ],
+          "Afternoon": [ "Busy", "Watchful" ],
+          "Evening": [ "Vigilant" ],
+          "Night": [ "Patrolled" ]
+        }
+      },
+      {
+        "id": "gate_entrance",
+        "name": "Gate Entrance",
+        "description": "The main city gates where travelers and merchants enter and leave the city.",
+        "initialState": "Massive wooden gates stand open during the day. Guards check papers and cargo.",
+        "locationId": "city_gates",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+        "domainTags": [ "TRANSIT", "OFFICIAL", "CHECKPOINT" ],
+        "spotProperties": [ "Public", "Official", "Checkpoint", "Transit" ],
+        "timeSpecificProperties": {
+          "Morning": [ "Busy", "WellLit" ],
+          "Afternoon": [ "Crowded", "Scrutinized" ],
+          "Evening": [ "Controlled" ],
+          "Night": [ "Secured", "Guarded" ]
+        }
+      },
+      {
+        "id": "traveler_rest",
+        "name": "Traveler's Rest",
+        "description": "A shaded area near the gates where travelers can rest before or after their journeys.",
+        "initialState": "Wooden benches and water barrels provide comfort for weary travelers.",
+        "locationId": "city_gates",
+        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+        "domainTags": [ "REST", "PUBLIC", "TRANSIT" ],
+        "spotProperties": [ "Public", "Restful", "Social", "Shaded" ],
+        "timeSpecificProperties": {
+          "Morning": [ "Peaceful", "Refreshing" ],
+          "Afternoon": [ "Busy", "Social" ],
+          "Evening": [ "Quiet" ],
+          "Night": [ "Empty", "Peaceful" ]
+        }
       }
     ],
     "routes": [
@@ -1717,70 +1819,6 @@
         "terrainCategories": [],
         "maxItemCapacity": 5,
         "description": "Return to the market square.",
-        "tierRequired": "T1"
-      },
-      {
-        "id": "market_to_office",
-        "name": "To Courier Office",
-        "originLocationSpot": "central_fountain",
-        "destinationLocationSpot": "office_desk",
-        "method": "Walking",
-        "baseCoinCost": 0,
-        "baseStaminaCost": 1,
-        "travelTimeMinutes": 10,
-        "departureTime": null,
-        "isDiscovered": true,
-        "terrainCategories": ["Urban"],
-        "maxItemCapacity": 5,
-        "description": "Return to your office.",
-        "tierRequired": "T1"
-      },
-      {
-        "id": "office_to_market",
-        "name": "To Market Square",
-        "originLocationSpot": "office_desk",
-        "destinationLocationSpot": "central_fountain",
-        "method": "Walking",
-        "baseCoinCost": 0,
-        "baseStaminaCost": 1,
-        "travelTimeMinutes": 10,
-        "departureTime": null,
-        "isDiscovered": true,
-        "terrainCategories": ["Urban"],
-        "maxItemCapacity": 5,
-        "description": "Head to the market.",
-        "tierRequired": "T1"
-      },
-      {
-        "id": "tavern_to_office",
-        "name": "To Courier Office",
-        "originLocationSpot": "main_hall",
-        "destinationLocationSpot": "office_desk",
-        "method": "Walking",
-        "baseCoinCost": 0,
-        "baseStaminaCost": 2,
-        "travelTimeMinutes": 20,
-        "departureTime": null,
-        "isDiscovered": true,
-        "terrainCategories": ["Urban"],
-        "maxItemCapacity": 5,
-        "description": "Return to your office.",
-        "tierRequired": "T1"
-      },
-      {
-        "id": "office_to_tavern",
-        "name": "To Copper Kettle",
-        "originLocationSpot": "office_desk",
-        "destinationLocationSpot": "main_hall",
-        "method": "Walking",
-        "baseCoinCost": 0,
-        "baseStaminaCost": 2,
-        "travelTimeMinutes": 20,
-        "departureTime": null,
-        "isDiscovered": true,
-        "terrainCategories": ["Urban"],
-        "maxItemCapacity": 5,
-        "description": "Head to the tavern.",
         "tierRequired": "T1"
       },
       {
@@ -2207,7 +2245,7 @@
         "description": "You've learned about the merchant's back route to the Noble District",
         "properties": ["Observable"],
         "uniqueEffect": "UnlockRoute",
-        "expirationHours": null,
+        "expirationHours": 999999,
         "tokenType": "Shadow",
         "weight": 1,
         "difficulty": "VeryEasy",

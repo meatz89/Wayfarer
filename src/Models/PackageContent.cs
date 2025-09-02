@@ -54,4 +54,9 @@ public class PackageContent
     /// Items - uses existing ItemDTO
     /// </summary>
     public List<ItemDTO> Items { get; set; }
+    
+    /// <summary>
+    /// Location actions - uses LocationActionDTO for consistency
+    /// </summary>
+    public List<LocationActionDTO> LocationActions { get; set; }
 }

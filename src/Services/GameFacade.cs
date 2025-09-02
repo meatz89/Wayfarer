@@ -514,6 +514,14 @@ public class GameFacade
         }
     }
 
+    /// <summary>
+    /// Get the LocationActionManager for managing location-specific actions.
+    /// </summary>
+    public LocationActionManager GetLocationActionManager()
+    {
+        return _locationFacade.GetLocationActionManager();
+    }
+
     // ========== PRIVATE HELPERS ==========
 
     private void ProcessTimeAdvancement(TimeAdvancementResult result)

@@ -103,6 +103,7 @@ public class PackageLoader
             LoadItems(package.Content.Items);
             LoadLetterTemplates(package.Content.LetterTemplates);
             LoadStandingObligations(package.Content.StandingObligations);
+            LoadLocationActions(package.Content.LocationActions);
         }
     }
 
@@ -283,13 +284,84 @@ public class PackageLoader
 
     private void LoadRoutes(List<RouteDTO> routeDtos)
     {
-        if (routeDtos == null) return;
+        if (routeDtos == null) 
+        {
+            Console.WriteLine("[PackageLoader] No routes to load - routeDtos is null");
+            return;
+        }
 
+        Console.WriteLine($"[PackageLoader] Loading {routeDtos.Count} routes...");
+        
         foreach (var dto in routeDtos)
         {
             var route = ConvertRouteDTOToModel(dto);
             _gameWorld.WorldState.Routes.Add(route);
+            Console.WriteLine($"[PackageLoader] Added route {route.Id}: {route.OriginLocationSpot} -> {route.DestinationLocationSpot}");
+            
+            // Also add route to location connections for RouteRepository compatibility
+            AddRouteToLocationConnections(route);
         }
+        
+        Console.WriteLine($"[PackageLoader] Completed loading {routeDtos.Count} routes. Total routes in WorldState: {_gameWorld.WorldState.Routes.Count}");
+    }
+    
+    private void AddRouteToLocationConnections(RouteOption route)
+    {
+        Console.WriteLine($"[PackageLoader] Adding route {route.Id} to location connections...");
+        
+        // Find the origin location for this route
+        var originLocationId = GetLocationIdFromSpotId(route.OriginLocationSpot);
+        var destinationLocationId = GetLocationIdFromSpotId(route.DestinationLocationSpot);
+        
+        Console.WriteLine($"[PackageLoader] Route {route.Id}: Origin spot '{route.OriginLocationSpot}' -> Location '{originLocationId}', Destination spot '{route.DestinationLocationSpot}' -> Location '{destinationLocationId}'");
+        
+        if (originLocationId == null || destinationLocationId == null)
+        {
+            Console.WriteLine($"[PackageLoader] Warning: Could not find location IDs for route {route.Id}. Origin: {route.OriginLocationSpot}, Destination: {route.DestinationLocationSpot}");
+            return;
+        }
+        
+        // Find the origin location
+        var originLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == originLocationId);
+        if (originLocation == null)
+        {
+            Console.WriteLine($"[PackageLoader] Warning: Could not find origin location {originLocationId} for route {route.Id}");
+            return;
+        }
+        
+        // Find or create a connection to the destination location
+        var connection = originLocation.Connections.FirstOrDefault(c => c.DestinationLocationId == destinationLocationId);
+        if (connection == null)
+        {
+            connection = new LocationConnection
+            {
+                DestinationLocationId = destinationLocationId,
+                RouteOptions = new List<RouteOption>()
+            };
+            originLocation.Connections.Add(connection);
+            Console.WriteLine($"[PackageLoader] Created new connection from {originLocationId} to {destinationLocationId}");
+        }
+        else
+        {
+            Console.WriteLine($"[PackageLoader] Found existing connection from {originLocationId} to {destinationLocationId}");
+        }
+        
+        // Add the route to the connection
+        if (!connection.RouteOptions.Any(r => r.Id == route.Id))
+        {
+            connection.RouteOptions.Add(route);
+            Console.WriteLine($"[PackageLoader] Added route {route.Id} to connection. Connection now has {connection.RouteOptions.Count} routes");
+        }
+        else
+        {
+            Console.WriteLine($"[PackageLoader] Route {route.Id} already exists in connection");
+        }
+    }
+    
+    private string GetLocationIdFromSpotId(string spotId)
+    {
+        var spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
+        return spot?.LocationId;
     }
 
     private void LoadObservations(List<ObservationDTO> observationDtos)
@@ -382,6 +454,17 @@ public class PackageLoader
         }
     }
 
+    private void LoadLocationActions(List<LocationActionDTO> locationActionDtos)
+    {
+        if (locationActionDtos == null) return;
+
+        foreach (var dto in locationActionDtos)
+        {
+            var locationAction = ConvertLocationActionDTOToModel(dto);
+            _gameWorld.LocationActions.Add(locationAction);
+        }
+    }
+
     // Conversion methods that don't have dedicated parsers yet
 
     private RouteOption ConvertRouteDTOToModel(RouteDTO dto)
@@ -439,5 +522,22 @@ public class PackageLoader
             card.Properties.Add(CardProperty.Persistent);
             
         return card;
+    }
+
+    private LocationAction ConvertLocationActionDTOToModel(LocationActionDTO dto)
+    {
+        return new LocationAction
+        {
+            Id = dto.Id ?? "",
+            Name = dto.Name ?? "",
+            Description = dto.Description ?? "",
+            LocationId = dto.LocationId ?? "",
+            SpotIds = dto.SpotIds ?? new List<string>(),
+            Cost = dto.Cost ?? new Dictionary<string, int>(),
+            Reward = dto.Reward ?? new Dictionary<string, int>(),
+            TimeRequired = dto.TimeRequired,
+            Availability = dto.Availability ?? new List<string>(),
+            Icon = dto.Icon ?? "💼"
+        };
     }
 }

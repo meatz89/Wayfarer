@@ -34,8 +34,94 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             if (location == null || spot == null) return new List<LocationActionViewModel>();
 
-            // Use ActionGenerator for systematic action generation
-            return _actionGenerator.GenerateActionsForLocation(location, spot);
+            // Get dynamic actions from GameWorld data
+            var dynamicActions = GetDynamicLocationActions(location.Id, spot.SpotID);
+            
+            // Get actions from ActionGenerator
+            var generatedActions = _actionGenerator.GenerateActionsForLocation(location, spot);
+            
+            // Combine both
+            var allActions = new List<LocationActionViewModel>();
+            allActions.AddRange(dynamicActions);
+            allActions.AddRange(generatedActions);
+            
+            return allActions;
+        }
+
+        /// <summary>
+        /// Get dynamic location actions from GameWorld data.
+        /// </summary>
+        private List<LocationActionViewModel> GetDynamicLocationActions(string locationId, string spotId)
+        {
+            var actions = new List<LocationActionViewModel>();
+            var currentTime = _timeManager.GetCurrentTimeBlock();
+            
+            // Get actions that match this location and spot
+            var availableActions = _gameWorld.LocationActions
+                .Where(action => action.LocationId == locationId &&
+                                (action.SpotIds.Contains(spotId) || action.SpotIds.Count == 0) &&
+                                IsTimeAvailable(action, currentTime))
+                .ToList();
+            
+            foreach (var action in availableActions)
+            {
+                var viewModel = new LocationActionViewModel
+                {
+                    ActionType = action.Id,
+                    Title = $"{action.Icon} {action.Name}",
+                    Detail = action.Description,
+                    Cost = GetCostDisplay(action.Cost),
+                    IsAvailable = CanPerformAction(action)
+                };
+                actions.Add(viewModel);
+            }
+            
+            return actions;
+        }
+
+        /// <summary>
+        /// Check if action is available at the current time.
+        /// </summary>
+        private bool IsTimeAvailable(LocationAction action, TimeBlocks currentTime)
+        {
+            if (action.Availability.Count == 0) return true; // Available at all times
+            
+            return action.Availability.Contains(currentTime.ToString());
+        }
+
+        /// <summary>
+        /// Get display string for action costs.
+        /// </summary>
+        private string GetCostDisplay(Dictionary<string, int> costs)
+        {
+            if (costs.Count == 0) return "Free!";
+            
+            var costStrings = costs.Select(kvp => $"{kvp.Value} {kvp.Key}").ToList();
+            return string.Join(", ", costStrings);
+        }
+
+        /// <summary>
+        /// Check if the player can perform this action.
+        /// </summary>
+        private bool CanPerformAction(LocationAction action)
+        {
+            Player player = _gameWorld.GetPlayer();
+            
+            // Check attention cost
+            if (action.Cost.ContainsKey("attention"))
+            {
+                // For now, always return true until we have proper attention checking
+                // TODO: Implement proper attention checking
+                return true;
+            }
+            
+            // Check coin cost
+            if (action.Cost.ContainsKey("coins"))
+            {
+                return player.Coins >= action.Cost["coins"];
+            }
+            
+            return true;
         }
 
         /// <summary>

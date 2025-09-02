@@ -480,5 +480,13 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             if (spot == null) return 0;
             return _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, _timeManager.GetCurrentTimeBlock()).Count();
         }
+
+        /// <summary>
+        /// Get the LocationActionManager for direct access to location actions.
+        /// </summary>
+        public LocationActionManager GetLocationActionManager()
+        {
+            return _actionManager;
+        }
     }
 }
