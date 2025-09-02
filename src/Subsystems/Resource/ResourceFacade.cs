@@ -12,7 +12,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         private readonly CoinManager _coinManager;
         private readonly HealthManager _healthManager;
         private readonly HungerManager _hungerManager;
-        private readonly AttentionManager _attentionManager;
+        private readonly TimeBlockAttentionManager _attentionManager;
         private readonly ResourceCalculator _resourceCalculator;
         private readonly MessageSystem _messageSystem;
         private readonly TimeManager _timeManager;
@@ -23,7 +23,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             CoinManager coinManager,
             HealthManager healthManager,
             HungerManager hungerManager,
-            AttentionManager attentionManager,
+            TimeBlockAttentionManager attentionManager,
             ResourceCalculator resourceCalculator,
             MessageSystem messageSystem,
             TimeManager timeManager,
@@ -115,18 +115,36 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
 
         public AttentionInfo GetAttention(TimeBlocks timeBlock)
         {
-            AttentionInfo attention = _attentionManager.GetAttentionForTimeBlock(_gameWorld.GetPlayer(), timeBlock);
-            return new AttentionInfo(attention.Current, attention.Max);
+            AttentionInfo attentionState = _attentionManager.GetAttentionState();
+            return new AttentionInfo(attentionState.Current, attentionState.Max);
         }
 
         public bool CanAffordAttention(int amount, TimeBlocks timeBlock)
         {
-            return _attentionManager.CanAfford(_gameWorld.GetPlayer(), amount, timeBlock);
+            return _attentionManager.HasAttentionRemaining() && _attentionManager.GetAttentionState().Current >= amount;
         }
 
         public bool SpendAttention(int amount, TimeBlocks timeBlock, string reason)
         {
-            return _attentionManager.SpendAttention(_gameWorld.GetPlayer(), amount, timeBlock, reason, _messageSystem);
+            AttentionInfo currentAttention = _attentionManager.GetAttentionState();
+            if (currentAttention.Current >= amount)
+            {
+                // TimeBlockAttentionManager uses internal AttentionManager, need to access it
+                var internalAttention = _attentionManager.GetCurrentAttention(timeBlock);
+                bool success = internalAttention.TrySpend(amount);
+                if (success)
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"🧠 Spent {amount} attention on {reason} ({currentAttention.Current - amount}/{currentAttention.Max} remaining)",
+                        SystemMessageTypes.Info);
+                }
+                return success;
+            }
+            
+            _messageSystem.AddSystemMessage(
+                $"🧠 Not enough attention! Need {amount}, have {currentAttention.Current}",
+                SystemMessageTypes.Warning);
+            return false;
         }
 
         public bool SpendAttention(int amount)
@@ -139,7 +157,10 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         {
             int hunger = GetHunger();
             int maxAttention = _resourceCalculator.CalculateMorningAttention(hunger);
-            _attentionManager.RefreshForTimeBlock(_gameWorld.GetPlayer(), newTimeBlock, maxAttention, _messageSystem);
+            _attentionManager.ForceRefresh();
+            _messageSystem.AddSystemMessage(
+                $"🧠 Attention refreshed for {newTimeBlock}: {maxAttention} points available",
+                SystemMessageTypes.Success);
         }
 
         // ========== RESOURCE CALCULATIONS ==========

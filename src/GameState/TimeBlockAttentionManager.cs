@@ -12,7 +12,7 @@ public class TimeBlockAttentionManager
     {
         // Create a single attention manager that persists
         _attention = new AttentionManager();
-        _attention.SetMaxAttention(7);
+        _attention.SetMaxAttention(7); // Start with 7 attention per day after a good nights rest
         _attention.ResetToFull(); // Start with full attention
     }
 
@@ -64,7 +64,7 @@ public class TimeBlockAttentionManager
     public AttentionInfo GetAttentionState()
     {
         if (_attention == null)
-            return new AttentionInfo(0, 7);
+            return new AttentionInfo(0, 3);
 
         return new AttentionInfo(_attention.GetAvailableAttention(), _attention.GetMaxAttention());
     }

@@ -126,7 +126,6 @@ public static class ServiceConfiguration
         services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.CoinManager>();
         services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.HealthManager>();
         services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.HungerManager>();
-        services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.AttentionManager>();
         services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.ResourceCalculator>();
         services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.ResourceFacade>();
 
