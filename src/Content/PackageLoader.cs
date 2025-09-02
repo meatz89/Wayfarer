@@ -91,6 +91,9 @@ public class PackageLoader
             // Phase 4: NPCs (depend on locations and cards)
             LoadNPCs(package.Content.Npcs);
 
+            // Phase 4.5: Initialize NPC conversation decks (after NPCs and cards are loaded)
+            InitializeNPCConversationDecks();
+
             // Phase 5: Routes (depend on locations)
             LoadRoutes(package.Content.Routes);
 
@@ -310,6 +313,40 @@ public class PackageLoader
             _gameWorld.TravelCards.Add(travelCard);
             _gameWorld.AllCardDefinitions[travelCard.Id] = travelCard;
         }
+    }
+
+    /// <summary>
+    /// Initialize conversation decks for all NPCs based on their personality types
+    /// </summary>
+    private void InitializeNPCConversationDecks()
+    {
+        Console.WriteLine("[PackageLoader] Initializing NPC conversation decks based on personality types...");
+
+        NPCDeckBuilder deckBuilder = new NPCDeckBuilder(_gameWorld);
+
+        foreach (NPC npc in _gameWorld.NPCs)
+        {
+            try
+            {
+                // Build conversation deck filtered by NPC's personality type
+                List<ConversationCard> npcCards = deckBuilder.BuildNPCDeck(npc.PersonalityType);
+                
+                // Clear existing deck and populate with filtered cards
+                npc.ConversationDeck = new CardDeck();
+                foreach (ConversationCard card in npcCards)
+                {
+                    npc.ConversationDeck.AddCard(card);
+                }
+
+                Console.WriteLine($"[PackageLoader] Initialized conversation deck for {npc.Name} ({npc.PersonalityType}) with {npcCards.Count} cards");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PackageLoader] Failed to initialize conversation deck for NPC {npc.Name}: {ex.Message}");
+            }
+        }
+
+        Console.WriteLine("[PackageLoader] NPC conversation deck initialization completed");
     }
 
     private void LoadItems(List<ItemDTO> itemDtos)

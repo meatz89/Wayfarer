@@ -82,9 +82,7 @@ public static class ServiceConfiguration
         services.AddSingleton<ObservationManager>();
 
         // Environmental Storytelling Systems
-        Console.WriteLine("[SERVICE] Registering ObservationSystem...");
         services.AddSingleton<ObservationSystem>();
-        Console.WriteLine("[SERVICE] ObservationSystem registered");
         services.AddSingleton<BindingObligationSystem>();
 
         services.AddSingleton<ObligationQueueManager>();
