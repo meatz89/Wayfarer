@@ -26,13 +26,13 @@
                     <div class="comfort-indicator">
                         <span class="indicator-label">Comfort</span>
                         <div class="comfort-bar">
-                            <span class="comfort-segment @(Session.ComfortBattery <= -3 ? "filled negative" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery <= -2 ? "filled negative" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery <= -1 ? "filled negative" : "")"></span>
-                            <span class="comfort-zero"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery >= 1 ? "filled positive" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery >= 2 ? "filled positive" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery >= 3 ? "filled positive" : "")"></span>
+                            <span class="comfort-segment @(Session.ComfortBattery <= -3 ? "negative" : "")"></span>
+                            <span class="comfort-segment @(Session.ComfortBattery <= -2 ? "negative" : "")"></span>
+                            <span class="comfort-segment @(Session.ComfortBattery <= -1 ? "negative" : "") @(Session.ComfortBattery == -1 ? "current" : "")"></span>
+                            <span class="comfort-segment @(Session.ComfortBattery == 0 ? "current" : "")">0</span>
+                            <span class="comfort-segment @(Session.ComfortBattery >= 1 ? "positive" : "") @(Session.ComfortBattery == 1 ? "current" : "")"></span>
+                            <span class="comfort-segment @(Session.ComfortBattery >= 2 ? "positive" : "") @(Session.ComfortBattery == 2 ? "current" : "")"></span>
+                            <span class="comfort-segment @(Session.ComfortBattery >= 3 ? "positive" : "") @(Session.ComfortBattery == 3 ? "current" : "")"></span>
                         </div>
                         <span class="comfort-value">@Session.ComfortBattery</span>
                         @if (Math.Abs(Session.ComfortBattery) == 2)
@@ -284,7 +284,7 @@
                                         <span class="card-tag @GetPropertyTagClass(property)">@GetPropertyLabel(property)</span>
                                     }
                                     <span class="card-tag tag-difficulty">@GetDifficultyLabel(convCard.Difficulty)</span>
-                                    @if (convCard.TokenType != TokenType.None)
+                                    @if (convCard.TokenType != TokenType.Trust)
                                     {
                                         <span class="card-tag tag-token">@convCard.TokenType</span>
                                     }
@@ -305,28 +305,34 @@
                                 }
                             </div>
                         </div>
-                        @* Success/Failure Strip from mockup *@
+                        @* Three-column Success/Failure/Exhaust layout from mockup *@
                         <div class="card-outcomes">
-                            <div class="outcome">
+                            <div class="outcome success">
                                 <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
                                 <div class="outcome-label">Success</div>
                                 <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
                             </div>
-                            <div class="outcome">
+                            <div class="outcome failure">
                                 <div class="outcome-chance">@GetFailureChance(convCard)%</div>
                                 <div class="outcome-label">Failure</div>
                                 <div class="outcome-effect">@GetFailureEffectDescription(convCard)</div>
                             </div>
+                            <div class="outcome exhaust">
+                                @if (HasExhaustEffect(convCard))
+                                {
+                                    <div class="outcome-chance">100%</div>
+                                    <div class="outcome-label">Exhaust</div>
+                                    <div class="outcome-effect">@GetExhaustEffectDescription(convCard)</div>
+                                }
+                                else
+                                {
+                                    <div class="outcome-chance">—</div>
+                                    <div class="outcome-label">Exhaust</div>
+                                    <div class="outcome-effect">No effect</div>
+                                }
+                            </div>
                         </div>
                     </div>
-                    
-                    @* Show exhaust effect if card has one *@
-                    @if (HasExhaustEffect(convCard))
-                    {
-                        <div class="card-exhaust">
-                            <strong>On Exhaust:</strong> @GetExhaustEffectDescription(convCard)
-                        </div>
-                    }
                 }
             </div>
             

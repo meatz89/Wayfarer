@@ -7,11 +7,16 @@
 }
 
 body {
-    font-family: 'Garamond', 'Times New Roman', 'Georgia', serif;
+    font-family: 'Garamond', 'Times New Roman', 'Georgia', serif !important;
     background: linear-gradient(to bottom, #3d3429, #2e2720);
     color: #2c241a;
     min-height: 100vh;
     font-size: 14px;
+}
+
+/* Force serif fonts on all elements */
+body * {
+    font-family: inherit !important;
 }
 
 .main-container {
@@ -945,24 +950,35 @@ body {
 
 .comfort-bar {
     display: flex;
-    gap: 2px;
+    gap: 4px;
     align-items: center;
     padding: 0 10px;
 }
 
 .comfort-segment {
-    width: 20px;
-    height: 8px;
-    background: #e8dcc4;
+    width: 12px;
+    height: 24px;
     border: 1px solid #a68b6f;
+    background: #e8dcc4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: #5c4a3a;
 }
 
-.comfort-segment.filled.positive {
+.comfort-segment.negative {
+    background: #d4704a;
+}
+
+.comfort-segment.positive {
     background: #7a8b5a;
 }
 
-.comfort-segment.filled.negative {
-    background: #d4704a;
+.comfort-segment.current {
+    border: 2px solid #3d3429;
+    box-shadow: 0 0 4px rgba(0,0,0,0.3);
 }
 
 .comfort-zero {
@@ -1470,10 +1486,20 @@ body {
     width: 120px;
     text-align: center;
     background: #f9f3e9;
+    flex: 1;
 }
 
 .outcome.success {
     border-right: 1px solid #d4c5a0;
+}
+
+.outcome.failure {
+    border-right: 1px solid #d4c5a0;
+}
+
+.outcome.exhaust {
+    background: #f5f0e6;
+    color: #6a1b9a;
 }
 
 .outcome-chance {

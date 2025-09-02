@@ -2136,7 +2136,7 @@ namespace Wayfarer.Pages.Components
                 AtmosphereType.Exposed => "All comfort changes are doubled",
                 AtmosphereType.Synchronized => "Card effects will happen twice",
                 AtmosphereType.Pressured => "Draw 1 fewer card on LISTEN",
-                _ => ""
+                _ => "(No special effects)"
             };
         }
         
@@ -2488,7 +2488,7 @@ namespace Wayfarer.Pages.Components
             var stateRules = ConversationRules.States.GetValueOrDefault(Session.CurrentState);
             if (stateRules == null) return "";
             
-            return $"Weight: {stateRules.MaxWeight}, Draw: {stateRules.CardsDrawn}";
+            return $"Weight: {stateRules.MaxWeight}, Draw: {stateRules.CardsOnListen}";
         }
         
         /// <summary>
