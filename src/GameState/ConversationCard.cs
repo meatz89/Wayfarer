@@ -61,7 +61,7 @@ public class ConversationCard
             if (Properties.Contains(CardProperty.Exchange)) return nameof(CardCategory.Exchange);
             if (IsBurden) return nameof(CardCategory.Burden);
             if (IsGoal) return nameof(CardCategory.Promise);
-            if (IsObservable) return "Observation";
+            if (IsObservable) return nameof(CardCategory.Observation);
             // Default to Comfort for backwards compatibility
             return nameof(CardCategory.Comfort);
         }

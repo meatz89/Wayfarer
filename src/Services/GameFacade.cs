@@ -397,6 +397,19 @@ public class GameFacade
 
     public async Task StartGameAsync()
     {
+        // Initialize player at starting location
+        var player = _gameWorld.GetPlayer();
+        var startingLocation = _gameWorld.worldState.locations.FirstOrDefault(l => l.Id == "market_square");
+        if (startingLocation != null)
+        {
+            var startingSpot = startingLocation.AvailableSpots?.FirstOrDefault(s => s.SpotID == "central_fountain");
+            if (startingSpot != null)
+            {
+                player.CurrentLocationSpot = startingSpot;
+                Console.WriteLine($"[GameFacade.StartGameAsync] Player initialized at {startingLocation.Name} - {startingSpot.Name}");
+            }
+        }
+        
         _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success);
     }
 

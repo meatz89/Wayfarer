@@ -651,7 +651,7 @@ namespace Wayfarer.Pages.Components
                 nameof(CardCategory.Exchange) => "Exchange",
                 nameof(CardCategory.Promise) => "Promise",
                 nameof(CardCategory.Burden) => "Burden",
-                _ => card.IsObservable ? "Observation" : card.Type.ToString()
+                _ => card.IsObservable ? nameof(CardCategory.Observation) : card.Type.ToString()
             };
         }
 

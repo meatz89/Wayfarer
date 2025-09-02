@@ -617,7 +617,7 @@ namespace Wayfarer.Pages
         protected string GetCardCategory(CardInstance card)
         {
             if (card.IsGoal) return "Goal";
-            if (card.IsObservable) return "Observation";
+            if (card.IsObservable) return nameof(CardCategory.Observation);
             if (card.IsBurden) return "Burden";
             if (card.Properties.Contains(CardProperty.Exchange)) return "Exchange";
             return "Standard";

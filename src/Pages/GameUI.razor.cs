@@ -43,13 +43,21 @@ public class GameUIBase : ComponentBase, IDisposable
                 Player player = GameWorld.GetPlayer();
                 player.Name = "Wayfarer";
                 player.IsInitialized = true;
+                
+                // Start the game to initialize location
+                Console.WriteLine("[GameUIBase.OnInitializedAsync] Starting game...");
+                await GameFacade.StartGameAsync();
+                
                 Console.WriteLine("[GameUIBase.OnInitializedAsync] Default player created. Showing Location...");
                 CurrentView = CurrentViews.LocationScreen;
                 StateHasChanged();
             }
             else
             {
-                Console.WriteLine("[GameUIBase.OnInitializedAsync] Player already initialized. Showing Location...");
+                Console.WriteLine("[GameUIBase.OnInitializedAsync] Player already initialized. Starting game...");
+                await GameFacade.StartGameAsync();
+                
+                Console.WriteLine("[GameUIBase.OnInitializedAsync] Showing Location...");
                 CurrentView = CurrentViews.LocationScreen;
                 StateHasChanged();
             }

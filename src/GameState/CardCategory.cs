@@ -8,5 +8,6 @@ public enum CardCategory
     State,
     Burden,
     Token,
-    Patience
+    Patience,
+    Observation
 }
