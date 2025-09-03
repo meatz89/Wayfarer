@@ -54,11 +54,6 @@ public class GameFacade
 
     // ========== CORE GAME STATE ==========
 
-    public GameWorldSnapshot GetGameSnapshot()
-    {
-        return new GameWorldSnapshot(_gameWorld);
-    }
-
     public Player GetPlayer()
     {
         return _gameWorld.GetPlayer();

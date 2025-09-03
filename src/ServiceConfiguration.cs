@@ -42,8 +42,6 @@ public static class ServiceConfiguration
         services.AddSingleton<StandingObligationRepository>();
         services.AddSingleton<RouteDiscoveryRepository>();
 
-        services.AddSingleton<CharacterSystem>();
-        services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<DebugLogger>();
 

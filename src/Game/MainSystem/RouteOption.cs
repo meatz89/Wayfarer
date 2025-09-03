@@ -322,10 +322,5 @@ public class RouteOption
         return categories.Distinct().ToList();
     }
 
-
-    internal SceneContext GetConversation(int seed)
-    {
-        return null;
-    }
 }
 
