@@ -36,10 +36,7 @@
 │   │
 │   ├── Repositories
 │   │
-│   ├── Game/                            # Core game systems
-│   │   ├── MainSystem/
-│   │   │
-│   ├── GameState/                       # CRITICAL: Core game state
+│   ├── GameState/                       # CRITICAL: Core game state / game systems
 │   │   ├── Constants/
 │   │   │   └── GameConstants.cs
 │   │   ├── Intents/
