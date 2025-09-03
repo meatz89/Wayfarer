@@ -1,0 +1,783 @@
+/* ===== WAYFARER CONVERSATION SYSTEM CSS ===== */
+/* Complete styling for card-based conversations */
+
+/* === CONVERSATION LAYOUT === */
+
+.conversation-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.conversation-header {
+    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+    padding: 20px;
+    border-bottom: 2px solid #a68b6f;
+    margin-bottom: 20px;
+}
+
+.conversation-state-bar {
+    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+    padding: 15px 20px;
+    border-bottom: 2px solid #a68b6f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.npc-identity {
+    flex: 1;
+}
+
+.npc-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #3d3429;
+}
+
+.emotional-state {
+    font-size: 0.9rem;
+    color: #5c4a3a;
+    font-style: italic;
+}
+
+/* === RESOURCE INDICATORS === */
+
+/* Patience Bar */
+.patience-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.patience-bar {
+    width: 100px;
+    height: 20px;
+    background: #e8dcc4;
+    border: 1px solid #a68b6f;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.patience-fill {
+    height: 100%;
+    background: linear-gradient(to right, #7a8b5a, #5a6b3a);
+    transition: width 0.3s ease;
+}
+
+.patience-value {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+/* Comfort Battery */
+.comfort-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.comfort-bar {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 0 10px;
+}
+
+.comfort-segment {
+    width: 14px;
+    height: 26px;
+    border: 1px solid #a68b6f;
+    background: #e8dcc4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+    color: #5c4a3a;
+    transition: all 0.2s ease;
+}
+
+.comfort-segment.negative {
+    background: #d4704a;
+    color: white;
+}
+
+.comfort-segment.positive {
+    background: #7a8b5a;
+    color: white;
+}
+
+.comfort-segment.current {
+    border: 2px solid #3d3429;
+    box-shadow: 0 0 4px rgba(0,0,0,0.3);
+    transform: scale(1.1);
+}
+
+.comfort-zero {
+    width: 4px;
+    height: 20px;
+    background: #3d3429;
+    margin: 0 4px;
+}
+
+.comfort-value {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5c4a3a;
+    margin-left: 8px;
+}
+
+.comfort-transition-hint {
+    font-size: 11px;
+    color: #8b4726;
+    font-style: italic;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+}
+
+.comfort-transition-hint.danger {
+    color: #ff0000;
+    font-weight: bold;
+    animation: danger-flash 0.5s infinite;
+}
+
+/* Weight Pool */
+.weight-pool-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.weight-dots {
+    display: flex;
+    gap: 3px;
+}
+
+.weight-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid #a68b6f;
+    background: #e8dcc4;
+    transition: all 0.2s ease;
+}
+
+.weight-dot.filled {
+    background: #5c4a3a;
+}
+
+.weight-dot.spent {
+    background: #d4704a;
+    opacity: 0.5;
+}
+
+.weight-value {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+/* === ATMOSPHERE SYSTEM === */
+
+.atmosphere-bar {
+    margin: 15px 0;
+    padding: 15px;
+    border: 2px solid #8b7355;
+    background: linear-gradient(135deg, #f9f3e9, #e8dcc4);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.atmosphere-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 8px;
+}
+
+.atmosphere-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5c4a3a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.atmosphere-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.atmosphere-icon {
+    font-size: 24px;
+}
+
+.atmosphere-name {
+    color: #2c241a;
+}
+
+.atmosphere-description {
+    font-size: 14px;
+    font-style: italic;
+    color: #5c4a3a;
+    margin: 8px 0;
+}
+
+/* Atmosphere-specific color schemes */
+.atmosphere-neutral { 
+    opacity: 0.6; 
+}
+
+.atmosphere-prepared { 
+    border-color: #2e8b57;
+    background: linear-gradient(135deg, #e6f5ed, #c8e6d3);
+}
+
+.atmosphere-receptive { 
+    border-color: #4169e1;
+    background: linear-gradient(135deg, #e6eef9, #c8d9f3);
+}
+
+.atmosphere-focused { 
+    border-color: #ff8c00;
+    background: linear-gradient(135deg, #fff4e6, #ffe4c8);
+}
+
+.atmosphere-patient { 
+    border-color: #9370db;
+    background: linear-gradient(135deg, #f2ecfb, #e3d3f5);
+}
+
+.atmosphere-volatile { 
+    border-color: #dc143c;
+    background: linear-gradient(135deg, #fbe6ea, #f5c8d0);
+}
+
+.atmosphere-final { 
+    border-color: #8b0000;
+    background: linear-gradient(135deg, #f5e6e6, #e6c8c8);
+    animation: pulse 2s infinite;
+}
+
+.atmosphere-informed { 
+    border-color: #ffd700;
+    background: linear-gradient(135deg, #fffacd, #fff4a3);
+}
+
+.atmosphere-exposed { 
+    border-color: #ff1493;
+    background: linear-gradient(135deg, #ffeef7, #ffc8e3);
+}
+
+.atmosphere-synchronized { 
+    border-color: #00ced1;
+    background: linear-gradient(135deg, #e6feff, #c8f3f4);
+}
+
+.atmosphere-pressured { 
+    border-color: #b22222;
+    background: linear-gradient(135deg, #f5e0e0, #e6c0c0);
+}
+
+/* === TOKEN DISPLAY === */
+
+.token-strip {
+    display: flex;
+    gap: 15px;
+    padding: 8px 20px;
+    background: #f9f3e9;
+    border-top: 1px solid #d4c5a0;
+}
+
+.token-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.token-label {
+    color: #7a6250;
+}
+
+.token-value {
+    font-weight: bold;
+    color: #3d3429;
+}
+
+/* === CARD STYLES === */
+
+.card {
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 12px;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.card.selected {
+    border-color: #5a7a3a;
+    box-shadow: 0 0 10px rgba(90, 122, 58, 0.5);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+    border-bottom: 1px solid #d4c5a0;
+}
+
+.card-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #3d3429;
+}
+
+.card-weight {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #8b7355;
+    color: #faf4ea;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.card-body {
+    padding: 12px;
+}
+
+.card-properties {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.card-tag {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.tag-persistent {
+    background: #d4e6d4;
+    color: #3a5a3a;
+}
+
+.tag-fleeting {
+    background: #f5d4d4;
+    color: #8a3a3a;
+}
+
+.tag-opportunity {
+    background: #d4e6f5;
+    color: #3a5a8a;
+}
+
+.tag-difficulty-easy {
+    background: #d4e6d4;
+    color: #3a5a3a;
+}
+
+.tag-difficulty-medium {
+    background: #f5e6d4;
+    color: #8a6a3a;
+}
+
+.tag-difficulty-hard {
+    background: #f5d4d4;
+    color: #8a3a3a;
+}
+
+.tag-difficulty-veryhard {
+    background: #e6d4f5;
+    color: #6a3a8a;
+}
+
+.card-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #5c4a3a;
+    font-style: italic;
+    margin-bottom: 10px;
+}
+
+.card-effects {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 11px;
+}
+
+.effect-success,
+.effect-failure {
+    flex: 1;
+    padding: 6px;
+    border-radius: 3px;
+}
+
+.effect-success {
+    background: rgba(122, 139, 90, 0.1);
+    border: 1px solid rgba(122, 139, 90, 0.3);
+}
+
+.effect-failure {
+    background: rgba(212, 112, 74, 0.1);
+    border: 1px solid rgba(212, 112, 74, 0.3);
+}
+
+.effect-label {
+    font-weight: bold;
+    color: #5c4a3a;
+    margin-bottom: 2px;
+}
+
+.effect-value {
+    color: #7a6250;
+}
+
+/* === CARD ANIMATIONS === */
+
+/* Slide in from right for newly drawn cards */
+@keyframes card-slide-in {
+    from {
+        transform: translateX(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Success flash - green highlight */
+@keyframes card-success-flash {
+    0% {
+        background-color: #faf4ea;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    20% {
+        background-color: #d4ffd4;
+        box-shadow: 0 0 20px rgba(0,255,0,0.5);
+        transform: scale(1.05);
+    }
+    80% {
+        background-color: #d4ffd4;
+        box-shadow: 0 0 15px rgba(0,255,0,0.3);
+        transform: scale(1.02);
+    }
+    100% {
+        background-color: #faf4ea;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transform: scale(1);
+    }
+}
+
+/* Failure flash - red highlight */
+@keyframes card-failure-flash {
+    0% {
+        background-color: #faf4ea;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    20% {
+        background-color: #ffd4d4;
+        box-shadow: 0 0 20px rgba(255,0,0,0.5);
+        transform: scale(1.05) rotateZ(-2deg);
+    }
+    40% {
+        transform: scale(1.02) rotateZ(1deg);
+    }
+    80% {
+        background-color: #ffd4d4;
+        box-shadow: 0 0 15px rgba(255,0,0,0.3);
+        transform: scale(1.02) rotateZ(-1deg);
+    }
+    100% {
+        background-color: #faf4ea;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transform: scale(1) rotateZ(0);
+    }
+}
+
+/* Exhaust animation - burn/dissolve effect */
+@keyframes card-exhaust {
+    0% {
+        opacity: 1;
+        transform: scale(1) rotateY(0);
+        filter: grayscale(0) brightness(1);
+    }
+    25% {
+        opacity: 0.9;
+        transform: scale(0.98) rotateY(10deg);
+        filter: grayscale(0.3) brightness(0.9) sepia(0.5);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(0.95) rotateY(-10deg);
+        filter: grayscale(0.6) brightness(0.7) sepia(0.8);
+        background-color: #d4b896;
+    }
+    75% {
+        opacity: 0.3;
+        transform: scale(0.9) rotateY(5deg) translateY(20px);
+        filter: grayscale(0.9) brightness(0.5) sepia(1);
+        background-color: #8b7355;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.8) rotateY(0) translateY(50px);
+        filter: grayscale(1) brightness(0.3) sepia(1);
+    }
+}
+
+/* Transition out for played cards */
+@keyframes card-play-out {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100px) scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* Newly drawn cards */
+.card-new {
+    animation: card-slide-in 0.5s ease-out;
+    animation-fill-mode: both;
+}
+
+/* Stagger animation for multiple new cards */
+.card-new:nth-child(1) { animation-delay: 0s; }
+.card-new:nth-child(2) { animation-delay: 0.1s; }
+.card-new:nth-child(3) { animation-delay: 0.2s; }
+.card-new:nth-child(4) { animation-delay: 0.3s; }
+.card-new:nth-child(5) { animation-delay: 0.4s; }
+
+/* Successfully played card */
+.card-played-success {
+    animation: card-success-flash 1.5s ease-out, card-play-out 0.5s ease-out 1.5s;
+    animation-fill-mode: forwards;
+    pointer-events: none;
+}
+
+/* Failed played card */
+.card-played-failure {
+    animation: card-failure-flash 1.5s ease-out, card-play-out 0.5s ease-out 1.5s;
+    animation-fill-mode: forwards;
+    pointer-events: none;
+}
+
+/* Exhausting cards (fleeting/opportunity) */
+.card-exhausting {
+    animation: card-exhaust 1s ease-out;
+    animation-fill-mode: forwards;
+    pointer-events: none;
+}
+
+/* === ACTION BUTTONS === */
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    padding: 20px;
+    background: #f9f3e9;
+    border-top: 1px solid #d4c5a0;
+    border-bottom: 1px solid #d4c5a0;
+}
+
+.action-button {
+    flex: 1;
+    padding: 15px;
+    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+    border: 2px solid #a68b6f;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-button:hover:not(:disabled) {
+    background: linear-gradient(to bottom, #e8dcc4, #d4b8a0);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.action-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.action-button-primary {
+    font-size: 16px;
+    font-weight: bold;
+    color: #3d3429;
+    margin-bottom: 4px;
+}
+
+.action-button-secondary {
+    font-size: 12px;
+    color: #7a6250;
+}
+
+/* === HAND CONTAINER === */
+
+.hand-container {
+    padding: 20px;
+    min-height: 200px;
+    background: #f9f3e9;
+}
+
+.hand-header {
+    font-size: 16px;
+    font-weight: bold;
+    color: #3d3429;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hand-count {
+    font-size: 14px;
+    color: #7a6250;
+}
+
+.card-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 600px;
+}
+
+/* === CONVERSATION NARRATIVE === */
+
+.narrative-panel {
+    padding: 20px;
+    background: #faf4ea;
+    border-left: 4px solid #c4a684;
+    margin: 20px 0;
+}
+
+.narrative-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #5c4a3a;
+    font-style: italic;
+}
+
+.npc-dialogue {
+    font-size: 16px;
+    font-weight: bold;
+    color: #3d3429;
+    margin-top: 10px;
+}
+
+/* === UTILITY ANIMATIONS === */
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes danger-flash {
+    0%, 100% { 
+        opacity: 1;
+        color: #ff0000;
+    }
+    50% { 
+        opacity: 0.5;
+        color: #ff6666;
+    }
+}
+
+@keyframes warning-pulse {
+    0%, 100% { 
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+}
+
+/* === SPECIAL CARD TYPES === */
+
+.card.comfort {
+    border-left: 5px solid #7a8b5a;
+}
+
+.card.state {
+    border-left: 5px solid #8b7355;
+}
+
+.card.crisis {
+    border-left: 5px solid #8b4726;
+    background: #faf0e6;
+}
+
+.card.fleeting-warning {
+    position: relative;
+    overflow: visible;
+}
+
+.card.fleeting-warning::before {
+    content: '⚡ Will exhaust';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ff9800;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+    animation: pulse 1s infinite;
+}
+
+/* === RESPONSIVE DESIGN === */
+
+@media (max-width: 768px) {
+    .card-grid {
+        max-width: 100%;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .conversation-state-bar {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

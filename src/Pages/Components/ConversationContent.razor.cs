@@ -60,6 +60,14 @@ namespace Wayfarer.Pages.Components
         public Dictionary<string, string> contextual { get; set; }
     }
 
+    // Card state tracking for animations
+    public class CardAnimationState
+    {
+        public string CardId { get; set; }
+        public string State { get; set; } // "new", "played-success", "played-failure", "exhausting", "normal"
+        public DateTime StateChangedAt { get; set; }
+    }
+
     public class ConversationContentBase : ComponentBase
     {
         [Parameter] public ConversationContext Context { get; set; }
@@ -79,6 +87,11 @@ namespace Wayfarer.Pages.Components
         // Action preview state
         protected bool ShowSpeakPreview { get; set; } = false;
         protected bool ShowListenPreview { get; set; } = false;
+        
+        // Card animation states
+        protected Dictionary<string, CardAnimationState> CardStates { get; set; } = new();
+        protected HashSet<string> NewCardIds { get; set; } = new();
+        protected HashSet<string> ExhaustingCardIds { get; set; } = new();
 
         private int GetBaseSuccessPercentage(Difficulty difficulty)
         {
@@ -176,6 +189,17 @@ namespace Wayfarer.Pages.Components
             IsProcessing = true;
             SelectedCard = null;
 
+            // Store current cards before listen for animation tracking
+            var previousCards = Session?.HandCards?.ToList() ?? new List<CardInstance>();
+            
+            // Mark any opportunity cards for exhaustion
+            var opportunityCards = previousCards.Where(c => c.Properties.Contains(CardProperty.Opportunity)).ToList();
+            if (opportunityCards.Any())
+            {
+                MarkCardsForExhaust(opportunityCards);
+                await Task.Delay(500); // Let exhaust animation play
+            }
+
             try
             {
                 // Add notification for listening
@@ -191,6 +215,10 @@ namespace Wayfarer.Pages.Components
 
                 // Generate narrative for the action
                 GenerateListenNarrative();
+
+                // Track newly drawn cards for slide-in animation
+                var currentCards = Session?.HandCards?.ToList() ?? new List<CardInstance>();
+                TrackNewlyDrawnCards(previousCards, currentCards);
 
                 // Notify about cards drawn
                 if (messageSystem != null && Session.HandCards.Any())
@@ -264,10 +292,17 @@ namespace Wayfarer.Pages.Components
                     messageSystem.AddSystemMessage(string.Format(playingMsg, GetCardName(SelectedCard)), SystemMessageTypes.Info);
                 }
 
+                // Store the played card for animation tracking
+                var playedCard = SelectedCard;
+                
                 // ExecuteSpeak expects a single card
                 // CRITICAL: Must use ConversationManager.ExecuteSpeak to handle special card effects like letter delivery
                 CardPlayResult result = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
                 ProcessSpeakResult(result);
+
+                // Mark the played card with success/failure animation
+                bool wasSuccessful = result?.Results?.FirstOrDefault()?.Success ?? false;
+                MarkCardAsPlayed(playedCard, wasSuccessful);
 
                 // Add detailed notification for result
                 // NOTE: Exchange handling is done in ConversationManager.HandleSpecialCardEffectsAsync
@@ -290,6 +325,17 @@ namespace Wayfarer.Pages.Components
                             messageSystem.AddSystemMessage(string.Format(failureMsg, failures), SystemMessageTypes.Warning);
                         }
                     }
+                }
+
+                // Mark fleeting cards for exhaust animation (after a delay)
+                var fleetingCards = Session?.HandCards?
+                    .Where(c => c.Properties.Contains(CardProperty.Fleeting) && c.InstanceId != playedCard.InstanceId)
+                    .ToList() ?? new List<CardInstance>();
+                
+                if (fleetingCards.Any())
+                {
+                    await Task.Delay(800); // Wait for play animation to start
+                    MarkCardsForExhaust(fleetingCards);
                 }
 
                 SelectedCard = null;
@@ -2540,6 +2586,197 @@ namespace Wayfarer.Pages.Components
                 EmotionalState.DESPERATE => "Ends",
                 _ => "Unknown"
             };
+        }
+
+        // === CARD ANIMATION METHODS ===
+
+        /// <summary>
+        /// Get CSS classes for a card based on its animation state
+        /// </summary>
+        protected string GetCardCssClasses(CardInstance card)
+        {
+            if (card == null) return "card";
+
+            List<string> classes = new List<string> { "card" };
+            string cardId = card.InstanceId ?? card.Id ?? "";
+
+            // Check if this is a new card (recently drawn)
+            if (NewCardIds.Contains(cardId))
+            {
+                classes.Add("card-new");
+            }
+            
+            // Check if card has an animation state
+            if (CardStates.TryGetValue(cardId, out var state))
+            {
+                switch (state.State)
+                {
+                    case "played-success":
+                        classes.Add("card-played-success");
+                        break;
+                    case "played-failure":
+                        classes.Add("card-played-failure");
+                        break;
+                    case "exhausting":
+                        classes.Add("card-exhausting");
+                        break;
+                }
+            }
+
+            // Check if card is being exhausted
+            if (ExhaustingCardIds.Contains(cardId))
+            {
+                classes.Add("card-exhausting");
+            }
+
+            // Add warning for fleeting cards
+            if (card.Properties.Contains(CardProperty.Fleeting))
+            {
+                classes.Add("card-fleeting-warning");
+            }
+
+            // Add selected state
+            if (SelectedCard?.InstanceId == cardId)
+            {
+                classes.Add("selected");
+            }
+
+            return string.Join(" ", classes);
+        }
+
+        /// <summary>
+        /// Track newly drawn cards for slide-in animation
+        /// </summary>
+        protected void TrackNewlyDrawnCards(List<CardInstance> previousCards, List<CardInstance> currentCards)
+        {
+            // Clear old new card tracking
+            NewCardIds.Clear();
+
+            // Get IDs of previous cards
+            var previousIds = new HashSet<string>(previousCards.Select(c => c.InstanceId ?? c.Id ?? ""));
+
+            // Mark cards that weren't in the previous set as new
+            foreach (var card in currentCards)
+            {
+                string cardId = card.InstanceId ?? card.Id ?? "";
+                if (!previousIds.Contains(cardId))
+                {
+                    NewCardIds.Add(cardId);
+                }
+            }
+
+            // Clear "new" state after animation completes
+            Task.Delay(600).ContinueWith(_ => 
+            {
+                NewCardIds.Clear();
+                InvokeAsync(StateHasChanged);
+            });
+        }
+
+        /// <summary>
+        /// Mark a card as successfully played
+        /// </summary>
+        protected void MarkCardAsPlayed(CardInstance card, bool success)
+        {
+            if (card == null) return;
+
+            string cardId = card.InstanceId ?? card.Id ?? "";
+            CardStates[cardId] = new CardAnimationState
+            {
+                CardId = cardId,
+                State = success ? "played-success" : "played-failure",
+                StateChangedAt = DateTime.Now
+            };
+
+            // Remove state after animation completes
+            Task.Delay(2000).ContinueWith(_ =>
+            {
+                CardStates.Remove(cardId);
+                InvokeAsync(StateHasChanged);
+            });
+        }
+
+        /// <summary>
+        /// Mark cards for exhaust animation
+        /// </summary>
+        protected void MarkCardsForExhaust(List<CardInstance> cardsToExhaust)
+        {
+            foreach (var card in cardsToExhaust)
+            {
+                string cardId = card.InstanceId ?? card.Id ?? "";
+                ExhaustingCardIds.Add(cardId);
+                
+                CardStates[cardId] = new CardAnimationState
+                {
+                    CardId = cardId,
+                    State = "exhausting",
+                    StateChangedAt = DateTime.Now
+                };
+            }
+
+            // Remove exhaust state after animation
+            Task.Delay(1000).ContinueWith(_ =>
+            {
+                ExhaustingCardIds.Clear();
+                foreach (var cardId in ExhaustingCardIds)
+                {
+                    CardStates.Remove(cardId);
+                }
+                InvokeAsync(StateHasChanged);
+            });
+        }
+
+        /// <summary>
+        /// Update ExecuteListen to track newly drawn cards
+        /// </summary>
+        protected async Task ExecuteListenWithAnimations()
+        {
+            // Store current cards before listen
+            var previousCards = Session?.HandCards?.ToList() ?? new List<CardInstance>();
+            
+            // Execute the normal listen action
+            await ExecuteListen();
+            
+            // Track newly drawn cards
+            var currentCards = Session?.HandCards?.ToList() ?? new List<CardInstance>();
+            TrackNewlyDrawnCards(previousCards, currentCards);
+            
+            // Mark fleeting cards that will exhaust on next SPEAK
+            var fleetingCards = currentCards.Where(c => c.Properties.Contains(CardProperty.Fleeting)).ToList();
+            // These will be marked when SPEAK happens
+        }
+
+        /// <summary>
+        /// Update ExecuteSpeak to show success/failure and exhaust animations
+        /// </summary>
+        protected async Task ExecuteSpeakWithAnimations()
+        {
+            if (SelectedCard == null) return;
+            
+            // Store the selected card info
+            var playedCard = SelectedCard;
+            
+            // Execute the normal speak action (will be modified to track result)
+            await ExecuteSpeak();
+            
+            // Determine if the play was successful (need to get this from the result)
+            // For now, we'll simulate - in reality, we need to get this from ConversationFacade result
+            bool wasSuccessful = new Random().Next(100) < 60; // Placeholder - get actual result
+            
+            // Mark the played card with animation
+            MarkCardAsPlayed(playedCard, wasSuccessful);
+            
+            // Get fleeting cards to exhaust
+            var fleetingCards = Session?.HandCards?
+                .Where(c => c.Properties.Contains(CardProperty.Fleeting) && c.InstanceId != playedCard.InstanceId)
+                .ToList() ?? new List<CardInstance>();
+            
+            if (fleetingCards.Any())
+            {
+                // Wait for played card animation to partially complete
+                await Task.Delay(500);
+                MarkCardsForExhaust(fleetingCards);
+            }
         }
     }
 }
