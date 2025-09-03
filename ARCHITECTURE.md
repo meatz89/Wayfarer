@@ -34,21 +34,11 @@
 │   │   ├── SkeletonGenerator.cs         # Lazy content placeholder system
 │   │   ├── CardEffectProcessor.cs       # Card effect parsing
 │   │
-│   ├── Controllers/
-│   │   └── TestController.cs            # Dev-only test endpoints
-│   │
-│   ├── Core/                            # Core interfaces (minimal use)
-│   │   └── Repositories/
+│   ├── Repositories
 │   │
 │   ├── Game/                            # Core game systems
 │   │   ├── MainSystem/
-│   │   │   ├── MessageSystem.cs        # Toast notification system
-│   │   ├── ObservationSystem/
-│   │   ├── ProgressionSystems/
-│   │   └── TagSystem/
-│   │
-│   ├── GameMechanics/
-│   │
+│   │   │
 │   ├── GameState/                       # CRITICAL: Core game state
 │   │   ├── Constants/
 │   │   │   └── GameConstants.cs
