@@ -1219,6 +1219,10 @@ namespace Wayfarer.Pages.Components
 
         protected string GetCardName(CardInstance card)
         {
+            // First, use the card's actual Name property if available
+            if (!string.IsNullOrEmpty(card.Name))
+                return card.Name;
+                
             // For exchange cards, use the exchange name
             if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
@@ -1364,8 +1368,12 @@ namespace Wayfarer.Pages.Components
                 return playerText;
             }
 
-            // Get the narrative text for the card - use template ID or display name
-            return card.DisplayName ?? card.Id?.Replace("_", " ") ?? "Unknown Card";
+            // Use the card's Description property if available
+            if (!string.IsNullOrEmpty(card.Description))
+                return card.Description;
+                
+            // Get the narrative text for the card - use template ID
+            return card.Id?.Replace("_", " ") ?? "Unknown Card";
         }
 
         private void LoadCardDialogues()
@@ -1574,39 +1582,135 @@ namespace Wayfarer.Pages.Components
 
         protected string GetExchangeCostDisplay(CardInstance card)
         {
-            // Debug logging
-            Console.WriteLine($"[GetExchangeCostDisplay] Card ID: {card?.Id}");
-            Console.WriteLine($"[GetExchangeCostDisplay] Context null: {card?.Context == null}");
-            Console.WriteLine($"[GetExchangeCostDisplay] ExchangeData null: {card?.Context?.ExchangeData == null}");
-
-            // Check for cost in Context.ExchangeData
-            ExchangeData? exchangeData = card?.Context?.ExchangeData;
-            if (exchangeData != null)
+            // First check Context.ExchangeData
+            if (card?.Context?.ExchangeData?.Cost != null && card.Context.ExchangeData.Cost.Any())
             {
-                Console.WriteLine($"[GetExchangeCostDisplay] ExchangeData.Cost null: {exchangeData.Cost == null}");
-                Console.WriteLine($"[GetExchangeCostDisplay] ExchangeData.Cost count: {exchangeData.Cost?.Count ?? 0}");
+                var cost = card.Context.ExchangeData.Cost.First();
+                string resourceName = cost.Key switch
+                {
+                    ResourceType.Coins => "coins",
+                    ResourceType.Health => "health",
+                    ResourceType.Food => "food",
+                    ResourceType.Attention => "attention",
+                    _ => cost.Key.ToString().ToLower()
+                };
+                return $"{cost.Value} {resourceName}";
+            }
+            // Fallback to SuccessEffect.Data for backwards compatibility
+            else if (card?.SuccessEffect?.Data != null)
+            {
+                if (card.SuccessEffect.Data.TryGetValue("cost", out object costObj))
+                {
+                    var costDict = costObj as Dictionary<string, object>;
+                    if (costDict != null)
+                    {
+                        foreach (var kvp in costDict)
+                        {
+                            string resourceName = kvp.Key switch
+                            {
+                                "coins" => "coins",
+                                "health" => "health",
+                                "hunger" => "hunger", 
+                                "attention" => "attention",
+                                _ => kvp.Key
+                            };
+                            return $"{kvp.Value} {resourceName}";
+                        }
+                    }
+                }
             }
 
-            if (exchangeData?.Cost != null && exchangeData.Cost.Any())
-            {
-                IEnumerable<string> costParts = exchangeData.Cost.Select(c => c.GetDisplayText());
-                string result = string.Join(", ", costParts);
-                Console.WriteLine($"[GetExchangeCostDisplay] Returning: {result}");
-                return result;
-            }
-
-            Console.WriteLine($"[GetExchangeCostDisplay] Returning default: Nothing");
-            return "Nothing";
+            return "Free";
         }
 
         protected string GetExchangeRewardDisplay(CardInstance card)
         {
-            // Check for reward in Context.ExchangeData
-            ExchangeData? exchangeData = card?.Context?.ExchangeData;
-            if (exchangeData?.Reward != null && exchangeData.Reward.Any())
+            // First check Context.ExchangeData
+            if (card?.Context?.ExchangeData != null)
             {
-                IEnumerable<string> rewardParts = exchangeData.Reward.Select(r => r.GetDisplayText());
-                return string.Join(", ", rewardParts);
+                List<string> rewardParts = new List<string>();
+                
+                // Add standard resource rewards
+                if (card.Context.ExchangeData.Reward != null && card.Context.ExchangeData.Reward.Any())
+                {
+                    foreach (var reward in card.Context.ExchangeData.Reward)
+                    {
+                        string resourceName = reward.Key switch
+                        {
+                            ResourceType.Coins => "coins",
+                            ResourceType.Health => "health",
+                            ResourceType.Food => "food",
+                            ResourceType.Attention => "attention",
+                            _ => reward.Key.ToString().ToLower()
+                        };
+                        rewardParts.Add($"{reward.Value} {resourceName}");
+                    }
+                }
+                
+                // Add item rewards from PlayerReceives
+                if (card.Context.ExchangeData.PlayerReceives != null && card.Context.ExchangeData.PlayerReceives.Any())
+                {
+                    foreach (var item in card.Context.ExchangeData.PlayerReceives)
+                    {
+                        if (item.Key == "items")
+                        {
+                            rewardParts.Add($"{item.Value} items");
+                        }
+                        else
+                        {
+                            rewardParts.Add(item.Value > 1 ? $"{item.Value} {item.Key}" : item.Key.Replace("_", " "));
+                        }
+                    }
+                }
+                
+                if (rewardParts.Any())
+                {
+                    return string.Join(", ", rewardParts);
+                }
+            }
+            // Fallback to SuccessEffect.Data for raw parsing
+            else if (card?.SuccessEffect?.Data != null)
+            {
+                if (card.SuccessEffect.Data.TryGetValue("reward", out object rewardObj))
+                {
+                    var rewardDict = rewardObj as Dictionary<string, object>;
+                    if (rewardDict != null)
+                    {
+                        List<string> rewardParts = new List<string>();
+                        foreach (var kvp in rewardDict)
+                        {
+                            string resourceName = kvp.Key switch
+                            {
+                                "coins" => "coins",
+                                "health" => "health",
+                                "hunger" => "food", // negative hunger = food
+                                "stamina" => "energy",
+                                "patience" => "patience",
+                                "item" when kvp.Value is string itemName => itemName.Replace("_", " "),
+                                "items" when kvp.Value is int count => $"{count} items",
+                                _ => kvp.Key
+                            };
+                            
+                            if (kvp.Key == "item" && kvp.Value is string)
+                            {
+                                rewardParts.Add(resourceName);
+                            }
+                            else if (kvp.Key == "items" && kvp.Value is int)
+                            {
+                                rewardParts.Add(resourceName);
+                            }
+                            else if (kvp.Value is int amount)
+                            {
+                                rewardParts.Add($"{Math.Abs(amount)} {resourceName}");
+                            }
+                        }
+                        
+                        if (rewardParts.Any())
+                        {
+                            return string.Join(", ", rewardParts);
+                        }
+                    }
+                }
             }
 
             return "Nothing";

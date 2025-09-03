@@ -295,7 +295,19 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" timeout 3 dotnet run --no-build)",
       "Bash(git log:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5700\" dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5701\" dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5701\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5702\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5703\" timeout 30 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5704\" timeout 30 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5704\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5705\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" timeout 10 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6000\" timeout 10 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6100\" timeout 10 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6100\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6100\" timeout 5 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6200\" dotnet run --no-build)"
     ],
     "deny": []
   }

@@ -1127,17 +1127,17 @@
         "weight": 1,
         "properties": ["Persistent", "Exchange"],
         "connectionType": "Commerce",
-        "description": "Trade goods",
+        "description": "Buy food",
         "difficulty": "Easy",
         "successEffect": {
           "type": "Exchange",
           "value": "trade",
           "data": {
             "cost": {"coins": 5},
-            "reward": {"item": "common_goods"}
+            "reward": {"food": 2}
           }
         },
-        "dialogueFragment": "5 coins for quality goods. Fair price in this market."
+        "dialogueFragment": "5 coins for rations. Fair price in this market."
       },
       {
         "id": "marcus_bulk_purchase",
@@ -1146,17 +1146,17 @@
         "weight": 2,
         "properties": ["Persistent", "Exchange"],
         "connectionType": "Commerce",
-        "description": "Bulk purchase",
+        "description": "Trade supplies",
         "difficulty": "Medium",
         "successEffect": {
           "type": "Exchange",
-          "value": "bulk_trade",
+          "value": "supplies",
           "data": {
             "cost": {"coins": 10},
-            "reward": {"items": 3}
+            "reward": {"food": 3}
           }
         },
-        "dialogueFragment": "Buy in bulk and save! 10 coins for three items."
+        "dialogueFragment": "10 coins for travel supplies."
       },
       {
         "id": "bertram_hot_meal",

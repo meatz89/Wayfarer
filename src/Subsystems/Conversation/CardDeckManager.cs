@@ -31,7 +31,19 @@ public class CardDeckManager
     public SessionCardDeck CreateConversationDeck(NPC npc, ConversationType conversationType, List<CardInstance> observationCards = null)
     {
         string sessionId = Guid.NewGuid().ToString();
-        SessionCardDeck deck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck.GetAllCards(), sessionId);
+        
+        // Use ExchangeDeck for Commerce conversations, ConversationDeck for others
+        List<ConversationCard> cardTemplates;
+        if (conversationType == ConversationType.Commerce && npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
+        {
+            cardTemplates = npc.ExchangeDeck.GetAllCards();
+        }
+        else
+        {
+            cardTemplates = npc.ConversationDeck.GetAllCards();
+        }
+        
+        SessionCardDeck deck = SessionCardDeck.CreateFromTemplates(cardTemplates, sessionId);
 
         // Add observation cards if provided
         if (observationCards != null && observationCards.Any())
@@ -437,7 +449,50 @@ public class CardDeckManager
         {
             foreach (ConversationCard template in npc.ExchangeDeck.GetAllCards())
             {
-                exchangeCards.Add(new CardInstance(template, npc.ID));
+                var cardInstance = new CardInstance(template, npc.ID);
+                
+                // If this is an exchange card, set up the Context with ExchangeData
+                if (cardInstance.Properties.Contains(CardProperty.Exchange) && 
+                    cardInstance.SuccessEffect?.Data != null)
+                {
+                    var context = new CardContext();
+                    var exchangeData = new ExchangeData();
+                    
+                    // Extract cost from SuccessEffect.Data
+                    if (cardInstance.SuccessEffect.Data.TryGetValue("cost", out object costObj) && 
+                        costObj is Dictionary<string, object> costDict)
+                    {
+                        exchangeData.Cost = new Dictionary<ResourceType, int>();
+                        foreach (var kvp in costDict)
+                        {
+                            if (Enum.TryParse<ResourceType>(kvp.Key, true, out var resourceType) && 
+                                kvp.Value is int amount)
+                            {
+                                exchangeData.Cost[resourceType] = amount;
+                            }
+                        }
+                    }
+                    
+                    // Extract reward from SuccessEffect.Data (or use SuccessEffect.Value)
+                    exchangeData.Reward = new Dictionary<ResourceType, int>();
+                    if (cardInstance.SuccessEffect.Data.TryGetValue("reward", out object rewardObj) && 
+                        rewardObj is Dictionary<string, object> rewardDict)
+                    {
+                        foreach (var kvp in rewardDict)
+                        {
+                            if (Enum.TryParse<ResourceType>(kvp.Key, true, out var resourceType) && 
+                                kvp.Value is int amount)
+                            {
+                                exchangeData.Reward[resourceType] = amount;
+                            }
+                        }
+                    }
+                    
+                    context.ExchangeData = exchangeData;
+                    cardInstance.Context = context;
+                }
+                
+                exchangeCards.Add(cardInstance);
             }
         }
 
