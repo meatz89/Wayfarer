@@ -142,6 +142,10 @@ public class CardDeckManager
             }
         }
 
+        // Remove the played card from hand (it was played, so it leaves the hand)
+        session.Hand.RemoveCard(selectedCard);
+        session.PlayedCards.Add(selectedCard);
+        
         // Remove fleeting cards from hand after SPEAK, executing exhaust effects
         bool conversationContinues = RemoveFleetingCardsFromHand(session);
 

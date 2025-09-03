@@ -81,6 +81,13 @@ public class ConversationOrchestrator
             ObservationCards = observationCards ?? new List<CardInstance>()
         };
 
+        // Perform initial LISTEN with no patience cost - draws cards based on emotional state
+        List<CardInstance> initialCards = _deckManager.ExecuteListen(session);
+        
+        // Reset weight pool after initial draw (as per standard LISTEN)
+        session.CurrentWeightPool = _weightPoolManager.CurrentSpentWeight;
+        session.WeightCapacity = _weightPoolManager.CurrentCapacity;
+
         return session;
     }
 
