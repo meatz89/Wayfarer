@@ -25,7 +25,7 @@ The three core game loops answer fundamental design questions while maintaining 
 1. Player chooses conversation type
 2. Appropriate goal from goal deck shuffled into conversation deck copy
 3. Goal card requires 5-6 weight to play (needs Open/Connected or Prepared atmosphere)
-4. Goal cards have "Final Word" - if fleeting goal discarded, conversation fails
+4. Goal cards have both "Fleeting" and "Opportunity" Properties - if goal card is discarded, conversation fails
 
 **Weight Pool Management**:
 - Capacity determined by emotional state (3-6)

@@ -173,29 +173,16 @@ From Copper Kettle Common Room:
 - **"Crisis Refusal"** (Trust Letter)
   - Weight: 5
   - Difficulty: Very Hard (40% base + Trust tokens × 5%)
-  - Success Terms: 4hr deadline, position 3, 10 coins
-  - Failure Terms: 1hr deadline, position 1, 5 coins
-  - Has "Final Word" property
-
-- **"Formal Refusal"** (Trust Letter)
-  - Weight: 6
-  - Difficulty: Very Hard (40% base + Trust tokens × 5%)
-  - Success Terms: 6hr deadline, lowest available, 15 coins
-  - Failure Terms: 3hr deadline, position 2, 10 coins
-  - Has "Final Word" property
-
-- **"Personal Letter"** (Trust Letter)
-  - Weight: 5
-  - Difficulty: Very Hard (40% base + Trust tokens × 5%)
-  - Success Terms: 8hr deadline, flexible position, 20 coins
-  - Failure Terms: 4hr deadline, position 3, 15 coins
-  - Has "Final Word" property
+  - Success Effect: Accept Letter and Obligation for fixed terms
+  - Failure Effect: Conversation Ends, -3 Comfort
+  - Has "Fleeting" and "Opportunity" property
 
 - **"Clear the Air"** (Resolution Goal)
   - Weight: 5
   - Difficulty: Hard (50% base + Trust tokens × 5%)
-  - Effect: Remove burden cards from relationship record
-  - Has "Final Word" property
+  - Success Effect: Remove burden cards from relationship record
+  - Failure Effect: Burden remains
+  - Has "Fleeting" and "Opportunity" property
 
 **Relationship Record**:
 - 2 burden cards from past failure (visible marker of damaged trust)
