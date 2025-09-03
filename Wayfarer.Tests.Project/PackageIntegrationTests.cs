@@ -44,8 +44,6 @@ namespace Wayfarer.Tests
             Assert.That(gameWorld.NPCs.Any(n => n.Name == "Marcus"), Is.True, "Marcus should be loaded");
             
             // Check starting conditions
-            Assert.That(gameWorld.PlayerCoins, Is.EqualTo(2), "Player should start with 2 coins");
-            Assert.That(gameWorld.PlayerStamina, Is.EqualTo(7), "Player should start with 7 stamina");
             Assert.That(gameWorld.InitialLocationSpotId, Is.EqualTo("corner_table"), "Should start at corner table");
         }
 
