@@ -486,11 +486,30 @@ public class ConversationFacade
     {
         foreach (CardInstance card in playedCards)
         {
+            Console.WriteLine($"[ConversationFacade] Processing card {card.Name}, has Context: {card.Context != null}, has ExchangeData: {card.Context?.ExchangeData != null}");
+            Console.WriteLine($"[ConversationFacade] Card Properties: {string.Join(", ", card.Properties)}");
+            Console.WriteLine($"[ConversationFacade] Card SuccessEffect Type: {card.SuccessEffect?.Type}, has ExchangeData in effect: {card.SuccessEffect?.ExchangeData != null}");
+            
             // Handle exchange cards
             if (card.Context?.ExchangeData != null)
             {
                 bool exchangeSuccess = _exchangeHandler.ExecuteExchange(
                     card.Context.ExchangeData,
+                    _currentSession.NPC,
+                    _gameWorld.GetPlayer(),
+                    _gameWorld.GetPlayerResourceState());
+
+                if (!exchangeSuccess)
+                {
+                    _messageSystem.AddSystemMessage("Exchange failed - insufficient resources", SystemMessageTypes.Warning);
+                }
+            }
+            // Also check if the card has exchange effect directly
+            else if (card.SuccessEffect?.Type == CardEffectType.Exchange && card.SuccessEffect?.ExchangeData != null)
+            {
+                Console.WriteLine("[ConversationFacade] Using exchange data from SuccessEffect directly");
+                bool exchangeSuccess = _exchangeHandler.ExecuteExchange(
+                    card.SuccessEffect.ExchangeData,
                     _currentSession.NPC,
                     _gameWorld.GetPlayer(),
                     _gameWorld.GetPlayerResourceState());

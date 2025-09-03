@@ -134,7 +134,7 @@ public static class ConversationCardParser
         var card = new ConversationCard
         {
             Id = dto.Id,
-            Name = dto.DisplayName ?? dto.Id,
+            Name = dto.DisplayName ?? dto.Description ?? dto.Id,
             Description = dto.Description ?? "",
             TokenType = tokenType,
             Weight = dto.Weight,

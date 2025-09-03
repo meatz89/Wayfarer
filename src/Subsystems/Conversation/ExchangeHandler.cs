@@ -305,13 +305,12 @@ public class ExchangeHandler
     
     private ExchangeData ExtractExchangeData(ConversationCard card)
     {
-        // Extract exchange data from card effects
-        // For now, return a basic exchange
-        return new ExchangeData
+        // Extract exchange data from card's success effect
+        if (card.SuccessEffect?.Type == CardEffectType.Exchange && 
+            card.SuccessEffect.ExchangeData != null)
         {
-            Cost = new Dictionary<ResourceType, int>(),
-            Reward = new Dictionary<ResourceType, int>()
-        };
+            return card.SuccessEffect.ExchangeData;
+        }
     }
 }
 
