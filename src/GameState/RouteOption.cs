@@ -118,7 +118,7 @@ public class RouteOption
             return false;
         }
 
-        if (player.Stamina < staminaCost)
+        if (player.Hunger + staminaCost > player.MaxHunger)
         {
             return false;
         }
@@ -234,11 +234,11 @@ public class RouteOption
         // Apply weight penalties
         if (totalWeight > GameConstants.LoadWeight.LIGHT_LOAD_MAX && totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
         {
-            adjustedStaminaCost += GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY;
+            adjustedStaminaCost += GameConstants.LoadWeight.MEDIUM_LOAD_HUNGER_INCREASE;
         }
         else if (totalWeight > GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
         {
-            adjustedStaminaCost += GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY;
+            adjustedStaminaCost += GameConstants.LoadWeight.HEAVY_LOAD_HUNGER_INCREASE;
         }
 
         return adjustedStaminaCost;
@@ -271,18 +271,18 @@ public class RouteOption
         // Physical weight penalties (realistic cargo limitations)
         if (totalWeight > GameConstants.LoadWeight.LIGHT_LOAD_MAX && totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
         {
-            staminaCost += GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY; // Moderate load
+            staminaCost += GameConstants.LoadWeight.MEDIUM_LOAD_HUNGER_INCREASE; // Moderate load
         }
         else if (totalWeight > GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
         {
-            staminaCost += GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY; // Heavy load
+            staminaCost += GameConstants.LoadWeight.HEAVY_LOAD_HUNGER_INCREASE; // Heavy load
         }
 
         // Overload penalties (instead of blocking - player choice with consequences)
         if (itemCount > MaxItemCapacity)
         {
             int overload = itemCount - MaxItemCapacity;
-            staminaCost += overload * GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY; // +1 stamina per item over capacity
+            staminaCost += overload * GameConstants.LoadWeight.MEDIUM_LOAD_HUNGER_INCREASE; // +1 stamina per item over capacity
         }
 
         return Math.Max(1, staminaCost);

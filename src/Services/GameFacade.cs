@@ -408,9 +408,9 @@ public class GameFacade
         // Initialize player resources for testing
         player.Coins = 50;  // Starting coins for testing
         player.Health = 10; // Starting health for testing
-        player.Food = 5;   // Starting food for testing
+        player.Hunger = 5;   // Starting food for testing
         
-        Console.WriteLine($"[GameFacade.StartGameAsync] Player resources initialized - Coins: {player.Coins}, Health: {player.Health}, Food: {player.Food}");
+        Console.WriteLine($"[GameFacade.StartGameAsync] Player resources initialized - Coins: {player.Coins}, Health: {player.Health}, Food: {player.Hunger}");
         
         _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success);
     }

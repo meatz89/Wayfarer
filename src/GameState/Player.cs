@@ -18,15 +18,14 @@
 
     // Resources
     public int Coins { get; set; } = 10; // Starting coins - intentionally kept as literal as it's game balance
-    public int Stamina { get; set; } = 6; // Starting stamina - from GameConfiguration.StartingStamina
-    public int Concentration { get; set; } = 10; // Starting concentration - intentionally kept as literal
+    public int Attention { get; set; } = 6; // Starting attention
     public int Health { get; set; }
-    public int Food { get; set; }
+    public int Hunger { get; set; } = 0; // Starting hunger (0 = not hungry)
 
-    public int MaxStamina { get; set; } = 10;  // From GameConfiguration.MaxStamina
-    public int MaxConcentration { get; set; }
+    public int MaxAttention { get; set; } = 10;  // Maximum attention
     public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
+    public int MaxHunger { get; set; } = 100; // Maximum hunger before problems
 
 
     public Inventory Inventory { get; set; } = new Inventory(6); // Starting inventory size - game balance
@@ -185,8 +184,9 @@
         XPToNextLevel = 100;
 
         // Set max values that match initial values
-        MaxConcentration = 10; // Match initial Concentration = 10
+        MaxAttention = 10; // Maximum attention
         MaxHealth = 10; // Set reasonable default for MaxHealth
+        MaxHunger = 10; // Maximum hunger before starvation
 
         // Skill cards removed - using letter queue system
 
@@ -206,9 +206,9 @@
 
     public void HealFully()
     {
-        Stamina = MaxStamina;
+        Attention = MaxAttention;
         Health = MaxHealth;
-        Concentration = MaxConcentration;
+        Hunger = 0; // Reset hunger to not hungry
     }
 
 
@@ -264,36 +264,22 @@
         return false;
     }
 
-    public bool ModifyConcentration(int count)
+
+    public bool ModifyHunger(int amount)
     {
-        int newConcentration = Math.Clamp(Concentration + count, 0, MaxConcentration);
-        if (newConcentration != Concentration)
+        int newHunger = Math.Clamp(Hunger + amount, 0, MaxHunger);
+        if (newHunger != Hunger)
         {
-            Concentration = newConcentration;
+            Hunger = newHunger;
             return true;
         }
         return false;
     }
 
-    public bool ModifyFood(int amount)
+    public bool ReduceHunger(int amount)
     {
-        int newFood = Math.Max(0, Food + amount);
-        if (newFood != Food)
-        {
-            Food = newFood;
-            return true;
-        }
-        return false;
-    }
-
-    public bool ConsumeFood(int amount)
-    {
-        if (Food >= amount)
-        {
-            Food -= amount;
-            return true;
-        }
-        return false;
+        // Eating reduces hunger
+        return ModifyHunger(-amount);
     }
 
     public void AddExperiencePoints(int xpBonus)
@@ -326,10 +312,9 @@
     }
 
 
-    public void SetNewStamina(int newStamina)
+    public void SetNewAttention(int newAttention)
     {
-        this.Stamina = Math.Clamp(newStamina, 0, MaxStamina);
-
+        this.Attention = Math.Clamp(newAttention, 0, MaxAttention);
     }
 
     public int GetSkillLevel(SkillTypes skill)
@@ -367,15 +352,14 @@
         clone.Level = this.Level;
         clone.CurrentXP = this.CurrentXP;
         clone.XPToNextLevel = this.XPToNextLevel;
-        clone.MaxStamina = this.MaxStamina;
-        clone.Stamina = this.Stamina;
+        clone.MaxAttention = this.MaxAttention;
+        clone.Attention = this.Attention;
         clone.Coins = this.Coins;
-        clone.Food = this.Food;
+        clone.Hunger = this.Hunger;
         clone.MinHealth = this.MinHealth;
         clone.Health = this.Health;
-        clone.Concentration = this.Concentration;
         clone.MaxHealth = this.MaxHealth;
-        clone.MaxConcentration = this.MaxConcentration;
+        clone.MaxHunger = this.MaxHunger;
         clone.IsInitialized = this.IsInitialized;
         clone.CurrentLocationSpot = this.CurrentLocationSpot;
 
@@ -414,13 +398,11 @@
         }
     }
 
-    public bool SpendStamina(int amount)
+    public bool SpendAttention(int amount)
     {
-        if (Stamina < amount) return false;
+        if (Attention < amount) return false;
 
-        Stamina -= amount;
-
-
+        Attention -= amount;
         return true;
     }
 
@@ -442,56 +424,37 @@
         return false;
     }
 
-    // === CATEGORICAL STAMINA SYSTEM ===
-    // Implementation of deterministic categorical stamina states with hard gates
+    // === ATTENTION SYSTEM ===
+    // Attention replaces stamina as the core conversation resource
 
     /// <summary>
-    /// Modifies stamina and updates categorical physical condition
+    /// Modifies attention
     /// </summary>
-    public bool ModifyStamina(int amount)
+    public bool ModifyAttention(int amount)
     {
-        int newStamina = Math.Clamp(Stamina + amount, 0, MaxStamina);
-        if (newStamina != Stamina)
+        int newAttention = Math.Clamp(Attention + amount, 0, MaxAttention);
+        if (newAttention != Attention)
         {
-            Stamina = newStamina;
-
+            Attention = newAttention;
             return true;
         }
         return false;
     }
 
     /// <summary>
-    /// Checks if player can perform dangerous route travel (requires 4+ stamina)
+    /// Checks if player has enough attention for an action
     /// </summary>
-    public bool CanPerformDangerousTravel()
+    public bool HasAttention(int amount)
     {
-        return Stamina >= 4;
+        return Attention >= amount;
     }
 
     /// <summary>
-    /// Checks if player can perform noble social conversations (requires 3+ stamina)
+    /// Refreshes attention at time block change
     /// </summary>
-    public bool CanPerformNobleSocialConversation()
+    public void RefreshAttention()
     {
-        return Stamina >= 3;
-    }
-
-    /// <summary>
-    /// Applies categorical stamina recovery based on lodging type
-    /// </summary>
-    public void ApplyCategoricalStaminaRecovery(string lodgingCategory)
-    {
-        int recoveryAmount = lodgingCategory.ToLower() switch
-        {
-            "rough" => 2,           // Rough lodging grants 2 points
-            "common" => 4,          // Common lodging grants 4 points
-            "private" => 6,         // Private lodging grants 6 points
-            "noble" => 8,           // Noble invitation grants 8 points
-            "noble_invitation" => 8,
-            _ => 2                  // Default to rough recovery
-        };
-
-        ModifyStamina(recoveryAmount);
+        Attention = MaxAttention;
     }
 
     internal void SetCoins(int value)
@@ -499,9 +462,9 @@
         Coins = Math.Max(0, value);
     }
 
-    internal void SetStamina(int value)
+    internal void SetAttention(int value)
     {
-        Stamina = Math.Clamp(value, 0, MaxStamina);
+        Attention = Math.Clamp(value, 0, MaxAttention);
     }
 
 

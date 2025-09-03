@@ -36,8 +36,7 @@ public class GameWorld
             WorldState.CurrentWeather = value;
         }
     }
-    public int PlayerCoins { get; set; } = 2;
-    public int PlayerStamina { get; set; } = 5;
+    // Player state is accessed through Player object, not duplicated here
     public Inventory PlayerInventory { get; private set; }
     public List<Location> Locations { get; set; } = new List<Location>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
@@ -76,7 +75,6 @@ public class GameWorld
 
     // Initialization data - stored in GameWorld, not passed between phases
     // This eliminates the need for SharedData dictionary
-    public string InitialLocationId { get; set; }
     public string InitialLocationSpotId { get; set; }
     public PlayerInitialConfig InitialPlayerConfig { get; set; }
 
@@ -124,12 +122,12 @@ public class GameWorld
 
     public PlayerResourceState GetPlayerResourceState()
     {
-        // Create a resource state from current player values
+        // Get resource state from the actual Player object
         return new PlayerResourceState(
-            coins: PlayerCoins,
-            stamina: PlayerStamina,
-            health: 10, // Default health for now
-            concentration: 10 // Default concentration for now
+            coins: Player.Coins,
+            stamina: Player.Attention,  // Using Attention for stamina parameter
+            health: Player.Health,
+            concentration: 0  // Deprecated - will be removed
         );
     }
 

@@ -32,8 +32,8 @@ public class ExchangeData
                 case ResourceType.Health:
                     if (player.Health < cost.Value) return false;
                     break;
-                case ResourceType.Food:
-                    if (player.Food < cost.Value) return false;
+                case ResourceType.Hunger:
+                    if (player.Hunger < cost.Value) return false;
                     break;
             }
         }
@@ -55,7 +55,7 @@ public class ExchangeData
                 case ResourceType.Health:
                     if (playerResources.Health < cost.Value) return false;
                     break;
-                case ResourceType.Food:
+                case ResourceType.Hunger:
                     if (playerResources.Stamina < cost.Value) return false;
                     break;
                 case ResourceType.Attention:

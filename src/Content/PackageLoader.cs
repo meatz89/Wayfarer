@@ -116,11 +116,8 @@ public class PackageLoader
         {
             _gameWorld.InitialPlayerConfig = conditions.PlayerConfig;
             
-            // Apply immediate values to player
-            if (conditions.PlayerConfig.Coins.HasValue)
-                _gameWorld.PlayerCoins = conditions.PlayerConfig.Coins.Value;
-            if (conditions.PlayerConfig.StaminaPoints.HasValue)
-                _gameWorld.PlayerStamina = conditions.PlayerConfig.StaminaPoints.Value;
+            // Player config is stored for GameFacade to apply to Player object
+            // We don't set duplicate fields on GameWorld anymore
         }
 
         // Set starting location

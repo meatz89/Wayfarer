@@ -12,10 +12,10 @@ public static class GameConstants
         public const int LIGHT_LOAD_MAX = 3;
         public const int MEDIUM_LOAD_MAX = 6;
 
-        // Stamina penalties for load weight
-        public const int LIGHT_LOAD_STAMINA_PENALTY = 0;
-        public const int MEDIUM_LOAD_STAMINA_PENALTY = 1;
-        public const int HEAVY_LOAD_STAMINA_PENALTY = 2;
+        // Hunger increase for load weight
+        public const int LIGHT_LOAD_HUNGER_INCREASE = 0;
+        public const int MEDIUM_LOAD_HUNGER_INCREASE = 1;
+        public const int HEAVY_LOAD_HUNGER_INCREASE = 2;
     }
 
     /// <summary>

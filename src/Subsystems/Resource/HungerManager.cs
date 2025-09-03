@@ -15,7 +15,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
 
         public int GetCurrentHunger(Player player)
         {
-            return player.Food;
+            return player.Hunger;
         }
 
         public int GetMaxHunger()
@@ -25,25 +25,25 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
 
         public bool IsStarving(Player player)
         {
-            return player.Food >= STARVING_THRESHOLD;
+            return player.Hunger >= STARVING_THRESHOLD;
         }
 
         public bool IsHungry(Player player)
         {
-            return player.Food >= HUNGRY_THRESHOLD;
+            return player.Hunger >= HUNGRY_THRESHOLD;
         }
 
         public void IncreaseHunger(Player player, int amount, string reason, MessageSystem messageSystem)
         {
-            int oldHunger = player.Food;
-            player.Food = Math.Min(MAX_HUNGER, player.Food + amount);
-            int actualIncrease = player.Food - oldHunger;
+            int oldHunger = player.Hunger;
+            player.Hunger = Math.Min(MAX_HUNGER, player.Hunger + amount);
+            int actualIncrease = player.Hunger - oldHunger;
 
             if (actualIncrease > 0)
             {
                 string hungerLevel = GetHungerLevelDescription(player);
                 messageSystem.AddSystemMessage(
-                    $"🍞 Hunger increased by {actualIncrease} - {reason} ({player.Food}/{MAX_HUNGER} - {hungerLevel})",
+                    $"🍞 Hunger increased by {actualIncrease} - {reason} ({player.Hunger}/{MAX_HUNGER} - {hungerLevel})",
                     SystemMessageTypes.Info);
 
                 if (IsStarving(player))
@@ -54,24 +54,24 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
                 }
             }
 
-            Console.WriteLine($"[HungerManager] Hunger increased by {actualIncrease} - {reason}. Current: {player.Food}/{MAX_HUNGER}");
+            Console.WriteLine($"[HungerManager] Hunger increased by {actualIncrease} - {reason}. Current: {player.Hunger}/{MAX_HUNGER}");
         }
 
         public void DecreaseHunger(Player player, int amount, string source, MessageSystem messageSystem)
         {
-            int oldHunger = player.Food;
-            player.Food = Math.Max(MIN_HUNGER, player.Food - amount);
-            int actualDecrease = oldHunger - player.Food;
+            int oldHunger = player.Hunger;
+            player.Hunger = Math.Max(MIN_HUNGER, player.Hunger - amount);
+            int actualDecrease = oldHunger - player.Hunger;
 
             if (actualDecrease > 0)
             {
                 string hungerLevel = GetHungerLevelDescription(player);
                 messageSystem.AddSystemMessage(
-                    $"🍖 Ate {source}, hunger reduced by {actualDecrease} ({player.Food}/{MAX_HUNGER} - {hungerLevel})",
+                    $"🍖 Ate {source}, hunger reduced by {actualDecrease} ({player.Hunger}/{MAX_HUNGER} - {hungerLevel})",
                     SystemMessageTypes.Success);
             }
 
-            Console.WriteLine($"[HungerManager] Hunger decreased by {actualDecrease} from {source}. Current: {player.Food}/{MAX_HUNGER}");
+            Console.WriteLine($"[HungerManager] Hunger decreased by {actualDecrease} from {source}. Current: {player.Hunger}/{MAX_HUNGER}");
         }
 
         public void ProcessTimeBlockHunger(Player player, MessageSystem messageSystem)
@@ -83,7 +83,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         {
             if (IsStarving(player)) return "Starving";
             if (IsHungry(player)) return "Hungry";
-            if (player.Food >= 30) return "Peckish";
+            if (player.Hunger >= 30) return "Peckish";
             return "Satisfied";
         }
     }

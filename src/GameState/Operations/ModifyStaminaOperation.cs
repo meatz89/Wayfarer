@@ -19,7 +19,7 @@ public class ModifyStaminaOperation : IGameOperation
     public bool CanExecute(GameWorld gameWorld)
     {
         Player player = gameWorld.GetPlayer();
-        int newStamina = player.Stamina + _amount;
+        int newStamina = player.Attention + _amount;
 
         // Can't go below 0 stamina
         return newStamina >= 0;
@@ -28,9 +28,9 @@ public class ModifyStaminaOperation : IGameOperation
     public void Execute(GameWorld gameWorld)
     {
         Player player = gameWorld.GetPlayer();
-        player.Stamina += _amount;
+        player.Attention += _amount;
 
         // Clamp to valid range
-        player.Stamina = Math.Max(0, Math.Min(player.MaxStamina, player.Stamina));
+        player.Attention = Math.Max(0, Math.Min(player.MaxAttention, player.Attention));
     }
 }

@@ -116,7 +116,7 @@ namespace Wayfarer.Pages
             {
                 Coins = player.Coins;
                 Health = player.Health;
-                Food = player.Food;
+                Food = player.Hunger;
                 Console.WriteLine($"[GameScreen.RefreshResourceDisplay] Player resources: Coins={Coins}, Health={Health}, Food={Food}");
             }
 

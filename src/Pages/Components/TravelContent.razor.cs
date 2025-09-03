@@ -135,7 +135,7 @@ namespace Wayfarer.Pages.Components
                 return false;
 
             // Check stamina cost (base 2 for any travel)
-            if (player.Stamina < 2)
+            if (player.Attention < 2)
                 return false;
 
             // Check requirements (includes token requirements, time restrictions, etc.)

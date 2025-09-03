@@ -125,11 +125,11 @@ public class TravelManager
         // Check if any route exists and is available
         List<RouteOption> routes = GetAvailableRoutes(currentLocation.Id, destination.Id);
 
-        // Check if player has enough stamina for cheapest route
+        // Check if player can travel (hunger check)
         Player player = _gameWorld.GetPlayer();
-        if (player.Stamina < 2) // Base travel stamina cost
+        if (player.Hunger >= player.MaxHunger - 2) // Can't travel if too hungry
         {
-            return false; // Not enough stamina for any travel
+            return false; // Too hungry to travel
         }
 
         return routes.Any();
@@ -154,12 +154,12 @@ public class TravelManager
     public void TravelToLocation(RouteOption selectedRoute)
     {
         // Calculate actual costs with weather and weight modifications
-        int adjustedStaminaCost = CalculateStaminaCost(selectedRoute);
+        int hungerIncrease = CalculateHungerIncrease(selectedRoute);
         int adjustedCoinCost = CalculateCoinCost(selectedRoute);
 
-        // Deduct costs
+        // Apply costs
         _gameWorld.GetPlayer().ModifyCoins(-adjustedCoinCost);
-        _gameWorld.GetPlayer().SpendStamina(adjustedStaminaCost);
+        _gameWorld.GetPlayer().ModifyHunger(hungerIncrease); // Travel makes you hungry
 
         // Record route usage for discovery mechanics
         // Route usage counting removed - violates NO USAGE COUNTERS principle
@@ -293,12 +293,25 @@ public class TravelManager
         return totalWeight;
     }
 
-    public int CalculateStaminaCost(RouteOption route)
+    public int CalculateHungerIncrease(RouteOption route)
     {
         int totalWeight = CalculateCurrentWeight(_gameWorld);
         WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
-        int staminaCost = route.CalculateStaminaCost(totalWeight, currentWeather, ItemRepository, _gameWorld.GetPlayer());
-        return staminaCost;
+        
+        // Travel increases hunger based on route difficulty and conditions
+        int baseHunger = 2; // Base hunger increase for any travel
+        
+        // Heavy load increases hunger
+        if (totalWeight > GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
+            baseHunger += 2;
+        else if (totalWeight > GameConstants.LoadWeight.LIGHT_LOAD_MAX) 
+            baseHunger += 1;
+            
+        // Bad weather increases hunger
+        if (currentWeather == WeatherCondition.Rain || currentWeather == WeatherCondition.Snow)
+            baseHunger += 1;
+            
+        return baseHunger;
     }
 
     public int CalculateCoinCost(RouteOption route)
@@ -313,14 +326,17 @@ public class TravelManager
         return totalWeight switch
         {
             _ when totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX => "Light load",
-            _ when totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX => "Medium load (+1 stamina cost)",
-            _ => "Heavy load (+2 stamina cost)"
+            _ when totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX => "Medium load (+1 hunger)",
+            _ => "Heavy load (+2 hunger)"
         };
     }
     public bool CanTravel(RouteOption route)
     {
-        bool canTravel = _gameWorld.GetPlayer().Coins >= CalculateCoinCost(route) &&
-               _gameWorld.GetPlayer().Stamina >= CalculateStaminaCost(route);
+        Player player = _gameWorld.GetPlayer();
+        int hungerAfterTravel = player.Hunger + CalculateHungerIncrease(route);
+        
+        bool canTravel = player.Coins >= CalculateCoinCost(route) &&
+               hungerAfterTravel < player.MaxHunger; // Can't travel if it would max hunger
 
         return canTravel;
     }

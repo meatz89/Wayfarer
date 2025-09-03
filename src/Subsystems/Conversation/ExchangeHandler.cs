@@ -200,7 +200,7 @@ public class ExchangeHandler
 
                 case ResourceType.Hunger:
                     // Hunger maps to Food (0 = not hungry, 100 = very hungry)
-                    player.Food = Math.Max(0, Math.Min(100, player.Food - reward.Value));
+                    player.Hunger = Math.Max(0, Math.Min(100, player.Hunger - reward.Value));
                     break;
 
                 case ResourceType.Attention:

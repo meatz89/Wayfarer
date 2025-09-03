@@ -141,7 +141,7 @@ public class GameRuleEngine : IGameRuleEngine
         int staminaCost = CalculateTravelStamina(route);
         int hourCost = route.TravelTimeMinutes;
 
-        return player.Stamina >= staminaCost &&
+        return player.Attention >= staminaCost &&
                _timeManager.HoursRemaining >= hourCost;
     }
 
