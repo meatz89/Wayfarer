@@ -28,22 +28,24 @@ public class ConversationSession
     public List<CardInstance> PlayedCards { get; set; } = new();
     public List<CardInstance> DiscardedCards { get; set; } = new();
     public TokenMechanicsManager TokenManager { get; set; }
+    public FlowManager FlowManager { get; set; }
+    public RapportManager RapportManager { get; set; }
 
-    // New focus and atmosphere system
+    // New presence and atmosphere system
     public int FlowBattery { get; set; } = 0; // -3 to +3
-    public int CurrentFocus { get; set; } = 0; // Current spent focus
-    public int FocusCapacity { get; set; } = 5; // Based on state
+    public int CurrentPresence { get; set; } = 0; // Current spent presence
+    public int MaxPresence { get; set; } = 5; // Based on state
     public AtmosphereType CurrentAtmosphere { get; set; } = AtmosphereType.Neutral;
 
     public List<CardInstance> ObservationCards { get; set; } = new();
 
     // New helper methods
-    public int GetAvailableFocus()
+    public int GetAvailablePresence()
     {
-        return Math.Max(0, GetEffectiveFocusCapacity() - CurrentFocus);
+        return Math.Max(0, GetEffectivePresenceCapacity() - CurrentPresence);
     }
 
-    public int GetEffectiveFocusCapacity()
+    public int GetEffectivePresenceCapacity()
     {
         int baseCapacity = CurrentState switch
         {
@@ -83,10 +85,10 @@ public class ConversationSession
         return baseCount;
     }
 
-    public void RefreshFocus()
+    public void RefreshPresence()
     {
-        CurrentFocus = 0;
-        FocusCapacity = GetEffectiveFocusCapacity();
+        CurrentPresence = 0;
+        MaxPresence = GetEffectivePresenceCapacity();
     }
 
     public bool IsHandOverflowing()

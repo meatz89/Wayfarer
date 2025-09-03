@@ -119,9 +119,17 @@ public class CardDeckManager
 
         if (success)
         {
+            // Success always gives +1 to flow
+            flowChange = 1;
+            
             // Process card's success effect
             effectResult = _effectProcessor.ProcessSuccessEffect(card, session);
-            flowChange = effectResult.FlowChange;
+            
+            // Apply rapport changes to RapportManager
+            if (effectResult.RapportChange != 0 && session.RapportManager != null)
+            {
+                session.RapportManager.ApplyRapportChange(effectResult.RapportChange, session.CurrentAtmosphere);
+            }
 
             // Add drawn cards to hand
             if (effectResult.CardsToAdd.Any())
@@ -140,9 +148,17 @@ public class CardDeckManager
         }
         else
         {
+            // Failure always gives -1 to flow
+            flowChange = -1;
+            
             // Process card's failure effect
             effectResult = _effectProcessor.ProcessFailureEffect(card, session);
-            flowChange = effectResult.FlowChange;
+            
+            // Apply rapport changes to RapportManager (if any failure effects modify rapport)
+            if (effectResult.RapportChange != 0 && session.RapportManager != null)
+            {
+                session.RapportManager.ApplyRapportChange(effectResult.RapportChange, session.CurrentAtmosphere);
+            }
             
             // Clear atmosphere on failure
             _atmosphereManager.ClearAtmosphereOnFailure();
@@ -309,7 +325,7 @@ public class CardDeckManager
                 }
                 return true;
 
-            case CardEffectType.AddFlow:
+            case CardEffectType.AddRapport:
                 if (int.TryParse(card.ExhaustEffect.Value, out int flow))
                 {
                     session.FlowBattery += flow;
@@ -317,7 +333,7 @@ public class CardDeckManager
                 }
                 return true;
 
-            case CardEffectType.AddFocus:
+            case CardEffectType.AddPresence:
                 if (int.TryParse(card.ExhaustEffect.Value, out int focus))
                 {
                     _focusManager.AddFocus(focus);
@@ -486,7 +502,7 @@ public class CardDeckManager
             Focus = 1,
             Difficulty = Difficulty.Medium,
             TokenType = TokenType.Trust,
-            SuccessEffect = new CardEffect { Type = CardEffectType.AddFlow, Value = "1" },
+            SuccessEffect = new CardEffect { Type = CardEffectType.AddRapport, Value = "1" },
             FailureEffect = CardEffect.None,
             ExhaustEffect = CardEffect.None
         };

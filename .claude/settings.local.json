@@ -319,7 +319,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6303\" timeout 10 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6303\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6303\" dotnet run)",
-      "Bash(/tmp/fix_resource_names.sh:*)"
+      "Bash(/tmp/fix_resource_names.sh:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run)"
     ],
     "deny": []
   }

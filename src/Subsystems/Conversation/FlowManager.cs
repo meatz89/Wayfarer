@@ -22,6 +22,17 @@ public class FlowManager
     }
     
     /// <summary>
+    /// Apply card result and handle any state transitions.
+    /// Returns (stateChanged, newState, conversationEnds)
+    /// </summary>
+    public (bool stateChanged, EmotionalState newState, bool conversationEnds) ApplyCardResult(bool success)
+    {
+        // Simple: +1 for success, -1 for failure
+        int change = success ? 1 : -1;
+        return ApplyFlowChange(change);
+    }
+    
+    /// <summary>
     /// Apply a flow change and handle any state transitions.
     /// Returns (stateChanged, newState, conversationEnds)
     /// </summary>

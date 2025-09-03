@@ -142,6 +142,30 @@ public class AtmosphereManager
         return modified;
     }
 
+    // Modify rapport change based on atmosphere
+    public int ModifyRapportChange(int baseRapport)
+    {
+        int modified = baseRapport;
+
+        // Volatile: ±1 to all changes
+        if (currentAtmosphere == AtmosphereType.Volatile)
+        {
+            if (baseRapport > 0)
+                modified = baseRapport + 1;
+            else if (baseRapport < 0)
+                modified = baseRapport - 1;
+            // Zero stays zero
+        }
+
+        // Exposed: Double all changes
+        if (currentAtmosphere == AtmosphereType.Exposed)
+        {
+            modified = baseRapport * 2;
+        }
+
+        return modified;
+    }
+
     // Check if next effect should happen twice
     public bool ShouldDoubleNextEffect()
     {

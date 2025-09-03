@@ -936,12 +936,12 @@ namespace Wayfarer.Pages.Components
             if (SelectedCard != null)
             {
                 int focus = SelectedCard.Focus;
-                int remainingAfter = (Session?.GetAvailableFocus() ?? 0) - focus;
+                int remainingAfter = (Session?.GetAvailablePresence() ?? 0) - focus;
                 string continueHint = remainingAfter > 0 ? $" (Can SPEAK {remainingAfter} more)" : " (Must LISTEN after)";
                 return $"Play {GetProperCardName(SelectedCard)} ({focus} focus){continueHint}";
             }
             
-            int availableFocus = Session?.GetAvailableFocus() ?? 0;
+            int availableFocus = Session?.GetAvailablePresence() ?? 0;
             if (availableFocus == 0)
                 return "No focus remaining - must LISTEN to refresh";
             else if (availableFocus == 1)
@@ -1181,6 +1181,26 @@ namespace Wayfarer.Pages.Components
             return "";
         }
 
+        protected string GetRapportSourceDescription()
+        {
+            if (Session?.RapportManager == null || CurrentTokens == null)
+                return "";
+                
+            int totalTokens = CurrentTokens.Values.Sum();
+            int startingRapport = totalTokens * 3; // 3 rapport per token
+            int currentRapport = Session.RapportManager.CurrentRapport;
+            int gained = currentRapport - startingRapport;
+            
+            if (totalTokens == 0)
+                return "No starting rapport";
+            else if (gained == 0)
+                return $"Started at {startingRapport} ({totalTokens} token{(totalTokens > 1 ? "s" : "")} × 3)";
+            else if (gained > 0)
+                return $"Started at {startingRapport} ({totalTokens} token{(totalTokens > 1 ? "s" : "")} × 3), gained +{gained} through play";
+            else
+                return $"Started at {startingRapport} ({totalTokens} token{(totalTokens > 1 ? "s" : "")} × 3), lost {Math.Abs(gained)} through play";
+        }
+
         protected string GetCardClass(CardInstance card)
         {
             // Build class list for card styling
@@ -1263,28 +1283,41 @@ namespace Wayfarer.Pages.Components
                 return $"Complete exchange: {card.Context.ExchangeReward}";
             }
 
-            // State category no longer exists in Properties system
-            if (false)
+            // Check if card has a success effect
+            if (card.SuccessEffect != null && card.SuccessEffect.Type != CardEffectType.None)
             {
-                // Use the actual SuccessState property from the card
-                if (card.SuccessState.HasValue)
+                // Display the effect based on type
+                switch (card.SuccessEffect.Type)
                 {
-                    // Format the state name properly
-                    string stateName = card.SuccessState.Value switch
-                    {
-                        EmotionalState.DESPERATE => "Desperate",
-                        EmotionalState.TENSE => "Tense",
-                        EmotionalState.NEUTRAL => "Neutral",
-                        EmotionalState.OPEN => "Open",
-                        EmotionalState.CONNECTED => "Connected",
-                        _ => card.SuccessState.Value.ToString()
-                    };
-                    return $"→ {stateName}";
+                    case CardEffectType.AddRapport:
+                        int rapportValue = int.TryParse(card.SuccessEffect.Value, out int val) ? val : 0;
+                        return rapportValue > 0 ? $"+{rapportValue} rapport" : $"{rapportValue} rapport";
+                    
+                    case CardEffectType.ScaleRapportByFlow:
+                        return "+rapport (scales with flow)";
+                    
+                    case CardEffectType.ScaleRapportByPatience:
+                        return "+rapport (scales with patience)";
+                    
+                    case CardEffectType.ScaleRapportByPresence:
+                        return "+rapport (scales with presence)";
+                    
+                    case CardEffectType.SetAtmosphere:
+                        return $"Set {card.SuccessEffect.Value} atmosphere";
+                    
+                    case CardEffectType.DrawCards:
+                        return $"Draw {card.SuccessEffect.Value} card(s)";
+                    
+                    case CardEffectType.AddPresence:
+                        return $"+{card.SuccessEffect.Value} presence";
+                    
+                    default:
+                        return "Effect";
                 }
             }
 
-            // Show flow gain without redundant success percentage
-            return $"+{card.BaseFlow} flow";
+            // No effect
+            return "No effect";
         }
 
         protected string GetFailureEffect(CardInstance card)
@@ -1297,28 +1330,41 @@ namespace Wayfarer.Pages.Components
                 return "Execute trade";
             }
 
-            // State category no longer exists in Properties system
-            if (false)
+            // Check if card has a failure effect
+            if (card.FailureEffect != null && card.FailureEffect.Type != CardEffectType.None)
             {
-                // Check if card has a specific failure state
-                if (card.FailureState.HasValue)
+                // Display the effect based on type
+                switch (card.FailureEffect.Type)
                 {
-                    string stateName = card.FailureState.Value switch
-                    {
-                        EmotionalState.DESPERATE => "Desperate",
-                        EmotionalState.TENSE => "Tense",
-                        EmotionalState.NEUTRAL => "Neutral",
-                        EmotionalState.OPEN => "Open",
-                        EmotionalState.CONNECTED => "Connected",
-                        _ => card.FailureState.Value.ToString()
-                    };
-                    return $"→ {stateName}";
+                    case CardEffectType.AddRapport:
+                        int rapportValue = int.TryParse(card.FailureEffect.Value, out int val) ? val : 0;
+                        return rapportValue > 0 ? $"+{rapportValue} rapport" : rapportValue < 0 ? $"{rapportValue} rapport" : "No effect";
+                    
+                    case CardEffectType.ScaleRapportByFlow:
+                        return "Rapport penalty (scales with flow)";
+                    
+                    case CardEffectType.ScaleRapportByPatience:
+                        return "Rapport penalty (scales with patience)";
+                    
+                    case CardEffectType.ScaleRapportByPresence:
+                        return "Rapport penalty (scales with presence)";
+                    
+                    case CardEffectType.SetAtmosphere:
+                        return $"Set {card.FailureEffect.Value} atmosphere";
+                    
+                    case CardEffectType.DrawCards:
+                        return $"Draw {card.FailureEffect.Value} card(s)";
+                    
+                    case CardEffectType.AddPresence:
+                        return $"+{card.FailureEffect.Value} presence";
+                    
+                    default:
+                        return "Effect";
                 }
-                return "State unchanged";
             }
 
-            // Failure typically gives 0 flow
-            return "+0 flow";
+            // No effect
+            return "No effect";
         }
 
         protected string GetTagClass(string tag)
@@ -2194,17 +2240,16 @@ namespace Wayfarer.Pages.Components
                 
             return effect.Type switch
             {
-                CardEffectType.AddFlow => $"{(effect.Value?.StartsWith("-") == true ? "" : "+")}{effect.Value} flow",
+                CardEffectType.AddRapport => $"{(effect.Value?.StartsWith("-") == true ? "" : "+")}{effect.Value} rapport",
                 CardEffectType.DrawCards => $"Draw {effect.Value} card{(effect.Value == "1" ? "" : "s")}",
-                CardEffectType.AddFocus => $"Add {effect.Value} focus",
+                CardEffectType.AddPresence => $"Add {effect.Value} presence",
                 CardEffectType.SetAtmosphere => $"Atmosphere: {effect.Value}",
                 CardEffectType.EndConversation => GetEndConversationDescription(effect),
-                CardEffectType.ScaleByTokens => $"+X flow (X = {effect.Value} tokens)",
-                CardEffectType.ScaleByFlow => $"+X flow (X = {effect.Value})",
-                CardEffectType.ScaleByPatience => $"+X flow (X = {effect.Value})",
-                CardEffectType.ScaleByFocus => $"+X flow (X = {effect.Value})",
-                CardEffectType.FlowReset => "Reset flow to 0",
-                CardEffectType.FocusRefresh => "Refresh focus",
+                CardEffectType.ScaleRapportByFlow => $"+X rapport (X = {effect.Value})",
+                CardEffectType.ScaleRapportByPatience => $"+X rapport (X = {effect.Value})",
+                CardEffectType.ScaleRapportByPresence => $"+X rapport (X = {effect.Value})",
+                CardEffectType.RapportReset => "Reset rapport to starting value",
+                CardEffectType.PresenceRefresh => "Refresh presence",
                 CardEffectType.FreeNextAction => "Next action costs no patience",
                 _ => effect.Type.ToString()
             };
@@ -2260,7 +2305,7 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return "0/5";
             // Display available focus / max capacity (not spent focus)
-            return $"{Session.GetAvailableFocus()}/{Session.GetEffectiveFocusCapacity()}";
+            return $"{Session.GetAvailablePresence()}/{Session.GetEffectivePresenceCapacity()}";
         }
 
         protected string GetFlowBatteryDisplay()
@@ -2581,7 +2626,7 @@ namespace Wayfarer.Pages.Components
         protected int GetMaxFocus()
         {
             if (Session == null) return 5;
-            return Session.GetEffectiveFocusCapacity();
+            return Session.GetEffectivePresenceCapacity();
         }
 
         /// <summary>

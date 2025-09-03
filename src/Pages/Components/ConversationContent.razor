@@ -54,16 +54,28 @@
                         }
                     </div>
                     <div class="focus-pool">
-                        <span class="indicator-label">Focus</span>
+                        <span class="indicator-label">Presence</span>
                         <div class="focus-dots">
-                            @for (int i = 1; i <= (Session?.GetEffectiveFocusCapacity() ?? 3); i++)
+                            @for (int i = 1; i <= (Session?.GetEffectivePresenceCapacity() ?? 3); i++)
                             {
-                                <span class="focus-dot @(i <= (Session?.GetAvailableFocus() ?? 0) ? "available" : "spent")"></span>
+                                <span class="focus-dot @(i <= (Session?.GetAvailablePresence() ?? 0) ? "available" : "spent")"></span>
                             }
                         </div>
-                        <span class="indicator-value">@(Session?.GetAvailableFocus() ?? 0)/@(Session?.GetEffectiveFocusCapacity() ?? 3)</span>
+                        <span class="indicator-value">@(Session?.GetAvailablePresence() ?? 0)/@(Session?.GetEffectivePresenceCapacity() ?? 3)</span>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Rapport Display (from mockup) -->
+        <div class="rapport-strip">
+            <div class="rapport-display">
+                <div class="rapport-main">
+                    <span class="rapport-label">Rapport:</span>
+                    <span class="rapport-value">@(Session?.RapportManager?.CurrentRapport ?? 0)</span>
+                    <span class="rapport-effect">(@(Session?.RapportManager?.GetSuccessModifier() ?? 0)% to all cards)</span>
+                </div>
+                <span class="rapport-source">@GetRapportSourceDescription()</span>
             </div>
         </div>
 
@@ -72,26 +84,6 @@
             <span class="atmosphere-label">Active Atmosphere:</span>
             <span class="atmosphere-current">@GetCurrentAtmosphereDisplay()</span>
             <span class="atmosphere-effect">@GetAtmosphereEffectDescription()</span>
-        </div>
-
-        <!-- Token Strip (from mockup) -->
-        <div class="token-strip">
-            <div class="token-compact">
-                <span class="token-type">Trust:</span>
-                <span class="token-count">@GetTokenCount(ConnectionType.Trust) @GetTokenBonus(ConnectionType.Trust)</span>
-            </div>
-            <div class="token-compact">
-                <span class="token-type">Commerce:</span>
-                <span class="token-count">@GetTokenCount(ConnectionType.Commerce) @GetTokenBonus(ConnectionType.Commerce)</span>
-            </div>
-            <div class="token-compact">
-                <span class="token-type">Status:</span>
-                <span class="token-count">@GetTokenCount(ConnectionType.Status) @GetTokenBonus(ConnectionType.Status)</span>
-            </div>
-            <div class="token-compact">
-                <span class="token-type">Shadow:</span>
-                <span class="token-count">@GetTokenCount(ConnectionType.Shadow) @GetTokenBonus(ConnectionType.Shadow)</span>
-            </div>
         </div>
     }
 

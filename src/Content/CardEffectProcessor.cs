@@ -56,9 +56,9 @@ public class CardEffectProcessor
         CardEffectResult result = new CardEffectResult
         {
             Card = card,
-            FlowChange = 0,
+            RapportChange = 0,
             CardsToAdd = new List<CardInstance>(),
-            FocusAdded = 0,
+            PresenceAdded = 0,
             AtmosphereTypeChange = null,
             SpecialEffect = "",
             EndsConversation = false
@@ -67,23 +67,22 @@ public class CardEffectProcessor
         // Process the effect based on type
         switch (effect.Type)
         {
-            case CardEffectType.AddFlow:
-                result.FlowChange = ProcessFixedFlow(effect.Value);
+            case CardEffectType.AddRapport:
+                result.RapportChange = ProcessFixedRapport(effect.Value);
                 break;
 
-            case CardEffectType.ScaleByTokens:
-            case CardEffectType.ScaleByFlow:
-            case CardEffectType.ScaleByPatience:
-            case CardEffectType.ScaleByFocus:
-                result.FlowChange = ProcessScaledFlow(effect, session);
+            case CardEffectType.ScaleRapportByFlow:
+            case CardEffectType.ScaleRapportByPatience:
+            case CardEffectType.ScaleRapportByPresence:
+                result.RapportChange = ProcessScaledRapport(effect, session);
                 break;
 
             case CardEffectType.DrawCards:
                 result.CardsToAdd = ProcessDrawCards(effect.Value, session);
                 break;
 
-            case CardEffectType.AddFocus:
-                result.FocusAdded = ProcessAddFocus(effect.Value);
+            case CardEffectType.AddPresence:
+                result.PresenceAdded = ProcessAddPresence(effect.Value);
                 break;
 
             case CardEffectType.SetAtmosphere:
@@ -99,14 +98,14 @@ public class CardEffectProcessor
                 }
                 break;
                 
-            case CardEffectType.FlowReset:
-                result.FlowChange = -session.CurrentFlow; // Reset to 0
-                result.SpecialEffect = "Flow reset to 0";
+            case CardEffectType.RapportReset:
+                result.RapportChange = -session.RapportManager.CurrentRapport; // Reset to starting value
+                result.SpecialEffect = "Rapport reset to starting value";
                 break;
                 
-            case CardEffectType.FocusRefresh:
-                result.FocusAdded = focusManager.CurrentCapacity - focusManager.CurrentSpentFocus;
-                result.SpecialEffect = "Focus refreshed";
+            case CardEffectType.PresenceRefresh:
+                result.PresenceAdded = session.GetEffectivePresenceCapacity() - session.CurrentPresence;
+                result.SpecialEffect = "Presence refreshed";
                 break;
                 
             case CardEffectType.FreeNextAction:
@@ -115,19 +114,19 @@ public class CardEffectProcessor
                 break;
         }
 
-        // Apply atmosphere modifications to flow changes
-        if (result.FlowChange != 0)
+        // Apply atmosphere modifications to rapport changes
+        if (result.RapportChange != 0)
         {
-            result.FlowChange = atmosphereManager.ModifyFlowChange(result.FlowChange);
+            result.RapportChange = atmosphereManager.ModifyRapportChange(result.RapportChange);
         }
 
         // Apply Synchronized effect (double the effect)
         if (atmosphereManager.ShouldDoubleNextEffect())
         {
-            if (result.FlowChange != 0)
-                result.FlowChange *= 2;
-            if (result.FocusAdded > 0)
-                result.FocusAdded *= 2;
+            if (result.RapportChange != 0)
+                result.RapportChange *= 2;
+            if (result.PresenceAdded > 0)
+                result.PresenceAdded *= 2;
             if (result.CardsToAdd.Count > 0)
             {
                 // Double the cards drawn
@@ -139,35 +138,21 @@ public class CardEffectProcessor
         return result;
     }
 
-    // Process fixed flow effect
-    private int ProcessFixedFlow(string effectValue)
+    // Process fixed rapport effect
+    private int ProcessFixedRapport(string effectValue)
     {
-        if (int.TryParse(effectValue, out int flow))
+        if (int.TryParse(effectValue, out int rapport))
         {
-            return flow;
+            return rapport;
         }
         return 0;
     }
 
-    // Process scaled flow based on effect type and formula
-    private int ProcessScaledFlow(CardEffect effect, ConversationSession session)
+    // Process scaled rapport based on effect type and formula
+    private int ProcessScaledRapport(CardEffect effect, ConversationSession session)
     {
         // Handle specific scaling types
-        if (effect.Type == CardEffectType.ScaleByTokens)
-        {
-            TokenType tokenType = Enum.Parse<TokenType>(effect.Value);
-            ConnectionType connectionType = tokenType switch
-            {
-                TokenType.Trust => ConnectionType.Trust,
-                TokenType.Commerce => ConnectionType.Commerce,
-                TokenType.Status => ConnectionType.Status,
-                TokenType.Shadow => ConnectionType.Shadow,
-                _ => ConnectionType.None
-            };
-            return tokenManager.GetTokenCount(connectionType, session.NPC.ID);
-        }
-        
-        if (effect.Type == CardEffectType.ScaleByFlow)
+        if (effect.Type == CardEffectType.ScaleRapportByFlow)
         {
             // Parse formula like "4 - flow"
             if (effect.Value.Contains("-"))
@@ -175,13 +160,13 @@ public class CardEffectProcessor
                 string[] parts = effect.Value.Split('-');
                 if (int.TryParse(parts[0].Trim(), out int baseValue))
                 {
-                    return baseValue - session.CurrentFlow;
+                    return baseValue - session.FlowManager.CurrentFlow;
                 }
             }
-            return session.CurrentFlow;
+            return session.RapportManager.ScaleRapportByFlow(session.FlowManager.CurrentFlow);
         }
         
-        if (effect.Type == CardEffectType.ScaleByPatience)
+        if (effect.Type == CardEffectType.ScaleRapportByPatience)
         {
             // Parse formula like "patience / 3"
             if (effect.Value.Contains("/"))
@@ -192,12 +177,12 @@ public class CardEffectProcessor
                     return session.CurrentPatience / divisor;
                 }
             }
-            return session.CurrentPatience;
+            return session.RapportManager.ScaleRapportByPatience(session.CurrentPatience);
         }
         
-        if (effect.Type == CardEffectType.ScaleByFocus)
+        if (effect.Type == CardEffectType.ScaleRapportByPresence)
         {
-            return focusManager.AvailableFocus;
+            return session.RapportManager.ScaleRapportByPresence(session.GetAvailablePresence());
         }
         
         return int.TryParse(effect.Value, out int value) ? value : 0;
@@ -213,13 +198,12 @@ public class CardEffectProcessor
         return drawnCards;
     }
 
-    // Process add focus effect
-    private int ProcessAddFocus(string effectValue)
+    // Process add presence effect
+    private int ProcessAddPresence(string effectValue)
     {
-        if (int.TryParse(effectValue, out int focus))
+        if (int.TryParse(effectValue, out int presence))
         {
-            focusManager.AddFocus(focus);
-            return focus;
+            return presence;
         }
         return 0;
     }
@@ -260,25 +244,14 @@ public class CardEffectProcessor
     {
         int baseSuccess = card.GetBaseSuccessPercentage();
 
-        // Get the card's token type (Trust, Commerce, Status, or Shadow)
-        ConnectionType cardTokenType = card.TokenType switch
-        {
-            TokenType.Trust => ConnectionType.Trust,
-            TokenType.Commerce => ConnectionType.Commerce,
-            TokenType.Status => ConnectionType.Status,
-            TokenType.Shadow => ConnectionType.Shadow,
-            _ => ConnectionType.None
-        };
-
-        // Add token bonus (5% per MATCHING token only)
-        int matchingTokens = tokenManager.GetTokenCount(cardTokenType, session.NPC.ID);
-        int tokenBonus = matchingTokens * 5;
+        // Rapport modifier instead of token modifier
+        int rapportBonus = session.RapportManager.GetSuccessModifier();
 
         // Add atmosphere bonus
         int atmosphereBonus = atmosphereManager.GetSuccessPercentageBonus();
 
         // Calculate final percentage (clamped to 5-95%)
-        int finalPercentage = baseSuccess + tokenBonus + atmosphereBonus;
+        int finalPercentage = baseSuccess + rapportBonus + atmosphereBonus;
         return Math.Clamp(finalPercentage, 5, 95);
     }
 
@@ -300,9 +273,9 @@ public class CardEffectProcessor
 public class CardEffectResult
 {
     public ConversationCard Card { get; set; }
-    public int FlowChange { get; set; }
+    public int RapportChange { get; set; }
     public List<CardInstance> CardsToAdd { get; set; } = new();
-    public int FocusAdded { get; set; }
+    public int PresenceAdded { get; set; }
     public AtmosphereType? AtmosphereTypeChange { get; set; }
     public string SpecialEffect { get; set; } = "";
     public bool Success { get; set; } = true;

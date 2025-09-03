@@ -19,7 +19,7 @@
         "description": "I understand",
         "difficulty": "Easy",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "1"
         },
         "failureEffect": {
@@ -37,7 +37,7 @@
         "description": "Share sympathy",
         "difficulty": "Medium",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "2"
         },
         "failureEffect": {
@@ -55,11 +55,11 @@
         "description": "Express deep trust",
         "difficulty": "Hard",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "3"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-1"
         },
         "dialogueFragment": "You know you can count on me. We've been through too much together."
@@ -92,11 +92,11 @@
         "description": "Share vulnerability",
         "difficulty": "VeryHard",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "4"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-2"
         },
         "exhaustEffect": {
@@ -115,11 +115,11 @@
         "description": "Build on trust",
         "difficulty": "Hard",
         "successEffect": {
-          "type": "ScaleByTokens",
-          "value": "Trust"
+          "type": "AddRapport",
+          "value": "2"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-1"
         },
         "dialogueFragment": "We've built something here, haven't we? This trust between us."
@@ -134,11 +134,11 @@
         "description": "Desperate plea",
         "difficulty": "Hard",
         "successEffect": {
-          "type": "ScaleByFlow",
+          "type": "ScaleRapportByFlow",
           "value": "4 - flow"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-2"
         },
         "exhaustEffect": {
@@ -157,7 +157,7 @@
         "description": "Patient approach",
         "difficulty": "Hard",
         "successEffect": {
-          "type": "ScaleByPatience",
+          "type": "ScaleRapportByPatience",
           "value": "patience / 3"
         },
         "failureEffect": {
@@ -193,7 +193,7 @@
         "description": "Offer support",
         "difficulty": "Medium",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "2"
         },
         "failureEffect": {
@@ -247,11 +247,11 @@
         "description": "Heartfelt confession",
         "difficulty": "VeryHard",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "4"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-2"
         },
         "exhaustEffect": {
@@ -270,7 +270,7 @@
         "description": "Gentle encouragement",
         "difficulty": "Easy",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "1"
         },
         "failureEffect": {
@@ -288,7 +288,7 @@
         "description": "Propose fair trade",
         "difficulty": "Easy",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "1"
         },
         "failureEffect": {
@@ -306,7 +306,7 @@
         "description": "Highlight opening",
         "difficulty": "Medium",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "2"
         },
         "failureEffect": {
@@ -324,11 +324,11 @@
         "description": "Leverage connections",
         "difficulty": "Hard",
         "successEffect": {
-          "type": "ScaleByTokens",
-          "value": "Commerce"
+          "type": "AddRapport",
+          "value": "2"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-1"
         },
         "dialogueFragment": "My business connections speak highly of you. Let's make this profitable."
@@ -343,7 +343,7 @@
         "description": "Final offer",
         "difficulty": "VeryHard",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "5"
         },
         "failureEffect": {
@@ -351,7 +351,7 @@
           "value": "Final"
         },
         "exhaustEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-2"
         },
         "dialogueFragment": "This is my final offer. Take it or leave it."
@@ -384,7 +384,7 @@
         "description": "Business proposition",
         "difficulty": "Medium",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "2"
         },
         "failureEffect": {
@@ -428,7 +428,7 @@
           "value": "Informed"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-1"
         },
         "exhaustEffect": {
@@ -469,11 +469,11 @@
         "description": "Close the deal",
         "difficulty": "Hard",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "4"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-1"
         },
         "exhaustEffect": {
@@ -492,7 +492,7 @@
         "description": "Mutual benefit",
         "difficulty": "Easy",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "1"
         },
         "failureEffect": {
@@ -510,7 +510,7 @@
         "description": "Calculate value",
         "difficulty": "Medium",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "2"
         },
         "failureEffect": {
@@ -528,15 +528,15 @@
         "description": "Market timing",
         "difficulty": "Hard",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "3"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-1"
         },
         "exhaustEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-2"
         },
         "dialogueFragment": "The timing is perfect for this opening - but it won't last."
@@ -551,11 +551,11 @@
         "description": "Competitive edge",
         "difficulty": "VeryHard",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "4"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-2"
         },
         "exhaustEffect": {
@@ -628,7 +628,7 @@
         "description": "Find common ground",
         "difficulty": "Medium",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "2"
         },
         "failureEffect": {
@@ -646,7 +646,7 @@
         "description": "Steady approach",
         "difficulty": "Easy",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "1"
         },
         "failureEffect": {
@@ -726,11 +726,11 @@
         "description": "Honor duty",
         "difficulty": "Hard",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "3"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-1"
         },
         "dialogueFragment": "We both know what's right. Let's do our duty."
@@ -745,7 +745,7 @@
         "description": "Plain speaking",
         "difficulty": "Medium",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "1"
         },
         "failureEffect": {
@@ -763,7 +763,7 @@
         "description": "Reliable support",
         "difficulty": "Medium",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "2"
         },
         "failureEffect": {
@@ -781,8 +781,8 @@
         "description": "Practical wisdom",
         "difficulty": "Hard",
         "successEffect": {
-          "type": "ScaleByTokens",
-          "value": "Trust"
+          "type": "AddRapport",
+          "value": "2"
         },
         "failureEffect": {
           "type": "None"
@@ -799,11 +799,11 @@
         "description": "Clear path forward",
         "difficulty": "VeryHard",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "4"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-1"
         },
         "exhaustEffect": {
@@ -822,11 +822,11 @@
         "description": "Unwavering resolve",
         "difficulty": "VeryHard",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "5"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-2"
         },
         "exhaustEffect": {
@@ -845,7 +845,7 @@
         "description": "Show respect",
         "difficulty": "Easy",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "1"
         },
         "failureEffect": {
@@ -881,11 +881,11 @@
         "description": "Invoke status",
         "difficulty": "Hard",
         "successEffect": {
-          "type": "ScaleByTokens",
-          "value": "Status"
+          "type": "AddRapport",
+          "value": "2"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-1"
         },
         "dialogueFragment": "Your standing in society demands this consideration."
@@ -900,7 +900,7 @@
         "description": "Drop hint",
         "difficulty": "Easy",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "1"
         },
         "failureEffect": {
@@ -918,11 +918,11 @@
         "description": "Apply leverage",
         "difficulty": "Hard",
         "successEffect": {
-          "type": "ScaleByTokens",
-          "value": "Shadow"
+          "type": "AddRapport",
+          "value": "2"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-1"
         },
         "dialogueFragment": "I have information that could be... useful to you."
@@ -937,11 +937,11 @@
         "description": "Veiled threat",
         "difficulty": "VeryHard",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "4"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-3"
         },
         "exhaustEffect": {
@@ -964,7 +964,7 @@
           "value": "Receptive"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-2"
         },
         "exhaustEffect": {
@@ -983,7 +983,7 @@
         "description": "Final statement",
         "difficulty": "VeryHard",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "5"
         },
         "failureEffect": {
@@ -1006,7 +1006,7 @@
         "description": "Quick response",
         "difficulty": "Easy",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "1"
         },
         "failureEffect": {
@@ -1895,7 +1895,7 @@
         "connectionType": "Commerce",
         "difficulty": "Easy",
         "successEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "2"
         },
         "failureEffect": {
@@ -1929,7 +1929,7 @@
           "value": "protected"
         },
         "failureEffect": {
-          "type": "AddFlow",
+          "type": "AddRapport",
           "value": "-1"
         },
         "mechanics": {

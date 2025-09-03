@@ -9,9 +9,9 @@ public enum CardEffectType
     None,
     
     /// <summary>
-    /// Add fixed flow value (positive or negative)
+    /// Add fixed rapport value (positive or negative)
     /// </summary>
-    AddFlow,
+    AddRapport,
     
     /// <summary>
     /// Draw a number of cards
@@ -19,9 +19,9 @@ public enum CardEffectType
     DrawCards,
     
     /// <summary>
-    /// Add focus to the focus
+    /// Add presence to the presence pool
     /// </summary>
-    AddFocus,
+    AddPresence,
     
     /// <summary>
     /// Set the conversation atmosphere. Value indicates which atmosphere.
@@ -34,34 +34,29 @@ public enum CardEffectType
     EndConversation,
     
     /// <summary>
-    /// Scale flow by token count. Value contains token type.
+    /// Scale rapport by current flow level. Value contains formula like "4 - flow".
     /// </summary>
-    ScaleByTokens,
+    ScaleRapportByFlow,
     
     /// <summary>
-    /// Scale flow by current flow level. Value contains formula like "4 - flow".
+    /// Scale rapport by patience. Value contains formula like "patience / 3".
     /// </summary>
-    ScaleByFlow,
+    ScaleRapportByPatience,
     
     /// <summary>
-    /// Scale flow by patience. Value contains formula like "patience / 3".
+    /// Scale rapport by remaining presence. Value contains formula like "presence".
     /// </summary>
-    ScaleByPatience,
+    ScaleRapportByPresence,
     
     /// <summary>
-    /// Scale flow by remaining focus. Value contains formula like "focus".
+    /// Reset rapport to starting value
     /// </summary>
-    ScaleByFocus,
+    RapportReset,
     
     /// <summary>
-    /// Reset flow to 0
+    /// Refresh presence to maximum
     /// </summary>
-    FlowReset,
-    
-    /// <summary>
-    /// Refresh focus to maximum
-    /// </summary>
-    FocusRefresh,
+    PresenceRefresh,
     
     /// <summary>
     /// Next action costs 0 patience

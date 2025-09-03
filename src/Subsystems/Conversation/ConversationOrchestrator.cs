@@ -61,6 +61,10 @@ public class ConversationOrchestrator
         // Create session deck
         SessionCardDeck deck = _deckManager.CreateConversationDeck(npc, conversationType, observationCards);
 
+        // Create rapport manager with initial token counts
+        Dictionary<ConnectionType, int> npcTokens = GetNpcTokenCounts(npc);
+        RapportManager rapportManager = new RapportManager(npcTokens);
+
         // Create session with new properties
         ConversationSession session = new ConversationSession
         {
@@ -69,8 +73,8 @@ public class ConversationOrchestrator
             CurrentState = initialState,
             InitialState = initialState,
             FlowBattery = 0, // Start at 0
-            CurrentFocus = 0,
-            FocusCapacity = _focusManager.CurrentCapacity,
+            CurrentPresence = 0,
+            MaxPresence = _focusManager.CurrentCapacity,
             CurrentAtmosphere = AtmosphereType.Neutral,
             CurrentPatience = 10,
             MaxPatience = 10,
@@ -78,6 +82,8 @@ public class ConversationOrchestrator
             Deck = deck,
             Hand = new HandDeck(),
             TokenManager = _tokenManager,
+            FlowManager = _flowBatteryManager,
+            RapportManager = rapportManager,
             ObservationCards = observationCards ?? new List<CardInstance>()
         };
 
@@ -85,8 +91,8 @@ public class ConversationOrchestrator
         List<CardInstance> initialCards = _deckManager.ExecuteListen(session);
         
         // Reset focus after initial draw (as per standard LISTEN)
-        session.CurrentFocus = _focusManager.CurrentSpentFocus;
-        session.FocusCapacity = _focusManager.CurrentCapacity;
+        session.CurrentPresence = _focusManager.CurrentSpentFocus;
+        session.MaxPresence = _focusManager.CurrentCapacity;
 
         return session;
     }
@@ -111,8 +117,8 @@ public class ConversationOrchestrator
         List<CardInstance> drawnCards = _deckManager.ExecuteListen(session);
 
         // Update session focus state
-        session.CurrentFocus = _focusManager.CurrentSpentFocus;
-        session.FocusCapacity = _focusManager.CurrentCapacity;
+        session.CurrentPresence = _focusManager.CurrentSpentFocus;
+        session.MaxPresence = _focusManager.CurrentCapacity;
 
         // Generate NPC response
         string npcResponse = _dialogueGenerator.GenerateListenResponse(session.NPC, session.CurrentState, drawnCards);
@@ -139,11 +145,8 @@ public class ConversationOrchestrator
 
         session.TurnNumber++;
 
-        // Deduct patience cost (unless Patient atmosphere)
-        if (!_atmosphereManager.ShouldWaivePatienceCost())
-        {
-            session.CurrentPatience--;
-        }
+        // SPEAK costs presence (focus), not patience
+        // Patience is only deducted for LISTEN actions
 
         // Play the card through deck manager
         CardPlayResult playResult = _deckManager.PlayCard(session, selectedCard);
@@ -175,8 +178,8 @@ public class ConversationOrchestrator
 
         // Update session atmosphere
         session.CurrentAtmosphere = _atmosphereManager.CurrentAtmosphere;
-        session.CurrentFocus = _focusManager.CurrentSpentFocus;
-        session.FocusCapacity = _focusManager.CurrentCapacity;
+        session.CurrentPresence = _focusManager.CurrentSpentFocus;
+        session.MaxPresence = _focusManager.CurrentCapacity;
 
         // Generate NPC response
         string npcResponse = _dialogueGenerator.GenerateSpeakResponse(
@@ -489,5 +492,20 @@ public class ConversationOrchestrator
             EmotionalFocus = EmotionalFocus.HIGH, // High emotional focus for urgency
             Description = $"Urgent letter from {npc.Name} - they desperately need help!"
         };
+    }
+
+    /// <summary>
+    /// Get current token counts for an NPC to initialize rapport
+    /// </summary>
+    private Dictionary<ConnectionType, int> GetNpcTokenCounts(NPC npc)
+    {
+        var tokenCounts = new Dictionary<ConnectionType, int>
+        {
+            { ConnectionType.Trust, _tokenManager.GetTokenCount(ConnectionType.Trust, npc.ID) },
+            { ConnectionType.Commerce, _tokenManager.GetTokenCount(ConnectionType.Commerce, npc.ID) },
+            { ConnectionType.Status, _tokenManager.GetTokenCount(ConnectionType.Status, npc.ID) },
+            { ConnectionType.Shadow, _tokenManager.GetTokenCount(ConnectionType.Shadow, npc.ID) }
+        };
+        return tokenCounts;
     }
 }
