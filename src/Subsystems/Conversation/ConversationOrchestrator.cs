@@ -239,10 +239,6 @@ public class ConversationOrchestrator
             _flowBatteryManager.CurrentFlow <= -3)
             return true;
 
-        // End if Final atmosphere and any card failed (handled by AtmosphereManager)
-        if (_atmosphereManager.ShouldEndOnFailure())
-            return true;
-
         // End if deck is empty and hand is empty
         if (!session.Deck.HasCardsAvailable() && session.HandCards.Count == 0)
             return true;

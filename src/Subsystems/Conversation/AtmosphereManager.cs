@@ -142,12 +142,6 @@ public class AtmosphereManager
         return modified;
     }
 
-    // Check if failure should end conversation immediately
-    public bool ShouldEndOnFailure()
-    {
-        return currentAtmosphere == AtmosphereType.Final;
-    }
-
     // Check if next effect should happen twice
     public bool ShouldDoubleNextEffect()
     {
@@ -169,7 +163,6 @@ public class AtmosphereManager
             AtmosphereType.Focused => "+20% success on all cards",
             AtmosphereType.Patient => "All actions cost 0 patience",
             AtmosphereType.Volatile => "All flow changes ±1",
-            AtmosphereType.Final => "Any failure ends conversation immediately",
             AtmosphereType.Informed => "Next card cannot fail (automatic success)",
             AtmosphereType.Exposed => "Double all flow changes",
             AtmosphereType.Synchronized => "Next card effect happens twice",

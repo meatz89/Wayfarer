@@ -7,7 +7,6 @@ public enum AtmosphereType
     Focused,     // +20% success all cards
     Patient,     // Actions cost 0 patience
     Volatile,    // All flow changes ±1
-    Final,       // Any failure ends conversation
 
     // Observation-only (unique effects)
     Informed,     // Next card cannot fail

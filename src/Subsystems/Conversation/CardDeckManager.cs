@@ -146,12 +146,6 @@ public class CardDeckManager
             
             // Clear atmosphere on failure
             _atmosphereManager.ClearAtmosphereOnFailure();
-
-            // Check if failure should end conversation (Final atmosphere)
-            if (_atmosphereManager.ShouldEndOnFailure())
-            {
-                // This will be handled by the orchestrator
-            }
         }
 
         // Remove the played card from hand (it was played, so it leaves the hand)
