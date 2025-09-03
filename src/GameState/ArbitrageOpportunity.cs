@@ -1,8 +1,8 @@
 ﻿/// <summary>
-/// Represents a profitable trading opportunity between two locations.
+/// Represents a profitable trading opening between two locations.
 /// Used for calculating and displaying arbitrage opportunities to players.
 /// </summary>
-public class ArbitrageOpportunity
+public class ArbitrageOpening
 {
     public string ItemId { get; set; }
     public int BuyPrice { get; set; }

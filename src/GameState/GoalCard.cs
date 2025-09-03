@@ -1,53 +1,53 @@
 using System;
 
-public class GoalCard : ConversationCard
+public class RequestCard : ConversationCard
 {
-    public GoalType GoalType { get; set; }
+    public RequestType RequestType { get; set; }
     public ObligationType CreatesObligation { get; set; }
     public SuccessTerms SuccessTerms { get; set; }
     public FailureTerms FailureTerms { get; set; }
 
-    // Goal-specific properties
-    public string GoalContext { get; set; } // Additional context for the goal
+    // Request-specific properties
+    public string RequestContext { get; set; } // Additional context for the request
     public bool RequiresToken { get; set; } // Whether a specific token is needed
     public TokenType? RequiredToken { get; set; } // Which token is required
 
-    public GoalCard()
+    public RequestCard()
     {
-        Weight = 5; // Can be 5 or 6
+        Focus = 5; // Can be 5 or 6
         Difficulty = Difficulty.VeryHard; // 40%
-        // Goal cards have both Fleeting and Opportunity properties
-        Properties.Add(CardProperty.Fleeting);
-        Properties.Add(CardProperty.Opportunity);
+        // Request cards have both Impulse and Opening properties
+        Properties.Add(CardProperty.Impulse);
+        Properties.Add(CardProperty.Opening);
         // Set exhaust effect to end conversation
         ExhaustEffect = new CardEffect
         {
             Type = CardEffectType.EndConversation,
-            Value = "goal_exhausted"
+            Value = "request_exhausted"
         };
     }
 
-    // Helper to set weight within valid range
-    public void SetWeight(int weight)
+    // Helper to set focus within valid range
+    public void SetFocus(int focus)
     {
-        if (weight >= 5 && weight <= 6)
+        if (focus >= 5 && focus <= 6)
         {
-            Weight = weight;
+            Focus = focus;
         }
         else
         {
-            Weight = 5; // Default to minimum valid weight
+            Focus = 5; // Default to minimum valid focus
         }
     }
 
-    // Create a goal card with specific parameters
-    public static GoalCard CreateLetterDelivery(string id, string name, string destination, int payment)
+    // Create a request card with specific parameters
+    public static RequestCard CreateLetterDelivery(string id, string name, string destination, int payment)
     {
-        return new GoalCard
+        return new RequestCard
         {
             Id = id,
             Name = name,
-            GoalType = GoalType.Letter,
+            RequestType = RequestType.Letter,
             CreatesObligation = ObligationType.Promise,
             SuccessTerms = new SuccessTerms
             {

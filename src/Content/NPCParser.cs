@@ -159,7 +159,7 @@ public static class NPCParser
         }
 
         // REMOVED: Boolean flags violate deck-based architecture
-        // Letters are detected by checking Goal deck contents
+        // Letters are detected by checking Request deck contents
         // Burden history detected by counting burden cards in conversation deck
 
         // Parse CurrentState (emotional state)
@@ -174,7 +174,7 @@ public static class NPCParser
         }
 
         // REMOVED: ActiveLetter violates deck-based architecture
-        // Letters are now handled as goal cards in the Goal deck
+        // Letters are now handled as request cards in the Request deck
 
         return npc;
     }
@@ -244,7 +244,7 @@ public static class NPCParser
     }
 
     // REMOVED: ParseActiveLetter violates deck-based architecture
-    // Letters are now handled as goal cards in the Goal deck
+    // Letters are now handled as request cards in the Request deck
 
     private static int GetIntProperty(JsonElement element, string propertyName, int defaultValue)
     {

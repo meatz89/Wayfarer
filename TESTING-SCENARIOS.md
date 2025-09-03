@@ -11,7 +11,7 @@
 5. Start Letter Conversation (1 attention)
 6. Turn 1: Draw 1-2 desperate cards
 7. Turn 2: Play state change card
-8. Turn 3: Goal card appears, play it
+8. Turn 3: Request card appears, play it
 9. Letter added to queue position 1
 
 ### Scenario 2: Marcus Exchange

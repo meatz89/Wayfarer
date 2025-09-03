@@ -40,6 +40,6 @@ public class LetterTemplateDTO
     // Consequences
     public string ConsequenceIfLate { get; set; }
     public string ConsequenceIfDelivered { get; set; }
-    public string EmotionalWeight { get; set; } = "MEDIUM";
+    public string EmotionalFocus { get; set; } = "MEDIUM";
     public string Stakes { get; set; } = "REPUTATION";
 }

@@ -4,7 +4,7 @@ public enum CardCategory
     Exchange,
     Promise,
     StateChange,
-    Comfort,
+    Flow,
     State,
     Burden,
     Token,

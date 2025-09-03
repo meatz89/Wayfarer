@@ -28,10 +28,10 @@
 
     public const int OBLIGATION_BREAKING_PENALTY = 5;  // Token loss for breaking obligations (US-8.3)
 
-    // Conversation Comfort Thresholds
-    public const double COMFORT_MAINTAIN_THRESHOLD = 0.5;    // Comfort ≥ Patience/2: Maintain relationship
-    public const double COMFORT_LETTER_THRESHOLD = 1.0;      // Comfort ≥ Patience: DeliveryObligation becomes available
-    public const double COMFORT_PERFECT_THRESHOLD = 1.5;     // Comfort ≥ Patience × 1.5: Perfect conversation bonus
+    // Conversation Flow Thresholds
+    public const double FLOW_MAINTAIN_THRESHOLD = 0.5;    // Flow ≥ Patience/2: Maintain relationship
+    public const double FLOW_LETTER_THRESHOLD = 1.0;      // Flow ≥ Patience: DeliveryObligation becomes available
+    public const double FLOW_PERFECT_THRESHOLD = 1.5;     // Flow ≥ Patience × 1.5: Perfect conversation bonus
 
     // Attention Refresh System (Epic 9)
     public const int ATTENTION_REFRESH_QUICK_DRINK_COST = 1;  // Quick drink: 1 coin = +1 attention
@@ -41,8 +41,8 @@
     public const int ATTENTION_REFRESH_MAX_TOTAL = 12;        // Maximum attention possible (base 10 + 2 meal)
 
     // Conversation Depth Progression
-    public const int DEPTH_ADVANCE_THRESHOLD_1 = 5;          // Surface to Personal (5 comfort)
-    public const int DEPTH_ADVANCE_THRESHOLD_2 = 10;         // Personal to Intimate (10 comfort)
-    public const int DEPTH_ADVANCE_THRESHOLD_3 = 15;         // Intimate to Deep (15 comfort)
+    public const int DEPTH_ADVANCE_THRESHOLD_1 = 5;          // Surface to Personal (5 flow)
+    public const int DEPTH_ADVANCE_THRESHOLD_2 = 10;         // Personal to Intimate (10 flow)
+    public const int DEPTH_ADVANCE_THRESHOLD_3 = 15;         // Intimate to Deep (15 flow)
     public const int MAX_CONVERSATION_DEPTH = 3;             // Maximum depth level
 }

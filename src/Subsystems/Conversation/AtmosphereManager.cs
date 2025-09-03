@@ -74,8 +74,8 @@ public class AtmosphereManager
         // This is critical for strategic setup
     }
 
-    // Get weight capacity bonus from atmosphere
-    public int GetWeightCapacityBonus()
+    // Get focus capacity bonus from atmosphere
+    public int GetFocusCapacityBonus()
     {
         return currentAtmosphere == AtmosphereType.Prepared ? 1 : 0;
     }
@@ -118,25 +118,25 @@ public class AtmosphereManager
         return false;
     }
 
-    // Modify comfort change based on atmosphere
-    public int ModifyComfortChange(int baseComfort)
+    // Modify flow change based on atmosphere
+    public int ModifyFlowChange(int baseFlow)
     {
-        int modified = baseComfort;
+        int modified = baseFlow;
 
         // Volatile: ±1 to all changes
         if (currentAtmosphere == AtmosphereType.Volatile)
         {
-            if (baseComfort > 0)
-                modified = baseComfort + 1;
-            else if (baseComfort < 0)
-                modified = baseComfort - 1;
+            if (baseFlow > 0)
+                modified = baseFlow + 1;
+            else if (baseFlow < 0)
+                modified = baseFlow - 1;
             // Zero stays zero
         }
 
         // Exposed: Double all changes
         if (currentAtmosphere == AtmosphereType.Exposed)
         {
-            modified = baseComfort * 2;
+            modified = baseFlow * 2;
         }
 
         return modified;
@@ -164,14 +164,14 @@ public class AtmosphereManager
         return currentAtmosphere switch
         {
             AtmosphereType.Neutral => "No special effects",
-            AtmosphereType.Prepared => "+1 weight capacity on all SPEAK actions",
+            AtmosphereType.Prepared => "+1 focus capacity on all SPEAK actions",
             AtmosphereType.Receptive => "+1 card on all LISTEN actions",
             AtmosphereType.Focused => "+20% success on all cards",
             AtmosphereType.Patient => "All actions cost 0 patience",
-            AtmosphereType.Volatile => "All comfort changes ±1",
+            AtmosphereType.Volatile => "All flow changes ±1",
             AtmosphereType.Final => "Any failure ends conversation immediately",
             AtmosphereType.Informed => "Next card cannot fail (automatic success)",
-            AtmosphereType.Exposed => "Double all comfort changes",
+            AtmosphereType.Exposed => "Double all flow changes",
             AtmosphereType.Synchronized => "Next card effect happens twice",
             AtmosphereType.Pressured => "-1 card on all LISTEN actions",
             _ => "Unknown atmosphere"
@@ -223,7 +223,7 @@ public class AtmosphereManager
         if (nextEffectDoubled)
             return "⚡ Next effect will happen twice!";
         if (nextSpeakFree)
-            return "⚡ Next SPEAK costs 0 weight!";
+            return "⚡ Next SPEAK costs 0 focus!";
         if (nextActionFreePatience)
             return "⚡ Next action costs 0 patience!";
         return "";

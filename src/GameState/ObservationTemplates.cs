@@ -298,7 +298,7 @@ public class ObservationTemplates
             },
             [LocationTag.HearthWarmed] = new()
             {
-                "comfortable warmth",
+                "flowable warmth",
                 "flickering shadows",
                 "glowing embers"
             },

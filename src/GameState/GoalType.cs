@@ -1,4 +1,4 @@
-public enum GoalType
+public enum RequestType
 {
     Letter,     // Create delivery obligation
     Meeting,    // Create time-based meeting

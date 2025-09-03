@@ -134,7 +134,7 @@ public class MarketManager
                 BuyPrice = pricing.BuyPrice,
                 SellPrice = pricing.SellPrice,
                 IsAvailable = true, // We know it's available since market is open
-                Weight = baseItem.Weight,
+                Focus = baseItem.Focus,
                 InventorySlots = baseItem.InventorySlots,
                 LocationId = locationId,
                 Description = baseItem.Description,
@@ -199,7 +199,7 @@ public class MarketManager
             BuyPrice = pricing.BuyPrice,
             SellPrice = pricing.SellPrice,
             IsAvailable = pricing.IsAvailable,
-            Weight = baseItem?.Weight ?? GetDefaultWeight(itemId),
+            Focus = baseItem?.Focus ?? GetDefaultFocus(itemId),
             InventorySlots = baseItem?.InventorySlots ?? 1,
             LocationId = locationId,
             Description = baseItem?.Description ?? GetDefaultDescription(itemId),
@@ -208,9 +208,9 @@ public class MarketManager
     }
 
     /// <summary>
-    /// Get default weight for known items (temporary implementation)
+    /// Get default focus for known items (temporary implementation)
     /// </summary>
-    private int GetDefaultWeight(string itemId)
+    private int GetDefaultFocus(string itemId)
     {
         return itemId switch
         {
@@ -238,19 +238,19 @@ public class MarketManager
     }
 
     /// <summary>
-    /// Get default weight description for known items (temporary implementation)
+    /// Get default focus description for known items (temporary implementation)
     /// </summary>
-    private string GetDefaultWeightDescription(string itemId)
+    private string GetDefaultFocusDescription(string itemId)
     {
-        int weight = GetDefaultWeight(itemId);
-        return weight switch
+        int focus = GetDefaultFocus(itemId);
+        return focus switch
         {
-            0 => "weightless",
+            0 => "focusless",
             1 => "light",
             2 => "medium",
             3 => "heavy",
             4 => "very heavy",
-            _ => weight > GameConstants.Inventory.HEAVY_ITEM_WEIGHT_THRESHOLD ? "extremely heavy" : "light"
+            _ => focus > GameConstants.Inventory.HEAVY_ITEM_FOCUS_THRESHOLD ? "extremely heavy" : "light"
         };
     }
 

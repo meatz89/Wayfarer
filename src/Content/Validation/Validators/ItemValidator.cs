@@ -10,7 +10,7 @@ public class ItemValidator : BaseValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
-            "id", "name", "weight", "buyPrice", "sellPrice", "inventorySlots"
+            "id", "name", "focus", "buyPrice", "sellPrice", "inventorySlots"
         };
 
     public override bool CanValidate(string fileName)
@@ -72,7 +72,7 @@ public class ItemValidator : BaseValidator
         }
 
         // Validate numeric fields
-        ValidateNumericField(item, "weight", itemId, fileName, errors, min: 0);
+        ValidateNumericField(item, "focus", itemId, fileName, errors, min: 0);
         ValidateNumericField(item, "buyPrice", itemId, fileName, errors, min: 0);
         ValidateNumericField(item, "sellPrice", itemId, fileName, errors, min: 0);
         ValidateNumericField(item, "inventorySlots", itemId, fileName, errors, min: 1);

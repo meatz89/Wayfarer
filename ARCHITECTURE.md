@@ -397,8 +397,8 @@ Subsystems/[Name]/
 - `ConversationOrchestrator.cs` - Main conversation flow
 - `AtmosphereManager.cs` - Atmosphere state management
 - `CardDeckManager.cs` - Deck operations
-- `ComfortBatteryManager.cs` - Comfort state (-3 to +3)
-- `WeightPoolManager.cs` - Weight pool persistence
+- `FlowBatteryManager.cs` - Flow state (-3 to +3)
+- `FocusManager.cs` - Focus persistence
 - `DialogueGenerator.cs` - Text generation
 - `ExchangeHandler.cs` - Quick exchange cards
 
@@ -605,9 +605,9 @@ GameFacade.PlayCard(context, cardId)
 ConversationFacade.ProcessCardSelection()
     ↓
 ConversationOrchestrator.ExecuteCard():
-  - WeightPoolManager.SpendWeight()
+  - FocusManager.SpendFocus()
   - CardEffectProcessor.ProcessEffect()
-  - ComfortBatteryManager.ModifyComfort()
+  - FlowBatteryManager.ModifyFlow()
   - AtmosphereManager.SetAtmosphere()
     ↓
 ConversationContext Update
@@ -636,7 +636,7 @@ public class GameWorld
     // Card System (Unified)
     public Dictionary<string, ConversationCard> AllCardDefinitions { get; set; }
     public Dictionary<string, List<string>> NPCConversationDeckMappings { get; set; }
-    public Dictionary<string, List<ConversationCard>> NPCGoalDecks { get; set; }
+    public Dictionary<string, List<ConversationCard>> NPCRequestDecks { get; set; }
     public Dictionary<string, List<ConversationCard>> NPCExchangeDecks { get; set; }
     
     // Initialization Data (eliminates SharedData)

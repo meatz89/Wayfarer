@@ -16,7 +16,7 @@
     margin: 0 0 12px 0;
     color: #4a90e2;
     font-size: 16px;
-    font-weight: bold;
+    font-focus: bold;
     border-bottom: 1px solid #333;
     padding-bottom: 8px;
 }
@@ -65,12 +65,12 @@
 
 .debug-card-id {
     color: #7dd3fc;
-    font-weight: bold;
+    font-focus: bold;
     font-size: 10px;
     text-transform: uppercase;
 }
 
-.debug-card-weight {
+.debug-card-focus {
     color: #fbbf24;
     font-size: 10px;
     background: #44403c;
@@ -81,7 +81,7 @@
 .debug-card-description {
     color: #d1d5db;
     margin-bottom: 8px;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .debug-card-properties {
@@ -96,7 +96,7 @@
     padding: 2px 6px;
     border-radius: 2px;
     text-transform: uppercase;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .property-badge {
@@ -146,7 +146,7 @@
 .debug-effect-label {
     color: #9ca3af;
     text-transform: uppercase;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .debug-effect-value {
@@ -190,11 +190,11 @@
 }
 
 /* Special highlighting for debugging */
-.debug-card.fleeting {
+.debug-card.impulse {
     border-left: 3px solid #f59e0b;
 }
 
-.debug-card.opportunity {
+.debug-card.opening {
     border-left: 3px solid #10b981;
 }
 

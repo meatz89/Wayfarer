@@ -219,10 +219,10 @@ public class ObservationManager
         // Only update the ID and observation-specific metadata
         observationCard.Id = $"{observation.Id}_card_{Guid.NewGuid()}";
         observationCard.Properties.Add(CardProperty.Observable);
-        // Add fleeting property since observation cards are fleeting
-        if (!observationCard.Properties.Contains(CardProperty.Fleeting))
+        // Add impulse property since observation cards are impulse
+        if (!observationCard.Properties.Contains(CardProperty.Impulse))
         {
-            observationCard.Properties.Add(CardProperty.Fleeting);
+            observationCard.Properties.Add(CardProperty.Impulse);
         }
         
         // Update display information if not already set
@@ -242,7 +242,7 @@ public class ObservationManager
     // Card templates should be specified in observation JSON, not defaulted in code
 
     // REMOVED: GetObservationTypeData - hardcoded values violate architecture
-    // All card properties (weight, comfort) should come from JSON templates
+    // All card properties (focus, flow) should come from JSON templates
 
     /// <summary>
     /// Get current game time for decay calculations

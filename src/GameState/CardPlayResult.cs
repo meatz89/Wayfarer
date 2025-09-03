@@ -2,7 +2,7 @@
 // Card play results
 public class CardPlayResult
 {
-    public int TotalComfort { get; init; }
+    public int TotalFlow { get; init; }
     public EmotionalState? NewState { get; init; }
     public List<SingleCardResult> Results { get; init; }
     public int SetBonus { get; init; }

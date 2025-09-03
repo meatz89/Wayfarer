@@ -74,7 +74,7 @@ public class LetterDeliveryCardTests
             TokenType = ConnectionType.Trust,
             DeadlineInMinutes = 120,
             Payment = 10,
-            EmotionalWeight = EmotionalWeight.MEDIUM
+            EmotionalFocus = EmotionalFocus.MEDIUM
         };
         
         // Add letter to queue
@@ -100,8 +100,8 @@ public class LetterDeliveryCardTests
         Assert.NotNull(deliveryCard);
         Assert.Equal("test_letter_1", deliveryCard.DeliveryObligationId);
         Assert.Equal($"Deliver letter from Elena", deliveryCard.DisplayName);
-        Assert.Equal(0, deliveryCard.Weight); // Free to play
-        Assert.True(deliveryCard.BaseComfort > 0); // Gives comfort reward
+        Assert.Equal(0, deliveryCard.Focus); // Free to play
+        Assert.True(deliveryCard.BaseFlow > 0); // Gives flow reward
         Assert.Equal(100, deliveryCard.SuccessRate); // Always succeeds
     }
     
@@ -134,7 +134,7 @@ public class LetterDeliveryCardTests
             TokenType = ConnectionType.Trust,
             DeadlineInMinutes = 120,
             Payment = 10,
-            EmotionalWeight = EmotionalWeight.LOW
+            EmotionalFocus = EmotionalFocus.LOW
         };
         
         var letter2 = new DeliveryObligation
@@ -147,7 +147,7 @@ public class LetterDeliveryCardTests
             TokenType = ConnectionType.Commerce,
             DeadlineInMinutes = 60,
             Payment = 20,
-            EmotionalWeight = EmotionalWeight.HIGH
+            EmotionalFocus = EmotionalFocus.HIGH
         };
         
         queueManager.AddObligation(letter1);
@@ -172,10 +172,10 @@ public class LetterDeliveryCardTests
         Assert.Contains(deliveryCards, c => c.DeliveryObligationId == "letter_1");
         Assert.Contains(deliveryCards, c => c.DeliveryObligationId == "letter_2");
         
-        // Check comfort rewards match importance
+        // Check flow rewards match importance
         var lowImportanceCard = deliveryCards.First(c => c.DeliveryObligationId == "letter_1");
         var highImportanceCard = deliveryCards.First(c => c.DeliveryObligationId == "letter_2");
-        Assert.True(highImportanceCard.BaseComfort > lowImportanceCard.BaseComfort);
+        Assert.True(highImportanceCard.BaseFlow > lowImportanceCard.BaseFlow);
     }
     
     [Fact]
@@ -256,7 +256,7 @@ public class LetterDeliveryCardTests
             TokenType = ConnectionType.Trust,
             DeadlineInMinutes = 60,
             Payment = 15,
-            EmotionalWeight = EmotionalWeight.CRITICAL
+            EmotionalFocus = EmotionalFocus.CRITICAL
         };
         
         queueManager.AddObligation(letter);
@@ -274,6 +274,6 @@ public class LetterDeliveryCardTests
         var deliveryCard = session.HandCards.FirstOrDefault(c => c.CanDeliverLetter);
         Assert.NotNull(deliveryCard);
         Assert.Equal("crisis_letter", deliveryCard.DeliveryObligationId);
-        Assert.Equal(10, deliveryCard.BaseComfort); // Critical = 10 comfort
+        Assert.Equal(10, deliveryCard.BaseFlow); // Critical = 10 flow
     }
 }

@@ -23,10 +23,10 @@ public class CardSelectionManager
         if (!_selectedCards.Any())
             return "No cards selected";
 
-        int totalWeight = 0;
+        int totalFocus = 0;
         foreach (CardInstance c in _selectedCards)
         {
-            totalWeight += c.Weight; // No state modifiers in new system
+            totalFocus += c.Focus; // No state modifiers in new system
         }
 
         List<string> cardNames = new List<string>();
@@ -35,7 +35,7 @@ public class CardSelectionManager
             cardNames.Add(c.Name);
         }
 
-        return $"Playing {string.Join(", ", cardNames)} (weight: {totalWeight})";
+        return $"Playing {string.Join(", ", cardNames)} (focus: {totalFocus})";
     }
 
     public HashSet<CardInstance> GetSelectedCards()

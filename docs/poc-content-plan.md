@@ -23,58 +23,58 @@ Each card includes a `personalityTypes` array that determines which NPCs can use
 
 #### Trust-Focused Cards (15 cards)
 **Personality Types: ["DEVOTED", "ALL"]**
-- "I understand" - Weight 1, Easy, +1 comfort
-- "Share sympathy" - Weight 2, Medium, +2 comfort
-- "Express deep trust" - Weight 3, Hard, +3 comfort
-- "Gentle reassurance" - Weight 0, Easy, Set Patient atmosphere
-- "Share vulnerability" - Weight 4, Very Hard, +4 comfort, Fleeting
-- "Build on trust" - Weight 3, Hard, Scale by Trust tokens
-- "Desperate plea" - Weight 3, Hard, Scale by (4 - comfort), Fleeting
-- "Patient approach" - Weight 2, Hard, Scale by (patience / 3)
-- "Listen carefully" - Weight 1, Medium, Draw 1 card
-- "Open mind" - Weight 0, Easy, Set Receptive atmosphere
+- "I understand" - Focus 1, Easy, +1 flow
+- "Share sympathy" - Focus 2, Medium, +2 flow
+- "Express deep trust" - Focus 3, Hard, +3 flow
+- "Gentle reassurance" - Focus 0, Easy, Set Patient atmosphere
+- "Share vulnerability" - Focus 4, Very Hard, +4 flow, Impulse
+- "Build on trust" - Focus 3, Hard, Scale by Trust tokens
+- "Desperate plea" - Focus 3, Hard, Scale by (4 - flow), Impulse
+- "Patient approach" - Focus 2, Hard, Scale by (patience / 3)
+- "Listen carefully" - Focus 1, Medium, Draw 1 card
+- "Open mind" - Focus 0, Easy, Set Receptive atmosphere
 
 #### Commerce-Focused Cards (15 cards)
 **Personality Types: ["MERCANTILE", "ALL"]**
-- "Fair deal" - Weight 1, Easy, +1 comfort
-- "Highlight opportunity" - Weight 2, Medium, +2 comfort
-- "Leverage connections" - Weight 3, Hard, Scale by Commerce tokens
-- "Final offer" - Weight 5, Very Hard, +5 comfort, Fleeting
-- "Prepare argument" - Weight 3, Medium, Add 2 weight
-- "Business proposition" - Weight 2, Medium, +2 comfort
-- "Market knowledge" - Weight 1, Easy, Draw 1 card
-- "Trade secrets" - Weight 3, Hard, Set Informed atmosphere
-- "Negotiate terms" - Weight 2, Medium, Add 1 weight
-- "Close the deal" - Weight 4, Hard, +4 comfort
+- "Fair deal" - Focus 1, Easy, +1 flow
+- "Highlight opening" - Focus 2, Medium, +2 flow
+- "Leverage connections" - Focus 3, Hard, Scale by Commerce tokens
+- "Final offer" - Focus 5, Very Hard, +5 flow, Impulse
+- "Prepare argument" - Focus 3, Medium, Add 2 focus
+- "Business proposition" - Focus 2, Medium, +2 flow
+- "Market knowledge" - Focus 1, Easy, Draw 1 card
+- "Trade secrets" - Focus 3, Hard, Set Informed atmosphere
+- "Negotiate terms" - Focus 2, Medium, Add 1 focus
+- "Close the deal" - Focus 4, Hard, +4 flow
 
 #### Utility Cards (15 cards)
 **Personality Types: ["STEADFAST", "ALL"]**
-- "Gather thoughts" - Weight 2, Medium, Draw 2 cards
-- "Build momentum" - Weight 2, Medium, Add 1 weight
-- "Take a breath" - Weight 0, Easy, Set Patient atmosphere
-- "Change subject" - Weight 1, Easy, Set Neutral atmosphere
-- "Press advantage" - Weight 3, Medium, Add 2 weight
-- "Find common ground" - Weight 2, Medium, +2 comfort
-- "Steady approach" - Weight 1, Easy, +1 comfort
-- "Clear the air" - Weight 1, Medium, Reset atmosphere
-- "Make time" - Weight 2, Medium, Draw 1 card
-- "Stay focused" - Weight 0, Easy, Set Focused atmosphere
+- "Gather thoughts" - Focus 2, Medium, Draw 2 cards
+- "Build momentum" - Focus 2, Medium, Add 1 focus
+- "Take a breath" - Focus 0, Easy, Set Patient atmosphere
+- "Change subject" - Focus 1, Easy, Set Neutral atmosphere
+- "Press advantage" - Focus 3, Medium, Add 2 focus
+- "Find common ground" - Focus 2, Medium, +2 flow
+- "Steady approach" - Focus 1, Easy, +1 flow
+- "Clear the air" - Focus 1, Medium, Reset atmosphere
+- "Make time" - Focus 2, Medium, Draw 1 card
+- "Stay focused" - Focus 0, Easy, Set Focused atmosphere
 
 #### Universal Cards (ALL personality types)
-- "Interrupt" - Weight 1, Hard, Set Receptive, Opportunity
-- "Final statement" - Weight 5, Very Hard, +5 comfort, Set Final, Fleeting
-- "Quick response" - Weight 1, Easy, +1 comfort, Opportunity
-- "Thoughtful pause" - Weight 1, Medium, Draw 1 card
+- "Interrupt" - Focus 1, Hard, Set Receptive, Opening
+- "Final statement" - Focus 5, Very Hard, +5 flow, Set Final, Impulse
+- "Quick response" - Focus 1, Easy, +1 flow, Opening
+- "Thoughtful pause" - Focus 1, Medium, Draw 1 card
 
-### 2. Goal Cards
+### 2. Request Cards
 
 #### Elena's Urgent Letter (CRITICAL)
 ```json
 {
   "id": "elena_urgent_refusal",
-  "type": "Goal",
-  "weight": 5,
-  "properties": ["Fleeting", "Opportunity"],
+  "type": "Request",
+  "focus": 5,
+  "properties": ["Impulse", "Opening"],
   "description": "Please take my letter!",
   "difficulty": "VeryHard",
   "successEffect": {
@@ -134,22 +134,22 @@ Each card includes a `personalityTypes` array that determines which NPCs can use
 These cards are added to the player's conversation deck when observations are made:
 
 - **"Merchant Route Knowledge"**
-  - Weight: 1, Very Easy
+  - Focus: 1, Very Easy
   - Effect: Unlocks secret merchant route to Noble District
   - Expires: Never
 
 - **"Guard Shift Patterns"**
-  - Weight: 1, Very Easy
+  - Focus: 1, Very Easy
   - Effect: Set Pressured atmosphere
   - Expires: 24 hours
 
 - **"Elena's Desperation"**
-  - Weight: 1, Very Easy
+  - Focus: 1, Very Easy
   - Effect: Set Informed atmosphere (next card auto-succeeds)
   - Expires: 48 hours
 
 - **"Crowded Market"**
-  - Weight: 1, Very Easy
+  - Focus: 1, Very Easy
   - Effect: Next action costs 0 patience
   - Expires: 4 hours
 
@@ -216,7 +216,7 @@ These cards are added to the player's conversation deck when observations are ma
 
 ### Phase 1: Core Conversation System
 1. Implement base deck with personality filtering
-2. Add Elena's urgent letter goal
+2. Add Elena's urgent letter request
 3. Test conversation flow with Elena
 
 ### Phase 2: Economy Loop
@@ -232,7 +232,7 @@ These cards are added to the player's conversation deck when observations are ma
 4. Test complete gameplay loop
 
 ### Phase 4: Polish
-1. Balance card weights and difficulties
+1. Balance card focuss and difficulties
 2. Tune economy values
 3. Adjust timing for tension
 4. Verify all three loops integrate

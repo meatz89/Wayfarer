@@ -32,7 +32,7 @@
 
 .npc-name {
     font-size: 1.2rem;
-    font-weight: bold;
+    font-focus: bold;
     color: #3d3429;
 }
 
@@ -69,25 +69,25 @@
 
 .patience-value {
     font-size: 14px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
 }
 
-/* Comfort Battery */
-.comfort-indicator {
+/* Flow Battery */
+.flow-indicator {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.comfort-bar {
+.flow-bar {
     display: flex;
     gap: 4px;
     align-items: center;
     padding: 0 10px;
 }
 
-.comfort-segment {
+.flow-segment {
     width: 14px;
     height: 26px;
     border: 1px solid #a68b6f;
@@ -96,42 +96,42 @@
     align-items: center;
     justify-content: center;
     font-size: 10px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
     transition: all 0.2s ease;
 }
 
-.comfort-segment.negative {
+.flow-segment.negative {
     background: #d4704a;
     color: white;
 }
 
-.comfort-segment.positive {
+.flow-segment.positive {
     background: #7a8b5a;
     color: white;
 }
 
-.comfort-segment.current {
+.flow-segment.current {
     border: 2px solid #3d3429;
     box-shadow: 0 0 4px rgba(0,0,0,0.3);
     transform: scale(1.1);
 }
 
-.comfort-zero {
+.flow-zero {
     width: 4px;
     height: 20px;
     background: #3d3429;
     margin: 0 4px;
 }
 
-.comfort-value {
+.flow-value {
     font-size: 14px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
     margin-left: 8px;
 }
 
-.comfort-transition-hint {
+.flow-transition-hint {
     font-size: 11px;
     color: #8b4726;
     font-style: italic;
@@ -139,25 +139,25 @@
     animation: pulse 2s infinite;
 }
 
-.comfort-transition-hint.danger {
+.flow-transition-hint.danger {
     color: #ff0000;
-    font-weight: bold;
+    font-focus: bold;
     animation: danger-flash 0.5s infinite;
 }
 
-/* Weight Pool */
-.weight-pool-indicator {
+/* Focus */
+.focus-pool-indicator {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.weight-dots {
+.focus-dots {
     display: flex;
     gap: 3px;
 }
 
-.weight-dot {
+.focus-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
@@ -166,18 +166,18 @@
     transition: all 0.2s ease;
 }
 
-.weight-dot.filled {
+.focus-dot.filled {
     background: #5c4a3a;
 }
 
-.weight-dot.spent {
+.focus-dot.spent {
     background: #d4704a;
     opacity: 0.5;
 }
 
-.weight-value {
+.focus-value {
     font-size: 14px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
 }
 
@@ -201,7 +201,7 @@
 
 .atmosphere-label {
     font-size: 14px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -212,7 +212,7 @@
     align-items: center;
     gap: 8px;
     font-size: 16px;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .atmosphere-icon {
@@ -308,7 +308,7 @@
 }
 
 .token-value {
-    font-weight: bold;
+    font-focus: bold;
     color: #3d3429;
 }
 
@@ -348,11 +348,11 @@
 
 .card-title {
     font-size: 14px;
-    font-weight: bold;
+    font-focus: bold;
     color: #3d3429;
 }
 
-.card-weight {
+.card-focus {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -362,7 +362,7 @@
     color: #faf4ea;
     border-radius: 50%;
     font-size: 12px;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .card-body {
@@ -380,7 +380,7 @@
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 10px;
-    font-weight: bold;
+    font-focus: bold;
     text-transform: uppercase;
 }
 
@@ -389,12 +389,12 @@
     color: #3a5a3a;
 }
 
-.tag-fleeting {
+.tag-impulse {
     background: #f5d4d4;
     color: #8a3a3a;
 }
 
-.tag-opportunity {
+.tag-opening {
     background: #d4e6f5;
     color: #3a5a8a;
 }
@@ -452,7 +452,7 @@
 }
 
 .effect-label {
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
     margin-bottom: 2px;
 }
@@ -594,7 +594,7 @@
     pointer-events: none;
 }
 
-/* Exhausting cards (fleeting/opportunity) */
+/* Exhausting cards (impulse/opening) */
 .card-exhausting {
     animation: card-exhaust 1s ease-out;
     animation-fill-mode: forwards;
@@ -635,7 +635,7 @@
 
 .action-button-primary {
     font-size: 16px;
-    font-weight: bold;
+    font-focus: bold;
     color: #3d3429;
     margin-bottom: 4px;
 }
@@ -655,7 +655,7 @@
 
 .hand-header {
     font-size: 16px;
-    font-weight: bold;
+    font-focus: bold;
     color: #3d3429;
     margin-bottom: 15px;
     display: flex;
@@ -693,7 +693,7 @@
 
 .npc-dialogue {
     font-size: 16px;
-    font-weight: bold;
+    font-focus: bold;
     color: #3d3429;
     margin-top: 10px;
 }
@@ -733,7 +733,7 @@
 
 /* === SPECIAL CARD TYPES === */
 
-.card.comfort {
+.card.flow {
     border-left: 5px solid #7a8b5a;
 }
 
@@ -746,12 +746,12 @@
     background: #faf0e6;
 }
 
-.card.fleeting-warning {
+.card.impulse-warning {
     position: relative;
     overflow: visible;
 }
 
-.card.fleeting-warning::before {
+.card.impulse-warning::before {
     content: '⚡ Will exhaust';
     position: absolute;
     top: -20px;
@@ -762,7 +762,7 @@
     padding: 2px 8px;
     border-radius: 3px;
     font-size: 11px;
-    font-weight: bold;
+    font-focus: bold;
     animation: pulse 1s infinite;
 }
 

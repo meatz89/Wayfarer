@@ -14,9 +14,9 @@ public enum StakeType
 }
 
 /// <summary>
-/// The emotional weight of this letter - how much it should weigh on the player's conscience
+/// The emotional focus of this letter - how much it should weigh on the player's conscience
 /// </summary>
-public enum EmotionalWeight
+public enum EmotionalFocus
 {
     LOW,      // Routine correspondence
     MEDIUM,   // Important but not life-changing
@@ -102,7 +102,7 @@ public class DeliveryObligation
     public string Message { get; set; } = "";
     public string ConsequenceIfLate { get; set; } = ""; // What happens if we fail to deliver
     public string ConsequenceIfDelivered { get; set; } = ""; // What we prevent by delivering
-    public EmotionalWeight EmotionalWeight { get; set; } = EmotionalWeight.MEDIUM; // How heavy this weighs on conscience
+    public EmotionalFocus EmotionalFocus { get; set; } = EmotionalFocus.MEDIUM; // How heavy this weighs on conscience
 
     // Note: DeliveryObligation has no unlock properties - only physical Letters have unlock properties
     // UnlocksNPCId, UnlocksLocationId, BonusDuration, InformationId are on Letter class only
@@ -197,16 +197,16 @@ public class DeliveryObligation
     }
 
     /// <summary>
-    /// Get the emotional weight icon for UI display
+    /// Get the emotional focus icon for UI display
     /// </summary>
-    public string GetEmotionalWeightIcon()
+    public string GetEmotionalFocusIcon()
     {
-        return EmotionalWeight switch
+        return EmotionalFocus switch
         {
-            EmotionalWeight.LOW => "",
-            EmotionalWeight.MEDIUM => "💭",
-            EmotionalWeight.HIGH => "💔",
-            EmotionalWeight.CRITICAL => "⚠️",
+            EmotionalFocus.LOW => "",
+            EmotionalFocus.MEDIUM => "💭",
+            EmotionalFocus.HIGH => "💔",
+            EmotionalFocus.CRITICAL => "⚠️",
             _ => ""
         };
     }
@@ -225,7 +225,7 @@ public class DeliveryObligation
             StakeType.WEALTH => "If late: Financial ruin",
             StakeType.SAFETY => "If late: Someone gets hurt",
             StakeType.SECRET => "If late: Truth remains hidden",
-            _ => "If late: Opportunity lost"
+            _ => "If late: Opening lost"
         };
     }
 

@@ -126,10 +126,10 @@ public class SessionCardDeck
     }
     
     // Helper methods for common property-based filtering
-    public List<CardInstance> DrawGoalCards(int count)
+    public List<CardInstance> DrawRequestCards(int count)
     {
-        // Goal cards have both Fleeting AND Opportunity properties
-        return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Fleeting, CardProperty.Opportunity }, count);
+        // Request cards have both Impulse AND Opening properties
+        return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Impulse, CardProperty.Opening }, count);
     }
     
     public List<CardInstance> DrawBurdenCards(int count)

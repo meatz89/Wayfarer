@@ -537,7 +537,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
                 ConnectionType.Commerce => new[]
                 {
                     $"{npcName} nods approvingly. \"Good business, as always.\"",
-                    $"\"Reliable couriers are worth their weight in gold,\" says {npcName}.",
+                    $"\"Reliable couriers are worth their focus in gold,\" says {npcName}.",
                     $"{npcName} makes a note. \"I'll remember this efficiency.\"",
                     $"\"Professional work deserves professional relationships,\" {npcName} remarks."
                 },

@@ -25,9 +25,9 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         }
 
         /// <summary>
-        /// Represents an arbitrage opportunity for trading an item between locations
+        /// Represents an arbitrage opening for trading an item between locations
         /// </summary>
-        public class ArbitrageOpportunity
+        public class ArbitrageOpening
         {
             public string ItemId { get; set; }
             public string ItemName { get; set; }
@@ -43,7 +43,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             public float ProfitMargin { get; set; } // Percentage return on investment
             public int RequiredCapital { get; set; }
             public bool IsCurrentlyProfitable { get; set; }
-            public string OpportunityDescription { get; set; }
+            public string OpeningDescription { get; set; }
             public int DistanceBetweenLocations { get; set; }
             public float ProfitPerDistance { get; set; }
         }
@@ -54,7 +54,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         public class TradeRoute
         {
             public List<string> LocationSequence { get; set; } = new List<string>();
-            public List<ArbitrageOpportunity> Trades { get; set; } = new List<ArbitrageOpportunity>();
+            public List<ArbitrageOpening> Trades { get; set; } = new List<ArbitrageOpening>();
             public int TotalProfit { get; set; }
             public int RequiredCapital { get; set; }
             public int TotalDistance { get; set; }
@@ -65,15 +65,15 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         // ========== ARBITRAGE CALCULATION ==========
 
         /// <summary>
-        /// Find the best arbitrage opportunity for a specific item
+        /// Find the best arbitrage opening for a specific item
         /// </summary>
-        public ArbitrageOpportunity FindBestOpportunity(string itemId)
+        public ArbitrageOpening FindBestOpening(string itemId)
         {
             Item item = _itemRepository.GetItemById(itemId);
             if (item == null) return null;
 
             List<Location> locations = _gameWorld.WorldState.locations ?? new List<Location>();
-            ArbitrageOpportunity bestOpportunity = null;
+            ArbitrageOpening bestOpening = null;
             int highestProfit = 0;
 
             // Compare all location pairs
@@ -100,7 +100,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                     if (netProfit > highestProfit)
                     {
                         highestProfit = netProfit;
-                        bestOpportunity = new ArbitrageOpportunity
+                        bestOpening = new ArbitrageOpening
                         {
                             ItemId = itemId,
                             ItemName = item.Name,
@@ -118,29 +118,29 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                             IsCurrentlyProfitable = netProfit > 0,
                             DistanceBetweenLocations = distance,
                             ProfitPerDistance = distance > 0 ? (float)netProfit / distance : netProfit,
-                            OpportunityDescription = GenerateOpportunityDescription(item.Name, buyLocation.Name, sellLocation.Name, netProfit)
+                            OpeningDescription = GenerateOpeningDescription(item.Name, buyLocation.Name, sellLocation.Name, netProfit)
                         };
                     }
                 }
             }
 
-            return bestOpportunity;
+            return bestOpening;
         }
 
         /// <summary>
         /// Find all profitable arbitrage opportunities
         /// </summary>
-        public List<ArbitrageOpportunity> FindAllOpportunities()
+        public List<ArbitrageOpening> FindAllOpportunities()
         {
-            List<ArbitrageOpportunity> opportunities = new List<ArbitrageOpportunity>();
+            List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
             List<Item> allItems = _itemRepository.GetAllItems();
 
             foreach (Item item in allItems)
             {
-                ArbitrageOpportunity opportunity = FindBestOpportunity(item.Id);
-                if (opportunity != null && opportunity.IsCurrentlyProfitable)
+                ArbitrageOpening opening = FindBestOpening(item.Id);
+                if (opening != null && opening.IsCurrentlyProfitable)
                 {
-                    opportunities.Add(opportunity);
+                    opportunities.Add(opening);
                 }
             }
 
@@ -169,7 +169,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         /// <summary>
         /// Find arbitrage opportunities the player can afford
         /// </summary>
-        public List<ArbitrageOpportunity> FindAffordableOpportunities()
+        public List<ArbitrageOpening> FindAffordableOpportunities()
         {
             Player player = _gameWorld.GetPlayer();
             int availableCoins = player.Coins;
@@ -182,11 +182,11 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         /// <summary>
         /// Find arbitrage opportunities from the player's current location
         /// </summary>
-        public List<ArbitrageOpportunity> FindOpportunitiesFromCurrentLocation()
+        public List<ArbitrageOpening> FindOpportunitiesFromCurrentLocation()
         {
             Player player = _gameWorld.GetPlayer();
             string currentLocationId = player.CurrentLocationSpot?.LocationId;
-            List<ArbitrageOpportunity> opportunities = new List<ArbitrageOpportunity>();
+            List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
             List<Item> allItems = _itemRepository.GetAllItems();
 
             foreach (Item item in allItems)
@@ -208,7 +208,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
                     if (netProfit > 0)
                     {
-                        opportunities.Add(new ArbitrageOpportunity
+                        opportunities.Add(new ArbitrageOpening
                         {
                             ItemId = item.Id,
                             ItemName = item.Name,
@@ -226,7 +226,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                             IsCurrentlyProfitable = true,
                             DistanceBetweenLocations = distance,
                             ProfitPerDistance = distance > 0 ? (float)netProfit / distance : netProfit,
-                            OpportunityDescription = GenerateOpportunityDescription(item.Name, GetLocationName(currentLocationId), sellLocation.Name, netProfit)
+                            OpeningDescription = GenerateOpeningDescription(item.Name, GetLocationName(currentLocationId), sellLocation.Name, netProfit)
                         });
                     }
                 }
@@ -238,11 +238,11 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         /// <summary>
         /// Find opportunities for items the player already owns
         /// </summary>
-        public List<ArbitrageOpportunity> FindOpportunitiesForInventory()
+        public List<ArbitrageOpening> FindOpportunitiesForInventory()
         {
             Player player = _gameWorld.GetPlayer();
             string currentLocationId = player.CurrentLocationSpot?.LocationId;
-            List<ArbitrageOpportunity> opportunities = new List<ArbitrageOpportunity>();
+            List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
 
             foreach (string itemId in player.Inventory.GetItemIds())
             {
@@ -265,7 +265,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
                     if (netProfit > 0)
                     {
-                        opportunities.Add(new ArbitrageOpportunity
+                        opportunities.Add(new ArbitrageOpening
                         {
                             ItemId = itemId,
                             ItemName = item.Name,
@@ -283,7 +283,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                             IsCurrentlyProfitable = true,
                             DistanceBetweenLocations = distance,
                             ProfitPerDistance = distance > 0 ? (float)netProfit / distance : netProfit,
-                            OpportunityDescription = $"Sell {item.Name} in {sellLocation.Name} for {netProfit} coin profit"
+                            OpeningDescription = $"Sell {item.Name} in {sellLocation.Name} for {netProfit} coin profit"
                         });
                     }
                 }
@@ -312,15 +312,15 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
             for (int stop = 0; stop < maxStops; stop++)
             {
-                // Find best opportunity from current location with available capital
-                List<ArbitrageOpportunity> opportunities = FindAllOpportunitiesFrom(currentLocation)
+                // Find best opening from current location with available capital
+                List<ArbitrageOpening> opportunities = FindAllOpportunitiesFrom(currentLocation)
                     .Where(o => o.RequiredCapital <= currentCapital)
                     .OrderByDescending(o => o.NetProfit)
                     .ToList();
 
                 if (opportunities.Count == 0) break;
 
-                ArbitrageOpportunity bestOpp = opportunities.First();
+                ArbitrageOpening bestOpp = opportunities.First();
                 bestRoute.Trades.Add(bestOpp);
                 bestRoute.LocationSequence.Add(bestOpp.SellLocationId);
 
@@ -344,9 +344,9 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         /// <summary>
         /// Find all opportunities from a specific location
         /// </summary>
-        private List<ArbitrageOpportunity> FindAllOpportunitiesFrom(string fromLocationId)
+        private List<ArbitrageOpening> FindAllOpportunitiesFrom(string fromLocationId)
         {
-            List<ArbitrageOpportunity> opportunities = new List<ArbitrageOpportunity>();
+            List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
             List<Item> allItems = _itemRepository.GetAllItems();
             List<Location> locations = _gameWorld.WorldState.locations ?? new List<Location>();
 
@@ -368,7 +368,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
                     if (netProfit > 0)
                     {
-                        opportunities.Add(new ArbitrageOpportunity
+                        opportunities.Add(new ArbitrageOpening
                         {
                             ItemId = item.Id,
                             ItemName = item.Name,
@@ -475,12 +475,12 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         }
 
         /// <summary>
-        /// Generate human-readable opportunity description
+        /// Generate human-readable opening description
         /// </summary>
-        private string GenerateOpportunityDescription(string itemName, string buyLocation, string sellLocation, int profit)
+        private string GenerateOpeningDescription(string itemName, string buyLocation, string sellLocation, int profit)
         {
             if (profit > 20)
-                return $"Excellent opportunity: Buy {itemName} in {buyLocation} and sell in {sellLocation} for {profit} coin profit!";
+                return $"Excellent opening: Buy {itemName} in {buyLocation} and sell in {sellLocation} for {profit} coin profit!";
             else if (profit > 10)
                 return $"Good trade: {itemName} from {buyLocation} to {sellLocation} yields {profit} coins";
             else

@@ -87,7 +87,7 @@ You must provide your response ONLY as a valid JSON object with the following st
       "type": "Encounter/Direct/Travel",
       "locationName": "{locationName}",
       "locationSpot": "Spot name", // MUST BE AN ALREADY KNOWN SPOT NAME OR DEFINED IN THIS RESPONSE,
-      "goal": "The player's goal in this action",
+      "request": "The player's request in this action",
       "actionType": "Discuss/Persuade/Perform/Study/Investigate/Analyze/Rest/Labor/Gather/Fight",
       "isRepeatable": true,
       "staminaCost": 1,
@@ -97,7 +97,7 @@ You must provide your response ONLY as a valid JSON object with the following st
         "money": 0
       },
       "encounterDefinition": {
-        "goal": "The player's goal in this encounter",
+        "request": "The player's request in this encounter",
         "strategicTags": ["Tag1", "Tag2"]
       }
     }

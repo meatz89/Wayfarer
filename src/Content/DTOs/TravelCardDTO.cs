@@ -9,11 +9,11 @@ public class TravelCardDTO
     public string Title { get; set; }
     public string Description { get; set; }
     public string Category { get; set; }
-    public int? Weight { get; set; }
+    public int? Focus { get; set; }
     public List<string> Requirements { get; set; }
     public string Type { get; set; }
     public string DisplayName { get; set; }
-    public int? BaseComfort { get; set; }
+    public int? BaseFlow { get; set; }
     public string Persistence { get; set; }
     public string ConnectionType { get; set; }
     public TravelCardMechanicsDTO Mechanics { get; set; }
@@ -31,7 +31,7 @@ public class TravelCardMechanicsDTO
     public bool? RequiresPayment { get; set; }
     public bool? RequiresDetour { get; set; }
     public bool? ProvidesProtection { get; set; }
-    public bool? TradingOpportunity { get; set; }
+    public bool? TradingOpening { get; set; }
     public bool? ShelterRequired { get; set; }
 }
 

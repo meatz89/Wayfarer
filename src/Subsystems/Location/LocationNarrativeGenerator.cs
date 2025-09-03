@@ -216,7 +216,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             // Check for urgent business
             if (context.ContainsKey("urgent_letters") && (int)context["urgent_letters"] > 0)
             {
-                flavorParts.Add("You feel the weight of urgent obligations.");
+                flavorParts.Add("You feel the focus of urgent obligations.");
             }
 
             return string.Join(" ", flavorParts);

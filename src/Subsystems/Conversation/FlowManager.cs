@@ -1,53 +1,53 @@
 using System;
 
 /// <summary>
-/// Manages the comfort battery system for conversations with strict -3 to +3 range,
+/// Manages the flow battery system for conversations with strict -3 to +3 range,
 /// automatic state transitions at extremes, and reset to 0 after each transition.
 /// </summary>
-public class ComfortBatteryManager
+public class FlowManager
 {
-    private int currentComfort = 0;
+    private int currentFlow = 0;
     private EmotionalState currentState;
     
-    public int CurrentComfort => currentComfort;
+    public int CurrentFlow => currentFlow;
     public EmotionalState CurrentState => currentState;
     
     public event Action<EmotionalState, EmotionalState>? StateTransitioned;
     public event Action? ConversationEnded;
     
-    public ComfortBatteryManager(EmotionalState initialState)
+    public FlowManager(EmotionalState initialState)
     {
         currentState = initialState;
-        currentComfort = 0; // Always starts at 0
+        currentFlow = 0; // Always starts at 0
     }
     
     /// <summary>
-    /// Apply a comfort change and handle any state transitions.
+    /// Apply a flow change and handle any state transitions.
     /// Returns (stateChanged, newState, conversationEnds)
     /// </summary>
-    public (bool stateChanged, EmotionalState newState, bool conversationEnds) ApplyComfortChange(int change, AtmosphereType atmosphere = AtmosphereType.Neutral)
+    public (bool stateChanged, EmotionalState newState, bool conversationEnds) ApplyFlowChange(int change, AtmosphereType atmosphere = AtmosphereType.Neutral)
     {
         // Apply atmosphere modifiers
         int modifiedChange = ModifyByAtmosphere(change, atmosphere);
         
         // Apply the change
-        int newComfort = currentComfort + modifiedChange;
+        int newFlow = currentFlow + modifiedChange;
         
         // Clamp to -3 to +3 range
-        newComfort = Math.Clamp(newComfort, -3, 3);
-        currentComfort = newComfort;
+        newFlow = Math.Clamp(newFlow, -3, 3);
+        currentFlow = newFlow;
         
         // Check for state transition at exactly ±3
-        if (currentComfort >= 3)
+        if (currentFlow >= 3)
         {
             return HandlePositiveTransition();
         }
-        else if (currentComfort <= -3)
+        else if (currentFlow <= -3)
         {
             return HandleNegativeTransition();
         }
         
-        // No transition, comfort stays in range
+        // No transition, flow stays in range
         return (false, currentState, false);
     }
     
@@ -59,14 +59,14 @@ public class ComfortBatteryManager
         if (newState != oldState)
         {
             currentState = newState;
-            currentComfort = 0; // Reset battery to 0
+            currentFlow = 0; // Reset battery to 0
             StateTransitioned?.Invoke(oldState, newState);
             return (true, newState, false);
         }
         else
         {
             // Already at CONNECTED, can't go higher
-            // Comfort stays at 3
+            // Flow stays at 3
             return (false, currentState, false);
         }
     }
@@ -85,7 +85,7 @@ public class ComfortBatteryManager
         var newState = TransitionDown(currentState);
         
         currentState = newState;
-        currentComfort = 0; // Reset battery to 0
+        currentFlow = 0; // Reset battery to 0
         StateTransitioned?.Invoke(oldState, newState);
         return (true, newState, false);
     }
@@ -128,19 +128,19 @@ public class ComfortBatteryManager
     }
     
     /// <summary>
-    /// Reset comfort to 0 (used by observation cards with ResetComfort effect)
+    /// Reset flow to 0 (used by observation cards with ResetFlow effect)
     /// </summary>
     public void ResetToZero()
     {
-        currentComfort = 0;
+        currentFlow = 0;
     }
     
     /// <summary>
-    /// Get the current comfort level clamped to range
+    /// Get the current flow level clamped to range
     /// </summary>
-    public int GetComfort()
+    public int GetFlow()
     {
-        return Math.Clamp(currentComfort, -3, 3);
+        return Math.Clamp(currentFlow, -3, 3);
     }
     
     /// <summary>
@@ -161,7 +161,7 @@ public class ComfortBatteryManager
     /// </summary>
     public bool IsAtTransitionThreshold()
     {
-        return Math.Abs(currentComfort) == 3;
+        return Math.Abs(currentFlow) == 3;
     }
     
     /// <summary>
@@ -169,7 +169,7 @@ public class ComfortBatteryManager
     /// </summary>
     public bool IsNearTransition()
     {
-        return Math.Abs(currentComfort) == 2;
+        return Math.Abs(currentFlow) == 2;
     }
     
     /// <summary>
@@ -177,15 +177,15 @@ public class ComfortBatteryManager
     /// </summary>
     public string GetTransitionWarning()
     {
-        if (currentComfort == 2)
+        if (currentFlow == 2)
         {
             var nextState = TransitionUp(currentState);
             if (nextState != currentState)
                 return $"One more positive to transition to {nextState}!";
             else
-                return "At maximum positive comfort";
+                return "At maximum positive flow";
         }
-        else if (currentComfort == -2)
+        else if (currentFlow == -2)
         {
             if (currentState == EmotionalState.DESPERATE)
                 return "WARNING: One more negative will end conversation!";
@@ -197,15 +197,15 @@ public class ComfortBatteryManager
     }
     
     /// <summary>
-    /// Get a visual representation of the comfort battery
+    /// Get a visual representation of the flow battery
     /// </summary>
-    public string GetComfortDisplay()
+    public string GetFlowDisplay()
     {
         // Visual representation: [-3][-2][-1][0][+1][+2][+3]
         var display = "";
         for (int i = -3; i <= 3; i++)
         {
-            if (i == currentComfort)
+            if (i == currentFlow)
                 display += $"[{i:+0;-0;0}]";
             else if (i == 0)
                 display += "·0·";
@@ -220,7 +220,7 @@ public class ComfortBatteryManager
     /// </summary>
     public string GetCompactDisplay()
     {
-        string sign = currentComfort > 0 ? "+" : "";
-        return $"{sign}{currentComfort}";
+        string sign = currentFlow > 0 ? "+" : "";
+        return $"{sign}{currentFlow}";
     }
 }

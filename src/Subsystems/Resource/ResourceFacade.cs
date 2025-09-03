@@ -168,7 +168,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         public int CalculateCarryCapacity()
         {
             int health = GetHealth();
-            return _resourceCalculator.CalculateWeightLimit(health);
+            return _resourceCalculator.CalculateFocusLimit(health);
         }
 
         public int CalculateMorningAttention()
@@ -225,30 +225,30 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
                         ItemId = itemId,
                         Name = item?.Name ?? itemId,
                         Description = item?.Description ?? "",
-                        Weight = item?.Weight ?? 1,
+                        Focus = item?.Focus ?? 1,
                         Value = item?.SellPrice ?? 0,
                         CanRead = item?.Categories.Contains(ItemCategory.Special_Document) ?? false
                     };
                 }).ToList(),
-                TotalWeight = CalculateTotalWeight(),
+                TotalFocus = CalculateTotalFocus(),
                 MaxSlots = inventory.GetCapacity(),
                 UsedSlots = inventory.UsedCapacity,
                 Coins = GetCoins()
             };
         }
 
-        public int CalculateTotalWeight()
+        public int CalculateTotalFocus()
         {
             Inventory inventory = GetInventory();
-            int totalWeight = 0;
+            int totalFocus = 0;
 
             foreach (string itemId in inventory.GetItemIds())
             {
                 Item item = _itemRepository.GetItemById(itemId);
-                totalWeight += item?.Weight ?? 1;
+                totalFocus += item?.Focus ?? 1;
             }
 
-            return totalWeight;
+            return totalFocus;
         }
 
         // ========== WORK AND REST OPERATIONS ==========

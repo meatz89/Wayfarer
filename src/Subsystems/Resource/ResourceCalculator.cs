@@ -12,7 +12,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         private const int MIN_ATTENTION = 2;
         private const int HUNGER_ATTENTION_DIVISOR = 25;
 
-        private const int INJURED_WEIGHT_PENALTY = -1;
+        private const int INJURED_FOCUS_PENALTY = -1;
         private const int HEALTH_THRESHOLD_FOR_CARRY = 50;
 
         /// <summary>
@@ -28,13 +28,13 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         }
 
         /// <summary>
-        /// Calculate weight carrying capacity based on health.
+        /// Calculate focus carrying capacity based on health.
         /// Injured players have reduced carrying capacity.
         /// </summary>
-        public int CalculateWeightLimit(int health)
+        public int CalculateFocusLimit(int health)
         {
             // If health < 50, apply penalty to carrying capacity
-            return health < HEALTH_THRESHOLD_FOR_CARRY ? INJURED_WEIGHT_PENALTY : 0;
+            return health < HEALTH_THRESHOLD_FOR_CARRY ? INJURED_FOCUS_PENALTY : 0;
         }
     }
 }

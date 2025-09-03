@@ -126,7 +126,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         None,
         FailedNegotiation,
         ProudNPC,
-        CriticalEmotionalWeight,
+        CriticalEmotionalFocus,
         StandingObligation,
         NPCDesperation
     }

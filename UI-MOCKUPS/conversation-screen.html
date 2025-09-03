@@ -67,7 +67,7 @@
         }
 
         .resource-value {
-            font-weight: bold;
+            font-focus: bold;
             color: #d4a76a;
         }
 
@@ -92,7 +92,7 @@
 
         .deadline-warning {
             color: #d4704a;
-            font-weight: bold;
+            font-focus: bold;
         }
 
         /* Location Context */
@@ -127,7 +127,7 @@
         .npc-name {
             color: #5c4a3a;
             font-size: 22px;
-            font-weight: normal;
+            font-focus: normal;
             letter-spacing: 1px;
         }
 
@@ -136,7 +136,7 @@
             color: #8b4726;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-weight: bold;
+            font-focus: bold;
             margin-top: 3px;
         }
 
@@ -162,73 +162,73 @@
 
         .indicator-value {
             font-size: 18px;
-            font-weight: bold;
+            font-focus: bold;
             color: #5c4a3a;
         }
 
-        /* Comfort Display */
-        .comfort-indicator {
+        /* Flow Display */
+        .flow-indicator {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .comfort-bar {
+        .flow-bar {
             display: flex;
             gap: 4px;
             align-items: center;
         }
 
-        .comfort-segment {
+        .flow-segment {
             width: 12px;
             height: 24px;
             border: 1px solid #a68b6f;
             background: #e8dcc4;
         }
 
-        .comfort-segment.negative {
+        .flow-segment.negative {
             background: #d4704a;
         }
 
-        .comfort-segment.positive {
+        .flow-segment.positive {
             background: #7a8b5a;
         }
 
-        .comfort-segment.current {
+        .flow-segment.current {
             border: 2px solid #3d3429;
             box-shadow: 0 0 4px rgba(0,0,0,0.3);
         }
 
-        .comfort-value {
+        .flow-value {
             font-size: 16px;
-            font-weight: bold;
+            font-focus: bold;
             margin-left: 8px;
         }
 
-        /* Weight Pool Display */
-        .weight-pool {
+        /* Focus Display */
+        .focus-pool {
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .weight-dots {
+        .focus-dots {
             display: flex;
             gap: 3px;
         }
 
-        .weight-dot {
+        .focus-dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
             border: 1px solid #8b7355;
         }
 
-        .weight-dot.available {
+        .focus-dot.available {
             background: #d4a76a;
         }
 
-        .weight-dot.spent {
+        .focus-dot.spent {
             background: #3d3429;
         }
 
@@ -252,7 +252,7 @@
         .atmosphere-current {
             font-size: 13px;
             color: #5c4a3a;
-            font-weight: bold;
+            font-focus: bold;
         }
 
         .atmosphere-effect {
@@ -284,7 +284,7 @@
         }
 
         .token-count {
-            font-weight: bold;
+            font-focus: bold;
             color: #5a7a3a;
         }
 
@@ -343,7 +343,7 @@
 
         .turn-value {
             color: #5c4a3a;
-            font-weight: bold;
+            font-focus: bold;
         }
 
         .action-choices {
@@ -421,11 +421,11 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        .card.fleeting {
+        .card.impulse {
             border-left: 5px solid #8b4726;
         }
 
-        .card.opportunity {
+        .card.opening {
             border-left: 5px solid #5a7a8a;
         }
 
@@ -439,7 +439,7 @@
             background: #f0f4fa;
         }
 
-        .card.goal {
+        .card.request {
             border-left: 5px solid;
             border-image: linear-gradient(to bottom, #8b4726 50%, #5a7a8a 50%) 1;
             background: #fff9f0;
@@ -465,11 +465,11 @@
 
         .card-name {
             font-size: 14px;
-            font-weight: bold;
+            font-focus: bold;
             color: #5c4a3a;
         }
 
-        .card-weight {
+        .card-focus {
             display: inline-block;
             width: 24px;
             height: 24px;
@@ -478,7 +478,7 @@
             border-radius: 50%;
             text-align: center;
             line-height: 24px;
-            font-weight: bold;
+            font-focus: bold;
             font-size: 13px;
         }
 
@@ -500,7 +500,7 @@
         .card-scaling {
             font-size: 11px;
             color: #5a7a3a;
-            font-weight: bold;
+            font-focus: bold;
             padding: 4px 8px;
             background: #e8f5e9;
             border-radius: 2px;
@@ -526,7 +526,7 @@
 
         .outcome-chance {
             font-size: 20px;
-            font-weight: bold;
+            font-focus: bold;
             color: #5c4a3a;
             margin-bottom: 4px;
         }
@@ -542,7 +542,7 @@
         .outcome-effect {
             font-size: 11px;
             color: #5c4a3a;
-            font-weight: bold;
+            font-focus: bold;
         }
 
         /* Persistence Markers */
@@ -555,15 +555,15 @@
             font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-weight: bold;
+            font-focus: bold;
         }
 
-        .persistence-marker.fleeting {
+        .persistence-marker.impulse {
             background: #8b4726;
             color: #faf4ea;
         }
 
-        .persistence-marker.opportunity {
+        .persistence-marker.opening {
             background: #5a7a8a;
             color: #faf4ea;
         }
@@ -587,7 +587,7 @@
 
         .exhaust-effect {
             color: #d4a76a;
-            font-weight: bold;
+            font-focus: bold;
         }
 
         /* Atmosphere Change Indicator */
@@ -653,31 +653,31 @@
             <div class="npc-header">
                 <div class="npc-identity">
                     <div class="npc-name">Elena</div>
-                    <div class="emotional-state">Desperate (Weight: 3, Draw: 1)</div>
+                    <div class="emotional-state">Desperate (Focus: 3, Draw: 1)</div>
                 </div>
                 <div class="state-indicators">
                     <div class="indicator">
                         <span class="indicator-label">Patience</span>
                         <span class="indicator-value">8/15</span>
                     </div>
-                    <div class="comfort-indicator">
-                        <span class="indicator-label">Comfort</span>
-                        <div class="comfort-bar">
-                            <span class="comfort-segment negative"></span>
-                            <span class="comfort-segment negative"></span>
-                            <span class="comfort-segment negative current"></span>
-                            <span class="comfort-segment"></span>
-                            <span class="comfort-segment"></span>
-                            <span class="comfort-segment"></span>
+                    <div class="flow-indicator">
+                        <span class="indicator-label">Flow</span>
+                        <div class="flow-bar">
+                            <span class="flow-segment negative"></span>
+                            <span class="flow-segment negative"></span>
+                            <span class="flow-segment negative current"></span>
+                            <span class="flow-segment"></span>
+                            <span class="flow-segment"></span>
+                            <span class="flow-segment"></span>
                         </div>
-                        <span class="comfort-value">-3</span>
+                        <span class="flow-value">-3</span>
                     </div>
-                    <div class="weight-pool">
-                        <span class="indicator-label">Weight</span>
-                        <div class="weight-dots">
-                            <span class="weight-dot spent"></span>
-                            <span class="weight-dot available"></span>
-                            <span class="weight-dot available"></span>
+                    <div class="focus-pool">
+                        <span class="indicator-label">Focus</span>
+                        <div class="focus-dots">
+                            <span class="focus-dot spent"></span>
+                            <span class="focus-dot available"></span>
+                            <span class="focus-dot available"></span>
                         </div>
                         <span class="indicator-value">2/3</span>
                     </div>
@@ -689,7 +689,7 @@
         <div class="atmosphere-strip">
             <span class="atmosphere-label">Active Atmosphere:</span>
             <span class="atmosphere-current">Volatile</span>
-            <span class="atmosphere-effect">(All comfort changes ±1, persists until failure)</span>
+            <span class="atmosphere-effect">(All flow changes ±1, persists until failure)</span>
         </div>
 
         <!-- Token Strip -->
@@ -715,7 +715,7 @@
         <!-- Narrative Section -->
         <div class="narrative-section">
             <div class="narrative-text">
-                The atmosphere is volatile. Elena's breathing comes in ragged gasps, her composure shattered. At -3 comfort, one more negative shift will end this conversation. The single card draw reflects her emotional tunnel vision.
+                The atmosphere is volatile. Elena's breathing comes in ragged gasps, her composure shattered. At -3 flow, one more negative shift will end this conversation. The single card draw reflects her emotional tunnel vision.
             </div>
             <div class="npc-dialogue desperate">
                 "You don't understand! Lord Blackwood leaves at sunset. If this letter doesn't reach him... I'll be trapped forever. Please, I'm begging you! Take it now or I'm lost!"
@@ -730,7 +730,7 @@
                     <span class="turn-value">7/15</span>
                 </div>
                 <div class="turn-detail">
-                    <span>Weight Pool</span>
+                    <span>Focus</span>
                     <span class="turn-value">2/3</span>
                 </div>
                 <div class="turn-detail">
@@ -741,11 +741,11 @@
             <div class="action-choices">
                 <div class="action-button">
                     <div>👂 LISTEN</div>
-                    <div class="action-details">Draw 1 card, refresh weight to 3</div>
+                    <div class="action-details">Draw 1 card, refresh focus to 3</div>
                 </div>
                 <div class="action-button">
                     <div>💬 SPEAK</div>
-                    <div class="action-details">Play cards up to 2 weight</div>
+                    <div class="action-details">Play cards up to 2 focus</div>
                 </div>
             </div>
         </div>
@@ -763,7 +763,7 @@
                         <div class="card-main">
                             <div class="card-identity">
                                 <div class="card-name">Shared Experience</div>
-                                <div class="card-weight">1</div>
+                                <div class="card-focus">1</div>
                             </div>
                             <div class="card-persistence">Observation • Persistent • Very Easy</div>
                             <div class="card-text">
@@ -786,16 +786,16 @@
                     </div>
                 </div>
 
-                <!-- Interrupt Card (Opportunity) -->
-                <div class="card opportunity">
-                    <span class="persistence-marker opportunity">Opportunity</span>
+                <!-- Interrupt Card (Opening) -->
+                <div class="card opening">
+                    <span class="persistence-marker opening">Opening</span>
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-identity">
                                 <div class="card-name">Interrupt</div>
-                                <div class="card-weight">1</div>
+                                <div class="card-focus">1</div>
                             </div>
-                            <div class="card-persistence">Opportunity • Hard • Exhausts on LISTEN</div>
+                            <div class="card-persistence">Opening • Hard • Exhausts on LISTEN</div>
                             <div class="card-text">
                                 "Elena, stop! Listen to me for a moment..."
                             </div>
@@ -810,35 +810,35 @@
                             <div class="outcome">
                                 <div class="outcome-chance">45%</div>
                                 <div class="outcome-label">Failure</div>
-                                <div class="outcome-effect">-2 comfort</div>
+                                <div class="outcome-effect">-2 flow</div>
                             </div>
                         </div>
                     </div>
                     <div class="exhaust-strip">
                         <span class="exhaust-label">On Exhaust:</span>
-                        <span class="exhaust-effect">Atmosphere: Pressured (-1 weight capacity)</span>
+                        <span class="exhaust-effect">Atmosphere: Pressured (-1 focus capacity)</span>
                     </div>
                 </div>
 
-                <!-- Basic Comfort Card -->
+                <!-- Basic Flow Card -->
                 <div class="card">
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-identity">
                                 <div class="card-name">Steady Voice</div>
-                                <div class="card-weight">2</div>
+                                <div class="card-focus">2</div>
                             </div>
                             <div class="card-persistence">Persistent • Medium</div>
                             <div class="card-text">
                                 "I understand. I'll help you, Elena. Just breathe."
                             </div>
-                            <div class="card-scaling">+2 comfort (±1 from Volatile)</div>
+                            <div class="card-scaling">+2 flow (±1 from Volatile)</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
                                 <div class="outcome-chance">65%</div>
                                 <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">+1 to +3 comfort</div>
+                                <div class="outcome-effect">+1 to +3 flow</div>
                             </div>
                             <div class="outcome">
                                 <div class="outcome-chance">35%</div>
@@ -849,26 +849,26 @@
                     </div>
                 </div>
 
-                <!-- Fleeting Card -->
-                <div class="card fleeting">
-                    <span class="persistence-marker fleeting">Fleeting</span>
+                <!-- Impulse Card -->
+                <div class="card impulse">
+                    <span class="persistence-marker impulse">Impulse</span>
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-identity">
                                 <div class="card-name">Desperate Plea</div>
-                                <div class="card-weight">3</div>
+                                <div class="card-focus">3</div>
                             </div>
-                            <div class="card-persistence">Fleeting • Hard • Exhausts on SPEAK</div>
+                            <div class="card-persistence">Impulse • Hard • Exhausts on SPEAK</div>
                             <div class="card-text">
                                 "Elena, I swear on my life I'll deliver this letter!"
                             </div>
-                            <div class="card-scaling">+X comfort where X = 4 - current comfort (currently +7)</div>
+                            <div class="card-scaling">+X flow where X = 4 - current flow (currently +7)</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
                                 <div class="outcome-chance">55%</div>
                                 <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">+6 to +8 comfort</div>
+                                <div class="outcome-effect">+6 to +8 flow</div>
                             </div>
                             <div class="outcome">
                                 <div class="outcome-chance">45%</div>
@@ -883,16 +883,16 @@
                     </div>
                 </div>
 
-                <!-- Goal Card (Both Fleeting AND Opportunity) -->
-                <div class="card goal both-persistence">
-                    <span class="persistence-marker fleeting">Fleeting+Opportunity</span>
+                <!-- Request Card (Both Impulse AND Opening) -->
+                <div class="card request both-persistence">
+                    <span class="persistence-marker impulse">Impulse+Opening</span>
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-identity">
                                 <div class="card-name">Accept Elena's Letter</div>
-                                <div class="card-weight">5</div>
+                                <div class="card-focus">5</div>
                             </div>
-                            <div class="card-persistence">Goal • Very Hard • Must play immediately!</div>
+                            <div class="card-persistence">Request • Very Hard • Must play immediately!</div>
                             <div class="card-text">
                                 "Give me the letter. I'll get it to Lord Blackwood before sunset, no matter what it takes."
                             </div>

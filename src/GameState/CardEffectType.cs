@@ -9,9 +9,9 @@ public enum CardEffectType
     None,
     
     /// <summary>
-    /// Add fixed comfort value (positive or negative)
+    /// Add fixed flow value (positive or negative)
     /// </summary>
-    AddComfort,
+    AddFlow,
     
     /// <summary>
     /// Draw a number of cards
@@ -19,9 +19,9 @@ public enum CardEffectType
     DrawCards,
     
     /// <summary>
-    /// Add weight to the weight pool
+    /// Add focus to the focus
     /// </summary>
-    AddWeight,
+    AddFocus,
     
     /// <summary>
     /// Set the conversation atmosphere. Value indicates which atmosphere.
@@ -34,34 +34,34 @@ public enum CardEffectType
     EndConversation,
     
     /// <summary>
-    /// Scale comfort by token count. Value contains token type.
+    /// Scale flow by token count. Value contains token type.
     /// </summary>
     ScaleByTokens,
     
     /// <summary>
-    /// Scale comfort by current comfort level. Value contains formula like "4 - comfort".
+    /// Scale flow by current flow level. Value contains formula like "4 - flow".
     /// </summary>
-    ScaleByComfort,
+    ScaleByFlow,
     
     /// <summary>
-    /// Scale comfort by patience. Value contains formula like "patience / 3".
+    /// Scale flow by patience. Value contains formula like "patience / 3".
     /// </summary>
     ScaleByPatience,
     
     /// <summary>
-    /// Scale comfort by remaining weight. Value contains formula like "weight".
+    /// Scale flow by remaining focus. Value contains formula like "focus".
     /// </summary>
-    ScaleByWeight,
+    ScaleByFocus,
     
     /// <summary>
-    /// Reset comfort to 0
+    /// Reset flow to 0
     /// </summary>
-    ComfortReset,
+    FlowReset,
     
     /// <summary>
-    /// Refresh weight pool to maximum
+    /// Refresh focus to maximum
     /// </summary>
-    WeightRefresh,
+    FocusRefresh,
     
     /// <summary>
     /// Next action costs 0 patience

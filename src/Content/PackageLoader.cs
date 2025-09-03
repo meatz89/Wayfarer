@@ -93,7 +93,7 @@ public class PackageLoader
 
             // Phase 4.5: Initialize all NPC decks (after NPCs and cards are loaded)
             InitializeNPCConversationDecks();
-            InitializeNPCGoalDecks();
+            InitializeNPCRequestDecks();
             InitializeNPCExchangeDecks();
 
             // Phase 5: Routes (depend on locations)
@@ -421,11 +421,11 @@ public class PackageLoader
     }
 
     /// <summary>
-    /// Initialize goal decks for all NPCs based on their personality types
+    /// Initialize request decks for all NPCs based on their personality types
     /// </summary>
-    private void InitializeNPCGoalDecks()
+    private void InitializeNPCRequestDecks()
     {
-        Console.WriteLine("[PackageLoader] Initializing NPC goal decks based on personality types...");
+        Console.WriteLine("[PackageLoader] Initializing NPC request decks based on personality types...");
 
         NPCDeckBuilder deckBuilder = new NPCDeckBuilder(_gameWorld);
 
@@ -433,21 +433,21 @@ public class PackageLoader
         {
             try
             {
-                // Build goal deck filtered by NPC's personality type
-                List<ConversationCard> goalCards = deckBuilder.BuildGoalDeck(npc.PersonalityType);
+                // Build request deck filtered by NPC's personality type
+                List<ConversationCard> requestCards = deckBuilder.BuildRequestDeck(npc.PersonalityType);
                 
-                // Initialize goal deck with filtered cards
-                npc.InitializeGoalDeck(goalCards);
+                // Initialize request deck with filtered cards
+                npc.InitializeRequestDeck(requestCards);
 
-                Console.WriteLine($"[PackageLoader] Initialized goal deck for {npc.Name} ({npc.PersonalityType}) with {goalCards.Count} cards");
+                Console.WriteLine($"[PackageLoader] Initialized request deck for {npc.Name} ({npc.PersonalityType}) with {requestCards.Count} cards");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[PackageLoader] Failed to initialize goal deck for NPC {npc.Name}: {ex.Message}");
+                Console.WriteLine($"[PackageLoader] Failed to initialize request deck for NPC {npc.Name}: {ex.Message}");
             }
         }
 
-        Console.WriteLine("[PackageLoader] NPC goal deck initialization completed");
+        Console.WriteLine("[PackageLoader] NPC request deck initialization completed");
     }
 
     /// <summary>
@@ -551,7 +551,7 @@ public class PackageLoader
             Id = dto.Id,
             Name = dto.DisplayText ?? dto.Id,
             Description = dto.DisplayText ?? "",
-            Weight = dto.Weight,
+            Focus = dto.Focus,
             TokenType = TokenType.Trust,
             Difficulty = Difficulty.Medium
         };
@@ -567,16 +567,16 @@ public class PackageLoader
             Id = dto.Id,
             Name = dto.Title ?? dto.DisplayName ?? "Travel Card",
             Description = "Travel card",
-            Weight = dto.Weight ?? 1,
+            Focus = dto.Focus ?? 1,
             TokenType = TokenType.Trust,
             Difficulty = Difficulty.Medium
         };
         
         // Parse persistence
-        if (dto.Persistence == "Fleeting")
-            card.Properties.Add(CardProperty.Fleeting);
-        else if (dto.Persistence == "Opportunity")
-            card.Properties.Add(CardProperty.Opportunity);
+        if (dto.Persistence == "Impulse")
+            card.Properties.Add(CardProperty.Impulse);
+        else if (dto.Persistence == "Opening")
+            card.Properties.Add(CardProperty.Opening);
         else
             card.Properties.Add(CardProperty.Persistent);
             

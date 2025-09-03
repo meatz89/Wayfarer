@@ -13,7 +13,7 @@ public static class ItemParser
         {
             Id = dto.Id ?? "",
             Name = dto.Name ?? "",
-            Weight = dto.Weight,
+            Focus = dto.Focus,
             BuyPrice = dto.BuyPrice,
             SellPrice = dto.SellPrice,
             InventorySlots = dto.InventorySlots,
@@ -81,7 +81,7 @@ public static class ItemParser
         {
             Id = GetStringProperty(root, "id", ""),
             Name = GetStringProperty(root, "name", ""),
-            Weight = GetIntProperty(root, "weight", 1),
+            Focus = GetIntProperty(root, "focus", 1),
             BuyPrice = GetIntProperty(root, "buyPrice", 0),
             SellPrice = GetIntProperty(root, "sellPrice", 0),
             InventorySlots = GetIntProperty(root, "inventorySlots", 1),

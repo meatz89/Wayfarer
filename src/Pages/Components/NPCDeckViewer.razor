@@ -96,11 +96,11 @@
             <!-- Conversation Deck -->
             <div class="deck-section conversation-deck-section">
                 <h3>Conversation Deck (@(ConversationCards?.Count ?? 0) cards)</h3>
-                <div class="deck-purpose">Contains comfort, state, and token cards for standard conversations</div>
+                <div class="deck-purpose">Contains flow, state, and token cards for standard conversations</div>
                 @if (ConversationCards != null && ConversationCards.Any())
                 {
                     <div class="card-list">
-                        @foreach (var card in ConversationCards.OrderBy(c => c.Weight))
+                        @foreach (var card in ConversationCards.OrderBy(c => c.Focus))
                         {
                             <div class="debug-card conversation-card">
                                 <div class="card-header">
@@ -110,7 +110,7 @@
                                 </div>
                                 <div class="card-properties">
                                     <span>Token: @card.TokenType</span>
-                                    <span>Weight: @card.Weight</span>
+                                    <span>Focus: @card.Focus</span>
                                     <span>Persistence: @GetPersistenceText(card)</span>
                                 </div>
                                 <div class="card-text">@(card.Description ?? "Template: " + card.Id)</div>
@@ -144,29 +144,29 @@
                 }
             </div>
 
-            <!-- Goal Deck (Letters + Crisis) -->
-            <div class="deck-section goal-deck-section @(HasGoalCards ? "has-goals" : "")">
-                <h3>Goal Deck (@(TotalGoalCards) cards total)</h3>
+            <!-- Request Deck (Letters + Crisis) -->
+            <div class="deck-section request-deck-section @(HasRequestCards ? "has-requests" : "")">
+                <h3>Request Deck (@(TotalRequestCards) cards total)</h3>
                 <div class="deck-purpose">
-                    Contains letter and crisis goals. Only ONE goal card can be drawn per conversation.
-                    <span class="urgency-rule">⚠ Goal Urgency Rule: Once drawn, must be played within 1 turn or conversation fails!</span>
+                    Contains letter and crisis requests. Only ONE request card can be drawn per conversation.
+                    <span class="urgency-rule">⚠ Request Urgency Rule: Once drawn, must be played within 1 turn or conversation fails!</span>
                 </div>
                 
-                @if (CurrentNPC.GoalDeck != null && CurrentNPC.GoalDeck.Any())
+                @if (CurrentNPC.RequestDeck != null && CurrentNPC.RequestDeck.Any())
                 {
-                    <h4 class="sub-deck-header">Letter Goals (@(CurrentNPC.GoalDeck.Count) cards)</h4>
+                    <h4 class="sub-deck-header">Letter Requests (@(CurrentNPC.RequestDeck.Count) cards)</h4>
                     <div class="card-list">
-                        @foreach (var card in CurrentNPC.GoalDeck.GetAllCards())
+                        @foreach (var card in CurrentNPC.RequestDeck.GetAllCards())
                         {
-                            <div class="debug-card letter-card goal-card">
+                            <div class="debug-card letter-card request-card">
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
                                     <span class="card-name">@(card.Name ?? card.Id)</span>
-                                    <span class="goal-type-badge">LETTER GOAL</span>
+                                    <span class="request-type-badge">LETTER REQUEST</span>
                                 </div>
                                 <div class="card-properties">
                                     <span>Template: @card.Id</span>
-                                    <span>Weight: @card.Weight</span>
+                                    <span>Focus: @card.Focus</span>
                                 </div>
                                 <div class="eligibility">
                                     <h4>Eligibility Requirements:</h4>
@@ -176,19 +176,19 @@
                                     }
                                 </div>
                                 <div class="negotiation">
-                                    <h4>Goal Card Properties:</h4>
-                                    <div>Type: @card.GoalCardType</div>
+                                    <h4>Request Card Properties:</h4>
+                                    <div>Type: @card.RequestCardType</div>
                                     <div>Category: @card.Category</div>
-                                    <div>Weight: @card.Weight</div>
+                                    <div>Focus: @card.Focus</div>
                                 </div>
                             </div>
                         }
                     </div>
                 }
                 
-                @if (!HasGoalCards)
+                @if (!HasRequestCards)
                 {
-                    <div class="empty-deck">No goal cards (letters or crisis)</div>
+                    <div class="empty-deck">No request cards (letters or crisis)</div>
                 }
             </div>
 
@@ -215,7 +215,7 @@
                                         <h4>Exchange Properties:</h4>
                                         <div>Category: @card.Category</div>
                                         <div>Type: @card.Type</div>
-                                        <div>Weight: @card.Weight</div>
+                                        <div>Focus: @card.Focus</div>
                                     </div>
                                 </div>
                                 @* TodaysExchangeCard property was removed - exchanges are selected dynamically *@
@@ -241,8 +241,8 @@
     
     // Computed properties for conversation availability
     private bool HasExchangeCards => CurrentNPC?.ExchangeDeck?.Any() == true;
-    private bool HasGoalCards => (CurrentNPC?.GoalDeck?.Any() == true);
-    private int TotalGoalCards => (CurrentNPC?.GoalDeck?.Count ?? 0);
+    private bool HasRequestCards => (CurrentNPC?.RequestDeck?.Any() == true);
+    private int TotalRequestCards => (CurrentNPC?.RequestDeck?.Count ?? 0);
     
     protected override void OnInitialized()
     {
@@ -283,19 +283,19 @@
             return "exchange";
         if (card.IsObservable)
             return "observation";
-        if (card.IsGoal)
+        if (card.IsRequest)
             return "promise";
         if (card.IsBurden)
             return "burden";
         
-        return "comfort"; // Default
+        return "flow"; // Default
     }
     
     private string GetPersistenceText(ConversationCard card)
     {
-        if (card.IsFleeting && card.IsOpportunity) return "Goal";  // Both properties = Goal
-        if (card.IsFleeting) return "Fleeting";
-        if (card.IsOpportunity) return "Opportunity";
+        if (card.IsImpulse && card.IsOpening) return "Request";  // Both properties = Request
+        if (card.IsImpulse) return "Impulse";
+        if (card.IsOpening) return "Opening";
         if (card.IsPersistent) return "Persistent";
         return "";
     }
@@ -307,11 +307,11 @@
             return "EXCHANGE";
         if (card.IsObservable)
             return "OBSERVATION";
-        if (card.IsGoal)
+        if (card.IsRequest)
             return "PROMISE";
         if (card.IsBurden)
             return "BURDEN";
         
-        return "COMFORT"; // Default
+        return "FLOW"; // Default
     }
 }

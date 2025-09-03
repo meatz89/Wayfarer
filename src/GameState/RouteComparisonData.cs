@@ -10,7 +10,7 @@ public class RouteComparisonData
     public string CostBenefitAnalysis { get; set; }
     public int TotalCost { get; set; }
     public int AdjustedStaminaCost { get; set; }
-    public int WeightPenalty { get; set; }
+    public int FocusPenalty { get; set; }
     public double EfficiencyScore { get; set; }
     public bool CanAfford { get; set; }
     public string ArrivalTime { get; set; }

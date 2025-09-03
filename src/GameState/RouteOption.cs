@@ -99,7 +99,7 @@ public class RouteOption
     // (Separate from IsDiscovered - permits unlock tier-restricted routes)
     public bool HasPermitUnlock { get; set; } = false;
 
-    public bool CanTravel(ItemRepository itemRepository, Player player, int totalWeight)
+    public bool CanTravel(ItemRepository itemRepository, Player player, int totalFocus)
     {
         // Use logical access system instead of efficiency calculations
         RouteAccessResult accessResult = CheckRouteAccess(itemRepository, player, WeatherCondition.Clear);
@@ -109,7 +109,7 @@ public class RouteOption
         }
 
         // Calculate realistic costs without efficiency modifiers
-        int staminaCost = CalculateLogicalStaminaCost(totalWeight, player.Inventory.ItemSlots.Count(i => i != null && i != string.Empty));
+        int staminaCost = CalculateLogicalStaminaCost(totalFocus, player.Inventory.ItemSlots.Count(i => i != null && i != string.Empty));
         int coinCost = BaseCoinCost;
 
         // Check if player has enough resources
@@ -227,18 +227,18 @@ public class RouteOption
         return TravelTimeMinutes;
     }
 
-    public int CalculateWeightAdjustedStaminaCost(int totalWeight)
+    public int CalculateFocusAdjustedStaminaCost(int totalFocus)
     {
         int adjustedStaminaCost = BaseStaminaCost;
 
-        // Apply weight penalties
-        if (totalWeight > GameConstants.LoadWeight.LIGHT_LOAD_MAX && totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
+        // Apply focus penalties
+        if (totalFocus > GameConstants.LoadFocus.LIGHT_LOAD_MAX && totalFocus <= GameConstants.LoadFocus.MEDIUM_LOAD_MAX)
         {
-            adjustedStaminaCost += GameConstants.LoadWeight.MEDIUM_LOAD_HUNGER_INCREASE;
+            adjustedStaminaCost += GameConstants.LoadFocus.MEDIUM_LOAD_HUNGER_INCREASE;
         }
-        else if (totalWeight > GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
+        else if (totalFocus > GameConstants.LoadFocus.MEDIUM_LOAD_MAX)
         {
-            adjustedStaminaCost += GameConstants.LoadWeight.HEAVY_LOAD_HUNGER_INCREASE;
+            adjustedStaminaCost += GameConstants.LoadFocus.HEAVY_LOAD_HUNGER_INCREASE;
         }
 
         return adjustedStaminaCost;
@@ -247,10 +247,10 @@ public class RouteOption
     /// <summary>
     /// Calculate stamina cost based on logical factors - no efficiency multipliers
     /// </summary>
-    public int CalculateStaminaCost(int totalWeight, WeatherCondition weather, ItemRepository itemRepository, Player player)
+    public int CalculateStaminaCost(int totalFocus, WeatherCondition weather, ItemRepository itemRepository, Player player)
     {
         int itemCount = player.Inventory.ItemSlots.Count(i => i != null && i != string.Empty);
-        int baseCost = CalculateLogicalStaminaCost(totalWeight, itemCount);
+        int baseCost = CalculateLogicalStaminaCost(totalFocus, itemCount);
 
         // Apply weather modifications
         if (WeatherModifications.TryGetValue(weather, out RouteModification? modification))
@@ -264,25 +264,25 @@ public class RouteOption
     /// <summary>
     /// Calculate stamina cost using logical factors instead of efficiency multipliers
     /// </summary>
-    private int CalculateLogicalStaminaCost(int totalWeight, int itemCount)
+    private int CalculateLogicalStaminaCost(int totalFocus, int itemCount)
     {
         int staminaCost = BaseStaminaCost;
 
-        // Physical weight penalties (realistic cargo limitations)
-        if (totalWeight > GameConstants.LoadWeight.LIGHT_LOAD_MAX && totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
+        // Physical focus penalties (realistic cargo limitations)
+        if (totalFocus > GameConstants.LoadFocus.LIGHT_LOAD_MAX && totalFocus <= GameConstants.LoadFocus.MEDIUM_LOAD_MAX)
         {
-            staminaCost += GameConstants.LoadWeight.MEDIUM_LOAD_HUNGER_INCREASE; // Moderate load
+            staminaCost += GameConstants.LoadFocus.MEDIUM_LOAD_HUNGER_INCREASE; // Moderate load
         }
-        else if (totalWeight > GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
+        else if (totalFocus > GameConstants.LoadFocus.MEDIUM_LOAD_MAX)
         {
-            staminaCost += GameConstants.LoadWeight.HEAVY_LOAD_HUNGER_INCREASE; // Heavy load
+            staminaCost += GameConstants.LoadFocus.HEAVY_LOAD_HUNGER_INCREASE; // Heavy load
         }
 
         // Overload penalties (instead of blocking - player choice with consequences)
         if (itemCount > MaxItemCapacity)
         {
             int overload = itemCount - MaxItemCapacity;
-            staminaCost += overload * GameConstants.LoadWeight.MEDIUM_LOAD_HUNGER_INCREASE; // +1 stamina per item over capacity
+            staminaCost += overload * GameConstants.LoadFocus.MEDIUM_LOAD_HUNGER_INCREASE; // +1 stamina per item over capacity
         }
 
         return Math.Max(1, staminaCost);

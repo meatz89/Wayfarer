@@ -45,9 +45,9 @@ public class ObservationsData
 
 public class ObservationTypeData
 {
-    public int Weight { get; set; }
-    public int BaseComfort { get; set; }
-    public bool CreatesOpportunity { get; set; }
+    public int Focus { get; set; }
+    public int BaseFlow { get; set; }
+    public bool CreatesOpening { get; set; }
     public bool ProvidesInformation { get; set; }
     public bool CreatesUrgency { get; set; }
     public bool RequiresShadowTokens { get; set; }

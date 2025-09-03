@@ -9,17 +9,17 @@ CRITICAL: This scene must directly continue from the player's final choice.
 ## Final State
 - Outcome: {ENCOUNTER_OUTCOME}
 - Location: {LOCATION_SPOT} of {LOCATION_NAME}
-- Objective: {CHARACTER_GOAL}
+- Objective: {CHARACTER_REQUEST}
 - Momentum: {FINAL_MOMENTUM} | Pressure: {FINAL_PRESSURE}
 
 ## Requirements
 Write 3-4 paragraphs of first-person narrative that:
-1. BEGINS BY DIRECTLY ADDRESSING GOAL ACHIEVEMENT:
-   - The first paragraph MUST explicitly state whether the goal was achieved
+1. BEGINS BY DIRECTLY ADDRESSING REQUEST ACHIEVEMENT:
+   - The first paragraph MUST explicitly state whether the request was achieved
    - FAILURE: Show how the character failed but what they might have learned
-   - PARTIAL: Show how the character partially achieved the goal with limitations
-   - STANDARD: Demonstrate full achievement of the goal as intended
-   - EXCEPTIONAL: Show how the character not only achieved the goal but gained additional benefits
+   - PARTIAL: Show how the character partially achieved the request with limitations
+   - STANDARD: Demonstrate full achievement of the request as intended
+   - EXCEPTIONAL: Show how the character not only achieved the request but gained additional benefits
 
 2. SHOWS THE CONSEQUENCES of the character's approach emphasis:
    - Provide concrete details about what was gained or lost

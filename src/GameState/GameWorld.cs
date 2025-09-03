@@ -67,7 +67,7 @@ public class GameWorld
     // All cards are ConversationCard type (no LetterCard, ExchangeCard, etc.)
     public Dictionary<string, ConversationCard> AllCardDefinitions { get; set; } = new Dictionary<string, ConversationCard>();
     public Dictionary<string, List<string>> NPCConversationDeckMappings { get; set; } = new Dictionary<string, List<string>>();
-    public Dictionary<string, List<ConversationCard>> NPCGoalDecks { get; set; } = new Dictionary<string, List<ConversationCard>>();
+    public Dictionary<string, List<ConversationCard>> NPCRequestDecks { get; set; } = new Dictionary<string, List<ConversationCard>>();
     public Dictionary<string, List<ConversationCard>> NPCExchangeDecks { get; set; } = new Dictionary<string, List<ConversationCard>>();
     public List<ConversationCard> PlayerObservationCards { get; set; } = new List<ConversationCard>();
     // Travel cards are now stored as ConversationCards with category "Travel"

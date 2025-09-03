@@ -5,9 +5,9 @@ public class ConversationTurnResult
     public bool Success { get; set; }
     public EmotionalState NewState { get; set; }
     public string NPCResponse { get; set; }
-    public int? ComfortChange { get; set; }
-    public int? OldComfort { get; set; }
-    public int? NewComfort { get; set; }
+    public int? FlowChange { get; set; }
+    public int? OldFlow { get; set; }
+    public int? NewFlow { get; set; }
     public int? PatienceRemaining { get; set; }
     public List<CardInstance> DrawnCards { get; set; }
     public List<CardInstance> RemovedCards { get; set; }

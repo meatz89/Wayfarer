@@ -2,7 +2,7 @@
 
 ## Core Economic Philosophy
 
-Every resource flows through multiple systems via different mechanics. Each mechanic has exactly ONE intentional effect. No thresholds (except comfort Â±3 for state transitions), no secondary effects, no "OR" statements. Resources create strategic depth through their multiple uses, not through complex mechanics.
+Every resource flows through multiple systems via different mechanics. Each mechanic has exactly ONE intentional effect. No thresholds (except flow Â±3 for state transitions), no secondary effects, no "OR" statements. Resources create strategic depth through their multiple uses, not through complex mechanics.
 
 ## Primary Resources
 
@@ -40,7 +40,7 @@ Every resource flows through multiple systems via different mechanics. Each mech
 **Range**: 0-100 (death at 0)
 
 **Effects**:
-- **Weight Capacity**: Below 50 health → maximum weight capacity -1 in conversations
+- **Focus Capacity**: Below 50 health → maximum focus capacity -1 in conversations
 - **Starvation Damage**: -5 health per period at 100 hunger
 
 **Restoration**:
@@ -85,9 +85,9 @@ Four types, each with distinct identity:
 
 **Multiple Uses Through Different Mechanics**:
 1. **Success Modifier**: Every token adds 5% to matching card types only
-2. **Goal Negotiation**: Better terms with matching token types  
+2. **Request Negotiation**: Better terms with matching token types  
 3. **Displacement Cost**: Burn tokens to jump queue positions
-4. **Scaling Effects**: Some comfort cards scale with specific token types
+4. **Scaling Effects**: Some flow cards scale with specific token types
 
 Each use is a separate mechanic. Tokens never gate access to content.
 
@@ -106,15 +106,15 @@ Each use is a separate mechanic. Tokens never gate access to content.
 
 ## Conversation Resources
 
-### Comfort (Temporary)
+### Flow (Temporary)
 **Range**: -3 to +3 within single conversation
 **Starting Value**: Always 0
 **Effect**: At Â±3, triggers emotional state transition
 
 **Modification**:
-- Fixed comfort cards: +1 to +5 or -1 to -3 based on card
-- Scaled comfort cards: +X where X varies by scaling type
-- Atmosphere effects can modify comfort changes
+- Fixed flow cards: +1 to +5 or -1 to -3 based on card
+- Scaled flow cards: +X where X varies by scaling type
+- Atmosphere effects can modify flow changes
 
 **State Transitions at Â±3**:
 - DESPERATE: +3→Tense, -3→Conversation ends
@@ -123,9 +123,9 @@ Each use is a separate mechanic. Tokens never gate access to content.
 - OPEN: +3→Connected, -3→Neutral
 - CONNECTED: +3→Stays Connected, -3→Open
 
-**Strategic Role**: Tactical battery for triggering state transitions. Positive comfort leads to better states, negative to worse. Resets to 0 after each transition.
+**Strategic Role**: Tactical battery for triggering state transitions. Positive flow leads to better states, negative to worse. Resets to 0 after each transition.
 
-### Weight Pool (Per-Conversation)
+### Focus (Per-Conversation)
 **Capacity by Emotional State**:
 - Desperate: 3
 - Tense: 4
@@ -136,25 +136,25 @@ Each use is a separate mechanic. Tokens never gate access to content.
 **Mechanics**:
 - Refreshes to maximum on LISTEN
 - Persists across SPEAK actions
-- Each card costs its weight value
+- Each card costs its focus value
 - Prepared atmosphere adds +1 capacity
 - Health below 50 reduces capacity by 1
 
-**Strategic Role**: Core resource management within conversations. Enables multi-turn planning with fleeting cards that require more weight than currently available.
+**Strategic Role**: Core resource management within conversations. Enables multi-turn planning with impulse cards that require more focus than currently available.
 
 ### Atmosphere (Per-Conversation)
 **Standard Atmospheres** (~30% of normal cards):
 - **Neutral**: No effect (default, set after any failure)
-- **Prepared**: +1 weight capacity
+- **Prepared**: +1 focus capacity
 - **Receptive**: +1 card on LISTEN
 - **Focused**: +20% success all cards
 - **Patient**: Actions cost 0 patience
-- **Volatile**: All comfort changes Â±1
+- **Volatile**: All flow changes Â±1
 - **Final**: Any failure ends conversation
 
 **Observation-Only Atmospheres**:
 - **Informed**: Next card cannot fail
-- **Exposed**: Double all comfort changes
+- **Exposed**: Double all flow changes
 - **Synchronized**: Next card effect happens twice
 - **Pressured**: -1 card on LISTEN
 
@@ -225,7 +225,7 @@ Six daily periods, each 4 hours:
 - **Travel Discoveries**: Finding new routes
 
 **Properties**:
-- Weight 1 (minimal pool requirement)
+- Focus 1 (minimal pool requirement)
 - Always persistent
 - 85% success rate (Very Easy difficulty)
 - Unique effects not available on normal cards
@@ -233,8 +233,8 @@ Six daily periods, each 4 hours:
 
 **Unique Effects**:
 - Set special atmospheres (Informed, Exposed, Synchronized, Pressured)
-- Bypass costs (next action free, next SPEAK costs 0 weight)
-- Unique manipulations (reset comfort to 0, refresh weight pool)
+- Bypass costs (next action free, next SPEAK costs 0 focus)
+- Unique manipulations (reset flow to 0, refresh focus)
 
 **Strategic Role**: Bypass normal conversation limitations. Reward exploration and information gathering. Create powerful one-time effects.
 
@@ -248,7 +248,7 @@ Six daily periods, each 4 hours:
 - Cannot be dropped without consequence
 
 **Acquisition**:
-- Goal cards (requires successful negotiation)
+- Request cards (requires successful negotiation)
 - Exchange cards (15-20 coins)
 
 **Strategic Role**: Gate exploration and enable efficient routing. Compete for limited satchel space.
@@ -267,7 +267,7 @@ Six daily periods, each 4 hours:
 - Visual indicator of damaged relationships
 
 **Resolution**:
-- "Clear the Air" goal card removes burdens
+- "Clear the Air" request card removes burdens
 - Very Hard difficulty (40% base + tokens)
 
 **Strategic Role**: Permanent consequences that must be actively resolved. Create repair arcs for damaged relationships.
@@ -281,21 +281,21 @@ Instead of flat 60%, cards use difficulty tiers:
 - Observation cards exclusively
 
 **Easy** (70% base):
-- Basic fixed comfort (+1, -1)
-- Setup cards (0 weight atmosphere setters)
+- Basic fixed flow (+1, -1)
+- Setup cards (0 focus atmosphere setters)
 
 **Medium** (60% base):
-- Standard fixed comfort (+2, -2)
-- Utility cards (draw, weight-add)
+- Standard fixed flow (+2, -2)
+- Utility cards (draw, focus-add)
 
 **Hard** (50% base):
-- Scaled comfort cards
-- High fixed comfort (+3)
-- Resolution goals
+- Scaled flow cards
+- High fixed flow (+3)
+- Resolution requests
 
 **Very Hard** (40% base):
-- Dramatic fixed comfort (+4, +5, -3)
-- Goal cards (letters, meetings)
+- Dramatic fixed flow (+4, +5, -3)
+- Request cards (letters, meetings)
 - Crisis resolutions
 
 **Token Modification**: +5% per token, applied equally to all difficulties
@@ -308,8 +308,8 @@ Instead of flat 60%, cards use difficulty tiers:
 ```
 Work Action (2 attention + 4 hours) → 8 coins
 8 coins → Food (reset hunger) → Better morning attention  
-Better attention → More conversations → Goal card access
-Goal cards → Letter obligations → Delivery success
+Better attention → More conversations → Request card access
+Request cards → Letter obligations → Delivery success
 Delivery success → Payment + Tokens
 ```
 
@@ -317,7 +317,7 @@ Delivery success → Payment + Tokens
 ```
 Successful deliveries → +1-3 tokens
 Higher tokens → Better card success rates
-Better goal negotiation → Favorable queue position
+Better request negotiation → Favorable queue position
 Efficient completion → No displacement needed
 Preserved tokens → Stronger future relationships
 ```
@@ -326,17 +326,17 @@ Preserved tokens → Stronger future relationships
 ```
 Observation (1 attention) → Unique effect card
 Special atmosphere → Bypass normal limitations
-Better success rates → Reach goal cards
-Goal cards → Letters or permits
+Better success rates → Reach request cards
+Request cards → Letters or permits
 Permits → New routes → More opportunities
 ```
 
-### Weight → Comfort → States → Capacity
+### Focus → Flow → States → Capacity
 ```
-Higher states → More weight capacity
-More capacity → Access to higher weight cards
-Higher weight cards → Bigger comfort changes
-Comfort Â±3 → State transitions
+Higher states → More focus capacity
+More capacity → Access to higher focus cards
+Higher focus cards → Bigger flow changes
+Flow Â±3 → State transitions
 Better states → More cards drawn on LISTEN
 ```
 
@@ -350,10 +350,10 @@ Better states → More cards drawn on LISTEN
 - Minimum 2 (never completely blocked)
 - Creates pressure to manage hunger without hard lock
 
-**Weight Pool Depletion**:
-- Need high-weight goal card → Must reach better state
-- Better state needs comfort building → Requires weight for comfort cards
-- Weight pool depletes → Must LISTEN to refresh
+**Focus Depletion**:
+- Need high-focus request card → Must reach better state
+- Better state needs flow building → Requires focus for flow cards
+- Focus depletes → Must LISTEN to refresh
 - LISTEN costs patience → Limited turns available
 
 **Queue Displacement Cascade**:
@@ -376,10 +376,10 @@ Better states → More cards drawn on LISTEN
 - Focus deliveries on specific NPCs for concentrated tokens
 - Use observations to improve success without token cost
 
-**Weight Efficiency**:
-- Chain low-weight cards before refreshing
+**Focus Efficiency**:
+- Chain low-focus cards before refreshing
 - Use atmosphere to expand capacity
-- Time fleeting cards before SPEAK removes them
+- Time impulse cards before SPEAK removes them
 
 **Attention Efficiency**:
 - Chain obligations in same location
@@ -397,10 +397,10 @@ Every resource scales linearly:
 - Each token: exactly +5% success
 - Each 25 hunger: exactly -1 attention
 - Each patience: exactly 1 turn
-- Each weight point: exactly that much from pool
+- Each focus point: exactly that much from pool
 - Each difficulty tier: specific base percentage
 
-Only exception: Comfort Â±3 triggers state transitions (necessary mechanical breakpoint).
+Only exception: Flow Â±3 triggers state transitions (necessary mechanical breakpoint).
 
 ## Intentional Mechanic Design
 
@@ -410,24 +410,24 @@ Examples of clean separation:
 **GOOD**: Routes require access permit. Guards can be bribed for permits. Merchants sell permits.
 
 **BAD**: "High tokens unlock better cards AND improve success"  
-**GOOD**: Tokens improve success rates. Weight capacity determines playable cards.
+**GOOD**: Tokens improve success rates. Focus capacity determines playable cards.
 
 **BAD**: "Hunger reduces patience AND attention"
 **GOOD**: Hunger reduces attention only. Patience is per-NPC, not affected by player resources.
 
-**BAD**: "Atmosphere affects weight AND success"
-**GOOD**: Prepared atmosphere affects weight capacity. Focused atmosphere affects success. Each atmosphere has ONE effect.
+**BAD**: "Atmosphere affects focus AND success"
+**GOOD**: Prepared atmosphere affects focus capacity. Focused atmosphere affects success. Each atmosphere has ONE effect.
 
 ## Resource Flow Visibility
 
 All resource effects visible to player:
 - Success rates shown before playing cards (base + tokens)
-- Weight costs displayed on all cards
-- Current weight pool always visible
+- Focus costs displayed on all cards
+- Current focus always visible
 - Displacement costs shown when viewing queue
 - Time costs shown on routes
 - Attention formula transparent
-- Comfort position always visible (-3 to +3)
+- Flow position always visible (-3 to +3)
 - Active atmosphere displayed prominently
 
 No hidden calculations. Perfect information for strategic decisions.
@@ -459,17 +459,17 @@ No hidden calculations. Perfect information for strategic decisions.
 - **Cunning NPCs** (75% Shadow cards): Build Shadow tokens
 - **Steadfast NPCs** (balanced): Any tokens help equally
 
-### Weight Pool Management
-- Desperate (3 capacity): Can play three 1-weight or one 3-weight card
-- Neutral (5 capacity): Can play goal cards if exactly 5 weight
+### Focus Management
+- Desperate (3 capacity): Can play three 1-focus or one 3-focus card
+- Neutral (5 capacity): Can play request cards if exactly 5 focus
 - Connected (6 capacity): Full flexibility for any combination
-- Prepared atmosphere: +1 enables goal cards in Open state
+- Prepared atmosphere: +1 enables request cards in Open state
 
 ## Extensibility Through Resource Configuration
 
 New content uses same resources differently:
 
-**Desperate Scenario**: Low weight capacity creates severe limitations
+**Desperate Scenario**: Low focus capacity creates severe limitations
 **Political Scenario**: Status tokens critical for Status-type cards in Noble District
 **Merchant Campaign**: Commerce tokens essential for Commerce-type cards in Markets
 **Shadow Path**: Shadow tokens required for Shadow-type cards with spies
@@ -483,8 +483,8 @@ Resources flow through multiple mechanics without any mechanic doing multiple th
 
 - Tokens affect success (one mechanic) BUT only on matching card types
 - Different token types create specialization rather than generic power
-- Weight pools limit card plays (one mechanic) while atmosphere modifies capacity (different mechanic)
-- Comfort triggers transitions (one mechanic) while atmosphere can modify comfort changes (different mechanic)
+- Focuss limit card plays (one mechanic) while atmosphere modifies capacity (different mechanic)
+- Flow triggers transitions (one mechanic) while atmosphere can modify flow changes (different mechanic)
 - Attention enables conversations (one mechanic) AND observations (different mechanic) AND work (third mechanic)
 
 This creates strategic depth from simple, intentional rules. Every resource matters in multiple ways, but token-type matching forces players to specialize their approach. The economy is the intersection of these mechanics, not their individual complexity.

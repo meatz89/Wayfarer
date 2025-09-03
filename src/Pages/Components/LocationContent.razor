@@ -173,9 +173,9 @@
                                     }
                                     <span> • </span>
                                     <span class="patience-calculation">@GetPatience(npc, CurrentSpot) patience</span>
-                                    @if (option.Type == ConversationType.Promise && HasLetterGoal(npc.Id))
+                                    @if (option.Type == ConversationType.Promise && HasLetterRequest(npc.Id))
                                     {
-                                        <span> • Letter goal available!</span>
+                                        <span> • Letter request available!</span>
                                     }
                                 </span>
                             </div>

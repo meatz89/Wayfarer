@@ -69,7 +69,7 @@ public static class LocationTagObservations
         },
         [LocationTag.HearthWarmed] = new()
         {
-            new ObservationAction("observe_comfort", "See who's relaxed or tense", 1),
+            new ObservationAction("observe_flow", "See who's relaxed or tense", 1),
             new ObservationAction("notice_regulars", "Identify frequent visitors", 1)
         },
         [LocationTag.AleScented] = new()

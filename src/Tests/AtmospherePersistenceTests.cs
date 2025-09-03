@@ -26,7 +26,7 @@ namespace Wayfarer.Tests
             
             // Assert - Atmosphere persists
             Assert.AreEqual(AtmosphereType.Prepared, manager.CurrentAtmosphere);
-            Assert.AreEqual(1, manager.GetWeightCapacityBonus());
+            Assert.AreEqual(1, manager.GetFocusCapacityBonus());
         }
 
         [Test]
@@ -87,7 +87,7 @@ namespace Wayfarer.Tests
         }
 
         [Test]
-        public void TestPreparedAtmosphereWeightBonus()
+        public void TestPreparedAtmosphereFocusBonus()
         {
             // Arrange
             var manager = CreateAtmosphereManager();
@@ -95,17 +95,17 @@ namespace Wayfarer.Tests
             // Act - Set Prepared atmosphere
             manager.SetAtmosphere(AtmosphereType.Prepared);
             
-            // Assert - Weight capacity bonus
-            Assert.AreEqual(1, manager.GetWeightCapacityBonus());
+            // Assert - Focus capacity bonus
+            Assert.AreEqual(1, manager.GetFocusCapacityBonus());
             
             // Act - LISTEN doesn't affect it
             manager.OnListenAction();
-            Assert.AreEqual(1, manager.GetWeightCapacityBonus());
+            Assert.AreEqual(1, manager.GetFocusCapacityBonus());
             
             // Act - Success doesn't clear it (persistent atmosphere)
             manager.OnCardSuccess();
             Assert.AreEqual(AtmosphereType.Prepared, manager.CurrentAtmosphere);
-            Assert.AreEqual(1, manager.GetWeightCapacityBonus());
+            Assert.AreEqual(1, manager.GetFocusCapacityBonus());
         }
 
         [Test]
@@ -157,33 +157,33 @@ namespace Wayfarer.Tests
         }
 
         [Test]
-        public void TestVolatileAtmosphereModifiesComfort()
+        public void TestVolatileAtmosphereModifiesFlow()
         {
             // Arrange
             var manager = CreateAtmosphereManager();
             manager.SetAtmosphere(AtmosphereType.Volatile);
             
-            // Assert - Positive comfort increased
-            Assert.AreEqual(3, manager.ModifyComfortChange(2));
+            // Assert - Positive flow increased
+            Assert.AreEqual(3, manager.ModifyFlowChange(2));
             
-            // Assert - Negative comfort decreased
-            Assert.AreEqual(-3, manager.ModifyComfortChange(-2));
+            // Assert - Negative flow decreased
+            Assert.AreEqual(-3, manager.ModifyFlowChange(-2));
             
             // Assert - Zero stays zero
-            Assert.AreEqual(0, manager.ModifyComfortChange(0));
+            Assert.AreEqual(0, manager.ModifyFlowChange(0));
         }
 
         [Test]
-        public void TestExposedAtmosphereDoublesComfort()
+        public void TestExposedAtmosphereDoublesFlow()
         {
             // Arrange
             var manager = CreateAtmosphereManager();
             manager.SetAtmosphere(AtmosphereType.Exposed);
             
-            // Assert - Doubles all comfort changes
-            Assert.AreEqual(4, manager.ModifyComfortChange(2));
-            Assert.AreEqual(-4, manager.ModifyComfortChange(-2));
-            Assert.AreEqual(0, manager.ModifyComfortChange(0));
+            // Assert - Doubles all flow changes
+            Assert.AreEqual(4, manager.ModifyFlowChange(2));
+            Assert.AreEqual(-4, manager.ModifyFlowChange(-2));
+            Assert.AreEqual(0, manager.ModifyFlowChange(0));
         }
 
         [Test]
@@ -258,7 +258,7 @@ namespace Wayfarer.Tests
             
             // Assert - New atmosphere replaces old
             Assert.AreEqual(AtmosphereType.Focused, manager.CurrentAtmosphere);
-            Assert.AreEqual(0, manager.GetWeightCapacityBonus()); // No longer Prepared
+            Assert.AreEqual(0, manager.GetFocusCapacityBonus()); // No longer Prepared
             Assert.AreEqual(20, manager.GetSuccessPercentageBonus()); // Now Focused
         }
 

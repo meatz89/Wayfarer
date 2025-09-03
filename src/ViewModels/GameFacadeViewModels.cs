@@ -24,9 +24,9 @@ public class TravelContextViewModel
 {
     // Player travel resources
     public int CurrentStamina { get; set; }
-    public int TotalWeight { get; set; }
-    public string WeightStatus { get; set; } // "Light load", "Medium load (+1 stamina)", etc.
-    public string WeightClass { get; set; } // CSS class: "", "warning", "danger"
+    public int TotalFocus { get; set; }
+    public string FocusStatus { get; set; } // "Light load", "Medium load (+1 stamina)", etc.
+    public string FocusClass { get; set; } // CSS class: "", "warning", "danger"
     public int BaseStaminaPenalty { get; set; } // 0, 1, or 2
 
     // DeliveryObligation effects
@@ -53,7 +53,7 @@ public class TravelRouteViewModel
     public TravelMethods TransportMethod { get; set; }
     public int TimeCost { get; set; }
     public int BaseStaminaCost { get; set; }
-    public int TotalStaminaCost { get; set; } // Includes weight and letter penalties
+    public int TotalStaminaCost { get; set; } // Includes focus and letter penalties
     public int CoinCost { get; set; }
     public bool CanTravel { get; set; }
     public string CannotTravelReason { get; set; }
@@ -98,7 +98,7 @@ public class RouteDiscoveryOptionViewModel
 public class InventoryViewModel
 {
     public List<InventoryItemViewModel> Items { get; set; }
-    public int TotalWeight { get; set; }
+    public int TotalFocus { get; set; }
     public int MaxSlots { get; set; }
     public int UsedSlots { get; set; }
     public int Coins { get; set; }
@@ -109,7 +109,7 @@ public class InventoryItemViewModel
     public string ItemId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public int Weight { get; set; }
+    public int Focus { get; set; }
     public int Value { get; set; }
     public bool CanRead { get; set; }
 }

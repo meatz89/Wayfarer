@@ -168,17 +168,17 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         // ========== ARBITRAGE ANALYSIS ==========
 
         /// <summary>
-        /// Find the best arbitrage opportunity for a specific item
+        /// Find the best arbitrage opening for a specific item
         /// </summary>
-        public ArbitrageCalculator.ArbitrageOpportunity GetBestArbitrage(string itemId)
+        public ArbitrageCalculator.ArbitrageOpening GetBestArbitrage(string itemId)
         {
-            return _arbitrageCalculator.FindBestOpportunity(itemId);
+            return _arbitrageCalculator.FindBestOpening(itemId);
         }
 
         /// <summary>
         /// Find all profitable arbitrage opportunities
         /// </summary>
-        public List<ArbitrageCalculator.ArbitrageOpportunity> GetAllArbitrageOpportunities()
+        public List<ArbitrageCalculator.ArbitrageOpening> GetAllArbitrageOpportunities()
         {
             return _arbitrageCalculator.FindAllOpportunities();
         }

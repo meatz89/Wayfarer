@@ -5,7 +5,7 @@ public class SuccessTerms
     public int Payment { get; set; }
 
     // Additional success conditions
-    public string DestinationLocation { get; set; } // For delivery goals
-    public string RequiredNpc { get; set; } // For meeting goals
-    public string BurdenToRemove { get; set; } // For resolution goals
+    public string DestinationLocation { get; set; } // For delivery requests
+    public string RequiredNpc { get; set; } // For meeting requests
+    public string BurdenToRemove { get; set; } // For resolution requests
 }

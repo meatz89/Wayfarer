@@ -46,7 +46,7 @@ public class LetterDetails
     public string Description { get; set; }
     public ConnectionType TokenType { get; set; }
     public StakeType Stakes { get; set; }
-    public EmotionalWeight EmotionalWeight { get; set; }
+    public EmotionalFocus EmotionalFocus { get; set; }
 }
 
 public class EligibilityRequirements

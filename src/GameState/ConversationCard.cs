@@ -17,7 +17,7 @@ public class ConversationCard
     
     // Core mechanics
     public TokenType TokenType { get; set; }
-    public int Weight { get; set; }
+    public int Focus { get; set; }
     public Difficulty Difficulty { get; set; }
     
     // Personality targeting - which NPCs can use this card
@@ -33,12 +33,12 @@ public class ConversationCard
     public string VerbPhrase { get; set; }
 
     // Helper properties that use Properties list as source of truth
-    public bool IsFleeting => Properties.Contains(CardProperty.Fleeting);
-    public bool IsOpportunity => Properties.Contains(CardProperty.Opportunity);
-    public bool IsPersistent => !Properties.Contains(CardProperty.Fleeting) 
-                                && !Properties.Contains(CardProperty.Opportunity);
-    public bool IsGoal => Properties.Contains(CardProperty.Fleeting) 
-                          && Properties.Contains(CardProperty.Opportunity);
+    public bool IsImpulse => Properties.Contains(CardProperty.Impulse);
+    public bool IsOpening => Properties.Contains(CardProperty.Opening);
+    public bool IsPersistent => !Properties.Contains(CardProperty.Impulse) 
+                                && !Properties.Contains(CardProperty.Opening);
+    public bool IsRequest => Properties.Contains(CardProperty.Impulse) 
+                          && Properties.Contains(CardProperty.Opening);
     public bool IsBurden => Properties.Contains(CardProperty.Burden);
     public bool IsObservable => Properties.Contains(CardProperty.Observable);
 
@@ -63,20 +63,20 @@ public class ConversationCard
         {
             if (Properties.Contains(CardProperty.Exchange)) return nameof(CardCategory.Exchange);
             if (IsBurden) return nameof(CardCategory.Burden);
-            if (IsGoal) return nameof(CardCategory.Promise);
+            if (IsRequest) return nameof(CardCategory.Promise);
             if (IsObservable) return nameof(CardCategory.Observation);
-            // Default to Comfort for backwards compatibility
-            return nameof(CardCategory.Comfort);
+            // Default to Flow for backwards compatibility
+            return nameof(CardCategory.Flow);
         }
     }
     
     // Additional compatibility properties for UI
     public CardType Type => Properties.Contains(CardProperty.Exchange) ? CardType.Exchange :
-                           IsGoal ? CardType.Goal : 
+                           IsRequest ? CardType.Request : 
                            IsObservable ? CardType.Observation : 
                            CardType.Normal;
     public CardContext Context => null;
-    public string GoalCardType => IsGoal ? "Goal" : null;
+    public string RequestCardType => IsRequest ? "Request" : null;
 
     // Deep clone for deck instances
     public ConversationCard DeepClone()
@@ -90,7 +90,7 @@ public class ConversationCard
             IsSkeleton = this.IsSkeleton,
             SkeletonSource = this.SkeletonSource,
             TokenType = this.TokenType,
-            Weight = this.Weight,
+            Focus = this.Focus,
             Difficulty = this.Difficulty,
             PersonalityTypes = new List<string>(this.PersonalityTypes), // Clone personality types
             SuccessEffect = this.SuccessEffect?.DeepClone() ?? CardEffect.None,

@@ -24,7 +24,7 @@ public class NPCDeckBuilder
     /// <returns>A deck of exactly 20 cards filtered and shuffled for the NPC</returns>
     public List<ConversationCard> BuildNPCDeck(PersonalityType personalityType)
     {
-        // Get all normal conversation cards from gameWorld (exclude Goal and Exchange cards)
+        // Get all normal conversation cards from gameWorld (exclude Request and Exchange cards)
         List<ConversationCard> allCards = _gameWorld.AllCardDefinitions.Values
             .Where(card => card.Type == CardType.Normal)
             .ToList();
@@ -54,19 +54,19 @@ public class NPCDeckBuilder
     }
 
     /// <summary>
-    /// Build an NPC's goal deck by finding Goal cards that match their personality type
+    /// Build an NPC's request deck by finding Request cards that match their personality type
     /// </summary>
     /// <param name="personalityType">The NPC's personality type</param>
-    /// <returns>A list of goal cards for the NPC</returns>
-    public List<ConversationCard> BuildGoalDeck(PersonalityType personalityType)
+    /// <returns>A list of request cards for the NPC</returns>
+    public List<ConversationCard> BuildRequestDeck(PersonalityType personalityType)
     {
-        // Get all goal cards from gameWorld
-        List<ConversationCard> goalCards = _gameWorld.AllCardDefinitions.Values
-            .Where(card => card.Type == CardType.Goal)
+        // Get all request cards from gameWorld
+        List<ConversationCard> requestCards = _gameWorld.AllCardDefinitions.Values
+            .Where(card => card.Type == CardType.Request)
             .ToList();
 
         // Filter cards by personality type
-        List<ConversationCard> filteredCards = FilterCardsByPersonalityType(goalCards, personalityType);
+        List<ConversationCard> filteredCards = FilterCardsByPersonalityType(requestCards, personalityType);
 
         return filteredCards;
     }

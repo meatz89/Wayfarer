@@ -42,7 +42,7 @@
 
 ## Format Requirements
 - Character names: SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
-- All actions require a known location spot, a goal
+- All actions require a known location spot, a request
 - Action Type must only be one of:
   * Rest, Labor, Gather, Fight (physical actions)
   * Discuss, Persuade, Perform (social actions)
@@ -74,7 +74,7 @@ You must provide your response ONLY as a valid JSON object with the following st
     {
       "name": "ActionName",
       "description": "What this action involves",
-      "goal": "The player's goal in this action",
+      "request": "The player's request in this action",
       "actionType": "Discuss",
       "isRepeatable": true/false,
       "staminaCost": 1,
@@ -115,7 +115,7 @@ You must provide your response ONLY as a valid JSON object with the following st
   ],
   "contracts": [
     {
-      "name": "Opportunity name",
+      "name": "Opening name",
       "type": "Quest/Job/Mystery/Investigation",
       "description": "Brief description",
       "location": "Name of existing location where it takes place",

@@ -5,17 +5,17 @@ public enum ObservationEffectType
 {
     // Atmosphere setters
     SetInformed,     // Next card cannot fail
-    SetExposed,      // Double comfort changes
+    SetExposed,      // Double flow changes
     SetSynchronized, // Next effect twice
     SetPressured,    // -1 card on LISTEN
 
     // Cost bypasses
     FreePatience,    // Next action 0 patience
-    FreeWeight,      // Next SPEAK 0 weight
+    FreeFocus,      // Next SPEAK 0 focus
 
     // Manipulations
-    ResetComfort,    // Comfort = 0
-    RefreshWeight    // Weight = max
+    ResetFlow,    // Flow = 0
+    RefreshFocus    // Focus = max
 }
 
 public class ObservationCard : ConversationCard
@@ -35,7 +35,7 @@ public class ObservationCard : ConversationCard
     // Constructor enforces observation rules
     public ObservationCard()
     {
-        Weight = 1;
+        Focus = 1;
         Difficulty = Difficulty.VeryEasy; // 85%
         Properties.Add(CardProperty.Persistent); // Always persistent
         Properties.Add(CardProperty.Observable); // Mark as observation
@@ -103,7 +103,7 @@ public class ObservationCard : ConversationCard
             TimeDiscovered = DateTime.Now.ToString(),
             DialogueFragment = card.DialogueFragment,
             VerbPhrase = card.VerbPhrase,
-            Weight = card.Weight,
+            Focus = card.Focus,
             Difficulty = card.Difficulty,
             TokenType = card.TokenType,
             SuccessEffect = card.SuccessEffect,
@@ -125,7 +125,7 @@ public class ObservationCard : ConversationCard
             DialogueFragment = card.DialogueFragment,
             VerbPhrase = card.VerbPhrase,
             TokenType = card.TokenType,
-            Weight = card.Weight,
+            Focus = card.Focus,
             Difficulty = card.Difficulty,
             SuccessEffect = card.SuccessEffect,
             FailureEffect = card.FailureEffect,

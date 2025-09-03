@@ -4,7 +4,7 @@ public static class ConversationRules
 {
     public static Dictionary<EmotionalState, ConversationStateRules> States = new Dictionary<EmotionalState, ConversationStateRules>
     {
-        { EmotionalState.DESPERATE, new ConversationStateRules("Desperate - conversation ends at -3 comfort", 1, 3, true, -3, 1, 0, null, true) },
+        { EmotionalState.DESPERATE, new ConversationStateRules("Desperate - conversation ends at -3 flow", 1, 3, true, -3, 1, 0, null, true) },
         { EmotionalState.TENSE, new ConversationStateRules("Tense and anxious", 2, 4, false, 0, 1, 0, null, false) },
         { EmotionalState.NEUTRAL, new ConversationStateRules("Balanced starting state", 2, 5, false, 0, 1, 0, null, false) },
         { EmotionalState.OPEN, new ConversationStateRules("Open and receptive", 3, 5, false, 0, 1, 0, null, false) },
@@ -17,10 +17,10 @@ public static class ConversationRules
         return EmotionalState.NEUTRAL;
     }
 
-    public static EmotionalState TransitionState(EmotionalState current, int comfortChange)
+    public static EmotionalState TransitionState(EmotionalState current, int flowChange)
     {
         // Linear progression: DESPERATE ← TENSE ← NEUTRAL → OPEN → CONNECTED
-        if (comfortChange >= 3)
+        if (flowChange >= 3)
         {
             return current switch
             {
@@ -32,7 +32,7 @@ public static class ConversationRules
                 _ => EmotionalState.NEUTRAL
             };
         }
-        else if (comfortChange <= -3)
+        else if (flowChange <= -3)
         {
             return current switch
             {

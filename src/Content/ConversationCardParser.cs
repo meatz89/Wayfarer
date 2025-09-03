@@ -21,7 +21,7 @@ public static class ConversationCardParser
         // Add universal cards
         IEnumerable<ConversationCardDTO> universalCards = cardTemplates.Values
             .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID)
-            .Where(c => c.IsGoalCard != true);
+            .Where(c => c.IsRequestCard != true);
 
         foreach (ConversationCardDTO cardDto in universalCards)
         {
@@ -60,16 +60,16 @@ public static class ConversationCardParser
     }
 
     /// <summary>
-    /// Get goal card for conversation type from provided card data
+    /// Get request card for conversation type from provided card data
     /// </summary>
-    public static ConversationCard GetGoalCard(ConversationType conversationType, string npcId, string npcName, 
+    public static ConversationCard GetRequestCard(ConversationType conversationType, string npcId, string npcName, 
         Dictionary<string, ConversationCardDTO> cardTemplates)
     {
-        ConversationType? goalType = GetGoalTypeForConversation(conversationType);
-        if (!goalType.HasValue)
+        ConversationType? requestType = GetRequestTypeForConversation(conversationType);
+        if (!requestType.HasValue)
             return null;
 
-        string cardId = $"goal_{goalType.Value.ToString().ToLower()}";
+        string cardId = $"request_{requestType.Value.ToString().ToLower()}";
         if (!cardTemplates.TryGetValue(cardId, out ConversationCardDTO dto))
             return null;
 
@@ -81,7 +81,7 @@ public static class ConversationCardParser
             Id = $"{cardId}_{npcId}",
             Name = card.Name,
             Description = card.Description,
-            Weight = card.Weight,
+            Focus = card.Focus,
             TokenType = card.TokenType,
             Difficulty = card.Difficulty,
             SuccessEffect = card.SuccessEffect,
@@ -137,7 +137,7 @@ public static class ConversationCardParser
             Name = dto.DisplayName ?? dto.Description ?? dto.Id,
             Description = dto.Description ?? "",
             TokenType = tokenType,
-            Weight = dto.Weight,
+            Focus = dto.Focus,
             Difficulty = difficulty,
             PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
             // Three-effect system
@@ -164,7 +164,7 @@ public static class ConversationCardParser
         return card;
     }
 
-    private static ConversationType? GetGoalTypeForConversation(ConversationType type)
+    private static ConversationType? GetRequestTypeForConversation(ConversationType type)
     {
         return type switch
         {
@@ -290,10 +290,10 @@ public class ConversationCardDTO
     public string Type { get; set; }
     public string ConnectionType { get; set; }
     public string Persistence { get; set; }
-    public int Weight { get; set; }
-    public int BaseComfort { get; set; }
-    public bool? IsGoalCard { get; set; }
-    public string GoalCardType { get; set; }
+    public int Focus { get; set; }
+    public int BaseFlow { get; set; }
+    public bool? IsRequestCard { get; set; }
+    public string RequestCardType { get; set; }
     public string DisplayName { get; set; }
     public string Description { get; set; }
     public int? SuccessRate { get; set; }

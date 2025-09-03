@@ -251,7 +251,7 @@ public class ObligationQueueManager
 
         // Check if obligation is marked as desperate
         // (This would be set during conversation based on NPC's emotional state)
-        if (obligation.EmotionalWeight == EmotionalWeight.CRITICAL)
+        if (obligation.EmotionalFocus == EmotionalFocus.CRITICAL)
         {
             return true;
         }
@@ -287,7 +287,7 @@ public class ObligationQueueManager
             return "Lord Blackwood's pride demands immediate attention!";
         }
 
-        if (obligation.EmotionalWeight == EmotionalWeight.CRITICAL)
+        if (obligation.EmotionalFocus == EmotionalFocus.CRITICAL)
         {
             return $"{obligation.SenderName} is DESPERATE - their letter takes priority!";
         }
@@ -771,7 +771,7 @@ public class ObligationQueueManager
         );
 
         _messageSystem.AddSystemMessage(
-            $"  • The weight of your debts crushes other obligations",
+            $"  • The focus of your debts crushes other obligations",
             SystemMessageTypes.Warning
         );
 
@@ -1116,7 +1116,7 @@ public class ObligationQueueManager
         }
         else if (npc.LetterTokenTypes.Contains(ConnectionType.Commerce))
         {
-            return $"{npc.Name}'s opportunity has passed. 'Time is money, and you've cost me both.'";
+            return $"{npc.Name}'s opening has passed. 'Time is money, and you've cost me both.'";
         }
         else if (npc.LetterTokenTypes.Contains(ConnectionType.Status))
         {
@@ -1803,7 +1803,7 @@ public class ObligationQueueManager
             SystemMessageTypes.Warning
         );
 
-        // Spend the tokens with narrative weight
+        // Spend the tokens with narrative focus
         foreach (KeyValuePair<ConnectionType, int> payment in tokenPayment)
         {
             if (payment.Value > 0)
@@ -1894,7 +1894,7 @@ public class ObligationQueueManager
             return false;
         }
 
-        // Spend the tokens with dramatic weight
+        // Spend the tokens with dramatic focus
         _messageSystem.AddSystemMessage(
             $"  💸 Burning 5 {letter.TokenType} tokens with {letter.SenderName} for emergency priority...",
             SystemMessageTypes.Warning

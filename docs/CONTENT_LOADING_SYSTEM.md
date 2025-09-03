@@ -135,8 +135,8 @@ public static NPC GenerateSkeletonNPC(string id, string source)
   "connectionType": "Trust",
   "tokenType": "Trust",
   "persistence": "Persistent",
-  "weight": 1,
-  "baseComfort": 3,
+  "focus": 1,
+  "baseFlow": 3,
   "displayName": "Mutual Understanding",
   "description": "Share a moment of genuine connection"
 }

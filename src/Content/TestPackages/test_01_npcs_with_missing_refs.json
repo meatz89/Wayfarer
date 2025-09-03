@@ -37,9 +37,9 @@
         "id": "mysterious_trade",
         "type": "Normal",
         "connectionType": "Commerce",
-        "weight": 2,
+        "focus": 2,
         "persistence": "Persistent",
-        "baseComfort": 2,
+        "baseFlow": 2,
         "displayName": "Mysterious Trade Offer",
         "description": "The merchant offers items from unknown lands"
       }

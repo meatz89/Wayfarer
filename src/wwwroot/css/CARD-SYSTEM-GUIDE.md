@@ -1,7 +1,7 @@
 # Unified Card System Design Guide
 
 ## Overview
-The unified card system provides consistent sizing and styling for all interactive card elements in the Wayfarer UI. This ensures visual consistency and reduces cognitive load by presenting all choices with uniform visual weight.
+The unified card system provides consistent sizing and styling for all interactive card elements in the Wayfarer UI. This ensures visual consistency and reduces cognitive load by presenting all choices with uniform visual focus.
 
 ## Core Principles
 
@@ -19,7 +19,7 @@ All card components inherit from `.card-base` which defines:
 
 ### 3. **Type Indicators**
 Left border colors indicate card type:
-- **Comfort**: Green (#7a8b5a) - Positive/supportive cards
+- **Flow**: Green (#7a8b5a) - Positive/supportive cards
 - **State**: Brown (#8b7355) - Neutral state changes
 - **Crisis**: Orange (#8b4726) - Urgent/negative cards
 - **Observation**: Blue (#5a7a8a) - Information cards
@@ -42,10 +42,10 @@ Left border colors indicate card type:
 
 ### Typed Card with Badge
 ```html
-<div class="card-base card-standard card-comfort">
+<div class="card-base card-standard card-flow">
     <span class="card-badge free">FREE</span>
     <div class="card-header">
-        <h3 class="card-title">Comfort Card</h3>
+        <h3 class="card-title">Flow Card</h3>
     </div>
     <div class="card-body">
         This card has no cost

@@ -20,9 +20,9 @@ public class TravelViewModel
 /// </summary>
 public class TravelStatusViewModel
 {
-    public int TotalWeight { get; init; }
-    public string WeightClass { get; init; }
-    public string WeightStatus { get; init; }
+    public int TotalFocus { get; init; }
+    public string FocusClass { get; init; }
+    public string FocusStatus { get; init; }
     public int BaseStaminaCost { get; init; }
     public int CurrentStamina { get; init; }
     public List<string> CurrentEquipment { get; init; } = new();

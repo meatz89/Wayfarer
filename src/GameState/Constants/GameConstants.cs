@@ -5,14 +5,14 @@
 public static class GameConstants
 {
     /// <summary>
-    /// Weight thresholds for load categories
+    /// Focus thresholds for load categories
     /// </summary>
-    public static class LoadWeight
+    public static class LoadFocus
     {
         public const int LIGHT_LOAD_MAX = 3;
         public const int MEDIUM_LOAD_MAX = 6;
 
-        // Hunger increase for load weight
+        // Hunger increase for load focus
         public const int LIGHT_LOAD_HUNGER_INCREASE = 0;
         public const int MEDIUM_LOAD_HUNGER_INCREASE = 1;
         public const int HEAVY_LOAD_HUNGER_INCREASE = 2;
@@ -42,8 +42,8 @@ public static class GameConstants
     public static class Inventory
     {
         public const int DEFAULT_INVENTORY_CAPACITY = 10;
-        public const int COINS_PER_WEIGHT_UNIT = 10;
-        public const int HEAVY_ITEM_WEIGHT_THRESHOLD = 4;
+        public const int COINS_PER_FOCUS_UNIT = 10;
+        public const int HEAVY_ITEM_FOCUS_THRESHOLD = 4;
     }
 
     /// <summary>

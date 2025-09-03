@@ -60,7 +60,7 @@
 ### 3.2 Exchange System
 - [ ] **ACTION**: Select "Quick Exchange" 
 - [ ] **VERIFY**: Draws from exchange deck, NOT conversation deck
-- [ ] **VERIFY**: NO goal card (exchanges have no goals)
+- [ ] **VERIFY**: NO request card (exchanges have no requests)
 - [ ] **VERIFY**: Exchange options displayed as CARDS
 - [ ] **VERIFY CARD**: "Buy Provisions" - 3 coins → Hunger = 0
 - [ ] **VERIFY**: Success rate shown (75% with 2 Commerce tokens)
@@ -111,13 +111,13 @@
 
 ### 7.2 Burden Resolution Conversation
 - [ ] **ACTION**: Select "Burden Resolution" conversation
-- [ ] **VERIFY**: ONE burden resolution goal card shuffled in
+- [ ] **VERIFY**: ONE burden resolution request card shuffled in
 - [ ] **VERIFY**: NO letter cards accessible (wrong conversation type)
 - [ ] **ACTION**: Exit conversation (test switching)
 
 ### 7.3 Letter Offer Conversation
 - [ ] **ACTION**: Select "Letter Offer" conversation  
-- [ ] **VERIFY**: ONE promise goal card shuffled in Deck (letter)
+- [ ] **VERIFY**: ONE promise request card shuffled in Deck (letter)
 - [ ] **VERIFY**: NO burden resolution cards (wrong conversation type)
 - [ ] **SCREENSHOT**: Conversation screen loads
 - [ ] **VERIFY HEADER**:
@@ -126,7 +126,7 @@
   - [ ] Starting patience: 16 (15 base + 1 private spot)
 
 ### 7.4 Resource Displays
-- [ ] **VERIFY COMFORT**: Shows 5 (starting value)
+- [ ] **VERIFY FLOW**: Shows 5 (starting value)
 - [ ] **VERIFY MOMENTUM**: Shows 0 (starting value)
 - [ ] **VERIFY TOKENS**: Trust: 1 (+5% shown)
 - [ ] **VERIFY**: Depth access shown: "Can access cards depth 0-5"
@@ -136,7 +136,7 @@
 - [ ] **SCREENSHOT**: Cards drawn
 - [ ] **VERIFY**: Cards drawn include Trust-type cards (Desperate filter)
 - [ ] **VERIFY**: At least 1 guaranteed state card
-- [ ] **VERIFY**: Letter card appears (weight 0 in Desperate)
+- [ ] **VERIFY**: Letter card appears (focus 0 in Desperate)
 - [ ] **VERIFY**: Patience reduced to 15
 
 ### 7.6 State Navigation
@@ -144,17 +144,17 @@
 - [ ] **VERIFY**: Success rate shown: 85%
 - [ ] **VERIFY ON SUCCESS**:
   - [ ] State changes to TENSE
-  - [ ] Weight limit increases to 2
+  - [ ] Focus limit increases to 2
   - [ ] Momentum increases to +1
 
 ### 7.7 Building to Letter Depth
-- [ ] **ACTION**: Play comfort cards to reach depth 7
-- [ ] **VERIFY**: Each success increases comfort
-- [ ] **VERIFY**: Depth access updates with comfort
+- [ ] **ACTION**: Play flow cards to reach depth 7
+- [ ] **VERIFY**: Each success increases flow
+- [ ] **VERIFY**: Depth access updates with flow
 
 ### 7.8 Letter Card Draw and Play
-- [ ] **ACTION**: LISTEN when comfort ≥ 7
-- [ ] **VERIFY**: "Letter" goal card drawn
+- [ ] **ACTION**: LISTEN when flow ≥ 7
+- [ ] **VERIFY**: "Letter" request card drawn
 - [ ] **VERIFY**: 3-turn urgency rule activated
 - [ ] **ACTION**: Play letter card within 3 turns
 - [ ] **VERIFY**: Negotiation success/failure
@@ -215,7 +215,7 @@
 - [ ] **SCREENSHOT**: Conversation options
 - [ ] **VERIFY**: "Deliver Letter" available (has delivery card)
 - [ ] **ACTION**: Select "Deliver Letter" conversation
-- [ ] **VERIFY**: Delivery goal card shuffled in
+- [ ] **VERIFY**: Delivery request card shuffled in
 - [ ] **ACTION**: Play delivery card
 - [ ] **VERIFY**: Payment received
 - [ ] **VERIFY**: Letter removed from queue
@@ -224,7 +224,7 @@
 
 ### 11.1 Successful Delivery Effects
 - [ ] **VERIFY**: After delivering Elena's letter:
-  - [ ] Trust comfort cards added to Blackwood's deck
+  - [ ] Trust flow cards added to Blackwood's deck
   - [ ] Elena's deck modified (relationship improved)
   - [ ] Delivery card removed from Blackwood's deck
 
@@ -235,20 +235,20 @@
   - [ ] -2 Trust tokens with Elena
   - [ ] Next conversation with Elena shows "Burden Resolution" option
 
-## PHASE 12: Multiple Goal Prevention
+## PHASE 12: Multiple Request Prevention
 
-### 12.1 One Goal Per Conversation
+### 12.1 One Request Per Conversation
 - [ ] **TEST**: Start Letter Offer conversation
-- [ ] **VERIFY**: Only ONE letter goal card in deck
+- [ ] **VERIFY**: Only ONE letter request card in deck
 - [ ] **TEST**: If multiple letters available in NPC deck
 - [ ] **VERIFY**: Player chooses WHICH letter conversation
-- [ ] **VERIFY**: Only chosen letter's goal card shuffled in
+- [ ] **VERIFY**: Only chosen letter's request card shuffled in
 
-### 12.2 Goal Card Exclusivity
+### 12.2 Request Card Exclusivity
 - [ ] **VERIFY**: Cannot draw:
-  - [ ] Burden goal in Letter conversation
-  - [ ] Letter goal in Burden conversation
-  - [ ] Multiple goals in same conversation
+  - [ ] Burden request in Letter conversation
+  - [ ] Letter request in Burden conversation
+  - [ ] Multiple requests in same conversation
 
 ## PHASE 13: Failure States
 
@@ -266,7 +266,7 @@
 
 ### 13.3 Conversation Failures
 - [ ] **TEST**: Run out of patience
-- [ ] **VERIFY**: Conversation ends, no goal achieved
+- [ ] **VERIFY**: Conversation ends, no request achieved
 - [ ] **TEST**: Reach Hostile state
 - [ ] **VERIFY**: Conversation ends next turn
 
@@ -288,7 +288,7 @@
 
 ### Core Mechanics
 - [ ] **Deck Determines Conversations**: Available conversation types match deck contents
-- [ ] **One Goal Per Conversation**: Each conversation type has exactly one goal
+- [ ] **One Request Per Conversation**: Each conversation type has exactly one request
 - [ ] **Automatic Displacement**: Queue changes happen through card play, not UI
 - [ ] **Perfect Information**: All effects visible before playing
 
@@ -304,7 +304,7 @@
 1. ALL boxes checked with screenshots
 2. Deck composition correctly drives conversation availability
 3. Queue displacement happens automatically through card play
-4. One goal card per conversation enforced
+4. One request card per conversation enforced
 5. All failure states cascade properly
 6. No manual queue management UI exists
 

@@ -23,45 +23,45 @@
                         <span class="indicator-label">Patience</span>
                         <span class="indicator-value">@Session.CurrentPatience/@Session.MaxPatience</span>
                     </div>
-                    <div class="comfort-indicator">
-                        <span class="indicator-label">Comfort</span>
-                        <div class="comfort-bar">
-                            <span class="comfort-segment @(Session.ComfortBattery <= -3 ? "negative" : "") @(Session.ComfortBattery == -3 ? "current" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery <= -2 ? "negative" : "") @(Session.ComfortBattery == -2 ? "current" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery <= -1 ? "negative" : "") @(Session.ComfortBattery == -1 ? "current" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery == 0 ? "current" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery >= 1 ? "positive" : "") @(Session.ComfortBattery == 1 ? "current" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery >= 2 ? "positive" : "") @(Session.ComfortBattery == 2 ? "current" : "")"></span>
-                            <span class="comfort-segment @(Session.ComfortBattery >= 2 ? "positive" : "") @(Session.ComfortBattery == 3 ? "current" : "")"></span>
+                    <div class="flow-indicator">
+                        <span class="indicator-label">Flow</span>
+                        <div class="flow-bar">
+                            <span class="flow-segment @(Session.FlowBattery <= -3 ? "negative" : "") @(Session.FlowBattery == -3 ? "current" : "")"></span>
+                            <span class="flow-segment @(Session.FlowBattery <= -2 ? "negative" : "") @(Session.FlowBattery == -2 ? "current" : "")"></span>
+                            <span class="flow-segment @(Session.FlowBattery <= -1 ? "negative" : "") @(Session.FlowBattery == -1 ? "current" : "")"></span>
+                            <span class="flow-segment @(Session.FlowBattery == 0 ? "current" : "")"></span>
+                            <span class="flow-segment @(Session.FlowBattery >= 1 ? "positive" : "") @(Session.FlowBattery == 1 ? "current" : "")"></span>
+                            <span class="flow-segment @(Session.FlowBattery >= 2 ? "positive" : "") @(Session.FlowBattery == 2 ? "current" : "")"></span>
+                            <span class="flow-segment @(Session.FlowBattery >= 2 ? "positive" : "") @(Session.FlowBattery == 3 ? "current" : "")"></span>
                         </div>
-                        <span class="comfort-value">@Session.ComfortBattery</span>
-                        @if (Math.Abs(Session.ComfortBattery) == 2)
+                        <span class="flow-value">@Session.FlowBattery</span>
+                        @if (Math.Abs(Session.FlowBattery) == 2)
                         {
-                            <div class="comfort-transition-hint @(Session.CurrentState == EmotionalState.DESPERATE && Session.ComfortBattery == -2 ? "danger" : "")">
+                            <div class="flow-transition-hint @(Session.CurrentState == EmotionalState.DESPERATE && Session.FlowBattery == -2 ? "danger" : "")">
                                 @GetTransitionHint()
                             </div>
                         }
-                        @if (Session.CurrentState == EmotionalState.DESPERATE && Session.ComfortBattery <= -2)
+                        @if (Session.CurrentState == EmotionalState.DESPERATE && Session.FlowBattery <= -2)
                         {
-                            <div class="comfort-warning">⚠ Conversation ends at -3!</div>
+                            <div class="flow-warning">⚠ Conversation ends at -3!</div>
                         }
                         @{
-                            var thresholdPreview = GetComfortThresholdPreview();
+                            var thresholdPreview = GetFlowThresholdPreview();
                             if (!string.IsNullOrEmpty(thresholdPreview))
                             {
-                                <div class="comfort-threshold-preview">@thresholdPreview</div>
+                                <div class="flow-threshold-preview">@thresholdPreview</div>
                             }
                         }
                     </div>
-                    <div class="weight-pool">
-                        <span class="indicator-label">Weight</span>
-                        <div class="weight-dots">
-                            @for (int i = 1; i <= (Session?.GetEffectiveWeightCapacity() ?? 3); i++)
+                    <div class="focus-pool">
+                        <span class="indicator-label">Focus</span>
+                        <div class="focus-dots">
+                            @for (int i = 1; i <= (Session?.GetEffectiveFocusCapacity() ?? 3); i++)
                             {
-                                <span class="weight-dot @(i <= (Session?.GetAvailableWeight() ?? 0) ? "available" : "spent")"></span>
+                                <span class="focus-dot @(i <= (Session?.GetAvailableFocus() ?? 0) ? "available" : "spent")"></span>
                             }
                         </div>
-                        <span class="indicator-value">@(Session?.GetAvailableWeight() ?? 0)/@(Session?.GetEffectiveWeightCapacity() ?? 3)</span>
+                        <span class="indicator-value">@(Session?.GetAvailableFocus() ?? 0)/@(Session?.GetEffectiveFocusCapacity() ?? 3)</span>
                     </div>
                 </div>
             </div>
@@ -247,32 +247,32 @@
                          @onclick="() => ToggleCardSelection(convCard)">
                         
                         @* Persistence Warning (from mockup) *@
-                        @if (convCard.Properties.Contains(CardProperty.Fleeting) && convCard.Properties.Contains(CardProperty.Opportunity))
+                        @if (convCard.Properties.Contains(CardProperty.Impulse) && convCard.Properties.Contains(CardProperty.Opening))
                         {
                             <div class="persistence-warning warning-both">MUST PLAY NOW!</div>
                         }
-                        else if (convCard.Properties.Contains(CardProperty.Opportunity))
+                        else if (convCard.Properties.Contains(CardProperty.Opening))
                         {
-                            <div class="persistence-warning warning-opportunity">Exhausts on LISTEN!</div>
+                            <div class="persistence-warning warning-opening">Exhausts on LISTEN!</div>
                         }
-                        else if (convCard.Properties.Contains(CardProperty.Fleeting))
+                        else if (convCard.Properties.Contains(CardProperty.Impulse))
                         {
-                            <div class="persistence-warning warning-fleeting">Exhausts on SPEAK!</div>
+                            <div class="persistence-warning warning-impulse">Exhausts on SPEAK!</div>
                         }
                         <div class="card-content">
                             <div class="card-main">
                                 <div class="card-identity">
                                     <div class="card-name">@GetProperCardName(convCard)</div>
-                                    <div class="card-weight">@convCard.GetEffectiveWeight(Context.Session.CurrentState)</div>
+                                    <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
                                 </div>
                                 @* Card persistence info like in mockup *@
                                 <div class="card-persistence">
                                     @GetCardTypeLabel(convCard) • Persistent • @GetDifficultyLabel(convCard.Difficulty)
-                                    @if (convCard.Properties.Contains(CardProperty.Fleeting))
+                                    @if (convCard.Properties.Contains(CardProperty.Impulse))
                                     {
                                         <text> • Exhausts on SPEAK</text>
                                     }
-                                    @if (convCard.Properties.Contains(CardProperty.Opportunity))
+                                    @if (convCard.Properties.Contains(CardProperty.Opening))
                                     {
                                         <text> • Exhausts on LISTEN</text>
                                     }

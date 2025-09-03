@@ -9,7 +9,7 @@
 <div class="wayfarer-card @GetCardTypeClass() @(IsSelected ? "selected" : "") @(IsUnavailable ? "unavailable" : "") @(OnClick.HasDelegate ? "clickable" : "")"
      @onclick="HandleClick">
     
-    @* Special markers (expires, burden, goal, etc.) *@
+    @* Special markers (expires, burden, request, etc.) *@
     @if (!string.IsNullOrEmpty(MarkerText))
     {
         <div class="card-marker @MarkerClass">@MarkerText</div>
@@ -34,9 +34,9 @@
             @* Card Identity Section *@
             <div class="card-identity">
                 <div class="card-title">@CardName</div>
-                @if (Weight > 0 || ShowWeight)
+                @if (Focus > 0 || ShowFocus)
                 {
-                    <div class="card-weight-badge">@Weight</div>
+                    <div class="card-focus-badge">@Focus</div>
                 }
             </div>
             
@@ -87,15 +87,15 @@
     [Parameter] public string CardType { get; set; } = "Card";
     [Parameter] public string CardText { get; set; }
     [Parameter] public string Description { get; set; }
-    [Parameter] public int Weight { get; set; }
-    [Parameter] public bool ShowWeight { get; set; } = true;
+    [Parameter] public int Focus { get; set; }
+    [Parameter] public bool ShowFocus { get; set; } = true;
     [Parameter] public int AttentionCost { get; set; }
     [Parameter] public bool IsFree { get; set; }
     
     // Card state
     [Parameter] public bool IsSelected { get; set; }
     [Parameter] public bool IsUnavailable { get; set; }
-    [Parameter] public string CardCategory { get; set; } = "comfort";
+    [Parameter] public string CardCategory { get; set; } = "flow";
     
     
     // Outcomes for conversation cards

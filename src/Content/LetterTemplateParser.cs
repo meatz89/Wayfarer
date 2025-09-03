@@ -39,8 +39,8 @@ public static class LetterTemplateParser
         template.ConsequenceIfLate = dto.ConsequenceIfLate ?? "";
         template.ConsequenceIfDelivered = dto.ConsequenceIfDelivered ?? "";
 
-        // Parse emotional weight
-        template.EmotionalWeight = ParseEmotionalWeight(dto.EmotionalWeight ?? "MEDIUM");
+        // Parse emotional focus
+        template.EmotionalFocus = ParseEmotionalFocus(dto.EmotionalFocus ?? "MEDIUM");
 
         // Parse stakes
         template.Stakes = ParseStakeType(dto.Stakes ?? "REPUTATION");
@@ -111,9 +111,9 @@ public static class LetterTemplateParser
         template.ConsequenceIfLate = GetStringProperty(root, "consequenceIfLate", "");
         template.ConsequenceIfDelivered = GetStringProperty(root, "consequenceIfDelivered", "");
 
-        // Parse emotional weight
-        string emotionalWeightStr = GetStringProperty(root, "emotionalWeight", "MEDIUM");
-        template.EmotionalWeight = ParseEmotionalWeight(emotionalWeightStr);
+        // Parse emotional focus
+        string emotionalFocusStr = GetStringProperty(root, "emotionalFocus", "MEDIUM");
+        template.EmotionalFocus = ParseEmotionalFocus(emotionalFocusStr);
 
         // Parse stakes
         string stakesStr = GetStringProperty(root, "stakes", "REPUTATION");
@@ -145,15 +145,15 @@ public static class LetterTemplateParser
         };
     }
 
-    private static EmotionalWeight ParseEmotionalWeight(string weightStr)
+    private static EmotionalFocus ParseEmotionalFocus(string focusStr)
     {
-        return weightStr?.ToUpper() switch
+        return focusStr?.ToUpper() switch
         {
-            "LOW" => EmotionalWeight.LOW,
-            "MEDIUM" => EmotionalWeight.MEDIUM,
-            "HIGH" => EmotionalWeight.HIGH,
-            "CRITICAL" => EmotionalWeight.CRITICAL,
-            _ => throw new ArgumentException($"Unknown emotional weight in JSON: '{weightStr}' - add to emotional weight mapping")
+            "LOW" => EmotionalFocus.LOW,
+            "MEDIUM" => EmotionalFocus.MEDIUM,
+            "HIGH" => EmotionalFocus.HIGH,
+            "CRITICAL" => EmotionalFocus.CRITICAL,
+            _ => throw new ArgumentException($"Unknown emotional focus in JSON: '{focusStr}' - add to emotional focus mapping")
         };
     }
 

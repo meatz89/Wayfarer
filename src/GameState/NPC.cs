@@ -52,7 +52,7 @@ public class NPC
     private List<RouteOption> _knownRoutes = new List<RouteOption>();
 
     // REMOVED: Boolean flags violate deck-based architecture
-    // Letters are detected by checking GoalDeck contents
+    // Letters are detected by checking RequestDeck contents
     // Burden history detected by counting burden cards in ConversationDeck
     // Crisis detected by checking CurrentState == EmotionalState.DESPERATE
 
@@ -61,25 +61,25 @@ public class NPC
     public EmotionalState CurrentEmotionalState => CurrentState; // Alias for compatibility
 
     // THREE DECK ARCHITECTURE (POC EXACT)
-    public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Comfort, Token, State, Knowledge, Burden
-    public CardDeck GoalDeck { get; set; } = new();  // 0-3 cards: Promise (letters), Resolution goals
+    public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Flow, Token, State, Knowledge, Burden
+    public CardDeck RequestDeck { get; set; } = new();  // 0-3 cards: Promise (letters), Resolution requests
     public CardDeck ExchangeDeck { get; set; } = new();  // 5-10 cards: Simple instant trades (Mercantile NPCs only) 
 
     // Daily exchange selection (removed - handled by GetTodaysExchange method)
 
 
-    // Initialize goal deck from content repository
-    public void InitializeGoalDeck(List<ConversationCard> goalCards = null)
+    // Initialize request deck from content repository
+    public void InitializeRequestDeck(List<ConversationCard> requestCards = null)
     {
         // Only initialize if not already done
-        if (GoalDeck == null || !GoalDeck.Any())
+        if (RequestDeck == null || !RequestDeck.Any())
         {
-            GoalDeck = new CardDeck();
-            if (goalCards != null)
+            RequestDeck = new CardDeck();
+            if (requestCards != null)
             {
-                foreach (ConversationCard card in goalCards)
+                foreach (ConversationCard card in requestCards)
                 {
-                    GoalDeck.AddCard(card);
+                    RequestDeck.AddCard(card);
                 }
             }
         }
@@ -105,11 +105,11 @@ public class NPC
         }
     }
 
-    // Check if NPC has promise cards (letters) in their goal deck  
+    // Check if NPC has promise cards (letters) in their request deck  
     public bool HasPromiseCards()
     {
-        if (GoalDeck == null) return false;
-        return GoalDeck.GetAllCards().Any(c => c.Category == CardCategory.Promise.ToString());
+        if (RequestDeck == null) return false;
+        return RequestDeck.GetAllCards().Any(c => c.Category == CardCategory.Promise.ToString());
     }
 
     // Check if NPC has burden history (cards in conversation deck)
@@ -195,11 +195,11 @@ public class NPC
     }
 
     /// <summary>
-    /// Check if NPC has valid goal cards for Promise conversations
+    /// Check if NPC has valid request cards for Promise conversations
     /// </summary>
-    public bool HasValidGoalCard(EmotionalState currentState)
+    public bool HasValidRequestCard(EmotionalState currentState)
     {
-        return GoalDeck != null && GoalDeck.RemainingCards > 0;
+        return RequestDeck != null && RequestDeck.RemainingCards > 0;
     }
 
 }

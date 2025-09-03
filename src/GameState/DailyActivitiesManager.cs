@@ -269,7 +269,7 @@ public partial class DailyActivitiesManager
         string[] narratives = new string[]
         {
         $"A courier in midnight blue delivers a gold-sealed letter. Your patron's will disrupts everything - it seizes position {position}.",
-        $"The unmistakable weight of patronage arrives. Gold wax, no signature, position {position}. All other obligations must wait.",
+        $"The unmistakable focus of patronage arrives. Gold wax, no signature, position {position}. All other obligations must wait.",
         $"Your mysterious benefactor speaks. The letter's gold seal gleams as it claims position {position} in your queue.",
         $"Dawn brings a letter bearing the patron's seal. Without ceremony, it commands position {position}. Their needs supersede all else."
         };

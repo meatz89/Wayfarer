@@ -63,7 +63,7 @@ public class TransportCompatibilityValidator
         {
             case TravelMethods.Boat:
                 if (hasHeavyItems)
-                    return TransportCompatibilityResult.Blocked("Heavy equipment blocks boat transport - too much weight");
+                    return TransportCompatibilityResult.Blocked("Heavy equipment blocks boat transport - too much focus");
                 break;
 
             case TravelMethods.Carriage:

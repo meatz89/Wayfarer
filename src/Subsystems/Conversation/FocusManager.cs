@@ -1,20 +1,20 @@
 using System;
 
-// WeightPoolManager handles weight pool persistence and capacity management
-public class WeightPoolManager
+// FocusManager handles focus persistence and capacity management
+public class FocusManager
 {
-    private int currentSpentWeight = 0;
+    private int currentSpentFocus = 0;
     private int baseCapacity = 5;
     private AtmosphereManager atmosphereManager;
 
-    public WeightPoolManager(AtmosphereManager atmosphereManager)
+    public FocusManager(AtmosphereManager atmosphereManager)
     {
         this.atmosphereManager = atmosphereManager;
     }
 
-    public int CurrentSpentWeight => currentSpentWeight;
+    public int CurrentSpentFocus => currentSpentFocus;
     public int CurrentCapacity => GetEffectiveCapacity();
-    public int AvailableWeight => Math.Max(0, CurrentCapacity - currentSpentWeight);
+    public int AvailableFocus => Math.Max(0, CurrentCapacity - currentSpentFocus);
 
     // Get effective capacity including atmosphere bonuses
     private int GetEffectiveCapacity()
@@ -22,7 +22,7 @@ public class WeightPoolManager
         int capacity = baseCapacity;
 
         // Prepared atmosphere adds +1 capacity
-        capacity += atmosphereManager.GetWeightCapacityBonus();
+        capacity += atmosphereManager.GetFocusCapacityBonus();
 
         return capacity;
     }
@@ -42,76 +42,76 @@ public class WeightPoolManager
     }
 
     // Check if player can afford card
-    public bool CanAffordCard(int cardWeight)
+    public bool CanAffordCard(int cardFocus)
     {
-        return AvailableWeight >= cardWeight;
+        return AvailableFocus >= cardFocus;
     }
 
-    // Spend weight for playing a card
-    public bool SpendWeight(int amount)
+    // Spend focus for playing a card
+    public bool SpendFocus(int amount)
     {
-        if (amount > AvailableWeight)
+        if (amount > AvailableFocus)
         {
             return false;
         }
 
-        currentSpentWeight += amount;
+        currentSpentFocus += amount;
         return true;
     }
 
-    // Refresh weight pool (on LISTEN action)
+    // Refresh focus (on LISTEN action)
     public void RefreshPool()
     {
-        currentSpentWeight = 0;
+        currentSpentFocus = 0;
     }
 
-    // Add weight to pool (from card effects)
-    public void AddWeight(int amount)
+    // Add focus to pool (from card effects)
+    public void AddFocus(int amount)
     {
-        // Reduce spent weight (effectively adding to available pool)
-        currentSpentWeight = Math.Max(0, currentSpentWeight - amount);
+        // Reduce spent focus (effectively adding to available pool)
+        currentSpentFocus = Math.Max(0, currentSpentFocus - amount);
     }
 
-    // Set weight to maximum capacity (from observation cards)
+    // Set focus to maximum capacity (from observation cards)
     public void SetToMaximum()
     {
-        currentSpentWeight = 0;
+        currentSpentFocus = 0;
     }
 
-    // Get weight status for UI display
-    public string GetWeightStatus()
+    // Get focus status for UI display
+    public string GetFocusStatus()
     {
-        return $"{AvailableWeight}/{CurrentCapacity}";
+        return $"{AvailableFocus}/{CurrentCapacity}";
     }
 
     // Check if pool is completely depleted
     public bool IsPoolDepleted()
     {
-        return AvailableWeight <= 0;
+        return AvailableFocus <= 0;
     }
 
     // Reset for new conversation
     public void Reset()
     {
-        currentSpentWeight = 0;
+        currentSpentFocus = 0;
         baseCapacity = 5; // Default neutral capacity
     }
 
     // Get visual representation for UI (dots or bars)
-    public WeightPoolDisplay GetDisplayInfo()
+    public FocusDisplay GetDisplayInfo()
     {
-        return new WeightPoolDisplay
+        return new FocusDisplay
         {
-            Available = AvailableWeight,
+            Available = AvailableFocus,
             Capacity = CurrentCapacity,
-            Spent = currentSpentWeight,
+            Spent = currentSpentFocus,
             HasPreparedBonus = atmosphereManager.CurrentAtmosphere == AtmosphereType.Prepared
         };
     }
 }
 
 // Display information for UI
-public class WeightPoolDisplay
+public class FocusDisplay
 {
     public int Available { get; set; }
     public int Capacity { get; set; }

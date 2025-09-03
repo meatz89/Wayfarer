@@ -14,7 +14,7 @@ public class ConversationFacade
     private readonly CardDeckManager _deckManager;
     private readonly DialogueGenerator _dialogueGenerator;
     private readonly ExchangeHandler _exchangeHandler;
-    private readonly WeightPoolManager _weightPoolManager;
+    private readonly FocusManager _focusManager;
     private readonly AtmosphereManager _atmosphereManager;
     private readonly CardEffectProcessor _effectProcessor;
 
@@ -35,7 +35,7 @@ public class ConversationFacade
         CardDeckManager deckManager,
         DialogueGenerator dialogueGenerator,
         ExchangeHandler exchangeHandler,
-        WeightPoolManager weightPoolManager,
+        FocusManager focusManager,
         AtmosphereManager atmosphereManager,
         CardEffectProcessor effectProcessor,
         ObligationQueueManager queueManager,
@@ -50,7 +50,7 @@ public class ConversationFacade
         _deckManager = deckManager ?? throw new ArgumentNullException(nameof(deckManager));
         _dialogueGenerator = dialogueGenerator ?? throw new ArgumentNullException(nameof(dialogueGenerator));
         _exchangeHandler = exchangeHandler ?? throw new ArgumentNullException(nameof(exchangeHandler));
-        _weightPoolManager = weightPoolManager ?? throw new ArgumentNullException(nameof(weightPoolManager));
+        _focusManager = focusManager ?? throw new ArgumentNullException(nameof(focusManager));
         _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
         _effectProcessor = effectProcessor ?? throw new ArgumentNullException(nameof(effectProcessor));
         _queueManager = queueManager ?? throw new ArgumentNullException(nameof(queueManager));
@@ -145,10 +145,10 @@ public class ConversationFacade
             // Handle special card effects
             HandleSpecialCardEffects(action.SelectedCards, result);
 
-            // Remove used observation cards that are fleeting
+            // Remove used observation cards that are impulse
             foreach (CardInstance card in action.SelectedCards)
             {
-                if (card.Properties.Contains(CardProperty.Observable) && card.Properties.Contains(CardProperty.Fleeting))
+                if (card.Properties.Contains(CardProperty.Observable) && card.Properties.Contains(CardProperty.Impulse))
                 {
                     _observationManager.RemoveObservationCard(card.Id);
                 }
@@ -267,14 +267,14 @@ public class ConversationFacade
             NpcId = _currentSession.NPC.ID,
             ConversationType = _currentSession.ConversationType,
             CurrentState = _currentSession.CurrentState,
-            CurrentComfort = _currentSession.CurrentComfort,
+            CurrentFlow = _currentSession.CurrentFlow,
             CurrentPatience = _currentSession.CurrentPatience,
             MaxPatience = _currentSession.MaxPatience,
             TurnNumber = _currentSession.TurnNumber,
             LetterGenerated = _currentSession.LetterGenerated,
-            GoalCardDrawn = _currentSession.GoalCardDrawn,
-            GoalUrgencyCounter = _currentSession.GoalUrgencyCounter,
-            GoalCardPlayed = _currentSession.GoalCardPlayed,
+            RequestCardDrawn = _currentSession.RequestCardDrawn,
+            RequestUrgencyCounter = _currentSession.RequestUrgencyCounter,
+            RequestCardPlayed = _currentSession.RequestCardPlayed,
             HandCardIds = _currentSession.HandCards.Select(c => c.InstanceId).ToList(),
             DeckCardIds = _currentSession.Deck.GetAllCards().Select(c => c.InstanceId).ToList()
         };
@@ -298,13 +298,13 @@ public class ConversationFacade
             NPC = npc,
             ConversationType = memento.ConversationType,
             CurrentState = memento.CurrentState,
-            CurrentComfort = memento.CurrentComfort,
+            CurrentFlow = memento.CurrentFlow,
             CurrentPatience = memento.CurrentPatience,
             TurnNumber = memento.TurnNumber,
             LetterGenerated = memento.LetterGenerated,
-            GoalCardDrawn = memento.GoalCardDrawn,
-            GoalUrgencyCounter = memento.GoalUrgencyCounter,
-            GoalCardPlayed = memento.GoalCardPlayed,
+            RequestCardDrawn = memento.RequestCardDrawn,
+            RequestUrgencyCounter = memento.RequestUrgencyCounter,
+            RequestCardPlayed = memento.RequestCardPlayed,
             MaxPatience = memento.MaxPatience,  // Use stored max patience from memento
             TokenManager = _tokenManager,
             Deck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck.GetAllCards(), npc.ID),
@@ -349,7 +349,7 @@ public class ConversationFacade
         if (npc.HasPromiseCards())
         {
             EmotionalState currentState = ConversationRules.DetermineInitialState(npc, _queueManager);
-            if (npc.HasValidGoalCard(currentState))
+            if (npc.HasValidRequestCard(currentState))
             {
                 available.Add(ConversationType.Promise);
             }
@@ -435,14 +435,14 @@ public class ConversationFacade
         // Convert ConversationTurnResult to CardPlayResult for backward compatibility
         CardPlayResult cardPlayResult = new CardPlayResult
         {
-            TotalComfort = result.ComfortChange ?? 0,
+            TotalFlow = result.FlowChange ?? 0,
             Results = new List<SingleCardResult>
             {
                 new SingleCardResult
                 {
                     Card = selectedCard,
                     Success = result.Success,
-                    Comfort = result.ComfortChange ?? 0,
+                    Flow = result.FlowChange ?? 0,
                     Roll = 50, // Default roll value
                     SuccessChance = 75, // Default success chance
                     PatienceAdded = 0
@@ -472,11 +472,11 @@ public class ConversationFacade
         if (currentSelection.Contains(card))
             return true; // Can deselect
 
-        // Check weight limit
-        int currentWeight = currentSelection.Sum(c => c.Weight);
-        int newWeight = currentWeight + card.Weight;
+        // Check focus limit
+        int currentFocus = currentSelection.Sum(c => c.Focus);
+        int newFocus = currentFocus + card.Focus;
 
-        return newWeight <= _currentSession.CurrentComfort;
+        return newFocus <= _currentSession.CurrentFlow;
     }
 
     /// <summary>
@@ -531,16 +531,16 @@ public class ConversationFacade
                     // Grant rewards
                     _gameWorld.GetPlayer().Coins += deliveredObligation.Payment;
 
-                    int tokenReward = deliveredObligation.EmotionalWeight switch
+                    int tokenReward = deliveredObligation.EmotionalFocus switch
                     {
-                        EmotionalWeight.CRITICAL => 3,
-                        EmotionalWeight.HIGH => 2,
-                        EmotionalWeight.MEDIUM => 1,
+                        EmotionalFocus.CRITICAL => 3,
+                        EmotionalFocus.HIGH => 2,
+                        EmotionalFocus.MEDIUM => 1,
                         _ => 1
                     };
 
                     _tokenManager.AddTokensToNPC(deliveredObligation.TokenType, tokenReward, _currentSession.NPC.ID);
-                    _currentSession.CurrentComfort += 5;
+                    _currentSession.CurrentFlow += 5;
 
                     _messageSystem.AddSystemMessage(
                         $"Successfully delivered {deliveredObligation.SenderName}'s letter to {_currentSession.NPC.Name}!",
@@ -559,7 +559,7 @@ public class ConversationFacade
                 _messageSystem.AddSystemMessage(
                     $"{_currentSession.NPC.Name} desperately hands you a letter for her family!",
                     SystemMessageTypes.Success);
-                _currentSession.CurrentComfort += 5;
+                _currentSession.CurrentFlow += 5;
                 _currentSession.LetterGenerated = true;
             }
         }

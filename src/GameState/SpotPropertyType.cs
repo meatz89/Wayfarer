@@ -1,20 +1,20 @@
 /// <summary>
 /// Categorical properties of location spots that affect conversation mechanics
-/// These properties influence comfort modifiers, card availability, and NPC willingness
+/// These properties influence flow modifiers, card availability, and NPC willingness
 /// </summary>
 public enum SpotPropertyType
 {
     // Privacy properties
-    Private,        // +2 comfort, enables intimate cards
-    Discrete,       // +1 comfort, enables shadow cards
+    Private,        // +2 flow, enables intimate cards
+    Discrete,       // +1 flow, enables shadow cards
     Public,         // No modifier, standard cards only
-    Exposed,        // -1 comfort, restricts sensitive cards
+    Exposed,        // -1 flow, restricts sensitive cards
 
     // Atmosphere properties
-    Quiet,          // +1 comfort for thoughtful personalities
-    Loud,           // -1 comfort, but +1 for boisterous personalities
-    Warm,           // +1 comfort in cold weather
-    Shaded,         // +1 comfort in hot weather
+    Quiet,          // +1 flow for thoughtful personalities
+    Loud,           // -1 flow, but +1 for boisterous personalities
+    Warm,           // +1 flow in cold weather
+    Shaded,         // +1 flow in hot weather
 
     // View properties
     ViewsMainEntrance,  // Enables authority observations
@@ -29,10 +29,10 @@ public enum SpotPropertyType
     QuietMorning,   // Time-specific, peaceful
 
     // Special properties
-    NobleFavored,   // +1 comfort for proud personalities
-    CommonerHaunt,  // +1 comfort for steadfast personalities
-    MerchantHub,    // +1 comfort for mercantile personalities
-    SacredGround,   // +1 comfort for devoted personalities
+    NobleFavored,   // +1 flow for proud personalities
+    CommonerHaunt,  // +1 flow for steadfast personalities
+    MerchantHub,    // +1 flow for mercantile personalities
+    SacredGround,   // +1 flow for devoted personalities
 
     // Work properties
     Commercial      // Enables work actions for earning coins

@@ -14,8 +14,8 @@ This scenario demonstrates all three core game loops working together to create 
 - Perfect information - all effects visible
 
 ### Strategic Layers
-- **Weight Pool Management**: Capacity 3-6, persists until refreshed
-- **Comfort Building**: Battery system (-3 to +3) triggers state transitions
+- **Focus Management**: Capacity 3-6, persists until refreshed
+- **Flow Building**: Battery system (-3 to +3) triggers state transitions
 - **Token Investment**: Linear +5% per token, only from deliveries
 - **Queue Management**: Position 1 must complete first, multiple obligations compete
 - **Atmosphere Control**: Persistent effects shape entire conversations
@@ -24,7 +24,7 @@ This scenario demonstrates all three core game loops working together to create 
 
 ### Player Resources
 - **Coins**: 10 (exactly enough for checkpoint bribe if no permit)
-- **Health**: 75/100 (no weight penalty yet)
+- **Health**: 75/100 (no focus penalty yet)
 - **Hunger**: 60/100 (reducing attention by 2)
 - **Attention**: 8/10 (after morning calculation: 10 - 2)
 - **Satchel**: Empty (5 slots max)
@@ -136,53 +136,53 @@ From Copper Kettle Common Room:
 
 **Conversation Deck** (20 cards):
 
-**Fixed Comfort Cards** (6 total):
-- "I understand" (Trust-type, W1, Easy 70%): +1 comfort
-- "Let me help" (Trust-type, W1, Easy 70%): +1 comfort  
-- "You're safe with me" (Trust-type, W2, Medium 60%): +2 comfort
-- "Trust in our bond" (Trust-type, W2, Medium 60%): +2 comfort
-- "Together we're strong" (Trust-type, W3, Medium 60%): +3 comfort
-- "Soul connection" (Trust-type, W5, Very Hard 40%, Fleeting): +5 comfort
+**Fixed Flow Cards** (6 total):
+- "I understand" (Trust-type, W1, Easy 70%): +1 flow
+- "Let me help" (Trust-type, W1, Easy 70%): +1 flow  
+- "You're safe with me" (Trust-type, W2, Medium 60%): +2 flow
+- "Trust in our bond" (Trust-type, W2, Medium 60%): +2 flow
+- "Together we're strong" (Trust-type, W3, Medium 60%): +3 flow
+- "Soul connection" (Trust-type, W5, Very Hard 40%, Impulse): +5 flow
 
-**Scaled Comfort Cards** (4 total, all Trust-type):
-- "Our trust runs deep" (Trust-type, W2, Hard 50%): +X comfort where X = Trust tokens
-- "Remember our history" (Trust-type, W3, Hard 50%): +X comfort where X = Trust tokens
-- "Lean on me" (Trust-type, W3, Hard 50%): +X comfort where X = 4 - current comfort
-- "Crisis shared" (Trust-type, W4, Hard 50%, Fleeting): +X comfort where X = patience ÷ 3
+**Scaled Flow Cards** (4 total, all Trust-type):
+- "Our trust runs deep" (Trust-type, W2, Hard 50%): +X flow where X = Trust tokens
+- "Remember our history" (Trust-type, W3, Hard 50%): +X flow where X = Trust tokens
+- "Lean on me" (Trust-type, W3, Hard 50%): +X flow where X = 4 - current flow
+- "Crisis shared" (Trust-type, W4, Hard 50%, Impulse): +X flow where X = patience ÷ 3
 
 **Utility Cards** (4 total, all Trust-type):
 - "Let me think" (Trust-type, W1, Medium 60%): Draw 1 card
 - "Consider options" (Trust-type, W1, Medium 60%): Draw 1 card
-- "Gather strength" (Trust-type, W2, Medium 60%): Add 1 weight to pool
-- "Deep breath" (Trust-type, W2, Medium 60%): Add 1 weight to pool
+- "Gather strength" (Trust-type, W2, Medium 60%): Add 1 focus to pool
+- "Deep breath" (Trust-type, W2, Medium 60%): Add 1 focus to pool
 
-**Setup Cards** (3 total, 0 weight, mixed types):
+**Setup Cards** (3 total, 0 focus, mixed types):
 - "Careful approach" (Trust-type, W0, Easy 70%): No effect, Atmosphere: Prepared
 - "Open my heart" (Commerce-type, W0, Easy 70%): No effect, Atmosphere: Receptive
 - "This is critical" (Status-type, W0, Easy 70%): No effect, Atmosphere: Final
 
-**Dramatic Cards** (2 total, fleeting, Trust-type):
-- "Desperate plea" (Trust-type, W4, Hard 50%, Fleeting): +4 comfort, Atmosphere: Volatile
-- "All or nothing" (Trust-type, W6, Very Hard 40%, Fleeting): +5 comfort, Atmosphere: Final
+**Dramatic Cards** (2 total, impulse, Trust-type):
+- "Desperate plea" (Trust-type, W4, Hard 50%, Impulse): +4 flow, Atmosphere: Volatile
+- "All or nothing" (Trust-type, W6, Very Hard 40%, Impulse): +5 flow, Atmosphere: Final
 
 **Flex Slot** (1, Trust-type):
-- "Shared pain" (Trust-type, W2, Medium 60%): -2 comfort (represents emotional overflow)
+- "Shared pain" (Trust-type, W2, Medium 60%): -2 flow (represents emotional overflow)
 
-**Goal Deck** (Separate from conversation deck):
+**Request Deck** (Separate from conversation deck):
 
 - **"Crisis Refusal"** (Trust Letter)
-  - Weight: 5
+  - Focus: 5
   - Difficulty: Very Hard (40% base + Trust tokens × 5%)
   - Success Effect: Accept Letter and Obligation for fixed terms
-  - Failure Effect: Conversation Ends, -3 Comfort
-  - Has "Fleeting" and "Opportunity" property
+  - Failure Effect: Conversation Ends, -3 Flow
+  - Has "Impulse" and "Opening" property
 
-- **"Clear the Air"** (Resolution Goal)
-  - Weight: 5
+- **"Clear the Air"** (Resolution Request)
+  - Focus: 5
   - Difficulty: Hard (50% base + Trust tokens × 5%)
   - Success Effect: Remove burden cards from relationship record
   - Failure Effect: Burden remains
-  - Has "Fleeting" and "Opportunity" property
+  - Has "Impulse" and "Opening" property
 
 **Relationship Record**:
 - 2 burden cards from past failure (visible marker of damaged trust)
@@ -197,32 +197,32 @@ From Copper Kettle Common Room:
 
 **Conversation Deck** (20 cards):
 
-**Fixed Comfort Cards** (6, mostly Commerce-type):
-- 3 at W1 (Commerce-type, Easy 70%): +1 comfort each
-- 2 at W2 (Commerce-type, Medium 60%): +2 comfort each
-- 1 at W3 (Status-type, Medium 60%): +3 comfort
+**Fixed Flow Cards** (6, mostly Commerce-type):
+- 3 at W1 (Commerce-type, Easy 70%): +1 flow each
+- 2 at W2 (Commerce-type, Medium 60%): +2 flow each
+- 1 at W3 (Status-type, Medium 60%): +3 flow
 
-**Scaled Comfort Cards** (4, all Commerce-type):
+**Scaled Flow Cards** (4, all Commerce-type):
 - 2 "Good business" (Commerce-type, W2, Hard 50%): +X where X = Commerce tokens
 - 1 "Profitable relationship" (Commerce-type, W3, Hard 50%): +X where X = Commerce tokens
-- 1 "Time is money" (Commerce-type, W3, Hard 50%): +X where X = weight remaining
+- 1 "Time is money" (Commerce-type, W3, Hard 50%): +X where X = focus remaining
 
 **Utility Cards** (4, Commerce-type):
 - 2 Draw cards (Commerce-type, W1, Medium 60%)
-- 2 Weight-add cards (Commerce-type, W2, Medium 60%)
+- 2 Focus-add cards (Commerce-type, W2, Medium 60%)
 
 **Setup Cards** (3, W0, mixed types):
 - "Let's negotiate" (Commerce-type, Easy 70%): Atmosphere: Focused
 - "Time for business" (Trust-type, Easy 70%): Atmosphere: Patient
 - "High stakes" (Shadow-type, Easy 70%): Atmosphere: Final
 
-**Dramatic Cards** (2, fleeting, Commerce-type):
-- "Deal of lifetime" (Commerce-type, W5, Very Hard 40%): +5 comfort
-- "All in" (Commerce-type, W4, Hard 50%): +4 comfort, Atmosphere: Volatile
+**Dramatic Cards** (2, impulse, Commerce-type):
+- "Deal of lifetime" (Commerce-type, W5, Very Hard 40%): +5 flow
+- "All in" (Commerce-type, W4, Hard 50%): +4 flow, Atmosphere: Volatile
 
-**Flex**: 1 negative comfort card (Commerce-type)
+**Flex**: 1 negative flow card (Commerce-type)
 
-**Goal Deck**:
+**Request Deck**:
 - "Package Delivery" (Commerce Promise, W5, Very Hard 40%)
 - "Noble Permit Sale" (Commerce Promise, W6, Very Hard 40%)
 
@@ -243,19 +243,19 @@ From Copper Kettle Common Room:
 
 **Conversation Deck** (20 cards):
 
-**Fixed Comfort Cards** (6, balanced types):
-- 2 at W1 (Status-type, Easy 70%): +1 comfort each
-- 2 at W1 (Shadow-type, Easy 70%): +1 comfort each
-- 1 at W2 (Status-type, Medium 60%): +2 comfort
-- 1 at W3 (Shadow-type, Medium 60%): +3 comfort
+**Fixed Flow Cards** (6, balanced types):
+- 2 at W1 (Status-type, Easy 70%): +1 flow each
+- 2 at W1 (Shadow-type, Easy 70%): +1 flow each
+- 1 at W2 (Status-type, Medium 60%): +2 flow
+- 1 at W3 (Shadow-type, Medium 60%): +3 flow
 
-**Scaled Comfort Cards** (4, mixed):
+**Scaled Flow Cards** (4, mixed):
 - 2 scaling with Status tokens (Status-type, W2, Hard 50%)
 - 2 scaling with Shadow tokens (Shadow-type, W3, Hard 50%)
 
 **Utility Cards** (4, mixed types): 
 - 2 Draw cards (1 Status-type, 1 Shadow-type, W1, Medium 60%)
-- 2 Weight-add cards (1 Status-type, 1 Shadow-type, W2, Medium 60%)
+- 2 Focus-add cards (1 Status-type, 1 Shadow-type, W2, Medium 60%)
 
 **Setup Cards** (3, W0, mixed types):
 - "Official business" (Status-type, Easy 70%): Atmosphere: Volatile
@@ -263,12 +263,12 @@ From Copper Kettle Common Room:
 - "Under scrutiny" (Shadow-type, Easy 70%): Atmosphere: Pressured
 
 **Dramatic Cards** (2, mixed types): 
-- "Authority demonstrated" (Status-type, W4, Hard 50%, Fleeting): +4 comfort
-- "Secrets revealed" (Shadow-type, W5, Very Hard 40%, Fleeting): +5 comfort
+- "Authority demonstrated" (Status-type, W4, Hard 50%, Impulse): +4 flow
+- "Secrets revealed" (Shadow-type, W5, Very Hard 40%, Impulse): +5 flow
 
 **Flex**: 1 Authority-themed card (Status-type)
 
-**Goal Deck**:
+**Request Deck**:
 - "Checkpoint Pass" (Shadow Promise, W5, Hard 50%)
   - Success: 24hr access permit, no cost
   - Failure: 2hr access permit, 5 coin fee
@@ -306,7 +306,7 @@ From Copper Kettle Common Room:
 ### Building Your Deck
 The player maintains their own observation deck (max 20 cards):
 - Cost: 1 attention at specific locations
-- Weight: 1 (minimal requirement)
+- Focus: 1 (minimal requirement)
 - Success rate: 85% (Very Easy)
 - Always persistent
 - Expiration: 24-48 hours
@@ -320,86 +320,86 @@ The player maintains their own observation deck (max 20 cards):
 - "Market Gossip": Set Receptive atmosphere (expires 24hr)
 
 **Market Square - Evening**:
-- "Night Paths": Next SPEAK costs 0 weight (expires 12hr)
+- "Night Paths": Next SPEAK costs 0 focus (expires 12hr)
 
 **Copper Kettle - When Elena Present**:
 - "Shared Hardship": Set Informed atmosphere (expires 48hr, powerful!)
 
 **Guard Post - Night**:
-- "Bribery Option": Comfort = 0 (expires 6hr, emergency reset)
+- "Bribery Option": Flow = 0 (expires 6hr, emergency reset)
 
 ### Conversation-Generated Observations
 NPCs can reward observation cards:
 - "Noble Routes": Next action costs 0 patience
 - "Guard Timing": Set Synchronized atmosphere
-- "Hidden Path": Weight pool = maximum
+- "Hidden Path": Focus = maximum
 
 ## Emotional State Effects
 
-### State Transitions and Weight Capacity
+### State Transitions and Focus Capacity
 
 **DESPERATE** (Elena's starting state):
-- Weight capacity: 3
+- Focus capacity: 3
 - Cards drawn: 1
-- Comfort: +3→Tense (escape!), -3→Conversation ends
-- Goals Available: Crisis promises, urgent letters
+- Flow: +3→Tense (escape!), -3→Conversation ends
+- Requests Available: Crisis promises, urgent letters
 
 **TENSE** (Cautious):
-- Weight capacity: 4
+- Focus capacity: 4
 - Cards drawn: 2
-- Comfort: +3→Neutral, -3→Desperate
-- Goals Available: Shadow promises, burden resolution
+- Flow: +3→Neutral, -3→Desperate
+- Requests Available: Shadow promises, burden resolution
 
 **NEUTRAL** (Balanced):
-- Weight capacity: 5
+- Focus capacity: 5
 - Cards drawn: 2
-- Comfort: +3→Open, -3→Tense
-- Goals Available: Commerce promises, routine letters
+- Flow: +3→Open, -3→Tense
+- Requests Available: Commerce promises, routine letters
 
 **OPEN** (Receptive):
-- Weight capacity: 5
+- Focus capacity: 5
 - Cards drawn: 3
-- Comfort: +3→Connected, -3→Neutral
-- Goals Available: Trust promises, personal requests
+- Flow: +3→Connected, -3→Neutral
+- Requests Available: Trust promises, personal requests
 
 **CONNECTED** (Deep Bond):
-- Weight capacity: 6
+- Focus capacity: 6
 - Cards drawn: 3
-- Comfort: +3→Stays Connected (maxed), -3→Open
-- Goals Available: All promise types
+- Flow: +3→Stays Connected (maxed), -3→Open
+- Requests Available: All promise types
 
 ## Strategic Decision Framework
 
-### Weight Pool Navigation
+### Focus Navigation
 
 **Elena's Challenge in Desperate (3 capacity)**:
 - Can play three W1 cards before refresh
 - Can play one W3 card then need LISTEN
 - Cannot play W4+ cards without Prepared atmosphere
-- Cannot play W5 goal cards without state change
+- Cannot play W5 request cards without state change
 
-**Reaching Goal Cards**:
-- Need 5+ weight capacity (Open/Connected states)
+**Reaching Request Cards**:
+- Need 5+ focus capacity (Open/Connected states)
 - OR use Prepared atmosphere (+1 capacity)
 - OR use observation to set Informed (auto-success)
 
-### Comfort Building Mathematics
+### Flow Building Mathematics
 
 **Turn Economy with 16 Patience**:
-- Comfort starts at 0
+- Flow starts at 0
 - Need +3 to transition states
-- Desperate → Tense → Neutral → Open (9 comfort total)
+- Desperate → Tense → Neutral → Open (9 flow total)
 
 **Build Rates with 1 Trust Token (45-75% success)**:
-- W1 cards: +1 comfort at 75% (Easy + token)
-- W2 cards: +2 comfort at 65% (Medium + token)
-- W3 cards: +3 comfort at 65% (Medium + token)
-- W5 cards: +5 comfort at 45% (Very Hard + token)
+- W1 cards: +1 flow at 75% (Easy + token)
+- W2 cards: +2 flow at 65% (Medium + token)
+- W3 cards: +3 flow at 65% (Medium + token)
+- W5 cards: +5 flow at 45% (Very Hard + token)
 
 **Scaled Options**:
-- Trust scaling: +1 comfort (only 1 token)
-- Comfort scaling: +4 when at 0 comfort
-- Patience scaling: +5 comfort (16 patience ÷ 3)
+- Trust scaling: +1 flow (only 1 token)
+- Flow scaling: +4 when at 0 flow
+- Patience scaling: +5 flow (16 patience ÷ 3)
 
 ### Token Economics
 
@@ -413,7 +413,7 @@ NPCs can reward observation cards:
 - ~17 Trust-type cards: Get +5% bonus (45-75% success)
 - ~3 non-Trust cards: Get +0% bonus (40-70% success)
 
-**Letter Negotiation with Elena's Trust Goal**:
+**Letter Negotiation with Elena's Trust Request**:
 - Crisis Letter (Trust-type): 45% success (40% + 1 Trust × 5%)
 - If you had Commerce tokens instead: Still 40% (no bonus!)
 
@@ -464,22 +464,22 @@ To deliver Elena immediately from position 3:
 6. Observe "Shared Hardship" at Copper Kettle (-1 att, Informed atmosphere)
 7. Converse with Elena (-2 att, 16 patience)
 8. Use observation: Set Informed atmosphere (next card auto-succeeds)
-9. Play high comfort card with guaranteed success
-10. Build to Open state, access goal cards
+9. Play high flow card with guaranteed success
+10. Build to Open state, access request cards
 
 **Results**: Good terms, queue cleared, profitable
 
-### Path B: Weight Management
+### Path B: Focus Management
 **Morning**:
 1. Exchange: Buy food immediately (-3 coins)
 2. Wait to Afternoon (preserve 8 attention)
 
 **Afternoon** (8 attention, 7 coins):
 3. Full Elena conversation (-2 att)
-4. Carefully manage 3 weight capacity in Desperate
+4. Carefully manage 3 focus capacity in Desperate
 5. Use setup cards (W0) for Prepared atmosphere
 6. Now 4 capacity - still need state change
-7. Focus on scaled comfort for efficiency
+7. Focus on scaled flow for efficiency
 
 **Results**: Challenging but possible with good atmosphere use
 
@@ -503,7 +503,7 @@ To deliver Elena immediately from position 3:
 **Morning**:
 1. Cannot build Shadow tokens (no token cards exist)
 2. Must rely on existing 1 Shadow token
-3. Conversation for permit goal card
+3. Conversation for permit request card
 
 **Evening**:
 4. Guard in Neutral atmosphere (better than Tense)
@@ -518,7 +518,7 @@ To deliver Elena immediately from position 3:
 
 **Setup for Success**:
 1. Play "Careful approach" (W0) → Prepared atmosphere
-2. Now have 4 weight capacity in Desperate (3+1)
+2. Now have 4 focus capacity in Desperate (3+1)
 3. Play multiple cards before refresh needed
 
 **High Risk/Reward**:
@@ -529,7 +529,7 @@ To deliver Elena immediately from position 3:
 **Information Advantage**:
 1. Use "Shared Hardship" observation → Informed atmosphere
 2. Next card cannot fail
-3. Guarantee critical comfort gain or goal play
+3. Guarantee critical flow gain or request play
 
 ## Resource Calculations
 
@@ -552,7 +552,7 @@ Commerce-type W1 Easy card, 1 Trust token with Elena:
 Trust-type W2 Hard scaled card, 1 Trust token:
 50% + (1 × 5%) = 55%
 
-Trust-type W5 Very Hard goal, 1 Trust token:
+Trust-type W5 Very Hard request, 1 Trust token:
 40% + (1 × 5%) = 45%
 
 Commerce-type card with Marcus, 2 Commerce tokens:
@@ -577,7 +577,7 @@ Base rate + (1 × 5%) = +5% bonus
 - Forced position 1: Must displace everything
 - Token burning: Permanent relationship damage
 - Resource depletion: Cannot afford checkpoint
-- Fleeting goal discarded: Conversation fails
+- Impulse request discarded: Conversation fails
 
 ### Recovery Options
 - Work for emergency coins (loses 4 hours)
@@ -618,13 +618,13 @@ Base rate + (1 × 5%) = +5% bonus
 
 **Scenario 1**: Elena Desperate, You have 3 Trust tokens
 - +15% success on all cards
-- Trust scaling gives +3 comfort
-- Can manage weight pool carefully
+- Trust scaling gives +3 flow
+- Can manage focus carefully
 
 **Scenario 2**: Elena Open, You have 0 Trust tokens
-- 5 weight capacity available
+- 5 focus capacity available
 - Base success rates only
-- Can play goal cards immediately
+- Can play request cards immediately
 
 **Scenario 3**: Elena Neutral, 4 burden cards in record
 - Standard capacity but damaged relationship
@@ -642,7 +642,7 @@ Each combination creates unique tactical challenge.
 
 ### Deck Evolution
 Successful delivery adds cards to Lord Blackwood's deck:
-- Trust-scaling comfort cards
+- Trust-scaling flow cards
 - Makes future Trust conversations easier
 - Permanent world change
 
@@ -667,11 +667,11 @@ Twenty deliveries create twenty permanent changes.
 ## Core Innovation Summary
 
 The scenario demonstrates elegant complexity through simple rules:
-- **Weight Pools**: Persistent capacity creates multi-turn planning
+- **Focuss**: Persistent capacity creates multi-turn planning
 - **Token Linearity**: Every token adds exactly 5% success
 - **Atmosphere Persistence**: Environmental effects shape conversations
-- **Comfort Battery**: ±3 triggers state transitions
+- **Flow Battery**: ±3 triggers state transitions
 - **Queue Displacement**: Permanent sacrifice for flexibility
 - **Observation Effects**: Unique advantages from exploration
 
-No thresholds (except comfort ±3), no hidden mechanics, no soft locks. Every mechanic serves one purpose while resources flow through multiple systems. The puzzle emerges from interaction, not complication.
+No thresholds (except flow ±3), no hidden mechanics, no soft locks. Every mechanic serves one purpose while resources flow through multiple systems. The puzzle emerges from interaction, not complication.

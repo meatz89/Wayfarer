@@ -6,13 +6,13 @@ public class CardEffectProcessor
 {
     private readonly TokenMechanicsManager tokenManager;
     private readonly AtmosphereManager atmosphereManager;
-    private readonly WeightPoolManager weightPoolManager;
+    private readonly FocusManager focusManager;
 
-    public CardEffectProcessor(TokenMechanicsManager tokenManager, AtmosphereManager atmosphereManager, WeightPoolManager weightPoolManager)
+    public CardEffectProcessor(TokenMechanicsManager tokenManager, AtmosphereManager atmosphereManager, FocusManager focusManager)
     {
         this.tokenManager = tokenManager;
         this.atmosphereManager = atmosphereManager;
-        this.weightPoolManager = weightPoolManager;
+        this.focusManager = focusManager;
     }
 
     /// <summary>
@@ -56,9 +56,9 @@ public class CardEffectProcessor
         CardEffectResult result = new CardEffectResult
         {
             Card = card,
-            ComfortChange = 0,
+            FlowChange = 0,
             CardsToAdd = new List<CardInstance>(),
-            WeightAdded = 0,
+            FocusAdded = 0,
             AtmosphereTypeChange = null,
             SpecialEffect = "",
             EndsConversation = false
@@ -67,23 +67,23 @@ public class CardEffectProcessor
         // Process the effect based on type
         switch (effect.Type)
         {
-            case CardEffectType.AddComfort:
-                result.ComfortChange = ProcessFixedComfort(effect.Value);
+            case CardEffectType.AddFlow:
+                result.FlowChange = ProcessFixedFlow(effect.Value);
                 break;
 
             case CardEffectType.ScaleByTokens:
-            case CardEffectType.ScaleByComfort:
+            case CardEffectType.ScaleByFlow:
             case CardEffectType.ScaleByPatience:
-            case CardEffectType.ScaleByWeight:
-                result.ComfortChange = ProcessScaledComfort(effect, session);
+            case CardEffectType.ScaleByFocus:
+                result.FlowChange = ProcessScaledFlow(effect, session);
                 break;
 
             case CardEffectType.DrawCards:
                 result.CardsToAdd = ProcessDrawCards(effect.Value, session);
                 break;
 
-            case CardEffectType.AddWeight:
-                result.WeightAdded = ProcessAddWeight(effect.Value);
+            case CardEffectType.AddFocus:
+                result.FocusAdded = ProcessAddFocus(effect.Value);
                 break;
 
             case CardEffectType.SetAtmosphere:
@@ -99,14 +99,14 @@ public class CardEffectProcessor
                 }
                 break;
                 
-            case CardEffectType.ComfortReset:
-                result.ComfortChange = -session.CurrentComfort; // Reset to 0
-                result.SpecialEffect = "Comfort reset to 0";
+            case CardEffectType.FlowReset:
+                result.FlowChange = -session.CurrentFlow; // Reset to 0
+                result.SpecialEffect = "Flow reset to 0";
                 break;
                 
-            case CardEffectType.WeightRefresh:
-                result.WeightAdded = weightPoolManager.CurrentCapacity - weightPoolManager.CurrentSpentWeight;
-                result.SpecialEffect = "Weight pool refreshed";
+            case CardEffectType.FocusRefresh:
+                result.FocusAdded = focusManager.CurrentCapacity - focusManager.CurrentSpentFocus;
+                result.SpecialEffect = "Focus refreshed";
                 break;
                 
             case CardEffectType.FreeNextAction:
@@ -115,19 +115,19 @@ public class CardEffectProcessor
                 break;
         }
 
-        // Apply atmosphere modifications to comfort changes
-        if (result.ComfortChange != 0)
+        // Apply atmosphere modifications to flow changes
+        if (result.FlowChange != 0)
         {
-            result.ComfortChange = atmosphereManager.ModifyComfortChange(result.ComfortChange);
+            result.FlowChange = atmosphereManager.ModifyFlowChange(result.FlowChange);
         }
 
         // Apply Synchronized effect (double the effect)
         if (atmosphereManager.ShouldDoubleNextEffect())
         {
-            if (result.ComfortChange != 0)
-                result.ComfortChange *= 2;
-            if (result.WeightAdded > 0)
-                result.WeightAdded *= 2;
+            if (result.FlowChange != 0)
+                result.FlowChange *= 2;
+            if (result.FocusAdded > 0)
+                result.FocusAdded *= 2;
             if (result.CardsToAdd.Count > 0)
             {
                 // Double the cards drawn
@@ -139,18 +139,18 @@ public class CardEffectProcessor
         return result;
     }
 
-    // Process fixed comfort effect
-    private int ProcessFixedComfort(string effectValue)
+    // Process fixed flow effect
+    private int ProcessFixedFlow(string effectValue)
     {
-        if (int.TryParse(effectValue, out int comfort))
+        if (int.TryParse(effectValue, out int flow))
         {
-            return comfort;
+            return flow;
         }
         return 0;
     }
 
-    // Process scaled comfort based on effect type and formula
-    private int ProcessScaledComfort(CardEffect effect, ConversationSession session)
+    // Process scaled flow based on effect type and formula
+    private int ProcessScaledFlow(CardEffect effect, ConversationSession session)
     {
         // Handle specific scaling types
         if (effect.Type == CardEffectType.ScaleByTokens)
@@ -167,18 +167,18 @@ public class CardEffectProcessor
             return tokenManager.GetTokenCount(connectionType, session.NPC.ID);
         }
         
-        if (effect.Type == CardEffectType.ScaleByComfort)
+        if (effect.Type == CardEffectType.ScaleByFlow)
         {
-            // Parse formula like "4 - comfort"
+            // Parse formula like "4 - flow"
             if (effect.Value.Contains("-"))
             {
                 string[] parts = effect.Value.Split('-');
                 if (int.TryParse(parts[0].Trim(), out int baseValue))
                 {
-                    return baseValue - session.CurrentComfort;
+                    return baseValue - session.CurrentFlow;
                 }
             }
-            return session.CurrentComfort;
+            return session.CurrentFlow;
         }
         
         if (effect.Type == CardEffectType.ScaleByPatience)
@@ -195,9 +195,9 @@ public class CardEffectProcessor
             return session.CurrentPatience;
         }
         
-        if (effect.Type == CardEffectType.ScaleByWeight)
+        if (effect.Type == CardEffectType.ScaleByFocus)
         {
-            return weightPoolManager.AvailableWeight;
+            return focusManager.AvailableFocus;
         }
         
         return int.TryParse(effect.Value, out int value) ? value : 0;
@@ -213,13 +213,13 @@ public class CardEffectProcessor
         return drawnCards;
     }
 
-    // Process add weight effect
-    private int ProcessAddWeight(string effectValue)
+    // Process add focus effect
+    private int ProcessAddFocus(string effectValue)
     {
-        if (int.TryParse(effectValue, out int weight))
+        if (int.TryParse(effectValue, out int focus))
         {
-            weightPoolManager.AddWeight(weight);
-            return weight;
+            focusManager.AddFocus(focus);
+            return focus;
         }
         return 0;
     }
@@ -235,17 +235,17 @@ public class CardEffectProcessor
         return AtmosphereType.Neutral;
     }
 
-    // Process reset comfort effect (observation only)
-    private int ProcessResetComfort(ConversationSession session)
+    // Process reset flow effect (observation only)
+    private int ProcessResetFlow(ConversationSession session)
     {
-        int currentComfort = session.ComfortBattery;
-        return -currentComfort; // Returns the change needed to reset to 0
+        int currentFlow = session.FlowBattery;
+        return -currentFlow; // Returns the change needed to reset to 0
     }
 
-    // Process max weight effect (observation only)
-    private void ProcessMaxWeight()
+    // Process max focus effect (observation only)
+    private void ProcessMaxFocus()
     {
-        weightPoolManager.SetToMaximum();
+        focusManager.SetToMaximum();
     }
 
     // Process free action effect (observation only)
@@ -300,9 +300,9 @@ public class CardEffectProcessor
 public class CardEffectResult
 {
     public ConversationCard Card { get; set; }
-    public int ComfortChange { get; set; }
+    public int FlowChange { get; set; }
     public List<CardInstance> CardsToAdd { get; set; } = new();
-    public int WeightAdded { get; set; }
+    public int FocusAdded { get; set; }
     public AtmosphereType? AtmosphereTypeChange { get; set; }
     public string SpecialEffect { get; set; } = "";
     public bool Success { get; set; } = true;

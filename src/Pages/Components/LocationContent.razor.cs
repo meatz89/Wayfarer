@@ -482,9 +482,9 @@ namespace Wayfarer.Pages.Components
             return $"{npc.PersonalityType} type";
         }
 
-        protected bool HasLetterGoal(string npcId)
+        protected bool HasLetterRequest(string npcId)
         {
-            // Check if this NPC has an active letter goal
+            // Check if this NPC has an active letter request
             // This would check against the game state
             return false;
         }
@@ -645,9 +645,9 @@ namespace Wayfarer.Pages.Components
                 SpotPropertyType.Exposed => "Exposed (-1 patience)",
                 SpotPropertyType.Crossroads => "Crossroads",
                 SpotPropertyType.Commercial => "Commercial",
-                SpotPropertyType.Quiet => "Quiet (+1 comfort)",
-                SpotPropertyType.Loud => "Loud (-1 comfort)",
-                SpotPropertyType.Warm => "Warm (+1 comfort)",
+                SpotPropertyType.Quiet => "Quiet (+1 flow)",
+                SpotPropertyType.Loud => "Loud (-1 flow)",
+                SpotPropertyType.Warm => "Warm (+1 flow)",
                 _ => prop.ToString()
             };
         }

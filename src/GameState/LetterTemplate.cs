@@ -42,6 +42,6 @@ public class LetterTemplate
     // Consequences
     public string ConsequenceIfLate { get; set; } = ""; // What happens if we fail
     public string ConsequenceIfDelivered { get; set; } = ""; // What we prevent
-    public EmotionalWeight EmotionalWeight { get; set; } = EmotionalWeight.MEDIUM;
+    public EmotionalFocus EmotionalFocus { get; set; } = EmotionalFocus.MEDIUM;
     public StakeType Stakes { get; set; } = StakeType.REPUTATION; // What's at stake
 }

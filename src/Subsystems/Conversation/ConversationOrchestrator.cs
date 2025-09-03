@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Orchestrates the new conversation system with comfort battery, atmosphere persistence, and single-card mechanics.
-/// Handles state transitions at ±3, weight pool management, and goal card exhaust mechanics.
+/// Orchestrates the new conversation system with flow battery, atmosphere persistence, and single-card mechanics.
+/// Handles state transitions at ±3, focus management, and request card exhaust mechanics.
 /// </summary>
 public class ConversationOrchestrator
 {
@@ -12,18 +12,18 @@ public class ConversationOrchestrator
     private readonly DialogueGenerator _dialogueGenerator;
     private readonly ObligationQueueManager _queueManager;
     private readonly TokenMechanicsManager _tokenManager;
-    private readonly WeightPoolManager _weightPoolManager;
+    private readonly FocusManager _focusManager;
     private readonly AtmosphereManager _atmosphereManager;
     private readonly CardEffectProcessor _effectProcessor;
     private readonly GameWorld _gameWorld;
-    private ComfortBatteryManager? _comfortBatteryManager;
+    private FlowManager? _flowBatteryManager;
 
     public ConversationOrchestrator(
         CardDeckManager deckManager,
         DialogueGenerator dialogueGenerator,
         ObligationQueueManager queueManager,
         TokenMechanicsManager tokenManager,
-        WeightPoolManager weightPoolManager,
+        FocusManager focusManager,
         AtmosphereManager atmosphereManager,
         CardEffectProcessor effectProcessor,
         GameWorld gameWorld)
@@ -32,7 +32,7 @@ public class ConversationOrchestrator
         _dialogueGenerator = dialogueGenerator ?? throw new ArgumentNullException(nameof(dialogueGenerator));
         _queueManager = queueManager ?? throw new ArgumentNullException(nameof(queueManager));
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
-        _weightPoolManager = weightPoolManager ?? throw new ArgumentNullException(nameof(weightPoolManager));
+        _focusManager = focusManager ?? throw new ArgumentNullException(nameof(focusManager));
         _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
         _effectProcessor = effectProcessor ?? throw new ArgumentNullException(nameof(effectProcessor));
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
@@ -46,14 +46,14 @@ public class ConversationOrchestrator
         // All conversations start in NEUTRAL state
         EmotionalState initialState = EmotionalState.NEUTRAL;
 
-        // Initialize comfort battery manager
-        _comfortBatteryManager = new ComfortBatteryManager(initialState);
-        _comfortBatteryManager.StateTransitioned += OnStateTransitioned;
-        _comfortBatteryManager.ConversationEnded += OnConversationEnded;
+        // Initialize flow battery manager
+        _flowBatteryManager = new FlowManager(initialState);
+        _flowBatteryManager.StateTransitioned += OnStateTransitioned;
+        _flowBatteryManager.ConversationEnded += OnConversationEnded;
 
-        // Initialize weight pool manager
-        _weightPoolManager.SetBaseCapacity(initialState);
-        _weightPoolManager.Reset();
+        // Initialize focus manager
+        _focusManager.SetBaseCapacity(initialState);
+        _focusManager.Reset();
 
         // Reset atmosphere manager
         _atmosphereManager.Reset();
@@ -68,9 +68,9 @@ public class ConversationOrchestrator
             ConversationType = conversationType,
             CurrentState = initialState,
             InitialState = initialState,
-            ComfortBattery = 0, // Start at 0
-            CurrentWeightPool = 0,
-            WeightCapacity = _weightPoolManager.CurrentCapacity,
+            FlowBattery = 0, // Start at 0
+            CurrentFocus = 0,
+            FocusCapacity = _focusManager.CurrentCapacity,
             CurrentAtmosphere = AtmosphereType.Neutral,
             CurrentPatience = 10,
             MaxPatience = 10,
@@ -84,15 +84,15 @@ public class ConversationOrchestrator
         // Perform initial LISTEN with no patience cost - draws cards based on emotional state
         List<CardInstance> initialCards = _deckManager.ExecuteListen(session);
         
-        // Reset weight pool after initial draw (as per standard LISTEN)
-        session.CurrentWeightPool = _weightPoolManager.CurrentSpentWeight;
-        session.WeightCapacity = _weightPoolManager.CurrentCapacity;
+        // Reset focus after initial draw (as per standard LISTEN)
+        session.CurrentFocus = _focusManager.CurrentSpentFocus;
+        session.FocusCapacity = _focusManager.CurrentCapacity;
 
         return session;
     }
 
     /// <summary>
-    /// Process LISTEN action - refresh weight pool and draw cards
+    /// Process LISTEN action - refresh focus and draw cards
     /// </summary>
     public ConversationTurnResult ProcessListenAction(ConversationSession session)
     {
@@ -110,9 +110,9 @@ public class ConversationOrchestrator
         // Execute LISTEN through deck manager
         List<CardInstance> drawnCards = _deckManager.ExecuteListen(session);
 
-        // Update session weight pool state
-        session.CurrentWeightPool = _weightPoolManager.CurrentSpentWeight;
-        session.WeightCapacity = _weightPoolManager.CurrentCapacity;
+        // Update session focus state
+        session.CurrentFocus = _focusManager.CurrentSpentFocus;
+        session.FocusCapacity = _focusManager.CurrentCapacity;
 
         // Generate NPC response
         string npcResponse = _dialogueGenerator.GenerateListenResponse(session.NPC, session.CurrentState, drawnCards);
@@ -148,19 +148,19 @@ public class ConversationOrchestrator
         // Play the card through deck manager
         CardPlayResult playResult = _deckManager.PlayCard(session, selectedCard);
 
-        int oldComfort = session.ComfortBattery;
-        int comfortChange = playResult.TotalComfort;
+        int oldFlow = session.FlowBattery;
+        int flowChange = playResult.TotalFlow;
 
-        // Apply comfort change through battery manager
+        // Apply flow change through battery manager
         bool conversationEnded = false;
         EmotionalState newState = session.CurrentState;
         
-        if (_comfortBatteryManager != null && comfortChange != 0)
+        if (_flowBatteryManager != null && flowChange != 0)
         {
             var (stateChanged, resultState, shouldEnd) = 
-                _comfortBatteryManager.ApplyComfortChange(comfortChange, session.CurrentAtmosphere);
+                _flowBatteryManager.ApplyFlowChange(flowChange, session.CurrentAtmosphere);
             
-            session.ComfortBattery = _comfortBatteryManager.CurrentComfort;
+            session.FlowBattery = _flowBatteryManager.CurrentFlow;
             conversationEnded = shouldEnd;
             
             if (stateChanged)
@@ -168,15 +168,15 @@ public class ConversationOrchestrator
                 newState = resultState;
                 session.CurrentState = newState;
                 
-                // Update weight pool capacity for new state
-                _weightPoolManager.SetBaseCapacity(newState);
+                // Update focus capacity for new state
+                _focusManager.SetBaseCapacity(newState);
             }
         }
 
         // Update session atmosphere
         session.CurrentAtmosphere = _atmosphereManager.CurrentAtmosphere;
-        session.CurrentWeightPool = _weightPoolManager.CurrentSpentWeight;
-        session.WeightCapacity = _weightPoolManager.CurrentCapacity;
+        session.CurrentFocus = _focusManager.CurrentSpentFocus;
+        session.FocusCapacity = _focusManager.CurrentCapacity;
 
         // Generate NPC response
         string npcResponse = _dialogueGenerator.GenerateSpeakResponse(
@@ -184,16 +184,16 @@ public class ConversationOrchestrator
             session.CurrentState,
             new HashSet<CardInstance> { selectedCard },
             playResult,
-            comfortChange);
+            flowChange);
 
         ConversationTurnResult result = new ConversationTurnResult
         {
             Success = playResult.Success,
             NewState = newState,
             NPCResponse = npcResponse,
-            ComfortChange = comfortChange,
-            OldComfort = oldComfort,
-            NewComfort = session.ComfortBattery,
+            FlowChange = flowChange,
+            OldFlow = oldFlow,
+            NewFlow = session.FlowBattery,
             PatienceRemaining = session.CurrentPatience,
             PlayedCards = new List<CardInstance> { selectedCard },
             CardPlayResult = playResult
@@ -209,7 +209,7 @@ public class ConversationOrchestrator
     }
 
     /// <summary>
-    /// Handle state transition event from comfort battery
+    /// Handle state transition event from flow battery
     /// </summary>
     private void OnStateTransitioned(EmotionalState oldState, EmotionalState newState)
     {
@@ -217,7 +217,7 @@ public class ConversationOrchestrator
     }
 
     /// <summary>
-    /// Handle conversation ended event from comfort battery
+    /// Handle conversation ended event from flow battery
     /// </summary>
     private void OnConversationEnded()
     {
@@ -233,10 +233,10 @@ public class ConversationOrchestrator
         if (session.CurrentPatience <= 0)
             return true;
 
-        // Check with comfort battery manager
-        if (_comfortBatteryManager != null && 
-            _comfortBatteryManager.CurrentState == EmotionalState.DESPERATE && 
-            _comfortBatteryManager.CurrentComfort <= -3)
+        // Check with flow battery manager
+        if (_flowBatteryManager != null && 
+            _flowBatteryManager.CurrentState == EmotionalState.DESPERATE && 
+            _flowBatteryManager.CurrentFlow <= -3)
             return true;
 
         // End if Final atmosphere and any card failed (handled by AtmosphereManager)
@@ -267,7 +267,7 @@ public class ConversationOrchestrator
             });
         }
 
-        // Can speak if have cards with available weight
+        // Can speak if have cards with available focus
         if (session.HandCards.Any())
         {
             List<CardInstance> playableCards = session.HandCards.Where(c =>
@@ -301,37 +301,37 @@ public class ConversationOrchestrator
             success = false;
             reason = "Patience exhausted";
         }
-        else if (session.CurrentState == EmotionalState.DESPERATE && session.ComfortBattery <= -3)
+        else if (session.CurrentState == EmotionalState.DESPERATE && session.FlowBattery <= -3)
         {
             success = false;
             reason = "Relationship damaged beyond repair";
         }
 
         // Calculate token rewards based on final state
-        int tokensEarned = CalculateTokenReward(session.CurrentState, session.ComfortBattery);
+        int tokensEarned = CalculateTokenReward(session.CurrentState, session.FlowBattery);
 
-        // Check if any goal cards were played
-        bool goalAchieved = session.PlayedCards?.Any(c => c.Properties.Contains(CardProperty.Fleeting) && c.Properties.Contains(CardProperty.Opportunity)) ?? false;
-        if (goalAchieved)
+        // Check if any request cards were played
+        bool requestAchieved = session.PlayedCards?.Any(c => c.Properties.Contains(CardProperty.Impulse) && c.Properties.Contains(CardProperty.Opening)) ?? false;
+        if (requestAchieved)
         {
-            tokensEarned += 2; // Bonus for completing goal
+            tokensEarned += 2; // Bonus for completing request
         }
 
         return new ConversationOutcome
         {
             Success = success,
-            FinalComfort = session.ComfortBattery,
+            FinalFlow = session.FlowBattery,
             FinalState = session.CurrentState,
             TokensEarned = tokensEarned,
-            GoalAchieved = goalAchieved,
+            RequestAchieved = requestAchieved,
             Reason = reason
         };
     }
 
     /// <summary>
-    /// Calculate token reward based on final state and comfort
+    /// Calculate token reward based on final state and flow
     /// </summary>
-    private int CalculateTokenReward(EmotionalState finalState, int finalComfort)
+    private int CalculateTokenReward(EmotionalState finalState, int finalFlow)
     {
         // Base reward by state
         int baseReward = finalState switch
@@ -344,10 +344,10 @@ public class ConversationOrchestrator
             _ => 0
         };
 
-        // Bonus for positive comfort
-        if (finalComfort > 0)
+        // Bonus for positive flow
+        if (finalFlow > 0)
             baseReward += 1;
-        else if (finalComfort < 0)
+        else if (finalFlow < 0)
             baseReward -= 1;
 
         return Math.Max(0, baseReward);
@@ -422,7 +422,7 @@ public class ConversationOrchestrator
 
         // Generate letters from positive connections
         return session.CurrentState == EmotionalState.CONNECTED ||
-               (session.CurrentState == EmotionalState.OPEN && session.ComfortBattery > 1);
+               (session.CurrentState == EmotionalState.OPEN && session.FlowBattery > 1);
     }
 
     /// <summary>
@@ -431,21 +431,21 @@ public class ConversationOrchestrator
     public DeliveryObligation CreateLetterObligation(ConversationSession session)
     {
         int stateValue = (int)session.CurrentState; // Use state as base value
-        int comfortBonus = Math.Max(0, session.ComfortBattery);
+        int flowBonus = Math.Max(0, session.FlowBattery);
 
         // Calculate deadline and payment based on relationship quality
         int baseMinutes = 720; // 12 hours base
-        int deadlineMinutes = Math.Max(120, baseMinutes - (stateValue * 60) - (comfortBonus * 30));
-        int payment = 5 + stateValue + comfortBonus;
+        int deadlineMinutes = Math.Max(120, baseMinutes - (stateValue * 60) - (flowBonus * 30));
+        int payment = 5 + stateValue + flowBonus;
 
-        // Determine tier and weight
+        // Determine tier and focus
         TierLevel tier = stateValue >= 4 ? TierLevel.T3 :
                         stateValue >= 2 ? TierLevel.T2 : TierLevel.T1;
 
-        EmotionalWeight weight = deadlineMinutes <= 180 ? EmotionalWeight.CRITICAL :
-                                deadlineMinutes <= 360 ? EmotionalWeight.HIGH :
-                                deadlineMinutes <= 720 ? EmotionalWeight.MEDIUM :
-                                EmotionalWeight.LOW;
+        EmotionalFocus focus = deadlineMinutes <= 180 ? EmotionalFocus.CRITICAL :
+                                deadlineMinutes <= 360 ? EmotionalFocus.HIGH :
+                                deadlineMinutes <= 720 ? EmotionalFocus.MEDIUM :
+                                EmotionalFocus.LOW;
 
         // Find recipient
         List<NPC> otherNpcs = _gameWorld.NPCs.Where(n => n.ID != session.NPC.ID).ToList();
@@ -463,8 +463,8 @@ public class ConversationOrchestrator
             DeadlineInMinutes = deadlineMinutes,
             Payment = payment,
             Tier = tier,
-            EmotionalWeight = weight,
-            Description = $"Letter from {session.NPC.Name} (State: {session.CurrentState}, Comfort: {session.ComfortBattery})"
+            EmotionalFocus = focus,
+            Description = $"Letter from {session.NPC.Name} (State: {session.CurrentState}, Flow: {session.FlowBattery})"
         };
     }
 
@@ -490,7 +490,7 @@ public class ConversationOrchestrator
             DeadlineInMinutes = 240, // 4 hours for urgent letters
             Payment = 15, // Higher payment for urgent delivery
             Tier = (TierLevel)npc.Tier,
-            EmotionalWeight = EmotionalWeight.HIGH, // High emotional weight for urgency
+            EmotionalFocus = EmotionalFocus.HIGH, // High emotional focus for urgency
             Description = $"Urgent letter from {npc.Name} - they desperately need help!"
         };
     }

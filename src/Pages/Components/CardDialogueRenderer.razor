@@ -29,15 +29,15 @@
 
     private string GetSuccessDescription()
     {
-        var weight = GetCardWeight();
-        var successChance = Math.Max(10, Math.Min(95, 70 - (weight * 10)));
+        var focus = GetCardFocus();
+        var successChance = Math.Max(10, Math.Min(95, 70 - (focus * 10)));
         return $"{successChance}%";
     }
 
-    private int GetCardWeight()
+    private int GetCardFocus()
     {
-        // Get weight directly from the card's mechanical properties
-        return Card?.Weight ?? 1; // Default to 1 if Card is null
+        // Get focus directly from the card's mechanical properties
+        return Card?.Focus ?? 1; // Default to 1 if Card is null
     }
 
     private string GetCardTypeClass()
@@ -45,7 +45,7 @@
         // Determine card visual category from template
         if (TemplateId != null && (TemplateId.Contains("Calm") || TemplateId.Contains("Opening")))
             return "state";
-        return "comfort";
+        return "flow";
     }
 }
 

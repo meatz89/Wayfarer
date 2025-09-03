@@ -23,7 +23,7 @@ namespace Wayfarer.Pages.Components
         public Dictionary<string, string> observationCardDialogues { get; set; }
         public string burdenCardDialogue { get; set; }
         public Dictionary<string, string> exchangeCardDialogues { get; set; }
-        public Dictionary<string, string> comfortCardDialogues { get; set; }
+        public Dictionary<string, string> flowCardDialogues { get; set; }
         public Dictionary<string, string> tokenCardDialogues { get; set; }
         public string letterCardDialogue { get; set; }
         public string defaultCardDialogue { get; set; }
@@ -36,7 +36,7 @@ namespace Wayfarer.Pages.Components
         public Dictionary<string, string> speakNarratives { get; set; }
         public Dictionary<string, string> stateDialogues { get; set; }
         public Dictionary<string, string> initialDialogues { get; set; }
-        public Dictionary<string, string> comfortResponses { get; set; }
+        public Dictionary<string, string> flowResponses { get; set; }
         public Dictionary<string, string> stateTransitionVerbs { get; set; }
         public Dictionary<string, string> cardStateTransitionDialogues { get; set; }
     }
@@ -79,7 +79,7 @@ namespace Wayfarer.Pages.Components
 
         protected ConversationSession Session { get; set; }
         protected CardInstance? SelectedCard { get; set; } = null;
-        protected int TotalSelectedWeight => SelectedCard?.Weight ?? 0;
+        protected int TotalSelectedFocus => SelectedCard?.Focus ?? 0;
         protected bool IsProcessing { get; set; }
         protected bool IsConversationExhausted { get; set; } = false;
         protected string ExhaustionReason { get; set; } = "";
@@ -192,11 +192,11 @@ namespace Wayfarer.Pages.Components
             // Store current cards before listen for animation tracking
             var previousCards = Session?.HandCards?.ToList() ?? new List<CardInstance>();
             
-            // Mark any opportunity cards for exhaustion
-            var opportunityCards = previousCards.Where(c => c.Properties.Contains(CardProperty.Opportunity)).ToList();
-            if (opportunityCards.Any())
+            // Mark any opening cards for exhaustion
+            var openingCards = previousCards.Where(c => c.Properties.Contains(CardProperty.Opening)).ToList();
+            if (openingCards.Any())
             {
-                MarkCardsForExhaust(opportunityCards);
+                MarkCardsForExhaust(openingCards);
                 await Task.Delay(500); // Let exhaust animation play
             }
 
@@ -316,8 +316,8 @@ namespace Wayfarer.Pages.Components
 
                         if (successes > 0)
                         {
-                            string successMsg = _systemNarratives?.systemMessages?.cardsSucceeded ?? "{0} card(s) succeeded! +{1} comfort";
-                            messageSystem.AddSystemMessage(string.Format(successMsg, successes, result.TotalComfort), SystemMessageTypes.Success);
+                            string successMsg = _systemNarratives?.systemMessages?.cardsSucceeded ?? "{0} card(s) succeeded! +{1} flow";
+                            messageSystem.AddSystemMessage(string.Format(successMsg, successes, result.TotalFlow), SystemMessageTypes.Success);
                         }
                         if (failures > 0)
                         {
@@ -327,15 +327,15 @@ namespace Wayfarer.Pages.Components
                     }
                 }
 
-                // Mark fleeting cards for exhaust animation (after a delay)
-                var fleetingCards = Session?.HandCards?
-                    .Where(c => c.Properties.Contains(CardProperty.Fleeting) && c.InstanceId != playedCard.InstanceId)
+                // Mark impulse cards for exhaust animation (after a delay)
+                var impulseCards = Session?.HandCards?
+                    .Where(c => c.Properties.Contains(CardProperty.Impulse) && c.InstanceId != playedCard.InstanceId)
                     .ToList() ?? new List<CardInstance>();
                 
-                if (fleetingCards.Any())
+                if (impulseCards.Any())
                 {
                     await Task.Delay(800); // Wait for play animation to start
-                    MarkCardsForExhaust(fleetingCards);
+                    MarkCardsForExhaust(impulseCards);
                 }
 
                 SelectedCard = null;
@@ -447,10 +447,10 @@ namespace Wayfarer.Pages.Components
                         LastNarrative = "Your words fall flat...";
                 }
 
-                // Add comfort gained info
-                if (result.TotalComfort > 0)
+                // Add flow gained info
+                if (result.TotalFlow > 0)
                 {
-                    LastNarrative += $" (Comfort +{result.TotalComfort})";
+                    LastNarrative += $" (Flow +{result.TotalFlow})";
                 }
             }
             else
@@ -486,7 +486,7 @@ namespace Wayfarer.Pages.Components
             return newState switch
             {
                 EmotionalState.DESPERATE => "Please, I need your help urgently!",
-                EmotionalState.TENSE => "This is making me uncomfortable...",
+                EmotionalState.TENSE => "This is making me unflowable...",
                 EmotionalState.NEUTRAL => "Alright, let's talk.",
                 EmotionalState.OPEN => "I'm glad we're having this conversation.",
                 EmotionalState.CONNECTED => "I feel like you really understand me.",
@@ -497,33 +497,33 @@ namespace Wayfarer.Pages.Components
         private string GetResponseDialogue()
         {
             LoadSystemNarratives();
-            // Generate response based on current comfort level (-3 to +3)
-            if (_systemNarratives?.conversationNarratives?.comfortResponses != null)
+            // Generate response based on current flow level (-3 to +3)
+            if (_systemNarratives?.conversationNarratives?.flowResponses != null)
             {
-                if (Session.CurrentComfort >= 2)
+                if (Session.CurrentFlow >= 2)
                 {
-                    return _systemNarratives.conversationNarratives.comfortResponses.GetValueOrDefault("veryPositive", "This conversation has been wonderful!");
+                    return _systemNarratives.conversationNarratives.flowResponses.GetValueOrDefault("veryPositive", "This conversation has been wonderful!");
                 }
-                else if (Session.CurrentComfort >= 0)
+                else if (Session.CurrentFlow >= 0)
                 {
-                    return _systemNarratives.conversationNarratives.comfortResponses.GetValueOrDefault("positive", "I appreciate you taking the time to talk.");
+                    return _systemNarratives.conversationNarratives.flowResponses.GetValueOrDefault("positive", "I appreciate you taking the time to talk.");
                 }
-                else if (Session.CurrentComfort >= -2)
+                else if (Session.CurrentFlow >= -2)
                 {
-                    return _systemNarratives.conversationNarratives.comfortResponses.GetValueOrDefault("neutral", "I see what you mean...");
+                    return _systemNarratives.conversationNarratives.flowResponses.GetValueOrDefault("neutral", "I see what you mean...");
                 }
                 else
                 {
-                    return _systemNarratives.conversationNarratives.comfortResponses.GetValueOrDefault("negative", "I'm not sure about this...");
+                    return _systemNarratives.conversationNarratives.flowResponses.GetValueOrDefault("negative", "I'm not sure about this...");
                 }
             }
 
             // Fallback if JSON not loaded
-            if (Session.CurrentComfort >= 2)
+            if (Session.CurrentFlow >= 2)
                 return "This conversation has been wonderful!";
-            else if (Session.CurrentComfort >= 0)
+            else if (Session.CurrentFlow >= 0)
                 return "I appreciate you taking the time to talk.";
-            else if (Session.CurrentComfort >= -2)
+            else if (Session.CurrentFlow >= -2)
                 return "I see what you mean...";
             else
                 return "I'm not sure about this...";
@@ -538,14 +538,14 @@ namespace Wayfarer.Pages.Components
         }
 
         // Letter tier determination removed - handled by ConversationManager
-        private LetterTier DetermineLetterTier(int comfort)
+        private LetterTier DetermineLetterTier(int flow)
         {
             // No longer used - ConversationManager determines letter properties based on linear scaling
             return LetterTier.Simple;
         }
 
         // Letter creation removed - handled by ConversationManager
-        private DeliveryObligation CreateLetterFromComfort(LetterTier tier)
+        private DeliveryObligation CreateLetterFromFlow(LetterTier tier)
         {
             // For now, hardcode a recipient since we don't have access to all NPCs
             // In a real implementation, this would select from available NPCs
@@ -553,7 +553,7 @@ namespace Wayfarer.Pages.Components
             string recipientName = "Thomas the Merchant";
 
             // Determine letter parameters based on tier
-            (int deadline, int payment, StakeType stakes, EmotionalWeight weight) = GetTierParameters(tier);
+            (int deadline, int payment, StakeType stakes, EmotionalFocus focus) = GetTierParameters(tier);
 
             // Get the NPC from context
             NPC? npc = Context?.Npc;
@@ -573,23 +573,23 @@ namespace Wayfarer.Pages.Components
                 DeadlineInMinutes = deadline,
                 Payment = payment,
                 Stakes = stakes,
-                EmotionalWeight = weight,
+                EmotionalFocus = focus,
                 Tier = ConvertToTierLevel(tier),
                 Description = GenerateLetterDescription(npc.Name, recipientName, tier),
                 GenerationReason = $"Generated from conversation with {npc.Name}"
             };
         }
 
-        private (int deadline, int payment, StakeType stakes, EmotionalWeight weight) GetTierParameters(LetterTier tier)
+        private (int deadline, int payment, StakeType stakes, EmotionalFocus focus) GetTierParameters(LetterTier tier)
         {
             // EXACT specifications as requested
             return tier switch
             {
-                LetterTier.Simple => (1440, 5, StakeType.REPUTATION, EmotionalWeight.LOW),      // 24h, 5 coins
-                LetterTier.Important => (720, 10, StakeType.WEALTH, EmotionalWeight.MEDIUM),    // 12h, 10 coins
-                LetterTier.Urgent => (360, 15, StakeType.STATUS, EmotionalWeight.HIGH),         // 6h, 15 coins
-                LetterTier.Critical => (120, 20, StakeType.SAFETY, EmotionalWeight.CRITICAL),   // 2h, 20 coins
-                _ => (1440, 5, StakeType.REPUTATION, EmotionalWeight.LOW)
+                LetterTier.Simple => (1440, 5, StakeType.REPUTATION, EmotionalFocus.LOW),      // 24h, 5 coins
+                LetterTier.Important => (720, 10, StakeType.WEALTH, EmotionalFocus.MEDIUM),    // 12h, 10 coins
+                LetterTier.Urgent => (360, 15, StakeType.STATUS, EmotionalFocus.HIGH),         // 6h, 15 coins
+                LetterTier.Critical => (120, 20, StakeType.SAFETY, EmotionalFocus.CRITICAL),   // 2h, 20 coins
+                _ => (1440, 5, StakeType.REPUTATION, EmotionalFocus.LOW)
             };
         }
 
@@ -642,10 +642,10 @@ namespace Wayfarer.Pages.Components
         // Internal enum for letter tiers
         private enum LetterTier
         {
-            Simple,    // 5-9 comfort
-            Important, // 10-14 comfort
-            Urgent,    // 15-19 comfort
-            Critical   // 20+ comfort
+            Simple,    // 5-9 flow
+            Important, // 10-14 flow
+            Urgent,    // 15-19 flow
+            Critical   // 20+ flow
         }
 
         protected void ToggleCardSelection(CardInstance card)
@@ -662,7 +662,7 @@ namespace Wayfarer.Pages.Components
                 // Select the new card (replaces any existing selection)
                 SelectedCard = card;
             }
-            // If card can't be selected (over weight limit), do nothing
+            // If card can't be selected (over focus limit), do nothing
 
             StateHasChanged();
         }
@@ -674,9 +674,9 @@ namespace Wayfarer.Pages.Components
             // Check if observation card is expired
             if (IsObservationExpired(card)) return false;
 
-            // Check weight limit - card must not exceed current state's max weight
-            int effectiveWeight = card.Weight;
-            return effectiveWeight <= GetWeightLimit();
+            // Check focus limit - card must not exceed current state's max focus
+            int effectiveFocus = card.Focus;
+            return effectiveFocus <= GetFocusLimit();
         }
 
         protected bool IsCardSelected(CardInstance card)
@@ -707,7 +707,7 @@ namespace Wayfarer.Pages.Components
 
         protected bool CanSpeak()
         {
-            return SelectedCard != null && TotalSelectedWeight <= GetWeightLimit();
+            return SelectedCard != null && TotalSelectedFocus <= GetFocusLimit();
         }
 
         protected async Task EndConversation()
@@ -716,7 +716,7 @@ namespace Wayfarer.Pages.Components
             if (Session != null)
             {
                 ConversationOutcome outcome = ConversationFacade.EndConversation();
-                Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Comfort={outcome.TotalComfort}, TokensEarned={outcome.TokensEarned}");
+                Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Flow={outcome.TotalFlow}, TokensEarned={outcome.TokensEarned}");
             }
 
             Session = null;
@@ -732,7 +732,7 @@ namespace Wayfarer.Pages.Components
             if (Session != null)
             {
                 ConversationOutcome outcome = ConversationFacade.EndConversation();
-                Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Comfort={outcome.TotalComfort}, TokensEarned={outcome.TokensEarned}");
+                Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Flow={outcome.TotalFlow}, TokensEarned={outcome.TokensEarned}");
             }
 
             Session = null;
@@ -765,14 +765,14 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected int GetWeightLimit()
+        protected int GetFocusLimit()
         {
             if (Session == null) return 3;
 
             // Use actual values from ConversationRules.States
             if (ConversationRules.States.TryGetValue(Session.CurrentState, out ConversationStateRules? rules))
             {
-                return rules.MaxWeight;
+                return rules.MaxFocus;
             }
 
             return 3; // Default fallback
@@ -797,10 +797,10 @@ namespace Wayfarer.Pages.Components
         {
             if (SelectedCard != null)
             {
-                int weight = SelectedCard.Weight;
-                return $"Play {GetCardName(SelectedCard)} (Weight: {weight})";
+                int focus = SelectedCard.Focus;
+                return $"Play {GetCardName(SelectedCard)} (Focus: {focus})";
             }
-            return $"Select a card (Weight limit: {GetWeightLimit()})";
+            return $"Select a card (Focus limit: {GetFocusLimit()})";
         }
 
         protected string GetStateEffects()
@@ -809,20 +809,20 @@ namespace Wayfarer.Pages.Components
 
             return Session.CurrentState switch
             {
-                EmotionalState.DESPERATE => "• Draw 1 • Weight limit 3 • Ends at -3 comfort",
-                EmotionalState.TENSE => "• Draw 2 • Weight limit 4",
-                EmotionalState.NEUTRAL => "• Draw 2 • Weight limit 5",
-                EmotionalState.OPEN => "• Draw 3 • Weight limit 5",
-                EmotionalState.CONNECTED => "• Draw 3 • Weight limit 6",
+                EmotionalState.DESPERATE => "• Draw 1 • Focus limit 3 • Ends at -3 flow",
+                EmotionalState.TENSE => "• Draw 2 • Focus limit 4",
+                EmotionalState.NEUTRAL => "• Draw 2 • Focus limit 5",
+                EmotionalState.OPEN => "• Draw 3 • Focus limit 5",
+                EmotionalState.CONNECTED => "• Draw 3 • Focus limit 6",
                 _ => ""
             };
         }
 
 
-        protected string GetComfortLabel()
+        protected string GetFlowLabel()
         {
             if (Session == null) return "None";
-            return Session.CurrentComfort switch
+            return Session.CurrentFlow switch
             {
                 3 => "Perfect Understanding",
                 2 => "Deep Connection",
@@ -835,21 +835,21 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected int GetComfortProgress()
+        protected int GetFlowProgress()
         {
             if (Session == null) return 50; // Center position for 0
             // Map -3 to +3 to 0% to 100%
-            return (int)((Session.CurrentComfort + 3) * 100 / 6.0);
+            return (int)((Session.CurrentFlow + 3) * 100 / 6.0);
         }
 
-        protected string GetComfortDotTooltip(int dotPosition)
+        protected string GetFlowDotTooltip(int dotPosition)
         {
             if (Session == null) return "";
             
-            int comfort = Math.Clamp(Session.ComfortBattery, -3, 3);
+            int flow = Math.Clamp(Session.FlowBattery, -3, 3);
             
-            if (dotPosition == comfort)
-                return "Current comfort level";
+            if (dotPosition == flow)
+                return "Current flow level";
             else if (dotPosition == 0)
                 return "Neutral (battery reset point)";
             else if (dotPosition == 3)
@@ -859,19 +859,19 @@ namespace Wayfarer.Pages.Components
                     "DANGER: Conversation ends here!" : 
                     "Negative transition threshold";
             else if (dotPosition > 0)
-                return $"Comfort +{dotPosition}";
+                return $"Flow +{dotPosition}";
             else
-                return $"Comfort {dotPosition}";
+                return $"Flow {dotPosition}";
         }
         
-        protected string GetComfortDotClass(int dotPosition)
+        protected string GetFlowDotClass(int dotPosition)
         {
             if (Session == null) return "";
 
             List<string> classes = new List<string>();
 
-            // Clamp comfort to valid range
-            int comfort = Math.Clamp(Session.ComfortBattery, -3, 3);
+            // Clamp flow to valid range
+            int flow = Math.Clamp(Session.FlowBattery, -3, 3);
 
             // Always add color class based on position
             if (dotPosition < 0)
@@ -882,12 +882,12 @@ namespace Wayfarer.Pages.Components
                 classes.Add("neutral");
 
             // Add current class if this is the current position
-            if (dotPosition == comfort)
+            if (dotPosition == flow)
                 classes.Add("current");
                 
             // Add filled class for intermediate positions
-            if ((comfort > 0 && dotPosition > 0 && dotPosition < comfort) ||
-                (comfort < 0 && dotPosition < 0 && dotPosition > comfort))
+            if ((flow > 0 && dotPosition > 0 && dotPosition < flow) ||
+                (flow < 0 && dotPosition < 0 && dotPosition > flow))
                 classes.Add("filled");
 
             return string.Join(" ", classes);
@@ -928,26 +928,26 @@ namespace Wayfarer.Pages.Components
             else if (Session.CurrentAtmosphere == AtmosphereType.Pressured)
                 drawText += " (-1 from Pressured)";
                 
-            return drawText + " & refresh weight pool";
+            return drawText + " & refresh focus";
         }
 
         protected string GetSpeakActionText()
         {
             if (SelectedCard != null)
             {
-                int weight = SelectedCard.Weight;
-                int remainingAfter = (Session?.GetAvailableWeight() ?? 0) - weight;
+                int focus = SelectedCard.Focus;
+                int remainingAfter = (Session?.GetAvailableFocus() ?? 0) - focus;
                 string continueHint = remainingAfter > 0 ? $" (Can SPEAK {remainingAfter} more)" : " (Must LISTEN after)";
-                return $"Play {GetProperCardName(SelectedCard)} ({weight} weight){continueHint}";
+                return $"Play {GetProperCardName(SelectedCard)} ({focus} focus){continueHint}";
             }
             
-            int availableWeight = Session?.GetAvailableWeight() ?? 0;
-            if (availableWeight == 0)
-                return "No weight remaining - must LISTEN to refresh";
-            else if (availableWeight == 1)
-                return "Select a card to play (1 weight remaining)";
+            int availableFocus = Session?.GetAvailableFocus() ?? 0;
+            if (availableFocus == 0)
+                return "No focus remaining - must LISTEN to refresh";
+            else if (availableFocus == 1)
+                return "Select a card to play (1 focus remaining)";
             else
-                return $"Select a card to play ({availableWeight} weight available)";
+                return $"Select a card to play ({availableFocus} focus available)";
         }
 
         protected string GetProperCardName(CardInstance card)
@@ -978,7 +978,7 @@ namespace Wayfarer.Pages.Components
                 return "Share Observation";
             }
 
-            // Standard cards get contextual names based on comfort or token type
+            // Standard cards get contextual names based on flow or token type
             if (!card.Properties.Contains(CardProperty.Exchange) && !card.Properties.Contains(CardProperty.Observable) && !card.Properties.Contains(CardProperty.Burden))
             {
                 // Check for token type first
@@ -988,8 +988,8 @@ namespace Wayfarer.Pages.Components
                     TokenType.Commerce => "Discuss Business", 
                     TokenType.Status => "Show Respect",
                     TokenType.Shadow => "Share Secret",
-                    _ => card.BaseComfort >= 2 ? "Deep Understanding" :
-                         card.BaseComfort == 1 ? "I Understand" :
+                    _ => card.BaseFlow >= 2 ? "Deep Understanding" :
+                         card.BaseFlow == 1 ? "I Understand" :
                          "Simple Response"
                 };
             }
@@ -1086,12 +1086,12 @@ namespace Wayfarer.Pages.Components
                 return "I noticed something earlier that might help...";
             }
 
-            // Standard cards based on comfort value
-            if (!card.Properties.Contains(CardProperty.Exchange) && !card.Properties.Contains(CardProperty.Observable) && !card.Properties.Contains(CardProperty.Burden) && card.BaseComfort > 0)
+            // Standard cards based on flow value
+            if (!card.Properties.Contains(CardProperty.Exchange) && !card.Properties.Contains(CardProperty.Observable) && !card.Properties.Contains(CardProperty.Burden) && card.BaseFlow > 0)
             {
-                if (card.BaseComfort >= 2)
+                if (card.BaseFlow >= 2)
                     return "I completely understand how you feel. Your situation resonates deeply with me.";
-                else if (card.BaseComfort == 1)
+                else if (card.BaseFlow == 1)
                     return "I understand how important this is, " + NpcName + ". Your future shouldn't be decided without your consent.";
                 else
                     return "I hear what you're saying.";
@@ -1138,7 +1138,7 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return "";
 
-            if (Session.CurrentComfort == 3)
+            if (Session.CurrentFlow == 3)
             {
                 return Session.CurrentState switch
                 {
@@ -1150,7 +1150,7 @@ namespace Wayfarer.Pages.Components
                     _ => ""
                 };
             }
-            else if (Session.CurrentComfort == -3)
+            else if (Session.CurrentFlow == -3)
             {
                 return Session.CurrentState switch
                 {
@@ -1194,27 +1194,27 @@ namespace Wayfarer.Pages.Components
             else if (card.Properties.Contains(CardProperty.Observable))
                 classes.Add("observation");
             else
-                classes.Add("comfort");
+                classes.Add("flow");
                 
-            // Add fleeting indicator if applicable
-            if (card.Properties.Contains(CardProperty.Fleeting))
-                classes.Add("fleeting");
+            // Add impulse indicator if applicable
+            if (card.Properties.Contains(CardProperty.Impulse))
+                classes.Add("impulse");
                 
-            // Goal cards get special styling (Fleeting + Opportunity)
-            if (card.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity))
-                classes.Add("goal");
+            // Request cards get special styling (Impulse + Opening)
+            if (card.Properties.Contains(CardProperty.Impulse) && card.Properties.Contains(CardProperty.Opening))
+                classes.Add("request");
                 
             return string.Join(" ", classes);
         }
         
-        protected int CountFleetingCards()
+        protected int CountImpulseCards()
         {
-            return Session?.HandCards?.Count(c => c.Properties.Contains(CardProperty.Fleeting)) ?? 0;
+            return Session?.HandCards?.Count(c => c.Properties.Contains(CardProperty.Impulse)) ?? 0;
         }
         
-        protected bool HasGoalCards()
+        protected bool HasRequestCards()
         {
-            return Session?.HandCards?.Any(c => c.Properties.Contains(CardProperty.Fleeting) && c.Properties.Contains(CardProperty.Opportunity)) ?? false;
+            return Session?.HandCards?.Any(c => c.Properties.Contains(CardProperty.Impulse) && c.Properties.Contains(CardProperty.Opening)) ?? false;
         }
 
         protected string GetCardName(CardInstance card)
@@ -1244,9 +1244,9 @@ namespace Wayfarer.Pages.Components
             }
 
             // Add derived property tags
-            if (card.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity)) 
-                tags.Add("Goal");
-            else if (!card.Properties.Contains(CardProperty.Fleeting) && !card.Properties.Contains(CardProperty.Opportunity)) 
+            if (card.Properties.Contains(CardProperty.Impulse) && card.Properties.Contains(CardProperty.Opening)) 
+                tags.Add("Request");
+            else if (!card.Properties.Contains(CardProperty.Impulse) && !card.Properties.Contains(CardProperty.Opening)) 
                 tags.Add("Persistent");
 
             // Category is now represented by properties
@@ -1283,8 +1283,8 @@ namespace Wayfarer.Pages.Components
                 }
             }
 
-            // Show comfort gain without redundant success percentage
-            return $"+{card.BaseComfort} comfort";
+            // Show flow gain without redundant success percentage
+            return $"+{card.BaseFlow} flow";
         }
 
         protected string GetFailureEffect(CardInstance card)
@@ -1317,15 +1317,15 @@ namespace Wayfarer.Pages.Components
                 return "State unchanged";
             }
 
-            // Failure typically gives 0 comfort
-            return "+0 comfort";
+            // Failure typically gives 0 flow
+            return "+0 flow";
         }
 
         protected string GetTagClass(string tag)
         {
             // Apply special classes to certain tags
-            if (tag.Contains("COMFORT", StringComparison.OrdinalIgnoreCase))
-                return "type-comfort";
+            if (tag.Contains("FLOW", StringComparison.OrdinalIgnoreCase))
+                return "type-flow";
             if (tag.Contains("STATE", StringComparison.OrdinalIgnoreCase))
                 return "type-state";
             if (tag.Contains("BURDEN", StringComparison.OrdinalIgnoreCase))
@@ -1569,7 +1569,7 @@ namespace Wayfarer.Pages.Components
 
             if (tokenCount > 0)
             {
-                // All cards (including goals) get +10% per token
+                // All cards (including requests) get +10% per token
                 int bonusPerToken = 10;
                 int bonus = tokenCount * bonusPerToken;
                 string result = $"(+{bonus}% from {tokenCount} {tokenType})";
@@ -1742,8 +1742,8 @@ namespace Wayfarer.Pages.Components
             // Check various end conditions in priority order
             if (Session.LetterGenerated)
             {
-                string msg = exhaustedMessages?.GetValueOrDefault("letterObtained", "Letter obtained! Check your queue. (Comfort: {0})") ?? "Letter obtained! Check your queue. (Comfort: {0})";
-                return string.Format(msg, Session.CurrentComfort);
+                string msg = exhaustedMessages?.GetValueOrDefault("letterObtained", "Letter obtained! Check your queue. (Flow: {0})") ?? "Letter obtained! Check your queue. (Flow: {0})";
+                return string.Format(msg, Session.CurrentFlow);
             }
 
             if (Session.CurrentPatience <= 0)
@@ -1752,7 +1752,7 @@ namespace Wayfarer.Pages.Components
                 return string.Format(msg, NpcName);
             }
 
-            if (Session.CurrentState == EmotionalState.DESPERATE && Session.ComfortBattery <= -3)
+            if (Session.CurrentState == EmotionalState.DESPERATE && Session.FlowBattery <= -3)
             {
                 string msg = exhaustedMessages?.GetValueOrDefault("conversationBroken", "{0} is too distressed to continue. The conversation has broken down.") ?? "{0} is too distressed to continue. The conversation has broken down.";
                 return string.Format(msg, NpcName);
@@ -1768,11 +1768,11 @@ namespace Wayfarer.Pages.Components
                 return exhaustedMessages?.GetValueOrDefault("noCardsAvailable", "No more cards available - conversation ended") ?? "No more cards available - conversation ended";
             }
 
-            // Default reason based on comfort level
-            if (Session.CurrentComfort >= 2)
+            // Default reason based on flow level
+            if (Session.CurrentFlow >= 2)
             {
-                string msg = exhaustedMessages?.GetValueOrDefault("endedNaturally", "Conversation ended naturally (Comfort: {0})") ?? "Conversation ended naturally (Comfort: {0})";
-                return string.Format(msg, Session.CurrentComfort);
+                string msg = exhaustedMessages?.GetValueOrDefault("endedNaturally", "Conversation ended naturally (Flow: {0})") ?? "Conversation ended naturally (Flow: {0})";
+                return string.Format(msg, Session.CurrentFlow);
             }
             else
             {
@@ -2017,8 +2017,8 @@ namespace Wayfarer.Pages.Components
         {
             return property switch
             {
-                CardProperty.Fleeting => "tag-fleeting",
-                CardProperty.Opportunity => "tag-opportunity",
+                CardProperty.Impulse => "tag-impulse",
+                CardProperty.Opening => "tag-opening",
                 CardProperty.Persistent => "tag-persistent",
                 CardProperty.Burden => "tag-burden",
                 CardProperty.Observable => "tag-atmosphere",
@@ -2076,8 +2076,8 @@ namespace Wayfarer.Pages.Components
         {
             return property switch
             {
-                CardProperty.Fleeting => "⚡",
-                CardProperty.Opportunity => "⏰",
+                CardProperty.Impulse => "⚡",
+                CardProperty.Opening => "⏰",
                 CardProperty.Burden => "⛓️",
                 CardProperty.Skeleton => "💀",
                 CardProperty.Observable => "👁️",
@@ -2093,8 +2093,8 @@ namespace Wayfarer.Pages.Components
         {
             return property switch
             {
-                CardProperty.Fleeting => "Fleeting",
-                CardProperty.Opportunity => "Opportunity",
+                CardProperty.Impulse => "Impulse",
+                CardProperty.Opening => "Opening",
                 CardProperty.Burden => "Burden",
                 CardProperty.Skeleton => "Skeleton",
                 CardProperty.Observable => "Observable",
@@ -2110,8 +2110,8 @@ namespace Wayfarer.Pages.Components
         {
             return property switch
             {
-                CardProperty.Fleeting => "Removed after SPEAK if unplayed",
-                CardProperty.Opportunity => "Removed after LISTEN if unplayed",
+                CardProperty.Impulse => "Removed after SPEAK if unplayed",
+                CardProperty.Opening => "Removed after LISTEN if unplayed",
                 CardProperty.Burden => "Blocks a deck slot",
                 CardProperty.Observable => "From an observation",
                 CardProperty.Skeleton => "System-generated card",
@@ -2127,10 +2127,10 @@ namespace Wayfarer.Pages.Components
         {
             var classes = new List<string>();
             
-            if (card?.Properties.Contains(CardProperty.Fleeting) == true)
-                classes.Add("has-fleeting");
-            if (card?.Properties.Contains(CardProperty.Fleeting) == true && card.Properties.Contains(CardProperty.Opportunity) == true)
-                classes.Add("has-opportunity"); // Goal cards have Opportunity
+            if (card?.Properties.Contains(CardProperty.Impulse) == true)
+                classes.Add("has-impulse");
+            if (card?.Properties.Contains(CardProperty.Impulse) == true && card.Properties.Contains(CardProperty.Opening) == true)
+                classes.Add("has-opening"); // Request cards have Opening
             if (card?.Properties.Contains(CardProperty.Burden) == true)
                 classes.Add("has-burden");
                 
@@ -2143,7 +2143,7 @@ namespace Wayfarer.Pages.Components
         protected bool HasExhaustEffect(CardInstance card)
         {
             // CardInstance doesn't have ExhaustEffect yet, but we can infer from properties
-            return card?.Properties.Contains(CardProperty.Fleeting) == true || card?.Properties.Contains(CardProperty.Fleeting) == true && card.Properties.Contains(CardProperty.Opportunity) == true;
+            return card?.Properties.Contains(CardProperty.Impulse) == true || card?.Properties.Contains(CardProperty.Impulse) == true && card.Properties.Contains(CardProperty.Opening) == true;
         }
 
         /// <summary>
@@ -2162,7 +2162,7 @@ namespace Wayfarer.Pages.Components
         {
             // CardInstance doesn't have FailureEffect yet, so fall back to old system
             string oldEffect = GetFailureEffect(card);
-            return string.IsNullOrEmpty(oldEffect) || oldEffect == "+0 comfort" ? 
+            return string.IsNullOrEmpty(oldEffect) || oldEffect == "+0 flow" ? 
                 "No effect" : oldEffect;
         }
 
@@ -2172,11 +2172,11 @@ namespace Wayfarer.Pages.Components
         protected string GetExhaustEffectDescription(CardInstance card)
         {
             // Default exhaust effects based on card properties
-            if (card?.Properties.Contains(CardProperty.Fleeting) == true && card.Properties.Contains(CardProperty.Opportunity) == true)
+            if (card?.Properties.Contains(CardProperty.Impulse) == true && card.Properties.Contains(CardProperty.Opening) == true)
             {
-                return "Conversation ends"; // Goal cards end conversation when exhausted
+                return "Conversation ends"; // Request cards end conversation when exhausted
             }
-            else if (card?.Properties.Contains(CardProperty.Fleeting) == true)
+            else if (card?.Properties.Contains(CardProperty.Impulse) == true)
             {
                 return "Removed after SPEAK";
             }
@@ -2194,17 +2194,17 @@ namespace Wayfarer.Pages.Components
                 
             return effect.Type switch
             {
-                CardEffectType.AddComfort => $"{(effect.Value?.StartsWith("-") == true ? "" : "+")}{effect.Value} comfort",
+                CardEffectType.AddFlow => $"{(effect.Value?.StartsWith("-") == true ? "" : "+")}{effect.Value} flow",
                 CardEffectType.DrawCards => $"Draw {effect.Value} card{(effect.Value == "1" ? "" : "s")}",
-                CardEffectType.AddWeight => $"Add {effect.Value} weight",
+                CardEffectType.AddFocus => $"Add {effect.Value} focus",
                 CardEffectType.SetAtmosphere => $"Atmosphere: {effect.Value}",
                 CardEffectType.EndConversation => GetEndConversationDescription(effect),
-                CardEffectType.ScaleByTokens => $"+X comfort (X = {effect.Value} tokens)",
-                CardEffectType.ScaleByComfort => $"+X comfort (X = {effect.Value})",
-                CardEffectType.ScaleByPatience => $"+X comfort (X = {effect.Value})",
-                CardEffectType.ScaleByWeight => $"+X comfort (X = {effect.Value})",
-                CardEffectType.ComfortReset => "Reset comfort to 0",
-                CardEffectType.WeightRefresh => "Refresh weight pool",
+                CardEffectType.ScaleByTokens => $"+X flow (X = {effect.Value} tokens)",
+                CardEffectType.ScaleByFlow => $"+X flow (X = {effect.Value})",
+                CardEffectType.ScaleByPatience => $"+X flow (X = {effect.Value})",
+                CardEffectType.ScaleByFocus => $"+X flow (X = {effect.Value})",
+                CardEffectType.FlowReset => "Reset flow to 0",
+                CardEffectType.FocusRefresh => "Refresh focus",
                 CardEffectType.FreeNextAction => "Next action costs no patience",
                 _ => effect.Type.ToString()
             };
@@ -2227,7 +2227,7 @@ namespace Wayfarer.Pages.Components
                     "success" => "End conversation (success)",
                     "failure" => "End conversation (failure)",
                     "abandoned" => "End conversation (abandoned)",
-                    "goal_exhausted" => "Conversation fails",
+                    "request_exhausted" => "Conversation fails",
                     _ => "End conversation"
                 };
             }
@@ -2235,7 +2235,7 @@ namespace Wayfarer.Pages.Components
             return "End conversation";
         }
 
-        // New methods for atmosphere and weight pool display
+        // New methods for atmosphere and focus display
         protected string GetCurrentAtmosphereDisplay()
         {
             if (Session == null) return "Neutral";
@@ -2243,31 +2243,31 @@ namespace Wayfarer.Pages.Components
             return Session.CurrentAtmosphere switch
             {
                 AtmosphereType.Neutral => "Neutral",
-                AtmosphereType.Prepared => "Prepared (+1 weight)",
+                AtmosphereType.Prepared => "Prepared (+1 focus)",
                 AtmosphereType.Receptive => "Receptive (+1 card on LISTEN)",
                 AtmosphereType.Focused => "Focused (+20% success)",
                 AtmosphereType.Patient => "Patient (0 patience cost)",
-                AtmosphereType.Volatile => "Volatile (±1 comfort changes)",
+                AtmosphereType.Volatile => "Volatile (±1 flow changes)",
                 AtmosphereType.Final => "Final (failure ends conversation)",
                 AtmosphereType.Informed => "Informed (next card auto-succeeds)",
-                AtmosphereType.Exposed => "Exposed (double comfort changes)",
+                AtmosphereType.Exposed => "Exposed (double flow changes)",
                 AtmosphereType.Synchronized => "Synchronized (effects happen twice)",
                 AtmosphereType.Pressured => "Pressured (-1 card on LISTEN)",
                 _ => Session.CurrentAtmosphere.ToString()
             };
         }
 
-        protected string GetWeightPoolDisplay()
+        protected string GetFocusDisplay()
         {
             if (Session == null) return "0/5";
-            // Display available weight / max capacity (not spent weight)
-            return $"{Session.GetAvailableWeight()}/{Session.GetEffectiveWeightCapacity()}";
+            // Display available focus / max capacity (not spent focus)
+            return $"{Session.GetAvailableFocus()}/{Session.GetEffectiveFocusCapacity()}";
         }
 
-        protected string GetComfortBatteryDisplay()
+        protected string GetFlowBatteryDisplay()
         {
             if (Session == null) return "0";
-            return Session.ComfortBattery.ToString("+0;-#;0");
+            return Session.FlowBattery.ToString("+0;-#;0");
         }
 
         protected string GetAtmosphereEffectDescription()
@@ -2276,14 +2276,14 @@ namespace Wayfarer.Pages.Components
 
             return Session.CurrentAtmosphere switch
             {
-                AtmosphereType.Prepared => "Weight capacity increased by 1",
+                AtmosphereType.Prepared => "Focus capacity increased by 1",
                 AtmosphereType.Receptive => "Draw 1 extra card on LISTEN",
                 AtmosphereType.Focused => "All cards get +20% success chance",
                 AtmosphereType.Patient => "Conversation actions cost no patience",
-                AtmosphereType.Volatile => "Comfort changes are amplified by ±1",
+                AtmosphereType.Volatile => "Flow changes are amplified by ±1",
                 AtmosphereType.Final => "Any failure will end the conversation",
                 AtmosphereType.Informed => "Your next card will automatically succeed",
-                AtmosphereType.Exposed => "All comfort changes are doubled",
+                AtmosphereType.Exposed => "All flow changes are doubled",
                 AtmosphereType.Synchronized => "Card effects will happen twice",
                 AtmosphereType.Pressured => "Draw 1 fewer card on LISTEN",
                 _ => "(No special effects)"
@@ -2378,35 +2378,35 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get cards that will exhaust on SPEAK action (Fleeting cards)
+        /// Get cards that will exhaust on SPEAK action (Impulse cards)
         /// </summary>
-        protected List<CardInstance> GetFleetingCards()
+        protected List<CardInstance> GetImpulseCards()
         {
             if (Session?.HandCards == null) return new List<CardInstance>();
             
             return Session.HandCards
-                .Where(c => c.Properties.Contains(CardProperty.Fleeting) && c != SelectedCard) // Don't include the played card
+                .Where(c => c.Properties.Contains(CardProperty.Impulse) && c != SelectedCard) // Don't include the played card
                 .ToList();
         }
 
         /// <summary>
-        /// Get cards that will exhaust on LISTEN action (Opportunity cards)
+        /// Get cards that will exhaust on LISTEN action (Opening cards)
         /// </summary>
-        protected List<CardInstance> GetOpportunityCards()
+        protected List<CardInstance> GetOpeningCards()
         {
             if (Session?.HandCards == null) return new List<CardInstance>();
             
             return Session.HandCards
-                .Where(c => c.Properties.Contains(CardProperty.Fleeting) && c.Properties.Contains(CardProperty.Opportunity)) // Goal cards have Opportunity property
+                .Where(c => c.Properties.Contains(CardProperty.Impulse) && c.Properties.Contains(CardProperty.Opening)) // Request cards have Opening property
                 .ToList();
         }
 
         /// <summary>
-        /// Get critical exhausts (goal cards) from a list of cards
+        /// Get critical exhausts (request cards) from a list of cards
         /// </summary>
         protected List<CardInstance> GetCriticalExhausts(List<CardInstance> cards)
         {
-            return cards.Where(c => c.Properties.Contains(CardProperty.Fleeting) && c.Properties.Contains(CardProperty.Opportunity)).ToList();
+            return cards.Where(c => c.Properties.Contains(CardProperty.Impulse) && c.Properties.Contains(CardProperty.Opening)).ToList();
         }
 
         /// <summary>
@@ -2421,30 +2421,30 @@ namespace Wayfarer.Pages.Components
             {
                 builder.OpenElement(sequence++, "div");
                 builder.AddAttribute(sequence++, "class", "selected-action");
-                builder.AddContent(sequence++, $"✓ Play: {GetProperCardName(SelectedCard)} (costs {SelectedCard.Weight} weight)");
+                builder.AddContent(sequence++, $"✓ Play: {GetProperCardName(SelectedCard)} (costs {SelectedCard.Focus} focus)");
                 builder.CloseElement();
             }
 
-            var exhaustingCards = GetFleetingCards();
+            var exhaustingCards = GetImpulseCards();
             var criticalExhausts = GetCriticalExhausts(exhaustingCards);
 
-            // Critical goal warnings
+            // Critical request warnings
             if (criticalExhausts.Any())
             {
                 builder.OpenElement(sequence++, "div");
                 builder.AddAttribute(sequence++, "class", "critical-warning");
-                builder.AddContent(sequence++, "⚠️ GOAL CARDS WILL EXHAUST - CONVERSATION WILL END!");
+                builder.AddContent(sequence++, "⚠️ REQUEST CARDS WILL EXHAUST - CONVERSATION WILL END!");
                 
-                foreach (var goal in criticalExhausts)
+                foreach (var request in criticalExhausts)
                 {
                     builder.OpenElement(sequence++, "div");
-                    builder.AddContent(sequence++, $"• {GetProperCardName(goal)} → CONVERSATION FAILS");
+                    builder.AddContent(sequence++, $"• {GetProperCardName(request)} → CONVERSATION FAILS");
                     builder.CloseElement();
                 }
                 builder.CloseElement();
             }
 
-            // Regular fleeting exhausts
+            // Regular impulse exhausts
             var regularExhausts = exhaustingCards.Except(criticalExhausts).ToList();
             if (regularExhausts.Any())
             {
@@ -2491,34 +2491,34 @@ namespace Wayfarer.Pages.Components
             builder.AddAttribute(sequence++, "class", "listen-effects");
             
             int cardsToDraw = GetCardDrawCount();
-            int maxWeight = GetMaxWeight();
+            int maxFocus = GetMaxFocus();
             
             builder.AddContent(sequence++, $"• Draw {cardsToDraw} cards");
             builder.OpenElement(sequence++, "br");
             builder.CloseElement();
-            builder.AddContent(sequence++, $"• Refresh weight to {maxWeight}");
+            builder.AddContent(sequence++, $"• Refresh focus to {maxFocus}");
             builder.CloseElement();
 
-            var exhaustingCards = GetOpportunityCards();
+            var exhaustingCards = GetOpeningCards();
             var criticalExhausts = GetCriticalExhausts(exhaustingCards);
 
-            // Critical goal warnings
+            // Critical request warnings
             if (criticalExhausts.Any())
             {
                 builder.OpenElement(sequence++, "div");
                 builder.AddAttribute(sequence++, "class", "critical-warning");
-                builder.AddContent(sequence++, "⚠️ GOAL CARDS WILL EXHAUST - CONVERSATION WILL END!");
+                builder.AddContent(sequence++, "⚠️ REQUEST CARDS WILL EXHAUST - CONVERSATION WILL END!");
                 
-                foreach (var goal in criticalExhausts)
+                foreach (var request in criticalExhausts)
                 {
                     builder.OpenElement(sequence++, "div");
-                    builder.AddContent(sequence++, $"• {GetProperCardName(goal)} → CONVERSATION FAILS");
+                    builder.AddContent(sequence++, $"• {GetProperCardName(request)} → CONVERSATION FAILS");
                     builder.CloseElement();
                 }
                 builder.CloseElement();
             }
 
-            // Regular opportunity exhausts (though currently all goals are both Fleeting + Opportunity)
+            // Regular opening exhausts (though currently all requests are both Impulse + Opening)
             var regularExhausts = exhaustingCards.Except(criticalExhausts).ToList();
             if (regularExhausts.Any())
             {
@@ -2580,12 +2580,12 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get max weight capacity
+        /// Get max focus capacity
         /// </summary>
-        protected int GetMaxWeight()
+        protected int GetMaxFocus()
         {
             if (Session == null) return 5;
-            return Session.GetEffectiveWeightCapacity();
+            return Session.GetEffectiveFocusCapacity();
         }
 
         /// <summary>
@@ -2593,15 +2593,15 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetPreviewExhaustEffect(CardInstance card)
         {
-            if (card?.Properties.Contains(CardProperty.Fleeting) == true && card.Properties.Contains(CardProperty.Opportunity) == true)
+            if (card?.Properties.Contains(CardProperty.Impulse) == true && card.Properties.Contains(CardProperty.Opening) == true)
             {
                 return "ENDS CONVERSATION!";
             }
-            else if (card?.Properties.Contains(CardProperty.Fleeting) == true)
+            else if (card?.Properties.Contains(CardProperty.Impulse) == true)
             {
                 // Check if card has specific exhaust effects
                 // For now, use generic effect
-                return "Draw 1 card"; // Default fleeting exhaust effect
+                return "Draw 1 card"; // Default impulse exhaust effect
             }
             
             return "No effect";
@@ -2614,7 +2614,7 @@ namespace Wayfarer.Pages.Components
         {
             if (Session?.CurrentAtmosphere == AtmosphereType.Volatile)
             {
-                return "Comfort effects ±1 from Volatile";
+                return "Flow effects ±1 from Volatile";
             }
             else if (Session?.CurrentAtmosphere == AtmosphereType.Focused)
             {
@@ -2638,22 +2638,22 @@ namespace Wayfarer.Pages.Components
             var stateRules = ConversationRules.States.GetValueOrDefault(Session.CurrentState);
             if (stateRules == null) return "";
             
-            return $"Weight: {stateRules.MaxWeight}, Draw: {stateRules.CardsOnListen}";
+            return $"Focus: {stateRules.MaxFocus}, Draw: {stateRules.CardsOnListen}";
         }
         
         /// <summary>
-        /// Get comfort threshold preview
+        /// Get flow threshold preview
         /// </summary>
-        protected string GetComfortThresholdPreview()
+        protected string GetFlowThresholdPreview()
         {
             if (Session == null) return "";
             
-            if (Session.ComfortBattery == 2)
+            if (Session.FlowBattery == 2)
             {
                 var nextState = GetNextPositiveState(Session.CurrentState);
                 return $"At +3: {nextState} state";
             }
-            else if (Session.ComfortBattery == -2)
+            else if (Session.FlowBattery == -2)
             {
                 var nextState = GetNextNegativeState(Session.CurrentState);
                 if (Session.CurrentState == EmotionalState.DESPERATE)
@@ -2733,10 +2733,10 @@ namespace Wayfarer.Pages.Components
                 classes.Add("card-exhausting");
             }
 
-            // Add warning for fleeting cards
-            if (card.Properties.Contains(CardProperty.Fleeting))
+            // Add warning for impulse cards
+            if (card.Properties.Contains(CardProperty.Impulse))
             {
-                classes.Add("card-fleeting-warning");
+                classes.Add("card-impulse-warning");
             }
 
             // Add selected state
@@ -2845,8 +2845,8 @@ namespace Wayfarer.Pages.Components
             var currentCards = Session?.HandCards?.ToList() ?? new List<CardInstance>();
             TrackNewlyDrawnCards(previousCards, currentCards);
             
-            // Mark fleeting cards that will exhaust on next SPEAK
-            var fleetingCards = currentCards.Where(c => c.Properties.Contains(CardProperty.Fleeting)).ToList();
+            // Mark impulse cards that will exhaust on next SPEAK
+            var impulseCards = currentCards.Where(c => c.Properties.Contains(CardProperty.Impulse)).ToList();
             // These will be marked when SPEAK happens
         }
 
@@ -2870,16 +2870,16 @@ namespace Wayfarer.Pages.Components
             // Mark the played card with animation
             MarkCardAsPlayed(playedCard, wasSuccessful);
             
-            // Get fleeting cards to exhaust
-            var fleetingCards = Session?.HandCards?
-                .Where(c => c.Properties.Contains(CardProperty.Fleeting) && c.InstanceId != playedCard.InstanceId)
+            // Get impulse cards to exhaust
+            var impulseCards = Session?.HandCards?
+                .Where(c => c.Properties.Contains(CardProperty.Impulse) && c.InstanceId != playedCard.InstanceId)
                 .ToList() ?? new List<CardInstance>();
             
-            if (fleetingCards.Any())
+            if (impulseCards.Any())
             {
                 // Wait for played card animation to partially complete
                 await Task.Delay(500);
-                MarkCardsForExhaust(fleetingCards);
+                MarkCardsForExhaust(impulseCards);
             }
         }
     }

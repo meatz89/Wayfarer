@@ -14,12 +14,12 @@ public enum CardProperty
     /// <summary>
     /// Card exhausts after SPEAK action if unplayed
     /// </summary>
-    Fleeting,
+    Impulse,
     
     /// <summary>
     /// Card exhausts after LISTEN action if unplayed
     /// </summary>
-    Opportunity,
+    Opening,
     
     /// <summary>
     /// System-generated placeholder card

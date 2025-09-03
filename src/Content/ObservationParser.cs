@@ -116,9 +116,9 @@ public static class ObservationParser
     {
         return new ObservationTypeData
         {
-            Weight = GetIntProperty(element, "weight", 1),
-            BaseComfort = GetIntProperty(element, "baseComfort", 0),
-            CreatesOpportunity = GetBoolProperty(element, "createsOpportunity", false),
+            Focus = GetIntProperty(element, "focus", 1),
+            BaseFlow = GetIntProperty(element, "baseFlow", 0),
+            CreatesOpening = GetBoolProperty(element, "createsOpening", false),
             ProvidesInformation = GetBoolProperty(element, "providesInformation", false),
             CreatesUrgency = GetBoolProperty(element, "createsUrgency", false),
             RequiresShadowTokens = GetBoolProperty(element, "requiresShadowTokens", false)

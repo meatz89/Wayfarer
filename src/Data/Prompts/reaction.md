@@ -45,7 +45,7 @@ When player chooses actions related to elements the character was observing:
 
 ## REACTION EXECUTION
 - Simple actions should have simple outcomes
-- If player's action naturally completes their immediate goal, describe the completion
+- If player's action naturally completes their immediate request, describe the completion
 - Only introduce new elements if they would realistically occur and are allowed by game state
 - NPCs should only act if they exist and have logical motivation
 - Some reactions simply accomplish what the player intended
@@ -72,4 +72,4 @@ Write in first-person present tense:
 3. End with the resulting situation
 4. Keep to 4-5 paragraphs maximum
 
-CRITICAL: Not every action needs drama or complications. Sometimes the player accomplishes their goal, or faces straightforward outcomes that require new decisions.
+CRITICAL: Not every action needs drama or complications. Sometimes the player accomplishes their request, or faces straightforward outcomes that require new decisions.

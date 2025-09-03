@@ -13,8 +13,8 @@ public class CardEffect
     
     /// <summary>
     /// The primary value for the effect.
-    /// For fixed effects: numeric value (e.g., "3" for +3 comfort)
-    /// For scaling effects: formula (e.g., "Trust" for Trust tokens, "4 - comfort")
+    /// For fixed effects: numeric value (e.g., "3" for +3 flow)
+    /// For scaling effects: formula (e.g., "Trust" for Trust tokens, "4 - flow")
     /// For atmosphere: atmosphere name (e.g., "Focused", "Volatile")
     /// </summary>
     public string Value { get; set; }

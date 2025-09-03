@@ -17,8 +17,8 @@ public class LocationSpot
     // Categorical spot properties that affect conversations
     public List<SpotPropertyType> SpotProperties { get; set; } = new List<SpotPropertyType>();
 
-    // Comfort modifier based on spot properties
-    public int ComfortModifier { get; set; } = 0;
+    // Flow modifier based on spot properties
+    public int FlowModifier { get; set; } = 0;
 
     // Time-specific properties that activate only during certain time blocks
     public Dictionary<TimeBlocks, List<SpotPropertyType>> TimeSpecificProperties { get; set; } = new Dictionary<TimeBlocks, List<SpotPropertyType>>();
@@ -57,12 +57,12 @@ public class LocationSpot
     }
 
     /// <summary>
-    /// Calculate the comfort modifier for conversations at this spot
+    /// Calculate the flow modifier for conversations at this spot
     /// Based on spot properties and the NPC's personality
     /// </summary>
-    public int CalculateComfortModifier(PersonalityType npcPersonality, TimeBlocks currentTime)
+    public int CalculateFlowModifier(PersonalityType npcPersonality, TimeBlocks currentTime)
     {
-        int modifier = ComfortModifier; // Base modifier from spot
+        int modifier = FlowModifier; // Base modifier from spot
 
         // Get all active properties (base + time-specific)
         List<SpotPropertyType> activeProperties = new List<SpotPropertyType>(SpotProperties);

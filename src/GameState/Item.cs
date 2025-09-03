@@ -39,7 +39,7 @@ public class Item
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public int Weight { get; set; } = 1;
+    public int Focus { get; set; } = 1;
     public int BuyPrice { get; set; }
     public int SellPrice { get; set; }
     public int InventorySlots { get; set; } = 1;
@@ -59,13 +59,13 @@ public class Item
     public List<ConnectionType> EnablesTokenGeneration { get; set; } = new List<ConnectionType>();
 
 
-    public string WeightDescription => Weight switch
+    public string FocusDescription => Focus switch
     {
-        0 => "Weightless",
+        0 => "Focusless",
         1 => "Light",
         2 => "Medium",
         3 => "Heavy",
-        _ => $"Very Heavy ({Weight})"
+        _ => $"Very Heavy ({Focus})"
     };
 
     // Helper properties for UI display

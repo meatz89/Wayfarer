@@ -136,7 +136,7 @@
     pointer-events: none;
 }
 
-/* Exhausting cards (fleeting/opportunity) */
+/* Exhausting cards (impulse/opening) */
 .card-exhausting {
     animation: card-exhaust 1s ease-out;
     animation-fill-mode: forwards;
@@ -161,7 +161,7 @@
     padding: 2px 8px;
     border-radius: 4px;
     font-size: 0.75rem;
-    font-weight: bold;
+    font-focus: bold;
     z-index: 10;
     animation: pulse 1s infinite;
 }
@@ -212,8 +212,8 @@
 
 /* === VISUAL FEEDBACK BADGES === */
 
-/* Badge for fleeting cards */
-.card-fleeting-badge {
+/* Badge for impulse cards */
+.card-impulse-badge {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -222,11 +222,11 @@
     padding: 2px 6px;
     border-radius: 12px;
     font-size: 0.7rem;
-    font-weight: bold;
-    animation: fleeting-pulse 2s infinite;
+    font-focus: bold;
+    animation: impulse-pulse 2s infinite;
 }
 
-@keyframes fleeting-pulse {
+@keyframes impulse-pulse {
     0%, 100% { 
         opacity: 1;
         transform: scale(1);
@@ -237,8 +237,8 @@
     }
 }
 
-/* Badge for opportunity cards */
-.card-opportunity-badge {
+/* Badge for opening cards */
+.card-opening-badge {
     position: absolute;
     top: 10px;
     left: 10px;
@@ -247,7 +247,7 @@
     padding: 2px 6px;
     border-radius: 12px;
     font-size: 0.7rem;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 /* === HAND CONTAINER ADJUSTMENTS === */

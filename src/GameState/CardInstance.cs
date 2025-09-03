@@ -14,7 +14,7 @@ public class CardInstance
     
     // Core mechanics
     public TokenType TokenType { get; init; }
-    public int Weight { get; init; }
+    public int Focus { get; init; }
     public Difficulty Difficulty { get; init; }
     
     // Effects - copied from template
@@ -43,9 +43,9 @@ public class CardInstance
         }
         
         // Add special combined classes
-        if (Properties.Contains(CardProperty.Fleeting) && Properties.Contains(CardProperty.Opportunity))
+        if (Properties.Contains(CardProperty.Impulse) && Properties.Contains(CardProperty.Opening))
         {
-            classes.Add("card-goal");
+            classes.Add("card-request");
         }
         
         // If no properties, add default
@@ -61,7 +61,7 @@ public class CardInstance
     
     public EmotionalState? SuccessState => null;
     public EmotionalState? FailureState => null;
-    public int BaseComfort => 1;
+    public int BaseFlow => 1;
     public string DisplayName => Name;
     public bool CanDeliverLetter => Properties.Contains(CardProperty.DeliveryEligible);
     public string DeliveryObligationId => "";
@@ -69,7 +69,7 @@ public class CardInstance
     public bool IsExchange => Properties.Contains(CardProperty.Exchange);
     public CardMechanicsType Mechanics => Properties.Contains(CardProperty.Exchange) ? CardMechanicsType.Exchange : CardMechanicsType.Standard;
     
-    public int GetEffectiveWeight(EmotionalState state) => Weight;
+    public int GetEffectiveFocus(EmotionalState state) => Focus;
     public int CalculateSuccessChance() => GetBaseSuccessPercentage();
     public int CalculateSuccessChance(EmotionalState state) => GetBaseSuccessPercentage();
     public ConnectionType GetConnectionType() => TokenType switch
@@ -100,7 +100,7 @@ public class CardInstance
         Description = template.Description;
         Properties = new List<CardProperty>(template.Properties); // Copy properties
         TokenType = template.TokenType;
-        Weight = template.Weight;
+        Focus = template.Focus;
         Difficulty = template.Difficulty;
         SuccessEffect = template.SuccessEffect;
         FailureEffect = template.FailureEffect;

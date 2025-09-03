@@ -479,7 +479,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
             else if (npc.LetterTokenTypes.Contains(ConnectionType.Commerce))
             {
-                return $"{npc.Name}'s opportunity has passed. 'Time is money, and you've cost me both.'";
+                return $"{npc.Name}'s opening has passed. 'Time is money, and you've cost me both.'";
             }
             else if (npc.LetterTokenTypes.Contains(ConnectionType.Status))
             {

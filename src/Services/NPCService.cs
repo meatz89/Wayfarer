@@ -133,7 +133,7 @@ public class NPCService
 }
 
 /// <summary>
-/// Information about an NPC interaction opportunity
+/// Information about an NPC interaction opening
 /// </summary>
 public class NPCInteractionInfo
 {

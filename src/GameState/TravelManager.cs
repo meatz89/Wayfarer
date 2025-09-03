@@ -153,7 +153,7 @@ public class TravelManager
 
     public void TravelToLocation(RouteOption selectedRoute)
     {
-        // Calculate actual costs with weather and weight modifications
+        // Calculate actual costs with weather and focus modifications
         int hungerIncrease = CalculateHungerIncrease(selectedRoute);
         int adjustedCoinCost = CalculateCoinCost(selectedRoute);
 
@@ -270,11 +270,11 @@ public class TravelManager
 
 
 
-    public int CalculateCurrentWeight(GameWorld _gameWorld)
+    public int CalculateCurrentFocus(GameWorld _gameWorld)
     {
-        int totalWeight = 0;
+        int totalFocus = 0;
 
-        // Calculate item weight
+        // Calculate item focus
         foreach (string itemName in _gameWorld.GetPlayer().Inventory.ItemSlots)
         {
             if (itemName != null)
@@ -282,29 +282,29 @@ public class TravelManager
                 Item item = ItemRepository.GetItemByName(itemName);
                 if (item != null)
                 {
-                    totalWeight += item.Weight;
+                    totalFocus += item.Focus;
                 }
             }
         }
 
-        // Add coin weight
-        totalWeight += _gameWorld.GetPlayer().Coins / GameConstants.Inventory.COINS_PER_WEIGHT_UNIT;
+        // Add coin focus
+        totalFocus += _gameWorld.GetPlayer().Coins / GameConstants.Inventory.COINS_PER_FOCUS_UNIT;
 
-        return totalWeight;
+        return totalFocus;
     }
 
     public int CalculateHungerIncrease(RouteOption route)
     {
-        int totalWeight = CalculateCurrentWeight(_gameWorld);
+        int totalFocus = CalculateCurrentFocus(_gameWorld);
         WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
         
         // Travel increases hunger based on route difficulty and conditions
         int baseHunger = 2; // Base hunger increase for any travel
         
         // Heavy load increases hunger
-        if (totalWeight > GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
+        if (totalFocus > GameConstants.LoadFocus.MEDIUM_LOAD_MAX)
             baseHunger += 2;
-        else if (totalWeight > GameConstants.LoadWeight.LIGHT_LOAD_MAX) 
+        else if (totalFocus > GameConstants.LoadFocus.LIGHT_LOAD_MAX) 
             baseHunger += 1;
             
         // Bad weather increases hunger
@@ -321,12 +321,12 @@ public class TravelManager
     }
 
     // Add a helper method for UI display
-    public string GetWeightStatusDescription(int totalWeight)
+    public string GetFocusStatusDescription(int totalFocus)
     {
-        return totalWeight switch
+        return totalFocus switch
         {
-            _ when totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX => "Light load",
-            _ when totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX => "Medium load (+1 hunger)",
+            _ when totalFocus <= GameConstants.LoadFocus.LIGHT_LOAD_MAX => "Light load",
+            _ when totalFocus <= GameConstants.LoadFocus.MEDIUM_LOAD_MAX => "Medium load (+1 hunger)",
             _ => "Heavy load (+2 hunger)"
         };
     }

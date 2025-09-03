@@ -7,35 +7,35 @@ public class LetterGenerationTest
     public void TestLetterTierCalculation()
     {
         // Test tier thresholds
-        Assert.Equal(5, GetPaymentForComfort(7));   // Simple: 5-9 comfort
-        Assert.Equal(10, GetPaymentForComfort(12)); // Important: 10-14 comfort
-        Assert.Equal(15, GetPaymentForComfort(17)); // Urgent: 15-19 comfort
-        Assert.Equal(20, GetPaymentForComfort(25)); // Critical: 20+ comfort
+        Assert.Equal(5, GetPaymentForFlow(7));   // Simple: 5-9 flow
+        Assert.Equal(10, GetPaymentForFlow(12)); // Important: 10-14 flow
+        Assert.Equal(15, GetPaymentForFlow(17)); // Urgent: 15-19 flow
+        Assert.Equal(20, GetPaymentForFlow(25)); // Critical: 20+ flow
     }
     
     [Fact]
     public void TestDeadlineCalculation()
     {
         // Test deadline in minutes
-        Assert.Equal(1440, GetDeadlineForComfort(7));  // Simple: 24h
-        Assert.Equal(720, GetDeadlineForComfort(12));  // Important: 12h
-        Assert.Equal(360, GetDeadlineForComfort(17));  // Urgent: 6h
-        Assert.Equal(120, GetDeadlineForComfort(25));  // Critical: 2h
+        Assert.Equal(1440, GetDeadlineForFlow(7));  // Simple: 24h
+        Assert.Equal(720, GetDeadlineForFlow(12));  // Important: 12h
+        Assert.Equal(360, GetDeadlineForFlow(17));  // Urgent: 6h
+        Assert.Equal(120, GetDeadlineForFlow(25));  // Critical: 2h
     }
     
-    private int GetPaymentForComfort(int comfort)
+    private int GetPaymentForFlow(int flow)
     {
-        if (comfort >= 20) return 20;
-        if (comfort >= 15) return 15;
-        if (comfort >= 10) return 10;
+        if (flow >= 20) return 20;
+        if (flow >= 15) return 15;
+        if (flow >= 10) return 10;
         return 5;
     }
     
-    private int GetDeadlineForComfort(int comfort)
+    private int GetDeadlineForFlow(int flow)
     {
-        if (comfort >= 20) return 120;  // 2h
-        if (comfort >= 15) return 360;  // 6h
-        if (comfort >= 10) return 720;  // 12h
+        if (flow >= 20) return 120;  // 2h
+        if (flow >= 15) return 360;  // 6h
+        if (flow >= 10) return 720;  // 12h
         return 1440; // 24h
     }
 }

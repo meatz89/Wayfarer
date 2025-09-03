@@ -7,14 +7,14 @@ public class ConversationSession
     public ConversationType ConversationType { get; set; }
     public EmotionalState CurrentState { get; set; }
     public EmotionalState InitialState { get; set; }
-    public int CurrentComfort { get; set; }
+    public int CurrentFlow { get; set; }
     public int CurrentPatience { get; set; }
     public int MaxPatience { get; set; }
     public int TurnNumber { get; set; }
     public bool LetterGenerated { get; set; }
-    public bool GoalCardDrawn { get; set; }
-    public int? GoalUrgencyCounter { get; set; }
-    public bool GoalCardPlayed { get; set; }
+    public bool RequestCardDrawn { get; set; }
+    public int? RequestUrgencyCounter { get; set; }
+    public bool RequestCardPlayed { get; set; }
     public SessionCardDeck Deck { get; set; }
     public HandDeck Hand { get; set; }
     public HashSet<CardInstance> HandCards
@@ -29,21 +29,21 @@ public class ConversationSession
     public List<CardInstance> DiscardedCards { get; set; } = new();
     public TokenMechanicsManager TokenManager { get; set; }
 
-    // New weight pool and atmosphere system
-    public int ComfortBattery { get; set; } = 0; // -3 to +3
-    public int CurrentWeightPool { get; set; } = 0; // Current spent weight
-    public int WeightCapacity { get; set; } = 5; // Based on state
+    // New focus and atmosphere system
+    public int FlowBattery { get; set; } = 0; // -3 to +3
+    public int CurrentFocus { get; set; } = 0; // Current spent focus
+    public int FocusCapacity { get; set; } = 5; // Based on state
     public AtmosphereType CurrentAtmosphere { get; set; } = AtmosphereType.Neutral;
 
     public List<CardInstance> ObservationCards { get; set; } = new();
 
     // New helper methods
-    public int GetAvailableWeight()
+    public int GetAvailableFocus()
     {
-        return Math.Max(0, GetEffectiveWeightCapacity() - CurrentWeightPool);
+        return Math.Max(0, GetEffectiveFocusCapacity() - CurrentFocus);
     }
 
-    public int GetEffectiveWeightCapacity()
+    public int GetEffectiveFocusCapacity()
     {
         int baseCapacity = CurrentState switch
         {
@@ -83,10 +83,10 @@ public class ConversationSession
         return baseCount;
     }
 
-    public void RefreshWeightPool()
+    public void RefreshFocus()
     {
-        CurrentWeightPool = 0;
-        WeightCapacity = GetEffectiveWeightCapacity();
+        CurrentFocus = 0;
+        FocusCapacity = GetEffectiveFocusCapacity();
     }
 
     public bool IsHandOverflowing()
@@ -96,21 +96,21 @@ public class ConversationSession
 
     public bool ShouldEnd()
     {
-        // End if patience exhausted or at desperate with -3 comfort
-        return CurrentPatience <= 0 || (CurrentState == EmotionalState.DESPERATE && ComfortBattery <= -3);
+        // End if patience exhausted or at desperate with -3 flow
+        return CurrentPatience <= 0 || (CurrentState == EmotionalState.DESPERATE && FlowBattery <= -3);
     }
 
     public ConversationOutcome CheckThresholds()
     {
-        if (CurrentComfort >= 100)
+        if (CurrentFlow >= 100)
         {
             return new ConversationOutcome
             {
                 Success = true,
-                FinalComfort = CurrentComfort,
+                FinalFlow = CurrentFlow,
                 FinalState = CurrentState,
                 TokensEarned = CalculateTokenReward(),
-                Reason = "Comfort threshold reached"
+                Reason = "Flow threshold reached"
             };
         }
 
@@ -119,7 +119,7 @@ public class ConversationSession
             return new ConversationOutcome
             {
                 Success = false,
-                FinalComfort = CurrentComfort,
+                FinalFlow = CurrentFlow,
                 FinalState = CurrentState,
                 TokensEarned = 0,
                 Reason = "Patience exhausted"
@@ -130,7 +130,7 @@ public class ConversationSession
         return new ConversationOutcome
         {
             Success = true,
-            FinalComfort = CurrentComfort,
+            FinalFlow = CurrentFlow,
             FinalState = CurrentState,
             TokensEarned = CalculateTokenReward(),
             Reason = "Conversation ended"
@@ -139,9 +139,9 @@ public class ConversationSession
 
     private int CalculateTokenReward()
     {
-        if (CurrentComfort >= 100) return 3;
-        if (CurrentComfort >= 75) return 2;
-        if (CurrentComfort >= 50) return 1;
+        if (CurrentFlow >= 100) return 3;
+        if (CurrentFlow >= 75) return 2;
+        if (CurrentFlow >= 50) return 1;
         return 0;
     }
 
@@ -155,7 +155,7 @@ public class ConversationSession
         // Implementation handled by ConversationOrchestrator
         return new CardPlayResult
         {
-            TotalComfort = 0,
+            TotalFlow = 0,
             Results = new List<SingleCardResult>()
         };
     }
@@ -187,7 +187,7 @@ public class ConversationSession
             ConversationType = convType,
             CurrentState = initialState,
             InitialState = initialState,
-            CurrentComfort = 0,
+            CurrentFlow = 0,
             CurrentPatience = 10,
             MaxPatience = 10,
             TurnNumber = 0,
@@ -216,7 +216,7 @@ public class ConversationSession
             ConversationType = ConversationType.Commerce,
             CurrentState = initialState,
             InitialState = initialState,
-            CurrentComfort = 0,
+            CurrentFlow = 0,
             CurrentPatience = 10,
             MaxPatience = 10,
             TurnNumber = 0,

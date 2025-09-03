@@ -577,13 +577,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return info;
             }
 
-            // Critical emotional weight forces position 1
-            if (obligation.EmotionalWeight == EmotionalWeight.CRITICAL)
+            // Critical emotional focus forces position 1
+            if (obligation.EmotionalFocus == EmotionalFocus.CRITICAL)
             {
                 info.ShouldForceDisplacement = true;
                 info.ForcedPosition = 1;
                 info.DisplacementReason = $"{obligation.SenderName} is DESPERATE - their letter takes priority!";
-                info.Trigger = DisplacementTrigger.CriticalEmotionalWeight;
+                info.Trigger = DisplacementTrigger.CriticalEmotionalFocus;
                 return info;
             }
 
@@ -755,9 +755,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 IsCollected = true, // Obligations in queue are collected
                 PhysicalConstraints = "", // DeliveryObligation doesn't have PhysicalConstraints
                 PhysicalIcon = GetPhysicalConstraintIcon(""),
-                IsSpecial = obligation.EmotionalWeight == EmotionalWeight.CRITICAL,
-                SpecialIcon = obligation.EmotionalWeight == EmotionalWeight.CRITICAL ? "⚠️" : "",
-                SpecialDescription = obligation.EmotionalWeight == EmotionalWeight.CRITICAL ? "Critical urgency" : "",
+                IsSpecial = obligation.EmotionalFocus == EmotionalFocus.CRITICAL,
+                SpecialIcon = obligation.EmotionalFocus == EmotionalFocus.CRITICAL ? "⚠️" : "",
+                SpecialDescription = obligation.EmotionalFocus == EmotionalFocus.CRITICAL ? "Critical urgency" : "",
                 DeadlineClass = deadlineInfo.CssClass,
                 DeadlineIcon = deadlineInfo.Icon,
                 DeadlineDescription = deadlineInfo.Description,

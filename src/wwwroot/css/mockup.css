@@ -76,7 +76,7 @@ body * {
 }
 
 .resource-value {
-    font-weight: bold;
+    font-focus: bold;
     color: #d4a76a;
 }
 
@@ -122,7 +122,7 @@ body * {
 
 .deadline-warning {
     color: #d4704a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 /* Active Obligations Queue */
@@ -144,7 +144,7 @@ body * {
 
 .queue-rule {
     color: #8b4726;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .obligation-list {
@@ -182,12 +182,12 @@ body * {
     padding: 1px 4px;
     border-radius: 2px;
     font-size: 9px;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .deadline {
     color: #8b4726;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .queue-arrow {
@@ -217,7 +217,7 @@ body * {
     font-size: 22px;
     color: #5c4a3a;
     margin-bottom: 6px;
-    font-weight: normal;
+    font-focus: normal;
 }
 
 .location-traits {
@@ -250,7 +250,7 @@ body * {
 .current-spot-name {
     font-size: 15px;
     color: #5c4a3a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .spot-traits {
@@ -316,7 +316,7 @@ body * {
 
 .atmosphere-label {
     font-size: 14px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -327,7 +327,7 @@ body * {
     align-items: center;
     gap: 8px;
     font-size: 16px;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .atmosphere-icon {
@@ -359,7 +359,7 @@ body * {
     background: #fffacd;
     border: 1px dashed #ffd700;
     border-radius: 4px;
-    font-weight: bold;
+    font-focus: bold;
     color: #8b4726;
 }
 
@@ -456,7 +456,7 @@ body * {
 .action-name {
     font-size: 14px;
     color: #5c4a3a;
-    font-weight: bold;
+    font-focus: bold;
     margin-bottom: 4px;
 }
 
@@ -467,7 +467,7 @@ body * {
 
 .cost-value {
     color: #8b4726;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 /* NPCs Section */
@@ -489,7 +489,7 @@ body * {
 .npc-name {
     font-size: 15px;
     color: #5c4a3a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .npc-state {
@@ -501,7 +501,7 @@ body * {
 
 .npc-state.desperate {
     color: #8b4726;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .npc-type {
@@ -525,7 +525,7 @@ body * {
 }
 
 .token-count {
-    font-weight: bold;
+    font-focus: bold;
     color: #5a7a3a;
 }
 
@@ -582,7 +582,7 @@ body * {
 }
 
 .action-type {
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
 }
 
@@ -653,7 +653,7 @@ body * {
     border: 1px solid #7a8b5a;
     border-radius: 2px;
     color: #5a7a3a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 /* Revealed observation */
@@ -717,7 +717,7 @@ body * {
 .spot-card-name {
     font-size: 13px;
     color: #5c4a3a;
-    font-weight: bold;
+    font-focus: bold;
     margin-bottom: 4px;
 }
 
@@ -801,7 +801,7 @@ body * {
 
 .route-destination {
     font-size: 14px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
     margin-bottom: 6px;
 }
@@ -813,7 +813,7 @@ body * {
 
 .route-requirement {
     color: #8b4726;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .close-button {
@@ -855,7 +855,7 @@ body * {
     padding: 1px 4px;
     border-radius: 2px;
     font-size: 9px;
-    font-weight: bold;
+    font-focus: bold;
     margin-left: 4px;
 }
 
@@ -866,7 +866,7 @@ body * {
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 10px;
-    font-weight: bold;
+    font-focus: bold;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-left: 8px;
@@ -875,7 +875,7 @@ body * {
 .you-are-here {
     font-size: 11px;
     color: #7a8b5a;
-    font-weight: bold;
+    font-focus: bold;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-top: 6px;
@@ -911,7 +911,7 @@ body * {
     color: #8b4726;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-weight: bold;
+    font-focus: bold;
     margin-top: 3px;
 }
 
@@ -937,25 +937,25 @@ body * {
 
 .indicator-value {
     font-size: 18px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
 }
 
-/* Beautiful Comfort Battery (from mockup) */
-.comfort-indicator {
+/* Beautiful Flow Battery (from mockup) */
+.flow-indicator {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.comfort-bar {
+.flow-bar {
     display: flex;
     gap: 4px;
     align-items: center;
     padding: 0 10px;
 }
 
-.comfort-segment {
+.flow-segment {
     width: 14px;
     height: 26px;
     border: 1px solid #a68b6f;
@@ -964,39 +964,39 @@ body * {
     align-items: center;
     justify-content: center;
     font-size: 10px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
     transition: all 0.2s ease;
 }
 
-.comfort-segment.negative {
+.flow-segment.negative {
     background: #d4704a;
 }
 
-.comfort-segment.positive {
+.flow-segment.positive {
     background: #7a8b5a;
 }
 
-.comfort-segment.current {
+.flow-segment.current {
     border: 2px solid #3d3429;
     box-shadow: 0 0 4px rgba(0,0,0,0.3);
 }
 
-.comfort-zero {
+.flow-zero {
     width: 4px;
     height: 20px;
     background: #3d3429;
     margin: 0 4px;
 }
 
-.comfort-value {
+.flow-value {
     font-size: 14px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
     margin-left: 8px;
 }
 
-.comfort-transition-hint {
+.flow-transition-hint {
     font-size: 11px;
     color: #8b4726;
     font-style: italic;
@@ -1010,17 +1010,17 @@ body * {
 }
 
 /* Warning states */
-.comfort-warning {
+.flow-warning {
     color: #d4704a;
-    font-weight: bold;
+    font-focus: bold;
     font-size: 12px;
     margin-top: 4px;
     animation: warning-pulse 1s infinite;
 }
 
-.comfort-transition-hint.danger {
+.flow-transition-hint.danger {
     color: #ff0000;
-    font-weight: bold;
+    font-focus: bold;
     animation: danger-flash 0.5s infinite;
 }
 
@@ -1053,52 +1053,52 @@ body * {
     }
 }
 
-/* Weight Pool Display (from mockup) */
-.weight-pool {
+/* Focus Display (from mockup) */
+.focus-pool {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.weight-dots {
+.focus-dots {
     display: flex;
     gap: 3px;
 }
 
-.weight-dot {
+.focus-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
     border: 1px solid #8b7355;
 }
 
-.weight-dot.available {
+.focus-dot.available {
     background: #d4a76a;
 }
 
-.weight-dot.spent {
+.focus-dot.spent {
     background: #3d3429;
 }
 
-.weight-display {
+.focus-display {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.weight-label {
+.focus-label {
     font-size: 11px;
     color: #7a6250;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.weight-boxes {
+.focus-boxes {
     display: flex;
     gap: 3px;
 }
 
-.weight-box {
+.focus-box {
     width: 24px;
     height: 24px;
     background: white;
@@ -1107,16 +1107,16 @@ body * {
     align-items: center;
     justify-content: center;
     font-size: 10px;
-    font-weight: bold;
+    font-focus: bold;
 }
 
-.weight-box.spent {
+.focus-box.spent {
     background: #d4c5a0;
     border-color: #a68b6f;
     color: #8b7355;
 }
 
-.weight-box.unavailable {
+.focus-box.unavailable {
     background: #e8dcc4;
     border: 1px dashed #a68b6f;
     opacity: 0.4;
@@ -1141,7 +1141,7 @@ body * {
     color: white;
     border-radius: 3px;
     font-size: 12px;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .atmosphere-effect {
@@ -1170,7 +1170,7 @@ body * {
 .atmosphere-current {
     font-size: 13px;
     color: #5c4a3a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .atmosphere-effect {
@@ -1256,7 +1256,7 @@ body * {
 
 .turn-value {
     color: #5c4a3a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .action-choices {
@@ -1351,7 +1351,7 @@ body * {
     transform: translateX(10px);
 }
 
-.card.comfort {
+.card.flow {
     border-left: 5px solid #7a8b5a;
 }
 
@@ -1407,11 +1407,11 @@ body * {
 
 .card-name {
     font-size: 14px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
 }
 
-.card-weight {
+.card-focus {
     display: inline-block;
     width: 24px;
     height: 24px;
@@ -1420,7 +1420,7 @@ body * {
     border-radius: 50%;
     text-align: center;
     line-height: 24px;
-    font-weight: bold;
+    font-focus: bold;
     font-size: 13px;
 }
 
@@ -1444,7 +1444,7 @@ body * {
     border-radius: 2px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .tag-persistent {
@@ -1452,12 +1452,12 @@ body * {
     color: #5a7a3a;
 }
 
-.tag-fleeting {
+.tag-impulse {
     background: #ffe8e8;
     color: #8b4726;
 }
 
-.tag-opportunity {
+.tag-opening {
     background: #fff3e0;
     color: #d4704a;
 }
@@ -1496,11 +1496,11 @@ body * {
     display: inline-block;
 }
 
-/* Comfort threshold preview */
-.comfort-threshold-preview {
+/* Flow threshold preview */
+.flow-threshold-preview {
     font-size: 10px;
     color: #8b4726;
-    font-weight: bold;
+    font-focus: bold;
     margin-top: 2px;
     font-style: italic;
 }
@@ -1516,7 +1516,7 @@ body * {
 .card-effect {
     font-size: 12px;
     color: #5c4a3a;
-    font-weight: bold;
+    font-focus: bold;
     margin-bottom: 4px;
 }
 
@@ -1557,7 +1557,7 @@ body * {
 
 .outcome-chance {
     font-size: 20px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
     margin-bottom: 4px;
 }
@@ -1573,7 +1573,7 @@ body * {
 .outcome-effect {
     font-size: 11px;
     color: #5c4a3a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 /* Persistence Warning */
@@ -1583,19 +1583,19 @@ body * {
     right: 0;
     padding: 4px 10px;
     font-size: 10px;
-    font-weight: bold;
+    font-focus: bold;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     z-index: 5;
     border-radius: 0 4px 0 4px;
 }
 
-.warning-fleeting {
+.warning-impulse {
     background: #8b4726;
     color: white;
 }
 
-.warning-opportunity {
+.warning-opening {
     background: #d4704a;
     color: white;
 }
@@ -1633,7 +1633,7 @@ body * {
 
 .exhaust-effect {
     color: #d4a76a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 /* Persistence Markers from Mockup */
@@ -1646,15 +1646,15 @@ body * {
     font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-weight: bold;
+    font-focus: bold;
 }
 
-.persistence-marker.fleeting {
+.persistence-marker.impulse {
     background: #8b4726;
     color: #faf4ea;
 }
 
-.persistence-marker.opportunity {
+.persistence-marker.opening {
     background: #5a7a8a;
     color: #faf4ea;
 }
@@ -1671,7 +1671,7 @@ body * {
     font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .card-marker.expires {
@@ -1682,7 +1682,7 @@ body * {
     background: #4a3a2a;
 }
 
-.card-marker.goal {
+.card-marker.request {
     background: #d4a76a;
     color: #3d3429;
 }
@@ -1705,7 +1705,7 @@ body * {
 
 .position-1 {
     color: #8b4726;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 /* Exchange Mode Banner */
@@ -1743,12 +1743,12 @@ body * {
     color: #5c4a3a;
     font-size: 26px;
     margin-bottom: 5px;
-    font-weight: normal;
+    font-focus: normal;
     letter-spacing: 1px;
 }
 
 .deck-note {
-    font-weight: bold;
+    font-focus: bold;
     color: #5a7a3a;
 }
 
@@ -1769,7 +1769,7 @@ body * {
 
 .token-value {
     font-size: 24px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
 }
 
@@ -1783,7 +1783,7 @@ body * {
 .token-bonus {
     font-size: 10px;
     color: #5a7a3a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 /* Exchange Cards Section */
@@ -1850,13 +1850,13 @@ body * {
 
 .exchange-name {
     font-size: 14px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5c4a3a;
 }
 
 .success-rate {
     font-size: 18px;
-    font-weight: bold;
+    font-focus: bold;
     color: #5a7a3a;
 }
 
@@ -1893,7 +1893,7 @@ body * {
 
 .exchange-value {
     font-size: 24px;
-    font-weight: bold;
+    font-focus: bold;
     padding: 10px 20px;
     background: white;
     border: 2px solid #c4a684;
@@ -1948,7 +1948,7 @@ body * {
 }
 
 .attention-note {
-    font-weight: bold;
+    font-focus: bold;
     color: #5a7a3a;
 }
 
@@ -2132,7 +2132,7 @@ body * {
     font-size: 24px;
     color: #5c4a3a;
     margin-bottom: 8px;
-    font-weight: normal;
+    font-focus: normal;
     letter-spacing: 1px;
 }
 
@@ -2201,7 +2201,7 @@ body * {
 .route-header h4 {
     font-size: 16px;
     color: #5c4a3a;
-    font-weight: bold;
+    font-focus: bold;
     margin: 0;
 }
 
@@ -2245,7 +2245,7 @@ body * {
 
 .time-value {
     color: #5c4a3a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .route-cost {
@@ -2259,7 +2259,7 @@ body * {
 
 .cost-value {
     color: #8b4726;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .route-familiarity {
@@ -2273,7 +2273,7 @@ body * {
 
 .familiarity-value {
     color: #5a7a3a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .route-requirements {
@@ -2287,7 +2287,7 @@ body * {
 
 .req-label {
     color: #8b6726;
-    font-weight: bold;
+    font-focus: bold;
     margin-right: 6px;
 }
 
@@ -2314,7 +2314,7 @@ body * {
     border-radius: 4px;
     padding: 8px 20px;
     font-size: 13px;
-    font-weight: bold;
+    font-focus: bold;
     cursor: pointer;
     transition: all 0.2s;
     text-transform: uppercase;
@@ -2356,7 +2356,7 @@ body * {
 .no-routes p:first-child {
     font-size: 16px;
     color: #5c4a3a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .travel-footer {
@@ -2382,56 +2382,56 @@ body * {
     transform: translateY(-1px);
 }
 
-/* ===== FLEETING CARD STYLES ===== */
+/* ===== IMPULSE CARD STYLES ===== */
 
-/* Fleeting card visual indicators */
-.card.fleeting {
+/* Impulse card visual indicators */
+.card.impulse {
     background: linear-gradient(135deg, #FFF, #FFE5E5) ;
     position: relative;
 }
 
-.card.fleeting::before {
+.card.impulse::before {
     content: "⚡";
     position: absolute;
     top: 5px;
     right: 5px;
     font-size: 20px;
     color: #FF6B6B;
-    animation: fleeting-pulse 2s infinite;
+    animation: impulse-pulse 2s infinite;
     z-index: 10;
 }
 
-@keyframes fleeting-pulse {
+@keyframes impulse-pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
 }
 
-/* Goal cards */
-.card.goal {
+/* Request cards */
+.card.request {
     border-color: #8B0000 ;
     background: linear-gradient(135deg, #FFF, #FFCCCC) ;
     animation: urgent-pulse 1.5s ease-in-out infinite;
 }
 
-/* Card markers for fleeting and goals */
-.card-marker.fleeting {
+/* Card markers for impulse and requests */
+.card-marker.impulse {
     background: #FF6B6B;
     color: white;
     padding: 2px 8px;
     border-radius: 3px;
     font-size: 11px;
-    font-weight: bold;
+    font-focus: bold;
     margin-right: 5px;
     display: inline-block;
 }
 
-.card-marker.goal {
+.card-marker.request {
     background: #8B0000;
     color: white;
     padding: 2px 8px;
     border-radius: 3px;
     font-size: 11px;
-    font-weight: bold;
+    font-focus: bold;
     animation: urgent-pulse 1s infinite;
     display: inline-block;
 }
@@ -2447,8 +2447,8 @@ body * {
     }
 }
 
-/* Fleeting indicator panel below cards */
-.fleeting-indicator {
+/* Impulse indicator panel below cards */
+.impulse-indicator {
     margin: 15px 20px;
     padding: 12px 16px;
     background: #FFF8DC;
@@ -2457,16 +2457,16 @@ body * {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.fleeting-warning {
+.impulse-warning {
     display: flex;
     align-items: center;
     color: #FF6B6B;
-    font-weight: bold;
+    font-focus: bold;
     margin-bottom: 8px;
     font-size: 14px;
 }
 
-.fleeting-warning:last-child {
+.impulse-warning:last-child {
     margin-bottom: 0;
 }
 
@@ -2479,11 +2479,11 @@ body * {
     flex: 1;
 }
 
-.goal-alert {
+.request-alert {
     display: flex;
     align-items: center;
     color: #8B0000;
-    font-weight: bold;
+    font-focus: bold;
     animation: urgent-pulse 1s infinite;
     font-size: 14px;
 }
@@ -2498,11 +2498,11 @@ body * {
 }
 
 /* Persistent card subtle indicator */
-.card:not(.fleeting):not(.unavailable) {
+.card:not(.impulse):not(.unavailable) {
     position: relative;
 }
 
-.card:not(.fleeting):not(.unavailable)::after {
+.card:not(.impulse):not(.unavailable)::after {
     content: "✓";
     position: absolute;
     top: 5px;
@@ -2512,8 +2512,8 @@ body * {
     opacity: 0.3;
 }
 
-/* Adjust selected fleeting cards */
-.card.fleeting.selected {
+/* Adjust selected impulse cards */
+.card.impulse.selected {
 }
 
 /* ===== PACKET 6: PROPERTY BADGE SYSTEM ===== */
@@ -2535,18 +2535,18 @@ body * {
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 11px;
-    font-weight: bold;
+    font-focus: bold;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 /* Property-specific badge colors */
-.property-badge.fleeting {
+.property-badge.impulse {
     background: #f4c430;
     color: #000;
 }
 
-.property-badge.opportunity {
+.property-badge.opening {
     background: #ff8c00;
     color: #fff;
 }
@@ -2573,28 +2573,28 @@ body * {
 }
 
 /* Card property-based styling */
-.card.has-fleeting {
+.card.has-impulse {
     border-left: 4px solid #f4c430;
 }
 
-.card.has-opportunity {
+.card.has-opening {
     border-left: 4px solid #ff8c00;
 }
 
-/* Goal cards (both fleeting AND opportunity) get critical styling */
-.card.has-fleeting.has-opportunity {
+/* Request cards (both impulse AND opening) get critical styling */
+.card.has-impulse.has-opening {
     border: 3px solid #ff0000 ;
     background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%) ;
     animation: urgent-pulse 1.5s ease-in-out infinite;
 }
 
-/* Goal warning banner */
-.goal-warning {
+/* Request warning banner */
+.request-warning {
     background: #ff0000;
     color: white;
     padding: 4px 8px;
     text-align: center;
-    font-weight: bold;
+    font-focus: bold;
     font-size: 12px;
     margin: 0 -2px 8px -2px;
     animation: blink 1s infinite;
@@ -2646,13 +2646,13 @@ body * {
 
 /* Effect content styling */
 .effect-chance {
-    font-weight: bold;
+    font-focus: bold;
     min-width: 40px;
     font-size: 16px;
 }
 
 .effect-label {
-    font-weight: 600;
+    font-focus: 600;
     min-width: 80px;
     font-size: 10px;
     text-transform: uppercase;
@@ -2662,7 +2662,7 @@ body * {
 .effect-description {
     flex: 1;
     font-size: 12px;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .effect-icon {
@@ -2673,7 +2673,7 @@ body * {
 .effect .no-effect {
     opacity: 0.6;
     font-style: italic;
-    font-weight: normal;
+    font-focus: normal;
 }
 
 /* ===== PACKET 7: ACTION PREVIEW SYSTEM ===== */
@@ -2732,7 +2732,7 @@ body * {
     padding: 8px;
     margin-bottom: 10px;
     color: #2e7d32;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .listen-effects {
@@ -2742,7 +2742,7 @@ body * {
     padding: 8px;
     margin-bottom: 10px;
     color: #3a5a6a;
-    font-weight: bold;
+    font-focus: bold;
 }
 
 .critical-warning {
@@ -2751,7 +2751,7 @@ body * {
     padding: 10px;
     margin: 10px 0;
     border-radius: 4px;
-    font-weight: bold;
+    font-focus: bold;
     font-size: 12px;
     animation: critical-pulse 1.5s infinite;
     border: 2px solid #8b4726;
@@ -2816,14 +2816,14 @@ body * {
     border-top-color: #7a8b5a;
 }
 
-/* Enhanced weight pool indicator */
-.weight-pool-indicator {
+/* Enhanced focus indicator */
+.focus-pool-indicator {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.weight-pool-display {
+.focus-pool-display {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2832,19 +2832,19 @@ body * {
     border-radius: 4px;
 }
 
-.weight-dots {
+.focus-dots {
     display: flex;
     gap: 2px;
     align-items: center;
 }
 
-.weight-dot {
+.focus-dot {
     font-size: 16px;
     color: #7a8b5a;
     opacity: 0.3;
 }
 
-.weight-dot.filled {
+.focus-dot.filled {
     opacity: 1;
     color: #5a7a3a;
 }

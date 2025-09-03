@@ -10,34 +10,34 @@ public class CardPropertyTest
         // Test default card (no properties)
         var defaultCard = new ConversationCard();
         Assert.True(defaultCard.IsPersistent);
-        Assert.False(defaultCard.IsFleeting);
-        Assert.False(defaultCard.IsOpportunity);
-        Assert.False(defaultCard.IsGoal);
+        Assert.False(defaultCard.IsImpulse);
+        Assert.False(defaultCard.IsOpening);
+        Assert.False(defaultCard.IsRequest);
         
-        // Test fleeting card
-        var fleetingCard = new ConversationCard();
-        fleetingCard.Properties.Add(CardProperty.Fleeting);
-        Assert.True(fleetingCard.IsFleeting);
-        Assert.False(fleetingCard.IsPersistent);
-        Assert.False(fleetingCard.IsOpportunity);
-        Assert.False(fleetingCard.IsGoal);
+        // Test impulse card
+        var impulseCard = new ConversationCard();
+        impulseCard.Properties.Add(CardProperty.Impulse);
+        Assert.True(impulseCard.IsImpulse);
+        Assert.False(impulseCard.IsPersistent);
+        Assert.False(impulseCard.IsOpening);
+        Assert.False(impulseCard.IsRequest);
         
-        // Test opportunity card
-        var opportunityCard = new ConversationCard();
-        opportunityCard.Properties.Add(CardProperty.Opportunity);
-        Assert.False(opportunityCard.IsFleeting);
-        Assert.False(opportunityCard.IsPersistent);
-        Assert.True(opportunityCard.IsOpportunity);
-        Assert.False(opportunityCard.IsGoal);
+        // Test opening card
+        var openingCard = new ConversationCard();
+        openingCard.Properties.Add(CardProperty.Opening);
+        Assert.False(openingCard.IsImpulse);
+        Assert.False(openingCard.IsPersistent);
+        Assert.True(openingCard.IsOpening);
+        Assert.False(openingCard.IsRequest);
         
-        // Test goal card (both fleeting AND opportunity)
-        var goalCard = new ConversationCard();
-        goalCard.Properties.Add(CardProperty.Fleeting);
-        goalCard.Properties.Add(CardProperty.Opportunity);
-        Assert.True(goalCard.IsFleeting);
-        Assert.False(goalCard.IsPersistent);
-        Assert.True(goalCard.IsOpportunity);
-        Assert.True(goalCard.IsGoal);
+        // Test request card (both impulse AND opening)
+        var requestCard = new ConversationCard();
+        requestCard.Properties.Add(CardProperty.Impulse);
+        requestCard.Properties.Add(CardProperty.Opening);
+        Assert.True(requestCard.IsImpulse);
+        Assert.False(requestCard.IsPersistent);
+        Assert.True(requestCard.IsOpening);
+        Assert.True(requestCard.IsRequest);
         
         // Test skeleton card
         var skeletonCard = new ConversationCard();
@@ -70,8 +70,8 @@ public class CardPropertyTest
             Name = "Test Card",
             Properties = new List<CardProperty> 
             { 
-                CardProperty.Fleeting, 
-                CardProperty.Opportunity 
+                CardProperty.Impulse, 
+                CardProperty.Opening 
             }
         };
         
@@ -81,7 +81,7 @@ public class CardPropertyTest
         Assert.Equal(originalCard.Id, clonedCard.Id);
         Assert.Equal(originalCard.Name, clonedCard.Name);
         Assert.Equal(originalCard.Properties.Count, clonedCard.Properties.Count);
-        Assert.True(clonedCard.IsGoal);
+        Assert.True(clonedCard.IsRequest);
         
         // Verify it's a deep clone (modifying original doesn't affect clone)
         originalCard.Properties.Add(CardProperty.Burden);
@@ -90,14 +90,14 @@ public class CardPropertyTest
     }
     
     [Fact]
-    public void TestGoalCardClass()
+    public void TestRequestCardClass()
     {
-        var goalCard = new GoalCard();
+        var requestCard = new RequestCard();
         
-        // Verify goal cards have both properties
-        Assert.Contains(CardProperty.Fleeting, goalCard.Properties);
-        Assert.Contains(CardProperty.Opportunity, goalCard.Properties);
-        Assert.True(goalCard.IsFleeting);
-        Assert.True(goalCard.IsOpportunity);
+        // Verify request cards have both properties
+        Assert.Contains(CardProperty.Impulse, requestCard.Properties);
+        Assert.Contains(CardProperty.Opening, requestCard.Properties);
+        Assert.True(requestCard.IsImpulse);
+        Assert.True(requestCard.IsOpening);
     }
 }

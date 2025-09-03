@@ -21,7 +21,7 @@ Respond with a JSON object containing both action and conversationContext detail
 {
   "action": {
     "name": "Negotiate with Merchants",
-    "goal": "Secure favorable trade terms for your goods",
+    "request": "Secure favorable trade terms for your goods",
     "actionType": "Conversation",
     "coinCost": 5
   },

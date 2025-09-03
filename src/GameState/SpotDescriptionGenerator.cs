@@ -20,7 +20,7 @@ public class SpotDescriptionGenerator
         // Atmosphere properties
         [SpotPropertyType.Quiet] = new[] { "peaceful silence", "hushed tranquility", "undisturbed calm" },
         [SpotPropertyType.Loud] = new[] { "bustling with noise", "filled with clamor", "alive with sound" },
-        [SpotPropertyType.Warm] = new[] { "comfortably warm", "heated by hearth", "protected from cold" },
+        [SpotPropertyType.Warm] = new[] { "flowably warm", "heated by hearth", "protected from cold" },
         [SpotPropertyType.Shaded] = new[] { "cool shade", "sheltered from sun", "dimly lit" },
 
         // View properties
@@ -37,7 +37,7 @@ public class SpotDescriptionGenerator
 
         // Special properties
         [SpotPropertyType.NobleFavored] = new[] { "preferred by nobility", "aristocratic atmosphere", "refined surroundings" },
-        [SpotPropertyType.CommonerHaunt] = new[] { "common folk gathering", "working class refuge", "unpretentious comfort" },
+        [SpotPropertyType.CommonerHaunt] = new[] { "common folk gathering", "working class refuge", "unpretentious flow" },
         [SpotPropertyType.MerchantHub] = new[] { "trader's territory", "commercial center", "business dealings" },
         [SpotPropertyType.SacredGround] = new[] { "blessed ground", "holy atmosphere", "spiritual presence" }
     };

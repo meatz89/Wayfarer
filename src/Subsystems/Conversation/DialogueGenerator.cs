@@ -41,17 +41,17 @@ public class DialogueGenerator
     /// <summary>
     /// Generate NPC response for SPEAK action
     /// </summary>
-    public string GenerateSpeakResponse(NPC npc, EmotionalState state, HashSet<CardInstance> playedCards, CardPlayResult result, int comfortChange)
+    public string GenerateSpeakResponse(NPC npc, EmotionalState state, HashSet<CardInstance> playedCards, CardPlayResult result, int flowChange)
     {
         StringBuilder response = new StringBuilder();
 
         // React to played cards
         response.AppendLine(GenerateCardReaction(npc, playedCards, state));
 
-        // Describe comfort change
-        if (comfortChange != 0)
+        // Describe flow change
+        if (flowChange != 0)
         {
-            response.AppendLine(GenerateComfortChangeDescription(npc, comfortChange, state));
+            response.AppendLine(GenerateFlowChangeDescription(npc, flowChange, state));
         }
 
         // Add state transition if occurred
@@ -130,7 +130,7 @@ public class DialogueGenerator
         {
             return $"You share an observation with {npc.Name}.";
         }
-        else if (card.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity))
+        else if (card.Properties.Contains(CardProperty.Impulse) && card.Properties.Contains(CardProperty.Opening))
         {
             return $"You make an important request to {npc.Name}.";
         }
@@ -152,7 +152,7 @@ public class DialogueGenerator
         return state switch
         {
             EmotionalState.DESPERATE => $"{npc.Name} wrings their hands anxiously, eyes darting about.",
-            EmotionalState.TENSE => $"{npc.Name} shifts uncomfortably, shoulders rigid.",
+            EmotionalState.TENSE => $"{npc.Name} shifts unflowably, shoulders rigid.",
             EmotionalState.NEUTRAL => $"{npc.Name} stands relaxed but attentive.",
             EmotionalState.OPEN => $"{npc.Name} leans in slightly, genuinely interested.",
             EmotionalState.CONNECTED => $"{npc.Name} mirrors your posture, completely engaged.",
@@ -217,7 +217,7 @@ public class DialogueGenerator
         {
             return "your observations";
         }
-        else if (card.Properties.Contains(CardProperty.Fleeting) && card.Properties.Contains(CardProperty.Opportunity))
+        else if (card.Properties.Contains(CardProperty.Impulse) && card.Properties.Contains(CardProperty.Opening))
         {
             return "an urgent matter";
         }
@@ -262,7 +262,7 @@ public class DialogueGenerator
         int cardCount = cards.Count;
         // Determine primary card property for reaction
         var hasObservation = cards.Any(c => c.Properties.Contains(CardProperty.Observable));
-        var hasGoal = cards.Any(c => c.Properties.Contains(CardProperty.Fleeting) && c.Properties.Contains(CardProperty.Opportunity));
+        var hasRequest = cards.Any(c => c.Properties.Contains(CardProperty.Impulse) && c.Properties.Contains(CardProperty.Opening));
         var hasExchange = cards.Any(c => c.Properties.Contains(CardProperty.Exchange));
 
         if (cardCount == 1)
@@ -279,13 +279,13 @@ public class DialogueGenerator
         }
     }
 
-    private string GenerateComfortChangeDescription(NPC npc, int change, EmotionalState state)
+    private string GenerateFlowChangeDescription(NPC npc, int change, EmotionalState state)
     {
         if (change > 0)
         {
             return change switch
             {
-                >= 5 => $"{npc.Name} seems much more comfortable.",
+                >= 5 => $"{npc.Name} seems much more flowable.",
                 >= 3 => $"{npc.Name} relaxes visibly.",
                 _ => $"{npc.Name} appears slightly more at ease."
             };
@@ -294,7 +294,7 @@ public class DialogueGenerator
         {
             return change switch
             {
-                <= -5 => $"{npc.Name} becomes very uncomfortable.",
+                <= -5 => $"{npc.Name} becomes very unflowable.",
                 <= -3 => $"{npc.Name} tenses up.",
                 _ => $"{npc.Name} seems slightly uneasy."
             };

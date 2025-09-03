@@ -7,32 +7,32 @@ The three core game loops answer fundamental design questions while maintaining 
 ## Core Loop 1: Card-Based Conversations
 
 ### Design Questions Answered
-- **What provides challenge?** Managing weight pools and comfort battery to reach goal cards
+- **What provides challenge?** Managing focuss and flow battery to reach request cards
 - **Why grow stronger?** More tokens improve all success rates linearly  
-- **Why engage with NPCs?** Goal cards provide income, access, and world progression
+- **Why engage with NPCs?** Request cards provide income, access, and world progression
 
 ### Mechanical Framework
 
 **The Conversation Puzzle**:
-1. Emotional states determine weight capacity (3-6) and card draws (1-3)
-2. Weight pool persists across SPEAK actions, refreshes on LISTEN
-3. Comfort (-3 to +3) triggers state transitions at extremes
+1. Emotional states determine focus capacity (3-6) and card draws (1-3)
+2. Focus persists across SPEAK actions, refreshes on LISTEN
+3. Flow (-3 to +3) triggers state transitions at extremes
 4. Tokens (permanent) modify all success rates linearly (+5% per token)
 5. Atmosphere persists until changed or failure occurs
 6. One card per SPEAK action creates authentic dialogue rhythm
 
-**Goal Card Selection**:
+**Request Card Selection**:
 1. Player chooses conversation type
-2. Appropriate goal from goal deck shuffled into conversation deck copy
-3. Goal card requires 5-6 weight to play (needs Open/Connected or Prepared atmosphere)
-4. Goal cards have both "Fleeting" and "Opportunity" Properties - if goal card is discarded, conversation fails
+2. Appropriate request from request deck shuffled into conversation deck copy
+3. Request card requires 5-6 focus to play (needs Open/Connected or Prepared atmosphere)
+4. Request cards have both "Impulse" and "Opening" Properties - if request card is discarded, conversation fails
 
-**Weight Pool Management**:
+**Focus Management**:
 - Capacity determined by emotional state (3-6)
-- Each SPEAK spends weight from pool
+- Each SPEAK spends focus from pool
 - Pool persists until depleted or refreshed
 - LISTEN refreshes pool to current maximum
-- Can SPEAK multiple turns with remaining weight
+- Can SPEAK multiple turns with remaining focus
 - Prepared atmosphere adds +1 to capacity
 
 **Atmosphere Layers**:
@@ -81,15 +81,15 @@ Token type burned matches NPC personality:
 
 ### Queue Position Negotiation
 
-When playing a goal card (promise):
+When playing a request card (promise):
 - **Success**: Your terms (usually lowest available position, better deadline/payment)
 - **Failure**: NPC's terms (forced higher position, tighter deadline)
 
-Goal card difficulty affects negotiation:
-- Letter goals: Very Hard (40% base + tokens)
-- Meeting goals: Hard (50% base + tokens)
-- Resolution goals: Hard (50% base + tokens)
-- Crisis goals: Very Hard (40% base + tokens)
+Request card difficulty affects negotiation:
+- Letter requests: Very Hard (40% base + tokens)
+- Meeting requests: Hard (50% base + tokens)
+- Resolution requests: Hard (50% base + tokens)
+- Crisis requests: Very Hard (40% base + tokens)
 
 Personality modifiers:
 - Proud NPCs always attempt position 1
@@ -121,7 +121,7 @@ Personality modifiers:
 - Multiple NPCs can provide same permit through different means
 
 **Access Permit Sources**:
-- Goal cards from high-token relationships
+- Request cards from high-token relationships
 - Exchange cards from merchants (coin cost)
 - Observation rewards from NPCs
 - Location discoveries
@@ -137,15 +137,15 @@ Personality modifiers:
 **Building Your Deck** (1 attention at locations):
 - Different observations available each time period
 - Creates observation cards with unique effects
-- Weight 1, persistent, 85% success (Very Easy)
+- Focus 1, persistent, 85% success (Very Easy)
 - Expire after 24-48 hours
 - Maximum 20 cards in deck
 - Represent temporal knowledge
 
 **Unique Observation Effects**:
 - **Atmosphere Setters**: Informed, Exposed, Synchronized, Pressured
-- **Cost Bypasses**: Next action free, next SPEAK costs 0 weight
-- **Unique Manipulations**: Reset comfort to 0, refresh weight pool
+- **Cost Bypasses**: Next action free, next SPEAK costs 0 focus
+- **Unique Manipulations**: Reset flow to 0, refresh focus
 
 **Observation Sources**:
 - Location observations (spend attention)
@@ -157,7 +157,7 @@ Personality modifiers:
 Use conversation mechanics with special decks:
 - **Bandits**: Violence deck, combat resolution
 - **Guards**: Inspection deck, authority check
-- **Merchants**: Road trade deck, exchange opportunity
+- **Merchants**: Road trade deck, exchange opening
 
 Success allows passage, failure costs resources.
 
@@ -182,7 +182,7 @@ Tokens serve multiple purposes through different mechanics:
   - Commerce tokens only boost Commerce-type cards
   - Status tokens only boost Status-type cards
   - Shadow tokens only boost Shadow-type cards
-- **For Negotiations**: Better terms when playing goal cards (matching types)
+- **For Negotiations**: Better terms when playing request cards (matching types)
 - **For Displacement**: Burn for queue flexibility (permanent cost)
 
 Tokens only gained through successful letter delivery:
@@ -212,7 +212,7 @@ Deadlines create cascading decisions:
 - Every letter accepted adds obligation
 - Poor negotiation (low tokens) forces bad queue positions
 - Multiple letters compete for position 1
-- Weight management affects ability to reach goal cards
+- Focus management affects ability to reach request cards
 
 **Queue creates Travel pressure**:
 - Obligations scattered across city
@@ -221,7 +221,7 @@ Deadlines create cascading decisions:
 - Time-fixed meetings cannot be displaced
 
 **Travel creates Conversation pressure**:
-- Access permits require successful goal card plays
+- Access permits require successful request card plays
 - Travel time reduces deadline margins
 - Encounters can damage resources
 - Observations cost attention that could fund conversations
@@ -229,7 +229,7 @@ Deadlines create cascading decisions:
 ### How Loops Solve Each Other's Problems
 
 **Conversations solve Travel problems**:
-- Goal cards provide access permits
+- Request cards provide access permits
 - Successful deliveries reward observation cards
 - Built relationships unlock permit opportunities
 - Atmosphere effects can overcome obstacles
@@ -249,21 +249,21 @@ Deadlines create cascading decisions:
 ## Strategic Layer Emergence
 
 ### Short-term Tactics
-- Managing weight pool across multiple SPEAK actions
-- Timing fleeting cards before they're discarded
+- Managing focus across multiple SPEAK actions
+- Timing impulse cards before they're discarded
 - Setting beneficial atmosphere before critical plays
-- Whether to accept current goal card terms
+- Whether to accept current request card terms
 - Which observation to make now
 - Whether to displace queue position
-- Managing comfort to avoid unwanted transitions
+- Managing flow to avoid unwanted transitions
 
 ### Medium-term Planning
-- Building toward states with sufficient weight capacity
+- Building toward states with sufficient focus capacity
 - Managing queue to chain obligations
 - Accumulating permits for route access
 - Timing observations for conversation advantages
 - Setting up atmosphere chains for maximum effect
-- Planning multi-SPEAK sequences with weight pool
+- Planning multi-SPEAK sequences with focus
 
 ### Long-term Strategy
 - **Which NPCs to focus deliveries on for specific token types**
@@ -285,8 +285,8 @@ Deadlines create cascading decisions:
 Each loop provides escape valves:
 
 **Conversation deadlocks**:
-- Weight 1 cards always playable with minimum capacity (3)
-- Can LISTEN to refresh weight pool
+- Focus 1 cards always playable with minimum capacity (3)
+- Can LISTEN to refresh focus
 - Can leave and return later
 - Patient atmosphere removes patience cost
 - Observation cards provide unique solutions
@@ -308,9 +308,9 @@ Each loop provides escape valves:
 New NPCs simply need:
 - Personality type (determines patience and token burning)
 - Deck composition (20 cards following template)
-- Goal deck (available conversation types)
+- Request deck (available conversation types)
 - Exchange deck (if mercantile)
-- Token scaling focus for comfort cards
+- Token scaling focus for flow cards
 
 ### Adding Locations
 New locations simply need:
@@ -322,27 +322,27 @@ New locations simply need:
 ### Adding Cards
 New cards must:
 - Have exactly ONE effect (fixed or scaling, never both)
-- Fit within weight system (0-6)
+- Fit within focus system (0-6)
 - Use difficulty tiers (Very Easy to Very Hard)
 - Atmosphere changes on ~30% of cards
-- Follow persistence rules (75% persistent, 25% fleeting)
+- Follow persistence rules (75% persistent, 25% impulse)
 
 ## The Holistic Experience
 
 The player experiences:
 
-**Morning**: Check queue, plan route to chain obligations efficiently, refresh weight pools
+**Morning**: Check queue, plan route to chain obligations efficiently, refresh focuss
 
 **Travel**: Navigate using permits, add observations to player deck
 
-**Conversations**: Manage weight pools, build atmosphere chains, navigate comfort battery
+**Conversations**: Manage focuss, build atmosphere chains, navigate flow battery
 
 **Afternoon**: Work for resources or rush to meet deadlines
 
 **Evening**: Complete deliveries, gain tokens, see deck evolution results
 
 Each session creates unique stories through mechanical interaction:
-- Elena desperate about forced marriage (3 weight capacity, scaled comfort with Trust)
+- Elena desperate about forced marriage (3 focus capacity, scaled flow with Trust)
 - Marcus calculating profit margins (Commerce scaling, exchange opportunities)  
 - Guard Captain suspicious of bribes (Shadow requirements, Volatile atmosphere)
 
@@ -352,7 +352,7 @@ These emerge from mechanical state, not scripted events.
 
 The three loops create a complete game where:
 
-1. **Conversations** provide puzzle challenge through weight pool management, comfort battery navigation, atmosphere manipulation, and token-type matching (Trust tokens only help Trust cards, etc.)
+1. **Conversations** provide puzzle challenge through focus management, flow battery navigation, atmosphere manipulation, and token-type matching (Trust tokens only help Trust cards, etc.)
 2. **Queue** provides time pressure through forced sequential completion and token-burning displacement
 3. **Travel** provides exploration through observation effects and permit-locked routes
 
@@ -361,6 +361,6 @@ Each loop uses different mechanics that operate on shared resources:
 - Only gained through delivery success, creating specialization arcs
 - Time pressure affects all three but manifests differently
 - Attention enables all three but must be allocated strategically
-- Weight pools create multi-turn tactical planning unique to conversations
+- Focuss create multi-turn tactical planning unique to conversations
 
 The elegance is that no mechanic serves two purposes, yet resources flow through multiple systems creating strategic depth from simple rules. Token-type matching forces players to specialize their relationships rather than building generic power. The game is the intersection, not the individual loops.

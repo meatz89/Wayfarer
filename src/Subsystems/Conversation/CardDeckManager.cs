@@ -4,23 +4,23 @@ using System.Linq;
 
 /// <summary>
 /// Manages all card deck operations for the new conversation system.
-/// Handles single-card SPEAK mechanics, weight pool management, and dice roll success.
+/// Handles single-card SPEAK mechanics, focus management, and dice roll success.
 /// </summary>
 public class CardDeckManager
 {
     private readonly GameWorld _gameWorld;
     private readonly Random _random;
     private readonly CardEffectProcessor _effectProcessor;
-    private readonly WeightPoolManager _weightPoolManager;
+    private readonly FocusManager _focusManager;
     private readonly AtmosphereManager _atmosphereManager;
     private readonly List<CardInstance> _exhaustedPile = new();
 
     public CardDeckManager(GameWorld gameWorld, CardEffectProcessor effectProcessor,
-        WeightPoolManager weightPoolManager, AtmosphereManager atmosphereManager)
+        FocusManager focusManager, AtmosphereManager atmosphereManager)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _effectProcessor = effectProcessor ?? throw new ArgumentNullException(nameof(effectProcessor));
-        _weightPoolManager = weightPoolManager ?? throw new ArgumentNullException(nameof(weightPoolManager));
+        _focusManager = focusManager ?? throw new ArgumentNullException(nameof(focusManager));
         _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
         _random = new Random();
     }
@@ -54,13 +54,13 @@ public class CardDeckManager
             }
         }
 
-        // Add goal cards based on conversation type
+        // Add request cards based on conversation type
         if (conversationType == ConversationType.Promise || conversationType == ConversationType.Resolution)
         {
-            CardInstance goalCard = SelectValidGoalCard(npc, conversationType);
-            if (goalCard != null)
+            CardInstance requestCard = SelectValidRequestCard(npc, conversationType);
+            if (requestCard != null)
             {
-                deck.AddCard(goalCard);
+                deck.AddCard(requestCard);
             }
         }
 
@@ -76,15 +76,15 @@ public class CardDeckManager
     }
 
     /// <summary>
-    /// Play a single card with dice roll and weight management
+    /// Play a single card with dice roll and focus management
     /// </summary>
     public CardPlayResult PlayCard(ConversationSession session, CardInstance selectedCard)
     {
-        // Check for free weight from observation effect
-        int weightCost = _atmosphereManager.IsNextSpeakFree() ? 0 : selectedCard.Weight;
+        // Check for free focus from observation effect
+        int focusCost = _atmosphereManager.IsNextSpeakFree() ? 0 : selectedCard.Focus;
         
-        // Validate weight availability
-        if (!_weightPoolManager.CanAffordCard(weightCost))
+        // Validate focus availability
+        if (!_focusManager.CanAffordCard(focusCost))
         {
             return new CardPlayResult
             {
@@ -94,12 +94,12 @@ public class CardDeckManager
                     {
                         Card = selectedCard,
                         Success = false,
-                        Comfort = 0,
+                        Flow = 0,
                         Roll = 0,
                         SuccessChance = 0
                     }
                 },
-                TotalComfort = 0
+                TotalFlow = 0
             };
         }
 
@@ -111,17 +111,17 @@ public class CardDeckManager
         bool success = _effectProcessor.RollForSuccess(successPercentage);
         int roll = _random.Next(1, 101);
 
-        // Spend weight (possibly 0 if free) - weight represents effort of speaking
-        _weightPoolManager.SpendWeight(weightCost);
+        // Spend focus (possibly 0 if free) - focus represents effort of speaking
+        _focusManager.SpendFocus(focusCost);
 
         CardEffectResult effectResult = null;
-        int comfortChange = 0;
+        int flowChange = 0;
 
         if (success)
         {
             // Process card's success effect
             effectResult = _effectProcessor.ProcessSuccessEffect(card, session);
-            comfortChange = effectResult.ComfortChange;
+            flowChange = effectResult.FlowChange;
 
             // Add drawn cards to hand
             if (effectResult.CardsToAdd.Any())
@@ -142,7 +142,7 @@ public class CardDeckManager
         {
             // Process card's failure effect
             effectResult = _effectProcessor.ProcessFailureEffect(card, session);
-            comfortChange = effectResult.ComfortChange;
+            flowChange = effectResult.FlowChange;
             
             // Clear atmosphere on failure
             _atmosphereManager.ClearAtmosphereOnFailure();
@@ -158,8 +158,8 @@ public class CardDeckManager
         session.Hand.RemoveCard(selectedCard);
         session.PlayedCards.Add(selectedCard);
         
-        // Remove fleeting cards from hand after SPEAK, executing exhaust effects
-        bool conversationContinues = RemoveFleetingCardsFromHand(session);
+        // Remove impulse cards from hand after SPEAK, executing exhaust effects
+        bool conversationContinues = RemoveImpulseCardsFromHand(session);
 
         CardPlayResult result = new CardPlayResult
         {
@@ -169,12 +169,12 @@ public class CardDeckManager
                 {
                     Card = selectedCard,
                     Success = success,
-                    Comfort = comfortChange,
+                    Flow = flowChange,
                     Roll = roll,
                     SuccessChance = successPercentage
                 }
             },
-            TotalComfort = comfortChange
+            TotalFlow = flowChange
         };
 
         // Handle exhaust ending conversation
@@ -187,19 +187,19 @@ public class CardDeckManager
     }
 
     /// <summary>
-    /// Execute LISTEN action - refresh weight pool, draw cards, and exhaust opportunity cards
+    /// Execute LISTEN action - refresh focus, draw cards, and exhaust opening cards
     /// </summary>
     public List<CardInstance> ExecuteListen(ConversationSession session)
     {
-        // First, exhaust all Opportunity cards in hand
-        if (!ExhaustOpportunityCards(session))
+        // First, exhaust all Opening cards in hand
+        if (!ExhaustOpeningCards(session))
         {
             // Exhaust effect ended conversation
             return new List<CardInstance>();
         }
 
-        // Refresh weight pool
-        _weightPoolManager.RefreshPool();
+        // Refresh focus
+        _focusManager.RefreshPool();
 
         // Calculate draw count based on state and atmosphere
         int drawCount = session.GetDrawCount();
@@ -214,15 +214,15 @@ public class CardDeckManager
     }
 
     /// <summary>
-    /// Remove all fleeting cards from hand (happens after every SPEAK)
+    /// Remove all impulse cards from hand (happens after every SPEAK)
     /// Executes exhaust effects before removing cards
     /// </summary>
-    private bool RemoveFleetingCardsFromHand(ConversationSession session)
+    private bool RemoveImpulseCardsFromHand(ConversationSession session)
     {
-        // Get all fleeting cards (including goals with both Fleeting + Opportunity)
-        List<CardInstance> fleetingCards = session.Hand.Cards.Where(c => c.Properties.Contains(CardProperty.Fleeting)).ToList();
+        // Get all impulse cards (including requests with both Impulse + Opening)
+        List<CardInstance> impulseCards = session.Hand.Cards.Where(c => c.Properties.Contains(CardProperty.Impulse)).ToList();
         
-        foreach (var card in fleetingCards)
+        foreach (var card in impulseCards)
         {
             var conversationCard = ConvertToNewCard(card);
             
@@ -245,16 +245,16 @@ public class CardDeckManager
     }
 
     /// <summary>
-    /// Exhaust all opportunity cards in hand (happens on LISTEN)
+    /// Exhaust all opening cards in hand (happens on LISTEN)
     /// </summary>
-    private bool ExhaustOpportunityCards(ConversationSession session)
+    private bool ExhaustOpeningCards(ConversationSession session)
     {
-        // Get all opportunity cards (including goals with both Fleeting + Opportunity)
-        List<CardInstance> opportunityCards = session.Hand.Cards
-            .Where(c => IsOpportunityCard(c))
+        // Get all opening cards (including requests with both Impulse + Opening)
+        List<CardInstance> openingCards = session.Hand.Cards
+            .Where(c => IsOpeningCard(c))
             .ToList();
         
-        foreach (var card in opportunityCards)
+        foreach (var card in openingCards)
         {
             var conversationCard = ConvertToNewCard(card);
             
@@ -277,12 +277,12 @@ public class CardDeckManager
     }
 
     /// <summary>
-    /// Check if a card has the Opportunity property
+    /// Check if a card has the Opening property
     /// </summary>
-    private bool IsOpportunityCard(CardInstance card)
+    private bool IsOpeningCard(CardInstance card)
     {
         var conversationCard = ConvertToNewCard(card);
-        return conversationCard.IsOpportunity;
+        return conversationCard.IsOpening;
     }
 
     /// <summary>
@@ -296,7 +296,7 @@ public class CardDeckManager
         switch (card.ExhaustEffect.Type)
         {
             case CardEffectType.EndConversation:
-                // Goal cards typically have this - conversation ends in failure
+                // Request cards typically have this - conversation ends in failure
                 // The orchestrator will handle the actual ending
                 return false; // Signal conversation should end
 
@@ -315,18 +315,18 @@ public class CardDeckManager
                 }
                 return true;
 
-            case CardEffectType.AddComfort:
-                if (int.TryParse(card.ExhaustEffect.Value, out int comfort))
+            case CardEffectType.AddFlow:
+                if (int.TryParse(card.ExhaustEffect.Value, out int flow))
                 {
-                    session.ComfortBattery += comfort;
-                    session.ComfortBattery = Math.Clamp(session.ComfortBattery, -3, 3);
+                    session.FlowBattery += flow;
+                    session.FlowBattery = Math.Clamp(session.FlowBattery, -3, 3);
                 }
                 return true;
 
-            case CardEffectType.AddWeight:
-                if (int.TryParse(card.ExhaustEffect.Value, out int weight))
+            case CardEffectType.AddFocus:
+                if (int.TryParse(card.ExhaustEffect.Value, out int focus))
                 {
-                    _weightPoolManager.AddWeight(weight);
+                    _focusManager.AddFocus(focus);
                 }
                 return true;
 
@@ -346,41 +346,41 @@ public class CardDeckManager
     }
 
     /// <summary>
-    /// Validate if a card can be played (only weight check now)
+    /// Validate if a card can be played (only focus check now)
     /// </summary>
     public bool CanPlayCard(CardInstance card, ConversationSession session)
     {
-        // Only check weight availability - no state restrictions
-        return _weightPoolManager.CanAffordCard(card.Weight);
+        // Only check focus availability - no state restrictions
+        return _focusManager.CanAffordCard(card.Focus);
     }
 
     /// <summary>
-    /// Select a valid goal card for conversation type
+    /// Select a valid request card for conversation type
     /// </summary>
-    private CardInstance SelectValidGoalCard(NPC npc, ConversationType conversationType)
+    private CardInstance SelectValidRequestCard(NPC npc, ConversationType conversationType)
     {
-        if (npc.GoalDeck == null || !npc.GoalDeck.HasCardsAvailable())
+        if (npc.RequestDeck == null || !npc.RequestDeck.HasCardsAvailable())
             return null;
 
-        List<ConversationCard> goalCards = npc.GoalDeck.GetAllCards()
-            .Where(card => IsGoalCardValidForConversation(card, conversationType))
+        List<ConversationCard> requestCards = npc.RequestDeck.GetAllCards()
+            .Where(card => IsRequestCardValidForConversation(card, conversationType))
             .ToList();
 
-        if (!goalCards.Any())
+        if (!requestCards.Any())
             return null;
 
-        ConversationCard selectedGoal = goalCards[_random.Next(goalCards.Count)];
-        return new CardInstance(selectedGoal, npc.ID);
+        ConversationCard selectedRequest = requestCards[_random.Next(requestCards.Count)];
+        return new CardInstance(selectedRequest, npc.ID);
     }
 
     /// <summary>
-    /// Check if goal card is valid for conversation type
+    /// Check if request card is valid for conversation type
     /// </summary>
-    private bool IsGoalCardValidForConversation(ConversationCard card, ConversationType type)
+    private bool IsRequestCardValidForConversation(ConversationCard card, ConversationType type)
     {
-        // Implementation depends on how goal cards are categorized
-        // For now, allow all goal cards in any conversation
-        return card.IsGoal;
+        // Implementation depends on how request cards are categorized
+        // For now, allow all request cards in any conversation
+        return card.IsRequest;
     }
 
     /// <summary>
@@ -397,7 +397,7 @@ public class CardDeckManager
             Description = instance.Description,
             Properties = new List<CardProperty>(instance.Properties),
             TokenType = instance.TokenType,
-            Weight = instance.Weight,
+            Focus = instance.Focus,
             Difficulty = instance.Difficulty,
             SuccessEffect = instance.SuccessEffect ?? CardEffect.None,
             FailureEffect = instance.FailureEffect ?? CardEffect.None,
@@ -406,16 +406,16 @@ public class CardDeckManager
             VerbPhrase = instance.VerbPhrase
         };
         
-        // Ensure goal cards have proper exhaust effect
-        if (card.IsGoal && (card.ExhaustEffect == null || card.ExhaustEffect.Type == CardEffectType.None))
+        // Ensure request cards have proper exhaust effect
+        if (card.IsRequest && (card.ExhaustEffect == null || card.ExhaustEffect.Type == CardEffectType.None))
         {
             card.ExhaustEffect = new CardEffect
             {
                 Type = CardEffectType.EndConversation,
-                Value = "goal_exhausted",
+                Value = "request_exhausted",
                 Data = new Dictionary<string, object>
                 {
-                    { "reason", "Goal card exhausted without being played" }
+                    { "reason", "Request card exhausted without being played" }
                 }
             };
         }
@@ -489,10 +489,10 @@ public class CardDeckManager
             Id = cardId,
             Name = "Unknown Card",
             Description = "Placeholder card",
-            Weight = 1,
+            Focus = 1,
             Difficulty = Difficulty.Medium,
             TokenType = TokenType.Trust,
-            SuccessEffect = new CardEffect { Type = CardEffectType.AddComfort, Value = "1" },
+            SuccessEffect = new CardEffect { Type = CardEffectType.AddFlow, Value = "1" },
             FailureEffect = CardEffect.None,
             ExhaustEffect = CardEffect.None
         };

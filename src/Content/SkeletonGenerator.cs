@@ -64,7 +64,7 @@ public static class SkeletonGenerator
         
         // Initialize card decks (required for NPC to function)
         npc.ConversationDeck = new CardDeck();
-        npc.GoalDeck = new CardDeck();
+        npc.RequestDeck = new CardDeck();
         npc.ExchangeDeck = new CardDeck();
         
         // Add a default service based on profession
@@ -144,7 +144,7 @@ public static class SkeletonGenerator
             
             // Random but deterministic mechanical values
             Tier = 1 + (hash % 3), // Tier 1-3
-            ComfortModifier = -1 + (hash % 3), // -1 to +1
+            FlowModifier = -1 + (hash % 3), // -1 to +1
             PlayerKnowledge = false,
             
             // Add some random spot properties
@@ -186,7 +186,7 @@ public static class SkeletonGenerator
             
             // Random but deterministic mechanical values
             TokenType = tokenTypes[hash % tokenTypes.Length],
-            Weight = 1 + (hash % 3),
+            Focus = 1 + (hash % 3),
             Difficulty = (Difficulty)(hash % 3), // Easy, Medium, or Hard
             
             // Generic dialogue
