@@ -31,6 +31,12 @@ public class ExchangeHandler
     public bool ExecuteExchange(ExchangeData exchange, NPC npc, Player player, PlayerResourceState playerResources)
     {
         Console.WriteLine($"[ExchangeHandler] Executing exchange: {exchange?.ExchangeName ?? "NULL"}");
+        if (exchange != null)
+        {
+            Console.WriteLine($"[ExchangeHandler] Exchange Cost: {string.Join(", ", exchange.Cost.Select(c => $"{c.Key}={c.Value}"))}");
+            Console.WriteLine($"[ExchangeHandler] Exchange Reward: {string.Join(", ", exchange.Reward.Select(r => $"{r.Key}={r.Value}"))}");
+            Console.WriteLine($"[ExchangeHandler] Player Resources: Coins={playerResources.Coins}, Health={playerResources.Health}");
+        }
 
         if (exchange == null)
         {
@@ -41,6 +47,7 @@ public class ExchangeHandler
         // Validate player can afford
         if (!CanAffordExchange(exchange, playerResources))
         {
+            Console.WriteLine($"[ExchangeHandler] Player cannot afford exchange");
             _messageSystem.AddSystemMessage("You don't have enough resources for this exchange", SystemMessageTypes.Warning);
             return false;
         }
@@ -311,6 +318,13 @@ public class ExchangeHandler
         {
             return card.SuccessEffect.ExchangeData;
         }
+        
+        // Return empty data if no exchange data found
+        return new ExchangeData
+        {
+            Cost = new Dictionary<ResourceType, int>(),
+            Reward = new Dictionary<ResourceType, int>()
+        };
     }
 }
 
