@@ -27,6 +27,12 @@ public class CardEffect
     public Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
     
     /// <summary>
+    /// Strongly typed exchange data for Exchange effects.
+    /// Populated by the parser when Type is Exchange.
+    /// </summary>
+    public ExchangeData ExchangeData { get; set; }
+    
+    /// <summary>
     /// Helper to check if this effect is empty/none
     /// </summary>
     public bool IsEmpty => Type == CardEffectType.None || string.IsNullOrEmpty(Value);

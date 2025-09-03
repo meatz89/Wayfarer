@@ -188,11 +188,81 @@ public static class ConversationCardParser
         if (!Enum.TryParse<CardEffectType>(dto.Type, true, out CardEffectType effectType))
             return null;
             
-        return new CardEffect
+        var effect = new CardEffect
         {
             Type = effectType,
             Value = dto.Value,
             Data = dto.Data
+        };
+        
+        // Parse Exchange effect data into strongly typed ExchangeData
+        if (effectType == CardEffectType.Exchange && dto.Data != null)
+        {
+            var exchangeData = new ExchangeData
+            {
+                Cost = new Dictionary<ResourceType, int>(),
+                Reward = new Dictionary<ResourceType, int>()
+            };
+            
+            // Parse cost data
+            if (dto.Data.TryGetValue("cost", out object costObj))
+            {
+                if (costObj is System.Text.Json.JsonElement costElement)
+                {
+                    foreach (var prop in costElement.EnumerateObject())
+                    {
+                        if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number)
+                        {
+                            int amount = prop.Value.GetInt32();
+                            ResourceType? resourceType = ParseResourceType(prop.Name);
+                            if (resourceType.HasValue)
+                            {
+                                exchangeData.Cost[resourceType.Value] = amount;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Parse reward data
+            if (dto.Data.TryGetValue("reward", out object rewardObj))
+            {
+                if (rewardObj is System.Text.Json.JsonElement rewardElement)
+                {
+                    foreach (var prop in rewardElement.EnumerateObject())
+                    {
+                        if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number)
+                        {
+                            int amount = prop.Value.GetInt32();
+                            ResourceType? resourceType = ParseResourceType(prop.Name);
+                            if (resourceType.HasValue)
+                            {
+                                exchangeData.Reward[resourceType.Value] = amount;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            effect.ExchangeData = exchangeData;
+        }
+        
+        return effect;
+    }
+    
+    /// <summary>
+    /// Parse resource type from string
+    /// </summary>
+    private static ResourceType? ParseResourceType(string name)
+    {
+        return name.ToLower() switch
+        {
+            "coins" => ResourceType.Coins,
+            "health" => ResourceType.Health,
+            "food" => ResourceType.Food,
+            "hunger" => ResourceType.Hunger,
+            "attention" => ResourceType.Attention,
+            _ => null
         };
     }
     
@@ -256,6 +326,10 @@ public class CardEffectDTO
     public string Type { get; set; }
     public string Value { get; set; }
     public Dictionary<string, object> Data { get; set; }
+    
+    // For Exchange effects specifically - populated during deserialization
+    public ExchangeCost Cost { get; set; }
+    public ExchangeReward Reward { get; set; }
 }
 
 /// <summary>

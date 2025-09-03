@@ -55,6 +55,15 @@
 - **NO string/ID matching** - NEVER check npc.ID == "elena". Use mechanical properties from JSON instead
 - **NO hardcoded templates** - NEVER create CardTemplates.CreateX() with hardcoded text
 
+**🚨 PARSER PRINCIPLES: PARSERS MUST PARSE, NOT PASS THROUGH 🚨**
+- **PARSERS MUST NEVER PASS THROUGH JsonElement OBJECTS** - This is a catastrophic failure of responsibility
+- **PARSERS MUST CONVERT JSON TO STRONGLY TYPED DOMAIN OBJECTS** - That's literally their only job
+- **NO Dictionary<string, object> FOR DOMAIN DATA** - Use proper typed properties on domain models
+- **System.Text.Json ARTIFACTS MUST NOT POLLUTE DOMAIN** - JsonElement is a parsing detail, not domain data
+- **PARSE AT THE BOUNDARY** - JSON deserialization types (DTOs) stay in the parser, domain gets clean objects
+- Example of WRONG: `CardEffect.Data = dto.Data` where Data contains JsonElement
+- Example of RIGHT: `CardEffect.ExchangeData = ParseExchangeData(dto.Data)` with proper types
+
 **CORRECT ARCHITECTURE PATTERN:**
 ```
 Initialization Phase:

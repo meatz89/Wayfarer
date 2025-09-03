@@ -66,5 +66,10 @@ public enum CardEffectType
     /// <summary>
     /// Next action costs 0 patience
     /// </summary>
-    FreeNextAction
+    FreeNextAction,
+    
+    /// <summary>
+    /// Exchange resources with NPC. Data contains cost and reward.
+    /// </summary>
+    Exchange
 }

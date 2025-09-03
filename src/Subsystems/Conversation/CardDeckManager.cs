@@ -438,66 +438,6 @@ public class CardDeckManager
     }
 
 
-    /// <summary>
-    /// Create exchange deck for commerce conversations
-    /// </summary>
-    public List<CardInstance> CreateExchangeDeck(NPC npc, List<string> domainTags)
-    {
-        List<CardInstance> exchangeCards = new List<CardInstance>();
-
-        if (npc.ExchangeDeck != null)
-        {
-            foreach (ConversationCard template in npc.ExchangeDeck.GetAllCards())
-            {
-                var cardInstance = new CardInstance(template, npc.ID);
-                
-                // If this is an exchange card, set up the Context with ExchangeData
-                if (cardInstance.Properties.Contains(CardProperty.Exchange) && 
-                    cardInstance.SuccessEffect?.Data != null)
-                {
-                    var context = new CardContext();
-                    var exchangeData = new ExchangeData();
-                    
-                    // Extract cost from SuccessEffect.Data
-                    if (cardInstance.SuccessEffect.Data.TryGetValue("cost", out object costObj) && 
-                        costObj is Dictionary<string, object> costDict)
-                    {
-                        exchangeData.Cost = new Dictionary<ResourceType, int>();
-                        foreach (var kvp in costDict)
-                        {
-                            if (Enum.TryParse<ResourceType>(kvp.Key, true, out var resourceType) && 
-                                kvp.Value is int amount)
-                            {
-                                exchangeData.Cost[resourceType] = amount;
-                            }
-                        }
-                    }
-                    
-                    // Extract reward from SuccessEffect.Data (or use SuccessEffect.Value)
-                    exchangeData.Reward = new Dictionary<ResourceType, int>();
-                    if (cardInstance.SuccessEffect.Data.TryGetValue("reward", out object rewardObj) && 
-                        rewardObj is Dictionary<string, object> rewardDict)
-                    {
-                        foreach (var kvp in rewardDict)
-                        {
-                            if (Enum.TryParse<ResourceType>(kvp.Key, true, out var resourceType) && 
-                                kvp.Value is int amount)
-                            {
-                                exchangeData.Reward[resourceType] = amount;
-                            }
-                        }
-                    }
-                    
-                    context.ExchangeData = exchangeData;
-                    cardInstance.Context = context;
-                }
-                
-                exchangeCards.Add(cardInstance);
-            }
-        }
-
-        return exchangeCards;
-    }
 
 
     /// <summary>
