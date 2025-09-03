@@ -33,7 +33,8 @@ Every card has:
 - **Weight**: 0-6, cost from weight pool
 - **Difficulty**: Very Easy (85%), Easy (70%), Medium (60%), Hard (50%), Very Hard (40%)
 - **Persistence**: Fleeting (25% of deck) or Persistent (75% of deck)
-- **Primary Effect**: ONE effect, either fixed or scaling
+- **Success Effect**: ONE effect, either fixed or scaling
+- **Failure Effect**: ONE effect
 - **Atmosphere Change** (Optional): ~30% of cards change atmosphere
 
 ## Card Generation System
