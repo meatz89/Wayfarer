@@ -45,19 +45,14 @@ Every card serves one of three strategic purposes:
 **Trade-off**: No immediate progress or setup
 **Risk**: Drawing cards you can't afford to play
 
-# Wayfarer Universal Starter Deck
 
 ## Deck Composition (12 cards)
-- **12 cards total**: Small enough to create consistency, large enough for variance
-- **No impulse/opening**: Early game focuses on fundamentals, not timing pressure
-- **All persistent**: Allows multi-turn planning and hand building
-- **Simple effects**: One clear purpose per card, no multi-layered complexity
 
 ### Safe Progress Cards (3 cards)
 **"I hear you"** (3 copies)
 - Focus: 1
 - Difficulty: Easy (70% base success)
-- Effect: +1 flow
+- Effect: +1 rapport
 - Persistence: Persistent
 - Purpose: Reliable progress, focus flexibility, combo filler
 
@@ -65,14 +60,14 @@ Every card serves one of three strategic purposes:
 **"Let me think"** (1 copy)
 - Focus: 1
 - Difficulty: Easy (70% base success)
-- Effect: No flow, sets Patient atmosphere
+- Effect: No rapport, sets Patient atmosphere
 - Persistence: Persistent
 - Purpose: Saves patience for longer conversations
 
 **"Let me prepare"** (1 copy)
 - Focus: 1
 - Difficulty: Easy (70% base success)
-- Effect: No flow, sets Prepared atmosphere
+- Effect: No rapport, sets Prepared atmosphere
 - Persistence: Persistent
 - Purpose: Enables higher focus plays next turn
 
@@ -80,7 +75,7 @@ Every card serves one of three strategic purposes:
 **"How can I assist?"** (2 copies)
 - Focus: 2
 - Difficulty: Medium (60% base success)
-- Effect: +2 flow on success, -1 flow on failure
+- Effect: +2 rapport on success, -1 rapport on failure
 - Persistence: Persistent
 - Purpose: Efficient progress with genuine risk
 
@@ -96,14 +91,14 @@ Every card serves one of three strategic purposes:
 **"I'm here for you"** (1 copy)
 - Focus: 3
 - Difficulty: Easy (70% base success)
-- Effect: +3 flow
+- Effect: +3 rapport
 - Persistence: Persistent
 - Purpose: Efficient safe play at full focus
 
 **"We'll figure this out"** (1 copy)
 - Focus: 3
 - Difficulty: Hard (50% base success)
-- Effect: +X flow where X = patience ÷ 3
+- Effect: +X rapport where X = patience ÷ 3
 - Persistence: Persistent
 - Purpose: Scaling reward for early play
 
@@ -111,7 +106,7 @@ Every card serves one of three strategic purposes:
 **"Everything will be alright"** (1 copy)
 - Focus: 4
 - Difficulty: Hard (50% base success)
-- Effect: +4 flow
+- Effect: +4 rapport
 - Persistence: Persistent
 - Purpose: Prepared atmosphere payoff in Desperate state
 
@@ -126,7 +121,7 @@ Request cards are placed directly in hand at conversation start based on convers
 - Effect: Creates delivery obligation
 - Success Terms: 4hr deadline, position 3, 10 coins
 - Failure Terms: 1hr deadline, position 1, 5 coins
-- Persistence: Impulse AND Opening (must play immediately when able)
+- Persistence: Impulse AND Opportunity (must play immediately when able)
 - On Exhaust: Conversation ends in failure
 - Purpose: Win condition requiring state progression
 
@@ -144,7 +139,7 @@ Request cards are placed directly in hand at conversation start based on convers
 - Base capacity determined by emotional state (Desperate=3, Tense=4, Neutral=5, Open=5, Connected=6)
 - Pool persists across multiple SPEAK actions
 - LISTEN refreshes focus to emotional state maximum
-- Prepared atmosphere adds +1 to CURRENT focus
+- Prepared atmosphere adds +1 to CURRENT focus pool
 - Can exceed maximum with Prepared (e.g., 4/3 in Desperate)
 - If atmosphere clears, bonus vanishes immediately
 
@@ -159,9 +154,9 @@ Request cards are placed directly in hand at conversation start based on convers
 ### LISTEN Action
 1. Costs 1 patience (unless Patient atmosphere active)
 2. Draw cards equal to emotional state
-3. Refresh focus to emotional state maximum
+3. Refresh focus pool to emotional state maximum
 4. If Prepared active, gain +1 to current focus
-5. Opening cards removed if unplayed
+5. Opportunity cards removed if unplayed
 
 ### Atmosphere Mechanics
 - Changes when card succeeds
@@ -174,7 +169,6 @@ Request cards are placed directly in hand at conversation start based on convers
 - Range: -3 to +3
 - At +3: State shifts right, flow resets to 0
 - At -3: State shifts left, flow resets to 0
-- Excess flow is lost (no banking)
 - Desperate at -3: Conversation ends immediately
 
 ### Deck Cycling
@@ -201,21 +195,21 @@ Drawing 1 card + request:
 
 **Prepared Rush** (5 turns minimum):
 1. Turn 1: Play "Let me prepare" (1 focus)
-2. Turn 2: Prepared active, play flow to build +3
+2. Turn 2: Prepared active, play rapport to build +3
 3. Turn 3: Reach Tense state
 4. Turn 4: LISTEN with Prepared (5/4 focus)
 5. Turn 5: Play request card (45% success)
 
 **Safe Progression** (7 turns typical):
-1. Turns 1-3: Build +3 flow to reach Tense
-2. Turns 4-6: Build +3 more flow to reach Neutral
+1. Turns 1-3: Build +3 rapport to reach Tense
+2. Turns 4-6: Build +3 more rapport to reach Neutral
 3. Turn 7: Play request card at 5/5 focus
 
 ### Critical Decision Points
 
-**Turn 1 with Prepared in Hand**: Playing it immediately enables the 4-focus card and faster request access, but delays flow progress.
+**Turn 1 with Prepared in Hand**: Playing it immediately enables the 4-focus card and faster request access, but delays rapport progress.
 
-**Risk Management at Low Flow**: "How can I assist?" can push to -1 flow on failure. At -1 or -2, avoid risk cards.
+**Risk Management at Low Rapport**: "How can I assist?" can push to -1 rapport on failure. At -1 or -2, avoid risk cards.
 
 **Focus Efficiency Choices**: With 3/3 focus, playing one 3-focus card wastes nothing, but 2+1 gives more actions.
 
@@ -228,7 +222,7 @@ Drawing 1 card + request:
 **Average Turns to Request**: 6-8 turns (uses 5-7 patience of 15 available)
 
 **Failure Modes**:
-- 23% flow collapse (too many failed risks)
+- 23% rapport collapse (too many failed risks)
 - 7% patience exhaustion (inefficient play)
 - 5% request card never drawn (bottom of deck)
 
