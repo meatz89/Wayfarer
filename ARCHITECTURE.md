@@ -51,10 +51,6 @@
 │   │   └── [60+ other state classes]
 │   │
 │   ├── Models/
-│   │   ├── DialogueGeneration/
-│   │   ├── Ledger/
-│   │   ├── Market/
-│   │   ├── ObservationSystem/
 │   │   ├── Package.cs                  # Content package model
 │   │
 │   ├── Pages/                          # Blazor UI components
