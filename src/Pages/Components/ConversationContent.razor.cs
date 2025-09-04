@@ -692,6 +692,9 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return false;
 
+            // Check if card is unplayable (e.g., request card without enough focus)
+            if (card.Properties.Contains(CardProperty.Unplayable)) return false;
+
             // Check if observation card is expired
             if (IsObservationExpired(card)) return false;
 
@@ -1539,14 +1542,31 @@ namespace Wayfarer.Pages.Components
         protected string GetSuccessChance(CardInstance card)
         {
             // Calculate success chance based on card type and state, including token bonuses
-            return GetBaseSuccessPercentage(card.Difficulty).ToString();
+            int baseChance = GetBaseSuccessPercentage(card.Difficulty);
+            
+            // Add rapport modifier (each point = 1% success modifier)
+            int rapportBonus = Session?.RapportManager?.GetSuccessModifier() ?? 0;
+            
+            // Add atmosphere modifier (Focused gives +20%)
+            int atmosphereBonus = ConversationFacade?.GetAtmosphereManager()?.GetSuccessPercentageBonus() ?? 0;
+            
+            // Calculate total, clamped to valid percentage range
+            int totalChance = Math.Max(0, Math.Min(100, baseChance + rapportBonus + atmosphereBonus));
+            
+            // For auto-success atmosphere, always show 100%
+            if (ConversationFacade?.GetAtmosphereManager()?.ShouldAutoSucceed() == true)
+            {
+                totalChance = 100;
+            }
+            
+            return totalChance.ToString();
         }
 
         protected string GetFailureChance(CardInstance card)
         {
             // Calculate failure chance (inverse of success)
-            int success = GetBaseSuccessPercentage(card.Difficulty);
-            return (100 - success).ToString();
+            int successChance = int.Parse(GetSuccessChance(card));
+            return (100 - successChance).ToString();
         }
 
         private string GetInitialDialogue()

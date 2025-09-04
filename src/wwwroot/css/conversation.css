@@ -261,7 +261,6 @@
 .atmosphere-final { 
     border-color: #8b0000;
     background: linear-gradient(135deg, #f5e6e6, #e6c8c8);
-    animation: pulse 2s infinite;
 }
 
 .atmosphere-informed { 
@@ -696,39 +695,6 @@
     margin-top: 10px;
 }
 
-/* === UTILITY ANIMATIONS === */
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.7;
-    }
-}
-
-@keyframes danger-flash {
-    0%, 100% { 
-        opacity: 1;
-        color: #ff0000;
-    }
-    50% { 
-        opacity: 0.5;
-        color: #ff6666;
-    }
-}
-
-@keyframes warning-pulse {
-    0%, 100% { 
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% { 
-        opacity: 0.7;
-        transform: scale(1.05);
-    }
-}
-
 /* === SPECIAL CARD TYPES === */
 
 .card.flow {
@@ -761,7 +727,6 @@
     border-radius: 3px;
     font-size: 11px;
     font-focus: bold;
-    animation: pulse 1s infinite;
 }
 
 /* === RESPONSIVE DESIGN === */

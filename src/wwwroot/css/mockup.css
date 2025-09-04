@@ -389,7 +389,6 @@ body * {
 .atmosphere-final { 
     border-color: #8b0000;
     background: linear-gradient(135deg, #f5e6e6, #e6c8c8);
-    animation: pulse 2s infinite;
 }
 .atmosphere-informed { 
     border-color: #ffd700;
@@ -406,12 +405,6 @@ body * {
 .atmosphere-pressured { 
     border-color: #b22222;
     background: linear-gradient(135deg, #f5e0e0, #e6c0c0);
-}
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.8; }
-    100% { opacity: 1; }
 }
 
 /* Section Headers */
@@ -1003,12 +996,6 @@ body * {
     color: #8b4726;
     font-style: italic;
     margin-left: 8px;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
 }
 
 /* Warning states */
@@ -1017,11 +1004,9 @@ body * {
     font-focus: bold;
     font-size: 12px;
     margin-top: 4px;
-    animation: warning-pulse 1s infinite;
 }
 
 .flow-transition-hint.danger {
-    color: #ff0000;
     font-focus: bold;
     animation: danger-flash 0.5s infinite;
 }
@@ -1033,21 +1018,9 @@ body * {
     text-align: center;
 }
 
-@keyframes warning-pulse {
-    0%, 100% { 
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% { 
-        opacity: 0.8;
-        transform: scale(1.05);
-    }
-}
-
 @keyframes danger-flash {
     0%, 100% { 
         opacity: 1;
-        color: #ff0000;
     }
     50% { 
         opacity: 0.6;
@@ -2400,13 +2373,7 @@ body * {
     right: 5px;
     font-size: 20px;
     color: #FF6B6B;
-    animation: impulse-pulse 2s infinite;
     z-index: 10;
-}
-
-@keyframes impulse-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
 }
 
 /* Unplayable cards - greyed out and not clickable */
@@ -2422,7 +2389,6 @@ body * {
 .card.card-request {
     border-color: #8B0000 ;
     background: linear-gradient(135deg, #FFF, #FFCCCC) ;
-    animation: urgent-pulse 1.5s ease-in-out infinite;
 }
 
 /* Card markers for impulse and requests */
@@ -2444,20 +2410,9 @@ body * {
     border-radius: 3px;
     font-size: 11px;
     font-focus: bold;
-    animation: urgent-pulse 1s infinite;
     display: inline-block;
 }
 
-@keyframes urgent-pulse {
-    0%, 100% { 
-        opacity: 1; 
-        transform: scale(1); 
-    }
-    50% { 
-        opacity: 0.8; 
-        transform: scale(1.05); 
-    }
-}
 
 /* Impulse indicator panel below cards */
 .impulse-indicator {
@@ -2496,7 +2451,6 @@ body * {
     align-items: center;
     color: #8B0000;
     font-focus: bold;
-    animation: urgent-pulse 1s infinite;
     font-size: 14px;
 }
 
@@ -2595,14 +2549,11 @@ body * {
 
 /* Request cards (both impulse AND opening) get critical styling */
 .card.has-impulse.has-opening {
-    border: 3px solid #ff0000 ;
     background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%) ;
-    animation: urgent-pulse 1.5s ease-in-out infinite;
 }
 
 /* Request warning banner */
 .request-warning {
-    background: #ff0000;
     color: white;
     padding: 4px 8px;
     text-align: center;
@@ -2765,24 +2716,12 @@ body * {
     border-radius: 4px;
     font-focus: bold;
     font-size: 12px;
-    animation: critical-pulse 1.5s infinite;
     border: 2px solid #8b4726;
     box-shadow: 0 4px 12px rgba(212, 112, 74, 0.4);
 }
 
 .critical-warning div {
     margin: 2px 0;
-}
-
-@keyframes critical-pulse {
-    0%, 100% { 
-        box-shadow: 0 4px 12px rgba(212, 112, 74, 0.4);
-        transform: scale(1);
-    }
-    50% { 
-        box-shadow: 0 6px 20px rgba(212, 112, 74, 0.6);
-        transform: scale(1.02);
-    }
 }
 
 .exhaust-list {
