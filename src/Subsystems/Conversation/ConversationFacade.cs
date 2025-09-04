@@ -638,4 +638,12 @@ public class ConversationFacade
         };
     }
 
+    /// <summary>
+    /// Get the atmosphere manager for accessing atmosphere state
+    /// </summary>
+    public AtmosphereManager GetAtmosphereManager()
+    {
+        return _atmosphereManager;
+    }
+
 }

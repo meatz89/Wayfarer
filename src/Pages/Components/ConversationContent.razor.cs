@@ -1569,6 +1569,44 @@ namespace Wayfarer.Pages.Components
             return (100 - successChance).ToString();
         }
 
+        protected string GetSuccessChanceBreakdown(CardInstance card)
+        {
+            // Show breakdown of success chance modifiers
+            int baseChance = GetBaseSuccessPercentage(card.Difficulty);
+            int rapportBonus = Session?.RapportManager?.GetSuccessModifier() ?? 0;
+            int atmosphereBonus = ConversationFacade?.GetAtmosphereManager()?.GetSuccessPercentageBonus() ?? 0;
+            
+            string breakdown = $"Base: {baseChance}%";
+            
+            if (rapportBonus != 0)
+            {
+                string rapportSign = rapportBonus > 0 ? "+" : "";
+                breakdown += $"\nRapport: {rapportSign}{rapportBonus}%";
+            }
+            
+            if (atmosphereBonus != 0)
+            {
+                breakdown += $"\nAtmosphere: +{atmosphereBonus}%";
+            }
+            
+            if (ConversationFacade?.GetAtmosphereManager()?.ShouldAutoSucceed() == true)
+            {
+                breakdown += "\nInformed: Auto-success!";
+            }
+            
+            return breakdown;
+        }
+        
+        protected int GetRapportModifier()
+        {
+            return Session?.RapportManager?.GetSuccessModifier() ?? 0;
+        }
+        
+        protected int GetAtmosphereModifier()
+        {
+            return ConversationFacade?.GetAtmosphereManager()?.GetSuccessPercentageBonus() ?? 0;
+        }
+
         private string GetInitialDialogue()
         {
             LoadSystemNarratives();

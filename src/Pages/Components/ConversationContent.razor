@@ -287,7 +287,23 @@
                         @* Two-column Success/Failure layout from mockup - INSIDE card-content *@
                         <div class="card-outcomes">
                             <div class="outcome success">
-                                <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
+                                <div class="outcome-chance" title="@GetSuccessChanceBreakdown(convCard)">
+                                    @GetSuccessChance(convCard)%
+                                    @if (GetRapportModifier() != 0 || GetAtmosphereModifier() != 0)
+                                    {
+                                        <div class="outcome-modifiers">
+                                            <span class="base-chance">Base: @GetBaseSuccessPercentage(convCard.Difficulty)%</span>
+                                            @if (GetRapportModifier() != 0)
+                                            {
+                                                <span class="rapport-modifier">@(GetRapportModifier() > 0 ? "+" : "")@GetRapportModifier()% rapport</span>
+                                            }
+                                            @if (GetAtmosphereModifier() != 0)
+                                            {
+                                                <span class="atmosphere-modifier">+@GetAtmosphereModifier()% atmosphere</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
                                 <div class="outcome-label">Success</div>
                                 <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
                             </div>

@@ -1538,6 +1538,29 @@ body * {
     margin-bottom: 4px;
 }
 
+.outcome-modifiers {
+    font-size: 11px;
+    color: #7a6250;
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.outcome-modifiers .base-chance {
+    color: #8a7060;
+}
+
+.outcome-modifiers .rapport-modifier {
+    color: #4a7c4a;
+    font-weight: bold;
+}
+
+.outcome-modifiers .atmosphere-modifier {
+    color: #6a5aca;
+    font-weight: bold;
+}
+
 .outcome-label {
     font-size: 9px;
     text-transform: uppercase;
