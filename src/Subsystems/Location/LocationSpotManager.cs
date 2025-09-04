@@ -180,7 +180,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             if (spot == null || location == null) return false;
 
             return spot.SpotID == location.TravelHubSpotId ||
-                   spot.DomainTags?.Contains("Crossroads") == true;
+                   spot.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true;
         }
 
         /// <summary>
@@ -252,7 +252,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
 
             // Then look for spots tagged as crossroads
             List<LocationSpot> spots = GetSpotsForLocation(locationId);
-            LocationSpot? crossroads = spots.FirstOrDefault(s => s.DomainTags?.Contains("Crossroads") == true);
+            LocationSpot? crossroads = spots.FirstOrDefault(s => s.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true);
             if (crossroads != null) return crossroads;
 
             // Finally, just return the first available spot

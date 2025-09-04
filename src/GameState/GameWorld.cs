@@ -164,15 +164,31 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Get domain tags from the current location spot
+    /// Get property names from the current location spot as strings (for legacy compatibility)
     /// </summary>
     public List<string> GetCurrentSpotDomainTags()
     {
         Player player = GetPlayer();
-        if (player?.CurrentLocationSpot?.DomainTags == null)
+        if (player?.CurrentLocationSpot?.SpotProperties == null)
             return new List<string>();
 
-        return new List<string>(player.CurrentLocationSpot.DomainTags);
+        // Convert enum values to strings for compatibility
+        return player.CurrentLocationSpot.SpotProperties.Select(p => p.ToString()).ToList();
+    }
+    
+    /// <summary>
+    /// Get a location spot by ID
+    /// </summary>
+    public LocationSpot GetSpot(string spotId)
+    {
+        // Search through all locations for the spot
+        foreach (var location in Locations)
+        {
+            var spot = location.Spots?.FirstOrDefault(s => s.SpotID == spotId);
+            if (spot != null)
+                return spot;
+        }
+        return null;
     }
 
 }

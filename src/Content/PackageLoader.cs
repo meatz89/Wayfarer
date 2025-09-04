@@ -585,18 +585,56 @@ public class PackageLoader
 
     private LocationAction ConvertLocationActionDTOToModel(LocationActionDTO dto)
     {
-        return new LocationAction
+        var action = new LocationAction
         {
             Id = dto.Id ?? "",
             Name = dto.Name ?? "",
             Description = dto.Description ?? "",
-            LocationId = dto.LocationId ?? "",
-            SpotIds = dto.SpotIds ?? new List<string>(),
             Cost = dto.Cost ?? new Dictionary<string, int>(),
             Reward = dto.Reward ?? new Dictionary<string, int>(),
             TimeRequired = dto.TimeRequired,
             Availability = dto.Availability ?? new List<string>(),
-            Icon = dto.Icon ?? "💼"
+            Icon = dto.Icon ?? "💼",
+            Priority = dto.Priority,
+            ActionType = dto.ActionType ?? ""
         };
+
+        // Parse required properties
+        if (dto.RequiredProperties != null)
+        {
+            foreach (var prop in dto.RequiredProperties)
+            {
+                if (Enum.TryParse<SpotPropertyType>(prop, true, out var propertyType))
+                {
+                    action.RequiredProperties.Add(propertyType);
+                }
+            }
+        }
+
+        // Parse optional properties
+        if (dto.OptionalProperties != null)
+        {
+            foreach (var prop in dto.OptionalProperties)
+            {
+                if (Enum.TryParse<SpotPropertyType>(prop, true, out var propertyType))
+                {
+                    action.OptionalProperties.Add(propertyType);
+                }
+            }
+        }
+
+        // Parse excluded properties
+        if (dto.ExcludedProperties != null)
+        {
+            foreach (var prop in dto.ExcludedProperties)
+            {
+                if (Enum.TryParse<SpotPropertyType>(prop, true, out var propertyType))
+                {
+                    action.ExcludedProperties.Add(propertyType);
+                }
+            }
+        }
+
+        return action;
     }
 }

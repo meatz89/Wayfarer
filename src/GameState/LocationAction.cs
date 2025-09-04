@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// Represents a location-specific action that players can take.
-/// Loaded from JSON data and used by LocationActionManager to provide dynamic actions.
+/// Uses property-based matching to dynamically determine availability at different spots.
 /// </summary>
 public class LocationAction
 {
@@ -22,14 +23,22 @@ public class LocationAction
     public string Description { get; set; } = "";
 
     /// <summary>
-    /// Location ID where this action is available
+    /// Required spot properties for this action to be available.
+    /// The spot must have ALL of these properties for the action to appear.
     /// </summary>
-    public string LocationId { get; set; } = "";
+    public List<SpotPropertyType> RequiredProperties { get; set; } = new List<SpotPropertyType>();
 
     /// <summary>
-    /// List of spot IDs where this action can be performed
+    /// Optional spot properties that enable this action.
+    /// The spot must have AT LEAST ONE of these properties (if specified).
     /// </summary>
-    public List<string> SpotIds { get; set; } = new List<string>();
+    public List<SpotPropertyType> OptionalProperties { get; set; } = new List<SpotPropertyType>();
+
+    /// <summary>
+    /// Properties that prevent this action from appearing.
+    /// If the spot has ANY of these properties, the action is unavailable.
+    /// </summary>
+    public List<SpotPropertyType> ExcludedProperties { get; set; } = new List<SpotPropertyType>();
 
     /// <summary>
     /// Resource costs required to perform this action (e.g., attention, coins)
@@ -55,4 +64,39 @@ public class LocationAction
     /// Icon to display for this action (optional)
     /// </summary>
     public string Icon { get; set; } = "💼";
+
+    /// <summary>
+    /// Priority for sorting when multiple actions match (lower = higher priority)
+    /// </summary>
+    public int Priority { get; set; } = 100;
+
+    /// <summary>
+    /// Action type for special handling (e.g., "travel", "work", "rest")
+    /// </summary>
+    public string ActionType { get; set; } = "";
+
+    /// <summary>
+    /// Check if this action matches a given spot's properties
+    /// </summary>
+    public bool MatchesSpot(LocationSpot spot, TimeBlocks currentTime)
+    {
+        if (spot == null) return false;
+
+        // Get all active properties for the current time
+        var activeProperties = spot.GetActiveProperties(currentTime);
+
+        // Check excluded properties first (fast rejection)
+        if (ExcludedProperties.Any() && activeProperties.Any(p => ExcludedProperties.Contains(p)))
+            return false;
+
+        // Check required properties (all must be present)
+        if (RequiredProperties.Any() && !RequiredProperties.All(p => activeProperties.Contains(p)))
+            return false;
+
+        // Check optional properties (at least one must be present if specified)
+        if (OptionalProperties.Any() && !OptionalProperties.Any(p => activeProperties.Contains(p)))
+            return false;
+
+        return true;
+    }
 }

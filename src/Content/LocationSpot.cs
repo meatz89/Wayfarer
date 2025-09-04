@@ -27,8 +27,6 @@ public class LocationSpot
     public string InitialState { get; set; }
     public bool PlayerKnowledge { get; set; }
 
-    public List<string> DomainTags { get; set; } = new List<string>();
-
     // Access Requirements for this spot
     public AccessRequirement AccessRequirement { get; set; }
 

@@ -63,18 +63,8 @@ public class ActionGenerator
         {
             actions.AddRange(GenerateSpotActions(spot, currentTime));
 
-            // Add Travel action if this is the location's hub spot
-            if (spot.SpotID == location.TravelHubSpotId)
-            {
-                TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
-                LocationActionViewModel travelAction = CreateActionWithTierCheck(
-                "🗺️", "Travel", "Leave for another district", "Various times",
-                TierLevel.T1, playerTier, "travel");
-                if (travelAction != null && !actions.Any(a => a.Title == "Travel"))
-                {
-                    actions.Add(travelAction);
-                }
-            }
+            // Travel action is now defined in JSON with Crossroads property requirement
+            // No need to hardcode it here - LocationActionManager will add it dynamically
         }
 
         // Generate location-level domain tag actions
@@ -171,12 +161,12 @@ public class ActionGenerator
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
-        // Generate actions based on spot's domain tags
-        if (spot.DomainTags != null)
+        // Generate actions based on spot's properties (converted to string for legacy compatibility)
+        if (spot.SpotProperties != null)
         {
-            foreach (string tag in spot.DomainTags)
+            foreach (SpotPropertyType prop in spot.SpotProperties)
             {
-                LocationActionViewModel action = GenerateTagAction(tag, spot);
+                LocationActionViewModel action = GenerateTagAction(prop.ToString(), spot);
                 if (action != null)
                     actions.Add(action);
             }

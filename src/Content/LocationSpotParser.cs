@@ -14,8 +14,7 @@ public static class LocationSpotParser
         LocationSpot spot = new LocationSpot(dto.Id, dto.Name)
         {
             InitialState = dto.InitialState ?? "",
-            LocationId = dto.LocationId ?? "",
-            DomainTags = dto.DomainTags ?? new List<string>()
+            LocationId = dto.LocationId ?? ""
         };
 
         // Parse time windows
@@ -107,8 +106,7 @@ public static class LocationSpotParser
         {
             // Description removed - generated from SpotPropertyType combinations
             InitialState = GetStringProperty(root, "initialState", ""),
-            LocationId = locationId,
-            DomainTags = GetStringArrayFromProperty(root, "domainTags"),
+            LocationId = locationId
         };
 
         // Parse time windows

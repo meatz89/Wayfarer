@@ -22,14 +22,19 @@ public class LocationActionDTO
     public string Description { get; set; }
 
     /// <summary>
-    /// Location ID where this action is available
+    /// Required spot properties (ALL must be present on the spot)
     /// </summary>
-    public string LocationId { get; set; }
+    public List<string> RequiredProperties { get; set; } = new List<string>();
 
     /// <summary>
-    /// List of spot IDs where this action can be performed
+    /// Optional spot properties (AT LEAST ONE must be present if specified)
     /// </summary>
-    public List<string> SpotIds { get; set; } = new List<string>();
+    public List<string> OptionalProperties { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Properties that prevent this action (if ANY are present, action is unavailable)
+    /// </summary>
+    public List<string> ExcludedProperties { get; set; } = new List<string>();
 
     /// <summary>
     /// Resource costs required to perform this action (e.g., attention, coins)
@@ -55,4 +60,14 @@ public class LocationActionDTO
     /// Icon to display for this action (optional)
     /// </summary>
     public string Icon { get; set; } = "💼";
+
+    /// <summary>
+    /// Priority for sorting when multiple actions match (lower = higher priority)
+    /// </summary>
+    public int Priority { get; set; } = 100;
+
+    /// <summary>
+    /// Action type for special handling (e.g., "travel", "work", "rest")
+    /// </summary>
+    public string ActionType { get; set; } = "";
 }

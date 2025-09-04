@@ -257,15 +257,27 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task NavigateToTravel()
+        protected async Task ExecuteLocationAction(LocationActionViewModel action)
         {
-            if (GameScreen != null)
+            Console.WriteLine($"[LocationContent] Executing location action: {action.ActionType}");
+            
+            // Special handling for travel action
+            if (action.ActionType == "travel")
             {
-                await GameScreen.HandleNavigation("travel");
+                if (GameScreen != null)
+                {
+                    await GameScreen.HandleNavigation("travel");
+                }
+                else
+                {
+                    Console.WriteLine("[LocationContent] GameScreen not available for travel navigation");
+                }
             }
             else
             {
-                Console.WriteLine("[LocationContent] GameScreen not available for travel navigation");
+                // Handle other action types through GameFacade
+                // TODO: Implement ExecuteLocationActionAsync in GameFacade for other action types
+                Console.WriteLine($"[LocationContent] Action type {action.ActionType} not yet implemented");
             }
         }
 

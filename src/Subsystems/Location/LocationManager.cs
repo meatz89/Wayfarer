@@ -250,7 +250,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             if (location == null) return false;
 
             return spot.SpotID.Equals(location.TravelHubSpotId, StringComparison.OrdinalIgnoreCase) ||
-                   spot.DomainTags?.Contains("Crossroads") == true;
+                   spot.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true;
         }
     }
 }

@@ -1945,11 +1945,24 @@
     "items": [],
     "locationActions": [
       {
+        "id": "travel",
+        "name": "Travel",
+        "description": "Leave for another district",
+        "requiredProperties": ["Crossroads"],
+        "cost": {},
+        "reward": {},
+        "timeRequired": 0,
+        "availability": ["Morning", "Afternoon", "Evening", "Night"],
+        "icon": "🗺️",
+        "priority": 1,
+        "actionType": "travel"
+      },
+      {
         "id": "work_haul_goods",
         "name": "Work: Haul Goods",
         "description": "Spend attention to earn coins hauling goods",
-        "locationId": "market_square",
-        "spotIds": ["central_fountain", "merchant_row"],
+        "requiredProperties": ["Commercial"],
+        "excludedProperties": ["Noble", "Exclusive"],
         "cost": {
           "attention": 2
         },
@@ -1957,14 +1970,15 @@
           "coins": 8
         },
         "timeRequired": 30,
-        "availability": ["Morning", "Afternoon", "Evening"]
+        "availability": ["Morning", "Afternoon", "Evening"],
+        "actionType": "work"
       },
       {
         "id": "work_scribe_letters",
         "name": "Work: Scribe Letters",
         "description": "Use your literacy to earn coins writing letters",
-        "locationId": "market_square",
-        "spotIds": ["central_fountain"],
+        "optionalProperties": ["Public", "Commercial", "Market"],
+        "excludedProperties": ["Private", "Quiet"],
         "cost": {
           "attention": 3
         },
@@ -1972,14 +1986,15 @@
           "coins": 12
         },
         "timeRequired": 45,
-        "availability": ["Morning", "Afternoon"]
+        "availability": ["Morning", "Afternoon"],
+        "actionType": "work"
       },
       {
         "id": "rest_by_fire",
         "name": "Rest by Fire",
         "description": "Pay to rest and restore stamina",
-        "locationId": "copper_kettle_tavern",
-        "spotIds": ["main_hall", "corner_table"],
+        "optionalProperties": ["Warm", "Tavern", "Rest", "Restful"],
+        "excludedProperties": ["Exposed", "Transit"],
         "cost": {
           "coins": 5
         },
@@ -1988,14 +2003,15 @@
           "health": 2
         },
         "timeRequired": 60,
-        "availability": ["Morning", "Afternoon", "Evening", "Night"]
+        "availability": ["Morning", "Afternoon", "Evening", "Night"],
+        "actionType": "rest"
       },
       {
         "id": "order_food",
         "name": "Order Food",
         "description": "Buy a meal to reduce hunger",
-        "locationId": "copper_kettle_tavern",
-        "spotIds": ["bar_counter", "main_hall"],
+        "optionalProperties": ["Tavern", "Commercial", "Service"],
+        "excludedProperties": ["Checkpoint", "Official"],
         "cost": {
           "coins": 3
         },
@@ -2003,14 +2019,15 @@
           "hunger": -20
         },
         "timeRequired": 30,
-        "availability": ["Morning", "Afternoon", "Evening"]
+        "availability": ["Morning", "Afternoon", "Evening"],
+        "actionType": "service"
       },
       {
         "id": "noble_errands",
         "name": "Work: Noble Errands",
         "description": "Run errands for nobles for high pay",
-        "locationId": "noble_district",
-        "spotIds": ["aldwin_manor", "blackwood_estate"],
+        "requiredProperties": ["Noble"],
+        "optionalProperties": ["Wealthy", "Exclusive", "Prestigious"],
         "cost": {
           "attention": 2
         },
@@ -2018,7 +2035,8 @@
           "coins": 15
         },
         "timeRequired": 45,
-        "availability": ["Afternoon", "Evening"]
+        "availability": ["Afternoon", "Evening"],
+        "actionType": "work"
       }
     ],
     "observations": [

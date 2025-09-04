@@ -49,25 +49,30 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         }
 
         /// <summary>
-        /// Get dynamic location actions from GameWorld data.
+        /// Get dynamic location actions from GameWorld data using property matching.
         /// </summary>
         private List<LocationActionViewModel> GetDynamicLocationActions(string locationId, string spotId)
         {
             var actions = new List<LocationActionViewModel>();
             var currentTime = _timeManager.GetCurrentTimeBlock();
             
-            // Get actions that match this location and spot
+            // Get the spot to check its properties
+            var spot = _gameWorld.GetSpot(spotId);
+            if (spot == null) return actions;
+            
+            // Get actions that match this spot's properties
             var availableActions = _gameWorld.LocationActions
-                .Where(action => action.LocationId == locationId &&
-                                (action.SpotIds.Contains(spotId) || action.SpotIds.Count == 0) &&
+                .Where(action => action.MatchesSpot(spot, currentTime) &&
                                 IsTimeAvailable(action, currentTime))
+                .OrderBy(action => action.Priority)
+                .ThenBy(action => action.Name)
                 .ToList();
             
             foreach (var action in availableActions)
             {
                 var viewModel = new LocationActionViewModel
                 {
-                    ActionType = action.Id,
+                    ActionType = action.ActionType ?? action.Id,
                     Title = $"{action.Icon} {action.Name}",
                     Detail = action.Description,
                     Cost = GetCostDisplay(action.Cost),

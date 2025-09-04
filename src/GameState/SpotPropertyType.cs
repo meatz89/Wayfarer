@@ -35,5 +35,62 @@ public enum SpotPropertyType
     SacredGround,   // +1 flow for devoted personalities
 
     // Work properties
-    Commercial      // Enables work actions for earning coins
+    Commercial,     // Enables work actions for earning coins
+
+    // Service properties
+    Social,         // Social hub, enables social interactions
+    Service,        // Service location, various services available
+    Rest,           // Rest area, enables rest actions
+    Lodging,        // Lodging available, sleep/room actions
+
+    // Location type properties
+    Tavern,         // Tavern location type
+    Market,         // Market location type
+    Temple,         // Temple/religious location
+    Noble,          // Noble district location
+    
+    // Access/Transit properties
+    Transit,        // Transit hub, connections to other areas  
+    TransitHub,     // Major transit point
+    Transport,      // Transport services available
+    Checkpoint,     // Official checkpoint, guards present
+    Edge,           // Edge of settlement/boundary
+    Gateway,        // Gateway to other regions
+    
+    // Authority properties
+    Official,       // Official/government location
+    Authority,      // Authority presence
+    Guarded,        // Guarded location
+    Secure,         // Secure/protected area
+    Watched,        // Under surveillance
+    
+    // Social class properties  
+    Wealthy,        // Wealthy area
+    Exclusive,      // Exclusive/restricted access
+    Prestigious,    // Prestigious location
+    Political,      // Political significance
+    
+    // Environmental properties
+    Water,          // Near water/waterfront
+    River,          // River access
+    ViewsRiver,     // Views of river
+    Urban,          // Urban environment
+    Rural,          // Rural environment
+    
+    // Activity level properties
+    Busy,           // Generally busy location
+    Crowded,        // Crowded space
+    Central,        // Central/hub location
+    Hidden,         // Hidden/secret location
+    Intimate,       // Intimate/cozy atmosphere
+    Gathering,      // Gathering place
+    
+    // Time-based properties
+    Dark,           // Dark at certain times
+    Dim,            // Dimly lit
+    Cozy,           // Cozy atmosphere
+    
+    // Functional properties
+    Restful,        // Good for resting
+    Commerce        // Commerce hub (duplicate of Commercial, will consolidate)
 }
