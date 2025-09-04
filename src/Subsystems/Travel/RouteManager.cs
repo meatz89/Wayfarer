@@ -37,9 +37,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             return routes.FirstOrDefault(r =>
             {
                 // Get the destination spot and check if it belongs to the target location
-                LocationSpot? destSpot = _gameWorld.WorldState.locations
-                    ?.SelectMany(l => l.Spots ?? new List<LocationSpot>())
-                    .FirstOrDefault(s => s.SpotID == r.DestinationLocationSpot);
+                LocationSpot destSpot = _gameWorld.GetSpot(r.DestinationLocationSpot);
                 return destSpot?.LocationId == toLocationId;
             });
         }

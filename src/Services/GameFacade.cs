@@ -225,10 +225,8 @@ public class GameFacade
             if (actualRoute != null)
             {
                 Player player = _gameWorld.GetPlayer();
-                // Find the destination spot by its ID
-                LocationSpot? destSpot = _gameWorld.WorldState.locations
-                    ?.SelectMany(l => l.Spots ?? new List<LocationSpot>())
-                    .FirstOrDefault(s => s.SpotID == actualRoute.DestinationLocationSpot);
+                // Find the destination spot by its ID from GameWorld's Spots dictionary
+                LocationSpot? destSpot = _gameWorld.GetSpot(actualRoute.DestinationLocationSpot);
 
                 if (destSpot != null)
                 {
@@ -250,9 +248,7 @@ public class GameFacade
             });
 
             // Get destination location name for the message
-            LocationSpot? finalDestSpot = _gameWorld.WorldState.locations
-                ?.SelectMany(l => l.Spots ?? new List<LocationSpot>())
-                .FirstOrDefault(s => s.SpotID == targetRoute.DestinationLocationSpot);
+            LocationSpot? finalDestSpot = _gameWorld.GetSpot(targetRoute.DestinationLocationSpot);
 
             string destinationName = "Unknown";
             if (finalDestSpot != null)
@@ -397,7 +393,7 @@ public class GameFacade
         var startingLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "market_square");
         if (startingLocation != null)
         {
-            var startingSpot = startingLocation.AvailableSpots?.FirstOrDefault(s => s.SpotID == "central_fountain");
+            var startingSpot = _gameWorld.Spots.Values.FirstOrDefault(s => s.LocationId == "market_square" && s.SpotID == "central_fountain");
             if (startingSpot != null)
             {
                 player.CurrentLocationSpot = startingSpot;

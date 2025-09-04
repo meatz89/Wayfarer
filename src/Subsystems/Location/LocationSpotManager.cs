@@ -28,22 +28,11 @@ namespace Wayfarer.Subsystems.LocationSubsystem
 
             LocationSpot targetSpot = null;
 
-            // First check AvailableSpots in the Location object
-            if (location.AvailableSpots != null)
-            {
-                targetSpot = location.AvailableSpots.FirstOrDefault(s =>
-                    s.Name.Equals(spotIdentifier, StringComparison.OrdinalIgnoreCase) ||
-                    s.SpotID.Equals(spotIdentifier, StringComparison.OrdinalIgnoreCase));
-            }
-
-            // If not found, check the location spot repository for spots in this location
-            if (targetSpot == null)
-            {
-                List<LocationSpot> spotsInLocation = GetSpotsForLocation(location.Id);
-                targetSpot = spotsInLocation?.FirstOrDefault(s =>
-                    s.Name.Equals(spotIdentifier, StringComparison.OrdinalIgnoreCase) ||
-                    s.SpotID.Equals(spotIdentifier, StringComparison.OrdinalIgnoreCase));
-            }
+            // Get spots from GameWorld's primary dictionary for this location
+            List<LocationSpot> spotsInLocation = GetSpotsForLocation(location.Id);
+            targetSpot = spotsInLocation?.FirstOrDefault(s =>
+                s.Name.Equals(spotIdentifier, StringComparison.OrdinalIgnoreCase) ||
+                s.SpotID.Equals(spotIdentifier, StringComparison.OrdinalIgnoreCase));
 
             return targetSpot;
         }
@@ -55,7 +44,8 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             if (string.IsNullOrEmpty(locationId)) return new List<LocationSpot>();
 
-            return _gameWorld.WorldState.locationSpots
+            // Get from GameWorld's primary Spots dictionary
+            return _gameWorld.Spots.Values
                 .Where(s => s.LocationId.Equals(locationId, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
@@ -179,8 +169,8 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             if (spot == null || location == null) return false;
 
-            return spot.SpotID == location.TravelHubSpotId ||
-                   spot.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true;
+            // Travel happens at any spot with Crossroads property
+            return spot.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true;
         }
 
         /// <summary>
@@ -243,14 +233,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             Location location = _locationManager.GetLocation(locationId);
             if (location == null) return null;
 
-            // First try to get the designated travel hub
-            if (!string.IsNullOrEmpty(location.TravelHubSpotId))
-            {
-                LocationSpot travelHub = _locationManager.GetSpot(locationId, location.TravelHubSpotId);
-                if (travelHub != null) return travelHub;
-            }
-
-            // Then look for spots tagged as crossroads
+            // Look for spots with Crossroads property
             List<LocationSpot> spots = GetSpotsForLocation(locationId);
             LocationSpot? crossroads = spots.FirstOrDefault(s => s.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true);
             if (crossroads != null) return crossroads;

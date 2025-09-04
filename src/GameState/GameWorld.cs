@@ -39,6 +39,7 @@ public class GameWorld
     // Player state is accessed through Player object, not duplicated here
     public Inventory PlayerInventory { get; private set; }
     public List<Location> Locations { get; set; } = new List<Location>();
+    public Dictionary<string, LocationSpot> Spots { get; set; } = new Dictionary<string, LocationSpot>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
     public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
 
@@ -177,18 +178,11 @@ public class GameWorld
     }
     
     /// <summary>
-    /// Get a location spot by ID
+    /// Get a location spot by ID from primary storage
     /// </summary>
     public LocationSpot GetSpot(string spotId)
     {
-        // Search through all locations for the spot
-        foreach (var location in Locations)
-        {
-            var spot = location.Spots?.FirstOrDefault(s => s.SpotID == spotId);
-            if (spot != null)
-                return spot;
-        }
-        return null;
+        return Spots.TryGetValue(spotId, out var spot) ? spot : null;
     }
 
 }

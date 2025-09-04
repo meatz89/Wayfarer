@@ -15,7 +15,6 @@ public static class LocationParser
         {
             Description = dto.Description ?? "",
             Tier = dto.Tier,
-            TravelHubSpotId = dto.TravelHubSpotId,
             DomainTags = dto.DomainTags ?? new List<string>(),
             LocationType = Enum.TryParse<LocationTypes>(dto.LocationType ?? "Connective", out var locationType) ? locationType : LocationTypes.Connective,
             LocationTypeString = dto.LocationType,

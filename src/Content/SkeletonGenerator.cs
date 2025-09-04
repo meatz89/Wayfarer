@@ -104,9 +104,6 @@ public static class SkeletonGenerator
             TravelTimeMinutes = 10 + (hash % 50), // 10-60 minutes
             Difficulty = 1 + (hash % 3),
             
-            // Create a default travel hub spot
-            TravelHubSpotId = $"{id}_hub",
-            
             // Empty collections
             DomainTags = new List<string>(),
             AvailableServices = new List<ServiceTypes>(),

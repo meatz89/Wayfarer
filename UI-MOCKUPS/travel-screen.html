@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wayfarer - Travel from Market Square</title>
+    <title>Wayfarer - Travel Routes</title>
     <style>
         * {
             margin: 0;
@@ -16,14 +16,20 @@
             background: linear-gradient(to bottom, #3d3429, #2e2720);
             color: #2c241a;
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        .main-container {
-            max-width: 720px;
-            margin: 0 auto;
-            min-height: 100vh;
+        .travel-container {
+            width: 100%;
+            max-width: 900px;
             background: #faf4ea;
-            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         /* Header */
@@ -32,54 +38,63 @@
             color: #e8dcc4;
             padding: 15px 20px;
             border-bottom: 2px solid #5c4a3a;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 8px;
         }
 
         .header-title {
-            font-size: 20px;
-            color: #d4a76a;
-        }
-
-        .current-location {
-            font-size: 13px;
-            color: #8b7355;
+            font-size: 18px;
+            letter-spacing: 1px;
         }
 
         .close-button {
             background: none;
-            border: 2px solid #8b7355;
+            border: 1px solid #5c4a3a;
             color: #e8dcc4;
-            padding: 6px 12px;
-            border-radius: 4px;
+            padding: 4px 12px;
+            border-radius: 3px;
             cursor: pointer;
             font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
             transition: all 0.2s;
         }
 
         .close-button:hover {
-            background: #8b7355;
-            color: #2c241a;
+            background: #5c4a3a;
+            border-color: #7a6250;
         }
 
-        /* Resources Display */
-        .resources-strip {
-            background: #1a1612;
-            color: #e8dcc4;
+        .current-location {
+            font-size: 13px;
+            color: #d4a76a;
+        }
+
+        /* Resources Bar */
+        .resources-preview {
+            background: #3d3429;
             padding: 8px 20px;
+            border-bottom: 1px solid #5c4a3a;
             display: flex;
             gap: 20px;
-            font-size: 11px;
-            border-bottom: 1px solid #3d3429;
+            font-size: 12px;
+            color: #e8dcc4;
         }
 
         .resource-item {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
+        }
+
+        .resource-label {
+            color: #8b7355;
         }
 
         .resource-value {
@@ -87,141 +102,137 @@
             font-weight: bold;
         }
 
-        /* Destination Groups */
-        .destinations-container {
+        /* Destinations List */
+        .destinations-list {
             padding: 20px;
         }
 
+        /* Destination Group */
         .destination-group {
-            background: #f9f3e9;
-            border: 2px solid #c4a684;
-            border-radius: 6px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            background: #f4e8d0;
+            border: 1px solid #c4a684;
+            border-radius: 4px;
             overflow: hidden;
         }
 
         .destination-header {
-            background: linear-gradient(to bottom, #e8dcc4, #d4c5a0);
+            background: #e8dcc4;
             padding: 12px 15px;
             border-bottom: 2px solid #a68b6f;
         }
 
         .destination-name {
-            font-size: 18px;
+            font-size: 16px;
             color: #5c4a3a;
             font-weight: bold;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
 
         .destination-info {
+            display: flex;
+            gap: 15px;
             font-size: 11px;
             color: #7a6250;
+        }
+
+        .destination-trait {
+            padding: 2px 5px;
+            background: #faf4ea;
+            border: 1px solid #c4a684;
+            border-radius: 2px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        /* Routes */
+        /* Routes within Destination */
         .routes-list {
-            padding: 0;
+            padding: 10px;
         }
 
         .route-card {
             background: white;
-            border-bottom: 1px solid #d4c5a0;
-            padding: 15px;
-            transition: all 0.2s;
+            border: 2px solid #d4c5a0;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 10px;
             cursor: pointer;
-            position: relative;
-        }
-
-        .route-card:last-child {
-            border-bottom: none;
+            transition: all 0.2s;
         }
 
         .route-card:hover:not(.locked) {
+            border-color: #a68b6f;
             background: #fefaf0;
-            padding-left: 20px;
+            transform: translateX(3px);
         }
 
         .route-card.locked {
+            opacity: 0.6;
             background: #e8dcc4;
-            opacity: 0.7;
             cursor: not-allowed;
         }
 
+        .route-card.dangerous {
+            border-left: 4px solid #8b4726;
+        }
+
+        .route-card.safe {
+            border-left: 4px solid #7a8b5a;
+        }
+
+        .route-card.merchant {
+            border-left: 4px solid #d4a76a;
+        }
+
+        /* Route Content */
         .route-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .route-name {
             font-size: 14px;
             color: #5c4a3a;
             font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .transport-type {
-            display: inline-block;
-            padding: 2px 6px;
-            background: #7a8b5a;
-            color: #faf4ea;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: #f4e8d0;
+            border: 1px solid #c4a684;
             border-radius: 3px;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 11px;
+            color: #7a6250;
         }
 
-        .transport-type.cart {
-            background: #a68b6f;
+        .transport-icon {
+            font-size: 12px;
         }
 
-        .transport-type.boat {
-            background: #5a7a8a;
-        }
-
-        .route-status {
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 3px;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-
-        .route-status.available {
-            background: #e8f5e9;
-            color: #5a7a3a;
-            border: 1px solid #7a8b5a;
-        }
-
-        .route-status.locked {
-            background: #fae8e8;
-            color: #8b4726;
-            border: 1px solid #d4704a;
-        }
-
-        /* Route Details */
+        /* Route Details Grid */
         .route-details {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .detail-item {
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
         .detail-label {
-            font-size: 9px;
+            font-size: 10px;
             color: #7a6250;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 2px;
         }
 
         .detail-value {
@@ -230,55 +241,30 @@
             font-weight: bold;
         }
 
-        .detail-value.cost {
+        .cost-coins {
+            color: #d4a76a;
+        }
+
+        .cost-free {
+            color: #7a8b5a;
+        }
+
+        .time-value {
+            color: #5c4a3a;
+        }
+
+        .hunger-cost {
             color: #8b4726;
         }
 
-        .detail-value.hunger {
-            color: #d4704a;
-        }
-
-        .detail-value.time {
-            color: #5a7a3a;
-        }
-
-        /* Requirements */
-        .route-requirements {
-            background: #f4e8d0;
-            padding: 8px 10px;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .requirement-icon {
-            width: 20px;
-            height: 20px;
-            background: #8b4726;
-            color: #faf4ea;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-        }
-
-        .requirement-text {
-            font-size: 12px;
-            color: #8b4726;
-            font-style: italic;
-        }
-
-        .requirement-met {
-            color: #5a7a3a;
-        }
-
-        /* Special Route Tags */
+        /* Route Tags */
         .route-tags {
             display: flex;
-            gap: 6px;
+            gap: 5px;
+            flex-wrap: wrap;
             margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e8dcc4;
         }
 
         .route-tag {
@@ -286,135 +272,180 @@
             padding: 2px 6px;
             border-radius: 2px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .route-tag.discrete {
+        .tag-encounter {
+            background: #fae0d4;
+            color: #8b4726;
+            border: 1px solid #d4704a;
+        }
+
+        .tag-safe {
+            background: #e8f5e9;
+            color: #5a7a3a;
+            border: 1px solid #7a8b5a;
+        }
+
+        .tag-checkpoint {
+            background: #e0e8f5;
+            color: #4a5a7a;
+            border: 1px solid #6a7a9a;
+        }
+
+        .tag-discrete {
             background: #3d3429;
             color: #e8dcc4;
+            border: 1px solid #5c4a3a;
         }
 
-        .route-tag.dangerous {
-            background: #8b4726;
-            color: #faf4ea;
+        /* Requirements */
+        .route-requirements {
+            margin-top: 8px;
+            padding: 6px 8px;
+            background: #faf0e6;
+            border: 1px solid #d4a76a;
+            border-radius: 3px;
+            font-size: 11px;
         }
 
-        .route-tag.scenic {
-            background: #5a7a8a;
-            color: #faf4ea;
+        .requirement-label {
+            color: #8b4726;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 5px;
         }
 
-        /* No Routes Message */
-        .no-routes {
-            padding: 20px;
-            text-align: center;
+        .requirement-item {
+            color: #5c4a3a;
+        }
+
+        .requirement-missing {
+            color: #d4704a;
             font-style: italic;
-            color: #7a6250;
         }
 
-        /* Travel Button */
-        .travel-button {
+        /* Travel Time Summary */
+        .travel-summary {
+            background: #3d3429;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-top: 2px solid #5c4a3a;
+            position: sticky;
+            bottom: 0;
+            font-size: 11px;
+        }
+
+        .summary-text {
+            text-align: center;
+            color: #d4a76a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Select Button */
+        .select-button {
             position: absolute;
-            bottom: 15px;
-            right: 15px;
+            right: 12px;
+            bottom: 12px;
+            padding: 6px 12px;
             background: #7a8b5a;
             color: #faf4ea;
             border: none;
-            padding: 6px 12px;
             border-radius: 3px;
+            font-size: 12px;
             cursor: pointer;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             font-weight: bold;
             transition: all 0.2s;
         }
 
-        .travel-button:hover {
+        .select-button:hover {
             background: #6a7b4a;
             transform: translateY(-1px);
         }
 
-        /* Warning Strip */
-        .warning-strip {
-            background: #fae8e8;
-            color: #8b4726;
-            padding: 8px 15px;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-top: 1px solid #d4704a;
+        .route-card.locked .select-button {
+            display: none;
         }
 
-        .warning-icon {
-            font-size: 14px;
+        .route-card {
+            position: relative;
+            padding-bottom: 40px;
         }
     </style>
 </head>
 <body>
-    <div class="main-container">
-        <!-- Travel Header -->
+    <div class="travel-container">
+        <!-- Header -->
         <div class="travel-header">
-            <div>
-                <div class="header-title">Travel Options</div>
-                <div class="current-location">From: Market Square - The Fountain</div>
+            <div class="header-top">
+                <div class="header-title">Select Travel Route</div>
+                <button class="close-button">Cancel</button>
             </div>
-            <button class="close-button">Cancel</button>
+            <div class="current-location">From: Central Market Square</div>
         </div>
 
-        <!-- Resources Display -->
-        <div class="resources-strip">
+        <!-- Resources Preview -->
+        <div class="resources-preview">
             <div class="resource-item">
-                Time: <span class="resource-value">9:00 AM</span>
+                <span class="resource-label">Coins:</span>
+                <span class="resource-value">10</span>
             </div>
             <div class="resource-item">
-                Coins: <span class="resource-value">10</span>
+                <span class="resource-label">Current Time:</span>
+                <span class="resource-value">9:00 AM</span>
             </div>
             <div class="resource-item">
-                Hunger: <span class="resource-value">60/100</span>
+                <span class="resource-label">Hunger:</span>
+                <span class="resource-value">60/100</span>
             </div>
             <div class="resource-item">
-                Satchel: <span class="resource-value">2/5</span>
+                <span class="resource-label">Satchel:</span>
+                <span class="resource-value">3/5</span>
             </div>
         </div>
 
         <!-- Destinations -->
-        <div class="destinations-container">
+        <div class="destinations-list">
             
             <!-- Copper Kettle Tavern -->
             <div class="destination-group">
                 <div class="destination-header">
                     <div class="destination-name">Copper Kettle Tavern</div>
-                    <div class="destination-info">Market District • Hospitality</div>
+                    <div class="destination-info">
+                        <span class="destination-trait">Tavern District</span>
+                        <span class="destination-trait">Elena Present (PM)</span>
+                    </div>
                 </div>
                 <div class="routes-list">
-                    <div class="route-card">
+                    <div class="route-card safe">
                         <div class="route-header">
-                            <div class="route-name">
-                                Main Street
-                                <span class="transport-type">Walking</span>
+                            <div class="route-name">Main Street</div>
+                            <div class="transport-type">
+                                <span class="transport-icon">🚶</span>
+                                <span>Walking</span>
                             </div>
-                            <span class="route-status available">Available</span>
                         </div>
                         <div class="route-details">
                             <div class="detail-item">
-                                <div class="detail-label">Time</div>
-                                <div class="detail-value time">15 min</div>
+                                <span class="detail-label">Travel Time</span>
+                                <span class="detail-value time-value">15 minutes</span>
                             </div>
                             <div class="detail-item">
-                                <div class="detail-label">Cost</div>
-                                <div class="detail-value">Free</div>
+                                <span class="detail-label">Cost</span>
+                                <span class="detail-value cost-free">Free</span>
                             </div>
                             <div class="detail-item">
-                                <div class="detail-label">Hunger</div>
-                                <div class="detail-value hunger">+5</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Arrival</div>
-                                <div class="detail-value">9:15 AM</div>
+                                <span class="detail-label">Hunger</span>
+                                <span class="detail-value hunger-cost">+5</span>
                             </div>
                         </div>
-                        <button class="travel-button">Travel</button>
+                        <div class="route-tags">
+                            <span class="route-tag tag-safe">Safe</span>
+                            <span class="route-tag tag-safe">Well-Lit</span>
+                        </div>
+                        <button class="select-button">Take Route</button>
                     </div>
                 </div>
             </div>
@@ -423,75 +454,75 @@
             <div class="destination-group">
                 <div class="destination-header">
                     <div class="destination-name">Noble District Gate</div>
-                    <div class="destination-info">Upper City • Authority</div>
+                    <div class="destination-info">
+                        <span class="destination-trait">Checkpoint</span>
+                        <span class="destination-trait">Lord Blackwood Beyond</span>
+                    </div>
                 </div>
                 <div class="routes-list">
                     <!-- Main Gate Route -->
                     <div class="route-card locked">
                         <div class="route-header">
-                            <div class="route-name">
-                                Main Gate Checkpoint
-                                <span class="transport-type">Walking</span>
+                            <div class="route-name">Main Gate</div>
+                            <div class="transport-type">
+                                <span class="transport-icon">🚶</span>
+                                <span>Walking</span>
                             </div>
-                            <span class="route-status locked">Locked</span>
                         </div>
                         <div class="route-details">
                             <div class="detail-item">
-                                <div class="detail-label">Time</div>
-                                <div class="detail-value time">25 min</div>
+                                <span class="detail-label">Travel Time</span>
+                                <span class="detail-value time-value">25 minutes</span>
                             </div>
                             <div class="detail-item">
-                                <div class="detail-label">Cost</div>
-                                <div class="detail-value">Free</div>
+                                <span class="detail-label">Cost</span>
+                                <span class="detail-value cost-free">Free</span>
                             </div>
                             <div class="detail-item">
-                                <div class="detail-label">Hunger</div>
-                                <div class="detail-value hunger">+8</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Arrival</div>
-                                <div class="detail-value">9:25 AM</div>
+                                <span class="detail-label">Hunger</span>
+                                <span class="detail-value hunger-cost">+5</span>
                             </div>
                         </div>
                         <div class="route-requirements">
-                            <div class="requirement-icon">🛡️</div>
-                            <div class="requirement-text">Requires: Noble District Permit</div>
+                            <span class="requirement-label">Requires:</span>
+                            <span class="requirement-missing">Noble District Permit (NOT OWNED)</span>
+                        </div>
+                        <div class="route-tags">
+                            <span class="route-tag tag-checkpoint">Guard Checkpoint</span>
+                            <span class="route-tag tag-checkpoint">Papers Required</span>
                         </div>
                     </div>
 
                     <!-- Secret Merchant Route -->
-                    <div class="route-card locked">
+                    <div class="route-card merchant locked">
                         <div class="route-header">
-                            <div class="route-name">
-                                Merchant's Passage
-                                <span class="transport-type cart">Cart</span>
+                            <div class="route-name">Merchant's Path</div>
+                            <div class="transport-type">
+                                <span class="transport-icon">🛒</span>
+                                <span>Supply Cart</span>
                             </div>
-                            <span class="route-status locked">Locked</span>
                         </div>
                         <div class="route-details">
                             <div class="detail-item">
-                                <div class="detail-label">Time</div>
-                                <div class="detail-value time">35 min</div>
+                                <span class="detail-label">Travel Time</span>
+                                <span class="detail-value time-value">35 minutes</span>
                             </div>
                             <div class="detail-item">
-                                <div class="detail-label">Cost</div>
-                                <div class="detail-value cost">3 coins</div>
+                                <span class="detail-label">Cost</span>
+                                <span class="detail-value cost-coins">2 coins</span>
                             </div>
                             <div class="detail-item">
-                                <div class="detail-label">Hunger</div>
-                                <div class="detail-value">+0</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Arrival</div>
-                                <div class="detail-value">9:35 AM</div>
+                                <span class="detail-label">Hunger</span>
+                                <span class="detail-value hunger-cost">+0</span>
                             </div>
                         </div>
                         <div class="route-requirements">
-                            <div class="requirement-icon">📜</div>
-                            <div class="requirement-text">Requires: Merchant Route Knowledge (Observation)</div>
+                            <span class="requirement-label">Requires:</span>
+                            <span class="requirement-missing">Merchant Route Knowledge (OBSERVATION)</span>
                         </div>
                         <div class="route-tags">
-                            <span class="route-tag discrete">Discrete</span>
+                            <span class="route-tag tag-discrete">Discrete</span>
+                            <span class="route-tag tag-safe">Avoids Guards</span>
                         </div>
                     </div>
                 </div>
@@ -501,68 +532,39 @@
             <div class="destination-group">
                 <div class="destination-header">
                     <div class="destination-name">Warehouse District</div>
-                    <div class="destination-info">Lower Wards • Industrial</div>
+                    <div class="destination-info">
+                        <span class="destination-trait">Industrial</span>
+                        <span class="destination-trait">Marcus Package Destination</span>
+                    </div>
                 </div>
                 <div class="routes-list">
-                    <div class="route-card">
+                    <div class="route-card dangerous">
                         <div class="route-header">
-                            <div class="route-name">
-                                Harbor Road
-                                <span class="transport-type">Walking</span>
+                            <div class="route-name">Dockside Path</div>
+                            <div class="transport-type">
+                                <span class="transport-icon">🚶</span>
+                                <span>Walking</span>
                             </div>
-                            <span class="route-status available">Available</span>
                         </div>
                         <div class="route-details">
                             <div class="detail-item">
-                                <div class="detail-label">Time</div>
-                                <div class="detail-value time">30 min</div>
+                                <span class="detail-label">Travel Time</span>
+                                <span class="detail-value time-value">30 minutes</span>
                             </div>
                             <div class="detail-item">
-                                <div class="detail-label">Cost</div>
-                                <div class="detail-value">Free</div>
+                                <span class="detail-label">Cost</span>
+                                <span class="detail-value cost-free">Free</span>
                             </div>
                             <div class="detail-item">
-                                <div class="detail-label">Hunger</div>
-                                <div class="detail-value hunger">+10</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Arrival</div>
-                                <div class="detail-value">9:30 AM</div>
-                            </div>
-                        </div>
-                        <button class="travel-button">Travel</button>
-                    </div>
-
-                    <div class="route-card">
-                        <div class="route-header">
-                            <div class="route-name">
-                                Canal Barge
-                                <span class="transport-type boat">Boat</span>
-                            </div>
-                            <span class="route-status available">Available</span>
-                        </div>
-                        <div class="route-details">
-                            <div class="detail-item">
-                                <div class="detail-label">Time</div>
-                                <div class="detail-value time">15 min</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Cost</div>
-                                <div class="detail-value cost">2 coins</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Hunger</div>
-                                <div class="detail-value">+0</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Arrival</div>
-                                <div class="detail-value">9:15 AM</div>
+                                <span class="detail-label">Hunger</span>
+                                <span class="detail-value hunger-cost">+10</span>
                             </div>
                         </div>
                         <div class="route-tags">
-                            <span class="route-tag scenic">Scenic</span>
+                            <span class="route-tag tag-encounter">Thugs (Night)</span>
+                            <span class="route-tag tag-safe">Safe (Morning)</span>
                         </div>
-                        <button class="travel-button">Travel</button>
+                        <button class="select-button">Take Route</button>
                     </div>
                 </div>
             </div>
@@ -571,46 +573,77 @@
             <div class="destination-group">
                 <div class="destination-header">
                     <div class="destination-name">Temple of Bells</div>
-                    <div class="destination-info">Sacred Quarter • Peaceful</div>
+                    <div class="destination-info">
+                        <span class="destination-trait">Religious Quarter</span>
+                        <span class="destination-trait">Services Available</span>
+                    </div>
                 </div>
                 <div class="routes-list">
-                    <div class="route-card">
+                    <!-- Walking Route -->
+                    <div class="route-card safe">
                         <div class="route-header">
-                            <div class="route-name">
-                                Pilgrim's Path
-                                <span class="transport-type">Walking</span>
+                            <div class="route-name">Pilgrim's Way</div>
+                            <div class="transport-type">
+                                <span class="transport-icon">🚶</span>
+                                <span>Walking</span>
                             </div>
-                            <span class="route-status available">Available</span>
                         </div>
                         <div class="route-details">
                             <div class="detail-item">
-                                <div class="detail-label">Time</div>
-                                <div class="detail-value time">20 min</div>
+                                <span class="detail-label">Travel Time</span>
+                                <span class="detail-value time-value">20 minutes</span>
                             </div>
                             <div class="detail-item">
-                                <div class="detail-label">Cost</div>
-                                <div class="detail-value">Free</div>
+                                <span class="detail-label">Cost</span>
+                                <span class="detail-value cost-free">Free</span>
                             </div>
                             <div class="detail-item">
-                                <div class="detail-label">Hunger</div>
-                                <div class="detail-value hunger">+7</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Arrival</div>
-                                <div class="detail-value">9:20 AM</div>
+                                <span class="detail-label">Hunger</span>
+                                <span class="detail-value hunger-cost">+5</span>
                             </div>
                         </div>
-                        <button class="travel-button">Travel</button>
+                        <div class="route-tags">
+                            <span class="route-tag tag-safe">Blessed Path</span>
+                        </div>
+                        <button class="select-button">Take Route</button>
+                    </div>
+
+                    <!-- Cart Route -->
+                    <div class="route-card safe">
+                        <div class="route-header">
+                            <div class="route-name">Temple Cart Service</div>
+                            <div class="transport-type">
+                                <span class="transport-icon">🐴</span>
+                                <span>Horse Cart</span>
+                            </div>
+                        </div>
+                        <div class="route-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Travel Time</span>
+                                <span class="detail-value time-value">10 minutes</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Cost</span>
+                                <span class="detail-value cost-coins">3 coins</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Hunger</span>
+                                <span class="detail-value hunger-cost">+0</span>
+                            </div>
+                        </div>
+                        <div class="route-tags">
+                            <span class="route-tag tag-safe">Comfortable</span>
+                            <span class="route-tag tag-safe">Rain Protected</span>
+                        </div>
+                        <button class="select-button">Take Route</button>
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <!-- Warning if low on resources -->
-        <div class="warning-strip">
-            <span class="warning-icon">⚠️</span>
-            <span>Warning: Marcus's package deadline in 5 hours. Consider travel time when planning route.</span>
+        <!-- Travel Summary -->
+        <div class="travel-summary">
+            <div class="summary-text">Select a route to travel • Time advances based on travel duration</div>
         </div>
     </div>
 </body>

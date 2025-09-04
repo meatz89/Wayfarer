@@ -10,7 +10,6 @@ public class LocationDTO
     public string Description { get; set; }
     public EnvironmentalPropertiesDTO EnvironmentalProperties { get; set; }
     public List<string> DomainTags { get; set; } = new List<string>();
-    public string TravelHubSpotId { get; set; }
     public List<string> LocationSpots { get; set; } = new List<string>();
     public List<string> ConnectedTo { get; set; } = new List<string>();
     public string SocialExpectation { get; set; }

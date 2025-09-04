@@ -205,20 +205,15 @@ public class PackageLoader
                 _gameWorld.WorldState.locationSpots.Remove(existingSkeleton);
                 _gameWorld.SkeletonRegistry.Remove(dto.Id);
                 
-                // Also remove from parent location's spots
-                var parentLoc = _gameWorld.Locations.FirstOrDefault(l => l.Id == existingSkeleton.LocationId);
-                parentLoc?.AvailableSpots.Remove(existingSkeleton);
+                // Remove from primary spots dictionary if exists
+                _gameWorld.Spots.Remove(dto.Id);
             }
             
             var spot = LocationSpotParser.ConvertDTOToLocationSpot(dto);
             _gameWorld.WorldState.locationSpots.Add(spot);
             
-            // Also add to parent location's spots list
-            var parentLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == spot.LocationId);
-            if (parentLocation != null)
-            {
-                parentLocation.AvailableSpots.Add(spot);
-            }
+            // Add to primary spots dictionary
+            _gameWorld.Spots[spot.SpotID] = spot;
         }
     }
 
@@ -242,13 +237,14 @@ public class PackageLoader
                 _gameWorld.SkeletonRegistry[dto.LocationId] = "Location";
                 
                 // Also create a skeleton spot for the location
+                var hubSpotId = $"{dto.LocationId}_hub";
                 var hubSpot = SkeletonGenerator.GenerateSkeletonSpot(
-                    skeletonLocation.TravelHubSpotId,
+                    hubSpotId,
                     dto.LocationId,
                     $"location_{dto.LocationId}_hub");
                     
                 _gameWorld.WorldState.locationSpots.Add(hubSpot);
-                skeletonLocation.AvailableSpots.Add(hubSpot);
+                _gameWorld.Spots[hubSpotId] = hubSpot;
                 _gameWorld.SkeletonRegistry[hubSpot.SpotID] = "LocationSpot";
             }
             

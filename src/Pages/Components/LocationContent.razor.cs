@@ -10,6 +10,7 @@ namespace Wayfarer.Pages.Components
     {
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected DevModeService DevMode { get; set; }
+        [Inject] protected GameWorld GameWorld { get; set; }
 
         [Parameter] public EventCallback OnActionExecuted { get; set; }
 
@@ -123,11 +124,13 @@ namespace Wayfarer.Pages.Components
                 TakenObservations = takenObservations;
             }
 
-            // Get other spots in this location
+            // Get other spots in this location from GameWorld
             AvailableSpots.Clear();
-            if (location != null && location.Spots != null)
+            if (location != null && GameWorld != null)
             {
-                AvailableSpots = location.Spots
+                var allSpots = GameWorld.Spots.Values
+                    .Where(s => s.LocationId == location.Id);
+                AvailableSpots = allSpots
                     .Where(s => s != spot)
                     .Select(s => new SpotViewModel
                     {
@@ -362,7 +365,7 @@ namespace Wayfarer.Pages.Components
             if (currentLocation == null) return new List<NPC>();
 
             // Get the spot we're checking
-            LocationSpot? spot = currentLocation.Spots?.FirstOrDefault(s => s.Name == spotId);
+            LocationSpot? spot = GameWorld.Spots.Values.FirstOrDefault(s => s.LocationId == currentLocation.Id && s.Name == spotId);
             if (spot == null) return new List<NPC>();
 
             // Get ALL NPCs at this location and filter by SpotId
