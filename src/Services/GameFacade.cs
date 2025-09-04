@@ -216,14 +216,7 @@ public class GameFacade
         // Note: This is simplified for now - full implementation would check access requirements separately
         // The RouteOption.CanTravel method already checks terrain requirements internally
         
-        // 3. CHECK TIER/PERMIT REQUIREMENTS
-        if (targetRoute.TierRequired > TierLevel.T1 && player.CurrentTier < targetRoute.TierRequired)
-        {
-            _narrativeFacade.AddSystemMessage($"This route requires {targetRoute.TierRequired} access", SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // 4. CALCULATE ACTUAL HUNGER COST
+        // 3. CALCULATE ACTUAL HUNGER COST
         // Base hunger cost from route plus any load penalties
         int itemCount = player.Inventory.ItemSlots.Count(i => !string.IsNullOrEmpty(i));
         int hungerCost = targetRoute.BaseStaminaCost; // This is actually the hunger cost in the data

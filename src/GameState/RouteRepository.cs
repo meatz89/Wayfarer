@@ -95,8 +95,8 @@ public class RouteRepository : IRouteRepository
             if (!route.IsDiscovered)
                 continue;
 
-            // Check if player meets tier requirement (unless unlocked by permit)
-            if (route.TierRequired > player.CurrentTier && !route.HasPermitUnlock)
+            // Check if route has special access requirements (unless unlocked by permit)
+            if (route.AccessRequirement != null && !route.HasPermitUnlock)
                 continue;
 
             // Check if route is blocked

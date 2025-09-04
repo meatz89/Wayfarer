@@ -614,14 +614,6 @@ public class PackageLoader
             MaxItemCapacity = dto.MaxItemCapacity > 0 ? dto.MaxItemCapacity : 3
         };
 
-        // Parse tier required
-        if (!string.IsNullOrEmpty(dto.TierRequired))
-        {
-            if (Enum.TryParse<TierLevel>(dto.TierRequired, out var tier))
-            {
-                route.TierRequired = tier;
-            }
-        }
 
         // Parse terrain categories
         if (dto.TerrainCategories != null)

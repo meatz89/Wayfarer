@@ -165,15 +165,9 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 return result;
             }
 
-            // Check tier requirement
-            if (route.TierRequired > player.CurrentTier)
-            {
-                result.IsValid = false;
-                result.ErrorMessage = $"Requires Tier {route.TierRequired}";
-                result.RequiredTier = (int)route.TierRequired;
-                return result;
-            }
-
+            // Route access is determined by actual requirements (tokens, permissions, etc.)
+            // defined in the route's AccessRequirement property, not by arbitrary tiers
+            
             // Check if route is discovered
             if (!route.IsDiscovered)
             {
@@ -276,7 +270,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
     {
         public bool IsValid { get; set; }
         public string ErrorMessage { get; set; }
-        public int? RequiredTier { get; set; }
+        // Removed RequiredTier - route access is based on actual requirements in JSON
         public int? RequiredCoins { get; set; }
         public int? RequiredHealth { get; set; }
         public bool RequiresDiscovery { get; set; }

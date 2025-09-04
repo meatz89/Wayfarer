@@ -258,7 +258,9 @@ public class SpecialLetterHandler
                 r.Method == TravelMethods.Boat ||
                 r.Method == TravelMethods.Carriage).ToList(),
 
-            _ => allRoutes.Where(r => (int)r.TierRequired <= (int)TierLevel.T2).ToList()
+            // For other transport NPCs, return all routes - access will be determined by actual requirements
+            // (tokens, permissions, etc.) defined in the route's AccessRequirement property
+            _ => allRoutes.ToList()
         };
     }
 

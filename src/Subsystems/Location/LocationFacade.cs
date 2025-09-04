@@ -439,7 +439,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                         Detail = route.Description ?? route.Name,
                         IsLocked = !route.IsDiscovered,
                         LockReason = !route.IsDiscovered ? "Route not yet discovered" : null,
-                        RequiredTier = route.TierRequired,
+                        // Removed RequiredTier - route access is based on actual requirements in JSON
                         TransportMethod = route.Method.ToString().ToLower(),
                         SupportsCart = false,
                         SupportsCarriage = false,

@@ -75,8 +75,6 @@ public class RouteOption
     public string OriginLocationSpot { get; set; }
     public string DestinationLocationSpot { get; set; }
 
-    // Tier system for route accessibility (T1: Basic, T2: Restricted, T3: Secret)
-    public TierLevel TierRequired { get; set; } = TierLevel.T1;
     public TravelMethods Method { get; set; }
     public int BaseCoinCost { get; set; }
     public int BaseStaminaCost { get; set; }
@@ -96,7 +94,6 @@ public class RouteOption
     public RouteType RouteType { get; set; }
 
     // Track if this specific route has been unlocked via permit
-    // (Separate from IsDiscovered - permits unlock tier-restricted routes)
     public bool HasPermitUnlock { get; set; } = false;
 
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalFocus)

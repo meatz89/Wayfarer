@@ -575,8 +575,7 @@
         "isDiscovered": true,
         "terrainCategories": [],
         "maxItemCapacity": 5,
-        "description": "A public walk through busy market streets to the tavern.",
-        "tierRequired": "T1"
+        "description": "A public walk through busy market streets to the tavern."
       },
       {
         "id": "tavern_to_market",
@@ -591,8 +590,7 @@
         "isDiscovered": true,
         "terrainCategories": [],
         "maxItemCapacity": 5,
-        "description": "Return to the market square through public streets.",
-        "tierRequired": "T1"
+        "description": "Return to the market square through public streets."
       },
       {
         "id": "market_to_noble_main",
@@ -607,8 +605,7 @@
         "isDiscovered": true,
         "terrainCategories": ["Requires_Permission"],
         "maxItemCapacity": 5,
-        "description": "The guarded main gate to the Noble District - requires 10 coin bribe.",
-        "tierRequired": "T2"
+        "description": "The guarded main gate to the Noble District - requires 10 coin bribe."
       }
     ],
     "letterTemplates": [

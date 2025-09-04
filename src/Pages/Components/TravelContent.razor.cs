@@ -224,11 +224,7 @@ namespace Wayfarer.Pages.Components
                 }
             }
 
-            // Add tier requirements
-            if (route.TierRequired > TierLevel.T1)
-            {
-                requirements.Add($"Requires {route.TierRequired} access");
-            }
+            // Tier requirements removed - all routes accessible
 
             // Add access requirements if any
             if (route.AccessRequirement != null)
