@@ -634,8 +634,7 @@
         "physicalProperties": ["Sealed with wax", "Trembling hands"],
         "consequenceIfLate": "Elena forced into unwanted marriage",
         "consequenceIfDelivered": "Elena's freedom preserved",
-        "emotionalFocus": "HIGH",
-        "stakes": "FREEDOM"
+        "emotionalFocus": "HIGH"
       }
     ],
     "standingObligations": [],
