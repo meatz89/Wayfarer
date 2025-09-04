@@ -457,7 +457,6 @@ public class CardDeckManager
         var card = new ConversationCard
         {
             Id = instance.Id,
-            Name = instance.Name,
             Description = instance.Description,
             Properties = new List<CardProperty>(instance.Properties),
             TokenType = instance.TokenType,
@@ -551,7 +550,6 @@ public class CardDeckManager
         return new ConversationCard
         {
             Id = cardId,
-            Name = "Unknown Card",
             Description = "Placeholder card",
             Focus = 1,
             Difficulty = Difficulty.Medium,

@@ -366,7 +366,7 @@ public class ConversationFacade
         {
             DeliveryObligation[] activeObligations = _queueManager.GetActiveObligations();
             bool hasLetterForNpc = activeObligations.Any(o =>
-                o != null && (o.RecipientId == npc.ID || o.RecipientName == npc.Name));
+                o != null && (o.RecipientId == npc.ID || o.RecipientName == npc.Description));
 
             if (hasLetterForNpc)
             {
@@ -486,7 +486,7 @@ public class ConversationFacade
     {
         foreach (CardInstance card in playedCards)
         {
-            Console.WriteLine($"[ConversationFacade] Processing card {card.Name}, has Context: {card.Context != null}, has ExchangeData: {card.Context?.ExchangeData != null}");
+            Console.WriteLine($"[ConversationFacade] Processing card {card.Description}, has Context: {card.Context != null}, has ExchangeData: {card.Context?.ExchangeData != null}");
             Console.WriteLine($"[ConversationFacade] Card Properties: {string.Join(", ", card.Properties)}");
             Console.WriteLine($"[ConversationFacade] Card SuccessEffect Type: {card.SuccessEffect?.Type}, has ExchangeData in effect: {card.SuccessEffect?.ExchangeData != null}");
             

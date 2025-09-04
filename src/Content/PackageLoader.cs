@@ -430,29 +430,32 @@ public class PackageLoader
     }
 
     /// <summary>
-    /// Initialize conversation decks for all NPCs based on their personality types
+    /// Initialize conversation decks for all NPCs with the universal starter deck
     /// </summary>
     private void InitializeNPCConversationDecks()
     {
-        Console.WriteLine("[PackageLoader] Initializing NPC conversation decks based on personality types...");
+        Console.WriteLine("[PackageLoader] Initializing NPC conversation decks with universal starter deck...");
 
-        NPCDeckBuilder deckBuilder = new NPCDeckBuilder(_gameWorld);
+        // Get all cards marked for ALL personalities (the universal starter deck)
+        List<ConversationCard> starterDeckCards = _gameWorld.AllCardDefinitions.Values
+            .OfType<ConversationCard>()
+            .Where(card => card.PersonalityTypes != null && card.PersonalityTypes.Contains("ALL"))
+            .ToList();
+
+        Console.WriteLine($"[PackageLoader] Found {starterDeckCards.Count} universal starter deck cards");
 
         foreach (NPC npc in _gameWorld.NPCs)
         {
             try
             {
-                // Build conversation deck filtered by NPC's personality type
-                List<ConversationCard> npcCards = deckBuilder.BuildNPCDeck(npc.PersonalityType);
-                
-                // Clear existing deck and populate with filtered cards
+                // Clear existing deck and populate with ALL starter deck cards
                 npc.ConversationDeck = new CardDeck();
-                foreach (ConversationCard card in npcCards)
+                foreach (ConversationCard card in starterDeckCards)
                 {
                     npc.ConversationDeck.AddCard(card);
                 }
 
-                Console.WriteLine($"[PackageLoader] Initialized conversation deck for {npc.Name} ({npc.PersonalityType}) with {npcCards.Count} cards");
+                Console.WriteLine($"[PackageLoader] Initialized conversation deck for {npc.Name} with {starterDeckCards.Count} universal cards");
             }
             catch (Exception ex)
             {
@@ -464,25 +467,37 @@ public class PackageLoader
     }
 
     /// <summary>
-    /// Initialize request decks for all NPCs based on their personality types
+    /// Initialize request decks for NPCs (Elena gets her special request card)
     /// </summary>
     private void InitializeNPCRequestDecks()
     {
-        Console.WriteLine("[PackageLoader] Initializing NPC request decks based on personality types...");
+        Console.WriteLine("[PackageLoader] Initializing NPC request decks...");
 
-        NPCDeckBuilder deckBuilder = new NPCDeckBuilder(_gameWorld);
+        // Get Elena's request card if it exists
+        ConversationCard elenasRequestCard = null;
+        if (_gameWorld.AllCardDefinitions.ContainsKey("accept_elenas_letter"))
+        {
+            elenasRequestCard = _gameWorld.AllCardDefinitions["accept_elenas_letter"] as ConversationCard;
+            Console.WriteLine("[PackageLoader] Found Elena's request card: accept_elenas_letter");
+        }
 
         foreach (NPC npc in _gameWorld.NPCs)
         {
             try
             {
-                // Build request deck filtered by NPC's personality type
-                List<ConversationCard> requestCards = deckBuilder.BuildRequestDeck(npc.PersonalityType);
+                List<ConversationCard> requestCards = new List<ConversationCard>();
                 
-                // Initialize request deck with filtered cards
+                // Elena gets her special request card
+                if (npc.ID == "elena" && elenasRequestCard != null)
+                {
+                    requestCards.Add(elenasRequestCard);
+                    Console.WriteLine($"[PackageLoader] Added request card to Elena's request deck");
+                }
+                
+                // Initialize request deck
                 npc.InitializeRequestDeck(requestCards);
 
-                Console.WriteLine($"[PackageLoader] Initialized request deck for {npc.Name} ({npc.PersonalityType}) with {requestCards.Count} cards");
+                Console.WriteLine($"[PackageLoader] Initialized request deck for {npc.Name} with {requestCards.Count} cards");
             }
             catch (Exception ex)
             {
@@ -494,25 +509,38 @@ public class PackageLoader
     }
 
     /// <summary>
-    /// Initialize exchange decks for all NPCs based on their personality types
+    /// Initialize exchange decks for Mercantile NPCs only
     /// </summary>
     private void InitializeNPCExchangeDecks()
     {
-        Console.WriteLine("[PackageLoader] Initializing NPC exchange decks based on personality types...");
+        Console.WriteLine("[PackageLoader] Initializing NPC exchange decks for Mercantile NPCs...");
 
-        NPCDeckBuilder deckBuilder = new NPCDeckBuilder(_gameWorld);
+        // Get all exchange cards from the card definitions
+        List<ConversationCard> exchangeCards = _gameWorld.AllCardDefinitions.Values
+            .OfType<ConversationCard>()
+            .Where(card => card.Category == CardCategory.Exchange.ToString())
+            .ToList();
+
+        Console.WriteLine($"[PackageLoader] Found {exchangeCards.Count} exchange cards");
 
         foreach (NPC npc in _gameWorld.NPCs)
         {
             try
             {
-                // Build exchange deck filtered by NPC's personality type
-                List<ConversationCard> exchangeCards = deckBuilder.BuildExchangeDeck(npc.PersonalityType);
+                // Only Mercantile NPCs get exchange cards
+                List<ConversationCard> npcExchangeCards = new List<ConversationCard>();
+                if (npc.PersonalityType == PersonalityType.MERCANTILE)
+                {
+                    npcExchangeCards = exchangeCards.ToList();
+                }
                 
-                // Initialize exchange deck with filtered cards
-                npc.InitializeExchangeDeck(exchangeCards);
+                // Initialize exchange deck
+                npc.InitializeExchangeDeck(npcExchangeCards);
 
-                Console.WriteLine($"[PackageLoader] Initialized exchange deck for {npc.Name} ({npc.PersonalityType}) with {exchangeCards.Count} cards");
+                if (npcExchangeCards.Count > 0)
+                {
+                    Console.WriteLine($"[PackageLoader] Initialized exchange deck for {npc.Name} (MERCANTILE) with {npcExchangeCards.Count} cards");
+                }
             }
             catch (Exception ex)
             {
@@ -616,7 +644,6 @@ public class PackageLoader
         var card = new ConversationCard
         {
             Id = dto.Id,
-            Name = dto.DisplayText ?? dto.Id,
             Description = dto.DisplayText ?? "",
             Focus = dto.Focus,
             TokenType = TokenType.Trust,
@@ -632,8 +659,7 @@ public class PackageLoader
         var card = new ConversationCard
         {
             Id = dto.Id,
-            Name = dto.Title ?? dto.DisplayName ?? "Travel Card",
-            Description = "Travel card",
+            Description = dto.Title ?? dto.DisplayName ?? "Travel Card",
             Focus = dto.Focus ?? 1,
             TokenType = TokenType.Trust,
             Difficulty = Difficulty.Medium

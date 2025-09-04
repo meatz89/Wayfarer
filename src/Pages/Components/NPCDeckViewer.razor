@@ -105,7 +105,7 @@
                             <div class="debug-card conversation-card">
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@(card.Name ?? card.Id)</span>
+                                    <span class="card-name">@(card.Description ?? card.Id)</span>
                                     <span class="card-category @GetCategoryClass(card)">@GetCategoryName(card)</span>
                                 </div>
                                 <div class="card-properties">
@@ -161,7 +161,7 @@
                             <div class="debug-card letter-card request-card">
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@(card.Name ?? card.Id)</span>
+                                    <span class="card-name">@(card.Description ?? card.Id)</span>
                                     <span class="request-type-badge">LETTER REQUEST</span>
                                 </div>
                                 <div class="card-properties">

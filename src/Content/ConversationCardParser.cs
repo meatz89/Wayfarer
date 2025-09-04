@@ -79,7 +79,6 @@ public static class ConversationCardParser
         var newCard = new ConversationCard
         {
             Id = $"{cardId}_{npcId}",
-            Name = card.Name,
             Description = card.Description,
             Focus = card.Focus,
             TokenType = card.TokenType,
@@ -134,7 +133,6 @@ public static class ConversationCardParser
         var card = new ConversationCard
         {
             Id = dto.Id,
-            Name = dto.DisplayName ?? dto.Description ?? dto.Id,
             Description = dto.Description ?? "",
             TokenType = tokenType,
             Focus = dto.Focus,

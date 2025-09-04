@@ -973,6 +973,10 @@ namespace Wayfarer.Pages.Components
 
         protected string GetProperCardName(CardInstance card)
         {
+            // Use the card's description as its display name
+            if (!string.IsNullOrEmpty(card.Description))
+                return card.Description;
+
             // Generate meaningful card names based on properties
             if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
@@ -980,39 +984,9 @@ namespace Wayfarer.Pages.Components
             if (card.Properties.Contains(CardProperty.Burden))
                 return "Address Past Failure";
 
-            // State category no longer exists in Properties system
-            if (false)
-            {
-                if (card.SuccessState.HasValue)
-                {
-                    string targetState = GetEmotionalStateForCard(card.SuccessState.Value);
-                    return $"Let's {GetStateTransitionVerb(card.SuccessState.Value)}";
-                }
-                return "Change Approach";
-            }
-
             if (card.Properties.Contains(CardProperty.Observable))
             {
-                // Use context for observation names
-                if (card.DisplayName != null)
-                    return card.DisplayName;
                 return "Share Observation";
-            }
-
-            // Standard cards get contextual names based on flow or token type
-            if (!card.Properties.Contains(CardProperty.Exchange) && !card.Properties.Contains(CardProperty.Observable) && !card.Properties.Contains(CardProperty.Burden))
-            {
-                // Check for token type first
-                return card.TokenType switch
-                {
-                    TokenType.Trust => "Build Trust",
-                    TokenType.Commerce => "Discuss Business", 
-                    TokenType.Status => "Show Respect",
-                    TokenType.Shadow => "Share Secret",
-                    _ => card.BaseFlow >= 2 ? "Deep Understanding" :
-                         card.BaseFlow == 1 ? "I Understand" :
-                         "Simple Response"
-                };
             }
 
             // Default to template ID with formatting
@@ -1098,11 +1072,11 @@ namespace Wayfarer.Pages.Components
             // Observation cards
             if (card.Properties.Contains(CardProperty.Observable))
             {
-                if (card.DisplayName == "Merchant Route Knowledge")
+                if (card.Description == "Merchant Route Knowledge")
                     return "I know a route through the merchant quarter that avoids the checkpoint entirely. We can reach Lord Blackwood faster.";
-                if (card.DisplayName == "Guard Patterns")
+                if (card.Description == "Guard Patterns")
                     return "I've been watching the guards. They change shifts at the third bell - that's our window.";
-                if (card.DisplayName == "Court Gossip")
+                if (card.Description == "Court Gossip")
                     return "I overheard something at court that might interest you...";
                 return "I noticed something earlier that might help...";
             }
@@ -1140,7 +1114,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Promise/Letter cards
-            if (card.DisplayName?.Contains("Letter") == true || card.DisplayName?.Contains("Accept") == true)
+            if (card.Description?.Contains("Letter") == true || card.Description?.Contains("Accept") == true)
             {
                 return "I'll take your letter to Lord Blackwood. For something this urgent, I'll do whatever it takes.";
             }
@@ -1150,7 +1124,7 @@ namespace Wayfarer.Pages.Components
             if (!string.IsNullOrEmpty(playerText))
                 return playerText;
 
-            return card.DisplayName ?? "Let me think about this...";
+            return card.Description ?? "Let me think about this...";
         }
 
 
@@ -1260,9 +1234,9 @@ namespace Wayfarer.Pages.Components
 
         protected string GetCardName(CardInstance card)
         {
-            // First, use the card's actual Name property if available
-            if (!string.IsNullOrEmpty(card.Name))
-                return card.Name;
+            // Use the card's description as its name
+            if (!string.IsNullOrEmpty(card.Description))
+                return card.Description;
                 
             // For exchange cards, use the exchange name
             if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeName != null)
@@ -1892,7 +1866,7 @@ namespace Wayfarer.Pages.Components
                             msgTemplate = "{0} letter: '{1}' - {2}h deadline, {3} coins";
 
                         string message = string.Format(msgTemplate, negotiationOutcome,
-                            negotiation.SourcePromiseCard.DisplayName ?? negotiation.SourcePromiseCard.Id,
+                            negotiation.SourcePromiseCard.Description ?? negotiation.SourcePromiseCard.Id,
                             deadlineHours.ToString("F1"),
                             negotiation.FinalTerms.Payment) + urgencySuffix;
 

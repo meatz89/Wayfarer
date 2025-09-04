@@ -95,7 +95,6 @@ public class ObservationCard : ConversationCard
         ObservationCard observation = new ObservationCard
         {
             Id = card.Id,
-            Name = card.Name,
             Description = card.Description,
             ObservationId = card.Id,
             ItemName = "Unknown",
@@ -120,7 +119,6 @@ public class ObservationCard : ConversationCard
         ObservationCard observation = new ObservationCard
         {
             Id = card.Id,
-            Name = card.Name,
             Description = card.Description,
             DialogueFragment = card.DialogueFragment,
             VerbPhrase = card.VerbPhrase,

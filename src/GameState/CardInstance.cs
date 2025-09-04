@@ -6,7 +6,6 @@ public class CardInstance
 {
     public string InstanceId { get; init; } = Guid.NewGuid().ToString();
     public string Id { get; init; }
-    public string Name { get; init; }
     public string Description { get; init; }
     
     // Properties list - copied from template
@@ -62,7 +61,6 @@ public class CardInstance
     public EmotionalState? SuccessState => null;
     public EmotionalState? FailureState => null;
     public int BaseFlow => 1;
-    public string DisplayName => Name;
     public bool CanDeliverLetter => Properties.Contains(CardProperty.DeliveryEligible);
     public string DeliveryObligationId => "";
     public string ObservationSource => "";
@@ -96,7 +94,6 @@ public class CardInstance
     public CardInstance(ConversationCard template, string sourceContext = null)
     {
         Id = template.Id;
-        Name = template.Name;
         Description = template.Description;
         Properties = new List<CardProperty>(template.Properties); // Copy properties
         TokenType = template.TokenType;

@@ -5,7 +5,6 @@ public class ConversationCard
 {
     // Core identity
     public string Id { get; set; }
-    public string Name { get; set; }
     public string Description { get; set; }
     
     // Properties list replaces all boolean flags
@@ -84,7 +83,6 @@ public class ConversationCard
         return new ConversationCard
         {
             Id = this.Id,
-            Name = this.Name,
             Description = this.Description,
             Properties = new List<CardProperty>(this.Properties), // Clone the properties list
             IsSkeleton = this.IsSkeleton,

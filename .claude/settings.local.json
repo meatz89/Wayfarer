@@ -327,7 +327,10 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:7501\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:8500\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" timeout 30 dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5010\" dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5010\" dotnet run --no-build)",
+      "Bash(/mnt/c/git/wayfarer/test-starter-deck.sh:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)"
     ],
     "deny": []
   }

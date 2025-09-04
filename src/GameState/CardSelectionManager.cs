@@ -32,7 +32,7 @@ public class CardSelectionManager
         List<string> cardNames = new List<string>();
         foreach (CardInstance c in _selectedCards)
         {
-            cardNames.Add(c.Name);
+            cardNames.Add(c.Description);
         }
 
         return $"Playing {string.Join(", ", cardNames)} (focus: {totalFocus})";

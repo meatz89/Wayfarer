@@ -46,7 +46,7 @@ public class RequestCard : ConversationCard
         return new RequestCard
         {
             Id = id,
-            Name = name,
+            Description = name,
             RequestType = RequestType.Letter,
             CreatesObligation = ObligationType.Promise,
             SuccessTerms = new SuccessTerms

@@ -144,7 +144,7 @@ public class GameFacade
             options.Add(new NPCConversationOptions
             {
                 NpcId = npc.ID,
-                NpcName = npc.Name,
+                NpcName = npc.Description,
                 AvailableTypes = conversationTypes,
                 AttentionCost = attentionCost,
                 CanAfford = currentAttention >= attentionCost
@@ -432,7 +432,7 @@ public class GameFacade
         return _narrativeFacade.GetActiveObservationCards().Select(card => new TakenObservation
         {
             Id = card.Id,
-            Name = card.Name,
+            Name = card.Description,
             NarrativeText = card.DialogueFragment,
             GeneratedCard = card,
             TimeTaken = DateTime.Now,

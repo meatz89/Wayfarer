@@ -226,8 +226,8 @@ public class ObservationManager
         }
         
         // Update display information if not already set
-        if (string.IsNullOrEmpty(observationCard.Name))
-            observationCard.Name = observation.Text;
+        if (string.IsNullOrEmpty(observationCard.Description))
+            observationCard.Description = observation.Text;
         if (string.IsNullOrEmpty(observationCard.Description))
             observationCard.Description = observation.Description;
 

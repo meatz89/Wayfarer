@@ -175,7 +175,6 @@ public static class SkeletonGenerator
         var card = new ConversationCard
         {
             Id = id,
-            Name = $"Generic Interaction #{hash % 100}",
             Description = "The conversation continues.",
             Properties = new List<CardProperty> { CardProperty.Skeleton, CardProperty.Persistent },
             SkeletonSource = source,
