@@ -87,14 +87,21 @@ public class ConversationOrchestrator
             ObservationCards = observationCards ?? new List<CardInstance>()
         };
 
-        // Add request card directly to hand if present (starts as Unplayable)
+        // Perform initial draw (NOT full ExecuteListen to avoid exhausting the request card)
+        // This is the initial conversation start, so we just draw cards without exhausting
+        _focusManager.RefreshPool();
+        int drawCount = session.GetDrawCount();
+        List<CardInstance> initialCards = session.Deck.DrawCards(drawCount);
+        session.Hand.AddCards(initialCards);
+
+        // Add request card AFTER initial draw so it doesn't get exhausted
         if (requestCard != null)
         {
             session.Hand.AddCard(requestCard);
         }
 
-        // Perform initial LISTEN with no patience cost - draws cards based on emotional state
-        List<CardInstance> initialCards = _deckManager.ExecuteListen(session);
+        // Update request card playability based on focus
+        _deckManager.UpdateRequestCardPlayability(session);
         
         // Reset focus after initial draw (as per standard LISTEN)
         session.CurrentFocus = _focusManager.CurrentSpentFocus;

@@ -253,7 +253,7 @@ public class CardDeckManager
     /// <summary>
     /// Check if request cards should become playable based on focus capacity
     /// </summary>
-    private void UpdateRequestCardPlayability(ConversationSession session)
+    public void UpdateRequestCardPlayability(ConversationSession session)
     {
         // Get current focus capacity
         int focusCapacity = _focusManager.CurrentCapacity;
