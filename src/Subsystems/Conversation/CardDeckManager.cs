@@ -27,8 +27,9 @@ public class CardDeckManager
 
     /// <summary>
     /// Create a conversation deck from NPC templates (no filtering by type)
+    /// Returns both the deck and any request cards that should start in hand
     /// </summary>
-    public SessionCardDeck CreateConversationDeck(NPC npc, ConversationType conversationType, List<CardInstance> observationCards = null)
+    public (SessionCardDeck deck, CardInstance requestCard) CreateConversationDeck(NPC npc, ConversationType conversationType, List<CardInstance> observationCards = null)
     {
         string sessionId = Guid.NewGuid().ToString();
         
@@ -54,17 +55,14 @@ public class CardDeckManager
             }
         }
 
-        // Add request cards based on conversation type
+        // Get request card but don't add to deck - it goes directly to hand
+        CardInstance requestCard = null;
         if (conversationType == ConversationType.Promise || conversationType == ConversationType.Resolution)
         {
-            CardInstance requestCard = SelectValidRequestCard(npc, conversationType);
-            if (requestCard != null)
-            {
-                deck.AddCard(requestCard);
-            }
+            requestCard = SelectValidRequestCard(npc, conversationType);
         }
 
-        return deck;
+        return (deck, requestCard);
     }
 
     /// <summary>
@@ -80,6 +78,26 @@ public class CardDeckManager
     /// </summary>
     public CardPlayResult PlayCard(ConversationSession session, CardInstance selectedCard)
     {
+        // Check if card is unplayable
+        if (selectedCard.Properties.Contains(CardProperty.Unplayable))
+        {
+            return new CardPlayResult
+            {
+                Results = new List<SingleCardResult>
+                {
+                    new SingleCardResult
+                    {
+                        Card = selectedCard,
+                        Success = false,
+                        Flow = 0,
+                        Roll = 0,
+                        SuccessChance = 0
+                    }
+                },
+                TotalFlow = 0
+            };
+        }
+
         // Check for free focus from observation effect
         int focusCost = _atmosphereManager.IsNextSpeakFree() ? 0 : selectedCard.Focus;
         
@@ -220,7 +238,43 @@ public class CardDeckManager
         // Add to hand
         session.Hand.AddCards(drawnCards);
 
+        // Check if any request cards should become playable
+        UpdateRequestCardPlayability(session);
+
         return drawnCards;
+    }
+
+    /// <summary>
+    /// Check if request cards should become playable based on focus capacity
+    /// </summary>
+    private void UpdateRequestCardPlayability(ConversationSession session)
+    {
+        // Get current focus capacity
+        int focusCapacity = _focusManager.CurrentCapacity;
+
+        // Find all request cards in hand
+        List<CardInstance> requestCards = session.Hand.Cards
+            .Where(c => c.Properties.Contains(CardProperty.Unplayable))
+            .ToList();
+
+        foreach (var requestCard in requestCards)
+        {
+            // Check if we have enough focus capacity for this request card
+            if (focusCapacity >= requestCard.Focus)
+            {
+                // Remove Unplayable and add Impulse + Opening properties
+                requestCard.Properties.Remove(CardProperty.Unplayable);
+                
+                // Add Impulse and Opening if not already present
+                if (!requestCard.Properties.Contains(CardProperty.Impulse))
+                    requestCard.Properties.Add(CardProperty.Impulse);
+                if (!requestCard.Properties.Contains(CardProperty.Opening))
+                    requestCard.Properties.Add(CardProperty.Opening);
+                
+                // Mark that the request card is now playable
+                session.RequestCardDrawn = true;
+            }
+        }
     }
 
     /// <summary>

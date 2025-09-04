@@ -44,5 +44,10 @@ public enum CardProperty
     /// <summary>
     /// Card can be used to deliver a letter
     /// </summary>
-    DeliveryEligible
+    DeliveryEligible,
+    
+    /// <summary>
+    /// Card cannot be played until conditions are met (e.g., request card before sufficient focus)
+    /// </summary>
+    Unplayable
 }

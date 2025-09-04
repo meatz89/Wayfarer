@@ -47,6 +47,17 @@ public static class RouteOptionParser
             }
         }
 
+        // Parse tier required
+        string tierStr = GetStringProperty(root, "tierRequired", "T1");
+        if (EnumParser.TryParse<TierLevel>(tierStr, out TierLevel tier))
+        {
+            route.TierRequired = tier;
+        }
+        else
+        {
+            route.TierRequired = TierLevel.T1;
+        }
+
         // Parse terrain categories
         List<string> categoryStrings = GetStringArray(root, "terrainCategories");
         foreach (string categoryStr in categoryStrings)

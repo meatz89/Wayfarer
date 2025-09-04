@@ -79,6 +79,10 @@ public class PackageLoader
         // Load content in dependency order
         if (package.Content != null)
         {
+            // Phase 0: Geographic hierarchy (regions and districts)
+            LoadRegions(package.Content.Regions);
+            LoadDistricts(package.Content.Districts);
+
             // Phase 1: Cards (foundation - NPCs reference these)
             LoadCards(package.Content.Cards);
 
@@ -152,6 +156,49 @@ public class PackageLoader
                     [ConnectionType.Shadow] = kvp.Value.Shadow
                 };
             }
+        }
+    }
+
+    private void LoadRegions(List<RegionDTO> regionDtos)
+    {
+        if (regionDtos == null) return;
+        
+        foreach (var dto in regionDtos)
+        {
+            var region = new Region
+            {
+                Id = dto.Id,
+                Name = dto.Name,
+                Description = dto.Description,
+                DistrictIds = dto.DistrictIds ?? new List<string>(),
+                Government = dto.Government,
+                Culture = dto.Culture,
+                Population = dto.Population,
+                MajorExports = dto.MajorExports ?? new List<string>(),
+                MajorImports = dto.MajorImports ?? new List<string>()
+            };
+            _gameWorld.WorldState.Regions.Add(region);
+        }
+    }
+
+    private void LoadDistricts(List<DistrictDTO> districtDtos)
+    {
+        if (districtDtos == null) return;
+        
+        foreach (var dto in districtDtos)
+        {
+            var district = new District
+            {
+                Id = dto.Id,
+                Name = dto.Name,
+                Description = dto.Description,
+                RegionId = dto.RegionId,
+                LocationIds = dto.LocationIds ?? new List<string>(),
+                DistrictType = dto.DistrictType,
+                DangerLevel = dto.DangerLevel,
+                Characteristics = dto.Characteristics ?? new List<string>()
+            };
+            _gameWorld.WorldState.Districts.Add(district);
         }
     }
 
@@ -524,7 +571,7 @@ public class PackageLoader
 
     private RouteOption ConvertRouteDTOToModel(RouteDTO dto)
     {
-        return new RouteOption
+        var route = new RouteOption
         {
             Id = dto.Id,
             Name = dto.Name ?? "",
@@ -535,8 +582,32 @@ public class PackageLoader
             BaseStaminaCost = dto.BaseStaminaCost,
             TravelTimeMinutes = dto.TravelTimeMinutes,
             IsDiscovered = dto.IsDiscovered,
-            Description = dto.Description ?? ""
+            Description = dto.Description ?? "",
+            MaxItemCapacity = dto.MaxItemCapacity > 0 ? dto.MaxItemCapacity : 3
         };
+
+        // Parse tier required
+        if (!string.IsNullOrEmpty(dto.TierRequired))
+        {
+            if (Enum.TryParse<TierLevel>(dto.TierRequired, out var tier))
+            {
+                route.TierRequired = tier;
+            }
+        }
+
+        // Parse terrain categories
+        if (dto.TerrainCategories != null)
+        {
+            foreach (var category in dto.TerrainCategories)
+            {
+                if (Enum.TryParse<TerrainCategory>(category, out var terrain))
+                {
+                    route.TerrainCategories.Add(terrain);
+                }
+            }
+        }
+
+        return route;
     }
 
     private ConversationCard ConvertObservationDTOToCard(ObservationDTO dto)

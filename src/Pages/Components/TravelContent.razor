@@ -2,14 +2,12 @@
 
 @namespace Wayfarer.Pages.Components
 
-<div class="travel-content">
+<div class="travel-container">
+    <!-- Header -->
     <div class="travel-header">
         <div>
-            <h2>Select Travel Route</h2>
-            <div class="current-location">
-                <span>From:</span>
-                <strong>@CurrentLocation</strong>
-            </div>
+            <div class="header-title">Select Travel Route</div>
+            <div class="current-location">From: @CurrentLocation</div>
         </div>
     </div>
 
@@ -17,7 +15,8 @@
         var player = GameFacade.GetPlayer();
         var currentTime = TimeManager.GetCurrentTimeBlock();
     }
-    
+
+    <!-- Resources Preview -->
     <div class="resources-preview">
         <div class="resource-item">
             <span class="resource-label">Coins:</span>
@@ -33,14 +32,13 @@
         </div>
     </div>
 
-    @if (AvailableRoutes.Any())
-    {
-        <div class="routes-section">
-            @{
-                var groupedRoutes = AvailableRoutes
-                    .GroupBy(r => r.DestinationName)
-                    .OrderBy(g => g.Key);
-            }
+    <!-- Destinations List -->
+    <div class="destinations-list">
+        @if (AvailableRoutes.Any())
+        {
+            var groupedRoutes = AvailableRoutes
+                .GroupBy(r => r.DestinationName)
+                .OrderBy(g => g.Key);
             
             @foreach (var group in groupedRoutes)
             {
@@ -49,96 +47,88 @@
                         <div class="destination-name">@group.Key</div>
                         <div class="destination-info">@group.First().District</div>
                     </div>
-                    <div class="route-list">
+                    <div class="routes-container">
                         @foreach (var route in group)
                         {
-                            <div class="route-card @GetRouteTypeClass(route) @GetRouteClass(route)" 
-                                 @onclick="() => SelectRoute(route)">
-                                <div class="route-header">
-                                    <h4>@route.Name</h4>
-                                    <div class="route-distance">@route.TransportType</div>
-                                </div>
-                                
-                                <div class="route-details">
-                                    <div class="route-time">
-                                        <span class="time-label">Time:</span>
-                                        <span class="time-value">@GetTravelTimeDisplay(route.TravelTime)</span>
-                                    </div>
-                                    
-                                    @if (route.HungerCost > 0)
-                                    {
-                                        <div class="route-hunger">
-                                            <span class="hunger-label">Hunger:</span>
-                                            <span class="hunger-value">+@route.HungerCost</span>
+                            var isLocked = !CanTakeRoute(route);
+                            <div class="route-card @GetRouteTypeClass(route) @(isLocked ? "locked" : "")"
+                                 @onclick="() => { if (!isLocked) SelectRoute(route); }">
+                                <div class="route-main">
+                                    <div class="route-info">
+                                        <div class="route-name">@route.Name</div>
+                                        <span class="route-transport">@route.TransportType</span>
+                                        <div class="route-details">
+                                            <div class="route-stat">
+                                                <span class="stat-label">Time:</span>
+                                                <span class="stat-value">@GetTravelTimeDisplay(route.TravelTime)</span>
+                                            </div>
+                                            @if (route.HungerCost > 0)
+                                            {
+                                                <div class="route-stat">
+                                                    <span class="stat-label">Hunger:</span>
+                                                    <span class="stat-value stat-cost">+@route.HungerCost</span>
+                                                </div>
+                                            }
                                         </div>
-                                    }
-                                </div>
-                                
-                                @if (route.Tags.Any())
-                                {
-                                    <div class="route-tags">
-                                        @foreach (var tag in route.Tags)
+                                        @if (route.Tags.Any())
                                         {
-                                            <span class="route-tag @GetTagClass(tag)">@tag</span>
+                                            <div class="route-tags">
+                                                @foreach (var tag in route.Tags)
+                                                {
+                                                    <span class="route-tag @GetTagClass(tag)">@tag</span>
+                                                }
+                                            </div>
+                                        }
+                                        @if (route.Requirements.Any())
+                                        {
+                                            <div class="requirement-box @(isLocked ? "requirement-missing" : "")">
+                                                <span class="requirement-label">Requires:</span>
+                                                <span class="requirement-text">
+                                                    @string.Join(", ", route.Requirements)
+                                                </span>
+                                            </div>
                                         }
                                     </div>
-                                }
-                                
-                                @if (route.Requirements.Any())
-                                {
-                                    <div class="route-requirements @(!CanTakeRoute(route) ? "unmet" : "")">
-                                        <span class="req-label">Requires:</span>
-                                        @foreach (var req in route.Requirements)
+                                    <div class="route-costs">
+                                        @if (route.Cost > 0)
                                         {
-                                            <span class="requirement">@req</span>
+                                            <div class="cost-item cost-coins">@route.Cost coins</div>
+                                        }
+                                        else
+                                        {
+                                            <div class="cost-item cost-free">Free</div>
+                                        }
+                                        @if (!isLocked && route == SelectedRoute)
+                                        {
+                                            <button class="travel-button active"
+                                                    @onclick:stopPropagation="true"
+                                                    @onclick="() => TravelRoute(route)">
+                                                TRAVEL
+                                            </button>
                                         }
                                     </div>
-                                }
-                                
-                                <div class="route-action">
-                                    @if (route.Cost > 0)
-                                    {
-                                        <span class="cost-value">@route.Cost coins</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="cost-free">Free</span>
-                                    }
-                                    
-                                    @if (CanTakeRoute(route))
-                                    {
-                                        <button class="travel-button" 
-                                                @onclick:stopPropagation="true"
-                                                @onclick="() => TravelRoute(route)">
-                                            Travel
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <div class="cannot-travel">
-                                            @GetCannotTravelReason(route)
-                                        </div>
-                                    }
                                 </div>
                             </div>
                         }
                     </div>
                 </div>
             }
-        </div>
-    }
-    else
-    {
-        <div class="no-routes">
-            <p>No travel routes available from this location.</p>
-            <p>Move to a Crossroads spot to access travel options.</p>
-        </div>
-    }
-
-    <div class="travel-footer">
-        <div class="footer-info">Routes with special properties may trigger encounters or events during travel</div>
-        <button class="back-button" @onclick="ReturnToLocation">
-            Back to Location
-        </button>
+        }
+        else
+        {
+            <div class="no-routes">
+                <p>No travel routes available from this location.</p>
+                <p>Move to a Crossroads spot to access travel options.</p>
+            </div>
+        }
     </div>
+
+    <!-- Footer -->
+    <div class="travel-footer">
+        Routes with special properties may trigger encounters or events during travel
+    </div>
+    
+    <button class="back-button" @onclick="ReturnToLocation">
+        Back to Location
+    </button>
 </div>

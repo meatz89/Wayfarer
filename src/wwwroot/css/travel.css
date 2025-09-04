@@ -1,14 +1,16 @@
-/* Travel Screen Styles - Based on UI Mockup */
+/* Travel Screen Styles - Exact Match to Mockup */
 
-.travel-content {
+.travel-container {
     width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    max-width: 800px;
+    margin: 0 auto;
     background: #faf4ea;
+    border: 3px solid #8b7355;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
 }
 
-/* Travel Header */
+/* Header */
 .travel-header {
     background: linear-gradient(to bottom, #2c241a, #3d3429);
     color: #e8dcc4;
@@ -19,11 +21,9 @@
     align-items: center;
 }
 
-.travel-header h2 {
+.header-title {
     font-size: 20px;
     letter-spacing: 1px;
-    margin: 0;
-    color: #e8dcc4;
 }
 
 .current-location {
@@ -32,15 +32,7 @@
     font-style: italic;
 }
 
-.current-location span {
-    color: #a68b6f;
-}
-
-.current-location strong {
-    color: #d4a76a;
-}
-
-/* Resources Preview Bar */
+/* Resources Bar */
 .resources-preview {
     background: #e8dcc4;
     padding: 10px 20px;
@@ -65,20 +57,13 @@
     color: #5c4a3a;
 }
 
-/* Routes Section */
-.routes-section {
-    flex: 1;
-    overflow-y: auto;
-    padding: 15px;
-}
-
-.routes-section h3 {
-    font-size: 16px;
-    color: #5c4a3a;
-    margin-bottom: 10px;
-}
-
 /* Destination Groups */
+.destinations-list {
+    padding: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
 .destination-group {
     margin-bottom: 20px;
     background: #f9f3e9;
@@ -105,43 +90,33 @@
     margin-top: 2px;
 }
 
-/* Route List */
-.route-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+/* Routes */
+.routes-container {
+    padding: 10px;
 }
 
-/* Route Cards */
 .route-card {
     background: white;
     border: 1px solid #d4c5a0;
     border-radius: 3px;
     padding: 12px;
+    margin-bottom: 10px;
     cursor: pointer;
     transition: all 0.2s;
-    position: relative;
 }
 
-.route-card:hover:not(.disabled) {
+.route-card:hover:not(.locked) {
     background: #fefaf0;
     border-color: #a68b6f;
     transform: translateX(3px);
 }
 
-.route-card.disabled {
+.route-card.locked {
     opacity: 0.6;
     cursor: not-allowed;
     background: #f0ebe4;
 }
 
-.route-card.selected {
-    background: #fefaf0;
-    border-color: #8b7355;
-    border-width: 2px;
-}
-
-/* Route Type Indicators */
 .route-card.dangerous {
     border-left: 3px solid #8b4726;
 }
@@ -158,85 +133,65 @@
     border-left: 3px solid #c4a684;
 }
 
-/* Route Header */
-.route-header {
+.route-main {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 8px;
 }
 
-.route-header h4 {
+.route-info {
+    flex: 1;
+}
+
+.route-name {
     font-size: 14px;
     color: #5c4a3a;
     font-weight: bold;
-    margin: 0;
+    margin-bottom: 4px;
 }
 
-.route-distance {
-    font-size: 11px;
+.route-transport {
+    display: inline-block;
+    font-size: 10px;
     color: #7a6250;
-    font-style: italic;
-}
-
-/* Route Details */
-.route-details {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 8px;
-    font-size: 11px;
-}
-
-.transport-type {
-    display: flex;
-    align-items: center;
-    gap: 4px;
     background: #f4e8d0;
     padding: 2px 6px;
     border-radius: 2px;
+    margin-right: 6px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.transport-icon {
-    font-size: 14px;
+.route-details {
+    display: flex;
+    gap: 15px;
+    margin-top: 8px;
+    font-size: 11px;
 }
 
-.route-time,
-.route-cost,
-.route-hunger {
+.route-stat {
     display: flex;
     align-items: center;
     gap: 4px;
 }
 
-.time-label,
-.cost-label,
-.hunger-label {
+.stat-label {
     color: #7a6250;
 }
 
-.time-value {
+.stat-value {
     color: #5c4a3a;
     font-weight: bold;
 }
 
-.cost-value {
+.stat-cost {
     color: #8b4726;
-    font-weight: bold;
 }
 
-.hunger-value {
-    color: #8b4726;
-    font-weight: bold;
-}
-
-/* Route Tags */
 .route-tags {
     display: flex;
     gap: 6px;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
+    margin-top: 8px;
 }
 
 .route-tag {
@@ -258,8 +213,9 @@
     color: #e8dcc4;
 }
 
-.tag-exposed {
-    background: #8b7355;
+.tag-patrolled,
+.tag-restricted {
+    background: #5a7a8a;
     color: #faf4ea;
 }
 
@@ -268,143 +224,151 @@
     color: #faf4ea;
 }
 
+.tag-dangerous,
+.tag-exposed {
+    background: #8b4726;
+    color: #faf4ea;
+}
+
 .tag-commercial {
     background: #d4a76a;
     color: #2c241a;
 }
 
-.tag-restricted {
-    background: #8b4726;
-    color: #faf4ea;
-}
-
-/* Route Requirements */
-.route-requirements {
+/* Requirement Box */
+.requirement-box {
     background: #faf0e6;
     border: 1px solid #d4a76a;
     border-radius: 2px;
     padding: 6px 10px;
-    margin-bottom: 8px;
+    margin-top: 8px;
     font-size: 11px;
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: 6px;
 }
 
-.route-requirements.unmet {
+.requirement-label {
+    color: #8b4726;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.requirement-text {
+    color: #5c4a3a;
+}
+
+.requirement-missing {
     background: #f5e8e8;
     border-color: #8b4726;
 }
 
-.req-label {
+/* Cost Display */
+.route-costs {
+    text-align: right;
+}
+
+.cost-item {
+    font-size: 12px;
+    margin-bottom: 2px;
+}
+
+.cost-free {
+    color: #5a7a3a;
+    font-style: italic;
+}
+
+.cost-coins {
     color: #8b4726;
     font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
-.requirement {
-    color: #5c4a3a;
-}
-
-/* Route Action */
-.route-action {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    margin-top: 8px;
-}
-
+/* Travel Button */
 .travel-button {
+    margin-top: 8px;
+    padding: 6px 12px;
     background: #7a8b5a;
     color: #faf4ea;
-    border: none;
-    padding: 6px 12px;
+    border: 1px solid #5a6b3a;
     border-radius: 3px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
-    cursor: pointer;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: background-color 0.2s;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
 .travel-button:hover {
-    background: #687749;
+    background: #8a9b6a;
+    transform: translateY(-1px);
 }
 
-.cannot-travel {
-    color: #8b4726;
+.travel-button.active {
+    background: #5a6b3a;
+}
+
+/* Footer */
+.travel-footer {
+    background: #e8dcc4;
+    padding: 10px 20px;
+    border-top: 1px solid #c4a684;
+    text-align: center;
     font-size: 11px;
+    color: #5a4232;
     font-style: italic;
+    opacity: 0.9;
+}
+
+/* Back Button */
+.back-button {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 24px;
+    background: #8b7355;
+    color: #faf4ea;
+    border: 1px solid #6b5345;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.back-button:hover {
+    background: #9b8365;
+    transform: translateX(-50%) translateY(-2px);
 }
 
 /* No Routes Message */
 .no-routes {
+    padding: 40px;
     text-align: center;
-    padding: 40px 20px;
     color: #7a6250;
+    font-style: italic;
 }
 
 .no-routes p {
     margin: 10px 0;
 }
 
-/* Travel Footer */
-.travel-footer {
-    background: #e8dcc4;
-    padding: 10px 20px;
-    border-top: 1px solid #c4a684;
-    text-align: center;
-}
-
-.footer-info {
-    font-size: 11px;
-    color: #7a6250;
-    font-style: italic;
-    margin-bottom: 10px;
-}
-
-.back-button {
-    background: #8b7355;
-    color: #faf4ea;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 3px;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: background-color 0.2s;
-}
-
-.back-button:hover {
-    background: #7a6250;
-}
-
 /* Scrollbar Styling */
-.routes-section::-webkit-scrollbar {
+.destinations-list::-webkit-scrollbar {
     width: 8px;
 }
 
-.routes-section::-webkit-scrollbar-track {
-    background: #e8dcc4;
+.destinations-list::-webkit-scrollbar-track {
+    background: #f4e8d0;
+    border-radius: 4px;
 }
 
-.routes-section::-webkit-scrollbar-thumb {
+.destinations-list::-webkit-scrollbar-thumb {
     background: #a68b6f;
     border-radius: 4px;
 }
 
-.routes-section::-webkit-scrollbar-thumb:hover {
+.destinations-list::-webkit-scrollbar-thumb:hover {
     background: #8b7355;
-}
-
-/* Cost-Free Routes */
-.cost-free {
-    color: #5a7a3a;
-    font-style: italic;
-    font-size: 12px;
 }

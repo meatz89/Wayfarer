@@ -482,6 +482,9 @@ namespace Wayfarer.Pages
             await RefreshResourceDisplay();
             await RefreshTimeDisplay();
             await RefreshLocationDisplay();
+            
+            // Force UI update to show the new time
+            await InvokeAsync(StateHasChanged);
 
             await NavigateToScreen(ScreenMode.Location);
         }

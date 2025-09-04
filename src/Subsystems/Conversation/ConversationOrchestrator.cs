@@ -58,8 +58,8 @@ public class ConversationOrchestrator
         // Reset atmosphere manager
         _atmosphereManager.Reset();
 
-        // Create session deck
-        SessionCardDeck deck = _deckManager.CreateConversationDeck(npc, conversationType, observationCards);
+        // Create session deck and get request card
+        var (deck, requestCard) = _deckManager.CreateConversationDeck(npc, conversationType, observationCards);
 
         // Create rapport manager with initial token counts
         Dictionary<ConnectionType, int> npcTokens = GetNpcTokenCounts(npc);
@@ -86,6 +86,12 @@ public class ConversationOrchestrator
             RapportManager = rapportManager,
             ObservationCards = observationCards ?? new List<CardInstance>()
         };
+
+        // Add request card directly to hand if present (starts as Unplayable)
+        if (requestCard != null)
+        {
+            session.Hand.AddCard(requestCard);
+        }
 
         // Perform initial LISTEN with no patience cost - draws cards based on emotional state
         List<CardInstance> initialCards = _deckManager.ExecuteListen(session);

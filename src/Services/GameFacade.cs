@@ -607,4 +607,28 @@ public class GameFacade
             _obligationFacade.ProcessHourlyDeadlines(result.HoursAdvanced);
         }
     }
+    
+    /// <summary>
+    /// Gets the district containing a location
+    /// </summary>
+    public District GetDistrictForLocation(string locationId)
+    {
+        return _gameWorld.WorldState.GetDistrictForLocation(locationId);
+    }
+    
+    /// <summary>
+    /// Gets the region containing a district
+    /// </summary>
+    public Region GetRegionForDistrict(string districtId)
+    {
+        return _gameWorld.WorldState.GetRegionForDistrict(districtId);
+    }
+    
+    /// <summary>
+    /// Gets all locations in WorldState
+    /// </summary>
+    public List<Location> GetAllLocations()
+    {
+        return _gameWorld.WorldState.locations;
+    }
 }

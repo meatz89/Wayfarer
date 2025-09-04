@@ -6,6 +6,16 @@ using System.Collections.Generic;
 public class PackageContent
 {
     /// <summary>
+    /// Region definitions - top level geographic entities
+    /// </summary>
+    public List<RegionDTO> Regions { get; set; }
+    
+    /// <summary>
+    /// District definitions - subdivisions of regions
+    /// </summary>
+    public List<DistrictDTO> Districts { get; set; }
+    
+    /// <summary>
     /// Card definitions - uses DTO for consistency
     /// </summary>
     public List<ConversationCardDTO> Cards { get; set; }

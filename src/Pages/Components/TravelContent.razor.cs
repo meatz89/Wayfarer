@@ -62,7 +62,7 @@ namespace Wayfarer.Pages.Components
                 Name = r.Name,  // Store the actual route name from JSON
                 DestinationName = GetDestinationLocationName(r.DestinationLocationSpot),
                 District = GetDestinationDistrict(r.DestinationLocationSpot),
-                TransportType = r.Method.ToString(),
+                TransportType = FormatTransportType(r.Method),
                 TravelTime = r.TravelTimeMinutes,
                 Cost = r.BaseCoinCost,
                 HungerCost = CalculateHungerCost(r),
@@ -79,20 +79,45 @@ namespace Wayfarer.Pages.Components
             return spot?.Name ?? destinationSpotId;
         }
 
-        private string GetDestinationDistrict(string destinationName)
+        private string GetDestinationDistrict(string destinationSpotId)
         {
-            // Map location names to their districts based on game world
-            // This is a categorical mapping based on the game's location hierarchy
-            return destinationName?.ToLower() switch
+            // Get all locations from GameFacade
+            var locations = GameFacade.GetAllLocations();
+            if (locations == null) return "City Center";
+            
+            // Find the location containing this spot
+            foreach (var location in locations)
             {
-                "noble estate" or "lord's manor" or "noble district" => "Noble District",
-                "market square" or "merchant row" or "trade post" => "Market District",
-                "city gates" or "guard post" or "customs house" => "Gate District",
-                "riverside" or "docks" or "wharf" => "Riverside District",
-                "your room" or "boarding house" or "inn" => "Residential District",
-                "temple" or "shrine" or "monastery" => "Temple District",
-                "guild hall" or "artisan quarter" => "Artisan District",
-                _ => "City Center" // Default for unknown locations
+                if (location.LocationSpotIds.Contains(destinationSpotId))
+                {
+                    // Get the district for this location
+                    var district = GameFacade.GetDistrictForLocation(location.Id);
+                    if (district != null)
+                    {
+                        // Get the region for this district
+                        var region = GameFacade.GetRegionForDistrict(district.Id);
+                        if (region != null)
+                        {
+                            return $"{region.Name} • {district.Name}";
+                        }
+                        return district.Name;
+                    }
+                    return "City Center";
+                }
+            }
+            
+            return "City Center";
+        }
+        
+        private string FormatTransportType(TravelMethods method)
+        {
+            return method switch
+            {
+                TravelMethods.Walking => "WALKING",
+                TravelMethods.Cart => "CART",
+                TravelMethods.Carriage => "CARRIAGE",
+                TravelMethods.Boat => "BOAT",
+                _ => "WALKING"
             };
         }
 
