@@ -309,6 +309,19 @@
     background: #5a6b3a;
 }
 
+.travel-button.disabled {
+    background: #c4c0b8;
+    color: #8a8580;
+    border-color: #a8a49c;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.travel-button.disabled:hover {
+    transform: none;
+    background: #c4c0b8;
+}
+
 /* Footer */
 .travel-footer {
     background: #e8dcc4;

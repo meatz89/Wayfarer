@@ -41,8 +41,10 @@ public class CardInstance
             classes.Add($"card-{property.ToString().ToLower()}");
         }
         
-        // Add special combined classes
-        if (Properties.Contains(CardProperty.Impulse) && Properties.Contains(CardProperty.Opening))
+        // Add special combined classes - only if playable
+        if (Properties.Contains(CardProperty.Impulse) && 
+            Properties.Contains(CardProperty.Opening) && 
+            !Properties.Contains(CardProperty.Unplayable))
         {
             classes.Add("card-request");
         }

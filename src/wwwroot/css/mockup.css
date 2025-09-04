@@ -2409,8 +2409,17 @@ body * {
     50% { opacity: 0.5; }
 }
 
-/* Request cards */
-.card.request {
+/* Unplayable cards - greyed out and not clickable */
+.card-unplayable,
+.card.card-unplayable {
+    opacity: 0.5;
+    filter: grayscale(100%);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Request cards - only when playable (has Impulse + Opening but NOT Unplayable) */
+.card.card-request {
     border-color: #8B0000 ;
     background: linear-gradient(135deg, #FFF, #FFCCCC) ;
     animation: urgent-pulse 1.5s ease-in-out infinite;

@@ -98,9 +98,10 @@
                                         {
                                             <div class="cost-item cost-free">Free</div>
                                         }
-                                        @if (!isLocked && route == SelectedRoute)
+                                        @if (route == SelectedRoute)
                                         {
-                                            <button class="travel-button active"
+                                            <button class="travel-button @(!isLocked ? "active" : "disabled")"
+                                                    disabled="@isLocked"
                                                     @onclick:stopPropagation="true"
                                                     @onclick="() => TravelRoute(route)">
                                                 TRAVEL
