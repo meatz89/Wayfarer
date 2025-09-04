@@ -73,8 +73,8 @@ public class ConversationOrchestrator
             CurrentState = initialState,
             InitialState = initialState,
             FlowBattery = 0, // Start at 0
-            CurrentPresence = 0,
-            MaxPresence = _focusManager.CurrentCapacity,
+            CurrentFocus = 0,
+            MaxFocus = _focusManager.CurrentCapacity,
             CurrentAtmosphere = AtmosphereType.Neutral,
             CurrentPatience = 10,
             MaxPatience = 10,
@@ -91,8 +91,8 @@ public class ConversationOrchestrator
         List<CardInstance> initialCards = _deckManager.ExecuteListen(session);
         
         // Reset focus after initial draw (as per standard LISTEN)
-        session.CurrentPresence = _focusManager.CurrentSpentFocus;
-        session.MaxPresence = _focusManager.CurrentCapacity;
+        session.CurrentFocus = _focusManager.CurrentSpentFocus;
+        session.MaxFocus = _focusManager.CurrentCapacity;
 
         return session;
     }
@@ -117,8 +117,8 @@ public class ConversationOrchestrator
         List<CardInstance> drawnCards = _deckManager.ExecuteListen(session);
 
         // Update session focus state
-        session.CurrentPresence = _focusManager.CurrentSpentFocus;
-        session.MaxPresence = _focusManager.CurrentCapacity;
+        session.CurrentFocus = _focusManager.CurrentSpentFocus;
+        session.MaxFocus = _focusManager.CurrentCapacity;
 
         // Generate NPC response
         string npcResponse = _dialogueGenerator.GenerateListenResponse(session.NPC, session.CurrentState, drawnCards);
@@ -145,7 +145,7 @@ public class ConversationOrchestrator
 
         session.TurnNumber++;
 
-        // SPEAK costs presence (focus), not patience
+        // SPEAK costs focus (focus), not patience
         // Patience is only deducted for LISTEN actions
 
         // Play the card through deck manager
@@ -178,8 +178,8 @@ public class ConversationOrchestrator
 
         // Update session atmosphere
         session.CurrentAtmosphere = _atmosphereManager.CurrentAtmosphere;
-        session.CurrentPresence = _focusManager.CurrentSpentFocus;
-        session.MaxPresence = _focusManager.CurrentCapacity;
+        session.CurrentFocus = _focusManager.CurrentSpentFocus;
+        session.MaxFocus = _focusManager.CurrentCapacity;
 
         // Generate NPC response
         string npcResponse = _dialogueGenerator.GenerateSpeakResponse(

@@ -7,8 +7,8 @@ The three core game loops answer fundamental design questions while maintaining 
 ## Core Loop 1: Card-Based Conversations
 
 ### Design Questions Answered
-- **What provides challenge?** Managing focuss and flow battery to reach request cards
-- **Why grow stronger?** More tokens improve all success rates linearly  
+- **What provides challenge?** Managing focus and rapport to reach request cards
+- **Why grow stronger?** More tokens improve starting rapport linearly  
 - **Why engage with NPCs?** Request cards provide income, access, and world progression
 
 ### Mechanical Framework
@@ -16,16 +16,19 @@ The three core game loops answer fundamental design questions while maintaining 
 **The Conversation Puzzle**:
 1. Emotional states determine focus capacity (3-6) and card draws (1-3)
 2. Focus persists across SPEAK actions, refreshes on LISTEN
-3. Flow (-3 to +3) triggers state transitions at extremes
-4. Tokens (permanent) modify all success rates linearly (+5% per token)
+3. Flow (-3 to +3) tracks success/failure, triggers state transitions at extremes
+4. Rapport (-50 to +50) modifies all success rates linearly (+2% per point)
 5. Atmosphere persists until changed or failure occurs
 6. One card per SPEAK action creates authentic dialogue rhythm
 
-**Request Card Selection**:
+**Request Card Mechanics**:
 1. Player chooses conversation type
-2. Appropriate request from request deck shuffled into conversation deck copy
-3. Request card requires 5-6 focus to play (needs Open/Connected or Prepared atmosphere)
-4. Request cards have both "Impulse" and "Opening" Properties - if request card is discarded, conversation fails
+2. Appropriate request from request deck added to hand at start (unplayable)
+3. Request becomes playable when LISTEN at sufficient focus capacity
+4. Upon becoming playable, gains both Impulse and Opening properties
+5. Must play immediately or conversation fails (exhaust effect)
+6. Success: Accept obligation with fixed terms
+7. Failure: Add burden card to relationship
 
 **Focus Management**:
 - Capacity determined by emotional state (3-6)
@@ -42,9 +45,9 @@ The three core game loops answer fundamental design questions while maintaining 
 - Failure clears to Neutral atmosphere
 - Shapes entire conversation flow
 
-Tokens improve negotiation success (+5% per matching token type), determining the quality of terms (deadline, payment, queue position). Letters are never gated by tokens - only negotiation quality improves.
+Starting rapport (equal to connection tokens) determines initial success chance, making established relationships easier to navigate.
 
-This creates multi-conversation arcs where relationships built through successful deliveries improve future negotiations.
+This creates multi-conversation arcs where relationships built through successful deliveries improve future starting conditions.
 
 ### Conversation Outputs
 - **Promises**: Create obligations in queue (letters, meetings, escorts, etc.)
@@ -52,12 +55,13 @@ This creates multi-conversation arcs where relationships built through successfu
 - **Observations**: Cards for player's observation deck with unique effects
 - **Deck Evolution**: Successful completions modify NPC decks
 - **Permits**: Special promises that enable routes
+- **Burden Cards**: Failed requests damage relationships
 
 ## Core Loop 2: Obligation Queue Management
 
 ### Design Questions Answered
 - **Why travel between locations?** Obligations scattered across the city
-- **Why revisit locations?** Building relationships for better letters
+- **Why revisit locations?** Building relationships for better starting rapport
 - **Why manage time?** Deadlines create pressure and force prioritization
 
 ### Queue Mechanics
@@ -79,28 +83,27 @@ Token type burned matches NPC personality:
 - Proud: Status tokens
 - Cunning: Shadow tokens
 
-### Queue Position Negotiation
+### Request Card Terms (Fixed)
 
-When playing a request card (promise):
-- **Success**: Your terms (usually lowest available position, better deadline/payment)
-- **Failure**: NPC's terms (forced higher position, tighter deadline)
+When playing a request card:
+- **Success**: Accept obligation with predetermined terms
+- **Failure**: No obligation, add burden card to relationship
 
-Request card difficulty affects negotiation:
-- Letter requests: Very Hard (40% base + tokens)
-- Meeting requests: Hard (50% base + tokens)
-- Resolution requests: Hard (50% base + tokens)
-- Crisis requests: Very Hard (40% base + tokens)
+Request cards no longer involve negotiation - terms are fixed based on the request type:
+- Letter requests: Specific deadline, position, and payment
+- Meeting requests: Fixed time and location
+- Resolution requests: Clear existing burden cards
 
-Personality modifiers:
-- Proud NPCs always attempt position 1
-- Desperate emotional state forces position 1 attempt
-- Mercantile NPCs negotiate hardest on payment
+Personality influences which requests are available:
+- Proud NPCs offer urgent, high-position requests
+- Desperate emotional state only has crisis requests
+- Mercantile NPCs focus on profitable exchanges
 
 ### Strategic Queue Patterns
 
 **Obligation Chaining**: Accept multiple obligations in same location, complete efficiently
 
-**Token Preservation**: Accept poor queue positions to avoid burning relationships
+**Token Preservation**: Accept fixed queue positions to avoid burning relationships
 
 **Emergency Displacement**: Burn tokens only for critical deadlines
 
@@ -121,7 +124,7 @@ Personality modifiers:
 - Multiple NPCs can provide same permit through different means
 
 **Access Permit Sources**:
-- Request cards from high-token relationships
+- Request cards with fixed terms
 - Exchange cards from merchants (coin cost)
 - Observation rewards from NPCs
 - Location discoveries
@@ -145,7 +148,7 @@ Personality modifiers:
 **Unique Observation Effects**:
 - **Atmosphere Setters**: Informed, Exposed, Synchronized, Pressured
 - **Cost Bypasses**: Next action free, next SPEAK costs 0 focus
-- **Unique Manipulations**: Reset flow to 0, refresh focus
+- **Unique Manipulations**: Set rapport to 15, refresh focus
 
 **Observation Sources**:
 - Location observations (spend attention)
@@ -165,7 +168,7 @@ Success allows passage, failure costs resources.
 
 ### Attention Economy Connections
 
-**Daily Allocation**: 10 - (Hunger Ã· 25), minimum 2
+**Daily Allocation**: 10 - (Hunger ÷ 25), minimum 2
 
 Attention enables:
 - **Conversations** (2): Access to letters and tokens
@@ -177,20 +180,16 @@ This forces prioritization between relationship building, information gathering,
 ### Token Economy Integration
 
 Tokens serve multiple purposes through different mechanics:
-- **In Conversations**: +5% success rate per token ONLY on matching card types
-  - Trust tokens only boost Trust-type cards
-  - Commerce tokens only boost Commerce-type cards
-  - Status tokens only boost Status-type cards
-  - Shadow tokens only boost Shadow-type cards
-- **For Negotiations**: Better terms when playing request cards (matching types)
-- **For Displacement**: Burn for queue flexibility (permanent cost)
+- **Starting Rapport**: Each token provides 1 starting rapport in conversations
+- **Queue Displacement**: Burn for queue flexibility (permanent cost)
+- **Scaling Effects**: Some cards scale rapport gain with token count
 
 Tokens only gained through successful letter delivery:
 - Standard delivery: +1 token with recipient (type based on letter)
 - Excellent delivery: +2-3 tokens with recipient (type based on letter)
 - Failed delivery: -2 tokens with sender
 
-Each use is a different mechanic with one purpose, but tokens must match card types for conversation bonuses.
+Each use is a different mechanic with one purpose. Higher tokens mean easier conversation starts through rapport.
 
 ### Time Pressure Cascades
 
@@ -201,18 +200,18 @@ Time advances through:
 - **Natural progression**: During lengthy activities
 
 Deadlines create cascading decisions:
-- Tight deadline â†' Need displacement â†' Burn tokens â†' Harder future conversations
-- Or: Rush to complete â†' Skip relationship building â†' Miss better letters
+- Tight deadline → Need displacement → Burn tokens → Lower future starting rapport
+- Or: Rush to complete → Skip relationship building → Miss better letters
 
 ## Mechanical Interconnections
 
 ### How Loops Create Problems for Each Other
 
 **Conversations create Queue pressure**:
-- Every letter accepted adds obligation
-- Poor negotiation (low tokens) forces bad queue positions
+- Every letter accepted adds obligation with fixed terms
 - Multiple letters compete for position 1
 - Focus management affects ability to reach request cards
+- Low rapport makes request success uncertain
 
 **Queue creates Travel pressure**:
 - Obligations scattered across city
@@ -231,11 +230,11 @@ Deadlines create cascading decisions:
 **Conversations solve Travel problems**:
 - Request cards provide access permits
 - Successful deliveries reward observation cards
-- Built relationships unlock permit opportunities
+- Built relationships (more tokens) make future permits easier
 - Atmosphere effects can overcome obstacles
 
 **Queue management solves Conversation problems**:
-- Completing deliveries adds tokens for better success
+- Completing deliveries adds tokens for better starting rapport
 - Payment provides resources for exchanges
 - Successful delivery improves NPC decks
 - Cleared obligations free satchel space
@@ -252,10 +251,11 @@ Deadlines create cascading decisions:
 - Managing focus across multiple SPEAK actions
 - Timing impulse cards before they're discarded
 - Setting beneficial atmosphere before critical plays
-- Whether to accept current request card terms
+- Building rapport early for success momentum
+- Managing flow to avoid unwanted transitions
+- Whether to play request immediately when available
 - Which observation to make now
 - Whether to displace queue position
-- Managing flow to avoid unwanted transitions
 
 ### Medium-term Planning
 - Building toward states with sufficient focus capacity
@@ -264,21 +264,17 @@ Deadlines create cascading decisions:
 - Timing observations for conversation advantages
 - Setting up atmosphere chains for maximum effect
 - Planning multi-SPEAK sequences with focus
+- Building rapport curves within conversations
 
 ### Long-term Strategy
-- **Which NPCs to focus deliveries on for specific token types**
-  - Devoted NPCs build Trust tokens
-  - Mercantile NPCs build Commerce tokens
-  - Proud NPCs build Status tokens
-  - Cunning NPCs build Shadow tokens
-- **Token specialization based on district focus**
-  - Noble District needs Status tokens
-  - Market District needs Commerce tokens
-  - Temple District needs Trust tokens
-  - Shadow District needs Shadow tokens
-- **How to shape NPC decks through deliveries**
+- **Which NPCs to focus deliveries on for token accumulation**
+  - Each NPC relationship provides starting rapport
+  - Concentrated tokens create conversation advantages
+  - Different letter types build different token types
+- **Managing burden accumulation across relationships**
 - **Building observation deck for specific challenges**
-- **Managing burden accumulation in relationship records**
+- **Developing permit collection for route flexibility**
+- **Balancing token preservation vs queue efficiency**
 
 ## No Soft-Lock Architecture
 
@@ -308,9 +304,9 @@ Each loop provides escape valves:
 New NPCs simply need:
 - Personality type (determines patience and token burning)
 - Deck composition (20 cards following template)
-- Request deck (available conversation types)
+- Request deck (available conversation types with fixed terms)
 - Exchange deck (if mercantile)
-- Token scaling focus for flow cards
+- Token rewards for successful deliveries
 
 ### Adding Locations
 New locations simply need:
@@ -331,20 +327,20 @@ New cards must:
 
 The player experiences:
 
-**Morning**: Check queue, plan route to chain obligations efficiently, refresh focuss
+**Morning**: Check queue, plan route to chain obligations efficiently, refresh focus
 
 **Travel**: Navigate using permits, add observations to player deck
 
-**Conversations**: Manage focuss, build atmosphere chains, navigate flow battery
+**Conversations**: Build rapport early, manage focus, navigate flow progression
 
 **Afternoon**: Work for resources or rush to meet deadlines
 
 **Evening**: Complete deliveries, gain tokens, see deck evolution results
 
 Each session creates unique stories through mechanical interaction:
-- Elena desperate about forced marriage (3 focus capacity, scaled flow with Trust)
-- Marcus calculating profit margins (Commerce scaling, exchange opportunities)  
-- Guard Captain suspicious of bribes (Shadow requirements, Volatile atmosphere)
+- Elena desperate about forced marriage (3 focus capacity, low starting rapport)
+- Marcus calculating profit margins (Commerce tokens provide starting rapport)  
+- Guard Captain suspicious of bribes (Shadow tokens help initial trust)
 
 These emerge from mechanical state, not scripted events.
 
@@ -352,15 +348,15 @@ These emerge from mechanical state, not scripted events.
 
 The three loops create a complete game where:
 
-1. **Conversations** provide puzzle challenge through focus management, flow battery navigation, atmosphere manipulation, and token-type matching (Trust tokens only help Trust cards, etc.)
+1. **Conversations** provide puzzle challenge through focus management, rapport building, and flow navigation
 2. **Queue** provides time pressure through forced sequential completion and token-burning displacement
 3. **Travel** provides exploration through observation effects and permit-locked routes
 
 Each loop uses different mechanics that operate on shared resources:
-- Tokens flow through all three but must match card types for success bonuses
-- Only gained through delivery success, creating specialization arcs
+- Tokens provide starting rapport, creating easier conversations with investment
+- Only gained through delivery success, forcing engagement with all systems
 - Time pressure affects all three but manifests differently
 - Attention enables all three but must be allocated strategically
-- Focuss create multi-turn tactical planning unique to conversations
+- Rapport creates success momentum unique to conversations
 
-The elegance is that no mechanic serves two purposes, yet resources flow through multiple systems creating strategic depth from simple rules. Token-type matching forces players to specialize their relationships rather than building generic power. The game is the intersection, not the individual loops.
+The elegance is that no mechanic serves two purposes, yet resources flow through multiple systems creating strategic depth from simple rules. Starting rapport from tokens creates natural relationship progression. The game is the intersection, not the individual loops.

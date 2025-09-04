@@ -16,7 +16,7 @@ public class LocationScreenViewModel
     public string CurrentSpotName { get; set; }
     public string AtmosphereText { get; set; }
     public List<LocationActionViewModel> QuickActions { get; set; } = new();
-    public List<NPCPresenceViewModel> NPCsPresent { get; set; } = new();
+    public List<NPCFocusViewModel> NPCsPresent { get; set; } = new();
     public string ObservationHeader { get; set; } = "Observations Available";
     public List<ObservationViewModel> Observations { get; set; } = new();
     public List<AreaWithinLocationViewModel> AreasWithinLocation { get; set; } = new();
@@ -36,7 +36,7 @@ public class LocationActionViewModel
     public TierLevel? RequiredTier { get; set; }
 }
 
-public class NPCPresenceViewModel
+public class NPCFocusViewModel
 {
     public string Id { get; set; }
     public string Name { get; set; }

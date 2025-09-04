@@ -108,7 +108,7 @@ public class ObservationTemplates
             {
                 Variations = new List<string>
                 {
-                    "The guards' presence shows {detail}",
+                    "The guards' focus shows {detail}",
                     "Watching the patrol, you note {detail}",
                     "Security measures reveal {detail}"
                 }

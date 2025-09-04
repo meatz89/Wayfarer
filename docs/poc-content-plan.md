@@ -23,29 +23,29 @@ Each card includes a `personalityTypes` array that determines which NPCs can use
 
 #### Trust-Focused Cards (15 cards)
 **Personality Types: ["DEVOTED", "ALL"]**
-- "I understand" - Focus 1, Easy, +1 flow
-- "Share sympathy" - Focus 2, Medium, +2 flow
-- "Express deep trust" - Focus 3, Hard, +3 flow
+- "I understand" - Focus 1, Easy, +1 rapport
+- "Share sympathy" - Focus 2, Medium, +2 rapport
+- "Express deep trust" - Focus 3, Hard, +3 rapport
 - "Gentle reassurance" - Focus 0, Easy, Set Patient atmosphere
-- "Share vulnerability" - Focus 4, Very Hard, +4 flow, Impulse
+- "Share vulnerability" - Focus 4, Very Hard, +4 rapport, Impulse
 - "Build on trust" - Focus 3, Hard, Scale by Trust tokens
-- "Desperate plea" - Focus 3, Hard, Scale by (4 - flow), Impulse
+- "Desperate plea" - Focus 3, Hard, Scale by (20 - rapport) / 5, Impulse
 - "Patient approach" - Focus 2, Hard, Scale by (patience / 3)
 - "Listen carefully" - Focus 1, Medium, Draw 1 card
 - "Open mind" - Focus 0, Easy, Set Receptive atmosphere
 
 #### Commerce-Focused Cards (15 cards)
 **Personality Types: ["MERCANTILE", "ALL"]**
-- "Fair deal" - Focus 1, Easy, +1 flow
-- "Highlight opening" - Focus 2, Medium, +2 flow
+- "Fair deal" - Focus 1, Easy, +1 rapport
+- "Highlight opportunity" - Focus 2, Medium, +2 rapport
 - "Leverage connections" - Focus 3, Hard, Scale by Commerce tokens
-- "Final offer" - Focus 5, Very Hard, +5 flow, Impulse
+- "Final offer" - Focus 5, Very Hard, +5 rapport, Impulse
 - "Prepare argument" - Focus 3, Medium, Add 2 focus
-- "Business proposition" - Focus 2, Medium, +2 flow
+- "Business proposition" - Focus 2, Medium, +2 rapport
 - "Market knowledge" - Focus 1, Easy, Draw 1 card
 - "Trade secrets" - Focus 3, Hard, Set Informed atmosphere
 - "Negotiate terms" - Focus 2, Medium, Add 1 focus
-- "Close the deal" - Focus 4, Hard, +4 flow
+- "Close the deal" - Focus 4, Hard, +4 rapport
 
 #### Utility Cards (15 cards)
 **Personality Types: ["STEADFAST", "ALL"]**
@@ -54,16 +54,16 @@ Each card includes a `personalityTypes` array that determines which NPCs can use
 - "Take a breath" - Focus 0, Easy, Set Patient atmosphere
 - "Change subject" - Focus 1, Easy, Set Neutral atmosphere
 - "Press advantage" - Focus 3, Medium, Add 2 focus
-- "Find common ground" - Focus 2, Medium, +2 flow
-- "Steady approach" - Focus 1, Easy, +1 flow
+- "Find common ground" - Focus 2, Medium, +2 rapport
+- "Steady approach" - Focus 1, Easy, +1 rapport
 - "Clear the air" - Focus 1, Medium, Reset atmosphere
 - "Make time" - Focus 2, Medium, Draw 1 card
 - "Stay focused" - Focus 0, Easy, Set Focused atmosphere
 
 #### Universal Cards (ALL personality types)
 - "Interrupt" - Focus 1, Hard, Set Receptive, Opening
-- "Final statement" - Focus 5, Very Hard, +5 flow, Set Final, Impulse
-- "Quick response" - Focus 1, Easy, +1 flow, Opening
+- "Final statement" - Focus 5, Very Hard, +5 rapport, Set Final, Impulse
+- "Quick response" - Focus 1, Easy, +1 rapport, Opening
 - "Thoughtful pause" - Focus 1, Medium, Draw 1 card
 
 ### 2. Request Cards
@@ -74,20 +74,22 @@ Each card includes a `personalityTypes` array that determines which NPCs can use
   "id": "elena_urgent_refusal",
   "type": "Request",
   "focus": 5,
-  "properties": ["Impulse", "Opening"],
+  "startingState": "Unplayable",
+  "becomesPlayableAt": 5,
+  "properties": ["GainsImpulseAndOpeningWhenPlayable"],
   "description": "Please take my letter!",
   "difficulty": "VeryHard",
   "successEffect": {
     "type": "CreateObligation",
     "obligationType": "delivery",
     "position": 1,
-    "deadline": 73,
-    "payment": 10,
+    "deadline": 60,
+    "payment": 5,
     "tokenReward": {"Trust": 2}
   },
   "failureEffect": {
-    "type": "EndConversation",
-    "result": "Elena forced into marriage"
+    "type": "AddBurdenCard",
+    "count": 1
   },
   "exhaustEffect": {
     "type": "EndConversation",
@@ -153,6 +155,11 @@ These cards are added to the player's conversation deck when observations are ma
   - Effect: Next action costs 0 patience
   - Expires: 4 hours
 
+- **"Emergency Rapport"**
+  - Focus: 1, Very Easy
+  - Effect: Set rapport to 15
+  - Expires: 12 hours
+
 ### 6. Location Structure
 
 #### Market Square
@@ -171,7 +178,7 @@ These cards are added to the player's conversation deck when observations are ma
 - **main_hall** (crossroads, public, -1 patience)
   - Travel hub spot
 - **corner_table** (private, quiet, +1 patience)
-  - Elena location (morning only)
+  - Elena location (afternoon only)
 - **bar_counter** (service, social)
   - Bertram location
   - All tavern services
@@ -218,6 +225,7 @@ These cards are added to the player's conversation deck when observations are ma
 1. Implement base deck with personality filtering
 2. Add Elena's urgent letter request
 3. Test conversation flow with Elena
+4. Verify rapport system and flow tracking
 
 ### Phase 2: Economy Loop
 1. Add Marcus's exchange cards
@@ -232,7 +240,7 @@ These cards are added to the player's conversation deck when observations are ma
 4. Test complete gameplay loop
 
 ### Phase 4: Polish
-1. Balance card focuss and difficulties
+1. Balance card focuses and difficulties
 2. Tune economy values
 3. Adjust timing for tension
 4. Verify all three loops integrate
@@ -241,18 +249,22 @@ These cards are added to the player's conversation deck when observations are ma
 
 The POC is complete when:
 1. Player can start conversation with desperate Elena
-2. Elena's letter creates forced position 1 obligation
-3. Player must manage queue to deliver on time
-4. Noble District accessible via permit OR secret route
-5. Economy loop supports gameplay (work → coins → services)
-6. All three core loops demonstrated in single playthrough
+2. Elena's request becomes playable at appropriate focus capacity
+3. Request gains Impulse+Opening when playable
+4. Player manages rapport to improve success chances
+5. Flow tracks success/failure correctly
+6. Starting rapport equals connection tokens
+7. Noble District accessible via permit OR secret route
+8. Economy loop supports gameplay (work → coins → services)
+9. All three core loops demonstrated in single playthrough
 
 ## Key Narrative Beats
 
-1. **Opening**: Player in Copper Kettle, Elena desperate
-2. **Crisis**: Elena's letter forces queue management
-3. **Challenge**: Getting to Noble District (permit or knowledge)
-4. **Resolution**: Deliver letter before sunset deadline
-5. **Consequence**: Elena's fate determined by player success
+1. **Opening**: Player in Market Square, Elena desperate at Copper Kettle
+2. **Crisis**: Elena's letter has fixed urgent terms (1hr, position 1)
+3. **Challenge**: Building rapport for request success
+4. **Obstacle**: Getting to Noble District (permit or knowledge)
+5. **Resolution**: Deliver letter before sunset deadline
+6. **Consequence**: Elena's fate determined by player success
 
-This content package provides a complete, focused POC demonstrating all core Wayfarer mechanics.
+This content package provides a complete, focused POC demonstrating all core Wayfarer mechanics with the refined rapport/flow system.

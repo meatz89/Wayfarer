@@ -64,7 +64,7 @@
         }
 
         .resource-value {
-            font-focus: bold;
+            font-weight: bold;
             color: #d4a76a;
         }
 
@@ -131,7 +131,7 @@
 
         .queue-rule {
             color: #8b4726;
-            font-focus: bold;
+            font-weight: bold;
         }
 
         .obligation-list {
@@ -164,12 +164,12 @@
             padding: 1px 4px;
             border-radius: 2px;
             font-size: 9px;
-            font-focus: bold;
+            font-weight: bold;
         }
 
         .deadline {
             color: #8b4726;
-            font-focus: bold;
+            font-weight: bold;
         }
 
         .queue-arrow {
@@ -199,7 +199,7 @@
             font-size: 22px;
             color: #5c4a3a;
             margin-bottom: 6px;
-            font-focus: normal;
+            font-weight: normal;
         }
 
         .location-traits {
@@ -232,7 +232,7 @@
         .current-spot-name {
             font-size: 15px;
             color: #5c4a3a;
-            font-focus: bold;
+            font-weight: bold;
         }
 
         .spot-traits {
@@ -321,7 +321,7 @@
         .action-name {
             font-size: 13px;
             color: #5c4a3a;
-            font-focus: bold;
+            font-weight: bold;
             margin-bottom: 4px;
         }
 
@@ -332,7 +332,7 @@
 
         .cost-value {
             color: #8b4726;
-            font-focus: bold;
+            font-weight: bold;
         }
 
         /* NPCs Section */
@@ -354,7 +354,7 @@
         .npc-name {
             font-size: 15px;
             color: #5c4a3a;
-            font-focus: bold;
+            font-weight: bold;
         }
 
         .npc-state {
@@ -388,7 +388,7 @@
         }
 
         .token-count {
-            font-focus: bold;
+            font-weight: bold;
             color: #5a7a3a;
         }
 
@@ -441,7 +441,7 @@
         }
 
         .action-type {
-            font-focus: bold;
+            font-weight: bold;
             color: #5c4a3a;
         }
 
@@ -503,7 +503,7 @@
             border: 1px solid #7a8b5a;
             border-radius: 2px;
             color: #5a7a3a;
-            font-focus: bold;
+            font-weight: bold;
         }
 
         /* Spots Grid */
@@ -538,7 +538,7 @@
         .spot-card-name {
             font-size: 13px;
             color: #5c4a3a;
-            font-focus: bold;
+            font-weight: bold;
             margin-bottom: 4px;
         }
 
@@ -554,8 +554,14 @@
             padding: 1px 4px;
             border-radius: 2px;
             font-size: 9px;
-            font-focus: bold;
+            font-weight: bold;
             margin-left: 4px;
+        }
+
+        .rapport-note {
+            font-size: 10px;
+            color: #5a7a3a;
+            font-style: italic;
         }
     </style>
 </head>
@@ -677,12 +683,12 @@
 
             <div class="section-header">Observations Available (Morning)</div>
             <div class="observations">
-                <div class="observation-note">Spend 1 attention to gain state change card (24hr expiration):</div>
+                <div class="observation-note">Spend 1 attention to gain unique effect card (24hr expiration):</div>
                 <div class="observation-item">
                     <span class="observation-text">Guards discussing checkpoint bribes</span>
                     <span class="observation-reward">
                         <span class="cost-value">1 attention</span>
-                        <span class="reward-card">Any→Tense</span>
+                        <span class="reward-card">Set Tense atmosphere</span>
                     </span>
                 </div>
             </div>
@@ -716,12 +722,18 @@
                 
                 <div class="spot-card">
                     <div class="spot-card-name">Merchant Row</div>
-                    <div class="spot-occupants">Marcus (Neutral) <span class="urgent-marker">QUEUE 1!</span></div>
+                    <div class="spot-occupants">
+                        Marcus (Neutral) <span class="urgent-marker">QUEUE 1!</span>
+                        <div class="rapport-note">2 Commerce tokens = 2 starting rapport</div>
+                    </div>
                 </div>
 
                 <div class="spot-card">
                     <div class="spot-card-name">Guard Post</div>
-                    <div class="spot-occupants">Guard Captain (Tense)</div>
+                    <div class="spot-occupants">
+                        Guard Captain (Tense)
+                        <div class="rapport-note">1 Shadow token = 1 starting rapport</div>
+                    </div>
                 </div>
 
                 <div class="spot-card">

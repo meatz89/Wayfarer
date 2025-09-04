@@ -31,21 +31,21 @@ public class ConversationSession
     public FlowManager FlowManager { get; set; }
     public RapportManager RapportManager { get; set; }
 
-    // New presence and atmosphere system
+    // New focus and atmosphere system
     public int FlowBattery { get; set; } = 0; // -3 to +3
-    public int CurrentPresence { get; set; } = 0; // Current spent presence
-    public int MaxPresence { get; set; } = 5; // Based on state
+    public int CurrentFocus { get; set; } = 0; // Current spent focus
+    public int MaxFocus { get; set; } = 5; // Based on state
     public AtmosphereType CurrentAtmosphere { get; set; } = AtmosphereType.Neutral;
 
     public List<CardInstance> ObservationCards { get; set; } = new();
 
     // New helper methods
-    public int GetAvailablePresence()
+    public int GetAvailableFocus()
     {
-        return Math.Max(0, GetEffectivePresenceCapacity() - CurrentPresence);
+        return Math.Max(0, GetEffectiveFocusCapacity() - CurrentFocus);
     }
 
-    public int GetEffectivePresenceCapacity()
+    public int GetEffectiveFocusCapacity()
     {
         int baseCapacity = CurrentState switch
         {
@@ -85,10 +85,10 @@ public class ConversationSession
         return baseCount;
     }
 
-    public void RefreshPresence()
+    public void RefreshFocus()
     {
-        CurrentPresence = 0;
-        MaxPresence = GetEffectivePresenceCapacity();
+        CurrentFocus = 0;
+        MaxFocus = GetEffectiveFocusCapacity();
     }
 
     public bool IsHandOverflowing()

@@ -39,7 +39,7 @@ public class SpotDescriptionGenerator
         [SpotPropertyType.NobleFavored] = new[] { "preferred by nobility", "aristocratic atmosphere", "refined surroundings" },
         [SpotPropertyType.CommonerHaunt] = new[] { "common folk gathering", "working class refuge", "unpretentious flow" },
         [SpotPropertyType.MerchantHub] = new[] { "trader's territory", "commercial center", "business dealings" },
-        [SpotPropertyType.SacredGround] = new[] { "blessed ground", "holy atmosphere", "spiritual presence" }
+        [SpotPropertyType.SacredGround] = new[] { "blessed ground", "holy atmosphere", "spiritual focus" }
     };
 
     // Activity descriptions based on time of day

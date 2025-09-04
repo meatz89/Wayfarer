@@ -151,7 +151,7 @@ public class DialogueGenerationService
             }
         }
 
-        return elements.Any() ? string.Join(" ", elements) : "presence:neutral activity:general";
+        return elements.Any() ? string.Join(" ", elements) : "focus:neutral activity:general";
     }
 
     /// <summary>

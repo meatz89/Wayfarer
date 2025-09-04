@@ -15,8 +15,9 @@ This scenario demonstrates all three core game loops working together to create 
 
 ### Strategic Layers
 - **Focus Management**: Capacity 3-6, persists until refreshed
-- **Flow Building**: Battery system (-3 to +3) triggers state transitions
-- **Token Investment**: Linear +5% per token, only from deliveries
+- **Rapport Building**: Temporary success modifier (-50 to +50) within conversation
+- **Flow Tracking**: +1 on success, -1 on failure, ±3 triggers state transitions
+- **Token Investment**: Starting rapport = connection tokens with NPC
 - **Queue Management**: Position 1 must complete first, multiple obligations compete
 - **Atmosphere Control**: Persistent effects shape entire conversations
 
@@ -34,11 +35,11 @@ This scenario demonstrates all three core game loops working together to create 
 2. Guard Report - 8hr deadline - 5 coins payment  
 3. [Elena's letter will compete for position]
 
-### Starting Tokens (Matching Type Bonuses Only)
-- **Elena**: 1 Trust (+5% on her Trust-type cards only)
-- **Marcus**: 2 Commerce (+10% on his Commerce-type cards only)
-- **Guard Captain**: 1 Shadow (+5% on his Shadow-type cards only)
-- **Lord Blackwood**: 0 all types
+### Starting Tokens (Determine Starting Rapport)
+- **Elena**: 1 Trust (starts conversations with 1 rapport = +2% all cards)
+- **Marcus**: 2 Commerce (starts conversations with 2 rapport = +4% all cards)
+- **Guard Captain**: 1 Shadow (starts conversations with 1 rapport = +2% all cards)
+- **Lord Blackwood**: 0 all types (starts conversations with 0 rapport)
 
 ### Time Management
 - **Current**: Tuesday 9:00 AM (Morning period)
@@ -133,22 +134,23 @@ From Copper Kettle Common Room:
 - Location: Corner Table (+1 patience = 16 total)
 - Available: Afternoon-Evening only (2 PM - 10 PM)
 - Starting State: Desperate (forced marriage situation)
+- Starting Rapport: Equal to your Trust tokens with her
 
 **Conversation Deck** (20 cards):
 
-**Fixed Flow Cards** (6 total):
-- "I understand" (Trust-type, W1, Easy 70%): +1 flow
-- "Let me help" (Trust-type, W1, Easy 70%): +1 flow  
-- "You're safe with me" (Trust-type, W2, Medium 60%): +2 flow
-- "Trust in our bond" (Trust-type, W2, Medium 60%): +2 flow
-- "Together we're strong" (Trust-type, W3, Medium 60%): +3 flow
-- "Soul connection" (Trust-type, W5, Very Hard 40%, Impulse): +5 flow
+**Fixed Rapport Cards** (6 total):
+- "I understand" (Trust-type, W1, Easy 70%): +1 rapport
+- "Let me help" (Trust-type, W1, Easy 70%): +1 rapport  
+- "You're safe with me" (Trust-type, W2, Medium 60%): +2 rapport
+- "Trust in our bond" (Trust-type, W2, Medium 60%): +2 rapport
+- "Together we're strong" (Trust-type, W3, Medium 60%): +3 rapport
+- "Soul connection" (Trust-type, W5, Very Hard 40%, Impulse): +5 rapport
 
-**Scaled Flow Cards** (4 total, all Trust-type):
-- "Our trust runs deep" (Trust-type, W2, Hard 50%): +X flow where X = Trust tokens
-- "Remember our history" (Trust-type, W3, Hard 50%): +X flow where X = Trust tokens
-- "Lean on me" (Trust-type, W3, Hard 50%): +X flow where X = 4 - current flow
-- "Crisis shared" (Trust-type, W4, Hard 50%, Impulse): +X flow where X = patience ÷ 3
+**Scaled Rapport Cards** (4 total, all Trust-type):
+- "Our trust runs deep" (Trust-type, W2, Hard 50%): +X rapport where X = Trust tokens
+- "Remember our history" (Trust-type, W3, Hard 50%): +X rapport where X = Trust tokens
+- "Lean on me" (Trust-type, W3, Hard 50%): +X rapport where X = 4 - current rapport/5
+- "Crisis shared" (Trust-type, W4, Hard 50%, Impulse): +X rapport where X = patience ÷ 3
 
 **Utility Cards** (4 total, all Trust-type):
 - "Let me think" (Trust-type, W1, Medium 60%): Draw 1 card
@@ -162,27 +164,27 @@ From Copper Kettle Common Room:
 - "This is critical" (Status-type, W0, Easy 70%): No effect, Atmosphere: Final
 
 **Dramatic Cards** (2 total, impulse, Trust-type):
-- "Desperate plea" (Trust-type, W4, Hard 50%, Impulse): +4 flow, Atmosphere: Volatile
-- "All or nothing" (Trust-type, W6, Very Hard 40%, Impulse): +5 flow, Atmosphere: Final
+- "Desperate plea" (Trust-type, W4, Hard 50%, Impulse): +4 rapport, Atmosphere: Volatile
+- "All or nothing" (Trust-type, W6, Very Hard 40%, Impulse): +5 rapport, Atmosphere: Final
 
 **Flex Slot** (1, Trust-type):
-- "Shared pain" (Trust-type, W2, Medium 60%): -2 flow (represents emotional overflow)
+- "Shared pain" (Trust-type, W2, Medium 60%): -2 rapport (represents emotional overflow)
 
 **Request Deck** (Separate from conversation deck):
 
 - **"Crisis Refusal"** (Trust Letter)
   - Focus: 5
-  - Difficulty: Very Hard (40% base + Trust tokens × 5%)
-  - Success Effect: Accept Letter and Obligation for fixed terms
-  - Failure Effect: Conversation Ends, -3 Flow
-  - Has "Impulse" and "Opening" property
+  - Difficulty: Very Hard (40% base + rapport × 2%)
+  - Success Effect: Accept Letter for 1hr deadline, position 1, 5 coins
+  - Failure Effect: Add 1 burden card to Elena's relationship
+  - Has "Impulse" and "Opening" property when becomes playable
 
 - **"Clear the Air"** (Resolution Request)
   - Focus: 5
-  - Difficulty: Hard (50% base + Trust tokens × 5%)
+  - Difficulty: Hard (50% base + rapport × 2%)
   - Success Effect: Remove burden cards from relationship record
-  - Failure Effect: Burden remains
-  - Has "Impulse" and "Opening" property
+  - Failure Effect: Add 1 burden card
+  - Has "Impulse" and "Opening" property when becomes playable
 
 **Relationship Record**:
 - 2 burden cards from past failure (visible marker of damaged trust)
@@ -194,15 +196,16 @@ From Copper Kettle Common Room:
 - Location: Merchant Row
 - Available: Morning-Evening (6 AM - 10 PM, shop hours)
 - Starting State: Neutral (commerce-minded)
+- Starting Rapport: Equal to your Commerce tokens with him
 
 **Conversation Deck** (20 cards):
 
-**Fixed Flow Cards** (6, mostly Commerce-type):
-- 3 at W1 (Commerce-type, Easy 70%): +1 flow each
-- 2 at W2 (Commerce-type, Medium 60%): +2 flow each
-- 1 at W3 (Status-type, Medium 60%): +3 flow
+**Fixed Rapport Cards** (6, mostly Commerce-type):
+- 3 at W1 (Commerce-type, Easy 70%): +1 rapport each
+- 2 at W2 (Commerce-type, Medium 60%): +2 rapport each
+- 1 at W3 (Status-type, Medium 60%): +3 rapport
 
-**Scaled Flow Cards** (4, all Commerce-type):
+**Scaled Rapport Cards** (4, all Commerce-type):
 - 2 "Good business" (Commerce-type, W2, Hard 50%): +X where X = Commerce tokens
 - 1 "Profitable relationship" (Commerce-type, W3, Hard 50%): +X where X = Commerce tokens
 - 1 "Time is money" (Commerce-type, W3, Hard 50%): +X where X = focus remaining
@@ -217,10 +220,10 @@ From Copper Kettle Common Room:
 - "High stakes" (Shadow-type, Easy 70%): Atmosphere: Final
 
 **Dramatic Cards** (2, impulse, Commerce-type):
-- "Deal of lifetime" (Commerce-type, W5, Very Hard 40%): +5 flow
-- "All in" (Commerce-type, W4, Hard 50%): +4 flow, Atmosphere: Volatile
+- "Deal of lifetime" (Commerce-type, W5, Very Hard 40%): +5 rapport
+- "All in" (Commerce-type, W4, Hard 50%): +4 rapport, Atmosphere: Volatile
 
-**Flex**: 1 negative flow card (Commerce-type)
+**Flex**: 1 negative rapport card (Commerce-type)
 
 **Request Deck**:
 - "Package Delivery" (Commerce Promise, W5, Very Hard 40%)
@@ -240,16 +243,17 @@ From Copper Kettle Common Room:
 - Location: Guard Post
 - Available: Always
 - Default Atmosphere: Tense (day) / Neutral (night)
+- Starting Rapport: Equal to your Shadow tokens with him
 
 **Conversation Deck** (20 cards):
 
-**Fixed Flow Cards** (6, balanced types):
-- 2 at W1 (Status-type, Easy 70%): +1 flow each
-- 2 at W1 (Shadow-type, Easy 70%): +1 flow each
-- 1 at W2 (Status-type, Medium 60%): +2 flow
-- 1 at W3 (Shadow-type, Medium 60%): +3 flow
+**Fixed Rapport Cards** (6, balanced types):
+- 2 at W1 (Status-type, Easy 70%): +1 rapport each
+- 2 at W1 (Shadow-type, Easy 70%): +1 rapport each
+- 1 at W2 (Status-type, Medium 60%): +2 rapport
+- 1 at W3 (Shadow-type, Medium 60%): +3 rapport
 
-**Scaled Flow Cards** (4, mixed):
+**Scaled Rapport Cards** (4, mixed):
 - 2 scaling with Status tokens (Status-type, W2, Hard 50%)
 - 2 scaling with Shadow tokens (Shadow-type, W3, Hard 50%)
 
@@ -263,15 +267,15 @@ From Copper Kettle Common Room:
 - "Under scrutiny" (Shadow-type, Easy 70%): Atmosphere: Pressured
 
 **Dramatic Cards** (2, mixed types): 
-- "Authority demonstrated" (Status-type, W4, Hard 50%, Impulse): +4 flow
-- "Secrets revealed" (Shadow-type, W5, Very Hard 40%, Impulse): +5 flow
+- "Authority demonstrated" (Status-type, W4, Hard 50%, Impulse): +4 rapport
+- "Secrets revealed" (Shadow-type, W5, Very Hard 40%, Impulse): +5 rapport
 
 **Flex**: 1 Authority-themed card (Status-type)
 
 **Request Deck**:
 - "Checkpoint Pass" (Shadow Promise, W5, Hard 50%)
-  - Success: 24hr access permit, no cost
-  - Failure: 2hr access permit, 5 coin fee
+  - Success: 24hr access permit (fixed terms)
+  - Failure: Add 1 burden card
 
 ### Bertram - The Innkeeper
 
@@ -295,6 +299,7 @@ From Copper Kettle Common Room:
 - Location: Manor Study
 - Available: Until 5 PM (then leaves city)
 - State: Neutral
+- Starting Rapport: 0 (no existing relationship)
 
 **Special Rules**:
 - Receives Elena's letter
@@ -326,7 +331,7 @@ The player maintains their own observation deck (max 20 cards):
 - "Shared Hardship": Set Informed atmosphere (expires 48hr, powerful!)
 
 **Guard Post - Night**:
-- "Bribery Option": Flow = 0 (expires 6hr, emergency reset)
+- "Bribery Option": Rapport = 15 (expires 6hr, emergency boost)
 
 ### Conversation-Generated Observations
 NPCs can reward observation cards:
@@ -387,61 +392,62 @@ NPCs can reward observation cards:
 
 **Turn Economy with 16 Patience**:
 - Flow starts at 0
-- Need +3 to transition states
-- Desperate → Tense → Neutral → Open (9 flow total)
+- Each net success moves flow +1
+- Each net failure moves flow -1
+- Need +3 net successes to advance state
+- Desperate → Tense → Neutral → Open (9 net successes total)
 
-**Build Rates with 1 Trust Token (45-75% success)**:
-- W1 cards: +1 flow at 75% (Easy + token)
-- W2 cards: +2 flow at 65% (Medium + token)
-- W3 cards: +3 flow at 65% (Medium + token)
-- W5 cards: +5 flow at 45% (Very Hard + token)
+**Success Rates with Starting Rapport**:
+- With 1 Trust token (Elena): Start at 1 rapport (+2% to all cards)
+- With 2 Commerce tokens (Marcus): Start at 2 rapport (+4% to all cards)
+- Build to 25 rapport: +50% success on all cards
+- Reach 50 rapport cap: Guaranteed success on everything
 
-**Scaled Options**:
-- Trust scaling: +1 flow (only 1 token)
-- Flow scaling: +4 when at 0 flow
-- Patience scaling: +5 flow (16 patience ÷ 3)
+**Rapport Building Strategy**:
+- Early rapport cards compound success
+- High rapport makes flow progression reliable
+- Failed cards reduce flow AND potentially rapport
+- Momentum is key - early success breeds later success
 
 ### Token Economics
 
-**Token-Type Matching (cards only boosted by matching tokens)**:
-- Trust tokens: +5% only on Trust-type cards
-- Commerce tokens: +5% only on Commerce-type cards
-- Status tokens: +5% only on Status-type cards
-- Shadow tokens: +5% only on Shadow-type cards
+**Starting Rapport Benefits**:
+- 5 tokens = 5 starting rapport = +10% all cards
+- 10 tokens = 10 starting rapport = +20% all cards
+- 20 tokens = 20 starting rapport = +40% all cards
 
-**Elena's Deck with 1 Trust Token**:
-- ~17 Trust-type cards: Get +5% bonus (45-75% success)
-- ~3 non-Trust cards: Get +0% bonus (40-70% success)
-
-**Letter Negotiation with Elena's Trust Request**:
-- Crisis Letter (Trust-type): 45% success (40% + 1 Trust × 5%)
-- If you had Commerce tokens instead: Still 40% (no bonus!)
+**Token Acquisition** (ONLY through letter delivery):
+- Standard successful delivery: +1 token with recipient
+- Excellent delivery: +2-3 tokens with recipient
+- Trust letters build Trust tokens
+- Commerce letters build Commerce tokens
+- Status letters build Status tokens
+- Shadow letters build Shadow tokens
 
 **Building the Right Tokens**:
 - Delivering Trust letters → Trust tokens with recipient
 - Delivering Commerce letters → Commerce tokens with recipient
-- Must match NPC personality for effectiveness
+- Must match letter type to build desired relationships
 
 ## Queue Management Strategies
 
-### Position Negotiation Outcomes
+### Position Negotiation (Now Fixed Terms)
 
-**Elena's Letter Negotiation**:
-- Crisis Letter: 45% chance of 4hr/position 3 vs 1hr/position 1
-- Formal Letter: 45% chance of 6hr/flexible vs 3hr/position 2
-- Personal Letter: 45% chance of 8hr/flexible vs 4hr/position 3
+**Elena's Letter Terms**:
+- Crisis Letter: Always 1hr deadline, position 1, 5 coins
+- No negotiation - accept these terms or fail
 
 ### Displacement Calculations
 
 Starting queue:
 1. Marcus Package (5hr, 8 coins)
 2. Guard Report (8hr, 5 coins)
-3. Elena's Letter (negotiated position)
+3. Elena's Letter (if accepted)
 
 To deliver Elena immediately from position 3:
-- Displace Marcus: -2 Commerce tokens, +2 burden cards
-- Displace Guard: -1 Shadow token, +1 burden card
-- Total cost: 3 tokens burned, 3 burden cards added
+- Displace Marcus: -2 Commerce tokens
+- Displace Guard: -1 Shadow token
+- Total cost: 3 tokens burned permanently
 
 ### Strategic Queue Timing
 - Complete other obligations first if time allows
@@ -457,17 +463,19 @@ To deliver Elena immediately from position 3:
 3. Observe "Guard Routes" (-1 att, gain Pressured atmosphere card)
 
 **Midday** (5 attention, 15 coins, 0 hunger):
-4. Complete Marcus delivery (-2 Commerce for displacement)
+4. Complete Marcus delivery (avoiding displacement)
 5. Wait to Afternoon (preserve attention)
 
 **Afternoon** (5 attention, 15 coins):
 6. Observe "Shared Hardship" at Copper Kettle (-1 att, Informed atmosphere)
 7. Converse with Elena (-2 att, 16 patience)
-8. Use observation: Set Informed atmosphere (next card auto-succeeds)
-9. Play high flow card with guaranteed success
-10. Build to Open state, access request cards
+8. Starting with 1 rapport (+2% to all cards)
+9. Build rapport through successful cards
+10. Reach Open state through 3 net successes
+11. LISTEN at Open state - request becomes playable with Impulse+Opening
+12. Play request immediately with boosted success from rapport
 
-**Results**: Good terms, queue cleared, profitable
+**Results**: Fixed terms accepted, queue cleared, relationship maintained
 
 ### Path B: Focus Management
 **Morning**:
@@ -478,10 +486,10 @@ To deliver Elena immediately from position 3:
 3. Full Elena conversation (-2 att)
 4. Carefully manage 3 focus capacity in Desperate
 5. Use setup cards (W0) for Prepared atmosphere
-6. Now 4 capacity - still need state change
-7. Focus on scaled flow for efficiency
+6. Build rapport early for higher success rates
+7. Navigate to Open through careful flow management
 
-**Results**: Challenging but possible with good atmosphere use
+**Results**: Challenging but possible with good rapport building
 
 ### Path C: Crisis Management
 **Morning**:
@@ -490,8 +498,9 @@ To deliver Elena immediately from position 3:
 
 **Afternoon** (limited resources):
 3. Elena conversation with whatever remains
-4. Accept any available letter at poor odds
-5. Heavy displacement if needed
+4. Low starting rapport makes success difficult
+5. Accept request at any state when possible
+6. Heavy displacement if needed
 
 **Evening**:
 6. Use all coins for checkpoint
@@ -501,13 +510,13 @@ To deliver Elena immediately from position 3:
 
 ### Path D: Guard Captain Route
 **Morning**:
-1. Cannot build Shadow tokens (no token cards exist)
-2. Must rely on existing 1 Shadow token
-3. Conversation for permit request card
+1. Build Shadow tokens through previous deliveries
+2. Start conversation with higher rapport from tokens
+3. Navigate to request availability
 
 **Evening**:
 4. Guard in Neutral atmosphere (better than Tense)
-5. 45% chance for free permit (Hard + 1 Shadow)
+5. Use rapport to boost success chance for permit request
 6. Success: Free access to Noble District
 
 **Results**: Risky but preserves resources
@@ -529,7 +538,7 @@ To deliver Elena immediately from position 3:
 **Information Advantage**:
 1. Use "Shared Hardship" observation → Informed atmosphere
 2. Next card cannot fail
-3. Guarantee critical flow gain or request play
+3. Guarantee critical rapport gain or request play
 
 ## Resource Calculations
 
@@ -543,23 +552,20 @@ At 60 hunger: 10 - 2 = 8 attention
 
 ### Success Rate Examples
 ```
-Trust-type W1 Easy card, 1 Trust token with Elena:
-70% + (1 × 5%) = 75%
+Base Easy card (70%) with 5 rapport:
+70% + (5 × 2%) = 80%
 
-Commerce-type W1 Easy card, 1 Trust token with Elena:
-70% + 0 = 70% (wrong token type!)
+Base Medium card (60%) with 10 rapport:
+60% + (10 × 2%) = 80%
 
-Trust-type W2 Hard scaled card, 1 Trust token:
-50% + (1 × 5%) = 55%
+Base Hard card (50%) with 25 rapport:
+50% + (25 × 2%) = 100%
 
-Trust-type W5 Very Hard request, 1 Trust token:
-40% + (1 × 5%) = 45%
+Base Very Hard request (40%) with 15 rapport:
+40% + (15 × 2%) = 70%
 
-Commerce-type card with Marcus, 2 Commerce tokens:
-Base rate + (2 × 5%) = +10% bonus
-
-Shadow-type card with Guard, 1 Shadow token:
-Base rate + (1 × 5%) = +5% bonus
+Negative rapport (-10):
+Base rate - 20% (can make cards impossible)
 ```
 
 ## Failure Cascades
@@ -573,8 +579,8 @@ Base rate + (1 × 5%) = +5% bonus
 - Lord Blackwood gone forever
 
 ### Soft Failures
-- Poor negotiation: 1hr deadline creates panic
-- Forced position 1: Must displace everything
+- Request card failure: +1 burden card
+- Poor rapport management: Negative spiral
 - Token burning: Permanent relationship damage
 - Resource depletion: Cannot afford checkpoint
 - Impulse request discarded: Conversation fails
@@ -589,25 +595,24 @@ Base rate + (1 × 5%) = +5% bonus
 ## Success Metrics
 
 ### Perfect Run (Master Strategist)
-- "Personal Letter" obtained (Connected state)
-- 8-hour deadline negotiated
-- Position 5+ (no displacement)
+- Build high rapport early
+- Reach Open state efficiently
+- Complete request with high success chance
 - Complete by 3 PM
 - Gain +3 Trust tokens from delivery
 - 20+ coins earned
 - No tokens burned
 
 ### Good Run (Competent Courier)
-- "Formal Refusal" obtained (Open state)
-- 4-6 hour deadline
-- Reasonable position
+- Moderate rapport building
+- Reach request availability
 - Complete by 4 PM
 - Gain +2 Trust tokens
 - Break even on coins
 
 ### Acceptable Run (Desperate Success)
 - Any letter delivered
-- Poor terms accepted
+- Fixed terms accepted
 - Heavy displacement
 - Before 5 PM deadline
 - Mission complete
@@ -617,14 +622,14 @@ Base rate + (1 × 5%) = +5% bonus
 ### Context Changes Everything
 
 **Scenario 1**: Elena Desperate, You have 3 Trust tokens
-- +15% success on all cards
-- Trust scaling gives +3 flow
-- Can manage focus carefully
+- Start with 3 rapport (+6% all cards)
+- Can build momentum quickly
+- Flow progression more reliable
 
 **Scenario 2**: Elena Open, You have 0 Trust tokens
 - 5 focus capacity available
-- Base success rates only
-- Can play request cards immediately
+- Start with 0 rapport (base rates)
+- Can play request cards immediately but success uncertain
 
 **Scenario 3**: Elena Neutral, 4 burden cards in record
 - Standard capacity but damaged relationship
@@ -641,25 +646,24 @@ Each combination creates unique tactical challenge.
 ## Long-term Consequences
 
 ### Deck Evolution
-Successful delivery adds cards to Lord Blackwood's deck:
-- Trust-scaling flow cards
-- Makes future Trust conversations easier
+Successful delivery adds cards to NPC decks:
+- Rapport-building cards matching relationship
+- Makes future conversations easier
 - Permanent world change
 
-Failed delivery adds burdens to Elena's relationship:
-- 3 burden cards in record
+Failed request adds burden to relationship:
+- 1 burden card in record per failure
 - Future conversations require resolution
 - Relationship permanently scarred
 
 ### Token Economy
 Successful delivery creates cascading benefits:
-- +1-3 Trust tokens with Lord Blackwood
-- Better future negotiations
-- Easier Trust-scaling cards
+- +1-3 tokens with recipient
+- Better starting rapport in future
+- Easier conversations compound
 
 Burned tokens create cascading damage:
-- -1 token = -5% success forever
-- +1 burden = damaged relationship
+- -1 token = -1 starting rapport forever
 - Negative tokens = relationship debt
 
 Twenty deliveries create twenty permanent changes.
@@ -667,11 +671,11 @@ Twenty deliveries create twenty permanent changes.
 ## Core Innovation Summary
 
 The scenario demonstrates elegant complexity through simple rules:
-- **Focuss**: Persistent capacity creates multi-turn planning
-- **Token Linearity**: Every token adds exactly 5% success
+- **Focus**: Persistent capacity creates multi-turn planning
+- **Rapport**: Linear +2% per point, starts at token value
+- **Flow**: Pure success/failure tracker, ±3 triggers transitions
 - **Atmosphere Persistence**: Environmental effects shape conversations
-- **Flow Battery**: ±3 triggers state transitions
-- **Queue Displacement**: Permanent sacrifice for flexibility
+- **Queue Displacement**: Permanent token sacrifice for flexibility
 - **Observation Effects**: Unique advantages from exploration
 
 No thresholds (except flow ±3), no hidden mechanics, no soft locks. Every mechanic serves one purpose while resources flow through multiple systems. The puzzle emerges from interaction, not complication.

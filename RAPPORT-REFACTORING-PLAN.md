@@ -22,7 +22,7 @@ This document details the refactoring of Wayfarer's conversation system to imple
 - **Example**: Elena with 1 Trust token starts conversation with 3 rapport (+3% to all cards)
 
 ### 4. Terminology Updates
-- **Focus** → **Presence** (the resource pool for playing cards)
+- **Focus** → **Focus** (the resource pool for playing cards)
 - **Flow Effects** → **Rapport Effects** (card effects that modify rapport)
 
 ## Implementation Architecture
@@ -68,9 +68,9 @@ public class RapportManager
         return patience / 3; // Example scaling
     }
     
-    public int ScaleRapportByPresence(int remainingPresence)
+    public int ScaleRapportByFocus(int remainingFocus)
     {
-        return remainingPresence;
+        return remainingFocus;
     }
     
     // Get current success modifier
@@ -97,13 +97,13 @@ Rename existing enums:
 - `ScaleByTokens` → `ScaleRapportByTokens`
 - `ScaleByFlow` → `ScaleRapportByFlow`
 - `ScaleByPatience` → `ScaleRapportByPatience`
-- `ScaleByFocus` → `ScaleRapportByPresence`
+- `ScaleByFocus` → `ScaleRapportByFocus`
 - `FlowReset` → `RapportReset`
 
 Keep unchanged:
 - `DrawCards`
-- `AddFocus` → `AddPresence`
-- `FocusRefresh` → `PresenceRefresh`
+- `AddFocus` → `AddFocus`
+- `FocusRefresh` → `FocusRefresh`
 - `SetAtmosphere`
 - `EndConversation`
 - `FreeNextAction`
@@ -137,8 +137,8 @@ public class ConversationSession
     public RapportManager RapportManager { get; set; }
     
     // Rename
-    public int CurrentPresence { get; set; } // was CurrentFocus
-    public int MaxPresence { get; set; } // was MaxFocus
+    public int CurrentFocus { get; set; } // was CurrentFocus
+    public int MaxFocus { get; set; } // was MaxFocus
 }
 ```
 
@@ -225,8 +225,8 @@ Display rapport bar:
 
 ### Terminology in UI
 Replace all instances:
-- "Focus" → "Presence"
-- "focus" → "presence"
+- "Focus" → "Focus"
+- "focus" → "focus"
 - Token bonus displays → Rapport displays
 
 ## Testing Strategy
@@ -264,7 +264,7 @@ Replace all instances:
 5. **Update CardEffectProcessor** - Redirect to rapport effects
 6. **Update parsers** - Recognize new effect names
 7. **Update ConversationOrchestrator** - Initialize both managers
-8. **Rename Focus to Presence** - Global find/replace with care
+8. **Rename Focus to Focus** - Global find/replace with care
 9. **Update UI components** - Display rapport instead of token bonuses
 10. **Update content JSON** - Change effect types in cards
 11. **Test thoroughly** - Ensure all systems work together

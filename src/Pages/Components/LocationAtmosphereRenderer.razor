@@ -34,7 +34,7 @@
         );
     }
 
-    private string GetNPCPresenceDescription(NPC npc)
+    private string GetNPCFocusDescription(NPC npc)
     {
         // Generate description from categorical properties
         var emotionalState = DetermineEmotionalState(npc);
@@ -156,10 +156,10 @@
         <div class="npcs-present">
             @foreach (var npc in NPCsPresent)
             {
-                <div class="npc-presence">
+                <div class="npc-focus">
                     <div class="npc-name">@npc.Name</div>
                     <div class="npc-description">
-                        @GetNPCPresenceDescription(npc)
+                        @GetNPCFocusDescription(npc)
                     </div>
                 </div>
             }

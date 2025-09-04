@@ -19,9 +19,9 @@ public enum CardEffectType
     DrawCards,
     
     /// <summary>
-    /// Add presence to the presence pool
+    /// Add focus to the focus pool
     /// </summary>
-    AddPresence,
+    AddFocus,
     
     /// <summary>
     /// Set the conversation atmosphere. Value indicates which atmosphere.
@@ -44,9 +44,9 @@ public enum CardEffectType
     ScaleRapportByPatience,
     
     /// <summary>
-    /// Scale rapport by remaining presence. Value contains formula like "presence".
+    /// Scale rapport by remaining focus. Value contains formula like "focus".
     /// </summary>
-    ScaleRapportByPresence,
+    ScaleRapportByFocus,
     
     /// <summary>
     /// Reset rapport to starting value
@@ -54,9 +54,9 @@ public enum CardEffectType
     RapportReset,
     
     /// <summary>
-    /// Refresh presence to maximum
+    /// Refresh focus to maximum
     /// </summary>
-    PresenceRefresh,
+    FocusRefresh,
     
     /// <summary>
     /// Next action costs 0 patience

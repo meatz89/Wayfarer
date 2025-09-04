@@ -55,13 +55,13 @@ public class RapportManager
     }
     
     /// <summary>
-    /// Scale rapport change by remaining presence
+    /// Scale rapport change by remaining focus
     /// </summary>
-    /// <param name="remainingPresence">Remaining presence points</param>
+    /// <param name="remainingFocus">Remaining focus points</param>
     /// <returns>Scaled rapport value</returns>
-    public int ScaleRapportByPresence(int remainingPresence)
+    public int ScaleRapportByFocus(int remainingFocus)
     {
-        return remainingPresence;
+        return remainingFocus;
     }
     
     /// <summary>

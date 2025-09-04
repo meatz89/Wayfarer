@@ -159,7 +159,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
                 "pleased" => "pleasure evident in their manner",
                 "respectful" => "respect colors their tone",
                 "honored" => "honor fills their bearing",
-                "blessed" => "feeling blessed by your presence",
+                "blessed" => "feeling blessed by your focus",
                 "surprised" => "surprise crosses their features",
                 "satisfied" => "satisfaction evident",
                 "impressed" => "clearly impressed",
@@ -265,7 +265,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             return value switch
             {
                 "wellbeing" => "how fare you?",
-                "presence_reason" => "what brings you here?",
+                "focus_reason" => "what brings you here?",
                 "purpose" => "what do you need?",
                 "information_sought" => "what knowledge do you seek?",
                 "business_interest" => "looking to trade?",

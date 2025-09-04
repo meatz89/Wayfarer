@@ -54,14 +54,14 @@
                         }
                     </div>
                     <div class="focus-pool">
-                        <span class="indicator-label">Presence</span>
+                        <span class="indicator-label">Focus</span>
                         <div class="focus-dots">
-                            @for (int i = 1; i <= (Session?.GetEffectivePresenceCapacity() ?? 3); i++)
+                            @for (int i = 1; i <= (Session?.GetEffectiveFocusCapacity() ?? 3); i++)
                             {
-                                <span class="focus-dot @(i <= (Session?.GetAvailablePresence() ?? 0) ? "available" : "spent")"></span>
+                                <span class="focus-dot @(i <= (Session?.GetAvailableFocus() ?? 0) ? "available" : "spent")"></span>
                             }
                         </div>
-                        <span class="indicator-value">@(Session?.GetAvailablePresence() ?? 0)/@(Session?.GetEffectivePresenceCapacity() ?? 3)</span>
+                        <span class="indicator-value">@(Session?.GetAvailableFocus() ?? 0)/@(Session?.GetEffectiveFocusCapacity() ?? 3)</span>
                     </div>
                 </div>
             </div>

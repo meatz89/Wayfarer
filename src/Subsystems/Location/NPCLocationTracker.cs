@@ -6,7 +6,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
 {
     /// <summary>
     /// Tracks NPC positions and availability across locations and spots.
-    /// Manages NPC scheduling and presence based on time blocks.
+    /// Manages NPC scheduling and focus based on time blocks.
     /// </summary>
     public class NPCLocationTracker
     {
@@ -144,9 +144,9 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         /// <summary>
         /// Get all NPCs that will be at a location in the future.
         /// </summary>
-        public List<FutureNPCPresence> GetFutureNPCPresence(string locationId)
+        public List<FutureNPCFocus> GetFutureNPCFocus(string locationId)
         {
-            List<FutureNPCPresence> result = new List<FutureNPCPresence>();
+            List<FutureNPCFocus> result = new List<FutureNPCFocus>();
             List<NPC> npcs = GetNPCsAtLocation(locationId);
 
             foreach (NPC npc in npcs)
@@ -155,7 +155,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 {
                     if (npc.IsAvailable(timeBlock))
                     {
-                        result.Add(new FutureNPCPresence
+                        result.Add(new FutureNPCFocus
                         {
                             NPCId = npc.ID,
                             NPCName = npc.Name,
@@ -269,9 +269,9 @@ namespace Wayfarer.Subsystems.LocationSubsystem
     }
 
     /// <summary>
-    /// Represents future NPC presence at a location.
+    /// Represents future NPC focus at a location.
     /// </summary>
-    public class FutureNPCPresence
+    public class FutureNPCFocus
     {
         public string NPCId { get; set; }
         public string NPCName { get; set; }

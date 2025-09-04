@@ -936,12 +936,12 @@ namespace Wayfarer.Pages.Components
             if (SelectedCard != null)
             {
                 int focus = SelectedCard.Focus;
-                int remainingAfter = (Session?.GetAvailablePresence() ?? 0) - focus;
+                int remainingAfter = (Session?.GetAvailableFocus() ?? 0) - focus;
                 string continueHint = remainingAfter > 0 ? $" (Can SPEAK {remainingAfter} more)" : " (Must LISTEN after)";
                 return $"Play {GetProperCardName(SelectedCard)} ({focus} focus){continueHint}";
             }
             
-            int availableFocus = Session?.GetAvailablePresence() ?? 0;
+            int availableFocus = Session?.GetAvailableFocus() ?? 0;
             if (availableFocus == 0)
                 return "No focus remaining - must LISTEN to refresh";
             else if (availableFocus == 1)
@@ -1299,8 +1299,8 @@ namespace Wayfarer.Pages.Components
                     case CardEffectType.ScaleRapportByPatience:
                         return "+rapport (scales with patience)";
                     
-                    case CardEffectType.ScaleRapportByPresence:
-                        return "+rapport (scales with presence)";
+                    case CardEffectType.ScaleRapportByFocus:
+                        return "+rapport (scales with focus)";
                     
                     case CardEffectType.SetAtmosphere:
                         return $"Set {card.SuccessEffect.Value} atmosphere";
@@ -1308,8 +1308,8 @@ namespace Wayfarer.Pages.Components
                     case CardEffectType.DrawCards:
                         return $"Draw {card.SuccessEffect.Value} card(s)";
                     
-                    case CardEffectType.AddPresence:
-                        return $"+{card.SuccessEffect.Value} presence";
+                    case CardEffectType.AddFocus:
+                        return $"+{card.SuccessEffect.Value} focus";
                     
                     default:
                         return "Effect";
@@ -1346,8 +1346,8 @@ namespace Wayfarer.Pages.Components
                     case CardEffectType.ScaleRapportByPatience:
                         return "Rapport penalty (scales with patience)";
                     
-                    case CardEffectType.ScaleRapportByPresence:
-                        return "Rapport penalty (scales with presence)";
+                    case CardEffectType.ScaleRapportByFocus:
+                        return "Rapport penalty (scales with focus)";
                     
                     case CardEffectType.SetAtmosphere:
                         return $"Set {card.FailureEffect.Value} atmosphere";
@@ -1355,8 +1355,8 @@ namespace Wayfarer.Pages.Components
                     case CardEffectType.DrawCards:
                         return $"Draw {card.FailureEffect.Value} card(s)";
                     
-                    case CardEffectType.AddPresence:
-                        return $"+{card.FailureEffect.Value} presence";
+                    case CardEffectType.AddFocus:
+                        return $"+{card.FailureEffect.Value} focus";
                     
                     default:
                         return "Effect";
@@ -2242,14 +2242,14 @@ namespace Wayfarer.Pages.Components
             {
                 CardEffectType.AddRapport => $"{(effect.Value?.StartsWith("-") == true ? "" : "+")}{effect.Value} rapport",
                 CardEffectType.DrawCards => $"Draw {effect.Value} card{(effect.Value == "1" ? "" : "s")}",
-                CardEffectType.AddPresence => $"Add {effect.Value} presence",
+                CardEffectType.AddFocus => $"Add {effect.Value} focus",
                 CardEffectType.SetAtmosphere => $"Atmosphere: {effect.Value}",
                 CardEffectType.EndConversation => GetEndConversationDescription(effect),
                 CardEffectType.ScaleRapportByFlow => $"+X rapport (X = {effect.Value})",
                 CardEffectType.ScaleRapportByPatience => $"+X rapport (X = {effect.Value})",
-                CardEffectType.ScaleRapportByPresence => $"+X rapport (X = {effect.Value})",
+                CardEffectType.ScaleRapportByFocus => $"+X rapport (X = {effect.Value})",
                 CardEffectType.RapportReset => "Reset rapport to starting value",
-                CardEffectType.PresenceRefresh => "Refresh presence",
+                CardEffectType.FocusRefresh => "Refresh focus",
                 CardEffectType.FreeNextAction => "Next action costs no patience",
                 _ => effect.Type.ToString()
             };
@@ -2305,7 +2305,7 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return "0/5";
             // Display available focus / max capacity (not spent focus)
-            return $"{Session.GetAvailablePresence()}/{Session.GetEffectivePresenceCapacity()}";
+            return $"{Session.GetAvailableFocus()}/{Session.GetEffectiveFocusCapacity()}";
         }
 
         protected string GetFlowBatteryDisplay()
@@ -2626,7 +2626,7 @@ namespace Wayfarer.Pages.Components
         protected int GetMaxFocus()
         {
             if (Session == null) return 5;
-            return Session.GetEffectivePresenceCapacity();
+            return Session.GetEffectiveFocusCapacity();
         }
 
         /// <summary>

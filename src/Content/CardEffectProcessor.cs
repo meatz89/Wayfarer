@@ -58,7 +58,7 @@ public class CardEffectProcessor
             Card = card,
             RapportChange = 0,
             CardsToAdd = new List<CardInstance>(),
-            PresenceAdded = 0,
+            FocusAdded = 0,
             AtmosphereTypeChange = null,
             SpecialEffect = "",
             EndsConversation = false
@@ -73,7 +73,7 @@ public class CardEffectProcessor
 
             case CardEffectType.ScaleRapportByFlow:
             case CardEffectType.ScaleRapportByPatience:
-            case CardEffectType.ScaleRapportByPresence:
+            case CardEffectType.ScaleRapportByFocus:
                 result.RapportChange = ProcessScaledRapport(effect, session);
                 break;
 
@@ -81,8 +81,8 @@ public class CardEffectProcessor
                 result.CardsToAdd = ProcessDrawCards(effect.Value, session);
                 break;
 
-            case CardEffectType.AddPresence:
-                result.PresenceAdded = ProcessAddPresence(effect.Value);
+            case CardEffectType.AddFocus:
+                result.FocusAdded = ProcessAddFocus(effect.Value);
                 break;
 
             case CardEffectType.SetAtmosphere:
@@ -103,9 +103,9 @@ public class CardEffectProcessor
                 result.SpecialEffect = "Rapport reset to starting value";
                 break;
                 
-            case CardEffectType.PresenceRefresh:
-                result.PresenceAdded = session.GetEffectivePresenceCapacity() - session.CurrentPresence;
-                result.SpecialEffect = "Presence refreshed";
+            case CardEffectType.FocusRefresh:
+                result.FocusAdded = session.GetEffectiveFocusCapacity() - session.CurrentFocus;
+                result.SpecialEffect = "Focus refreshed";
                 break;
                 
             case CardEffectType.FreeNextAction:
@@ -125,8 +125,8 @@ public class CardEffectProcessor
         {
             if (result.RapportChange != 0)
                 result.RapportChange *= 2;
-            if (result.PresenceAdded > 0)
-                result.PresenceAdded *= 2;
+            if (result.FocusAdded > 0)
+                result.FocusAdded *= 2;
             if (result.CardsToAdd.Count > 0)
             {
                 // Double the cards drawn
@@ -180,9 +180,9 @@ public class CardEffectProcessor
             return session.RapportManager.ScaleRapportByPatience(session.CurrentPatience);
         }
         
-        if (effect.Type == CardEffectType.ScaleRapportByPresence)
+        if (effect.Type == CardEffectType.ScaleRapportByFocus)
         {
-            return session.RapportManager.ScaleRapportByPresence(session.GetAvailablePresence());
+            return session.RapportManager.ScaleRapportByFocus(session.GetAvailableFocus());
         }
         
         return int.TryParse(effect.Value, out int value) ? value : 0;
@@ -198,12 +198,12 @@ public class CardEffectProcessor
         return drawnCards;
     }
 
-    // Process add presence effect
-    private int ProcessAddPresence(string effectValue)
+    // Process add focus effect
+    private int ProcessAddFocus(string effectValue)
     {
-        if (int.TryParse(effectValue, out int presence))
+        if (int.TryParse(effectValue, out int focus))
         {
-            return presence;
+            return focus;
         }
         return 0;
     }
@@ -275,7 +275,7 @@ public class CardEffectResult
     public ConversationCard Card { get; set; }
     public int RapportChange { get; set; }
     public List<CardInstance> CardsToAdd { get; set; } = new();
-    public int PresenceAdded { get; set; }
+    public int FocusAdded { get; set; }
     public AtmosphereType? AtmosphereTypeChange { get; set; }
     public string SpecialEffect { get; set; } = "";
     public bool Success { get; set; } = true;

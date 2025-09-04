@@ -7,7 +7,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 {
     /// <summary>
     /// Manages all letter delivery operations including validation, execution, and tracking.
-    /// Handles location validation, NPC presence checks, and delivery outcomes.
+    /// Handles location validation, NPC focus checks, and delivery outcomes.
     /// </summary>
     public class DeliveryManager
     {
@@ -33,7 +33,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         /// <summary>
         /// Attempt to deliver a letter from position 1 of the queue.
-        /// Validates location, NPC presence, and executes delivery with token rewards.
+        /// Validates location, NPC focus, and executes delivery with token rewards.
         /// </summary>
         public DeliveryResult DeliverFromPosition1()
         {
@@ -106,7 +106,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         /// <summary>
         /// Check if the player can deliver the letter at position 1.
-        /// Validates location and NPC presence requirements.
+        /// Validates location and NPC focus requirements.
         /// </summary>
         public bool CanDeliverFromPosition1()
         {

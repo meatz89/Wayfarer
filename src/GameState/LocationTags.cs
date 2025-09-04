@@ -55,7 +55,7 @@ public static class LocationTagObservations
         [LocationTag.Quiet] = new()
         {
             new ObservationAction("listen_carefully", "Hear distant sounds", 1),
-            new ObservationAction("notice_breathing", "Detect hidden presence", 1)
+            new ObservationAction("notice_breathing", "Detect hidden focus", 1)
         },
         [LocationTag.Public] = new()
         {

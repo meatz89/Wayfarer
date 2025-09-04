@@ -30,23 +30,28 @@ This mirrors Slay the Spire's 3 energy with 5 cards - you cannot play everything
 
 Every card serves one of three strategic purposes:
 
-### 1. Progress (Flow Building)
-**Purpose**: Advance toward emotional state transitions and request accessibility
+### 1. Progress (Rapport Building)
+**Purpose**: Build rapport to improve success rates and enable request success
 **Trade-off**: Uses focus that could be spent on setup or information
-**Risk**: Failure might set you back (negative flow)
+**Risk**: Failure reduces flow and might reduce rapport
 
 ### 2. Setup (Atmosphere/Economy)
 **Purpose**: Create future advantage through atmospheric effects
-**Trade-off**: Delays immediate progress
+**Trade-off**: Delays immediate rapport building
 **Risk**: Might not have turns to capitalize on setup
 
 ### 3. Information (Card Draw)
 **Purpose**: Expand options and find key cards
-**Trade-off**: No immediate progress or setup
+**Trade-off**: No immediate rapport or setup
 **Risk**: Drawing cards you can't afford to play
 
+# Wayfarer Universal Starter Deck
 
 ## Deck Composition (12 cards)
+- **12 cards total**: Small enough to create consistency, large enough for variance
+- **No impulse/opening**: Early game focuses on fundamentals, not timing pressure
+- **All persistent**: Allows multi-turn planning and hand building
+- **Simple effects**: One clear purpose per card, no multi-layered complexity
 
 ### Safe Progress Cards (3 cards)
 **"I hear you"** (3 copies)
@@ -54,7 +59,7 @@ Every card serves one of three strategic purposes:
 - Difficulty: Easy (70% base success)
 - Effect: +1 rapport
 - Persistence: Persistent
-- Purpose: Reliable progress, focus flexibility, combo filler
+- Purpose: Reliable rapport building, focus flexibility, combo filler
 
 ### Atmosphere Setup Cards (2 cards)
 **"Let me think"** (1 copy)
@@ -77,7 +82,7 @@ Every card serves one of three strategic purposes:
 - Difficulty: Medium (60% base success)
 - Effect: +2 rapport on success, -1 rapport on failure
 - Persistence: Persistent
-- Purpose: Efficient progress with genuine risk
+- Purpose: Efficient rapport with genuine risk
 
 ### Information Cards (2 cards)
 **"Tell me more"** (2 copies)
@@ -112,16 +117,18 @@ Every card serves one of three strategic purposes:
 
 ## Request Cards (Not Part of Base 12)
 
-Request cards are placed directly in hand at conversation start based on conversation type chosen. They do not count against draw limits.
+Request cards are placed directly in hand at conversation start based on conversation type chosen. They start unplayable and become playable when reaching appropriate focus capacity.
 
 ### Elena's Letter Request
 **"Accept Elena's Letter"**
 - Focus: 5
 - Difficulty: Very Hard (40% base success)
-- Effect: Creates delivery obligation
-- Success Terms: 4hr deadline, position 3, 10 coins
-- Failure Terms: 1hr deadline, position 1, 5 coins
-- Persistence: Impulse AND Opportunity (must play immediately when able)
+- Starting State: Unplayable
+- Becomes Playable: When LISTEN at 5+ focus capacity
+- When Playable: Gains Impulse AND Opening properties
+- Effect: Creates delivery obligation (fixed terms)
+- Success Terms: 1hr deadline, position 1, 5 coins
+- Failure: Add 1 burden card to Elena's relationship
 - On Exhaust: Conversation ends in failure
 - Purpose: Win condition requiring state progression
 
@@ -129,17 +136,18 @@ Request cards are placed directly in hand at conversation start based on convers
 
 ### Starting a Conversation
 1. Pay attention cost (2 for standard conversation)
-2. Request card placed **directly in hand** (always visible from turn 1)
-3. Automatic LISTEN occurs with no patience cost
-4. Draw cards equal to emotional state (Desperate=1, Tense=2, Neutral=2, Open=3, Connected=3)
-5. Starting hand = emotional state cards + request card
-6. Deck contains 12 cards that cycle when exhausted
+2. Starting rapport = connection tokens with NPC
+3. Request card placed **directly in hand** but **unplayable**
+4. Automatic LISTEN occurs with no patience cost
+5. Draw cards equal to emotional state (Desperate=1, Tense=2, Neutral=2, Open=3, Connected=3)
+6. Starting hand = emotional state cards + unplayable request card
+7. Deck contains 12 cards that cycle when exhausted
 
 ### Focus Mechanics
 - Base capacity determined by emotional state (Desperate=3, Tense=4, Neutral=5, Open=5, Connected=6)
 - Pool persists across multiple SPEAK actions
 - LISTEN refreshes focus to emotional state maximum
-- Prepared atmosphere adds +1 to CURRENT focus pool
+- Prepared atmosphere adds +1 to CURRENT focus
 - Can exceed maximum with Prepared (e.g., 4/3 in Desperate)
 - If atmosphere clears, bonus vanishes immediately
 
@@ -147,16 +155,20 @@ Request cards are placed directly in hand at conversation start based on convers
 1. Check if focus available
 2. Play ONE card (spending its focus from pool)
 3. Resolve success/failure
-4. Remove ALL impulse cards from hand (played or not)
-5. Check remaining focus
-6. Can SPEAK again if focus remains
+4. Success: +1 flow, apply card effects
+5. Failure: -1 flow, apply failure effects (if any)
+6. Remove ALL impulse cards from hand (played or not)
+7. Check remaining focus
+8. Can SPEAK again if focus remains
 
 ### LISTEN Action
 1. Costs 1 patience (unless Patient atmosphere active)
 2. Draw cards equal to emotional state
-3. Refresh focus pool to emotional state maximum
+3. Refresh focus to emotional state maximum
 4. If Prepared active, gain +1 to current focus
-5. Opportunity cards removed if unplayed
+5. Opening cards removed if unplayed
+6. Check if request card becomes playable (sufficient focus reached)
+7. If request becomes playable: Gains Impulse AND Opening properties
 
 ### Atmosphere Mechanics
 - Changes when card succeeds
@@ -167,9 +179,19 @@ Request cards are placed directly in hand at conversation start based on convers
 
 ### Flow Transitions
 - Range: -3 to +3
+- Every successful SPEAK: +1 flow
+- Every failed SPEAK: -1 flow
 - At +3: State shifts right, flow resets to 0
 - At -3: State shifts left, flow resets to 0
 - Desperate at -3: Conversation ends immediately
+
+### Rapport System
+- Range: -50 to +50
+- Starts at value equal to connection tokens
+- Modified by card effects
+- Each point: +2% success chance on ALL cards
+- At 50 rapport: Guaranteed success
+- At -50 rapport: Guaranteed failure
 
 ### Deck Cycling
 - When deck exhausted, shuffle discard pile
@@ -195,25 +217,30 @@ Drawing 1 card + request:
 
 **Prepared Rush** (5 turns minimum):
 1. Turn 1: Play "Let me prepare" (1 focus)
-2. Turn 2: Prepared active, play rapport to build +3
-3. Turn 3: Reach Tense state
-4. Turn 4: LISTEN with Prepared (5/4 focus)
-5. Turn 5: Play request card (45% success)
+2. Turn 2: Prepared active, play rapport cards
+3. Turn 3: Success moves flow to +1
+4. Turn 4: Build to +3 flow (reach Tense)
+5. Continue building to Open state
+6. LISTEN at Open: Request becomes playable
+7. Play request immediately (45% + rapport bonus)
 
 **Safe Progression** (7 turns typical):
-1. Turns 1-3: Build +3 rapport to reach Tense
-2. Turns 4-6: Build +3 more rapport to reach Neutral
-3. Turn 7: Play request card at 5/5 focus
+1. Turns 1-3: Build rapport and flow
+2. Reach +3 net successes for Tense
+3. Continue to +6 net successes for Neutral  
+4. Reach +9 net successes for Open
+5. LISTEN at Open: Request becomes playable
+6. Play request with accumulated rapport bonus
 
 ### Critical Decision Points
 
-**Turn 1 with Prepared in Hand**: Playing it immediately enables the 4-focus card and faster request access, but delays rapport progress.
+**Turn 1 with Prepared in Hand**: Playing it immediately enables the 4-focus card and faster plays, but delays rapport building.
 
-**Risk Management at Low Rapport**: "How can I assist?" can push to -1 rapport on failure. At -1 or -2, avoid risk cards.
+**Risk Management at Low Rapport**: "How can I assist?" can reduce rapport on failure. At negative rapport, avoid risk cards.
 
 **Focus Efficiency Choices**: With 3/3 focus, playing one 3-focus card wastes nothing, but 2+1 gives more actions.
 
-**Impulse Request Pressure**: Once drawn with sufficient focus, the request must be played immediately or lost forever.
+**Request Card Timing**: Once it becomes playable, must play immediately or lose forever.
 
 ### Mathematical Validation
 
@@ -222,15 +249,15 @@ Drawing 1 card + request:
 **Average Turns to Request**: 6-8 turns (uses 5-7 patience of 15 available)
 
 **Failure Modes**:
-- 23% rapport collapse (too many failed risks)
+- 23% negative flow spiral (too many failures)
 - 7% patience exhaustion (inefficient play)
-- 5% request card never drawn (bottom of deck)
+- 5% request card missed (didn't play when available)
 
 ### Key Design Achievements
 
 **No Soft Locks**: Five 1-focus cards ensure something is always playable.
 
-**Meaningful Choices**: Every turn forces compromise between progress, setup, and information.
+**Meaningful Choices**: Every turn forces compromise between rapport, setup, and information.
 
 **Clear Prepared Payoff**: The 4-focus card creates binary unlock in Desperate state.
 
@@ -240,14 +267,20 @@ Drawing 1 card + request:
 
 ## Token Interaction
 
-Base success rates are modified by matching tokens only:
-- Elena (Devoted): Trust tokens +5% per token
-- Marcus (Mercantile): Commerce tokens +5% per token
-- Lord Blackwood (Proud): Status tokens +5% per token
-- Guard (Steadfast): Mixed token benefits
+Starting rapport equals connection tokens with NPC:
+- Elena with 1 Trust token: Start at 1 rapport (+2% all cards)
+- Marcus with 2 Commerce tokens: Start at 2 rapport (+4% all cards)
+- Lord Blackwood with 0 tokens: Start at 0 rapport (base rates only)
+- Guard with 3 Shadow tokens: Start at 3 rapport (+6% all cards)
 
 With Elena's 1 Trust token, success rates become:
-- Easy cards: 75% (70% + 5%)
-- Medium cards: 65% (60% + 5%)
-- Hard cards: 55% (50% + 5%)
-- Very Hard request: 45% (40% + 5%)
+- Easy cards: 72% (70% + 2%)
+- Medium cards: 62% (60% + 2%)
+- Hard cards: 52% (50% + 2%)
+- Very Hard request: 42% (40% + 2%)
+
+Building to 10 rapport during conversation:
+- Easy cards: 90% (70% + 20%)
+- Medium cards: 80% (60% + 20%)
+- Hard cards: 70% (50% + 20%)
+- Very Hard request: 60% (40% + 20%)

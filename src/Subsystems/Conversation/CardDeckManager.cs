@@ -333,7 +333,7 @@ public class CardDeckManager
                 }
                 return true;
 
-            case CardEffectType.AddPresence:
+            case CardEffectType.AddFocus:
                 if (int.TryParse(card.ExhaustEffect.Value, out int focus))
                 {
                     _focusManager.AddFocus(focus);
