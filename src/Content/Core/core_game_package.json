@@ -1,22 +1,22 @@
 {
   "packageId": "core_game",
   "metadata": {
-    "name": "Core Game Content",
-    "timestamp": "2025-09-02T00:00:00Z",
-    "description": "Base Wayfarer game content including all NPCs, locations, cards, letters and travel systems",
+    "name": "Core Game Content - Starter Deck",
+    "timestamp": "2025-09-04T00:00:00Z",
+    "description": "Wayfarer starter deck POC with Elena's letter scenario",
     "author": "Wayfarer Team",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "content": {
     "cards": [
       {
-        "id": "trust_understanding",
+        "id": "i_hear_you_1",
         "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
+        "personalityTypes": ["ALL"],
         "focus": 1,
         "properties": ["Persistent"],
         "connectionType": "Trust",
-        "description": "I understand",
+        "description": "I hear you",
         "difficulty": "Easy",
         "successEffect": {
           "type": "AddRapport",
@@ -25,53 +25,52 @@
         "failureEffect": {
           "type": "None"
         },
-        "dialogueFragment": "I understand your situation. You're not alone in this."
+        "dialogueFragment": "I hear what you're saying. Please, continue."
       },
       {
-        "id": "trust_sympathy",
+        "id": "i_hear_you_2",
         "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
-        "focus": 2,
+        "personalityTypes": ["ALL"],
+        "focus": 1,
         "properties": ["Persistent"],
         "connectionType": "Trust",
-        "description": "Share sympathy",
-        "difficulty": "Medium",
+        "description": "I hear you",
+        "difficulty": "Easy",
         "successEffect": {
           "type": "AddRapport",
-          "value": "2"
+          "value": "1"
         },
         "failureEffect": {
           "type": "None"
         },
-        "dialogueFragment": "I've been through something similar. Let me share what helped me."
+        "dialogueFragment": "I hear what you're saying. Please, continue."
       },
       {
-        "id": "trust_deep_bond",
+        "id": "i_hear_you_3",
         "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
-        "focus": 3,
+        "personalityTypes": ["ALL"],
+        "focus": 1,
         "properties": ["Persistent"],
         "connectionType": "Trust",
-        "description": "Express deep trust",
-        "difficulty": "Hard",
+        "description": "I hear you",
+        "difficulty": "Easy",
         "successEffect": {
           "type": "AddRapport",
-          "value": "3"
+          "value": "1"
         },
         "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
+          "type": "None"
         },
-        "dialogueFragment": "You know you can count on me. We've been through too much together."
+        "dialogueFragment": "I hear what you're saying. Please, continue."
       },
       {
-        "id": "trust_reassurance",
+        "id": "let_me_think",
         "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
-        "focus": 0,
+        "personalityTypes": ["ALL"],
+        "focus": 1,
         "properties": ["Persistent"],
         "connectionType": "Trust",
-        "description": "Gentle reassurance",
+        "description": "Let me think",
         "difficulty": "Easy",
         "successEffect": {
           "type": "SetAtmosphere",
@@ -80,40 +79,35 @@
         "failureEffect": {
           "type": "None"
         },
-        "dialogueFragment": "Take a breath. We'll work through this together."
+        "dialogueFragment": "Let me think about this for a moment..."
       },
       {
-        "id": "trust_vulnerability",
+        "id": "let_me_prepare",
         "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
-        "focus": 4,
-        "properties": ["Impulse"],
-        "connectionType": "Trust",
-        "description": "Share vulnerability",
-        "difficulty": "VeryHard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "4"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-2"
-        },
-        "exhaustEffect": {
-          "type": "SetAtmosphere",
-          "value": "Volatile"
-        },
-        "dialogueFragment": "I need to confess something... I trust you enough to be completely honest."
-      },
-      {
-        "id": "trust_scaling",
-        "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
-        "focus": 3,
+        "personalityTypes": ["ALL"],
+        "focus": 1,
         "properties": ["Persistent"],
         "connectionType": "Trust",
-        "description": "Build on trust",
-        "difficulty": "Hard",
+        "description": "Let me prepare",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "SetAtmosphere",
+          "value": "Prepared"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Give me a moment to prepare myself..."
+      },
+      {
+        "id": "how_can_i_assist_1",
+        "type": "Normal",
+        "personalityTypes": ["ALL"],
+        "focus": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "How can I assist?",
+        "difficulty": "Medium",
         "successEffect": {
           "type": "AddRapport",
           "value": "2"
@@ -122,39 +116,89 @@
           "type": "AddRapport",
           "value": "-1"
         },
-        "dialogueFragment": "We've built something here, haven't we? This trust between us."
+        "dialogueFragment": "How can I assist you with this?"
       },
       {
-        "id": "trust_desperate_plea",
+        "id": "how_can_i_assist_2",
         "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
-        "focus": 3,
-        "properties": ["Impulse"],
-        "connectionType": "Trust",
-        "description": "Desperate plea",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "ScaleRapportByFlow",
-          "value": "4 - flow"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-2"
-        },
-        "exhaustEffect": {
-          "type": "DrawCards",
-          "value": "1"
-        },
-        "dialogueFragment": "Please, you have to understand!"
-      },
-      {
-        "id": "trust_patient_approach",
-        "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
+        "personalityTypes": ["ALL"],
         "focus": 2,
         "properties": ["Persistent"],
         "connectionType": "Trust",
-        "description": "Patient approach",
+        "description": "How can I assist?",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "AddRapport",
+          "value": "-1"
+        },
+        "dialogueFragment": "How can I assist you with this?"
+      },
+      {
+        "id": "tell_me_more_1",
+        "type": "Normal",
+        "personalityTypes": ["ALL"],
+        "focus": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Tell me more",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "DrawCards",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Tell me more about your situation..."
+      },
+      {
+        "id": "tell_me_more_2",
+        "type": "Normal",
+        "personalityTypes": ["ALL"],
+        "focus": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Tell me more",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "DrawCards",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "Tell me more about your situation..."
+      },
+      {
+        "id": "im_here_for_you",
+        "type": "Normal",
+        "personalityTypes": ["ALL"],
+        "focus": 3,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "I'm here for you",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "3"
+        },
+        "failureEffect": {
+          "type": "None"
+        },
+        "dialogueFragment": "I'm here for you. We'll get through this together."
+      },
+      {
+        "id": "well_figure_this_out",
+        "type": "Normal",
+        "personalityTypes": ["ALL"],
+        "focus": 3,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "We'll figure this out",
         "difficulty": "Hard",
         "successEffect": {
           "type": "ScaleRapportByPatience",
@@ -163,887 +207,34 @@
         "failureEffect": {
           "type": "None"
         },
-        "dialogueFragment": "We have time. Let's work through this together."
+        "dialogueFragment": "We'll figure this out together. There's always a way."
       },
       {
-        "id": "trust_listen_carefully",
-        "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
-        "focus": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Listen carefully",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "DrawCards",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Please, tell me more. I'm listening carefully."
-      },
-      {
-        "id": "trust_emotional_support",
-        "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
-        "focus": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Offer support",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I'm here for you. Whatever you need."
-      },
-      {
-        "id": "trust_prepare_ground",
-        "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
-        "focus": 0,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Prepare ground",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "SetAtmosphere",
-          "value": "Prepared"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "First, let me set the context..."
-      },
-      {
-        "id": "trust_open_mind",
-        "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
-        "focus": 0,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Open mind",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "SetAtmosphere",
-          "value": "Receptive"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I'm open to hearing your perspective."
-      },
-      {
-        "id": "trust_heartfelt_confession",
-        "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
-        "focus": 4,
-        "properties": ["Impulse"],
-        "connectionType": "Trust",
-        "description": "Heartfelt confession",
-        "difficulty": "VeryHard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "4"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-2"
-        },
-        "exhaustEffect": {
-          "type": "DrawCards",
-          "value": "2"
-        },
-        "dialogueFragment": "I need to be completely honest with you about something..."
-      },
-      {
-        "id": "trust_gentle_encouragement",
-        "type": "Normal",
-        "personalityTypes": ["DEVOTED", "ALL"],
-        "focus": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Gentle encouragement",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "You're stronger than you know. I believe in you."
-      },
-      {
-        "id": "commerce_fair_deal",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Commerce",
-        "description": "Propose fair trade",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "That seems like a fair arrangement for both of us."
-      },
-      {
-        "id": "commerce_opening",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Commerce",
-        "description": "Highlight opening",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Think of the profit potential! This could make us both wealthy."
-      },
-      {
-        "id": "commerce_scaling",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 3,
-        "properties": ["Persistent"],
-        "connectionType": "Commerce",
-        "description": "Leverage connections",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
-        },
-        "dialogueFragment": "My business connections speak highly of you. Let's make this profitable."
-      },
-      {
-        "id": "commerce_final_offer",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 5,
-        "properties": ["Impulse"],
-        "connectionType": "Commerce",
-        "description": "Final offer",
-        "difficulty": "VeryHard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "5"
-        },
-        "failureEffect": {
-          "type": "SetAtmosphere",
-          "value": "Final"
-        },
-        "exhaustEffect": {
-          "type": "AddRapport",
-          "value": "-2"
-        },
-        "dialogueFragment": "This is my final offer. Take it or leave it."
-      },
-      {
-        "id": "commerce_prepare_argument",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 3,
-        "properties": ["Persistent"],
-        "connectionType": "Commerce",
-        "description": "Prepare argument",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddFocus",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Let me lay out my case systematically."
-      },
-      {
-        "id": "commerce_business_proposition",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Commerce",
-        "description": "Business proposition",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I have a business proposition that could benefit us both."
-      },
-      {
-        "id": "commerce_market_knowledge",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 1,
-        "properties": ["Opening"],
-        "connectionType": "Commerce",
-        "description": "Market knowledge",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "DrawCards",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "exhaustEffect": {
-          "type": "DrawCards",
-          "value": "1"
-        },
-        "dialogueFragment": "I know something about the market trends that might interest you."
-      },
-      {
-        "id": "commerce_trade_secrets",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 3,
-        "properties": ["Impulse"],
-        "connectionType": "Commerce",
-        "description": "Trade secrets",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "SetAtmosphere",
-          "value": "Informed"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
-        },
-        "exhaustEffect": {
-          "type": "SetAtmosphere",
-          "value": "Volatile"
-        },
-        "dialogueFragment": "There are things about this trade that others don't know..."
-      },
-      {
-        "id": "commerce_negotiate_terms",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 2,
-        "properties": ["Opening"],
-        "connectionType": "Commerce",
-        "description": "Negotiate terms",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddFocus",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "exhaustEffect": {
-          "type": "AddFocus",
-          "value": "1"
-        },
-        "dialogueFragment": "Perhaps we can adjust the terms to suit both parties."
-      },
-      {
-        "id": "commerce_close_deal",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 4,
-        "properties": ["Impulse"],
-        "connectionType": "Commerce",
-        "description": "Close the deal",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "4"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
-        },
-        "exhaustEffect": {
-          "type": "SetAtmosphere",
-          "value": "Final"
-        },
-        "dialogueFragment": "I think we have the basis for a solid agreement here."
-      },
-      {
-        "id": "commerce_mutual_benefit",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Commerce",
-        "description": "Mutual benefit",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "When we both profit, we both win."
-      },
-      {
-        "id": "commerce_calculate_value",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Commerce",
-        "description": "Calculate value",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Let me show you the numbers - they speak for themselves."
-      },
-      {
-        "id": "commerce_market_timing",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 3,
-        "properties": ["Opening"],
-        "connectionType": "Commerce",
-        "description": "Market timing",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "3"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
-        },
-        "exhaustEffect": {
-          "type": "AddRapport",
-          "value": "-2"
-        },
-        "dialogueFragment": "The timing is perfect for this opening - but it won't last."
-      },
-      {
-        "id": "commerce_competitive_edge",
-        "type": "Normal",
-        "personalityTypes": ["MERCANTILE", "ALL"],
-        "focus": 4,
-        "properties": ["Impulse"],
-        "connectionType": "Commerce",
-        "description": "Competitive edge",
-        "difficulty": "VeryHard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "4"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-2"
-        },
-        "exhaustEffect": {
-          "type": "DrawCards",
-          "value": "1"
-        },
-        "dialogueFragment": "This gives us a significant advantage over our competitors."
-      },
-      {
-        "id": "steadfast_gather_thoughts",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Gather thoughts",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "DrawCards",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Let me think about what you've said..."
-      },
-      {
-        "id": "steadfast_build_momentum",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Build momentum",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddFocus",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I feel we're making progress here."
-      },
-      {
-        "id": "steadfast_take_breath",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 0,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Take a breath",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "SetAtmosphere",
-          "value": "Patient"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Let's take this one step at a time."
-      },
-      {
-        "id": "steadfast_find_common_ground",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Find common ground",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "We have more in common than we might think."
-      },
-      {
-        "id": "steadfast_steady_approach",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Steady approach",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Slow and steady often wins the day."
-      },
-      {
-        "id": "steadfast_stay_focused",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 0,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Stay focused",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "SetAtmosphere",
-          "value": "Focused"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Let's keep our attention on what matters most."
-      },
-      {
-        "id": "steadfast_press_advantage",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 3,
-        "properties": ["Opening"],
-        "connectionType": "Trust",
-        "description": "Press advantage",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddFocus",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "exhaustEffect": {
-          "type": "AddFocus",
-          "value": "1"
-        },
-        "dialogueFragment": "Now is the time to move forward decisively."
-      },
-      {
-        "id": "steadfast_make_time",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 2,
-        "properties": ["Opening"],
-        "connectionType": "Trust",
-        "description": "Make time",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "DrawCards",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "exhaustEffect": {
-          "type": "DrawCards",
-          "value": "1"
-        },
-        "dialogueFragment": "Good things take time. Let's make sure we have it."
-      },
-      {
-        "id": "steadfast_honor_duty",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 3,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Honor duty",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "3"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
-        },
-        "dialogueFragment": "We both know what's right. Let's do our duty."
-      },
-      {
-        "id": "steadfast_plain_speaking",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Plain speaking",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Let me speak plainly - no fancy words needed."
-      },
-      {
-        "id": "steadfast_reliable_support",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Reliable support",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "You can count on me to be there when needed."
-      },
-      {
-        "id": "steadfast_practical_wisdom",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 3,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Practical wisdom",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Experience has taught me a few things about situations like this."
-      },
-      {
-        "id": "steadfast_clear_path",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 4,
-        "properties": ["Impulse"],
-        "connectionType": "Trust",
-        "description": "Clear path forward",
-        "difficulty": "VeryHard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "4"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
-        },
-        "exhaustEffect": {
-          "type": "SetAtmosphere",
-          "value": "Prepared"
-        },
-        "dialogueFragment": "The path forward is clear. We just need to take the first step."
-      },
-      {
-        "id": "steadfast_unwavering_resolve",
-        "type": "Normal",
-        "personalityTypes": ["STEADFAST", "ALL"],
-        "focus": 5,
-        "properties": ["Impulse"],
-        "connectionType": "Trust",
-        "description": "Unwavering resolve",
-        "difficulty": "VeryHard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "5"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-2"
-        },
-        "exhaustEffect": {
-          "type": "SetAtmosphere",
-          "value": "Final"
-        },
-        "dialogueFragment": "My resolve is unshakeable. This is how it must be."
-      },
-      {
-        "id": "proud_show_respect",
-        "type": "Normal",
-        "personalityTypes": ["PROUD", "ALL"],
-        "focus": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Status",
-        "description": "Show respect",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Your reputation precedes you. It's an honor to speak with you."
-      },
-      {
-        "id": "proud_observe_formalities",
-        "type": "Normal",
-        "personalityTypes": ["PROUD", "ALL"],
-        "focus": 0,
-        "properties": ["Persistent"],
-        "connectionType": "Status",
-        "description": "Observe formalities",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "SetAtmosphere",
-          "value": "Focused"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Let us observe the proper protocols, as befits your station."
-      },
-      {
-        "id": "proud_invoke_status",
-        "type": "Normal",
-        "personalityTypes": ["PROUD", "ALL"],
-        "focus": 3,
-        "properties": ["Persistent"],
-        "connectionType": "Status",
-        "description": "Invoke status",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
-        },
-        "dialogueFragment": "Your standing in society demands this consideration."
-      },
-      {
-        "id": "cunning_drop_hint",
-        "type": "Normal",
-        "personalityTypes": ["CUNNING", "ALL"],
-        "focus": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Shadow",
-        "description": "Drop hint",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I know things that others don't. Perhaps we can help each other."
-      },
-      {
-        "id": "cunning_apply_leverage",
-        "type": "Normal",
-        "personalityTypes": ["CUNNING", "ALL"],
-        "focus": 3,
-        "properties": ["Persistent"],
-        "connectionType": "Shadow",
-        "description": "Apply leverage",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
-        },
-        "dialogueFragment": "I have information that could be... useful to you."
-      },
-      {
-        "id": "cunning_veiled_threat",
-        "type": "Normal",
-        "personalityTypes": ["CUNNING", "ALL"],
-        "focus": 4,
-        "properties": ["Opening"],
-        "connectionType": "Shadow",
-        "description": "Veiled threat",
-        "difficulty": "VeryHard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "4"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-3"
-        },
-        "exhaustEffect": {
-          "type": "SetAtmosphere",
-          "value": "Pressured"
-        },
-        "dialogueFragment": "It would be unfortunate if certain information became public."
-      },
-      {
-        "id": "universal_interrupt",
+        "id": "everything_will_be_alright",
         "type": "Normal",
         "personalityTypes": ["ALL"],
-        "focus": 1,
-        "properties": ["Opening"],
-        "connectionType": "Status",
-        "description": "Interrupt",
-        "difficulty": "Hard",
-        "successEffect": {
-          "type": "SetAtmosphere",
-          "value": "Receptive"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-2"
-        },
-        "exhaustEffect": {
-          "type": "SetAtmosphere",
-          "value": "Pressured"
-        },
-        "dialogueFragment": "Wait, let me say something..."
-      },
-      {
-        "id": "universal_final_statement",
-        "type": "Normal",
-        "personalityTypes": ["ALL"],
-        "focus": 5,
-        "properties": ["Impulse"],
-        "connectionType": "Status",
-        "description": "Final statement",
-        "difficulty": "VeryHard",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "5"
-        },
-        "failureEffect": {
-          "type": "SetAtmosphere",
-          "value": "Volatile"
-        },
-        "exhaustEffect": {
-          "type": "SetAtmosphere",
-          "value": "Final"
-        },
-        "dialogueFragment": "This is my final word on the matter."
-      },
-      {
-        "id": "universal_quick_response",
-        "type": "Normal",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "properties": ["Opening"],
-        "connectionType": "Trust",
-        "description": "Quick response",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "exhaustEffect": {
-          "type": "DrawCards",
-          "value": "1"
-        },
-        "dialogueFragment": "Let me respond quickly to that."
-      },
-      {
-        "id": "universal_thoughtful_pause",
-        "type": "Normal",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
+        "focus": 4,
         "properties": ["Persistent"],
         "connectionType": "Trust",
-        "description": "Thoughtful pause",
-        "difficulty": "Medium",
+        "description": "Everything will be alright",
+        "difficulty": "Hard",
         "successEffect": {
-          "type": "DrawCards",
-          "value": "1"
+          "type": "AddRapport",
+          "value": "4"
         },
         "failureEffect": {
           "type": "None"
         },
-        "dialogueFragment": "Give me a moment to consider this properly."
+        "dialogueFragment": "Everything will be alright. I promise you that."
       },
       {
-        "id": "elena_urgent_refusal",
+        "id": "accept_elenas_letter",
         "type": "Request",
-        "personalityTypes": ["DEVOTED"],
+        "personalityTypes": ["ALL"],
         "focus": 5,
-        "properties": ["Impulse", "Opening"],
+        "properties": ["Unplayable"],
         "connectionType": "Trust",
-        "description": "Please take my letter!",
+        "description": "Accept Elena's Letter",
         "difficulty": "VeryHard",
         "successEffect": {
           "type": "CreateObligation",
@@ -1051,189 +242,29 @@
           "data": {
             "obligationType": "delivery",
             "position": 1,
-            "deadline": 73,
+            "deadline": 60,
             "recipientId": "lord_blackwood",
             "letterId": "elena_refusal",
-            "payment": 10,
+            "payment": 5,
             "tokenReward": {"Trust": 2}
           }
         },
         "failureEffect": {
-          "type": "EndConversation",
-          "value": "failure",
+          "type": "AddBurdenCard",
+          "value": "1",
           "data": {
-            "reason": "Failed to accept letter",
-            "consequence": "Elena forced into marriage"
+            "npcId": "elena"
           }
         },
         "exhaustEffect": {
           "type": "EndConversation",
-          "value": "abandoned",
+          "value": "failure",
           "data": {
             "reason": "Failed to help Elena",
-            "relationshipPenalty": -2
+            "consequence": "Elena forced into marriage"
           }
         },
-        "dialogueFragment": "No, no, no... you don't understand! Lord Blackwood leaves at sunset. If this letter doesn't reach him, my father will sign the marriage contract tonight!"
-      },
-      {
-        "id": "exchange_food_for_coins",
-        "type": "Exchange",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "properties": ["Persistent", "Exchange"],
-        "connectionType": "Commerce",
-        "description": "Food for coins",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "Exchange",
-          "value": "trade",
-          "data": {
-            "cost": {"coins": 3},
-            "reward": {"hunger": -20}
-          }
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "3 coins for a hot meal. Fair price."
-      },
-      {
-        "id": "exchange_rest_for_coins",
-        "type": "Exchange",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "properties": ["Persistent", "Exchange"],
-        "connectionType": "Commerce",
-        "description": "Rest for coins",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "Exchange",
-          "value": "lodging",
-          "data": {
-            "cost": {"coins": 5},
-            "reward": {"stamina": 5, "health": 2}
-          }
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "5 coins for a room and a good night's rest."
-      },
-      {
-        "id": "marcus_trade_goods",
-        "type": "Exchange",
-        "personalityTypes": ["MERCANTILE"],
-        "focus": 1,
-        "properties": ["Persistent", "Exchange"],
-        "connectionType": "Commerce",
-        "description": "Buy food",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "Exchange",
-          "value": "trade",
-          "data": {
-            "cost": {"coins": 5},
-            "reward": {"food": 2}
-          }
-        },
-        "dialogueFragment": "5 coins for rations. Fair price in this market."
-      },
-      {
-        "id": "marcus_bulk_purchase",
-        "type": "Exchange",
-        "personalityTypes": ["MERCANTILE"],
-        "focus": 2,
-        "properties": ["Persistent", "Exchange"],
-        "connectionType": "Commerce",
-        "description": "Trade supplies",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "Exchange",
-          "value": "supplies",
-          "data": {
-            "cost": {"coins": 10},
-            "reward": {"food": 3}
-          }
-        },
-        "dialogueFragment": "10 coins for travel supplies."
-      },
-      {
-        "id": "bertram_hot_meal",
-        "type": "Exchange",
-        "personalityTypes": ["STEADFAST"],
-        "focus": 1,
-        "properties": ["Persistent", "Exchange"],
-        "connectionType": "Commerce",
-        "description": "Hot meal",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "Exchange",
-          "value": "food",
-          "data": {
-            "cost": {"coins": 3},
-            "reward": {"hunger": -20}
-          }
-        },
-        "dialogueFragment": "3 coins for a hot meal. Best stew in the district!"
-      },
-      {
-        "id": "bertram_room_for_night",
-        "type": "Exchange",
-        "personalityTypes": ["STEADFAST"],
-        "focus": 1,
-        "properties": ["Persistent", "Exchange"],
-        "connectionType": "Commerce",
-        "description": "Room for the night",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "Exchange",
-          "value": "lodging",
-          "data": {
-            "cost": {"coins": 5},
-            "reward": {"stamina": 10, "health": 5}
-          }
-        },
-        "dialogueFragment": "5 coins for a clean room and a good night's rest."
-      },
-      {
-        "id": "bertram_mug_of_ale",
-        "type": "Exchange",
-        "personalityTypes": ["STEADFAST"],
-        "focus": 1,
-        "properties": ["Persistent", "Exchange"],
-        "connectionType": "Commerce",
-        "description": "Mug of ale",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "Exchange",
-          "value": "drink",
-          "data": {
-            "cost": {"coins": 2},
-            "reward": {"patience": 3}
-          }
-        },
-        "dialogueFragment": "2 coins for our finest ale. It'll ease your troubles."
-      },
-      {
-        "id": "guard_noble_permit",
-        "type": "Exchange",
-        "personalityTypes": ["STEADFAST", "PROUD"],
-        "focus": 2,
-        "properties": ["Persistent", "Exchange"],
-        "connectionType": "Status",
-        "description": "Noble District Permit",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "Exchange",
-          "value": "permit",
-          "data": {
-            "cost": {"coins": 10},
-            "reward": {"item": "noble_district_permit"},
-            "unlocks": "noble_district_main_gate"
-          }
-        },
-        "dialogueFragment": "10 coins for a day pass to the Noble District. Don't cause trouble."
+        "dialogueFragment": "Please, you have to take my letter to Lord Blackwood before sunset! I'm begging you!"
       }
     ],
     "successFormula": {
@@ -1244,7 +275,7 @@
         "Hard": 50,
         "VeryHard": 40
       },
-      "tokenBonus": 5,
+      "rapportModifier": 2,
       "min": 5,
       "max": 95
     },
@@ -1266,19 +297,6 @@
         }
       },
       {
-        "id": "marcus",
-        "name": "Marcus",
-        "profession": "Merchant",
-        "locationId": "market_square",
-        "spotId": "merchant_row",
-        "description": "A merchant heading to his stall",
-        "personality": "Businesslike and hurried",
-        "personalityType": "MERCANTILE",
-        "services": ["Trade", "Work"],
-        "letterTokenTypes": ["Commerce"],
-        "currentState": "CALCULATING"
-      },
-      {
         "id": "lord_blackwood",
         "name": "Lord Blackwood",
         "profession": "Noble",
@@ -1290,6 +308,19 @@
         "services": [],
         "letterTokenTypes": ["Status"],
         "currentState": "NEUTRAL"
+      },
+      {
+        "id": "marcus",
+        "name": "Marcus",
+        "profession": "Merchant",
+        "locationId": "market_square",
+        "spotId": "merchant_row",
+        "description": "A merchant heading to his stall",
+        "personality": "Businesslike and hurried",
+        "personalityType": "MERCANTILE",
+        "services": ["Trade", "Work"],
+        "letterTokenTypes": ["Commerce"],
+        "currentState": "CALCULATING"
       },
       {
         "id": "bertram",
@@ -1316,19 +347,6 @@
         "services": [],
         "letterTokenTypes": ["Shadow"],
         "currentState": "NEUTRAL"
-      },
-      {
-        "id": "garrett",
-        "name": "Garrett",
-        "profession": "Information_Broker",
-        "locationId": "city_gates",
-        "spotId": "ferry_dock",
-        "description": "A shadowy figure near the cargo crates",
-        "personality": "Secretive and cautious",
-        "personalityType": "CUNNING",
-        "services": ["Shadow"],
-        "letterTokenTypes": ["Shadow"],
-        "currentState": "GUARDED"
       }
     ],
     "locations": [
@@ -1345,16 +363,10 @@
         "domainTags": [ "COMMERCE", "SOCIAL", "PUBLIC" ],
         "travelHubSpotId": "central_fountain",
         "locationSpots": [ "central_fountain", "merchant_row", "north_entrance", "north_alcove", "guard_post" ],
-        "connectedTo": [ "copper_kettle_tavern", "noble_district", "merchant_row", "city_gates" ],
+        "connectedTo": [ "copper_kettle_tavern", "noble_district" ],
         "socialExpectation": "Any",
         "accessLevel": "Public",
         "requiredSocialClasses": [],
-        "availableProfessionsByTime": {
-          "Morning": [],
-          "Afternoon": ["Merchant"],
-          "Evening": [],
-          "Night": []
-        },
         "locationType": "Crossroads",
         "isStartingLocation": false
       },
@@ -1375,12 +387,6 @@
         "socialExpectation": "Any",
         "accessLevel": "Public",
         "requiredSocialClasses": [],
-        "availableProfessionsByTime": {
-          "Morning": ["Innkeeper"],
-          "Afternoon": ["Innkeeper"],
-          "Evening": ["Innkeeper"],
-          "Night": []
-        },
         "locationType": "Tavern",
         "isStartingLocation": true
       },
@@ -1401,39 +407,7 @@
         "socialExpectation": "Noble",
         "accessLevel": "Restricted",
         "requiredSocialClasses": ["Noble"],
-        "availableProfessionsByTime": {
-          "Morning": [],
-          "Afternoon": ["Noble"],
-          "Evening": [],
-          "Night": []
-        },
         "locationType": "Elite Quarter",
-        "isStartingLocation": false
-      },
-      {
-        "id": "city_gates",
-        "name": "City Gates",
-        "description": "Guards check papers. Travelers rest before journeys. The road stretches beyond.",
-        "environmentalProperties": {
-          "morning": [ "WELL-LIT", "BUSY", "EDGE" ],
-          "afternoon": [ "WELL-LIT", "BUSY", "EDGE" ],
-          "evening": [ "SHADOWY", "QUIET", "EDGE" ],
-          "night": [ "DARK", "GUARDED", "EDGE" ]
-        },
-        "domainTags": [ "TRAVEL", "EDGE", "TRANSITION" ],
-        "travelHubSpotId": "gate_entrance",
-        "locationSpots": [ "gate_entrance", "traveler_rest", "ferry_dock" ],
-        "connectedTo": [ "market_square", "merchant_row" ],
-        "socialExpectation": "Any",
-        "accessLevel": "Public",
-        "requiredSocialClasses": [],
-        "availableProfessionsByTime": {
-          "Morning": ["Guard"],
-          "Afternoon": ["Guard", "Traveler"],
-          "Evening": ["Guard"],
-          "Night": ["Guard"]
-        },
-        "locationType": "Gateway",
         "isStartingLocation": false
       }
     ],
@@ -1498,21 +472,6 @@
         }
       },
       {
-        "id": "ferry_dock",
-        "name": "Ferry Dock",
-        "description": "A wooden dock where the city ferry operates, connecting to routes across the water.",
-        "initialState": "The ferry bobs at the dock. Passengers wait with their belongings while the ferryman prepares.",
-        "locationId": "city_gates",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-        "domainTags": [ "TRANSPORT", "WATER", "CROSSING" ],
-        "spotProperties": [ "Public", "TransitHub", "ViewsRiver", "Exposed" ],
-        "timeSpecificProperties": {
-          "Morning": [ "Busy", "WellLit" ],
-          "Afternoon": [ "Crowded" ],
-          "Evening": [ "Quiet", "Peaceful" ]
-        }
-      },
-      {
         "id": "main_hall",
         "name": "Main Hall",
         "description": "The heart of the Copper Kettle Tavern. Tables and chairs fill the space, with a warm fire crackling.",
@@ -1560,53 +519,6 @@
         }
       },
       {
-        "id": "upstairs_room",
-        "name": "Upstairs Room",
-        "description": "A private room above the tavern's main hall, available for rent.",
-        "initialState": "A simple room with a bed and washbasin. Clean and ready for guests.",
-        "locationId": "copper_kettle_tavern",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-        "domainTags": [ "PRIVATE", "REST", "LODGING" ],
-        "spotProperties": [ "Private", "Quiet", "Restful" ],
-        "timeSpecificProperties": {
-          "Morning": [ "WellLit", "Peaceful" ],
-          "Evening": [ "Cozy" ],
-          "Night": [ "Dark", "Restful" ]
-        }
-      },
-      {
-        "id": "north_entrance",
-        "name": "North Entrance",
-        "description": "The northern entrance to Market Square, where merchants enter from the trade routes.",
-        "initialState": "A wide archway with merchants and travelers passing through.",
-        "locationId": "market_square",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-        "domainTags": [ "PUBLIC", "ENTRANCE", "TRANSIT" ],
-        "spotProperties": [ "Public", "Transit", "Busy" ],
-        "timeSpecificProperties": {
-          "Morning": [ "Busy", "WellLit" ],
-          "Afternoon": [ "Crowded" ],
-          "Evening": [ "Quieter" ],
-          "Night": [ "Guarded" ]
-        }
-      },
-      {
-        "id": "north_alcove",
-        "name": "North Alcove",
-        "description": "A quiet alcove near the northern entrance, good for discrete conversations.",
-        "initialState": "A shadowed area between buildings, away from the main flow of people.",
-        "locationId": "market_square",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-        "domainTags": [ "PRIVATE", "HIDDEN", "DISCRETE" ],
-        "spotProperties": [ "Private", "Hidden", "Quiet" ],
-        "timeSpecificProperties": {
-          "Morning": [ "Shadowed" ],
-          "Afternoon": [ "Discrete" ],
-          "Evening": [ "Hidden", "Dark" ],
-          "Night": [ "Very Dark", "Secluded" ]
-        }
-      },
-      {
         "id": "guard_post",
         "name": "Guard Post",
         "description": "The official guard station in Market Square where city watch maintain order.",
@@ -1620,38 +532,6 @@
           "Afternoon": [ "Busy", "Watchful" ],
           "Evening": [ "Vigilant" ],
           "Night": [ "Patrolled" ]
-        }
-      },
-      {
-        "id": "gate_entrance",
-        "name": "Gate Entrance",
-        "description": "The main city gates where travelers and merchants enter and leave the city.",
-        "initialState": "Massive wooden gates stand open during the day. Guards check papers and cargo.",
-        "locationId": "city_gates",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-        "domainTags": [ "TRANSIT", "OFFICIAL", "CHECKPOINT" ],
-        "spotProperties": [ "Public", "Crossroads", "Official", "Checkpoint", "Transit" ],
-        "timeSpecificProperties": {
-          "Morning": [ "Busy", "WellLit" ],
-          "Afternoon": [ "Crowded", "Scrutinized" ],
-          "Evening": [ "Controlled" ],
-          "Night": [ "Secured", "Guarded" ]
-        }
-      },
-      {
-        "id": "traveler_rest",
-        "name": "Traveler's Rest",
-        "description": "A shaded area near the gates where travelers can rest before or after their journeys.",
-        "initialState": "Wooden benches and water barrels provide flow for weary travelers.",
-        "locationId": "city_gates",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-        "domainTags": [ "REST", "PUBLIC", "TRANSIT" ],
-        "spotProperties": [ "Public", "Restful", "Social", "Shaded" ],
-        "timeSpecificProperties": {
-          "Morning": [ "Peaceful", "Refreshing" ],
-          "Afternoon": [ "Busy", "Social" ],
-          "Evening": [ "Quiet" ],
-          "Night": [ "Empty", "Peaceful" ]
         }
       }
     ],
@@ -1694,513 +574,67 @@
         "originLocationSpot": "central_fountain",
         "destinationLocationSpot": "aldwin_manor",
         "method": "Walking",
-        "baseCoinCost": 0,
+        "baseCoinCost": 10,
         "baseStaminaCost": 2,
         "travelTimeMinutes": 25,
         "departureTime": null,
         "isDiscovered": true,
         "terrainCategories": ["Requires_Permission"],
         "maxItemCapacity": 5,
-        "description": "The guarded main gate to the Noble District - requires permit or bribe.",
-        "tierRequired": "T2",
-        "requiresItem": "noble_district_permit"
-      },
-      {
-        "id": "market_to_noble_merchant",
-        "name": "via Merchant's Path",
-        "originLocationSpot": "merchant_row",
-        "destinationLocationSpot": "blackwood_estate",
-        "method": "Walking",
-        "baseCoinCost": 0,
-        "baseStaminaCost": 5,
-        "travelTimeMinutes": 35,
-        "departureTime": null,
-        "isDiscovered": false,
-        "terrainCategories": ["Dark_Passage", "Wilderness_Terrain"],
-        "maxItemCapacity": 5,
-        "description": "A discrete route through unpatrolled merchant alleys and wilderness.",
-        "tierRequired": "T1",
-        "requiresKnowledge": "merchant_route_knowledge"
-      },
-      {
-        "id": "noble_to_market_main",
-        "name": "via Public Road",
-        "originLocationSpot": "aldwin_manor",
-        "destinationLocationSpot": "central_fountain",
-        "method": "Walking",
-        "baseCoinCost": 0,
-        "baseStaminaCost": 2,
-        "travelTimeMinutes": 25,
-        "departureTime": null,
-        "isDiscovered": true,
-        "terrainCategories": ["Urban"],
-        "maxItemCapacity": 5,
-        "description": "Return to Market Square.",
-        "tierRequired": "T1"
-      },
-      {
-        "id": "noble_to_market_merchant",
-        "name": "via Merchant Alleys",
-        "originLocationSpot": "blackwood_estate",
-        "destinationLocationSpot": "merchant_row",
-        "method": "Walking",
-        "baseCoinCost": 0,
-        "baseStaminaCost": 3,
-        "travelTimeMinutes": 35,
-        "departureTime": null,
-        "isDiscovered": false,
-        "terrainCategories": ["Urban", "Discrete"],
-        "maxItemCapacity": 5,
-        "description": "Return via merchant alleys.",
-        "tierRequired": "T1",
-        "requiresKnowledge": "merchant_route_knowledge"
-      },
-      {
-        "id": "market_to_tavern_cart",
-        "name": "via Cart Service",
-        "originLocationSpot": "central_fountain",
-        "destinationLocationSpot": "main_hall",
-        "method": "Cart",
-        "baseCoinCost": 2,
-        "baseStaminaCost": 0,
-        "travelTimeMinutes": 5,
-        "departureTime": null,
-        "isDiscovered": true,
-        "terrainCategories": ["Heavy_Cargo_Route"],
-        "maxItemCapacity": 10,
-        "description": "A quick cart ride to the tavern. No physical effort required.",
-        "tierRequired": "T1"
+        "description": "The guarded main gate to the Noble District - requires 10 coin bribe.",
+        "tierRequired": "T2"
       }
     ],
     "letterTemplates": [
       {
         "id": "elena_refusal",
         "description": "Elena's urgent refusal of Lord Blackwood's marriage proposal",
-        "narrative": "No, no, no... you don't understand! Lord Blackwood leaves at sunset. If this letter doesn't reach him, my father will sign the marriage contract tonight. I'll be trapped forever. Please, I'm begging you!",
+        "narrative": "This letter contains my refusal of your marriage proposal. I cannot marry you.",
         "letterType": "Trust",
         "tokenType": "Trust",
-        "minDeadlineInMinutes": 73,
-        "maxDeadlineInMinutes": 73,
-        "urgencyHours": 1.2,
-        "minPayment": 10,
-        "maxPayment": 10,
-        "category": "Safety",
-        "minTokensRequired": 1,
+        "minDeadlineInMinutes": 60,
+        "maxDeadlineInMinutes": 60,
+        "urgencyHours": 1,
+        "minPayment": 5,
+        "maxPayment": 5,
+        "category": "Crisis",
+        "minTokensRequired": 0,
         "tierLevel": "T2",
-        "specialType": "None",
+        "specialType": "Crisis",
         "forcesQueuePosition1": true,
         "possibleSenders": [ "elena" ],
         "possibleRecipients": [ "lord_blackwood" ],
         "recipientId": "lord_blackwood",
         "size": "Small",
-        "physicalProperties": ["Sealed with family seal", "clutched with white knuckles"],
-        "consequenceIfLate": "Elena forced into unwanted marriage, gains 2 burden cards",
-        "consequenceIfDelivered": "Elena's freedom preserved, Trust tokens gained",
+        "physicalProperties": ["Sealed with wax", "Trembling hands"],
+        "consequenceIfLate": "Elena forced into unwanted marriage",
+        "consequenceIfDelivered": "Elena's freedom preserved",
         "emotionalFocus": "HIGH",
-        "stakes": "SAFETY"
-      },
-      {
-        "id": "marcus_trade",
-        "description": "Marcus's package of trade documents",
-        "narrative": "Marcus needs these documents delivered to secure an important trade deal. The package is heavier than it looks.",
-        "letterType": "Commerce",
-        "tokenType": "Commerce",
-        "minDeadlineInMinutes": 300,
-        "maxDeadlineInMinutes": 300,
-        "urgencyHours": 5,
-        "minPayment": 5,
-        "maxPayment": 5,
-        "category": "Basic",
-        "minTokensRequired": 1,
-        "tierLevel": "T1",
-        "specialType": "None",
-        "possibleSenders": ["marcus"],
-        "possibleRecipients": ["lord_blackwood"],
-        "recipientId": "lord_blackwood",
-        "size": "Large",
-        "physicalProperties": ["Heavy package wrapped in oilcloth"],
-        "consequenceIfLate": "Trade deal falls through, Marcus loses 2 Commerce tokens",
-        "consequenceIfDelivered": "Profitable trade secured, Commerce tokens gained",
-        "emotionalFocus": "LOW",
-        "stakes": "WEALTH"
-      },
-      {
-        "id": "standard_trust_letter",
-        "description": "A personal letter requiring trust",
-        "tokenType": "Trust",
-        "minDeadlineInMinutes": 1440,
-        "maxDeadlineInMinutes": 4320,
-        "minPayment": 2,
-        "maxPayment": 8,
-        "category": "Basic",
-        "minTokensRequired": 1,
-        "tierLevel": "T1",
-        "specialType": "None",
-        "possibleSenders": ["*"],
-        "possibleRecipients": ["*"],
-        "size": "Small",
-        "physicalProperties": [],
-        "consequenceIfLate": "Trust broken",
-        "consequenceIfDelivered": "Trust strengthened",
-        "emotionalFocus": "LOW",
-        "stakes": "REPUTATION"
-      },
-      {
-        "id": "standard_commerce_letter",
-        "description": "A business correspondence",
-        "tokenType": "Commerce",
-        "minDeadlineInMinutes": 720,
-        "maxDeadlineInMinutes": 2880,
-        "minPayment": 3,
-        "maxPayment": 10,
-        "category": "Basic",
-        "minTokensRequired": 1,
-        "tierLevel": "T1",
-        "specialType": "None",
-        "possibleSenders": ["*"],
-        "possibleRecipients": ["*"],
-        "size": "Medium",
-        "physicalProperties": [],
-        "consequenceIfLate": "Business opening lost",
-        "consequenceIfDelivered": "Business relationship maintained",
-        "emotionalFocus": "LOW",
-        "stakes": "WEALTH"
+        "stakes": "FREEDOM"
       }
     ],
     "standingObligations": [],
-    "travelCards": [
-      {
-        "id": "guard_checkpoint_1",
-        "category": "ENCOUNTER",
-        "type": "AUTHORITY",
-        "displayName": "Guard Checkpoint",
-        "description": "City guards are checking papers and questioning travelers",
-        "focus": 2,
-        "properties": ["Opening"],
-        "connectionType": "Authority",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "PassThrough",
-          "value": "allowed"
-        },
-        "failureEffect": {
-          "type": "Delay",
-          "value": "30"
-        },
-        "exhaustEffect": {
-          "type": "ForceAlternativeRoute",
-          "value": "detour"
-        },
-        "mechanics": {
-          "requiresPermit": true,
-          "alternativeRoutes": ["merchant_path", "forest_path"]
-        },
-        "context": {
-          "terrainType": "Official",
-          "threatLevel": "Medium"
-        }
-      },
-      {
-        "id": "merchant_caravan",
-        "category": "ENCOUNTER",
-        "type": "COMMERCE",
-        "displayName": "Merchant Caravan",
-        "description": "A traveling merchant offers to share the road for safety",
-        "focus": 1,
-        "properties": ["Opening"],
-        "connectionType": "Commerce",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "exhaustEffect": {
-          "type": "SetAtmosphere",
-          "value": "Receptive"
-        },
-        "mechanics": {
-          "providesProtection": true,
-          "tradingOpening": true
-        },
-        "context": {
-          "terrainType": "Trade_Route",
-          "threatLevel": "Low"
-        }
-      },
-      {
-        "id": "weather_delay",
-        "category": "ENCOUNTER",
-        "type": "WEATHER",
-        "displayName": "Sudden Weather",
-        "description": "Heavy rain forces you to seek shelter",
-        "focus": 2,
-        "properties": ["Opening"],
-        "connectionType": "Natural",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "FindShelter",
-          "value": "protected"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
-        },
-        "mechanics": {
-          "delayTravel": true,
-          "shelterRequired": true
-        },
-        "context": {
-          "terrainType": "Exposed",
-          "threatLevel": "Medium"
-        }
-      }
-    ],
+    "travelCards": [],
     "items": [],
-    "locationActions": [
-      {
-        "id": "travel",
-        "name": "Travel",
-        "description": "Leave for another district",
-        "requiredProperties": ["Crossroads"],
-        "cost": {},
-        "reward": {},
-        "timeRequired": 0,
-        "availability": ["Morning", "Afternoon", "Evening", "Night"],
-        "icon": "🗺️",
-        "priority": 1,
-        "actionType": "travel"
-      },
-      {
-        "id": "work_haul_goods",
-        "name": "Work: Haul Goods",
-        "description": "Spend attention to earn coins hauling goods",
-        "requiredProperties": ["Commercial"],
-        "excludedProperties": ["Noble", "Exclusive"],
-        "cost": {
-          "attention": 2
-        },
-        "reward": {
-          "coins": 8
-        },
-        "timeRequired": 30,
-        "availability": ["Morning", "Afternoon", "Evening"],
-        "actionType": "work"
-      },
-      {
-        "id": "work_scribe_letters",
-        "name": "Work: Scribe Letters",
-        "description": "Use your literacy to earn coins writing letters",
-        "optionalProperties": ["Public", "Commercial", "Market"],
-        "excludedProperties": ["Private", "Quiet"],
-        "cost": {
-          "attention": 3
-        },
-        "reward": {
-          "coins": 12
-        },
-        "timeRequired": 45,
-        "availability": ["Morning", "Afternoon"],
-        "actionType": "work"
-      },
-      {
-        "id": "rest_by_fire",
-        "name": "Rest by Fire",
-        "description": "Pay to rest and restore stamina",
-        "optionalProperties": ["Warm", "Tavern", "Rest", "Restful"],
-        "excludedProperties": ["Exposed", "Transit"],
-        "cost": {
-          "coins": 5
-        },
-        "reward": {
-          "stamina": 10,
-          "health": 2
-        },
-        "timeRequired": 60,
-        "availability": ["Morning", "Afternoon", "Evening", "Night"],
-        "actionType": "rest"
-      },
-      {
-        "id": "order_food",
-        "name": "Order Food",
-        "description": "Buy a meal to reduce hunger",
-        "optionalProperties": ["Tavern", "Commercial", "Service"],
-        "excludedProperties": ["Checkpoint", "Official"],
-        "cost": {
-          "coins": 3
-        },
-        "reward": {
-          "hunger": -20
-        },
-        "timeRequired": 30,
-        "availability": ["Morning", "Afternoon", "Evening"],
-        "actionType": "service"
-      },
-      {
-        "id": "noble_errands",
-        "name": "Work: Noble Errands",
-        "description": "Run errands for nobles for high pay",
-        "requiredProperties": ["Noble"],
-        "optionalProperties": ["Wealthy", "Exclusive", "Prestigious"],
-        "cost": {
-          "attention": 2
-        },
-        "reward": {
-          "coins": 15
-        },
-        "timeRequired": 45,
-        "availability": ["Afternoon", "Evening"],
-        "actionType": "work"
-      }
-    ],
-    "observations": [
-      {
-        "id": "guard_routes",
-        "name": "Guard Patrol Routes",
-        "description": "You notice the guards follow predictable patterns",
-        "properties": ["Observable"],
-        "uniqueEffect": "SetPressured",
-        "expirationHours": 24,
-        "tokenType": "Shadow",
-        "focus": 1,
-        "difficulty": "VeryEasy",
-        "successEffect": {
-          "type": "SetAtmosphere",
-          "value": "Pressured"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I've been watching the guards. They change shifts at dawn and dusk.",
-        "locationId": "market_square",
-        "timeOfDay": "morning"
-      },
-      {
-        "id": "merchant_gossip",
-        "name": "Merchant Gossip",
-        "description": "Overhear traders discussing prices",
-        "properties": ["Observable"],
-        "uniqueEffect": "SetInformed",
-        "expirationHours": 12,
-        "tokenType": "Commerce",
-        "focus": 1,
-        "difficulty": "VeryEasy",
-        "successEffect": {
-          "type": "SetAtmosphere",
-          "value": "Informed"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "The merchants are saying silk prices will rise next week.",
-        "locationId": "market_square",
-        "timeOfDay": "morning"
-      },
-      {
-        "id": "crowded_market",
-        "name": "Busy Crowds",
-        "description": "The afternoon rush provides cover",
-        "properties": ["Observable"],
-        "uniqueEffect": "FreePatience",
-        "expirationHours": 4,
-        "tokenType": "Shadow",
-        "focus": 1,
-        "difficulty": "VeryEasy",
-        "successEffect": {
-          "type": "FreeNextAction",
-          "value": "0"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "The market is so crowded now, no one would notice us talking.",
-        "locationId": "market_square",
-        "timeOfDay": "afternoon"
-      },
-      {
-        "id": "shared_hardship",
-        "name": "Shared Hardship",
-        "description": "Elena's struggle resonates with you",
-        "properties": ["Observable"],
-        "uniqueEffect": "SetInformed",
-        "expirationHours": 48,
-        "tokenType": "Trust",
-        "focus": 1,
-        "difficulty": "VeryEasy",
-        "successEffect": {
-          "type": "SetAtmosphere",
-          "value": "Informed"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I understand Elena's situation better now. We have more in common than I thought.",
-        "locationId": "copper_kettle_tavern",
-        "contextType": "withElena"
-      },
-      {
-        "id": "merchant_route_knowledge",
-        "name": "Merchant Route Knowledge",
-        "description": "You've learned about the merchant's back route to the Noble District",
-        "properties": ["Observable"],
-        "uniqueEffect": "UnlockRoute",
-        "expirationHours": 999999,
-        "tokenType": "Shadow",
-        "focus": 1,
-        "difficulty": "VeryEasy",
-        "successEffect": {
-          "type": "UnlockRoute",
-          "value": "merchant_route_to_noble"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I know a way through the merchant alleys that avoids the guards.",
-        "locationId": "market_square",
-        "spotId": "merchant_row",
-        "observationCost": 1
-      },
-      {
-        "id": "elena_desperation",
-        "name": "Elena's Desperation",
-        "description": "You understand the urgency of Elena's situation",
-        "properties": ["Observable"],
-        "uniqueEffect": "SetInformed",
-        "expirationHours": 48,
-        "tokenType": "Trust",
-        "focus": 1,
-        "difficulty": "VeryEasy",
-        "successEffect": {
-          "type": "SetAtmosphere",
-          "value": "Informed"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I understand Elena's desperation. Time is running out for her.",
-        "locationId": "copper_kettle_tavern",
-        "spotId": "corner_table",
-        "contextType": "withElena",
-        "observationCost": 1
-      }
-    ]
+    "locationActions": [],
+    "observations": []
   },
   "startingConditions": {
     "playerConfig": {
-      "coins": 2,
-      "staminaPoints": 7,
+      "coins": 10,
+      "staminaPoints": 10,
       "maxStamina": 10,
-      "health": 10,
-      "maxHealth": 10,
-      "food": 10,
-      "maxFood": 10,
-      "currentAttention": 10,
+      "health": 75,
+      "maxHealth": 100,
+      "hunger": 60,
+      "maxHunger": 100,
+      "currentAttention": 8,
       "maxAttention": 10
     },
     "startingSpotId": "corner_table",
     "startingObligations": [],
-    "startingTokens": {}
+    "startingTokens": {
+      "Trust": 1
+    }
   }
 }
