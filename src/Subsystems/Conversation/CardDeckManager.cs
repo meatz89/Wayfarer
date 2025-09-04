@@ -360,14 +360,19 @@ public class CardDeckManager
     /// </summary>
     private bool ExhaustOpeningCards(ConversationSession session)
     {
-        // Get all opening cards (including requests with both Impulse + Opening)
+        // Get all opening cards
         List<CardInstance> openingCards = session.Hand.Cards
             .Where(c => IsOpeningCard(c))
             .ToList();
         
         foreach (var card in openingCards)
         {
+            // Skip unplayable request/promise cards - they shouldn't be exhausted until activated
             var conversationCard = ConvertToNewCard(card);
+            if (conversationCard.IsRequest && card.Properties.Contains(CardProperty.Unplayable))
+            {
+                continue; // Don't exhaust unactivated promise cards
+            }
             
             // Execute exhaust effect if it exists
             if (conversationCard.ExhaustEffect?.Type != CardEffectType.None)
