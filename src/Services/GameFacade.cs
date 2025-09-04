@@ -90,7 +90,7 @@ public class GameFacade
 
     public LocationSpot GetLocationSpot(string spotId)
     {
-        return _gameWorld.GetLocationSpot(spotId);
+        return _gameWorld.GetSpot(spotId);
     }
 
     public LocationSpot GetCurrentLocationSpot()
