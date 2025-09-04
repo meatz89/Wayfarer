@@ -90,6 +90,9 @@ public class GameWorld
     // Skeleton tracking for lazy content resolution
     public Dictionary<string, string> SkeletonRegistry { get; set; } = new Dictionary<string, string>();
 
+    // Track if game has been started to prevent duplicate initialization
+    public bool IsGameStarted { get; set; } = false;
+
     /// <summary>
     /// Get a report of all skeletons that need to be populated
     /// </summary>

@@ -388,6 +388,13 @@ public class GameFacade
 
     public async Task StartGameAsync()
     {
+        // Check if game is already started to prevent duplicate initialization
+        if (_gameWorld.IsGameStarted)
+        {
+            Console.WriteLine($"[GameFacade.StartGameAsync] Game already started, skipping initialization");
+            return;
+        }
+
         // Initialize player at starting location
         var player = _gameWorld.GetPlayer();
         var startingLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "market_square");
@@ -407,6 +414,9 @@ public class GameFacade
         player.Hunger = 5;   // Starting food for testing
         
         Console.WriteLine($"[GameFacade.StartGameAsync] Player resources initialized - Coins: {player.Coins}, Health: {player.Health}, Food: {player.Hunger}");
+        
+        // Mark game as started
+        _gameWorld.IsGameStarted = true;
         
         _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success);
     }
