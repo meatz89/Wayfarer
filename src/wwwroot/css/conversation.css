@@ -136,11 +136,9 @@
     color: #8b4726;
     font-style: italic;
     margin-left: 8px;
-    animation: pulse 2s infinite;
 }
 
 .flow-transition-hint.danger {
-    color: #ff0000;
     font-focus: bold;
     animation: danger-flash 0.5s infinite;
 }

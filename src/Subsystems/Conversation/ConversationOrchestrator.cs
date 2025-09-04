@@ -100,6 +100,9 @@ public class ConversationOrchestrator
         session.CurrentFocus = _focusManager.CurrentSpentFocus;
         session.MaxFocus = _focusManager.CurrentCapacity;
 
+        // Update card playability based on initial focus
+        _deckManager.UpdateCardPlayabilityBasedOnFocus(session);
+
         return session;
     }
 
@@ -125,6 +128,9 @@ public class ConversationOrchestrator
         // Update session focus state
         session.CurrentFocus = _focusManager.CurrentSpentFocus;
         session.MaxFocus = _focusManager.CurrentCapacity;
+
+        // Update card playability based on current focus
+        _deckManager.UpdateCardPlayabilityBasedOnFocus(session);
 
         // Generate NPC response
         string npcResponse = _dialogueGenerator.GenerateListenResponse(session.NPC, session.CurrentState, drawnCards);
@@ -186,6 +192,9 @@ public class ConversationOrchestrator
         session.CurrentAtmosphere = _atmosphereManager.CurrentAtmosphere;
         session.CurrentFocus = _focusManager.CurrentSpentFocus;
         session.MaxFocus = _focusManager.CurrentCapacity;
+
+        // Update card playability based on current focus
+        _deckManager.UpdateCardPlayabilityBasedOnFocus(session);
 
         // Generate NPC response
         string npcResponse = _dialogueGenerator.GenerateSpeakResponse(

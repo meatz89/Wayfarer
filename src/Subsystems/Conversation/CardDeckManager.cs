@@ -178,6 +178,12 @@ public class CardDeckManager
                 session.RapportManager.ApplyRapportChange(effectResult.RapportChange, session.CurrentAtmosphere);
             }
             
+            // Add cards from failure effect (e.g. burden cards)
+            if (effectResult.CardsToAdd.Any())
+            {
+                session.Hand.AddCards(effectResult.CardsToAdd);
+            }
+            
             // Clear atmosphere on failure
             _atmosphereManager.ClearAtmosphereOnFailure();
         }
@@ -273,6 +279,47 @@ public class CardDeckManager
                 
                 // Mark that the request card is now playable
                 session.RequestCardDrawn = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Update all cards' playability based on current focus availability
+    /// Cards that cost more focus than available are marked Unplayable
+    /// </summary>
+    public void UpdateCardPlayabilityBasedOnFocus(ConversationSession session)
+    {
+        int availableFocus = _focusManager.AvailableFocus;
+        
+        // Check if next speak is free (from observation effect)
+        bool isNextSpeakFree = _atmosphereManager.IsNextSpeakFree();
+
+        foreach (var card in session.Hand.Cards)
+        {
+            // Calculate effective focus cost for this card
+            int effectiveFocusCost = isNextSpeakFree ? 0 : card.Focus;
+            
+            // Check if we can afford this card
+            bool canAfford = _focusManager.CanAffordCard(effectiveFocusCost);
+            
+            // Update playability
+            if (!canAfford && !card.Properties.Contains(CardProperty.Unplayable))
+            {
+                // Mark as unplayable if we can't afford it
+                card.Properties.Add(CardProperty.Unplayable);
+            }
+            else if (canAfford && card.Properties.Contains(CardProperty.Unplayable))
+            {
+                // Only remove Unplayable if this isn't a request card waiting for focus threshold
+                // Request cards should only become playable through UpdateRequestCardPlayability
+                ConversationCard conversationCard = ConvertToNewCard(card);
+                bool isRequestCard = conversationCard.IsRequest;
+                
+                if (!isRequestCard)
+                {
+                    // Regular card that was unplayable due to focus cost can now be played
+                    card.Properties.Remove(CardProperty.Unplayable);
+                }
             }
         }
     }
