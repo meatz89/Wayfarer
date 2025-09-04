@@ -13,7 +13,7 @@ public class CardDeckManager
     private readonly CardEffectProcessor _effectProcessor;
     private readonly FocusManager _focusManager;
     private readonly AtmosphereManager _atmosphereManager;
-    private readonly List<CardInstance> _exhaustedPile = new();
+    // Removed exhausted pile - now using SessionCardDeck's discard pile
 
     public CardDeckManager(GameWorld gameWorld, CardEffectProcessor effectProcessor,
         FocusManager focusManager, AtmosphereManager atmosphereManager)
@@ -55,11 +55,17 @@ public class CardDeckManager
             }
         }
 
-        // Get request card but don't add to deck - it goes directly to hand
+        // Get request/goal card and add it to the deck to be shuffled with other cards
         CardInstance requestCard = null;
         if (conversationType == ConversationType.Promise || conversationType == ConversationType.Resolution)
         {
             requestCard = SelectValidRequestCard(npc, conversationType);
+            if (requestCard != null)
+            {
+                // Add goal card to the deck to be shuffled
+                deck.AddGoalCard(requestCard);
+                // Still return it so it can be added to hand initially
+            }
         }
 
         return (deck, requestCard);
@@ -188,9 +194,10 @@ public class CardDeckManager
             _atmosphereManager.ClearAtmosphereOnFailure();
         }
 
-        // Remove the played card from hand (it was played, so it leaves the hand)
+        // Remove the played card from hand and move to discard pile
         session.Hand.RemoveCard(selectedCard);
         session.PlayedCards.Add(selectedCard);
+        session.Deck.DiscardCard(selectedCard);
         
         // Remove impulse cards from hand after SPEAK, executing exhaust effects
         bool conversationContinues = RemoveImpulseCardsFromHand(session);
@@ -347,9 +354,9 @@ public class CardDeckManager
                 }
             }
             
-            // Remove from hand and add to exhausted pile
+            // Remove from hand and add to discard pile
             session.Hand.RemoveCard(card);
-            _exhaustedPile.Add(card);
+            session.Deck.DiscardCard(card);
         }
         
         return true; // Conversation continues
@@ -384,9 +391,9 @@ public class CardDeckManager
                 }
             }
             
-            // Remove from hand and add to exhausted pile
+            // Remove from hand and add to discard pile
             session.Hand.RemoveCard(card);
-            _exhaustedPile.Add(card);
+            session.Deck.DiscardCard(card);
         }
         
         return true; // Conversation continues
@@ -454,11 +461,12 @@ public class CardDeckManager
     }
 
     /// <summary>
-    /// Get all exhausted cards (separate from discard)
+    /// Get all exhausted cards (now in discard pile)
     /// </summary>
     public IReadOnlyList<CardInstance> GetExhaustedCards()
     {
-        return _exhaustedPile.AsReadOnly();
+        // Exhausted cards are now in the discard pile
+        return new List<CardInstance>().AsReadOnly();
     }
 
     /// <summary>

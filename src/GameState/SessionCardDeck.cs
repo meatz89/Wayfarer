@@ -1,9 +1,9 @@
 public class SessionCardDeck
 {
-    private readonly List<CardInstance> allCards = new();
-    private readonly HashSet<string> drawnCardIds = new();
-    private readonly HashSet<string> discardedCardIds = new();
+    private readonly List<CardInstance> drawPile = new();
+    private readonly List<CardInstance> discardPile = new();
     private readonly string npcId;
+    private readonly Random random = new Random();
 
     public SessionCardDeck(string npcId)
     {
@@ -26,28 +26,49 @@ public class SessionCardDeck
                 cardInstance.Context = context;
             }
             
-            deck.AddCard(cardInstance);
+            // Add to draw pile initially
+            deck.drawPile.Add(cardInstance);
         }
+        
+        // Shuffle the initial draw pile
+        deck.ShuffleDrawPile();
+        
         return deck;
     }
 
     public void AddCard(CardInstance card)
     {
-        allCards.Add(card);
+        // Add new cards directly to draw pile
+        drawPile.Add(card);
+    }
+
+    public void AddGoalCard(CardInstance goalCard)
+    {
+        // Add goal card to draw pile at conversation start
+        if (goalCard != null)
+        {
+            drawPile.Add(goalCard);
+            ShuffleDrawPile(); // Shuffle after adding goal card
+        }
     }
 
     public CardInstance DrawCard()
     {
-        List<CardInstance> available = new List<CardInstance>();
-        foreach (CardInstance c in allCards)
+        // If draw pile is empty, reshuffle discard pile into draw pile
+        if (drawPile.Count == 0 && discardPile.Count > 0)
         {
-            if (!drawnCardIds.Contains(c.InstanceId) && !discardedCardIds.Contains(c.InstanceId))
-                available.Add(c);
+            ReshuffleDiscardPile();
         }
-        if (!available.Any()) return null;
 
-        CardInstance card = available[new Random().Next(available.Count)];
-        drawnCardIds.Add(card.InstanceId);
+        // If still no cards available, return null
+        if (drawPile.Count == 0)
+        {
+            return null;
+        }
+
+        // Draw from top of draw pile
+        CardInstance card = drawPile[0];
+        drawPile.RemoveAt(0);
         return card;
     }
 
@@ -56,72 +77,124 @@ public class SessionCardDeck
         List<CardInstance> drawn = new List<CardInstance>();
         for (int i = 0; i < count; i++)
         {
-            CardInstance card = DrawCard();
-            if (card != null) drawn.Add(card);
+            // Check if we need to reshuffle before each draw
+            if (drawPile.Count == 0 && discardPile.Count > 0)
+            {
+                ReshuffleDiscardPile();
+            }
+
+            if (drawPile.Count > 0)
+            {
+                CardInstance card = drawPile[0];
+                drawPile.RemoveAt(0);
+                drawn.Add(card);
+            }
         }
         return drawn;
     }
 
+    public void DiscardCard(CardInstance card)
+    {
+        // Add to discard pile when card is played or exhausted
+        if (card != null && !discardPile.Contains(card))
+        {
+            discardPile.Add(card);
+        }
+    }
+
     public void DiscardCard(string instanceId)
     {
-        discardedCardIds.Add(instanceId);
+        // Find card in hand or other locations and move to discard
+        // This is for compatibility with existing code
+        // The card should already be removed from hand by the caller
     }
 
     public void Discard(CardInstance card)
     {
-        discardedCardIds.Add(card.InstanceId);
+        DiscardCard(card);
+    }
+
+    private void ReshuffleDiscardPile()
+    {
+        Console.WriteLine($"[SessionCardDeck] Reshuffling {discardPile.Count} cards from discard pile into draw pile");
+        
+        // Move all cards from discard to draw pile
+        drawPile.AddRange(discardPile);
+        discardPile.Clear();
+        
+        // Shuffle the draw pile
+        ShuffleDrawPile();
+    }
+
+    private void ShuffleDrawPile()
+    {
+        // Fisher-Yates shuffle
+        int n = drawPile.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = random.Next(n + 1);
+            CardInstance temp = drawPile[k];
+            drawPile[k] = drawPile[n];
+            drawPile[n] = temp;
+        }
     }
 
     public void ResetForNewConversation()
     {
-        drawnCardIds.Clear();
-        // Keep discarded cards discarded (single-use cards)
+        // Move all cards back to draw pile for a fresh conversation
+        drawPile.AddRange(discardPile);
+        discardPile.Clear();
+        ShuffleDrawPile();
     }
 
     public List<CardInstance> GetAllCards()
     {
-        return allCards.ToList();
+        // Return all cards from both piles
+        var allCards = new List<CardInstance>();
+        allCards.AddRange(drawPile);
+        allCards.AddRange(discardPile);
+        return allCards;
     }
 
     public void Shuffle()
     {
-        // Shuffle is handled by randomized drawing
+        ShuffleDrawPile();
     }
 
     public List<CardInstance> DrawFilteredByProperties(List<CardProperty> requiredProperties, int count)
     {
         List<CardInstance> available = new List<CardInstance>();
-        foreach (CardInstance c in allCards)
+        List<CardInstance> drawn = new List<CardInstance>();
+        
+        // Find all cards in draw pile with required properties
+        for (int i = drawPile.Count - 1; i >= 0; i--)
         {
-            if (!drawnCardIds.Contains(c.InstanceId) &&
-                !discardedCardIds.Contains(c.InstanceId))
+            CardInstance card = drawPile[i];
+            bool hasAllProperties = true;
+            foreach (CardProperty prop in requiredProperties)
             {
-                // Check if card has all required properties
-                bool hasAllProperties = true;
-                foreach (CardProperty prop in requiredProperties)
+                if (!card.Properties.Contains(prop))
                 {
-                    if (!c.Properties.Contains(prop))
-                    {
-                        hasAllProperties = false;
-                        break;
-                    }
+                    hasAllProperties = false;
+                    break;
                 }
-                if (hasAllProperties)
-                {
-                    available.Add(c);
-                }
+            }
+            if (hasAllProperties)
+            {
+                available.Add(card);
             }
         }
 
-        List<CardInstance> drawn = new List<CardInstance>();
-        Random random = new Random();
+        // Draw the requested number of cards
         for (int i = 0; i < Math.Min(count, available.Count); i++)
         {
             CardInstance card = available[random.Next(available.Count)];
-            drawnCardIds.Add(card.InstanceId);
+            drawPile.Remove(card);
             drawn.Add(card);
             available.Remove(card); // Prevent drawing same card twice
         }
+        
         return drawn;
     }
     
@@ -147,29 +220,21 @@ public class SessionCardDeck
         return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Exchange }, count);
     }
 
-    public int RemainingCards
-    {
-        get
-        {
-            int count = 0;
-            foreach (CardInstance c in allCards)
-            {
-                if (!drawnCardIds.Contains(c.InstanceId) && !discardedCardIds.Contains(c.InstanceId))
-                    count++;
-            }
-            return count;
-        }
-    }
+    public int RemainingCards => drawPile.Count;
+    
+    public int DiscardPileCount => discardPile.Count;
+    
+    public int TotalCards => drawPile.Count + discardPile.Count;
 
     public bool HasCardsAvailable()
     {
-        return RemainingCards > 0;
+        // Cards are available if draw pile has cards OR discard pile can be reshuffled
+        return drawPile.Count > 0 || discardPile.Count > 0;
     }
 
     public void Clear()
     {
-        allCards.Clear();
-        drawnCardIds.Clear();
-        discardedCardIds.Clear();
+        drawPile.Clear();
+        discardPile.Clear();
     }
 }

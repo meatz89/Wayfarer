@@ -114,7 +114,7 @@ namespace Wayfarer.Pages.Components
         protected HashSet<string> NewCardIds { get; set; } = new();
         protected HashSet<string> ExhaustingCardIds { get; set; } = new();
 
-        private int GetBaseSuccessPercentage(Difficulty difficulty)
+        protected int GetBaseSuccessPercentage(Difficulty difficulty)
         {
             return difficulty switch
             {

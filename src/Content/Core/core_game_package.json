@@ -231,7 +231,7 @@
         "id": "accept_elenas_letter",
         "type": "Request",
         "personalityTypes": ["ALL"],
-        "focus": 5,
+        "focus": 7,
         "properties": ["Unplayable"],
         "connectionType": "Trust",
         "description": "Accept Elena's Letter",
