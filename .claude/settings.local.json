@@ -335,7 +335,11 @@
       "Bash(pip install:*)",
       "Bash(npx playwright install:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5780\" dotnet run --no-build)",
-      "Bash(npx playwright:*)"
+      "Bash(npx playwright:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5888\" dotnet run --no-build)",
+      "Bash(pip3 install:*)",
+      "Bash(apt list:*)",
+      "Bash(google-chrome:*)"
     ],
     "deny": []
   }

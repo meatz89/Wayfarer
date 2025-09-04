@@ -33,7 +33,6 @@ public class LocationActionViewModel
     public string ActionType { get; set; }
     public bool IsAvailable { get; set; } = true;
     public string LockReason { get; set; }
-    public TierLevel? RequiredTier { get; set; }
 }
 
 public class NPCFocusViewModel
@@ -94,7 +93,6 @@ public class RouteOptionViewModel
     public string Detail { get; set; }
     public bool IsLocked { get; set; }
     public string LockReason { get; set; }
-    public TierLevel RequiredTier { get; set; }
     public bool CanUnlockWithPermit { get; set; }
 
     // Modal-specific properties

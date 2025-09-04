@@ -246,7 +246,6 @@ public class ActionGenerator
             ActionType = actionType,
             IsAvailable = isAvailable,
             LockReason = lockReason,
-            RequiredTier = requiredTier
         };
     }
 
