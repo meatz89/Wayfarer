@@ -22,6 +22,27 @@ namespace Wayfarer.Pages
         public DateTime EnteredAt { get; set; }
     }
 
+    /// <summary>
+    /// Main game screen component that manages the unified UI with fixed header/footer and dynamic content area.
+    /// 
+    /// CRITICAL: BLAZOR SERVERPRERENDERED CONSEQUENCES
+    /// ================================================
+    /// This component renders TWICE due to ServerPrerendered mode:
+    /// 1. During server-side prerendering (static HTML generation)
+    /// 2. After establishing interactive SignalR connection
+    /// 
+    /// ARCHITECTURAL PRINCIPLES:
+    /// - OnInitializedAsync() runs TWICE - all initialization MUST be idempotent
+    /// - RefreshResourceDisplay/RefreshTimeDisplay are read-only and safe to run twice
+    /// - Services are Singletons and persist state across both renders
+    /// - User actions (button clicks, navigation) only occur after interactive phase
+    /// 
+    /// IMPLEMENTATION REQUIREMENTS:
+    /// - Resource/time refresh operations are read-only (safe for double execution)
+    /// - Navigation state managed through GameFacade (singleton, persists across renders)
+    /// - ConversationContext created atomically before navigation (after interactive)
+    /// - All state mutations go through GameFacade which has idempotence protection
+    /// </summary>
     public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         [Inject] protected GameFacade GameFacade { get; set; }
@@ -132,6 +153,8 @@ namespace Wayfarer.Pages
         protected async Task RefreshTimeDisplay()
         {
             int hour = GameFacade.GetCurrentHour();
+            int minutes = GameFacade.GetCurrentMinutes();
+            
             string period = hour switch
             {
                 >= 6 and < 10 => "Morning",
@@ -142,7 +165,10 @@ namespace Wayfarer.Pages
                 _ => "Deep Night"
             };
 
-            CurrentTime = $"{hour % 12:00}:00 {(hour >= 12 ? "PM" : "AM")}";
+            // Format time correctly with actual minutes
+            int displayHour = hour % 12;
+            if (displayHour == 0) displayHour = 12;
+            CurrentTime = $"{displayHour:D2}:{minutes:D2} {(hour >= 12 ? "PM" : "AM")}";
             TimePeriod = period;
 
             // Get most urgent deadline from queue

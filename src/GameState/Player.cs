@@ -186,7 +186,7 @@
         // Set max values that match initial values
         MaxAttention = 10; // Maximum attention
         MaxHealth = 10; // Set reasonable default for MaxHealth
-        MaxHunger = 10; // Maximum hunger before starvation
+        MaxHunger = 100; // Maximum hunger before starvation
 
         // Skill cards removed - using letter queue system
 

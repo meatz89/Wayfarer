@@ -320,7 +320,11 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6303\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6303\" dotnet run)",
       "Bash(/tmp/fix_resource_names.sh:*)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6500\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6501\" dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:7500\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:7501\" dotnet run --no-build)"
     ],
     "deny": []
   }

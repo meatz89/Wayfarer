@@ -1,0 +1,410 @@
+/* Travel Screen Styles - Based on UI Mockup */
+
+.travel-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #faf4ea;
+}
+
+/* Travel Header */
+.travel-header {
+    background: linear-gradient(to bottom, #2c241a, #3d3429);
+    color: #e8dcc4;
+    padding: 15px 20px;
+    border-bottom: 2px solid #5c4a3a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.travel-header h2 {
+    font-size: 20px;
+    letter-spacing: 1px;
+    margin: 0;
+    color: #e8dcc4;
+}
+
+.current-location {
+    font-size: 12px;
+    color: #d4a76a;
+    font-style: italic;
+}
+
+.current-location span {
+    color: #a68b6f;
+}
+
+.current-location strong {
+    color: #d4a76a;
+}
+
+/* Resources Preview Bar */
+.resources-preview {
+    background: #e8dcc4;
+    padding: 10px 20px;
+    border-bottom: 1px solid #c4a684;
+    display: flex;
+    gap: 30px;
+    font-size: 12px;
+}
+
+.resource-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.resource-label {
+    color: #7a6250;
+}
+
+.resource-value {
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+/* Routes Section */
+.routes-section {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.routes-section h3 {
+    font-size: 16px;
+    color: #5c4a3a;
+    margin-bottom: 10px;
+}
+
+/* Destination Groups */
+.destination-group {
+    margin-bottom: 20px;
+    background: #f9f3e9;
+    border: 1px solid #c4a684;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.destination-header {
+    background: #e8dcc4;
+    padding: 10px 15px;
+    border-bottom: 1px solid #c4a684;
+}
+
+.destination-name {
+    font-size: 16px;
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.destination-info {
+    font-size: 11px;
+    color: #7a6250;
+    margin-top: 2px;
+}
+
+/* Route List */
+.route-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Route Cards */
+.route-card {
+    background: white;
+    border: 1px solid #d4c5a0;
+    border-radius: 3px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.route-card:hover:not(.disabled) {
+    background: #fefaf0;
+    border-color: #a68b6f;
+    transform: translateX(3px);
+}
+
+.route-card.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f0ebe4;
+}
+
+.route-card.selected {
+    background: #fefaf0;
+    border-color: #8b7355;
+    border-width: 2px;
+}
+
+/* Route Type Indicators */
+.route-card.dangerous {
+    border-left: 3px solid #8b4726;
+}
+
+.route-card.guarded {
+    border-left: 3px solid #5a7a8a;
+}
+
+.route-card.merchant {
+    border-left: 3px solid #7a8b5a;
+}
+
+.route-card.common {
+    border-left: 3px solid #c4a684;
+}
+
+/* Route Header */
+.route-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.route-header h4 {
+    font-size: 14px;
+    color: #5c4a3a;
+    font-weight: bold;
+    margin: 0;
+}
+
+.route-distance {
+    font-size: 11px;
+    color: #7a6250;
+    font-style: italic;
+}
+
+/* Route Details */
+.route-details {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 8px;
+    font-size: 11px;
+}
+
+.transport-type {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #f4e8d0;
+    padding: 2px 6px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.transport-icon {
+    font-size: 14px;
+}
+
+.route-time,
+.route-cost,
+.route-hunger {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.time-label,
+.cost-label,
+.hunger-label {
+    color: #7a6250;
+}
+
+.time-value {
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.cost-value {
+    color: #8b4726;
+    font-weight: bold;
+}
+
+.hunger-value {
+    color: #8b4726;
+    font-weight: bold;
+}
+
+/* Route Tags */
+.route-tags {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.route-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tag-public {
+    background: #f4e8d0;
+    color: #7a6250;
+    border: 1px solid #d4c5a0;
+}
+
+.tag-discrete {
+    background: #3d3429;
+    color: #e8dcc4;
+}
+
+.tag-exposed {
+    background: #8b7355;
+    color: #faf4ea;
+}
+
+.tag-wilderness {
+    background: #7a8b5a;
+    color: #faf4ea;
+}
+
+.tag-commercial {
+    background: #d4a76a;
+    color: #2c241a;
+}
+
+.tag-restricted {
+    background: #8b4726;
+    color: #faf4ea;
+}
+
+/* Route Requirements */
+.route-requirements {
+    background: #faf0e6;
+    border: 1px solid #d4a76a;
+    border-radius: 2px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.route-requirements.unmet {
+    background: #f5e8e8;
+    border-color: #8b4726;
+}
+
+.req-label {
+    color: #8b4726;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.requirement {
+    color: #5c4a3a;
+}
+
+/* Route Action */
+.route-action {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.travel-button {
+    background: #7a8b5a;
+    color: #faf4ea;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s;
+}
+
+.travel-button:hover {
+    background: #687749;
+}
+
+.cannot-travel {
+    color: #8b4726;
+    font-size: 11px;
+    font-style: italic;
+}
+
+/* No Routes Message */
+.no-routes {
+    text-align: center;
+    padding: 40px 20px;
+    color: #7a6250;
+}
+
+.no-routes p {
+    margin: 10px 0;
+}
+
+/* Travel Footer */
+.travel-footer {
+    background: #e8dcc4;
+    padding: 10px 20px;
+    border-top: 1px solid #c4a684;
+    text-align: center;
+}
+
+.footer-info {
+    font-size: 11px;
+    color: #7a6250;
+    font-style: italic;
+    margin-bottom: 10px;
+}
+
+.back-button {
+    background: #8b7355;
+    color: #faf4ea;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s;
+}
+
+.back-button:hover {
+    background: #7a6250;
+}
+
+/* Scrollbar Styling */
+.routes-section::-webkit-scrollbar {
+    width: 8px;
+}
+
+.routes-section::-webkit-scrollbar-track {
+    background: #e8dcc4;
+}
+
+.routes-section::-webkit-scrollbar-thumb {
+    background: #a68b6f;
+    border-radius: 4px;
+}
+
+.routes-section::-webkit-scrollbar-thumb:hover {
+    background: #8b7355;
+}
+
+/* Cost-Free Routes */
+.cost-free {
+    color: #5a7a3a;
+    font-style: italic;
+    font-size: 12px;
+}

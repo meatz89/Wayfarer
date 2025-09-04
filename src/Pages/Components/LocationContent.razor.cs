@@ -6,6 +6,27 @@ using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
+    /// <summary>
+    /// Location screen component that displays the current location, available spots, NPCs, and actions.
+    /// 
+    /// CRITICAL: BLAZOR SERVERPRERENDERED CONSEQUENCES
+    /// ================================================
+    /// This component renders TWICE due to ServerPrerendered mode:
+    /// 1. During server-side prerendering (static HTML generation)
+    /// 2. After establishing interactive SignalR connection
+    /// 
+    /// ARCHITECTURAL PRINCIPLES:
+    /// - OnParametersSetAsync() runs TWICE - RefreshLocationData is read-only and safe
+    /// - All data fetching operations are read-only (safe for double execution)
+    /// - User interactions (clicks) only happen after interactive connection
+    /// - State is maintained in GameWorld singleton (persists across renders)
+    /// 
+    /// IMPLEMENTATION REQUIREMENTS:
+    /// - RefreshLocationData() fetches display data only (no mutations)
+    /// - All actions go through GameScreen parent via CascadingValue pattern
+    /// - Location state read from GameWorld.GetPlayer().CurrentLocationSpot
+    /// - NPCs, actions, observations fetched fresh each render (read-only)
+    /// </summary>
     public class LocationContentBase : ComponentBase
     {
         [Inject] protected GameFacade GameFacade { get; set; }

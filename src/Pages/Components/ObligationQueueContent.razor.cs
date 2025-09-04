@@ -6,6 +6,27 @@ using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
+    /// <summary>
+    /// Obligation queue screen component that displays and manages the player's letter delivery obligations.
+    /// 
+    /// CRITICAL: BLAZOR SERVERPRERENDERED CONSEQUENCES
+    /// ================================================
+    /// This component renders TWICE due to ServerPrerendered mode:
+    /// 1. During server-side prerendering (static HTML generation)
+    /// 2. After establishing interactive SignalR connection
+    /// 
+    /// ARCHITECTURAL PRINCIPLES:
+    /// - OnParametersSetAsync() runs TWICE - RefreshObligations is read-only and safe
+    /// - Queue state maintained in ObligationQueueManager singleton (persists)
+    /// - Deliver/reorganize actions only happen after interactive connection
+    /// - All mutations go through GameFacade.ProcessIntent (idempotent)
+    /// 
+    /// IMPLEMENTATION REQUIREMENTS:
+    /// - RefreshObligations() fetches display data only (no mutations)
+    /// - Queue operations validated by manager before execution
+    /// - Delivery attempts create PlayerIntent objects (processed by facade)
+    /// - Position 1 enforcement handled by backend (not UI)
+    /// </summary>
     public class ObligationQueueContentBase : ComponentBase
     {
         [Parameter] public EventCallback<string> OnNavigate { get; set; }

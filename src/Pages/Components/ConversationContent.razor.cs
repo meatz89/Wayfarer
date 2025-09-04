@@ -68,6 +68,27 @@ namespace Wayfarer.Pages.Components
         public DateTime StateChangedAt { get; set; }
     }
 
+    /// <summary>
+    /// Conversation screen component that handles NPC interactions through card-based dialogue.
+    /// 
+    /// CRITICAL: BLAZOR SERVERPRERENDERED CONSEQUENCES
+    /// ================================================
+    /// This component renders TWICE due to ServerPrerendered mode:
+    /// 1. During server-side prerendering (static HTML generation)
+    /// 2. After establishing interactive SignalR connection
+    /// 
+    /// ARCHITECTURAL PRINCIPLES:
+    /// - OnParametersSetAsync() runs TWICE - InitializeFromContext checks Context change
+    /// - ConversationContext passed as Parameter from parent (created after interactive)
+    /// - Session state maintained in component (recreated each render is OK)
+    /// - Card selections and actions only happen after interactive connection
+    /// 
+    /// IMPLEMENTATION REQUIREMENTS:
+    /// - InitializeFromContext() only runs when Context.NpcId changes (safe guard)
+    /// - Conversation state is ephemeral (OK to recreate on each render)
+    /// - All game state mutations go through GameFacade (has idempotence)
+    /// - Attention managed by TimeBlockAttentionManager (singleton, persists)
+    /// </summary>
     public class ConversationContentBase : ComponentBase
     {
         [Parameter] public ConversationContext Context { get; set; }

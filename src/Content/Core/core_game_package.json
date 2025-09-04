@@ -1658,7 +1658,7 @@
     "routes": [
       {
         "id": "market_to_tavern",
-        "name": "To Copper Kettle",
+        "name": "via Market Streets",
         "originLocationSpot": "central_fountain",
         "destinationLocationSpot": "main_hall",
         "method": "Walking",
@@ -1669,12 +1669,12 @@
         "isDiscovered": true,
         "terrainCategories": [],
         "maxItemCapacity": 5,
-        "description": "A short walk to the tavern.",
+        "description": "A public walk through busy market streets to the tavern.",
         "tierRequired": "T1"
       },
       {
         "id": "tavern_to_market",
-        "name": "Back to Market",
+        "name": "via Main Streets",
         "originLocationSpot": "main_hall",
         "destinationLocationSpot": "central_fountain",
         "method": "Walking",
@@ -1685,12 +1685,12 @@
         "isDiscovered": true,
         "terrainCategories": [],
         "maxItemCapacity": 5,
-        "description": "Return to the market square.",
+        "description": "Return to the market square through public streets.",
         "tierRequired": "T1"
       },
       {
         "id": "market_to_noble_main",
-        "name": "To Noble District (Main Gate)",
+        "name": "via Guard Checkpoint",
         "originLocationSpot": "central_fountain",
         "destinationLocationSpot": "aldwin_manor",
         "method": "Walking",
@@ -1699,32 +1699,32 @@
         "travelTimeMinutes": 25,
         "departureTime": null,
         "isDiscovered": true,
-        "terrainCategories": ["Urban", "Guarded"],
+        "terrainCategories": ["Requires_Permission"],
         "maxItemCapacity": 5,
-        "description": "The main gate to the Noble District - requires permit.",
-        "tierRequired": "T1",
+        "description": "The guarded main gate to the Noble District - requires permit or bribe.",
+        "tierRequired": "T2",
         "requiresItem": "noble_district_permit"
       },
       {
         "id": "market_to_noble_merchant",
-        "name": "To Noble District (Merchant Route)",
+        "name": "via Merchant's Path",
         "originLocationSpot": "merchant_row",
         "destinationLocationSpot": "blackwood_estate",
         "method": "Walking",
         "baseCoinCost": 0,
-        "baseStaminaCost": 3,
+        "baseStaminaCost": 5,
         "travelTimeMinutes": 35,
         "departureTime": null,
         "isDiscovered": false,
-        "terrainCategories": ["Urban", "Discrete"],
+        "terrainCategories": ["Dark_Passage", "Wilderness_Terrain"],
         "maxItemCapacity": 5,
-        "description": "A discrete route through merchant alleys.",
+        "description": "A discrete route through unpatrolled merchant alleys and wilderness.",
         "tierRequired": "T1",
         "requiresKnowledge": "merchant_route_knowledge"
       },
       {
         "id": "noble_to_market_main",
-        "name": "To Market Square",
+        "name": "via Public Road",
         "originLocationSpot": "aldwin_manor",
         "destinationLocationSpot": "central_fountain",
         "method": "Walking",
@@ -1740,7 +1740,7 @@
       },
       {
         "id": "noble_to_market_merchant",
-        "name": "To Market Square (Merchant Route)",
+        "name": "via Merchant Alleys",
         "originLocationSpot": "blackwood_estate",
         "destinationLocationSpot": "merchant_row",
         "method": "Walking",
@@ -1754,6 +1754,22 @@
         "description": "Return via merchant alleys.",
         "tierRequired": "T1",
         "requiresKnowledge": "merchant_route_knowledge"
+      },
+      {
+        "id": "market_to_tavern_cart",
+        "name": "via Cart Service",
+        "originLocationSpot": "central_fountain",
+        "destinationLocationSpot": "main_hall",
+        "method": "Cart",
+        "baseCoinCost": 2,
+        "baseStaminaCost": 0,
+        "travelTimeMinutes": 5,
+        "departureTime": null,
+        "isDiscovered": true,
+        "terrainCategories": ["Heavy_Cargo_Route"],
+        "maxItemCapacity": 10,
+        "description": "A quick cart ride to the tavern. No physical effort required.",
+        "tierRequired": "T1"
       }
     ],
     "letterTemplates": [

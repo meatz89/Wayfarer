@@ -6,6 +6,27 @@ using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
+    /// <summary>
+    /// Travel screen component that displays available routes and handles travel between locations.
+    /// 
+    /// CRITICAL: BLAZOR SERVERPRERENDERED CONSEQUENCES
+    /// ================================================
+    /// This component renders TWICE due to ServerPrerendered mode:
+    /// 1. During server-side prerendering (static HTML generation)
+    /// 2. After establishing interactive SignalR connection
+    /// 
+    /// ARCHITECTURAL PRINCIPLES:
+    /// - OnParametersSetAsync() runs TWICE - LoadAvailableRoutes is read-only and safe
+    /// - Route discovery state maintained in GameWorld singleton (persists)
+    /// - Travel actions only happen after interactive connection (user clicks)
+    /// - Cost calculations are display-only (actual costs enforced by backend)
+    /// 
+    /// IMPLEMENTATION REQUIREMENTS:
+    /// - LoadAvailableRoutes() fetches display data only (no mutations)
+    /// - Route availability determined by backend (discovery, permits, etc.)
+    /// - Travel execution creates TravelIntent (processed by GameFacade)
+    /// - Resource costs shown but not deducted in UI (backend validates)
+    /// </summary>
     public class TravelContentBase : ComponentBase
     {
         [Parameter] public string CurrentLocation { get; set; }
@@ -38,14 +59,24 @@ namespace Wayfarer.Pages.Components
             AvailableRoutes = routes.Select(r => new RouteViewModel
             {
                 Id = r.Id,
-                DestinationName = r.Name,
+                Name = r.Name,  // Store the actual route name from JSON
+                DestinationName = GetDestinationLocationName(r.DestinationLocationSpot),
                 District = GetDestinationDistrict(r.DestinationLocationSpot),
                 TransportType = r.Method.ToString(),
                 TravelTime = r.TravelTimeMinutes,
                 Cost = r.BaseCoinCost,
-                Familiarity = r.IsDiscovered ? "Known" : "Unknown",
+                HungerCost = CalculateHungerCost(r),
+                RouteType = DetermineRouteType(r),
+                Tags = ExtractRouteTags(r),
                 Requirements = ExtractRouteRequirements(r)
             }).ToList();
+        }
+
+        private string GetDestinationLocationName(string destinationSpotId)
+        {
+            // Get the actual location spot from GameWorld to find its name
+            var spot = GameFacade.GetLocationSpot(destinationSpotId);
+            return spot?.Name ?? destinationSpotId;
         }
 
         private string GetDestinationDistrict(string destinationName)
@@ -63,6 +94,76 @@ namespace Wayfarer.Pages.Components
                 "guild hall" or "artisan quarter" => "Artisan District",
                 _ => "City Center" // Default for unknown locations
             };
+        }
+
+        private int CalculateHungerCost(RouteOption route)
+        {
+            // Base hunger cost from route data
+            int hungerCost = route.BaseStaminaCost; // This is the hunger cost in the data
+            
+            // Add load penalties
+            Player player = GameFacade.GetPlayer();
+            int itemCount = player.Inventory.ItemSlots.Count(i => !string.IsNullOrEmpty(i));
+            if (itemCount > 3) // Light load threshold
+            {
+                hungerCost += (itemCount - 3);
+            }
+            
+            return hungerCost;
+        }
+
+        private RouteType DetermineRouteType(RouteOption route)
+        {
+            // Determine route type based on terrain categories
+            foreach (var terrain in route.TerrainCategories)
+            {
+                if (terrain == TerrainCategory.Requires_Permission)
+                    return RouteType.Guarded;
+                if (terrain == TerrainCategory.Dark_Passage || terrain == TerrainCategory.Wilderness_Terrain)
+                    return RouteType.Dangerous;
+                if (terrain == TerrainCategory.Heavy_Cargo_Route)
+                    return RouteType.Merchant;
+            }
+            return RouteType.Common;
+        }
+
+        private List<string> ExtractRouteTags(RouteOption route)
+        {
+            List<string> tags = new List<string>();
+            
+            // Add tags based on terrain categories
+            foreach (var terrain in route.TerrainCategories)
+            {
+                switch (terrain)
+                {
+                    case TerrainCategory.Exposed_Weather:
+                        tags.Add("EXPOSED");
+                        break;
+                    case TerrainCategory.Dark_Passage:
+                        tags.Add("DISCRETE");
+                        break;
+                    case TerrainCategory.Wilderness_Terrain:
+                        tags.Add("WILDERNESS");
+                        break;
+                    case TerrainCategory.Heavy_Cargo_Route:
+                        tags.Add("COMMERCIAL");
+                        break;
+                }
+            }
+            
+            // Add tags based on access requirements
+            if (route.AccessRequirement != null)
+            {
+                tags.Add("RESTRICTED");
+            }
+            
+            // Add tags based on transport method
+            if (route.Method == TravelMethods.Walking)
+            {
+                tags.Add("PUBLIC");
+            }
+            
+            return tags;
         }
 
         private List<string> ExtractRouteRequirements(RouteOption route)
@@ -200,17 +301,90 @@ namespace Wayfarer.Pages.Components
         {
             await OnNavigate.InvokeAsync("location");
         }
+
+        protected string GetRouteTypeClass(RouteViewModel route)
+        {
+            return route.RouteType switch
+            {
+                RouteType.Dangerous => "dangerous",
+                RouteType.Guarded => "guarded",
+                RouteType.Merchant => "merchant",
+                _ => "common"
+            };
+        }
+
+        protected string GetRouteMethodDescription(RouteViewModel route)
+        {
+            // Use the actual route name from JSON which is already descriptive
+            // The route.Name should contain something like "Main Gate via Guard Checkpoint"
+            // We just need to extract the part after "via" if it exists, or use the full name
+            
+            if (!string.IsNullOrEmpty(route.Name))
+            {
+                // If the name contains "via", return the full name as is
+                if (route.Name.Contains("via"))
+                    return route.Name;
+                
+                // Otherwise try to make it more descriptive based on tags
+                string prefix = route.TransportType switch
+                {
+                    "Cart" => "Cart: ",
+                    "Carriage" => "Carriage: ",
+                    "Boat" => "Boat: ",
+                    _ => ""
+                };
+                
+                return prefix + route.Name;
+            }
+            
+            // Fallback to tag-based description
+            if (route.Tags.Contains("DISCRETE"))
+                return "Discrete Passage";
+            if (route.Tags.Contains("COMMERCIAL"))
+                return "Commercial Route";
+            if (route.Tags.Contains("WILDERNESS"))
+                return "Wilderness Path";
+            if (route.Tags.Contains("RESTRICTED"))
+                return "Restricted Access";
+            
+            return "Common Path";
+        }
+
+        protected string GetTagClass(string tag)
+        {
+            return tag.ToUpper() switch
+            {
+                "PUBLIC" => "tag-public",
+                "DISCRETE" => "tag-discrete",
+                "EXPOSED" => "tag-exposed",
+                "WILDERNESS" => "tag-wilderness",
+                "COMMERCIAL" => "tag-commercial",
+                "RESTRICTED" => "tag-restricted",
+                _ => "tag-public"
+            };
+        }
     }
 
     public class RouteViewModel
     {
         public string Id { get; set; }
-        public string DestinationName { get; set; }
+        public string Name { get; set; }  // The route name from JSON
+        public string DestinationName { get; set; }  // The actual location name
         public string District { get; set; }
         public string TransportType { get; set; }
         public int TravelTime { get; set; }
         public int Cost { get; set; }
-        public string Familiarity { get; set; }
+        public int HungerCost { get; set; }
+        public RouteType RouteType { get; set; }
+        public List<string> Tags { get; set; } = new();
         public List<string> Requirements { get; set; } = new();
+    }
+
+    public enum RouteType
+    {
+        Common,
+        Dangerous,
+        Guarded,
+        Merchant
     }
 }

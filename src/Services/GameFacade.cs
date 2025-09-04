@@ -88,6 +88,11 @@ public class GameFacade
         return _locationFacade.GetCurrentLocation();
     }
 
+    public LocationSpot GetLocationSpot(string spotId)
+    {
+        return _gameWorld.GetLocationSpot(spotId);
+    }
+
     public LocationSpot GetCurrentLocationSpot()
     {
         return _locationFacade.GetCurrentLocationSpot();
@@ -161,6 +166,11 @@ public class GameFacade
         return _timeFacade.GetCurrentHour();
     }
 
+    public int GetCurrentMinutes()
+    {
+        return _timeFacade.GetCurrentMinutes();
+    }
+
     public string GetFormattedTimeDisplay()
     {
         return _timeFacade.GetFormattedTimeDisplay();
@@ -191,32 +201,79 @@ public class GameFacade
             return false;
         }
 
-        // Routes are always available - no discovery mechanic needed
+        Player player = _gameWorld.GetPlayer();
+        TimeBlocks currentTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
-        // Calculate travel time and cost
-        int travelTime = targetRoute.TravelTimeMinutes;
-        int coinCost = _travelFacade.CalculateTravelCost(targetRoute, TravelMethods.Walking);
-
-        // Check if player can afford
-        if (coinCost > 0 && _gameWorld.GetPlayer().Coins < coinCost)
+        // 1. CHECK ATTENTION COST (base 2 for any travel)
+        AttentionInfo attentionInfo = _resourceFacade.GetAttention(currentTimeBlock);
+        if (attentionInfo.Current < 2)
         {
-            _narrativeFacade.AddSystemMessage($"Not enough coins. Need {coinCost}, have {_gameWorld.GetPlayer().Coins}", SystemMessageTypes.Warning);
+            _narrativeFacade.AddSystemMessage($"Not enough attention to travel. Need 2, have {attentionInfo.Current}", SystemMessageTypes.Warning);
             return false;
         }
 
-        // Create a successful travel result since we're handling travel directly
+        // 2. SIMPLIFIED ACCESS CHECK - just use CanTravel which combines all checks
+        // Note: This is simplified for now - full implementation would check access requirements separately
+        // The RouteOption.CanTravel method already checks terrain requirements internally
+        
+        // 3. CHECK TIER/PERMIT REQUIREMENTS
+        if (targetRoute.TierRequired > TierLevel.T1 && player.CurrentTier < targetRoute.TierRequired)
+        {
+            _narrativeFacade.AddSystemMessage($"This route requires {targetRoute.TierRequired} access", SystemMessageTypes.Warning);
+            return false;
+        }
+
+        // 4. CALCULATE ACTUAL HUNGER COST
+        // Base hunger cost from route plus any load penalties
+        int itemCount = player.Inventory.ItemSlots.Count(i => !string.IsNullOrEmpty(i));
+        int hungerCost = targetRoute.BaseStaminaCost; // This is actually the hunger cost in the data
+        
+        // Add load penalties if carrying many items
+        if (itemCount > 3) // Light load threshold
+        {
+            hungerCost += (itemCount - 3); // +1 hunger per item over light load
+        }
+
+        // 5. CHECK HUNGER CAPACITY
+        if (player.Hunger + hungerCost > player.MaxHunger)
+        {
+            _narrativeFacade.AddSystemMessage(
+                $"Too exhausted to travel. Travel costs {hungerCost} hunger, but you have {player.Hunger}/{player.MaxHunger} hunger", 
+                SystemMessageTypes.Warning);
+            return false;
+        }
+
+        // 6. CHECK COIN COST
+        int coinCost = targetRoute.BaseCoinCost;
+        if (coinCost > 0 && player.Coins < coinCost)
+        {
+            _narrativeFacade.AddSystemMessage($"Not enough coins. Need {coinCost}, have {player.Coins}", SystemMessageTypes.Warning);
+            return false;
+        }
+
+        // === ALL CHECKS PASSED - APPLY COSTS AND EXECUTE TRAVEL ===
+
+        // 7. APPLY ALL COSTS
+        if (coinCost > 0)
+        {
+            _resourceFacade.SpendCoins(coinCost);
+        }
+        _resourceFacade.IncreaseHunger(hungerCost, "Travel fatigue");
+        _resourceFacade.SpendAttention(2, currentTimeBlock, "Travel focus");
+
+        // Create travel result for processing
+        int travelTime = targetRoute.TravelTimeMinutes;
         TravelResult travelResult = new TravelResult
         {
             Success = true,
             TravelTimeMinutes = travelTime,
             CoinCost = coinCost,
             RouteId = routeId,
-            TransportMethod = TravelMethods.Walking
+            TransportMethod = targetRoute.Method
         };
 
         if (travelResult.Success)
         {
-            _resourceFacade.SpendCoins(travelResult.CoinCost);
 
             // Get the actual destination spot from the route
             RouteOption? actualRoute = _travelFacade.GetAvailableRoutesFromCurrentLocation()
@@ -224,7 +281,6 @@ public class GameFacade
 
             if (actualRoute != null)
             {
-                Player player = _gameWorld.GetPlayer();
                 // Find the destination spot by its ID from GameWorld's Spots dictionary
                 LocationSpot? destSpot = _gameWorld.GetSpot(actualRoute.DestinationLocationSpot);
 
@@ -386,9 +442,22 @@ public class GameFacade
 
     // ========== GAME INITIALIZATION ==========
 
+    /// <summary>
+    /// Initializes the game state. MUST be idempotent due to Blazor ServerPrerendered mode.
+    /// 
+    /// CRITICAL: Blazor ServerPrerendered causes ALL components to render TWICE:
+    /// 1. During server-side prerendering (static HTML generation)
+    /// 2. After establishing interactive SignalR connection
+    /// 
+    /// This means OnInitializedAsync() runs twice, so this method MUST:
+    /// - Check IsGameStarted flag to prevent duplicate initialization
+    /// - NOT perform any side effects that shouldn't happen twice
+    /// - NOT add duplicate messages to the UI
+    /// </summary>
     public async Task StartGameAsync()
     {
         // Check if game is already started to prevent duplicate initialization
+        // This is CRITICAL for ServerPrerendered mode compatibility
         if (_gameWorld.IsGameStarted)
         {
             Console.WriteLine($"[GameFacade.StartGameAsync] Game already started, skipping initialization");
