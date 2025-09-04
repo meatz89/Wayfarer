@@ -349,10 +349,34 @@
         "currentState": "NEUTRAL"
       }
     ],
+    "regions": [
+      {
+        "id": "aldermere",
+        "name": "Aldermere",
+        "description": "A prosperous trade city at the crossroads of major caravan routes.",
+        "government": "Merchant Council",
+        "culture": "Trade-focused",
+        "population": 50000,
+        "districtIds": ["lower_wards"]
+      }
+    ],
+    "districts": [
+      {
+        "id": "lower_wards",
+        "name": "Lower Wards",
+        "description": "The bustling common quarter where merchants, travelers, and workers mingle.",
+        "regionId": "aldermere",
+        "districtType": "Trade Quarter",
+        "dangerLevel": 2,
+        "characteristics": ["Crowded", "Diverse", "Commercial"],
+        "locationIds": ["market_square", "copper_kettle_tavern", "noble_district"]
+      }
+    ],
     "locations": [
       {
         "id": "market_square",
         "name": "Market Square",
+        "district": "lower_wards",
         "description": "The bustling heart of the city. Cobblestones worn smooth by countless feet.",
         "environmentalProperties": {
           "morning": [ "WELL-LIT", "BUSY", "URBAN" ],
@@ -373,6 +397,7 @@
       {
         "id": "copper_kettle_tavern",
         "name": "Copper Kettle Tavern",
+        "district": "lower_wards",
         "description": "A warm, inviting tavern. The copper kettle hangs over the hearth, giving the place its name.",
         "environmentalProperties": {
           "morning": [ "WELL-LIT", "QUIET", "COZY" ],
@@ -393,6 +418,7 @@
       {
         "id": "noble_district",
         "name": "Noble District",
+        "district": "lower_wards",
         "description": "Quiet streets lined with grand estates. Guards patrol regularly.",
         "environmentalProperties": {
           "morning": [ "WELL-LIT", "QUIET", "WEALTHY" ],
@@ -597,10 +623,9 @@
         "urgencyHours": 1,
         "minPayment": 5,
         "maxPayment": 5,
-        "category": "Crisis",
+        "category": "Urgent",
         "minTokensRequired": 0,
         "tierLevel": "T2",
-        "specialType": "Crisis",
         "forcesQueuePosition1": true,
         "possibleSenders": [ "elena" ],
         "possibleRecipients": [ "lord_blackwood" ],
@@ -634,7 +659,10 @@
     "startingSpotId": "corner_table",
     "startingObligations": [],
     "startingTokens": {
-      "Trust": 1
+      "Trust": {
+        "quantity": 1,
+        "npcId": "elena"
+      }
     }
   }
 }
