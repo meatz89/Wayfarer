@@ -230,9 +230,28 @@
             </div>
             
             <div class="card-grid">
-                @foreach (var convCard in Session.HandCards)
+                @foreach (var displayCard in GetAllDisplayCards())
                 {
-                    @if (convCard.Properties.Contains(CardProperty.DeliveryEligible))
+                    var convCard = displayCard.Card;
+                    
+                    @if (displayCard.IsAnimating)
+                    {
+                        @* Animating card that's been played *@
+                        <div class="card @displayCard.AnimationState">
+                            <div class="card-content">
+                                <div class="card-main">
+                                    <div class="card-header">
+                                        <div class="card-name">@GetProperCardName(convCard)</div>
+                                        <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
+                                    </div>
+                                    <div class="card-text">
+                                        "@GetProperCardDialogue(convCard)"
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (convCard.Properties.Contains(CardProperty.DeliveryEligible))
                     {
                         @* Promise/Request Card (Goal) with rapport threshold *@
                         <div class="card promise @(CanSelectCard(convCard) ? "" : "disabled")"
@@ -329,25 +348,6 @@
                             }
                         </div>
                     }
-                }
-                
-                @* Render animating cards that have been played but are still showing animation *@
-                @foreach (var animatingCard in AnimatingCards)
-                {
-                    var card = animatingCard.Card;
-                    <div class="card @(animatingCard.Success ? "card-played-success" : "card-played-failure")">
-                        <div class="card-content">
-                            <div class="card-main">
-                                <div class="card-header">
-                                    <div class="card-name">@GetProperCardName(card)</div>
-                                    <div class="card-focus">@card.GetEffectiveFocus(Context.Session.CurrentState)</div>
-                                </div>
-                                <div class="card-text">
-                                    "@GetProperCardDialogue(card)"
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 }
             </div>
         }

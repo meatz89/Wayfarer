@@ -74,6 +74,13 @@ namespace Wayfarer.Pages.Components
         public bool Success { get; set; }
         public DateTime AddedAt { get; set; }
     }
+    
+    public class CardDisplayInfo
+    {
+        public CardInstance Card { get; set; }
+        public bool IsAnimating { get; set; }
+        public string AnimationState { get; set; }
+    }
 
     /// <summary>
     /// Conversation screen component that handles NPC interactions through card-based dialogue.
@@ -2950,6 +2957,82 @@ namespace Wayfarer.Pages.Components
             });
         }
 
+        /// <summary>
+        /// Get all cards to display (both regular hand cards and animating cards)
+        /// </summary>
+        protected List<CardDisplayInfo> GetAllDisplayCards()
+        {
+            var displayCards = new List<CardDisplayInfo>();
+            
+            // First, add promise/goal cards (they should always be position 1)
+            if (Session?.HandCards != null)
+            {
+                var promiseCards = Session.HandCards
+                    .Where(c => c.Properties.Contains(CardProperty.DeliveryEligible))
+                    .ToList();
+                    
+                foreach (var card in promiseCards)
+                {
+                    displayCards.Add(new CardDisplayInfo
+                    {
+                        Card = card,
+                        IsAnimating = false,
+                        AnimationState = null
+                    });
+                }
+                
+                // Then add regular hand cards
+                var regularCards = Session.HandCards
+                    .Where(c => !c.Properties.Contains(CardProperty.DeliveryEligible))
+                    .ToList();
+                    
+                foreach (var card in regularCards)
+                {
+                    displayCards.Add(new CardDisplayInfo
+                    {
+                        Card = card,
+                        IsAnimating = false,
+                        AnimationState = null
+                    });
+                }
+            }
+            
+            // Add animating cards (if they're not already in the display list)
+            foreach (var animatingCard in AnimatingCards)
+            {
+                // Check if this card is already in the hand (shouldn't happen but be safe)
+                if (!displayCards.Any(dc => dc.Card.InstanceId == animatingCard.Card.InstanceId))
+                {
+                    // Insert animating cards at appropriate position based on their type
+                    if (animatingCard.Card.Properties.Contains(CardProperty.DeliveryEligible))
+                    {
+                        // Insert at beginning for promise cards
+                        displayCards.Insert(0, new CardDisplayInfo
+                        {
+                            Card = animatingCard.Card,
+                            IsAnimating = true,
+                            AnimationState = animatingCard.Success ? "card-played-success" : "card-played-failure"
+                        });
+                    }
+                    else
+                    {
+                        // Find the last promise card position and insert after it
+                        int insertPos = displayCards.FindLastIndex(dc => 
+                            dc.Card.Properties.Contains(CardProperty.DeliveryEligible)) + 1;
+                            
+                        displayCards.Insert(insertPos, new CardDisplayInfo
+                        {
+                            Card = animatingCard.Card,
+                            IsAnimating = true,
+                            AnimationState = animatingCard.Success ? "card-played-success" : "card-played-failure"
+                        });
+                    }
+                }
+            }
+            
+            return displayCards;
+        }
+        
         /// <summary>
         /// Add a card to the animating cards list for post-play animation
         /// </summary>
