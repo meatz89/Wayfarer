@@ -8,80 +8,6 @@ using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
-    // Data classes for card dialogues JSON
-    public class CardDialogues
-    {
-        public Dictionary<string, CardDialogue> dialogues { get; set; }
-        public Dictionary<string, Dictionary<string, Dictionary<string, string>>> narrativeTemplates { get; set; }
-    }
-
-    public class SystemNarratives
-    {
-        public ConversationNarratives conversationNarratives { get; set; }
-        public SystemMessages systemMessages { get; set; }
-        public Dictionary<string, string> observationCardNames { get; set; }
-        public Dictionary<string, string> observationCardDialogues { get; set; }
-        public string burdenCardDialogue { get; set; }
-        public Dictionary<string, string> exchangeCardDialogues { get; set; }
-        public Dictionary<string, string> flowCardDialogues { get; set; }
-        public Dictionary<string, string> tokenCardDialogues { get; set; }
-        public string letterCardDialogue { get; set; }
-        public string defaultCardDialogue { get; set; }
-    }
-
-    public class ConversationNarratives
-    {
-        public string initialNarrative { get; set; }
-        public Dictionary<string, string> listenNarratives { get; set; }
-        public Dictionary<string, string> speakNarratives { get; set; }
-        public Dictionary<string, string> stateDialogues { get; set; }
-        public Dictionary<string, string> initialDialogues { get; set; }
-        public Dictionary<string, string> flowResponses { get; set; }
-        public Dictionary<string, string> stateTransitionVerbs { get; set; }
-        public Dictionary<string, string> cardStateTransitionDialogues { get; set; }
-    }
-
-    public class SystemMessages
-    {
-        public string listeningCarefully { get; set; }
-        public string drewCards { get; set; }
-        public string decliningExchange { get; set; }
-        public string tradingExchange { get; set; }
-        public string playingCard { get; set; }
-        public string cardsSucceeded { get; set; }
-        public string cardsFailed { get; set; }
-        public Dictionary<string, string> conversationExhausted { get; set; }
-        public Dictionary<string, string> letterNegotiation { get; set; }
-    }
-
-    public class CardDialogue
-    {
-        public string playerText { get; set; }
-        public Dictionary<string, string> contextual { get; set; }
-    }
-
-    // Card state tracking for animations
-    public class CardAnimationState
-    {
-        public string CardId { get; set; }
-        public string State { get; set; } // "new", "played-success", "played-failure", "exhausting", "normal"
-        public DateTime StateChangedAt { get; set; }
-    }
-    
-    public class AnimatingCard
-    {
-        public CardInstance Card { get; set; }
-        public bool Success { get; set; }
-        public DateTime AddedAt { get; set; }
-        public int OriginalPosition { get; set; } // Track original position in hand
-    }
-    
-    public class CardDisplayInfo
-    {
-        public CardInstance Card { get; set; }
-        public bool IsAnimating { get; set; }
-        public string AnimationState { get; set; }
-    }
 
     /// <summary>
     /// Conversation screen component that handles NPC interactions through card-based dialogue.
@@ -124,13 +50,15 @@ namespace Wayfarer.Pages.Components
         protected bool ShowSpeakPreview { get; set; } = false;
         protected bool ShowListenPreview { get; set; } = false;
         
-        // Card animation states
-        protected Dictionary<string, CardAnimationState> CardStates { get; set; } = new();
-        protected HashSet<string> NewCardIds { get; set; } = new();
-        protected HashSet<string> ExhaustingCardIds { get; set; } = new();
+        // Helper managers using composition
+        protected CardAnimationManager AnimationManager { get; set; } = new();
+        protected CardDisplayManager DisplayManager { get; set; } = new();
         
-        // Keep track of cards that are animating out after being played
-        protected List<AnimatingCard> AnimatingCards { get; set; } = new();
+        // Delegated properties
+        protected Dictionary<string, CardAnimationState> CardStates => AnimationManager.CardStates;
+        protected HashSet<string> NewCardIds { get; set; } = new();
+        protected HashSet<string> ExhaustingCardIds => AnimationManager.ExhaustingCardIds;
+        protected List<AnimatingCard> AnimatingCards => AnimationManager.AnimatingCards;
 
         protected int GetBaseSuccessPercentage(Difficulty difficulty)
         {
@@ -150,13 +78,7 @@ namespace Wayfarer.Pages.Components
         protected string LastDialogue { get; set; }
         // Letter generation is handled by ConversationManager based on connection state
 
-        // Card dialogues cache
-        private static CardDialogues _cardDialogues;
-        private static bool _cardDialoguesLoaded = false;
-
-        // System narratives cache
-        private static SystemNarratives _systemNarratives;
-        private static bool _systemNarrativesLoaded = false;
+        // Removed dead dialogue/narrative caching - JSON files don't exist
 
         // Get current token balances with this NPC
         protected Dictionary<ConnectionType, int> CurrentTokens
@@ -209,8 +131,7 @@ namespace Wayfarer.Pages.Components
                 NpcName = Context.Npc?.Name ?? "Unknown";
 
                 // Generate initial narrative
-                LoadSystemNarratives();
-                LastNarrative = _systemNarratives?.conversationNarratives?.initialNarrative ?? "The conversation begins...";
+                LastNarrative = "The conversation begins...";
                 LastDialogue = GetInitialDialogue();
             }
             catch (Exception ex)
@@ -245,9 +166,7 @@ namespace Wayfarer.Pages.Components
                 MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
                 if (messageSystem != null)
                 {
-                    LoadSystemNarratives();
-                    string message = _systemNarratives?.systemMessages?.listeningCarefully ?? "You listen carefully...";
-                    messageSystem.AddSystemMessage(message, SystemMessageTypes.Info);
+                    messageSystem.AddSystemMessage("You listen carefully...", SystemMessageTypes.Info);
                 }
 
                 ConversationFacade.ExecuteListen();
@@ -262,8 +181,7 @@ namespace Wayfarer.Pages.Components
                 // Notify about cards drawn
                 if (messageSystem != null && Session.HandCards.Any())
                 {
-                    string drewMessage = _systemNarratives?.systemMessages?.drewCards ?? "Drew {0} cards";
-                    messageSystem.AddSystemMessage(string.Format(drewMessage, Session.HandCards.Count), SystemMessageTypes.Success);
+                    messageSystem.AddSystemMessage(string.Format("Drew {0} cards", Session.HandCards.Count), SystemMessageTypes.Success);
                 }
 
                 // Refresh resources after listen action
@@ -314,21 +232,18 @@ namespace Wayfarer.Pages.Components
                     {
                         if (SelectedCard.Context.ExchangeName == "Pass on this offer")
                         {
-                            string decliningMsg = _systemNarratives?.systemMessages?.decliningExchange ?? "Declining the exchange...";
-                            messageSystem.AddSystemMessage(decliningMsg, SystemMessageTypes.Info);
+                            messageSystem.AddSystemMessage("Declining the exchange...", SystemMessageTypes.Info);
                         }
                         else
                         {
-                            string tradingMsg = _systemNarratives?.systemMessages?.tradingExchange ?? "Trading: {0} for {1}";
-                            messageSystem.AddSystemMessage(string.Format(tradingMsg, SelectedCard.Context.ExchangeCost, SelectedCard.Context.ExchangeReward), SystemMessageTypes.Info);
+                            messageSystem.AddSystemMessage(string.Format("Trading: {0} for {1}", SelectedCard.Context.ExchangeCost, SelectedCard.Context.ExchangeReward), SystemMessageTypes.Info);
                         }
                     }
                 }
                 else if (messageSystem != null)
                 {
                     // ONE-CARD RULE: Always exactly one card
-                    string playingMsg = _systemNarratives?.systemMessages?.playingCard ?? "Playing {0}...";
-                    messageSystem.AddSystemMessage(string.Format(playingMsg, GetCardName(SelectedCard)), SystemMessageTypes.Info);
+                    messageSystem.AddSystemMessage(string.Format("Playing {0}...", GetCardName(SelectedCard)), SystemMessageTypes.Info);
                 }
 
                 // Store the played card and its position BEFORE playing it
@@ -397,13 +312,11 @@ namespace Wayfarer.Pages.Components
 
                         if (successes > 0)
                         {
-                            string successMsg = _systemNarratives?.systemMessages?.cardsSucceeded ?? "{0} card(s) succeeded! +{1} flow";
-                            messageSystem.AddSystemMessage(string.Format(successMsg, successes, result.TotalFlow), SystemMessageTypes.Success);
+                            messageSystem.AddSystemMessage(string.Format("{0} card(s) succeeded! +{1} flow", successes, result.TotalFlow), SystemMessageTypes.Success);
                         }
                         if (failures > 0)
                         {
-                            string failureMsg = _systemNarratives?.systemMessages?.cardsFailed ?? "{0} card(s) failed";
-                            messageSystem.AddSystemMessage(string.Format(failureMsg, failures), SystemMessageTypes.Warning);
+                            messageSystem.AddSystemMessage(string.Format("{0} card(s) failed", failures), SystemMessageTypes.Warning);
                         }
                     }
                 }
@@ -469,33 +382,12 @@ namespace Wayfarer.Pages.Components
 
         private void GenerateListenNarrative()
         {
-            // Generate narrative for listen action based on state
-            LoadSystemNarratives();
-            ConversationStateRules stateRules = ConversationRules.States[Session.CurrentState];
-
-            if (_systemNarratives?.conversationNarratives?.listenNarratives != null)
-            {
-                string stateKey = Session.CurrentState.ToString();
-                if (_systemNarratives.conversationNarratives.listenNarratives.TryGetValue(stateKey, out string? narrative))
-                {
-                    LastNarrative = narrative;
-                }
-                else
-                {
-                    LastNarrative = _systemNarratives.conversationNarratives.listenNarratives.GetValueOrDefault("default", "You listen attentively...");
-                }
-            }
-            else
-            {
-                LastNarrative = "You listen attentively...";
-            }
-
+            LastNarrative = "You listen attentively...";
             LastDialogue = GetStateTransitionDialogue(Session.CurrentState);
         }
 
         private void GenerateSpeakNarrative(CardPlayResult result)
         {
-            LoadSystemNarratives();
             // Generate narrative based on cards played and result
             if (result.Results != null && result.Results.Any())
             {
@@ -508,42 +400,29 @@ namespace Wayfarer.Pages.Components
                 int threshold = firstResult.SuccessChance;
                 int margin = Math.Abs(roll - threshold);
 
-                if (_systemNarratives?.conversationNarratives?.speakNarratives != null)
+                if (successCount == totalCards)
                 {
-                    if (successCount == totalCards)
-                    {
-                        // Vary success narrative based on margin
-                        if (margin > 30)
-                            LastNarrative = "Your words resonate perfectly!";
-                        else if (margin > 15)
-                            LastNarrative = "They nod in understanding.";
-                        else
-                            LastNarrative = "Your words find their mark.";
-                    }
-                    else if (successCount > 0)
-                    {
-                        LastNarrative = _systemNarratives.conversationNarratives.speakNarratives.GetValueOrDefault("partialSuccess", "Some of your words find their mark...");
-                    }
+                    // Vary success narrative based on margin
+                    if (margin > 30)
+                        LastNarrative = "Your words resonate perfectly!";
+                    else if (margin > 15)
+                        LastNarrative = "They nod in understanding.";
                     else
-                    {
-                        // Vary failure narrative based on margin
-                        if (margin > 30)
-                            LastNarrative = "Your words fall completely flat...";
-                        else if (margin > 15)
-                            LastNarrative = "They seem unconvinced...";
-                        else
-                            LastNarrative = "Your approach doesn't quite land.";
-                    }
+                        LastNarrative = "Your words find their mark.";
+                }
+                else if (successCount > 0)
+                {
+                    LastNarrative = "Some of your words find their mark...";
                 }
                 else
                 {
-                    // Fallback to hardcoded values if JSON not loaded
-                    if (successCount == totalCards)
-                        LastNarrative = "Your words resonate perfectly...";
-                    else if (successCount > 0)
-                        LastNarrative = "Some of your words find their mark...";
+                    // Vary failure narrative based on margin
+                    if (margin > 30)
+                        LastNarrative = "Your words fall completely flat...";
+                    else if (margin > 15)
+                        LastNarrative = "They seem unconvinced...";
                     else
-                        LastNarrative = "Your words fall flat...";
+                        LastNarrative = "Your approach doesn't quite land.";
                 }
 
                 // Add flow info more subtly
@@ -558,7 +437,7 @@ namespace Wayfarer.Pages.Components
             }
             else
             {
-                LastNarrative = _systemNarratives?.conversationNarratives?.speakNarratives?.GetValueOrDefault("default", "You speak your mind...") ?? "You speak your mind...";
+                LastNarrative = "You speak your mind...";
             }
 
             // Update dialogue based on new state if changed
@@ -574,16 +453,6 @@ namespace Wayfarer.Pages.Components
 
         private string GetStateTransitionDialogue(ConnectionState newState)
         {
-            LoadSystemNarratives();
-            if (_systemNarratives?.conversationNarratives?.stateDialogues != null)
-            {
-                string stateKey = newState.ToString();
-                if (_systemNarratives.conversationNarratives.stateDialogues.TryGetValue(stateKey, out string? dialogue))
-                {
-                    return dialogue;
-                }
-                return _systemNarratives.conversationNarratives.stateDialogues.GetValueOrDefault("default", "Hmm...");
-            }
 
             // Fallback if JSON not loaded - 5 states only
             return newState switch
@@ -599,29 +468,7 @@ namespace Wayfarer.Pages.Components
 
         private string GetResponseDialogue()
         {
-            LoadSystemNarratives();
             // Generate response based on current flow level (-3 to +3)
-            if (_systemNarratives?.conversationNarratives?.flowResponses != null)
-            {
-                if (Session.CurrentFlow >= 2)
-                {
-                    return _systemNarratives.conversationNarratives.flowResponses.GetValueOrDefault("veryPositive", "This conversation has been wonderful!");
-                }
-                else if (Session.CurrentFlow >= 0)
-                {
-                    return _systemNarratives.conversationNarratives.flowResponses.GetValueOrDefault("positive", "I appreciate you taking the time to talk.");
-                }
-                else if (Session.CurrentFlow >= -2)
-                {
-                    return _systemNarratives.conversationNarratives.flowResponses.GetValueOrDefault("neutral", "I see what you mean...");
-                }
-                else
-                {
-                    return _systemNarratives.conversationNarratives.flowResponses.GetValueOrDefault("negative", "I'm not sure about this...");
-                }
-            }
-
-            // Fallback if JSON not loaded
             if (Session.CurrentFlow >= 2)
                 return "This conversation has been wonderful!";
             else if (Session.CurrentFlow >= 0)
@@ -1159,22 +1006,11 @@ namespace Wayfarer.Pages.Components
 
         private string GetStateTransitionVerb(ConnectionState targetState)
         {
-            LoadSystemNarratives();
-            if (_systemNarratives?.conversationNarratives?.stateTransitionVerbs != null)
-            {
-                string stateKey = targetState.ToString();
-                if (_systemNarratives.conversationNarratives.stateTransitionVerbs.TryGetValue(stateKey, out string? verb))
-                {
-                    return verb;
-                }
-                return _systemNarratives.conversationNarratives.stateTransitionVerbs.GetValueOrDefault("default", "change topics");
-            }
-
-            // Fallback if JSON not loaded
+            // Simple hardcoded verbs since JSON files don't exist
             return targetState switch
             {
                 ConnectionState.DISCONNECTED => "stay urgent",
-                ConnectionState.GUARDED => "be careful",
+                ConnectionState.GUARDED => "be careful", 
                 ConnectionState.NEUTRAL => "calm down",
                 ConnectionState.RECEPTIVE => "open up",
                 ConnectionState.TRUSTING => "connect deeply",
@@ -1197,19 +1033,8 @@ namespace Wayfarer.Pages.Components
 
         protected string GetProperCardDialogue(CardInstance card)
         {
-            // Just use the card's actual dialogue text from JSON, no flavor text
-            
-            // Try to get player dialogue from JSON based on template ID
-            string playerText = GetPlayerDialogueText(card.Id, Session?.CurrentState);
-            if (!string.IsNullOrEmpty(playerText))
-                return playerText;
-            
-            // Use the card's Description property if available
-            if (!string.IsNullOrEmpty(card.Description))
-                return card.Description;
-                
-            // Fallback to card name
-            return GetProperCardName(card);
+            // Simply use the card's Description property or name
+            return !string.IsNullOrEmpty(card.Description) ? card.Description : GetProperCardName(card);
         }
 
 
@@ -1464,7 +1289,6 @@ namespace Wayfarer.Pages.Components
         protected string GetCardText(CardInstance card)
         {
             // Load card dialogues if not loaded
-            LoadCardDialogues();
 
             // For decline cards, show simple message
             if (card.Context?.IsDeclineCard == true)
@@ -1487,13 +1311,6 @@ namespace Wayfarer.Pages.Components
                 }
             }
 
-            // Try to get player dialogue from JSON based on template ID
-            string playerText = GetPlayerDialogueText(card.Id, Session?.CurrentState);
-            if (!string.IsNullOrEmpty(playerText))
-            {
-                return playerText;
-            }
-
             // Use the card's Description property if available
             if (!string.IsNullOrEmpty(card.Description))
                 return card.Description;
@@ -1502,124 +1319,8 @@ namespace Wayfarer.Pages.Components
             return card.Id?.Replace("_", " ") ?? "Unknown Card";
         }
 
-        private void LoadCardDialogues()
-        {
-            if (_cardDialoguesLoaded) return;
 
-            try
-            {
-                string contentPath = Path.Combine("Content", "Dialogues", "card_dialogues.json");
-                if (File.Exists(contentPath))
-                {
-                    string json = File.ReadAllText(contentPath);
-                    JsonSerializerOptions options = new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    };
-                    _cardDialogues = JsonSerializer.Deserialize<CardDialogues>(json, options);
-                    _cardDialoguesLoaded = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ConversationContent] Failed to load card dialogues: {ex.Message}");
-                _cardDialogues = new CardDialogues { dialogues = new Dictionary<string, CardDialogue>() };
-                _cardDialoguesLoaded = true;
-            }
-        }
 
-        private void LoadSystemNarratives()
-        {
-            if (_systemNarrativesLoaded) return;
-
-            try
-            {
-                string contentPath = Path.Combine("Content", "Dialogues", "system_narratives.json");
-                if (File.Exists(contentPath))
-                {
-                    string json = File.ReadAllText(contentPath);
-                    JsonSerializerOptions options = new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    };
-                    _systemNarratives = JsonSerializer.Deserialize<SystemNarratives>(json, options);
-                    _systemNarrativesLoaded = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ConversationContent] Failed to load system narratives: {ex.Message}");
-                _systemNarratives = null;
-                _systemNarrativesLoaded = true;
-            }
-        }
-
-        private string GetPlayerDialogueText(string templateId, ConnectionState? currentState)
-        {
-            if (_cardDialogues?.dialogues == null || string.IsNullOrEmpty(templateId))
-                return null;
-
-            // Try direct template ID match first
-            if (_cardDialogues.dialogues.TryGetValue(templateId, out CardDialogue? dialogue))
-            {
-                // Check for contextual dialogue based on current state
-                if (currentState.HasValue && dialogue.contextual?.TryGetValue(currentState.Value.ToString(), out string? contextualText) == true)
-                {
-                    return contextualText;
-                }
-
-                // Return base player text
-                return dialogue.playerText;
-            }
-
-            // Try common mappings for template IDs
-            string mappedId = MapTemplateIdToDialogueKey(templateId);
-            if (!string.IsNullOrEmpty(mappedId) && _cardDialogues.dialogues.TryGetValue(mappedId, out CardDialogue? mappedDialogue))
-            {
-                // Check for contextual dialogue based on current state
-                if (currentState.HasValue && mappedDialogue.contextual?.TryGetValue(currentState.Value.ToString(), out string? contextualText) == true)
-                {
-                    return contextualText;
-                }
-
-                return mappedDialogue.playerText;
-            }
-
-            return null;
-        }
-
-        private string MapTemplateIdToDialogueKey(string templateId)
-        {
-            if (string.IsNullOrEmpty(templateId)) return null;
-
-            // Map common template IDs to dialogue keys
-            Dictionary<string, string> mappings = new Dictionary<string, string>
-            {
-                { "promise_to_help", "PromiseToHelp" },
-                { "mention_guards", "MentionGuards" },
-                { "calm_reassurance", "CalmReassurance" },
-                { "simple_greeting", "SimpleGreeting" },
-                { "active_listening", "ActiveListening" },
-                { "offer_help", "OfferHelp" },
-                { "share_personal", "SharePersonal" },
-                { "discuss_business", "DiscussBusiness" },
-                { "propose_deal", "ProposeDeal" },
-                { "show_respect", "ShowRespect" },
-                { "share_secret", "ShareSecret" },
-                { "defuse_conflict", "DefuseConflict" },
-                { "express_doubt", "ExpressDoubt" },
-                { "offer_patience", "OfferPatience" },
-                { "accept_letter", "AcceptLetter" },
-                { "decline_letter", "DeclineLetter" },
-                { "observation_share", "ObservationShare" },
-                { "burden_apology", "BurdenApology" },
-                { "exchange_accept", "ExchangeAccept" },
-                { "exchange_decline", "ExchangeDecline" },
-                { "exchange_barter", "ExchangeBarter" }
-            };
-
-            return mappings.TryGetValue(templateId.ToLower(), out string? mapped) ? mapped : null;
-        }
 
         protected string GetSuccessChance(CardInstance card)
         {
@@ -1691,18 +1392,6 @@ namespace Wayfarer.Pages.Components
 
         private string GetInitialDialogue()
         {
-            LoadSystemNarratives();
-            if (_systemNarratives?.conversationNarratives?.initialDialogues != null && Session != null)
-            {
-                string stateKey = Session.CurrentState.ToString();
-                if (_systemNarratives.conversationNarratives.initialDialogues.TryGetValue(stateKey, out string? dialogue))
-                {
-                    return dialogue;
-                }
-                return _systemNarratives.conversationNarratives.initialDialogues.GetValueOrDefault("default", "Hello, what brings you here?");
-            }
-
-            // Fallback if JSON not loaded - 5 states only
             return Session?.CurrentState switch
             {
                 ConnectionState.DISCONNECTED => "Please, I need your help urgently!",
@@ -1915,49 +1604,42 @@ namespace Wayfarer.Pages.Components
 
         protected string GetConversationEndReason()
         {
-            LoadSystemNarratives();
             if (Session == null) return "Conversation ended";
-
-            Dictionary<string, string>? exhaustedMessages = _systemNarratives?.systemMessages?.conversationExhausted;
 
             // Check various end conditions in priority order
             if (Session.LetterGenerated)
             {
-                string msg = exhaustedMessages?.GetValueOrDefault("letterObtained", "Letter obtained! Check your queue. (Flow: {0})") ?? "Letter obtained! Check your queue. (Flow: {0})";
-                return string.Format(msg, Session.CurrentFlow);
+                return string.Format("Letter obtained! Check your queue. (Flow: {0})", Session.CurrentFlow);
             }
 
             if (Session.CurrentPatience <= 0)
             {
-                string msg = exhaustedMessages?.GetValueOrDefault("patienceExhausted", "{0}'s patience has been exhausted. They have no more time for you today.") ?? "{0}'s patience has been exhausted. They have no more time for you today.";
-                return string.Format(msg, NpcName);
+                return string.Format("{0}'s patience has been exhausted. They have no more time for you today.", NpcName);
             }
 
             if (Session.CurrentState == ConnectionState.DISCONNECTED && Session.FlowBattery <= -3)
             {
-                string msg = exhaustedMessages?.GetValueOrDefault("conversationBroken", "{0} is too distressed to continue. The conversation has broken down.") ?? "{0} is too distressed to continue. The conversation has broken down.";
-                return string.Format(msg, NpcName);
+                return string.Format("{0} is too distressed to continue. The conversation has broken down.", NpcName);
             }
 
             if (Context?.Type == ConversationType.Commerce)
             {
-                return exhaustedMessages?.GetValueOrDefault("exchangeCompleted", "Exchange completed - conversation ended") ?? "Exchange completed - conversation ended";
+                return "Exchange completed - conversation ended";
             }
 
             if (!Session.HandCards.Any() && Session.Deck.RemainingCards == 0)
             {
-                return exhaustedMessages?.GetValueOrDefault("noCardsAvailable", "No more cards available - conversation ended") ?? "No more cards available - conversation ended";
+                return "No more cards available - conversation ended";
             }
 
             // Default reason based on flow level
             if (Session.CurrentFlow >= 2)
             {
-                string msg = exhaustedMessages?.GetValueOrDefault("endedNaturally", "Conversation ended naturally (Flow: {0})") ?? "Conversation ended naturally (Flow: {0})";
-                return string.Format(msg, Session.CurrentFlow);
+                return string.Format("Conversation ended naturally (Flow: {0})", Session.CurrentFlow);
             }
             else
             {
-                return exhaustedMessages?.GetValueOrDefault("default", "Conversation ended") ?? "Conversation ended";
+                return "Conversation ended";
             }
         }
 
@@ -1985,25 +1667,17 @@ namespace Wayfarer.Pages.Components
                     int queuePosition = 1;
                     if (queuePosition > 0)
                     {
-                        LoadSystemNarratives();
-                        Dictionary<string, string>? letterMessages = _systemNarratives?.systemMessages?.letterNegotiation;
-
                         // Generate appropriate message based on negotiation success
                         string negotiationOutcome = negotiation.NegotiationSuccess ? "Successfully negotiated" : "Failed to negotiate";
                         double deadlineHours = negotiation.FinalTerms.DeadlineMinutes / 60.0;
 
                         string urgencySuffix = "";
                         if (deadlineHours <= 2)
-                            urgencySuffix = letterMessages?.GetValueOrDefault("criticalUrgency", " - CRITICAL!") ?? " - CRITICAL!";
+                            urgencySuffix = " - CRITICAL!";
                         else if (deadlineHours <= 6)
-                            urgencySuffix = letterMessages?.GetValueOrDefault("urgentUrgency", " - URGENT") ?? " - URGENT";
+                            urgencySuffix = " - URGENT";
 
-                        string? msgTemplate = negotiation.NegotiationSuccess
-                            ? letterMessages?.GetValueOrDefault("successfulNegotiation", "{0} letter: '{1}' - {2}h deadline, {3} coins")
-                            : letterMessages?.GetValueOrDefault("failedNegotiation", "{0} letter: '{1}' - {2}h deadline, {3} coins");
-
-                        if (msgTemplate == null)
-                            msgTemplate = "{0} letter: '{1}' - {2}h deadline, {3} coins";
+                        string msgTemplate = "{0} letter: '{1}' - {2}h deadline, {3} coins";
 
                         string message = string.Format(msgTemplate, negotiationOutcome,
                             negotiation.SourcePromiseCard.Description ?? negotiation.SourcePromiseCard.Id,
@@ -2022,10 +1696,8 @@ namespace Wayfarer.Pages.Components
                     }
                     else
                     {
-                        LoadSystemNarratives();
-                        string queueFullMsg = _systemNarratives?.systemMessages?.letterNegotiation?.GetValueOrDefault("queueFull", "Could not accept letter - queue may be full") ?? "Could not accept letter - queue may be full";
                         messageSystem?.AddSystemMessage(
-                            queueFullMsg,
+                            "Could not accept letter - queue may be full",
                             SystemMessageTypes.Warning
                         );
                     }
@@ -2941,22 +2613,23 @@ namespace Wayfarer.Pages.Components
             // Get IDs of previous cards
             var previousIds = new HashSet<string>(previousCards.Select(c => c.InstanceId ?? c.Id ?? ""));
 
-            // Mark cards that weren't in the previous set as new
+            // Find and mark new cards
+            var newCards = new List<CardInstance>();
             foreach (var card in currentCards)
             {
                 string cardId = card.InstanceId ?? card.Id ?? "";
                 if (!previousIds.Contains(cardId))
                 {
                     NewCardIds.Add(cardId);
+                    newCards.Add(card);
                 }
             }
 
-            // Clear "new" state after animation completes
-            Task.Delay(600).ContinueWith(_ => 
+            // Use animation manager to track new cards
+            if (newCards.Any())
             {
-                NewCardIds.Clear();
-                InvokeAsync(StateHasChanged);
-            });
+                AnimationManager.MarkNewCards(newCards, NewCardIds, () => InvokeAsync(StateHasChanged));
+            }
         }
 
         /// <summary>
@@ -2964,74 +2637,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<CardDisplayInfo> GetAllDisplayCards()
         {
-            var displayCards = new List<CardDisplayInfo>();
-            
-            // Start with ALL cards in their current hand order (preserving positions)
-            if (Session?.HandCards != null)
-            {
-                var handList = Session.HandCards.ToList();
-                // First pass: Add all cards including those that might be animating
-                for (int i = 0; i < handList.Count; i++)
-                {
-                    var card = handList[i];
-                    
-                    // Check if this card is currently animating
-                    var animatingCard = AnimatingCards.FirstOrDefault(ac => ac.Card.InstanceId == card.InstanceId);
-                    
-                    if (animatingCard != null)
-                    {
-                        // This card is animating - show it with animation
-                        displayCards.Add(new CardDisplayInfo
-                        {
-                            Card = card,
-                            IsAnimating = true,
-                            AnimationState = animatingCard.Success ? "card-played-success" : "card-played-failure"
-                        });
-                    }
-                    else
-                    {
-                        // Normal card
-                        displayCards.Add(new CardDisplayInfo
-                        {
-                            Card = card,
-                            IsAnimating = false,
-                            AnimationState = null
-                        });
-                    }
-                }
-            }
-            
-            // Second pass: Add any animating cards that are no longer in the hand
-            // (these are cards that were just played and removed from hand)
-            foreach (var animatingCard in AnimatingCards)
-            {
-                // Check if this card is NOT in the current hand
-                bool inHand = Session?.HandCards?.Any(c => c.InstanceId == animatingCard.Card.InstanceId) ?? false;
-                
-                if (!inHand)
-                {
-                    // Insert at its original position (or at the end if position is out of bounds)
-                    int insertPos = Math.Min(animatingCard.OriginalPosition, displayCards.Count);
-                    
-                    displayCards.Insert(insertPos, new CardDisplayInfo
-                    {
-                        Card = animatingCard.Card,
-                        IsAnimating = true,
-                        AnimationState = animatingCard.Success ? "card-played-success" : "card-played-failure"
-                    });
-                }
-            }
-            
-            // Now sort to ensure promise cards are always at position 1
-            // But preserve relative positions within each category
-            var promiseCards = displayCards.Where(dc => dc.Card.Properties.Contains(CardProperty.DeliveryEligible)).ToList();
-            var regularCards = displayCards.Where(dc => !dc.Card.Properties.Contains(CardProperty.DeliveryEligible)).ToList();
-            
-            displayCards.Clear();
-            displayCards.AddRange(promiseCards);
-            displayCards.AddRange(regularCards);
-            
-            return displayCards;
+            return DisplayManager.GetAllDisplayCards(Session, AnimatingCards);
         }
         
         /// <summary>
@@ -3039,17 +2645,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCardPosition(CardInstance card)
         {
-            if (card == null || Session?.HandCards == null) return -1;
-            
-            var handList = Session.HandCards.ToList();
-            for (int i = 0; i < handList.Count; i++)
-            {
-                if (handList[i].InstanceId == card.InstanceId)
-                {
-                    return i;
-                }
-            }
-            return -1;
+            return DisplayManager.GetCardPosition(card, Session);
         }
         
         /// <summary>
@@ -3057,23 +2653,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected void AddAnimatingCard(CardInstance card, bool success, int originalPosition = -1)
         {
-            if (card == null) return;
-            
-            // Add to animating cards list with position
-            AnimatingCards.Add(new AnimatingCard
-            {
-                Card = card,
-                Success = success,
-                AddedAt = DateTime.Now,
-                OriginalPosition = originalPosition
-            });
-            
-            // Remove after animation completes (2.5s flash + 0.5s play-out = 3s total)
-            Task.Delay(3200).ContinueWith(_ =>
-            {
-                AnimatingCards.RemoveAll(ac => ac.Card.InstanceId == card.InstanceId);
-                InvokeAsync(StateHasChanged);
-            });
+            AnimationManager.AddAnimatingCard(card, success, originalPosition, () => InvokeAsync(StateHasChanged));
         }
 
         /// <summary>
@@ -3081,22 +2661,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected void MarkCardAsPlayed(CardInstance card, bool success)
         {
-            if (card == null) return;
-
-            string cardId = card.InstanceId ?? card.Id ?? "";
-            CardStates[cardId] = new CardAnimationState
-            {
-                CardId = cardId,
-                State = success ? "played-success" : "played-failure",
-                StateChangedAt = DateTime.Now
-            };
-
-            // Remove state after animation completes (2.5s flash + 0.5s play-out = 3s total)
-            Task.Delay(3200).ContinueWith(_ =>
-            {
-                CardStates.Remove(cardId);
-                InvokeAsync(StateHasChanged);
-            });
+            AnimationManager.MarkCardAsPlayed(card, success, () => InvokeAsync(StateHasChanged));
         }
 
         /// <summary>
@@ -3104,29 +2669,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected void MarkCardsForExhaust(List<CardInstance> cardsToExhaust)
         {
-            foreach (var card in cardsToExhaust)
-            {
-                string cardId = card.InstanceId ?? card.Id ?? "";
-                ExhaustingCardIds.Add(cardId);
-                
-                CardStates[cardId] = new CardAnimationState
-                {
-                    CardId = cardId,
-                    State = "exhausting",
-                    StateChangedAt = DateTime.Now
-                };
-            }
-
-            // Remove exhaust state after animation
-            Task.Delay(1000).ContinueWith(_ =>
-            {
-                ExhaustingCardIds.Clear();
-                foreach (var cardId in ExhaustingCardIds)
-                {
-                    CardStates.Remove(cardId);
-                }
-                InvokeAsync(StateHasChanged);
-            });
+            AnimationManager.MarkCardsForExhaust(cardsToExhaust, () => InvokeAsync(StateHasChanged));
         }
 
         /// <summary>

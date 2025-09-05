@@ -340,7 +340,8 @@
       "Bash(pip3 install:*)",
       "Bash(apt list:*)",
       "Bash(google-chrome:*)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:6000\" dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6000\" dotnet run --no-build)",
+      "Bash(/tmp/fix_narratives.sh:*)"
     ],
     "deny": []
   }
