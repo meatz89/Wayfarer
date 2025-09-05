@@ -464,6 +464,15 @@ public class ConversationFacade
     }
 
     /// <summary>
+    /// Check if a card can be played in the current conversation
+    /// </summary>
+    public bool CanPlayCard(CardInstance card, ConversationSession session)
+    {
+        if (card == null || session == null) return false;
+        return _deckManager.CanPlayCard(card, session);
+    }
+
+    /// <summary>
     /// Execute SPEAK action with a single selected card (ONE CARD RULE)
     /// </summary>
     public async Task<CardPlayResult> ExecuteSpeakSingleCard(CardInstance selectedCard)

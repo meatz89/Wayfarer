@@ -18,7 +18,7 @@ public class CardEffectProcessor
     /// <summary>
     /// Process a card's success effect
     /// </summary>
-    public CardEffectResult ProcessSuccessEffect(ConversationCard card, ConversationSession session)
+    public CardEffectResult ProcessSuccessEffect(CardInstance card, ConversationSession session)
     {
         if (card.SuccessEffect == null || card.SuccessEffect.IsEmpty)
             return new CardEffectResult { Card = card };
@@ -29,7 +29,7 @@ public class CardEffectProcessor
     /// <summary>
     /// Process a card's failure effect
     /// </summary>
-    public CardEffectResult ProcessFailureEffect(ConversationCard card, ConversationSession session)
+    public CardEffectResult ProcessFailureEffect(CardInstance card, ConversationSession session)
     {
         if (card.FailureEffect == null || card.FailureEffect.IsEmpty)
             return new CardEffectResult { Card = card };
@@ -40,7 +40,7 @@ public class CardEffectProcessor
     /// <summary>
     /// Process a card's exhaust effect
     /// </summary>
-    public CardEffectResult ProcessExhaustEffect(ConversationCard card, ConversationSession session)
+    public CardEffectResult ProcessExhaustEffect(CardInstance card, ConversationSession session)
     {
         if (card.ExhaustEffect == null || card.ExhaustEffect.IsEmpty)
             return new CardEffectResult { Card = card };
@@ -51,7 +51,7 @@ public class CardEffectProcessor
     /// <summary>
     /// Process any card effect and return the result
     /// </summary>
-    private CardEffectResult ProcessEffect(CardEffect effect, ConversationCard card, ConversationSession session)
+    private CardEffectResult ProcessEffect(CardEffect effect, CardInstance card, ConversationSession session)
     {
         CardEffectResult result = new CardEffectResult
         {
@@ -240,7 +240,7 @@ public class CardEffectProcessor
     }
 
     // Calculate success percentage for a card
-    public int CalculateSuccessPercentage(ConversationCard card, ConversationSession session)
+    public int CalculateSuccessPercentage(CardInstance card, ConversationSession session)
     {
         int baseSuccess = card.GetBaseSuccessPercentage();
 
@@ -317,7 +317,7 @@ public class CardEffectProcessor
 // Result of processing a card effect
 public class CardEffectResult
 {
-    public ConversationCard Card { get; set; }
+    public CardInstance Card { get; set; }
     public int RapportChange { get; set; }
     public List<CardInstance> CardsToAdd { get; set; } = new();
     public int FocusAdded { get; set; }

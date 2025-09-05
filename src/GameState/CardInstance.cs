@@ -63,7 +63,7 @@ public class CardInstance
     public ConnectionState? SuccessState => null;
     public ConnectionState? FailureState => null;
     public int BaseFlow => 1;
-    public bool CanDeliverLetter => Properties.Contains(CardProperty.DeliveryEligible);
+    public bool CanDeliverLetter => Properties.Contains(CardProperty.GoalCard);
     public string DeliveryObligationId => "";
     public string ObservationSource => "";
     public bool IsExchange => Properties.Contains(CardProperty.Exchange);
@@ -77,7 +77,7 @@ public class CardInstance
     public int CalculateSuccessChance()
     {
         // Request/Promise cards always succeed (100%)
-        if (Properties.Contains(CardProperty.DeliveryEligible))
+        if (Properties.Contains(CardProperty.GoalCard))
             return 100;
 
         return GetBaseSuccessPercentage();
@@ -86,7 +86,7 @@ public class CardInstance
     public int CalculateSuccessChance(ConnectionState state)
     {
         // Request/Promise cards always succeed (100%)
-        if (Properties.Contains(CardProperty.DeliveryEligible))
+        if (Properties.Contains(CardProperty.GoalCard))
             return 100;
 
         return GetBaseSuccessPercentage();
@@ -103,7 +103,7 @@ public class CardInstance
         };
     }
 
-    private int GetBaseSuccessPercentage()
+    public int GetBaseSuccessPercentage()
     {
         return Difficulty switch
         {

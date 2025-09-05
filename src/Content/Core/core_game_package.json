@@ -817,6 +817,36 @@
         ],
         "maxItemCapacity": 5,
         "description": "The guarded main gate to the Noble District - requires 10 coin bribe."
+      },
+      {
+        "id": "noble_to_market",
+        "name": "via Guard Checkpoint",
+        "originLocationSpot": "aldwin_manor",
+        "destinationLocationSpot": "central_fountain",
+        "method": "Walking",
+        "baseCoinCost": 0,
+        "baseStaminaCost": 2,
+        "travelTimeMinutes": 25,
+        "departureTime": null,
+        "isDiscovered": true,
+        "terrainCategories": [],
+        "maxItemCapacity": 5,
+        "description": "Return to Market Square through the guarded gate."
+      },
+      {
+        "id": "noble_to_tavern",
+        "name": "via Noble Streets",
+        "originLocationSpot": "aldwin_manor",
+        "destinationLocationSpot": "main_hall",
+        "method": "Walking",
+        "baseCoinCost": 0,
+        "baseStaminaCost": 2,
+        "travelTimeMinutes": 30,
+        "departureTime": null,
+        "isDiscovered": true,
+        "terrainCategories": [],
+        "maxItemCapacity": 5,
+        "description": "A direct route from Noble District to the Copper Kettle Tavern."
       }
     ],
     "letterTemplates": [
@@ -860,12 +890,12 @@
         "focus": 0,
         "properties": [
           "Persistent",
-          "DeliveryEligible"
+          "GoalCard"
         ],
         "connectionType": "Trust",
         "description": "Accept Elena's Letter",
         "difficulty": "VeryEasy",
-        "rapportThreshold": 0,
+        "rapportThreshold": 5,
         "successEffect": {
           "type": "CreateObligation",
           "value": "letter_delivery",
@@ -890,7 +920,7 @@
         "focus": 0,
         "properties": [
           "Persistent",
-          "ConnectionGoal"
+          "GoalCard"
         ],
         "connectionType": "Commerce",
         "description": "Build Commerce Connection",
@@ -904,10 +934,6 @@
             "npcId": "marcus"
           }
         },
-        "exhaustEffect": {
-          "type": "EndConversation",
-          "value": "goal_exhausted"
-        },
         "dialogueFragment": "You've proven yourself a reliable business partner. Let's do more deals in the future."
       },
       {
@@ -917,7 +943,7 @@
         "focus": 0,
         "properties": [
           "Persistent",
-          "ConnectionGoal"
+          "GoalCard"
         ],
         "connectionType": "Status",
         "description": "Build Status Connection",
@@ -931,10 +957,6 @@
             "npcId": "viktor"
           }
         },
-        "exhaustEffect": {
-          "type": "EndConversation",
-          "value": "goal_exhausted"
-        },
         "dialogueFragment": "You've earned my respect. The guard will remember you as someone worthy of trust."
       },
       {
@@ -944,7 +966,7 @@
         "focus": 0,
         "properties": [
           "Persistent",
-          "ConnectionGoal"
+          "GoalCard"
         ],
         "connectionType": "Trust",
         "description": "Build Trust Connection",
@@ -958,10 +980,6 @@
             "npcId": "bertram"
           }
         },
-        "exhaustEffect": {
-          "type": "EndConversation",
-          "value": "goal_exhausted"
-        },
         "dialogueFragment": "You're always welcome here, friend. The Copper Kettle is your home away from home."
       },
       {
@@ -971,7 +989,7 @@
         "focus": 0,
         "properties": [
           "Persistent",
-          "ConnectionGoal"
+          "GoalCard"
         ],
         "connectionType": "Status",
         "description": "Build Status Connection",
@@ -984,10 +1002,6 @@
             "amount": 1,
             "npcId": "lord_blackwood"
           }
-        },
-        "exhaustEffect": {
-          "type": "EndConversation",
-          "value": "goal_exhausted"
         },
         "dialogueFragment": "You've proven yourself worthy of noble attention. I shall remember your service."
       }

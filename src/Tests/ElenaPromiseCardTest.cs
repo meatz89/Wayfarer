@@ -19,7 +19,7 @@ namespace Wayfarer.Tests
         }
         
         [Test]
-        public void Elena_Promise_Card_Should_Have_DeliveryEligible_Property()
+        public void Elena_Promise_Card_Should_Have_GoalCard_Property()
         {
             // Arrange
             var elena = _gameWorld.NPCs.FirstOrDefault(n => n.ID == "elena");
@@ -32,8 +32,8 @@ namespace Wayfarer.Tests
             
             // Assert
             Assert.IsNotNull(letterCard, "Elena should have a letter request card");
-            Assert.IsTrue(letterCard.Properties.Contains(CardProperty.DeliveryEligible), 
-                "Elena's letter card should have the DeliveryEligible property");
+            Assert.IsTrue(letterCard.Properties.Contains(CardProperty.GoalCard), 
+                "Elena's letter card should have the GoalCard property");
             Assert.AreEqual("Promise", letterCard.Category, "Card should be categorized as Promise");
         }
         
@@ -50,21 +50,21 @@ namespace Wayfarer.Tests
             var cardInstance = new CardInstance(letterCard, "elena");
             
             // Assert - Verify the CardInstance preserved the property
-            Assert.IsTrue(cardInstance.Properties.Contains(CardProperty.DeliveryEligible), 
-                "CardInstance should preserve the DeliveryEligible property");
+            Assert.IsTrue(cardInstance.Properties.Contains(CardProperty.GoalCard), 
+                "CardInstance should preserve the GoalCard property");
             
             // The actual success check happens in CardDeckManager.PlayCard
-            // which checks for DeliveryEligible and sets success = true
+            // which checks for GoalCard and sets success = true
             Console.WriteLine($"Card '{cardInstance.Description}' has properties: {string.Join(", ", cardInstance.Properties)}");
-            Console.WriteLine($"Card with DeliveryEligible property will always succeed (100% success rate)");
+            Console.WriteLine($"Card with GoalCard property will always succeed (100% success rate)");
         }
         
         [Test]
-        public void Promise_Cards_With_DeliveryEligible_Should_Be_Guaranteed_Success()
+        public void Promise_Cards_With_GoalCard_Should_Be_Guaranteed_Success()
         {
             // This test verifies the game design principle that promise/request cards always succeed
             
-            // Arrange - Create a test promise card with DeliveryEligible
+            // Arrange - Create a test promise card with GoalCard
             var testCard = new RequestCard
             {
                 Id = "test_promise",
@@ -74,24 +74,24 @@ namespace Wayfarer.Tests
                 Properties = new System.Collections.Generic.List<CardProperty> 
                 { 
                     CardProperty.Persistent, 
-                    CardProperty.DeliveryEligible 
+                    CardProperty.GoalCard 
                 }
             };
             
             var cardInstance = new CardInstance(testCard, "test");
             
             // Assert
-            Assert.IsTrue(cardInstance.Properties.Contains(CardProperty.DeliveryEligible), 
-                "Promise cards must have DeliveryEligible property");
+            Assert.IsTrue(cardInstance.Properties.Contains(CardProperty.GoalCard), 
+                "Promise cards must have GoalCard property");
             
             // CardDeckManager.PlayCard checks:
-            // if (selectedCard.Properties.Contains(CardProperty.DeliveryEligible))
+            // if (selectedCard.Properties.Contains(CardProperty.GoalCard))
             // {
             //     success = true;
             //     roll = 100;
             //     successPercentage = 100;
             // }
-            Console.WriteLine("Promise cards with DeliveryEligible are guaranteed 100% success in CardDeckManager.PlayCard");
+            Console.WriteLine("Promise cards with GoalCard are guaranteed 100% success in CardDeckManager.PlayCard");
         }
     }
 }

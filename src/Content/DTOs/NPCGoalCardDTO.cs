@@ -27,7 +27,7 @@ public class NPCGoalCardDTO
     public int Focus { get; set; }
 
     /// <summary>
-    /// Card properties like Persistent, DeliveryEligible
+    /// Card properties like Persistent, GoalCard
     /// </summary>
     public List<string> Properties { get; set; }
 

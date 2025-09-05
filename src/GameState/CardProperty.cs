@@ -42,9 +42,9 @@ public enum CardProperty
     Exchange,
 
     /// <summary>
-    /// Card can be used to deliver a letter
+    /// Card is a goal card (request/promise) that requires rapport threshold
     /// </summary>
-    DeliveryEligible,
+    GoalCard,
 
     /// <summary>
     /// Card cannot be played until conditions are met (e.g., request card before sufficient focus)

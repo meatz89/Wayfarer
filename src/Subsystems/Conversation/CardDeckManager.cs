@@ -82,7 +82,7 @@ public class CardDeckManager
     {
         // Check if card is unplayable (but skip this check for promise cards which handle rapport separately)
         if (selectedCard.Properties.Contains(CardProperty.Unplayable) &&
-            !selectedCard.Properties.Contains(CardProperty.DeliveryEligible))
+            !selectedCard.Properties.Contains(CardProperty.GoalCard))
         {
             return new CardPlayResult
             {
@@ -125,14 +125,13 @@ public class CardDeckManager
         }
 
         // Calculate success percentage
-        ConversationCard card = ConvertToNewCard(selectedCard);
-        int successPercentage = _effectProcessor.CalculateSuccessPercentage(card, session);
+        int successPercentage = _effectProcessor.CalculateSuccessPercentage(selectedCard, session);
 
-        // Promise/request cards (DeliveryEligible) ALWAYS succeed
+        // Promise/request cards (GoalCard) ALWAYS succeed
         bool success;
         int roll;
 
-        if (selectedCard.Properties.Contains(CardProperty.DeliveryEligible))
+        if (selectedCard.Properties.Contains(CardProperty.GoalCard))
         {
             // Promise/request cards always succeed (100% success rate)
             success = true;
@@ -163,7 +162,7 @@ public class CardDeckManager
             session.HiddenMomentum = 0;
 
             // Process card's success effect
-            effectResult = _effectProcessor.ProcessSuccessEffect(card, session);
+            effectResult = _effectProcessor.ProcessSuccessEffect(selectedCard, session);
 
             // Apply rapport changes to RapportManager
             if (effectResult.RapportChange != 0 && session.RapportManager != null)
@@ -195,7 +194,7 @@ public class CardDeckManager
             session.HiddenMomentum = Math.Min(session.HiddenMomentum + 1, 4); // Cap at 4 failures
 
             // Process card's failure effect
-            effectResult = _effectProcessor.ProcessFailureEffect(card, session);
+            effectResult = _effectProcessor.ProcessFailureEffect(selectedCard, session);
 
             // Apply rapport changes to RapportManager (if any failure effects modify rapport)
             if (effectResult.RapportChange != 0 && session.RapportManager != null)
@@ -285,9 +284,9 @@ public class CardDeckManager
         // NOT by focus. Their playability is checked in the UI based on rapport.
         // We only mark that a request card exists in the hand.
 
-        // Check if there's a request card in hand (DeliveryEligible property)
+        // Check if there's a request card in hand (GoalCard property)
         bool hasRequestCard = session.Hand.Cards
-            .Any(c => c.Properties.Contains(CardProperty.DeliveryEligible));
+            .Any(c => c.Properties.Contains(CardProperty.GoalCard));
 
         if (hasRequestCard)
         {
@@ -312,7 +311,7 @@ public class CardDeckManager
         foreach (CardInstance card in session.Hand.Cards)
         {
             // Skip request/promise cards - their playability is based on rapport, not focus
-            if (card.Properties.Contains(CardProperty.DeliveryEligible))
+            if (card.Properties.Contains(CardProperty.GoalCard))
             {
                 continue; // Don't modify request card playability here
             }
@@ -348,12 +347,10 @@ public class CardDeckManager
 
         foreach (CardInstance card in impulseCards)
         {
-            ConversationCard conversationCard = ConvertToNewCard(card);
-
             // Execute exhaust effect if it exists
-            if (conversationCard.ExhaustEffect?.Type != CardEffectType.None)
+            if (card.ExhaustEffect?.Type != CardEffectType.None)
             {
-                if (!ExecuteExhaustEffect(conversationCard, session))
+                if (!ExecuteExhaustEffect(card, session))
                 {
                     // Exhaust effect ended conversation
                     return false;
@@ -381,10 +378,9 @@ public class CardDeckManager
         foreach (CardInstance card in openingCards)
         {
             // Execute exhaust effect if it exists
-            ConversationCard conversationCard = ConvertToNewCard(card);
-            if (conversationCard.ExhaustEffect?.Type != CardEffectType.None)
+            if (card.ExhaustEffect?.Type != CardEffectType.None)
             {
-                if (!ExecuteExhaustEffect(conversationCard, session))
+                if (!ExecuteExhaustEffect(card, session))
                 {
                     // Exhaust effect ended conversation
                     return false;
@@ -404,14 +400,13 @@ public class CardDeckManager
     /// </summary>
     private bool IsOpeningCard(CardInstance card)
     {
-        ConversationCard conversationCard = ConvertToNewCard(card);
-        return conversationCard.IsOpening;
+        return card.Properties.Contains(CardProperty.Opening);
     }
 
     /// <summary>
     /// Execute a card's exhaust effect
     /// </summary>
-    private bool ExecuteExhaustEffect(ConversationCard card, ConversationSession session)
+    private bool ExecuteExhaustEffect(CardInstance card, ConversationSession session)
     {
         if (card.ExhaustEffect == null || card.ExhaustEffect.Type == CardEffectType.None)
             return true; // No exhaust effect, conversation continues
@@ -470,12 +465,24 @@ public class CardDeckManager
     }
 
     /// <summary>
-    /// Validate if a card can be played (only focus check now)
+    /// Validate if a card can be played (focus check and rapport for goal cards)
     /// </summary>
     public bool CanPlayCard(CardInstance card, ConversationSession session)
     {
-        // Only check focus availability - no state restrictions
-        return _focusManager.CanAffordCard(card.Focus);
+        // Check focus availability
+        if (!_focusManager.CanAffordCard(card.Focus))
+            return false;
+
+        // Check rapport threshold ONLY for goal cards
+        if (card.Properties.Contains(CardProperty.GoalCard))
+        {
+            // Use the rapport threshold we stored in CardContext
+            int rapportThreshold = card.Context?.RapportThreshold ?? 0;
+            int currentRapport = session.RapportManager?.CurrentRapport ?? 0;
+            return currentRapport >= rapportThreshold;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -517,24 +524,23 @@ public class CardDeckManager
         if (npc.RequestDeck == null || !npc.RequestDeck.HasCardsAvailable())
             return null;
 
-        List<ConversationCard> goalCards = npc.RequestDeck.GetAllCards()
+        List<RequestCard> goalCards = npc.RequestDeck.GetAllCards()
             .OfType<RequestCard>()
             .Where(card => card.GoalType == "FriendlyChat")
-            .Cast<ConversationCard>()
             .ToList();
 
         if (!goalCards.Any())
             return null;
 
-        ConversationCard selectedGoal = goalCards[_random.Next(goalCards.Count)];
+        RequestCard selectedGoal = goalCards[_random.Next(goalCards.Count)];
         CardInstance goalInstance = new CardInstance(selectedGoal, npc.ID);
 
-        // Store the rapport threshold in the card context
+        // Store the rapport threshold in the card context (same as Elena's letter)
         if (goalInstance.Context == null)
             goalInstance.Context = new CardContext();
         
-        // Standard rapport threshold for connection goals
-        goalInstance.Context.RapportThreshold = 3;
+        // Use the rapport threshold from the card itself (from JSON)
+        goalInstance.Context.RapportThreshold = selectedGoal.RapportThreshold;
         
         return goalInstance;
     }
@@ -548,23 +554,22 @@ public class CardDeckManager
         if (npc.RequestDeck == null || !npc.RequestDeck.HasCardsAvailable())
             return null;
 
-        List<ConversationCard> resolutionCards = npc.RequestDeck.GetAllCards()
+        List<RequestCard> resolutionCards = npc.RequestDeck.GetAllCards()
             .OfType<RequestCard>()
             .Where(card => card.GoalType == "Resolution")
-            .Cast<ConversationCard>()
             .ToList();
 
         if (!resolutionCards.Any())
             return null;
 
-        ConversationCard selectedResolution = resolutionCards[_random.Next(resolutionCards.Count)];
+        RequestCard selectedResolution = resolutionCards[_random.Next(resolutionCards.Count)];
         CardInstance resolutionInstance = new CardInstance(selectedResolution, npc.ID);
 
         if (resolutionInstance.Context == null)
             resolutionInstance.Context = new CardContext();
         
-        // Higher rapport threshold for burden resolution
-        resolutionInstance.Context.RapportThreshold = 4;
+        // Use the rapport threshold from the card itself (from JSON)
+        resolutionInstance.Context.RapportThreshold = selectedResolution.RapportThreshold;
         
         return resolutionInstance;
     }
@@ -605,48 +610,10 @@ public class CardDeckManager
     /// </summary>
     private bool IsRequestCardValidForConversation(ConversationCard card, ConversationType type)
     {
-        // Check if this is a promise/goal card (has DeliveryEligible property)
-        return card.Properties.Contains(CardProperty.DeliveryEligible);
+        // Check if this is a promise/goal card (has GoalCard property)
+        return card.Properties.Contains(CardProperty.GoalCard);
     }
 
-    /// <summary>
-    /// Convert CardInstance to ConversationCard format
-    /// </summary>
-    private ConversationCard ConvertToNewCard(CardInstance instance)
-    {
-        // Since CardInstance now mirrors ConversationCard structure,
-        // we can create a direct mapping
-        ConversationCard card = new ConversationCard
-        {
-            Id = instance.Id,
-            Description = instance.Description,
-            Properties = new List<CardProperty>(instance.Properties),
-            TokenType = instance.TokenType,
-            Focus = instance.Focus,
-            Difficulty = instance.Difficulty,
-            SuccessEffect = instance.SuccessEffect ?? CardEffect.None,
-            FailureEffect = instance.FailureEffect ?? CardEffect.None,
-            ExhaustEffect = instance.ExhaustEffect ?? CardEffect.None,
-            DialogueFragment = instance.DialogueFragment,
-            VerbPhrase = instance.VerbPhrase
-        };
-
-        // Ensure promise/goal cards have proper exhaust effect
-        if (card.Properties.Contains(CardProperty.DeliveryEligible) && (card.ExhaustEffect == null || card.ExhaustEffect.Type == CardEffectType.None))
-        {
-            card.ExhaustEffect = new CardEffect
-            {
-                Type = CardEffectType.EndConversation,
-                Value = "request_exhausted",
-                Data = new Dictionary<string, object>
-                {
-                    { "reason", "Request card exhausted without being played" }
-                }
-            };
-        }
-
-        return card;
-    }
 
     /// <summary>
     /// Convert legacy success chance to new Difficulty enum

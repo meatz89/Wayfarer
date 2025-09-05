@@ -60,7 +60,7 @@ public class ConversationCard
         {
             if (Properties.Contains(CardProperty.Exchange)) return nameof(CardCategory.Exchange);
             if (IsBurden) return nameof(CardCategory.Burden);
-            if (Properties.Contains(CardProperty.DeliveryEligible)) return nameof(CardCategory.Promise);
+            if (Properties.Contains(CardProperty.GoalCard)) return nameof(CardCategory.Promise);
             if (IsObservable) return nameof(CardCategory.Observation);
             // Default to Flow for backwards compatibility
             return nameof(CardCategory.Flow);
@@ -69,11 +69,11 @@ public class ConversationCard
 
     // Additional compatibility properties for UI
     public CardType Type => Properties.Contains(CardProperty.Exchange) ? CardType.Exchange :
-                           Properties.Contains(CardProperty.DeliveryEligible) ? CardType.Request :
+                           Properties.Contains(CardProperty.GoalCard) ? CardType.Request :
                            IsObservable ? CardType.Observation :
                            CardType.Normal;
     public CardContext Context => null;
-    public string RequestCardType => Properties.Contains(CardProperty.DeliveryEligible) ? "Request" : null;
+    public string RequestCardType => Properties.Contains(CardProperty.GoalCard) ? "Request" : null;
 
     // Deep clone for deck instances
     public ConversationCard DeepClone()

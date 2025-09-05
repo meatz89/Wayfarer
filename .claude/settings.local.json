@@ -346,7 +346,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6300\" timeout 10 dotnet run --no-build)",
       "Bash(mono:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" timeout 10 dotnet run --project /mnt/c/git/wayfarer/src/Wayfarer.csproj --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run --project /mnt/c/git/wayfarer/src/Wayfarer.csproj --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run --project /mnt/c/git/wayfarer/src/Wayfarer.csproj --no-build)",
+      "Bash(echo \"Updating $file\")",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6201\" dotnet run)"
     ],
     "deny": []
   }

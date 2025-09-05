@@ -67,8 +67,8 @@ namespace Wayfarer
         /// </summary>
         private List<CardDisplayInfo> SortCardsWithPromiseFirst(List<CardDisplayInfo> cards)
         {
-            List<CardDisplayInfo> promiseCards = cards.Where(dc => dc.Card.Properties.Contains(CardProperty.DeliveryEligible)).ToList();
-            List<CardDisplayInfo> regularCards = cards.Where(dc => !dc.Card.Properties.Contains(CardProperty.DeliveryEligible)).ToList();
+            List<CardDisplayInfo> promiseCards = cards.Where(dc => dc.Card.Properties.Contains(CardProperty.GoalCard)).ToList();
+            List<CardDisplayInfo> regularCards = cards.Where(dc => !dc.Card.Properties.Contains(CardProperty.GoalCard)).ToList();
 
             List<CardDisplayInfo> sorted = new List<CardDisplayInfo>();
             sorted.AddRange(promiseCards);

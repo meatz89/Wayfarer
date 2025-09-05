@@ -267,7 +267,7 @@ namespace Wayfarer.Pages.Components
                 await Task.Delay(750);
 
                 // Check if this was a promise/goal card that succeeded
-                bool isPromiseCard = playedCard.Properties.Contains(CardProperty.DeliveryEligible);
+                bool isPromiseCard = playedCard.Properties.Contains(CardProperty.GoalCard);
                 if (isPromiseCard && wasSuccessful)
                 {
                     // Promise card succeeded - conversation ends in victory!
@@ -619,26 +619,10 @@ namespace Wayfarer.Pages.Components
 
         protected bool CanSelectCard(CardInstance card)
         {
-            if (Session == null) return false;
+            if (Session == null || card == null) return false;
 
-            // Check if this is a request/promise card
-            if (card.Properties.Contains(CardProperty.DeliveryEligible))
-            {
-                // Request cards are playable when rapport threshold is met
-                int currentRapport = Session.RapportManager?.CurrentRapport ?? 0;
-                return currentRapport >= GetRequestRapportThreshold(card);
-            }
-
-            // Check if card is unplayable (other reasons)
-            if (card.Properties.Contains(CardProperty.Unplayable)) return false;
-
-            // Check if observation card is expired
-            if (IsObservationExpired(card)) return false;
-
-            // Check focus limit - card must not exceed current state's max focus
-            // (Request cards have 0 focus cost so they pass this check)
-            int effectiveFocus = card.Focus;
-            return effectiveFocus <= GetFocusLimit();
+            // UI MUST ONLY ASK BACKEND - NO GAME LOGIC IN UI
+            return ConversationFacade.CanPlayCard(card, Session);
         }
 
         protected bool IsCardSelected(CardInstance card)
