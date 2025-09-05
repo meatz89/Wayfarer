@@ -330,6 +330,25 @@
                         </div>
                     }
                 }
+                
+                @* Render animating cards that have been played but are still showing animation *@
+                @foreach (var animatingCard in AnimatingCards)
+                {
+                    var card = animatingCard.Card;
+                    <div class="card @(animatingCard.Success ? "card-played-success" : "card-played-failure")">
+                        <div class="card-content">
+                            <div class="card-main">
+                                <div class="card-header">
+                                    <div class="card-name">@GetProperCardName(card)</div>
+                                    <div class="card-focus">@card.GetEffectiveFocus(Context.Session.CurrentState)</div>
+                                </div>
+                                <div class="card-text">
+                                    "@GetProperCardDialogue(card)"
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         }
     </div>

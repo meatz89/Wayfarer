@@ -67,6 +67,13 @@ namespace Wayfarer.Pages.Components
         public string State { get; set; } // "new", "played-success", "played-failure", "exhausting", "normal"
         public DateTime StateChangedAt { get; set; }
     }
+    
+    public class AnimatingCard
+    {
+        public CardInstance Card { get; set; }
+        public bool Success { get; set; }
+        public DateTime AddedAt { get; set; }
+    }
 
     /// <summary>
     /// Conversation screen component that handles NPC interactions through card-based dialogue.
@@ -113,6 +120,9 @@ namespace Wayfarer.Pages.Components
         protected Dictionary<string, CardAnimationState> CardStates { get; set; } = new();
         protected HashSet<string> NewCardIds { get; set; } = new();
         protected HashSet<string> ExhaustingCardIds { get; set; } = new();
+        
+        // Keep track of cards that are animating out after being played
+        protected List<AnimatingCard> AnimatingCards { get; set; } = new();
 
         protected int GetBaseSuccessPercentage(Difficulty difficulty)
         {
@@ -316,8 +326,7 @@ namespace Wayfarer.Pages.Components
                 // Store the played card for animation tracking
                 var playedCard = SelectedCard;
                 
-                // ExecuteSpeak expects a single card
-                // CRITICAL: Must use ConversationManager.ExecuteSpeak to handle special card effects like letter delivery
+                // ExecuteSpeak expects a single card - this removes it from hand
                 CardPlayResult result = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
                 
                 // Generate and show narrative immediately based on result
@@ -325,8 +334,9 @@ namespace Wayfarer.Pages.Components
                 StateHasChanged(); // Show the narrative text
                 
                 // Mark the played card with success/failure animation
+                // The card is now removed from hand, but we'll keep it in AnimatingCards for display
                 bool wasSuccessful = result?.Results?.FirstOrDefault()?.Success ?? false;
-                MarkCardAsPlayed(playedCard, wasSuccessful);
+                AddAnimatingCard(playedCard, wasSuccessful);
                 StateHasChanged(); // Show the card animation
                 
                 // Delay to let player see the result clearly
@@ -2941,6 +2951,29 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
+        /// Add a card to the animating cards list for post-play animation
+        /// </summary>
+        protected void AddAnimatingCard(CardInstance card, bool success)
+        {
+            if (card == null) return;
+            
+            // Add to animating cards list
+            AnimatingCards.Add(new AnimatingCard
+            {
+                Card = card,
+                Success = success,
+                AddedAt = DateTime.Now
+            });
+            
+            // Remove after animation completes (2.5s flash + 0.5s play-out = 3s total)
+            Task.Delay(3200).ContinueWith(_ =>
+            {
+                AnimatingCards.RemoveAll(ac => ac.Card.InstanceId == card.InstanceId);
+                InvokeAsync(StateHasChanged);
+            });
+        }
+
+        /// <summary>
         /// Mark a card as successfully played
         /// </summary>
         protected void MarkCardAsPlayed(CardInstance card, bool success)
@@ -2955,8 +2988,8 @@ namespace Wayfarer.Pages.Components
                 StateChangedAt = DateTime.Now
             };
 
-            // Remove state after animation completes
-            Task.Delay(2000).ContinueWith(_ =>
+            // Remove state after animation completes (2.5s flash + 0.5s play-out = 3s total)
+            Task.Delay(3200).ContinueWith(_ =>
             {
                 CardStates.Remove(cardId);
                 InvokeAsync(StateHasChanged);
