@@ -582,7 +582,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             {
                 info.ShouldForceDisplacement = true;
                 info.ForcedPosition = 1;
-                info.DisplacementReason = $"{obligation.SenderName} is DESPERATE - their letter takes priority!";
+                info.DisplacementReason = $"{obligation.SenderName} is DISCONNECTED - their letter takes priority!";
                 info.Trigger = DisplacementTrigger.CriticalEmotionalFocus;
                 return info;
             }

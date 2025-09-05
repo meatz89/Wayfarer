@@ -306,7 +306,7 @@ public class ActionGenerator
         string? atmosphereValue = location.Atmosphere?.GetPropertyValue();
         switch (atmosphereValue)
         {
-            case "Tense":
+            case "Guarded":
                 // Basic awareness is T1
                 actions.Add(CreateActionWithTierCheck(
                     "⚠️", "Stay Alert", "Watch carefully", "FREE",

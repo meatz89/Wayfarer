@@ -2,10 +2,10 @@
 // Card selection manager for UI
 public class CardSelectionManager
 {
-    private readonly EmotionalState _currentState;
+    private readonly ConnectionState _currentState;
     private readonly HashSet<CardInstance> _selectedCards = new();
 
-    public CardSelectionManager(EmotionalState currentState)
+    public CardSelectionManager(ConnectionState currentState)
     {
         _currentState = currentState;
     }

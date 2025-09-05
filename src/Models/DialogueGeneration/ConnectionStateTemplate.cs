@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// Template for dialogue based on emotional state
+/// Template for dialogue based on connection state
 /// </summary>
-public class EmotionalStateTemplate
+public class ConnectionStateTemplate
 {
     [JsonPropertyName("contextual")]
     public Dictionary<string, object> Contextual { get; set; }

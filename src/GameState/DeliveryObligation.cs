@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 /// <summary>
-/// Defines what's at stake for this letter - drives narrative urgency and NPC emotional states
+/// Defines what's at stake for this letter - drives narrative urgency and NPC connection states
 /// </summary>
 public enum StakeType
 {

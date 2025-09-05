@@ -104,7 +104,7 @@ namespace Wayfarer.Tests
             // Assert - verify all required mechanical properties are set
             Assert.That(Enum.IsDefined(typeof(PersonalityType), skeleton.PersonalityType), Is.True, "Should have valid personality");
             Assert.That(Enum.IsDefined(typeof(Professions), skeleton.Profession), Is.True, "Should have valid profession");
-            Assert.That(skeleton.CurrentState, Is.EqualTo(EmotionalState.NEUTRAL), "Should have neutral state");
+            Assert.That(skeleton.CurrentState, Is.EqualTo(ConnectionState.NEUTRAL), "Should have neutral state");
             Assert.That(skeleton.Tier, Is.InRange(1, 3), "Should have valid tier");
             Assert.That(skeleton.Name, Is.Not.Empty, "Should have generic name");
             Assert.That(skeleton.Description, Is.Not.Empty, "Should have generic description");

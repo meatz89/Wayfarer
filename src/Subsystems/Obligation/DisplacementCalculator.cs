@@ -580,7 +580,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             if (displacementReason.Contains("pride", StringComparison.OrdinalIgnoreCase))
                 return LetterPositioningReason.Obligation;
 
-            if (displacementReason.Contains("desperate", StringComparison.OrdinalIgnoreCase))
+            if (displacementReason.Contains("disconnected", StringComparison.OrdinalIgnoreCase))
                 return LetterPositioningReason.Obligation;
 
             return LetterPositioningReason.Obligation;

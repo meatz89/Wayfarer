@@ -190,7 +190,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 // Add location-specific actions
                 viewModel.QuickActions = _actionManager.GetLocationActions(location, spot);
 
-                // Add NPCs with emotional states
+                // Add NPCs with connection states
                 TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
                 viewModel.NPCsPresent = GetNPCsWithInteractions(spot, currentTime, npcConversationOptions);
 
@@ -268,7 +268,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
 
             foreach (NPC npc in npcs)
             {
-                EmotionalState emotionalState = GetNPCEmotionalState(npc);
+                ConnectionState connectionState = GetNPCConnectionState(npc);
                 List<InteractionOptionViewModel> interactions = new List<InteractionOptionViewModel>();
 
                 // Find conversation options for this NPC if provided
@@ -277,7 +277,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 {
                     foreach (ConversationType conversationType in npcOptions.AvailableTypes)
                     {
-                        InteractionOptionViewModel interaction = GenerateConversationInteraction(npc, conversationType, emotionalState);
+                        InteractionOptionViewModel interaction = GenerateConversationInteraction(npc, conversationType, connectionState);
                         if (interaction != null)
                         {
                             interactions.Add(interaction);
@@ -298,8 +298,8 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 {
                     Id = npc.ID,
                     Name = npc.Name,
-                    EmotionalStateName = emotionalState.ToString(),
-                    Description = GetNPCDescription(npc, emotionalState),
+                    ConnectionStateName = connectionState.ToString(),
+                    Description = GetNPCDescription(npc, connectionState),
                     Interactions = interactions
                 });
             }
@@ -307,13 +307,13 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             return result;
         }
 
-        private EmotionalState GetNPCEmotionalState(NPC npc)
+        private ConnectionState GetNPCConnectionState(NPC npc)
         {
-            Console.WriteLine($"[LocationFacade.GetNPCEmotionalState] Called for NPC: {npc?.Name ?? "null"}");
+            Console.WriteLine($"[LocationFacade.GetNPCConnectionState] Called for NPC: {npc?.Name ?? "null"}");
             return ConversationRules.DetermineInitialState(npc, _letterQueueManager);
         }
 
-        private InteractionOptionViewModel GenerateConversationInteraction(NPC npc, ConversationType conversationType, EmotionalState emotionalState)
+        private InteractionOptionViewModel GenerateConversationInteraction(NPC npc, ConversationType conversationType, ConnectionState connectionState)
         {
             // Generate interaction based on conversation type
             InteractionOptionViewModel interaction = new InteractionOptionViewModel
@@ -352,7 +352,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             return interaction;
         }
 
-        private string GetNPCDescription(NPC npc, EmotionalState state)
+        private string GetNPCDescription(NPC npc, ConnectionState state)
         {
             DeliveryObligation[] obligations = _letterQueueManager.GetActiveObligations();
             bool hasUrgentLetter = obligations.Any(o =>

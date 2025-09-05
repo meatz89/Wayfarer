@@ -27,16 +27,16 @@ public class FocusManager
         return capacity;
     }
 
-    // Set base capacity from emotional state
-    public void SetBaseCapacity(EmotionalState state)
+    // Set base capacity from connection state
+    public void SetBaseCapacity(ConnectionState state)
     {
         baseCapacity = state switch
         {
-            EmotionalState.DESPERATE => 3,
-            EmotionalState.TENSE => 4,
-            EmotionalState.NEUTRAL => 5,
-            EmotionalState.OPEN => 5,
-            EmotionalState.CONNECTED => 6,
+            ConnectionState.DISCONNECTED => 3,
+            ConnectionState.GUARDED => 4,
+            ConnectionState.NEUTRAL => 5,
+            ConnectionState.RECEPTIVE => 5,
+            ConnectionState.TRUSTING => 6,
             _ => 5
         };
     }

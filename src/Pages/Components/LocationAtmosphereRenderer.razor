@@ -37,27 +37,27 @@
     private string GetNPCFocusDescription(NPC npc)
     {
         // Generate description from categorical properties
-        var emotionalState = DetermineEmotionalState(npc);
+        var connectionState = DetermineConnectionState(npc);
         var hasUrgentLetter = HasUrgentLetter(npc);
         
         var baseActivity = GetProfessionActivity(npc.Profession);
-        var emotionalModifier = GetEmotionalModifier(emotionalState, hasUrgentLetter);
+        var emotionalModifier = GetEmotionalModifier(connectionState, hasUrgentLetter);
         var contextualProp = GetContextualProp(npc.Profession, hasUrgentLetter);
         
         // Combine categorical elements into description
-        if (emotionalState == EmotionalState.DESPERATE && hasUrgentLetter)
+        if (connectionState == ConnectionState.DISCONNECTED && hasUrgentLetter)
         {
-            return $"{emotionalModifier} {contextualProp}, {GetDesperateDetail()}";
+            return $"{emotionalModifier} {contextualProp}, {GetDisconnectedDetail()}";
         }
         
         return $"{baseActivity}, {emotionalModifier}";
     }
     
-    private EmotionalState DetermineEmotionalState(NPC npc)
+    private ConnectionState DetermineConnectionState(NPC npc)
     {
         // In the 5-state system, NPCs always start NEUTRAL at locations
         // Their state changes during conversations based on mechanics
-        return EmotionalState.NEUTRAL;
+        return ConnectionState.NEUTRAL;
     }
     
     private bool HasUrgentLetter(NPC npc)
@@ -82,16 +82,15 @@
         };
     }
     
-    private string GetEmotionalModifier(EmotionalState state, bool hasUrgentLetter)
+    private string GetEmotionalModifier(ConnectionState state, bool hasUrgentLetter)
     {
         return state switch
         {
-            EmotionalState.DESPERATE when hasUrgentLetter => "clutching a sealed letter with white knuckles",
-            EmotionalState.DESPERATE => "visibly distressed",
-            EmotionalState.TENSE => "occasionally glancing around nervously",
-            EmotionalState.NEUTRAL => "focused on the task at hand",
-            EmotionalState.OPEN => "with a welcoming demeanor",
-            EmotionalState.CONNECTED => "radiating warmth and connection",
+            ConnectionState.DISCONNECTED => "visibly distressed",
+            ConnectionState.GUARDED => "occasionally glancing around nervously",
+            ConnectionState.NEUTRAL => "focused on the task at hand",
+            ConnectionState.RECEPTIVE => "with a welcoming demeanor",
+            ConnectionState.TRUSTING => "radiating warmth and connection",
             _ => "focused on the task at hand"
         };
     }
@@ -110,7 +109,7 @@
         };
     }
     
-    private string GetDesperateDetail()
+    private string GetDisconnectedDetail()
     {
         return "eyes darting to the door with each patron's entrance";
     }

@@ -7,7 +7,7 @@ public enum PersonalityType
 {
     /// <summary>
     /// Family-oriented, faith-driven NPCs with high emotional investment.
-    /// Examples: "Intelligent and desperate", "Caring and worried"
+    /// Examples: "Intelligent and disconnected", "Caring and worried"
     /// Cards: Deep personal connection, genuine concern, emotional support
     /// </summary>
     DEVOTED,

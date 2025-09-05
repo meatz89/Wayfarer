@@ -73,7 +73,7 @@ You must provide your response ONLY as a valid JSON object with the following st
       "environmentalProperties": {
         "illumination": "Bright/Thiefy/Dark",
         "population": "Crowded/Quiet/Isolated",
-        "atmosphere": "Tense/Formal/Chaotic",
+        "atmosphere": "Guarded/Formal/Chaotic",
         "": "Wealthy/Commercial/Humble",
         "physical": "Confined/Expansive/Hazardous"
       }

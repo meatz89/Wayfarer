@@ -3,7 +3,7 @@
 public class ConversationTurnResult
 {
     public bool Success { get; set; }
-    public EmotionalState NewState { get; set; }
+    public ConnectionState NewState { get; set; }
     public string NPCResponse { get; set; }
     public int? FlowChange { get; set; }
     public int? OldFlow { get; set; }

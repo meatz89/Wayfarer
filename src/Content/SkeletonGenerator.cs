@@ -54,8 +54,8 @@ public static class SkeletonGenerator
             Profession = professionValues[(hash / 7) % professionValues.Length],
             Tier = 1 + (hash % 3), // Tier 1-3
             
-            // Default emotional state
-            CurrentState = EmotionalState.NEUTRAL,
+            // Default connection state
+            CurrentState = ConnectionState.NEUTRAL,
             
             // Empty collections
             ProvidedServices = new List<ServiceTypes>(),

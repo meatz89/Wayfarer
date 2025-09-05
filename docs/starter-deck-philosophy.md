@@ -19,7 +19,7 @@ This transforms patience from action currency into focus cycle currency. Each pa
 - Inefficient conversations literally waste the player's day
 
 ### The Focus Paradox
-In TENSE state (3 focus capacity):
+In GUARDED state (3 focus capacity):
 - Can play one 3-focus card OR
 - Can play 1-focus + 2-focus cards OR
 - Can play single card and waste focus
@@ -113,7 +113,7 @@ Every card serves one of three strategic purposes:
 - Difficulty: Hard (50% base success)
 - Effect: +4 rapport
 - Persistence: Persistent
-- Purpose: Prepared atmosphere payoff in Desperate state
+- Purpose: Prepared atmosphere payoff in Disconnected state
 
 ## Request Cards (Not Part of Base 12)
 
@@ -139,16 +139,16 @@ Request cards are placed directly in hand at conversation start based on convers
 2. Starting rapport = connection tokens with NPC
 3. Request card placed **directly in hand** but **unplayable**
 4. Automatic LISTEN occurs with no patience cost
-5. Draw cards equal to emotional state (Desperate=1, Tense=2, Neutral=2, Open=3, Connected=3)
-6. Starting hand = emotional state cards + unplayable request card
+5. Draw cards equal to connection state (Disconnected=1, Guarded=2, Neutral=2, Open=3, Connected=3)
+6. Starting hand = connection state cards + unplayable request card
 7. Deck contains 12 cards that cycle when exhausted
 
 ### Focus Mechanics
-- Base capacity determined by emotional state (Desperate=3, Tense=4, Neutral=5, Open=5, Connected=6)
+- Base capacity determined by connection state (Disconnected=3, Guarded=4, Neutral=5, Open=5, Connected=6)
 - Pool persists across multiple SPEAK actions
-- LISTEN refreshes focus to emotional state maximum
+- LISTEN refreshes focus to connection state maximum
 - Prepared atmosphere adds +1 to CURRENT focus
-- Can exceed maximum with Prepared (e.g., 4/3 in Desperate)
+- Can exceed maximum with Prepared (e.g., 4/3 in Disconnected)
 - If atmosphere clears, bonus vanishes immediately
 
 ### SPEAK Action Sequence
@@ -163,8 +163,8 @@ Request cards are placed directly in hand at conversation start based on convers
 
 ### LISTEN Action
 1. Costs 1 patience (unless Patient atmosphere active)
-2. Draw cards equal to emotional state
-3. Refresh focus to emotional state maximum
+2. Draw cards equal to connection state
+3. Refresh focus to connection state maximum
 4. If Prepared active, gain +1 to current focus
 5. Opening cards removed if unplayed
 6. Check if request card becomes playable (sufficient focus reached)
@@ -183,7 +183,7 @@ Request cards are placed directly in hand at conversation start based on convers
 - Every failed SPEAK: -1 flow
 - At +3: State shifts right, flow resets to 0
 - At -3: State shifts left, flow resets to 0
-- Desperate at -3: Conversation ends immediately
+- Disconnected at -3: Conversation ends immediately
 
 ### Rapport System
 - Range: -50 to +50
@@ -195,7 +195,7 @@ Request cards are placed directly in hand at conversation start based on convers
 
 ### Deck Cycling
 - When deck exhausted, shuffle discard pile
-- MUST draw full amount for emotional state
+- MUST draw full amount for connection state
 - Cannot draw fewer cards than required
 
 ## Strategic Analysis
@@ -204,9 +204,9 @@ Request cards are placed directly in hand at conversation start based on convers
 - 1-focus: 5 cards (42%) - Always playable
 - 2-focus: 4 cards (33%) - Standard plays
 - 3-focus: 2 cards (17%) - Full capacity plays
-- 4-focus: 1 card (8%) - Requires Prepared in Desperate
+- 4-focus: 1 card (8%) - Requires Prepared in Disconnected
 
-### Opening Hand Probabilities (Desperate)
+### Opening Hand Probabilities (Disconnected)
 Drawing 1 card + request:
 - 42% chance of 1-focus card
 - 33% chance of 2-focus card
@@ -219,14 +219,14 @@ Drawing 1 card + request:
 1. Turn 1: Play "Let me prepare" (1 focus)
 2. Turn 2: Prepared active, play rapport cards
 3. Turn 3: Success moves flow to +1
-4. Turn 4: Build to +3 flow (reach Tense)
+4. Turn 4: Build to +3 flow (reach Guarded)
 5. Continue building to Open state
 6. LISTEN at Open: Request becomes playable
 7. Play request immediately (45% + rapport bonus)
 
 **Safe Progression** (7 turns typical):
 1. Turns 1-3: Build rapport and flow
-2. Reach +3 net successes for Tense
+2. Reach +3 net successes for Guarded
 3. Continue to +6 net successes for Neutral  
 4. Reach +9 net successes for Open
 5. LISTEN at Open: Request becomes playable
@@ -259,7 +259,7 @@ Drawing 1 card + request:
 
 **Meaningful Choices**: Every turn forces compromise between rapport, setup, and information.
 
-**Clear Prepared Payoff**: The 4-focus card creates binary unlock in Desperate state.
+**Clear Prepared Payoff**: The 4-focus card creates binary unlock in Disconnected state.
 
 **Authentic Risk**: Failed gambles create recovery arcs, not instant loss.
 

@@ -494,7 +494,7 @@ body * {
     letter-spacing: 0.5px;
 }
 
-.npc-state.desperate {
+.npc-state.disconnected {
     color: #8b4726;
     font-focus: bold;
 }
@@ -1167,7 +1167,7 @@ body * {
     line-height: 1.6;
 }
 
-.npc-dialogue.desperate {
+.npc-dialogue.disconnected {
     border-left-color: #8b4726;
     background: #faf0e6;
 }
@@ -2451,25 +2451,6 @@ body * {
 
 .alert-text {
     flex: 1;
-}
-
-/* Persistent card subtle indicator */
-.card:not(.impulse):not(.unavailable) {
-    position: relative;
-}
-
-.card:not(.impulse):not(.unavailable)::after {
-    content: "✓";
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    font-size: 14px;
-    color: #90EE90;
-    opacity: 0.3;
-}
-
-/* Adjust selected impulse cards */
-.card.impulse.selected {
 }
 
 /* ===== PACKET 6: PROPERTY BADGE SYSTEM ===== */

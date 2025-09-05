@@ -65,9 +65,9 @@ Lower Wards → Market District → Central Square → Fountain
 - Work action: 2 attention → 8 coins + 4 hours
 - Quick exchanges available
 
-**Guard Post** (Authority, Tense):
+**Guard Post** (Authority, Guarded):
 - Guard Captain always present
-- Day shift: Tense atmosphere default
+- Day shift: Guarded atmosphere default
 - Night shift: Neutral atmosphere default
 
 **North Alcove** (Discrete):
@@ -99,7 +99,7 @@ Lower Wards → Market District → Central Square → Fountain
 - Requires: 10 coin bribe OR Access Permit
 - Guards inspect all travelers
 - Direct route to Lord Blackwood
-- Tense atmosphere
+- Guarded atmosphere
 
 **Side Path** (Discrete):
 - Alternative entry (requires Shadow knowledge)
@@ -133,7 +133,7 @@ From Copper Kettle Common Room:
 - Type: Devoted (15 base patience)
 - Location: Corner Table (+1 patience = 16 total)
 - Available: Afternoon-Evening only (2 PM - 10 PM)
-- Starting State: Desperate (forced marriage situation)
+- Starting State: Disconnected (forced marriage situation)
 - Starting Rapport: Equal to your Trust tokens with her
 
 **Conversation Deck** (20 cards):
@@ -164,7 +164,7 @@ From Copper Kettle Common Room:
 - "This is critical" (Status-type, W0, Easy 70%): No effect, Atmosphere: Final
 
 **Dramatic Cards** (2 total, impulse, Trust-type):
-- "Desperate plea" (Trust-type, W4, Hard 50%, Impulse): +4 rapport, Atmosphere: Volatile
+- "Disconnected plea" (Trust-type, W4, Hard 50%, Impulse): +4 rapport, Atmosphere: Volatile
 - "All or nothing" (Trust-type, W6, Very Hard 40%, Impulse): +5 rapport, Atmosphere: Final
 
 **Flex Slot** (1, Trust-type):
@@ -242,7 +242,7 @@ From Copper Kettle Common Room:
 - Type: Steadfast (13 base patience)
 - Location: Guard Post
 - Available: Always
-- Default Atmosphere: Tense (day) / Neutral (night)
+- Default Atmosphere: Guarded (day) / Neutral (night)
 - Starting Rapport: Equal to your Shadow tokens with him
 
 **Conversation Deck** (20 cards):
@@ -339,26 +339,26 @@ NPCs can reward observation cards:
 - "Guard Timing": Set Synchronized atmosphere
 - "Hidden Path": Focus = maximum
 
-## Emotional State Effects
+## Connection State Effects
 
 ### State Transitions and Focus Capacity
 
-**DESPERATE** (Elena's starting state):
+**DISCONNECTED** (Elena's starting state):
 - Focus capacity: 3
 - Cards drawn: 1
-- Flow: +3→Tense (escape!), -3→Conversation ends
+- Flow: +3→Guarded (escape!), -3→Conversation ends
 - Requests Available: Crisis promises, urgent letters
 
-**TENSE** (Cautious):
+**GUARDED** (Cautious):
 - Focus capacity: 4
 - Cards drawn: 2
-- Flow: +3→Neutral, -3→Desperate
+- Flow: +3→Neutral, -3→Disconnected
 - Requests Available: Shadow promises, burden resolution
 
 **NEUTRAL** (Balanced):
 - Focus capacity: 5
 - Cards drawn: 2
-- Flow: +3→Open, -3→Tense
+- Flow: +3→Open, -3→Guarded
 - Requests Available: Commerce promises, routine letters
 
 **OPEN** (Receptive):
@@ -377,7 +377,7 @@ NPCs can reward observation cards:
 
 ### Focus Navigation
 
-**Elena's Challenge in Desperate (3 capacity)**:
+**Elena's Challenge in Disconnected (3 capacity)**:
 - Can play three W1 cards before refresh
 - Can play one W3 card then need LISTEN
 - Cannot play W4+ cards without Prepared atmosphere
@@ -395,7 +395,7 @@ NPCs can reward observation cards:
 - Each net success moves flow +1
 - Each net failure moves flow -1
 - Need +3 net successes to advance state
-- Desperate → Tense → Neutral → Open (9 net successes total)
+- Disconnected → Guarded → Neutral → Open (9 net successes total)
 
 **Success Rates with Starting Rapport**:
 - With 1 Trust token (Elena): Start at 1 rapport (+2% to all cards)
@@ -484,7 +484,7 @@ To deliver Elena immediately from position 3:
 
 **Afternoon** (8 attention, 7 coins):
 3. Full Elena conversation (-2 att)
-4. Carefully manage 3 focus capacity in Desperate
+4. Carefully manage 3 focus capacity in Disconnected
 5. Use setup cards (W0) for Prepared atmosphere
 6. Build rapport early for higher success rates
 7. Navigate to Open through careful flow management
@@ -515,7 +515,7 @@ To deliver Elena immediately from position 3:
 3. Navigate to request availability
 
 **Evening**:
-4. Guard in Neutral atmosphere (better than Tense)
+4. Guard in Neutral atmosphere (better than Guarded)
 5. Use rapport to boost success chance for permit request
 6. Success: Free access to Noble District
 
@@ -527,7 +527,7 @@ To deliver Elena immediately from position 3:
 
 **Setup for Success**:
 1. Play "Careful approach" (W0) → Prepared atmosphere
-2. Now have 4 focus capacity in Desperate (3+1)
+2. Now have 4 focus capacity in Disconnected (3+1)
 3. Play multiple cards before refresh needed
 
 **High Risk/Reward**:
@@ -610,7 +610,7 @@ Base rate - 20% (can make cards impossible)
 - Gain +2 Trust tokens
 - Break even on coins
 
-### Acceptable Run (Desperate Success)
+### Acceptable Run (Disconnected Success)
 - Any letter delivered
 - Fixed terms accepted
 - Heavy displacement
@@ -621,7 +621,7 @@ Base rate - 20% (can make cards impossible)
 
 ### Context Changes Everything
 
-**Scenario 1**: Elena Desperate, You have 3 Trust tokens
+**Scenario 1**: Elena Disconnected, You have 3 Trust tokens
 - Start with 3 rapport (+6% all cards)
 - Can build momentum quickly
 - Flow progression more reliable

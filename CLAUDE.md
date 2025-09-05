@@ -44,7 +44,7 @@
 - **ALWAYS understand the full context before writing ANY code**
 
 **🚨 HIGHLANDER PRINCIPLE: THERE CAN BE ONLY ONE 🚨**
-- NEVER have duplicate enums, classes, or concepts for the same thing. If you find EmotionalState and NPCEmotionalState, DELETE ONE. If you find two ways to track the same state, DELETE ONE. No mapping, no conversion, no compatibility layers. ONE source of truth, ONE enum, ONE class per concept.
+- NEVER have duplicate enums, classes, or concepts for the same thing. If you find ConnectionState and NPCConnectionState, DELETE ONE. If you find two ways to track the same state, DELETE ONE. No mapping, no conversion, no compatibility layers. ONE source of truth, ONE enum, ONE class per concept.
 
 **🚨 GAMEWORLD ARCHITECTURE PRINCIPLES (CRITICAL - NEVER VIOLATE) 🚨**
 - **GameWorld is the SINGLE SOURCE OF TRUTH** - ALL game state lives in GameWorld, nowhere else

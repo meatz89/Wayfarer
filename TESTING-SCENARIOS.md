@@ -3,13 +3,13 @@
 
 ## Testing Scenarios
 
-### Scenario 1: Elena's Desperate Letter
+### Scenario 1: Elena's Disconnected Letter
 1. Start new game
 2. Navigate to Market Square
-3. See "Elena (Desperate)" at Copper Kettle
+3. See "Elena (Disconnected)" at Copper Kettle
 4. Move to Corner Table
 5. Start Letter Conversation (1 attention)
-6. Turn 1: Draw 1-2 desperate cards
+6. Turn 1: Draw 1-2 disconnected cards
 7. Turn 2: Play state change card
 8. Turn 3: Request card appears, play it
 9. Letter added to queue position 1

@@ -545,9 +545,9 @@ public class GameFacade
 
     // ========== LEGACY/STUB METHODS ==========
 
-    public EmotionalState GetNPCEmotionalState(string npcId)
+    public ConnectionState GetNPCConnectionState(string npcId)
     {
-        return EmotionalState.NEUTRAL;
+        return ConnectionState.NEUTRAL;
     }
 
     public List<RouteOption> GetAvailableRoutes()

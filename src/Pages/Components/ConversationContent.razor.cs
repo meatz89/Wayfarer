@@ -130,7 +130,7 @@ namespace Wayfarer.Pages.Components
         protected string NpcName { get; set; }
         protected string LastNarrative { get; set; }
         protected string LastDialogue { get; set; }
-        // Letter generation is handled by ConversationManager based on emotional state
+        // Letter generation is handled by ConversationManager based on connection state
 
         // Card dialogues cache
         private static CardDialogues _cardDialogues;
@@ -436,7 +436,7 @@ namespace Wayfarer.Pages.Components
                 {
                     ProcessLetterNegotiations(result.LetterNegotiations);
                 }
-                // Letter generation is handled by ConversationManager based on emotional state
+                // Letter generation is handled by ConversationManager based on connection state
                 // Special cards that force letter generation are handled in ConversationManager.HandleSpecialCardEffectsAsync()
             }
         }
@@ -524,7 +524,7 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        private string GetStateTransitionDialogue(EmotionalState newState)
+        private string GetStateTransitionDialogue(ConnectionState newState)
         {
             LoadSystemNarratives();
             if (_systemNarratives?.conversationNarratives?.stateDialogues != null)
@@ -540,11 +540,11 @@ namespace Wayfarer.Pages.Components
             // Fallback if JSON not loaded - 5 states only
             return newState switch
             {
-                EmotionalState.DESPERATE => "Please, I need your help urgently!",
-                EmotionalState.TENSE => "This is making me unflowable...",
-                EmotionalState.NEUTRAL => "Alright, let's talk.",
-                EmotionalState.OPEN => "I'm glad we're having this conversation.",
-                EmotionalState.CONNECTED => "I feel like you really understand me.",
+                ConnectionState.DISCONNECTED => "Please, I need your help urgently!",
+                ConnectionState.GUARDED => "This is making me unflowable...",
+                ConnectionState.NEUTRAL => "Alright, let's talk.",
+                ConnectionState.RECEPTIVE => "I'm glad we're having this conversation.",
+                ConnectionState.TRUSTING => "I feel like you really understand me.",
                 _ => "Hmm..."
             };
         }
@@ -585,11 +585,11 @@ namespace Wayfarer.Pages.Components
         }
 
         // Letter generation removed - handled by ConversationManager.TryGenerateLetter()
-        // This avoids duplicate logic and ensures letters are generated based on emotional state
+        // This avoids duplicate logic and ensures letters are generated based on connection state
         private void GenerateLetter()
         {
             // This method is no longer used
-            // Letter generation is handled by ConversationManager based on emotional state
+            // Letter generation is handled by ConversationManager based on connection state
         }
 
         // Letter tier determination removed - handled by ConversationManager
@@ -823,11 +823,11 @@ namespace Wayfarer.Pages.Components
         {
             return Session?.CurrentState switch
             {
-                EmotionalState.DESPERATE => "desperate",
-                EmotionalState.TENSE => "tense",
-                EmotionalState.NEUTRAL => "neutral",
-                EmotionalState.OPEN => "open",
-                EmotionalState.CONNECTED => "connected",
+                ConnectionState.DISCONNECTED => "disconnected",
+                ConnectionState.GUARDED => "guarded",
+                ConnectionState.NEUTRAL => "neutral",
+                ConnectionState.RECEPTIVE => "receptive",
+                ConnectionState.TRUSTING => "connected",
                 _ => ""
             };
         }
@@ -851,11 +851,11 @@ namespace Wayfarer.Pages.Components
 
             return Session.CurrentState switch
             {
-                EmotionalState.DESPERATE => "Draw 1 card",
-                EmotionalState.TENSE => "Draw 2 cards",
-                EmotionalState.NEUTRAL => "Draw 2 cards",
-                EmotionalState.OPEN => "Draw 3 cards",
-                EmotionalState.CONNECTED => "Draw 3 cards",
+                ConnectionState.DISCONNECTED => "Draw 1 card",
+                ConnectionState.GUARDED => "Draw 2 cards",
+                ConnectionState.NEUTRAL => "Draw 2 cards",
+                ConnectionState.RECEPTIVE => "Draw 3 cards",
+                ConnectionState.TRUSTING => "Draw 3 cards",
                 _ => "Draw 2 cards"
             };
         }
@@ -876,11 +876,11 @@ namespace Wayfarer.Pages.Components
 
             return Session.CurrentState switch
             {
-                EmotionalState.DESPERATE => "• Draw 1 • Focus limit 3 • Ends at -3 flow",
-                EmotionalState.TENSE => "• Draw 2 • Focus limit 4",
-                EmotionalState.NEUTRAL => "• Draw 2 • Focus limit 5",
-                EmotionalState.OPEN => "• Draw 3 • Focus limit 5",
-                EmotionalState.CONNECTED => "• Draw 3 • Focus limit 6",
+                ConnectionState.DISCONNECTED => "• Draw 1 • Focus limit 3 • Ends at -3 flow",
+                ConnectionState.GUARDED => "• Draw 2 • Focus limit 4",
+                ConnectionState.NEUTRAL => "• Draw 2 • Focus limit 5",
+                ConnectionState.RECEPTIVE => "• Draw 3 • Focus limit 5",
+                ConnectionState.TRUSTING => "• Draw 3 • Focus limit 6",
                 _ => ""
             };
         }
@@ -896,7 +896,7 @@ namespace Wayfarer.Pages.Components
                 1 => "Good Rapport",
                 0 => "Neutral",
                 -1 => "Uncertain",
-                -2 => "Tense",
+                -2 => "Guarded",
                 -3 => "Breaking Down",
                 _ => "Unknown"
             };
@@ -922,7 +922,7 @@ namespace Wayfarer.Pages.Components
             else if (dotPosition == 3)
                 return "Positive transition threshold";
             else if (dotPosition == -3)
-                return Session.CurrentState == EmotionalState.DESPERATE ? 
+                return Session.CurrentState == ConnectionState.DISCONNECTED ? 
                     "DANGER: Conversation ends here!" : 
                     "Negative transition threshold";
             else if (dotPosition > 0)
@@ -960,17 +960,17 @@ namespace Wayfarer.Pages.Components
             return string.Join(" ", classes);
         }
 
-        protected string GetEmotionalStateDisplay()
+        protected string GetConnectionStateDisplay()
         {
             if (Session == null) return "Unknown";
 
             return Session.CurrentState switch
             {
-                EmotionalState.DESPERATE => "Desperate",
-                EmotionalState.TENSE => "Tense",
-                EmotionalState.NEUTRAL => "Neutral",
-                EmotionalState.OPEN => "Open",
-                EmotionalState.CONNECTED => "Connected",
+                ConnectionState.DISCONNECTED => "Disconnected",
+                ConnectionState.GUARDED => "Guarded",
+                ConnectionState.NEUTRAL => "Neutral",
+                ConnectionState.RECEPTIVE => "Receptive",
+                ConnectionState.TRUSTING => "Connected",
                 _ => Session.CurrentState.ToString()
             };
         }
@@ -981,11 +981,11 @@ namespace Wayfarer.Pages.Components
 
             string drawText = Session.CurrentState switch
             {
-                EmotionalState.DESPERATE => "Draw 1 card",
-                EmotionalState.TENSE => "Draw 2 cards",
-                EmotionalState.NEUTRAL => "Draw 2 cards",
-                EmotionalState.OPEN => "Draw 3 cards",
-                EmotionalState.CONNECTED => "Draw 3 cards",
+                ConnectionState.DISCONNECTED => "Draw 1 card",
+                ConnectionState.GUARDED => "Draw 2 cards",
+                ConnectionState.NEUTRAL => "Draw 2 cards",
+                ConnectionState.RECEPTIVE => "Draw 3 cards",
+                ConnectionState.TRUSTING => "Draw 3 cards",
                 _ => "Draw cards"
             };
             
@@ -1109,7 +1109,7 @@ namespace Wayfarer.Pages.Components
             return null;
         }
 
-        private string GetStateTransitionVerb(EmotionalState targetState)
+        private string GetStateTransitionVerb(ConnectionState targetState)
         {
             LoadSystemNarratives();
             if (_systemNarratives?.conversationNarratives?.stateTransitionVerbs != null)
@@ -1125,24 +1125,24 @@ namespace Wayfarer.Pages.Components
             // Fallback if JSON not loaded
             return targetState switch
             {
-                EmotionalState.DESPERATE => "stay urgent",
-                EmotionalState.TENSE => "be careful",
-                EmotionalState.NEUTRAL => "calm down",
-                EmotionalState.OPEN => "open up",
-                EmotionalState.CONNECTED => "connect deeply",
+                ConnectionState.DISCONNECTED => "stay urgent",
+                ConnectionState.GUARDED => "be careful",
+                ConnectionState.NEUTRAL => "calm down",
+                ConnectionState.RECEPTIVE => "open up",
+                ConnectionState.TRUSTING => "connect deeply",
                 _ => "change topics"
             };
         }
 
-        private string GetEmotionalStateForCard(EmotionalState state)
+        private string GetConnectionStateForCard(ConnectionState state)
         {
             return state switch
             {
-                EmotionalState.DESPERATE => "desperate",
-                EmotionalState.TENSE => "tense",
-                EmotionalState.NEUTRAL => "neutral",
-                EmotionalState.OPEN => "open",
-                EmotionalState.CONNECTED => "connected",
+                ConnectionState.DISCONNECTED => "disconnected",
+                ConnectionState.GUARDED => "guarded",
+                ConnectionState.NEUTRAL => "neutral",
+                ConnectionState.RECEPTIVE => "receptive",
+                ConnectionState.TRUSTING => "connected",
                 _ => state.ToString().ToLower()
             };
         }
@@ -1174,11 +1174,11 @@ namespace Wayfarer.Pages.Components
             {
                 return Session.CurrentState switch
                 {
-                    EmotionalState.DESPERATE => "Tense!",
-                    EmotionalState.TENSE => "Neutral!",
-                    EmotionalState.NEUTRAL => "Open!",
-                    EmotionalState.OPEN => "Connected!",
-                    EmotionalState.CONNECTED => "Stays Connected",
+                    ConnectionState.DISCONNECTED => "Guarded!",
+                    ConnectionState.GUARDED => "Neutral!",
+                    ConnectionState.NEUTRAL => "Open!",
+                    ConnectionState.RECEPTIVE => "Connected!",
+                    ConnectionState.TRUSTING => "Stays Connected",
                     _ => ""
                 };
             }
@@ -1186,11 +1186,11 @@ namespace Wayfarer.Pages.Components
             {
                 return Session.CurrentState switch
                 {
-                    EmotionalState.DESPERATE => "Ends!",
-                    EmotionalState.TENSE => "Desperate!",
-                    EmotionalState.NEUTRAL => "Tense!",
-                    EmotionalState.OPEN => "Neutral!",
-                    EmotionalState.CONNECTED => "Open!",
+                    ConnectionState.DISCONNECTED => "Ends!",
+                    ConnectionState.GUARDED => "Disconnected!",
+                    ConnectionState.NEUTRAL => "Guarded!",
+                    ConnectionState.RECEPTIVE => "Neutral!",
+                    ConnectionState.TRUSTING => "Open!",
                     _ => ""
                 };
             }
@@ -1506,7 +1506,7 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        private string GetPlayerDialogueText(string templateId, EmotionalState? currentState)
+        private string GetPlayerDialogueText(string templateId, ConnectionState? currentState)
         {
             if (_cardDialogues?.dialogues == null || string.IsNullOrEmpty(templateId))
                 return null;
@@ -1657,11 +1657,11 @@ namespace Wayfarer.Pages.Components
             // Fallback if JSON not loaded - 5 states only
             return Session?.CurrentState switch
             {
-                EmotionalState.DESPERATE => "Please, I need your help urgently!",
-                EmotionalState.TENSE => "I don't have much time...",
-                EmotionalState.NEUTRAL => "Hello, what brings you here?",
-                EmotionalState.OPEN => "Good to see you! What can I do for you?",
-                EmotionalState.CONNECTED => "My friend! How can I help?",
+                ConnectionState.DISCONNECTED => "Please, I need your help urgently!",
+                ConnectionState.GUARDED => "I don't have much time...",
+                ConnectionState.NEUTRAL => "Hello, what brings you here?",
+                ConnectionState.RECEPTIVE => "Good to see you! What can I do for you?",
+                ConnectionState.TRUSTING => "My friend! How can I help?",
                 _ => "Hello, what brings you here?"
             };
         }
@@ -1885,7 +1885,7 @@ namespace Wayfarer.Pages.Components
                 return string.Format(msg, NpcName);
             }
 
-            if (Session.CurrentState == EmotionalState.DESPERATE && Session.FlowBattery <= -3)
+            if (Session.CurrentState == ConnectionState.DISCONNECTED && Session.FlowBattery <= -3)
             {
                 string msg = exhaustedMessages?.GetValueOrDefault("conversationBroken", "{0} is too distressed to continue. The conversation has broken down.") ?? "{0} is too distressed to continue. The conversation has broken down.";
                 return string.Format(msg, NpcName);
@@ -2696,11 +2696,11 @@ namespace Wayfarer.Pages.Components
 
             int baseDraw = Session.CurrentState switch
             {
-                EmotionalState.DESPERATE => 1,
-                EmotionalState.TENSE => 2,
-                EmotionalState.NEUTRAL => 2,
-                EmotionalState.OPEN => 3,
-                EmotionalState.CONNECTED => 3,
+                ConnectionState.DISCONNECTED => 1,
+                ConnectionState.GUARDED => 2,
+                ConnectionState.NEUTRAL => 2,
+                ConnectionState.RECEPTIVE => 3,
+                ConnectionState.TRUSTING => 3,
                 _ => 2
             };
 
@@ -2763,9 +2763,9 @@ namespace Wayfarer.Pages.Components
         }
         
         /// <summary>
-        /// Get emotional state transparency info
+        /// Get connection state transparency info
         /// </summary>
-        protected string GetEmotionalStateInfo()
+        protected string GetConnectionStateInfo()
         {
             if (Session == null) return "";
             
@@ -2790,7 +2790,7 @@ namespace Wayfarer.Pages.Components
             else if (Session.FlowBattery == -2)
             {
                 var nextState = GetNextNegativeState(Session.CurrentState);
-                if (Session.CurrentState == EmotionalState.DESPERATE)
+                if (Session.CurrentState == ConnectionState.DISCONNECTED)
                 {
                     return "At -3: Conversation ends!";
                 }
@@ -2800,28 +2800,28 @@ namespace Wayfarer.Pages.Components
             return "";
         }
         
-        private string GetNextPositiveState(EmotionalState current)
+        private string GetNextPositiveState(ConnectionState current)
         {
             return current switch
             {
-                EmotionalState.DESPERATE => "Tense",
-                EmotionalState.TENSE => "Neutral",
-                EmotionalState.NEUTRAL => "Open",
-                EmotionalState.OPEN => "Connected",
-                EmotionalState.CONNECTED => "Connected",
+                ConnectionState.DISCONNECTED => "Guarded",
+                ConnectionState.GUARDED => "Neutral",
+                ConnectionState.NEUTRAL => "Receptive",
+                ConnectionState.RECEPTIVE => "Connected",
+                ConnectionState.TRUSTING => "Connected",
                 _ => "Unknown"
             };
         }
         
-        private string GetNextNegativeState(EmotionalState current)
+        private string GetNextNegativeState(ConnectionState current)
         {
             return current switch
             {
-                EmotionalState.CONNECTED => "Open",
-                EmotionalState.OPEN => "Neutral",
-                EmotionalState.NEUTRAL => "Tense",
-                EmotionalState.TENSE => "Desperate",
-                EmotionalState.DESPERATE => "Ends",
+                ConnectionState.TRUSTING => "Receptive",
+                ConnectionState.RECEPTIVE => "Neutral",
+                ConnectionState.NEUTRAL => "Guarded",
+                ConnectionState.GUARDED => "Disconnected",
+                ConnectionState.DISCONNECTED => "Ends",
                 _ => "Unknown"
             };
         }

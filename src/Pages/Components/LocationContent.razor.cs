@@ -101,15 +101,15 @@ namespace Wayfarer.Pages.Components
                         options.Add(option);
                     }
 
-                    // Get actual emotional state using the same logic as conversations
-                    EmotionalState emotionalState = GameFacade.GetNPCEmotionalState(npc.ID);
+                    // Get actual connection state using the same logic as conversations
+                    ConnectionState connectionState = GameFacade.GetNPCConnectionState(npc.ID);
 
                     AvailableNpcs.Add(new NpcViewModel
                     {
                         Id = npc.ID,
                         Name = npc.Name,
                         PersonalityType = npc.PersonalityType.ToString(),
-                        EmotionalState = emotionalState.ToString(),
+                        ConnectionState = connectionState.ToString(),
                         ConversationOptions = options
                     });
                 }
@@ -349,11 +349,11 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected string GetStateClass(string emotionalState)
+        protected string GetStateClass(string connectionState)
         {
-            return emotionalState?.ToLower() switch
+            return connectionState?.ToLower() switch
             {
-                "desperate" => "desperate",
+                "disconnected" => "disconnected",
                 "hostile" => "hostile",
                 "crisis" => "crisis",
                 _ => ""
@@ -418,9 +418,9 @@ namespace Wayfarer.Pages.Components
 
         protected string GetNPCStateDisplay(NPC npc)
         {
-            // Get display text for NPC emotional state
-            EmotionalState emotionalState = GameFacade.GetNPCEmotionalState(npc.ID);
-            return emotionalState.ToString();
+            // Get display text for NPC connection state
+            ConnectionState connectionState = GameFacade.GetNPCConnectionState(npc.ID);
+            return connectionState.ToString();
         }
 
         protected string GetConversationLabel(ConversationType type)
@@ -458,7 +458,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Fallback to generic descriptions if no specific description is available
-            string? state = npc.EmotionalState?.ToLower();
+            string? state = npc.ConnectionState?.ToLower();
             string? personality = npc.PersonalityType?.ToLower();
 
             if (state == "hostile")
@@ -632,11 +632,11 @@ namespace Wayfarer.Pages.Components
                 // Analyze observation name for context clues
                 if (name.Contains("checkpoint") || name.Contains("guard"))
                 {
-                    return "Any→Tense";
+                    return "Any→Guarded";
                 }
                 else if (name.Contains("carriage") || name.Contains("preparation"))
                 {
-                    return "Tense→Eager";
+                    return "Guarded→Eager";
                 }
                 else if (name.Contains("family") || name.Contains("letter"))
                 {
@@ -644,14 +644,14 @@ namespace Wayfarer.Pages.Components
                 }
                 else if (name.Contains("trembling") || name.Contains("desperat"))
                 {
-                    return "Desperate→Open";
+                    return "Disconnected→Open";
                 }
 
                 // Fall back to type-based display
                 return type switch
                 {
-                    "authority" => "Any→Tense",
-                    "commerce" => "Tense→Eager",
+                    "authority" => "Any→Guarded",
+                    "commerce" => "Guarded→Eager",
                     "social" => "Neutral→Open",
                     "secret" => "Any→Shadow",
                     _ => "Any→Neutral"
@@ -711,7 +711,7 @@ namespace Wayfarer.Pages.Components
         public string Id { get; set; }
         public string Name { get; set; }
         public string PersonalityType { get; set; }
-        public string EmotionalState { get; set; }
+        public string ConnectionState { get; set; }
         public List<ConversationOptionViewModel> ConversationOptions { get; set; } = new();
     }
 

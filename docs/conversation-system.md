@@ -10,7 +10,7 @@
 6. **Success adds +1 flow, failure -1 flow** - Deterministic flow progression
 7. **Rapport modifies success linearly** - +2% per point, -50 to +50 range
 8. **Card persistence varies** - Persistent stays, Impulse removed on SPEAK, Opening removed on LISTEN
-9. **No card type filtering** - Emotional states only affect focus and draws
+9. **No card type filtering** - Connection States only affect focus and draws
 
 ## Card Anatomy
 
@@ -23,17 +23,17 @@ Every card has:
 - **Failure Effect** (Optional): Only if different from standard "no effect"
 - **On Exhaust** (Optional): Effect when card vanishes unplayed (~20% of non-persistent cards)
 
-## Emotional States
+## Connection States
 
 States determine focus capacity and cards drawn. No filtering of card types.
 
-- **Desperate**: 3 focus capacity, draws 1 card
-- **Tense**: 4 focus capacity, draws 2 cards
+- **Disconnected**: 3 focus capacity, draws 1 card
+- **Guarded**: 4 focus capacity, draws 2 cards
 - **Neutral**: 5 focus capacity, draws 2 cards
 - **Open**: 5 focus capacity, draws 3 cards
 - **Connected**: 6 focus capacity, draws 3 cards
 
-Desperate at -3 flow ends conversation immediately.
+Disconnected at -3 flow ends conversation immediately.
 
 ## Atmosphere System
 
@@ -56,7 +56,7 @@ Atmosphere affects all actions until changed by a card or cleared by failure. LI
 
 ## Focus System
 
-- Focus determined by emotional state (3-6)
+- Focus determined by connection state (3-6)
 - Each SPEAK spends card focus from pool
 - Pool persists across turns
 - LISTEN refreshes pool to current maximum
@@ -116,7 +116,7 @@ Starting with 5 tokens = 5 rapport = +10% success on all cards from start.
 - At -3: State shifts left, flow resets to 0
 - Excess flow lost (no banking)
 
-State progression: [Ends] ← Desperate ← Tense ← Neutral → Open → Connected
+State progression: [Ends] ← Disconnected ← Guarded ← Neutral → Open → Connected
 
 ## Normal Card Generation
 
@@ -269,20 +269,20 @@ This creates maximum pressure without special rules - the NPC "asks the question
 - **"Setup"** (0 focus, Easy, Persistent): No effect, Atmosphere: Prepared
 - **"Simple Rapport"** (1 focus, Easy, Persistent): +1 rapport
 - **"Trust Building"** (3 focus, Hard, Persistent): +X rapport where X = Trust tokens
-- **"Desperate Plea"** (3 focus, Hard, Impulse): +X rapport where X = (20 - current rapport) ÷ 5, On Exhaust: Draw 1 card
+- **"Disconnected Plea"** (3 focus, Hard, Impulse): +X rapport where X = (20 - current rapport) ÷ 5, On Exhaust: Draw 1 card
 - **"Final Statement"** (5 focus, Very Hard, Impulse): +5 rapport, Atmosphere: Final, On Exhaust: Atmosphere: Final
 - **"Quick Opening"** (2 focus, Medium, Opening): +2 rapport, On Exhaust: Atmosphere: Volatile
 - **"Interrupt"** (1 focus, Hard, Opening): Atmosphere: Receptive, Failure: -2 rapport, On Exhaust: Atmosphere: Pressured
 - **"Timely Insight"** (1 focus, Medium, Opening): Draw 2 cards, On Exhaust: Draw 1 card
 - **"Gather Strength"** (2 focus, Medium, Persistent): Add 1 focus
 
-### Tactical Example: Desperate State Trap
-In Desperate state (1 card draw, 3 focus capacity), drawing "Interrupt" creates a dilemma:
+### Tactical Example: Disconnected State Trap
+In Disconnected state (1 card draw, 3 focus capacity), drawing "Interrupt" creates a dilemma:
 - **Risk the play**: 50% success for Receptive atmosphere (more cards), but failure risks -2 rapport (making future cards harder)
 - **LISTEN instead**: Refreshes focus but exhausts card, setting Pressured atmosphere (-1 focus capacity)
 - **The trap**: You need more cards but both options have serious downsides
 
-This emergent situation represents the NPC rambling desperately, giving you a narrow window to redirect the conversation or suffer consequences.
+This emergent situation represents the NPC rambling disconnectedly, giving you a narrow window to redirect the conversation or suffer consequences.
 
 ### Observation Cards
 - **"Leverage Knowledge"**: Set Informed atmosphere

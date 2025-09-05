@@ -249,8 +249,8 @@ public class ObligationQueueManager
             return true;
         }
 
-        // Check if obligation is marked as desperate
-        // (This would be set during conversation based on NPC's emotional state)
+        // Check if obligation is marked as disconnected
+        // (This would be set during conversation based on NPC's connection state)
         if (obligation.EmotionalFocus == EmotionalFocus.CRITICAL)
         {
             return true;
@@ -289,7 +289,7 @@ public class ObligationQueueManager
 
         if (obligation.EmotionalFocus == EmotionalFocus.CRITICAL)
         {
-            return $"{obligation.SenderName} is DESPERATE - their letter takes priority!";
+            return $"{obligation.SenderName} is DISCONNECTED - their letter takes priority!";
         }
 
         return "Urgent circumstances demand immediate delivery!";
@@ -1797,7 +1797,7 @@ public class ObligationQueueManager
             }
         }
 
-        // Show the desperate measure being taken
+        // Show the disconnected measure being taken
         _messageSystem.AddSystemMessage(
             $"  💸 Burning social capital to make this letter disappear...",
             SystemMessageTypes.Warning

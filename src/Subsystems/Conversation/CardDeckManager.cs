@@ -67,7 +67,7 @@ public class CardDeckManager
     }
 
     /// <summary>
-    /// Draw cards based on emotional state (no type filtering)
+    /// Draw cards based on connection state (no type filtering)
     /// </summary>
     public List<CardInstance> DrawCards(SessionCardDeck deck, int count)
     {

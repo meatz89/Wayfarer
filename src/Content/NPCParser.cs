@@ -71,15 +71,15 @@ public static class NPCParser
             }
         }
 
-        // Parse CurrentState (emotional state)
+        // Parse CurrentState (connection state)
         string currentStateStr = dto.CurrentState ?? "NEUTRAL";
-        if (Enum.TryParse<EmotionalState>(currentStateStr, true, out EmotionalState emotionalState))
+        if (Enum.TryParse<ConnectionState>(currentStateStr, true, out ConnectionState connectionState))
         {
-            npc.CurrentState = emotionalState;
+            npc.CurrentState = connectionState;
         }
         else
         {
-            npc.CurrentState = EmotionalState.NEUTRAL;
+            npc.CurrentState = ConnectionState.NEUTRAL;
         }
 
         return npc;
@@ -162,15 +162,15 @@ public static class NPCParser
         // Letters are detected by checking Request deck contents
         // Burden history detected by counting burden cards in conversation deck
 
-        // Parse CurrentState (emotional state)
+        // Parse CurrentState (connection state)
         string currentStateStr = GetStringProperty(root, "currentState", "NEUTRAL");
-        if (Enum.TryParse<EmotionalState>(currentStateStr, true, out EmotionalState emotionalState))
+        if (Enum.TryParse<ConnectionState>(currentStateStr, true, out ConnectionState connectionState))
         {
-            npc.CurrentState = emotionalState;
+            npc.CurrentState = connectionState;
         }
         else
         {
-            npc.CurrentState = EmotionalState.NEUTRAL;
+            npc.CurrentState = ConnectionState.NEUTRAL;
         }
 
         // REMOVED: ActiveLetter violates deck-based architecture

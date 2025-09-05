@@ -89,11 +89,11 @@ public static class ObservationParser
         string typeStr = GetStringProperty(element, "type", "Normal");
         obs.Type = MapObservationType(typeStr);
 
-        // Parse emotional state if present
+        // Parse connection state if present
         string stateStr = GetStringProperty(element, "createsState", "");
         if (!string.IsNullOrEmpty(stateStr))
         {
-            obs.CreatesState = MapEmotionalState(stateStr);
+            obs.CreatesState = MapConnectionState(stateStr);
         }
 
         // Parse information type if present
@@ -139,20 +139,16 @@ public static class ObservationParser
         };
     }
 
-    private static EmotionalState MapEmotionalState(string stateStr)
+    private static ConnectionState MapConnectionState(string stateStr)
     {
         return stateStr switch
         {
-            "NEUTRAL" => EmotionalState.NEUTRAL,
-            "GUARDED" => EmotionalState.TENSE, // Map old GUARDED to TENSE
-            "OPEN" => EmotionalState.OPEN,
-            "CONNECTED" => EmotionalState.CONNECTED,
-            "TENSE" => EmotionalState.TENSE,
-            "EAGER" => EmotionalState.OPEN, // Map old EAGER to OPEN
-            "OVERWHELMED" => EmotionalState.DESPERATE, // Map old OVERWHELMED to DESPERATE
-            "DESPERATE" => EmotionalState.DESPERATE,
-            "HOSTILE" => EmotionalState.DESPERATE, // Map old HOSTILE to DESPERATE
-            _ => EmotionalState.NEUTRAL
+            "NEUTRAL" => ConnectionState.NEUTRAL,
+            "GUARDED" => ConnectionState.GUARDED, 
+            "RECEPTIVE" => ConnectionState.RECEPTIVE,
+            "CONNECTED" => ConnectionState.TRUSTING,
+            "DISCONNECTED" => ConnectionState.DISCONNECTED,
+            _ => ConnectionState.NEUTRAL
         };
     }
 

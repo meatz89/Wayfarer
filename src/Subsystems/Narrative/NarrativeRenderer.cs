@@ -97,7 +97,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
                     ? parts[0]
                     : parts[0] + ".";
 
-            // For desperate letter dialogue, combine with spaces
+            // For disconnected letter dialogue, combine with spaces
             string result = "";
             for (int i = 0; i < parts.Count; i++)
             {
@@ -149,7 +149,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         {
             return value switch
             {
-                "desperate" => "desperation fills every word",
+                "disconnected" => "desperation fills every word",
                 "panicked" => "panic rises in their voice",
                 "worried" => "worry creases their brow",
                 "cautious" => "caution marks every movement",
@@ -312,7 +312,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
                 "grateful" => "gratitude floods through",
                 "surprised" => "surprise evident",
                 "pleased" => "pleasure shows",
-                "desperate_hope" => "desperate hope kindles",
+                "disconnected_hope" => "disconnected hope kindles",
                 "engaged" => "engagement sharpens",
                 _ => "reacting"
             };

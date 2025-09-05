@@ -19,7 +19,7 @@ public class DialogueGenerator
     /// <summary>
     /// Generate NPC response for LISTEN action
     /// </summary>
-    public string GenerateListenResponse(NPC npc, EmotionalState state, List<CardInstance> drawnCards)
+    public string GenerateListenResponse(NPC npc, ConnectionState state, List<CardInstance> drawnCards)
     {
         StringBuilder response = new StringBuilder();
 
@@ -41,7 +41,7 @@ public class DialogueGenerator
     /// <summary>
     /// Generate NPC response for SPEAK action
     /// </summary>
-    public string GenerateSpeakResponse(NPC npc, EmotionalState state, HashSet<CardInstance> playedCards, CardPlayResult result, int flowChange)
+    public string GenerateSpeakResponse(NPC npc, ConnectionState state, HashSet<CardInstance> playedCards, CardPlayResult result, int flowChange)
     {
         StringBuilder response = new StringBuilder();
 
@@ -86,7 +86,7 @@ public class DialogueGenerator
     /// <summary>
     /// Generate state transition narrative
     /// </summary>
-    public string GenerateStateTransitionText(NPC npc, EmotionalState fromState, EmotionalState toState)
+    public string GenerateStateTransitionText(NPC npc, ConnectionState fromState, ConnectionState toState)
     {
         bool isPositive = IsPositiveTransition(fromState, toState);
 
@@ -94,10 +94,10 @@ public class DialogueGenerator
         {
             return toState switch
             {
-                EmotionalState.CONNECTED => $"{npc.Name}'s eyes light up with genuine warmth. You've formed a real connection.",
-                EmotionalState.OPEN => $"{npc.Name} leans forward with interest, eager to continue the conversation.",
-                EmotionalState.NEUTRAL => $"{npc.Name}'s guard drops slightly as they settle into the conversation.",
-                EmotionalState.TENSE => $"{npc.Name} seems less hostile, though still wary.",
+                ConnectionState.TRUSTING => $"{npc.Name}'s eyes light up with genuine warmth. You've formed a real connection.",
+                ConnectionState.RECEPTIVE => $"{npc.Name} leans forward with interest, eager to continue the conversation.",
+                ConnectionState.NEUTRAL => $"{npc.Name}'s guard drops slightly as they settle into the conversation.",
+                ConnectionState.GUARDED => $"{npc.Name} seems less hostile, though still wary.",
                 _ => $"{npc.Name}'s demeanor shifts."
             };
         }
@@ -105,10 +105,10 @@ public class DialogueGenerator
         {
             return toState switch
             {
-                EmotionalState.DESPERATE => $"{npc.Name}'s expression hardens with anger.",
-                EmotionalState.TENSE => $"{npc.Name} pulls back, becoming more guarded.",
-                EmotionalState.NEUTRAL => $"{npc.Name} returns to a neutral stance.",
-                EmotionalState.OPEN => $"{npc.Name} relaxes noticeably, becoming more open to discussion.",
+                ConnectionState.DISCONNECTED => $"{npc.Name}'s expression hardens with anger.",
+                ConnectionState.GUARDED => $"{npc.Name} pulls back, becoming more guarded.",
+                ConnectionState.NEUTRAL => $"{npc.Name} returns to a neutral stance.",
+                ConnectionState.RECEPTIVE => $"{npc.Name} relaxes noticeably, becoming more open to discussion.",
                 _ => $"{npc.Name}'s mood shifts."
             };
         }
@@ -147,15 +147,15 @@ public class DialogueGenerator
     /// <summary>
     /// Generate emotional cues (body language)
     /// </summary>
-    public string GenerateEmotionalCues(NPC npc, EmotionalState state)
+    public string GenerateEmotionalCues(NPC npc, ConnectionState state)
     {
         return state switch
         {
-            EmotionalState.DESPERATE => $"{npc.Name} wrings their hands anxiously, eyes darting about.",
-            EmotionalState.TENSE => $"{npc.Name} shifts unflowably, shoulders rigid.",
-            EmotionalState.NEUTRAL => $"{npc.Name} stands relaxed but attentive.",
-            EmotionalState.OPEN => $"{npc.Name} leans in slightly, genuinely interested.",
-            EmotionalState.CONNECTED => $"{npc.Name} mirrors your posture, completely engaged.",
+            ConnectionState.DISCONNECTED => $"{npc.Name} wrings their hands anxiously, eyes darting about.",
+            ConnectionState.GUARDED => $"{npc.Name} shifts unflowably, shoulders rigid.",
+            ConnectionState.NEUTRAL => $"{npc.Name} stands relaxed but attentive.",
+            ConnectionState.RECEPTIVE => $"{npc.Name} leans in slightly, genuinely interested.",
+            ConnectionState.TRUSTING => $"{npc.Name} mirrors your posture, completely engaged.",
             _ => $"{npc.Name} continues the conversation."
         };
     }
@@ -194,12 +194,12 @@ public class DialogueGenerator
 
     // Private helper methods
 
-    private string GenerateEmotionalCue(NPC npc, EmotionalState state)
+    private string GenerateEmotionalCue(NPC npc, ConnectionState state)
     {
         return GenerateEmotionalCues(npc, state);
     }
 
-    private string GenerateCardDrawDescription(NPC npc, List<CardInstance> cards, EmotionalState state)
+    private string GenerateCardDrawDescription(NPC npc, List<CardInstance> cards, ConnectionState state)
     {
         if (cards.Count == 1)
         {
@@ -231,7 +231,7 @@ public class DialogueGenerator
         }
     }
 
-    private string GenerateStateDialogue(NPC npc, EmotionalState state, string context)
+    private string GenerateStateDialogue(NPC npc, ConnectionState state, string context)
     {
         // Generate contextual dialogue based on state
         string[] dialogueOptions = GetStateDialogueOptions(state, context);
@@ -244,20 +244,20 @@ public class DialogueGenerator
         return "";
     }
 
-    private string[] GetStateDialogueOptions(EmotionalState state, string context)
+    private string[] GetStateDialogueOptions(ConnectionState state, string context)
     {
         return state switch
         {
-            EmotionalState.DESPERATE => new[] { "Please, I need help!", "This is urgent!", "I don't know what to do!" },
-            EmotionalState.TENSE => new[] { "What do you want?", "I'm listening...", "Be quick about it." },
-            EmotionalState.NEUTRAL => new[] { "Interesting.", "Tell me more.", "I see." },
-            EmotionalState.OPEN => new[] { "That's fascinating!", "Please continue.", "I'd like to hear more." },
-            EmotionalState.CONNECTED => new[] { "I understand completely.", "We're on the same wavelength.", "I feel the same way." },
+            ConnectionState.DISCONNECTED => new[] { "Please, I need help!", "This is urgent!", "I don't know what to do!" },
+            ConnectionState.GUARDED => new[] { "What do you want?", "I'm listening...", "Be quick about it." },
+            ConnectionState.NEUTRAL => new[] { "Interesting.", "Tell me more.", "I see." },
+            ConnectionState.RECEPTIVE => new[] { "That's fascinating!", "Please continue.", "I'd like to hear more." },
+            ConnectionState.TRUSTING => new[] { "I understand completely.", "We're on the same wavelength.", "I feel the same way." },
             _ => new[] { "..." }
         };
     }
 
-    private string GenerateCardReaction(NPC npc, HashSet<CardInstance> cards, EmotionalState state)
+    private string GenerateCardReaction(NPC npc, HashSet<CardInstance> cards, ConnectionState state)
     {
         int cardCount = cards.Count;
         // Determine primary card property for reaction
@@ -279,7 +279,7 @@ public class DialogueGenerator
         }
     }
 
-    private string GenerateFlowChangeDescription(NPC npc, int change, EmotionalState state)
+    private string GenerateFlowChangeDescription(NPC npc, int change, ConnectionState state)
     {
         if (change > 0)
         {
@@ -295,21 +295,21 @@ public class DialogueGenerator
             return change switch
             {
                 <= -5 => $"{npc.Name} becomes very unflowable.",
-                <= -3 => $"{npc.Name} tenses up.",
+                <= -3 => $"{npc.Name} guardeds up.",
                 _ => $"{npc.Name} seems slightly uneasy."
             };
         }
     }
 
-    private bool IsPositiveTransition(EmotionalState from, EmotionalState to)
+    private bool IsPositiveTransition(ConnectionState from, ConnectionState to)
     {
-        EmotionalState[] stateOrder = new[]
+        ConnectionState[] stateOrder = new[]
         {
-            EmotionalState.DESPERATE,
-            EmotionalState.TENSE,
-            EmotionalState.NEUTRAL,
-            EmotionalState.OPEN,
-            EmotionalState.CONNECTED
+            ConnectionState.DISCONNECTED,
+            ConnectionState.GUARDED,
+            ConnectionState.NEUTRAL,
+            ConnectionState.RECEPTIVE,
+            ConnectionState.TRUSTING
         };
 
         int fromIndex = Array.IndexOf(stateOrder, from);

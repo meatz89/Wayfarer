@@ -7,7 +7,7 @@ public class ConversationContext
     public string NpcId { get; set; }
     public NPC Npc { get; set; }
     public ConversationType Type { get; set; }
-    public EmotionalState InitialState { get; set; }
+    public ConnectionState InitialState { get; set; }
     public ConversationSession Session { get; set; }
     public List<CardInstance> ObservationCards { get; set; }
     public int AttentionSpent { get; set; }

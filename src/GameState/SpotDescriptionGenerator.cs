@@ -50,7 +50,7 @@ public class SpotDescriptionGenerator
         [TimeBlocks.Afternoon] = new[] { "Activity reaches its peak", "The busiest time of day", "Full daylight illuminates all" },
         [TimeBlocks.Evening] = new[] { "Shadows lengthen noticeably", "Day's end approaches", "Evening preparations begin" },
         [TimeBlocks.Night] = new[] { "Darkness cloaks activity", "Night sounds replace day", "Most have retired" },
-        [TimeBlocks.LateNight] = new[] { "Deep night silence", "Only the desperate move", "The darkest hours" }
+        [TimeBlocks.LateNight] = new[] { "Deep night silence", "Only the disconnected move", "The darkest hours" }
     };
 
     // Tension modifiers based on urgent obligations

@@ -33,5 +33,5 @@ Writing style:
 - Show NPC reactions through observable behaviors only
 - Use mundane language of an ordinary person
 - Include specific, tangible outcomes
-- Maintain first-person, present tense perspective
+- Maintain first-person, present guarded perspective
 - NO DRAMATIC LEAPS: All outcomes flow naturally from established context

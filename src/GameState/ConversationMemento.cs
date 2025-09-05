@@ -4,7 +4,7 @@ public class ConversationMemento
 {
     public string NpcId { get; set; }
     public ConversationType ConversationType { get; set; }
-    public EmotionalState CurrentState { get; set; }
+    public ConnectionState CurrentState { get; set; }
     public int CurrentFlow { get; set; }
     public int CurrentPatience { get; set; }
     public int MaxPatience { get; set; }

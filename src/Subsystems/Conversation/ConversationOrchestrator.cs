@@ -44,7 +44,7 @@ public class ConversationOrchestrator
     public ConversationSession CreateSession(NPC npc, ConversationType conversationType, List<CardInstance> observationCards)
     {
         // All conversations start in NEUTRAL state
-        EmotionalState initialState = EmotionalState.NEUTRAL;
+        ConnectionState initialState = ConnectionState.NEUTRAL;
 
         // Initialize flow battery manager
         _flowBatteryManager = new FlowManager(initialState);
@@ -176,7 +176,7 @@ public class ConversationOrchestrator
 
         // Apply flow change through battery manager
         bool conversationEnded = false;
-        EmotionalState newState = session.CurrentState;
+        ConnectionState newState = session.CurrentState;
         
         if (_flowBatteryManager != null && flowChange != 0)
         {
@@ -237,7 +237,7 @@ public class ConversationOrchestrator
     /// <summary>
     /// Handle state transition event from flow battery
     /// </summary>
-    private void OnStateTransitioned(EmotionalState oldState, EmotionalState newState)
+    private void OnStateTransitioned(ConnectionState oldState, ConnectionState newState)
     {
         // Log or handle state transition if needed
     }
@@ -247,7 +247,7 @@ public class ConversationOrchestrator
     /// </summary>
     private void OnConversationEnded()
     {
-        // Conversation ends due to DESPERATE at -3
+        // Conversation ends due to DISCONNECTED at -3
     }
 
     /// <summary>
@@ -261,7 +261,7 @@ public class ConversationOrchestrator
 
         // Check with flow battery manager
         if (_flowBatteryManager != null && 
-            _flowBatteryManager.CurrentState == EmotionalState.DESPERATE && 
+            _flowBatteryManager.CurrentState == ConnectionState.DISCONNECTED && 
             _flowBatteryManager.CurrentFlow <= -3)
             return true;
 
@@ -323,7 +323,7 @@ public class ConversationOrchestrator
             success = false;
             reason = "Patience exhausted";
         }
-        else if (session.CurrentState == EmotionalState.DESPERATE && session.FlowBattery <= -3)
+        else if (session.CurrentState == ConnectionState.DISCONNECTED && session.FlowBattery <= -3)
         {
             success = false;
             reason = "Relationship damaged beyond repair";
@@ -353,16 +353,16 @@ public class ConversationOrchestrator
     /// <summary>
     /// Calculate token reward based on final state and flow
     /// </summary>
-    private int CalculateTokenReward(EmotionalState finalState, int finalFlow)
+    private int CalculateTokenReward(ConnectionState finalState, int finalFlow)
     {
         // Base reward by state
         int baseReward = finalState switch
         {
-            EmotionalState.CONNECTED => 3,
-            EmotionalState.OPEN => 2,
-            EmotionalState.NEUTRAL => 1,
-            EmotionalState.TENSE => 0,
-            EmotionalState.DESPERATE => -1,
+            ConnectionState.TRUSTING => 3,
+            ConnectionState.RECEPTIVE => 2,
+            ConnectionState.NEUTRAL => 1,
+            ConnectionState.GUARDED => 0,
+            ConnectionState.DISCONNECTED => -1,
             _ => 0
         };
 
@@ -443,8 +443,8 @@ public class ConversationOrchestrator
             return false;
 
         // Generate letters from positive connections
-        return session.CurrentState == EmotionalState.CONNECTED ||
-               (session.CurrentState == EmotionalState.OPEN && session.FlowBattery > 1);
+        return session.CurrentState == ConnectionState.TRUSTING ||
+               (session.CurrentState == ConnectionState.RECEPTIVE && session.FlowBattery > 1);
     }
 
     /// <summary>
@@ -513,7 +513,7 @@ public class ConversationOrchestrator
             Payment = 15, // Higher payment for urgent delivery
             Tier = (TierLevel)npc.Tier,
             EmotionalFocus = EmotionalFocus.HIGH, // High emotional focus for urgency
-            Description = $"Urgent letter from {npc.Name} - they desperately need help!"
+            Description = $"Urgent letter from {npc.Name} - they disconnectedly need help!"
         };
     }
 

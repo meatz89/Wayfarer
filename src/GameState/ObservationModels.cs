@@ -10,7 +10,7 @@ public class Observation
     public ObservationType Type { get; set; }
     public int AttentionCost { get; set; }
     public string[] RelevantNPCs { get; set; }
-    public EmotionalState? CreatesState { get; set; }
+    public ConnectionState? CreatesState { get; set; }
     public string CardTemplate { get; set; }
     public string Description { get; set; }
     public ObservationInfoType? ProvidesInfo { get; set; }

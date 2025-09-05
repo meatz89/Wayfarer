@@ -10,7 +10,7 @@ Every resource flows through multiple systems via different mechanics. Each mech
 **Daily Allocation**: 10 - (Hunger ÷ 25), minimum 2
 
 **Uses** (each via different mechanic):
-- **Conversation Mechanic**: Spend 2 → Full emotional state conversation
+- **Conversation Mechanic**: Spend 2 → Full connection state conversation
 - **Observation Mechanic**: Spend 1 → Gain observation card with unique effects
 - **Work Mechanic**: Spend 2 → Gain 8 coins + advance 4 hours
 
@@ -124,18 +124,18 @@ Each use is a separate mechanic. Tokens never gate access to content.
 **Modification**: +1 on successful SPEAK, -1 on failed SPEAK
 
 **State Transitions at ±3**:
-- DESPERATE: +3→Tense, -3→Conversation ends
-- TENSE: +3→Neutral, -3→Desperate
-- NEUTRAL: +3→Open, -3→Tense
+- DISCONNECTED: +3→Guarded, -3→Conversation ends
+- GUARDED: +3→Neutral, -3→Disconnected
+- NEUTRAL: +3→Open, -3→Guarded
 - OPEN: +3→Connected, -3→Neutral
 - CONNECTED: +3→Stays Connected, -3→Open
 
-**Strategic Role**: Pure success/failure counter that triggers emotional state transitions. Creates predictable progression based on net successes, with randomness coming from success rates modified by rapport.
+**Strategic Role**: Pure success/failure counter that triggers connection state transitions. Creates predictable progression based on net successes, with randomness coming from success rates modified by rapport.
 
 ### Focus (Per-Conversation)
-**Capacity by Emotional State**:
-- Desperate: 3
-- Tense: 4
+**Capacity by Connection State**:
+- Disconnected: 3
+- Guarded: 4
 - Neutral: 5
 - Open: 5
 - Connected: 6
@@ -466,7 +466,7 @@ No hidden calculations. Perfect information for strategic decisions.
 - Burning 10 tokens severely damages multiple relationships
 
 ### Focus Management
-- Desperate (3 capacity): Can play three 1-focus or one 3-focus card
+- Disconnected (3 capacity): Can play three 1-focus or one 3-focus card
 - Neutral (5 capacity): Can play request cards if exactly 5 focus
 - Connected (6 capacity): Full flexibility for any combination
 - Prepared atmosphere: +1 enables request cards in Open state
@@ -475,7 +475,7 @@ No hidden calculations. Perfect information for strategic decisions.
 
 New content uses same resources differently:
 
-**Desperate Scenario**: Low focus capacity creates severe limitations
+**Disconnected Scenario**: Low focus capacity creates severe limitations
 **Political Scenario**: Build Status tokens for better starting rapport with nobles
 **Merchant Campaign**: Commerce tokens essential for trade relationships
 **Shadow Path**: Shadow tokens help with spy networks

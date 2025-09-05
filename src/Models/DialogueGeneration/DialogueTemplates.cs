@@ -6,8 +6,8 @@ using System.Text.Json.Serialization;
 /// </summary>
 public class DialogueTemplates
 {
-    [JsonPropertyName("emotionalStateDialogue")]
-    public Dictionary<string, EmotionalStateTemplate> EmotionalStateDialogue { get; set; }
+    [JsonPropertyName("connectionStateDialogue")]
+    public Dictionary<string, ConnectionStateTemplate> ConnectionStateDialogue { get; set; }
 
     [JsonPropertyName("cardDialogue")]
     public CardDialogueTemplate CardDialogue { get; set; }

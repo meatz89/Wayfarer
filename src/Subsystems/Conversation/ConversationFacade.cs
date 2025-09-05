@@ -348,7 +348,7 @@ public class ConversationFacade
         // Check for promise cards with valid states
         if (npc.HasPromiseCards())
         {
-            EmotionalState currentState = ConversationRules.DetermineInitialState(npc, _queueManager);
+            ConnectionState currentState = ConversationRules.DetermineInitialState(npc, _queueManager);
             if (npc.HasValidRequestCard(currentState))
             {
                 available.Add(ConversationType.Promise);
@@ -557,7 +557,7 @@ public class ConversationFacade
                 DeliveryObligation urgentLetter = _orchestrator.CreateUrgentLetter(_currentSession.NPC);
                 _queueManager.AddObligation(urgentLetter);
                 _messageSystem.AddSystemMessage(
-                    $"{_currentSession.NPC.Name} desperately hands you a letter for her family!",
+                    $"{_currentSession.NPC.Name} disconnectedly hands you a letter for her family!",
                     SystemMessageTypes.Success);
                 _currentSession.CurrentFlow += 5;
                 _currentSession.LetterGenerated = true;

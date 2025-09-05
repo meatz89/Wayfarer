@@ -87,7 +87,7 @@
 - [ ] **VERIFY COST**: 1 attention shown
 - [ ] **ACTION**: Make observation
 - [ ] **SCREENSHOT**: Observation card gained
-- [ ] **VERIFY**: Card shows "Any→Tense" state change
+- [ ] **VERIFY**: Card shows "Any→Guarded" state change
 - [ ] **VERIFY**: Expiration timer shown (24hr)
 - [ ] **VERIFY**: Attention reduced to 5
 
@@ -122,7 +122,7 @@
 - [ ] **SCREENSHOT**: Conversation screen loads
 - [ ] **VERIFY HEADER**:
   - [ ] Elena - Devoted personality
-  - [ ] DESPERATE state (deadline pressure)
+  - [ ] DISCONNECTED state (deadline pressure)
   - [ ] Starting patience: 16 (15 base + 1 private spot)
 
 ### 7.4 Resource Displays
@@ -134,16 +134,16 @@
 ### 7.5 Turn 1: LISTEN Action
 - [ ] **ACTION**: Click LISTEN
 - [ ] **SCREENSHOT**: Cards drawn
-- [ ] **VERIFY**: Cards drawn include Trust-type cards (Desperate filter)
+- [ ] **VERIFY**: Cards drawn include Trust-type cards (Disconnected filter)
 - [ ] **VERIFY**: At least 1 guaranteed state card
-- [ ] **VERIFY**: Letter card appears (focus 0 in Desperate)
+- [ ] **VERIFY**: Letter card appears (focus 0 in Disconnected)
 - [ ] **VERIFY**: Patience reduced to 15
 
 ### 7.6 State Navigation
-- [ ] **ACTION**: Play observation card "Guard Routes" (Any→Tense)
+- [ ] **ACTION**: Play observation card "Guard Routes" (Any→Guarded)
 - [ ] **VERIFY**: Success rate shown: 85%
 - [ ] **VERIFY ON SUCCESS**:
-  - [ ] State changes to TENSE
+  - [ ] State changes to GUARDED
   - [ ] Focus limit increases to 2
   - [ ] Momentum increases to +1
 

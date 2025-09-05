@@ -66,7 +66,7 @@ When player chooses actions related to elements the character was observing:
 - Some actions simply resolve without creating new complications
 
 ## Writing Requirements
-Write in first-person present tense:
+Write in first-person present guarded:
 1. Show the player's action and its ACTUAL results
 2. Describe what happens naturally as a consequence
 3. End with the resulting situation

@@ -18,8 +18,8 @@
         // Render template to human-readable text
         var text = NarrativeRenderer.RenderTemplate(template);
         
-        // Add NPC name if contextually appropriate - only in desperate state
-        if (!string.IsNullOrEmpty(NPCName) && Context?.EmotionalState == EmotionalState.DESPERATE)
+        // Add NPC name if contextually appropriate - only in disconnected state
+        if (!string.IsNullOrEmpty(NPCName) && Context?.ConnectionState == ConnectionState.DISCONNECTED)
         {
             text = text.Replace("you", NPCName);
         }

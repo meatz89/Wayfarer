@@ -60,8 +60,8 @@ public class CardInstance
     
     // Removed misleading Category and Type properties - use Properties list directly
     
-    public EmotionalState? SuccessState => null;
-    public EmotionalState? FailureState => null;
+    public ConnectionState? SuccessState => null;
+    public ConnectionState? FailureState => null;
     public int BaseFlow => 1;
     public bool CanDeliverLetter => Properties.Contains(CardProperty.DeliveryEligible);
     public string DeliveryObligationId => "";
@@ -69,7 +69,7 @@ public class CardInstance
     public bool IsExchange => Properties.Contains(CardProperty.Exchange);
     public CardMechanicsType Mechanics => Properties.Contains(CardProperty.Exchange) ? CardMechanicsType.Exchange : CardMechanicsType.Standard;
     
-    public int GetEffectiveFocus(EmotionalState state) => Focus;
+    public int GetEffectiveFocus(ConnectionState state) => Focus;
     public int CalculateSuccessChance() 
     {
         // Request/Promise cards always succeed (100%)
@@ -79,7 +79,7 @@ public class CardInstance
         return GetBaseSuccessPercentage();
     }
     
-    public int CalculateSuccessChance(EmotionalState state) 
+    public int CalculateSuccessChance(ConnectionState state) 
     {
         // Request/Promise cards always succeed (100%)
         if (Properties.Contains(CardProperty.DeliveryEligible))

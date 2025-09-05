@@ -807,7 +807,7 @@
     font-style: italic;
 }
 
-.npc-dialogue.desperate {
+.npc-dialogue.disconnected {
     border-left-color: #8b4726;
     background: #faf0e6;
 }

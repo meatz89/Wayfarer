@@ -39,7 +39,7 @@ public class NPCFocusViewModel
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string EmotionalStateName { get; set; }
+    public string ConnectionStateName { get; set; }
     public string Description { get; set; }
     public List<InteractionOptionViewModel> Interactions { get; set; } = new();
 }

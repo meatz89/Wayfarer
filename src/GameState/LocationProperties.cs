@@ -17,7 +17,7 @@ public enum Population
 public enum Atmosphere
 {
     Calm,
-    Tense,
+    Guarded,
     Formal,
     Chaotic
 }
@@ -55,7 +55,7 @@ public static class LocationPropertyExtensions
         return atm switch
         {
             Atmosphere.Calm => "calm",
-            Atmosphere.Tense => "tense",
+            Atmosphere.Guarded => "guarded",
             Atmosphere.Formal => "formal",
             Atmosphere.Chaotic => "chaotic",
             _ => "normal"

@@ -8,7 +8,7 @@ This document details the refactoring of Wayfarer's conversation system to imple
 ### 1. Flow System Simplification
 - **Current**: Flow is modified by card effects and determines state transitions
 - **New**: Flow only tracks success/failure (+1 for success, -1 for failure)
-- **Purpose**: Flow remains the emotional state battery (-3 to +3) triggering transitions
+- **Purpose**: Flow remains the connection state battery (-3 to +3) triggering transitions
 
 ### 2. New Rapport System
 - **Purpose**: Separate resource that modifies all card success rates
@@ -114,7 +114,7 @@ Keep unchanged:
 
 Modify `ApplyFlowChange` to remove card effect handling:
 ```csharp
-public (bool stateChanged, EmotionalState newState, bool conversationEnds) 
+public (bool stateChanged, ConnectionState newState, bool conversationEnds) 
     ApplyCardResult(bool success)
 {
     // Simple: +1 for success, -1 for failure

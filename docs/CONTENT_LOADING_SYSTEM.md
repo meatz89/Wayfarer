@@ -151,7 +151,7 @@ public static NPC GenerateSkeletonNPC(string id, string source)
   "locationId": "copper_kettle_tavern",
   "spotId": "corner_table",
   "personalityType": "DEVOTED",
-  "currentState": "DESPERATE",
+  "currentState": "DISCONNECTED",
   "letterTokenTypes": ["Trust"]
 }
 ```

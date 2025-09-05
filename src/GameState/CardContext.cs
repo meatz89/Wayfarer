@@ -14,7 +14,7 @@ public class CardContext
     public string NPCName { get; set; }
     public PersonalityType Personality { get; set; }
     public PersonalityType NPCPersonality { get; set; }
-    public EmotionalState EmotionalState { get; set; }
+    public ConnectionState ConnectionState { get; set; }
     public string UrgencyLevel { get; set; }
     public bool HasDeadline { get; set; }
     public int MinutesUntilDeadline { get; set; }
@@ -36,7 +36,7 @@ public class CardContext
     public string OfferCardId { get; set; }
     public string CustomText { get; set; }
     public LetterDetails LetterDetails { get; set; }
-    public List<EmotionalState> ValidStates { get; set; }
+    public List<ConnectionState> ValidStates { get; set; }
     public ExchangeOffer ExchangeOffer { get; set; }
 }
 
@@ -52,7 +52,7 @@ public class LetterDetails
 
 public class EligibilityRequirements
 {
-    public List<EmotionalState> RequiredStates { get; set; } = new();
+    public List<ConnectionState> RequiredStates { get; set; } = new();
     public Dictionary<ConnectionType, int> RequiredTokens { get; set; } = new();
     public int MinTokens { get; set; }
 }

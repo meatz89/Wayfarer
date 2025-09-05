@@ -31,9 +31,9 @@
             <!-- State and Flow Section (Grouped) -->
             <div class="state-flow-section">
                 <div class="emotional-state">
-                    <span class="state-label">Emotional State:</span>
-                    <span class="state-name">@GetEmotionalStateDisplay()</span>
-                    <span class="state-effects">(@GetEmotionalStateInfo())</span>
+                    <span class="state-label">Connection State:</span>
+                    <span class="state-name">@GetConnectionStateDisplay()</span>
+                    <span class="state-effects">(@GetConnectionStateInfo())</span>
                 </div>
                 
                 <div class="flow-display">
@@ -48,7 +48,7 @@
                         <span class="flow-segment @(Session.FlowBattery >= 3 ? "positive" : "") @(Session.FlowBattery == 3 ? "current" : "")"></span>
                     </div>
                     <span class="flow-value">@Session.FlowBattery</span>
-                    @if (Session.CurrentState == EmotionalState.DESPERATE && Session.FlowBattery <= -2)
+                    @if (Session.CurrentState == ConnectionState.DISCONNECTED && Session.FlowBattery <= -2)
                     {
                         <span class="flow-warning">One more failure ends conversation!</span>
                     }

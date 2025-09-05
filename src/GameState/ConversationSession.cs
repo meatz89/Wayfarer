@@ -5,8 +5,8 @@ public class ConversationSession
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
     public NPC NPC { get; set; }
     public ConversationType ConversationType { get; set; }
-    public EmotionalState CurrentState { get; set; }
-    public EmotionalState InitialState { get; set; }
+    public ConnectionState CurrentState { get; set; }
+    public ConnectionState InitialState { get; set; }
     public int CurrentFlow { get; set; }
     public int CurrentPatience { get; set; }
     public int MaxPatience { get; set; }
@@ -52,11 +52,11 @@ public class ConversationSession
     {
         int baseCapacity = CurrentState switch
         {
-            EmotionalState.DESPERATE => 3,
-            EmotionalState.TENSE => 4,
-            EmotionalState.NEUTRAL => 5,
-            EmotionalState.OPEN => 5,
-            EmotionalState.CONNECTED => 6,
+            ConnectionState.DISCONNECTED => 3,
+            ConnectionState.GUARDED => 4,
+            ConnectionState.NEUTRAL => 5,
+            ConnectionState.RECEPTIVE => 5,
+            ConnectionState.TRUSTING => 6,
             _ => 5
         };
 
@@ -71,11 +71,11 @@ public class ConversationSession
     {
         int baseCount = CurrentState switch
         {
-            EmotionalState.DESPERATE => 1,
-            EmotionalState.TENSE => 2,
-            EmotionalState.NEUTRAL => 2,
-            EmotionalState.OPEN => 3,
-            EmotionalState.CONNECTED => 3,
+            ConnectionState.DISCONNECTED => 1,
+            ConnectionState.GUARDED => 2,
+            ConnectionState.NEUTRAL => 2,
+            ConnectionState.RECEPTIVE => 3,
+            ConnectionState.TRUSTING => 3,
             _ => 2
         };
 
@@ -101,8 +101,8 @@ public class ConversationSession
 
     public bool ShouldEnd()
     {
-        // End if patience exhausted or at desperate with -3 flow
-        return CurrentPatience <= 0 || (CurrentState == EmotionalState.DESPERATE && FlowBattery <= -3);
+        // End if patience exhausted or at disconnected with -3 flow
+        return CurrentPatience <= 0 || (CurrentState == ConnectionState.DISCONNECTED && FlowBattery <= -3);
     }
 
     public ConversationOutcome CheckThresholds()
@@ -174,7 +174,7 @@ public class ConversationSession
         GameWorld world = gameWorld;
 
         // Determine initial state
-        EmotionalState initialState = ConversationRules.DetermineInitialState(npc, queueManager);
+        ConnectionState initialState = ConversationRules.DetermineInitialState(npc, queueManager);
 
         // Create session deck from NPC's conversation cards
         SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck?.GetAllCards() ?? new List<ConversationCard>(), npc.ID);
@@ -213,7 +213,7 @@ public class ConversationSession
         SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(exchangeCards, npc.ID);
 
         // Determine initial state  
-        EmotionalState initialState = ConversationRules.DetermineInitialState(npc, queueManager);
+        ConnectionState initialState = ConversationRules.DetermineInitialState(npc, queueManager);
 
         ConversationSession session = new ConversationSession
         {

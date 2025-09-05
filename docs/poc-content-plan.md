@@ -29,7 +29,7 @@ Each card includes a `personalityTypes` array that determines which NPCs can use
 - "Gentle reassurance" - Focus 0, Easy, Set Patient atmosphere
 - "Share vulnerability" - Focus 4, Very Hard, +4 rapport, Impulse
 - "Build on trust" - Focus 3, Hard, Scale by Trust tokens
-- "Desperate plea" - Focus 3, Hard, Scale by (20 - rapport) / 5, Impulse
+- "Disconnected plea" - Focus 3, Hard, Scale by (20 - rapport) / 5, Impulse
 - "Patient approach" - Focus 2, Hard, Scale by (patience / 3)
 - "Listen carefully" - Focus 1, Medium, Draw 1 card
 - "Open mind" - Focus 0, Easy, Set Receptive atmosphere
@@ -248,7 +248,7 @@ These cards are added to the player's conversation deck when observations are ma
 ## Success Criteria
 
 The POC is complete when:
-1. Player can start conversation with desperate Elena
+1. Player can start conversation with disconnected Elena
 2. Elena's request becomes playable at appropriate focus capacity
 3. Request gains Impulse+Opening when playable
 4. Player manages rapport to improve success chances
@@ -260,7 +260,7 @@ The POC is complete when:
 
 ## Key Narrative Beats
 
-1. **Opening**: Player in Market Square, Elena desperate at Copper Kettle
+1. **Opening**: Player in Market Square, Elena disconnected at Copper Kettle
 2. **Crisis**: Elena's letter has fixed urgent terms (1hr, position 1)
 3. **Challenge**: Building rapport for request success
 4. **Obstacle**: Getting to Noble District (permit or knowledge)

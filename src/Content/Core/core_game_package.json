@@ -248,11 +248,11 @@
         "locationId": "copper_kettle_tavern",
         "spotId": "corner_table",
         "description": "Clutching her sealed letter, eyes darting to the door with each sound",
-        "personality": "Desperate about Lord Blackwood's marriage proposal - he leaves at sunset",
+        "personality": "Disconnected about Lord Blackwood's marriage proposal - he leaves at sunset",
         "personalityType": "DEVOTED",
         "services": [],
         "letterTokenTypes": ["Trust"],
-        "currentState": "DESPERATE",
+        "currentState": "DISCONNECTED",
         "initialTokens": {
           "Trust": 1
         }

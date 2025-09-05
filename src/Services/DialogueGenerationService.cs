@@ -32,11 +32,11 @@ public class DialogueGenerationService
 
 
     /// <summary>
-    /// Generate NPC dialogue from emotional state and context
+    /// Generate NPC dialogue from connection state and context
     /// Returns categorical template, NOT English text
     /// </summary>
     public string GenerateNPCDialogue(
-        EmotionalState state,
+        ConnectionState state,
         PersonalityType personality,
         DeliveryObligation obligation,
         MeetingObligation meeting,
@@ -44,13 +44,13 @@ public class DialogueGenerationService
     {
         string stateKey = state.ToString();
 
-        if (!_templates.EmotionalStateDialogue.ContainsKey(stateKey))
+        if (!_templates.ConnectionStateDialogue.ContainsKey(stateKey))
             return "emotional:neutral query:general";
 
-        EmotionalStateTemplate stateTemplate = _templates.EmotionalStateDialogue[stateKey];
+        ConnectionStateTemplate stateTemplate = _templates.ConnectionStateDialogue[stateKey];
 
         // Check for contextual dialogue first (urgent letters, meetings)
-        if (state == EmotionalState.DESPERATE)
+        if (state == ConnectionState.DISCONNECTED)
         {
             if (meeting != null)
             {
@@ -119,7 +119,7 @@ public class DialogueGenerationService
     /// Generate NPC description from profession and state
     /// Returns categorical template, NOT English text
     /// </summary>
-    public string GenerateNPCDescription(NPC npc, EmotionalState state, bool hasUrgentLetter = false)
+    public string GenerateNPCDescription(NPC npc, ConnectionState state, bool hasUrgentLetter = false)
     {
         List<string> elements = new List<string>();
 

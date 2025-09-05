@@ -7,15 +7,15 @@ using System;
 public class FlowManager
 {
     private int currentFlow = 0;
-    private EmotionalState currentState;
+    private ConnectionState currentState;
     
     public int CurrentFlow => currentFlow;
-    public EmotionalState CurrentState => currentState;
+    public ConnectionState CurrentState => currentState;
     
-    public event Action<EmotionalState, EmotionalState>? StateTransitioned;
+    public event Action<ConnectionState, ConnectionState>? StateTransitioned;
     public event Action? ConversationEnded;
     
-    public FlowManager(EmotionalState initialState)
+    public FlowManager(ConnectionState initialState)
     {
         currentState = initialState;
         currentFlow = 0; // Always starts at 0
@@ -25,7 +25,7 @@ public class FlowManager
     /// Apply card result and handle any state transitions.
     /// Returns (stateChanged, newState, conversationEnds)
     /// </summary>
-    public (bool stateChanged, EmotionalState newState, bool conversationEnds) ApplyCardResult(bool success)
+    public (bool stateChanged, ConnectionState newState, bool conversationEnds) ApplyCardResult(bool success)
     {
         // Simple: +1 for success, -1 for failure
         int change = success ? 1 : -1;
@@ -36,7 +36,7 @@ public class FlowManager
     /// Apply a flow change and handle any state transitions.
     /// Returns (stateChanged, newState, conversationEnds)
     /// </summary>
-    public (bool stateChanged, EmotionalState newState, bool conversationEnds) ApplyFlowChange(int change, AtmosphereType atmosphere = AtmosphereType.Neutral)
+    public (bool stateChanged, ConnectionState newState, bool conversationEnds) ApplyFlowChange(int change, AtmosphereType atmosphere = AtmosphereType.Neutral)
     {
         // Apply atmosphere modifiers
         int modifiedChange = ModifyByAtmosphere(change, atmosphere);
@@ -62,7 +62,7 @@ public class FlowManager
         return (false, currentState, false);
     }
     
-    private (bool, EmotionalState, bool) HandlePositiveTransition()
+    private (bool, ConnectionState, bool) HandlePositiveTransition()
     {
         var oldState = currentState;
         var newState = TransitionUp(currentState);
@@ -82,12 +82,12 @@ public class FlowManager
         }
     }
     
-    private (bool, EmotionalState, bool) HandleNegativeTransition()
+    private (bool, ConnectionState, bool) HandleNegativeTransition()
     {
-        // Check if DESPERATE first
-        if (currentState == EmotionalState.DESPERATE)
+        // Check if DISCONNECTED first
+        if (currentState == ConnectionState.DISCONNECTED)
         {
-            // DESPERATE at -3 ends conversation immediately
+            // DISCONNECTED at -3 ends conversation immediately
             ConversationEnded?.Invoke();
             return (false, currentState, true);
         }
@@ -112,28 +112,28 @@ public class FlowManager
         };
     }
     
-    private EmotionalState TransitionUp(EmotionalState current)
+    private ConnectionState TransitionUp(ConnectionState current)
     {
         return current switch
         {
-            EmotionalState.DESPERATE => EmotionalState.TENSE,
-            EmotionalState.TENSE => EmotionalState.NEUTRAL,
-            EmotionalState.NEUTRAL => EmotionalState.OPEN,
-            EmotionalState.OPEN => EmotionalState.CONNECTED,
-            EmotionalState.CONNECTED => EmotionalState.CONNECTED, // Max
+            ConnectionState.DISCONNECTED => ConnectionState.GUARDED,
+            ConnectionState.GUARDED => ConnectionState.NEUTRAL,
+            ConnectionState.NEUTRAL => ConnectionState.RECEPTIVE,
+            ConnectionState.RECEPTIVE => ConnectionState.TRUSTING,
+            ConnectionState.TRUSTING => ConnectionState.TRUSTING, // Max
             _ => current
         };
     }
     
-    private EmotionalState TransitionDown(EmotionalState current)
+    private ConnectionState TransitionDown(ConnectionState current)
     {
         return current switch
         {
-            EmotionalState.CONNECTED => EmotionalState.OPEN,
-            EmotionalState.OPEN => EmotionalState.NEUTRAL,
-            EmotionalState.NEUTRAL => EmotionalState.TENSE,
-            EmotionalState.TENSE => EmotionalState.DESPERATE,
-            EmotionalState.DESPERATE => EmotionalState.DESPERATE, // Can't go lower
+            ConnectionState.TRUSTING => ConnectionState.RECEPTIVE,
+            ConnectionState.RECEPTIVE => ConnectionState.NEUTRAL,
+            ConnectionState.NEUTRAL => ConnectionState.GUARDED,
+            ConnectionState.GUARDED => ConnectionState.DISCONNECTED,
+            ConnectionState.DISCONNECTED => ConnectionState.DISCONNECTED, // Can't go lower
             _ => current
         };
     }
@@ -157,7 +157,7 @@ public class FlowManager
     /// <summary>
     /// Set the current state (for initialization or special effects)
     /// </summary>
-    public void SetState(EmotionalState newState)
+    public void SetState(ConnectionState newState)
     {
         if (newState != currentState)
         {
@@ -198,7 +198,7 @@ public class FlowManager
         }
         else if (currentFlow == -2)
         {
-            if (currentState == EmotionalState.DESPERATE)
+            if (currentState == ConnectionState.DISCONNECTED)
                 return "WARNING: One more negative will end conversation!";
             
             var nextState = TransitionDown(currentState);

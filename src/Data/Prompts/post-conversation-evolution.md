@@ -50,7 +50,7 @@
 - Environmental properties must use standard values only:
   * Illumination: Bright, Thiefy, Dark
   * Population: Crowded, Quiet, Isolated
-  * Atmosphere: Tense, Formal, Chaotic
+  * Atmosphere: Guarded, Formal, Chaotic
   * : Wealthy, Commercial, Humble
   * Physical: Confined, Expansive, Hazardous
  

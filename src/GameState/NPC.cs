@@ -54,11 +54,11 @@ public class NPC
     // REMOVED: Boolean flags violate deck-based architecture
     // Letters are detected by checking RequestDeck contents
     // Burden history detected by counting burden cards in ConversationDeck
-    // Crisis detected by checking CurrentState == EmotionalState.DESPERATE
+    // Crisis detected by checking CurrentState == ConnectionState.DISCONNECTED
 
-    // Emotional state
-    public EmotionalState CurrentState { get; set; } = EmotionalState.NEUTRAL;
-    public EmotionalState CurrentEmotionalState => CurrentState; // Alias for compatibility
+    // Connection State
+    public ConnectionState CurrentState { get; set; } = ConnectionState.NEUTRAL;
+    public ConnectionState CurrentConnectionState => CurrentState; // Alias for compatibility
 
     // THREE DECK ARCHITECTURE (POC EXACT)
     public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Flow, Token, State, Knowledge, Burden
@@ -197,7 +197,7 @@ public class NPC
     /// <summary>
     /// Check if NPC has valid request cards for Promise conversations
     /// </summary>
-    public bool HasValidRequestCard(EmotionalState currentState)
+    public bool HasValidRequestCard(ConnectionState currentState)
     {
         return RequestDeck != null && RequestDeck.RemainingCards > 0;
     }
