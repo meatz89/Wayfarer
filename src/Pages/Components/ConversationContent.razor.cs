@@ -73,6 +73,7 @@ namespace Wayfarer.Pages.Components
         public CardInstance Card { get; set; }
         public bool Success { get; set; }
         public DateTime AddedAt { get; set; }
+        public int OriginalPosition { get; set; } // Track original position in hand
     }
     
     public class CardDisplayInfo
@@ -2964,71 +2965,70 @@ namespace Wayfarer.Pages.Components
         {
             var displayCards = new List<CardDisplayInfo>();
             
-            // First, add promise/goal cards (they should always be position 1)
+            // Start with ALL cards in their current hand order (preserving positions)
             if (Session?.HandCards != null)
             {
-                var promiseCards = Session.HandCards
-                    .Where(c => c.Properties.Contains(CardProperty.DeliveryEligible))
-                    .ToList();
+                var handList = Session.HandCards.ToList();
+                // First pass: Add all cards including those that might be animating
+                for (int i = 0; i < handList.Count; i++)
+                {
+                    var card = handList[i];
                     
-                foreach (var card in promiseCards)
-                {
-                    displayCards.Add(new CardDisplayInfo
-                    {
-                        Card = card,
-                        IsAnimating = false,
-                        AnimationState = null
-                    });
-                }
-                
-                // Then add regular hand cards
-                var regularCards = Session.HandCards
-                    .Where(c => !c.Properties.Contains(CardProperty.DeliveryEligible))
-                    .ToList();
+                    // Check if this card is currently animating
+                    var animatingCard = AnimatingCards.FirstOrDefault(ac => ac.Card.InstanceId == card.InstanceId);
                     
-                foreach (var card in regularCards)
-                {
-                    displayCards.Add(new CardDisplayInfo
+                    if (animatingCard != null)
                     {
-                        Card = card,
-                        IsAnimating = false,
-                        AnimationState = null
-                    });
-                }
-            }
-            
-            // Add animating cards (if they're not already in the display list)
-            foreach (var animatingCard in AnimatingCards)
-            {
-                // Check if this card is already in the hand (shouldn't happen but be safe)
-                if (!displayCards.Any(dc => dc.Card.InstanceId == animatingCard.Card.InstanceId))
-                {
-                    // Insert animating cards at appropriate position based on their type
-                    if (animatingCard.Card.Properties.Contains(CardProperty.DeliveryEligible))
-                    {
-                        // Insert at beginning for promise cards
-                        displayCards.Insert(0, new CardDisplayInfo
+                        // This card is animating - show it with animation
+                        displayCards.Add(new CardDisplayInfo
                         {
-                            Card = animatingCard.Card,
+                            Card = card,
                             IsAnimating = true,
                             AnimationState = animatingCard.Success ? "card-played-success" : "card-played-failure"
                         });
                     }
                     else
                     {
-                        // Find the last promise card position and insert after it
-                        int insertPos = displayCards.FindLastIndex(dc => 
-                            dc.Card.Properties.Contains(CardProperty.DeliveryEligible)) + 1;
-                            
-                        displayCards.Insert(insertPos, new CardDisplayInfo
+                        // Normal card
+                        displayCards.Add(new CardDisplayInfo
                         {
-                            Card = animatingCard.Card,
-                            IsAnimating = true,
-                            AnimationState = animatingCard.Success ? "card-played-success" : "card-played-failure"
+                            Card = card,
+                            IsAnimating = false,
+                            AnimationState = null
                         });
                     }
                 }
             }
+            
+            // Second pass: Add any animating cards that are no longer in the hand
+            // (these are cards that were just played and removed from hand)
+            foreach (var animatingCard in AnimatingCards)
+            {
+                // Check if this card is NOT in the current hand
+                bool inHand = Session?.HandCards?.Any(c => c.InstanceId == animatingCard.Card.InstanceId) ?? false;
+                
+                if (!inHand && animatingCard.OriginalPosition >= 0)
+                {
+                    // Insert at its original position (or at the end if position is out of bounds)
+                    int insertPos = Math.Min(animatingCard.OriginalPosition, displayCards.Count);
+                    
+                    displayCards.Insert(insertPos, new CardDisplayInfo
+                    {
+                        Card = animatingCard.Card,
+                        IsAnimating = true,
+                        AnimationState = animatingCard.Success ? "card-played-success" : "card-played-failure"
+                    });
+                }
+            }
+            
+            // Now sort to ensure promise cards are always at position 1
+            // But preserve relative positions within each category
+            var promiseCards = displayCards.Where(dc => dc.Card.Properties.Contains(CardProperty.DeliveryEligible)).ToList();
+            var regularCards = displayCards.Where(dc => !dc.Card.Properties.Contains(CardProperty.DeliveryEligible)).ToList();
+            
+            displayCards.Clear();
+            displayCards.AddRange(promiseCards);
+            displayCards.AddRange(regularCards);
             
             return displayCards;
         }
@@ -3040,12 +3040,28 @@ namespace Wayfarer.Pages.Components
         {
             if (card == null) return;
             
-            // Add to animating cards list
+            // Find the original position of the card in the hand
+            int originalPosition = -1;
+            if (Session?.HandCards != null)
+            {
+                var handList = Session.HandCards.ToList();
+                for (int i = 0; i < handList.Count; i++)
+                {
+                    if (handList[i].InstanceId == card.InstanceId)
+                    {
+                        originalPosition = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Add to animating cards list with position
             AnimatingCards.Add(new AnimatingCard
             {
                 Card = card,
                 Success = success,
-                AddedAt = DateTime.Now
+                AddedAt = DateTime.Now,
+                OriginalPosition = originalPosition
             });
             
             // Remove after animation completes (2.5s flash + 0.5s play-out = 3s total)

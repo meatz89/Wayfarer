@@ -23,11 +23,11 @@
     }
     30% {
         background-color: #e8f5e8; /* Subtle warm green tint */
-        box-shadow: 0 4px 12px rgba(100,200,100,0.3);
+        box-shadow: 0 2px 12px rgba(100,200,100,0.3);
     }
     90% {
         background-color: #e8f5e8; /* Hold the color */
-        box-shadow: 0 4px 12px rgba(100,200,100,0.2);
+        box-shadow: 0 2px 12px rgba(100,200,100,0.2);
     }
     100% {
         background-color: #e8f5e8;
@@ -43,7 +43,7 @@
     }
     20% {
         background-color: #f0e8e8; /* Subtle cool gray-red tint */
-        box-shadow: 0 4px 12px rgba(150,100,100,0.3);
+        box-shadow: 0 2px 12px rgba(150,100,100,0.3);
     }
     40% {
     }
