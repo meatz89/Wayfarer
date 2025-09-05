@@ -130,7 +130,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             if (currentAttention.Current >= amount)
             {
                 // TimeBlockAttentionManager uses internal AttentionManager, need to access it
-                var internalAttention = _attentionManager.GetCurrentAttention(timeBlock);
+                AttentionManager internalAttention = _attentionManager.GetCurrentAttention(timeBlock);
                 bool success = internalAttention.TrySpend(amount);
                 if (success)
                 {
@@ -140,7 +140,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
                 }
                 return success;
             }
-            
+
             _messageSystem.AddSystemMessage(
                 $"🧠 Not enough attention! Need {amount}, have {currentAttention.Current}",
                 SystemMessageTypes.Warning);

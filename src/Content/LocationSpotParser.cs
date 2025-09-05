@@ -59,7 +59,7 @@ public static class LocationSpotParser
         // Parse time-specific spot properties
         if (dto.TimeSpecificProperties != null)
         {
-            foreach (var kvp in dto.TimeSpecificProperties)
+            foreach (KeyValuePair<string, List<string>> kvp in dto.TimeSpecificProperties)
             {
                 if (EnumParser.TryParse<TimeBlocks>(kvp.Key, out TimeBlocks timeBlock))
                 {

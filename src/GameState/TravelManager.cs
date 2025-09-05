@@ -297,20 +297,20 @@ public class TravelManager
     {
         int totalFocus = CalculateCurrentFocus(_gameWorld);
         WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
-        
+
         // Travel increases hunger based on route difficulty and conditions
         int baseHunger = 2; // Base hunger increase for any travel
-        
+
         // Heavy load increases hunger
         if (totalFocus > GameConstants.LoadFocus.MEDIUM_LOAD_MAX)
             baseHunger += 2;
-        else if (totalFocus > GameConstants.LoadFocus.LIGHT_LOAD_MAX) 
+        else if (totalFocus > GameConstants.LoadFocus.LIGHT_LOAD_MAX)
             baseHunger += 1;
-            
+
         // Bad weather increases hunger
         if (currentWeather == WeatherCondition.Rain || currentWeather == WeatherCondition.Snow)
             baseHunger += 1;
-            
+
         return baseHunger;
     }
 
@@ -334,7 +334,7 @@ public class TravelManager
     {
         Player player = _gameWorld.GetPlayer();
         int hungerAfterTravel = player.Hunger + CalculateHungerIncrease(route);
-        
+
         bool canTravel = player.Coins >= CalculateCoinCost(route) &&
                hungerAfterTravel < player.MaxHunger; // Can't travel if it would max hunger
 

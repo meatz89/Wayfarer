@@ -261,9 +261,9 @@ public class DialogueGenerator
     {
         int cardCount = cards.Count;
         // Determine primary card property for reaction
-        var hasObservation = cards.Any(c => c.Properties.Contains(CardProperty.Observable));
-        var hasRequest = cards.Any(c => c.Properties.Contains(CardProperty.Impulse) && c.Properties.Contains(CardProperty.Opening));
-        var hasExchange = cards.Any(c => c.Properties.Contains(CardProperty.Exchange));
+        bool hasObservation = cards.Any(c => c.Properties.Contains(CardProperty.Observable));
+        bool hasRequest = cards.Any(c => c.Properties.Contains(CardProperty.Impulse) && c.Properties.Contains(CardProperty.Opening));
+        bool hasExchange = cards.Any(c => c.Properties.Contains(CardProperty.Exchange));
 
         if (cardCount == 1)
         {

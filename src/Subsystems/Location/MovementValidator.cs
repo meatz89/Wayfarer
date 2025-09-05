@@ -167,7 +167,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
 
             // Route access is determined by actual requirements (tokens, permissions, etc.)
             // defined in the route's AccessRequirement property, not by arbitrary tiers
-            
+
             // Check if route is discovered
             if (!route.IsDiscovered)
             {

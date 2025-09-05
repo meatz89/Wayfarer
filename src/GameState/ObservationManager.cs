@@ -215,7 +215,7 @@ public class ObservationManager
 
         // Deep clone the card from the template - no procedural generation
         ConversationCard observationCard = baseCard.DeepClone();
-        
+
         // Only update the ID and observation-specific metadata
         observationCard.Id = $"{observation.Id}_card_{Guid.NewGuid()}";
         observationCard.Properties.Add(CardProperty.Observable);
@@ -224,7 +224,7 @@ public class ObservationManager
         {
             observationCard.Properties.Add(CardProperty.Impulse);
         }
-        
+
         // Update display information if not already set
         if (string.IsNullOrEmpty(observationCard.Description))
             observationCard.Description = observation.Text;

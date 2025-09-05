@@ -10,8 +10,8 @@ public static class ConversationCardParser
     /// <summary>
     /// Get all cards for an NPC's personality from provided card data
     /// </summary>
-    public static List<ConversationCard> GetCardsForNPC(NPC npc, 
-        Dictionary<string, ConversationCardDTO> cardTemplates, 
+    public static List<ConversationCard> GetCardsForNPC(NPC npc,
+        Dictionary<string, ConversationCardDTO> cardTemplates,
         Dictionary<PersonalityType, PersonalityCardMapping> personalityMappings,
         Dictionary<int, List<string>> tokenUnlocks,
         Dictionary<ConnectionType, int> tokens = null)
@@ -62,7 +62,7 @@ public static class ConversationCardParser
     /// <summary>
     /// Get request card for conversation type from provided card data
     /// </summary>
-    public static ConversationCard GetRequestCard(ConversationType conversationType, string npcId, string npcName, 
+    public static ConversationCard GetRequestCard(ConversationType conversationType, string npcId, string npcName,
         Dictionary<string, ConversationCardDTO> cardTemplates)
     {
         ConversationType? requestType = GetRequestTypeForConversation(conversationType);
@@ -76,7 +76,7 @@ public static class ConversationCardParser
         ConversationCard card = ConvertDTOToCard(dto);
 
         // Create new card with customized values
-        var newCard = new ConversationCard
+        ConversationCard newCard = new ConversationCard
         {
             Id = $"{cardId}_{npcId}",
             Description = card.Description,
@@ -90,7 +90,7 @@ public static class ConversationCardParser
             VerbPhrase = card.VerbPhrase,
             Properties = new List<CardProperty>(card.Properties) // Copy properties from source
         };
-        
+
         return newCard;
     }
 
@@ -134,7 +134,7 @@ public static class ConversationCardParser
         if (dto.Type == "Request" || dto.IsRequestCard == true)
         {
             // Create RequestCard for request/promise cards
-            var requestCard = new RequestCard
+            RequestCard requestCard = new RequestCard
             {
                 Id = dto.Id,
                 Description = dto.Description ?? "",
@@ -174,7 +174,7 @@ public static class ConversationCardParser
                 VerbPhrase = "" // Will be set later if needed
             };
         }
-        
+
         // Parse properties array
         if (dto.Properties != null && dto.Properties.Count > 0)
         {
@@ -187,7 +187,7 @@ public static class ConversationCardParser
                 }
             }
         }
-        
+
         return card;
     }
 
@@ -203,13 +203,13 @@ public static class ConversationCardParser
             _ => null
         };
     }
-    
+
     /// <summary>
     /// Convert NPCPromiseCardDTO to RequestCard
     /// </summary>
     public static RequestCard ConvertPromiseCardDTO(NPCPromiseCardDTO dto)
     {
-        var card = new RequestCard
+        RequestCard card = new RequestCard
         {
             Id = dto.Id,
             Description = dto.Description,
@@ -253,7 +253,7 @@ public static class ConversationCardParser
 
         return card;
     }
-    
+
     /// <summary>
     /// Parse a CardEffect from DTO
     /// </summary>
@@ -261,32 +261,32 @@ public static class ConversationCardParser
     {
         if (dto == null || string.IsNullOrEmpty(dto.Type))
             return null;
-            
+
         if (!Enum.TryParse<CardEffectType>(dto.Type, true, out CardEffectType effectType))
             return null;
-            
-        var effect = new CardEffect
+
+        CardEffect effect = new CardEffect
         {
             Type = effectType,
             Value = dto.Value,
             Data = dto.Data
         };
-        
+
         // Parse Exchange effect data into strongly typed ExchangeData
         if (effectType == CardEffectType.Exchange && dto.Data != null)
         {
-            var exchangeData = new ExchangeData
+            ExchangeData exchangeData = new ExchangeData
             {
                 Cost = new Dictionary<ResourceType, int>(),
                 Reward = new Dictionary<ResourceType, int>()
             };
-            
+
             // Parse cost data
             if (dto.Data.TryGetValue("cost", out object costObj))
             {
                 if (costObj is System.Text.Json.JsonElement costElement)
                 {
-                    foreach (var prop in costElement.EnumerateObject())
+                    foreach (JsonProperty prop in costElement.EnumerateObject())
                     {
                         if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number)
                         {
@@ -300,13 +300,13 @@ public static class ConversationCardParser
                     }
                 }
             }
-            
+
             // Parse reward data
             if (dto.Data.TryGetValue("reward", out object rewardObj))
             {
                 if (rewardObj is System.Text.Json.JsonElement rewardElement)
                 {
-                    foreach (var prop in rewardElement.EnumerateObject())
+                    foreach (JsonProperty prop in rewardElement.EnumerateObject())
                     {
                         if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number)
                         {
@@ -320,13 +320,13 @@ public static class ConversationCardParser
                     }
                 }
             }
-            
+
             effect.ExchangeData = exchangeData;
         }
-        
+
         return effect;
     }
-    
+
     /// <summary>
     /// Parse resource type from string
     /// </summary>
@@ -342,7 +342,7 @@ public static class ConversationCardParser
             _ => null
         };
     }
-    
+
 }
 
 /// <summary>
@@ -384,10 +384,10 @@ public class ConversationCardDTO
 
     // New properties array replaces persistence and special flags
     public List<string> Properties { get; set; }
-    
+
     // Personality targeting - which NPCs can use this card
     public List<string> PersonalityTypes { get; set; }
-    
+
     // New target system properties
     public string Difficulty { get; set; }
     // Three-effect system
@@ -404,7 +404,7 @@ public class CardEffectDTO
     public string Type { get; set; }
     public string Value { get; set; }
     public Dictionary<string, object> Data { get; set; }
-    
+
     // For Exchange effects specifically - populated during deserialization
     public ExchangeCost Cost { get; set; }
     public ExchangeReward Reward { get; set; }

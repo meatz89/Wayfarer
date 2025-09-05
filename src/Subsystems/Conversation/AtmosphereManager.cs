@@ -6,7 +6,7 @@ public class AtmosphereManager
 {
     private AtmosphereType currentAtmosphere = AtmosphereType.Neutral;
     private bool atmosphereSet = false;
-    
+
     // One-time effect flags for special atmospheres
     private bool nextCardAutoSucceeds = false; // For Informed atmosphere
     private bool nextEffectDoubled = false; // For Synchronized atmosphere
@@ -21,7 +21,7 @@ public class AtmosphereManager
     {
         currentAtmosphere = atmosphere;
         atmosphereSet = true;
-        
+
         // Handle one-time effect atmospheres
         if (atmosphere == AtmosphereType.Informed)
         {
@@ -40,7 +40,7 @@ public class AtmosphereManager
         atmosphereSet = false;
         ClearTemporaryEffects();
     }
-    
+
     // Called after successful card play to consume one-time effects
     public void OnCardSuccess()
     {
@@ -54,7 +54,7 @@ public class AtmosphereManager
                 currentAtmosphere = AtmosphereType.Neutral;
             }
         }
-        
+
         // Consume double effect if it was used
         if (nextEffectDoubled)
         {
@@ -66,7 +66,7 @@ public class AtmosphereManager
             }
         }
     }
-    
+
     // CRITICAL: LISTEN does NOT reset atmosphere - atmosphere persists
     public void OnListenAction()
     {
@@ -207,31 +207,31 @@ public class AtmosphereManager
             _ => false
         };
     }
-    
+
     // Special observation effects
     public void SetNextSpeakFree()
     {
         nextSpeakFree = true;
     }
-    
+
     public void SetNextActionFreePatience()
     {
         nextActionFreePatience = true;
     }
-    
+
     public bool IsNextSpeakFree()
     {
         bool wasFree = nextSpeakFree;
         nextSpeakFree = false; // Consume
         return wasFree;
     }
-    
+
     // Check if we have temporary effects active
     public bool HasTemporaryEffects()
     {
         return nextCardAutoSucceeds || nextEffectDoubled || nextSpeakFree || nextActionFreePatience;
     }
-    
+
     // Get description of temporary effects for UI
     public string GetTemporaryEffectsDescription()
     {
@@ -245,7 +245,7 @@ public class AtmosphereManager
             return "⚡ Next action costs 0 patience!";
         return "";
     }
-    
+
     private void ClearTemporaryEffects()
     {
         nextCardAutoSucceeds = false;

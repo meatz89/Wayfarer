@@ -6,7 +6,7 @@ public class WorldState
     // Hierarchical world organization
     public List<Region> Regions { get; set; } = new();
     public List<District> Districts { get; set; } = new();
-    
+
     // Core data collections
     public List<Location> locations { get; set; } = new();
     public List<LocationSpot> locationSpots { get; set; } = new();
@@ -107,37 +107,37 @@ public class WorldState
         }
         return false;
     }
-    
+
     // Hierarchy lookup methods
     public District GetDistrictForLocation(string locationId)
     {
-        var location = locations.FirstOrDefault(l => l.Id == locationId);
-        if (location == null || string.IsNullOrEmpty(location.District)) 
+        Location? location = locations.FirstOrDefault(l => l.Id == locationId);
+        if (location == null || string.IsNullOrEmpty(location.District))
             return null;
-            
+
         return Districts.FirstOrDefault(d => d.Id == location.District);
     }
-    
+
     public Region GetRegionForDistrict(string districtId)
     {
-        var district = Districts.FirstOrDefault(d => d.Id == districtId);
+        District? district = Districts.FirstOrDefault(d => d.Id == districtId);
         if (district == null || string.IsNullOrEmpty(district.RegionId))
             return null;
-            
+
         return Regions.FirstOrDefault(r => r.Id == district.RegionId);
     }
-    
+
     public string GetFullLocationPath(string locationId)
     {
-        var location = locations.FirstOrDefault(l => l.Id == locationId);
+        Location? location = locations.FirstOrDefault(l => l.Id == locationId);
         if (location == null) return "";
-        
-        var district = GetDistrictForLocation(locationId);
+
+        District district = GetDistrictForLocation(locationId);
         if (district == null) return location.Name;
-        
-        var region = GetRegionForDistrict(district.Id);
+
+        Region region = GetRegionForDistrict(district.Id);
         if (region == null) return $"{location.Name}, {district.Name}";
-        
+
         return $"{location.Name}, {district.Name}, {region.Name}";
     }
 

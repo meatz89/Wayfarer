@@ -39,7 +39,7 @@ public class ConversationSession
 
     // Hidden momentum system - improves luck after failures
     public int HiddenMomentum { get; set; } = 0; // Invisible bad luck protection
-    
+
     public List<CardInstance> ObservationCards { get; set; } = new();
 
     // New helper methods

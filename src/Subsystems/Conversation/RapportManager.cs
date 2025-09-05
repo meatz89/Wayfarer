@@ -11,9 +11,9 @@ public class RapportManager
 {
     private int currentRapport = 0;
     private const int TOKEN_TO_RAPPORT_MULTIPLIER = 3;
-    
+
     public int CurrentRapport => currentRapport;
-    
+
     /// <summary>
     /// Initialize rapport manager with starting tokens
     /// </summary>
@@ -22,7 +22,7 @@ public class RapportManager
     {
         currentRapport = tokens.Values.Sum() * TOKEN_TO_RAPPORT_MULTIPLIER;
     }
-    
+
     /// <summary>
     /// Apply rapport changes from cards
     /// </summary>
@@ -43,7 +43,7 @@ public class RapportManager
     {
         return 4 - currentFlow; // Example: Better rapport when flow is negative
     }
-    
+
     /// <summary>
     /// Scale rapport change by patience level
     /// </summary>
@@ -53,7 +53,7 @@ public class RapportManager
     {
         return patience / 3; // Example scaling
     }
-    
+
     /// <summary>
     /// Scale rapport change by remaining focus
     /// </summary>
@@ -63,7 +63,7 @@ public class RapportManager
     {
         return remainingFocus;
     }
-    
+
     /// <summary>
     /// Get current success modifier for all cards
     /// </summary>
@@ -72,7 +72,7 @@ public class RapportManager
     {
         return currentRapport; // Each point = 1% success modifier
     }
-    
+
     /// <summary>
     /// Reset rapport to starting value based on tokens
     /// </summary>
@@ -81,7 +81,7 @@ public class RapportManager
     {
         currentRapport = tokens.Values.Sum() * TOKEN_TO_RAPPORT_MULTIPLIER;
     }
-    
+
     /// <summary>
     /// Apply atmosphere modifiers to rapport changes
     /// </summary>
@@ -98,7 +98,7 @@ public class RapportManager
             _ => baseChange
         };
     }
-    
+
     /// <summary>
     /// Get a visual representation of current rapport
     /// </summary>
@@ -108,7 +108,7 @@ public class RapportManager
         string sign = currentRapport > 0 ? "+" : "";
         return $"{sign}{currentRapport}";
     }
-    
+
     /// <summary>
     /// Get rapport effect description for UI
     /// </summary>
@@ -117,7 +117,7 @@ public class RapportManager
     {
         if (currentRapport == 0)
             return "No effect on success rates";
-        
+
         string sign = currentRapport > 0 ? "+" : "";
         return $"{sign}{currentRapport}% to all cards";
     }

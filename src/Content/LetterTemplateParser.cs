@@ -48,7 +48,7 @@ public static class LetterTemplateParser
         // Parse category
         if (!string.IsNullOrEmpty(dto.Category))
         {
-            if (Enum.TryParse<LetterCategory>(dto.Category, out var category))
+            if (Enum.TryParse<LetterCategory>(dto.Category, out LetterCategory category))
             {
                 template.Category = category;
             }
@@ -57,7 +57,7 @@ public static class LetterTemplateParser
         // Parse tier level
         if (!string.IsNullOrEmpty(dto.TierLevel))
         {
-            if (Enum.TryParse<TierLevel>(dto.TierLevel, out var tier))
+            if (Enum.TryParse<TierLevel>(dto.TierLevel, out TierLevel tier))
             {
                 template.TierLevel = tier;
             }
@@ -66,7 +66,7 @@ public static class LetterTemplateParser
         // Parse size
         if (!string.IsNullOrEmpty(dto.Size))
         {
-            if (Enum.TryParse<SizeCategory>(dto.Size, out var size))
+            if (Enum.TryParse<SizeCategory>(dto.Size, out SizeCategory size))
             {
                 template.Size = size;
             }

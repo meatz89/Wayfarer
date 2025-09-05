@@ -149,7 +149,7 @@ namespace Wayfarer.Pages.Components
             AvailableSpots.Clear();
             if (location != null && GameWorld != null)
             {
-                var allSpots = GameWorld.Spots.Values
+                IEnumerable<LocationSpot> allSpots = GameWorld.Spots.Values
                     .Where(s => s.LocationId == location.Id);
                 AvailableSpots = allSpots
                     .Where(s => s != spot)
@@ -174,10 +174,10 @@ namespace Wayfarer.Pages.Components
             {
                 try
                 {
-                    var locationActionManager = GameFacade.GetLocationActionManager();
+                    Subsystems.LocationSubsystem.LocationActionManager locationActionManager = GameFacade.GetLocationActionManager();
                     if (locationActionManager != null)
                     {
-                        var actions = locationActionManager.GetLocationActions(location, spot);
+                        List<LocationActionViewModel> actions = locationActionManager.GetLocationActions(location, spot);
                         LocationActions = actions ?? new List<LocationActionViewModel>();
                         Console.WriteLine($"[LocationContent] Got {LocationActions.Count} location actions");
                     }
@@ -284,7 +284,7 @@ namespace Wayfarer.Pages.Components
         protected async Task ExecuteLocationAction(LocationActionViewModel action)
         {
             Console.WriteLine($"[LocationContent] Executing location action: {action.ActionType}");
-            
+
             // Special handling for travel action
             if (action.ActionType == "travel")
             {
@@ -328,7 +328,7 @@ namespace Wayfarer.Pages.Components
         protected async Task PerformLocationAction(LocationActionViewModel action)
         {
             Console.WriteLine($"[LocationContent] Performing location action: {action.ActionType}");
-            
+
             // For now, we'll implement a simple placeholder that just logs the action
             // TODO: Implement proper action handling through GameFacade
             try
@@ -338,7 +338,7 @@ namespace Wayfarer.Pages.Components
                 Console.WriteLine($"[LocationContent] Simulating action: {action.Title}");
                 Console.WriteLine($"[LocationContent] Action cost: {action.Cost}");
                 Console.WriteLine($"[LocationContent] Action detail: {action.Detail}");
-                
+
                 // Refresh the UI
                 await RefreshLocationData();
                 await OnActionExecuted.InvokeAsync();

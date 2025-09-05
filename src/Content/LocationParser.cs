@@ -16,7 +16,7 @@ public static class LocationParser
             Description = dto.Description ?? "",
             Tier = dto.Tier,
             DomainTags = dto.DomainTags ?? new List<string>(),
-            LocationType = Enum.TryParse<LocationTypes>(dto.LocationType ?? "Connective", out var locationType) ? locationType : LocationTypes.Connective,
+            LocationType = Enum.TryParse<LocationTypes>(dto.LocationType ?? "Connective", out LocationTypes locationType) ? locationType : LocationTypes.Connective,
             LocationTypeString = dto.LocationType,
             IsStartingLocation = dto.IsStartingLocation
         };
@@ -33,7 +33,7 @@ public static class LocationParser
         // Parse available professions by time
         if (dto.AvailableProfessionsByTime != null)
         {
-            foreach (var kvp in dto.AvailableProfessionsByTime)
+            foreach (KeyValuePair<string, List<string>> kvp in dto.AvailableProfessionsByTime)
             {
                 if (EnumParser.TryParse<TimeBlocks>(kvp.Key, out TimeBlocks timeBlock))
                 {

@@ -144,7 +144,7 @@ public static class ObservationParser
         return stateStr switch
         {
             "NEUTRAL" => ConnectionState.NEUTRAL,
-            "GUARDED" => ConnectionState.GUARDED, 
+            "GUARDED" => ConnectionState.GUARDED,
             "RECEPTIVE" => ConnectionState.RECEPTIVE,
             "CONNECTED" => ConnectionState.TRUSTING,
             "DISCONNECTED" => ConnectionState.DISCONNECTED,

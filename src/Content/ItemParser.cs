@@ -44,9 +44,9 @@ public static class ItemParser
         // Parse token generation modifiers
         if (dto.TokenGenerationModifiers != null)
         {
-            foreach (var kvp in dto.TokenGenerationModifiers)
+            foreach (KeyValuePair<string, float> kvp in dto.TokenGenerationModifiers)
             {
-                if (Enum.TryParse<ConnectionType>(kvp.Key, out var connectionType))
+                if (Enum.TryParse<ConnectionType>(kvp.Key, out ConnectionType connectionType))
                 {
                     item.TokenGenerationModifiers[connectionType] = kvp.Value;
                 }
@@ -56,9 +56,9 @@ public static class ItemParser
         // Parse enabled token generation
         if (dto.EnablesTokenGeneration != null)
         {
-            foreach (var tokenType in dto.EnablesTokenGeneration)
+            foreach (string tokenType in dto.EnablesTokenGeneration)
             {
-                if (Enum.TryParse<ConnectionType>(tokenType, out var connectionType))
+                if (Enum.TryParse<ConnectionType>(tokenType, out ConnectionType connectionType))
                 {
                     item.EnablesTokenGeneration.Add(connectionType);
                 }

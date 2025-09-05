@@ -342,7 +342,9 @@
       "Bash(google-chrome:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6000\" dotnet run --no-build)",
       "Bash(/tmp/fix_narratives.sh:*)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5888\" dotnet run)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5888\" dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6300\" timeout 10 dotnet run --no-build)",
+      "Bash(mono:*)"
     ],
     "deny": []
   }

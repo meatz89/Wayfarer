@@ -22,10 +22,10 @@ public class CardEffectProcessor
     {
         if (card.SuccessEffect == null || card.SuccessEffect.IsEmpty)
             return new CardEffectResult { Card = card };
-        
+
         return ProcessEffect(card.SuccessEffect, card, session);
     }
-    
+
     /// <summary>
     /// Process a card's failure effect
     /// </summary>
@@ -33,10 +33,10 @@ public class CardEffectProcessor
     {
         if (card.FailureEffect == null || card.FailureEffect.IsEmpty)
             return new CardEffectResult { Card = card };
-        
+
         return ProcessEffect(card.FailureEffect, card, session);
     }
-    
+
     /// <summary>
     /// Process a card's exhaust effect
     /// </summary>
@@ -44,7 +44,7 @@ public class CardEffectProcessor
     {
         if (card.ExhaustEffect == null || card.ExhaustEffect.IsEmpty)
             return new CardEffectResult { Card = card };
-        
+
         return ProcessEffect(card.ExhaustEffect, card, session);
     }
 
@@ -88,7 +88,7 @@ public class CardEffectProcessor
             case CardEffectType.SetAtmosphere:
                 result.AtmosphereTypeChange = ProcessSetAtmosphereType(effect.Value);
                 break;
-                
+
             case CardEffectType.EndConversation:
                 result.EndsConversation = true;
                 result.SpecialEffect = "Conversation ends";
@@ -97,17 +97,17 @@ public class CardEffectProcessor
                     result.ConversationOutcomeData = effect.Data;
                 }
                 break;
-                
+
             case CardEffectType.RapportReset:
                 result.RapportChange = -session.RapportManager.CurrentRapport; // Reset to starting value
                 result.SpecialEffect = "Rapport reset to starting value";
                 break;
-                
+
             case CardEffectType.FocusRefresh:
                 result.FocusAdded = session.GetEffectiveFocusCapacity() - session.CurrentFocus;
                 result.SpecialEffect = "Focus refreshed";
                 break;
-                
+
             case CardEffectType.FreeNextAction:
                 result.SpecialEffect = "Next action costs 0 patience";
                 // Implementation would set a flag in session
@@ -165,7 +165,7 @@ public class CardEffectProcessor
             }
             return session.RapportManager.ScaleRapportByFlow(session.FlowManager.CurrentFlow);
         }
-        
+
         if (effect.Type == CardEffectType.ScaleRapportByPatience)
         {
             // Parse formula like "patience / 3"
@@ -179,12 +179,12 @@ public class CardEffectProcessor
             }
             return session.RapportManager.ScaleRapportByPatience(session.CurrentPatience);
         }
-        
+
         if (effect.Type == CardEffectType.ScaleRapportByFocus)
         {
             return session.RapportManager.ScaleRapportByFocus(session.GetAvailableFocus());
         }
-        
+
         return int.TryParse(effect.Value, out int value) ? value : 0;
     }
 
@@ -266,11 +266,11 @@ public class CardEffectProcessor
         // Each failure adds 3-5% invisible bonus, caps at 15%
         int momentum = session?.HiddenMomentum ?? 0;
         int momentumBonus = Math.Min(momentum * 4, 15); // 4% per failure, max 15%
-        
+
         // Also apply a slight baseline player favor: 
         // Instead of pure random, we slightly weight the dice
         Random random = new Random();
-        
+
         // Generate weighted roll that slightly favors success
         // We roll twice and take the better result 15% of the time
         int roll = random.Next(1, 101);
@@ -279,13 +279,13 @@ public class CardEffectProcessor
             int secondRoll = random.Next(1, 101);
             roll = Math.Min(roll, secondRoll); // Lower roll is better for player
         }
-        
+
         // Apply momentum bonus invisibly
         int adjustedSuccessChance = Math.Min(successPercentage + momentumBonus, 95);
-        
+
         return roll <= adjustedSuccessChance;
     }
-    
+
     // Check success using pre-rolled value with momentum
     public bool CheckSuccessWithPreRoll(int preRolledValue, int successPercentage, ConversationSession session = null)
     {
@@ -296,16 +296,16 @@ public class CardEffectProcessor
         // Apply hidden momentum (bad luck protection)
         int momentum = session?.HiddenMomentum ?? 0;
         int momentumBonus = Math.Min(momentum * 4, 15); // 4% per failure, max 15%
-        
+
         // Apply momentum bonus invisibly to success chance
         int adjustedSuccessChance = Math.Min(successPercentage + momentumBonus, 95);
-        
+
         Console.WriteLine($"[CardEffectProcessor] Using pre-rolled {preRolledValue} vs {adjustedSuccessChance}% (base {successPercentage}% + momentum {momentumBonus}%)");
-        
+
         // Use the pre-rolled value
         return preRolledValue <= adjustedSuccessChance;
     }
-    
+
     // Get actual roll value for display (legacy method for compatibility)
     public int GetLastRollValue()
     {

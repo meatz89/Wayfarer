@@ -83,7 +83,7 @@ public class LocationAction
         if (spot == null) return false;
 
         // Get all active properties for the current time
-        var activeProperties = spot.GetActiveProperties(currentTime);
+        List<SpotPropertyType> activeProperties = spot.GetActiveProperties(currentTime);
 
         // Check excluded properties first (fast rejection)
         if (ExcludedProperties.Any() && activeProperties.Any(p => ExcludedProperties.Contains(p)))

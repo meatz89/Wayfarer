@@ -13,10 +13,10 @@ public class ObservationDTO
     public int Focus { get; set; } = 1;
     public string TriggerCondition { get; set; }
     public bool OneTimeOnly { get; set; }
-    
+
     // Updated to use new properties format - list of strings instead of dictionary
     public List<string> Properties { get; set; } = new List<string>();
-    
+
     // Additional properties that may exist in observations
     public string Name { get; set; }
     public string Description { get; set; }

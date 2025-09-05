@@ -20,7 +20,7 @@ public static class GameWorldInitializer
 
         // Create new GameWorld instance
         GameWorld gameWorld = new GameWorld();
-        
+
         // Create PackageLoader and load content from the Core directory
         // AI-generated content will go in Content/Generated
         // Test packages are in Content/TestPackages

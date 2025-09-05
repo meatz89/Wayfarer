@@ -76,9 +76,9 @@ namespace Wayfarer.Pages.Components
         private string GetDestinationLocationName(string destinationSpotId)
         {
             // Get the actual location spot from GameWorld to find its name
-            var spot = GameFacade.GetLocationSpot(destinationSpotId);
-            var location = GameFacade.GetLocationById(spot.LocationId);
-            
+            LocationSpot spot = GameFacade.GetLocationSpot(destinationSpotId);
+            Location location = GameFacade.GetLocationById(spot.LocationId);
+
             if (location != null)
             {
                 return location.Name;
@@ -89,27 +89,27 @@ namespace Wayfarer.Pages.Components
         private string GetDestinationLocationSpotName(string destinationSpotId)
         {
             // Get the actual location spot from GameWorld to find its name
-            var spot = GameFacade.GetLocationSpot(destinationSpotId);
+            LocationSpot spot = GameFacade.GetLocationSpot(destinationSpotId);
             return spot?.Name ?? destinationSpotId;
         }
 
         private string GetDestinationDistrict(string destinationSpotId)
         {
             // Get all locations from GameFacade
-            var locations = GameFacade.GetAllLocations();
+            List<Location> locations = GameFacade.GetAllLocations();
             if (locations == null) return "City Center";
-            
+
             // Find the location containing this spot
-            foreach (var location in locations)
+            foreach (Location location in locations)
             {
                 if (location.LocationSpotIds.Contains(destinationSpotId))
                 {
                     // Get the district for this location
-                    var district = GameFacade.GetDistrictForLocation(location.Id);
+                    District district = GameFacade.GetDistrictForLocation(location.Id);
                     if (district != null)
                     {
                         // Get the region for this district
-                        var region = GameFacade.GetRegionForDistrict(district.Id);
+                        Region region = GameFacade.GetRegionForDistrict(district.Id);
                         if (region != null)
                         {
                             return $"{region.Name} • {district.Name}";
@@ -119,10 +119,10 @@ namespace Wayfarer.Pages.Components
                     return "City Center";
                 }
             }
-            
+
             return "City Center";
         }
-        
+
         private string FormatTransportType(TravelMethods method)
         {
             return method switch
@@ -139,7 +139,7 @@ namespace Wayfarer.Pages.Components
         {
             // Base hunger cost from route data
             int hungerCost = route.BaseStaminaCost; // This is the hunger cost in the data
-            
+
             // Add load penalties
             Player player = GameFacade.GetPlayer();
             int itemCount = player.Inventory.ItemSlots.Count(i => !string.IsNullOrEmpty(i));
@@ -147,14 +147,14 @@ namespace Wayfarer.Pages.Components
             {
                 hungerCost += (itemCount - 3);
             }
-            
+
             return hungerCost;
         }
 
         private RouteType DetermineRouteType(RouteOption route)
         {
             // Determine route type based on terrain categories
-            foreach (var terrain in route.TerrainCategories)
+            foreach (TerrainCategory terrain in route.TerrainCategories)
             {
                 if (terrain == TerrainCategory.Requires_Permission)
                     return RouteType.Guarded;
@@ -169,9 +169,9 @@ namespace Wayfarer.Pages.Components
         private List<string> ExtractRouteTags(RouteOption route)
         {
             List<string> tags = new List<string>();
-            
+
             // Add tags based on terrain categories
-            foreach (var terrain in route.TerrainCategories)
+            foreach (TerrainCategory terrain in route.TerrainCategories)
             {
                 switch (terrain)
                 {
@@ -189,19 +189,19 @@ namespace Wayfarer.Pages.Components
                         break;
                 }
             }
-            
+
             // Add tags based on access requirements
             if (route.AccessRequirement != null)
             {
                 tags.Add("RESTRICTED");
             }
-            
+
             // Add tags based on transport method
             if (route.Method == TravelMethods.Walking)
             {
                 tags.Add("PUBLIC");
             }
-            
+
             return tags;
         }
 
@@ -353,13 +353,13 @@ namespace Wayfarer.Pages.Components
             // Use the actual route name from JSON which is already descriptive
             // The route.Name should contain something like "Main Gate via Guard Checkpoint"
             // We just need to extract the part after "via" if it exists, or use the full name
-            
+
             if (!string.IsNullOrEmpty(route.Name))
             {
                 // If the name contains "via", return the full name as is
                 if (route.Name.Contains("via"))
                     return route.Name;
-                
+
                 // Otherwise try to make it more descriptive based on tags
                 string prefix = route.TransportType switch
                 {
@@ -368,10 +368,10 @@ namespace Wayfarer.Pages.Components
                     "Boat" => "Boat: ",
                     _ => ""
                 };
-                
+
                 return prefix + route.Name;
             }
-            
+
             // Fallback to tag-based description
             if (route.Tags.Contains("DISCRETE"))
                 return "Discrete Passage";
@@ -381,7 +381,7 @@ namespace Wayfarer.Pages.Components
                 return "Wilderness Path";
             if (route.Tags.Contains("RESTRICTED"))
                 return "Restricted Access";
-            
+
             return "Common Path";
         }
 

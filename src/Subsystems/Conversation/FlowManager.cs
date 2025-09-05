@@ -8,19 +8,19 @@ public class FlowManager
 {
     private int currentFlow = 0;
     private ConnectionState currentState;
-    
+
     public int CurrentFlow => currentFlow;
     public ConnectionState CurrentState => currentState;
-    
+
     public event Action<ConnectionState, ConnectionState>? StateTransitioned;
     public event Action? ConversationEnded;
-    
+
     public FlowManager(ConnectionState initialState)
     {
         currentState = initialState;
         currentFlow = 0; // Always starts at 0
     }
-    
+
     /// <summary>
     /// Apply card result and handle any state transitions.
     /// Returns (stateChanged, newState, conversationEnds)
@@ -31,7 +31,7 @@ public class FlowManager
         int change = success ? 1 : -1;
         return ApplyFlowChange(change);
     }
-    
+
     /// <summary>
     /// Apply a flow change and handle any state transitions.
     /// Returns (stateChanged, newState, conversationEnds)
@@ -40,14 +40,14 @@ public class FlowManager
     {
         // Apply atmosphere modifiers
         int modifiedChange = ModifyByAtmosphere(change, atmosphere);
-        
+
         // Apply the change
         int newFlow = currentFlow + modifiedChange;
-        
+
         // Clamp to -3 to +3 range
         newFlow = Math.Clamp(newFlow, -3, 3);
         currentFlow = newFlow;
-        
+
         // Check for state transition at exactly ±3
         if (currentFlow >= 3)
         {
@@ -57,16 +57,16 @@ public class FlowManager
         {
             return HandleNegativeTransition();
         }
-        
+
         // No transition, flow stays in range
         return (false, currentState, false);
     }
-    
+
     private (bool, ConnectionState, bool) HandlePositiveTransition()
     {
-        var oldState = currentState;
-        var newState = TransitionUp(currentState);
-        
+        ConnectionState oldState = currentState;
+        ConnectionState newState = TransitionUp(currentState);
+
         if (newState != oldState)
         {
             currentState = newState;
@@ -81,7 +81,7 @@ public class FlowManager
             return (false, currentState, false);
         }
     }
-    
+
     private (bool, ConnectionState, bool) HandleNegativeTransition()
     {
         // Check if DISCONNECTED first
@@ -91,16 +91,16 @@ public class FlowManager
             ConversationEnded?.Invoke();
             return (false, currentState, true);
         }
-        
-        var oldState = currentState;
-        var newState = TransitionDown(currentState);
-        
+
+        ConnectionState oldState = currentState;
+        ConnectionState newState = TransitionDown(currentState);
+
         currentState = newState;
         currentFlow = 0; // Reset battery to 0
         StateTransitioned?.Invoke(oldState, newState);
         return (true, newState, false);
     }
-    
+
     private int ModifyByAtmosphere(int baseChange, AtmosphereType atmosphere)
     {
         return atmosphere switch
@@ -111,7 +111,7 @@ public class FlowManager
             _ => baseChange
         };
     }
-    
+
     private ConnectionState TransitionUp(ConnectionState current)
     {
         return current switch
@@ -124,7 +124,7 @@ public class FlowManager
             _ => current
         };
     }
-    
+
     private ConnectionState TransitionDown(ConnectionState current)
     {
         return current switch
@@ -137,7 +137,7 @@ public class FlowManager
             _ => current
         };
     }
-    
+
     /// <summary>
     /// Reset flow to 0 (used by observation cards with ResetFlow effect)
     /// </summary>
@@ -145,7 +145,7 @@ public class FlowManager
     {
         currentFlow = 0;
     }
-    
+
     /// <summary>
     /// Get the current flow level clamped to range
     /// </summary>
@@ -153,7 +153,7 @@ public class FlowManager
     {
         return Math.Clamp(currentFlow, -3, 3);
     }
-    
+
     /// <summary>
     /// Set the current state (for initialization or special effects)
     /// </summary>
@@ -161,12 +161,12 @@ public class FlowManager
     {
         if (newState != currentState)
         {
-            var oldState = currentState;
+            ConnectionState oldState = currentState;
             currentState = newState;
             StateTransitioned?.Invoke(oldState, newState);
         }
     }
-    
+
     /// <summary>
     /// Check if at transition threshold
     /// </summary>
@@ -174,7 +174,7 @@ public class FlowManager
     {
         return Math.Abs(currentFlow) == 3;
     }
-    
+
     /// <summary>
     /// Check if one away from transition
     /// </summary>
@@ -182,7 +182,7 @@ public class FlowManager
     {
         return Math.Abs(currentFlow) == 2;
     }
-    
+
     /// <summary>
     /// Get warning message for near transitions
     /// </summary>
@@ -190,7 +190,7 @@ public class FlowManager
     {
         if (currentFlow == 2)
         {
-            var nextState = TransitionUp(currentState);
+            ConnectionState nextState = TransitionUp(currentState);
             if (nextState != currentState)
                 return $"One more positive to transition to {nextState}!";
             else
@@ -200,20 +200,20 @@ public class FlowManager
         {
             if (currentState == ConnectionState.DISCONNECTED)
                 return "WARNING: One more negative will end conversation!";
-            
-            var nextState = TransitionDown(currentState);
+
+            ConnectionState nextState = TransitionDown(currentState);
             return $"One more negative to transition to {nextState}!";
         }
         return "";
     }
-    
+
     /// <summary>
     /// Get a visual representation of the flow battery
     /// </summary>
     public string GetFlowDisplay()
     {
         // Visual representation: [-3][-2][-1][0][+1][+2][+3]
-        var display = "";
+        string display = "";
         for (int i = -3; i <= 3; i++)
         {
             if (i == currentFlow)
@@ -225,7 +225,7 @@ public class FlowManager
         }
         return display;
     }
-    
+
     /// <summary>
     /// Get a compact display for UI
     /// </summary>

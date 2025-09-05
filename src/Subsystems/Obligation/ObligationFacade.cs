@@ -511,7 +511,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         }
 
         #endregion
-        
+
         public int AddLetterWithObligationEffects(DeliveryObligation obligation)
         {
             ObligationAddResult result = AddObligationWithEffects(obligation);
@@ -849,7 +849,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     // Skip None type as it's not a valid token type
                     if (kvp.Key == ConnectionType.None)
                         continue;
-                        
+
                     if (tokenTotals.ContainsKey(kvp.Key))
                     {
                         tokenTotals[kvp.Key] += Math.Max(0, kvp.Value);

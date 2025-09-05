@@ -9,17 +9,17 @@ public class PackageStartingConditions
     /// Player initial configuration - reuses existing PlayerInitialConfig from GameWorld.cs
     /// </summary>
     public PlayerInitialConfig PlayerConfig { get; set; }
-    
+
     /// <summary>
     /// Starting location spot ID
     /// </summary>
     public string StartingSpotId { get; set; }
-    
+
     /// <summary>
     /// Initial obligations in queue
     /// </summary>
     public List<StandingObligationDTO> StartingObligations { get; set; }
-    
+
     /// <summary>
     /// Initial token relationships with NPCs
     /// Dictionary key is NPC ID, value is token counts

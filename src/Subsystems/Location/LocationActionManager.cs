@@ -35,16 +35,16 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             if (location == null || spot == null) return new List<LocationActionViewModel>();
 
             // Get dynamic actions from GameWorld data
-            var dynamicActions = GetDynamicLocationActions(location.Id, spot.SpotID);
-            
+            List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(location.Id, spot.SpotID);
+
             // Get actions from ActionGenerator
-            var generatedActions = _actionGenerator.GenerateActionsForLocation(location, spot);
-            
+            List<LocationActionViewModel> generatedActions = _actionGenerator.GenerateActionsForLocation(location, spot);
+
             // Combine both
-            var allActions = new List<LocationActionViewModel>();
+            List<LocationActionViewModel> allActions = new List<LocationActionViewModel>();
             allActions.AddRange(dynamicActions);
             allActions.AddRange(generatedActions);
-            
+
             return allActions;
         }
 
@@ -53,24 +53,24 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         /// </summary>
         private List<LocationActionViewModel> GetDynamicLocationActions(string locationId, string spotId)
         {
-            var actions = new List<LocationActionViewModel>();
-            var currentTime = _timeManager.GetCurrentTimeBlock();
-            
+            List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
+            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+
             // Get the spot to check its properties
-            var spot = _gameWorld.GetSpot(spotId);
+            LocationSpot spot = _gameWorld.GetSpot(spotId);
             if (spot == null) return actions;
-            
+
             // Get actions that match this spot's properties
-            var availableActions = _gameWorld.LocationActions
+            List<LocationAction> availableActions = _gameWorld.LocationActions
                 .Where(action => action.MatchesSpot(spot, currentTime) &&
                                 IsTimeAvailable(action, currentTime))
                 .OrderBy(action => action.Priority)
                 .ThenBy(action => action.Name)
                 .ToList();
-            
-            foreach (var action in availableActions)
+
+            foreach (LocationAction? action in availableActions)
             {
-                var viewModel = new LocationActionViewModel
+                LocationActionViewModel viewModel = new LocationActionViewModel
                 {
                     ActionType = action.ActionType ?? action.Id,
                     Title = $"{action.Icon} {action.Name}",
@@ -80,7 +80,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 };
                 actions.Add(viewModel);
             }
-            
+
             return actions;
         }
 
@@ -90,7 +90,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         private bool IsTimeAvailable(LocationAction action, TimeBlocks currentTime)
         {
             if (action.Availability.Count == 0) return true; // Available at all times
-            
+
             return action.Availability.Contains(currentTime.ToString());
         }
 
@@ -100,8 +100,8 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         private string GetCostDisplay(Dictionary<string, int> costs)
         {
             if (costs.Count == 0) return "Free!";
-            
-            var costStrings = costs.Select(kvp => $"{kvp.Value} {kvp.Key}").ToList();
+
+            List<string> costStrings = costs.Select(kvp => $"{kvp.Value} {kvp.Key}").ToList();
             return string.Join(", ", costStrings);
         }
 
@@ -111,7 +111,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         private bool CanPerformAction(LocationAction action)
         {
             Player player = _gameWorld.GetPlayer();
-            
+
             // Check attention cost
             if (action.Cost.ContainsKey("attention"))
             {
@@ -119,13 +119,13 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 // TODO: Implement proper attention checking
                 return true;
             }
-            
+
             // Check coin cost
             if (action.Cost.ContainsKey("coins"))
             {
                 return player.Coins >= action.Cost["coins"];
             }
-            
+
             return true;
         }
 

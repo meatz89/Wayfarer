@@ -98,8 +98,8 @@ public class GameWorld
     /// </summary>
     public List<string> GetSkeletonReport()
     {
-        var report = new List<string>();
-        foreach (var kvp in SkeletonRegistry)
+        List<string> report = new List<string>();
+        foreach (KeyValuePair<string, string> kvp in SkeletonRegistry)
         {
             report.Add($"{kvp.Value}: {kvp.Key}");
         }
@@ -179,13 +179,13 @@ public class GameWorld
         // Convert enum values to strings for compatibility
         return player.CurrentLocationSpot.SpotProperties.Select(p => p.ToString()).ToList();
     }
-    
+
     /// <summary>
     /// Get a location spot by ID from primary storage
     /// </summary>
     public LocationSpot GetSpot(string spotId)
     {
-        return Spots.TryGetValue(spotId, out var spot) ? spot : null;
+        return Spots.TryGetValue(spotId, out LocationSpot? spot) ? spot : null;
     }
 
 }

@@ -16,39 +16,39 @@ namespace Wayfarer
         /// </summary>
         public List<CardDisplayInfo> GetAllDisplayCards(ConversationSession session, List<AnimatingCard> animatingCards)
         {
-            var displayCards = new List<CardDisplayInfo>();
-            
+            List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
+
             // Start with ALL cards in their current hand order (preserving positions)
             if (session?.HandCards != null)
             {
-                var handList = session.HandCards.ToList();
-                
+                List<CardInstance> handList = session.HandCards.ToList();
+
                 // Add all cards, checking if they're animating
-                foreach (var card in handList)
+                foreach (CardInstance? card in handList)
                 {
-                    var animatingCard = animatingCards.FirstOrDefault(ac => ac.Card.InstanceId == card.InstanceId);
-                    
+                    AnimatingCard? animatingCard = animatingCards.FirstOrDefault(ac => ac.Card.InstanceId == card.InstanceId);
+
                     displayCards.Add(new CardDisplayInfo
                     {
                         Card = card,
                         IsAnimating = animatingCard != null,
-                        AnimationState = animatingCard != null 
+                        AnimationState = animatingCard != null
                             ? (animatingCard.Success ? "card-played-success" : "card-played-failure")
                             : null
                     });
                 }
             }
-            
+
             // Add any animating cards that are no longer in the hand (just played and removed)
-            foreach (var animatingCard in animatingCards)
+            foreach (AnimatingCard animatingCard in animatingCards)
             {
                 bool inHand = session?.HandCards?.Any(c => c.InstanceId == animatingCard.Card.InstanceId) ?? false;
-                
+
                 if (!inHand)
                 {
                     // Insert at original position or at end
                     int insertPos = Math.Min(animatingCard.OriginalPosition, displayCards.Count);
-                    
+
                     displayCards.Insert(insertPos, new CardDisplayInfo
                     {
                         Card = animatingCard.Card,
@@ -57,34 +57,34 @@ namespace Wayfarer
                     });
                 }
             }
-            
+
             // Sort to ensure promise cards appear first while preserving relative positions
             return SortCardsWithPromiseFirst(displayCards);
         }
-        
+
         /// <summary>
         /// Sort cards so promise/delivery cards appear first, preserving relative order within categories.
         /// </summary>
         private List<CardDisplayInfo> SortCardsWithPromiseFirst(List<CardDisplayInfo> cards)
         {
-            var promiseCards = cards.Where(dc => dc.Card.Properties.Contains(CardProperty.DeliveryEligible)).ToList();
-            var regularCards = cards.Where(dc => !dc.Card.Properties.Contains(CardProperty.DeliveryEligible)).ToList();
-            
-            var sorted = new List<CardDisplayInfo>();
+            List<CardDisplayInfo> promiseCards = cards.Where(dc => dc.Card.Properties.Contains(CardProperty.DeliveryEligible)).ToList();
+            List<CardDisplayInfo> regularCards = cards.Where(dc => !dc.Card.Properties.Contains(CardProperty.DeliveryEligible)).ToList();
+
+            List<CardDisplayInfo> sorted = new List<CardDisplayInfo>();
             sorted.AddRange(promiseCards);
             sorted.AddRange(regularCards);
-            
+
             return sorted;
         }
-        
+
         /// <summary>
         /// Get the position of a card in the current hand.
         /// </summary>
         public int GetCardPosition(CardInstance card, ConversationSession session)
         {
             if (card == null || session?.HandCards == null) return -1;
-            
-            var handList = session.HandCards.ToList();
+
+            List<CardInstance> handList = session.HandCards.ToList();
             for (int i = 0; i < handList.Count; i++)
             {
                 if (handList[i].InstanceId == card.InstanceId)

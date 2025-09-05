@@ -215,12 +215,12 @@ public class GameFacade
         // 2. SIMPLIFIED ACCESS CHECK - just use CanTravel which combines all checks
         // Note: This is simplified for now - full implementation would check access requirements separately
         // The RouteOption.CanTravel method already checks terrain requirements internally
-        
+
         // 3. CALCULATE ACTUAL HUNGER COST
         // Base hunger cost from route plus any load penalties
         int itemCount = player.Inventory.ItemSlots.Count(i => !string.IsNullOrEmpty(i));
         int hungerCost = targetRoute.BaseStaminaCost; // This is actually the hunger cost in the data
-        
+
         // Add load penalties if carrying many items
         if (itemCount > 3) // Light load threshold
         {
@@ -231,7 +231,7 @@ public class GameFacade
         if (player.Hunger + hungerCost > player.MaxHunger)
         {
             _narrativeFacade.AddSystemMessage(
-                $"Too exhausted to travel. Travel costs {hungerCost} hunger, but you have {player.Hunger}/{player.MaxHunger} hunger", 
+                $"Too exhausted to travel. Travel costs {hungerCost} hunger, but you have {player.Hunger}/{player.MaxHunger} hunger",
                 SystemMessageTypes.Warning);
             return false;
         }
@@ -458,28 +458,28 @@ public class GameFacade
         }
 
         // Initialize player at starting location
-        var player = _gameWorld.GetPlayer();
-        var startingLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "market_square");
+        Player player = _gameWorld.GetPlayer();
+        Location? startingLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "market_square");
         if (startingLocation != null)
         {
-            var startingSpot = _gameWorld.Spots.Values.FirstOrDefault(s => s.LocationId == "market_square" && s.SpotID == "central_fountain");
+            LocationSpot? startingSpot = _gameWorld.Spots.Values.FirstOrDefault(s => s.LocationId == "market_square" && s.SpotID == "central_fountain");
             if (startingSpot != null)
             {
                 player.CurrentLocationSpot = startingSpot;
                 Console.WriteLine($"[GameFacade.StartGameAsync] Player initialized at {startingLocation.Name} - {startingSpot.Name}");
             }
         }
-        
+
         // Initialize player resources for testing
         player.Coins = 50;  // Starting coins for testing
         player.Health = 10; // Starting health for testing
         player.Hunger = 5;   // Starting food for testing
-        
+
         Console.WriteLine($"[GameFacade.StartGameAsync] Player resources initialized - Coins: {player.Coins}, Health: {player.Health}, Food: {player.Hunger}");
-        
+
         // Mark game as started
         _gameWorld.IsGameStarted = true;
-        
+
         _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success);
     }
 
@@ -600,7 +600,7 @@ public class GameFacade
             _obligationFacade.ProcessHourlyDeadlines(result.HoursAdvanced);
         }
     }
-    
+
     /// <summary>
     /// Gets the district containing a location
     /// </summary>
@@ -608,7 +608,7 @@ public class GameFacade
     {
         return _gameWorld.WorldState.GetDistrictForLocation(locationId);
     }
-    
+
     /// <summary>
     /// Gets the region containing a district
     /// </summary>
@@ -616,7 +616,7 @@ public class GameFacade
     {
         return _gameWorld.WorldState.GetRegionForDistrict(districtId);
     }
-    
+
     /// <summary>
     /// Gets all locations in WorldState
     /// </summary>

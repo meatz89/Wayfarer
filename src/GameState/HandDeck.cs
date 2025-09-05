@@ -10,14 +10,14 @@ public class HandDeck
         {
             if (card.Context == null)
                 card.Context = new CardContext();
-            
+
             if (card.Context.PreRolledValue == null)
             {
                 card.Context.PreRolledValue = random.Next(1, 101);
                 Console.WriteLine($"[HandDeck] Pre-rolled {card.Context.PreRolledValue} for card: {card.Id}");
             }
         }
-        
+
         Cards.Add(card);
     }
 

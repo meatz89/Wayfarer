@@ -10,47 +10,15 @@
   "content": {
     "cards": [
       {
-        "id": "i_hear_you_1",
+        "id": "i_hear_you",
         "type": "Normal",
-        "personalityTypes": ["ALL"],
+        "personalityTypes": [
+          "ALL"
+        ],
         "focus": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "I hear you",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I hear what you're saying. Please, continue."
-      },
-      {
-        "id": "i_hear_you_2",
-        "type": "Normal",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "I hear you",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "1"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "I hear what you're saying. Please, continue."
-      },
-      {
-        "id": "i_hear_you_3",
-        "type": "Normal",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "properties": ["Persistent"],
+        "properties": [
+          "Persistent"
+        ],
         "connectionType": "Trust",
         "description": "I hear you",
         "difficulty": "Easy",
@@ -66,9 +34,13 @@
       {
         "id": "let_me_think",
         "type": "Normal",
-        "personalityTypes": ["ALL"],
+        "personalityTypes": [
+          "ALL"
+        ],
         "focus": 1,
-        "properties": ["Persistent"],
+        "properties": [
+          "Persistent"
+        ],
         "connectionType": "Trust",
         "description": "Let me think",
         "difficulty": "Easy",
@@ -84,9 +56,13 @@
       {
         "id": "let_me_prepare",
         "type": "Normal",
-        "personalityTypes": ["ALL"],
+        "personalityTypes": [
+          "ALL"
+        ],
         "focus": 1,
-        "properties": ["Persistent"],
+        "properties": [
+          "Persistent"
+        ],
         "connectionType": "Trust",
         "description": "Let me prepare",
         "difficulty": "Easy",
@@ -100,11 +76,15 @@
         "dialogueFragment": "Give me a moment to prepare myself..."
       },
       {
-        "id": "how_can_i_assist_1",
+        "id": "how_can_i_assist",
         "type": "Normal",
-        "personalityTypes": ["ALL"],
+        "personalityTypes": [
+          "ALL"
+        ],
         "focus": 2,
-        "properties": ["Persistent"],
+        "properties": [
+          "Persistent"
+        ],
         "connectionType": "Trust",
         "description": "How can I assist?",
         "difficulty": "Medium",
@@ -119,48 +99,15 @@
         "dialogueFragment": "How can I assist you with this?"
       },
       {
-        "id": "how_can_i_assist_2",
+        "id": "tell_me_more",
         "type": "Normal",
-        "personalityTypes": ["ALL"],
+        "personalityTypes": [
+          "ALL"
+        ],
         "focus": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "How can I assist?",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
-        },
-        "dialogueFragment": "How can I assist you with this?"
-      },
-      {
-        "id": "tell_me_more_1",
-        "type": "Normal",
-        "personalityTypes": ["ALL"],
-        "focus": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Tell me more",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "DrawCards",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "None"
-        },
-        "dialogueFragment": "Tell me more about your situation..."
-      },
-      {
-        "id": "tell_me_more_2",
-        "type": "Normal",
-        "personalityTypes": ["ALL"],
-        "focus": 2,
-        "properties": ["Persistent"],
+        "properties": [
+          "Persistent"
+        ],
         "connectionType": "Trust",
         "description": "Tell me more",
         "difficulty": "Medium",
@@ -176,9 +123,13 @@
       {
         "id": "im_here_for_you",
         "type": "Normal",
-        "personalityTypes": ["ALL"],
+        "personalityTypes": [
+          "ALL"
+        ],
         "focus": 3,
-        "properties": ["Persistent"],
+        "properties": [
+          "Persistent"
+        ],
         "connectionType": "Trust",
         "description": "I'm here for you",
         "difficulty": "Easy",
@@ -194,9 +145,13 @@
       {
         "id": "well_figure_this_out",
         "type": "Normal",
-        "personalityTypes": ["ALL"],
+        "personalityTypes": [
+          "ALL"
+        ],
         "focus": 3,
-        "properties": ["Persistent"],
+        "properties": [
+          "Persistent"
+        ],
         "connectionType": "Trust",
         "description": "We'll figure this out",
         "difficulty": "Hard",
@@ -212,9 +167,13 @@
       {
         "id": "everything_will_be_alright",
         "type": "Normal",
-        "personalityTypes": ["ALL"],
+        "personalityTypes": [
+          "ALL"
+        ],
         "focus": 4,
-        "properties": ["Persistent"],
+        "properties": [
+          "Persistent"
+        ],
         "connectionType": "Trust",
         "description": "Everything will be alright",
         "difficulty": "Hard",
@@ -251,7 +210,9 @@
         "personality": "Disconnected about Lord Blackwood's marriage proposal - he leaves at sunset",
         "personalityType": "DEVOTED",
         "services": [],
-        "letterTokenTypes": ["Trust"],
+        "letterTokenTypes": [
+          "Trust"
+        ],
         "currentState": "DISCONNECTED",
         "initialTokens": {
           "Trust": 1
@@ -267,7 +228,9 @@
         "personality": "Impatient and powerful, expecting Elena's answer to his proposal",
         "personalityType": "PROUD",
         "services": [],
-        "letterTokenTypes": ["Status"],
+        "letterTokenTypes": [
+          "Status"
+        ],
         "currentState": "NEUTRAL"
       },
       {
@@ -279,8 +242,13 @@
         "description": "A merchant heading to his stall",
         "personality": "Businesslike and hurried",
         "personalityType": "MERCANTILE",
-        "services": ["Trade", "Work"],
-        "letterTokenTypes": ["Commerce"],
+        "services": [
+          "Trade",
+          "Work"
+        ],
+        "letterTokenTypes": [
+          "Commerce"
+        ],
         "currentState": "CALCULATING"
       },
       {
@@ -292,7 +260,10 @@
         "description": "Polishing glasses behind the bar, occasionally glancing your way with a welcoming nod",
         "personality": "Friendly and observant",
         "personalityType": "STEADFAST",
-        "services": ["Lodging", "Information"],
+        "services": [
+          "Lodging",
+          "Information"
+        ],
         "letterTokenTypes": [],
         "currentState": "WELCOMING"
       },
@@ -306,7 +277,9 @@
         "personality": "Stern and dutiful",
         "personalityType": "STEADFAST",
         "services": [],
-        "letterTokenTypes": ["Shadow"],
+        "letterTokenTypes": [
+          "Shadow"
+        ],
         "currentState": "NEUTRAL"
       }
     ],
@@ -318,7 +291,9 @@
         "government": "Merchant Council",
         "culture": "Trade-focused",
         "population": 50000,
-        "districtIds": ["lower_wards"]
+        "districtIds": [
+          "lower_wards"
+        ]
       }
     ],
     "districts": [
@@ -329,8 +304,16 @@
         "regionId": "aldermere",
         "districtType": "Trade Quarter",
         "dangerLevel": 2,
-        "characteristics": ["Crowded", "Diverse", "Commercial"],
-        "locationIds": ["market_square", "copper_kettle_tavern", "noble_district"]
+        "characteristics": [
+          "Crowded",
+          "Diverse",
+          "Commercial"
+        ],
+        "locationIds": [
+          "market_square",
+          "copper_kettle_tavern",
+          "noble_district"
+        ]
       }
     ],
     "locations": [
@@ -340,15 +323,44 @@
         "district": "lower_wards",
         "description": "The bustling heart of the city. Cobblestones worn smooth by countless feet.",
         "environmentalProperties": {
-          "morning": [ "WELL-LIT", "BUSY", "URBAN" ],
-          "afternoon": [ "WELL-LIT", "CROWDED", "URBAN" ],
-          "evening": [ "SHADOWY", "BUSY", "URBAN" ],
-          "night": [ "DARK", "QUIET", "URBAN" ]
+          "morning": [
+            "WELL-LIT",
+            "BUSY",
+            "URBAN"
+          ],
+          "afternoon": [
+            "WELL-LIT",
+            "CROWDED",
+            "URBAN"
+          ],
+          "evening": [
+            "SHADOWY",
+            "BUSY",
+            "URBAN"
+          ],
+          "night": [
+            "DARK",
+            "QUIET",
+            "URBAN"
+          ]
         },
-        "domainTags": [ "COMMERCE", "SOCIAL", "PUBLIC" ],
+        "domainTags": [
+          "COMMERCE",
+          "SOCIAL",
+          "PUBLIC"
+        ],
         "travelHubSpotId": "central_fountain",
-        "locationSpots": [ "central_fountain", "merchant_row", "north_entrance", "north_alcove", "guard_post" ],
-        "connectedTo": [ "copper_kettle_tavern", "noble_district" ],
+        "locationSpots": [
+          "central_fountain",
+          "merchant_row",
+          "north_entrance",
+          "north_alcove",
+          "guard_post"
+        ],
+        "connectedTo": [
+          "copper_kettle_tavern",
+          "noble_district"
+        ],
         "socialExpectation": "Any",
         "accessLevel": "Public",
         "requiredSocialClasses": [],
@@ -361,15 +373,43 @@
         "district": "lower_wards",
         "description": "A warm, inviting tavern. The copper kettle hangs over the hearth, giving the place its name.",
         "environmentalProperties": {
-          "morning": [ "WELL-LIT", "QUIET", "COZY" ],
-          "afternoon": [ "WELL-LIT", "SOCIAL", "COZY" ],
-          "evening": [ "WARM", "SOCIAL", "BUSY" ],
-          "night": [ "DIM", "QUIET", "COZY" ]
+          "morning": [
+            "WELL-LIT",
+            "QUIET",
+            "COZY"
+          ],
+          "afternoon": [
+            "WELL-LIT",
+            "SOCIAL",
+            "COZY"
+          ],
+          "evening": [
+            "WARM",
+            "SOCIAL",
+            "BUSY"
+          ],
+          "night": [
+            "DIM",
+            "QUIET",
+            "COZY"
+          ]
         },
-        "domainTags": [ "SOCIAL", "COMMERCE", "REST", "CROSSROADS" ],
+        "domainTags": [
+          "SOCIAL",
+          "COMMERCE",
+          "REST",
+          "CROSSROADS"
+        ],
         "travelHubSpotId": "main_hall",
-        "locationSpots": [ "main_hall", "bar_counter", "corner_table", "upstairs_room" ],
-        "connectedTo": [ "market_square" ],
+        "locationSpots": [
+          "main_hall",
+          "bar_counter",
+          "corner_table",
+          "upstairs_room"
+        ],
+        "connectedTo": [
+          "market_square"
+        ],
         "socialExpectation": "Any",
         "accessLevel": "Public",
         "requiredSocialClasses": [],
@@ -382,18 +422,45 @@
         "district": "lower_wards",
         "description": "Quiet streets lined with grand estates. Guards patrol regularly.",
         "environmentalProperties": {
-          "morning": [ "WELL-LIT", "QUIET", "WEALTHY" ],
-          "afternoon": [ "WELL-LIT", "QUIET", "WEALTHY" ],
-          "evening": [ "SHADOWY", "QUIET", "WEALTHY" ],
-          "night": [ "DARK", "GUARDED", "WEALTHY" ]
+          "morning": [
+            "WELL-LIT",
+            "QUIET",
+            "WEALTHY"
+          ],
+          "afternoon": [
+            "WELL-LIT",
+            "QUIET",
+            "WEALTHY"
+          ],
+          "evening": [
+            "SHADOWY",
+            "QUIET",
+            "WEALTHY"
+          ],
+          "night": [
+            "DARK",
+            "GUARDED",
+            "WEALTHY"
+          ]
         },
-        "domainTags": [ "NOBLE", "WEALTH", "EXCLUSIVE" ],
+        "domainTags": [
+          "NOBLE",
+          "WEALTH",
+          "EXCLUSIVE"
+        ],
         "travelHubSpotId": "aldwin_manor",
-        "locationSpots": [ "aldwin_manor", "blackwood_estate" ],
-        "connectedTo": [ "market_square" ],
+        "locationSpots": [
+          "aldwin_manor",
+          "blackwood_estate"
+        ],
+        "connectedTo": [
+          "market_square"
+        ],
         "socialExpectation": "Noble",
         "accessLevel": "Restricted",
-        "requiredSocialClasses": ["Noble"],
+        "requiredSocialClasses": [
+          "Noble"
+        ],
         "locationType": "Elite Quarter",
         "isStartingLocation": false
       }
@@ -405,12 +472,30 @@
         "description": "A quiet table in the corner, perfect for private conversations and intimate gatherings.",
         "initialState": "A small wooden table with two chairs. Dimly lit and away from the main crowd.",
         "locationId": "copper_kettle_tavern",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-        "domainTags": [ "PRIVATE", "QUIET", "INTIMATE" ],
-        "spotProperties": [ "Private", "Quiet", "Warm" ],
+        "CurrentTimeBlocks": [
+          "Morning",
+          "Afternoon",
+          "Evening",
+          "Night"
+        ],
+        "domainTags": [
+          "PRIVATE",
+          "QUIET",
+          "INTIMATE"
+        ],
+        "spotProperties": [
+          "Private",
+          "Quiet",
+          "Warm"
+        ],
         "timeSpecificProperties": {
-          "Evening": [ "BusyEvening" ],
-          "Night": [ "QuietMorning", "Isolated" ]
+          "Evening": [
+            "BusyEvening"
+          ],
+          "Night": [
+            "QuietMorning",
+            "Isolated"
+          ]
         }
       },
       {
@@ -419,13 +504,38 @@
         "description": "The ornate fountain at the heart of Market Square. A gathering place for all.",
         "initialState": "Clear water sparkles in the light. Citizens gather on benches around the fountain's edge.",
         "locationId": "market_square",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-        "domainTags": [ "PUBLIC_SQUARE", "CROWDED", "CROSSROADS", "COMMERCE" ],
-        "spotProperties": [ "Public", "Crossroads", "Exposed", "Central" ],
+        "CurrentTimeBlocks": [
+          "Morning",
+          "Afternoon",
+          "Evening",
+          "Night"
+        ],
+        "domainTags": [
+          "PUBLIC_SQUARE",
+          "CROWDED",
+          "CROSSROADS",
+          "COMMERCE"
+        ],
+        "spotProperties": [
+          "Public",
+          "Crossroads",
+          "Exposed",
+          "Central"
+        ],
         "timeSpecificProperties": {
-          "Morning": [ "QuietMorning", "WellLit" ],
-          "Afternoon": [ "Loud", "BusyEvening", "Crowded" ],
-          "Evening": [ "BusyEvening", "Loud" ]
+          "Morning": [
+            "QuietMorning",
+            "WellLit"
+          ],
+          "Afternoon": [
+            "Loud",
+            "BusyEvening",
+            "Crowded"
+          ],
+          "Evening": [
+            "BusyEvening",
+            "Loud"
+          ]
         }
       },
       {
@@ -434,13 +544,33 @@
         "description": "A grand estate known for hosting influential gatherings and political dealings.",
         "initialState": "Impressive architecture with tall windows. The sound of a fountain echoes from within.",
         "locationId": "noble_district",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-        "domainTags": [ "NOBLE", "EXCLUSIVE", "WEALTHY" ],
-        "spotProperties": [ "Private", "Prestigious", "NobleHaunt", "Political" ],
+        "CurrentTimeBlocks": [
+          "Morning",
+          "Afternoon",
+          "Evening"
+        ],
+        "domainTags": [
+          "NOBLE",
+          "EXCLUSIVE",
+          "WEALTHY"
+        ],
+        "spotProperties": [
+          "Private",
+          "Prestigious",
+          "NobleHaunt",
+          "Political"
+        ],
         "timeSpecificProperties": {
-          "Morning": [ "Quiet" ],
-          "Afternoon": [ "Busy" ],
-          "Evening": [ "Social", "Exclusive" ]
+          "Morning": [
+            "Quiet"
+          ],
+          "Afternoon": [
+            "Busy"
+          ],
+          "Evening": [
+            "Social",
+            "Exclusive"
+          ]
         }
       },
       {
@@ -449,13 +579,34 @@
         "description": "Rows of market stalls selling goods from across the realm",
         "initialState": "Merchants are setting up their wares, calling out to potential customers",
         "locationId": "market_square",
-        "CurrentTimeBlocks": ["Morning", "Afternoon", "Evening"],
-        "domainTags": ["COMMERCE", "BUSY", "PUBLIC"],
-        "spotProperties": ["Public", "Commercial", "Busy"],
+        "CurrentTimeBlocks": [
+          "Morning",
+          "Afternoon",
+          "Evening"
+        ],
+        "domainTags": [
+          "COMMERCE",
+          "BUSY",
+          "PUBLIC"
+        ],
+        "spotProperties": [
+          "Public",
+          "Commercial",
+          "Busy"
+        ],
         "timeSpecificProperties": {
-          "Morning": ["QuietMorning", "WellLit"],
-          "Afternoon": ["Crowded", "Loud", "BusyEvening"],
-          "Evening": ["BusyEvening"]
+          "Morning": [
+            "QuietMorning",
+            "WellLit"
+          ],
+          "Afternoon": [
+            "Crowded",
+            "Loud",
+            "BusyEvening"
+          ],
+          "Evening": [
+            "BusyEvening"
+          ]
         }
       },
       {
@@ -464,14 +615,42 @@
         "description": "The heart of the Copper Kettle Tavern. Tables and chairs fill the space, with a warm fire crackling.",
         "initialState": "The hearth glows warmly. Patrons sit at wooden tables, enjoying food and drink.",
         "locationId": "copper_kettle_tavern",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-        "domainTags": [ "SOCIAL", "WARM", "GATHERING" ],
-        "spotProperties": [ "Public", "Crossroads", "Warm", "Social", "Central" ],
+        "CurrentTimeBlocks": [
+          "Morning",
+          "Afternoon",
+          "Evening",
+          "Night"
+        ],
+        "domainTags": [
+          "SOCIAL",
+          "WARM",
+          "GATHERING"
+        ],
+        "spotProperties": [
+          "Public",
+          "Crossroads",
+          "Warm",
+          "Social",
+          "Central"
+        ],
         "timeSpecificProperties": {
-          "Morning": [ "Quiet", "Peaceful" ],
-          "Afternoon": [ "Social", "Busy" ],
-          "Evening": [ "BusyEvening", "Loud", "Social" ],
-          "Night": [ "Quiet", "Intimate" ]
+          "Morning": [
+            "Quiet",
+            "Peaceful"
+          ],
+          "Afternoon": [
+            "Social",
+            "Busy"
+          ],
+          "Evening": [
+            "BusyEvening",
+            "Loud",
+            "Social"
+          ],
+          "Night": [
+            "Quiet",
+            "Intimate"
+          ]
         }
       },
       {
@@ -480,14 +659,37 @@
         "description": "The polished wooden bar where Bertram serves drinks and meals to guests.",
         "initialState": "Clean glasses line the shelves. Bertram polishes mugs with a friendly smile.",
         "locationId": "copper_kettle_tavern",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-        "domainTags": [ "SOCIAL", "SERVICE", "COMMERCE" ],
-        "spotProperties": [ "Public", "Commercial", "Social" ],
+        "CurrentTimeBlocks": [
+          "Morning",
+          "Afternoon",
+          "Evening",
+          "Night"
+        ],
+        "domainTags": [
+          "SOCIAL",
+          "SERVICE",
+          "COMMERCE"
+        ],
+        "spotProperties": [
+          "Public",
+          "Commercial",
+          "Social"
+        ],
         "timeSpecificProperties": {
-          "Morning": [ "WellLit", "Peaceful" ],
-          "Afternoon": [ "Busy" ],
-          "Evening": [ "BusyEvening", "Social" ],
-          "Night": [ "Quiet" ]
+          "Morning": [
+            "WellLit",
+            "Peaceful"
+          ],
+          "Afternoon": [
+            "Busy"
+          ],
+          "Evening": [
+            "BusyEvening",
+            "Social"
+          ],
+          "Night": [
+            "Quiet"
+          ]
         }
       },
       {
@@ -496,13 +698,36 @@
         "description": "A stately manor in the Noble District, the main entry point from the central gates.",
         "initialState": "Elegant architecture and manicured grounds. Guards patrol the perimeter.",
         "locationId": "noble_district",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
-        "domainTags": [ "NOBLE", "EXCLUSIVE", "GUARDED" ],
-        "spotProperties": [ "Private", "Crossroads", "Prestigious", "Guarded", "Central" ],
+        "CurrentTimeBlocks": [
+          "Morning",
+          "Afternoon",
+          "Evening"
+        ],
+        "domainTags": [
+          "NOBLE",
+          "EXCLUSIVE",
+          "GUARDED"
+        ],
+        "spotProperties": [
+          "Private",
+          "Crossroads",
+          "Prestigious",
+          "Guarded",
+          "Central"
+        ],
         "timeSpecificProperties": {
-          "Morning": [ "Quiet", "Peaceful" ],
-          "Afternoon": [ "Formal", "Busy" ],
-          "Evening": [ "Social", "Exclusive" ]
+          "Morning": [
+            "Quiet",
+            "Peaceful"
+          ],
+          "Afternoon": [
+            "Formal",
+            "Busy"
+          ],
+          "Evening": [
+            "Social",
+            "Exclusive"
+          ]
         }
       },
       {
@@ -511,14 +736,37 @@
         "description": "The official guard station in Market Square where city watch maintain order.",
         "initialState": "Guards in uniform stand watch, observing the crowd for any trouble.",
         "locationId": "market_square",
-        "CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
-        "domainTags": [ "AUTHORITY", "OFFICIAL", "SECURITY" ],
-        "spotProperties": [ "Public", "Official", "Watched", "Secure" ],
+        "CurrentTimeBlocks": [
+          "Morning",
+          "Afternoon",
+          "Evening",
+          "Night"
+        ],
+        "domainTags": [
+          "AUTHORITY",
+          "OFFICIAL",
+          "SECURITY"
+        ],
+        "spotProperties": [
+          "Public",
+          "Official",
+          "Watched",
+          "Secure"
+        ],
         "timeSpecificProperties": {
-          "Morning": [ "Alert" ],
-          "Afternoon": [ "Busy", "Watchful" ],
-          "Evening": [ "Vigilant" ],
-          "Night": [ "Patrolled" ]
+          "Morning": [
+            "Alert"
+          ],
+          "Afternoon": [
+            "Busy",
+            "Watchful"
+          ],
+          "Evening": [
+            "Vigilant"
+          ],
+          "Night": [
+            "Patrolled"
+          ]
         }
       }
     ],
@@ -564,7 +812,9 @@
         "travelTimeMinutes": 25,
         "departureTime": null,
         "isDiscovered": true,
-        "terrainCategories": ["Requires_Permission"],
+        "terrainCategories": [
+          "Requires_Permission"
+        ],
         "maxItemCapacity": 5,
         "description": "The guarded main gate to the Noble District - requires 10 coin bribe."
       }
@@ -585,11 +835,18 @@
         "minTokensRequired": 0,
         "tierLevel": "T2",
         "forcesQueuePosition1": true,
-        "possibleSenders": [ "elena" ],
-        "possibleRecipients": [ "lord_blackwood" ],
+        "possibleSenders": [
+          "elena"
+        ],
+        "possibleRecipients": [
+          "lord_blackwood"
+        ],
         "recipientId": "lord_blackwood",
         "size": "Small",
-        "physicalProperties": ["Sealed with wax", "Trembling hands"],
+        "physicalProperties": [
+          "Sealed with wax",
+          "Trembling hands"
+        ],
         "consequenceIfLate": "Elena forced into unwanted marriage",
         "consequenceIfDelivered": "Elena's freedom preserved",
         "emotionalFocus": "HIGH"
@@ -601,7 +858,10 @@
         "id": "accept_elenas_letter",
         "type": "Promise",
         "focus": 0,
-        "properties": ["Persistent", "DeliveryEligible"],
+        "properties": [
+          "Persistent",
+          "DeliveryEligible"
+        ],
         "connectionType": "Trust",
         "description": "Accept Elena's Letter",
         "difficulty": "VeryEasy",
@@ -616,7 +876,9 @@
             "recipientId": "lord_blackwood",
             "letterId": "elena_refusal",
             "payment": 5,
-            "tokenReward": {"Trust": 2}
+            "tokenReward": {
+              "Trust": 2
+            }
           }
         },
         "dialogueFragment": "Give me the letter. I'll get it to Lord Blackwood before sunset, no matter what it takes."
@@ -626,7 +888,58 @@
     "travelCards": [],
     "items": [],
     "locationActions": [],
-    "observations": []
+    "observations": [],
+    "deckCompositions": {
+      "defaultDeck": {
+        "conversationDeck": {
+          "i_hear_you": 3,
+          "let_me_think": 1,
+          "let_me_prepare": 1,
+          "how_can_i_assist": 2,
+          "tell_me_more": 2,
+          "im_here_for_you": 1,
+          "well_figure_this_out": 1,
+          "everything_will_be_alright": 1
+        },
+        "requestDeck": {},
+        "exchangeDeck": {}
+      },
+      "npcDecks": {
+        "elena": {
+          "conversationDeck": {
+            "i_hear_you": 3,
+            "let_me_think": 1,
+            "let_me_prepare": 1,
+            "how_can_i_assist": 2,
+            "tell_me_more": 2,
+            "im_here_for_you": 1,
+            "well_figure_this_out": 1,
+            "everything_will_be_alright": 1
+          },
+          "requestDeck": {
+            "elena_letter_promise": 1
+          },
+          "exchangeDeck": {}
+        },
+        "marcus": {
+          "conversationDeck": {
+            "i_hear_you": 3,
+            "let_me_think": 1,
+            "let_me_prepare": 1,
+            "how_can_i_assist": 2,
+            "tell_me_more": 2,
+            "im_here_for_you": 1,
+            "well_figure_this_out": 1,
+            "everything_will_be_alright": 1
+          },
+          "requestDeck": {},
+          "exchangeDeck": {
+            "marcus_bulk_purchase": 1,
+            "marcus_quick_trade": 1
+          }
+        }
+      }
+    }
   },
   "startingConditions": {
     "playerConfig": {

@@ -425,7 +425,7 @@ public class ConversationFacade
 
         // Create a HashSet with single card for ProcessAction (will be refactored later)
         HashSet<CardInstance> singleCardSet = new HashSet<CardInstance> { selectedCard };
-        
+
         ConversationTurnResult result = ProcessAction(new ConversationAction
         {
             ActionType = ActionType.Speak,
@@ -489,7 +489,7 @@ public class ConversationFacade
             Console.WriteLine($"[ConversationFacade] Processing card {card.Description}, has Context: {card.Context != null}, has ExchangeData: {card.Context?.ExchangeData != null}");
             Console.WriteLine($"[ConversationFacade] Card Properties: {string.Join(", ", card.Properties)}");
             Console.WriteLine($"[ConversationFacade] Card SuccessEffect Type: {card.SuccessEffect?.Type}, has ExchangeData in effect: {card.SuccessEffect?.ExchangeData != null}");
-            
+
             // Handle exchange cards
             if (card.Context?.ExchangeData != null)
             {

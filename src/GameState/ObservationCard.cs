@@ -142,6 +142,6 @@ public class ObservationCard : ConversationCard
 
         return observation;
     }
-    
+
     public ConversationCard ConversationCard { get; set; }
 }

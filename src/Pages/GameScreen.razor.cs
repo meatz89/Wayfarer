@@ -154,7 +154,7 @@ namespace Wayfarer.Pages
         {
             int hour = GameFacade.GetCurrentHour();
             int minutes = GameFacade.GetCurrentMinutes();
-            
+
             string period = hour switch
             {
                 >= 6 and < 10 => "Morning",
@@ -482,7 +482,7 @@ namespace Wayfarer.Pages
             await RefreshResourceDisplay();
             await RefreshTimeDisplay();
             await RefreshLocationDisplay();
-            
+
             // Force UI update to show the new time
             await InvokeAsync(StateHasChanged);
 

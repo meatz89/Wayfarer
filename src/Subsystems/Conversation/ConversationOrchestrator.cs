@@ -59,7 +59,7 @@ public class ConversationOrchestrator
         _atmosphereManager.Reset();
 
         // Create session deck and get request card
-        var (deck, requestCard) = _deckManager.CreateConversationDeck(npc, conversationType, observationCards);
+        (SessionCardDeck deck, CardInstance requestCard) = _deckManager.CreateConversationDeck(npc, conversationType, observationCards);
 
         // Create rapport manager with initial token counts
         Dictionary<ConnectionType, int> npcTokens = GetNpcTokenCounts(npc);
@@ -103,7 +103,7 @@ public class ConversationOrchestrator
 
         // Update request card playability based on focus
         _deckManager.UpdateRequestCardPlayability(session);
-        
+
         // Reset focus after initial draw (as per standard LISTEN)
         session.CurrentFocus = _focusManager.CurrentSpentFocus;
         session.MaxFocus = _focusManager.CurrentCapacity;
@@ -177,20 +177,20 @@ public class ConversationOrchestrator
         // Apply flow change through battery manager
         bool conversationEnded = false;
         ConnectionState newState = session.CurrentState;
-        
+
         if (_flowBatteryManager != null && flowChange != 0)
         {
-            var (stateChanged, resultState, shouldEnd) = 
+            (bool stateChanged, ConnectionState resultState, bool shouldEnd) =
                 _flowBatteryManager.ApplyFlowChange(flowChange, session.CurrentAtmosphere);
-            
+
             session.FlowBattery = _flowBatteryManager.CurrentFlow;
             conversationEnded = shouldEnd;
-            
+
             if (stateChanged)
             {
                 newState = resultState;
                 session.CurrentState = newState;
-                
+
                 // Update focus capacity for new state
                 _focusManager.SetBaseCapacity(newState);
             }
@@ -260,8 +260,8 @@ public class ConversationOrchestrator
             return true;
 
         // Check with flow battery manager
-        if (_flowBatteryManager != null && 
-            _flowBatteryManager.CurrentState == ConnectionState.DISCONNECTED && 
+        if (_flowBatteryManager != null &&
+            _flowBatteryManager.CurrentState == ConnectionState.DISCONNECTED &&
             _flowBatteryManager.CurrentFlow <= -3)
             return true;
 
@@ -374,7 +374,7 @@ public class ConversationOrchestrator
 
         return Math.Max(0, baseReward);
     }
-    
+
     public ConversationTurnResult ProcessSpeakAction(ConversationSession session, HashSet<CardInstance> selectedCards)
     {
         CardInstance? firstCard = selectedCards?.FirstOrDefault();
@@ -522,7 +522,7 @@ public class ConversationOrchestrator
     /// </summary>
     private Dictionary<ConnectionType, int> GetNpcTokenCounts(NPC npc)
     {
-        var tokenCounts = new Dictionary<ConnectionType, int>
+        Dictionary<ConnectionType, int> tokenCounts = new Dictionary<ConnectionType, int>
         {
             { ConnectionType.Trust, _tokenManager.GetTokenCount(ConnectionType.Trust, npc.ID) },
             { ConnectionType.Commerce, _tokenManager.GetTokenCount(ConnectionType.Commerce, npc.ID) },

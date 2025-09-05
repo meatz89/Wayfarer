@@ -10,42 +10,42 @@ public enum CardProperty
     /// Default - card stays in hand until played
     /// </summary>
     Persistent,
-    
+
     /// <summary>
     /// Card exhausts after SPEAK action if unplayed
     /// </summary>
     Impulse,
-    
+
     /// <summary>
     /// Card exhausts after LISTEN action if unplayed
     /// </summary>
     Opening,
-    
+
     /// <summary>
     /// System-generated placeholder card
     /// </summary>
     Skeleton,
-    
+
     /// <summary>
     /// Card blocks deck slots and cannot be removed easily
     /// </summary>
     Burden,
-    
+
     /// <summary>
     /// Card comes from observation system
     /// </summary>
     Observable,
-    
+
     /// <summary>
     /// Card represents an exchange offer
     /// </summary>
     Exchange,
-    
+
     /// <summary>
     /// Card can be used to deliver a letter
     /// </summary>
     DeliveryEligible,
-    
+
     /// <summary>
     /// Card cannot be played until conditions are met (e.g., request card before sufficient focus)
     /// </summary>

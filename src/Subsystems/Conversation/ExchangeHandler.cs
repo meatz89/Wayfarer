@@ -309,16 +309,16 @@ public class ExchangeHandler
             _ => type.ToString().ToLower()
         };
     }
-    
+
     private ExchangeData ExtractExchangeData(ConversationCard card)
     {
         // Extract exchange data from card's success effect
-        if (card.SuccessEffect?.Type == CardEffectType.Exchange && 
+        if (card.SuccessEffect?.Type == CardEffectType.Exchange &&
             card.SuccessEffect.ExchangeData != null)
         {
             return card.SuccessEffect.ExchangeData;
         }
-        
+
         // Return empty data if no exchange data found
         return new ExchangeData
         {

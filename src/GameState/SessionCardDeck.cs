@@ -15,24 +15,24 @@ public class SessionCardDeck
         SessionCardDeck deck = new SessionCardDeck(npcId);
         foreach (ConversationCard template in templates)
         {
-            var cardInstance = new CardInstance(template);
-            
+            CardInstance cardInstance = new CardInstance(template);
+
             // If this is an exchange card, set up the Context with ExchangeData
-            if (cardInstance.Properties.Contains(CardProperty.Exchange) && 
+            if (cardInstance.Properties.Contains(CardProperty.Exchange) &&
                 cardInstance.SuccessEffect?.ExchangeData != null)
             {
-                var context = new CardContext();
+                CardContext context = new CardContext();
                 context.ExchangeData = cardInstance.SuccessEffect.ExchangeData;
                 cardInstance.Context = context;
             }
-            
+
             // Add to draw pile initially
             deck.drawPile.Add(cardInstance);
         }
-        
+
         // Shuffle the initial draw pile
         deck.ShuffleDrawPile();
-        
+
         return deck;
     }
 
@@ -51,15 +51,15 @@ public class SessionCardDeck
             ShuffleDrawPile(); // Shuffle after adding goal card
         }
     }
-    
+
     private void AssignPreRoll(CardInstance card)
     {
         // Assign a pre-rolled dice value to the card if not already done
         if (card == null) return;
-        
+
         if (card.Context == null)
             card.Context = new CardContext();
-        
+
         // Only roll if not already rolled (cards reshuffled from discard keep their rolls)
         if (card.Context.PreRolledValue == null)
         {
@@ -85,10 +85,10 @@ public class SessionCardDeck
         // Draw from top of draw pile
         CardInstance card = drawPile[0];
         drawPile.RemoveAt(0);
-        
+
         // Assign pre-rolled dice value
         AssignPreRoll(card);
-        
+
         return card;
     }
 
@@ -107,10 +107,10 @@ public class SessionCardDeck
             {
                 CardInstance card = drawPile[0];
                 drawPile.RemoveAt(0);
-                
+
                 // Assign pre-rolled dice value
                 AssignPreRoll(card);
-                
+
                 drawn.Add(card);
             }
         }
@@ -141,11 +141,11 @@ public class SessionCardDeck
     private void ReshuffleDiscardPile()
     {
         Console.WriteLine($"[SessionCardDeck] Reshuffling {discardPile.Count} cards from discard pile into draw pile");
-        
+
         // Move all cards from discard to draw pile
         drawPile.AddRange(discardPile);
         discardPile.Clear();
-        
+
         // Shuffle the draw pile
         ShuffleDrawPile();
     }
@@ -175,7 +175,7 @@ public class SessionCardDeck
     public List<CardInstance> GetAllCards()
     {
         // Return all cards from both piles
-        var allCards = new List<CardInstance>();
+        List<CardInstance> allCards = new List<CardInstance>();
         allCards.AddRange(drawPile);
         allCards.AddRange(discardPile);
         return allCards;
@@ -190,7 +190,7 @@ public class SessionCardDeck
     {
         List<CardInstance> available = new List<CardInstance>();
         List<CardInstance> drawn = new List<CardInstance>();
-        
+
         // Find all cards in draw pile with required properties
         for (int i = drawPile.Count - 1; i >= 0; i--)
         {
@@ -218,36 +218,36 @@ public class SessionCardDeck
             drawn.Add(card);
             available.Remove(card); // Prevent drawing same card twice
         }
-        
+
         return drawn;
     }
-    
+
     // Helper methods for common property-based filtering
     public List<CardInstance> DrawRequestCards(int count)
     {
         // Request cards have both Impulse AND Opening properties
         return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Impulse, CardProperty.Opening }, count);
     }
-    
+
     public List<CardInstance> DrawBurdenCards(int count)
     {
         return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Burden }, count);
     }
-    
+
     public List<CardInstance> DrawObservableCards(int count)
     {
         return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Observable }, count);
     }
-    
+
     public List<CardInstance> DrawExchangeCards(int count)
     {
         return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Exchange }, count);
     }
 
     public int RemainingCards => drawPile.Count;
-    
+
     public int DiscardPileCount => discardPile.Count;
-    
+
     public int TotalCards => drawPile.Count + discardPile.Count;
 
     public bool HasCardsAvailable()

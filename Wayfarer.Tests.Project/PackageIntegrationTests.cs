@@ -24,7 +24,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             string packagePath = Path.Combine(contentPath, "core_game_package.json");
-            
+
             // Check that the file exists
             Assert.That(File.Exists(packagePath), Is.True, $"Package file not found at {packagePath}");
 
@@ -38,11 +38,11 @@ namespace Wayfarer.Tests
             Assert.That(gameWorld.WorldState.locationSpots.Count, Is.GreaterThan(0), "Location spots should be loaded");
             Assert.That(gameWorld.WorldState.Routes.Count, Is.GreaterThan(0), "Routes should be loaded");
             Assert.That(gameWorld.WorldState.LetterTemplates.Count, Is.GreaterThan(0), "Letter templates should be loaded");
-            
+
             // Check specific content
             Assert.That(gameWorld.NPCs.Any(n => n.Name == "Elena"), Is.True, "Elena should be loaded");
             Assert.That(gameWorld.NPCs.Any(n => n.Name == "Marcus"), Is.True, "Marcus should be loaded");
-            
+
             // Check starting conditions
             Assert.That(gameWorld.InitialLocationSpotId, Is.EqualTo("corner_table"), "Should start at corner table");
         }
@@ -61,7 +61,7 @@ namespace Wayfarer.Tests
         public void GameWorldInitializer_CreatesValidGameWorld()
         {
             // Act
-            var initializedWorld = GameWorldInitializer.CreateGameWorld();
+            GameWorld initializedWorld = GameWorldInitializer.CreateGameWorld();
 
             // Assert
             Assert.That(initializedWorld, Is.Not.Null);
