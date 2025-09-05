@@ -331,8 +331,9 @@ namespace Wayfarer.Pages.Components
                     messageSystem.AddSystemMessage(string.Format(playingMsg, GetCardName(SelectedCard)), SystemMessageTypes.Info);
                 }
 
-                // Store the played card for animation tracking
+                // Store the played card and its position BEFORE playing it
                 var playedCard = SelectedCard;
+                int cardPosition = GetCardPosition(playedCard);
                 
                 // ExecuteSpeak expects a single card - this removes it from hand
                 CardPlayResult result = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
@@ -344,7 +345,7 @@ namespace Wayfarer.Pages.Components
                 // Mark the played card with success/failure animation
                 // The card is now removed from hand, but we'll keep it in AnimatingCards for display
                 bool wasSuccessful = result?.Results?.FirstOrDefault()?.Success ?? false;
-                AddAnimatingCard(playedCard, wasSuccessful);
+                AddAnimatingCard(playedCard, wasSuccessful, cardPosition);
                 StateHasChanged(); // Show the card animation
                 
                 // Delay to let player see the result clearly
@@ -3007,7 +3008,7 @@ namespace Wayfarer.Pages.Components
                 // Check if this card is NOT in the current hand
                 bool inHand = Session?.HandCards?.Any(c => c.InstanceId == animatingCard.Card.InstanceId) ?? false;
                 
-                if (!inHand && animatingCard.OriginalPosition >= 0)
+                if (!inHand)
                 {
                     // Insert at its original position (or at the end if position is out of bounds)
                     int insertPos = Math.Min(animatingCard.OriginalPosition, displayCards.Count);
@@ -3034,26 +3035,29 @@ namespace Wayfarer.Pages.Components
         }
         
         /// <summary>
-        /// Add a card to the animating cards list for post-play animation
+        /// Get the position of a card in the current hand
         /// </summary>
-        protected void AddAnimatingCard(CardInstance card, bool success)
+        protected int GetCardPosition(CardInstance card)
         {
-            if (card == null) return;
+            if (card == null || Session?.HandCards == null) return -1;
             
-            // Find the original position of the card in the hand
-            int originalPosition = -1;
-            if (Session?.HandCards != null)
+            var handList = Session.HandCards.ToList();
+            for (int i = 0; i < handList.Count; i++)
             {
-                var handList = Session.HandCards.ToList();
-                for (int i = 0; i < handList.Count; i++)
+                if (handList[i].InstanceId == card.InstanceId)
                 {
-                    if (handList[i].InstanceId == card.InstanceId)
-                    {
-                        originalPosition = i;
-                        break;
-                    }
+                    return i;
                 }
             }
+            return -1;
+        }
+        
+        /// <summary>
+        /// Add a card to the animating cards list for post-play animation
+        /// </summary>
+        protected void AddAnimatingCard(CardInstance card, bool success, int originalPosition = -1)
+        {
+            if (card == null) return;
             
             // Add to animating cards list with position
             AnimatingCards.Add(new AnimatingCard
