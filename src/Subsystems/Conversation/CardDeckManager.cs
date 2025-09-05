@@ -126,9 +126,11 @@ public class CardDeckManager
         ConversationCard card = ConvertToNewCard(selectedCard);
         int successPercentage = _effectProcessor.CalculateSuccessPercentage(card, session);
 
-        // Roll for success with momentum system
-        bool success = _effectProcessor.RollForSuccess(successPercentage, session);
-        int roll = _random.Next(1, 101); // For display/logging purposes only
+        // Use pre-rolled value if available, otherwise generate one (shouldn't happen normally)
+        int roll = selectedCard.Context?.PreRolledValue ?? _random.Next(1, 101);
+        
+        // Check success using the pre-rolled value with momentum system
+        bool success = _effectProcessor.CheckSuccessWithPreRoll(roll, successPercentage, session);
 
         // Spend focus (possibly 0 if free) - focus represents effort of speaking
         _focusManager.SpendFocus(focusCost);

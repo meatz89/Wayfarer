@@ -319,11 +319,18 @@ namespace Wayfarer.Pages.Components
                 // ExecuteSpeak expects a single card
                 // CRITICAL: Must use ConversationManager.ExecuteSpeak to handle special card effects like letter delivery
                 CardPlayResult result = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
+                
+                // Generate and show narrative immediately based on result
                 ProcessSpeakResult(result);
-
+                StateHasChanged(); // Show the narrative text
+                
                 // Mark the played card with success/failure animation
                 bool wasSuccessful = result?.Results?.FirstOrDefault()?.Success ?? false;
                 MarkCardAsPlayed(playedCard, wasSuccessful);
+                StateHasChanged(); // Show the card animation
+                
+                // Delay to let player see the result clearly
+                await Task.Delay(1500);
                 
                 // Check if this was a promise/goal card that succeeded
                 bool isPromiseCard = playedCard.Properties.Contains(CardProperty.DeliveryEligible);
@@ -475,12 +482,24 @@ namespace Wayfarer.Pages.Components
             {
                 int successCount = result.Results.Count(r => r.Success);
                 int totalCards = result.Results.Count;
+                
+                // Get roll and threshold info for more specific narrative
+                var firstResult = result.Results.First();
+                int roll = firstResult.Roll;
+                int threshold = firstResult.SuccessChance;
+                int margin = Math.Abs(roll - threshold);
 
                 if (_systemNarratives?.conversationNarratives?.speakNarratives != null)
                 {
                     if (successCount == totalCards)
                     {
-                        LastNarrative = _systemNarratives.conversationNarratives.speakNarratives.GetValueOrDefault("allSuccess", "Your words resonate perfectly...");
+                        // Vary success narrative based on margin
+                        if (margin > 30)
+                            LastNarrative = "Your words resonate perfectly!";
+                        else if (margin > 15)
+                            LastNarrative = "They nod in understanding.";
+                        else
+                            LastNarrative = "Your words find their mark.";
                     }
                     else if (successCount > 0)
                     {
@@ -488,7 +507,13 @@ namespace Wayfarer.Pages.Components
                     }
                     else
                     {
-                        LastNarrative = _systemNarratives.conversationNarratives.speakNarratives.GetValueOrDefault("allFailure", "Your words fall flat...");
+                        // Vary failure narrative based on margin
+                        if (margin > 30)
+                            LastNarrative = "Your words fall completely flat...";
+                        else if (margin > 15)
+                            LastNarrative = "They seem unconvinced...";
+                        else
+                            LastNarrative = "Your approach doesn't quite land.";
                     }
                 }
                 else
@@ -502,10 +527,14 @@ namespace Wayfarer.Pages.Components
                         LastNarrative = "Your words fall flat...";
                 }
 
-                // Add flow gained info
+                // Add flow info more subtly
                 if (result.TotalFlow > 0)
                 {
-                    LastNarrative += $" (Flow +{result.TotalFlow})";
+                    LastNarrative += " (Flow +1)";
+                }
+                else if (result.TotalFlow < 0)
+                {
+                    LastNarrative += " (Flow -1)";
                 }
             }
             else

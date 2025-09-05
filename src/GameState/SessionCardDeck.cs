@@ -51,6 +51,22 @@ public class SessionCardDeck
             ShuffleDrawPile(); // Shuffle after adding goal card
         }
     }
+    
+    private void AssignPreRoll(CardInstance card)
+    {
+        // Assign a pre-rolled dice value to the card if not already done
+        if (card == null) return;
+        
+        if (card.Context == null)
+            card.Context = new CardContext();
+        
+        // Only roll if not already rolled (cards reshuffled from discard keep their rolls)
+        if (card.Context.PreRolledValue == null)
+        {
+            card.Context.PreRolledValue = random.Next(1, 101);
+            Console.WriteLine($"[SessionCardDeck] Pre-rolled {card.Context.PreRolledValue} for card: {card.Id}");
+        }
+    }
 
     public CardInstance DrawCard()
     {
@@ -69,6 +85,10 @@ public class SessionCardDeck
         // Draw from top of draw pile
         CardInstance card = drawPile[0];
         drawPile.RemoveAt(0);
+        
+        // Assign pre-rolled dice value
+        AssignPreRoll(card);
+        
         return card;
     }
 
@@ -87,6 +107,10 @@ public class SessionCardDeck
             {
                 CardInstance card = drawPile[0];
                 drawPile.RemoveAt(0);
+                
+                // Assign pre-rolled dice value
+                AssignPreRoll(card);
+                
                 drawn.Add(card);
             }
         }

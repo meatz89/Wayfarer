@@ -285,6 +285,33 @@ public class CardEffectProcessor
         
         return roll <= adjustedSuccessChance;
     }
+    
+    // Check success using pre-rolled value with momentum
+    public bool CheckSuccessWithPreRoll(int preRolledValue, int successPercentage, ConversationSession session = null)
+    {
+        // Auto-succeed if Informed atmosphere
+        if (atmosphereManager.ShouldAutoSucceed())
+            return true;
+
+        // Apply hidden momentum (bad luck protection)
+        int momentum = session?.HiddenMomentum ?? 0;
+        int momentumBonus = Math.Min(momentum * 4, 15); // 4% per failure, max 15%
+        
+        // Apply momentum bonus invisibly to success chance
+        int adjustedSuccessChance = Math.Min(successPercentage + momentumBonus, 95);
+        
+        Console.WriteLine($"[CardEffectProcessor] Using pre-rolled {preRolledValue} vs {adjustedSuccessChance}% (base {successPercentage}% + momentum {momentumBonus}%)");
+        
+        // Use the pre-rolled value
+        return preRolledValue <= adjustedSuccessChance;
+    }
+    
+    // Get actual roll value for display (legacy method for compatibility)
+    public int GetLastRollValue()
+    {
+        // This is deprecated - rolls are now pre-calculated
+        return 0;
+    }
 }
 
 // Result of processing a card effect

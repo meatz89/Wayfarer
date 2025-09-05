@@ -1,9 +1,23 @@
 public class HandDeck
 {
+    private readonly Random random = new Random();
     public HashSet<CardInstance> Cards { get; } = new();
 
     public void AddCard(CardInstance card)
     {
+        // Ensure card has a pre-rolled value (in case it wasn't added through SessionCardDeck)
+        if (card != null)
+        {
+            if (card.Context == null)
+                card.Context = new CardContext();
+            
+            if (card.Context.PreRolledValue == null)
+            {
+                card.Context.PreRolledValue = random.Next(1, 101);
+                Console.WriteLine($"[HandDeck] Pre-rolled {card.Context.PreRolledValue} for card: {card.Id}");
+            }
+        }
+        
         Cards.Add(card);
     }
 
@@ -11,7 +25,7 @@ public class HandDeck
     {
         foreach (CardInstance card in cards)
         {
-            Cards.Add(card);
+            AddCard(card); // Use AddCard to ensure pre-rolls
         }
     }
 
