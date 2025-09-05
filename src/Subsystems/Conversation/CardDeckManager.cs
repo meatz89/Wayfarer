@@ -126,11 +126,25 @@ public class CardDeckManager
         ConversationCard card = ConvertToNewCard(selectedCard);
         int successPercentage = _effectProcessor.CalculateSuccessPercentage(card, session);
 
-        // Use pre-rolled value if available, otherwise generate one (shouldn't happen normally)
-        int roll = selectedCard.Context?.PreRolledValue ?? _random.Next(1, 101);
+        // Promise/request cards (DeliveryEligible) ALWAYS succeed
+        bool success;
+        int roll;
         
-        // Check success using the pre-rolled value with momentum system
-        bool success = _effectProcessor.CheckSuccessWithPreRoll(roll, successPercentage, session);
+        if (selectedCard.Properties.Contains(CardProperty.DeliveryEligible))
+        {
+            // Promise/request cards always succeed (100% success rate)
+            success = true;
+            roll = 100; // For display purposes
+            successPercentage = 100; // Override to show 100% in UI
+        }
+        else
+        {
+            // Use pre-rolled value if available, otherwise generate one (shouldn't happen normally)
+            roll = selectedCard.Context?.PreRolledValue ?? _random.Next(1, 101);
+            
+            // Check success using the pre-rolled value with momentum system
+            success = _effectProcessor.CheckSuccessWithPreRoll(roll, successPercentage, session);
+        }
 
         // Spend focus (possibly 0 if free) - focus represents effort of speaking
         _focusManager.SpendFocus(focusCost);

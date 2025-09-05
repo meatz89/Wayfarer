@@ -617,20 +617,16 @@
     20% {
         background-color: #ffd4d4;
         box-shadow: 0 0 20px rgba(255,0,0,0.5);
-        transform: scale(1.05) rotateZ(-2deg);
     }
     40% {
-        transform: scale(1.02) rotateZ(1deg);
     }
     80% {
         background-color: #ffd4d4;
         box-shadow: 0 0 15px rgba(255,0,0,0.3);
-        transform: scale(1.02) rotateZ(-1deg);
     }
     100% {
         background-color: #faf4ea;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transform: scale(1) rotateZ(0);
     }
 }
 
@@ -638,29 +634,24 @@
 @keyframes card-exhaust {
     0% {
         opacity: 1;
-        transform: scale(1) rotateY(0);
         filter: grayscale(0) brightness(1);
     }
     25% {
         opacity: 0.9;
-        transform: scale(0.98) rotateY(10deg);
         filter: grayscale(0.3) brightness(0.9) sepia(0.5);
     }
     50% {
         opacity: 0.7;
-        transform: scale(0.95) rotateY(-10deg);
         filter: grayscale(0.6) brightness(0.7) sepia(0.8);
         background-color: #d4b896;
     }
     75% {
         opacity: 0.3;
-        transform: scale(0.9) rotateY(5deg) translateY(20px);
         filter: grayscale(0.9) brightness(0.5) sepia(1);
         background-color: #8b7355;
     }
     100% {
         opacity: 0;
-        transform: scale(0.8) rotateY(0) translateY(50px);
         filter: grayscale(1) brightness(0.3) sepia(1);
     }
 }
