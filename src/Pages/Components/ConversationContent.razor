@@ -324,12 +324,12 @@
                                 <div class="card-outcomes">
                                     <div class="outcome success">
                                         <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
-                                        <div class="outcome-label">Success</div>
-                                        <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
                                         @if (GetRapportModifier() != 0)
                                         {
                                             <div class="outcome-modifiers">(@GetBaseSuccessPercentage(convCard.Difficulty)% BASE +@GetRapportModifier()% from rapport)</div>
                                         }
+                                        <div class="outcome-label">Success</div>
+                                        <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
                                     </div>
                                     <div class="outcome failure">
                                         <div class="outcome-chance">@GetFailureChance(convCard)%</div>

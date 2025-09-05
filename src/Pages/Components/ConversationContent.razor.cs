@@ -2142,7 +2142,7 @@ namespace Wayfarer.Pages.Components
                 AtmosphereType.Prepared => "Focus capacity increased by 1",
                 AtmosphereType.Receptive => "Draw 1 extra card on LISTEN",
                 AtmosphereType.Focused => "All cards get +20% success chance",
-                AtmosphereType.Patient => "Conversation actions cost no patience",
+                AtmosphereType.Patient => "LISTEN costs no patience",
                 AtmosphereType.Volatile => "Flow changes are amplified by ±1",
                 AtmosphereType.Informed => "Your next card will automatically succeed",
                 AtmosphereType.Exposed => "All flow changes are doubled",
