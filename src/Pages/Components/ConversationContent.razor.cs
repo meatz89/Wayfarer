@@ -1199,13 +1199,16 @@ namespace Wayfarer.Pages.Components
                         return rapportValue > 0 ? $"+{rapportValue} rapport" : $"{rapportValue} rapport";
                     
                     case CardEffectType.ScaleRapportByFlow:
-                        return "+rapport (scales with flow)";
+                        int flowRapport = Session?.CurrentFlow ?? 0;
+                        return $"+{flowRapport} rapport (scales with flow {Session?.CurrentFlow ?? 0})";
                     
                     case CardEffectType.ScaleRapportByPatience:
-                        return "+rapport (scales with patience)";
+                        int patienceRapport = Session?.CurrentPatience / 3 ?? 0;
+                        return $"+{patienceRapport} rapport (scales with patience {Session?.CurrentPatience ?? 0})";
                     
                     case CardEffectType.ScaleRapportByFocus:
-                        return "+rapport (scales with focus)";
+                        int focusRapport = Session?.GetAvailableFocus() ?? 0;
+                        return $"+{focusRapport} rapport (scales with focus {Session?.GetAvailableFocus() ?? 0})";
                     
                     case CardEffectType.SetAtmosphere:
                         return $"Set {card.SuccessEffect.Value} atmosphere";
@@ -1246,13 +1249,16 @@ namespace Wayfarer.Pages.Components
                         return rapportValue > 0 ? $"+{rapportValue} rapport" : rapportValue < 0 ? $"{rapportValue} rapport" : "No effect";
                     
                     case CardEffectType.ScaleRapportByFlow:
-                        return "Rapport penalty (scales with flow)";
+                        int flowPenalty = Math.Abs(Session?.CurrentFlow ?? 0);
+                        return $"-{flowPenalty} rapport (scales with flow {Session?.CurrentFlow ?? 0})";
                     
                     case CardEffectType.ScaleRapportByPatience:
-                        return "Rapport penalty (scales with patience)";
+                        int patienceRapport = Session?.CurrentPatience / 3 ?? 0;
+                        return $"-{patienceRapport} rapport (scales with patience {Session?.CurrentPatience ?? 0})";
                     
                     case CardEffectType.ScaleRapportByFocus:
-                        return "Rapport penalty (scales with focus)";
+                        int focusPenalty = Session?.GetAvailableFocus() ?? 0;
+                        return $"-{focusPenalty} rapport (scales with focus {Session?.GetAvailableFocus() ?? 0})";
                     
                     case CardEffectType.SetAtmosphere:
                         return $"Set {card.FailureEffect.Value} atmosphere";
