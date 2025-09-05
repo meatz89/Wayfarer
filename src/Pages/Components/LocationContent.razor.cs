@@ -532,9 +532,44 @@ namespace Wayfarer.Pages.Components
             return 0;
         }
 
+        protected string GetPatienceDisplay(NpcViewModel npc, LocationSpot spot)
+        {
+            // Get the actual NPC to access daily patience
+            NPC actualNPC = GameFacade.GetNPCById(npc.Id);
+            if (actualNPC != null)
+            {
+                // Initialize patience if not yet set
+                if (actualNPC.MaxDailyPatience == 0)
+                {
+                    actualNPC.InitializeDailyPatience();
+                }
+                
+                // Return formatted patience display (current/max)
+                return $"{actualNPC.DailyPatience}/{actualNPC.MaxDailyPatience} patience today";
+            }
+
+            // Fallback display
+            int basePatience = GetBasePatience(npc);
+            return $"{basePatience} patience";
+        }
+
         protected int GetPatience(NpcViewModel npc, LocationSpot spot)
         {
-            // Get base patience based on personality
+            // Get the actual NPC to access daily patience
+            NPC actualNPC = GameFacade.GetNPCById(npc.Id);
+            if (actualNPC != null)
+            {
+                // Initialize patience if not yet set
+                if (actualNPC.MaxDailyPatience == 0)
+                {
+                    actualNPC.InitializeDailyPatience();
+                }
+                
+                // Return current daily patience remaining
+                return actualNPC.DailyPatience;
+            }
+
+            // Fallback to old calculation if NPC not found
             int basePatience = GetBasePatience(npc);
 
             // Apply spot modifiers

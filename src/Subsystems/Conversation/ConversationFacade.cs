@@ -101,7 +101,26 @@ public class ConversationFacade
 
         _lastOutcome = _orchestrator.FinalizeConversation(_currentSession);
 
-        // Apply token changes
+        // Check if rapport goal was reached for standard conversations
+        if (_currentSession.ConversationType == ConversationType.FriendlyChat && 
+            _currentSession.RapportGoal.HasValue &&
+            _currentSession.RapportManager != null)
+        {
+            int finalRapport = _currentSession.RapportManager.CurrentRapport;
+            if (finalRapport >= _currentSession.RapportGoal.Value)
+            {
+                // Award token for reaching goal
+                ConnectionType tokenType = DetermineTokenTypeFromPersonality(_currentSession.NPC.PersonalityType);
+                _tokenManager.AddTokensToNPC(tokenType, 1, _currentSession.NPC.ID);
+                
+                // Add success message
+                _messageSystem.AddSystemMessage(
+                    $"✨ You reached {finalRapport} rapport with {_currentSession.NPC.Name} (goal: {_currentSession.RapportGoal})! Earned +1 {tokenType} token.",
+                    SystemMessageTypes.Success);
+            }
+        }
+
+        // Apply token changes from other sources
         if (_lastOutcome.TokensEarned != 0)
         {
             ConnectionType connectionType = DetermineConnectionTypeFromConversation(_currentSession);
@@ -329,6 +348,19 @@ public class ConversationFacade
     public List<ConversationType> GetAvailableConversationTypes(NPC npc)
     {
         List<ConversationType> available = new List<ConversationType>();
+
+        // Initialize daily patience if needed
+        if (npc.MaxDailyPatience == 0)
+        {
+            npc.InitializeDailyPatience();
+        }
+
+        // Check if NPC has patience left for conversations
+        if (!npc.HasPatienceForConversation())
+        {
+            // No patience left - no conversations available today
+            return available;
+        }
 
         // Check exchange deck
         if (_gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out List<ConversationCard>? exchangeCards))
@@ -635,6 +667,20 @@ public class ConversationFacade
             ConversationType.Delivery => ConnectionType.Trust,
             ConversationType.FriendlyChat => ConnectionType.Trust,
             _ => ConnectionType.Trust  // Default fallback
+        };
+    }
+
+    private ConnectionType DetermineTokenTypeFromPersonality(PersonalityType personality)
+    {
+        // Map personality types to appropriate token types
+        return personality switch
+        {
+            PersonalityType.DEVOTED => ConnectionType.Trust,
+            PersonalityType.MERCANTILE => ConnectionType.Commerce,
+            PersonalityType.PROUD => ConnectionType.Status,
+            PersonalityType.CUNNING => ConnectionType.Shadow,
+            PersonalityType.STEADFAST => ConnectionType.Trust,
+            _ => ConnectionType.Trust
         };
     }
 

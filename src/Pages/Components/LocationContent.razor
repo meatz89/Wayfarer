@@ -165,7 +165,7 @@
                                         <span class="cost-value">@option.AttentionCost attention</span>
                                     }
                                     <span> • </span>
-                                    <span class="patience-calculation">@GetPatience(npc, CurrentSpot) patience</span>
+                                    <span class="patience-calculation">@GetPatienceDisplay(npc, CurrentSpot)</span>
                                     @if (option.Type == ConversationType.Promise && HasLetterRequest(npc.Id))
                                     {
                                         <span> • Letter request available!</span>

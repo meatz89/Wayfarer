@@ -65,6 +65,30 @@ public class ConversationOrchestrator
         Dictionary<ConnectionType, int> npcTokens = GetNpcTokenCounts(npc);
         RapportManager rapportManager = new RapportManager(npcTokens);
 
+        // Initialize NPC's daily patience if needed
+        if (npc.MaxDailyPatience == 0)
+        {
+            npc.InitializeDailyPatience();
+        }
+
+        // Use NPC's current daily patience for the session
+        int availablePatience = npc.DailyPatience;
+
+        // Set rapport goal for standard conversations
+        int? rapportGoal = null;
+        if (conversationType == ConversationType.FriendlyChat)
+        {
+            rapportGoal = initialState switch
+            {
+                ConnectionState.DISCONNECTED => 15,
+                ConnectionState.GUARDED => 20,
+                ConnectionState.NEUTRAL => 25,
+                ConnectionState.RECEPTIVE => 30,
+                ConnectionState.TRUSTING => 35,
+                _ => 25
+            };
+        }
+
         // Create session with new properties
         ConversationSession session = new ConversationSession
         {
@@ -76,15 +100,16 @@ public class ConversationOrchestrator
             CurrentFocus = 0,
             MaxFocus = _focusManager.CurrentCapacity,
             CurrentAtmosphere = AtmosphereType.Neutral,
-            CurrentPatience = 10,
-            MaxPatience = 10,
+            CurrentPatience = availablePatience, // Use NPC's daily patience
+            MaxPatience = npc.MaxDailyPatience,  // Max based on personality
             TurnNumber = 0,
             Deck = deck,
             Hand = new HandDeck(),
             TokenManager = _tokenManager,
             FlowManager = _flowBatteryManager,
             RapportManager = rapportManager,
-            ObservationCards = observationCards ?? new List<CardInstance>()
+            ObservationCards = observationCards ?? new List<CardInstance>(),
+            RapportGoal = rapportGoal
         };
 
         // FIRST: Add the goal/promise card to hand immediately if present
@@ -128,6 +153,7 @@ public class ConversationOrchestrator
         if (!_atmosphereManager.ShouldWaivePatienceCost())
         {
             session.CurrentPatience--;
+            session.NPC.DailyPatience--; // Also deduct from NPC's daily pool
         }
 
         // Execute LISTEN through deck manager

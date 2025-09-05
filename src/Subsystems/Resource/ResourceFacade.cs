@@ -184,6 +184,34 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
 
             // Refresh attention for new time block
             RefreshAttentionForNewTimeBlock(newBlock);
+
+            // Refresh NPC daily patience when transitioning to Dawn (morning refresh)
+            if (newBlock == TimeBlocks.Dawn)
+            {
+                RefreshNPCDailyPatience();
+            }
+        }
+
+        private void RefreshNPCDailyPatience()
+        {
+            // Refresh patience for all NPCs at dawn
+            foreach (NPC npc in _gameWorld.GetAllNPCs())
+            {
+                if (npc.MaxDailyPatience == 0)
+                {
+                    // Initialize patience if not yet set
+                    npc.InitializeDailyPatience();
+                }
+                else
+                {
+                    // Refresh to maximum
+                    npc.RefreshDailyPatience();
+                }
+            }
+
+            _messageSystem.AddSystemMessage(
+                "🌅 A new day dawns. NPCs have refreshed patience for conversations.",
+                SystemMessageTypes.Info);
         }
 
         // ========== COMBINED RESOURCE OPERATIONS ==========

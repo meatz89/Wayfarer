@@ -344,7 +344,9 @@
       "Bash(/tmp/fix_narratives.sh:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5888\" dotnet run)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6300\" timeout 10 dotnet run --no-build)",
-      "Bash(mono:*)"
+      "Bash(mono:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" timeout 10 dotnet run --project /mnt/c/git/wayfarer/src/Wayfarer.csproj --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run --project /mnt/c/git/wayfarer/src/Wayfarer.csproj --no-build)"
     ],
     "deny": []
   }

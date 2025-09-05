@@ -60,6 +60,10 @@ public class NPC
     public ConnectionState CurrentState { get; set; } = ConnectionState.NEUTRAL;
     public ConnectionState CurrentConnectionState => CurrentState; // Alias for compatibility
 
+    // Daily Patience Economy
+    public int DailyPatience { get; set; } // Current remaining patience for the day
+    public int MaxDailyPatience { get; set; } // Maximum patience based on personality
+
     // THREE DECK ARCHITECTURE (POC EXACT)
     public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Flow, Token, State, Knowledge, Burden
     public CardDeck RequestDeck { get; set; } = new();  // 0-3 cards: Promise (letters), Resolution requests
@@ -200,6 +204,41 @@ public class NPC
     public bool HasValidRequestCard(ConnectionState currentState)
     {
         return RequestDeck != null && RequestDeck.RemainingCards > 0;
+    }
+
+    /// <summary>
+    /// Initialize daily patience based on personality type
+    /// </summary>
+    public void InitializeDailyPatience()
+    {
+        MaxDailyPatience = PersonalityType switch
+        {
+            PersonalityType.DEVOTED => 15,
+            PersonalityType.STEADFAST => 13,
+            PersonalityType.MERCANTILE => 12,
+            PersonalityType.CUNNING => 12,
+            PersonalityType.PROUD => 10,
+            _ => 12 // Default fallback
+        };
+        
+        // Set current patience to max on initialization
+        DailyPatience = MaxDailyPatience;
+    }
+
+    /// <summary>
+    /// Refresh patience to maximum (called at dawn)
+    /// </summary>
+    public void RefreshDailyPatience()
+    {
+        DailyPatience = MaxDailyPatience;
+    }
+
+    /// <summary>
+    /// Check if NPC has patience for conversation
+    /// </summary>
+    public bool HasPatienceForConversation()
+    {
+        return DailyPatience > 0;
     }
 
 }

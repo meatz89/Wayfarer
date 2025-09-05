@@ -42,6 +42,9 @@ public class ConversationSession
 
     public List<CardInstance> ObservationCards { get; set; } = new();
 
+    // Rapport goal for standard conversations (FriendlyChat)
+    public int? RapportGoal { get; set; } = null; // Target rapport to earn token reward
+
     // New helper methods
     public int GetAvailableFocus()
     {
@@ -185,6 +188,22 @@ public class ConversationSession
             sessionDeck.AddCard(obsCard);
         }
 
+        // Determine rapport goal for standard conversations
+        int? rapportGoal = null;
+        if (convType == ConversationType.FriendlyChat)
+        {
+            // Set goal based on connection state - harder when disconnected
+            rapportGoal = initialState switch
+            {
+                ConnectionState.DISCONNECTED => 15,
+                ConnectionState.GUARDED => 20,
+                ConnectionState.NEUTRAL => 25,
+                ConnectionState.RECEPTIVE => 30,
+                ConnectionState.TRUSTING => 35,
+                _ => 25
+            };
+        }
+
         // Create session with proper initialization
         ConversationSession session = new ConversationSession
         {
@@ -199,7 +218,8 @@ public class ConversationSession
             Deck = sessionDeck,
             Hand = new HandDeck(),
             TokenManager = tokenManager,
-            ObservationCards = obsCards
+            ObservationCards = obsCards,
+            RapportGoal = rapportGoal
         };
 
         return session;
