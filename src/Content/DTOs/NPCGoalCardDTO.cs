@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// DTO for NPC-specific promise/request cards that appear in conversations
+/// DTO for NPC-specific goal cards that appear in conversations
 /// These are goal cards that NPCs offer when certain rapport thresholds are met
 /// </summary>
-public class NPCPromiseCardDTO
+public class NPCGoalCardDTO
 {
     /// <summary>
     /// The NPC who has this promise card in their request deck

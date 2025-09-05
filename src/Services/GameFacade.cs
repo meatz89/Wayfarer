@@ -204,19 +204,13 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();
         TimeBlocks currentTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
-        // 1. CHECK ATTENTION COST (base 2 for any travel)
-        AttentionInfo attentionInfo = _resourceFacade.GetAttention(currentTimeBlock);
-        if (attentionInfo.Current < 2)
-        {
-            _narrativeFacade.AddSystemMessage($"Not enough attention to travel. Need 2, have {attentionInfo.Current}", SystemMessageTypes.Warning);
-            return false;
-        }
+        // Travel does NOT cost attention - only time, coins, and hunger from the route
 
-        // 2. SIMPLIFIED ACCESS CHECK - just use CanTravel which combines all checks
+        // 1. SIMPLIFIED ACCESS CHECK - just use CanTravel which combines all checks
         // Note: This is simplified for now - full implementation would check access requirements separately
         // The RouteOption.CanTravel method already checks terrain requirements internally
 
-        // 3. CALCULATE ACTUAL HUNGER COST
+        // 2. CALCULATE ACTUAL HUNGER COST
         // Base hunger cost from route plus any load penalties
         int itemCount = player.Inventory.ItemSlots.Count(i => !string.IsNullOrEmpty(i));
         int hungerCost = targetRoute.BaseStaminaCost; // This is actually the hunger cost in the data
@@ -252,7 +246,7 @@ public class GameFacade
             _resourceFacade.SpendCoins(coinCost);
         }
         _resourceFacade.IncreaseHunger(hungerCost, "Travel fatigue");
-        _resourceFacade.SpendAttention(2, currentTimeBlock, "Travel focus");
+        // Travel does NOT cost attention - removed incorrect attention spending
 
         // Create travel result for processing
         int travelTime = targetRoute.TravelTimeMinutes;

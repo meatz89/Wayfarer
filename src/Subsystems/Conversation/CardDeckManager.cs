@@ -55,15 +55,16 @@ public class CardDeckManager
             }
         }
 
-        // Get request/goal card but DON'T add it to deck - it will be added directly to hand
-        CardInstance requestCard = null;
-        if (conversationType == ConversationType.Promise || conversationType == ConversationType.Resolution)
+        // Get goal card based on conversation type from JSON data
+        // The presence of these cards in JSON determines which conversation types are available
+        CardInstance goalCard = null;
+        if (conversationType != ConversationType.Commerce)
         {
-            requestCard = SelectValidRequestCard(npc, conversationType);
+            goalCard = SelectGoalCardForConversationType(npc, conversationType);
             // Don't add to deck - it will be added directly to hand in ConversationOrchestrator
         }
 
-        return (deck, requestCard);
+        return (deck, goalCard);
     }
 
     /// <summary>
@@ -478,7 +479,98 @@ public class CardDeckManager
     }
 
     /// <summary>
-    /// Select a valid request card for conversation type
+    /// Select appropriate goal card from JSON data based on conversation type
+    /// </summary>
+    private CardInstance SelectGoalCardForConversationType(NPC npc, ConversationType conversationType)
+    {
+        switch (conversationType)
+        {
+            case ConversationType.Promise:
+                // For Promise conversations, select from NPC's promise/letter cards
+                return SelectValidRequestCard(npc, conversationType);
+                
+            case ConversationType.FriendlyChat:
+                // For FriendlyChat, select from NPC's connection token goal cards
+                return SelectConnectionTokenGoalCard(npc);
+                
+            case ConversationType.Delivery:
+                // For Delivery, the goal card is generated based on the letter being delivered
+                // This is handled separately as it depends on the obligation
+                return null; // TODO: Implement delivery goal card selection
+                
+            case ConversationType.Resolution:
+                // For Resolution, select from burden resolution cards
+                return SelectBurdenResolutionCard(npc);
+                
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>
+    /// Select a connection token goal card from NPC's goal deck
+    /// </summary>
+    private CardInstance SelectConnectionTokenGoalCard(NPC npc)
+    {
+        // Connection token goal cards should be in the NPC's request deck
+        // These are cards that grant connection tokens when played at rapport threshold
+        if (npc.RequestDeck == null || !npc.RequestDeck.HasCardsAvailable())
+            return null;
+
+        List<ConversationCard> goalCards = npc.RequestDeck.GetAllCards()
+            .OfType<RequestCard>()
+            .Where(card => card.GoalType == "FriendlyChat")
+            .Cast<ConversationCard>()
+            .ToList();
+
+        if (!goalCards.Any())
+            return null;
+
+        ConversationCard selectedGoal = goalCards[_random.Next(goalCards.Count)];
+        CardInstance goalInstance = new CardInstance(selectedGoal, npc.ID);
+
+        // Store the rapport threshold in the card context
+        if (goalInstance.Context == null)
+            goalInstance.Context = new CardContext();
+        
+        // Standard rapport threshold for connection goals
+        goalInstance.Context.RapportThreshold = 3;
+        
+        return goalInstance;
+    }
+
+    /// <summary>
+    /// Select a burden resolution card from NPC's goal deck
+    /// </summary>
+    private CardInstance SelectBurdenResolutionCard(NPC npc)
+    {
+        // Burden resolution cards should be in the NPC's request deck
+        if (npc.RequestDeck == null || !npc.RequestDeck.HasCardsAvailable())
+            return null;
+
+        List<ConversationCard> resolutionCards = npc.RequestDeck.GetAllCards()
+            .OfType<RequestCard>()
+            .Where(card => card.GoalType == "Resolution")
+            .Cast<ConversationCard>()
+            .ToList();
+
+        if (!resolutionCards.Any())
+            return null;
+
+        ConversationCard selectedResolution = resolutionCards[_random.Next(resolutionCards.Count)];
+        CardInstance resolutionInstance = new CardInstance(selectedResolution, npc.ID);
+
+        if (resolutionInstance.Context == null)
+            resolutionInstance.Context = new CardContext();
+        
+        // Higher rapport threshold for burden resolution
+        resolutionInstance.Context.RapportThreshold = 4;
+        
+        return resolutionInstance;
+    }
+
+    /// <summary>
+    /// Select a valid request card for conversation type (legacy method for Promise conversations)
     /// </summary>
     private CardInstance SelectValidRequestCard(NPC npc, ConversationType conversationType)
     {

@@ -59,8 +59,8 @@ public class ConversationOrchestrator
         // Reset atmosphere manager
         _atmosphereManager.Reset();
 
-        // Create session deck and get request card
-        (SessionCardDeck deck, CardInstance requestCard) = _deckManager.CreateConversationDeck(npc, conversationType, observationCards);
+        // Create session deck and get goal card
+        (SessionCardDeck deck, CardInstance goalCard) = _deckManager.CreateConversationDeck(npc, conversationType, observationCards);
 
         // Create rapport manager with initial token counts
         Dictionary<ConnectionType, int> npcTokens = GetNpcTokenCounts(npc);
@@ -113,11 +113,11 @@ public class ConversationOrchestrator
             RapportGoal = rapportGoal
         };
 
-        // FIRST: Add the goal/promise card to hand immediately if present
+        // FIRST: Add the goal card to hand immediately if present
         // This ensures it's visible from the very start of the conversation
-        if (requestCard != null)
+        if (goalCard != null)
         {
-            session.Hand.AddCard(requestCard);
+            session.Hand.AddCard(goalCard);
         }
 
         // THEN: Perform initial draw of regular cards

@@ -14,6 +14,9 @@ public class RequestCard : ConversationCard
 
     // NEW: Rapport threshold for activation
     public int RapportThreshold { get; set; } = 5; // Default threshold
+    
+    // Goal type to track which conversation type this goal card enables
+    public string GoalType { get; set; }
 
     public RequestCard()
     {

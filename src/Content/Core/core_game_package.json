@@ -852,7 +852,7 @@
         "emotionalFocus": "HIGH"
       }
     ],
-    "npcPromiseCards": [
+    "npcGoalCards": [
       {
         "npcId": "elena",
         "id": "accept_elenas_letter",
@@ -882,6 +882,114 @@
           }
         },
         "dialogueFragment": "Give me the letter. I'll get it to Lord Blackwood before sunset, no matter what it takes."
+      },
+      {
+        "npcId": "marcus",
+        "id": "marcus_connection_goal",
+        "type": "FriendlyChat",
+        "focus": 0,
+        "properties": [
+          "Persistent",
+          "ConnectionGoal"
+        ],
+        "connectionType": "Commerce",
+        "description": "Build Commerce Connection",
+        "difficulty": "VeryEasy",
+        "rapportThreshold": 3,
+        "successEffect": {
+          "type": "GainConnectionToken",
+          "value": "Commerce",
+          "data": {
+            "amount": 1,
+            "npcId": "marcus"
+          }
+        },
+        "exhaustEffect": {
+          "type": "EndConversation",
+          "value": "goal_exhausted"
+        },
+        "dialogueFragment": "You've proven yourself a reliable business partner. Let's do more deals in the future."
+      },
+      {
+        "npcId": "viktor",
+        "id": "viktor_connection_goal",
+        "type": "FriendlyChat",
+        "focus": 0,
+        "properties": [
+          "Persistent",
+          "ConnectionGoal"
+        ],
+        "connectionType": "Status",
+        "description": "Build Status Connection",
+        "difficulty": "VeryEasy",
+        "rapportThreshold": 3,
+        "successEffect": {
+          "type": "GainConnectionToken",
+          "value": "Status",
+          "data": {
+            "amount": 1,
+            "npcId": "viktor"
+          }
+        },
+        "exhaustEffect": {
+          "type": "EndConversation",
+          "value": "goal_exhausted"
+        },
+        "dialogueFragment": "You've earned my respect. The guard will remember you as someone worthy of trust."
+      },
+      {
+        "npcId": "bertram",
+        "id": "bertram_connection_goal",
+        "type": "FriendlyChat",
+        "focus": 0,
+        "properties": [
+          "Persistent",
+          "ConnectionGoal"
+        ],
+        "connectionType": "Trust",
+        "description": "Build Trust Connection",
+        "difficulty": "VeryEasy",
+        "rapportThreshold": 3,
+        "successEffect": {
+          "type": "GainConnectionToken",
+          "value": "Trust",
+          "data": {
+            "amount": 1,
+            "npcId": "bertram"
+          }
+        },
+        "exhaustEffect": {
+          "type": "EndConversation",
+          "value": "goal_exhausted"
+        },
+        "dialogueFragment": "You're always welcome here, friend. The Copper Kettle is your home away from home."
+      },
+      {
+        "npcId": "lord_blackwood",
+        "id": "blackwood_connection_goal",
+        "type": "FriendlyChat",
+        "focus": 0,
+        "properties": [
+          "Persistent",
+          "ConnectionGoal"
+        ],
+        "connectionType": "Status",
+        "description": "Build Status Connection",
+        "difficulty": "VeryEasy",
+        "rapportThreshold": 3,
+        "successEffect": {
+          "type": "GainConnectionToken",
+          "value": "Status",
+          "data": {
+            "amount": 1,
+            "npcId": "lord_blackwood"
+          }
+        },
+        "exhaustEffect": {
+          "type": "EndConversation",
+          "value": "goal_exhausted"
+        },
+        "dialogueFragment": "You've proven yourself worthy of noble attention. I shall remember your service."
       }
     ],
     "standingObligations": [],

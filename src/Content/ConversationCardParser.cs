@@ -205,9 +205,9 @@ public static class ConversationCardParser
     }
 
     /// <summary>
-    /// Convert NPCPromiseCardDTO to RequestCard
+    /// Convert NPCGoalCardDTO to RequestCard
     /// </summary>
-    public static RequestCard ConvertPromiseCardDTO(NPCPromiseCardDTO dto)
+    public static RequestCard ConvertGoalCardDTO(NPCGoalCardDTO dto)
     {
         RequestCard card = new RequestCard
         {
@@ -215,7 +215,8 @@ public static class ConversationCardParser
             Description = dto.Description,
             Focus = dto.Focus,
             DialogueFragment = dto.DialogueFragment,
-            RapportThreshold = dto.RapportThreshold
+            RapportThreshold = dto.RapportThreshold,
+            GoalType = dto.Type // Store the goal type from JSON
         };
 
         // Parse difficulty

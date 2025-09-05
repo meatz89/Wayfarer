@@ -377,7 +377,7 @@ public class ConversationFacade
             return available;
         }
 
-        // Check exchange deck
+        // COMMERCE: Check if NPC has exchange deck
         if (_gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out List<ConversationCard>? exchangeCards))
         {
             npc.InitializeExchangeDeck(exchangeCards);
@@ -392,7 +392,7 @@ public class ConversationFacade
             available.Add(ConversationType.Commerce);
         }
 
-        // Check for promise cards with valid states
+        // PROMISE: Check if NPC has promise/letter cards in request deck
         if (npc.HasPromiseCards())
         {
             ConnectionState currentState = ConversationRules.DetermineInitialState(npc, _queueManager);
@@ -402,13 +402,13 @@ public class ConversationFacade
             }
         }
 
-        // Check for burden cards
+        // RESOLUTION: Check if NPC has burden cards that need resolving
         if (npc.CountBurdenCards() >= 2)
         {
             available.Add(ConversationType.Resolution);
         }
 
-        // Check for letter delivery
+        // DELIVERY: Check if player has letter for this NPC in obligation queue
         if (_queueManager != null)
         {
             DeliveryObligation[] activeObligations = _queueManager.GetActiveObligations();
@@ -421,10 +421,18 @@ public class ConversationFacade
             }
         }
 
-        // Standard conversation
-        if (npc.ConversationDeck != null && npc.ConversationDeck.RemainingCards > 0)
+        // FRIENDLYCHAT: Check if NPC has FriendlyChat goal cards in request deck
+        // These are goal cards with type "FriendlyChat" that grant connection tokens
+        if (npc.RequestDeck != null && npc.RequestDeck.HasCardsAvailable())
         {
-            available.Add(ConversationType.FriendlyChat);
+            bool hasFriendlyChatGoal = npc.RequestDeck.GetAllCards()
+                .OfType<RequestCard>()
+                .Any(card => card.GoalType == "FriendlyChat");
+            
+            if (hasFriendlyChatGoal && npc.ConversationDeck != null && npc.ConversationDeck.Count > 0)
+            {
+                available.Add(ConversationType.FriendlyChat);
+            }
         }
 
         return available;

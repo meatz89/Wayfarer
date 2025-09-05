@@ -97,7 +97,7 @@ public class PackageLoader
 
             // Phase 4.5: Initialize all NPC decks (after NPCs and cards are loaded)
             InitializeNPCConversationDecks(package.Content.DeckCompositions);
-            InitializeNPCRequestDecks(package.Content.NpcPromiseCards, package.Content.DeckCompositions);
+            InitializeNPCRequestDecks(package.Content.NpcGoalCards, package.Content.DeckCompositions);
             InitializeNPCExchangeDecks(package.Content.DeckCompositions);
 
             // Phase 5: Routes (depend on locations)
@@ -521,37 +521,37 @@ public class PackageLoader
     }
 
     /// <summary>
-    /// Initialize request decks for NPCs from NpcPromiseCards
+    /// Initialize request decks for NPCs from NpcGoalCards
     /// </summary>
-    private void InitializeNPCRequestDecks(List<NPCPromiseCardDTO> npcPromiseCardDtos, DeckCompositionDTO deckCompositions)
+    private void InitializeNPCRequestDecks(List<NPCGoalCardDTO> npcGoalCardDtos, DeckCompositionDTO deckCompositions)
     {
         Console.WriteLine("[PackageLoader] Initializing NPC request decks...");
 
-        // Group promise cards by NPC ID for efficient loading
-        Dictionary<string, List<ConversationCard>> npcPromiseCards = new Dictionary<string, List<ConversationCard>>();
+        // Group goal cards by NPC ID for efficient loading
+        Dictionary<string, List<ConversationCard>> npcGoalCards = new Dictionary<string, List<ConversationCard>>();
 
-        // Load promise cards from the new NpcPromiseCards section if it exists
-        if (npcPromiseCardDtos != null)
+        // Load goal cards from the NpcGoalCards section if it exists
+        if (npcGoalCardDtos != null)
         {
-            foreach (NPCPromiseCardDTO promiseCardDto in npcPromiseCardDtos)
+            foreach (NPCGoalCardDTO goalCardDto in npcGoalCardDtos)
             {
                 try
                 {
                     // Convert DTO to RequestCard using ConversationCardParser
-                    RequestCard requestCard = ConversationCardParser.ConvertPromiseCardDTO(promiseCardDto);
+                    RequestCard requestCard = ConversationCardParser.ConvertGoalCardDTO(goalCardDto);
 
                     // Add to NPC's collection
-                    if (!npcPromiseCards.ContainsKey(promiseCardDto.NpcId))
+                    if (!npcGoalCards.ContainsKey(goalCardDto.NpcId))
                     {
-                        npcPromiseCards[promiseCardDto.NpcId] = new List<ConversationCard>();
+                        npcGoalCards[goalCardDto.NpcId] = new List<ConversationCard>();
                     }
-                    npcPromiseCards[promiseCardDto.NpcId].Add(requestCard);
+                    npcGoalCards[goalCardDto.NpcId].Add(requestCard);
 
-                    Console.WriteLine($"[PackageLoader] Loaded promise card '{promiseCardDto.Id}' for NPC '{promiseCardDto.NpcId}'");
+                    Console.WriteLine($"[PackageLoader] Loaded goal card '{goalCardDto.Id}' for NPC '{goalCardDto.NpcId}'");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[PackageLoader] Failed to load promise card '{promiseCardDto.Id}': {ex.Message}");
+                    Console.WriteLine($"[PackageLoader] Failed to load goal card '{goalCardDto.Id}': {ex.Message}");
                 }
             }
         }
@@ -563,11 +563,11 @@ public class PackageLoader
             {
                 List<ConversationCard> requestCards = new List<ConversationCard>();
 
-                // Add NPC-specific promise cards if any exist
-                if (npcPromiseCards.ContainsKey(npc.ID))
+                // Add NPC-specific goal cards if any exist
+                if (npcGoalCards.ContainsKey(npc.ID))
                 {
-                    requestCards.AddRange(npcPromiseCards[npc.ID]);
-                    Console.WriteLine($"[PackageLoader] Added {npcPromiseCards[npc.ID].Count} promise cards to {npc.Name}'s request deck");
+                    requestCards.AddRange(npcGoalCards[npc.ID]);
+                    Console.WriteLine($"[PackageLoader] Added {npcGoalCards[npc.ID].Count} goal cards to {npc.Name}'s request deck");
                 }
 
                 // Initialize request deck
