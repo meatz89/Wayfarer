@@ -11,33 +11,36 @@ public class RequestCard : ConversationCard
     public string RequestContext { get; set; } // Additional context for the request
     public bool RequiresToken { get; set; } // Whether a specific token is needed
     public TokenType? RequiredToken { get; set; } // Which token is required
+    
+    // NEW: Rapport threshold for activation
+    public int RapportThreshold { get; set; } = 5; // Default threshold
 
     public RequestCard()
     {
-        Focus = 5; // Can be 5 or 6
-        Difficulty = Difficulty.VeryHard; // 40%
-        // Request cards have both Impulse and Opening properties
-        Properties.Add(CardProperty.Impulse);
-        Properties.Add(CardProperty.Opening);
-        // Set exhaust effect to end conversation
-        ExhaustEffect = new CardEffect
+        // NEW: Request cards have NO focus cost
+        Focus = 0;
+        
+        // NEW: Request cards ALWAYS succeed (100% success rate)
+        Difficulty = Difficulty.VeryEasy; // Will override to 100% in play logic
+        
+        // NEW: Request cards are Persistent (never exhaust)
+        Properties.Add(CardProperty.Persistent);
+        
+        // NEW: Start as Unplayable until rapport threshold is met
+        Properties.Add(CardProperty.Unplayable);
+        
+        // Request cards still end conversation when played
+        SuccessEffect = new CardEffect
         {
             Type = CardEffectType.EndConversation,
-            Value = "request_exhausted"
+            Value = "request_accepted"
         };
     }
 
-    // Helper to set focus within valid range
-    public void SetFocus(int focus)
+    // Helper to check if request card can be played
+    public bool IsPlayable(int currentRapport)
     {
-        if (focus >= 5 && focus <= 6)
-        {
-            Focus = focus;
-        }
-        else
-        {
-            Focus = 5; // Default to minimum valid focus
-        }
+        return currentRapport >= RapportThreshold;
     }
 
     // Create a request card with specific parameters

@@ -692,13 +692,22 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return false;
 
-            // Check if card is unplayable (e.g., request card without enough focus)
+            // Check if this is a request/promise card
+            if (card.Properties.Contains(CardProperty.DeliveryEligible))
+            {
+                // Request cards are playable when rapport threshold is met
+                int currentRapport = Session.RapportManager?.CurrentRapport ?? 0;
+                return currentRapport >= GetRequestRapportThreshold(card);
+            }
+
+            // Check if card is unplayable (other reasons)
             if (card.Properties.Contains(CardProperty.Unplayable)) return false;
 
             // Check if observation card is expired
             if (IsObservationExpired(card)) return false;
 
             // Check focus limit - card must not exceed current state's max focus
+            // (Request cards have 0 focus cost so they pass this check)
             int effectiveFocus = card.Focus;
             return effectiveFocus <= GetFocusLimit();
         }
@@ -996,6 +1005,71 @@ namespace Wayfarer.Pages.Components
             return card.Id?.Replace("_", " ") ?? "Unknown Card";
         }
 
+        protected int GetRequestRapportThreshold(CardInstance card)
+        {
+            // Request cards require a rapport threshold instead of focus
+            // Default threshold for requests is 5 rapport
+            return 5;
+        }
+
+        protected int GetCurrentRapport()
+        {
+            return Session?.RapportManager?.CurrentRapport ?? 0;
+        }
+
+        protected string GetNpcStatusLine()
+        {
+            var npc = Context?.Npc;
+            if (npc == null) return "";
+            
+            var status = new List<string>();
+            
+            // NPC has Profession as an enum - default is 0
+            if ((int)npc.Profession != 0)
+                status.Add(npc.Profession.ToString());
+            
+            // Get current location name
+            var currentLocation = GameFacade?.GetCurrentLocation();
+            if (!string.IsNullOrEmpty(currentLocation?.Name))
+                status.Add(currentLocation.Name);
+                
+            return string.Join(" • ", status);
+        }
+
+        protected string GetDeadlineWarning()
+        {
+            // Check if there are any urgent letters with deadlines
+            var letterQueue = GameFacade?.GetLetterQueue();
+            if (letterQueue?.QueueSlots == null) return null;
+            
+            // Find the most urgent letter from queue slots
+            LetterViewModel mostUrgent = null;
+            int shortestDeadline = int.MaxValue;
+            
+            foreach (var slot in letterQueue.QueueSlots)
+            {
+                if (slot.IsOccupied && slot.DeliveryObligation != null && slot.DeliveryObligation.DeadlineInHours > 0)
+                {
+                    if (slot.DeliveryObligation.DeadlineInHours < shortestDeadline)
+                    {
+                        shortestDeadline = slot.DeliveryObligation.DeadlineInHours;
+                        mostUrgent = slot.DeliveryObligation;
+                    }
+                }
+            }
+                
+            if (mostUrgent != null)
+            {
+                var hours = mostUrgent.DeadlineInHours;
+                if (hours > 0)
+                    return $"{mostUrgent.RecipientName}'s letter deadline: {hours}h";
+                else
+                    return $"{mostUrgent.RecipientName}'s letter deadline soon!";
+            }
+            
+            return null;
+        }
+
         private string GetStateTransitionVerb(EmotionalState targetState)
         {
             LoadSystemNarratives();
@@ -1036,98 +1110,19 @@ namespace Wayfarer.Pages.Components
 
         protected string GetProperCardDialogue(CardInstance card)
         {
-            // Generate actual conversational dialogue instead of technical descriptions
-
-            // Exchange cards
-            if (card.Properties.Contains(CardProperty.Exchange))
-            {
-                if (card.Context?.ExchangeName == "Pass on this offer")
-                    return "Thank you, but I'll pass on this offer for now.";
-                if (card.Context?.ExchangeReward != null)
-                    return $"I'll take that deal - {card.Context.ExchangeCost} for {card.Context.ExchangeReward}.";
-                return "Let's make a trade.";
-            }
-
-            // Burden cards - addressing past failures
-            if (card.Properties.Contains(CardProperty.Burden))
-            {
-                return $"{NpcName}, about last time... I know I let you down when I didn't deliver your previous message.";
-            }
-
-            // State transition cards (no longer exist in Properties system)
-            if (false)
-            {
-                if (card.SuccessState.HasValue)
-                {
-                    return card.SuccessState.Value switch
-                    {
-                        EmotionalState.DESPERATE => "This is urgent! We need to act now!",
-                        EmotionalState.TENSE => "I understand this is sensitive. We should be careful how we proceed.",
-                        EmotionalState.NEUTRAL => "Take a breath. We have time if we're smart about this. Let me help you think through the best approach.",
-                        EmotionalState.OPEN => "I can see this matters to you. Please, tell me more about what's happening.",
-                        EmotionalState.CONNECTED => "I feel like we really understand each other. Let's work through this together.",
-                        _ => "Perhaps we should approach this differently."
-                    };
-                }
-                return "Let me try a different approach...";
-            }
-
-            // Observation cards
-            if (card.Properties.Contains(CardProperty.Observable))
-            {
-                if (card.Description == "Merchant Route Knowledge")
-                    return "I know a route through the merchant quarter that avoids the checkpoint entirely. We can reach Lord Blackwood faster.";
-                if (card.Description == "Guard Patterns")
-                    return "I've been watching the guards. They change shifts at the third bell - that's our window.";
-                if (card.Description == "Court Gossip")
-                    return "I overheard something at court that might interest you...";
-                return "I noticed something earlier that might help...";
-            }
-
-            // Standard cards based on flow value
-            if (!card.Properties.Contains(CardProperty.Exchange) && !card.Properties.Contains(CardProperty.Observable) && !card.Properties.Contains(CardProperty.Burden) && card.BaseFlow > 0)
-            {
-                if (card.BaseFlow >= 2)
-                    return "I completely understand how you feel. Your situation resonates deeply with me.";
-                else if (card.BaseFlow == 1)
-                    return "I understand how important this is, " + NpcName + ". Your future shouldn't be decided without your consent.";
-                else
-                    return "I hear what you're saying.";
-            }
-
-            // Token building cards (based on token types)
-            if (!card.Properties.Contains(CardProperty.Exchange) && !card.Properties.Contains(CardProperty.Observable) && !card.Properties.Contains(CardProperty.Burden))
-            {
-                ConnectionType tokenType = card.TokenType switch
-                {
-                    TokenType.Trust => ConnectionType.Trust,
-                    TokenType.Commerce => ConnectionType.Commerce,
-                    TokenType.Status => ConnectionType.Status,
-                    TokenType.Shadow => ConnectionType.Shadow,
-                    _ => ConnectionType.None
-                };
-                return tokenType switch
-                {
-                    ConnectionType.Trust => "You can trust me with this. I'll handle it with the care it deserves.",
-                    ConnectionType.Commerce => "This could be profitable for both of us. What are your terms?",
-                    ConnectionType.Status => "Your reputation precedes you. It's an honor to assist someone of your standing.",
-                    ConnectionType.Shadow => "Between you and me... I know how to keep a secret.",
-                    _ => "I want to help you with this."
-                };
-            }
-
-            // Promise/Letter cards
-            if (card.Description?.Contains("Letter") == true || card.Description?.Contains("Accept") == true)
-            {
-                return "I'll take your letter to Lord Blackwood. For something this urgent, I'll do whatever it takes.";
-            }
-
-            // Default fallback - try to get from loaded dialogues or use display name
+            // Just use the card's actual dialogue text from JSON, no flavor text
+            
+            // Try to get player dialogue from JSON based on template ID
             string playerText = GetPlayerDialogueText(card.Id, Session?.CurrentState);
             if (!string.IsNullOrEmpty(playerText))
                 return playerText;
-
-            return card.Description ?? "Let me think about this...";
+            
+            // Use the card's Description property if available
+            if (!string.IsNullOrEmpty(card.Description))
+                return card.Description;
+                
+            // Fallback to card name
+            return GetProperCardName(card);
         }
 
 

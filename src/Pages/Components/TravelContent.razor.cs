@@ -61,6 +61,7 @@ namespace Wayfarer.Pages.Components
                 Id = r.Id,
                 Name = r.Name,  // Store the actual route name from JSON
                 DestinationName = GetDestinationLocationName(r.DestinationLocationSpot),
+                DestinationSpotName = GetDestinationLocationSpotName(r.DestinationLocationSpot),
                 District = GetDestinationDistrict(r.DestinationLocationSpot),
                 TransportType = FormatTransportType(r.Method),
                 TravelTime = r.TravelTimeMinutes,
@@ -73,6 +74,19 @@ namespace Wayfarer.Pages.Components
         }
 
         private string GetDestinationLocationName(string destinationSpotId)
+        {
+            // Get the actual location spot from GameWorld to find its name
+            var spot = GameFacade.GetLocationSpot(destinationSpotId);
+            var location = GameFacade.GetLocationById(spot.LocationId);
+            
+            if (location != null)
+            {
+                return location.Name;
+            }
+            return "Unknown Location";
+        }
+
+        private string GetDestinationLocationSpotName(string destinationSpotId)
         {
             // Get the actual location spot from GameWorld to find its name
             var spot = GameFacade.GetLocationSpot(destinationSpotId);
@@ -391,6 +405,7 @@ namespace Wayfarer.Pages.Components
         public string Id { get; set; }
         public string Name { get; set; }  // The route name from JSON
         public string DestinationName { get; set; }  // The actual location name
+        public string DestinationSpotName { get; set; }  // The actual location spot name
         public string District { get; set; }
         public string TransportType { get; set; }
         public int TravelTime { get; set; }

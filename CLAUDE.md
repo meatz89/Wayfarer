@@ -174,6 +174,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    ├── LetterQueueContent (calls parent methods)
    └── TravelContent (calls parent methods)
    ```
+   **CRITICAL: Screen components are rendered INSIDE GameScreen's container**
+   - Screen components must NEVER define their own game-container or headers
+   - GameScreen provides the outer structure (resources bar, headers)
+   - Screen components only provide their specific content
 
 5. **Method Patterns**:
    - Parent exposes public methods for state changes

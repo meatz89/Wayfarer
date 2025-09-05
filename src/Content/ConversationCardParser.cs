@@ -129,22 +129,51 @@ public static class ConversationCardParser
         CardEffect failureEffect = ParseEffect(dto.FailureEffect) ?? CardEffect.None;
         CardEffect exhaustEffect = ParseEffect(dto.ExhaustEffect) ?? CardEffect.None;
 
-        // Create card with essential properties
-        var card = new ConversationCard
+        // Check if this is a Request card
+        ConversationCard card;
+        if (dto.Type == "Request" || dto.IsRequestCard == true)
         {
-            Id = dto.Id,
-            Description = dto.Description ?? "",
-            TokenType = tokenType,
-            Focus = dto.Focus,
-            Difficulty = difficulty,
-            PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
-            // Three-effect system
-            SuccessEffect = successEffect ?? CardEffect.None,
-            FailureEffect = failureEffect ?? CardEffect.None,
-            ExhaustEffect = exhaustEffect ?? CardEffect.None,
-            DialogueFragment = dto.DialogueFragment,
-            VerbPhrase = "" // Will be set later if needed
-        };
+            // Create RequestCard for request/promise cards
+            var requestCard = new RequestCard
+            {
+                Id = dto.Id,
+                Description = dto.Description ?? "",
+                TokenType = tokenType,
+                // Request cards have 0 focus now
+                Focus = 0,
+                // Always 100% success
+                Difficulty = Difficulty.VeryEasy,
+                PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
+                // Three-effect system (only success matters for request cards)
+                SuccessEffect = successEffect ?? CardEffect.None,
+                FailureEffect = CardEffect.None, // No failure
+                ExhaustEffect = CardEffect.None, // Never exhausts
+                DialogueFragment = dto.DialogueFragment,
+                VerbPhrase = "", // Will be set later if needed
+                // Set rapport threshold
+                RapportThreshold = dto.RapportThreshold ?? 5
+            };
+            card = requestCard;
+        }
+        else
+        {
+            // Create normal ConversationCard
+            card = new ConversationCard
+            {
+                Id = dto.Id,
+                Description = dto.Description ?? "",
+                TokenType = tokenType,
+                Focus = dto.Focus,
+                Difficulty = difficulty,
+                PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
+                // Three-effect system
+                SuccessEffect = successEffect ?? CardEffect.None,
+                FailureEffect = failureEffect ?? CardEffect.None,
+                ExhaustEffect = exhaustEffect ?? CardEffect.None,
+                DialogueFragment = dto.DialogueFragment,
+                VerbPhrase = "" // Will be set later if needed
+            };
+        }
         
         // Parse properties array
         if (dto.Properties != null && dto.Properties.Count > 0)
@@ -292,6 +321,7 @@ public class ConversationCardDTO
     public int BaseFlow { get; set; }
     public bool? IsRequestCard { get; set; }
     public string RequestCardType { get; set; }
+    public int? RapportThreshold { get; set; } // For request cards
     public string DisplayName { get; set; }
     public string Description { get; set; }
     public int? SuccessRate { get; set; }

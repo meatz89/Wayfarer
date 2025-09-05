@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Observation Complete</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 1000px;
+            background: #e8dcc4;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        /* Header */
+        .header {
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #5c4a3a;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .time-display {
+            color: #d4a76a;
+        }
+
+        /* Success Header */
+        .success-header {
+            background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #5a6a3a;
+        }
+
+        .success-title {
+            color: #faf4ea;
+            font-size: 24px;
+            font-weight: normal;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+
+        .success-subtitle {
+            font-size: 13px;
+            color: #e8dcc4;
+            font-style: italic;
+        }
+
+        /* Stage Complete */
+        .stage-indicator {
+            background: #e8dcc4;
+            padding: 10px 20px;
+            text-align: center;
+            border-bottom: 1px solid #c4a684;
+        }
+
+        .stage-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .stage-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #5a7a3a;
+        }
+
+        /* Final Narrative */
+        .narrative-section {
+            padding: 25px;
+            background: #f4e8d0;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .narrative-text {
+            padding: 20px;
+            background: #faf4ea;
+            border-left: 3px solid #7a8b5a;
+            border-radius: 2px;
+            font-size: 15px;
+            line-height: 1.6;
+            font-style: italic;
+            color: #3d3429;
+        }
+
+        .narrative-success {
+            background: #f4f9e9;
+            border-left-color: #5a7a3a;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        /* Rewards Section */
+        .rewards-section {
+            padding: 25px;
+            background: #f4e8d0;
+        }
+
+        .rewards-title {
+            font-size: 14px;
+            color: #7a6250;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .rewards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .reward-card {
+            background: white;
+            border: 2px solid #7a8b5a;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reward-type {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #7a8b5a;
+            color: #faf4ea;
+            padding: 4px 12px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .reward-icon {
+            width: 60px;
+            height: 60px;
+            background: #f4f9e9;
+            border: 2px solid #7a8b5a;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .reward-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #5c4a3a;
+            margin-bottom: 8px;
+        }
+
+        .reward-description {
+            font-size: 12px;
+            color: #7a6250;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .reward-effect {
+            background: #f4f9e9;
+            border: 1px solid #c4d5a0;
+            border-radius: 3px;
+            padding: 8px;
+            font-size: 11px;
+        }
+
+        .effect-label {
+            color: #5a7a3a;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .effect-value {
+            color: #5c4a3a;
+            margin-top: 4px;
+        }
+
+        /* Card Preview */
+        .card-preview {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .card-preview-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .card-preview-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .card-preview-focus {
+            width: 20px;
+            height: 20px;
+            background: #5c4a3a;
+            color: #faf4ea;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .card-preview-effect {
+            font-size: 11px;
+            color: #5a7a3a;
+            font-style: italic;
+        }
+
+        /* Continue Button */
+        .continue-section {
+            background: #e8dcc4;
+            padding: 20px;
+            text-align: center;
+            border-top: 2px solid #c4a684;
+        }
+
+        .continue-button {
+            padding: 12px 50px;
+            background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
+            border: 2px solid #5a6a3a;
+            border-radius: 4px;
+            color: #faf4ea;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+
+        .continue-button:hover {
+            background: linear-gradient(to bottom, #8a9b6a, #7a8b5a);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .continue-note {
+            font-size: 11px;
+            color: #7a6250;
+            margin-top: 8px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <div class="header">
+            <span>Tuesday, 9:25 AM - Market Square</span>
+            <span class="time-display">10 minutes passed</span>
+        </div>
+
+        <!-- Success Header -->
+        <div class="success-header">
+            <div class="success-title">Observation Successful</div>
+            <div class="success-subtitle">You've discovered valuable information</div>
+        </div>
+
+        <!-- Stage Complete -->
+        <div class="stage-indicator">
+            <div class="stage-dots">
+                <span class="stage-dot"></span>
+                <span class="stage-dot"></span>
+                <span class="stage-dot"></span>
+            </div>
+        </div>
+
+        <!-- Final Narrative -->
+        <div class="narrative-section">
+            <div class="narrative-text">
+                After careful observation, you've memorized the caravan master's route. The path winds through the old merchant quarters, using a series of connected warehouses to bypass the main checkpoint. The traders call it the "Silk Road" - an open secret among those who pay the right bribes to the warehouse guards.
+            </div>
+            <div class="narrative-text narrative-success">
+                You now know how to reach the Noble District without an official permit. This knowledge could prove invaluable for urgent deliveries.
+            </div>
+        </div>
+
+        <!-- Rewards Section -->
+        <div class="rewards-section">
+            <div class="rewards-title">Observation Rewards</div>
+            
+            <div class="rewards-grid">
+                <!-- Route Unlock Reward -->
+                <div class="reward-card">
+                    <div class="reward-type">Route Unlocked</div>
+                    <div class="reward-icon">🗺️</div>
+                    <div class="reward-name">Merchant's Path</div>
+                    <div class="reward-description">
+                        Secret route to the Noble District that bypasses the main checkpoint. Longer travel time but no permit required.
+                    </div>
+                    <div class="reward-effect">
+                        <div class="effect-label">Route Details:</div>
+                        <div class="effect-value">
+                            35 min walk • +5 hunger<br>
+                            Discrete • No guards
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Observation Card Reward -->
+                <div class="reward-card">
+                    <div class="reward-type">Conversation Card</div>
+                    <div class="reward-icon">🎴</div>
+                    <div class="reward-name">Merchant Route Knowledge</div>
+                    <div class="reward-description">
+                        Add this observation card to your conversation deck. Use it to demonstrate insider knowledge during conversations.
+                    </div>
+                    
+                    <div class="card-preview">
+                        <div class="card-preview-header">
+                            <span class="card-preview-name">Merchant Routes</span>
+                            <span class="card-preview-focus">1</span>
+                        </div>
+                        <div class="card-preview-effect">
+                            Effect: Set Informed atmosphere<br>
+                            Success: 85% (Very Easy)<br>
+                            Expires: 48 hours
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Continue Button -->
+        <div class="continue-section">
+            <button class="continue-button">Return to Merchant Row</button>
+            <div class="continue-note">Elena becomes available at 2:00 PM (4 hours, 35 minutes)</div>
+        </div>
+    </div>
+</body>
+</html>

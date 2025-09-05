@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Observation: Merchant Routes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .observation-container {
+            width: 100%;
+            max-width: 900px;
+            background: #e8dcc4;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        /* Header */
+        .header {
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #5c4a3a;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .time-display {
+            color: #d4a76a;
+        }
+
+        /* Observation Header */
+        .observation-header {
+            background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+            padding: 15px 20px;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .observation-title {
+            color: #5c4a3a;
+            font-size: 22px;
+            font-weight: normal;
+            margin-bottom: 4px;
+        }
+
+        .observation-location {
+            font-size: 12px;
+            color: #7a6250;
+        }
+
+        .observation-cost {
+            font-size: 11px;
+            color: #8b4726;
+            margin-top: 4px;
+            font-weight: bold;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            background: #f9f3e9;
+            padding: 12px 20px;
+            border-bottom: 1px solid #c4a684;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .progress-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-dots {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e8dcc4;
+            border: 1px solid #8b7355;
+        }
+
+        .progress-dot.complete {
+            background: #7a8b5a;
+        }
+
+        .progress-dot.current {
+            background: #d4a76a;
+            border: 2px solid #8b4726;
+        }
+
+        .progress-arrow {
+            color: #8b7355;
+            font-size: 14px;
+        }
+
+        /* Narrative Section */
+        .narrative-section {
+            padding: 25px;
+            background: #f4e8d0;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .narrative-text {
+            padding: 20px;
+            background: #faf4ea;
+            border-left: 3px solid #7a8b5a;
+            border-radius: 2px;
+            font-size: 16px;
+            line-height: 1.6;
+            font-style: italic;
+            color: #3d3429;
+        }
+
+        .narrative-setup {
+            border-left-color: #c4a684;
+            background: #faf4ea;
+            margin-top: 15px;
+        }
+
+        /* Choice Section */
+        .choice-section {
+            padding: 20px;
+            background: #f4e8d0;
+        }
+
+        .choice-title {
+            font-size: 13px;
+            color: #7a6250;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Choice Cards */
+        .choice-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .choice-card {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .choice-card:hover {
+            background: #fefaf0;
+            border-color: #a68b6f;
+            transform: translateX(5px);
+        }
+
+        .choice-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: #5c4a3a;
+            margin-bottom: 6px;
+        }
+
+        .choice-text {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #2c241a;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .choice-outcome {
+            font-size: 12px;
+            color: #5a7a3a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .outcome-arrow {
+            color: #8b7355;
+        }
+
+        /* Initial Setup Box */
+        .setup-box {
+            background: #f9f3e9;
+            border: 1px dashed #c4a684;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            text-align: center;
+            color: #7a6250;
+        }
+
+        .setup-highlight {
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="observation-container">
+        <!-- Header -->
+        <div class="header">
+            <span>Tuesday, 9:05 AM - Market Square</span>
+            <span class="time-display">Morning • Clear Weather</span>
+        </div>
+
+        <!-- Observation Header -->
+        <div class="observation-header">
+            <div class="observation-title">Beginning Observation</div>
+            <div class="observation-location">Location: Market Square - Merchant Row</div>
+            <div class="observation-cost">Cost: 1 Attention (Paid) • Time: 10 minutes</div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <span class="progress-label">Discovery Progress:</span>
+            <div class="progress-dots">
+                <span class="progress-dot current"></span>
+                <span class="progress-arrow">→</span>
+                <span class="progress-dot"></span>
+                <span class="progress-arrow">→</span>
+                <span class="progress-dot"></span>
+            </div>
+            <span style="font-size: 11px; color: #7a6250; margin-left: 10px;">Step 1 of 3: Approach</span>
+        </div>
+
+        <!-- Narrative Section -->
+        <div class="narrative-section">
+            <div class="narrative-text">
+                The morning market bustles with activity. You notice Marcus engaged in animated discussion with a weathered caravan master near his textile stall. They're huddled over what appears to be a map, speaking in hushed tones despite the crowd's noise. The caravan master keeps glancing toward the guard post, his fingers tracing routes on the parchment.
+            </div>
+            
+            <div class="narrative-text narrative-setup">
+                This could be valuable information about alternative routes to the Noble District. The merchants often know paths the guards don't advertise - or don't want advertised.
+            </div>
+
+            <div class="setup-box">
+                <span class="setup-highlight">Observation in Progress</span><br>
+                Your choices determine how you gather information, but patient observation usually yields results.
+            </div>
+        </div>
+
+        <!-- Choice Section -->
+        <div class="choice-section">
+            <div class="choice-title">How do you approach your observation?</div>
+            
+            <div class="choice-grid">
+                <div class="choice-card">
+                    <div class="choice-name">Browse Nearby Stalls</div>
+                    <div class="choice-text">
+                        Pretend to shop at adjacent stalls while keeping your ears open. A natural presence draws less suspicion.
+                    </div>
+                    <div class="choice-outcome">
+                        <span class="outcome-arrow">→</span>
+                        <span>Blend in naturally • Continue observation</span>
+                    </div>
+                </div>
+
+                <div class="choice-card">
+                    <div class="choice-name">Find a Vantage Point</div>
+                    <div class="choice-text">
+                        Position yourself at the fountain's edge where you can watch their gestures and map movements from a distance.
+                    </div>
+                    <div class="choice-outcome">
+                        <span class="outcome-arrow">→</span>
+                        <span>Safe distance • Continue observation</span>
+                    </div>
+                </div>
+
+                <div class="choice-card">
+                    <div class="choice-name">Move Closer Boldly</div>
+                    <div class="choice-text">
+                        Walk directly past them as if heading somewhere else, catching what details you can in passing.
+                    </div>
+                    <div class="choice-outcome">
+                        <span class="outcome-arrow">→</span>
+                        <span>Brief but clear view • Continue observation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

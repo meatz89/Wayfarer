@@ -30,19 +30,8 @@
         </div>
         <div class="resource-group">
             <div class="resource">
-                <span>@TimePeriod</span>
+                <span>@CurrentTime • @TimePeriod</span>
             </div>
-        </div>
-    </div>
-    
-    <!-- Time and Location Header (from mockup) -->
-    <div class="header">
-        <div class="time-bar">
-            <span class="current-time">@CurrentTime</span>
-            @if (!string.IsNullOrEmpty(MostUrgentDeadline))
-            {
-                <span class="deadline-warning">⚠ @MostUrgentDeadline</span>
-            }
         </div>
     </div>
 

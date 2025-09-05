@@ -70,8 +70,23 @@ public class CardInstance
     public CardMechanicsType Mechanics => Properties.Contains(CardProperty.Exchange) ? CardMechanicsType.Exchange : CardMechanicsType.Standard;
     
     public int GetEffectiveFocus(EmotionalState state) => Focus;
-    public int CalculateSuccessChance() => GetBaseSuccessPercentage();
-    public int CalculateSuccessChance(EmotionalState state) => GetBaseSuccessPercentage();
+    public int CalculateSuccessChance() 
+    {
+        // Request/Promise cards always succeed (100%)
+        if (Properties.Contains(CardProperty.DeliveryEligible))
+            return 100;
+        
+        return GetBaseSuccessPercentage();
+    }
+    
+    public int CalculateSuccessChance(EmotionalState state) 
+    {
+        // Request/Promise cards always succeed (100%)
+        if (Properties.Contains(CardProperty.DeliveryEligible))
+            return 100;
+            
+        return GetBaseSuccessPercentage();
+    }
     public ConnectionType GetConnectionType() => TokenType switch
     {
         TokenType.Trust => ConnectionType.Trust,

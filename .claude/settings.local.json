@@ -339,7 +339,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5888\" dotnet run --no-build)",
       "Bash(pip3 install:*)",
       "Bash(apt list:*)",
-      "Bash(google-chrome:*)"
+      "Bash(google-chrome:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6000\" dotnet run --no-build)"
     ],
     "deny": []
   }

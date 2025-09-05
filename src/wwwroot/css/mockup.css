@@ -877,39 +877,6 @@ body * {
     text-align: center;
 }
 
-/* Conversation Screen Specific Styles */
-
-/* Location Context */
-.location-context {
-    background: #f9f3e9;
-    padding: 8px 20px;
-    border-bottom: 1px solid #c4a684;
-    font-size: 11px;
-    color: #7a6250;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* Streamlined Conversation State Bar */
-.conversation-state-bar {
-    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
-    padding: 15px 20px;
-    border-bottom: 2px solid #a68b6f;
-}
-
-.npc-identity {
-    flex: 1;
-}
-
-.emotional-state {
-    font-size: 12px;
-    color: #8b4726;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-focus: bold;
-    margin-top: 3px;
-}
-
 /* Minimal State Indicators */
 .state-indicators {
     display: flex;

@@ -231,11 +231,12 @@
         "id": "accept_elenas_letter",
         "type": "Request",
         "personalityTypes": ["ALL"],
-        "focus": 7,
-        "properties": ["Unplayable"],
+        "focus": 0,
+        "properties": ["Persistent", "DeliveryEligible"],
         "connectionType": "Trust",
         "description": "Accept Elena's Letter",
-        "difficulty": "VeryHard",
+        "difficulty": "VeryEasy",
+        "rapportThreshold": 5,
         "successEffect": {
           "type": "CreateObligation",
           "value": "letter_delivery",
@@ -249,22 +250,7 @@
             "tokenReward": {"Trust": 2}
           }
         },
-        "failureEffect": {
-          "type": "AddBurdenCard",
-          "value": "1",
-          "data": {
-            "npcId": "elena"
-          }
-        },
-        "exhaustEffect": {
-          "type": "EndConversation",
-          "value": "failure",
-          "data": {
-            "reason": "Failed to help Elena",
-            "consequence": "Elena forced into marriage"
-          }
-        },
-        "dialogueFragment": "Please, you have to take my letter to Lord Blackwood before sunset! I'm begging you!"
+        "dialogueFragment": "Give me the letter. I'll get it to Lord Blackwood before sunset, no matter what it takes."
       }
     ],
     "successFormula": {

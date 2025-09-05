@@ -2,90 +2,74 @@
 
 @namespace Wayfarer.Pages.Components
 
+@* ARCHITECTURAL PRINCIPLE: Screen components (LocationContent, ConversationContent, etc.) are rendered INSIDE GameScreen's game-container.
+   They must NEVER define their own game-container, header, or resource bars - those are managed by the parent GameScreen.
+   Screen components should only contain their specific content wrapped in a semantic class like 'conversation-content'. *@
+
 @if (Session != null)
 {
-    <!-- Location Context (from mockup) -->
-    <div class="location-context">
-        @GetLocationContext()
-    </div>
-
-    @if ((Context?.Type ?? ConversationType.FriendlyChat) != ConversationType.Commerce)
-    {
-        <!-- Streamlined Conversation State Bar (from mockup) -->
-        <div class="conversation-state-bar">
-            <div class="npc-header">
-                <div class="npc-identity">
-                    <div class="npc-name">@NpcName</div>
-                    <div class="emotional-state">@GetEmotionalStateDisplay() (@GetEmotionalStateInfo())</div>
-                </div>
-                <div class="state-indicators">
-                    <div class="indicator">
-                        <span class="indicator-label">Patience</span>
-                        <span class="indicator-value">@Session.CurrentPatience/@Session.MaxPatience</span>
-                    </div>
-                    <div class="flow-indicator">
-                        <span class="indicator-label">Flow</span>
-                        <div class="flow-bar">
-                            <span class="flow-segment @(Session.FlowBattery <= -3 ? "negative" : "") @(Session.FlowBattery == -3 ? "current" : "")"></span>
-                            <span class="flow-segment @(Session.FlowBattery <= -2 ? "negative" : "") @(Session.FlowBattery == -2 ? "current" : "")"></span>
-                            <span class="flow-segment @(Session.FlowBattery <= -1 ? "negative" : "") @(Session.FlowBattery == -1 ? "current" : "")"></span>
-                            <span class="flow-segment @(Session.FlowBattery == 0 ? "current" : "")"></span>
-                            <span class="flow-segment @(Session.FlowBattery >= 1 ? "positive" : "") @(Session.FlowBattery == 1 ? "current" : "")"></span>
-                            <span class="flow-segment @(Session.FlowBattery >= 2 ? "positive" : "") @(Session.FlowBattery == 2 ? "current" : "")"></span>
-                            <span class="flow-segment @(Session.FlowBattery >= 2 ? "positive" : "") @(Session.FlowBattery == 3 ? "current" : "")"></span>
-                        </div>
-                        <span class="flow-value">@Session.FlowBattery</span>
-                        @if (Math.Abs(Session.FlowBattery) == 2)
-                        {
-                            <div class="flow-transition-hint @(Session.CurrentState == EmotionalState.DESPERATE && Session.FlowBattery == -2 ? "danger" : "")">
-                                @GetTransitionHint()
-                            </div>
-                        }
-                        @if (Session.CurrentState == EmotionalState.DESPERATE && Session.FlowBattery <= -2)
-                        {
-                            <div class="flow-warning">⚠ Conversation ends at -3!</div>
-                        }
-                        @{
-                            var thresholdPreview = GetFlowThresholdPreview();
-                            if (!string.IsNullOrEmpty(thresholdPreview))
-                            {
-                                <div class="flow-threshold-preview">@thresholdPreview</div>
-                            }
-                        }
-                    </div>
-                    <div class="focus-pool">
-                        <span class="indicator-label">Focus</span>
-                        <div class="focus-dots">
-                            @for (int i = 1; i <= (Session?.GetEffectiveFocusCapacity() ?? 3); i++)
-                            {
-                                <span class="focus-dot @(i <= (Session?.GetAvailableFocus() ?? 0) ? "available" : "spent")"></span>
-                            }
-                        </div>
-                        <span class="indicator-value">@(Session?.GetAvailableFocus() ?? 0)/@(Session?.GetEffectiveFocusCapacity() ?? 3)</span>
-                    </div>
-                </div>
-            </div>
+    <div class="conversation-content">
+        <!-- Location context bar -->
+        <div class="location-context">
+            <span>@GetLocationContext()</span>
         </div>
 
-        <!-- Rapport Display (from mockup) -->
-        <div class="rapport-strip">
-            <div class="rapport-display">
-                <div class="rapport-main">
+        @if ((Context?.Type ?? ConversationType.FriendlyChat) != ConversationType.Commerce)
+        {
+            <!-- NPC Bar -->
+            <div class="npc-bar">
+                <div class="npc-info">
+                    <div class="npc-name">@NpcName</div>
+                    <div class="npc-status">@GetNpcStatusLine()</div>
+                </div>
+                <div class="patience-display">
+                    <div class="patience-label">Patience</div>
+                    <div class="patience-value">@Session.CurrentPatience/@Session.MaxPatience</div>
+                </div>
+            </div>
+
+            <!-- State and Flow Section (Grouped) -->
+            <div class="state-flow-section">
+                <div class="emotional-state">
+                    <span class="state-label">Emotional State:</span>
+                    <span class="state-name">@GetEmotionalStateDisplay()</span>
+                    <span class="state-effects">(@GetEmotionalStateInfo())</span>
+                </div>
+                
+                <div class="flow-display">
+                    <span class="flow-label">Flow:</span>
+                    <div class="flow-bar">
+                        <span class="flow-segment @(Session.FlowBattery <= -3 ? "negative" : "") @(Session.FlowBattery == -3 ? "current" : "")"></span>
+                        <span class="flow-segment @(Session.FlowBattery <= -2 ? "negative" : "") @(Session.FlowBattery == -2 ? "current" : "")"></span>
+                        <span class="flow-segment @(Session.FlowBattery <= -1 ? "negative" : "") @(Session.FlowBattery == -1 ? "current" : "")"></span>
+                        <span class="flow-segment @(Session.FlowBattery == 0 ? "current" : "")"></span>
+                        <span class="flow-segment @(Session.FlowBattery >= 1 ? "positive" : "") @(Session.FlowBattery == 1 ? "current" : "")"></span>
+                        <span class="flow-segment @(Session.FlowBattery >= 2 ? "positive" : "") @(Session.FlowBattery == 2 ? "current" : "")"></span>
+                        <span class="flow-segment @(Session.FlowBattery >= 3 ? "positive" : "") @(Session.FlowBattery == 3 ? "current" : "")"></span>
+                    </div>
+                    <span class="flow-value">@Session.FlowBattery</span>
+                    @if (Session.CurrentState == EmotionalState.DESPERATE && Session.FlowBattery <= -2)
+                    {
+                        <span class="flow-warning">One more failure ends conversation!</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Atmosphere and Rapport Bar -->
+            <div class="atmosphere-rapport-bar">
+                <div class="atmosphere-display">
+                    <span class="atmosphere-label">Atmosphere:</span>
+                    <span class="atmosphere-current">@GetCurrentAtmosphereDisplay()</span>
+                    <span class="atmosphere-effect">(@GetAtmosphereEffectDescription())</span>
+                </div>
+                
+                <div class="rapport-display">
                     <span class="rapport-label">Rapport:</span>
                     <span class="rapport-value">@(Session?.RapportManager?.CurrentRapport ?? 0)</span>
-                    <span class="rapport-effect">(@(Session?.RapportManager?.GetSuccessModifier() ?? 0)% to all cards)</span>
+                    <span class="rapport-effect">(+@(Session?.RapportManager?.GetSuccessModifier() ?? 0)% all cards)</span>
                 </div>
-                <span class="rapport-source">@GetRapportSourceDescription()</span>
             </div>
-        </div>
-
-        <!-- Active Atmosphere -->
-        <div class="atmosphere-strip">
-            <span class="atmosphere-label">Active Atmosphere:</span>
-            <span class="atmosphere-current">@GetCurrentAtmosphereDisplay()</span>
-            <span class="atmosphere-effect">@GetAtmosphereEffectDescription()</span>
-        </div>
-    }
+        }
 
     <!-- CENTRAL: Narrative Section (from mockup) -->
     <div class="narrative-section">
@@ -169,10 +153,23 @@
         }
     </div>
 
-    <!-- CENTRAL: Cards Section (from mockup) -->
+    <!-- Focus Display (Above Cards) -->
+    <div class="focus-display-section">
+        <span class="focus-label">Focus:</span>
+        <div class="focus-dots">
+            @for (int i = 1; i <= (Session?.GetEffectiveFocusCapacity() ?? 3); i++)
+            {
+                <span class="focus-dot @(i <= (Session?.GetAvailableFocus() ?? 0) ? "available" : "spent")"></span>
+            }
+        </div>
+        <span class="focus-numbers">@(Session?.GetAvailableFocus() ?? 0)/@(Session?.GetEffectiveFocusCapacity() ?? 3)</span>
+        <span class="focus-note">Cards above your focus are disabled</span>
+    </div>
+
+    <!-- Cards Section -->
     <div class="cards-section">
         @if ((Context?.Type ?? ConversationType.FriendlyChat) == ConversationType.Commerce)
-            {
+        {
             @* For exchanges, show cards as full selectable cards like conversations *@
             <div class="cards-header">
                 <div class="cards-title">Available Exchanges</div>
@@ -224,7 +221,7 @@
                     </div>
                 }
             </div>
-            }
+        }
         else
         {
             @* Normal conversation cards *@
@@ -235,43 +232,63 @@
             <div class="card-grid">
                 @foreach (var convCard in Session.HandCards)
                 {
-                    <div class="@GetCardCssClasses(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "unavailable" : "") @GetCardPropertyClasses(convCard)"
-                         @onclick="() => ToggleCardSelection(convCard)">
-                        
-                        @* Persistence Warning (from mockup) *@
-                        @if (convCard.Properties.Contains(CardProperty.Impulse) && convCard.Properties.Contains(CardProperty.Opening))
-                        {
-                            <div class="persistence-warning warning-both">MUST PLAY NOW!</div>
-                        }
-                        else if (convCard.Properties.Contains(CardProperty.Opening))
-                        {
-                            <div class="persistence-warning warning-opening">Exhausts on LISTEN!</div>
-                        }
-                        else if (convCard.Properties.Contains(CardProperty.Impulse))
-                        {
-                            <div class="persistence-warning warning-impulse">Exhausts on SPEAK!</div>
-                        }
-                        <div class="card-content">
-                            <div class="card-main">
-                                <div class="card-identity">
-                                    <div class="card-name">@GetProperCardName(convCard)</div>
-                                    <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
+                    @if (convCard.Properties.Contains(CardProperty.DeliveryEligible))
+                    {
+                        @* Promise/Request Card (Goal) with rapport threshold *@
+                        <div class="card promise @(CanSelectCard(convCard) ? "" : "disabled")"
+                             @onclick="() => ToggleCardSelection(convCard)">
+                            <div class="promise-threshold @(GetCurrentRapport() >= GetRequestRapportThreshold(convCard) ? "promise-active" : "")">
+                                Requires @GetRequestRapportThreshold(convCard)+ Rapport (Currently: @GetCurrentRapport())
+                            </div>
+                            <div class="card-content">
+                                <div class="card-main">
+                                    <div class="card-header">
+                                        <div class="card-name">@GetProperCardName(convCard)</div>
+                                    </div>
+                                    <div class="card-text">
+                                        "@GetProperCardDialogue(convCard)"
+                                    </div>
                                 </div>
-                                @* Card persistence info like in mockup *@
-                                <div class="card-persistence">
-                                    @GetCardTypeLabel(convCard) • Persistent • @GetDifficultyLabel(convCard.Difficulty)
-                                    @if (convCard.Properties.Contains(CardProperty.Impulse))
-                                    {
-                                        <text> • Exhausts on SPEAK</text>
-                                    }
-                                    @if (convCard.Properties.Contains(CardProperty.Opening))
-                                    {
-                                        <text> • Exhausts on LISTEN</text>
-                                    }
+                                <div class="card-outcomes">
+                                    <div class="outcome success">
+                                        <div class="outcome-chance">100%</div>
+                                        <div class="outcome-label">Always Succeeds</div>
+                                        <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
+                                    </div>
+                                    <div class="outcome">
+                                        <div class="outcome-chance">Ends</div>
+                                        <div class="outcome-label">Conversation</div>
+                                        <div class="outcome-effect">Complete</div>
+                                    </div>
                                 </div>
-                                <div class="card-text">
-                                    "@GetProperCardDialogue(convCard)"
-                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        @* Regular conversation card *@
+                        <div class="@GetCardCssClasses(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "")"
+                             @onclick="() => ToggleCardSelection(convCard)">
+                            
+                            @* Persistence tags *@
+                            @if (convCard.Properties.Contains(CardProperty.Impulse))
+                            {
+                                <span class="persistence-tag impulse">Impulse</span>
+                            }
+                            @if (convCard.Properties.Contains(CardProperty.Opening))
+                            {
+                                <span class="persistence-tag opening">Opening</span>
+                            }
+                            
+                            <div class="card-content">
+                                <div class="card-main">
+                                    <div class="card-header">
+                                        <div class="card-name">@GetProperCardName(convCard)</div>
+                                        <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
+                                    </div>
+                                    <div class="card-text">
+                                        "@GetProperCardDialogue(convCard)"
+                                    </div>
                                 @{
                                     var atmosphereScaling = GetAtmosphereScaling(convCard);
                                     if (!string.IsNullOrEmpty(atmosphereScaling))
@@ -283,50 +300,39 @@
                                 {
                                     <div class="atmosphere-change">@GetAtmosphereEffectLabel(convCard)</div>
                                 }
-                            </div>
-                        @* Two-column Success/Failure layout from mockup - INSIDE card-content *@
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance" title="@GetSuccessChanceBreakdown(convCard)">
-                                    @GetSuccessChance(convCard)%
-                                    @if (GetRapportModifier() != 0 || GetAtmosphereModifier() != 0)
-                                    {
-                                        <div class="outcome-modifiers">
-                                            <span class="base-chance">Base: @GetBaseSuccessPercentage(convCard.Difficulty)%</span>
-                                            @if (GetRapportModifier() != 0)
-                                            {
-                                                <span class="rapport-modifier">@(GetRapportModifier() > 0 ? "+" : "")@GetRapportModifier()% rapport</span>
-                                            }
-                                            @if (GetAtmosphereModifier() != 0)
-                                            {
-                                                <span class="atmosphere-modifier">+@GetAtmosphereModifier()% atmosphere</span>
-                                            }
-                                        </div>
-                                    }
                                 </div>
-                                <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
-                            </div>
-                            <div class="outcome failure">
-                                <div class="outcome-chance">@GetFailureChance(convCard)%</div>
-                                <div class="outcome-label">Failure</div>
-                                <div class="outcome-effect">@GetFailureEffectDescription(convCard)</div>
-                            </div>
+                                @* Two-column Success/Failure layout *@
+                                <div class="card-outcomes">
+                                    <div class="outcome success">
+                                        <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
+                                        <div class="outcome-label">Success</div>
+                                        <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
+                                        @if (GetRapportModifier() != 0)
+                                        {
+                                            <div class="outcome-modifiers">(@GetBaseSuccessPercentage(convCard.Difficulty)% BASE +@GetRapportModifier()% from rapport)</div>
+                                        }
+                                    </div>
+                                    <div class="outcome failure">
+                                        <div class="outcome-chance">@GetFailureChance(convCard)%</div>
+                                        <div class="outcome-label">Failure</div>
+                                        <div class="outcome-effect">@GetFailureEffectDescription(convCard)</div>
+                                    </div>
+                                </div>
                         </div>
-                    </div>
-                        @* Exhaust strip separate like in mockup *@
-                        @if (HasExhaustEffect(convCard))
-                        {
-                            <div class="exhaust-strip">
-                                <span class="exhaust-label">On Exhaust:</span>
-                                <span class="exhaust-effect">@GetExhaustEffectDescription(convCard)</span>
-                            </div>
-                        }
-                    </div>
+                        @* Exhaust strip below card *@
+                            @if (HasExhaustEffect(convCard))
+                            {
+                                <div class="exhaust-effect">
+                                    <span class="exhaust-label">If not played:</span>
+                                    @GetExhaustEffectDescription(convCard)
+                                </div>
+                            }
+                        </div>
+                    }
                 }
             </div>
-            
         }
+    </div>
     </div>
 }
 else
