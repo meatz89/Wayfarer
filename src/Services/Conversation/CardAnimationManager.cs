@@ -46,8 +46,8 @@ namespace Wayfarer
                 OriginalPosition = originalPosition
             });
             
-            // Remove after animation completes (2.5s flash + 0.5s play-out = 3s total)
-            Task.Delay(3200).ContinueWith(_ =>
+            // Remove after animation completes (1.25s flash + 0.25s play-out = 1.5s total)
+            Task.Delay(1600).ContinueWith(_ =>
             {
                 animatingCards.RemoveAll(ac => ac.Card.InstanceId == card.InstanceId);
                 stateChangedCallback?.Invoke();
@@ -70,7 +70,7 @@ namespace Wayfarer
             };
 
             // Remove state after animation completes
-            Task.Delay(3200).ContinueWith(_ =>
+            Task.Delay(1600).ContinueWith(_ =>
             {
                 cardStates.Remove(cardId);
                 stateChangedCallback?.Invoke();
@@ -95,8 +95,8 @@ namespace Wayfarer
                 };
             }
             
-            // Remove after exhaust animation (1s)
-            Task.Delay(1000).ContinueWith(_ =>
+            // Remove after exhaust animation (0.5s)
+            Task.Delay(500).ContinueWith(_ =>
             {
                 foreach (var card in cardsToExhaust)
                 {
@@ -126,8 +126,8 @@ namespace Wayfarer
                 };
             }
             
-            // Clear new state after animation (0.5s)
-            Task.Delay(500).ContinueWith(_ =>
+            // Clear new state after animation (0.25s)
+            Task.Delay(250).ContinueWith(_ =>
             {
                 foreach (var card in newCards)
                 {

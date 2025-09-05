@@ -157,7 +157,7 @@ namespace Wayfarer.Pages.Components
             if (openingCards.Any())
             {
                 MarkCardsForExhaust(openingCards);
-                await Task.Delay(500); // Let exhaust animation play
+                await Task.Delay(250); // Let exhaust animation play
             }
 
             try
@@ -264,7 +264,7 @@ namespace Wayfarer.Pages.Components
                 StateHasChanged(); // Show the card animation
                 
                 // Delay to let player see the result clearly
-                await Task.Delay(1500);
+                await Task.Delay(750);
                 
                 // Check if this was a promise/goal card that succeeded
                 bool isPromiseCard = playedCard.Properties.Contains(CardProperty.DeliveryEligible);
@@ -328,7 +328,7 @@ namespace Wayfarer.Pages.Components
                 
                 if (impulseCards.Any())
                 {
-                    await Task.Delay(800); // Wait for play animation to start
+                    await Task.Delay(400); // Wait for play animation to start
                     MarkCardsForExhaust(impulseCards);
                 }
 
@@ -2726,7 +2726,7 @@ namespace Wayfarer.Pages.Components
             if (impulseCards.Any())
             {
                 // Wait for played card animation to partially complete
-                await Task.Delay(500);
+                await Task.Delay(250);
                 MarkCardsForExhaust(impulseCards);
             }
         }

@@ -354,7 +354,7 @@
     border-radius: 4px;
     overflow: hidden;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.15s ease;
     position: relative;
 }
 
@@ -670,34 +670,34 @@
 
 /* Newly drawn cards */
 .card-new {
-    animation: card-slide-in 0.5s ease-out;
+    animation: card-slide-in 0.25s ease-out;
     animation-fill-mode: both;
 }
 
 /* Stagger animation for multiple new cards */
 .card-new:nth-child(1) { animation-delay: 0s; }
-.card-new:nth-child(2) { animation-delay: 0.1s; }
-.card-new:nth-child(3) { animation-delay: 0.2s; }
-.card-new:nth-child(4) { animation-delay: 0.3s; }
-.card-new:nth-child(5) { animation-delay: 0.4s; }
+.card-new:nth-child(2) { animation-delay: 0.05s; }
+.card-new:nth-child(3) { animation-delay: 0.1s; }
+.card-new:nth-child(4) { animation-delay: 0.15s; }
+.card-new:nth-child(5) { animation-delay: 0.2s; }
 
 /* Successfully played card */
 .card-played-success {
-    animation: card-success-flash 1.5s ease-out, card-play-out 0.5s ease-out 1.5s;
+    animation: card-success-flash 0.75s ease-out, card-play-out 0.25s ease-out 0.75s;
     animation-fill-mode: forwards;
     pointer-events: none;
 }
 
 /* Failed played card */
 .card-played-failure {
-    animation: card-failure-flash 1.5s ease-out, card-play-out 0.5s ease-out 1.5s;
+    animation: card-failure-flash 0.75s ease-out, card-play-out 0.25s ease-out 0.75s;
     animation-fill-mode: forwards;
     pointer-events: none;
 }
 
 /* Exhausting cards (impulse/opening) */
 .card-exhausting {
-    animation: card-exhaust 1s ease-out;
+    animation: card-exhaust 0.5s ease-out;
     animation-fill-mode: forwards;
     pointer-events: none;
 }
@@ -725,7 +725,7 @@
     color: #5c4a3a;
     font-size: 16px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.15s ease;
     text-align: center;
     min-width: 180px;
 }
