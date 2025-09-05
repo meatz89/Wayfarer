@@ -341,7 +341,8 @@
       "Bash(apt list:*)",
       "Bash(google-chrome:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6000\" dotnet run --no-build)",
-      "Bash(/tmp/fix_narratives.sh:*)"
+      "Bash(/tmp/fix_narratives.sh:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5888\" dotnet run)"
     ],
     "deny": []
   }

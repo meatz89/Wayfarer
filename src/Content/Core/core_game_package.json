@@ -605,7 +605,7 @@
         "connectionType": "Trust",
         "description": "Accept Elena's Letter",
         "difficulty": "VeryEasy",
-        "rapportThreshold": 15,
+        "rapportThreshold": 0,
         "successEffect": {
           "type": "CreateObligation",
           "value": "letter_delivery",

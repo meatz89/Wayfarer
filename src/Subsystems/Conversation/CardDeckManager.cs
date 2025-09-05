@@ -79,8 +79,9 @@ public class CardDeckManager
     /// </summary>
     public CardPlayResult PlayCard(ConversationSession session, CardInstance selectedCard)
     {
-        // Check if card is unplayable
-        if (selectedCard.Properties.Contains(CardProperty.Unplayable))
+        // Check if card is unplayable (but skip this check for promise cards which handle rapport separately)
+        if (selectedCard.Properties.Contains(CardProperty.Unplayable) && 
+            !selectedCard.Properties.Contains(CardProperty.DeliveryEligible))
         {
             return new CardPlayResult
             {
@@ -378,12 +379,6 @@ public class CardDeckManager
         
         foreach (var card in openingCards)
         {
-            // Skip unplayable promise cards - they shouldn't be exhausted until activated
-            if (card.Properties.Contains(CardProperty.DeliveryEligible) && card.Properties.Contains(CardProperty.Unplayable))
-            {
-                continue; // Don't exhaust unactivated promise cards
-            }
-            
             // Execute exhaust effect if it exists
             var conversationCard = ConvertToNewCard(card);
             if (conversationCard.ExhaustEffect?.Type != CardEffectType.None)

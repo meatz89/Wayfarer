@@ -26,9 +26,6 @@ public class RequestCard : ConversationCard
         // NEW: Request cards are Persistent (never exhaust)
         Properties.Add(CardProperty.Persistent);
         
-        // NEW: Start as Unplayable until rapport threshold is met
-        Properties.Add(CardProperty.Unplayable);
-        
         // Request cards still end conversation when played
         SuccessEffect = new CardEffect
         {
