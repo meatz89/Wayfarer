@@ -283,7 +283,7 @@
             return "exchange";
         if (card.IsObservable)
             return "observation";
-        if (card.IsRequest)
+        if (card.Properties.Contains(CardProperty.DeliveryEligible))
             return "promise";
         if (card.IsBurden)
             return "burden";
@@ -307,7 +307,7 @@
             return "EXCHANGE";
         if (card.IsObservable)
             return "OBSERVATION";
-        if (card.IsRequest)
+        if (card.Properties.Contains(CardProperty.DeliveryEligible))
             return "PROMISE";
         if (card.IsBurden)
             return "BURDEN";

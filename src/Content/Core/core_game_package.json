@@ -226,31 +226,6 @@
           "type": "None"
         },
         "dialogueFragment": "Everything will be alright. I promise you that."
-      },
-      {
-        "id": "accept_elenas_letter",
-        "type": "Request",
-        "personalityTypes": ["ALL"],
-        "focus": 0,
-        "properties": ["Persistent", "DeliveryEligible"],
-        "connectionType": "Trust",
-        "description": "Accept Elena's Letter",
-        "difficulty": "VeryEasy",
-        "rapportThreshold": 5,
-        "successEffect": {
-          "type": "CreateObligation",
-          "value": "letter_delivery",
-          "data": {
-            "obligationType": "delivery",
-            "position": 1,
-            "deadline": 60,
-            "recipientId": "lord_blackwood",
-            "letterId": "elena_refusal",
-            "payment": 5,
-            "tokenReward": {"Trust": 2}
-          }
-        },
-        "dialogueFragment": "Give me the letter. I'll get it to Lord Blackwood before sunset, no matter what it takes."
       }
     ],
     "successFormula": {
@@ -618,6 +593,33 @@
         "consequenceIfLate": "Elena forced into unwanted marriage",
         "consequenceIfDelivered": "Elena's freedom preserved",
         "emotionalFocus": "HIGH"
+      }
+    ],
+    "npcPromiseCards": [
+      {
+        "npcId": "elena",
+        "id": "accept_elenas_letter",
+        "type": "Promise",
+        "focus": 0,
+        "properties": ["Persistent", "DeliveryEligible"],
+        "connectionType": "Trust",
+        "description": "Accept Elena's Letter",
+        "difficulty": "VeryEasy",
+        "rapportThreshold": 15,
+        "successEffect": {
+          "type": "CreateObligation",
+          "value": "letter_delivery",
+          "data": {
+            "obligationType": "delivery",
+            "position": 1,
+            "deadline": 60,
+            "recipientId": "lord_blackwood",
+            "letterId": "elena_refusal",
+            "payment": 5,
+            "tokenReward": {"Trust": 2}
+          }
+        },
+        "dialogueFragment": "Give me the letter. I'll get it to Lord Blackwood before sunset, no matter what it takes."
       }
     ],
     "standingObligations": [],

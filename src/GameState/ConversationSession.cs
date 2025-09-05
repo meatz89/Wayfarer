@@ -37,6 +37,9 @@ public class ConversationSession
     public int MaxFocus { get; set; } = 5; // Based on state
     public AtmosphereType CurrentAtmosphere { get; set; } = AtmosphereType.Neutral;
 
+    // Hidden momentum system - improves luck after failures
+    public int HiddenMomentum { get; set; } = 0; // Invisible bad luck protection
+    
     public List<CardInstance> ObservationCards { get; set; } = new();
 
     // New helper methods

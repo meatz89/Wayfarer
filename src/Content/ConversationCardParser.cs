@@ -205,6 +205,56 @@ public static class ConversationCardParser
     }
     
     /// <summary>
+    /// Convert NPCPromiseCardDTO to RequestCard
+    /// </summary>
+    public static RequestCard ConvertPromiseCardDTO(NPCPromiseCardDTO dto)
+    {
+        var card = new RequestCard
+        {
+            Id = dto.Id,
+            Description = dto.Description,
+            Focus = dto.Focus,
+            DialogueFragment = dto.DialogueFragment,
+            RapportThreshold = dto.RapportThreshold
+        };
+
+        // Parse difficulty
+        if (Enum.TryParse<Difficulty>(dto.Difficulty, true, out Difficulty difficulty))
+        {
+            card.Difficulty = difficulty;
+        }
+
+        // Parse token type
+        if (Enum.TryParse<TokenType>(dto.ConnectionType, true, out TokenType tokenType))
+        {
+            card.TokenType = tokenType;
+        }
+
+        // Parse properties
+        if (dto.Properties != null)
+        {
+            foreach (string prop in dto.Properties)
+            {
+                if (Enum.TryParse<CardProperty>(prop, true, out CardProperty cardProp))
+                {
+                    if (!card.Properties.Contains(cardProp))
+                    {
+                        card.Properties.Add(cardProp);
+                    }
+                }
+            }
+        }
+
+        // Parse success effect
+        if (dto.SuccessEffect != null)
+        {
+            card.SuccessEffect = ParseEffect(dto.SuccessEffect) ?? CardEffect.None;
+        }
+
+        return card;
+    }
+    
+    /// <summary>
     /// Parse a CardEffect from DTO
     /// </summary>
     private static CardEffect ParseEffect(CardEffectDTO dto)

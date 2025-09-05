@@ -97,7 +97,7 @@ public class PackageLoader
 
             // Phase 4.5: Initialize all NPC decks (after NPCs and cards are loaded)
             InitializeNPCConversationDecks();
-            InitializeNPCRequestDecks();
+            InitializeNPCRequestDecks(package.Content.NpcPromiseCards);
             InitializeNPCExchangeDecks();
 
             // Phase 5: Routes (depend on locations)
@@ -437,9 +437,12 @@ public class PackageLoader
         Console.WriteLine("[PackageLoader] Initializing NPC conversation decks with universal starter deck...");
 
         // Get all cards marked for ALL personalities (the universal starter deck)
+        // EXCLUDE promise/request cards (DeliveryEligible) - those belong in RequestDeck only
         List<ConversationCard> starterDeckCards = _gameWorld.AllCardDefinitions.Values
             .OfType<ConversationCard>()
-            .Where(card => card.PersonalityTypes != null && card.PersonalityTypes.Contains("ALL"))
+            .Where(card => card.PersonalityTypes != null && 
+                          card.PersonalityTypes.Contains("ALL") &&
+                          !card.Properties.Contains(CardProperty.DeliveryEligible)) // Exclude promise cards
             .ToList();
 
         Console.WriteLine($"[PackageLoader] Found {starterDeckCards.Count} universal starter deck cards");
@@ -467,31 +470,53 @@ public class PackageLoader
     }
 
     /// <summary>
-    /// Initialize request decks for NPCs (Elena gets her special request card)
+    /// Initialize request decks for NPCs from NpcPromiseCards
     /// </summary>
-    private void InitializeNPCRequestDecks()
+    private void InitializeNPCRequestDecks(List<NPCPromiseCardDTO> npcPromiseCardDtos)
     {
         Console.WriteLine("[PackageLoader] Initializing NPC request decks...");
 
-        // Get Elena's request card if it exists
-        ConversationCard elenasRequestCard = null;
-        if (_gameWorld.AllCardDefinitions.ContainsKey("accept_elenas_letter"))
+        // Group promise cards by NPC ID for efficient loading
+        Dictionary<string, List<ConversationCard>> npcPromiseCards = new Dictionary<string, List<ConversationCard>>();
+        
+        // Load promise cards from the new NpcPromiseCards section if it exists
+        if (npcPromiseCardDtos != null)
         {
-            elenasRequestCard = _gameWorld.AllCardDefinitions["accept_elenas_letter"] as ConversationCard;
-            Console.WriteLine("[PackageLoader] Found Elena's request card: accept_elenas_letter");
+            foreach (NPCPromiseCardDTO promiseCardDto in npcPromiseCardDtos)
+            {
+                try
+                {
+                    // Convert DTO to RequestCard using ConversationCardParser
+                    RequestCard requestCard = ConversationCardParser.ConvertPromiseCardDTO(promiseCardDto);
+                    
+                    // Add to NPC's collection
+                    if (!npcPromiseCards.ContainsKey(promiseCardDto.NpcId))
+                    {
+                        npcPromiseCards[promiseCardDto.NpcId] = new List<ConversationCard>();
+                    }
+                    npcPromiseCards[promiseCardDto.NpcId].Add(requestCard);
+                    
+                    Console.WriteLine($"[PackageLoader] Loaded promise card '{promiseCardDto.Id}' for NPC '{promiseCardDto.NpcId}'");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[PackageLoader] Failed to load promise card '{promiseCardDto.Id}': {ex.Message}");
+                }
+            }
         }
 
+        // Initialize request decks for all NPCs
         foreach (NPC npc in _gameWorld.NPCs)
         {
             try
             {
                 List<ConversationCard> requestCards = new List<ConversationCard>();
                 
-                // Elena gets her special request card
-                if (npc.ID == "elena" && elenasRequestCard != null)
+                // Add NPC-specific promise cards if any exist
+                if (npcPromiseCards.ContainsKey(npc.ID))
                 {
-                    requestCards.Add(elenasRequestCard);
-                    Console.WriteLine($"[PackageLoader] Added request card to Elena's request deck");
+                    requestCards.AddRange(npcPromiseCards[npc.ID]);
+                    Console.WriteLine($"[PackageLoader] Added {npcPromiseCards[npc.ID].Count} promise cards to {npc.Name}'s request deck");
                 }
                 
                 // Initialize request deck
@@ -507,6 +532,7 @@ public class PackageLoader
 
         Console.WriteLine("[PackageLoader] NPC request deck initialization completed");
     }
+
 
     /// <summary>
     /// Initialize exchange decks for Mercantile NPCs only

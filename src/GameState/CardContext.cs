@@ -5,6 +5,7 @@ public class CardContext
     public ExchangeData ExchangeData { get; set; }
     public PromiseCardData PromiseData { get; set; }
     public bool GeneratesLetterOnSuccess { get; set; }
+    public int RapportThreshold { get; set; } // For request/promise cards
 
     // Additional context properties  
     public string ExchangeRequest { get; set; }

@@ -36,8 +36,6 @@ public class ConversationCard
     public bool IsOpening => Properties.Contains(CardProperty.Opening);
     public bool IsPersistent => !Properties.Contains(CardProperty.Impulse) 
                                 && !Properties.Contains(CardProperty.Opening);
-    public bool IsRequest => Properties.Contains(CardProperty.Impulse) 
-                          && Properties.Contains(CardProperty.Opening);
     public bool IsBurden => Properties.Contains(CardProperty.Burden);
     public bool IsObservable => Properties.Contains(CardProperty.Observable);
 
@@ -62,7 +60,7 @@ public class ConversationCard
         {
             if (Properties.Contains(CardProperty.Exchange)) return nameof(CardCategory.Exchange);
             if (IsBurden) return nameof(CardCategory.Burden);
-            if (IsRequest) return nameof(CardCategory.Promise);
+            if (Properties.Contains(CardProperty.DeliveryEligible)) return nameof(CardCategory.Promise);
             if (IsObservable) return nameof(CardCategory.Observation);
             // Default to Flow for backwards compatibility
             return nameof(CardCategory.Flow);
@@ -71,11 +69,11 @@ public class ConversationCard
     
     // Additional compatibility properties for UI
     public CardType Type => Properties.Contains(CardProperty.Exchange) ? CardType.Exchange :
-                           IsRequest ? CardType.Request : 
+                           Properties.Contains(CardProperty.DeliveryEligible) ? CardType.Request : 
                            IsObservable ? CardType.Observation : 
                            CardType.Normal;
     public CardContext Context => null;
-    public string RequestCardType => IsRequest ? "Request" : null;
+    public string RequestCardType => Properties.Contains(CardProperty.DeliveryEligible) ? "Request" : null;
 
     // Deep clone for deck instances
     public ConversationCard DeepClone()

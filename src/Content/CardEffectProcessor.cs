@@ -255,17 +255,35 @@ public class CardEffectProcessor
         return Math.Clamp(finalPercentage, 5, 95);
     }
 
-    // Perform dice roll for success
-    public bool RollForSuccess(int successPercentage)
+    // Perform dice roll for success with hidden momentum system
+    public bool RollForSuccess(int successPercentage, ConversationSession session = null)
     {
         // Auto-succeed if Informed atmosphere
         if (atmosphereManager.ShouldAutoSucceed())
             return true;
 
-        // Roll 1-100
+        // Apply hidden momentum (bad luck protection)
+        // Each failure adds 3-5% invisible bonus, caps at 15%
+        int momentum = session?.HiddenMomentum ?? 0;
+        int momentumBonus = Math.Min(momentum * 4, 15); // 4% per failure, max 15%
+        
+        // Also apply a slight baseline player favor: 
+        // Instead of pure random, we slightly weight the dice
         Random random = new Random();
+        
+        // Generate weighted roll that slightly favors success
+        // We roll twice and take the better result 15% of the time
         int roll = random.Next(1, 101);
-        return roll <= successPercentage;
+        if (random.Next(1, 101) <= 15) // 15% chance to roll twice
+        {
+            int secondRoll = random.Next(1, 101);
+            roll = Math.Min(roll, secondRoll); // Lower roll is better for player
+        }
+        
+        // Apply momentum bonus invisibly
+        int adjustedSuccessChance = Math.Min(successPercentage + momentumBonus, 95);
+        
+        return roll <= adjustedSuccessChance;
     }
 }
 

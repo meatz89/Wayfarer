@@ -324,6 +324,40 @@ namespace Wayfarer.Pages.Components
                 // Mark the played card with success/failure animation
                 bool wasSuccessful = result?.Results?.FirstOrDefault()?.Success ?? false;
                 MarkCardAsPlayed(playedCard, wasSuccessful);
+                
+                // Check if this was a promise/goal card that succeeded
+                bool isPromiseCard = playedCard.Properties.Contains(CardProperty.DeliveryEligible);
+                if (isPromiseCard && wasSuccessful)
+                {
+                    // Promise card succeeded - conversation ends in victory!
+                    // The actual effect (letter delivery, obligation creation, etc.) is handled by the card's SuccessEffect
+                    IsConversationExhausted = true;
+                    
+                    // Get the success effect description from the card
+                    string effectDescription = GetSuccessEffectDescription(playedCard);
+                    ExhaustionReason = $"Success! {effectDescription}";
+                    
+                    // Check if the success effect has EndConversation with specific narrative
+                    if (playedCard.SuccessEffect?.Type == CardEffectType.EndConversation)
+                    {
+                        string endReason = playedCard.SuccessEffect.Value ?? "success";
+                        LastNarrative = endReason == "success" ? "The conversation ends successfully." : 
+                                       $"The conversation ends. {effectDescription}";
+                    }
+                    else
+                    {
+                        LastNarrative = "Your words have the desired effect. The conversation concludes successfully.";
+                    }
+                    
+                    // Add success notification
+                    if (messageSystem != null)
+                    {
+                        messageSystem.AddSystemMessage($"Conversation won! {effectDescription}", SystemMessageTypes.Success);
+                    }
+                    
+                    StateHasChanged();
+                    return;
+                }
 
                 // Add detailed notification for result
                 // NOTE: Exchange handling is done in ConversationManager.HandleSpecialCardEffectsAsync
@@ -1007,8 +1041,13 @@ namespace Wayfarer.Pages.Components
 
         protected int GetRequestRapportThreshold(CardInstance card)
         {
-            // Request cards require a rapport threshold instead of focus
-            // Default threshold for requests is 5 rapport
+            // Check if rapport threshold is stored in the card context
+            if (card?.Context?.RapportThreshold > 0)
+            {
+                return card.Context.RapportThreshold;
+            }
+            
+            // Default threshold for requests is 5 rapport if not specified
             return 5;
         }
 
@@ -2236,8 +2275,8 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected bool HasExhaustEffect(CardInstance card)
         {
-            // CardInstance doesn't have ExhaustEffect yet, but we can infer from properties
-            return card?.Properties.Contains(CardProperty.Impulse) == true || card?.Properties.Contains(CardProperty.Impulse) == true && card.Properties.Contains(CardProperty.Opening) == true;
+            // Only impulse and opening cards have exhaust effects
+            return card?.Properties.Contains(CardProperty.Impulse) == true || card?.Properties.Contains(CardProperty.Opening) == true;
         }
 
         /// <summary>
@@ -2265,17 +2304,23 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetExhaustEffectDescription(CardInstance card)
         {
-            // Default exhaust effects based on card properties
-            if (card?.Properties.Contains(CardProperty.Impulse) == true && card.Properties.Contains(CardProperty.Opening) == true)
+            // Get exhaust effect from the card's actual data
+            if (card?.ExhaustEffect != null)
             {
-                return "Conversation ends"; // Request cards end conversation when exhausted
-            }
-            else if (card?.Properties.Contains(CardProperty.Impulse) == true)
-            {
-                return "Removed after SPEAK";
+                return DescribeCardEffect(card.ExhaustEffect);
             }
             
-            return "No exhaust effect";
+            // Fallback descriptions if no exhaust effect defined
+            if (card?.Properties.Contains(CardProperty.Impulse) == true)
+            {
+                return "Card removed";
+            }
+            else if (card?.Properties.Contains(CardProperty.Opening) == true)
+            {
+                return "Card removed";
+            }
+            
+            return "";
         }
 
         /// <summary>

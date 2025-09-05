@@ -55,17 +55,12 @@ public class CardDeckManager
             }
         }
 
-        // Get request/goal card and add it to the deck to be shuffled with other cards
+        // Get request/goal card but DON'T add it to deck - it will be added directly to hand
         CardInstance requestCard = null;
         if (conversationType == ConversationType.Promise || conversationType == ConversationType.Resolution)
         {
             requestCard = SelectValidRequestCard(npc, conversationType);
-            if (requestCard != null)
-            {
-                // Add goal card to the deck to be shuffled
-                deck.AddGoalCard(requestCard);
-                // Still return it so it can be added to hand initially
-            }
+            // Don't add to deck - it will be added directly to hand in ConversationOrchestrator
         }
 
         return (deck, requestCard);
@@ -131,9 +126,9 @@ public class CardDeckManager
         ConversationCard card = ConvertToNewCard(selectedCard);
         int successPercentage = _effectProcessor.CalculateSuccessPercentage(card, session);
 
-        // Roll for success
-        bool success = _effectProcessor.RollForSuccess(successPercentage);
-        int roll = _random.Next(1, 101);
+        // Roll for success with momentum system
+        bool success = _effectProcessor.RollForSuccess(successPercentage, session);
+        int roll = _random.Next(1, 101); // For display/logging purposes only
 
         // Spend focus (possibly 0 if free) - focus represents effort of speaking
         _focusManager.SpendFocus(focusCost);
@@ -145,6 +140,9 @@ public class CardDeckManager
         {
             // Success always gives +1 to flow
             flowChange = 1;
+            
+            // Reset hidden momentum on success (bad luck protection resets)
+            session.HiddenMomentum = 0;
             
             // Process card's success effect
             effectResult = _effectProcessor.ProcessSuccessEffect(card, session);
@@ -174,6 +172,9 @@ public class CardDeckManager
         {
             // Failure always gives -1 to flow
             flowChange = -1;
+            
+            // Increment hidden momentum for bad luck protection (invisible to player)
+            session.HiddenMomentum = Math.Min(session.HiddenMomentum + 1, 4); // Cap at 4 failures
             
             // Process card's failure effect
             effectResult = _effectProcessor.ProcessFailureEffect(card, session);
@@ -262,32 +263,21 @@ public class CardDeckManager
     /// </summary>
     public void UpdateRequestCardPlayability(ConversationSession session)
     {
-        // Get current focus capacity
-        int focusCapacity = _focusManager.CurrentCapacity;
-
-        // Find all request cards in hand
-        List<CardInstance> requestCards = session.Hand.Cards
-            .Where(c => c.Properties.Contains(CardProperty.Unplayable))
-            .ToList();
-
-        foreach (var requestCard in requestCards)
+        // Request cards (promise/goal cards) have their playability determined by rapport threshold,
+        // NOT by focus. Their playability is checked in the UI based on rapport.
+        // We only mark that a request card exists in the hand.
+        
+        // Check if there's a request card in hand (DeliveryEligible property)
+        bool hasRequestCard = session.Hand.Cards
+            .Any(c => c.Properties.Contains(CardProperty.DeliveryEligible));
+            
+        if (hasRequestCard)
         {
-            // Check if we have enough focus capacity for this request card
-            if (focusCapacity >= requestCard.Focus)
-            {
-                // Remove Unplayable and add Impulse + Opening properties
-                requestCard.Properties.Remove(CardProperty.Unplayable);
-                
-                // Add Impulse and Opening if not already present
-                if (!requestCard.Properties.Contains(CardProperty.Impulse))
-                    requestCard.Properties.Add(CardProperty.Impulse);
-                if (!requestCard.Properties.Contains(CardProperty.Opening))
-                    requestCard.Properties.Add(CardProperty.Opening);
-                
-                // Mark that the request card is now playable
-                session.RequestCardDrawn = true;
-            }
+            session.RequestCardDrawn = true;
         }
+        
+        // DO NOT modify request card properties here - they stay Unplayable until
+        // rapport threshold is met, which is checked in ConversationContent.CanSelectCard()
     }
 
     /// <summary>
@@ -303,6 +293,12 @@ public class CardDeckManager
 
         foreach (var card in session.Hand.Cards)
         {
+            // Skip request/promise cards - their playability is based on rapport, not focus
+            if (card.Properties.Contains(CardProperty.DeliveryEligible))
+            {
+                continue; // Don't modify request card playability here
+            }
+            
             // Calculate effective focus cost for this card
             int effectiveFocusCost = isNextSpeakFree ? 0 : card.Focus;
             
@@ -317,16 +313,8 @@ public class CardDeckManager
             }
             else if (canAfford && card.Properties.Contains(CardProperty.Unplayable))
             {
-                // Only remove Unplayable if this isn't a request card waiting for focus threshold
-                // Request cards should only become playable through UpdateRequestCardPlayability
-                ConversationCard conversationCard = ConvertToNewCard(card);
-                bool isRequestCard = conversationCard.IsRequest;
-                
-                if (!isRequestCard)
-                {
-                    // Regular card that was unplayable due to focus cost can now be played
-                    card.Properties.Remove(CardProperty.Unplayable);
-                }
+                // Regular card that was unplayable due to focus cost can now be played
+                card.Properties.Remove(CardProperty.Unplayable);
             }
         }
     }
@@ -374,14 +362,14 @@ public class CardDeckManager
         
         foreach (var card in openingCards)
         {
-            // Skip unplayable request/promise cards - they shouldn't be exhausted until activated
-            var conversationCard = ConvertToNewCard(card);
-            if (conversationCard.IsRequest && card.Properties.Contains(CardProperty.Unplayable))
+            // Skip unplayable promise cards - they shouldn't be exhausted until activated
+            if (card.Properties.Contains(CardProperty.DeliveryEligible) && card.Properties.Contains(CardProperty.Unplayable))
             {
                 continue; // Don't exhaust unactivated promise cards
             }
             
             // Execute exhaust effect if it exists
+            var conversationCard = ConvertToNewCard(card);
             if (conversationCard.ExhaustEffect?.Type != CardEffectType.None)
             {
                 if (!ExecuteExhaustEffect(conversationCard, session))
@@ -494,7 +482,19 @@ public class CardDeckManager
             return null;
 
         ConversationCard selectedRequest = requestCards[_random.Next(requestCards.Count)];
-        return new CardInstance(selectedRequest, npc.ID);
+        CardInstance requestInstance = new CardInstance(selectedRequest, npc.ID);
+        
+        // Store the rapport threshold in the card context if it's a RequestCard
+        if (selectedRequest is RequestCard requestCard)
+        {
+            if (requestInstance.Context == null)
+                requestInstance.Context = new CardContext();
+            
+            // Store the rapport threshold properly
+            requestInstance.Context.RapportThreshold = requestCard.RapportThreshold;
+        }
+        
+        return requestInstance;
     }
 
     /// <summary>
@@ -502,9 +502,8 @@ public class CardDeckManager
     /// </summary>
     private bool IsRequestCardValidForConversation(ConversationCard card, ConversationType type)
     {
-        // Implementation depends on how request cards are categorized
-        // For now, allow all request cards in any conversation
-        return card.IsRequest;
+        // Check if this is a promise/goal card (has DeliveryEligible property)
+        return card.Properties.Contains(CardProperty.DeliveryEligible);
     }
 
     /// <summary>
@@ -529,8 +528,8 @@ public class CardDeckManager
             VerbPhrase = instance.VerbPhrase
         };
         
-        // Ensure request cards have proper exhaust effect
-        if (card.IsRequest && (card.ExhaustEffect == null || card.ExhaustEffect.Type == CardEffectType.None))
+        // Ensure promise/goal cards have proper exhaust effect
+        if (card.Properties.Contains(CardProperty.DeliveryEligible) && (card.ExhaustEffect == null || card.ExhaustEffect.Type == CardEffectType.None))
         {
             card.ExhaustEffect = new CardEffect
             {

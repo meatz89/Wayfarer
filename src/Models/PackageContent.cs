@@ -56,6 +56,11 @@ public class PackageContent
     public List<StandingObligationDTO> StandingObligations { get; set; }
     
     /// <summary>
+    /// NPC promise cards - goal cards specific to NPCs
+    /// </summary>
+    public List<NPCPromiseCardDTO> NpcPromiseCards { get; set; }
+    
+    /// <summary>
     /// Travel cards - uses TravelCardDTO for consistency
     /// </summary>
     public List<TravelCardDTO> TravelCards { get; set; }

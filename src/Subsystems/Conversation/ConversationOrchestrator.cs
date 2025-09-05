@@ -87,18 +87,19 @@ public class ConversationOrchestrator
             ObservationCards = observationCards ?? new List<CardInstance>()
         };
 
-        // Perform initial draw (NOT full ExecuteListen to avoid exhausting the request card)
+        // FIRST: Add the goal/promise card to hand immediately if present
+        // This ensures it's visible from the very start of the conversation
+        if (requestCard != null)
+        {
+            session.Hand.AddCard(requestCard);
+        }
+
+        // THEN: Perform initial draw of regular cards
         // This is the initial conversation start, so we just draw cards without exhausting
         _focusManager.RefreshPool();
         int drawCount = session.GetDrawCount();
         List<CardInstance> initialCards = session.Deck.DrawCards(drawCount);
         session.Hand.AddCards(initialCards);
-
-        // Add request card AFTER initial draw so it doesn't get exhausted
-        if (requestCard != null)
-        {
-            session.Hand.AddCard(requestCard);
-        }
 
         // Update request card playability based on focus
         _deckManager.UpdateRequestCardPlayability(session);

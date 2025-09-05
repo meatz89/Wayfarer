@@ -98,15 +98,12 @@
                                         {
                                             <div class="cost-item cost-free">Free</div>
                                         }
-                                        @if (route == SelectedRoute)
-                                        {
-                                            <button class="travel-button @(!isLocked ? "active" : "disabled")"
-                                                    disabled="@isLocked"
-                                                    @onclick:stopPropagation="true"
-                                                    @onclick="() => TravelRoute(route)">
-                                                TRAVEL
-                                            </button>
-                                        }
+                                        <button class="travel-button @(!isLocked ? "active" : "disabled")"
+                                                disabled="@isLocked"
+                                                @onclick:stopPropagation="true"
+                                                @onclick="() => TravelRoute(route)">
+                                            TRAVEL
+                                        </button>
                                     </div>
                                 </div>
                             </div>
