@@ -54,8 +54,8 @@ public static class SkeletonGenerator
             Profession = professionValues[(hash / 7) % professionValues.Length],
             Tier = 1 + (hash % 3), // Tier 1-3
 
-            // Default connection state
-            CurrentState = ConnectionState.NEUTRAL,
+            // Default relationship flow (NEUTRAL state at neutral position)
+            RelationshipFlow = 12,
 
             // Empty collections
             ProvidedServices = new List<ServiceTypes>(),

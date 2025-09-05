@@ -71,15 +71,24 @@ public static class NPCParser
             }
         }
 
-        // Parse CurrentState (connection state)
+        // Parse initial connection state and convert to flow value
         string currentStateStr = dto.CurrentState ?? "NEUTRAL";
         if (Enum.TryParse<ConnectionState>(currentStateStr, true, out ConnectionState connectionState))
         {
-            npc.CurrentState = connectionState;
+            // Convert initial state to flow value (start at neutral position within state)
+            npc.RelationshipFlow = connectionState switch
+            {
+                ConnectionState.DISCONNECTED => 2,  // Position 2 (neutral) in DISCONNECTED range
+                ConnectionState.GUARDED => 7,       // Position 2 (neutral) in GUARDED range  
+                ConnectionState.NEUTRAL => 12,      // Position 2 (neutral) in NEUTRAL range
+                ConnectionState.RECEPTIVE => 17,    // Position 2 (neutral) in RECEPTIVE range
+                ConnectionState.TRUSTING => 22,     // Position 2 (neutral) in TRUSTING range
+                _ => 12
+            };
         }
         else
         {
-            npc.CurrentState = ConnectionState.NEUTRAL;
+            npc.RelationshipFlow = 12; // Default to NEUTRAL at neutral flow
         }
 
         return npc;
@@ -162,15 +171,24 @@ public static class NPCParser
         // Letters are detected by checking Request deck contents
         // Burden history detected by counting burden cards in conversation deck
 
-        // Parse CurrentState (connection state)
+        // Parse initial connection state and convert to flow value
         string currentStateStr = GetStringProperty(root, "currentState", "NEUTRAL");
         if (Enum.TryParse<ConnectionState>(currentStateStr, true, out ConnectionState connectionState))
         {
-            npc.CurrentState = connectionState;
+            // Convert initial state to flow value (start at neutral position within state)
+            npc.RelationshipFlow = connectionState switch
+            {
+                ConnectionState.DISCONNECTED => 2,  // Position 2 (neutral) in DISCONNECTED range
+                ConnectionState.GUARDED => 7,       // Position 2 (neutral) in GUARDED range  
+                ConnectionState.NEUTRAL => 12,      // Position 2 (neutral) in NEUTRAL range
+                ConnectionState.RECEPTIVE => 17,    // Position 2 (neutral) in RECEPTIVE range
+                ConnectionState.TRUSTING => 22,     // Position 2 (neutral) in TRUSTING range
+                _ => 12
+            };
         }
         else
         {
-            npc.CurrentState = ConnectionState.NEUTRAL;
+            npc.RelationshipFlow = 12; // Default to NEUTRAL at neutral flow
         }
 
         // REMOVED: ActiveLetter violates deck-based architecture

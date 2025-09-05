@@ -56,9 +56,15 @@ public class NPC
     // Burden history detected by counting burden cards in ConversationDeck
     // Crisis detected by checking CurrentState == ConnectionState.DISCONNECTED
 
-    // Connection State
-    public ConnectionState CurrentState { get; set; } = ConnectionState.NEUTRAL;
+    // Relationship Flow (Single value 0-24 encoding both state and battery)
+    // 0-4: DISCONNECTED, 5-9: GUARDED, 10-14: NEUTRAL, 15-19: RECEPTIVE, 20-24: TRUSTING
+    // Within each range: 0=-2, 1=-1, 2=0, 3=+1, 4=+2 (displays as -3 to +3, transition at ±4)
+    public int RelationshipFlow { get; set; } = 12; // Start at NEUTRAL with 0 flow
+    
+    // Calculated properties from single flow value
+    public ConnectionState CurrentState => GetConnectionState();
     public ConnectionState CurrentConnectionState => CurrentState; // Alias for compatibility
+    public int CurrentFlow => GetFlowBattery(); // Returns -2 to +2 for display as -3 to +3
 
     // Daily Patience Economy
     public int DailyPatience { get; set; } // Current remaining patience for the day
@@ -239,6 +245,49 @@ public class NPC
     public bool HasPatienceForConversation()
     {
         return DailyPatience > 0;
+    }
+
+    /// <summary>
+    /// Get connection state from single flow value
+    /// </summary>
+    public ConnectionState GetConnectionState()
+    {
+        return RelationshipFlow switch
+        {
+            <= 4 => ConnectionState.DISCONNECTED,
+            <= 9 => ConnectionState.GUARDED,
+            <= 14 => ConnectionState.NEUTRAL,
+            <= 19 => ConnectionState.RECEPTIVE,
+            _ => ConnectionState.TRUSTING
+        };
+    }
+    
+    /// <summary>
+    /// Get flow battery (-2 to +2, displayed as -3 to +3) from single value
+    /// </summary>
+    public int GetFlowBattery()
+    {
+        int position = RelationshipFlow % 5;
+        return position - 2; // Maps 0->-2, 1->-1, 2->0, 3->+1, 4->+2
+    }
+    
+    /// <summary>
+    /// Apply daily decay - move flow toward neutral within current state
+    /// </summary>
+    public void ApplyDailyDecay()
+    {
+        int position = RelationshipFlow % 5;
+        
+        // Move toward neutral (position 2) within each state
+        if (position < 2)
+        {
+            RelationshipFlow++; // Move up toward neutral
+        }
+        else if (position > 2)
+        {
+            RelationshipFlow--; // Move down toward neutral
+        }
+        // If at neutral (position 2), stay there
     }
 
 }

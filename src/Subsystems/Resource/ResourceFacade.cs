@@ -194,7 +194,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
 
         private void RefreshNPCDailyPatience()
         {
-            // Refresh patience for all NPCs at dawn
+            // Refresh patience and apply daily decay for all NPCs at dawn
             foreach (NPC npc in _gameWorld.GetAllNPCs())
             {
                 if (npc.MaxDailyPatience == 0)
@@ -207,6 +207,10 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
                     // Refresh to maximum
                     npc.RefreshDailyPatience();
                 }
+                
+                // Apply daily decay to flow and connection state
+                // This moves relationships toward neutral over time
+                npc.ApplyDailyDecay();
             }
 
             _messageSystem.AddSystemMessage(

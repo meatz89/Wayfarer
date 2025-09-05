@@ -103,13 +103,20 @@ namespace Wayfarer.Pages.Components
 
                     // Get actual connection state using the same logic as conversations
                     ConnectionState connectionState = GameFacade.GetNPCConnectionState(npc.ID);
+                    
+                    // Include flow in the display
+                    string stateDisplay = connectionState.ToString();
+                    if (npc.CurrentFlow != 0)
+                    {
+                        stateDisplay += npc.CurrentFlow > 0 ? $" (+{npc.CurrentFlow})" : $" ({npc.CurrentFlow})";
+                    }
 
                     AvailableNpcs.Add(new NpcViewModel
                     {
                         Id = npc.ID,
                         Name = npc.Name,
                         PersonalityType = npc.PersonalityType.ToString(),
-                        ConnectionState = connectionState.ToString(),
+                        ConnectionState = stateDisplay,
                         ConversationOptions = options
                     });
                 }

@@ -15,10 +15,10 @@ public class FlowManager
     public event Action<ConnectionState, ConnectionState>? StateTransitioned;
     public event Action? ConversationEnded;
 
-    public FlowManager(ConnectionState initialState)
+    public FlowManager(ConnectionState initialState, int initialFlow = 0)
     {
         currentState = initialState;
-        currentFlow = 0; // Always starts at 0
+        currentFlow = initialFlow; // Can start at any persisted value (-2 to +2)
     }
 
     /// <summary>
@@ -43,12 +43,11 @@ public class FlowManager
 
         // Apply the change
         int newFlow = currentFlow + modifiedChange;
-
-        // Clamp to -3 to +3 range
-        newFlow = Math.Clamp(newFlow, -3, 3);
+        
+        // Allow flow to reach ±3 (displays as ±4) before transition
         currentFlow = newFlow;
 
-        // Check for state transition at exactly ±3
+        // Check for state transition at ±3 (one more change triggers transition)
         if (currentFlow >= 3)
         {
             return HandlePositiveTransition();
@@ -64,41 +63,53 @@ public class FlowManager
 
     private (bool, ConnectionState, bool) HandlePositiveTransition()
     {
-        ConnectionState oldState = currentState;
-        ConnectionState newState = TransitionUp(currentState);
+        // At +3, check if next success would trigger transition
+        if (currentFlow > 3)
+        {
+            ConnectionState oldState = currentState;
+            ConnectionState newState = TransitionUp(currentState);
 
-        if (newState != oldState)
-        {
-            currentState = newState;
-            currentFlow = 0; // Reset battery to 0
-            StateTransitioned?.Invoke(oldState, newState);
-            return (true, newState, false);
+            if (newState != oldState)
+            {
+                currentState = newState;
+                currentFlow = -2; // Enter new state at -2 (displays as -3)
+                StateTransitioned?.Invoke(oldState, newState);
+                return (true, newState, false);
+            }
+            else
+            {
+                // Already at TRUSTING, can't go higher
+                currentFlow = 3; // Cap at max
+                return (false, currentState, false);
+            }
         }
-        else
-        {
-            // Already at CONNECTED, can't go higher
-            // Flow stays at 3
-            return (false, currentState, false);
-        }
+        
+        return (false, currentState, false);
     }
 
     private (bool, ConnectionState, bool) HandleNegativeTransition()
     {
-        // Check if DISCONNECTED first
-        if (currentState == ConnectionState.DISCONNECTED)
+        // At -3, check if next failure would trigger transition
+        if (currentFlow < -3)
         {
-            // DISCONNECTED at -3 ends conversation immediately
-            ConversationEnded?.Invoke();
-            return (false, currentState, true);
+            // Check if DISCONNECTED first
+            if (currentState == ConnectionState.DISCONNECTED)
+            {
+                // DISCONNECTED at -4 ends conversation immediately
+                ConversationEnded?.Invoke();
+                return (false, currentState, true);
+            }
+
+            ConnectionState oldState = currentState;
+            ConnectionState newState = TransitionDown(currentState);
+
+            currentState = newState;
+            currentFlow = 2; // Enter new state at +2 (displays as +3)
+            StateTransitioned?.Invoke(oldState, newState);
+            return (true, newState, false);
         }
-
-        ConnectionState oldState = currentState;
-        ConnectionState newState = TransitionDown(currentState);
-
-        currentState = newState;
-        currentFlow = 0; // Reset battery to 0
-        StateTransitioned?.Invoke(oldState, newState);
-        return (true, newState, false);
+        
+        return (false, currentState, false);
     }
 
     private int ModifyByAtmosphere(int baseChange, AtmosphereType atmosphere)
@@ -147,11 +158,11 @@ public class FlowManager
     }
 
     /// <summary>
-    /// Get the current flow level clamped to range
+    /// Get the current flow level (internal range -3 to +3)
     /// </summary>
     public int GetFlow()
     {
-        return Math.Clamp(currentFlow, -3, 3);
+        return currentFlow; // Internal range -3 to +3 (displays as -4 to +4)
     }
 
     /// <summary>
@@ -231,7 +242,9 @@ public class FlowManager
     /// </summary>
     public string GetCompactDisplay()
     {
-        string sign = currentFlow > 0 ? "+" : "";
-        return $"{sign}{currentFlow}";
+        // Display flow as -3 to +3 (even though internally it's -2 to +2)
+        int displayFlow = currentFlow + (currentFlow > 0 ? 1 : currentFlow < 0 ? -1 : 0);
+        string sign = displayFlow > 0 ? "+" : "";
+        return $"{sign}{displayFlow}";
     }
 }

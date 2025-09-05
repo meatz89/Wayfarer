@@ -43,11 +43,12 @@ public class ConversationOrchestrator
     /// </summary>
     public ConversationSession CreateSession(NPC npc, ConversationType conversationType, List<CardInstance> observationCards)
     {
-        // All conversations start in NEUTRAL state
-        ConnectionState initialState = ConnectionState.NEUTRAL;
+        // Extract connection state and flow from single value
+        ConnectionState initialState = npc.GetConnectionState();
+        int initialFlow = npc.GetFlowBattery(); // -2 to +2
 
-        // Initialize flow battery manager
-        _flowBatteryManager = new FlowManager(initialState);
+        // Initialize flow battery manager with persisted values
+        _flowBatteryManager = new FlowManager(initialState, initialFlow);
         _flowBatteryManager.StateTransitioned += OnStateTransitioned;
         _flowBatteryManager.ConversationEnded += OnConversationEnded;
 
@@ -74,7 +75,7 @@ public class ConversationOrchestrator
         // Use NPC's current daily patience for the session
         int availablePatience = npc.DailyPatience;
 
-        // Set rapport goal for standard conversations
+        // Set rapport goal for standard conversations based on persisted state
         int? rapportGoal = null;
         if (conversationType == ConversationType.FriendlyChat)
         {
@@ -96,7 +97,7 @@ public class ConversationOrchestrator
             ConversationType = conversationType,
             CurrentState = initialState,
             InitialState = initialState,
-            FlowBattery = 0, // Start at 0
+            FlowBattery = initialFlow, // Start with persisted flow (-2 to +2)
             CurrentFocus = 0,
             MaxFocus = _focusManager.CurrentCapacity,
             CurrentAtmosphere = AtmosphereType.Neutral,

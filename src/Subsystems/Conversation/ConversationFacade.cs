@@ -100,6 +100,21 @@ public class ConversationFacade
             return null;
 
         _lastOutcome = _orchestrator.FinalizeConversation(_currentSession);
+        
+        // Calculate and save the final flow value back to the NPC (persistence)
+        int stateBase = _currentSession.CurrentState switch
+        {
+            ConnectionState.DISCONNECTED => 0,
+            ConnectionState.GUARDED => 5,
+            ConnectionState.NEUTRAL => 10,
+            ConnectionState.RECEPTIVE => 15,
+            ConnectionState.TRUSTING => 20,
+            _ => 10
+        };
+        
+        // FlowBattery is -2 to +2, convert to 0-4 range
+        int flowPosition = Math.Clamp(_currentSession.FlowBattery + 2, 0, 4);
+        _currentSession.NPC.RelationshipFlow = stateBase + flowPosition;
 
         // Check if rapport goal was reached for standard conversations
         if (_currentSession.ConversationType == ConversationType.FriendlyChat && 
