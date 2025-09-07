@@ -109,7 +109,6 @@
 
         .deadline-info {
             color: #d4a76a;
-            font-size: 11px;
         }
 
         /* Active Obligations Queue */
@@ -219,6 +218,17 @@
             letter-spacing: 0.5px;
         }
 
+        .familiarity-display {
+            display: inline-block;
+            background: #7a8b5a;
+            color: #faf4ea;
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
         /* Current Spot Banner */
         .current-spot-banner {
             background: #e8dcc4;
@@ -251,6 +261,12 @@
 
         .spot-trait.crossroads {
             background: #7a8b5a;
+            color: #faf4ea;
+            border: none;
+        }
+
+        .spot-trait.quiet {
+            background: #5a7a8a;
             color: #faf4ea;
             border: none;
         }
@@ -313,6 +329,11 @@
             background: #f4f9e9;
         }
 
+        .action-card.investigate {
+            border-color: #5a7a8a;
+            background: #f0f4fa;
+        }
+
         .action-card.disabled {
             opacity: 0.4;
             cursor: not-allowed;
@@ -333,6 +354,12 @@
         .cost-value {
             color: #8b4726;
             font-weight: bold;
+        }
+
+        .action-bonus {
+            color: #5a7a3a;
+            font-size: 10px;
+            margin-top: 2px;
         }
 
         /* NPCs Section */
@@ -390,11 +417,6 @@
         .token-count {
             font-weight: bold;
             color: #5a7a3a;
-        }
-
-        .token-effect {
-            font-size: 10px;
-            color: #7a6250;
         }
 
         .npc-description {
@@ -485,6 +507,16 @@
             transform: translateX(3px);
         }
 
+        .observation-item.unavailable {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .observation-item.unavailable:hover {
+            transform: none;
+            background: white;
+        }
+
         .observation-text {
             font-size: 12px;
             color: #5c4a3a;
@@ -504,6 +536,11 @@
             border-radius: 2px;
             color: #5a7a3a;
             font-weight: bold;
+        }
+
+        .requirement {
+            color: #8b4726;
+            font-size: 10px;
         }
 
         /* Spots Grid */
@@ -558,10 +595,15 @@
             margin-left: 4px;
         }
 
-        .rapport-note {
-            font-size: 10px;
-            color: #5a7a3a;
-            font-style: italic;
+        .letter-marker {
+            display: inline-block;
+            background: #5a7a8a;
+            color: #faf4ea;
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-size: 9px;
+            font-weight: bold;
+            margin-left: 4px;
         }
     </style>
 </head>
@@ -572,23 +614,22 @@
             <div class="resource-group">
                 <div class="resource">
                     <div class="resource-icon">💰</div>
-                    <div class="resource-value">10</div>
+                    <div class="resource-value">0</div>
                     <span>Coins</span>
                 </div>
                 <div class="resource">
                     <div class="resource-icon">❤️</div>
-                    <div class="resource-value">75</div>
+                    <div class="resource-value">100</div>
                     <span>Health</span>
                 </div>
                 <div class="resource low">
                     <div class="resource-icon">🍞</div>
-                    <div class="resource-value">60</div>
+                    <div class="resource-value">50</div>
                     <span>Hunger</span>
-                    <span class="resource-effect">(-2 att)</span>
                 </div>
                 <div class="resource">
                     <div class="resource-icon">👁️</div>
-                    <div class="resource-value">8/10</div>
+                    <div class="resource-value">10/10</div>
                     <span>Attention</span>
                 </div>
             </div>
@@ -605,12 +646,12 @@
                     <span class="time-period">Morning</span>
                 </div>
                 <div class="deadline-info">
-                    Elena available at 2 PM (5 hours)
+                    Lord Blackwood leaves at 5 PM (8 hours)
                 </div>
             </div>
         </div>
 
-        <!-- Active Obligations Queue - THE KEY MECHANIC -->
+        <!-- Active Obligations Queue -->
         <div class="obligations-panel">
             <div class="obligations-header">
                 <span>Active Obligations</span>
@@ -619,17 +660,12 @@
             <div class="obligation-list">
                 <div class="obligation-item position-1">
                     <span class="queue-position">1</span>
-                    Marcus's package → Warehouse <span class="deadline">(5 hours)</span>
+                    Viktor's package → Marcus <span class="deadline">(3 hours)</span>
                 </div>
                 <span class="queue-arrow">→</span>
                 <div class="obligation-item">
                     <span class="queue-position">2</span>
-                    Guard's report → Barracks <span class="deadline">(8 hours)</span>
-                </div>
-                <span class="queue-arrow">→</span>
-                <div class="obligation-item">
-                    <span class="queue-position">3</span>
-                    <span style="color: #7a6250;">Elena's letter will go here</span>
+                    <span style="color: #7a6250;">[Empty]</span>
                 </div>
             </div>
         </div>
@@ -643,7 +679,10 @@
                 <span>→</span>
                 <span>Central Square</span>
             </div>
-            <div class="location-name">Central Market Square</div>
+            <div class="location-name">
+                Central Market Square
+                <span class="familiarity-display">Familiarity: 0</span>
+            </div>
             <div class="location-traits">
                 <span class="trait">Public</span>
                 <span class="trait">Morning: Light Crowd</span>
@@ -656,13 +695,14 @@
             <div class="current-spot-name">The Fountain</div>
             <div class="spot-traits">
                 <span class="spot-trait crossroads">Crossroads</span>
+                <span class="spot-trait quiet">Quiet (Morning)</span>
                 <span class="spot-trait">Public (-1 patience)</span>
             </div>
         </div>
 
         <div class="content-area">
             <div class="atmosphere-text">
-                Morning light filters through market awnings. Merchants prepare their stalls as the city wakes. Your stomach growls - the hunger affects your concentration (-2 attention). Three obligations weigh on your satchel, but Elena's crisis awaits this afternoon.
+                Morning light filters through market awnings. Merchants prepare their stalls as the city wakes. The fountain area is quiet now - perfect for careful investigation. Your stomach growls slightly from morning hunger.
             </div>
 
             <div class="section-header">Actions Available Here</div>
@@ -671,9 +711,10 @@
                     <div class="action-name">🗺️ Travel</div>
                     <div class="action-cost">From Crossroads</div>
                 </div>
-                <div class="action-card disabled">
-                    <div class="action-name">💼 Work</div>
-                    <div class="action-cost">Not at Commercial</div>
+                <div class="action-card investigate">
+                    <div class="action-name">🔍 Investigate</div>
+                    <div class="action-cost"><span class="cost-value">1 attention</span></div>
+                    <div class="action-bonus">Quiet: +2 familiarity</div>
                 </div>
                 <div class="action-card">
                     <div class="action-name">⏰ Wait</div>
@@ -681,14 +722,21 @@
                 </div>
             </div>
 
-            <div class="section-header">Observations Available (Morning)</div>
+            <div class="section-header">Observations Available</div>
             <div class="observations">
-                <div class="observation-note">Spend 1 attention to gain unique effect card (24hr expiration):</div>
-                <div class="observation-item">
-                    <span class="observation-text">Guards discussing checkpoint bribes</span>
+                <div class="observation-note">Observations cost 0 attention but require familiarity and prior observations:</div>
+                <div class="observation-item unavailable">
+                    <span class="observation-text">Safe passage patterns</span>
                     <span class="observation-reward">
-                        <span class="cost-value">1 attention</span>
-                        <span class="reward-card">Set Guarded atmosphere</span>
+                        <span class="requirement">Requires: Familiarity 1+</span>
+                        <span class="reward-card">→ Elena's deck</span>
+                    </span>
+                </div>
+                <div class="observation-item unavailable">
+                    <span class="observation-text">Merchant caravan routes</span>
+                    <span class="observation-reward">
+                        <span class="requirement">Requires: Familiarity 2+ & first observation</span>
+                        <span class="reward-card">→ Marcus's deck</span>
                     </span>
                 </div>
             </div>
@@ -698,17 +746,17 @@
                 <div class="npc-header">
                     <div>
                         <div class="npc-name">Town Crier</div>
-                        <div class="npc-type">Steadfast (13 base patience)</div>
+                        <div class="npc-type">Steadfast (11 base patience)</div>
                     </div>
                     <div class="npc-state">Preparing</div>
                 </div>
                 <div class="npc-description">
-                    Setting up his speaking platform. Not available until Midday.
+                    Setting up his speaking platform. Will announce Lord Blackwood's departure time when ready.
                 </div>
                 <div class="npc-actions">
                     <div class="npc-action unavailable">
                         <span class="action-type">Conversation</span>
-                        <span class="action-details">Available at Midday</span>
+                        <span class="action-details">Not ready yet</span>
                     </div>
                 </div>
             </div>
@@ -723,22 +771,22 @@
                 <div class="spot-card">
                     <div class="spot-card-name">Merchant Row</div>
                     <div class="spot-occupants">
-                        Marcus (Neutral) <span class="urgent-marker">QUEUE 1!</span>
-                        <div class="rapport-note">2 Commerce tokens = 2 starting rapport</div>
+                        Marcus (Neutral) 
+                        <span class="urgent-marker">QUEUE 1!</span>
+                        <span class="letter-marker">HAS LETTER</span>
                     </div>
                 </div>
 
                 <div class="spot-card">
                     <div class="spot-card-name">Guard Post</div>
                     <div class="spot-occupants">
-                        Guard Captain (Guarded)
-                        <div class="rapport-note">1 Shadow token = 1 starting rapport</div>
+                        Guard Captain (Authority)
                     </div>
                 </div>
 
                 <div class="spot-card">
                     <div class="spot-card-name">North Alcove</div>
-                    <div class="spot-occupants">Empty</div>
+                    <div class="spot-occupants">Empty (Discrete spot)</div>
                 </div>
             </div>
         </div>

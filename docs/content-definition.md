@@ -1,681 +1,566 @@
-# Wayfarer: Elena's Letter - Demo Scenario
+# Content Loading and Extension System
 
-## Scenario Overview
+## Overview
 
-Elena needs her urgent letter delivered to Lord Blackwood before he leaves the city at sunset (5 PM). She faces a forced marriage to him and this letter is her refusal. The challenge: Lord Blackwood is behind the Noble District checkpoint requiring an access permit, you have existing obligations in queue, and resources are limited.
+Wayfarer uses a **package-based content loading system** that supports modular content, lazy loading with skeleton placeholders, and future AI-driven content generation. This system replaces the legacy phase-based initialization with a flexible, extensible architecture.
 
-This scenario demonstrates all three core game loops working together to create emergent tactical puzzles.
+## Directory Structure
 
-## Core Mechanical Principles
-
-### Strict Effect Separation
-- Each card has ONE effect (fixed or scaling)
-- No cards do multiple things
-- Perfect information - all effects visible
-
-### Strategic Layers
-- **Focus Management**: Capacity 3-6, persists until refreshed
-- **Rapport Building**: Temporary success modifier (-50 to +50) within conversation
-- **Flow Tracking**: +1 on success, -1 on failure, ±3 triggers state transitions
-- **Token Investment**: Starting rapport = connection tokens with NPC
-- **Queue Management**: Position 1 must complete first, multiple obligations compete
-- **Atmosphere Control**: Persistent effects shape entire conversations
-
-## Starting Configuration
-
-### Player Resources
-- **Coins**: 10 (exactly enough for checkpoint bribe if no permit)
-- **Health**: 75/100 (no focus penalty yet)
-- **Hunger**: 60/100 (reducing attention by 2)
-- **Attention**: 8/10 (after morning calculation: 10 - 2)
-- **Satchel**: Empty (5 slots max)
-
-### Starting Queue (Position 1 MUST complete first!)
-1. Marcus Package - 5hr deadline - 8 coins payment
-2. Guard Report - 8hr deadline - 5 coins payment  
-3. [Elena's letter will compete for position]
-
-### Starting Tokens (Determine Starting Rapport)
-- **Elena**: 1 Trust (starts conversations with 1 rapport = +2% all cards)
-- **Marcus**: 2 Commerce (starts conversations with 2 rapport = +4% all cards)
-- **Guard Captain**: 1 Shadow (starts conversations with 1 rapport = +2% all cards)
-- **Lord Blackwood**: 0 all types (starts conversations with 0 rapport)
-
-### Time Management
-- **Current**: Tuesday 9:00 AM (Morning period)
-- **Lord Blackwood Departs**: 5:00 PM (Evening period)
-- **Maximum Actions**: ~15 with perfect efficiency
-
-## World Map
-
-### Location Hierarchy
-Region → District → Location → Spot
-
-Lower Wards → Market District → Central Square → Fountain
-
-### Market Square
-**Fountain** (Crossroads, Public):
-- Travel hub to all districts
-- Public: -1 patience in conversations
-- Observations available per time period
-- Town Crier present Midday/Evening
-
-**Merchant Row** (Commercial):
-- Marcus available (Morning-Evening)
-- Work action: 2 attention → 8 coins + 4 hours
-- Quick exchanges available
-
-**Guard Post** (Authority, Guarded):
-- Guard Captain always present
-- Day shift: Guarded atmosphere default
-- Night shift: Neutral atmosphere default
-
-**North Alcove** (Discrete):
-- Hidden from authority
-- Special encounters at night
-
-### Copper Kettle Tavern
-**Common Room** (Crossroads, Public, Hospitality):
-- Travel hub for tavern district
-- Public: -1 patience
-- Can access rest exchanges
-
-**Corner Table** (Private):
-- Elena always available (Afternoon-Evening only)
-- Private: +1 patience
-- Quiet atmosphere for deep conversations
-
-**The Bar** (Commercial, Hospitality):
-- Bertram always available
-- Work action available
-- Rest exchanges via Bertram's deck
-
-**Hearthside** (Warm):
-- +2 patience in conversations
-- Special encounters evening
-
-### Noble District Gate
-**Checkpoint** (Crossroads, Authority):
-- Requires: 10 coin bribe OR Access Permit
-- Guards inspect all travelers
-- Direct route to Lord Blackwood
-- Guarded atmosphere
-
-**Side Path** (Discrete):
-- Alternative entry (requires Shadow knowledge)
-- Avoids checkpoint inspection
-
-### Lord Blackwood's Manor
-**Study**:
-- Lord Blackwood present until 5 PM
-- Deliver letter here
-- Proud personality type
-
-### Travel Routes
-From Market Square Fountain:
-- → Copper Kettle: 15 minutes, free
-- → Noble District Gate: 25 minutes, free
-- → Warehouse District: 30 minutes, free
-- → Temple District: 20 minutes, free
-
-From Noble District Gate:
-- → Blackwood Manor: 10 minutes, requires permit
-
-From Copper Kettle Common Room:
-- → Market Square: 15 minutes, free
-- → Temple District: 20 minutes, free
-
-## NPC Complete Configurations
-
-### Elena - The Letter Sender
-
-**Mechanical Identity**:
-- Type: Devoted (15 base patience)
-- Location: Corner Table (+1 patience = 16 total)
-- Available: Afternoon-Evening only (2 PM - 10 PM)
-- Starting State: Disconnected (forced marriage situation)
-- Starting Rapport: Equal to your Trust tokens with her
-
-**Conversation Deck** (20 cards):
-
-**Fixed Rapport Cards** (6 total):
-- "I understand" (Trust-type, W1, Easy 70%): +1 rapport
-- "Let me help" (Trust-type, W1, Easy 70%): +1 rapport  
-- "You're safe with me" (Trust-type, W2, Medium 60%): +2 rapport
-- "Trust in our bond" (Trust-type, W2, Medium 60%): +2 rapport
-- "Together we're strong" (Trust-type, W3, Medium 60%): +3 rapport
-- "Soul connection" (Trust-type, W5, Very Hard 40%, Impulse): +5 rapport
-
-**Scaled Rapport Cards** (4 total, all Trust-type):
-- "Our trust runs deep" (Trust-type, W2, Hard 50%): +X rapport where X = Trust tokens
-- "Remember our history" (Trust-type, W3, Hard 50%): +X rapport where X = Trust tokens
-- "Lean on me" (Trust-type, W3, Hard 50%): +X rapport where X = 4 - current rapport/5
-- "Crisis shared" (Trust-type, W4, Hard 50%, Impulse): +X rapport where X = patience ÷ 3
-
-**Utility Cards** (4 total, all Trust-type):
-- "Let me think" (Trust-type, W1, Medium 60%): Draw 1 card
-- "Consider options" (Trust-type, W1, Medium 60%): Draw 1 card
-- "Gather strength" (Trust-type, W2, Medium 60%): Add 1 focus to pool
-- "Deep breath" (Trust-type, W2, Medium 60%): Add 1 focus to pool
-
-**Setup Cards** (3 total, 0 focus, mixed types):
-- "Careful approach" (Trust-type, W0, Easy 70%): No effect, Atmosphere: Prepared
-- "Open my heart" (Commerce-type, W0, Easy 70%): No effect, Atmosphere: Receptive
-- "This is critical" (Status-type, W0, Easy 70%): No effect, Atmosphere: Final
-
-**Dramatic Cards** (2 total, impulse, Trust-type):
-- "Disconnected plea" (Trust-type, W4, Hard 50%, Impulse): +4 rapport, Atmosphere: Volatile
-- "All or nothing" (Trust-type, W6, Very Hard 40%, Impulse): +5 rapport, Atmosphere: Final
-
-**Flex Slot** (1, Trust-type):
-- "Shared pain" (Trust-type, W2, Medium 60%): -2 rapport (represents emotional overflow)
-
-**Request Deck** (Separate from conversation deck):
-
-- **"Crisis Refusal"** (Trust Letter)
-  - Focus: 5
-  - Difficulty: Very Hard (40% base + rapport × 2%)
-  - Success Effect: Accept Letter for 1hr deadline, position 1, 5 coins
-  - Failure Effect: Add 1 burden card to Elena's relationship
-  - Has "Impulse" and "Opening" property when becomes playable
-
-- **"Clear the Air"** (Resolution Request)
-  - Focus: 5
-  - Difficulty: Hard (50% base + rapport × 2%)
-  - Success Effect: Remove burden cards from relationship record
-  - Failure Effect: Add 1 burden card
-  - Has "Impulse" and "Opening" property when becomes playable
-
-**Relationship Record**:
-- 2 burden cards from past failure (visible marker of damaged trust)
-
-### Marcus - The Merchant
-
-**Mechanical Identity**:
-- Type: Mercantile (12 base patience)
-- Location: Merchant Row
-- Available: Morning-Evening (6 AM - 10 PM, shop hours)
-- Starting State: Neutral (commerce-minded)
-- Starting Rapport: Equal to your Commerce tokens with him
-
-**Conversation Deck** (20 cards):
-
-**Fixed Rapport Cards** (6, mostly Commerce-type):
-- 3 at W1 (Commerce-type, Easy 70%): +1 rapport each
-- 2 at W2 (Commerce-type, Medium 60%): +2 rapport each
-- 1 at W3 (Status-type, Medium 60%): +3 rapport
-
-**Scaled Rapport Cards** (4, all Commerce-type):
-- 2 "Good business" (Commerce-type, W2, Hard 50%): +X where X = Commerce tokens
-- 1 "Profitable relationship" (Commerce-type, W3, Hard 50%): +X where X = Commerce tokens
-- 1 "Time is money" (Commerce-type, W3, Hard 50%): +X where X = focus remaining
-
-**Utility Cards** (4, Commerce-type):
-- 2 Draw cards (Commerce-type, W1, Medium 60%)
-- 2 Focus-add cards (Commerce-type, W2, Medium 60%)
-
-**Setup Cards** (3, W0, mixed types):
-- "Let's negotiate" (Commerce-type, Easy 70%): Atmosphere: Focused
-- "Time for business" (Trust-type, Easy 70%): Atmosphere: Patient
-- "High stakes" (Shadow-type, Easy 70%): Atmosphere: Final
-
-**Dramatic Cards** (2, impulse, Commerce-type):
-- "Deal of lifetime" (Commerce-type, W5, Very Hard 40%): +5 rapport
-- "All in" (Commerce-type, W4, Hard 50%): +4 rapport, Atmosphere: Volatile
-
-**Flex**: 1 negative rapport card (Commerce-type)
-
-**Request Deck**:
-- "Package Delivery" (Commerce Promise, W5, Very Hard 40%)
-- "Noble Permit Sale" (Commerce Promise, W6, Very Hard 40%)
-
-**Exchange Deck** (Quick Trade Options, 0 attention):
-- "Buy Provisions": 3 coins → Hunger = 0
-- "Purchase Medicine": 5 coins → Health +20
-- "Buy Access Permit": 15 coins → Noble District Permit
-- "Accept Quick Job": Accept → New obligation (8 coins, 3hr deadline)
-- "Trade Information": Give observation card → Alternative route knowledge
-
-### Guard Captain - The Gatekeeper
-
-**Mechanical Identity**:
-- Type: Steadfast (13 base patience)
-- Location: Guard Post
-- Available: Always
-- Default Atmosphere: Guarded (day) / Neutral (night)
-- Starting Rapport: Equal to your Shadow tokens with him
-
-**Conversation Deck** (20 cards):
-
-**Fixed Rapport Cards** (6, balanced types):
-- 2 at W1 (Status-type, Easy 70%): +1 rapport each
-- 2 at W1 (Shadow-type, Easy 70%): +1 rapport each
-- 1 at W2 (Status-type, Medium 60%): +2 rapport
-- 1 at W3 (Shadow-type, Medium 60%): +3 rapport
-
-**Scaled Rapport Cards** (4, mixed):
-- 2 scaling with Status tokens (Status-type, W2, Hard 50%)
-- 2 scaling with Shadow tokens (Shadow-type, W3, Hard 50%)
-
-**Utility Cards** (4, mixed types): 
-- 2 Draw cards (1 Status-type, 1 Shadow-type, W1, Medium 60%)
-- 2 Focus-add cards (1 Status-type, 1 Shadow-type, W2, Medium 60%)
-
-**Setup Cards** (3, W0, mixed types):
-- "Official business" (Status-type, Easy 70%): Atmosphere: Volatile
-- "By the book" (Trust-type, Easy 70%): Atmosphere: Prepared
-- "Under scrutiny" (Shadow-type, Easy 70%): Atmosphere: Pressured
-
-**Dramatic Cards** (2, mixed types): 
-- "Authority demonstrated" (Status-type, W4, Hard 50%, Impulse): +4 rapport
-- "Secrets revealed" (Shadow-type, W5, Very Hard 40%, Impulse): +5 rapport
-
-**Flex**: 1 Authority-themed card (Status-type)
-
-**Request Deck**:
-- "Checkpoint Pass" (Shadow Promise, W5, Hard 50%)
-  - Success: 24hr access permit (fixed terms)
-  - Failure: Add 1 burden card
-
-### Bertram - The Innkeeper
-
-**Mechanical Identity**:
-- Type: Mercantile (no conversation deck needed)
-- Location: The Bar
-- Available: Always (lives upstairs)
-- Pure exchange NPC
-
-**Exchange Deck** (Rest & Recovery):
-- "Quick Meal": 2 coins → Hunger = 0
-- "Short Rest": 2 coins → +3 attention, advance 2 hours
-- "Full Night": 5 coins → Morning refresh (loses entire day!)
-- "Noble Gossip": 3 coins → Observation card for player deck
-- "Packed Lunch": 4 coins → Item: Reset hunger when used
-
-### Lord Blackwood - The Recipient
-
-**Mechanical Identity**:
-- Type: Proud (10 base patience)
-- Location: Manor Study
-- Available: Until 5 PM (then leaves city)
-- State: Neutral
-- Starting Rapport: 0 (no existing relationship)
-
-**Special Rules**:
-- Receives Elena's letter
-- Cannot converse (just delivery)
-- Proud personality affects queue negotiations
-
-## Player Observation Deck System
-
-### Building Your Deck
-The player maintains their own observation deck (max 20 cards):
-- Cost: 1 attention at specific locations
-- Focus: 1 (minimal requirement)
-- Success rate: 85% (Very Easy)
-- Always persistent
-- Expiration: 24-48 hours
-
-### Location-Based Observations
-
-**Market Square - Morning**:
-- "Guard Routes": Set Pressured atmosphere (expires 24hr)
-
-**Market Square - Afternoon**:
-- "Market Gossip": Set Receptive atmosphere (expires 24hr)
-
-**Market Square - Evening**:
-- "Night Paths": Next SPEAK costs 0 focus (expires 12hr)
-
-**Copper Kettle - When Elena Present**:
-- "Shared Hardship": Set Informed atmosphere (expires 48hr, powerful!)
-
-**Guard Post - Night**:
-- "Bribery Option": Rapport = 15 (expires 6hr, emergency boost)
-
-### Conversation-Generated Observations
-NPCs can reward observation cards:
-- "Noble Routes": Next action costs 0 patience
-- "Guard Timing": Set Synchronized atmosphere
-- "Hidden Path": Focus = maximum
-
-## Connection State Effects
-
-### State Transitions and Focus Capacity
-
-**DISCONNECTED** (Elena's starting state):
-- Focus capacity: 3
-- Cards drawn: 1
-- Flow: +3→Guarded (escape!), -3→Conversation ends
-- Requests Available: Crisis promises, urgent letters
-
-**GUARDED** (Cautious):
-- Focus capacity: 4
-- Cards drawn: 2
-- Flow: +3→Neutral, -3→Disconnected
-- Requests Available: Shadow promises, burden resolution
-
-**NEUTRAL** (Balanced):
-- Focus capacity: 5
-- Cards drawn: 2
-- Flow: +3→Open, -3→Guarded
-- Requests Available: Commerce promises, routine letters
-
-**OPEN** (Receptive):
-- Focus capacity: 5
-- Cards drawn: 3
-- Flow: +3→Connected, -3→Neutral
-- Requests Available: Trust promises, personal requests
-
-**CONNECTED** (Deep Bond):
-- Focus capacity: 6
-- Cards drawn: 3
-- Flow: +3→Stays Connected (maxed), -3→Open
-- Requests Available: All promise types
-
-## Strategic Decision Framework
-
-### Focus Navigation
-
-**Elena's Challenge in Disconnected (3 capacity)**:
-- Can play three W1 cards before refresh
-- Can play one W3 card then need LISTEN
-- Cannot play W4+ cards without Prepared atmosphere
-- Cannot play W5 request cards without state change
-
-**Reaching Request Cards**:
-- Need 5+ focus capacity (Open/Connected states)
-- OR use Prepared atmosphere (+1 capacity)
-- OR use observation to set Informed (auto-success)
-
-### Flow Building Mathematics
-
-**Turn Economy with 16 Patience**:
-- Flow starts at 0
-- Each net success moves flow +1
-- Each net failure moves flow -1
-- Need +3 net successes to advance state
-- Disconnected → Guarded → Neutral → Open (9 net successes total)
-
-**Success Rates with Starting Rapport**:
-- With 1 Trust token (Elena): Start at 1 rapport (+2% to all cards)
-- With 2 Commerce tokens (Marcus): Start at 2 rapport (+4% to all cards)
-- Build to 25 rapport: +50% success on all cards
-- Reach 50 rapport cap: Guaranteed success on everything
-
-**Rapport Building Strategy**:
-- Early rapport cards compound success
-- High rapport makes flow progression reliable
-- Failed cards reduce flow AND potentially rapport
-- Momentum is key - early success breeds later success
-
-### Token Economics
-
-**Starting Rapport Benefits**:
-- 5 tokens = 5 starting rapport = +10% all cards
-- 10 tokens = 10 starting rapport = +20% all cards
-- 20 tokens = 20 starting rapport = +40% all cards
-
-**Token Acquisition** (ONLY through letter delivery):
-- Standard successful delivery: +1 token with recipient
-- Excellent delivery: +2-3 tokens with recipient
-- Trust letters build Trust tokens
-- Commerce letters build Commerce tokens
-- Status letters build Status tokens
-- Shadow letters build Shadow tokens
-
-**Building the Right Tokens**:
-- Delivering Trust letters → Trust tokens with recipient
-- Delivering Commerce letters → Commerce tokens with recipient
-- Must match letter type to build desired relationships
-
-## Queue Management Strategies
-
-### Position Negotiation (Now Fixed Terms)
-
-**Elena's Letter Terms**:
-- Crisis Letter: Always 1hr deadline, position 1, 5 coins
-- No negotiation - accept these terms or fail
-
-### Displacement Calculations
-
-Starting queue:
-1. Marcus Package (5hr, 8 coins)
-2. Guard Report (8hr, 5 coins)
-3. Elena's Letter (if accepted)
-
-To deliver Elena immediately from position 3:
-- Displace Marcus: -2 Commerce tokens
-- Displace Guard: -1 Shadow token
-- Total cost: 3 tokens burned permanently
-
-### Strategic Queue Timing
-- Complete other obligations first if time allows
-- Accept poor position to preserve tokens
-- Displace only for critical deadlines
-
-## Multiple Solution Paths
-
-### Path A: Morning Efficiency
-**Morning** (8 attention, 10 coins, 60 hunger):
-1. Work at Merchant Row (-2 att, +8 coins, →Midday)
-2. Exchange: Buy food (-3 coins, hunger→0)
-3. Observe "Guard Routes" (-1 att, gain Pressured atmosphere card)
-
-**Midday** (5 attention, 15 coins, 0 hunger):
-4. Complete Marcus delivery (avoiding displacement)
-5. Wait to Afternoon (preserve attention)
-
-**Afternoon** (5 attention, 15 coins):
-6. Observe "Shared Hardship" at Copper Kettle (-1 att, Informed atmosphere)
-7. Converse with Elena (-2 att, 16 patience)
-8. Starting with 1 rapport (+2% to all cards)
-9. Build rapport through successful cards
-10. Reach Open state through 3 net successes
-11. LISTEN at Open state - request becomes playable with Impulse+Opening
-12. Play request immediately with boosted success from rapport
-
-**Results**: Fixed terms accepted, queue cleared, relationship maintained
-
-### Path B: Focus Management
-**Morning**:
-1. Exchange: Buy food immediately (-3 coins)
-2. Wait to Afternoon (preserve 8 attention)
-
-**Afternoon** (8 attention, 7 coins):
-3. Full Elena conversation (-2 att)
-4. Carefully manage 3 focus capacity in Disconnected
-5. Use setup cards (W0) for Prepared atmosphere
-6. Build rapport early for higher success rates
-7. Navigate to Open through careful flow management
-
-**Results**: Challenging but possible with good rapport building
-
-### Path C: Crisis Management
-**Morning**:
-1. Skip all preparation
-2. Rush to complete existing obligations
-
-**Afternoon** (limited resources):
-3. Elena conversation with whatever remains
-4. Low starting rapport makes success difficult
-5. Accept request at any state when possible
-6. Heavy displacement if needed
-
-**Evening**:
-6. Use all coins for checkpoint
-7. Deliver with minimal margin
-
-**Results**: Mission complete but relationships damaged
-
-### Path D: Guard Captain Route
-**Morning**:
-1. Build Shadow tokens through previous deliveries
-2. Start conversation with higher rapport from tokens
-3. Navigate to request availability
-
-**Evening**:
-4. Guard in Neutral atmosphere (better than Guarded)
-5. Use rapport to boost success chance for permit request
-6. Success: Free access to Noble District
-
-**Results**: Risky but preserves resources
-
-## Atmosphere Management
-
-### Strategic Atmosphere Chains
-
-**Setup for Success**:
-1. Play "Careful approach" (W0) → Prepared atmosphere
-2. Now have 4 focus capacity in Disconnected (3+1)
-3. Play multiple cards before refresh needed
-
-**High Risk/Reward**:
-1. Play "This is critical" (W0) → Final atmosphere
-2. Any failure ends conversation
-3. But can attempt dramatic plays
-
-**Information Advantage**:
-1. Use "Shared Hardship" observation → Informed atmosphere
-2. Next card cannot fail
-3. Guarantee critical rapport gain or request play
-
-## Resource Calculations
-
-### Morning Refresh Formula
 ```
-Base = 10 attention
-Subtract (Hunger ÷ 25)
-Minimum = 2
-```
-At 60 hunger: 10 - 2 = 8 attention
-
-### Success Rate Examples
-```
-Base Easy card (70%) with 5 rapport:
-70% + (5 × 2%) = 80%
-
-Base Medium card (60%) with 10 rapport:
-60% + (10 × 2%) = 80%
-
-Base Hard card (50%) with 25 rapport:
-50% + (25 × 2%) = 100%
-
-Base Very Hard request (40%) with 15 rapport:
-40% + (15 × 2%) = 70%
-
-Negative rapport (-10):
-Base rate - 20% (can make cards impossible)
+src/Content/
+├── Core/                   # Core game packages (loaded at startup)
+│   └── core_game_package.json
+├── Generated/              # AI-generated content packages (future)
+│   └── (empty - for AI-generated packages)
+└── TestPackages/           # Test packages (not loaded in production)
+    ├── test_01_npcs_with_missing_refs.json
+    ├── test_02_locations_resolving_skeletons.json
+    └── test_03_letters_with_missing_npcs.json
 ```
 
-## Failure Cascades
+## Architecture Components
 
-### Hard Failure
-- 5 PM passes without delivery
-- Elena permanently hostile
-- -3 Trust tokens with Elena
-- 3 burden cards added to relationship
-- Cannot retry for 24 hours
-- Lord Blackwood gone forever
+### 1. GameWorldInitializer
 
-### Soft Failures
-- Request card failure: +1 burden card
-- Poor rapport management: Negative spiral
-- Token burning: Permanent relationship damage
-- Resource depletion: Cannot afford checkpoint
-- Impulse request discarded: Conversation fails
+**Location**: `/src/Content/GameWorldInitializer.cs`
 
-### Recovery Options
-- Work for emergency coins (loses 4 hours)
-- Rest for attention (costs coins)
-- Displace obligations (burns tokens)
-- Accept any terms (poor rewards)
-- Use observations for emergency advantages
+Static factory class that creates and initializes GameWorld instances:
 
-## Success Metrics
+```csharp
+public static GameWorld CreateGameWorld()
+{
+    GameWorld gameWorld = new GameWorld();
+    PackageLoader packageLoader = new PackageLoader(gameWorld);
+    packageLoader.LoadPackagesFromDirectory("Content/Core");
+    return gameWorld;
+}
+```
 
-### Perfect Run (Master Strategist)
-- Build high rapport early
-- Reach Open state efficiently
-- Complete request with high success chance
-- Complete by 3 PM
-- Gain +3 Trust tokens from delivery
-- 20+ coins earned
-- No tokens burned
+**Key Points**:
+- Static to avoid circular dependencies during startup
+- Loads only from `Content/Core` directory in production
+- AI-generated content will be loaded from `Content/Generated`
 
-### Good Run (Competent Courier)
-- Moderate rapport building
-- Reach request availability
-- Complete by 4 PM
-- Gain +2 Trust tokens
-- Break even on coins
+### 2. PackageLoader
 
-### Acceptable Run (Disconnected Success)
-- Any letter delivered
-- Fixed terms accepted
-- Heavy displacement
-- Before 5 PM deadline
-- Mission complete
+**Location**: `/src/Content/PackageLoader.cs`
 
-## Emergent Puzzle Variations
+Handles loading content packages with proper ordering and skeleton creation:
 
-### Context Changes Everything
+```csharp
+public void LoadPackagesFromDirectory(string directoryPath)
+{
+    List<string> packageFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.AllDirectories)
+        .OrderBy(f => 
+        {
+            if (f.Contains("core", StringComparison.OrdinalIgnoreCase)) return 0;
+            if (f.Contains("base", StringComparison.OrdinalIgnoreCase)) return 1;
+            if (f.Contains("expansion", StringComparison.OrdinalIgnoreCase)) return 2;
+            if (f.Contains("generated", StringComparison.OrdinalIgnoreCase)) return 3;
+            return 2;
+        })
+        .ThenBy(f => f)
+        .ToList();
+    LoadPackages(packageFiles);
+}
+```
 
-**Scenario 1**: Elena Disconnected, You have 3 Trust tokens
-- Start with 3 rapport (+6% all cards)
-- Can build momentum quickly
-- Flow progression more reliable
+**Load Order Priority**:
+1. Core packages (priority 0)
+2. Base content (priority 1)
+3. Expansions (priority 2)
+4. Generated content (priority 3)
 
-**Scenario 2**: Elena Open, You have 0 Trust tokens
-- 5 focus capacity available
-- Start with 0 rapport (base rates)
-- Can play request cards immediately but success uncertain
+### 3. Skeleton System
 
-**Scenario 3**: Elena Neutral, 4 burden cards in record
-- Standard capacity but damaged relationship
-- Must persist through mistrust
-- Patience becomes critical resource
+**Location**: `/src/Content/SkeletonGenerator.cs`
 
-**Scenario 4**: Queue full (8 obligations already)
-- Elena's letter position 9
-- Massive displacement required
-- Token economy destroyed
+Creates mechanically complete but narratively generic placeholders for missing content:
 
-Each combination creates unique tactical challenge.
+```csharp
+public static NPC GenerateSkeletonNPC(string id, string source)
+{
+    // Creates NPC with:
+    // - Valid mechanical properties (stats, personality, profession)
+    // - Generic narrative content ("Unnamed Merchant #3")
+    // - IsSkeleton = true flag
+    // - SkeletonSource tracking what created it
+    // - Empty observation deck
+}
+```
 
-## Long-term Consequences
+**Skeleton Properties**:
+- **Mechanically Complete**: Has all required game properties
+- **Narratively Generic**: Uses placeholder names and descriptions
+- **Deterministic**: Same ID always generates same skeleton (hash-based)
+- **Replaceable**: Automatically replaced when real content loads
 
-### Deck Evolution
-Successful delivery adds cards to NPC decks:
-- Rapport-building cards matching relationship
-- Makes future conversations easier
-- Permanent world change
+## Package Format
 
-Failed request adds burden to relationship:
-- 1 burden card in record per failure
-- Future conversations require resolution
-- Relationship permanently scarred
+### Package Structure
 
-### Token Economy
-Successful delivery creates cascading benefits:
-- +1-3 tokens with recipient
-- Better starting rapport in future
-- Easier conversations compound
+```json
+{
+  "packageId": "unique_package_id",
+  "metadata": {
+    "name": "Package Name",
+    "timestamp": "2025-09-02T10:00:00Z",
+    "description": "Package description",
+    "author": "Author name",
+    "version": "1.0.0"
+  },
+  "startingConditions": {
+    "coins": 10,
+    "health": { "current": 100, "max": 100 },
+    "hunger": { "current": 95, "max": 95 },
+    "attention": 10
+  },
+  "content": {
+    "cards": [...],
+    "npcs": [...],
+    "locations": [...],
+    "spots": [...],
+    "routes": [...],
+    "letterTemplates": [...],
+    "observations": [...],
+    "investigationRewards": [...]
+  }
+}
+```
 
-Burned tokens create cascading damage:
-- -1 token = -1 starting rapport forever
-- Negative tokens = relationship debt
+### Content Types
 
-Twenty deliveries create twenty permanent changes.
+#### Cards
+```json
+{
+  "id": "trust_understanding",
+  "type": "Normal",
+  "connectionType": "Trust",
+  "tokenType": "Trust",
+  "persistence": "Persistent",
+  "focus": 1,
+  "baseFlow": 3,
+  "displayName": "Mutual Understanding",
+  "description": "Share a moment of genuine connection"
+}
+```
 
-## Core Innovation Summary
+#### NPCs
+```json
+{
+  "id": "elena",
+  "name": "Elena",
+  "profession": "Scribe",
+  "locationId": "copper_kettle_tavern",
+  "spotId": "corner_table",
+  "personalityType": "DEVOTED",
+  "currentState": "DESPERATE",
+  "letterTokenTypes": ["Trust"],
+  "hasObservationDeck": true
+}
+```
 
-The scenario demonstrates elegant complexity through simple rules:
-- **Focus**: Persistent capacity creates multi-turn planning
-- **Rapport**: Linear +2% per point, starts at token value
-- **Flow**: Pure success/failure tracker, ±3 triggers transitions
-- **Atmosphere Persistence**: Environmental effects shape conversations
-- **Queue Displacement**: Permanent token sacrifice for flexibility
-- **Observation Effects**: Unique advantages from exploration
+#### Locations
+```json
+{
+  "id": "market_square",
+  "name": "Market Square",
+  "description": "Bustling marketplace",
+  "tier": 1,
+  "locationType": "Hub",
+  "travelHubSpotId": "central_fountain",
+  "baseFamiliarity": 0,
+  "maxFamiliarity": 3
+}
+```
 
-No thresholds (except flow ±3), no hidden mechanics, no soft locks. Every mechanic serves one purpose while resources flow through multiple systems. The puzzle emerges from interaction, not complication.
+#### Location Spots
+```json
+{
+  "id": "central_fountain",
+  "locationId": "market_square",
+  "name": "Central Fountain",
+  "properties": {
+    "morning": ["quiet"],
+    "afternoon": ["busy"],
+    "evening": ["closing"]
+  },
+  "canInvestigate": true
+}
+```
+
+#### Investigation Rewards
+```json
+{
+  "locationId": "market_square",
+  "familiarityRequired": 1,
+  "priorObservationRequired": null,
+  "observationCard": {
+    "id": "safe_passage_knowledge",
+    "name": "Safe Passage Knowledge",
+    "targetNpcId": "elena",
+    "effect": "AdvanceToNeutralState"
+  }
+}
+```
+
+#### Observation Cards for NPC Decks
+```json
+{
+  "id": "safe_passage_knowledge",
+  "name": "Safe Passage Knowledge",
+  "targetNpcId": "elena",
+  "targetDeck": "observation",
+  "persistence": "Persistent",
+  "focus": 0,
+  "effect": {
+    "type": "ChangeEmotionalState",
+    "targetState": "Neutral"
+  }
+}
+```
+
+## Lazy Loading Process
+
+### 1. Missing Reference Detection
+
+When loading content, PackageLoader detects missing references:
+
+```csharp
+if (!gameWorld.Locations.Any(l => l.Id == dto.LocationId))
+{
+    // Location doesn't exist - create skeleton
+    var skeleton = SkeletonGenerator.GenerateSkeletonLocation(
+        dto.LocationId, 
+        $"npc_{dto.Id}_reference");
+    
+    skeleton.Familiarity = 0;
+    skeleton.MaxFamiliarity = 3;
+    
+    gameWorld.Locations.Add(skeleton);
+    gameWorld.SkeletonRegistry[dto.LocationId] = "Location";
+}
+```
+
+### 2. Skeleton Creation
+
+Skeletons are created with valid game mechanics:
+
+```csharp
+var skeleton = new NPC
+{
+    ID = id,
+    Name = $"Unnamed Merchant #{hash % 100}",
+    PersonalityType = DeterministicPersonality(hash),
+    Profession = DeterministicProfession(hash),
+    ObservationDeck = new List<ConversationCard>(),
+    IsSkeleton = true,
+    SkeletonSource = source
+};
+```
+
+### 3. Skeleton Resolution
+
+When real content loads, skeletons are replaced:
+
+```csharp
+var existingSkeleton = gameWorld.NPCs
+    .FirstOrDefault(n => n.ID == dto.Id && n.IsSkeleton);
+if (existingSkeleton != null)
+{
+    // Preserve any observation cards accumulated
+    var observationCards = existingSkeleton.ObservationDeck;
+    gameWorld.NPCs.Remove(existingSkeleton);
+    gameWorld.SkeletonRegistry.Remove(dto.Id);
+    
+    // Transfer observation cards to real NPC
+    realNpc.ObservationDeck.AddRange(observationCards);
+}
+```
+
+## Extension Points
+
+### 1. Adding New Content Packages
+
+Place new packages in appropriate directories:
+
+- **Core Content**: `Content/Core/my_expansion.json`
+- **AI-Generated**: `Content/Generated/ai_content_001.json`
+- **Test Content**: `Content/TestPackages/test_scenario.json`
+
+### 2. Custom Content Types
+
+To add new content types:
+
+1. Create DTO class:
+```csharp
+public class InvestigationRewardDTO
+{
+    public string LocationId { get; set; }
+    public int FamiliarityRequired { get; set; }
+    public int? PriorObservationRequired { get; set; }
+    public ObservationCardDTO ObservationCard { get; set; }
+}
+```
+
+2. Add to Package class:
+```csharp
+public class Package
+{
+    // ... existing properties
+    public List<InvestigationRewardDTO> InvestigationRewards { get; set; }
+}
+```
+
+3. Add loader method in PackageLoader:
+```csharp
+private void LoadInvestigationRewards(List<InvestigationRewardDTO> rewardDtos)
+{
+    foreach (var dto in rewardDtos)
+    {
+        // Parse and add to location's investigation rewards
+        var location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
+        if (location != null)
+        {
+            location.InvestigationRewards.Add(ParseReward(dto));
+        }
+    }
+}
+```
+
+### 3. AI Content Generation
+
+AI systems can generate packages and place them in `Content/Generated/`:
+
+```csharp
+// AI generates package
+var package = AIContentGenerator.GeneratePackage(context);
+
+// Ensure NPCs have observation decks
+foreach (var npc in package.NPCs)
+{
+    npc.HasObservationDeck = true;
+}
+
+// Save to Generated directory
+string path = Path.Combine("Content/Generated", $"ai_{timestamp}.json");
+File.WriteAllText(path, JsonSerializer.Serialize(package));
+
+// Load into game
+packageLoader.LoadPackage(path);
+```
+
+## Skeleton Registry
+
+GameWorld maintains a registry of all skeletons:
+
+```csharp
+public Dictionary<string, string> SkeletonRegistry { get; set; }
+
+public List<string> GetSkeletonReport()
+{
+    return SkeletonRegistry.Select(kvp => $"{kvp.Value}: {kvp.Key}").ToList();
+}
+```
+
+**Registry Format**:
+- Key: Entity ID (e.g., "mysterious_tower")
+- Value: Entity Type (e.g., "Location")
+
+## Content Validation
+
+### Parsers
+
+Each content type has a dedicated parser with validation:
+
+- `NPCParser.cs` - Validates and parses NPCs (includes observation deck)
+- `LocationParser.cs` - Validates and parses locations (includes familiarity)
+- `ConversationCardParser.cs` - Validates and parses cards
+- `LetterTemplateParser.cs` - Validates and parses letter templates
+- `InvestigationRewardParser.cs` - Validates and parses investigation rewards
+
+### Enum Mappings
+
+Parsers handle JSON string to enum conversions:
+
+```csharp
+private static ConnectionType ParseConnectionType(string connectionTypeStr)
+{
+    return connectionTypeStr switch
+    {
+        "Trust" => ConnectionType.Trust,
+        "Commerce" => ConnectionType.Commerce,
+        "Status" => ConnectionType.Status,
+        "Shadow" => ConnectionType.Shadow,
+        _ => throw new ArgumentException($"Unknown connection type: '{connectionTypeStr}'")
+    };
+}
+```
+
+### New Validations
+
+Investigation rewards must validate:
+- Location exists or create skeleton
+- Familiarity requirement is valid (0-3)
+- Prior observation requirement references valid observation level
+- Target NPC exists or create skeleton with observation deck
+
+## Testing
+
+### Test Package Location
+
+Test packages are stored in `Content/TestPackages/` and include:
+
+1. **test_01_npcs_with_missing_refs.json** - NPCs referencing non-existent locations
+2. **test_02_locations_resolving_skeletons.json** - Locations that resolve skeletons
+3. **test_03_letters_with_missing_npcs.json** - Letters referencing non-existent NPCs
+4. **test_04_investigations_and_observations.json** - Investigation rewards and observation cards
+
+### Running Skeleton Tests
+
+```bash
+dotnet test --filter "FullyQualifiedName~SkeletonSystemTests"
+```
+
+Tests verify:
+- Skeletons created for missing references
+- Skeletons replaced when real content loads
+- Deterministic skeleton generation
+- Game playability with skeletons
+- Multi-package accumulation
+- Observation deck preservation during skeleton resolution
+- Familiarity initialization on skeleton locations
+
+## Best Practices
+
+### 1. Package Design
+
+- **Self-Contained**: Packages should work independently
+- **No Hard Dependencies**: Use skeleton system for references
+- **Incremental**: Add content gradually across packages
+- **Versioned**: Include version in metadata
+- **Observation Cards**: Specify target NPC and deck type
+
+### 2. Content References
+
+- **Allow Missing**: Let skeleton system handle missing references
+- **Use Stable IDs**: Don't change entity IDs after publication
+- **Document Dependencies**: Note expected references in metadata
+- **Observation Targets**: Always specify which NPC receives observation cards
+
+### 3. AI Content Generation
+
+- **Generate Valid JSON**: Follow package schema exactly
+- **Use Existing Enums**: Reference only valid enum values
+- **Test Locally**: Validate packages before deployment
+- **Track Skeletons**: Monitor skeleton registry for gaps
+- **Include Observation Decks**: Ensure NPCs have observation deck property
+
+## Migration from Legacy System
+
+### Removed Components
+
+- ❌ Phase-based initialization
+- ❌ Individual JSON files (cards.json, npcs.json, etc.)
+- ❌ ValidatedContentLoader
+- ❌ GameConfigurationLoader
+- ❌ CardDeckLoader
+- ❌ TravelCardLoader
+
+### New Components
+
+- ✅ Package-based loading
+- ✅ Skeleton system
+- ✅ Unified PackageLoader
+- ✅ Directory-based organization
+- ✅ GameWorldInitializer
+- ✅ Investigation reward system
+- ✅ NPC observation decks
+
+## Future Enhancements
+
+### Planned Features
+
+1. **Skeleton Quality Levels**: Basic → Enhanced → Full content
+2. **Skeleton Persistence**: Save which skeletons player has seen
+3. **Smart Generation**: Use context to generate better skeletons
+4. **Hot Reloading**: Load new packages without restart
+5. **Package Dependencies**: Explicit dependency declaration
+6. **Content Versioning**: Handle package updates gracefully
+7. **Observation Deck Merging**: Combine observation cards from multiple packages
+
+### AI Integration Roadmap
+
+1. **Phase 1**: AI generates packages in standard format
+2. **Phase 2**: AI monitors skeleton registry and fills gaps
+3. **Phase 3**: AI generates contextual content based on player actions
+4. **Phase 4**: Real-time content adaptation and personalization
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue**: "Unknown X in JSON" errors
+**Solution**: Check enum mappings in parsers, ensure JSON uses correct values
+
+**Issue**: Too many skeletons created
+**Solution**: Verify references exist, check for typos in IDs
+
+**Issue**: Package not loading
+**Solution**: Verify JSON syntax, check file location, review console logs
+
+**Issue**: Duplicate content after loading
+**Solution**: Ensure unique IDs, check skeleton replacement logic
+
+**Issue**: Observation cards not appearing
+**Solution**: Verify NPC has observation deck, check target NPC ID matches
+
+**Issue**: Investigation not yielding cards
+**Solution**: Check familiarity level, verify prior observation requirements
+
+## API Reference
+
+### Key Classes
+
+- `GameWorld` - Central game state container
+- `GameWorldInitializer` - Static factory for GameWorld creation
+- `PackageLoader` - Loads content packages
+- `SkeletonGenerator` - Creates placeholder content
+- `Package` - Package data structure
+- Various parsers - Convert DTOs to domain objects
+
+### Key Methods
+
+```csharp
+// Initialize game world
+GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
+
+// Load specific package
+packageLoader.LoadPackage("path/to/package.json");
+
+// Load directory of packages
+packageLoader.LoadPackagesFromDirectory("Content/Core");
+
+// Check skeleton status
+List<string> skeletons = gameWorld.GetSkeletonReport();
+
+// Generate skeleton with observation deck
+NPC skeleton = SkeletonGenerator.GenerateSkeletonNPC(id, source);
+skeleton.ObservationDeck = new List<ConversationCard>();
+
+// Add observation card to NPC
+npc.ObservationDeck.Add(observationCard);
+```
+
+## Conclusion
+
+The content loading and extension system provides a robust foundation for:
+- **Modular Content**: Load packages independently
+- **Graceful Degradation**: Game works with missing content
+- **AI Integration**: Ready for procedural generation
+- **Easy Extension**: Clear patterns for new content types
+- **Testing Support**: Separate test content from production
+- **Investigation System**: Location familiarity and observation rewards
+- **NPC Knowledge**: Observation decks for discovered information
+
+This architecture ensures Wayfarer can grow and adapt with new content while maintaining stability and playability.

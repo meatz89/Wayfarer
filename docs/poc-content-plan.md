@@ -29,7 +29,7 @@ Each card includes a `personalityTypes` array that determines which NPCs can use
 - "Gentle reassurance" - Focus 0, Easy, Set Patient atmosphere
 - "Share vulnerability" - Focus 4, Very Hard, +4 rapport, Impulse
 - "Build on trust" - Focus 3, Hard, Scale by Trust tokens
-- "Disconnected plea" - Focus 3, Hard, Scale by (20 - rapport) / 5, Impulse
+- "Desperate plea" - Focus 3, Hard, Scale by (20 - rapport) / 5, Impulse
 - "Patient approach" - Focus 2, Hard, Scale by (patience / 3)
 - "Listen carefully" - Focus 1, Medium, Draw 1 card
 - "Open mind" - Focus 0, Easy, Set Receptive atmosphere
@@ -66,9 +66,45 @@ Each card includes a `personalityTypes` array that determines which NPCs can use
 - "Quick response" - Focus 1, Easy, +1 rapport, Opening
 - "Thoughtful pause" - Focus 1, Medium, Draw 1 card
 
-### 2. Request Cards
+### 2. NPC Observation Deck Cards
 
-#### Elena's Urgent Letter (CRITICAL)
+#### Safe Passage Knowledge (Elena's Observation Deck)
+```json
+{
+  "id": "safe_passage_knowledge",
+  "name": "Safe Passage Knowledge",
+  "type": "ObservationCard",
+  "focus": 0,
+  "persistence": "Persistent",
+  "description": "Knowledge of merchant caravan routes calms Elena's panic",
+  "effect": {
+    "type": "AdvanceEmotionalState",
+    "targetState": "Neutral"
+  },
+  "npcDeck": "elena_observation"
+}
+```
+
+#### Merchant Caravan Route (Marcus's Observation Deck)
+```json
+{
+  "id": "merchant_caravan_route",
+  "name": "Merchant Caravan Route",
+  "type": "ObservationCard",
+  "focus": 0,
+  "persistence": "Persistent",
+  "description": "Detailed knowledge of Marcus's private caravan schedule",
+  "effect": {
+    "type": "UnlockExchange",
+    "exchangeId": "marcus_caravan_transport"
+  },
+  "npcDeck": "marcus_observation"
+}
+```
+
+### 3. Request Cards
+
+#### Elena's Urgent Letter
 ```json
 {
   "id": "elena_urgent_refusal",
@@ -82,10 +118,10 @@ Each card includes a `personalityTypes` array that determines which NPCs can use
   "successEffect": {
     "type": "CreateObligation",
     "obligationType": "delivery",
-    "position": 1,
-    "deadline": 60,
-    "payment": 5,
-    "tokenReward": {"Trust": 2}
+    "position": "nextAvailable",
+    "deadline": 300,
+    "recipient": "Lord Blackwood",
+    "noPayment": true
   },
   "failureEffect": {
     "type": "AddBurdenCard",
@@ -98,173 +134,127 @@ Each card includes a `personalityTypes` array that determines which NPCs can use
 }
 ```
 
-### 3. Exchange Cards
+### 4. Exchange Cards
 
 #### Marcus's Trade Cards
-- "Trade Goods" - 5 coins for common item
-- "Bulk Purchase" - 10 coins for 3 items
-- "Special Deal" - 8 coins for rare item
-
-#### Bertram's Service Cards
-- "Hot Meal" - 3 coins → -20 hunger
-- "Room for Night" - 5 coins → full stamina + health
-- "Mug of Ale" - 2 coins → +3 patience
-- "Information" - 1 coin → reveal observation
+- "Buy Food" - 2 coins → Reset hunger to 0
+- "Join Merchant Caravan" - 10 coins → One-time transport to Noble Quarter (requires 2 Commerce tokens + "Merchant Caravan Route" played)
 
 #### Guard's Permit Card
-- "Noble District Permit" - 10 coins → unlocks main gate route
+- "Noble District Permit" - 20 coins → Unlocks checkpoint route (deliberate dead end)
 
-### 4. Location Spot Actions
+### 5. Location Spot Actions
 
 #### Market Square Actions
-- "Work: Haul Goods" - Spend 2 attention → Gain 8 coins
-- "Work: Scribe Letters" - Spend 3 attention → Gain 12 coins
-- "Observe: Guard Patterns" - Spend 1 attention → Gain observation card
-- "Observe: Merchant Routes" - Spend 1 attention → Gain route knowledge
+- "Investigate" - Spend 1 attention → Gain familiarity (scaled by spot property: Quiet=+2, Busy=+1)
+- "Observe" - Spend 0 attention → Gain observation card to NPC deck (requires familiarity)
+- "Work: Haul Goods" - Spend 2 attention → Gain coins (5 - floor(hunger/25))
 
 #### Copper Kettle Actions
+- "Investigate" - Spend 1 attention → Gain +1 familiarity
 - "Rest by Fire" - Spend 5 coins → Restore stamina
-- "Order Food" - Spend 3 coins → Reduce hunger by 20
-- "Listen to Gossip" - Spend 1 attention → Gain observation
 
-#### Noble District Actions
-- "Work: Noble Errands" - Spend 2 attention → Gain 15 coins
-- "Observe: Estate Schedules" - Spend 1 attention → Gain timing knowledge
-
-### 5. Observation Cards (Player Deck Additions)
-
-These cards are added to the player's conversation deck when observations are made:
-
-- **"Merchant Route Knowledge"**
-  - Focus: 1, Very Easy
-  - Effect: Unlocks secret merchant route to Noble District
-  - Expires: Never
-
-- **"Guard Shift Patterns"**
-  - Focus: 1, Very Easy
-  - Effect: Set Pressured atmosphere
-  - Expires: 24 hours
-
-- **"Elena's Desperation"**
-  - Focus: 1, Very Easy
-  - Effect: Set Informed atmosphere (next card auto-succeeds)
-  - Expires: 48 hours
-
-- **"Crowded Market"**
-  - Focus: 1, Very Easy
-  - Effect: Next action costs 0 patience
-  - Expires: 4 hours
-
-- **"Emergency Rapport"**
-  - Focus: 1, Very Easy
-  - Effect: Set rapport to 15
-  - Expires: 12 hours
+#### Noble Quarter Actions
+- No special actions (destination only)
 
 ### 6. Location Structure
 
 #### Market Square
-- **central_fountain** (crossroads, public, -1 patience)
-  - Travel hub spot
-  - Work actions available
-- **merchant_row** (commercial, busy)
+- **fountain** (Quiet in morning, Busy in afternoon, Closing in evening)
+  - Investigation scaling varies by time
+  - Observation point for both cards
+- **merchant_row** (Commercial)
   - Marcus location
-- **guard_post** (authority, guarded)
+  - Work action available
+- **guard_post** (Authority)
   - Guard Captain location
-  - Permit exchange available
-- **north_alcove** (discrete, private, +1 patience)
-  - Hidden observation point
+  - Permit exchange available (20 coins)
 
 #### Copper Kettle Tavern
-- **main_hall** (crossroads, public, -1 patience)
+- **common_room** (Public)
   - Travel hub spot
-- **corner_table** (private, quiet, +1 patience)
-  - Elena location (afternoon only)
-- **bar_counter** (service, social)
-  - Bertram location
-  - All tavern services
+- **corner_table** (Private)
+  - Elena location (always available)
+- **bar_counter** (Service)
+  - Bertram location (not used in POC)
 
 #### Noble District
-- **gate_entrance** (crossroads, guarded)
-  - Travel hub spot
+- **gate_entrance** (Guarded)
   - Checkpoint location
-- **blackwood_estate** (noble, exclusive)
+- **blackwood_manor** (Noble)
   - Lord Blackwood location
 
-#### Courier Office
-- **office_desk** (crossroads, private)
-  - Starting location
-  - Travel hub spot
+#### Warehouse District
+- **warehouse_entrance** (Commercial)
+  - Marcus's letter recipient
 
 ### 7. Travel Routes
 
 #### Primary Routes
-1. **Courier Office ↔ Market Square**
-   - 10 minutes, free
-   - Always available
-
-2. **Market Square ↔ Copper Kettle**
+1. **Market Square ↔ Copper Kettle**
    - 15 minutes, free
    - Always available
 
-3. **Market Square → Noble District (Main Gate)**
+2. **Market Square ↔ Warehouse District**
+   - 20 minutes, free
+   - Always available
+
+3. **Market Square → Noble District (Checkpoint)**
    - 25 minutes, free
    - Requires: Noble District Permit
 
-4. **Market Square → Noble District (Merchant Route)**
-   - 35 minutes, free
-   - Requires: Merchant Route Knowledge (observation)
-   - Discrete, avoids guards
-
-5. **Copper Kettle ↔ Courier Office**
-   - 20 minutes, free
-   - Always available
+4. **Market Square → Noble District (Caravan)**
+   - 20 minutes, 10 coins
+   - Requires: Marcus exchange unlocked via observation card
 
 ## Implementation Priority
 
 ### Phase 1: Core Conversation System
 1. Implement base deck with personality filtering
-2. Add Elena's urgent letter request
-3. Test conversation flow with Elena
-4. Verify rapport system and flow tracking
+2. Add NPC observation decks
+3. Add Elena's urgent letter request
+4. Test conversation flow with Elena
+5. Verify rapport system and flow tracking
 
-### Phase 2: Economy Loop
+### Phase 2: Location Mechanics
+1. Implement familiarity system (0-3 per location)
+2. Add investigation action (scales with spot properties)
+3. Add observation system (requires familiarity, costs 0 attention)
+4. Test familiarity progression
+
+### Phase 3: Economy Loop
 1. Add Marcus's exchange cards
-2. Add Bertram's service cards
-3. Implement location spot actions
+2. Implement token-gated exchanges
+3. Add work action with hunger scaling
 4. Test resource management
 
-### Phase 3: Travel & Exploration
+### Phase 4: Travel & Integration
 1. Create all location spots
 2. Implement both Noble District routes
-3. Add observation system
+3. Add complete observation flow
 4. Test complete gameplay loop
-
-### Phase 4: Polish
-1. Balance card focuses and difficulties
-2. Tune economy values
-3. Adjust timing for tension
-4. Verify all three loops integrate
 
 ## Success Criteria
 
 The POC is complete when:
-1. Player can start conversation with disconnected Elena
-2. Elena's request becomes playable at appropriate focus capacity
-3. Request gains Impulse+Opening when playable
-4. Player manages rapport to improve success chances
-5. Flow tracks success/failure correctly
-6. Starting rapport equals connection tokens
-7. Noble District accessible via permit OR secret route
-8. Economy loop supports gameplay (work → coins → services)
+1. Player can investigate Market Square to build familiarity
+2. First observation adds "Safe Passage Knowledge" to Elena's deck
+3. Elena conversation becomes possible with observation card
+4. Elena's request becomes playable at appropriate focus capacity
+5. Second observation adds "Merchant Caravan Route" to Marcus's deck
+6. Marcus's caravan exchange unlocks when card played
+7. Noble District accessible via caravan OR impossible permit
+8. Work scales with hunger (work while fed gives more coins)
 9. All three core loops demonstrated in single playthrough
 
 ## Key Narrative Beats
 
-1. **Opening**: Player in Market Square, Elena disconnected at Copper Kettle
-2. **Crisis**: Elena's letter has fixed urgent terms (1hr, position 1)
-3. **Challenge**: Building rapport for request success
-4. **Obstacle**: Getting to Noble District (permit or knowledge)
-5. **Resolution**: Deliver letter before sunset deadline
-6. **Consequence**: Elena's fate determined by player success
+1. **Opening**: Player at Market Square with Viktor's package, Elena desperate at tavern
+2. **Discovery**: Investigation reveals knowledge that helps specific NPCs
+3. **Crisis**: Elena needs trust through demonstrated knowledge of escape routes
+4. **Challenge**: Building infrastructure before attempting main quest
+5. **Obstacle**: Getting to Noble District (permit too expensive, need caravan)
+6. **Resolution**: Deliver letter before 5 PM deadline
+7. **Consequence**: Elena's fate determined by player success
 
-This content package provides a complete, focused POC demonstrating all core Wayfarer mechanics with the refined rapport/flow system.
+This content package provides a complete, focused POC demonstrating all core Wayfarer mechanics with the refined investigation/observation system where discovered knowledge goes directly to relevant NPC observation decks.

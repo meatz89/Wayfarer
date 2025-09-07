@@ -14,7 +14,7 @@ The three core game loops answer fundamental design questions while maintaining 
 ### Mechanical Framework
 
 **The Conversation Puzzle**:
-1. Connection States determine focus capacity (3-6) and card draws (1-3)
+1. Emotional states determine focus capacity (3-6) and card draws (1-3)
 2. Focus persists across SPEAK actions, refreshes on LISTEN
 3. Flow (-3 to +3) tracks success/failure, triggers state transitions at extremes
 4. Rapport (-50 to +50) modifies all success rates linearly (+2% per point)
@@ -31,7 +31,7 @@ The three core game loops answer fundamental design questions while maintaining 
 7. Failure: Add burden card to relationship
 
 **Focus Management**:
-- Capacity determined by connection state (3-6)
+- Capacity determined by emotional state (3-6)
 - Each SPEAK spends focus from pool
 - Pool persists until depleted or refreshed
 - LISTEN refreshes pool to current maximum
@@ -45,6 +45,14 @@ The three core game loops answer fundamental design questions while maintaining 
 - Failure clears to Neutral atmosphere
 - Shapes entire conversation flow
 
+**NPC Observation Decks** (NEW):
+- Each NPC has an observation deck alongside conversation and request decks
+- Location observations create cards that go into specific NPCs' observation decks
+- At conversation start, all observation deck cards automatically drawn as persistent
+- These cards don't count against hand size or normal draw limits
+- Playing them costs one SPEAK action but 0 focus
+- Cards consumed after use
+
 Starting rapport (equal to connection tokens) determines initial success chance, making established relationships easier to navigate.
 
 This creates multi-conversation arcs where relationships built through successful deliveries improve future starting conditions.
@@ -52,7 +60,7 @@ This creates multi-conversation arcs where relationships built through successfu
 ### Conversation Outputs
 - **Promises**: Create obligations in queue (letters, meetings, escorts, etc.)
 - **Tokens**: Gained only through successful letter delivery (+1 to +3)
-- **Observations**: Cards for player's observation deck with unique effects
+- **Observations**: Cards added to specific NPCs' observation decks
 - **Deck Evolution**: Successful completions modify NPC decks
 - **Permits**: Special promises that enable routes
 - **Burden Cards**: Failed requests damage relationships
@@ -96,7 +104,7 @@ Request cards no longer involve negotiation - terms are fixed based on the reque
 
 Personality influences which requests are available:
 - Proud NPCs offer urgent, high-position requests
-- Disconnected connection state only has crisis requests
+- Desperate emotional state only has crisis requests
 - Mercantile NPCs focus on profitable exchanges
 
 ### Strategic Queue Patterns
@@ -113,8 +121,27 @@ Personality influences which requests are available:
 
 ### Design Questions Answered
 - **How does progression manifest?** Access to new routes and locations
-- **How does world grow?** Player observation deck and discoveries unlock content
+- **How does world grow?** Location familiarity and discoveries unlock content
 - **What creates exploration?** Information has mechanical value through unique effects
+
+### Location Familiarity System (NEW)
+
+**Familiarity Mechanics**:
+- Each location tracks Familiarity (0-3)
+- Represents player's understanding of location patterns and secrets
+- Only increased by Investigation action (not NPC interactions)
+- Never decreases
+- Determines observation rewards available
+
+**Investigation Action**:
+- Costs 1 attention
+- Takes 10 minutes game time
+- Familiarity gain scales with current spot properties:
+  - Quiet spots: +2 familiarity
+  - Busy spots: +1 familiarity
+  - Other spots: +1 familiarity
+- Can investigate same location multiple times
+- Creates Istanbul-style timing decisions
 
 ### Travel Mechanics
 
@@ -135,25 +162,23 @@ Personality influences which requests are available:
 - No associated obligation
 - Enable specific routes while held
 
-### Player Observation Deck System
+### Observation System (REFINED)
 
-**Building Your Deck** (1 attention at locations):
-- Different observations available each time period
-- Creates observation cards with unique effects
-- Focus 1, persistent, 85% success (Very Easy)
-- Expire after 24-48 hours
-- Maximum 20 cards in deck
-- Represent temporal knowledge
+**Building Discoveries**:
+- Observations require minimum familiarity levels
+- Each observation requires all prior observations at that location
+- Cost 0 attention (just noticing what you understand)
+- Create cards that go into specific NPCs' observation decks
+- Different observations available at different familiarity levels:
+  - First observation: Requires familiarity 1+
+  - Second observation: Requires familiarity 2+ AND first observation done
+  - Third observation: Requires familiarity 3+ AND second observation done
 
-**Unique Observation Effects**:
-- **Atmosphere Setters**: Informed, Exposed, Synchronized, Pressured
-- **Cost Bypasses**: Next action free, next SPEAK costs 0 focus
-- **Unique Manipulations**: Set rapport to 15, refresh focus
-
-**Observation Sources**:
-- Location observations (spend attention)
-- NPC rewards (completing promises)
-- Travel discoveries (finding routes)
+**Observation Effects**:
+- Cards created go to predetermined NPCs' observation decks
+- Represent location knowledge meaningful to specific NPCs
+- Automatically available when conversing with relevant NPC
+- Can unlock exchanges, change emotional states, or provide unique effects
 
 ### Travel Encounters
 
@@ -172,10 +197,16 @@ Success allows passage, failure costs resources.
 
 Attention enables:
 - **Conversations** (2): Access to letters and tokens
-- **Observations** (1): Build player deck for unique effects
-- **Work** (2): Coins but time cost
+- **Investigations** (1): Build location familiarity
+- **Observations** (0): Discover cards for NPC observation decks
+- **Work** (2): Coins but time cost, scaled by hunger
 
-This forces prioritization between relationship building, information gathering, and resource generation.
+Work output scales with hunger:
+- Formula: coins = base_amount - floor(hunger / 25)
+- Hungry workers are less productive
+- Creates meaningful choice about when to eat
+
+This forces prioritization between relationship building, location investment, and resource generation.
 
 ### Token Economy Integration
 
@@ -183,6 +214,7 @@ Tokens serve multiple purposes through different mechanics:
 - **Starting Rapport**: Each token provides 1 starting rapport in conversations
 - **Queue Displacement**: Burn for queue flexibility (permanent cost)
 - **Scaling Effects**: Some cards scale rapport gain with token count
+- **Exchange Gates**: Minimum tokens required for special exchanges
 
 Tokens only gained through successful letter delivery:
 - Standard delivery: +1 token with recipient (type based on letter)
@@ -195,6 +227,7 @@ Each use is a different mechanic with one purpose. Higher tokens mean easier con
 
 Time advances through:
 - **Travel**: Route-specific time costs
+- **Investigation**: 10 minutes per action
 - **Work**: 4-hour period advance
 - **Rest**: Variable time skip
 - **Natural progression**: During lengthy activities
@@ -223,7 +256,7 @@ Deadlines create cascading decisions:
 - Access permits require successful request card plays
 - Travel time reduces deadline margins
 - Encounters can damage resources
-- Observations cost attention that could fund conversations
+- Building familiarity costs attention that could fund conversations
 
 ### How Loops Solve Each Other's Problems
 
@@ -241,8 +274,8 @@ Deadlines create cascading decisions:
 
 **Travel solves Queue problems**:
 - Efficient routing chains obligations
-- Exploration reveals shortcuts
-- Observations provide conversation advantages through unique effects
+- Location familiarity unlocks observations for NPC advantages
+- Investigations at optimal times maximize efficiency
 - Strategic timing aligns with NPC availability
 
 ## Strategic Layer Emergence
@@ -254,14 +287,15 @@ Deadlines create cascading decisions:
 - Building rapport early for success momentum
 - Managing flow to avoid unwanted transitions
 - Whether to play request immediately when available
-- Which observation to make now
+- Which spot to investigate from for best familiarity gain
 - Whether to displace queue position
 
 ### Medium-term Planning
 - Building toward states with sufficient focus capacity
 - Managing queue to chain obligations
 - Accumulating permits for route access
-- Timing observations for conversation advantages
+- Building location familiarity for observations
+- Timing investigations for optimal spot properties
 - Setting up atmosphere chains for maximum effect
 - Planning multi-SPEAK sequences with focus
 - Building rapport curves within conversations
@@ -271,8 +305,12 @@ Deadlines create cascading decisions:
   - Each NPC relationship provides starting rapport
   - Concentrated tokens create conversation advantages
   - Different letter types build different token types
+- **Which locations to invest familiarity in**
+  - Each location offers different observation rewards
+  - Some observations unlock critical NPC options
+  - Familiarity investment is permanent
 - **Managing burden accumulation across relationships**
-- **Building observation deck for specific challenges**
+- **Building observation advantages for specific NPCs**
 - **Developing permit collection for route flexibility**
 - **Balancing token preservation vs queue efficiency**
 
@@ -285,7 +323,7 @@ Each loop provides escape valves:
 - Can LISTEN to refresh focus
 - Can leave and return later
 - Patient atmosphere removes patience cost
-- Observation cards provide unique solutions
+- Observation cards in NPC decks provide unique solutions
 
 **Queue deadlocks**:
 - Can always displace (at token cost)
@@ -305,13 +343,15 @@ New NPCs simply need:
 - Personality type (determines patience and token burning)
 - Deck composition (20 cards following template)
 - Request deck (available conversation types with fixed terms)
+- Observation deck (receives cards from location observations)
 - Exchange deck (if mercantile)
 - Token rewards for successful deliveries
 
 ### Adding Locations
 New locations simply need:
-- Spot properties (Crossroads, Commercial, etc.)
-- Available observations per time period
+- Spot properties (Crossroads, Commercial, Quiet, Busy, etc.)
+- Observation rewards at each familiarity level
+- Which NPC receives each observation card
 - NPCs present at which times
 - Routes and permit requirements
 
@@ -327,19 +367,19 @@ New cards must:
 
 The player experiences:
 
-**Morning**: Check queue, plan route to chain obligations efficiently, refresh focus
+**Morning**: Check queue, investigate locations while quiet, plan route efficiently
 
-**Travel**: Navigate using permits, add observations to player deck
+**Travel**: Navigate using permits, build familiarity through investigation
 
-**Conversations**: Build rapport early, manage focus, navigate flow progression
+**Conversations**: Use observation cards from NPC decks, build rapport, navigate flow
 
-**Afternoon**: Work for resources or rush to meet deadlines
+**Afternoon**: Investigate busy locations (less efficient), work for resources
 
 **Evening**: Complete deliveries, gain tokens, see deck evolution results
 
 Each session creates unique stories through mechanical interaction:
-- Elena disconnected about forced marriage (3 focus capacity, low starting rapport)
-- Marcus calculating profit margins (Commerce tokens provide starting rapport)  
+- Elena desperate about forced marriage (needs observation card to calm)
+- Marcus calculating profit margins (Commerce tokens unlock caravan)  
 - Guard Captain suspicious of bribes (Shadow tokens help initial trust)
 
 These emerge from mechanical state, not scripted events.
@@ -348,15 +388,16 @@ These emerge from mechanical state, not scripted events.
 
 The three loops create a complete game where:
 
-1. **Conversations** provide puzzle challenge through focus management, rapport building, and flow navigation
+1. **Conversations** provide puzzle challenge through focus management, rapport building, and flow navigation, enhanced by observation cards in NPC decks
 2. **Queue** provides time pressure through forced sequential completion and token-burning displacement
-3. **Travel** provides exploration through observation effects and permit-locked routes
+3. **Travel** provides exploration through location familiarity, investigation timing, and observation discoveries
 
 Each loop uses different mechanics that operate on shared resources:
 - Tokens provide starting rapport, creating easier conversations with investment
+- Familiarity provides observations, creating NPC advantages through exploration
 - Only gained through delivery success, forcing engagement with all systems
 - Time pressure affects all three but manifests differently
 - Attention enables all three but must be allocated strategically
 - Rapport creates success momentum unique to conversations
 
-The elegance is that no mechanic serves two purposes, yet resources flow through multiple systems creating strategic depth from simple rules. Starting rapport from tokens creates natural relationship progression. The game is the intersection, not the individual loops.
+The elegance is that no mechanic serves two purposes, yet resources flow through multiple systems creating strategic depth from simple rules. Starting rapport from tokens creates natural relationship progression. Location familiarity from investigation creates exploration progression. The game is the intersection, not the individual loops.
