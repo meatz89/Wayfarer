@@ -76,17 +76,10 @@ public static class ConversationCardParser
         // Mark as request card to ensure proper parsing
         dto.IsRequestCard = true;
         
-        // Convert to RequestCard (will preserve default EndConversation effects)
+        // Convert to ConversationCard (no more RequestCard subclass)
         ConversationCard card = ConvertDTOToCard(dto);
         
-        // If it's a RequestCard, customize the ID for this specific NPC
-        if (card is RequestCard requestCard)
-        {
-            requestCard.Id = $"{cardId}_{npcId}";
-            return requestCard;
-        }
-
-        // Fallback for non-request cards (shouldn't happen)
+        // Customize the ID for this specific NPC
         card.Id = $"{cardId}_{npcId}";
         return card;
     }
@@ -126,57 +119,57 @@ public static class ConversationCardParser
         CardEffect failureEffect = ParseEffect(dto.FailureEffect) ?? CardEffect.None;
         CardEffect exhaustEffect = ParseEffect(dto.ExhaustEffect) ?? CardEffect.None;
 
-        // Check if this is a Request card
-        ConversationCard card;
-        if (dto.Type == "Request" || dto.Type == "Goal" || dto.IsRequestCard == true)
+        // Parse card type from DTO type field
+        CardType cardType = ParseCardType(dto, successEffect);
+
+        // Create ConversationCard (no more RequestCard subclass)
+        ConversationCard card = new ConversationCard
         {
-            // Create RequestCard for request/promise cards
-            RequestCard requestCard = new RequestCard
-            {
-                Id = dto.Id,
-                Description = dto.Description ?? "",
-                TokenType = tokenType,
-                // Request cards have 0 focus now
-                Focus = 0,
-                // Always 100% success
-                Difficulty = Difficulty.VeryEasy,
-                PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
-                DialogueFragment = dto.DialogueFragment,
-                VerbPhrase = "", // Will be set later if needed
-                // Set rapport threshold
-                RapportThreshold = dto.RapportThreshold ?? 5,
-                // Set goal type for FriendlyChat detection
-                GoalType = dto.GoalType
-            };
+            Id = dto.Id,
+            Description = dto.Description ?? "",
+            CardType = cardType,
+            TokenType = tokenType,
+            Focus = dto.Focus,
+            Difficulty = difficulty,
+            PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
+            // Three-effect system
+            SuccessEffect = successEffect ?? CardEffect.None,
+            FailureEffect = failureEffect ?? CardEffect.None,
+            ExhaustEffect = exhaustEffect ?? CardEffect.None,
+            DialogueFragment = dto.DialogueFragment,
+            VerbPhrase = "" // Will be set later if needed
+        };
+
+        // Set goal-specific properties for backward compatibility
+        if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.BurdenGoal)
+        {
+            // Goal cards have 0 focus and always succeed
+            card.Focus = 0;
+            card.Difficulty = Difficulty.VeryEasy;
             
-            // Only override effects if explicitly provided in JSON
-            // RequestCard constructor already sets default EndConversation effects
-            if (successEffect != null && successEffect.Type != CardEffectType.None)
+            // Add persistent property
+            if (!card.Properties.Contains(CardProperty.Persistent))
+                card.Properties.Add(CardProperty.Persistent);
+                
+            // Set default end conversation effect if not specified
+            if (card.SuccessEffect.Type == CardEffectType.None)
             {
-                requestCard.SuccessEffect = successEffect;
+                card.SuccessEffect = new CardEffect
+                {
+                    Type = CardEffectType.EndConversation,
+                    Value = "request_accepted"
+                };
             }
-            // RequestCard defaults handle failure and exhaust effects
             
-            card = requestCard;
-        }
-        else
-        {
-            // Create normal ConversationCard
-            card = new ConversationCard
+            // Set exhaust effect for goal cards
+            if (card.ExhaustEffect.Type == CardEffectType.None)
             {
-                Id = dto.Id,
-                Description = dto.Description ?? "",
-                TokenType = tokenType,
-                Focus = dto.Focus,
-                Difficulty = difficulty,
-                PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
-                // Three-effect system
-                SuccessEffect = successEffect ?? CardEffect.None,
-                FailureEffect = failureEffect ?? CardEffect.None,
-                ExhaustEffect = exhaustEffect ?? CardEffect.None,
-                DialogueFragment = dto.DialogueFragment,
-                VerbPhrase = "" // Will be set later if needed
-            };
+                card.ExhaustEffect = new CardEffect
+                {
+                    Type = CardEffectType.EndConversation,
+                    Value = "request_exhausted"
+                };
+            }
         }
 
         // Parse properties array
@@ -209,18 +202,30 @@ public static class ConversationCardParser
     }
 
     /// <summary>
-    /// Convert NPCGoalCardDTO to RequestCard
+    /// Convert NPCGoalCardDTO to ConversationCard
     /// </summary>
-    public static RequestCard ConvertGoalCardDTO(NPCGoalCardDTO dto)
+    public static ConversationCard ConvertGoalCardDTO(NPCGoalCardDTO dto)
     {
-        RequestCard card = new RequestCard
+        // Parse effects
+        CardEffect successEffect = ParseEffect(dto.SuccessEffect) ?? CardEffect.None;
+        
+        // Determine card type based on the goal type
+        CardType cardType = dto.Type?.ToLower() switch
+        {
+            "letter" => CardType.Letter,
+            "promise" => CardType.Promise,
+            "burdengoal" => CardType.BurdenGoal,
+            _ => CardType.Promise // Default for goal cards
+        };
+        
+        ConversationCard card = new ConversationCard
         {
             Id = dto.Id,
             Description = dto.Description,
-            Focus = dto.Focus,
+            CardType = cardType,
+            Focus = 0, // Goal cards have 0 focus
             DialogueFragment = dto.DialogueFragment,
-            RapportThreshold = dto.RapportThreshold,
-            GoalType = dto.Type // Store the goal type from JSON
+            Difficulty = Difficulty.VeryEasy // Goal cards always succeed
         };
 
         // Parse difficulty
@@ -249,17 +254,31 @@ public static class ConversationCardParser
                 }
             }
         }
+        
+        // Add persistent property for goal cards
+        if (!card.Properties.Contains(CardProperty.Persistent))
+            card.Properties.Add(CardProperty.Persistent);
 
-        // Only override success effect if explicitly provided in JSON
-        // RequestCard constructor already sets default EndConversation effect
-        if (dto.SuccessEffect != null)
+        // Set success effect or default
+        if (successEffect != null && successEffect.Type != CardEffectType.None)
         {
-            CardEffect parsed = ParseEffect(dto.SuccessEffect);
-            if (parsed != null && parsed.Type != CardEffectType.None)
-            {
-                card.SuccessEffect = parsed;
-            }
+            card.SuccessEffect = successEffect;
         }
+        else
+        {
+            card.SuccessEffect = new CardEffect
+            {
+                Type = CardEffectType.EndConversation,
+                Value = "request_accepted"
+            };
+        }
+        
+        // Set exhaust effect
+        card.ExhaustEffect = new CardEffect
+        {
+            Type = CardEffectType.EndConversation,
+            Value = "request_exhausted"
+        };
 
         return card;
     }
@@ -285,6 +304,53 @@ public static class ConversationCardParser
         // The actual exchange data will be populated at runtime from GameWorld.ExchangeDefinitions
 
         return effect;
+    }
+
+    /// <summary>
+    /// Parse card type from DTO type field and effects
+    /// </summary>
+    private static CardType ParseCardType(ConversationCardDTO dto, CardEffect successEffect)
+    {
+        if (string.IsNullOrEmpty(dto.Type))
+            return CardType.Conversation;
+            
+        return dto.Type.ToLower() switch
+        {
+            "exchange" => CardType.Exchange,
+            "letter" => CardType.Letter,
+            "letterrequest" => CardType.Letter,
+            "promise" => CardType.Promise,
+            "burdengoal" => CardType.BurdenGoal,
+            "observation" => CardType.Observation,
+            "goal" => DetermineGoalCardType(dto, successEffect),
+            "normal" => CardType.Conversation,
+            "request" => CardType.Promise, // Legacy request cards are promises
+            _ => CardType.Conversation // Default to conversation
+        };
+    }
+
+    /// <summary>
+    /// Determine if a Goal card is Letter or Promise based on its effects
+    /// </summary>
+    private static CardType DetermineGoalCardType(ConversationCardDTO dto, CardEffect successEffect)
+    {
+        // If the success effect is OfferLetter, it's a Letter type
+        if (successEffect?.Type == CardEffectType.OfferLetter)
+            return CardType.Letter;
+            
+        // Check the goalType field for additional hints
+        if (!string.IsNullOrEmpty(dto.GoalType))
+        {
+            return dto.GoalType.ToLower() switch
+            {
+                "letter" => CardType.Letter,
+                "burdenamends" => CardType.BurdenGoal,
+                _ => CardType.Promise
+            };
+        }
+        
+        // Default Goal cards to Promise type
+        return CardType.Promise;
     }
 
     /// <summary>

@@ -247,7 +247,7 @@ public class CardEffectProcessor
     public int CalculateSuccessPercentage(CardInstance card, ConversationSession session)
     {
         // Exchange cards always succeed (they're trades, not skill checks)
-        if (card.Properties.Contains(CardProperty.Exchange))
+        if (card.IsExchange)
         {
             return 100;
         }

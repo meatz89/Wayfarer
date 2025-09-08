@@ -7,6 +7,9 @@ public class ConversationCard
     public string Id { get; set; }
     public string Description { get; set; }
 
+    // Single source of truth for card type
+    public CardType CardType { get; set; } = CardType.Conversation;
+
     // Properties list replaces all boolean flags
     public List<CardProperty> Properties { get; set; } = new List<CardProperty>();
 
@@ -41,7 +44,7 @@ public class ConversationCard
     public bool IsPersistent => !Properties.Contains(CardProperty.Impulse)
                                 && !Properties.Contains(CardProperty.Opening);
     public bool IsBurden => Properties.Contains(CardProperty.Burden);
-    public bool IsObservable => Properties.Contains(CardProperty.Observable);
+    public bool IsObservable => CardType == CardType.Observation;
 
     // Get base success percentage from difficulty tier
     public int GetBaseSuccessPercentage()
@@ -57,27 +60,10 @@ public class ConversationCard
         };
     }
 
-    // Helper to get category name for compatibility
-    public string Category
-    {
-        get
-        {
-            if (Properties.Contains(CardProperty.Exchange)) return nameof(CardCategory.Exchange);
-            if (IsBurden) return nameof(CardCategory.Burden);
-            if (Properties.Contains(CardProperty.GoalCard)) return nameof(CardCategory.Promise);
-            if (IsObservable) return nameof(CardCategory.Observation);
-            // Default to Flow for backwards compatibility
-            return nameof(CardCategory.Flow);
-        }
-    }
 
     // Additional compatibility properties for UI
-    public CardType Type => Properties.Contains(CardProperty.Exchange) ? CardType.Exchange :
-                           Properties.Contains(CardProperty.GoalCard) ? CardType.Request :
-                           IsObservable ? CardType.Observation :
-                           CardType.Normal;
     public CardContext Context => null;
-    public string RequestCardType => Properties.Contains(CardProperty.GoalCard) ? "Request" : null;
+    public string RequestCardType => (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal) ? "Request" : null;
 
     // Deep clone for deck instances
     public ConversationCard DeepClone()
@@ -99,7 +85,8 @@ public class ConversationCard
             FailureEffect = this.FailureEffect?.DeepClone() ?? CardEffect.None,
             ExhaustEffect = this.ExhaustEffect?.DeepClone() ?? CardEffect.None,
             DialogueFragment = this.DialogueFragment,
-            VerbPhrase = this.VerbPhrase
+            VerbPhrase = this.VerbPhrase,
+            CardType = this.CardType
         };
     }
 

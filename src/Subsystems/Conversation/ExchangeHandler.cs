@@ -101,8 +101,8 @@ public class ExchangeHandler
 
         foreach (ConversationCard card in npc.ExchangeDeck.GetAllCards())
         {
-            // Exchange cards should have Exchange property
-            if (!card.Properties.Contains(CardProperty.Exchange))
+            // Exchange cards should have Exchange CardType
+            if (card.CardType != CardType.Exchange)
                 continue;
 
             // Check domain requirements

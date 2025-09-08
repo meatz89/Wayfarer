@@ -76,5 +76,15 @@ public enum CardEffectType
     /// <summary>
     /// Unlock a hidden exchange option (observation cards only)  
     /// </summary>
-    UnlockExchange
+    UnlockExchange,
+
+    /// <summary>
+    /// Offer a letter for delivery (letter cards only)
+    /// </summary>
+    OfferLetter,
+
+    /// <summary>
+    /// Gain connection tokens (goal cards)
+    /// </summary>
+    GainToken
 }

@@ -32,21 +32,6 @@ public enum CardProperty
     Burden,
 
     /// <summary>
-    /// Card comes from observation system
-    /// </summary>
-    Observable,
-
-    /// <summary>
-    /// Card represents an exchange offer
-    /// </summary>
-    Exchange,
-
-    /// <summary>
-    /// Card is a goal card (request/promise) that requires rapport threshold
-    /// </summary>
-    GoalCard,
-
-    /// <summary>
     /// Card cannot be played until conditions are met (e.g., request card before sufficient focus)
     /// </summary>
     Unplayable
