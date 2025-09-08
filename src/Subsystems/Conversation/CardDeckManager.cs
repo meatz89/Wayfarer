@@ -269,22 +269,54 @@ public class CardDeckManager
         // Add to active cards
         session.ActiveCards.AddRange(drawnCards);
 
-        // Check if any request cards should become playable
-        UpdateRequestCardPlayability(session);
+        // Check if any goal cards should become playable based on rapport
+        UpdateGoalCardPlayabilityAfterListen(session);
 
         return drawnCards;
     }
 
     /// <summary>
-    /// Check if request cards should become playable based on focus capacity
+    /// Check if goal cards should become playable after LISTEN based on rapport threshold
+    /// </summary>
+    public void UpdateGoalCardPlayabilityAfterListen(ConversationSession session)
+    {
+        // Get current rapport
+        int currentRapport = session.RapportManager?.CurrentRapport ?? 0;
+        
+        // Check all goal cards in active hand
+        foreach (CardInstance card in session.ActiveCards.Cards)
+        {
+            // Only process goal cards that are currently Unplayable
+            if ((card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
+                && card.Properties.Contains(CardProperty.Unplayable))
+            {
+                // Check if rapport threshold is met
+                int rapportThreshold = card.Context?.RapportThreshold ?? 0;
+                
+                if (currentRapport >= rapportThreshold)
+                {
+                    // Remove Unplayable property
+                    card.Properties.Remove(CardProperty.Unplayable);
+                    
+                    // Add Impulse and Opening properties (must be played immediately)
+                    if (!card.Properties.Contains(CardProperty.Impulse))
+                        card.Properties.Add(CardProperty.Impulse);
+                    if (!card.Properties.Contains(CardProperty.Opening))
+                        card.Properties.Add(CardProperty.Opening);
+                    
+                    // Mark that a request card is now playable
+                    session.RequestCardDrawn = true;
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Legacy method for compatibility - now just marks request card presence
     /// </summary>
     public void UpdateRequestCardPlayability(ConversationSession session)
     {
-        // Request cards (promise/goal cards) have their playability determined by rapport threshold,
-        // NOT by focus. Their playability is checked in the UI based on rapport.
-        // We only mark that a request card exists in the hand.
-
-        // Check if there's a request card in active cards (GoalCard property)
+        // This is called at conversation start - just check for goal card presence
         bool hasRequestCard = session.ActiveCards.Cards
             .Any(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.BurdenGoal);
 
@@ -292,9 +324,6 @@ public class CardDeckManager
         {
             session.RequestCardDrawn = true;
         }
-
-        // DO NOT modify request card properties here - they stay Unplayable until
-        // rapport threshold is met, which is checked in ConversationContent.CanSelectCard()
     }
 
     /// <summary>
@@ -469,11 +498,15 @@ public class CardDeckManager
     /// </summary>
     public bool CanPlayCard(CardInstance card, ConversationSession session)
     {
+        // Check if card is marked as Unplayable
+        if (card.Properties.Contains(CardProperty.Unplayable))
+            return false;
+            
         // Check focus availability
         if (!_focusManager.CanAffordCard(card.Focus))
             return false;
 
-        // Check rapport threshold ONLY for goal cards
+        // Additional rapport check for goal cards (as a fallback/validation)
         if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
         {
             // Use the rapport threshold we stored in CardContext
@@ -542,6 +575,10 @@ public class CardDeckManager
         // Use the rapport threshold from the card itself (from JSON)
         goalInstance.Context.RapportThreshold = selectedGoal.RapportThreshold;
         
+        // Goal cards start as Unplayable until rapport threshold is met
+        if (!goalInstance.Properties.Contains(CardProperty.Unplayable))
+            goalInstance.Properties.Add(CardProperty.Unplayable);
+        
         return goalInstance;
     }
 
@@ -570,6 +607,10 @@ public class CardDeckManager
         
         // Use the rapport threshold from the card itself (from JSON)
         resolutionInstance.Context.RapportThreshold = selectedResolution.RapportThreshold;
+        
+        // Goal cards start as Unplayable until rapport threshold is met
+        if (!resolutionInstance.Properties.Contains(CardProperty.Unplayable))
+            resolutionInstance.Properties.Add(CardProperty.Unplayable);
         
         return resolutionInstance;
     }
@@ -600,6 +641,10 @@ public class CardDeckManager
 
             // Store the rapport threshold from the card
             requestInstance.Context.RapportThreshold = selectedRequest.RapportThreshold;
+            
+            // Goal cards start as Unplayable until rapport threshold is met
+            if (!requestInstance.Properties.Contains(CardProperty.Unplayable))
+                requestInstance.Properties.Add(CardProperty.Unplayable);
         }
 
         return requestInstance;
