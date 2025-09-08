@@ -920,14 +920,18 @@ namespace Wayfarer.Pages.Components
 
         protected int GetRequestRapportThreshold(CardInstance card)
         {
-            // Check if rapport threshold is stored in the card context
-            if (card?.Context?.RapportThreshold > 0)
+            // Goal cards MUST have rapport threshold in context - no fallbacks
+            if (card?.Context == null)
             {
-                return card.Context.RapportThreshold;
+                throw new InvalidOperationException($"Goal card '{card?.Id}' has no context!");
             }
-
-            // Default threshold for requests is 5 rapport if not specified
-            return 5;
+            
+            if (card.Context.RapportThreshold <= 0)
+            {
+                throw new InvalidOperationException($"Goal card '{card.Id}' has invalid rapport threshold: {card.Context.RapportThreshold}");
+            }
+            
+            return card.Context.RapportThreshold;
         }
 
         protected int GetCurrentRapport()

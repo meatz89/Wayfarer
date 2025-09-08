@@ -189,6 +189,7 @@
         "connectionType": "Trust",
         "description": "Deliver my letter to Lord Blackwood",
         "difficulty": "Easy",
+        "rapportThreshold": 5,
         "successEffect": {
           "type": "OfferLetter",
           "value": "elena_urgent_letter"

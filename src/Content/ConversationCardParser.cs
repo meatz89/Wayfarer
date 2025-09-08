@@ -175,7 +175,11 @@ public static class ConversationCardParser
         // Set rapport threshold for goal cards from DTO
         if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.BurdenGoal)
         {
-            card.RapportThreshold = dto.RapportThreshold ?? 0;
+            if (!dto.RapportThreshold.HasValue)
+            {
+                throw new InvalidOperationException($"Goal card '{dto.Id}' of type {cardType} MUST have a rapportThreshold defined in JSON!");
+            }
+            card.RapportThreshold = dto.RapportThreshold.Value;
         }
 
         // Parse properties array
