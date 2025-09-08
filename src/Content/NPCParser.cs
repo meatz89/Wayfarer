@@ -91,11 +91,8 @@ public static class NPCParser
             npc.RelationshipFlow = 12; // Default to NEUTRAL at neutral flow
         }
 
-        // Work Packet 4: Initialize observation deck if hasObservationDeck is true
-        if (dto.HasObservationDeck)
-        {
-            npc.ObservationDeck = new CardDeck();
-        }
+        // Observation deck will be populated from deck compositions if NPC has observation cards
+        // The deck initialization happens in PackageLoader when processing deckCompositions
 
         return npc;
     }
@@ -197,12 +194,8 @@ public static class NPCParser
             npc.RelationshipFlow = 12; // Default to NEUTRAL at neutral flow
         }
 
-        // Work Packet 4: Initialize observation deck if hasObservationDeck is true
-        bool hasObservationDeck = GetBoolProperty(root, "hasObservationDeck", false);
-        if (hasObservationDeck)
-        {
-            npc.ObservationDeck = new CardDeck();
-        }
+        // Observation deck will be populated from deck compositions if NPC has observation cards
+        // The deck initialization happens in PackageLoader when processing deckCompositions
 
         // REMOVED: ActiveLetter violates deck-based architecture
         // Letters are now handled as request cards in the Request deck

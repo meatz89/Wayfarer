@@ -5,7 +5,7 @@
     "timestamp": "2025-09-08T00:00:00Z",
     "description": "Complete POC scenario with Elena's urgent letter, investigation system, and observation mechanics",
     "author": "Wayfarer Team",
-    "version": "3.0.0"
+    "version": "3.1.0"
   },
   "startingConditions": {
     "playerConfig": {
@@ -15,7 +15,7 @@
       "food": 50,
       "maxFood": 100
     },
-    "startingSpotId": "corner_table",
+    "startingSpotId": "central_fountain",
     "startingObligations": [
       {
         "id": "viktor_package",
@@ -32,37 +32,7 @@
   "content": {
     "cards": [
       {
-        "id": "i_hear_you_1",
-        "type": "Normal",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "I hear you",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "1"
-        },
-        "dialogueFragment": "I hear what you're saying. Please, continue."
-      },
-      {
-        "id": "i_hear_you_2",
-        "type": "Normal",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "I hear you",
-        "difficulty": "Easy",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "1"
-        },
-        "dialogueFragment": "I hear what you're saying. Please, continue."
-      },
-      {
-        "id": "i_hear_you_3",
+        "id": "i_hear_you",
         "type": "Normal",
         "personalityTypes": ["ALL"],
         "focus": 1,
@@ -107,7 +77,7 @@
         "dialogueFragment": "Give me a moment to prepare myself..."
       },
       {
-        "id": "how_can_i_assist_1",
+        "id": "how_can_i_assist",
         "type": "Normal",
         "personalityTypes": ["ALL"],
         "focus": 2,
@@ -126,41 +96,7 @@
         "dialogueFragment": "How can I assist you with this?"
       },
       {
-        "id": "how_can_i_assist_2",
-        "type": "Normal",
-        "personalityTypes": ["ALL"],
-        "focus": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "How can I assist?",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
-        },
-        "dialogueFragment": "How can I assist you with this?"
-      },
-      {
-        "id": "tell_me_more_1",
-        "type": "Normal",
-        "personalityTypes": ["ALL"],
-        "focus": 2,
-        "properties": ["Persistent"],
-        "connectionType": "Trust",
-        "description": "Tell me more",
-        "difficulty": "Medium",
-        "successEffect": {
-          "type": "DrawCards",
-          "value": "2"
-        },
-        "dialogueFragment": "Tell me more about your situation..."
-      },
-      {
-        "id": "tell_me_more_2",
+        "id": "tell_me_more",
         "type": "Normal",
         "personalityTypes": ["ALL"],
         "focus": 2,
@@ -197,18 +133,22 @@
         "properties": ["Persistent"],
         "connectionType": "Trust",
         "description": "We'll figure this out",
-        "difficulty": "Hard",
+        "difficulty": "Medium",
         "successEffect": {
-          "type": "ScaleRapportByPatience",
-          "formula": "patience / 3"
+          "type": "AddRapport",
+          "value": "3"
         },
-        "dialogueFragment": "We'll figure this out together. There's always a way."
+        "failureEffect": {
+          "type": "AddRapport",
+          "value": "-1"
+        },
+        "dialogueFragment": "We'll figure this out together. I promise."
       },
       {
         "id": "everything_will_be_alright",
         "type": "Normal",
         "personalityTypes": ["ALL"],
-        "focus": 4,
+        "focus": 3,
         "properties": ["Persistent"],
         "connectionType": "Trust",
         "description": "Everything will be alright",
@@ -217,118 +157,197 @@
           "type": "AddRapport",
           "value": "4"
         },
-        "dialogueFragment": "Everything will be alright. I promise you that."
-      }
-    ],
-    "observationCards": [
+        "failureEffect": {
+          "type": "AddRapport",
+          "value": "-2"
+        },
+        "dialogueFragment": "Trust me, everything will be alright in the end."
+      },
+      {
+        "id": "elena_letter_promise",
+        "type": "LetterRequest",
+        "personalityTypes": ["DEVOTED"],
+        "focus": 0,
+        "properties": ["OneShot"],
+        "connectionType": "Trust",
+        "description": "Deliver my letter to Lord Blackwood",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "OfferLetter",
+          "value": "elena_urgent_letter"
+        },
+        "dialogueFragment": "Please, I need someone to deliver this letter to Lord Blackwood immediately. It's my response to his proposal - he leaves at sunset!"
+      },
+      {
+        "id": "marcus_bulk_purchase",
+        "type": "Exchange",
+        "personalityTypes": ["MERCANTILE"],
+        "focus": 0,
+        "properties": ["Repeatable"],
+        "connectionType": "Commerce",
+        "description": "Trade 20 coins for 3 food",
+        "difficulty": "Easy",
+        "tokenRequirement": {
+          "Commerce": 2
+        },
+        "successEffect": {
+          "type": "Trade",
+          "value": "bulk_food_trade"
+        },
+        "dialogueFragment": "Ah, buying in bulk? I can offer you 3 food for 20 coins."
+      },
+      {
+        "id": "marcus_quick_trade",
+        "type": "Exchange",
+        "personalityTypes": ["MERCANTILE"],
+        "focus": 0,
+        "properties": ["Repeatable"],
+        "connectionType": "Commerce",
+        "description": "Trade 10 coins for 1 food",
+        "difficulty": "Easy",
+        "tokenRequirement": {
+          "Commerce": 1
+        },
+        "successEffect": {
+          "type": "Trade",
+          "value": "quick_food_trade"
+        },
+        "dialogueFragment": "Need some food? 10 coins for a meal's worth."
+      },
       {
         "id": "safe_passage_knowledge",
-        "name": "Safe Passage Knowledge",
         "type": "Observation",
-        "targetNpcId": "elena",
-        "targetDeck": "observation",
+        "personalityTypes": ["ALL"],
         "focus": 0,
-        "persistence": "Persistent",
-        "difficulty": "VeryEasy",
-        "description": "Knowledge of merchant caravan routes calms Elena's panic",
-        "effect": {
-          "type": "ChangeEmotionalState",
-          "targetState": "Neutral"
-        },
-        "dialogueFragment": "I overheard Marcus talking about safe caravan routes leaving tonight..."
-      },
-      {
-        "id": "merchant_caravan_route",
-        "name": "Merchant Caravan Route",
-        "type": "Observation",
-        "targetNpcId": "marcus",
-        "targetDeck": "observation",
-        "focus": 0,
-        "persistence": "Persistent",
-        "difficulty": "VeryEasy",
-        "description": "Detailed knowledge of Marcus's private caravan schedule",
-        "effect": {
-          "type": "UnlockExchange",
-          "exchangeId": "marcus_caravan_transport"
-        },
-        "dialogueFragment": "I know about your private caravan to the Noble District..."
-      }
-    ],
-    "requestCards": [
-      {
-        "id": "elena_urgent_refusal",
-        "type": "Request",
-        "npcId": "elena",
-        "focus": 5,
-        "startingState": "Unplayable",
-        "becomesPlayableAt": 5,
-        "properties": ["GainsImpulseAndOpeningWhenPlayable"],
-        "description": "Accept Elena's Letter",
-        "difficulty": "VeryHard",
+        "properties": ["OneShot", "Hidden"],
+        "connectionType": "Trust",
+        "description": "Safe Passage Knowledge",
+        "difficulty": "Auto",
         "successEffect": {
-          "type": "CreateObligation",
-          "obligationType": "delivery",
-          "position": "nextAvailable",
-          "deadline": 300,
-          "recipientId": "lord_blackwood",
-          "letterId": "elena_refusal_letter",
-          "payment": 0,
-          "tokenReward": {
-            "Trust": 2
-          }
+          "type": "AdvanceEmotionalState",
+          "value": "1"
         },
-        "failureEffect": {
-          "type": "AddBurdenCard",
-          "count": 1
+        "dialogueFragment": "You share what you've learned about safe travel routes through the market."
+      },
+      {
+        "id": "merchant_route_insight",
+        "type": "Observation",
+        "personalityTypes": ["MERCANTILE"],
+        "focus": 0,
+        "properties": ["OneShot", "Hidden"],
+        "connectionType": "Commerce",
+        "description": "Merchant Route Insight",
+        "difficulty": "Auto",
+        "successEffect": {
+          "type": "UnlockExchange",
+          "value": "marcus_special_deal"
         },
-        "exhaustEffect": {
-          "type": "EndConversation",
-          "result": "Failed to help Elena"
-        },
-        "dialogueFragment": "Please, take my letter! Lord Blackwood leaves at sunset!"
+        "dialogueFragment": "You mention the merchant patterns you've observed in the market."
       }
     ],
-    "exchangeCards": [
-      {
-        "id": "marcus_buy_food",
-        "npcId": "marcus",
-        "type": "Exchange",
-        "name": "Buy Food",
-        "cost": 2,
-        "effect": {
-          "type": "ResetHunger",
-          "value": "0"
+    "deckCompositions": {
+      "defaultDeck": {
+        "conversationDeck": {
+          "i_hear_you": 3,
+          "let_me_think": 1,
+          "let_me_prepare": 1,
+          "how_can_i_assist": 2,
+          "tell_me_more": 2,
+          "im_here_for_you": 1,
+          "well_figure_this_out": 1,
+          "everything_will_be_alright": 1
         },
-        "description": "Purchase fresh food to restore hunger",
-        "minimumTokensRequired": 0
+        "requestDeck": {},
+        "exchangeDeck": {},
+        "observationDeck": {}
+      },
+      "npcDecks": {
+        "elena": {
+          "conversationDeck": {
+            "i_hear_you": 3,
+            "let_me_think": 1,
+            "let_me_prepare": 1,
+            "how_can_i_assist": 2,
+            "tell_me_more": 2,
+            "im_here_for_you": 1,
+            "well_figure_this_out": 1,
+            "everything_will_be_alright": 1
+          },
+          "requestDeck": {
+            "elena_letter_promise": 1
+          },
+          "exchangeDeck": {},
+          "observationDeck": {}
+        },
+        "marcus": {
+          "conversationDeck": {
+            "i_hear_you": 3,
+            "let_me_think": 1,
+            "let_me_prepare": 1,
+            "how_can_i_assist": 2,
+            "tell_me_more": 2,
+            "im_here_for_you": 1,
+            "well_figure_this_out": 1,
+            "everything_will_be_alright": 1
+          },
+          "requestDeck": {},
+          "exchangeDeck": {
+            "marcus_bulk_purchase": 1,
+            "marcus_quick_trade": 1
+          },
+          "observationDeck": {}
+        },
+        "lord_blackwood": {
+          "conversationDeck": {
+            "i_hear_you": 2,
+            "how_can_i_assist": 1,
+            "tell_me_more": 1
+          },
+          "requestDeck": {},
+          "exchangeDeck": {},
+          "observationDeck": {}
+        },
+        "warehouse_recipient": {
+          "conversationDeck": {
+            "i_hear_you": 2,
+            "let_me_think": 1,
+            "how_can_i_assist": 1
+          },
+          "requestDeck": {},
+          "exchangeDeck": {},
+          "observationDeck": {}
+        },
+        "guard_captain": {
+          "conversationDeck": {
+            "i_hear_you": 1,
+            "tell_me_more": 1
+          },
+          "requestDeck": {},
+          "exchangeDeck": {},
+          "observationDeck": {}
+        }
+      }
+    },
+    "letters": [
+      {
+        "id": "elena_urgent_letter",
+        "senderId": "elena",
+        "recipientId": "lord_blackwood",
+        "title": "Elena's Response",
+        "content": "My dearest Lord Blackwood, I accept your proposal with all my heart. Please wait for me. - Elena",
+        "payment": 25,
+        "deadline": 300,
+        "urgent": true
       },
       {
-        "id": "marcus_caravan_transport",
-        "npcId": "marcus",
-        "type": "Exchange",
-        "name": "Join Merchant Caravan",
-        "cost": 10,
-        "minimumTokensRequired": 2,
-        "requiredTokenType": "Commerce",
-        "requiresObservationCard": "merchant_caravan_route",
-        "effect": {
-          "type": "OneTimeTransport",
-          "destinationLocationId": "noble_district",
-          "destinationSpotId": "gate_entrance"
-        },
-        "description": "Secret passage with Marcus's caravan to the Noble District"
-      },
-      {
-        "id": "guard_noble_permit",
-        "npcId": "guard_captain",
-        "type": "Exchange",
-        "name": "Noble District Permit",
-        "cost": 20,
-        "effect": {
-          "type": "GrantPermit",
-          "permitId": "noble_district_permit"
-        },
-        "description": "Official permit to enter the Noble District (too expensive for POC)"
+        "id": "viktor_package_letter",
+        "senderId": "viktor",
+        "recipientId": "warehouse_recipient",
+        "title": "Viktor's Package",
+        "content": "Important shipment for warehouse storage. Handle with care.",
+        "payment": 10,
+        "deadline": 480,
+        "urgent": false
       }
     ],
     "npcs": [
@@ -343,9 +362,6 @@
         "personalityType": "DEVOTED",
         "letterTokenTypes": ["Trust"],
         "currentState": "DESPERATE",
-        "hasObservationDeck": true,
-        "hasRequestDeck": true,
-        "hasExchangeDeck": false,
         "patience": 15,
         "initialTokens": {
           "Trust": 0
@@ -362,9 +378,6 @@
         "personalityType": "MERCANTILE",
         "letterTokenTypes": ["Commerce"],
         "currentState": "NEUTRAL",
-        "hasObservationDeck": true,
-        "hasRequestDeck": false,
-        "hasExchangeDeck": true,
         "patience": 12,
         "initialTokens": {
           "Commerce": 0
@@ -381,50 +394,41 @@
         "personalityType": "PROUD",
         "letterTokenTypes": ["Status"],
         "currentState": "NEUTRAL",
-        "hasObservationDeck": false,
-        "hasRequestDeck": false,
-        "hasExchangeDeck": false,
-        "patience": 10,
+        "patience": 8,
         "initialTokens": {
           "Status": 0
         }
       },
       {
         "id": "warehouse_recipient",
-        "name": "Warehouse Manager",
+        "name": "Warehouse Clerk",
         "profession": "Clerk",
         "locationId": "warehouse_district",
         "spotId": "warehouse_entrance",
         "description": "A busy clerk managing incoming and outgoing shipments",
         "personality": "Efficient and no-nonsense",
-        "personalityType": "STEADFAST",
+        "personalityType": "MERCANTILE",
         "letterTokenTypes": ["Commerce"],
         "currentState": "NEUTRAL",
-        "hasObservationDeck": false,
-        "hasRequestDeck": false,
-        "hasExchangeDeck": false,
-        "patience": 13,
+        "patience": 10,
         "initialTokens": {
           "Commerce": 0
         }
       },
       {
         "id": "guard_captain",
-        "name": "Guard Captain",
+        "name": "Captain Marcus",
         "profession": "Guard",
         "locationId": "market_square",
         "spotId": "guard_post",
-        "description": "A stern guard captain overseeing the checkpoint",
-        "personality": "Strict and by-the-book",
-        "personalityType": "STEADFAST",
-        "letterTokenTypes": ["Shadow"],
+        "description": "The stern captain of the city guard",
+        "personality": "Vigilant and authoritative",
+        "personalityType": "PROUD",
+        "letterTokenTypes": ["Status"],
         "currentState": "NEUTRAL",
-        "hasObservationDeck": false,
-        "hasRequestDeck": false,
-        "hasExchangeDeck": true,
-        "patience": 13,
+        "patience": 5,
         "initialTokens": {
-          "Shadow": 0
+          "Status": 0
         }
       }
     ],
@@ -577,6 +581,32 @@
         "canInvestigate": false
       }
     ],
+    "observations": [
+      {
+        "id": "safe_passage_knowledge",
+        "locationId": "market_square",
+        "spotId": "central_fountain",
+        "name": "Safe Passage Knowledge",
+        "description": "Observing guard patrol patterns",
+        "familiarityRequired": 1,
+        "rewardType": "card",
+        "rewardCardId": "safe_passage_knowledge",
+        "attentionCost": 0,
+        "priorObservationIndices": []
+      },
+      {
+        "id": "merchant_route_insight",
+        "locationId": "market_square",
+        "spotId": "central_fountain",
+        "name": "Merchant Route Insight",
+        "description": "Understanding merchant traffic patterns",
+        "familiarityRequired": 2,
+        "rewardType": "card",
+        "rewardCardId": "merchant_route_insight",
+        "attentionCost": 0,
+        "priorObservationIndices": [0]
+      }
+    ],
     "routes": [
       {
         "id": "market_to_tavern",
@@ -588,11 +618,11 @@
         "travelTimeMinutes": 15,
         "coinCost": 0,
         "permitRequired": null,
-        "description": "A short walk through busy market streets"
+        "description": "A short walk through the market streets to the tavern"
       },
       {
         "id": "tavern_to_market",
-        "name": "Market Streets",
+        "name": "Return to Market",
         "originLocationId": "copper_kettle_tavern",
         "originSpotId": "main_hall",
         "destinationLocationId": "market_square",
@@ -616,7 +646,7 @@
       },
       {
         "id": "warehouse_to_market",
-        "name": "Warehouse Road",
+        "name": "Return from Warehouse",
         "originLocationId": "warehouse_district",
         "originSpotId": "warehouse_entrance",
         "destinationLocationId": "market_square",
@@ -627,7 +657,7 @@
         "description": "Return from the warehouse district"
       },
       {
-        "id": "market_to_noble_checkpoint",
+        "id": "market_to_noble",
         "name": "Guard Checkpoint",
         "originLocationId": "market_square",
         "originSpotId": "central_fountain",
@@ -636,24 +666,11 @@
         "travelTimeMinutes": 25,
         "coinCost": 0,
         "permitRequired": "noble_district_permit",
-        "description": "The guarded checkpoint to the Noble District (requires permit)"
-      },
-      {
-        "id": "market_to_noble_caravan",
-        "name": "Merchant Caravan",
-        "originLocationId": "market_square",
-        "originSpotId": "merchant_row",
-        "destinationLocationId": "noble_district",
-        "destinationSpotId": "gate_entrance",
-        "travelTimeMinutes": 20,
-        "coinCost": 10,
-        "permitRequired": null,
-        "requiresExchange": "marcus_caravan_transport",
-        "description": "Secret passage with Marcus's caravan (requires exchange unlock)"
+        "description": "The guarded path to the Noble District"
       },
       {
         "id": "noble_to_market",
-        "name": "Return Route",
+        "name": "Return from Noble District",
         "originLocationId": "noble_district",
         "originSpotId": "gate_entrance",
         "destinationLocationId": "market_square",
@@ -662,60 +679,42 @@
         "coinCost": 0,
         "permitRequired": null,
         "description": "Return from the Noble District"
-      }
-    ],
-    "investigationRewards": [
-      {
-        "locationId": "market_square",
-        "familiarityRequired": 1,
-        "priorObservationRequired": null,
-        "observationCard": {
-          "id": "safe_passage_knowledge",
-          "targetNpcId": "elena"
-        },
-        "description": "Overhear merchants discussing safe caravan routes"
       },
       {
-        "locationId": "market_square",
-        "familiarityRequired": 2,
-        "priorObservationRequired": 0,
-        "observationCard": {
-          "id": "merchant_caravan_route",
-          "targetNpcId": "marcus"
-        },
-        "description": "Discover Marcus's private caravan schedule to the Noble District"
+        "id": "noble_to_tavern",
+        "name": "Noble's Shortcut",
+        "originLocationId": "noble_district",
+        "originSpotId": "gate_entrance",
+        "destinationLocationId": "copper_kettle_tavern",
+        "destinationSpotId": "main_hall",
+        "travelTimeMinutes": 10,
+        "coinCost": 2,
+        "permitRequired": null,
+        "description": "A quick carriage ride to the tavern"
       }
     ],
-    "letterTemplates": [
+    "exchanges": [
       {
-        "id": "elena_refusal_letter",
-        "description": "Elena's urgent refusal of Lord Blackwood's marriage proposal",
-        "narrative": "I cannot accept your proposal. My heart belongs elsewhere.",
-        "letterType": "Trust",
-        "tokenType": "Trust",
-        "deadline": 300,
-        "payment": 0,
-        "tokenReward": 2,
-        "category": "Urgent",
-        "senderId": "elena",
-        "recipientId": "lord_blackwood",
-        "consequenceIfLate": "Elena forced into unwanted marriage",
-        "consequenceIfDelivered": "Elena's freedom preserved"
+        "id": "bulk_food_trade",
+        "name": "Bulk Food Purchase",
+        "giveCurrency": "coins",
+        "giveAmount": 20,
+        "receiveCurrency": "food",
+        "receiveAmount": 3,
+        "tokenGate": {
+          "Commerce": 2
+        }
       },
       {
-        "id": "viktor_package_letter",
-        "description": "Viktor's package for the warehouse",
-        "narrative": "Important supplies for the warehouse district",
-        "letterType": "Commerce",
-        "tokenType": "Commerce",
-        "deadline": 480,
-        "payment": 10,
-        "tokenReward": 1,
-        "category": "Standard",
-        "senderId": "viktor",
-        "recipientId": "warehouse_recipient",
-        "consequenceIfLate": "Viktor's reputation damaged",
-        "consequenceIfDelivered": "Warehouse operations continue smoothly"
+        "id": "quick_food_trade",
+        "name": "Quick Food Purchase",
+        "giveCurrency": "coins",
+        "giveAmount": 10,
+        "receiveCurrency": "food",
+        "receiveAmount": 1,
+        "tokenGate": {
+          "Commerce": 1
+        }
       }
     ]
   }
