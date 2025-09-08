@@ -85,6 +85,7 @@ public static NPC GenerateSkeletonNPC(string id, string source)
     // - Generic narrative content ("Unnamed Merchant #3")
     // - IsSkeleton = true flag
     // - SkeletonSource tracking what created it
+    // - All 5 persistent decks (empty but valid)
 }
 ```
 
@@ -111,7 +112,8 @@ public static NPC GenerateSkeletonNPC(string id, string source)
   "startingConditions": {
     "coins": 10,
     "health": { "current": 100, "max": 100 },
-    "hunger": { "current": 95, "max": 95 }
+    "hunger": { "current": 95, "max": 95 },
+    "attention": 10
   },
   "content": {
     "cards": [...],
@@ -120,7 +122,8 @@ public static NPC GenerateSkeletonNPC(string id, string source)
     "spots": [...],
     "routes": [...],
     "letterTemplates": [...],
-    "observations": [...]
+    "observations": [...],
+    "investigationRewards": [...]
   }
 }
 ```
@@ -152,7 +155,14 @@ public static NPC GenerateSkeletonNPC(string id, string source)
   "spotId": "corner_table",
   "personalityType": "DEVOTED",
   "currentState": "DISCONNECTED",
-  "letterTokenTypes": ["Trust"]
+  "letterTokenTypes": ["Trust"],
+  "persistentDecks": {
+    "conversationDeck": ["trust_understanding", "simple_rapport"],
+    "requestDeck": ["elena_urgent_letter"],
+    "observationDeck": [],
+    "burdenDeck": [],
+    "exchangeDeck": []
+  }
 }
 ```
 
@@ -164,9 +174,116 @@ public static NPC GenerateSkeletonNPC(string id, string source)
   "description": "Bustling marketplace",
   "tier": 1,
   "locationType": "Hub",
-  "travelHubSpotId": "central_fountain"
+  "travelHubSpotId": "central_fountain",
+  "baseFamiliarity": 0,
+  "maxFamiliarity": 3
 }
 ```
+
+#### Location Spots
+```json
+{
+  "id": "central_fountain",
+  "locationId": "market_square",
+  "name": "Central Fountain",
+  "properties": {
+    "morning": ["quiet"],
+    "afternoon": ["busy"],
+    "evening": ["closing"]
+  },
+  "canInvestigate": true
+}
+```
+
+#### Investigation Actions
+```json
+{
+  "locationId": "market_square",
+  "spotId": "central_fountain",
+  "attentionCost": 1,
+  "familiarityGain": {
+    "quiet": 2,
+    "busy": 1,
+    "default": 1
+  }
+}
+```
+
+#### Observation Rewards
+```json
+{
+  "locationId": "market_square",
+  "familiarityRequired": 1,
+  "priorObservationRequired": null,
+  "observationCard": {
+    "id": "safe_passage_knowledge",
+    "name": "Safe Passage Knowledge",
+    "targetNpcId": "elena",
+    "targetDeck": "observation",
+    "effect": "AdvanceConnectionState",
+    "targetState": "Neutral"
+  }
+}
+```
+
+## NPC Persistent Decks
+
+Each NPC maintains five persistent decks that determine conversation availability:
+
+### 1. Conversation Deck
+- Contains standard conversation cards (typically 20)
+- Always available for standard conversations
+- Cards have focus costs, difficulty tiers, and persistence types
+
+### 2. Request Deck
+- Contains goal cards (letters, promises, meetings)
+- Each card type enables specific conversation options
+- Letter cards enable "Letter Request" conversations
+- Promise cards enable "Promise" conversations
+
+### 3. Observation Deck
+- Receives cards from location observations
+- Cards automatically mixed into draw pile at conversation start
+- Provide unique advantages (state changes, exchange unlocks)
+- Consumed when played
+
+### 4. Burden Deck
+- Contains burden cards from failed obligations
+- Enables "Make Amends" conversation type
+- Each burden card makes resolution harder
+
+### 5. Exchange Deck
+- Contains commerce/trade cards (mercantile NPCs)
+- Enables "Quick Exchange" conversations
+- Always 100% success rate (they're trades, not checks)
+
+## Location Mechanics
+
+### Familiarity System
+- Each location tracks Familiarity (0-3)
+- Represents player's understanding of location
+- Only increased by Investigation action
+- Never decreases
+- Gates observation availability
+
+### Investigation Action
+- Costs 1 attention and 10 minutes
+- Increases location familiarity
+- Gain scaled by spot properties:
+  - Quiet spots: +2 familiarity
+  - Busy spots: +1 familiarity
+  - Other spots: +1 familiarity
+- Creates Istanbul-style timing decisions
+
+### Observation System
+- Requires minimum familiarity level
+- Each observation requires all prior observations completed
+- Costs 0 attention (just noticing what you understand)
+- Creates cards for specific NPC observation decks
+- Progressive unlocks:
+  - First observation: Requires familiarity 1+
+  - Second observation: Requires familiarity 2+ AND first observation done
+  - Third observation: Requires familiarity 3+ AND second observation done
 
 ## Lazy Loading Process
 
@@ -181,6 +298,9 @@ if (!gameWorld.Locations.Any(l => l.Id == dto.LocationId))
     var skeleton = SkeletonGenerator.GenerateSkeletonLocation(
         dto.LocationId, 
         $"npc_{dto.Id}_reference");
+    
+    skeleton.Familiarity = 0;
+    skeleton.MaxFamiliarity = 3;
     
     gameWorld.Locations.Add(skeleton);
     gameWorld.SkeletonRegistry[dto.LocationId] = "Location";
@@ -198,6 +318,14 @@ var skeleton = new NPC
     Name = $"Unnamed Merchant #{hash % 100}",
     PersonalityType = DeterministicPersonality(hash),
     Profession = DeterministicProfession(hash),
+    PersistentDecks = new NPCDecks
+    {
+        ConversationDeck = new List<ConversationCard>(),
+        RequestDeck = new List<ConversationCard>(),
+        ObservationDeck = new List<ConversationCard>(),
+        BurdenDeck = new List<ConversationCard>(),
+        ExchangeDeck = new List<ConversationCard>()
+    },
     IsSkeleton = true,
     SkeletonSource = source
 };
@@ -212,8 +340,13 @@ var existingSkeleton = gameWorld.NPCs
     .FirstOrDefault(n => n.ID == dto.Id && n.IsSkeleton);
 if (existingSkeleton != null)
 {
+    // Preserve any observation cards accumulated
+    var observationCards = existingSkeleton.PersistentDecks.ObservationDeck;
     gameWorld.NPCs.Remove(existingSkeleton);
     gameWorld.SkeletonRegistry.Remove(dto.Id);
+    
+    // Transfer observation cards to real NPC
+    realNpc.PersistentDecks.ObservationDeck.AddRange(observationCards);
 }
 ```
 
@@ -233,11 +366,12 @@ To add new content types:
 
 1. Create DTO class:
 ```csharp
-public class CustomContentDTO
+public class InvestigationActionDTO
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
-    // ... other properties
+    public string LocationId { get; set; }
+    public string SpotId { get; set; }
+    public int AttentionCost { get; set; }
+    public Dictionary<string, int> FamiliarityGain { get; set; }
 }
 ```
 
@@ -246,17 +380,21 @@ public class CustomContentDTO
 public class Package
 {
     // ... existing properties
-    public List<CustomContentDTO> CustomContent { get; set; }
+    public List<InvestigationActionDTO> InvestigationActions { get; set; }
 }
 ```
 
 3. Add loader method in PackageLoader:
 ```csharp
-private void LoadCustomContent(List<CustomContentDTO> contentDtos)
+private void LoadInvestigationActions(List<InvestigationActionDTO> actionDtos)
 {
-    foreach (var dto in contentDtos)
+    foreach (var dto in actionDtos)
     {
-        // Parse and add to GameWorld
+        var location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
+        if (location != null)
+        {
+            location.InvestigationActions.Add(ParseAction(dto));
+        }
     }
 }
 ```
@@ -268,6 +406,12 @@ AI systems can generate packages and place them in `Content/Generated/`:
 ```csharp
 // AI generates package
 var package = AIContentGenerator.GeneratePackage(context);
+
+// Ensure NPCs have all 5 persistent decks
+foreach (var npc in package.NPCs)
+{
+    npc.PersistentDecks = GenerateCompleteDecks(npc);
+}
 
 // Save to Generated directory
 string path = Path.Combine("Content/Generated", $"ai_{timestamp}.json");
@@ -300,28 +444,40 @@ public List<string> GetSkeletonReport()
 
 Each content type has a dedicated parser with validation:
 
-- `NPCParser.cs` - Validates and parses NPCs
-- `LocationParser.cs` - Validates and parses locations
+- `NPCParser.cs` - Validates and parses NPCs (includes all 5 persistent decks)
+- `LocationParser.cs` - Validates and parses locations (includes familiarity)
 - `ConversationCardParser.cs` - Validates and parses cards
 - `LetterTemplateParser.cs` - Validates and parses letter templates
+- `InvestigationActionParser.cs` - Validates and parses investigation actions
+- `ObservationRewardParser.cs` - Validates and parses observation rewards
 
 ### Enum Mappings
 
 Parsers handle JSON string to enum conversions:
 
 ```csharp
-private static ConnectionType ParseConnectionType(string connectionTypeStr)
+private static ConnectionState ParseConnectionState(string stateStr)
 {
-    return connectionTypeStr switch
+    return stateStr switch
     {
-        "Trust" => ConnectionType.Trust,
-        "Commerce" => ConnectionType.Commerce,
-        "Status" => ConnectionType.Status,
-        "Shadow" => ConnectionType.Shadow,
-        _ => throw new ArgumentException($"Unknown connection type: '{connectionTypeStr}'")
+        "Disconnected" => ConnectionState.Disconnected,
+        "Guarded" => ConnectionState.Guarded,
+        "Neutral" => ConnectionState.Neutral,
+        "Receptive" => ConnectionState.Receptive,
+        "Trusting" => ConnectionState.Trusting,
+        _ => throw new ArgumentException($"Unknown connection state: '{stateStr}'")
     };
 }
 ```
+
+### Validations
+
+Observation rewards must validate:
+- Location exists or create skeleton
+- Familiarity requirement is valid (0-3)
+- Prior observation requirement references valid observation
+- Target NPC exists or create skeleton with all 5 decks
+- Target deck is valid ("observation", "conversation", etc.)
 
 ## Testing
 
@@ -332,6 +488,7 @@ Test packages are stored in `Content/TestPackages/` and include:
 1. **test_01_npcs_with_missing_refs.json** - NPCs referencing non-existent locations
 2. **test_02_locations_resolving_skeletons.json** - Locations that resolve skeletons
 3. **test_03_letters_with_missing_npcs.json** - Letters referencing non-existent NPCs
+4. **test_04_investigations_and_observations.json** - Investigation actions and observation rewards
 
 ### Running Skeleton Tests
 
@@ -345,6 +502,8 @@ Tests verify:
 - Deterministic skeleton generation
 - Game playability with skeletons
 - Multi-package accumulation
+- Observation deck preservation during skeleton resolution
+- Familiarity initialization on skeleton locations
 
 ## Best Practices
 
@@ -354,12 +513,14 @@ Tests verify:
 - **No Hard Dependencies**: Use skeleton system for references
 - **Incremental**: Add content gradually across packages
 - **Versioned**: Include version in metadata
+- **Complete Decks**: Specify all 5 NPC persistent decks
 
 ### 2. Content References
 
 - **Allow Missing**: Let skeleton system handle missing references
 - **Use Stable IDs**: Don't change entity IDs after publication
 - **Document Dependencies**: Note expected references in metadata
+- **Observation Targets**: Always specify which NPC and which deck
 
 ### 3. AI Content Generation
 
@@ -367,6 +528,7 @@ Tests verify:
 - **Use Existing Enums**: Reference only valid enum values
 - **Test Locally**: Validate packages before deployment
 - **Track Skeletons**: Monitor skeleton registry for gaps
+- **Include All Decks**: Ensure NPCs have all 5 persistent decks
 
 ## Migration from Legacy System
 
@@ -386,6 +548,9 @@ Tests verify:
 - ✅ Unified PackageLoader
 - ✅ Directory-based organization
 - ✅ GameWorldInitializer
+- ✅ Investigation action system
+- ✅ NPC five-deck system
+- ✅ Familiarity-based observations
 
 ## Future Enhancements
 
@@ -397,6 +562,7 @@ Tests verify:
 4. **Hot Reloading**: Load new packages without restart
 5. **Package Dependencies**: Explicit dependency declaration
 6. **Content Versioning**: Handle package updates gracefully
+7. **Observation Deck Merging**: Combine observation cards from multiple packages
 
 ### AI Integration Roadmap
 
@@ -420,6 +586,12 @@ Tests verify:
 
 **Issue**: Duplicate content after loading
 **Solution**: Ensure unique IDs, check skeleton replacement logic
+
+**Issue**: Observation cards not appearing
+**Solution**: Verify NPC has observation deck, check target NPC ID matches
+
+**Issue**: Investigation not yielding familiarity
+**Solution**: Check spot properties, verify attention available
 
 ## API Reference
 
@@ -447,8 +619,15 @@ packageLoader.LoadPackagesFromDirectory("Content/Core");
 // Check skeleton status
 List<string> skeletons = gameWorld.GetSkeletonReport();
 
-// Generate skeleton
+// Generate skeleton with all decks
 NPC skeleton = SkeletonGenerator.GenerateSkeletonNPC(id, source);
+skeleton.PersistentDecks = GenerateEmptyDecks();
+
+// Add observation card to NPC
+npc.PersistentDecks.ObservationDeck.Add(observationCard);
+
+// Investigate location
+location.Investigate(spot, attention);
 ```
 
 ## Conclusion
@@ -459,5 +638,7 @@ The content loading and extension system provides a robust foundation for:
 - **AI Integration**: Ready for procedural generation
 - **Easy Extension**: Clear patterns for new content types
 - **Testing Support**: Separate test content from production
+- **Investigation System**: Location familiarity through player actions
+- **NPC Knowledge**: Five persistent decks for complete conversation systems
 
 This architecture ensures Wayfarer can grow and adapt with new content while maintaining stability and playability.
