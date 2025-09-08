@@ -21,14 +21,41 @@ The three core game loops answer fundamental design questions while maintaining 
 5. Atmosphere persists until changed or failure occurs
 6. One card per SPEAK action creates authentic dialogue rhythm
 
+**Connection States**:
+- **Disconnected**: 3 focus capacity, 1 card draw
+- **Guarded**: 4 focus capacity, 2 card draws
+- **Neutral**: 5 focus capacity, 2 card draws
+- **Receptive**: 5 focus capacity, 3 card draws
+- **Trusting**: 6 focus capacity, 3 card draws
+
+At -3 flow in Disconnected: Conversation ends immediately.
+
+**NPC Persistent Decks**:
+Each NPC maintains five persistent decks:
+1. **Conversation Deck**: Standard 20 cards for dialogue
+2. **Request Deck**: Goal cards (letters, promises) enabling special conversations
+3. **Observation Deck**: Cards from location discoveries relevant to this NPC
+4. **Burden Deck**: Cards from failed obligations
+5. **Exchange Deck**: Commerce cards (mercantile NPCs only)
+
+These decks determine available conversation types. During conversation, relevant cards form the draw pile.
+
+**Three-Pile Conversation Flow**:
+1. **Draw Pile**: Created at start from relevant NPC decks
+2. **Active Pile**: Cards currently in hand
+3. **Exhaust Pile**: Played and exhausted cards
+
+When draw pile empties, shuffle exhaust pile to create new draw pile. This creates natural deck cycling.
+
 **Request Card Mechanics**:
 1. Player chooses conversation type
-2. Appropriate request from request deck added to hand at start (unplayable)
-3. Request becomes playable when LISTEN at sufficient focus capacity
-4. Upon becoming playable, gains both Impulse and Opening properties
-5. Must play immediately or conversation fails (exhaust effect)
-6. Success: Accept obligation with fixed terms
-7. Failure: Add burden card to relationship
+2. Request card from NPC's request deck added to draw pile
+3. Request starts unplayable
+4. Becomes playable when LISTEN at sufficient focus capacity
+5. Upon becoming playable, gains both Impulse and Opening properties
+6. Must play immediately or conversation fails
+7. Success: Accept obligation with fixed terms
+8. Failure: Add burden card to relationship
 
 **Focus Management**:
 - Capacity determined by connection state (3-6)
@@ -45,13 +72,12 @@ The three core game loops answer fundamental design questions while maintaining 
 - Failure clears to Neutral atmosphere
 - Shapes entire conversation flow
 
-**NPC Observation Decks** (NEW):
-- Each NPC has an observation deck alongside conversation and request decks
-- Location observations create cards that go into specific NPCs' observation decks
-- At conversation start, all observation deck cards automatically drawn as persistent
-- These cards don't count against hand size or normal draw limits
+**Observation Cards in NPC Decks**:
+- Location observations create cards for specific NPCs' observation decks
+- Mixed into draw pile at conversation start
 - Playing them costs one SPEAK action but 0 focus
-- Cards consumed after use
+- Consumed after use
+- Can advance connection states or unlock exchanges
 
 Starting rapport (equal to connection tokens) determines initial success chance, making established relationships easier to navigate.
 
@@ -104,7 +130,7 @@ Request cards no longer involve negotiation - terms are fixed based on the reque
 
 Personality influences which requests are available:
 - Proud NPCs offer urgent, high-position requests
-- Desperate connection state only has crisis requests
+- Disconnected connection state only has crisis requests
 - Mercantile NPCs focus on profitable exchanges
 
 ### Strategic Queue Patterns
@@ -124,7 +150,7 @@ Personality influences which requests are available:
 - **How does world grow?** Location familiarity and discoveries unlock content
 - **What creates exploration?** Information has mechanical value through unique effects
 
-### Location Familiarity System (NEW)
+### Location Familiarity System
 
 **Familiarity Mechanics**:
 - Each location tracks Familiarity (0-3)
@@ -162,7 +188,7 @@ Personality influences which requests are available:
 - No associated obligation
 - Enable specific routes while held
 
-### Observation System (REFINED)
+### Observation System
 
 **Building Discoveries**:
 - Observations require minimum familiarity levels
@@ -177,7 +203,7 @@ Personality influences which requests are available:
 **Observation Effects**:
 - Cards created go to predetermined NPCs' observation decks
 - Represent location knowledge meaningful to specific NPCs
-- Automatically available when conversing with relevant NPC
+- Mixed into draw pile when conversing with relevant NPC
 - Can unlock exchanges, change connection states, or provide unique effects
 
 ### Travel Encounters
@@ -200,9 +226,10 @@ Attention enables:
 - **Investigations** (1): Build location familiarity
 - **Observations** (0): Discover cards for NPC observation decks
 - **Work** (2): Coins but time cost, scaled by hunger
+- **Quick Exchange** (1): Simple commerce without full conversation
 
 Work output scales with hunger:
-- Formula: coins = base_amount - floor(hunger / 25)
+- Formula: coins = 5 - floor(hunger / 25)
 - Hungry workers are less productive
 - Creates meaningful choice about when to eat
 
@@ -341,11 +368,9 @@ Each loop provides escape valves:
 ### Adding NPCs
 New NPCs simply need:
 - Personality type (determines patience and token burning)
-- Deck composition (20 cards following template)
-- Request deck (available conversation types with fixed terms)
-- Observation deck (receives cards from location observations)
-- Exchange deck (if mercantile)
+- Five persistent decks (conversation, request, observation, burden, exchange)
 - Token rewards for successful deliveries
+- Which observations go to their observation deck
 
 ### Adding Locations
 New locations simply need:
@@ -361,13 +386,13 @@ New cards must:
 - Fit within focus system (0-6)
 - Use difficulty tiers (Very Easy to Very Hard)
 - Atmosphere changes on ~30% of cards
-- Follow persistence rules (75% persistent, 25% impulse)
+- Follow persistence rules (60% persistent, 25% impulse, 15% opening)
 
 ## The Holistic Experience
 
 The player experiences:
 
-**Morning**: Check queue, investigate locations while quiet, plan route efficiently
+**Morning**: Check queue, investigate locations while quiet for maximum familiarity gain, plan route efficiently
 
 **Travel**: Navigate using permits, build familiarity through investigation
 
@@ -395,7 +420,7 @@ The three loops create a complete game where:
 Each loop uses different mechanics that operate on shared resources:
 - Tokens provide starting rapport, creating easier conversations with investment
 - Familiarity provides observations, creating NPC advantages through exploration
-- Only gained through delivery success, forcing engagement with all systems
+- Only gained through delivery success and investigation respectively
 - Time pressure affects all three but manifests differently
 - Attention enables all three but must be allocated strategically
 - Rapport creates success momentum unique to conversations
