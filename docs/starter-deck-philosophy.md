@@ -19,9 +19,10 @@ This transforms patience from action currency into focus cycle currency. Each pa
 - Inefficient conversations literally waste the player's day
 
 ### The Focus Paradox
-In GUARDED state (3 focus capacity):
-- Can play one 3-focus card OR
-- Can play 1-focus + 2-focus cards OR
+In GUARDED state (4 focus capacity):
+- Can play one 4-focus card OR
+- Can play two 2-focus cards OR
+- Can play 1-focus + 3-focus cards OR
 - Can play single card and waste focus
 
 This mirrors Slay the Spire's 3 energy with 5 cards - you cannot play everything optimally.
@@ -113,11 +114,11 @@ Every card serves one of three strategic purposes:
 - Difficulty: Hard (50% base success)
 - Effect: +4 rapport
 - Persistence: Persistent
-- Purpose: Prepared atmosphere payoff in Disconnected state
+- Purpose: Prepared atmosphere payoff in Guarded state
 
 ## Request Cards (Not Part of Base 12)
 
-Request cards are placed directly in hand at conversation start based on conversation type chosen. They start unplayable and become playable when reaching appropriate focus capacity.
+Request cards are placed directly in draw pile at conversation start based on conversation type chosen. They start unplayable and become playable when reaching appropriate focus capacity.
 
 ### Elena's Letter Request
 **"Accept Elena's Letter"**
@@ -127,7 +128,7 @@ Request cards are placed directly in hand at conversation start based on convers
 - Becomes Playable: When LISTEN at 5+ focus capacity
 - When Playable: Gains Impulse AND Opening properties
 - Effect: Creates delivery obligation (fixed terms)
-- Success Terms: 1hr deadline, position 1, 5 coins
+- Success Terms: No payment, next available position
 - Failure: Add 1 burden card to Elena's relationship
 - On Exhaust: Conversation ends in failure
 - Purpose: Win condition requiring state progression
@@ -137,18 +138,25 @@ Request cards are placed directly in hand at conversation start based on convers
 ### Starting a Conversation
 1. Pay attention cost (2 for standard conversation)
 2. Starting rapport = connection tokens with NPC
-3. Request card placed **directly in hand** but **unplayable**
-4. Automatic LISTEN occurs with no patience cost
-5. Draw cards equal to connection state (Disconnected=1, Guarded=2, Neutral=2, Open=3, Connected=3)
-6. Starting hand = connection state cards + unplayable request card
-7. Deck contains 12 cards that cycle when exhausted
+3. Build draw pile from relevant NPC decks
+4. Shuffle draw pile
+5. Draw cards equal to connection state (Disconnected=1, Guarded=2, Neutral=2, Receptive=3, Trusting=3)
+6. Request card included in draw pile but starts unplayable
+7. Focus set to connection state maximum
+
+### Connection States
+- **Disconnected**: 3 focus capacity, 1 card draw
+- **Guarded**: 4 focus capacity, 2 card draws
+- **Neutral**: 5 focus capacity, 2 card draws
+- **Receptive**: 5 focus capacity, 3 card draws
+- **Trusting**: 6 focus capacity, 3 card draws
 
 ### Focus Mechanics
-- Base capacity determined by connection state (Disconnected=3, Guarded=4, Neutral=5, Open=5, Connected=6)
+- Base capacity determined by connection state
 - Pool persists across multiple SPEAK actions
 - LISTEN refreshes focus to connection state maximum
-- Prepared atmosphere adds +1 to CURRENT focus
-- Can exceed maximum with Prepared (e.g., 4/3 in Disconnected)
+- Prepared atmosphere adds +1 to current focus
+- Can exceed maximum with Prepared (e.g., 5/4 in Guarded)
 - If atmosphere clears, bonus vanishes immediately
 
 ### SPEAK Action Sequence
@@ -172,7 +180,7 @@ Request cards are placed directly in hand at conversation start based on convers
 
 ### Atmosphere Mechanics
 - Changes when card succeeds
-- Takes effect starting NEXT turn after being set
+- Takes effect immediately
 - Failure clears atmosphere to Neutral immediately
 - Prepared adds +1 to current focus when active (not maximum)
 - Persists until changed or cleared
@@ -194,9 +202,10 @@ Request cards are placed directly in hand at conversation start based on convers
 - At -50 rapport: Guaranteed failure
 
 ### Deck Cycling
-- When deck exhausted, shuffle discard pile
-- MUST draw full amount for connection state
-- Cannot draw fewer cards than required
+- Draw pile created from NPC decks at start
+- When draw pile exhausted, shuffle exhaust pile to create new draw pile
+- All cards remain available throughout conversation
+- No deck thinning or permanent removal
 
 ## Strategic Analysis
 
@@ -204,53 +213,52 @@ Request cards are placed directly in hand at conversation start based on convers
 - 1-focus: 5 cards (42%) - Always playable
 - 2-focus: 4 cards (33%) - Standard plays
 - 3-focus: 2 cards (17%) - Full capacity plays
-- 4-focus: 1 card (8%) - Requires Prepared in Disconnected
+- 4-focus: 1 card (8%) - Requires Prepared in Guarded
 
 ### Opening Hand Probabilities (Disconnected)
-Drawing 1 card + request:
-- 42% chance of 1-focus card
-- 33% chance of 2-focus card
-- 17% chance of 3-focus card
-- 8% chance of 4-focus card
+Drawing 1 card from 12:
+- 42% chance of 1-focus card (can play)
+- 33% chance of 2-focus card (can play partially)
+- 17% chance of 3-focus card (can play fully)
+- 8% chance of 4-focus card (cannot play)
 
 ### Minimum Paths to Victory
 
-**Prepared Rush** (5 turns minimum):
+**Prepared Rush** (5-6 turns minimum):
 1. Turn 1: Play "Let me prepare" (1 focus)
-2. Turn 2: Prepared active, play rapport cards
-3. Turn 3: Success moves flow to +1
-4. Turn 4: Build to +3 flow (reach Guarded)
-5. Continue building to Open state
-6. LISTEN at Open: Request becomes playable
-7. Play request immediately (45% + rapport bonus)
+2. Turn 2: Prepared active, play rapport cards with bonus focus
+3. Turns 3-4: Build to +3 flow (reach Guarded)
+4. Turn 5: Continue to +6 flow (reach Neutral)
+5. LISTEN at Neutral: Request becomes playable at 5 focus
+6. Play request immediately (40% + rapport bonus)
 
-**Safe Progression** (7 turns typical):
-1. Turns 1-3: Build rapport and flow
+**Safe Progression** (7-8 turns typical):
+1. Turns 1-3: Build rapport steadily with safe cards
 2. Reach +3 net successes for Guarded
-3. Continue to +6 net successes for Neutral  
-4. Reach +9 net successes for Open
-5. LISTEN at Open: Request becomes playable
-6. Play request with accumulated rapport bonus
+3. Continue to +6 net successes for Neutral
+4. Build rapport to 10+ for better request success
+5. LISTEN at Neutral: Request becomes playable
+6. Play request with accumulated rapport bonus (60%+ success)
 
 ### Critical Decision Points
 
-**Turn 1 with Prepared in Hand**: Playing it immediately enables the 4-focus card and faster plays, but delays rapport building.
+**Turn 1 with Prepared in Hand**: Playing it immediately enables future flexibility but delays rapport building.
 
-**Risk Management at Low Rapport**: "How can I assist?" can reduce rapport on failure. At negative rapport, avoid risk cards.
+**Risk Management at Low Rapport**: "How can I assist?" can reduce rapport on failure. Avoid when negative.
 
-**Focus Efficiency Choices**: With 3/3 focus, playing one 3-focus card wastes nothing, but 2+1 gives more actions.
+**Focus Efficiency Choices**: With 4/4 focus, playing two 2-focus cards gives more actions than one 3-focus card.
 
-**Request Card Timing**: Once it becomes playable, must play immediately or lose forever.
+**Request Card Timing**: Once playable, must play immediately or lose forever (gains Impulse AND Opening).
 
 ### Mathematical Validation
 
-**Success Rate with Optimal Play**: 65-70% (perfect balance of skill and variance)
+**Success Rate with Optimal Play**: 60-70% (perfect balance of skill and variance)
 
-**Average Turns to Request**: 6-8 turns (uses 5-7 patience of 15 available)
+**Average Turns to Request**: 6-8 turns (uses 6-8 patience of 15 available)
 
 **Failure Modes**:
-- 23% negative flow spiral (too many failures)
-- 7% patience exhaustion (inefficient play)
+- 30% negative flow spiral (too many failures)
+- 10% patience exhaustion (inefficient LISTEN usage)
 - 5% request card missed (didn't play when available)
 
 ### Key Design Achievements
@@ -259,7 +267,7 @@ Drawing 1 card + request:
 
 **Meaningful Choices**: Every turn forces compromise between rapport, setup, and information.
 
-**Clear Prepared Payoff**: The 4-focus card creates binary unlock in Disconnected state.
+**Clear Prepared Payoff**: The 4-focus card creates specific unlock in Guarded state.
 
 **Authentic Risk**: Failed gambles create recovery arcs, not instant loss.
 
@@ -268,19 +276,41 @@ Drawing 1 card + request:
 ## Token Interaction
 
 Starting rapport equals connection tokens with NPC:
-- Elena with 1 Trust token: Start at 1 rapport (+2% all cards)
+- Elena with 0 tokens: Start at 0 rapport (base rates only)
+- Elena with 1 Trust token (after preparation): Start at 1 rapport (+2% all cards)
 - Marcus with 2 Commerce tokens: Start at 2 rapport (+4% all cards)
 - Lord Blackwood with 0 tokens: Start at 0 rapport (base rates only)
-- Guard with 3 Shadow tokens: Start at 3 rapport (+6% all cards)
-
-With Elena's 1 Trust token, success rates become:
-- Easy cards: 72% (70% + 2%)
-- Medium cards: 62% (60% + 2%)
-- Hard cards: 52% (50% + 2%)
-- Very Hard request: 42% (40% + 2%)
 
 Building to 10 rapport during conversation:
 - Easy cards: 90% (70% + 20%)
 - Medium cards: 80% (60% + 20%)
 - Hard cards: 70% (50% + 20%)
 - Very Hard request: 60% (40% + 20%)
+
+## Observation Card Integration
+
+When NPC has observation cards in their deck:
+- Mixed into draw pile at conversation start
+- 0 focus cost but uses SPEAK action
+- Provide unique effects (state advancement, exchange unlocks)
+- Create dramatic conversation shifts
+
+Example: "Safe Passage Knowledge" in Elena's observation deck immediately advances her from Disconnected to Neutral, transforming the conversation's difficulty.
+
+## Strategic Depth from Simple Rules
+
+The 12-card starter deck creates emergent complexity:
+
+**Resource Management**: Focus persists, creating multi-turn planning.
+
+**Risk Assessment**: When to play risky cards versus safe options.
+
+**Timing Decisions**: Setup early or build rapport immediately.
+
+**Recovery Arcs**: Failed plays don't end conversations, they create challenges.
+
+**Discovery Moments**: Learning that Prepared enables the 4-focus card in Guarded state.
+
+The deck teaches all core mechanics while remaining approachable. Players learn through play that patience is precious (LISTEN costs), focus management matters (SPEAK is free but limited), and rapport accumulation creates momentum.
+
+This foundation scales naturally as players acquire specialized cards, build NPC-specific strategies, and discover observation advantages, while the core 12 cards remain useful throughout the game as reliable, flexible options.

@@ -1,260 +1,356 @@
 # POC Content Implementation Plan
 
 ## Overview
-This document outlines the complete content needed for the Elena's Letter POC scenario. The POC demonstrates all three core game loops: card-based conversations, obligation queue management, and location/travel systems.
 
-## Core Design: Shared Base Deck System
+The POC demonstrates all three core game loops through a single critical path: accepting Elena's urgent marriage refusal letter and delivering it to Lord Blackwood before he leaves at 5:00 PM. The challenge lies in discovering the precise action order that makes success possible.
 
-All NPCs draw from a single base conversation deck, with cards filtered by personality type. This approach:
-- Reduces content duplication
-- Ensures mechanical consistency
-- Allows personality-driven variation
-- Simplifies balancing
+## Core Design
 
-Each card includes a `personalityTypes` array that determines which NPCs can use it:
-- `DEVOTED` - Trust-focused (Elena)
-- `MERCANTILE` - Commerce-focused (Marcus)
-- `STEADFAST` - Balanced utility (Bertram)
-- `ALL` - Universal cards available to everyone
+**The Puzzle**: Players naturally try to help desperate Elena or earn coins for the Noble Quarter checkpoint. Both approaches fail. The solution requires building Market Square familiarity through investigation, discovering knowledge that helps specific NPCs, and managing resources with perfect precision.
 
-## Content Requirements
+**The Discovery**: Every seemingly inefficient action (investigating twice, buying food before working, building infrastructure before the main quest) is actually essential. The optimal path emerges through understanding system interactions.
 
-### 1. Base Conversation Deck (~45 cards)
+## Starting Conditions
 
-#### Trust-Focused Cards (15 cards)
-**Personality Types: ["DEVOTED", "ALL"]**
-- "I understand" - Focus 1, Easy, +1 rapport
-- "Share sympathy" - Focus 2, Medium, +2 rapport
-- "Express deep trust" - Focus 3, Hard, +3 rapport
-- "Gentle reassurance" - Focus 0, Easy, Set Patient atmosphere
-- "Share vulnerability" - Focus 4, Very Hard, +4 rapport, Impulse
-- "Build on trust" - Focus 3, Hard, Scale by Trust tokens
-- "Desperate plea" - Focus 3, Hard, Scale by (20 - rapport) / 5, Impulse
-- "Patient approach" - Focus 2, Hard, Scale by (patience / 3)
-- "Listen carefully" - Focus 1, Medium, Draw 1 card
-- "Open mind" - Focus 0, Easy, Set Receptive atmosphere
+### Player State
+- **Attention**: 10 (no reduction since hunger is 50)
+- **Coins**: 0
+- **Hunger**: 50
+- **Health**: 100
+- **Tokens**: 0 with all NPCs
+- **Familiarity**: 0 at all locations
 
-#### Commerce-Focused Cards (15 cards)
-**Personality Types: ["MERCANTILE", "ALL"]**
-- "Fair deal" - Focus 1, Easy, +1 rapport
-- "Highlight opportunity" - Focus 2, Medium, +2 rapport
-- "Leverage connections" - Focus 3, Hard, Scale by Commerce tokens
-- "Final offer" - Focus 5, Very Hard, +5 rapport, Impulse
-- "Prepare argument" - Focus 3, Medium, Add 2 focus
-- "Business proposition" - Focus 2, Medium, +2 rapport
-- "Market knowledge" - Focus 1, Easy, Draw 1 card
-- "Trade secrets" - Focus 3, Hard, Set Informed atmosphere
-- "Negotiate terms" - Focus 2, Medium, Add 1 focus
-- "Close the deal" - Focus 4, Hard, +4 rapport
+### Obligation Queue
+- Position 1: Viktor's package to Marcus (3-hour deadline, pays 7 coins)
 
-#### Utility Cards (15 cards)
-**Personality Types: ["STEADFAST", "ALL"]**
-- "Gather thoughts" - Focus 2, Medium, Draw 2 cards
-- "Build momentum" - Focus 2, Medium, Add 1 focus
-- "Take a breath" - Focus 0, Easy, Set Patient atmosphere
-- "Change subject" - Focus 1, Easy, Set Neutral atmosphere
-- "Press advantage" - Focus 3, Medium, Add 2 focus
-- "Find common ground" - Focus 2, Medium, +2 rapport
-- "Steady approach" - Focus 1, Easy, +1 rapport
-- "Clear the air" - Focus 1, Medium, Reset atmosphere
-- "Make time" - Focus 2, Medium, Draw 1 card
-- "Stay focused" - Focus 0, Easy, Set Focused atmosphere
+### Time
+- Start: 9:00 AM Tuesday
+- Deadline: Lord Blackwood leaves at 5:00 PM (8 hours available)
 
-#### Universal Cards (ALL personality types)
-- "Interrupt" - Focus 1, Hard, Set Receptive, Opening
-- "Final statement" - Focus 5, Very Hard, +5 rapport, Set Final, Impulse
-- "Quick response" - Focus 1, Easy, +1 rapport, Opening
-- "Thoughtful pause" - Focus 1, Medium, Draw 1 card
+## NPCs
 
-### 2. NPC Observation Deck Cards
+### Elena (Copper Kettle Tavern, Corner Table)
+- **Personality**: Devoted (15 base patience)
+- **Starting State**: Disconnected (3 focus, 1 card draw)
+- **Availability**: Always present (lives upstairs, helps uncle)
+- **Persistent Decks**:
+  - Conversation: 20 standard cards
+  - Request: Contains "Elena's Urgent Letter" card
+  - Observation: Receives "Safe Passage Knowledge" from Market Square
+  - Burden: Empty
+  - Exchange: None (not mercantile)
+- **Special Mechanic**: Playing "Safe Passage Knowledge" immediately advances her to Neutral state
 
-#### Safe Passage Knowledge (Elena's Observation Deck)
-```json
-{
-  "id": "safe_passage_knowledge",
-  "name": "Safe Passage Knowledge",
-  "type": "ObservationCard",
-  "focus": 0,
-  "persistence": "Persistent",
-  "description": "Knowledge of merchant caravan routes calms Elena's panic",
-  "effect": {
-    "type": "AdvanceConnectionState",
-    "targetState": "Neutral"
-  },
-  "npcDeck": "elena_observation"
-}
-```
+### Marcus (Market Square, Merchant Row)
+- **Personality**: Mercantile (12 base patience)
+- **Starting State**: Neutral
+- **Availability**: Always during market hours
+- **Cannot Leave**: Merchandise would be stolen
+- **Persistent Decks**:
+  - Conversation: 20 standard cards
+  - Request: Contains letter to Warehouse District
+  - Observation: Receives "Merchant Caravan Route" from Market Square
+  - Burden: Empty
+  - Exchange: Food purchase, caravan trip
+- **Special Mechanic**: Caravan exchange requires 2+ Commerce tokens AND route card played
 
-#### Merchant Caravan Route (Marcus's Observation Deck)
-```json
-{
-  "id": "merchant_caravan_route",
-  "name": "Merchant Caravan Route",
-  "type": "ObservationCard",
-  "focus": 0,
-  "persistence": "Persistent",
-  "description": "Detailed knowledge of Marcus's private caravan schedule",
-  "effect": {
-    "type": "UnlockExchange",
-    "exchangeId": "marcus_caravan_transport"
-  },
-  "npcDeck": "marcus_observation"
-}
-```
+### Lord Blackwood (Noble Quarter, Blackwood Manor)
+- **Personality**: Proud (10 base patience)
+- **Starting State**: Neutral
+- **Availability**: Until 5:00 PM sharp
+- **Quick Delivery**: Elena's noble seal ensures formal respect (1 attention conversation)
 
-### 3. Request Cards
+### Warehouse Recipient (Warehouse District)
+- **Function**: Receives Marcus's letter
+- **No Conversation**: Simple delivery notification
 
-#### Elena's Urgent Letter
-```json
-{
-  "id": "elena_urgent_refusal",
-  "type": "Request",
-  "focus": 5,
-  "startingState": "Unplayable",
-  "becomesPlayableAt": 5,
-  "properties": ["GainsImpulseAndOpeningWhenPlayable"],
-  "description": "Please take my letter!",
-  "difficulty": "VeryHard",
-  "successEffect": {
-    "type": "CreateObligation",
-    "obligationType": "delivery",
-    "position": "nextAvailable",
-    "deadline": 300,
-    "recipient": "Lord Blackwood",
-    "noPayment": true
-  },
-  "failureEffect": {
-    "type": "AddBurdenCard",
-    "count": 1
-  },
-  "exhaustEffect": {
-    "type": "EndConversation",
-    "result": "Failed to help Elena"
-  }
-}
-```
+## Locations and Spots
 
-### 4. Exchange Cards
+### Market Square
+**Spots**:
+- **Fountain**: Morning=Quiet, Afternoon=Busy, Evening=Closing
+- **Merchant Row**: Always Commercial (Marcus location)
+- **Guard Post**: Always Authority (checkpoint to Noble Quarter)
 
-#### Marcus's Trade Cards
-- "Buy Food" - 2 coins → Reset hunger to 0
-- "Join Merchant Caravan" - 10 coins → One-time transport to Noble Quarter (requires 2 Commerce tokens + "Merchant Caravan Route" played)
+**Investigation Scaling**:
+- Morning at Fountain (Quiet): 1 attention → +2 familiarity
+- Afternoon at Fountain (Busy): 1 attention → +1 familiarity
 
-#### Guard's Permit Card
-- "Noble District Permit" - 20 coins → Unlocks checkpoint route (deliberate dead end)
+**Observations**:
+- First (Familiarity 1+): "Safe Passage Knowledge" → Elena's observation deck
+- Second (Familiarity 2+ AND first done): "Merchant Caravan Route" → Marcus's observation deck
 
-### 5. Location Spot Actions
+### Copper Kettle Tavern
+**Spots**:
+- **Common Room**: Public, travel hub
+- **Corner Table**: Private (Elena location, +1 patience)
+- **Bar**: Commercial
 
-#### Market Square Actions
-- "Investigate" - Spend 1 attention → Gain familiarity (scaled by spot property: Quiet=+2, Busy=+1)
-- "Observe" - Spend 0 attention → Gain observation card to NPC deck (requires familiarity)
-- "Work: Haul Goods" - Spend 2 attention → Gain coins (5 - floor(hunger/25))
+### Noble Quarter
+**Spots**:
+- **Blackwood Manor**: Noble (Lord Blackwood location)
+- **Gate**: Guarded (checkpoint entrance)
 
-#### Copper Kettle Actions
-- "Investigate" - Spend 1 attention → Gain +1 familiarity
-- "Rest by Fire" - Spend 5 coins → Restore stamina
+### Warehouse District
+**Spots**:
+- **Warehouse Entrance**: Commercial (delivery point)
 
-#### Noble Quarter Actions
-- No special actions (destination only)
+## Routes
 
-### 6. Location Structure
+### Market Square ↔ Copper Kettle Tavern
+- **Time**: 15 minutes
+- **Cost**: Free
+- **Requirements**: None
 
-#### Market Square
-- **fountain** (Quiet in morning, Busy in afternoon, Closing in evening)
-  - Investigation scaling varies by time
-  - Observation point for both cards
-- **merchant_row** (Commercial)
-  - Marcus location
-  - Work action available
-- **guard_post** (Authority)
-  - Guard Captain location
-  - Permit exchange available (20 coins)
+### Market Square ↔ Warehouse District
+- **Time**: 20 minutes
+- **Cost**: Free
+- **Requirements**: None
 
-#### Copper Kettle Tavern
-- **common_room** (Public)
-  - Travel hub spot
-- **corner_table** (Private)
-  - Elena location (always available)
-- **bar_counter** (Service)
-  - Bertram location (not used in POC)
+### Market Square → Noble Quarter (Checkpoint)
+- **Time**: 25 minutes
+- **Cost**: Free (but needs permit)
+- **Requirements**: Noble District Permit (costs 20 coins - impossible)
 
-#### Noble District
-- **gate_entrance** (Guarded)
-  - Checkpoint location
-- **blackwood_manor** (Noble)
-  - Lord Blackwood location
+### Market Square → Noble Quarter (Merchant Caravan)
+- **Time**: 20 minutes
+- **Cost**: 10 coins
+- **Requirements**: Unlocked via "Merchant Caravan Route" card AND 2+ Commerce tokens
 
-#### Warehouse District
-- **warehouse_entrance** (Commercial)
-  - Marcus's letter recipient
+## Cards
 
-### 7. Travel Routes
+### Observation Cards
 
-#### Primary Routes
-1. **Market Square ↔ Copper Kettle**
-   - 15 minutes, free
-   - Always available
+**Safe Passage Knowledge**
+- **Source**: Market Square first observation
+- **Destination**: Elena's observation deck
+- **Effect**: Immediately advances Elena to Neutral state
+- **Focus Cost**: 0 (special SPEAK action)
+- **Consumed**: Yes
 
-2. **Market Square ↔ Warehouse District**
-   - 20 minutes, free
-   - Always available
+**Merchant Caravan Route**
+- **Source**: Market Square second observation
+- **Destination**: Marcus's observation deck
+- **Effect**: Unlocks "Join merchant caravan" exchange
+- **Focus Cost**: 0 (special SPEAK action)
+- **Consumed**: Yes
 
-3. **Market Square → Noble District (Checkpoint)**
-   - 25 minutes, free
-   - Requires: Noble District Permit
+### Request Cards
 
-4. **Market Square → Noble District (Caravan)**
-   - 20 minutes, 10 coins
-   - Requires: Marcus exchange unlocked via observation card
+**Elena's Urgent Letter**
+- **Type**: Letter request in Elena's request deck
+- **Focus**: 5 (requires Neutral state or Prepared atmosphere)
+- **Difficulty**: Very Hard (40% base)
+- **Success**: Creates delivery obligation to Lord Blackwood
+- **Failure**: Adds burden card to Elena
+- **Fixed Terms**: Position next available, no payment
 
-## Implementation Priority
+**Marcus's Letter**
+- **Type**: Letter request in Marcus's request deck
+- **Focus**: 4
+- **Difficulty**: Hard (50% base)
+- **Success**: Creates delivery to Warehouse District
+- **Token Reward**: 2 Commerce tokens with Marcus
 
-### Phase 1: Core Conversation System
-1. Implement base deck with personality filtering
-2. Add NPC observation decks
-3. Add Elena's urgent letter request
-4. Test conversation flow with Elena
-5. Verify rapport system and flow tracking
+### Exchange Cards
 
-### Phase 2: Location Mechanics
-1. Implement familiarity system (0-3 per location)
-2. Add investigation action (scales with spot properties)
-3. Add observation system (requires familiarity, costs 0 attention)
-4. Test familiarity progression
+**Buy Food** (Marcus)
+- **Cost**: 2 coins
+- **Effect**: Reset hunger to 0
+- **Requirements**: None
 
-### Phase 3: Economy Loop
-1. Add Marcus's exchange cards
-2. Implement token-gated exchanges
-3. Add work action with hunger scaling
-4. Test resource management
+**Join Merchant Caravan** (Marcus)
+- **Cost**: 10 coins
+- **Effect**: One-time transport to Noble Quarter
+- **Requirements**: 2+ Commerce tokens with Marcus AND "Merchant Caravan Route" played
+- **Type**: Quick exchange (1 attention)
 
-### Phase 4: Travel & Integration
-1. Create all location spots
-2. Implement both Noble District routes
-3. Add complete observation flow
-4. Test complete gameplay loop
+**Buy Noble District Permit** (Guard Captain)
+- **Cost**: 20 coins
+- **Effect**: Permanent checkpoint access
+- **Purpose**: Deliberate dead end (impossible to afford)
 
-## Success Criteria
+## Work Mechanics
 
-The POC is complete when:
-1. Player can investigate Market Square to build familiarity
-2. First observation adds "Safe Passage Knowledge" to Elena's deck
-3. Elena conversation becomes possible with observation card
-4. Elena's request becomes playable at appropriate focus capacity
-5. Second observation adds "Merchant Caravan Route" to Marcus's deck
-6. Marcus's caravan exchange unlocks when card played
-7. Noble District accessible via caravan OR impossible permit
-8. Work scales with hunger (work while fed gives more coins)
-9. All three core loops demonstrated in single playthrough
+### Market Square Work
+- **Base Output**: 5 coins
+- **Scaling**: 5 - floor(hunger/25)
+- **At Hunger 0**: 5 coins
+- **At Hunger 50**: 3 coins
+- **Time Cost**: 4 hours
+- **Attention Cost**: 2
 
-## Key Narrative Beats
+## The Only Successful Path
 
-1. **Opening**: Player at Market Square with Viktor's package, Elena desperate at tavern
-2. **Discovery**: Investigation reveals knowledge that helps specific NPCs
-3. **Crisis**: Elena needs trust through demonstrated knowledge of escape routes
-4. **Challenge**: Building infrastructure before attempting main quest
-5. **Obstacle**: Getting to Noble District (permit too expensive, need caravan)
-6. **Resolution**: Deliver letter before 5 PM deadline
-7. **Consequence**: Elena's fate determined by player success
+### Morning (9:00 AM - 2:20 PM)
 
-This content package provides a complete, focused POC demonstrating all core Wayfarer mechanics with the refined investigation/observation system where discovered knowledge goes directly to relevant NPC observation decks.
+1. **Investigate Market Square at Fountain** (1 attention)
+   - Morning Quiet spot: +2 familiarity (0→2)
+   - Time: 9:10 AM
+
+2. **Observe Market Square** (0 attention)
+   - Familiarity 1+ unlocked: Gain "Safe Passage Knowledge" for Elena
+   - Time: 9:10 AM
+
+3. **Converse with Marcus** (2 attention)
+   - Deliver Viktor's package: +7 coins
+   - Accept Marcus's letter to Warehouse
+   - Time: 9:30 AM
+
+4. **Travel to Warehouse District** (20 minutes)
+   - Time: 9:50 AM
+
+5. **Deliver Marcus's letter** (0 attention)
+   - Gain 2 Commerce tokens with Marcus
+   - Time: 9:50 AM
+
+6. **Return to Market Square** (20 minutes)
+   - Time: 10:10 AM
+
+7. **Buy food from Marcus** (0 attention)
+   - Spend 2 coins (5 remaining)
+   - Hunger: 50→0
+
+8. **Work at Market Square** (2 attention)
+   - At hunger 0: +5 coins (total: 10)
+   - Time: 2:10 PM
+
+### Afternoon (2:10 PM - 4:00 PM)
+
+9. **Investigate Market Square at Fountain** (1 attention)
+   - Afternoon Busy spot: +1 familiarity (2→3)
+   - Time: 2:20 PM
+
+10. **Observe Market Square** (0 attention)
+    - Familiarity 2+ AND first observation done: Gain "Merchant Caravan Route" for Marcus
+    - Time: 2:20 PM
+
+11. **Quick exchange with Marcus** (1 attention)
+    - Play "Merchant Caravan Route" card (0 focus)
+    - Unlocks caravan (have 2 Commerce tokens)
+    - Exchange 10 coins for caravan trip
+    - Time: 2:30 PM
+
+12. **Travel to Copper Kettle** (15 minutes)
+    - Time: 2:45 PM
+
+13. **Converse with Elena** (2 attention)
+    - Play "Safe Passage Knowledge" (advances to Neutral)
+    - Accept letter at 5 focus capacity
+    - Time: 3:10 PM
+
+14. **Return to Market Square** (15 minutes)
+    - Time: 3:25 PM
+
+15. **Take caravan to Noble Quarter** (20 minutes)
+    - Time: 3:45 PM
+
+16. **Quick delivery to Lord Blackwood** (1 attention)
+    - Elena's noble seal ensures success
+    - Time: 4:00 PM
+
+**Success**: 1 hour to spare, 0 coins, 0 attention remaining
+
+## Why Every Other Path Fails
+
+### Rush to Elena First
+Without "Safe Passage Knowledge", her Disconnected state (3 focus, 1 draw) makes reaching the 5-focus request mathematically improbable.
+
+### Investigate Only Once
+First investigation gives +2 familiarity, allowing first observation. But second observation requires familiarity 2+, impossible without second investigation.
+
+### Skip Food Purchase
+Working at hunger 50 yields only 3 coins. Total becomes 8 coins (3 work + 5 after Viktor), cannot afford 10-coin caravan.
+
+### Skip Marcus's Letter
+No Commerce tokens with Marcus means caravan exchange stays locked even with route knowledge.
+
+### Try Checkpoint
+Guard's permit costs 20 coins. Maximum possible is 12 (7 Viktor + 5 work), making this a deliberate dead end.
+
+### Wrong Investigation Timing
+Morning investigation gives +2 familiarity (efficient). Afternoon gives only +1 (inefficient). Wrong timing requires extra investigation actions.
+
+## Resource Mathematics
+
+### Attention Budget
+- Start: 10
+- Investigate (morning): -1
+- Marcus conversation: -2
+- Work: -2
+- Investigate (afternoon): -1
+- Marcus exchange: -1
+- Elena conversation: -2
+- Lord Blackwood: -1
+- **Total**: 10 exactly
+
+### Coin Flow
+- Start: 0
+- Viktor delivery: +7
+- Food purchase: -2
+- Work (fed): +5
+- Caravan: -10
+- **Final**: 0 exactly
+
+### Token Progression
+- Start: 0 Commerce
+- Marcus letter delivery: +2 Commerce
+- Enables caravan when combined with route card
+
+### Time Usage
+- Available: 8 hours (9 AM to 5 PM)
+- Used: 7 hours
+- Buffer: 1 hour
+
+### Familiarity Progression
+- Market Square: 0→2 (morning) →3 (afternoon)
+- Enables two observations at correct thresholds
+
+## Key Design Achievements
+
+### Perfect Resource Tension
+Every resource is exactly sufficient with optimal play. One mistake in ordering or resource management causes failure.
+
+### Discovery Through Failure
+Players naturally try obvious approaches (help Elena, earn coins) and fail, learning the systems through experimentation.
+
+### Istanbul-Style Elegance
+Investigation efficiency depends on timing (morning Quiet vs afternoon Busy), creating meaningful decisions about when to act.
+
+### No Red Herrings
+Every element serves the solution. The checkpoint exists but costs too much. Every NPC and location matters.
+
+### Narrative Coherence
+Every mechanic makes story sense: Elena calms when learning escape routes, Marcus trusts established partners, workers perform better when fed.
+
+## Testing Checklist
+
+1. **Elena inaccessible without preparation**: Disconnected state too difficult
+2. **Checkpoint truly impossible**: 20 coins unattainable
+3. **Food purchase necessary**: Work output insufficient without
+4. **Both observations required**: First for Elena, second for Marcus
+5. **Investigation timing matters**: Morning more efficient than afternoon
+6. **Token gate works**: Caravan locked without Commerce tokens
+7. **Perfect resource usage**: 0 coins, 0 attention at end
+8. **Time pressure real but fair**: 1 hour buffer with optimal play
+
+## Failure States
+
+- **Elena conversation fails**: No Safe Passage Knowledge
+- **Cannot afford caravan**: Skipped food or wrong work timing
+- **Caravan locked**: Missing Commerce tokens or route card
+- **Miss deadline**: Inefficient routing or too many attempts
+- **Queue blocked**: Viktor's package not delivered first
+- **Insufficient attention**: Wrong conversation types chosen
+
+## Extensions for Future Content
+
+This POC structure supports:
+- Additional observation levels at higher familiarity
+- More NPCs providing alternate routes
+- Token requirements for different exchanges
+- Time-of-day dependent investigations
+- Burden card resolution mechanics
+- Multiple simultaneous obligations
+
+The tight resource constraints and precise ordering demonstrate mastery of all three core loops while maintaining narrative coherence and mechanical elegance.
