@@ -246,6 +246,12 @@ public class CardEffectProcessor
     // Calculate success percentage for a card
     public int CalculateSuccessPercentage(CardInstance card, ConversationSession session)
     {
+        // Exchange cards always succeed (they're trades, not skill checks)
+        if (card.Properties.Contains(CardProperty.Exchange))
+        {
+            return 100;
+        }
+
         int baseSuccess = card.GetBaseSuccessPercentage();
 
         // Rapport modifier instead of token modifier

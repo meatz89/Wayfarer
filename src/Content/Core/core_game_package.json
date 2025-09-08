@@ -324,7 +324,7 @@
           "exchangeDeck": {},
           "observationDeck": {}
         },
-        "guard_captain": {
+        "victor": {
           "conversationDeck": {
             "i_hear_you": 1,
             "tell_me_more": 1
@@ -425,8 +425,8 @@
         }
       },
       {
-        "id": "guard_captain",
-        "name": "Captain Marcus",
+        "id": "victor",
+        "name": "Victor",
         "profession": "Guard",
         "locationId": "market_square",
         "spotId": "guard_post",

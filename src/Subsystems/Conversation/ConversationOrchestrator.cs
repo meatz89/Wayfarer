@@ -105,6 +105,9 @@ public class ConversationOrchestrator
             MaxPatience = npc.MaxDailyPatience,  // Max based on personality
             TurnNumber = 0,
             Deck = deck,
+            DrawPile = new Pile(),
+            ExhaustPile = new Pile(),
+            ActiveCards = new Pile(),
             TokenManager = _tokenManager,
             FlowManager = _flowBatteryManager,
             RapportManager = rapportManager,
