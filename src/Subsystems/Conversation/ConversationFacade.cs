@@ -86,7 +86,15 @@ public class ConversationFacade
         }
 
         // Create session based on conversation type
-        _currentSession = _orchestrator.CreateSession(npc, conversationType, observationCards);
+        if (conversationType == ConversationType.Commerce)
+        {
+            Console.WriteLine($"[ConversationFacade] Creating Commerce exchange session for {npc.Name}");
+            _currentSession = _orchestrator.CreateExchangeSession(npc);
+        }
+        else
+        {
+            _currentSession = _orchestrator.CreateSession(npc, conversationType, observationCards);
+        }
 
         return _currentSession;
     }

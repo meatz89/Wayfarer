@@ -228,7 +228,7 @@ namespace Wayfarer.Pages.Components
                 if (SelectedCard.Properties.Contains(CardProperty.Exchange) && messageSystem != null)
                 {
                     // For exchanges, show what's being traded
-                    if (SelectedCard.Context?.ExchangeData?.Cost != null && SelectedCard.Context?.ExchangeData?.Reward != null)
+                    if (SelectedCard.Context?.ExchangeData?.Costs != null && SelectedCard.Context?.ExchangeData?.Rewards != null)
                     {
                         if (SelectedCard.Context.ExchangeName == "Pass on this offer")
                         {
@@ -236,7 +236,7 @@ namespace Wayfarer.Pages.Components
                         }
                         else
                         {
-                            messageSystem.AddSystemMessage(string.Format("Trading: {0} for {1}", FormatResourceDict(SelectedCard.Context.ExchangeData.Cost), FormatResourceDict(SelectedCard.Context.ExchangeData.Reward)), SystemMessageTypes.Info);
+                            messageSystem.AddSystemMessage(string.Format("Trading: {0} for {1}", FormatResourceList(SelectedCard.Context.ExchangeData.Costs), FormatResourceList(SelectedCard.Context.ExchangeData.Rewards)), SystemMessageTypes.Info);
                         }
                     }
                 }
@@ -1167,9 +1167,9 @@ namespace Wayfarer.Pages.Components
         protected string GetSuccessEffect(CardInstance card)
         {
             // For exchange cards, show the reward
-            if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeData?.Reward != null)
+            if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeData?.Rewards != null)
             {
-                return $"Complete exchange: {FormatResourceDict(card.Context.ExchangeData.Reward)}";
+                return $"Complete exchange: {FormatResourceList(card.Context.ExchangeData.Rewards)}";
             }
 
             // Check if card has a success effect
@@ -1295,9 +1295,9 @@ namespace Wayfarer.Pages.Components
             // For exchange cards, show the exchange details
             if (card.Properties.Contains(CardProperty.Exchange) && card.Context != null)
             {
-                if (card.Context?.ExchangeData?.Cost != null && card.Context?.ExchangeData?.Reward != null)
+                if (card.Context?.ExchangeData?.Costs != null && card.Context?.ExchangeData?.Rewards != null)
                 {
-                    return $"{FormatResourceDict(card.Context.ExchangeData.Cost)} → {FormatResourceDict(card.Context.ExchangeData.Reward)}";
+                    return $"{FormatResourceList(card.Context.ExchangeData.Costs)} → {FormatResourceList(card.Context.ExchangeData.Rewards)}";
                 }
             }
 
@@ -1442,19 +1442,10 @@ namespace Wayfarer.Pages.Components
 
         protected string GetExchangeCostDisplay(CardInstance card)
         {
-            // First check Context.ExchangeData
-            if (card?.Context?.ExchangeData?.Cost != null && card.Context.ExchangeData.Cost.Any())
+            // Use the consistent FormatResourceList method
+            if (card?.Context?.ExchangeData?.Costs != null && card.Context.ExchangeData.Costs.Any())
             {
-                KeyValuePair<ResourceType, int> cost = card.Context.ExchangeData.Cost.First();
-                string resourceName = cost.Key switch
-                {
-                    ResourceType.Coins => "coins",
-                    ResourceType.Health => "health",
-                    ResourceType.Food => "food",
-                    ResourceType.Attention => "attention",
-                    _ => cost.Key.ToString().ToLower()
-                };
-                return $"{cost.Value} {resourceName}";
+                return FormatResourceList(card.Context.ExchangeData.Costs);
             }
 
             return "Free";
@@ -1468,37 +1459,37 @@ namespace Wayfarer.Pages.Components
                 List<string> rewardParts = new List<string>();
 
                 // Add standard resource rewards
-                if (card.Context.ExchangeData.Reward != null && card.Context.ExchangeData.Reward.Any())
+                if (card.Context.ExchangeData.Rewards != null && card.Context.ExchangeData.Rewards.Any())
                 {
-                    foreach (KeyValuePair<ResourceType, int> reward in card.Context.ExchangeData.Reward)
+                    foreach (ResourceAmount reward in card.Context.ExchangeData.Rewards)
                     {
-                        string resourceName = reward.Key switch
+                        string resourceName = reward.Type switch
                         {
                             ResourceType.Coins => "coins",
                             ResourceType.Health => "health",
                             ResourceType.Food => "food",
                             ResourceType.Attention => "attention",
-                            _ => reward.Key.ToString().ToLower()
+                            _ => reward.Type.ToString().ToLower()
                         };
-                        rewardParts.Add($"{reward.Value} {resourceName}");
+                        rewardParts.Add($"{reward.Amount} {resourceName}");
                     }
                 }
 
-                // Add item rewards from PlayerReceives
-                if (card.Context.ExchangeData.PlayerReceives != null && card.Context.ExchangeData.PlayerReceives.Any())
-                {
-                    foreach (KeyValuePair<string, int> item in card.Context.ExchangeData.PlayerReceives)
-                    {
-                        if (item.Key == "items")
-                        {
-                            rewardParts.Add($"{item.Value} items");
-                        }
-                        else
-                        {
-                            rewardParts.Add(item.Value > 1 ? $"{item.Value} {item.Key}" : item.Key.Replace("_", " "));
-                        }
-                    }
-                }
+                // TODO: Add item rewards from PlayerReceives when implemented in new architecture
+                // if (card.Context.ExchangeData.PlayerReceives != null && card.Context.ExchangeData.PlayerReceives.Any())
+                // {
+                //     foreach (KeyValuePair<string, int> item in card.Context.ExchangeData.PlayerReceives)
+                //     {
+                //         if (item.Key == "items")
+                //         {
+                //             rewardParts.Add($"{item.Value} items");
+                //         }
+                //         else
+                //         {
+                //             rewardParts.Add(item.Value > 1 ? $"{item.Value} {item.Key}" : item.Key.Replace("_", " "));
+                //         }
+                //     }
+                // }
 
                 if (rewardParts.Any())
                 {
@@ -2677,12 +2668,13 @@ namespace Wayfarer.Pages.Components
             }
         }
     
-    private string FormatResourceDict(Dictionary<ResourceType, int> resources)
+    private string FormatResourceList(List<ResourceAmount> resources)
     {
         if (resources == null || resources.Count == 0)
             return "nothing";
             
-        return string.Join(", ", resources.Select(kvp => $"{kvp.Value} {kvp.Key.ToString().ToLower()}"));
+        return string.Join(", ", resources.Select(r => $"{r.Amount} {r.Type.ToString().ToLower()}"));
     }
+
 }
 }

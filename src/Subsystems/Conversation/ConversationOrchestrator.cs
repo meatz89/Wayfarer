@@ -428,7 +428,8 @@ public class ConversationOrchestrator
             npc.InitializeExchangeDeck(null);
         }
 
-        return CreateSession(npc, ConversationType.Commerce, null);
+        // Use the StartExchange method which properly populates exchange data
+        return ConversationSession.StartExchange(npc, null, _tokenManager, new List<string>(), null, _gameWorld);
     }
 
     /// <summary>

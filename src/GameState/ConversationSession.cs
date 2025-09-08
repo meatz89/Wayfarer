@@ -295,15 +295,17 @@ public class ConversationSession
                     {
                         Id = exchangeDef.Id,
                         Name = exchangeDef.Name,
-                        Cost = new Dictionary<ResourceType, int>(),
-                        Reward = new Dictionary<ResourceType, int>()
+                        ExchangeName = exchangeDef.Name,
+                        Description = "",
+                        Costs = new List<ResourceAmount>(),
+                        Rewards = new List<ResourceAmount>()
                     };
                     
                     // Convert string currency to ResourceType for cost
                     ResourceType? costType = ParseResourceType(exchangeDef.GiveCurrency);
                     if (costType.HasValue)
                     {
-                        exchangeData.Cost[costType.Value] = exchangeDef.GiveAmount;
+                        exchangeData.Costs.Add(new ResourceAmount(costType.Value, exchangeDef.GiveAmount));
                         Console.WriteLine($"[ConversationSession.StartExchange] Set cost: {exchangeDef.GiveAmount} {costType.Value}");
                     }
                     
@@ -311,7 +313,7 @@ public class ConversationSession
                     ResourceType? rewardType = ParseResourceType(exchangeDef.ReceiveCurrency);
                     if (rewardType.HasValue)
                     {
-                        exchangeData.Reward[rewardType.Value] = exchangeDef.ReceiveAmount;
+                        exchangeData.Rewards.Add(new ResourceAmount(rewardType.Value, exchangeDef.ReceiveAmount));
                         Console.WriteLine($"[ConversationSession.StartExchange] Set reward: {exchangeDef.ReceiveAmount} {rewardType.Value}");
                     }
                     

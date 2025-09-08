@@ -6,10 +6,8 @@ public class ExchangeData
     public string Name { get; set; }
     public string ExchangeName { get; set; }
     public string Description { get; set; }
-    public Dictionary<string, int> PlayerGives { get; set; } = new();
-    public Dictionary<string, int> PlayerReceives { get; set; } = new();
-    public Dictionary<ResourceType, int> Cost { get; set; } = new();
-    public Dictionary<ResourceType, int> Reward { get; set; } = new();
+    public List<ResourceAmount> Costs { get; set; } = new();
+    public List<ResourceAmount> Rewards { get; set; } = new();
     public int TrustRequirement { get; set; }
     public bool IsAvailable { get; set; } = true;
     public bool SingleUse { get; set; }
@@ -22,18 +20,18 @@ public class ExchangeData
 
     public bool CanAfford(Player player)
     {
-        foreach (KeyValuePair<ResourceType, int> cost in Cost)
+        foreach (ResourceAmount cost in Costs)
         {
-            switch (cost.Key)
+            switch (cost.Type)
             {
                 case ResourceType.Coins:
-                    if (player.Coins < cost.Value) return false;
+                    if (player.Coins < cost.Amount) return false;
                     break;
                 case ResourceType.Health:
-                    if (player.Health < cost.Value) return false;
+                    if (player.Health < cost.Amount) return false;
                     break;
                 case ResourceType.Hunger:
-                    if (player.Hunger < cost.Value) return false;
+                    if (player.Hunger < cost.Amount) return false;
                     break;
             }
         }
@@ -45,21 +43,21 @@ public class ExchangeData
         // Check if player can afford the exchange
         if (playerResources == null) return false;
 
-        foreach (KeyValuePair<ResourceType, int> cost in Cost)
+        foreach (ResourceAmount cost in Costs)
         {
-            switch (cost.Key)
+            switch (cost.Type)
             {
                 case ResourceType.Coins:
-                    if (playerResources.Coins < cost.Value) return false;
+                    if (playerResources.Coins < cost.Amount) return false;
                     break;
                 case ResourceType.Health:
-                    if (playerResources.Health < cost.Value) return false;
+                    if (playerResources.Health < cost.Amount) return false;
                     break;
                 case ResourceType.Hunger:
-                    if (playerResources.Stamina < cost.Value) return false;
+                    if (playerResources.Stamina < cost.Amount) return false;
                     break;
                 case ResourceType.Attention:
-                    if (currentAttention < cost.Value) return false;
+                    if (currentAttention < cost.Amount) return false;
                     break;
             }
         }
@@ -69,37 +67,27 @@ public class ExchangeData
     public string GetNarrativeContext()
     {
         List<string> givesList = new List<string>();
-        foreach (KeyValuePair<string, int> kv in PlayerGives)
+        foreach (ResourceAmount cost in Costs)
         {
-            givesList.Add($"{kv.Value} {kv.Key}");
+            givesList.Add($"{cost.Amount} {cost.Type.ToString().ToLower()}");
         }
 
         List<string> receivesList = new List<string>();
-        foreach (KeyValuePair<string, int> kv in PlayerReceives)
+        foreach (ResourceAmount reward in Rewards)
         {
-            receivesList.Add($"{kv.Value} {kv.Key}");
+            receivesList.Add($"{reward.Amount} {reward.Type.ToString().ToLower()}");
         }
 
         return $"Trading {string.Join(", ", givesList)} for {string.Join(", ", receivesList)}";
     }
 
-    public List<ResourceExchange> GetCostAsList()
+    public List<ResourceAmount> GetCostAsList()
     {
-        List<ResourceExchange> list = new List<ResourceExchange>();
-        foreach (KeyValuePair<ResourceType, int> kv in Cost)
-        {
-            list.Add(new ResourceExchange { ResourceType = kv.Key, Amount = kv.Value });
-        }
-        return list;
+        return Costs;
     }
 
-    public List<ResourceExchange> GetRewardAsList()
+    public List<ResourceAmount> GetRewardAsList()
     {
-        List<ResourceExchange> list = new List<ResourceExchange>();
-        foreach (KeyValuePair<ResourceType, int> kv in Reward)
-        {
-            list.Add(new ResourceExchange { ResourceType = kv.Key, Amount = kv.Value });
-        }
-        return list;
+        return Rewards;
     }
 }

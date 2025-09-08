@@ -33,8 +33,8 @@ public class ExchangeHandler
         Console.WriteLine($"[ExchangeHandler] Executing exchange: {exchange?.ExchangeName ?? "NULL"}");
         if (exchange != null)
         {
-            Console.WriteLine($"[ExchangeHandler] Exchange Cost: {string.Join(", ", exchange.Cost.Select(c => $"{c.Key}={c.Value}"))}");
-            Console.WriteLine($"[ExchangeHandler] Exchange Reward: {string.Join(", ", exchange.Reward.Select(r => $"{r.Key}={r.Value}"))}");
+            Console.WriteLine($"[ExchangeHandler] Exchange Cost: {string.Join(", ", exchange.Costs.Select(c => $"{c.Type}={c.Amount}"))}");
+            Console.WriteLine($"[ExchangeHandler] Exchange Reward: {string.Join(", ", exchange.Rewards.Select(r => $"{r.Type}={r.Amount}"))}");
             Console.WriteLine($"[ExchangeHandler] Player Resources: Coins={playerResources.Coins}, Health={playerResources.Health}");
         }
 
@@ -137,46 +137,46 @@ public class ExchangeHandler
     /// </summary>
     private bool ApplyCosts(ExchangeData exchange, Player player, NPC npc)
     {
-        foreach (KeyValuePair<ResourceType, int> cost in exchange.Cost)
+        foreach (ResourceAmount cost in exchange.Costs)
         {
-            switch (cost.Key)
+            switch (cost.Type)
             {
                 case ResourceType.Coins:
-                    if (player.Coins < cost.Value)
+                    if (player.Coins < cost.Amount)
                         return false;
-                    player.Coins -= cost.Value;
+                    player.Coins -= cost.Amount;
                     break;
 
                 case ResourceType.Health:
-                    if (player.Health < cost.Value)
+                    if (player.Health < cost.Amount)
                         return false;
-                    player.Health -= cost.Value;
+                    player.Health -= cost.Amount;
                     break;
 
                 case ResourceType.Attention:
                     TimeBlocks timeBlock = _timeManager.GetCurrentTimeBlock();
                     AttentionManager attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(timeBlock);
-                    if (!attentionMgr.TrySpend(cost.Value))
+                    if (!attentionMgr.TrySpend(cost.Amount))
                         return false;
                     break;
 
                 case ResourceType.TrustToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Trust, cost.Value, npc.ID))
+                    if (!_tokenManager.SpendTokens(ConnectionType.Trust, cost.Amount, npc.ID))
                         return false;
                     break;
 
                 case ResourceType.CommerceToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Commerce, cost.Value, npc.ID))
+                    if (!_tokenManager.SpendTokens(ConnectionType.Commerce, cost.Amount, npc.ID))
                         return false;
                     break;
 
                 case ResourceType.StatusToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Status, cost.Value, npc.ID))
+                    if (!_tokenManager.SpendTokens(ConnectionType.Status, cost.Amount, npc.ID))
                         return false;
                     break;
 
                 case ResourceType.ShadowToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Shadow, cost.Value, npc.ID))
+                    if (!_tokenManager.SpendTokens(ConnectionType.Shadow, cost.Amount, npc.ID))
                         return false;
                     break;
             }
@@ -190,43 +190,43 @@ public class ExchangeHandler
     /// </summary>
     private void ApplyRewards(ExchangeData exchange, Player player, NPC npc)
     {
-        foreach (KeyValuePair<ResourceType, int> reward in exchange.Reward)
+        foreach (ResourceAmount reward in exchange.Rewards)
         {
-            switch (reward.Key)
+            switch (reward.Type)
             {
                 case ResourceType.Coins:
-                    player.Coins += reward.Value;
+                    player.Coins += reward.Amount;
                     break;
 
                 case ResourceType.Health:
-                    player.Health = Math.Min(100, player.Health + reward.Value);
+                    player.Health = Math.Min(100, player.Health + reward.Amount);
                     break;
 
                 case ResourceType.Hunger:
                     // Hunger maps to Food (0 = not hungry, 100 = very hungry)
-                    player.Hunger = Math.Max(0, Math.Min(100, player.Hunger - reward.Value));
+                    player.Hunger = Math.Max(0, Math.Min(100, player.Hunger - reward.Amount));
                     break;
 
                 case ResourceType.Attention:
                     TimeBlocks timeBlock = _timeManager.GetCurrentTimeBlock();
                     AttentionManager attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(timeBlock);
-                    attentionMgr.AddAttention(reward.Value);
+                    attentionMgr.AddAttention(reward.Amount);
                     break;
 
                 case ResourceType.TrustToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Value, npc.ID);
+                    _tokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Amount, npc.ID);
                     break;
 
                 case ResourceType.CommerceToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Commerce, reward.Value, npc.ID);
+                    _tokenManager.AddTokensToNPC(ConnectionType.Commerce, reward.Amount, npc.ID);
                     break;
 
                 case ResourceType.StatusToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Status, reward.Value, npc.ID);
+                    _tokenManager.AddTokensToNPC(ConnectionType.Status, reward.Amount, npc.ID);
                     break;
 
                 case ResourceType.ShadowToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Value, npc.ID);
+                    _tokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Amount, npc.ID);
                     break;
             }
         }
@@ -285,30 +285,24 @@ public class ExchangeHandler
     private bool ShouldAdvanceTime(ExchangeData exchange)
     {
         // Work exchanges that cost significant attention advance time
-        return exchange.Cost.Any(c => c.Key == ResourceType.Attention && c.Value >= 3);
+        return exchange.Costs.Any(c => c.Type == ResourceType.Attention && c.Amount >= 3);
     }
 
     /// <summary>
     /// Format cost for display
     /// </summary>
-    private string FormatCost(List<ResourceExchange> costs)
+    private string FormatCost(List<ResourceAmount> costs)
     {
-        IEnumerable<string> parts = costs.Select(c => $"{c.Amount} {GetResourceName(c.ResourceType)}");
+        IEnumerable<string> parts = costs.Select(c => $"{c.Amount} {GetResourceName(c.Type)}");
         return string.Join(", ", parts);
     }
 
     /// <summary>
     /// Format reward for display
     /// </summary>
-    private string FormatReward(List<ResourceExchange> rewards)
+    private string FormatReward(List<ResourceAmount> rewards)
     {
-        IEnumerable<string> parts = rewards.Select(r =>
-        {
-            if (r.IsAbsolute)
-                return $"Set {GetResourceName(r.ResourceType)} to {r.Amount}";
-            else
-                return $"{r.Amount} {GetResourceName(r.ResourceType)}";
-        });
+        IEnumerable<string> parts = rewards.Select(r => $"{r.Amount} {GetResourceName(r.Type)}");
         return string.Join(", ", parts);
     }
 
@@ -343,8 +337,8 @@ public class ExchangeHandler
         // Return empty data if no exchange data found
         return new ExchangeData
         {
-            Cost = new Dictionary<ResourceType, int>(),
-            Reward = new Dictionary<ResourceType, int>()
+            Costs = new List<ResourceAmount>(),
+            Rewards = new List<ResourceAmount>()
         };
     }
 }
