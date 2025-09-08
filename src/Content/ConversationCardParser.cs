@@ -172,6 +172,12 @@ public static class ConversationCardParser
             }
         }
 
+        // Set rapport threshold for goal cards from DTO
+        if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.BurdenGoal)
+        {
+            card.RapportThreshold = dto.RapportThreshold ?? 0;
+        }
+
         // Parse properties array
         if (dto.Properties != null && dto.Properties.Count > 0)
         {

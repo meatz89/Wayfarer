@@ -29,6 +29,9 @@ public class ConversationCard
     // Personality targeting - which NPCs can use this card
     public List<string> PersonalityTypes { get; set; } = new List<string>();
 
+    // Rapport threshold for goal cards (Letter, Promise, BurdenGoal)
+    public int RapportThreshold { get; set; } = 0;
+
     // Three-effect system: each card can have Success, Failure, and Exhaust effects
     public CardEffect SuccessEffect { get; set; } = CardEffect.None;
     public CardEffect FailureEffect { get; set; } = CardEffect.None;
@@ -81,6 +84,7 @@ public class ConversationCard
             MinimumTokensRequired = this.MinimumTokensRequired,
             RequiredTokenType = this.RequiredTokenType,
             PersonalityTypes = new List<string>(this.PersonalityTypes), // Clone personality types
+            RapportThreshold = this.RapportThreshold,
             SuccessEffect = this.SuccessEffect?.DeepClone() ?? CardEffect.None,
             FailureEffect = this.FailureEffect?.DeepClone() ?? CardEffect.None,
             ExhaustEffect = this.ExhaustEffect?.DeepClone() ?? CardEffect.None,

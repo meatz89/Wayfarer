@@ -425,8 +425,7 @@ public class ConversationFacade
         if (npc.RequestDeck != null && npc.RequestDeck.HasCardsAvailable())
         {
             bool hasFriendlyChatGoal = npc.RequestDeck.GetAllCards()
-                .OfType<RequestCard>()
-                .Any(card => card.GoalType == "FriendlyChat");
+                .Any(card => card.CardType == CardType.Promise);
             
             if (hasFriendlyChatGoal && npc.ConversationDeck != null && npc.ConversationDeck.Count > 0)
             {

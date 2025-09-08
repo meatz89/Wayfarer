@@ -524,15 +524,15 @@ public class CardDeckManager
         if (npc.RequestDeck == null || !npc.RequestDeck.HasCardsAvailable())
             return null;
 
-        List<RequestCard> goalCards = npc.RequestDeck.GetAllCards()
-            .OfType<RequestCard>()
-            .Where(card => card.GoalType == "FriendlyChat")
+        // Look for cards with CardType Promise (since FriendlyChat uses Promise type goal cards)
+        List<ConversationCard> goalCards = npc.RequestDeck.GetAllCards()
+            .Where(card => card.CardType == CardType.Promise)
             .ToList();
 
         if (!goalCards.Any())
             return null;
 
-        RequestCard selectedGoal = goalCards[_random.Next(goalCards.Count)];
+        ConversationCard selectedGoal = goalCards[_random.Next(goalCards.Count)];
         CardInstance goalInstance = new CardInstance(selectedGoal, npc.ID);
 
         // Store the rapport threshold in the card context (same as Elena's letter)
@@ -554,15 +554,15 @@ public class CardDeckManager
         if (npc.RequestDeck == null || !npc.RequestDeck.HasCardsAvailable())
             return null;
 
-        List<RequestCard> resolutionCards = npc.RequestDeck.GetAllCards()
-            .OfType<RequestCard>()
-            .Where(card => card.GoalType == "Resolution")
+        // Look for cards with CardType BurdenGoal
+        List<ConversationCard> resolutionCards = npc.RequestDeck.GetAllCards()
+            .Where(card => card.CardType == CardType.BurdenGoal)
             .ToList();
 
         if (!resolutionCards.Any())
             return null;
 
-        RequestCard selectedResolution = resolutionCards[_random.Next(resolutionCards.Count)];
+        ConversationCard selectedResolution = resolutionCards[_random.Next(resolutionCards.Count)];
         CardInstance resolutionInstance = new CardInstance(selectedResolution, npc.ID);
 
         if (resolutionInstance.Context == null)
@@ -592,14 +592,14 @@ public class CardDeckManager
         ConversationCard selectedRequest = requestCards[_random.Next(requestCards.Count)];
         CardInstance requestInstance = new CardInstance(selectedRequest, npc.ID);
 
-        // Store the rapport threshold in the card context if it's a RequestCard
-        if (selectedRequest is RequestCard requestCard)
+        // Store the rapport threshold in the card context for goal cards
+        if (selectedRequest.CardType == CardType.Letter || selectedRequest.CardType == CardType.Promise || selectedRequest.CardType == CardType.BurdenGoal)
         {
             if (requestInstance.Context == null)
                 requestInstance.Context = new CardContext();
 
-            // Store the rapport threshold properly
-            requestInstance.Context.RapportThreshold = requestCard.RapportThreshold;
+            // Store the rapport threshold from the card
+            requestInstance.Context.RapportThreshold = selectedRequest.RapportThreshold;
         }
 
         return requestInstance;
