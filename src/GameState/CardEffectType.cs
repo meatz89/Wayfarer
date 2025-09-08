@@ -69,9 +69,9 @@ public enum CardEffectType
     Exchange,
 
     /// <summary>
-    /// Advance NPC to specified emotional state (observation cards only)
+    /// Advance NPC to specified connection state (observation cards only)
     /// </summary>
-    AdvanceEmotionalState,
+    AdvanceConnectionState,
 
     /// <summary>
     /// Unlock a hidden exchange option (observation cards only)  

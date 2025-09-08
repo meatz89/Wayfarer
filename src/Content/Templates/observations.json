@@ -15,7 +15,7 @@
           "difficulty": "VeryEasy",
           "description": "Knowledge of merchant caravan routes calms Elena's panic",
           "effect": {
-            "type": "ChangeEmotionalState",
+            "type": "ChangeConnectionState",
             "targetState": "Neutral"
           },
           "dialogueFragment": "I overheard Marcus talking about safe caravan routes leaving tonight..."

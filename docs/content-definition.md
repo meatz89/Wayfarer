@@ -214,7 +214,7 @@ public static NPC GenerateSkeletonNPC(string id, string source)
   "persistence": "Persistent",
   "focus": 0,
   "effect": {
-    "type": "ChangeEmotionalState",
+    "type": "ChangeConnectionState",
     "targetState": "Neutral"
   }
 }

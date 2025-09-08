@@ -109,8 +109,8 @@ public class CardEffectProcessor
                 // Implementation would set a flag in session
                 break;
 
-            case CardEffectType.AdvanceEmotionalState:
-                result.SpecialEffect = ProcessAdvanceEmotionalState(effect, session);
+            case CardEffectType.AdvanceConnectionState:
+                result.SpecialEffect = ProcessAdvanceConnectionState(effect, session);
                 break;
 
             case CardEffectType.UnlockExchange:
@@ -317,8 +317,8 @@ public class CardEffectProcessor
         return 0;
     }
 
-    // Process advance emotional state effect (observation cards only)
-    private string ProcessAdvanceEmotionalState(CardEffect effect, ConversationSession session)
+    // Process advance connection state effect (observation cards only)
+    private string ProcessAdvanceConnectionState(CardEffect effect, ConversationSession session)
     {
         if (effect.Value == null) return "No state specified";
         

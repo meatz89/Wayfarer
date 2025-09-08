@@ -78,7 +78,7 @@ Each card includes a `personalityTypes` array that determines which NPCs can use
   "persistence": "Persistent",
   "description": "Knowledge of merchant caravan routes calms Elena's panic",
   "effect": {
-    "type": "AdvanceEmotionalState",
+    "type": "AdvanceConnectionState",
     "targetState": "Neutral"
   },
   "npcDeck": "elena_observation"

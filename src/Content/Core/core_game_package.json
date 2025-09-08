@@ -206,7 +206,7 @@
         "description": "Safe Passage Knowledge",
         "difficulty": "Auto",
         "successEffect": {
-          "type": "AdvanceEmotionalState",
+          "type": "AdvanceConnectionState",
           "value": "1"
         },
         "dialogueFragment": "You share what you've learned about safe travel routes through the market."

@@ -155,7 +155,7 @@ Allow observation cards to be played during conversations as special SPEAK actio
    - Remove after playing
 
 3. `/src/Content/CardEffectProcessor.cs`
-   - Add `AdvanceEmotionalState` effect type
+   - Add `AdvanceConnectionState` effect type
    - Add `UnlockExchange` effect type
    - Reset flow to 0 on state advancement
 
