@@ -5,6 +5,7 @@ using System.Linq;
 /// <summary>
 /// Generates atmospheric descriptions from categorical spot properties.
 /// All text is systematically derived from game state - no hardcoded strings.
+/// Handles missing property mappings gracefully with fallback descriptions.
 /// </summary>
 public class SpotDescriptionGenerator
 {
@@ -63,6 +64,82 @@ public class SpotDescriptionGenerator
             "as pressure mounts steadily"
         };
 
+    // Generic fallback descriptions for unmapped properties
+    private static readonly string[] FallbackDescriptions = new[]
+    {
+        "a notable location",
+        "an interesting spot", 
+        "a distinctive place",
+        "a marked area",
+        "a particular locale"
+    };
+
+    // Category-based fallback descriptions for better context
+    private static readonly Dictionary<string, string[]> CategoryFallbacks = new()
+    {
+        ["Authority"] = new[] { "under official watch", "where authority holds sway", "regulated and monitored" },
+        ["Commercial"] = new[] { "focused on trade", "where business happens", "commercial in nature" },
+        ["Social"] = new[] { "where people gather", "socially active", "community-focused" },
+        ["Transit"] = new[] { "a passage point", "connecting different areas", "facilitating movement" },
+        ["Environmental"] = new[] { "shaped by nature", "influenced by surroundings", "environmentally distinct" },
+        ["Functional"] = new[] { "serving a purpose", "functionally designed", "practically arranged" },
+        ["Time"] = new[] { "time-dependent atmosphere", "varying with hours", "temporally significant" }
+    };
+
+    /// <summary>
+    /// Validate the PropertyAtmosphere dictionary against all enum values.
+    /// Should be called during startup to identify missing mappings.
+    /// </summary>
+    public static List<SpotPropertyType> ValidatePropertyMappings()
+    {
+        var allProperties = Enum.GetValues<SpotPropertyType>();
+        var unmappedProperties = new List<SpotPropertyType>();
+
+        foreach (var property in allProperties)
+        {
+            if (!PropertyAtmosphere.ContainsKey(property))
+            {
+                unmappedProperties.Add(property);
+            }
+        }
+
+        if (unmappedProperties.Any())
+        {
+            Console.WriteLine($"SpotDescriptionGenerator: Found {unmappedProperties.Count} unmapped properties:");
+            foreach (var property in unmappedProperties)
+            {
+                Console.WriteLine($"  - {property}");
+            }
+        }
+
+        return unmappedProperties;
+    }
+
+    /// <summary>
+    /// Safely get atmospheric description for a property with intelligent fallbacks
+    /// </summary>
+    private string GetPropertyDescription(SpotPropertyType property, int variantIndex)
+    {
+        // First try direct mapping
+        if (PropertyAtmosphere.TryGetValue(property, out var descriptions))
+        {
+            return descriptions[variantIndex % descriptions.Length];
+        }
+
+        // Try category-based fallback
+        string propertyName = property.ToString();
+        foreach (var category in CategoryFallbacks)
+        {
+            if (propertyName.Contains(category.Key))
+            {
+                return category.Value[variantIndex % category.Value.Length];
+            }
+        }
+
+        // Use generic fallback
+        return FallbackDescriptions[variantIndex % FallbackDescriptions.Length];
+    }
+
     /// <summary>
     /// Generate a complete atmospheric description from categorical properties
     /// </summary>
@@ -79,7 +156,7 @@ public class SpotDescriptionGenerator
 
         // Start with primary atmosphere
         SpotPropertyType primaryProperty = SelectPrimaryProperty(properties);
-        string atmosphereBase = PropertyAtmosphere[primaryProperty][GetVariantIndex(primaryProperty)];
+        string atmosphereBase = GetPropertyDescription(primaryProperty, GetVariantIndex(primaryProperty));
         description.Add(char.ToUpper(atmosphereBase[0]) + atmosphereBase.Substring(1));
 
         // Add secondary properties if multiple
@@ -88,16 +165,26 @@ public class SpotDescriptionGenerator
             IEnumerable<SpotPropertyType> secondaryProps = properties.Where(p => p != primaryProperty).Take(2);
             foreach (SpotPropertyType prop in secondaryProps)
             {
-                if (PropertyAtmosphere.ContainsKey(prop))
-                {
-                    string fragment = PropertyAtmosphere[prop][GetVariantIndex(prop)];
-                    description.Add($", {fragment}");
-                }
+                string fragment = GetPropertyDescription(prop, GetVariantIndex(prop));
+                description.Add($", {fragment}");
             }
         }
 
-        // Add time-based activity
-        description.Add($". {TimeActivity[currentTime][GetVariantIndex(currentTime)]}");
+        // Add time-based activity - with safe access
+        if (TimeActivity.TryGetValue(currentTime, out var timeActivities))
+        {
+            int variantIndex = GetVariantIndex(currentTime);
+            if (timeActivities != null && timeActivities.Length > 0)
+            {
+                string activity = timeActivities[variantIndex % timeActivities.Length];
+                description.Add($". {activity}");
+            }
+        }
+        else
+        {
+            // Fallback for unmapped time blocks
+            description.Add(". The time passes quietly");
+        }
 
         // Add social context based on NPCs
         if (npcsPresent > 3)
@@ -125,33 +212,57 @@ public class SpotDescriptionGenerator
 
         SpotPropertyType primary = SelectPrimaryProperty(properties);
 
-        // Create brief categorical description
+        // Create brief categorical description with fallbacks for unmapped properties
         return primary switch
         {
+            // Mapped properties (existing)
             SpotPropertyType.Private => "Private area",
             SpotPropertyType.Discrete => "Discrete spot",
             SpotPropertyType.Public => "Public space",
             SpotPropertyType.Exposed => "Exposed location",
-
             SpotPropertyType.Quiet => "Quiet place",
             SpotPropertyType.Loud => "Noisy area",
             SpotPropertyType.Warm => "Warm shelter",
             SpotPropertyType.Shaded => "Shaded spot",
-
             SpotPropertyType.ViewsMainEntrance => "Gate view",
             SpotPropertyType.ViewsBackAlley => "Alley overlook",
             SpotPropertyType.ViewsMarket => "Market view",
             SpotPropertyType.ViewsTemple => "Temple view",
-
             SpotPropertyType.Crossroads => "Crossroads",
             SpotPropertyType.Isolated => "Isolated spot",
-
             SpotPropertyType.NobleFavored => "Noble quarter",
             SpotPropertyType.CommonerHaunt => "Common area",
             SpotPropertyType.MerchantHub => "Trade center",
             SpotPropertyType.SacredGround => "Sacred place",
 
-            _ => "Notable spot"
+            // Common unmapped properties (intelligent fallbacks)
+            SpotPropertyType.Authority => "Authority post",
+            SpotPropertyType.Commercial => "Trade spot",
+            SpotPropertyType.Watched => "Watched area",
+            SpotPropertyType.Official => "Official site",
+            SpotPropertyType.Guarded => "Guarded zone",
+            SpotPropertyType.Secure => "Secure area",
+            SpotPropertyType.Transit => "Transit point",
+            SpotPropertyType.TransitHub => "Transit hub",
+            SpotPropertyType.Checkpoint => "Checkpoint",
+            SpotPropertyType.Gateway => "Gateway",
+            SpotPropertyType.Social => "Social hub",
+            SpotPropertyType.Service => "Service point",
+            SpotPropertyType.Rest => "Rest area",
+            SpotPropertyType.Lodging => "Lodging",
+            SpotPropertyType.Tavern => "Tavern",
+            SpotPropertyType.Market => "Market",
+            SpotPropertyType.Temple => "Temple",
+            SpotPropertyType.Noble => "Noble area",
+            SpotPropertyType.Wealthy => "Wealthy district",
+            SpotPropertyType.Water => "Waterfront",
+            SpotPropertyType.River => "Riverside",
+            SpotPropertyType.Busy => "Busy place",
+            SpotPropertyType.Central => "Central hub",
+            SpotPropertyType.Hidden => "Hidden spot",
+
+            // Generic fallback
+            _ => $"{primary} area"
         };
     }
 
