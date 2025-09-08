@@ -538,15 +538,15 @@ public class PackageLoader
             {
                 try
                 {
-                    // Convert DTO to RequestCard using ConversationCardParser
-                    RequestCard requestCard = ConversationCardParser.ConvertGoalCardDTO(goalCardDto);
+                    // Convert DTO to ConversationCard using ConversationCardParser
+                    ConversationCard conversationCard = ConversationCardParser.ConvertGoalCardDTO(goalCardDto);
 
                     // Add to NPC's collection
                     if (!npcGoalCards.ContainsKey(goalCardDto.NpcId))
                     {
                         npcGoalCards[goalCardDto.NpcId] = new List<ConversationCard>();
                     }
-                    npcGoalCards[goalCardDto.NpcId].Add(requestCard);
+                    npcGoalCards[goalCardDto.NpcId].Add(conversationCard);
 
                     Console.WriteLine($"[PackageLoader] Loaded goal card '{goalCardDto.Id}' for NPC '{goalCardDto.NpcId}'");
                 }
@@ -689,7 +689,7 @@ public class PackageLoader
                     {
                         List<ConversationCard> exchangeCards = _gameWorld.AllCardDefinitions.Values
                             .OfType<ConversationCard>()
-                            .Where(card => card.Category == CardCategory.Exchange.ToString())
+                            .Where(card => card.CardType == CardType.Exchange)
                             .ToList();
 
                         npcExchangeCards = exchangeCards.ToList();
