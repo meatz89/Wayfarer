@@ -188,4 +188,15 @@ public class GameWorld
         return Spots.TryGetValue(spotId, out LocationSpot? spot) ? spot : null;
     }
 
+    /// <summary>
+    /// Apply initial player configuration after package loading
+    /// </summary>
+    public void ApplyInitialPlayerConfiguration()
+    {
+        if (InitialPlayerConfig != null)
+        {
+            Player.ApplyInitialConfiguration(InitialPlayerConfig);
+        }
+    }
+
 }

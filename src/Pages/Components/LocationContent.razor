@@ -81,10 +81,62 @@
         }
 
         <!-- Actions Available Here (from mockup) -->
-        @if (LocationActions.Any())
+        @{
+            bool hasInvestigationAction = CanInvestigate();
+            bool hasLocationActions = LocationActions.Any();
+            bool hasAnyActions = hasInvestigationAction || hasLocationActions;
+        }
+
+        @if (hasAnyActions)
         {
             <div class="section-header">Actions Available Here</div>
             <div class="actions-grid">
+                
+                <!-- Investigation Action -->
+                @if (hasInvestigationAction)
+                {
+                    <div class="action-card investigation" 
+                         @onclick="async () => await InvestigateLocation()">
+                        <div class="action-name">🔍 Investigate</div>
+                        <div class="action-cost">
+                            <span class="cost-value">1 attention • 10 min</span>
+                        </div>
+                        <div class="action-detail">
+                            Gain +@GetExpectedFamiliarityGain() familiarity 
+                            (Current: @GetFamiliarityDisplay())
+                        </div>
+                    </div>
+                }
+                else if (CurrentLocation != null)
+                {
+                    Player player = GameWorld.GetPlayer();
+                    int currentFamiliarity = player.GetLocationFamiliarity(CurrentLocation.Id);
+                    bool isMaxFamiliarity = currentFamiliarity >= CurrentLocation.MaxFamiliarity;
+                    AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
+                    bool hasAttention = attentionState.Current >= 1;
+                    <div class="action-card investigation unavailable">
+                        <div class="action-name">🔍 Investigate</div>
+                        <div class="action-cost">
+                            <span class="unavailable-reason">
+                                @if (!hasAttention)
+                                {
+                                    <text>Need 1 attention</text>
+                                }
+                                else if (isMaxFamiliarity)
+                                {
+                                    <text>Fully familiar (@GetFamiliarityDisplay())</text>
+                                }
+                                else
+                                {
+                                    <text>Cannot investigate</text>
+                                }
+                            </span>
+                        </div>
+                        <div class="action-detail">
+                            Investigate to discover location secrets
+                        </div>
+                    </div>
+                }
                 
                 <!-- Dynamic Location Actions -->
                 @foreach (var action in LocationActions)
@@ -190,7 +242,7 @@
         {
             <div class="observations">
                 <div class="observation-note">
-                    Spend 1 attention to observe, gain a state change card for conversations:
+                    Free observations - gain a state change card for conversations:
                 </div>
                 @foreach (var taken in TakenObservations)
                 {
@@ -215,7 +267,7 @@
                     <div class="observation-item" @onclick="() => TakeObservation(obs.Id)">
                         <span class="observation-text">@obs.Name</span>
                         <span class="observation-reward">
-                            <span class="cost-value">1 attention</span>
+                            <span class="cost-value">Free!</span>
                             <span class="reward-card">@GetObservationReward(obs)</span>
                         </span>
                     </div>

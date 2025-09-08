@@ -15,6 +15,7 @@ public class LocationScreenViewModel
     public List<string> LocationTraits { get; set; } = new();
     public string CurrentSpotName { get; set; }
     public string AtmosphereText { get; set; }
+    public string Familiarity { get; set; }
     public List<LocationActionViewModel> QuickActions { get; set; } = new();
     public List<NPCFocusViewModel> NPCsPresent { get; set; } = new();
     public string ObservationHeader { get; set; } = "Observations Available";

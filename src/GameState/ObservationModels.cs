@@ -8,7 +8,7 @@ public class Observation
     public string Id { get; set; }
     public string Text { get; set; }
     public ObservationType Type { get; set; }
-    public int AttentionCost { get; set; }
+    public int AttentionCost { get; set; } = 0;
     public string[] RelevantNPCs { get; set; }
     public ConnectionState? CreatesState { get; set; }
     public string CardTemplate { get; set; }

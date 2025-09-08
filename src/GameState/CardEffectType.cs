@@ -66,5 +66,15 @@ public enum CardEffectType
     /// <summary>
     /// Exchange resources with NPC. Data contains cost and reward.
     /// </summary>
-    Exchange
+    Exchange,
+
+    /// <summary>
+    /// Advance NPC to specified emotional state (observation cards only)
+    /// </summary>
+    AdvanceEmotionalState,
+
+    /// <summary>
+    /// Unlock a hidden exchange option (observation cards only)  
+    /// </summary>
+    UnlockExchange
 }

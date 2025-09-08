@@ -73,7 +73,8 @@ public class NPC
     // THREE DECK ARCHITECTURE (POC EXACT)
     public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Flow, Token, State, Knowledge, Burden
     public CardDeck RequestDeck { get; set; } = new();  // 0-3 cards: Promise (letters), Resolution requests
-    public CardDeck ExchangeDeck { get; set; } = new();  // 5-10 cards: Simple instant trades (Mercantile NPCs only) 
+    public CardDeck ExchangeDeck { get; set; } = new();  // 5-10 cards: Simple instant trades (Mercantile NPCs only)
+    public CardDeck ObservationDeck { get; set; } = new();  // Cards created from location observations (Work Packet 3) 
 
     // Daily exchange selection (removed - handled by GetTodaysExchange method)
 

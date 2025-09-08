@@ -112,6 +112,14 @@ public class CardEffectProcessor
                 result.SpecialEffect = "Next action costs 0 patience";
                 // Implementation would set a flag in session
                 break;
+
+            case CardEffectType.AdvanceEmotionalState:
+                result.SpecialEffect = ProcessAdvanceEmotionalState(effect, session);
+                break;
+
+            case CardEffectType.UnlockExchange:
+                result.SpecialEffect = ProcessUnlockExchange(effect, session);
+                break;
         }
 
         // Apply atmosphere modifications to rapport changes
@@ -311,6 +319,40 @@ public class CardEffectProcessor
     {
         // This is deprecated - rolls are now pre-calculated
         return 0;
+    }
+
+    // Process advance emotional state effect (observation cards only)
+    private string ProcessAdvanceEmotionalState(CardEffect effect, ConversationSession session)
+    {
+        if (effect.Value == null) return "No state specified";
+        
+        // Parse the target state from effect value
+        if (Enum.TryParse<ConnectionState>(effect.Value, true, out ConnectionState targetState))
+        {
+            // Set the NPC's connection state directly
+            session.CurrentState = targetState;
+            
+            // Reset flow to 0 when state changes
+            session.FlowBattery = 0;
+            
+            return $"Conversation advanced to {targetState} state";
+        }
+        
+        return $"Invalid state: {effect.Value}";
+    }
+
+    // Process unlock exchange effect (observation cards only)
+    private string ProcessUnlockExchange(CardEffect effect, ConversationSession session)
+    {
+        if (effect.Value == null) return "No exchange specified";
+        
+        string exchangeId = effect.Value;
+        
+        // For now, we'll just set a flag or special effect
+        // The actual exchange unlocking would need to be handled at a higher level
+        // where we have access to the NPC's exchange deck
+        
+        return $"Unlocked exchange: {exchangeId}";
     }
 }
 

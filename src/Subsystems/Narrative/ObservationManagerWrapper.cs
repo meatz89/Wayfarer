@@ -137,5 +137,21 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         {
             return _observationSystem.IsObservationRevealed(observationId);
         }
+
+        /// <summary>
+        /// Get available observation rewards for a location based on familiarity
+        /// </summary>
+        public List<ObservationReward> GetAvailableObservationRewards(string locationId)
+        {
+            return _observationManager.GetAvailableObservationRewards(locationId);
+        }
+
+        /// <summary>
+        /// Complete an observation reward and add card to NPC observation deck
+        /// </summary>
+        public bool CompleteObservationReward(string locationId, ObservationReward reward)
+        {
+            return _observationManager.CompleteObservationReward(locationId, reward);
+        }
     }
 }

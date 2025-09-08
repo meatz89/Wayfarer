@@ -1,0 +1,48 @@
+{
+  "locations": {
+    "market_square": [
+      {
+        "familiarityRequired": 1,
+        "priorObservationRequired": null,
+        "observationCard": {
+          "id": "safe_passage_knowledge",
+          "name": "Safe Passage Knowledge",
+          "type": "Observation",
+          "targetNpcId": "elena",
+          "targetDeck": "observation",
+          "focus": 0,
+          "persistence": "Persistent",
+          "difficulty": "VeryEasy",
+          "description": "Knowledge of merchant caravan routes calms Elena's panic",
+          "effect": {
+            "type": "ChangeEmotionalState",
+            "targetState": "Neutral"
+          },
+          "dialogueFragment": "I overheard Marcus talking about safe caravan routes leaving tonight..."
+        },
+        "description": "Overhear merchants discussing safe caravan routes"
+      },
+      {
+        "familiarityRequired": 2,
+        "priorObservationRequired": 0,
+        "observationCard": {
+          "id": "merchant_caravan_route",
+          "name": "Merchant Caravan Route",
+          "type": "Observation",
+          "targetNpcId": "marcus",
+          "targetDeck": "observation",
+          "focus": 0,
+          "persistence": "Persistent",
+          "difficulty": "VeryEasy",
+          "description": "Detailed knowledge of Marcus's private caravan schedule",
+          "effect": {
+            "type": "UnlockExchange",
+            "exchangeId": "marcus_caravan_transport"
+          },
+          "dialogueFragment": "I know about your private caravan to the Noble District..."
+        },
+        "description": "Discover Marcus's private caravan schedule to the Noble District"
+      }
+    ]
+  }
+}

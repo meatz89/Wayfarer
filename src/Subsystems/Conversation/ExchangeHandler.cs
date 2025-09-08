@@ -109,6 +109,10 @@ public class ExchangeHandler
             if (!CheckDomainRequirements(card, spotDomainTags))
                 continue;
 
+            // Check token requirements (minimum tokens required to even see the exchange)
+            if (!CheckTokenRequirements(card, npc))
+                continue;
+
             // Create exchange data from card effects
             ExchangeData exchange = ExtractExchangeData(card);
             bool canAfford = CanAffordExchange(exchange, playerResources);
@@ -235,6 +239,23 @@ public class ExchangeHandler
     {
         // Domain filtering removed - CardContext doesn't have RequiredDomains
         return true; // No domain filtering for now
+    }
+
+    /// <summary>
+    /// Check if player has the minimum required tokens for a gated exchange
+    /// </summary>
+    private bool CheckTokenRequirements(ConversationCard card, NPC npc)
+    {
+        // If no token requirements, exchange is available
+        if (card.MinimumTokensRequired <= 0 || card.RequiredTokenType == null)
+            return true;
+
+        // Check if player has required minimum tokens with this NPC
+        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
+        int currentTokens = npcTokens.ContainsKey(card.RequiredTokenType.Value) 
+            ? npcTokens[card.RequiredTokenType.Value] 
+            : 0;
+        return currentTokens >= card.MinimumTokensRequired;
     }
 
     /// <summary>

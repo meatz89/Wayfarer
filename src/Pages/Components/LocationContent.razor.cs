@@ -126,25 +126,29 @@ namespace Wayfarer.Pages.Components
             AvailableObservations.Clear();
             TakenObservations.Clear();
             Console.WriteLine("[LocationContent] Getting observations from GameFacade...");
-            // GetTakenObservations() works correctly, but need to implement GetAvailableObservations() method
+            
+            // Get taken observations
             List<TakenObservation>? takenObservations = GameFacade.GetTakenObservations();
             Console.WriteLine($"[LocationContent] Got {takenObservations?.Count ?? 0} taken observations");
 
-            // Temporarily disable observations until proper implementation
-            if (false) // allObservations?.AvailableObservations != null)
+            // Get available observation rewards and convert to view models
+            List<ObservationReward> availableRewards = GameFacade.GetAvailableObservationRewards();
+            Console.WriteLine($"[LocationContent] Got {availableRewards?.Count ?? 0} available observation rewards");
+            
+            if (availableRewards != null && availableRewards.Any())
             {
-                AvailableObservations = new List<LocationObservationViewModel>()
-                    .Select(obs => new LocationObservationViewModel
+                AvailableObservations = availableRewards
+                    .Select(reward => new LocationObservationViewModel
                     {
-                        Id = obs.Id,
-                        Name = obs.Name,
-                        Type = obs.Type
+                        Id = reward.ObservationCard.Id,
+                        Name = reward.ObservationCard.Name,
+                        Type = reward.ObservationCard.Effect ?? "General"
                     }).ToList();
                 Console.WriteLine($"[LocationContent] Final AvailableObservations count: {AvailableObservations.Count}");
             }
             else
             {
-                Console.WriteLine("[LocationContent] No observations available or null");
+                Console.WriteLine("[LocationContent] No observation rewards available");
             }
 
             if (takenObservations != null)
@@ -243,16 +247,10 @@ namespace Wayfarer.Pages.Components
         {
             Console.WriteLine($"[LocationContent] Taking observation: {observationId}");
 
-            // Check attention first (quick check before calling facade)
-            AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
-            if (attentionState.Current < 1)
-            {
-                Console.WriteLine("[LocationContent] Not enough attention for observation");
-                return;
-            }
+            // Observations are free (0 attention cost), no need to check attention
 
             // Call GameFacade to take the observation
-            // This will handle attention spending, card generation, and adding to hand
+            // This will handle card generation and adding to hand
             bool success = await GameFacade.TakeObservationAsync(observationId);
 
             if (success)
@@ -354,6 +352,90 @@ namespace Wayfarer.Pages.Components
             {
                 Console.WriteLine($"[LocationContent] Error performing location action {action.ActionType}: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Investigate the current location to gain familiarity. Costs 1 attention and 10 minutes.
+        /// Familiarity gain depends on spot properties.
+        /// </summary>
+        protected async Task InvestigateLocation()
+        {
+            if (CurrentLocation == null || CurrentSpot == null)
+            {
+                Console.WriteLine("[LocationContent] Cannot investigate - no current location or spot");
+                return;
+            }
+
+            Console.WriteLine($"[LocationContent] Starting investigation of {CurrentLocation.Name} at {CurrentSpot.Name}");
+
+            // Check attention first (quick check before calling facade)
+            AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
+            if (attentionState.Current < 1)
+            {
+                Console.WriteLine("[LocationContent] Not enough attention for investigation");
+                return;
+            }
+
+            // Call LocationFacade to perform the investigation
+            bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentLocation.Id, CurrentSpot.SpotID);
+
+            if (success)
+            {
+                Console.WriteLine($"[LocationContent] Successfully investigated {CurrentLocation.Name}");
+                // Refresh the UI to show updated familiarity and resources
+                await RefreshLocationData();
+                await OnActionExecuted.InvokeAsync();
+            }
+            else
+            {
+                Console.WriteLine($"[LocationContent] Failed to investigate {CurrentLocation.Name}");
+            }
+        }
+
+        /// <summary>
+        /// Check if investigation is available at the current location.
+        /// </summary>
+        protected bool CanInvestigate()
+        {
+            if (CurrentLocation == null || CurrentSpot == null) return false;
+
+            // Check attention requirement
+            AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
+            if (attentionState.Current < 1) return false;
+
+            // Check if location is already at max familiarity
+            Player player = GameWorld.GetPlayer();
+            int currentFamiliarity = player.GetLocationFamiliarity(CurrentLocation.Id);
+            return currentFamiliarity < CurrentLocation.MaxFamiliarity;
+        }
+
+        /// <summary>
+        /// Get display text for current location familiarity.
+        /// </summary>
+        protected string GetFamiliarityDisplay()
+        {
+            if (CurrentLocation == null) return "";
+            
+            Player player = GameWorld.GetPlayer();
+            int currentFamiliarity = player.GetLocationFamiliarity(CurrentLocation.Id);
+            return $"{currentFamiliarity}/{CurrentLocation.MaxFamiliarity}";
+        }
+
+        /// <summary>
+        /// Get expected familiarity gain for investigation at current spot.
+        /// </summary>
+        protected int GetExpectedFamiliarityGain()
+        {
+            if (CurrentSpot == null) return 1;
+            
+            var activeProperties = CurrentSpot.GetActiveProperties(CurrentTime);
+            
+            // Quiet spots give +2, Busy spots give +1, others give +1
+            if (activeProperties.Contains(SpotPropertyType.Quiet))
+            {
+                return 2;
+            }
+            return 1;
         }
 
         protected string GetStateClass(string connectionState)

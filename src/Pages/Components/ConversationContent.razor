@@ -170,6 +170,51 @@
         <span class="focus-note">Cards above your focus are disabled</span>
     </div>
 
+    <!-- NPC Observation Cards Section -->
+    @{
+        var observationCards = GetNPCObservationCards();
+    }
+    @if (observationCards.Any())
+    {
+        <div class="observation-cards-section">
+            <div class="cards-header">
+                <div class="cards-title">Knowledge</div>
+            </div>
+            
+            <div class="observation-card-grid">
+                @foreach (var obsCard in observationCards)
+                {
+                    <div class="observation-card" @onclick="() => PlayObservationCard(obsCard)">
+                        <div class="card-marker observation">KNOWLEDGE</div>
+                        <div class="card-content">
+                            <div class="card-main">
+                                <div class="card-identity">
+                                    <div class="card-name">@obsCard.Id</div>
+                                    <div class="card-focus">0</div>
+                                </div>
+                                <div class="card-text">
+                                    "@obsCard.Description"
+                                </div>
+                            </div>
+                            <div class="card-outcomes">
+                                <div class="outcome success">
+                                    <div class="outcome-chance">100%</div>
+                                    <div class="outcome-label">Success</div>
+                                    <div class="outcome-effect">@GetSuccessEffectDescription(obsCard)</div>
+                                </div>
+                                <div class="outcome consumed">
+                                    <div class="outcome-chance">Used</div>
+                                    <div class="outcome-label">Consumed</div>
+                                    <div class="outcome-effect">Card removed after playing</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
     <!-- Cards Section -->
     <div class="cards-section">
         @if ((Context?.Type ?? ConversationType.FriendlyChat) == ConversationType.Commerce)

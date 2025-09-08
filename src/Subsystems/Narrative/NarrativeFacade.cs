@@ -145,6 +145,28 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
         }
 
+        /// <summary>
+        /// Get available observation rewards for a location based on familiarity
+        /// </summary>
+        public List<ObservationReward> GetAvailableObservationRewards(string locationId)
+        {
+            return _observationManager.GetAvailableObservationRewards(locationId);
+        }
+
+        /// <summary>
+        /// Complete an observation reward and add card to NPC observation deck
+        /// </summary>
+        public bool CompleteObservationReward(string locationId, ObservationReward reward)
+        {
+            bool success = _observationManager.CompleteObservationReward(locationId, reward);
+            if (success)
+            {
+                string narrative = $"You observe {reward.ObservationCard.Name} and gain valuable insight.";
+                _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
+            }
+            return success;
+        }
+
         // ========== MESSAGE OPERATIONS ==========
 
         /// <summary>

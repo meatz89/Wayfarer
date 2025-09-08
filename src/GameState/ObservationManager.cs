@@ -260,6 +260,131 @@ public class ObservationManager
     }
 
     /// <summary>
+    /// Get available observation rewards for a location based on familiarity and completion status
+    /// </summary>
+    public List<ObservationReward> GetAvailableObservationRewards(string locationId)
+    {
+        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
+        if (location == null)
+        {
+            return new List<ObservationReward>();
+        }
+
+        Player player = _gameWorld.GetPlayer();
+        int currentFamiliarity = player.GetLocationFamiliarity(locationId);
+        int highestCompleted = location.HighestObservationCompleted;
+
+        List<ObservationReward> availableRewards = new List<ObservationReward>();
+
+        foreach (ObservationReward reward in location.ObservationRewards)
+        {
+            // Check familiarity requirement
+            if (currentFamiliarity < reward.FamiliarityRequired)
+            {
+                continue;
+            }
+
+            // Check prior observation requirement
+            if (reward.PriorObservationRequired.HasValue && highestCompleted < reward.PriorObservationRequired.Value)
+            {
+                continue;
+            }
+
+            availableRewards.Add(reward);
+        }
+
+        return availableRewards;
+    }
+
+    /// <summary>
+    /// Complete an observation reward and add the card to the target NPC's observation deck
+    /// </summary>
+    public bool CompleteObservationReward(string locationId, ObservationReward reward)
+    {
+        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
+        if (location == null)
+        {
+            Console.WriteLine($"[ObservationManager] Location {locationId} not found");
+            return false;
+        }
+
+        // Find target NPC
+        NPC targetNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == reward.ObservationCard.TargetNpcId);
+        if (targetNpc == null)
+        {
+            Console.WriteLine($"[ObservationManager] Target NPC {reward.ObservationCard.TargetNpcId} not found");
+            return false;
+        }
+
+        // Create observation card and add to NPC's observation deck
+        ConversationCard observationCard = CreateObservationCardForNPC(reward.ObservationCard);
+        if (targetNpc.ObservationDeck == null)
+        {
+            targetNpc.ObservationDeck = new CardDeck();
+        }
+
+        targetNpc.ObservationDeck.AddCard(observationCard);
+
+        // Update highest observation completed (assume sequential 1, 2, 3...)
+        int observationNumber = reward.FamiliarityRequired; // Use familiarity required as observation number for now
+        if (observationNumber > location.HighestObservationCompleted)
+        {
+            location.HighestObservationCompleted = observationNumber;
+        }
+
+        Console.WriteLine($"[ObservationManager] Added observation card {observationCard.Id} to {targetNpc.Name}'s observation deck");
+        return true;
+    }
+
+    /// <summary>
+    /// Create a conversation card from an observation card reward
+    /// </summary>
+    private ConversationCard CreateObservationCardForNPC(ObservationCardReward cardReward)
+    {
+        return new ConversationCard
+        {
+            Id = cardReward.Id,
+            Description = cardReward.Name,
+            DialogueFragment = cardReward.Description,
+            Focus = 0, // Observations cost 0 focus according to Work Packet 3
+            Properties = new List<CardProperty> { CardProperty.Persistent, CardProperty.Observable },
+            SuccessEffect = ParseObservationEffect(cardReward.Effect),
+            Difficulty = Difficulty.VeryEasy
+        };
+    }
+
+    /// <summary>
+    /// Parse observation effect string into a card effect
+    /// </summary>
+    private CardEffect ParseObservationEffect(string effectString)
+    {
+        // Simple effect parsing for now - can be expanded based on needs
+        if (effectString == "AdvanceToNeutralState")
+        {
+            return new CardEffect
+            {
+                Type = CardEffectType.SetAtmosphere,
+                Value = "Neutral" // Set atmosphere to neutral
+            };
+        }
+        else if (effectString == "UnlockExchange")
+        {
+            return new CardEffect
+            {
+                Type = CardEffectType.AddRapport,
+                Value = "5" // Placeholder - could unlock exchange by adding rapport
+            };
+        }
+
+        // Default to no effect
+        return new CardEffect
+        {
+            Type = CardEffectType.None,
+            Value = ""
+        };
+    }
+
+    /// <summary>
     /// Get the current time block as a string key
     /// </summary>
     private string GetCurrentTimeBlockKey()

@@ -64,6 +64,13 @@ public class Location
     // Access Requirements for this location
     public AccessRequirement AccessRequirement { get; set; }
 
+    // Location Familiarity System (Work Packet 1)
+    public int Familiarity { get; set; } = 0;
+    public int MaxFamiliarity { get; set; } = 3;
+    public int HighestObservationCompleted { get; set; } = 0;
+
+    // Observation Rewards System (Work Packet 3)
+    public List<ObservationReward> ObservationRewards { get; set; } = new List<ObservationReward>();
 
     public Location(string id, string name)
     {

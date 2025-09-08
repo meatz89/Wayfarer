@@ -10,9 +10,11 @@ Every resource flows through multiple systems via different mechanics. Each mech
 **Daily Allocation**: 10 - (Hunger ÷ 25), minimum 2
 
 **Uses** (each via different mechanic):
-- **Conversation Mechanic**: Spend 2 → Full connection state conversation
-- **Observation Mechanic**: Spend 1 → Gain observation card with unique effects
-- **Work Mechanic**: Spend 2 → Gain 8 coins + advance 4 hours
+- **Conversation Mechanic**: Spend 2 → Full emotional state conversation
+- **Observation Mechanic**: Spend 0 → Gain observation card for NPC deck (requires familiarity)
+- **Investigation Mechanic**: Spend 1 → Gain location familiarity (scaled by spot property)
+- **Work Mechanic**: Spend 2 → Gain coins (scaled by hunger) + advance 4 hours
+- **Quick Exchange Mechanic**: Spend 1 → Simple NPC transaction
 
 **Regeneration**:
 - Morning refresh (6 AM daily)
@@ -30,7 +32,7 @@ Every resource flows through multiple systems via different mechanics. Each mech
 - **Payment Receipt**: Completing letter deliveries
 
 **Generation**:
-- Work actions (8 coins per action)
+- Work actions (base 5 coins, reduced by hunger)
 - Letter delivery payments (5-20 coins based on fixed terms)
 - Exchange trades
 
@@ -55,6 +57,7 @@ Every resource flows through multiple systems via different mechanics. Each mech
 
 **Effects**:
 - **Attention Calculation**: Reduces morning attention by (Hunger ÷ 25)
+- **Work Productivity**: Reduces work output by floor(Hunger ÷ 25) coins
 - **Starvation Trigger**: At 100 → lose 5 health per period
 - **Automatic Increase**: +20 per time period
 
@@ -64,6 +67,26 @@ Every resource flows through multiple systems via different mechanics. Each mech
 - Consumable items
 
 **Strategic Role**: Constant pressure that erodes other resources. Forces regular maintenance without hard blocking.
+
+### Location Familiarity (NEW)
+**Range**: 0-3 per location
+
+**Generation**:
+- **Investigation Action**: +1 or +2 based on spot property
+  - Quiet spots: 1 attention → +2 familiarity
+  - Busy spots: 1 attention → +1 familiarity
+  - Other spots: 1 attention → +1 familiarity
+
+**Uses**:
+- **Observation Gating**: Minimum familiarity required for each observation level
+- **Action Efficiency**: Some actions may scale with familiarity (future content)
+
+**Properties**:
+- Never decreases
+- Location-specific (not global)
+- Independent of NPC relationships
+
+**Strategic Role**: Represents location knowledge. Creates Istanbul-style gameplay where timing of investigation matters for efficiency.
 
 ## Relationship Resources
 
@@ -81,8 +104,9 @@ Four types, each with distinct identity:
 1. **Starting Rapport**: Each token provides 1 starting rapport in conversations
 2. **Displacement Cost**: Burn tokens to jump queue positions
 3. **Scaling Effects**: Some rapport cards scale with specific token counts
+4. **Exchange Gating**: Minimum tokens required for special exchanges
 
-Each use is a separate mechanic. Tokens never gate access to content.
+Each use is a separate mechanic. Tokens never gate access to conversation types, only to specific exchanges.
 
 **Token Acquisition** (ONLY through letter delivery):
 - Standard successful delivery: +1 token with recipient (type matches letter)
@@ -124,18 +148,18 @@ Each use is a separate mechanic. Tokens never gate access to content.
 **Modification**: +1 on successful SPEAK, -1 on failed SPEAK
 
 **State Transitions at ±3**:
-- DISCONNECTED: +3→Guarded, -3→Conversation ends
-- GUARDED: +3→Neutral, -3→Disconnected
-- NEUTRAL: +3→Open, -3→Guarded
+- DESPERATE: +3→Tense, -3→Conversation ends
+- TENSE: +3→Neutral, -3→Desperate
+- NEUTRAL: +3→Open, -3→Tense
 - OPEN: +3→Connected, -3→Neutral
 - CONNECTED: +3→Stays Connected, -3→Open
 
-**Strategic Role**: Pure success/failure counter that triggers connection state transitions. Creates predictable progression based on net successes, with randomness coming from success rates modified by rapport.
+**Strategic Role**: Pure success/failure counter that triggers emotional state transitions. Creates predictable progression based on net successes, with randomness coming from success rates modified by rapport.
 
 ### Focus (Per-Conversation)
-**Capacity by Connection State**:
-- Disconnected: 3
-- Guarded: 4
+**Capacity by Emotional State**:
+- Desperate: 3
+- Tense: 4
 - Neutral: 5
 - Open: 5
 - Connected: 6
@@ -200,13 +224,14 @@ Six daily periods, each 4 hours:
 **Time Advancement Mechanics**:
 - **Travel**: Route-specific time cost
 - **Work**: Always advances one full period (4 hours)
+- **Investigation**: 10 minutes per action
 - **Rest**: Variable based on rest type
 - **Wait**: Strategic time advancement
 - **Natural**: During lengthy activities
 
 **Effects of Time**:
 - NPC availability windows
-- Observation availability
+- Spot property changes (Quiet→Busy→Closing)
 - Shop operating hours
 - Deadline pressure
 
@@ -224,26 +249,39 @@ Six daily periods, each 4 hours:
 ## Information Resources
 
 ### Observation Cards
-**Not from decks** - gained from world
+**Not from player decks** - gained from world exploration
 
 **Acquisition Mechanics**:
-- **Location Observation**: 1 attention at specific spots/times
+- **Location Observation**: 0 attention at spots with sufficient familiarity
 - **NPC Rewards**: Completing promises
 - **Travel Discoveries**: Finding new routes
 
 **Properties**:
-- Focus 1 (minimal pool requirement)
+- Go directly to specific NPC's observation deck
+- Automatically drawn at conversation start with that NPC
+- Focus 0 (special SPEAK action to play)
 - Always persistent
-- 85% success rate (Very Easy difficulty)
-- Unique effects not available on normal cards
-- Expire after 24-48 hours
+- Consumed when played
+- Can have state-changing effects (advance emotional state, unlock exchanges)
 
-**Unique Effects**:
-- Set special atmospheres (Informed, Exposed, Synchronized, Pressured)
-- Bypass costs (next action free, next SPEAK costs 0 focus)
-- Unique manipulations (set rapport to 15, refresh focus)
+**Gating**:
+- First observation: Requires familiarity 1+
+- Second observation: Requires familiarity 2+ AND first observation done
+- Third observation: Requires familiarity 3+ AND second observation done
 
-**Strategic Role**: Bypass normal conversation limitations. Reward exploration and information gathering. Create powerful one-time effects.
+**Strategic Role**: Bridge exploration and NPC relationships. Reward investigation with powerful conversation tools. Create essential preparation for difficult conversations.
+
+### NPC Observation Decks (NEW)
+**Special deck type** - holds observation cards for specific NPC
+
+**Properties**:
+- Separate from conversation deck and request deck
+- Cards added when player makes relevant observations
+- All cards automatically drawn at conversation start
+- Drawn cards don't count against hand limits
+- Cards persist until played
+
+**Strategic Role**: Makes world knowledge relevant to specific NPCs. Ensures discovered advantages are always available when needed.
 
 ### Access Permits
 **Special letter type** - no delivery obligation
@@ -313,11 +351,11 @@ Cards use difficulty tiers modified by rapport:
 
 ### Time → Money → Progress
 ```
-Work Action (2 attention + 4 hours) → 8 coins
-8 coins → Food (reset hunger) → Better morning attention  
-Better attention → More conversations → Request card access
-Request cards → Letter obligations → Delivery success
-Delivery success → Payment + Tokens
+Investigation (1 attention + 10 min) → Familiarity
+Familiarity → Observation access → NPC advantages
+Work Action (2 attention + 4 hours) → Coins (scaled by hunger)
+Coins → Food (reset hunger) → Better work output next time
+Better output → More coins → Critical purchases
 ```
 
 ### Tokens → Rapport → Success → More Tokens
@@ -330,13 +368,14 @@ State advancement → Request availability
 Request success → More deliveries → More tokens
 ```
 
-### Knowledge → Access → Efficiency
+### Familiarity → Knowledge → Access → Efficiency
 ```
-Observation (1 attention) → Unique effect card
-Special atmosphere → Bypass normal limitations
-Better success rates → Reach request cards
-Request cards → Letters or permits
-Permits → New routes → More opportunities
+Investigation (1 attention) → Location familiarity
+Familiarity → Observation availability
+Observation → Card to NPC observation deck
+NPC observation card → Conversation advantages or unlocks
+Unlocked content → New routes or exchanges
+New routes → More opportunities
 ```
 
 ### Focus → Cards → Rapport → Flow
@@ -358,6 +397,17 @@ Flow ±3 → State transitions
 - Hunger reduces it (every 25 hunger = -1 attention)
 - Minimum 2 (never completely blocked)
 - Creates pressure to manage hunger without hard lock
+
+**Work Output Calculation**:
+- Base 5 coins (varies by work type)
+- Hunger reduces it: 5 - floor(hunger/25)
+- At hunger 50: only 3 coins
+- Creates pressure to eat before working
+
+**Investigation Efficiency**:
+- Quiet spots: 1 attention → +2 familiarity
+- Busy spots: 1 attention → +1 familiarity
+- Creates pressure to investigate at optimal times
 
 **Focus Depletion**:
 - Need high-focus request card → Must reach better state
@@ -392,23 +442,25 @@ Flow ±3 → State transitions
 - Time impulse cards before SPEAK removes them
 
 **Attention Efficiency**:
+- Investigate during quiet periods for better returns
 - Chain obligations in same location
-- Observe before conversing for unique advantages
-- Work only when coins critically needed
+- Use quick exchanges when full conversation not needed
 
 **Time Optimization**:
 - Plan routes to minimize travel
 - Accept letters with compatible deadlines
 - Use wait actions strategically
+- Investigate early for cascading benefits
 
 ## No Threshold Design
 
 Every resource scales linearly:
 - Each rapport point: exactly +2% success
 - Each token: exactly 1 starting rapport
-- Each 25 hunger: exactly -1 attention
+- Each 25 hunger: exactly -1 attention AND -1 work coin
 - Each patience: exactly 1 turn
 - Each focus point: exactly that much from pool
+- Each familiarity: enables exactly that observation level (with prior observations)
 - Each difficulty tier: specific base percentage
 
 Only exception: Flow ±3 triggers state transitions (necessary mechanical breakpoint).
@@ -421,13 +473,16 @@ Examples of clean separation:
 **GOOD**: Routes require access permit. Guards can be bribed for permits. Merchants sell permits.
 
 **BAD**: "High tokens unlock better cards AND improve success"  
-**GOOD**: Tokens provide starting rapport. Focus capacity determines playable cards.
+**GOOD**: Tokens provide starting rapport. Tokens gate specific exchanges. Two separate mechanics.
 
-**BAD**: "Hunger reduces patience AND attention"
-**GOOD**: Hunger reduces attention only. Patience is per-NPC, not affected by player resources.
+**BAD**: "Hunger reduces patience AND attention AND work output"
+**GOOD**: Hunger reduces attention (morning calculation). Hunger reduces work output (separate formula). Patience is per-NPC, unaffected.
 
 **BAD**: "Atmosphere affects focus AND success"
 **GOOD**: Prepared atmosphere affects focus capacity. Focused atmosphere affects success. Each atmosphere has ONE effect.
+
+**BAD**: "Investigation gives familiarity AND cards"
+**GOOD**: Investigation gives familiarity. Observation gives cards (requires familiarity). Two separate actions.
 
 ## Resource Flow Visibility
 
@@ -438,9 +493,12 @@ All resource effects visible to player:
 - Displacement costs shown when viewing queue
 - Time costs shown on routes
 - Attention formula transparent
+- Hunger effect on work shown
 - Flow position always visible (-3 to +3)
 - Active atmosphere displayed prominently
 - Current rapport clearly shown
+- Familiarity level per location shown
+- Observation requirements clear
 
 No hidden calculations. Perfect information for strategic decisions.
 
@@ -448,9 +506,17 @@ No hidden calculations. Perfect information for strategic decisions.
 
 ### Daily Attention Budget
 - 10 attention (well-fed) allows:
-  - 5 observations OR
-  - 2 conversations + 1 work OR
-  - 1 conversation + 4 observations
+  - 5 quick exchanges OR
+  - 2 investigations + 2 conversations + 1 work OR
+  - 1 conversation + 8 investigations OR
+  - Maximum flexibility with observations (free)
+
+### Work Profitability
+- Hunger 0: 5 coins for 2 attention
+- Hunger 50: 3 coins for 2 attention
+- Hunger 100: 1 coin for 2 attention
+- Food cost: 2-3 coins typically
+- Optimal: Eat before working
 
 ### Letter Profitability
 - Request cards have fixed terms (no negotiation)
@@ -465,8 +531,14 @@ No hidden calculations. Perfect information for strategic decisions.
 - 25 tokens = 25 starting rapport = +50% all cards (halfway to guarantee)
 - Burning 10 tokens severely damages multiple relationships
 
+### Investigation Efficiency
+- Morning Quiet spot: 2 familiarity per attention
+- Afternoon Busy spot: 1 familiarity per attention
+- Optimal: Investigate during quiet periods
+- Each familiarity level unlocks one observation (with prerequisites)
+
 ### Focus Management
-- Disconnected (3 capacity): Can play three 1-focus or one 3-focus card
+- Desperate (3 capacity): Can play three 1-focus or one 3-focus card
 - Neutral (5 capacity): Can play request cards if exactly 5 focus
 - Connected (6 capacity): Full flexibility for any combination
 - Prepared atmosphere: +1 enables request cards in Open state
@@ -475,22 +547,25 @@ No hidden calculations. Perfect information for strategic decisions.
 
 New content uses same resources differently:
 
-**Disconnected Scenario**: Low focus capacity creates severe limitations
+**Desperate Scenario**: Low focus capacity creates severe limitations
 **Political Scenario**: Build Status tokens for better starting rapport with nobles
-**Merchant Campaign**: Commerce tokens essential for trade relationships
+**Merchant Campaign**: Commerce tokens essential for trade relationships and exchanges
 **Shadow Path**: Shadow tokens help with spy networks
 **Temple Route**: Trust tokens needed for clergy relationships
+**Investigation Scenarios**: Familiarity becomes critical for discovering secrets
 
-Same resources, same mechanics, but different token types create distinct strategic paths through starting rapport advantages.
+Same resources, same mechanics, but different emphasis creates distinct strategic paths.
 
 ## Core Innovation
 
 Resources flow through multiple mechanics without any mechanic doing multiple things:
 
-- Tokens determine starting rapport (one mechanic) for all conversations equally
-- Different token types create relationship specialization
+- Tokens determine starting rapport (one mechanic) AND gate exchanges (different mechanic)
+- Hunger affects attention (one mechanic) AND work output (different mechanic)
+- Familiarity gates observations (one mechanic) without affecting other systems
+- Investigation builds familiarity (one mechanic) scaled by spot properties
+- Observations create NPC-specific advantages (one mechanic) gated by familiarity
 - Focus limits card plays (one mechanic) while atmosphere modifies capacity (different mechanic)
 - Flow tracks success/failure (one mechanic) while rapport modifies success chance (different mechanic)
-- Attention enables conversations (one mechanic) AND observations (different mechanic) AND work (third mechanic)
 
 This creates strategic depth from simple, intentional rules. Every resource matters in multiple ways through different systems. The economy is the intersection of these mechanics, not their individual complexity.

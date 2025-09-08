@@ -26,6 +26,9 @@ public class NPCDTO
 
     // Properties from JSON that weren't being parsed
     public string CurrentState { get; set; }
+    
+    // Work Packet 4: NPC Observation Decks
+    public bool HasObservationDeck { get; set; } = false;
 }
 
 // REMOVED: Letter DTOs violate deck-based architecture

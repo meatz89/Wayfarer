@@ -95,6 +95,10 @@
     // Key is route ID, value is familiarity level (0=Unknown, 5=Mastered)
     public Dictionary<string, int> RouteFamiliarity { get; set; } = new Dictionary<string, int>();
 
+    // Location Familiarity System (Work Packet 1)
+    // Key is location ID, value is familiarity level (0-3)
+    public Dictionary<string, int> LocationFamiliarity { get; set; } = new Dictionary<string, int>();
+
     public void AddKnownRoute(RouteOption route)
     {
         string originName = route.OriginLocationSpot;
@@ -135,6 +139,22 @@
     public bool IsRouteMastered(string routeId)
     {
         return GetRouteFamiliarity(routeId) >= 5;
+    }
+
+    /// <summary>
+    /// Get familiarity level for a location (0-3 scale)
+    /// </summary>
+    public int GetLocationFamiliarity(string locationId)
+    {
+        return LocationFamiliarity.TryGetValue(locationId, out int familiarity) ? familiarity : 0;
+    }
+
+    /// <summary>
+    /// Set location familiarity to a specific value (max 3)
+    /// </summary>
+    public void SetLocationFamiliarity(string locationId, int value)
+    {
+        LocationFamiliarity[locationId] = Math.Min(3, Math.Max(0, value));
     }
 
     public void AddMemory(string key, string description, int currentDay, int importance, int expirationDays = -1)
@@ -386,6 +406,9 @@
         // Deep copy of Skills
         clone.Skills = this.Skills.Clone();
 
+        // Deep copy of LocationFamiliarity dictionary (Work Packet 1)
+        clone.LocationFamiliarity = new Dictionary<string, int>(this.LocationFamiliarity);
+
         return clone;
     }
 
@@ -465,6 +488,20 @@
     internal void SetAttention(int value)
     {
         Attention = Math.Clamp(value, 0, MaxAttention);
+    }
+
+    /// <summary>
+    /// Apply initial player configuration from package starting conditions
+    /// </summary>
+    public void ApplyInitialConfiguration(PlayerInitialConfig config)
+    {
+        if (config == null) return;
+
+        if (config.Coins.HasValue) Coins = config.Coins.Value;
+        if (config.Health.HasValue) Health = config.Health.Value;
+        if (config.MaxHealth.HasValue) MaxHealth = config.MaxHealth.Value;
+        if (config.Food.HasValue) Hunger = config.Food.Value;
+        if (config.MaxFood.HasValue) MaxHunger = config.MaxFood.Value;
     }
 
 

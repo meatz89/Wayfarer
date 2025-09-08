@@ -7,12 +7,16 @@ public class RouteDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string OriginLocationSpot { get; set; }
-    public string DestinationLocationSpot { get; set; }
+    public string OriginLocationId { get; set; }
+    public string OriginSpotId { get; set; }
+    public string DestinationLocationId { get; set; }
+    public string DestinationSpotId { get; set; }
     public string Method { get; set; }
     public int BaseCoinCost { get; set; }
     public int BaseStaminaCost { get; set; }
     public int TravelTimeMinutes { get; set; }
+    public int CoinCost { get; set; }
+    public string PermitRequired { get; set; }
     public string DepartureTime { get; set; }
     public bool IsDiscovered { get; set; }
     public List<string> TerrainCategories { get; set; } = new List<string>();

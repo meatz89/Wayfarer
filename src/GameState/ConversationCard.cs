@@ -19,6 +19,10 @@ public class ConversationCard
     public int Focus { get; set; }
     public Difficulty Difficulty { get; set; }
 
+    // Token requirements for gated exchanges
+    public int MinimumTokensRequired { get; set; } = 0;
+    public ConnectionType? RequiredTokenType { get; set; }
+
     // Personality targeting - which NPCs can use this card
     public List<string> PersonalityTypes { get; set; } = new List<string>();
 
@@ -88,6 +92,8 @@ public class ConversationCard
             TokenType = this.TokenType,
             Focus = this.Focus,
             Difficulty = this.Difficulty,
+            MinimumTokensRequired = this.MinimumTokensRequired,
+            RequiredTokenType = this.RequiredTokenType,
             PersonalityTypes = new List<string>(this.PersonalityTypes), // Clone personality types
             SuccessEffect = this.SuccessEffect?.DeepClone() ?? CardEffect.None,
             FailureEffect = this.FailureEffect?.DeepClone() ?? CardEffect.None,

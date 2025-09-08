@@ -46,6 +46,11 @@ public class PackageContent
     public List<ObservationDTO> Observations { get; set; }
 
     /// <summary>
+    /// Investigation rewards - defines what observation cards are earned from location familiarity
+    /// </summary>
+    public List<ObservationRewardDTO> InvestigationRewards { get; set; }
+
+    /// <summary>
     /// Letter templates - uses existing LetterTemplateDTO
     /// </summary>
     public List<LetterTemplateDTO> LetterTemplates { get; set; }

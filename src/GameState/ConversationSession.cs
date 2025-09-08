@@ -41,6 +41,9 @@ public class ConversationSession
     public int HiddenMomentum { get; set; } = 0; // Invisible bad luck protection
 
     public List<CardInstance> ObservationCards { get; set; } = new();
+    
+    // NPC-specific observation cards (from NPC's ObservationDeck)
+    public List<CardInstance> NPCObservationCards { get; set; } = new();
 
     // Rapport goal for standard conversations (FriendlyChat)
     public int? RapportGoal { get; set; } = null; // Target rapport to earn token reward
@@ -187,6 +190,29 @@ public class ConversationSession
         {
             sessionDeck.AddCard(obsCard);
         }
+        
+        // Load NPC observation cards from their ObservationDeck
+        List<CardInstance> npcObservationCards = new List<CardInstance>();
+        if (npc.ObservationDeck != null && npc.ObservationDeck.Any())
+        {
+            foreach (ConversationCard obsCard in npc.ObservationDeck.GetAllCards())
+            {
+                npcObservationCards.Add(new CardInstance
+                {
+                    Id = obsCard.Id,
+                    Description = obsCard.Description,
+                    Focus = 0, // Observation cards always cost 0 focus
+                    Difficulty = obsCard.Difficulty,
+                    SuccessEffect = obsCard.SuccessEffect,
+                    FailureEffect = obsCard.FailureEffect,
+                    ExhaustEffect = obsCard.ExhaustEffect,
+                    Properties = new List<CardProperty>(obsCard.Properties),
+                    TokenType = obsCard.TokenType,
+                    DialogueFragment = obsCard.DialogueFragment,
+                    VerbPhrase = obsCard.VerbPhrase
+                });
+            }
+        }
 
         // Determine rapport goal for standard conversations
         int? rapportGoal = null;
@@ -219,6 +245,7 @@ public class ConversationSession
             Hand = new HandDeck(),
             TokenManager = tokenManager,
             ObservationCards = obsCards,
+            NPCObservationCards = npcObservationCards,
             RapportGoal = rapportGoal
         };
 

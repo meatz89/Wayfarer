@@ -108,6 +108,11 @@ public class GameFacade
         return _locationFacade.MoveToSpot(spotName);
     }
 
+    public LocationFacade GetLocationFacade()
+    {
+        return _locationFacade;
+    }
+
     public NPC GetNPCById(string npcId)
     {
         return _locationFacade.GetNPCById(npcId);
@@ -401,6 +406,7 @@ public class GameFacade
         Location currentLocation = _locationFacade.GetCurrentLocation();
         LocationSpot currentSpot = _locationFacade.GetCurrentLocationSpot();
 
+        // Check if this is an old-style observation from JSON
         Observation? observation = _narrativeFacade.GetLocationObservations(
             currentLocation?.Id,
             currentSpot?.SpotID)
@@ -411,7 +417,25 @@ public class GameFacade
             return _narrativeFacade.TakeObservation(observationId);
         }
 
+        // Check if this is a new-style observation reward
+        List<ObservationReward> availableRewards = _narrativeFacade.GetAvailableObservationRewards(currentLocation?.Id);
+        ObservationReward? reward = availableRewards.FirstOrDefault(r => r.ObservationCard.Id == observationId);
+        
+        if (reward != null)
+        {
+            // New system: costs 0 attention, goes to NPC observation deck
+            return _narrativeFacade.CompleteObservationReward(currentLocation?.Id, reward);
+        }
+
         return false;
+    }
+
+    public List<ObservationReward> GetAvailableObservationRewards()
+    {
+        Location currentLocation = _locationFacade.GetCurrentLocation();
+        if (currentLocation == null) return new List<ObservationReward>();
+        
+        return _narrativeFacade.GetAvailableObservationRewards(currentLocation.Id);
     }
 
     public List<TakenObservation> GetTakenObservations()

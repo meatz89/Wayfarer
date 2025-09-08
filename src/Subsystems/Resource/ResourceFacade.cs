@@ -301,18 +301,51 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         }
 
         /// <summary>
-        /// Perform work to earn coins
+        /// Perform work to earn coins with hunger-based scaling
         /// </summary>
         public WorkResult PerformWork()
         {
-            // Simple work implementation
-            int coinsEarned = 5;
+            // Base work payment
+            int baseAmount = 8;
+            
+            // Apply hunger penalty: coins = base_amount - floor(hunger/25)
+            int currentHunger = GetHunger();
+            int hungerPenalty = currentHunger / 25; // Integer division = floor
+            int coinsEarned = Math.Max(0, baseAmount - hungerPenalty); // Never go below 0
+
+            // Check if we have enough attention
+            TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+            AttentionManager currentAttentionManager = _attentionManager.GetCurrentAttention(currentTimeBlock);
+            int attentionCost = 2;
+            
+            if (currentAttentionManager.Current < attentionCost)
+            {
+                return new WorkResult
+                {
+                    Success = false,
+                    Message = $"Not enough attention! Need {attentionCost}, have {currentAttentionManager.Current}",
+                    CoinsEarned = 0,
+                    AttentionSpent = 0,
+                    RemainingAttention = currentAttentionManager.Current
+                };
+            }
+
+            // Spend attention and add coins
+            currentAttentionManager.TrySpend(attentionCost);
             AddCoins(coinsEarned, "Work performed");
+            
+            // Generate message about hunger impact if any
+            string hungerMessage = hungerPenalty > 0 ? $" (reduced by {hungerPenalty} due to hunger)" : "";
+            
+            _messageSystem.AddSystemMessage($"💼 Earned {coinsEarned} coins from work{hungerMessage}", SystemMessageTypes.Success);
 
             return new WorkResult
             {
                 Success = true,
-                CoinsEarned = coinsEarned
+                Message = $"Earned {coinsEarned} coins from work{hungerMessage}",
+                CoinsEarned = coinsEarned,
+                AttentionSpent = attentionCost,
+                RemainingAttention = currentAttentionManager.Current
             };
         }
 

@@ -91,6 +91,12 @@ public static class NPCParser
             npc.RelationshipFlow = 12; // Default to NEUTRAL at neutral flow
         }
 
+        // Work Packet 4: Initialize observation deck if hasObservationDeck is true
+        if (dto.HasObservationDeck)
+        {
+            npc.ObservationDeck = new CardDeck();
+        }
+
         return npc;
     }
     public static NPC ParseNPC(string json)
@@ -191,6 +197,13 @@ public static class NPCParser
             npc.RelationshipFlow = 12; // Default to NEUTRAL at neutral flow
         }
 
+        // Work Packet 4: Initialize observation deck if hasObservationDeck is true
+        bool hasObservationDeck = GetBoolProperty(root, "hasObservationDeck", false);
+        if (hasObservationDeck)
+        {
+            npc.ObservationDeck = new CardDeck();
+        }
+
         // REMOVED: ActiveLetter violates deck-based architecture
         // Letters are now handled as request cards in the Request deck
 
@@ -205,8 +218,10 @@ public static class NPCParser
             "Merchant" => Professions.Merchant,
             "Innkeeper" => Professions.Innkeeper,
             "Soldier" => Professions.Soldier,
+            "Guard" => Professions.Soldier, // Map Guard to Soldier
             "Scholar" => Professions.Scholar,
             "Scribe" => Professions.Scribe,
+            "Clerk" => Professions.Scribe, // Map Clerk to Scribe
             "Noble" => Professions.Noble,
             "Smuggler" => Professions.Agent,
             "Information_Broker" => Professions.Information_Broker,
@@ -270,6 +285,16 @@ public static class NPCParser
             property.ValueKind == JsonValueKind.Number)
         {
             return property.GetInt32();
+        }
+        return defaultValue;
+    }
+
+    private static bool GetBoolProperty(JsonElement element, string propertyName, bool defaultValue)
+    {
+        if (element.TryGetProperty(propertyName, out JsonElement property) &&
+            (property.ValueKind == JsonValueKind.True || property.ValueKind == JsonValueKind.False))
+        {
+            return property.GetBoolean();
         }
         return defaultValue;
     }

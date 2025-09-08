@@ -1,24 +1,42 @@
 {
   "packageId": "core_game",
   "metadata": {
-    "name": "Core Game Content - Starter Deck",
-    "timestamp": "2025-09-04T00:00:00Z",
-    "description": "Wayfarer starter deck POC with Elena's letter scenario",
+    "name": "Core Game Content - Elena's Letter POC",
+    "timestamp": "2025-09-08T00:00:00Z",
+    "description": "Complete POC scenario with Elena's urgent letter, investigation system, and observation mechanics",
     "author": "Wayfarer Team",
-    "version": "2.0.0"
+    "version": "3.0.0"
+  },
+  "startingConditions": {
+    "playerConfig": {
+      "coins": 0,
+      "health": 100,
+      "maxHealth": 100,
+      "food": 50,
+      "maxFood": 100
+    },
+    "startingSpotId": "corner_table",
+    "startingObligations": [
+      {
+        "id": "viktor_package",
+        "type": "delivery",
+        "position": 1,
+        "deadline": 480,
+        "recipientId": "warehouse_recipient",
+        "letterId": "viktor_package_letter",
+        "payment": 10,
+        "description": "Viktor's package for the warehouse"
+      }
+    ]
   },
   "content": {
     "cards": [
       {
-        "id": "i_hear_you",
+        "id": "i_hear_you_1",
         "type": "Normal",
-        "personalityTypes": [
-          "ALL"
-        ],
+        "personalityTypes": ["ALL"],
         "focus": 1,
-        "properties": [
-          "Persistent"
-        ],
+        "properties": ["Persistent"],
         "connectionType": "Trust",
         "description": "I hear you",
         "difficulty": "Easy",
@@ -26,21 +44,44 @@
           "type": "AddRapport",
           "value": "1"
         },
-        "failureEffect": {
-          "type": "None"
+        "dialogueFragment": "I hear what you're saying. Please, continue."
+      },
+      {
+        "id": "i_hear_you_2",
+        "type": "Normal",
+        "personalityTypes": ["ALL"],
+        "focus": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "I hear you",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "1"
+        },
+        "dialogueFragment": "I hear what you're saying. Please, continue."
+      },
+      {
+        "id": "i_hear_you_3",
+        "type": "Normal",
+        "personalityTypes": ["ALL"],
+        "focus": 1,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "I hear you",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "1"
         },
         "dialogueFragment": "I hear what you're saying. Please, continue."
       },
       {
         "id": "let_me_think",
         "type": "Normal",
-        "personalityTypes": [
-          "ALL"
-        ],
+        "personalityTypes": ["ALL"],
         "focus": 1,
-        "properties": [
-          "Persistent"
-        ],
+        "properties": ["Persistent"],
         "connectionType": "Trust",
         "description": "Let me think",
         "difficulty": "Easy",
@@ -48,21 +89,14 @@
           "type": "SetAtmosphere",
           "value": "Patient"
         },
-        "failureEffect": {
-          "type": "None"
-        },
         "dialogueFragment": "Let me think about this for a moment..."
       },
       {
         "id": "let_me_prepare",
         "type": "Normal",
-        "personalityTypes": [
-          "ALL"
-        ],
+        "personalityTypes": ["ALL"],
         "focus": 1,
-        "properties": [
-          "Persistent"
-        ],
+        "properties": ["Persistent"],
         "connectionType": "Trust",
         "description": "Let me prepare",
         "difficulty": "Easy",
@@ -70,21 +104,14 @@
           "type": "SetAtmosphere",
           "value": "Prepared"
         },
-        "failureEffect": {
-          "type": "None"
-        },
         "dialogueFragment": "Give me a moment to prepare myself..."
       },
       {
-        "id": "how_can_i_assist",
+        "id": "how_can_i_assist_1",
         "type": "Normal",
-        "personalityTypes": [
-          "ALL"
-        ],
+        "personalityTypes": ["ALL"],
         "focus": 2,
-        "properties": [
-          "Persistent"
-        ],
+        "properties": ["Persistent"],
         "connectionType": "Trust",
         "description": "How can I assist?",
         "difficulty": "Medium",
@@ -99,15 +126,30 @@
         "dialogueFragment": "How can I assist you with this?"
       },
       {
-        "id": "tell_me_more",
+        "id": "how_can_i_assist_2",
         "type": "Normal",
-        "personalityTypes": [
-          "ALL"
-        ],
+        "personalityTypes": ["ALL"],
         "focus": 2,
-        "properties": [
-          "Persistent"
-        ],
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "How can I assist?",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "2"
+        },
+        "failureEffect": {
+          "type": "AddRapport",
+          "value": "-1"
+        },
+        "dialogueFragment": "How can I assist you with this?"
+      },
+      {
+        "id": "tell_me_more_1",
+        "type": "Normal",
+        "personalityTypes": ["ALL"],
+        "focus": 2,
+        "properties": ["Persistent"],
         "connectionType": "Trust",
         "description": "Tell me more",
         "difficulty": "Medium",
@@ -115,21 +157,29 @@
           "type": "DrawCards",
           "value": "2"
         },
-        "failureEffect": {
-          "type": "None"
+        "dialogueFragment": "Tell me more about your situation..."
+      },
+      {
+        "id": "tell_me_more_2",
+        "type": "Normal",
+        "personalityTypes": ["ALL"],
+        "focus": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Tell me more",
+        "difficulty": "Medium",
+        "successEffect": {
+          "type": "DrawCards",
+          "value": "2"
         },
         "dialogueFragment": "Tell me more about your situation..."
       },
       {
         "id": "im_here_for_you",
         "type": "Normal",
-        "personalityTypes": [
-          "ALL"
-        ],
+        "personalityTypes": ["ALL"],
         "focus": 3,
-        "properties": [
-          "Persistent"
-        ],
+        "properties": ["Persistent"],
         "connectionType": "Trust",
         "description": "I'm here for you",
         "difficulty": "Easy",
@@ -137,43 +187,29 @@
           "type": "AddRapport",
           "value": "3"
         },
-        "failureEffect": {
-          "type": "None"
-        },
         "dialogueFragment": "I'm here for you. We'll get through this together."
       },
       {
         "id": "well_figure_this_out",
         "type": "Normal",
-        "personalityTypes": [
-          "ALL"
-        ],
+        "personalityTypes": ["ALL"],
         "focus": 3,
-        "properties": [
-          "Persistent"
-        ],
+        "properties": ["Persistent"],
         "connectionType": "Trust",
         "description": "We'll figure this out",
         "difficulty": "Hard",
         "successEffect": {
           "type": "ScaleRapportByPatience",
-          "value": "patience / 3"
-        },
-        "failureEffect": {
-          "type": "None"
+          "formula": "patience / 3"
         },
         "dialogueFragment": "We'll figure this out together. There's always a way."
       },
       {
         "id": "everything_will_be_alright",
         "type": "Normal",
-        "personalityTypes": [
-          "ALL"
-        ],
+        "personalityTypes": ["ALL"],
         "focus": 4,
-        "properties": [
-          "Persistent"
-        ],
+        "properties": ["Persistent"],
         "connectionType": "Trust",
         "description": "Everything will be alright",
         "difficulty": "Hard",
@@ -181,24 +217,120 @@
           "type": "AddRapport",
           "value": "4"
         },
-        "failureEffect": {
-          "type": "None"
-        },
         "dialogueFragment": "Everything will be alright. I promise you that."
       }
     ],
-    "successFormula": {
-      "difficulties": {
-        "VeryEasy": 85,
-        "Easy": 70,
-        "Medium": 60,
-        "Hard": 50,
-        "VeryHard": 40
+    "observationCards": [
+      {
+        "id": "safe_passage_knowledge",
+        "name": "Safe Passage Knowledge",
+        "type": "Observation",
+        "targetNpcId": "elena",
+        "targetDeck": "observation",
+        "focus": 0,
+        "persistence": "Persistent",
+        "difficulty": "VeryEasy",
+        "description": "Knowledge of merchant caravan routes calms Elena's panic",
+        "effect": {
+          "type": "ChangeEmotionalState",
+          "targetState": "Neutral"
+        },
+        "dialogueFragment": "I overheard Marcus talking about safe caravan routes leaving tonight..."
       },
-      "rapportModifier": 2,
-      "min": 5,
-      "max": 95
-    },
+      {
+        "id": "merchant_caravan_route",
+        "name": "Merchant Caravan Route",
+        "type": "Observation",
+        "targetNpcId": "marcus",
+        "targetDeck": "observation",
+        "focus": 0,
+        "persistence": "Persistent",
+        "difficulty": "VeryEasy",
+        "description": "Detailed knowledge of Marcus's private caravan schedule",
+        "effect": {
+          "type": "UnlockExchange",
+          "exchangeId": "marcus_caravan_transport"
+        },
+        "dialogueFragment": "I know about your private caravan to the Noble District..."
+      }
+    ],
+    "requestCards": [
+      {
+        "id": "elena_urgent_refusal",
+        "type": "Request",
+        "npcId": "elena",
+        "focus": 5,
+        "startingState": "Unplayable",
+        "becomesPlayableAt": 5,
+        "properties": ["GainsImpulseAndOpeningWhenPlayable"],
+        "description": "Accept Elena's Letter",
+        "difficulty": "VeryHard",
+        "successEffect": {
+          "type": "CreateObligation",
+          "obligationType": "delivery",
+          "position": "nextAvailable",
+          "deadline": 300,
+          "recipientId": "lord_blackwood",
+          "letterId": "elena_refusal_letter",
+          "payment": 0,
+          "tokenReward": {
+            "Trust": 2
+          }
+        },
+        "failureEffect": {
+          "type": "AddBurdenCard",
+          "count": 1
+        },
+        "exhaustEffect": {
+          "type": "EndConversation",
+          "result": "Failed to help Elena"
+        },
+        "dialogueFragment": "Please, take my letter! Lord Blackwood leaves at sunset!"
+      }
+    ],
+    "exchangeCards": [
+      {
+        "id": "marcus_buy_food",
+        "npcId": "marcus",
+        "type": "Exchange",
+        "name": "Buy Food",
+        "cost": 2,
+        "effect": {
+          "type": "ResetHunger",
+          "value": "0"
+        },
+        "description": "Purchase fresh food to restore hunger",
+        "minimumTokensRequired": 0
+      },
+      {
+        "id": "marcus_caravan_transport",
+        "npcId": "marcus",
+        "type": "Exchange",
+        "name": "Join Merchant Caravan",
+        "cost": 10,
+        "minimumTokensRequired": 2,
+        "requiredTokenType": "Commerce",
+        "requiresObservationCard": "merchant_caravan_route",
+        "effect": {
+          "type": "OneTimeTransport",
+          "destinationLocationId": "noble_district",
+          "destinationSpotId": "gate_entrance"
+        },
+        "description": "Secret passage with Marcus's caravan to the Noble District"
+      },
+      {
+        "id": "guard_noble_permit",
+        "npcId": "guard_captain",
+        "type": "Exchange",
+        "name": "Noble District Permit",
+        "cost": 20,
+        "effect": {
+          "type": "GrantPermit",
+          "permitId": "noble_district_permit"
+        },
+        "description": "Official permit to enter the Noble District (too expensive for POC)"
+      }
+    ],
     "npcs": [
       {
         "id": "elena",
@@ -207,15 +339,35 @@
         "locationId": "copper_kettle_tavern",
         "spotId": "corner_table",
         "description": "Clutching her sealed letter, eyes darting to the door with each sound",
-        "personality": "Disconnected about Lord Blackwood's marriage proposal - he leaves at sunset",
+        "personality": "Desperate about Lord Blackwood's marriage proposal - he leaves at sunset",
         "personalityType": "DEVOTED",
-        "services": [],
-        "letterTokenTypes": [
-          "Trust"
-        ],
-        "currentState": "DISCONNECTED",
+        "letterTokenTypes": ["Trust"],
+        "currentState": "DESPERATE",
+        "hasObservationDeck": true,
+        "hasRequestDeck": true,
+        "hasExchangeDeck": false,
+        "patience": 15,
         "initialTokens": {
-          "Trust": 1
+          "Trust": 0
+        }
+      },
+      {
+        "id": "marcus",
+        "name": "Marcus",
+        "profession": "Merchant",
+        "locationId": "market_square",
+        "spotId": "merchant_row",
+        "description": "A shrewd merchant always looking for profitable deals",
+        "personality": "Calculating and opportunistic",
+        "personalityType": "MERCANTILE",
+        "letterTokenTypes": ["Commerce"],
+        "currentState": "NEUTRAL",
+        "hasObservationDeck": true,
+        "hasRequestDeck": false,
+        "hasExchangeDeck": true,
+        "patience": 12,
+        "initialTokens": {
+          "Commerce": 0
         }
       },
       {
@@ -224,864 +376,347 @@
         "profession": "Noble",
         "locationId": "noble_district",
         "spotId": "blackwood_estate",
-        "description": "An influential noble preparing to leave for the capital",
+        "description": "An influential noble preparing to leave for the capital at sunset",
         "personality": "Impatient and powerful, expecting Elena's answer to his proposal",
         "personalityType": "PROUD",
-        "services": [],
-        "letterTokenTypes": [
-          "Status"
-        ],
-        "currentState": "NEUTRAL"
+        "letterTokenTypes": ["Status"],
+        "currentState": "NEUTRAL",
+        "hasObservationDeck": false,
+        "hasRequestDeck": false,
+        "hasExchangeDeck": false,
+        "patience": 10,
+        "initialTokens": {
+          "Status": 0
+        }
       },
       {
-        "id": "marcus",
-        "name": "Marcus",
-        "profession": "Merchant",
-        "locationId": "market_square",
-        "spotId": "merchant_row",
-        "description": "A merchant heading to his stall",
-        "personality": "Businesslike and hurried",
-        "personalityType": "MERCANTILE",
-        "services": [
-          "Trade",
-          "Work"
-        ],
-        "letterTokenTypes": [
-          "Commerce"
-        ],
-        "currentState": "CALCULATING"
-      },
-      {
-        "id": "bertram",
-        "name": "Bertram the Innkeeper",
-        "profession": "Innkeeper",
-        "locationId": "copper_kettle_tavern",
-        "spotId": "bar_counter",
-        "description": "Polishing glasses behind the bar, occasionally glancing your way with a welcoming nod",
-        "personality": "Friendly and observant",
+        "id": "warehouse_recipient",
+        "name": "Warehouse Manager",
+        "profession": "Clerk",
+        "locationId": "warehouse_district",
+        "spotId": "warehouse_entrance",
+        "description": "A busy clerk managing incoming and outgoing shipments",
+        "personality": "Efficient and no-nonsense",
         "personalityType": "STEADFAST",
-        "services": [
-          "Lodging",
-          "Information"
-        ],
-        "letterTokenTypes": [],
-        "currentState": "WELCOMING"
+        "letterTokenTypes": ["Commerce"],
+        "currentState": "NEUTRAL",
+        "hasObservationDeck": false,
+        "hasRequestDeck": false,
+        "hasExchangeDeck": false,
+        "patience": 13,
+        "initialTokens": {
+          "Commerce": 0
+        }
       },
       {
-        "id": "viktor",
-        "name": "Viktor",
-        "profession": "Soldier",
+        "id": "guard_captain",
+        "name": "Guard Captain",
+        "profession": "Guard",
         "locationId": "market_square",
         "spotId": "guard_post",
-        "description": "A guard captain overseeing the market",
-        "personality": "Stern and dutiful",
+        "description": "A stern guard captain overseeing the checkpoint",
+        "personality": "Strict and by-the-book",
         "personalityType": "STEADFAST",
-        "services": [],
-        "letterTokenTypes": [
-          "Shadow"
-        ],
-        "currentState": "NEUTRAL"
-      }
-    ],
-    "regions": [
-      {
-        "id": "aldermere",
-        "name": "Aldermere",
-        "description": "A prosperous trade city at the crossroads of major caravan routes.",
-        "government": "Merchant Council",
-        "culture": "Trade-focused",
-        "population": 50000,
-        "districtIds": [
-          "lower_wards"
-        ]
-      }
-    ],
-    "districts": [
-      {
-        "id": "lower_wards",
-        "name": "Lower Wards",
-        "description": "The bustling common quarter where merchants, travelers, and workers mingle.",
-        "regionId": "aldermere",
-        "districtType": "Trade Quarter",
-        "dangerLevel": 2,
-        "characteristics": [
-          "Crowded",
-          "Diverse",
-          "Commercial"
-        ],
-        "locationIds": [
-          "market_square",
-          "copper_kettle_tavern",
-          "noble_district"
-        ]
+        "letterTokenTypes": ["Shadow"],
+        "currentState": "NEUTRAL",
+        "hasObservationDeck": false,
+        "hasRequestDeck": false,
+        "hasExchangeDeck": true,
+        "patience": 13,
+        "initialTokens": {
+          "Shadow": 0
+        }
       }
     ],
     "locations": [
       {
         "id": "market_square",
         "name": "Market Square",
-        "district": "lower_wards",
-        "description": "The bustling heart of the city. Cobblestones worn smooth by countless feet.",
-        "environmentalProperties": {
-          "morning": [
-            "WELL-LIT",
-            "BUSY",
-            "URBAN"
-          ],
-          "afternoon": [
-            "WELL-LIT",
-            "CROWDED",
-            "URBAN"
-          ],
-          "evening": [
-            "SHADOWY",
-            "BUSY",
-            "URBAN"
-          ],
-          "night": [
-            "DARK",
-            "QUIET",
-            "URBAN"
-          ]
-        },
-        "domainTags": [
-          "COMMERCE",
-          "SOCIAL",
-          "PUBLIC"
-        ],
+        "description": "The bustling heart of the city where merchants hawk their wares",
+        "tier": 1,
+        "locationType": "Hub",
         "travelHubSpotId": "central_fountain",
-        "locationSpots": [
-          "central_fountain",
-          "merchant_row",
-          "north_entrance",
-          "north_alcove",
-          "guard_post"
-        ],
-        "connectedTo": [
-          "copper_kettle_tavern",
-          "noble_district"
-        ],
-        "socialExpectation": "Any",
-        "accessLevel": "Public",
-        "requiredSocialClasses": [],
-        "locationType": "Crossroads",
-        "isStartingLocation": false
+        "baseFamiliarity": 0,
+        "maxFamiliarity": 3
       },
       {
         "id": "copper_kettle_tavern",
         "name": "Copper Kettle Tavern",
-        "district": "lower_wards",
-        "description": "A warm, inviting tavern. The copper kettle hangs over the hearth, giving the place its name.",
-        "environmentalProperties": {
-          "morning": [
-            "WELL-LIT",
-            "QUIET",
-            "COZY"
-          ],
-          "afternoon": [
-            "WELL-LIT",
-            "SOCIAL",
-            "COZY"
-          ],
-          "evening": [
-            "WARM",
-            "SOCIAL",
-            "BUSY"
-          ],
-          "night": [
-            "DIM",
-            "QUIET",
-            "COZY"
-          ]
-        },
-        "domainTags": [
-          "SOCIAL",
-          "COMMERCE",
-          "REST",
-          "CROSSROADS"
-        ],
-        "travelHubSpotId": "main_hall",
-        "locationSpots": [
-          "main_hall",
-          "bar_counter",
-          "corner_table",
-          "upstairs_room"
-        ],
-        "connectedTo": [
-          "market_square"
-        ],
-        "socialExpectation": "Any",
-        "accessLevel": "Public",
-        "requiredSocialClasses": [],
+        "description": "A warm, inviting tavern with the famous copper kettle over the hearth",
+        "tier": 1,
         "locationType": "Tavern",
-        "isStartingLocation": true
+        "travelHubSpotId": "main_hall",
+        "baseFamiliarity": 0,
+        "maxFamiliarity": 3
       },
       {
         "id": "noble_district",
         "name": "Noble District",
-        "district": "lower_wards",
-        "description": "Quiet streets lined with grand estates. Guards patrol regularly.",
-        "environmentalProperties": {
-          "morning": [
-            "WELL-LIT",
-            "QUIET",
-            "WEALTHY"
-          ],
-          "afternoon": [
-            "WELL-LIT",
-            "QUIET",
-            "WEALTHY"
-          ],
-          "evening": [
-            "SHADOWY",
-            "QUIET",
-            "WEALTHY"
-          ],
-          "night": [
-            "DARK",
-            "GUARDED",
-            "WEALTHY"
-          ]
-        },
-        "domainTags": [
-          "NOBLE",
-          "WEALTH",
-          "EXCLUSIVE"
-        ],
-        "travelHubSpotId": "aldwin_manor",
-        "locationSpots": [
-          "aldwin_manor",
-          "blackwood_estate"
-        ],
-        "connectedTo": [
-          "market_square"
-        ],
-        "socialExpectation": "Noble",
-        "accessLevel": "Restricted",
-        "requiredSocialClasses": [
-          "Noble"
-        ],
-        "locationType": "Elite Quarter",
-        "isStartingLocation": false
+        "description": "Quiet streets lined with grand estates, heavily guarded",
+        "tier": 2,
+        "locationType": "Elite",
+        "travelHubSpotId": "gate_entrance",
+        "baseFamiliarity": 0,
+        "maxFamiliarity": 3
+      },
+      {
+        "id": "warehouse_district",
+        "name": "Warehouse District",
+        "description": "Rows of warehouses storing goods from across the realm",
+        "tier": 1,
+        "locationType": "Commercial",
+        "travelHubSpotId": "warehouse_entrance",
+        "baseFamiliarity": 0,
+        "maxFamiliarity": 3
       }
     ],
     "spots": [
       {
-        "id": "corner_table",
-        "name": "Corner Table",
-        "description": "A quiet table in the corner, perfect for private conversations and intimate gatherings.",
-        "initialState": "A small wooden table with two chairs. Dimly lit and away from the main crowd.",
-        "locationId": "copper_kettle_tavern",
-        "CurrentTimeBlocks": [
-          "Morning",
-          "Afternoon",
-          "Evening",
-          "Night"
-        ],
-        "domainTags": [
-          "PRIVATE",
-          "QUIET",
-          "INTIMATE"
-        ],
-        "spotProperties": [
-          "Private",
-          "Quiet",
-          "Warm"
-        ],
-        "timeSpecificProperties": {
-          "Evening": [
-            "BusyEvening"
-          ],
-          "Night": [
-            "QuietMorning",
-            "Isolated"
-          ]
-        }
-      },
-      {
         "id": "central_fountain",
-        "name": "The Fountain",
-        "description": "The ornate fountain at the heart of Market Square. A gathering place for all.",
-        "initialState": "Clear water sparkles in the light. Citizens gather on benches around the fountain's edge.",
         "locationId": "market_square",
-        "CurrentTimeBlocks": [
-          "Morning",
-          "Afternoon",
-          "Evening",
-          "Night"
-        ],
-        "domainTags": [
-          "PUBLIC_SQUARE",
-          "CROWDED",
-          "CROSSROADS",
-          "COMMERCE"
-        ],
-        "spotProperties": [
-          "Public",
-          "Crossroads",
-          "Exposed",
-          "Central"
-        ],
-        "timeSpecificProperties": {
-          "Morning": [
-            "QuietMorning",
-            "WellLit"
-          ],
-          "Afternoon": [
-            "Loud",
-            "BusyEvening",
-            "Crowded"
-          ],
-          "Evening": [
-            "BusyEvening",
-            "Loud"
-          ]
-        }
-      },
-      {
-        "id": "blackwood_estate",
-        "name": "Lord Blackwood's Estate",
-        "description": "A grand estate known for hosting influential gatherings and political dealings.",
-        "initialState": "Impressive architecture with tall windows. The sound of a fountain echoes from within.",
-        "locationId": "noble_district",
-        "CurrentTimeBlocks": [
-          "Morning",
-          "Afternoon",
-          "Evening"
-        ],
-        "domainTags": [
-          "NOBLE",
-          "EXCLUSIVE",
-          "WEALTHY"
-        ],
-        "spotProperties": [
-          "Private",
-          "Prestigious",
-          "NobleHaunt",
-          "Political"
-        ],
-        "timeSpecificProperties": {
-          "Morning": [
-            "Quiet"
-          ],
-          "Afternoon": [
-            "Busy"
-          ],
-          "Evening": [
-            "Social",
-            "Exclusive"
-          ]
+        "name": "Central Fountain",
+        "description": "The ornate fountain at the heart of Market Square",
+        "properties": {
+          "base": ["crossroads"],
+          "morning": ["quiet"],
+          "afternoon": ["busy"],
+          "evening": ["closing"],
+          "night": ["closed"]
+        },
+        "canInvestigate": true,
+        "investigationScaling": {
+          "quiet": 2,
+          "busy": 1,
+          "default": 1
         }
       },
       {
         "id": "merchant_row",
-        "name": "Merchant Row",
-        "description": "Rows of market stalls selling goods from across the realm",
-        "initialState": "Merchants are setting up their wares, calling out to potential customers",
         "locationId": "market_square",
-        "CurrentTimeBlocks": [
-          "Morning",
-          "Afternoon",
-          "Evening"
-        ],
-        "domainTags": [
-          "COMMERCE",
-          "BUSY",
-          "PUBLIC"
-        ],
-        "spotProperties": [
-          "Public",
-          "Commercial",
-          "Busy"
-        ],
-        "timeSpecificProperties": {
-          "Morning": [
-            "QuietMorning",
-            "WellLit"
-          ],
-          "Afternoon": [
-            "Crowded",
-            "Loud",
-            "BusyEvening"
-          ],
-          "Evening": [
-            "BusyEvening"
-          ]
-        }
-      },
-      {
-        "id": "main_hall",
-        "name": "Main Hall",
-        "description": "The heart of the Copper Kettle Tavern. Tables and chairs fill the space, with a warm fire crackling.",
-        "initialState": "The hearth glows warmly. Patrons sit at wooden tables, enjoying food and drink.",
-        "locationId": "copper_kettle_tavern",
-        "CurrentTimeBlocks": [
-          "Morning",
-          "Afternoon",
-          "Evening",
-          "Night"
-        ],
-        "domainTags": [
-          "SOCIAL",
-          "WARM",
-          "GATHERING"
-        ],
-        "spotProperties": [
-          "Public",
-          "Crossroads",
-          "Warm",
-          "Social",
-          "Central"
-        ],
-        "timeSpecificProperties": {
-          "Morning": [
-            "Quiet",
-            "Peaceful"
-          ],
-          "Afternoon": [
-            "Social",
-            "Busy"
-          ],
-          "Evening": [
-            "BusyEvening",
-            "Loud",
-            "Social"
-          ],
-          "Night": [
-            "Quiet",
-            "Intimate"
-          ]
-        }
-      },
-      {
-        "id": "bar_counter",
-        "name": "Bar Counter",
-        "description": "The polished wooden bar where Bertram serves drinks and meals to guests.",
-        "initialState": "Clean glasses line the shelves. Bertram polishes mugs with a friendly smile.",
-        "locationId": "copper_kettle_tavern",
-        "CurrentTimeBlocks": [
-          "Morning",
-          "Afternoon",
-          "Evening",
-          "Night"
-        ],
-        "domainTags": [
-          "SOCIAL",
-          "SERVICE",
-          "COMMERCE"
-        ],
-        "spotProperties": [
-          "Public",
-          "Commercial",
-          "Social"
-        ],
-        "timeSpecificProperties": {
-          "Morning": [
-            "WellLit",
-            "Peaceful"
-          ],
-          "Afternoon": [
-            "Busy"
-          ],
-          "Evening": [
-            "BusyEvening",
-            "Social"
-          ],
-          "Night": [
-            "Quiet"
-          ]
-        }
-      },
-      {
-        "id": "aldwin_manor",
-        "name": "Aldwin Manor",
-        "description": "A stately manor in the Noble District, the main entry point from the central gates.",
-        "initialState": "Elegant architecture and manicured grounds. Guards patrol the perimeter.",
-        "locationId": "noble_district",
-        "CurrentTimeBlocks": [
-          "Morning",
-          "Afternoon",
-          "Evening"
-        ],
-        "domainTags": [
-          "NOBLE",
-          "EXCLUSIVE",
-          "GUARDED"
-        ],
-        "spotProperties": [
-          "Private",
-          "Crossroads",
-          "Prestigious",
-          "Guarded",
-          "Central"
-        ],
-        "timeSpecificProperties": {
-          "Morning": [
-            "Quiet",
-            "Peaceful"
-          ],
-          "Afternoon": [
-            "Formal",
-            "Busy"
-          ],
-          "Evening": [
-            "Social",
-            "Exclusive"
-          ]
-        }
+        "name": "Merchant Row",
+        "description": "Rows of market stalls selling goods",
+        "properties": {
+          "morning": ["commercial"],
+          "afternoon": ["commercial", "busy"],
+          "evening": ["commercial"],
+          "night": ["closed"]
+        },
+        "canInvestigate": false,
+        "canWork": true,
+        "workType": "haul_goods",
+        "workPay": 5
       },
       {
         "id": "guard_post",
-        "name": "Guard Post",
-        "description": "The official guard station in Market Square where city watch maintain order.",
-        "initialState": "Guards in uniform stand watch, observing the crowd for any trouble.",
         "locationId": "market_square",
-        "CurrentTimeBlocks": [
-          "Morning",
-          "Afternoon",
-          "Evening",
-          "Night"
-        ],
-        "domainTags": [
-          "AUTHORITY",
-          "OFFICIAL",
-          "SECURITY"
-        ],
-        "spotProperties": [
-          "Public",
-          "Official",
-          "Watched",
-          "Secure"
-        ],
-        "timeSpecificProperties": {
-          "Morning": [
-            "Alert"
-          ],
-          "Afternoon": [
-            "Busy",
-            "Watchful"
-          ],
-          "Evening": [
-            "Vigilant"
-          ],
-          "Night": [
-            "Patrolled"
-          ]
+        "name": "Guard Post",
+        "description": "The official guard station",
+        "properties": {
+          "all": ["authority", "watched"]
+        },
+        "canInvestigate": false
+      },
+      {
+        "id": "main_hall",
+        "locationId": "copper_kettle_tavern",
+        "name": "Main Hall",
+        "description": "The heart of the tavern with tables and a warm fire",
+        "properties": {
+          "morning": ["quiet", "warm"],
+          "afternoon": ["social"],
+          "evening": ["busy", "social"],
+          "night": ["quiet"]
+        },
+        "canInvestigate": true,
+        "investigationScaling": {
+          "quiet": 2,
+          "busy": 1,
+          "default": 1
         }
+      },
+      {
+        "id": "corner_table",
+        "locationId": "copper_kettle_tavern",
+        "name": "Corner Table",
+        "description": "A quiet table perfect for private conversations",
+        "properties": {
+          "all": ["private", "quiet"]
+        },
+        "canInvestigate": false
+      },
+      {
+        "id": "gate_entrance",
+        "locationId": "noble_district",
+        "name": "District Gate",
+        "description": "The heavily guarded entrance to the Noble District",
+        "properties": {
+          "all": ["guarded", "checkpoint"]
+        },
+        "canInvestigate": false
+      },
+      {
+        "id": "blackwood_estate",
+        "locationId": "noble_district",
+        "name": "Blackwood Estate",
+        "description": "Lord Blackwood's grand manor",
+        "properties": {
+          "morning": ["quiet", "noble"],
+          "afternoon": ["noble"],
+          "evening": ["noble", "exclusive"]
+        },
+        "canInvestigate": false
+      },
+      {
+        "id": "warehouse_entrance",
+        "locationId": "warehouse_district",
+        "name": "Warehouse Entrance",
+        "description": "The main entrance to the warehouse district",
+        "properties": {
+          "all": ["commercial"]
+        },
+        "canInvestigate": false
       }
     ],
     "routes": [
       {
         "id": "market_to_tavern",
-        "name": "via Market Streets",
-        "originLocationSpot": "central_fountain",
-        "destinationLocationSpot": "main_hall",
-        "method": "Walking",
-        "baseCoinCost": 0,
-        "baseStaminaCost": 1,
+        "name": "Market Streets",
+        "originLocationId": "market_square",
+        "originSpotId": "central_fountain",
+        "destinationLocationId": "copper_kettle_tavern",
+        "destinationSpotId": "main_hall",
         "travelTimeMinutes": 15,
-        "departureTime": null,
-        "isDiscovered": true,
-        "terrainCategories": [],
-        "maxItemCapacity": 5,
-        "description": "A public walk through busy market streets to the tavern."
+        "coinCost": 0,
+        "permitRequired": null,
+        "description": "A short walk through busy market streets"
       },
       {
         "id": "tavern_to_market",
-        "name": "via Main Streets",
-        "originLocationSpot": "main_hall",
-        "destinationLocationSpot": "central_fountain",
-        "method": "Walking",
-        "baseCoinCost": 0,
-        "baseStaminaCost": 1,
+        "name": "Market Streets",
+        "originLocationId": "copper_kettle_tavern",
+        "originSpotId": "main_hall",
+        "destinationLocationId": "market_square",
+        "destinationSpotId": "central_fountain",
         "travelTimeMinutes": 15,
-        "departureTime": null,
-        "isDiscovered": true,
-        "terrainCategories": [],
-        "maxItemCapacity": 5,
-        "description": "Return to the market square through public streets."
+        "coinCost": 0,
+        "permitRequired": null,
+        "description": "Return to the market square"
       },
       {
-        "id": "market_to_noble_main",
-        "name": "via Guard Checkpoint",
-        "originLocationSpot": "central_fountain",
-        "destinationLocationSpot": "aldwin_manor",
-        "method": "Walking",
-        "baseCoinCost": 10,
-        "baseStaminaCost": 2,
+        "id": "market_to_warehouse",
+        "name": "Warehouse Road",
+        "originLocationId": "market_square",
+        "originSpotId": "central_fountain",
+        "destinationLocationId": "warehouse_district",
+        "destinationSpotId": "warehouse_entrance",
+        "travelTimeMinutes": 20,
+        "coinCost": 0,
+        "permitRequired": null,
+        "description": "The road to the warehouse district"
+      },
+      {
+        "id": "warehouse_to_market",
+        "name": "Warehouse Road",
+        "originLocationId": "warehouse_district",
+        "originSpotId": "warehouse_entrance",
+        "destinationLocationId": "market_square",
+        "destinationSpotId": "central_fountain",
+        "travelTimeMinutes": 20,
+        "coinCost": 0,
+        "permitRequired": null,
+        "description": "Return from the warehouse district"
+      },
+      {
+        "id": "market_to_noble_checkpoint",
+        "name": "Guard Checkpoint",
+        "originLocationId": "market_square",
+        "originSpotId": "central_fountain",
+        "destinationLocationId": "noble_district",
+        "destinationSpotId": "gate_entrance",
         "travelTimeMinutes": 25,
-        "departureTime": null,
-        "isDiscovered": true,
-        "terrainCategories": [
-          "Requires_Permission"
-        ],
-        "maxItemCapacity": 5,
-        "description": "The guarded main gate to the Noble District - requires 10 coin bribe."
+        "coinCost": 0,
+        "permitRequired": "noble_district_permit",
+        "description": "The guarded checkpoint to the Noble District (requires permit)"
+      },
+      {
+        "id": "market_to_noble_caravan",
+        "name": "Merchant Caravan",
+        "originLocationId": "market_square",
+        "originSpotId": "merchant_row",
+        "destinationLocationId": "noble_district",
+        "destinationSpotId": "gate_entrance",
+        "travelTimeMinutes": 20,
+        "coinCost": 10,
+        "permitRequired": null,
+        "requiresExchange": "marcus_caravan_transport",
+        "description": "Secret passage with Marcus's caravan (requires exchange unlock)"
       },
       {
         "id": "noble_to_market",
-        "name": "via Guard Checkpoint",
-        "originLocationSpot": "aldwin_manor",
-        "destinationLocationSpot": "central_fountain",
-        "method": "Walking",
-        "baseCoinCost": 0,
-        "baseStaminaCost": 2,
+        "name": "Return Route",
+        "originLocationId": "noble_district",
+        "originSpotId": "gate_entrance",
+        "destinationLocationId": "market_square",
+        "destinationSpotId": "central_fountain",
         "travelTimeMinutes": 25,
-        "departureTime": null,
-        "isDiscovered": true,
-        "terrainCategories": [],
-        "maxItemCapacity": 5,
-        "description": "Return to Market Square through the guarded gate."
+        "coinCost": 0,
+        "permitRequired": null,
+        "description": "Return from the Noble District"
+      }
+    ],
+    "investigationRewards": [
+      {
+        "locationId": "market_square",
+        "familiarityRequired": 1,
+        "priorObservationRequired": null,
+        "observationCard": {
+          "id": "safe_passage_knowledge",
+          "targetNpcId": "elena"
+        },
+        "description": "Overhear merchants discussing safe caravan routes"
       },
       {
-        "id": "noble_to_tavern",
-        "name": "via Noble Streets",
-        "originLocationSpot": "aldwin_manor",
-        "destinationLocationSpot": "main_hall",
-        "method": "Walking",
-        "baseCoinCost": 0,
-        "baseStaminaCost": 2,
-        "travelTimeMinutes": 30,
-        "departureTime": null,
-        "isDiscovered": true,
-        "terrainCategories": [],
-        "maxItemCapacity": 5,
-        "description": "A direct route from Noble District to the Copper Kettle Tavern."
+        "locationId": "market_square",
+        "familiarityRequired": 2,
+        "priorObservationRequired": 0,
+        "observationCard": {
+          "id": "merchant_caravan_route",
+          "targetNpcId": "marcus"
+        },
+        "description": "Discover Marcus's private caravan schedule to the Noble District"
       }
     ],
     "letterTemplates": [
       {
-        "id": "elena_refusal",
+        "id": "elena_refusal_letter",
         "description": "Elena's urgent refusal of Lord Blackwood's marriage proposal",
-        "narrative": "This letter contains my refusal of your marriage proposal. I cannot marry you.",
+        "narrative": "I cannot accept your proposal. My heart belongs elsewhere.",
         "letterType": "Trust",
         "tokenType": "Trust",
-        "minDeadlineInMinutes": 60,
-        "maxDeadlineInMinutes": 60,
-        "urgencyHours": 1,
-        "minPayment": 5,
-        "maxPayment": 5,
+        "deadline": 300,
+        "payment": 0,
+        "tokenReward": 2,
         "category": "Urgent",
-        "minTokensRequired": 0,
-        "tierLevel": "T2",
-        "forcesQueuePosition1": true,
-        "possibleSenders": [
-          "elena"
-        ],
-        "possibleRecipients": [
-          "lord_blackwood"
-        ],
+        "senderId": "elena",
         "recipientId": "lord_blackwood",
-        "size": "Small",
-        "physicalProperties": [
-          "Sealed with wax",
-          "Trembling hands"
-        ],
         "consequenceIfLate": "Elena forced into unwanted marriage",
-        "consequenceIfDelivered": "Elena's freedom preserved",
-        "emotionalFocus": "HIGH"
+        "consequenceIfDelivered": "Elena's freedom preserved"
+      },
+      {
+        "id": "viktor_package_letter",
+        "description": "Viktor's package for the warehouse",
+        "narrative": "Important supplies for the warehouse district",
+        "letterType": "Commerce",
+        "tokenType": "Commerce",
+        "deadline": 480,
+        "payment": 10,
+        "tokenReward": 1,
+        "category": "Standard",
+        "senderId": "viktor",
+        "recipientId": "warehouse_recipient",
+        "consequenceIfLate": "Viktor's reputation damaged",
+        "consequenceIfDelivered": "Warehouse operations continue smoothly"
       }
-    ],
-    "npcGoalCards": [
-      {
-        "npcId": "elena",
-        "id": "accept_elenas_letter",
-        "type": "Promise",
-        "focus": 0,
-        "properties": [
-          "Persistent",
-          "GoalCard"
-        ],
-        "connectionType": "Trust",
-        "description": "Accept Elena's Letter",
-        "difficulty": "VeryEasy",
-        "rapportThreshold": 5,
-        "successEffect": {
-          "type": "CreateObligation",
-          "value": "letter_delivery",
-          "data": {
-            "obligationType": "delivery",
-            "position": 1,
-            "deadline": 60,
-            "recipientId": "lord_blackwood",
-            "letterId": "elena_refusal",
-            "payment": 5,
-            "tokenReward": {
-              "Trust": 2
-            }
-          }
-        },
-        "dialogueFragment": "Give me the letter. I'll get it to Lord Blackwood before sunset, no matter what it takes."
-      },
-      {
-        "npcId": "marcus",
-        "id": "marcus_connection_goal",
-        "type": "FriendlyChat",
-        "focus": 0,
-        "properties": [
-          "Persistent",
-          "GoalCard"
-        ],
-        "connectionType": "Commerce",
-        "description": "Build Commerce Connection",
-        "difficulty": "VeryEasy",
-        "rapportThreshold": 3,
-        "successEffect": {
-          "type": "GainConnectionToken",
-          "value": "Commerce",
-          "data": {
-            "amount": 1,
-            "npcId": "marcus"
-          }
-        },
-        "dialogueFragment": "You've proven yourself a reliable business partner. Let's do more deals in the future."
-      },
-      {
-        "npcId": "viktor",
-        "id": "viktor_connection_goal",
-        "type": "FriendlyChat",
-        "focus": 0,
-        "properties": [
-          "Persistent",
-          "GoalCard"
-        ],
-        "connectionType": "Status",
-        "description": "Build Status Connection",
-        "difficulty": "VeryEasy",
-        "rapportThreshold": 3,
-        "successEffect": {
-          "type": "GainConnectionToken",
-          "value": "Status",
-          "data": {
-            "amount": 1,
-            "npcId": "viktor"
-          }
-        },
-        "dialogueFragment": "You've earned my respect. The guard will remember you as someone worthy of trust."
-      },
-      {
-        "npcId": "bertram",
-        "id": "bertram_connection_goal",
-        "type": "FriendlyChat",
-        "focus": 0,
-        "properties": [
-          "Persistent",
-          "GoalCard"
-        ],
-        "connectionType": "Trust",
-        "description": "Build Trust Connection",
-        "difficulty": "VeryEasy",
-        "rapportThreshold": 3,
-        "successEffect": {
-          "type": "GainConnectionToken",
-          "value": "Trust",
-          "data": {
-            "amount": 1,
-            "npcId": "bertram"
-          }
-        },
-        "dialogueFragment": "You're always welcome here, friend. The Copper Kettle is your home away from home."
-      },
-      {
-        "npcId": "lord_blackwood",
-        "id": "blackwood_connection_goal",
-        "type": "FriendlyChat",
-        "focus": 0,
-        "properties": [
-          "Persistent",
-          "GoalCard"
-        ],
-        "connectionType": "Status",
-        "description": "Build Status Connection",
-        "difficulty": "VeryEasy",
-        "rapportThreshold": 3,
-        "successEffect": {
-          "type": "GainConnectionToken",
-          "value": "Status",
-          "data": {
-            "amount": 1,
-            "npcId": "lord_blackwood"
-          }
-        },
-        "dialogueFragment": "You've proven yourself worthy of noble attention. I shall remember your service."
-      }
-    ],
-    "standingObligations": [],
-    "travelCards": [],
-    "items": [],
-    "locationActions": [],
-    "observations": [],
-    "deckCompositions": {
-      "defaultDeck": {
-        "conversationDeck": {
-          "i_hear_you": 3,
-          "let_me_think": 1,
-          "let_me_prepare": 1,
-          "how_can_i_assist": 2,
-          "tell_me_more": 2,
-          "im_here_for_you": 1,
-          "well_figure_this_out": 1,
-          "everything_will_be_alright": 1
-        },
-        "requestDeck": {},
-        "exchangeDeck": {}
-      },
-      "npcDecks": {
-        "elena": {
-          "conversationDeck": {
-            "i_hear_you": 3,
-            "let_me_think": 1,
-            "let_me_prepare": 1,
-            "how_can_i_assist": 2,
-            "tell_me_more": 2,
-            "im_here_for_you": 1,
-            "well_figure_this_out": 1,
-            "everything_will_be_alright": 1
-          },
-          "requestDeck": {
-            "elena_letter_promise": 1
-          },
-          "exchangeDeck": {}
-        },
-        "marcus": {
-          "conversationDeck": {
-            "i_hear_you": 3,
-            "let_me_think": 1,
-            "let_me_prepare": 1,
-            "how_can_i_assist": 2,
-            "tell_me_more": 2,
-            "im_here_for_you": 1,
-            "well_figure_this_out": 1,
-            "everything_will_be_alright": 1
-          },
-          "requestDeck": {},
-          "exchangeDeck": {
-            "marcus_bulk_purchase": 1,
-            "marcus_quick_trade": 1
-          }
-        }
-      }
-    }
-  },
-  "startingConditions": {
-    "playerConfig": {
-      "coins": 10,
-      "staminaPoints": 10,
-      "maxStamina": 10,
-      "health": 75,
-      "maxHealth": 100,
-      "hunger": 60,
-      "maxHunger": 100,
-      "currentAttention": 8,
-      "maxAttention": 10
-    },
-    "startingSpotId": "corner_table",
-    "startingObligations": [],
-    "startingTokens": {
-      "Trust": {
-        "quantity": 1,
-        "npcId": "elena"
-      }
-    }
+    ]
   }
 }

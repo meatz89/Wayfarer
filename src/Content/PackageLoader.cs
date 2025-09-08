@@ -105,6 +105,7 @@ public class PackageLoader
 
             // Phase 6: Independent content
             LoadObservations(package.Content.Observations);
+            LoadInvestigationRewards(package.Content.InvestigationRewards);
             LoadTravelCards(package.Content.TravelCards);
             LoadItems(package.Content.Items);
             LoadLetterTemplates(package.Content.LetterTemplates);
@@ -119,9 +120,8 @@ public class PackageLoader
         if (conditions.PlayerConfig != null)
         {
             _gameWorld.InitialPlayerConfig = conditions.PlayerConfig;
-
-            // Player config is stored for GameFacade to apply to Player object
-            // We don't set duplicate fields on GameWorld anymore
+            // Apply the initial configuration to the player immediately
+            _gameWorld.ApplyInitialPlayerConfiguration();
         }
 
         // Set starting location
@@ -720,8 +720,8 @@ public class PackageLoader
         {
             Id = dto.Id,
             Name = dto.Name ?? "",
-            OriginLocationSpot = dto.OriginLocationSpot ?? "",
-            DestinationLocationSpot = dto.DestinationLocationSpot ?? "",
+            OriginLocationSpot = dto.OriginSpotId ?? "",
+            DestinationLocationSpot = dto.DestinationSpotId ?? "",
             Method = Enum.TryParse<TravelMethods>(dto.Method, out TravelMethods method) ? method : TravelMethods.Walking,
             BaseCoinCost = dto.BaseCoinCost,
             BaseStaminaCost = dto.BaseStaminaCost,
@@ -838,5 +838,49 @@ public class PackageLoader
         }
 
         return action;
+    }
+
+    private void LoadInvestigationRewards(List<ObservationRewardDTO> investigationRewardDtos)
+    {
+        if (investigationRewardDtos == null) return;
+
+        foreach (ObservationRewardDTO dto in investigationRewardDtos)
+        {
+            // Find the target location
+            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
+            if (location != null)
+            {
+                // Convert DTO to domain model
+                ObservationReward reward = ConvertObservationRewardDTOToModel(dto);
+                location.ObservationRewards.Add(reward);
+            }
+            else
+            {
+                // Create skeleton location if not found
+                Location skeletonLocation = SkeletonGenerator.GenerateSkeletonLocation(dto.LocationId, $"investigation_reward_{dto.LocationId}");
+                ObservationReward reward = ConvertObservationRewardDTOToModel(dto);
+                skeletonLocation.ObservationRewards.Add(reward);
+                _gameWorld.Locations.Add(skeletonLocation);
+                _gameWorld.SkeletonRegistry[dto.LocationId] = "Location";
+            }
+        }
+    }
+
+    private ObservationReward ConvertObservationRewardDTOToModel(ObservationRewardDTO dto)
+    {
+        return new ObservationReward
+        {
+            LocationId = dto.LocationId,
+            FamiliarityRequired = dto.FamiliarityRequired,
+            PriorObservationRequired = dto.PriorObservationRequired,
+            ObservationCard = new ObservationCardReward
+            {
+                Id = dto.ObservationCard.Id,
+                Name = dto.ObservationCard.Name,
+                TargetNpcId = dto.ObservationCard.TargetNpcId,
+                Effect = dto.ObservationCard.Effect,
+                Description = dto.ObservationCard.Description
+            }
+        };
     }
 }

@@ -2234,6 +2234,32 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
+        /// Get NPC observation cards available for playing
+        /// </summary>
+        protected List<CardInstance> GetNPCObservationCards()
+        {
+            return Session?.NPCObservationCards ?? new List<CardInstance>();
+        }
+
+        /// <summary>
+        /// Play an observation card (0 focus cost, consumed after use)
+        /// </summary>
+        protected async Task PlayObservationCard(CardInstance observationCard)
+        {
+            if (Session == null || observationCard == null) return;
+
+            // Observation cards cost 0 focus and count as SPEAK actions
+            // Set the card as selected and execute speak
+            SelectedCard = observationCard;
+            
+            // Execute the SPEAK action
+            await ExecuteSpeak();
+            
+            // Remove the observation card from the session (consumed permanently)
+            Session.NPCObservationCards.Remove(observationCard);
+        }
+
+        /// <summary>
         /// Get cards that will exhaust on LISTEN action (Opening cards)
         /// </summary>
         protected List<CardInstance> GetOpeningCards()

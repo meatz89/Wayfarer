@@ -79,7 +79,7 @@ public static class ObservationParser
         {
             Id = GetStringProperty(element, "id", ""),
             Text = GetStringProperty(element, "text", ""),
-            AttentionCost = GetIntProperty(element, "attentionCost", 1),
+            AttentionCost = GetIntProperty(element, "attentionCost", 0),
             Description = GetStringProperty(element, "description", ""),
             CreatesUrgency = GetBoolProperty(element, "createsUrgency", false),
             Automatic = GetBoolProperty(element, "automatic", false)

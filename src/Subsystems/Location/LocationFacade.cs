@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Wayfarer.Subsystems.NarrativeSubsystem;
+using Wayfarer.GameState.Actions;
 
 namespace Wayfarer.Subsystems.LocationSubsystem
 {
@@ -487,6 +488,72 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         public LocationActionManager GetLocationActionManager()
         {
             return _actionManager;
+        }
+
+        /// <summary>
+        /// Investigate a location to gain familiarity. Costs 1 attention and takes 10 minutes.
+        /// Familiarity gain depends on spot properties: Quiet spots +2, Busy spots +1, others +1.
+        /// Familiarity is capped at the location's MaxFamiliarity (typically 3).
+        /// </summary>
+        /// <param name="locationId">ID of the location to investigate</param>
+        /// <param name="spotId">ID of the spot where investigation takes place</param>
+        /// <returns>True if investigation was successful, false if not possible</returns>
+        public bool InvestigateLocation(string locationId, string spotId)
+        {
+            Player player = _gameWorld.GetPlayer();
+            Location location = GetLocationById(locationId);
+            LocationSpot spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
+            
+            if (player == null || location == null || spot == null)
+            {
+                _messageSystem.AddSystemMessage("Cannot investigate - invalid location or spot", SystemMessageTypes.Warning);
+                return false;
+            }
+
+            InvestigationAction investigation = new InvestigationAction();
+
+            // Check if investigation is possible
+            if (!investigation.CanInvestigate(player, location))
+            {
+                if (!player.HasAttention(investigation.AttentionCost))
+                {
+                    _messageSystem.AddSystemMessage("Not enough attention to investigate", SystemMessageTypes.Warning);
+                }
+                else
+                {
+                    _messageSystem.AddSystemMessage($"Already fully familiar with {location.Name}", SystemMessageTypes.Info);
+                }
+                return false;
+            }
+
+            // Get current familiarity and time
+            int currentFamiliarity = player.GetLocationFamiliarity(locationId);
+            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+
+            // Calculate familiarity gain
+            int familiarityGain = investigation.GetFamiliarityGain(spot, currentTime);
+            
+            // Apply familiarity gain (capped at MaxFamiliarity)
+            int newFamiliarity = Math.Min(location.MaxFamiliarity, currentFamiliarity + familiarityGain);
+            player.SetLocationFamiliarity(locationId, newFamiliarity);
+
+            // Spend attention
+            player.SpendAttention(investigation.AttentionCost);
+
+            // Advance time
+            _timeManager.AdvanceTimeMinutes(investigation.TimeMinutes);
+
+            // Generate success message
+            string gainText = familiarityGain == 2 ? "significant insights" : "new insights";
+            _messageSystem.AddSystemMessage(
+                $"Investigated {location.Name}. Gained {gainText} (+{familiarityGain} familiarity). " +
+                $"Familiarity: {newFamiliarity}/{location.MaxFamiliarity}",
+                SystemMessageTypes.Success
+            );
+
+            Console.WriteLine($"[InvestigateLocation] {player.Name} investigated {location.Name} from {currentFamiliarity} to {newFamiliarity} familiarity");
+            
+            return true;
         }
     }
 }
