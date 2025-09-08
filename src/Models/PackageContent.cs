@@ -84,4 +84,9 @@ public class PackageContent
     /// Deck compositions - defines how many copies of each card in decks
     /// </summary>
     public DeckCompositionDTO DeckCompositions { get; set; }
+
+    /// <summary>
+    /// Exchange definitions - defines trade details for exchange cards
+    /// </summary>
+    public List<ExchangeDTO> Exchanges { get; set; }
 }

@@ -1,4 +1,6 @@
 
+using System.Linq;
+
 // Conversation session
 public class ConversationSession
 {
@@ -255,9 +257,78 @@ public class ConversationSession
     public static ConversationSession StartExchange(NPC npc, PlayerResourceState playerResourceState, TokenMechanicsManager tokenManager,
         List<string> spotDomainTags, ObligationQueueManager queueManager, GameWorld gameWorld)
     {
+        Console.WriteLine($"[ConversationSession.StartExchange] Starting exchange with NPC: {npc.ID}");
+        
         // Create session deck from NPC's exchange cards
         List<ConversationCard> exchangeCards = npc.ExchangeDeck?.GetAllCards() ?? new List<ConversationCard>();
+        Console.WriteLine($"[ConversationSession.StartExchange] Found {exchangeCards.Count} exchange cards");
+        
         SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(exchangeCards, npc.ID);
+        Console.WriteLine($"[ConversationSession.StartExchange] Created session deck with {sessionDeck.GetAllCards().Count()} cards");
+        
+        // Populate exchange data for all cards in the deck
+        foreach (CardInstance card in sessionDeck.GetAllCards())
+        {
+            Console.WriteLine($"[ConversationSession.StartExchange] Processing card {card.Id}");
+            Console.WriteLine($"[ConversationSession.StartExchange] SuccessEffect: Type={card.SuccessEffect?.Type}, Value={card.SuccessEffect?.Value}");
+            
+            if (card.SuccessEffect != null && 
+                card.SuccessEffect.Type == CardEffectType.Exchange &&
+                !string.IsNullOrEmpty(card.SuccessEffect.Value))
+            {
+                Console.WriteLine($"[ConversationSession.StartExchange] Looking for exchange definition: {card.SuccessEffect.Value}");
+                
+                // Look up exchange definition by ID
+                ExchangeDTO exchangeDef = gameWorld.ExchangeDefinitions
+                    .FirstOrDefault(e => e.Id == card.SuccessEffect.Value);
+                    
+                if (exchangeDef != null)
+                {
+                    Console.WriteLine($"[ConversationSession.StartExchange] Found exchange definition: {exchangeDef.Id}");
+                    
+                    // Create context if it doesn't exist
+                    if (card.Context == null)
+                        card.Context = new CardContext();
+                    
+                    // Create ExchangeData object and populate from definition
+                    ExchangeData exchangeData = new ExchangeData
+                    {
+                        Id = exchangeDef.Id,
+                        Name = exchangeDef.Name,
+                        Cost = new Dictionary<ResourceType, int>(),
+                        Reward = new Dictionary<ResourceType, int>()
+                    };
+                    
+                    // Convert string currency to ResourceType for cost
+                    ResourceType? costType = ParseResourceType(exchangeDef.GiveCurrency);
+                    if (costType.HasValue)
+                    {
+                        exchangeData.Cost[costType.Value] = exchangeDef.GiveAmount;
+                        Console.WriteLine($"[ConversationSession.StartExchange] Set cost: {exchangeDef.GiveAmount} {costType.Value}");
+                    }
+                    
+                    // Convert string currency to ResourceType for reward
+                    ResourceType? rewardType = ParseResourceType(exchangeDef.ReceiveCurrency);
+                    if (rewardType.HasValue)
+                    {
+                        exchangeData.Reward[rewardType.Value] = exchangeDef.ReceiveAmount;
+                        Console.WriteLine($"[ConversationSession.StartExchange] Set reward: {exchangeDef.ReceiveAmount} {rewardType.Value}");
+                    }
+                    
+                    // Set the ExchangeData on the context
+                    card.Context.ExchangeData = exchangeData;
+                    
+                    // Also populate the effect's ExchangeData
+                    card.SuccessEffect.ExchangeData = exchangeData;
+                    
+                    Console.WriteLine($"[ConversationSession.StartExchange] Successfully populated exchange data for card {card.Id}");
+                }
+                else
+                {
+                    Console.WriteLine($"[ConversationSession.StartExchange] WARNING: Exchange definition not found for ID: {card.SuccessEffect.Value}");
+                }
+            }
+        }
 
         // Determine initial state  
         ConnectionState initialState = ConversationRules.DetermineInitialState(npc, queueManager);
@@ -278,5 +349,18 @@ public class ConversationSession
         };
 
         return session;
+    }
+    
+    private static ResourceType? ParseResourceType(string name)
+    {
+        return name?.ToLower() switch
+        {
+            "coins" => ResourceType.Coins,
+            "health" => ResourceType.Health,
+            "food" => ResourceType.Food,
+            "hunger" => ResourceType.Hunger,
+            "attention" => ResourceType.Attention,
+            _ => null
+        };
     }
 }

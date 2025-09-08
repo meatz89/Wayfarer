@@ -179,24 +179,6 @@
         "dialogueFragment": "Please, I need someone to deliver this letter to Lord Blackwood immediately. It's my response to his proposal - he leaves at sunset!"
       },
       {
-        "id": "marcus_bulk_purchase",
-        "type": "Exchange",
-        "personalityTypes": ["MERCANTILE"],
-        "focus": 0,
-        "properties": ["Repeatable"],
-        "connectionType": "Commerce",
-        "description": "Trade 20 coins for 3 food",
-        "difficulty": "Easy",
-        "tokenRequirement": {
-          "Commerce": 2
-        },
-        "successEffect": {
-          "type": "Trade",
-          "value": "bulk_food_trade"
-        },
-        "dialogueFragment": "Ah, buying in bulk? I can offer you 3 food for 20 coins."
-      },
-      {
         "id": "marcus_quick_trade",
         "type": "Exchange",
         "personalityTypes": ["MERCANTILE"],
@@ -209,7 +191,7 @@
           "Commerce": 1
         },
         "successEffect": {
-          "type": "Trade",
+          "type": "Exchange",
           "value": "quick_food_trade"
         },
         "dialogueFragment": "Need some food? 10 coins for a meal's worth."
@@ -292,7 +274,6 @@
           },
           "requestDeck": {},
           "exchangeDeck": {
-            "marcus_bulk_purchase": 1,
             "marcus_quick_trade": 1
           },
           "observationDeck": {}
@@ -694,17 +675,6 @@
       }
     ],
     "exchanges": [
-      {
-        "id": "bulk_food_trade",
-        "name": "Bulk Food Purchase",
-        "giveCurrency": "coins",
-        "giveAmount": 20,
-        "receiveCurrency": "food",
-        "receiveAmount": 3,
-        "tokenGate": {
-          "Commerce": 2
-        }
-      },
       {
         "id": "quick_food_trade",
         "name": "Quick Food Purchase",

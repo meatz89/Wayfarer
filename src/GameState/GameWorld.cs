@@ -73,6 +73,8 @@ public class GameWorld
     public List<ConversationCard> PlayerObservationCards { get; set; } = new List<ConversationCard>();
     // Travel cards are now stored as ConversationCards with category "Travel"
     public List<ConversationCard> TravelCards { get; set; } = new List<ConversationCard>();
+    // Exchange definitions loaded from JSON for lookup
+    public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
 
     // Initialization data - stored in GameWorld, not passed between phases
     // This eliminates the need for SharedData dictionary

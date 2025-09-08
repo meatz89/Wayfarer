@@ -111,6 +111,7 @@ public class PackageLoader
             LoadLetterTemplates(package.Content.LetterTemplates);
             LoadStandingObligations(package.Content.StandingObligations);
             LoadLocationActions(package.Content.LocationActions);
+            LoadExchanges(package.Content.Exchanges);
         }
     }
 
@@ -882,5 +883,16 @@ public class PackageLoader
                 Description = dto.ObservationCard.Description
             }
         };
+    }
+
+    private void LoadExchanges(List<ExchangeDTO> exchangeDtos)
+    {
+        if (exchangeDtos == null) return;
+
+        foreach (ExchangeDTO dto in exchangeDtos)
+        {
+            _gameWorld.ExchangeDefinitions.Add(dto);
+            Console.WriteLine($"[PackageLoader] Loaded exchange: {dto.Id} ({dto.GiveAmount} {dto.GiveCurrency} for {dto.ReceiveAmount} {dto.ReceiveCurrency})");
+        }
     }
 }

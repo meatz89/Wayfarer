@@ -17,15 +17,6 @@ public class SessionCardDeck
         {
             CardInstance cardInstance = new CardInstance(template);
 
-            // If this is an exchange card, set up the Context with ExchangeData
-            if (cardInstance.Properties.Contains(CardProperty.Exchange) &&
-                cardInstance.SuccessEffect?.ExchangeData != null)
-            {
-                CardContext context = new CardContext();
-                context.ExchangeData = cardInstance.SuccessEffect.ExchangeData;
-                cardInstance.Context = context;
-            }
-
             // Add to draw pile initially
             deck.drawPile.Add(cardInstance);
         }

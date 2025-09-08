@@ -73,25 +73,22 @@ public static class ConversationCardParser
         if (!cardTemplates.TryGetValue(cardId, out ConversationCardDTO dto))
             return null;
 
+        // Mark as request card to ensure proper parsing
+        dto.IsRequestCard = true;
+        
+        // Convert to RequestCard (will preserve default EndConversation effects)
         ConversationCard card = ConvertDTOToCard(dto);
-
-        // Create new card with customized values
-        ConversationCard newCard = new ConversationCard
+        
+        // If it's a RequestCard, customize the ID for this specific NPC
+        if (card is RequestCard requestCard)
         {
-            Id = $"{cardId}_{npcId}",
-            Description = card.Description,
-            Focus = card.Focus,
-            TokenType = card.TokenType,
-            Difficulty = card.Difficulty,
-            SuccessEffect = card.SuccessEffect,
-            FailureEffect = card.FailureEffect,
-            ExhaustEffect = card.ExhaustEffect,
-            DialogueFragment = card.DialogueFragment,
-            VerbPhrase = card.VerbPhrase,
-            Properties = new List<CardProperty>(card.Properties) // Copy properties from source
-        };
+            requestCard.Id = $"{cardId}_{npcId}";
+            return requestCard;
+        }
 
-        return newCard;
+        // Fallback for non-request cards (shouldn't happen)
+        card.Id = $"{cardId}_{npcId}";
+        return card;
     }
 
     /// <summary>
@@ -144,15 +141,20 @@ public static class ConversationCardParser
                 // Always 100% success
                 Difficulty = Difficulty.VeryEasy,
                 PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
-                // Three-effect system (only success matters for request cards)
-                SuccessEffect = successEffect ?? CardEffect.None,
-                FailureEffect = CardEffect.None, // No failure
-                ExhaustEffect = CardEffect.None, // Never exhausts
                 DialogueFragment = dto.DialogueFragment,
                 VerbPhrase = "", // Will be set later if needed
                 // Set rapport threshold
                 RapportThreshold = dto.RapportThreshold ?? 5
             };
+            
+            // Only override effects if explicitly provided in JSON
+            // RequestCard constructor already sets default EndConversation effects
+            if (successEffect != null && successEffect.Type != CardEffectType.None)
+            {
+                requestCard.SuccessEffect = successEffect;
+            }
+            // RequestCard defaults handle failure and exhaust effects
+            
             card = requestCard;
         }
         else
@@ -246,10 +248,15 @@ public static class ConversationCardParser
             }
         }
 
-        // Parse success effect
+        // Only override success effect if explicitly provided in JSON
+        // RequestCard constructor already sets default EndConversation effect
         if (dto.SuccessEffect != null)
         {
-            card.SuccessEffect = ParseEffect(dto.SuccessEffect) ?? CardEffect.None;
+            CardEffect parsed = ParseEffect(dto.SuccessEffect);
+            if (parsed != null && parsed.Type != CardEffectType.None)
+            {
+                card.SuccessEffect = parsed;
+            }
         }
 
         return card;
@@ -269,61 +276,11 @@ public static class ConversationCardParser
         CardEffect effect = new CardEffect
         {
             Type = effectType,
-            Value = dto.Value,
-            Data = dto.Data
+            Value = dto.Value
         };
 
-        // Parse Exchange effect data into strongly typed ExchangeData
-        if (effectType == CardEffectType.Exchange && dto.Data != null)
-        {
-            ExchangeData exchangeData = new ExchangeData
-            {
-                Cost = new Dictionary<ResourceType, int>(),
-                Reward = new Dictionary<ResourceType, int>()
-            };
-
-            // Parse cost data
-            if (dto.Data.TryGetValue("cost", out object costObj))
-            {
-                if (costObj is System.Text.Json.JsonElement costElement)
-                {
-                    foreach (JsonProperty prop in costElement.EnumerateObject())
-                    {
-                        if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number)
-                        {
-                            int amount = prop.Value.GetInt32();
-                            ResourceType? resourceType = ParseResourceType(prop.Name);
-                            if (resourceType.HasValue)
-                            {
-                                exchangeData.Cost[resourceType.Value] = amount;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Parse reward data
-            if (dto.Data.TryGetValue("reward", out object rewardObj))
-            {
-                if (rewardObj is System.Text.Json.JsonElement rewardElement)
-                {
-                    foreach (JsonProperty prop in rewardElement.EnumerateObject())
-                    {
-                        if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Number)
-                        {
-                            int amount = prop.Value.GetInt32();
-                            ResourceType? resourceType = ParseResourceType(prop.Name);
-                            if (resourceType.HasValue)
-                            {
-                                exchangeData.Reward[resourceType.Value] = amount;
-                            }
-                        }
-                    }
-                }
-            }
-
-            effect.ExchangeData = exchangeData;
-        }
+        // For Exchange effects, the Value field contains the exchange ID
+        // The actual exchange data will be populated at runtime from GameWorld.ExchangeDefinitions
 
         return effect;
     }

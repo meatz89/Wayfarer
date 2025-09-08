@@ -35,6 +35,13 @@ public class RequestCard : ConversationCard
             Type = CardEffectType.EndConversation,
             Value = "request_accepted"
         };
+
+        // Request cards end conversation in failure when exhausted (per documentation)
+        ExhaustEffect = new CardEffect
+        {
+            Type = CardEffectType.EndConversation,
+            Value = "request_exhausted"
+        };
     }
 
     // Helper to check if request card can be played

@@ -92,10 +92,6 @@ public class CardEffectProcessor
             case CardEffectType.EndConversation:
                 result.EndsConversation = true;
                 result.SpecialEffect = "Conversation ends";
-                if (effect.Data != null)
-                {
-                    result.ConversationOutcomeData = effect.Data;
-                }
                 break;
 
             case CardEffectType.RapportReset:

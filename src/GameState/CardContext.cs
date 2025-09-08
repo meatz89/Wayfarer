@@ -28,8 +28,6 @@ public class CardContext
     public string ObservationText { get; set; }
     public string ObservationDescription { get; set; }
     public string ExchangeName { get; set; }
-    public Dictionary<ResourceType, int> ExchangeCost { get; set; }
-    public Dictionary<ResourceType, int> ExchangeReward { get; set; }
     public string ObservationDecayState { get; set; }
     public string ObservationDecayDescription { get; set; }
     public bool IsOfferCard { get; set; }

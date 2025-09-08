@@ -228,7 +228,7 @@ namespace Wayfarer.Pages.Components
                 if (SelectedCard.Properties.Contains(CardProperty.Exchange) && messageSystem != null)
                 {
                     // For exchanges, show what's being traded
-                    if (SelectedCard.Context?.ExchangeCost != null && SelectedCard.Context?.ExchangeReward != null)
+                    if (SelectedCard.Context?.ExchangeData?.Cost != null && SelectedCard.Context?.ExchangeData?.Reward != null)
                     {
                         if (SelectedCard.Context.ExchangeName == "Pass on this offer")
                         {
@@ -236,7 +236,7 @@ namespace Wayfarer.Pages.Components
                         }
                         else
                         {
-                            messageSystem.AddSystemMessage(string.Format("Trading: {0} for {1}", SelectedCard.Context.ExchangeCost, SelectedCard.Context.ExchangeReward), SystemMessageTypes.Info);
+                            messageSystem.AddSystemMessage(string.Format("Trading: {0} for {1}", FormatResourceDict(SelectedCard.Context.ExchangeData.Cost), FormatResourceDict(SelectedCard.Context.ExchangeData.Reward)), SystemMessageTypes.Info);
                         }
                     }
                 }
@@ -1167,9 +1167,9 @@ namespace Wayfarer.Pages.Components
         protected string GetSuccessEffect(CardInstance card)
         {
             // For exchange cards, show the reward
-            if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeReward != null)
+            if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeData?.Reward != null)
             {
-                return $"Complete exchange: {card.Context.ExchangeReward}";
+                return $"Complete exchange: {FormatResourceDict(card.Context.ExchangeData.Reward)}";
             }
 
             // Check if card has a success effect
@@ -1295,9 +1295,9 @@ namespace Wayfarer.Pages.Components
             // For exchange cards, show the exchange details
             if (card.Properties.Contains(CardProperty.Exchange) && card.Context != null)
             {
-                if (card.Context.ExchangeCost != null && card.Context.ExchangeReward != null)
+                if (card.Context?.ExchangeData?.Cost != null && card.Context?.ExchangeData?.Reward != null)
                 {
-                    return $"{card.Context.ExchangeCost} → {card.Context.ExchangeReward}";
+                    return $"{FormatResourceDict(card.Context.ExchangeData.Cost)} → {FormatResourceDict(card.Context.ExchangeData.Reward)}";
                 }
             }
 
@@ -1456,29 +1456,6 @@ namespace Wayfarer.Pages.Components
                 };
                 return $"{cost.Value} {resourceName}";
             }
-            // Fallback to SuccessEffect.Data for backwards compatibility
-            else if (card?.SuccessEffect?.Data != null)
-            {
-                if (card.SuccessEffect.Data.TryGetValue("cost", out object costObj))
-                {
-                    Dictionary<string, object>? costDict = costObj as Dictionary<string, object>;
-                    if (costDict != null)
-                    {
-                        foreach (KeyValuePair<string, object> kvp in costDict)
-                        {
-                            string resourceName = kvp.Key switch
-                            {
-                                "coins" => "coins",
-                                "health" => "health",
-                                "hunger" => "hunger",
-                                "attention" => "attention",
-                                _ => kvp.Key
-                            };
-                            return $"{kvp.Value} {resourceName}";
-                        }
-                    }
-                }
-            }
 
             return "Free";
         }
@@ -1526,50 +1503,6 @@ namespace Wayfarer.Pages.Components
                 if (rewardParts.Any())
                 {
                     return string.Join(", ", rewardParts);
-                }
-            }
-            // Fallback to SuccessEffect.Data for raw parsing
-            else if (card?.SuccessEffect?.Data != null)
-            {
-                if (card.SuccessEffect.Data.TryGetValue("reward", out object rewardObj))
-                {
-                    Dictionary<string, object>? rewardDict = rewardObj as Dictionary<string, object>;
-                    if (rewardDict != null)
-                    {
-                        List<string> rewardParts = new List<string>();
-                        foreach (KeyValuePair<string, object> kvp in rewardDict)
-                        {
-                            string resourceName = kvp.Key switch
-                            {
-                                "coins" => "coins",
-                                "health" => "health",
-                                "hunger" => "food", // negative hunger = food
-                                "stamina" => "energy",
-                                "patience" => "patience",
-                                "item" when kvp.Value is string itemName => itemName.Replace("_", " "),
-                                "items" when kvp.Value is int count => $"{count} items",
-                                _ => kvp.Key
-                            };
-
-                            if (kvp.Key == "item" && kvp.Value is string)
-                            {
-                                rewardParts.Add(resourceName);
-                            }
-                            else if (kvp.Key == "items" && kvp.Value is int)
-                            {
-                                rewardParts.Add(resourceName);
-                            }
-                            else if (kvp.Value is int amount)
-                            {
-                                rewardParts.Add($"{Math.Abs(amount)} {resourceName}");
-                            }
-                        }
-
-                        if (rewardParts.Any())
-                        {
-                            return string.Join(", ", rewardParts);
-                        }
-                    }
                 }
             }
 
@@ -2063,11 +1996,8 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         private string GetEndConversationDescription(CardEffect effect)
         {
-            if (effect?.Data?.ContainsKey("reason") == true)
-            {
-                return effect.Data["reason"]?.ToString() ?? "End conversation";
-            }
-
+            // Use the Value property for the reason
+            
             if (effect?.Value != null)
             {
                 return effect.Value switch
@@ -2746,5 +2676,13 @@ namespace Wayfarer.Pages.Components
                 MarkCardsForExhaust(impulseCards);
             }
         }
+    
+    private string FormatResourceDict(Dictionary<ResourceType, int> resources)
+    {
+        if (resources == null || resources.Count == 0)
+            return "nothing";
+            
+        return string.Join(", ", resources.Select(kvp => $"{kvp.Value} {kvp.Key.ToString().ToLower()}"));
     }
+}
 }

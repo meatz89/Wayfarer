@@ -19,12 +19,6 @@ public class CardEffect
     /// </summary>
     public string Value { get; set; }
 
-    /// <summary>
-    /// Additional data needed for complex effects.
-    /// Used for EndConversation effects to store obligation details,
-    /// or any other effect-specific metadata.
-    /// </summary>
-    public Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
 
     /// <summary>
     /// Strongly typed exchange data for Exchange effects.
@@ -46,7 +40,7 @@ public class CardEffect
         {
             Type = this.Type,
             Value = this.Value,
-            Data = this.Data != null ? new Dictionary<string, object>(this.Data) : new Dictionary<string, object>()
+            ExchangeData = this.ExchangeData
         };
     }
 
