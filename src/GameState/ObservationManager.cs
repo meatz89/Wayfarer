@@ -218,7 +218,7 @@ public class ObservationManager
 
         // Only update the ID and observation-specific metadata
         observationCard.Id = $"{observation.Id}_card_{Guid.NewGuid()}";
-        observationCard.Properties.Add(CardProperty.Observable);
+        observationCard.Properties.Add(CardProperty.Persistent /* Observable now determined by CardType */);
         // Add impulse property since observation cards are impulse
         if (!observationCard.Properties.Contains(CardProperty.Impulse))
         {
@@ -347,7 +347,7 @@ public class ObservationManager
             Description = cardReward.Name,
             DialogueFragment = cardReward.Description,
             Focus = 0, // Observations cost 0 focus according to Work Packet 3
-            Properties = new List<CardProperty> { CardProperty.Persistent, CardProperty.Observable },
+            Properties = new List<CardProperty> { CardProperty.Persistent, CardProperty.Persistent /* Observable now determined by CardType */ },
             SuccessEffect = ParseObservationEffect(cardReward.Effect),
             Difficulty = Difficulty.VeryEasy
         };

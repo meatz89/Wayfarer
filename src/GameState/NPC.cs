@@ -120,7 +120,7 @@ public class NPC
     public bool HasPromiseCards()
     {
         if (RequestDeck == null) return false;
-        return RequestDeck.GetAllCards().Any(c => c.Category == CardCategory.Promise.ToString());
+        return RequestDeck.GetAllCards().Any(c => c.CardType == CardType.Promise);
     }
 
     // Check if NPC has burden history (cards in conversation deck)

@@ -1877,7 +1877,6 @@ namespace Wayfarer.Pages.Components
                 CardProperty.Impulse => "Removed after SPEAK if unplayed",
                 CardProperty.Opening => "Removed after LISTEN if unplayed",
                 CardProperty.Burden => "Blocks a deck slot",
-                CardProperty.Persistent /* Observable replaced with CardType check */ => "From an observation",
                 CardProperty.Skeleton => "System-generated card",
                 CardProperty.Persistent => "Stays until played",
                 _ => ""

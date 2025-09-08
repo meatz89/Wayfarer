@@ -804,7 +804,7 @@ public class PackageLoader
             TokenType = TokenType.Trust,
             Difficulty = Difficulty.Medium
         };
-        card.Properties.Add(CardProperty.Observable);
+        card.CardType = CardType.Observation;
         card.Properties.Add(CardProperty.Persistent);
         return card;
     }
