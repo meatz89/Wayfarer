@@ -278,12 +278,12 @@
     
     private string GetCategoryClass(ConversationCard card)
     {
-        // Determine category based on card properties since Category enum is removed
-        if (card.Properties.Contains(CardProperty.Exchange))
+        // Determine category based on card type
+        if (card.CardType == CardType.Exchange)
             return "exchange";
-        if (card.IsObservable)
+        if (card.CardType == CardType.Observation)
             return "observation";
-        if (card.Properties.Contains(CardProperty.GoalCard))
+        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
             return "promise";
         if (card.IsBurden)
             return "burden";
@@ -302,12 +302,12 @@
     
     private string GetCategoryName(ConversationCard card)
     {
-        // Determine category name based on card properties since Category enum is removed
-        if (card.Properties.Contains(CardProperty.Exchange))
+        // Determine category name based on card type
+        if (card.CardType == CardType.Exchange)
             return "EXCHANGE";
-        if (card.IsObservable)
+        if (card.CardType == CardType.Observation)
             return "OBSERVATION";
-        if (card.Properties.Contains(CardProperty.GoalCard))
+        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
             return "PROMISE";
         if (card.IsBurden)
             return "BURDEN";

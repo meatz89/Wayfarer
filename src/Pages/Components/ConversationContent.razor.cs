@@ -225,7 +225,7 @@ namespace Wayfarer.Pages.Components
                 MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
 
                 // Check if this is an exchange card
-                if (SelectedCard.Properties.Contains(CardProperty.Exchange) && messageSystem != null)
+                if (SelectedCard.CardType == CardType.Exchange && messageSystem != null)
                 {
                     // For exchanges, show what's being traded
                     if (SelectedCard.Context?.ExchangeData?.Costs != null && SelectedCard.Context?.ExchangeData?.Rewards != null)
@@ -267,7 +267,7 @@ namespace Wayfarer.Pages.Components
                 await Task.Delay(750);
 
                 // Check if this was a promise/goal card that succeeded
-                bool isPromiseCard = playedCard.Properties.Contains(CardProperty.GoalCard);
+                bool isPromiseCard = playedCard.CardType == CardType.Letter || playedCard.CardType == CardType.Promise || playedCard.CardType == CardType.BurdenGoal;
                 if (isPromiseCard && wasSuccessful)
                 {
                     // Promise card succeeded - conversation ends in victory!
@@ -903,13 +903,13 @@ namespace Wayfarer.Pages.Components
                 return card.Description;
 
             // Generate meaningful card names based on properties
-            if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeName != null)
+            if (card.CardType == CardType.Exchange && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
 
             if (card.Properties.Contains(CardProperty.Burden))
                 return "Address Past Failure";
 
-            if (card.Properties.Contains(CardProperty.Observable))
+            if (card.CardType == CardType.Observation)
             {
                 return "Share Observation";
             }
@@ -1098,9 +1098,9 @@ namespace Wayfarer.Pages.Components
             // Primary property-based classes
             if (card.Properties.Contains(CardProperty.Burden))
                 classes.Add("crisis");
-            else if (card.Properties.Contains(CardProperty.Exchange))
+            else if (card.CardType == CardType.Exchange)
                 classes.Add("exchange");
-            else if (card.Properties.Contains(CardProperty.Observable))
+            else if (card.CardType == CardType.Observation)
                 classes.Add("observation");
             else
                 classes.Add("flow");
@@ -1133,7 +1133,7 @@ namespace Wayfarer.Pages.Components
                 return card.Description;
 
             // For exchange cards, use the exchange name
-            if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeName != null)
+            if (card.CardType == CardType.Exchange && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
 
             // Generate name from template and context
@@ -1167,7 +1167,7 @@ namespace Wayfarer.Pages.Components
         protected string GetSuccessEffect(CardInstance card)
         {
             // For exchange cards, show the reward
-            if (card.Properties.Contains(CardProperty.Exchange) && card.Context?.ExchangeData?.Rewards != null)
+            if (card.CardType == CardType.Exchange && card.Context?.ExchangeData?.Rewards != null)
             {
                 return $"Complete exchange: {FormatResourceList(card.Context.ExchangeData.Rewards)}";
             }
@@ -1215,7 +1215,7 @@ namespace Wayfarer.Pages.Components
         protected string GetFailureEffect(CardInstance card)
         {
             // For exchange cards, no failure - it's a choice
-            if (card.Properties.Contains(CardProperty.Exchange))
+            if (card.CardType == CardType.Exchange)
             {
                 if (card.Context?.ExchangeName == "Pass on this offer")
                     return "Leave without trading";
@@ -1293,7 +1293,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // For exchange cards, show the exchange details
-            if (card.Properties.Contains(CardProperty.Exchange) && card.Context != null)
+            if (card.CardType == CardType.Exchange && card.Context != null)
             {
                 if (card.Context?.ExchangeData?.Costs != null && card.Context?.ExchangeData?.Rewards != null)
                 {
@@ -1628,7 +1628,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetObservationDecayClass(CardInstance card)
         {
-            if (!card.Properties.Contains(CardProperty.Observable) || card.Context?.ObservationDecayState == null)
+            if (card.CardType != CardType.Observation || card.Context?.ObservationDecayState == null)
                 return "";
 
             if (Enum.TryParse<ObservationDecayState>(card.Context.ObservationDecayState, out ObservationDecayState decayState))
@@ -1648,7 +1648,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetObservationDecayDescription(CardInstance card)
         {
-            if (!card.Properties.Contains(CardProperty.Observable))
+            if (card.CardType != CardType.Observation)
                 return "";
 
             return card.Context?.ObservationDecayDescription ?? "";
@@ -1659,7 +1659,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected bool IsObservationExpired(CardInstance card)
         {
-            return card.Properties.Contains(CardProperty.Observable) &&
+            return card.CardType == CardType.Observation &&
                    card.Context?.ObservationDecayState == nameof(ObservationDecayState.Expired);
         }
 
@@ -1788,7 +1788,6 @@ namespace Wayfarer.Pages.Components
                 CardProperty.Opening => "tag-opening",
                 CardProperty.Persistent => "tag-persistent",
                 CardProperty.Burden => "tag-burden",
-                CardProperty.Observable => "tag-atmosphere",
                 _ => "tag-" + property.ToString().ToLower()
             };
         }
@@ -1816,7 +1815,7 @@ namespace Wayfarer.Pages.Components
         {
             // For now, check if card changes atmosphere based on mockup patterns
             // This would be enhanced with actual atmosphere effect data
-            return card.Properties.Contains(CardProperty.Observable) ||
+            return card.CardType == CardType.Observation ||
                    GetProperCardName(card).Contains("Interrupt") ||
                    GetProperCardName(card).Contains("Merchant Routes");
         }
@@ -1831,7 +1830,7 @@ namespace Wayfarer.Pages.Components
                 return "Receptive";
             if (cardName.Contains("Merchant Routes"))
                 return "Informed";
-            if (card.Properties.Contains(CardProperty.Observable))
+            if (card.CardType == CardType.Observation)
                 return "Focused";
             return "";
         }
@@ -1847,7 +1846,6 @@ namespace Wayfarer.Pages.Components
                 CardProperty.Opening => "⏰",
                 CardProperty.Burden => "⛓️",
                 CardProperty.Skeleton => "💀",
-                CardProperty.Observable => "👁️",
                 CardProperty.Persistent => "✓",
                 _ => ""
             };
@@ -1864,7 +1862,6 @@ namespace Wayfarer.Pages.Components
                 CardProperty.Opening => "Opening",
                 CardProperty.Burden => "Burden",
                 CardProperty.Skeleton => "Skeleton",
-                CardProperty.Observable => "Observable",
                 CardProperty.Persistent => "Persistent",
                 _ => property.ToString()
             };
@@ -1880,7 +1877,7 @@ namespace Wayfarer.Pages.Components
                 CardProperty.Impulse => "Removed after SPEAK if unplayed",
                 CardProperty.Opening => "Removed after LISTEN if unplayed",
                 CardProperty.Burden => "Blocks a deck slot",
-                CardProperty.Observable => "From an observation",
+                CardProperty.Persistent /* Observable replaced with CardType check */ => "From an observation",
                 CardProperty.Skeleton => "System-generated card",
                 CardProperty.Persistent => "Stays until played",
                 _ => ""

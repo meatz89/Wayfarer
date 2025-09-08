@@ -125,16 +125,16 @@ public class DialogueGenerator
             return card.Description.Replace("{npc}", npc.Name);
         }
 
-        // Generate based on card properties
-        if (card.Properties.Contains(CardProperty.Observable))
+        // Generate based on card type
+        if (card.CardType == CardType.Observation)
         {
             return $"You share an observation with {npc.Name}.";
         }
-        else if (card.Properties.Contains(CardProperty.Impulse) && card.Properties.Contains(CardProperty.Opening))
+        else if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
         {
             return $"You make an important request to {npc.Name}.";
         }
-        else if (card.Properties.Contains(CardProperty.Exchange))
+        else if (card.CardType == CardType.Exchange)
         {
             return $"You make a trade offer to {npc.Name}.";
         }
@@ -213,15 +213,15 @@ public class DialogueGenerator
 
     private string GetCardTopic(CardInstance card)
     {
-        if (card.Properties.Contains(CardProperty.Observable))
+        if (card.CardType == CardType.Observation)
         {
             return "your observations";
         }
-        else if (card.Properties.Contains(CardProperty.Impulse) && card.Properties.Contains(CardProperty.Opening))
+        else if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
         {
             return "an urgent matter";
         }
-        else if (card.Properties.Contains(CardProperty.Exchange))
+        else if (card.CardType == CardType.Exchange)
         {
             return "a trade proposal";
         }
@@ -260,10 +260,10 @@ public class DialogueGenerator
     private string GenerateCardReaction(NPC npc, HashSet<CardInstance> cards, ConnectionState state)
     {
         int cardCount = cards.Count;
-        // Determine primary card property for reaction
-        bool hasObservation = cards.Any(c => c.Properties.Contains(CardProperty.Observable));
-        bool hasRequest = cards.Any(c => c.Properties.Contains(CardProperty.Impulse) && c.Properties.Contains(CardProperty.Opening));
-        bool hasExchange = cards.Any(c => c.Properties.Contains(CardProperty.Exchange));
+        // Determine primary card type for reaction
+        bool hasObservation = cards.Any(c => c.CardType == CardType.Observation);
+        bool hasRequest = cards.Any(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.BurdenGoal);
+        bool hasExchange = cards.Any(c => c.CardType == CardType.Exchange);
 
         if (cardCount == 1)
         {

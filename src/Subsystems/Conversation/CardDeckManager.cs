@@ -82,7 +82,7 @@ public class CardDeckManager
     {
         // Check if card is unplayable (but skip this check for promise cards which handle rapport separately)
         if (selectedCard.Properties.Contains(CardProperty.Unplayable) &&
-            !selectedCard.Properties.Contains(CardProperty.GoalCard))
+            !(selectedCard.CardType == CardType.Letter || selectedCard.CardType == CardType.Promise || selectedCard.CardType == CardType.BurdenGoal))
         {
             return new CardPlayResult
             {
@@ -131,7 +131,7 @@ public class CardDeckManager
         bool success;
         int roll;
 
-        if (selectedCard.Properties.Contains(CardProperty.GoalCard))
+        if (selectedCard.CardType == CardType.Letter || selectedCard.CardType == CardType.Promise || selectedCard.CardType == CardType.BurdenGoal)
         {
             // Promise/request cards always succeed (100% success rate)
             success = true;
@@ -286,7 +286,7 @@ public class CardDeckManager
 
         // Check if there's a request card in active cards (GoalCard property)
         bool hasRequestCard = session.ActiveCards.Cards
-            .Any(c => c.Properties.Contains(CardProperty.GoalCard));
+            .Any(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.BurdenGoal);
 
         if (hasRequestCard)
         {
@@ -311,7 +311,7 @@ public class CardDeckManager
         foreach (CardInstance card in session.ActiveCards.Cards)
         {
             // Skip request/promise cards - their playability is based on rapport, not focus
-            if (card.Properties.Contains(CardProperty.GoalCard))
+            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
             {
                 continue; // Don't modify request card playability here
             }
@@ -474,7 +474,7 @@ public class CardDeckManager
             return false;
 
         // Check rapport threshold ONLY for goal cards
-        if (card.Properties.Contains(CardProperty.GoalCard))
+        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
         {
             // Use the rapport threshold we stored in CardContext
             int rapportThreshold = card.Context?.RapportThreshold ?? 0;
@@ -611,7 +611,7 @@ public class CardDeckManager
     private bool IsRequestCardValidForConversation(ConversationCard card, ConversationType type)
     {
         // Check if this is a promise/goal card (has GoalCard property)
-        return card.Properties.Contains(CardProperty.GoalCard);
+        return card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal;
     }
 
 

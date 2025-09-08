@@ -300,7 +300,7 @@
                             </div>
                         </div>
                     }
-                    else if (convCard.Properties.Contains(CardProperty.GoalCard))
+                    else if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.Promise || convCard.CardType == CardType.BurdenGoal)
                     {
                         @* Promise/Request Card (Goal) with rapport threshold *@
                         <div class="card promise @(CanSelectCard(convCard) ? "" : "disabled")"

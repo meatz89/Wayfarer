@@ -474,7 +474,7 @@ public class PackageLoader
                         if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
                         {
                             ConversationCard cardTemplate = _gameWorld.AllCardDefinitions[cardId] as ConversationCard;
-                            if (cardTemplate != null && !cardTemplate.Properties.Contains(CardProperty.GoalCard))
+                            if (cardTemplate != null && !(cardTemplate.CardType == CardType.Letter || cardTemplate.CardType == CardType.Promise || cardTemplate.CardType == CardType.BurdenGoal))
                             {
                                 // Add multiple copies as specified
                                 for (int i = 0; i < count; i++)
@@ -508,7 +508,7 @@ public class PackageLoader
             .OfType<ConversationCard>()
             .Where(card => card.PersonalityTypes != null &&
                           card.PersonalityTypes.Contains("ALL") &&
-                          !card.Properties.Contains(CardProperty.GoalCard))
+                          !(card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal))
             .ToList();
 
         foreach (NPC npc in _gameWorld.NPCs)

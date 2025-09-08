@@ -227,12 +227,39 @@ public class SessionCardDeck
 
     public List<CardInstance> DrawObservableCards(int count)
     {
-        return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Observable }, count);
+        return DrawFilteredByCardType(CardType.Observation, count);
     }
 
     public List<CardInstance> DrawExchangeCards(int count)
     {
-        return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Exchange }, count);
+        return DrawFilteredByCardType(CardType.Exchange, count);
+    }
+
+    public List<CardInstance> DrawFilteredByCardType(CardType cardType, int count)
+    {
+        List<CardInstance> available = new List<CardInstance>();
+        List<CardInstance> drawn = new List<CardInstance>();
+
+        // Find all cards in draw pile with required card type
+        for (int i = drawPile.Count - 1; i >= 0; i--)
+        {
+            CardInstance card = drawPile[i];
+            if (card.CardType == cardType)
+            {
+                available.Add(card);
+            }
+        }
+
+        // Draw the requested number of cards
+        for (int i = 0; i < Math.Min(count, available.Count); i++)
+        {
+            CardInstance card = available[random.Next(available.Count)];
+            drawPile.Remove(card);
+            drawn.Add(card);
+            available.Remove(card); // Prevent drawing same card twice
+        }
+
+        return drawn;
     }
 
     public List<CardInstance> DrawAll()

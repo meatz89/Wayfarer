@@ -190,7 +190,7 @@ public class ConversationFacade
             // Remove used observation cards that are impulse
             foreach (CardInstance card in action.SelectedCards)
             {
-                if (card.Properties.Contains(CardProperty.Observable) && card.Properties.Contains(CardProperty.Impulse))
+                if (card.CardType == CardType.Observation && card.Properties.Contains(CardProperty.Impulse))
                 {
                     _observationManager.RemoveObservationCard(card.Id);
                 }

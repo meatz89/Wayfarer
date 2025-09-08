@@ -37,8 +37,8 @@ public class ObservationCard : ConversationCard
     {
         Focus = 1;
         Difficulty = Difficulty.VeryEasy; // 85%
+        CardType = CardType.Observation; // Mark as observation
         Properties.Add(CardProperty.Persistent); // Always persistent
-        Properties.Add(CardProperty.Observable); // Mark as observation
         CreatedAt = DateTime.Now;
     }
 
@@ -133,12 +133,9 @@ public class ObservationCard : ConversationCard
             CreatedAt = DateTime.Now
         };
 
-        // Copy properties
+        // Copy properties and set card type
         observation.Properties = new List<CardProperty>(card.Properties);
-        if (!observation.Properties.Contains(CardProperty.Observable))
-        {
-            observation.Properties.Add(CardProperty.Observable);
-        }
+        observation.CardType = CardType.Observation;
 
         return observation;
     }

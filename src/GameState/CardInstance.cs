@@ -11,6 +11,9 @@ public class CardInstance
     // Properties list - copied from template
     public List<CardProperty> Properties { get; init; } = new List<CardProperty>();
 
+    // Single source of truth for card type
+    public CardType CardType { get; init; } = CardType.Conversation;
+
     // Core mechanics
     public TokenType TokenType { get; init; }
     public int Focus { get; init; }
@@ -63,11 +66,11 @@ public class CardInstance
     public ConnectionState? SuccessState => null;
     public ConnectionState? FailureState => null;
     public int BaseFlow => 1;
-    public bool CanDeliverLetter => Properties.Contains(CardProperty.GoalCard);
+    public bool CanDeliverLetter => CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal;
     public string DeliveryObligationId => "";
     public string ObservationSource => "";
-    public bool IsExchange => Properties.Contains(CardProperty.Exchange);
-    public CardMechanicsType Mechanics => Properties.Contains(CardProperty.Exchange) ? CardMechanicsType.Exchange : CardMechanicsType.Standard;
+    public bool IsExchange => CardType == CardType.Exchange;
+    public CardMechanicsType Mechanics => CardType == CardType.Exchange ? CardMechanicsType.Exchange : CardMechanicsType.Standard;
 
     public int GetEffectiveFocus(ConnectionState state)
     {
@@ -77,7 +80,7 @@ public class CardInstance
     public int CalculateSuccessChance()
     {
         // Request/Promise cards always succeed (100%)
-        if (Properties.Contains(CardProperty.GoalCard))
+        if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal)
             return 100;
 
         return GetBaseSuccessPercentage();
@@ -86,7 +89,7 @@ public class CardInstance
     public int CalculateSuccessChance(ConnectionState state)
     {
         // Request/Promise cards always succeed (100%)
-        if (Properties.Contains(CardProperty.GoalCard))
+        if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal)
             return 100;
 
         return GetBaseSuccessPercentage();
@@ -123,6 +126,7 @@ public class CardInstance
         Id = template.Id;
         Description = template.Description;
         Properties = new List<CardProperty>(template.Properties); // Copy properties
+        CardType = template.CardType;
         TokenType = template.TokenType;
         Focus = template.Focus;
         Difficulty = template.Difficulty;
