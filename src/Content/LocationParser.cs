@@ -11,12 +11,22 @@ public static class LocationParser
     /// </summary>
     public static Location ConvertDTOToLocation(LocationDTO dto)
     {
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidOperationException("Location DTO missing required 'Id' field");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidOperationException($"Location {dto.Id} missing required 'Name' field");
+        if (string.IsNullOrEmpty(dto.LocationType))
+            throw new InvalidOperationException($"Location {dto.Id} missing required 'LocationType' field");
+
+        if (!Enum.TryParse<LocationTypes>(dto.LocationType, out LocationTypes locationType))
+            throw new InvalidOperationException($"Location {dto.Id} has invalid LocationType: '{dto.LocationType}'");
+
         Location location = new Location(dto.Id, dto.Name)
         {
-            Description = dto.Description ?? "",
+            Description = dto.Description ?? string.Empty, // Description is optional
             Tier = dto.Tier,
-            DomainTags = dto.DomainTags ?? new List<string>(),
-            LocationType = Enum.TryParse<LocationTypes>(dto.LocationType ?? "Connective", out LocationTypes locationType) ? locationType : LocationTypes.Connective,
+            DomainTags = dto.DomainTags ?? new List<string>(), // Empty list is valid for no tags
+            LocationType = locationType,
             LocationTypeString = dto.LocationType,
             IsStartingLocation = dto.IsStartingLocation
         };
@@ -24,10 +34,10 @@ public static class LocationParser
         // Parse environmental properties
         if (dto.EnvironmentalProperties != null)
         {
-            location.MorningProperties = dto.EnvironmentalProperties.Morning ?? new List<string>();
-            location.AfternoonProperties = dto.EnvironmentalProperties.Afternoon ?? new List<string>();
-            location.EveningProperties = dto.EnvironmentalProperties.Evening ?? new List<string>();
-            location.NightProperties = dto.EnvironmentalProperties.Night ?? new List<string>();
+            location.MorningProperties = dto.EnvironmentalProperties.Morning ?? new List<string>(); // Empty list valid
+            location.AfternoonProperties = dto.EnvironmentalProperties.Afternoon ?? new List<string>(); // Empty list valid
+            location.EveningProperties = dto.EnvironmentalProperties.Evening ?? new List<string>(); // Empty list valid
+            location.NightProperties = dto.EnvironmentalProperties.Night ?? new List<string>(); // Empty list valid
         }
 
         // Parse available professions by time
@@ -68,12 +78,12 @@ public static class LocationParser
         using JsonDocument doc = JsonDocument.Parse(json, options);
         JsonElement root = doc.RootElement;
 
-        string id = GetStringProperty(root, "id", "");
-        string name = GetStringProperty(root, "name", "");
+        string id = GetRequiredStringProperty(root, "id");
+        string name = GetRequiredStringProperty(root, "name");
 
         Location location = new Location(id, name)
         {
-            Description = GetStringProperty(root, "description", ""),
+            Description = GetOptionalStringProperty(root, "description") ?? string.Empty,
             ConnectedLocationIds = GetStringArrayFromProperty(root, "connectedTo"),
             LocationSpotIds = GetStringArrayFromProperty(root, "locationSpots"),
             DomainTags = GetStringArrayFromProperty(root, "domainTags")
@@ -103,7 +113,9 @@ public static class LocationParser
                         {
                             if (professionElement.ValueKind == JsonValueKind.String)
                             {
-                                string professionStr = professionElement.GetString() ?? "";
+                                string professionStr = professionElement.GetString();
+                                if (string.IsNullOrEmpty(professionStr))
+                                    throw new InvalidOperationException($"Location {location.Id} has empty profession string in availableProfessionsByTime");
                                 if (EnumParser.TryParse<Professions>(professionStr, out Professions profession))
                                 {
                                     professions.Add(profession);
@@ -124,7 +136,7 @@ public static class LocationParser
         }
 
         // Parse new mechanical properties that replace hardcoded location checks
-        location.LocationTypeString = GetStringProperty(root, "locationType", "");
+        location.LocationTypeString = GetRequiredStringProperty(root, "locationType");
 
         if (root.TryGetProperty("isStartingLocation", out JsonElement isStartingElement) &&
             isStartingElement.ValueKind == JsonValueKind.True)
@@ -146,11 +158,10 @@ public static class LocationParser
             {
                 if (item.ValueKind == JsonValueKind.String)
                 {
-                    string value = item.GetString() ?? string.Empty;
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        results.Add(value);
-                    }
+                    string value = item.GetString();
+                    if (string.IsNullOrWhiteSpace(value))
+                        throw new InvalidOperationException($"Array property '{propertyName}' contains empty string in Location JSON");
+                    results.Add(value);
                 }
             }
         }
@@ -158,14 +169,29 @@ public static class LocationParser
         return results;
     }
 
-    private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
+    private static string GetRequiredStringProperty(JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.String)
-        {
-            string value = property.GetString() ?? defaultValue;
-            return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
-        }
-        return defaultValue;
+        if (!element.TryGetProperty(propertyName, out JsonElement property))
+            throw new InvalidOperationException($"Missing required property '{propertyName}' in Location JSON");
+        
+        if (property.ValueKind != JsonValueKind.String)
+            throw new InvalidOperationException($"Property '{propertyName}' must be a string in Location JSON");
+        
+        string value = property.GetString();
+        if (string.IsNullOrWhiteSpace(value))
+            throw new InvalidOperationException($"Property '{propertyName}' cannot be empty in Location JSON");
+        
+        return value;
+    }
+
+    private static string GetOptionalStringProperty(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out JsonElement property))
+            return null;
+        
+        if (property.ValueKind != JsonValueKind.String)
+            return null;
+        
+        return property.GetString();
     }
 }

@@ -192,9 +192,14 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 case "secret":
                 case "clandestine":
                     return _tokenManager.GetTokenCount(npcId, ConnectionType.Shadow) >= 2;
+                    
+                case "standard":
+                case "friendlychat":
+                case "friendly":
+                    return true; // Standard/friendly conversations have no requirements
 
                 default:
-                    return true; // Standard conversations have no requirements
+                    throw new InvalidOperationException($"Unknown conversation type: '{conversationType}'. Valid types are: intimate, personal, business, trade, formal, noble, secret, clandestine, standard, friendly");
             }
         }
 
@@ -297,7 +302,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 case ConnectionType.Shadow:
                     return _shadowUnlocks;
                 default:
-                    return new Dictionary<int, string>();
+                    throw new InvalidOperationException($"No unlock thresholds defined for ConnectionType: {type}");
             }
         }
 
@@ -318,7 +323,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 case "secret messages":
                     return $"{baseDescription}. Can transport clandestine information.";
                 default:
-                    return baseDescription;
+                    throw new InvalidOperationException($"Unknown unlock name: '{unlockName}' for ConnectionType: {type}");
             }
         }
 
@@ -335,7 +340,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 case "secret messages":
                     return "Secret letters are risky but highly rewarding. Handle with care.";
                 default:
-                    return null;
+                    throw new InvalidOperationException($"Unknown unlock name for guidance: '{unlockName}' for ConnectionType: {type}");
             }
         }
 

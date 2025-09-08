@@ -9,24 +9,35 @@ public static class NPCParser
     /// </summary>
     public static NPC ConvertDTOToNPC(NPCDTO dto)
     {
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidOperationException("NPC DTO missing required 'Id' field");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidOperationException($"NPC {dto.Id} missing required 'Name' field");
+        if (string.IsNullOrEmpty(dto.LocationId))
+            throw new InvalidOperationException($"NPC {dto.Id} missing required 'LocationId' field");
+        if (string.IsNullOrEmpty(dto.SpotId))
+            throw new InvalidOperationException($"NPC {dto.Id} missing required 'SpotId' field");
+
         NPC npc = new NPC
         {
-            ID = dto.Id ?? "",
-            Name = dto.Name ?? "",
-            Role = dto.Role ?? dto.Name ?? "", // Use role if provided, otherwise use name
-            Description = dto.Description ?? "",
-            Location = dto.LocationId ?? "",
-            SpotId = dto.SpotId ?? "",
+            ID = dto.Id,
+            Name = dto.Name,
+            Role = !string.IsNullOrEmpty(dto.Role) ? dto.Role : dto.Name, // Use name as role if role not specified
+            Description = dto.Description ?? string.Empty, // Description is optional
+            Location = dto.LocationId,
+            SpotId = dto.SpotId,
             Tier = dto.Tier
         };
 
         Console.WriteLine($"[DEBUG] NPCParser: Parsing NPC {npc.ID} with locationId: '{dto.LocationId}'");
 
         // Parse profession with mapping from JSON values to enum
-        npc.Profession = MapProfessionFromJson(dto.Profession ?? "");
+        if (string.IsNullOrEmpty(dto.Profession))
+            throw new InvalidOperationException($"NPC {dto.Id} missing required 'Profession' field");
+        npc.Profession = MapProfessionFromJson(dto.Profession);
 
         // Parse personality - preserve authentic description and map to categorical type
-        npc.PersonalityDescription = dto.Personality ?? "";
+        npc.PersonalityDescription = dto.Personality ?? string.Empty; // Optional field
 
         // Parse personalityType directly from DTO - NO FALLBACKS
         Console.WriteLine($"[NPCParser] Parsing NPC '{npc.Name}' - personalityType from DTO: '{dto.PersonalityType}'");
@@ -72,7 +83,9 @@ public static class NPCParser
         }
 
         // Parse initial connection state and convert to flow value
-        string currentStateStr = dto.CurrentState ?? "NEUTRAL";
+        if (string.IsNullOrEmpty(dto.CurrentState))
+            throw new InvalidOperationException($"NPC {dto.Id} missing required 'CurrentState' field");
+        string currentStateStr = dto.CurrentState;
         if (Enum.TryParse<ConnectionState>(currentStateStr, true, out ConnectionState connectionState))
         {
             // Convert initial state to flow value (start at neutral position within state)
@@ -83,12 +96,12 @@ public static class NPCParser
                 ConnectionState.NEUTRAL => 12,      // Position 2 (neutral) in NEUTRAL range
                 ConnectionState.RECEPTIVE => 17,    // Position 2 (neutral) in RECEPTIVE range
                 ConnectionState.TRUSTING => 22,     // Position 2 (neutral) in TRUSTING range
-                _ => 12
+                _ => throw new InvalidOperationException($"Unhandled ConnectionState: {connectionState}")
             };
         }
         else
         {
-            npc.RelationshipFlow = 12; // Default to NEUTRAL at neutral flow
+            throw new InvalidOperationException($"NPC {dto.Id} has invalid CurrentState value: '{currentStateStr}'");
         }
 
         // Observation deck will be populated from deck compositions if NPC has observation cards
@@ -106,30 +119,30 @@ public static class NPCParser
         using JsonDocument doc = JsonDocument.Parse(json, options);
         JsonElement root = doc.RootElement;
 
-        string locationId = GetStringProperty(root, "locationId", "");
+        string locationId = GetRequiredStringProperty(root, "locationId");
 
         NPC npc = new NPC
         {
-            ID = GetStringProperty(root, "id", ""),
-            Name = GetStringProperty(root, "name", ""),
-            Role = GetStringProperty(root, "name", ""), // Use name as role for current JSON structure
-            Description = GetStringProperty(root, "description", ""),
-            Location = locationId, // Use locationId for location
-            SpotId = GetStringProperty(root, "spotId", ""), // Map spotId from JSON
+            ID = GetRequiredStringProperty(root, "id"),
+            Name = GetRequiredStringProperty(root, "name"),
+            Role = GetOptionalStringProperty(root, "role") ?? GetRequiredStringProperty(root, "name"), // Use name as role if not specified
+            Description = GetOptionalStringProperty(root, "description") ?? string.Empty,
+            Location = locationId,
+            SpotId = GetRequiredStringProperty(root, "spotId"),
         };
 
         Console.WriteLine($"[DEBUG] NPCParser: Parsing NPC {npc.ID} with locationId: '{locationId}'");
 
         // Parse profession with mapping from JSON values to enum
-        string professionStr = GetStringProperty(root, "profession", "");
+        string professionStr = GetRequiredStringProperty(root, "profession");
         npc.Profession = MapProfessionFromJson(professionStr);
 
         // Parse personality - preserve authentic description and map to categorical type
-        string personalityDescription = GetStringProperty(root, "personality", "");
+        string personalityDescription = GetOptionalStringProperty(root, "personality") ?? string.Empty;
         npc.PersonalityDescription = personalityDescription;
 
         // Parse personalityType directly from JSON - NO FALLBACKS
-        string personalityTypeStr = GetStringProperty(root, "personalityType", "");
+        string personalityTypeStr = GetRequiredStringProperty(root, "personalityType");
         Console.WriteLine($"[NPCParser] Parsing NPC '{npc.Name}' - personalityType from JSON: '{personalityTypeStr}'");
 
         if (!string.IsNullOrEmpty(personalityTypeStr) && Enum.TryParse<PersonalityType>(personalityTypeStr, true, out PersonalityType parsedType))
@@ -175,7 +188,7 @@ public static class NPCParser
         // Burden history detected by counting burden cards in conversation deck
 
         // Parse initial connection state and convert to flow value
-        string currentStateStr = GetStringProperty(root, "currentState", "NEUTRAL");
+        string currentStateStr = GetRequiredStringProperty(root, "currentState");
         if (Enum.TryParse<ConnectionState>(currentStateStr, true, out ConnectionState connectionState))
         {
             // Convert initial state to flow value (start at neutral position within state)
@@ -186,12 +199,12 @@ public static class NPCParser
                 ConnectionState.NEUTRAL => 12,      // Position 2 (neutral) in NEUTRAL range
                 ConnectionState.RECEPTIVE => 17,    // Position 2 (neutral) in RECEPTIVE range
                 ConnectionState.TRUSTING => 22,     // Position 2 (neutral) in TRUSTING range
-                _ => 12
+                _ => throw new InvalidOperationException($"Unhandled ConnectionState: {connectionState}")
             };
         }
         else
         {
-            npc.RelationshipFlow = 12; // Default to NEUTRAL at neutral flow
+            throw new InvalidOperationException($"NPC {npc.ID} has invalid currentState value: '{currentStateStr}'");
         }
 
         // Observation deck will be populated from deck compositions if NPC has observation cards
@@ -272,35 +285,30 @@ public static class NPCParser
     // REMOVED: ParseActiveLetter violates deck-based architecture
     // Letters are now handled as request cards in the Request deck
 
-    private static int GetIntProperty(JsonElement element, string propertyName, int defaultValue)
+    private static string GetRequiredStringProperty(JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.Number)
-        {
-            return property.GetInt32();
-        }
-        return defaultValue;
+        if (!element.TryGetProperty(propertyName, out JsonElement property))
+            throw new InvalidOperationException($"Missing required property '{propertyName}' in NPC JSON");
+        
+        if (property.ValueKind != JsonValueKind.String)
+            throw new InvalidOperationException($"Property '{propertyName}' must be a string in NPC JSON");
+        
+        string value = property.GetString();
+        if (string.IsNullOrWhiteSpace(value))
+            throw new InvalidOperationException($"Property '{propertyName}' cannot be empty in NPC JSON");
+        
+        return value;
     }
 
-    private static bool GetBoolProperty(JsonElement element, string propertyName, bool defaultValue)
+    private static string GetOptionalStringProperty(JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            (property.ValueKind == JsonValueKind.True || property.ValueKind == JsonValueKind.False))
-        {
-            return property.GetBoolean();
-        }
-        return defaultValue;
-    }
-
-    private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
-    {
-        if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.String)
-        {
-            string value = property.GetString() ?? defaultValue;
-            return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
-        }
-        return defaultValue;
+        if (!element.TryGetProperty(propertyName, out JsonElement property))
+            return null;
+        
+        if (property.ValueKind != JsonValueKind.String)
+            return null;
+        
+        return property.GetString();
     }
 
     private static List<string> GetStringArray(JsonElement element, string propertyName)
@@ -314,11 +322,10 @@ public static class NPCParser
             {
                 if (item.ValueKind == JsonValueKind.String)
                 {
-                    string value = item.GetString() ?? string.Empty;
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        results.Add(value);
-                    }
+                    string value = item.GetString();
+                    if (string.IsNullOrWhiteSpace(value))
+                        throw new InvalidOperationException($"Array property '{propertyName}' contains empty string in NPC JSON");
+                    results.Add(value);
                 }
             }
         }
