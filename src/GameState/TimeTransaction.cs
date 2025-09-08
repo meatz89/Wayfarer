@@ -3,6 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
+/// Strongly typed context for time-based transactions
+/// </summary>
+public class TransactionContext
+{
+    public string LocationId { get; set; }
+    public string NpcId { get; set; }
+    public string DestinationId { get; set; }
+    public int? TravelDistance { get; set; }
+    public string ActionType { get; set; }
+    public string ItemId { get; set; }
+    public int? ItemQuantity { get; set; }
+    public ResourceType? ResourceType { get; set; }
+    public int? ResourceAmount { get; set; }
+}
+
+/// <summary>
+/// Strongly typed output data from effects
+/// </summary>
+public class EffectOutputData
+{
+    public string ResultType { get; set; }
+    public int? ValueChanged { get; set; }
+    public string NewState { get; set; }
+    public string UnlockedFeature { get; set; }
+    public List<string> GeneratedItems { get; set; } = new();
+    public string ErrorReason { get; set; }
+}
+
+/// <summary>
 /// Represents an atomic time-based transaction that can include multiple effects.
 /// Ensures all operations succeed or none are applied.
 /// </summary>
@@ -10,7 +39,7 @@ public class TimeTransaction
 {
     private readonly TimeModel _timeModel;
     private readonly List<ITimeBasedEffect> _effects = new();
-    private readonly Dictionary<string, object> _context = new();
+    private readonly TransactionContext _context = new();
     private int _totalHoursCost;
     private string _description;
     private bool _requiresActiveHours = true;
@@ -51,9 +80,9 @@ public class TimeTransaction
     /// <summary>
     /// Adds context data for effects to use.
     /// </summary>
-    public TimeTransaction WithContext(string key, object value)
+    public TimeTransaction WithContext(Action<TransactionContext> configureContext)
     {
-        _context[key] = value;
+        configureContext?.Invoke(_context);
         return this;
     }
 
@@ -163,17 +192,17 @@ public interface ITimeBasedEffect
     /// <summary>
     /// Validates whether this effect can be applied.
     /// </summary>
-    EffectValidation Validate(TimeState currentTime, Dictionary<string, object> context);
+    EffectValidation Validate(TimeState currentTime, TransactionContext context);
 
     /// <summary>
     /// Applies the effect.
     /// </summary>
-    EffectResult Apply(TimeState currentTime, Dictionary<string, object> context);
+    EffectResult Apply(TimeState currentTime, TransactionContext context);
 
     /// <summary>
     /// Rolls back the effect if the transaction fails.
     /// </summary>
-    void Rollback(TimeState currentTime, Dictionary<string, object> context);
+    void Rollback(TimeState currentTime, TransactionContext context);
 }
 
 /// <summary>
@@ -257,7 +286,7 @@ public class EffectResult
     public bool Success { get; init; }
     public string Message { get; init; }
     public bool BlocksSubsequentEffects { get; init; }
-    public Dictionary<string, object> OutputData { get; init; } = new();
+    public EffectOutputData OutputData { get; init; } = new();
 
     public static EffectResult Succeeded(string message = null)
     {

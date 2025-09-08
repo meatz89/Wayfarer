@@ -18,8 +18,21 @@ namespace Wayfarer.Pages
     public class ScreenContext
     {
         public ScreenMode Mode { get; set; }
-        public Dictionary<string, object> StateData { get; set; } = new();
+        public ScreenStateData StateData { get; set; } = new();
         public DateTime EnteredAt { get; set; }
+    }
+
+    /// <summary>
+    /// Strongly typed state data for screen transitions
+    /// </summary>
+    public class ScreenStateData
+    {
+        public string NpcId { get; set; }
+        public string LocationId { get; set; }
+        public string TravelDestination { get; set; }
+        public ConversationType? ConversationType { get; set; }
+        public string SelectedCardId { get; set; }
+        public int? SelectedObligationIndex { get; set; }
     }
 
     /// <summary>
@@ -340,15 +353,15 @@ namespace Wayfarer.Pages
             }
         }
 
-        private Dictionary<string, object> SerializeCurrentState()
+        private ScreenStateData SerializeCurrentState()
         {
-            Dictionary<string, object> state = new Dictionary<string, object>();
+            ScreenStateData state = new ScreenStateData();
 
             // Save screen-specific state
             switch (CurrentScreen)
             {
                 case ScreenMode.Conversation:
-                    state["NpcId"] = CurrentConversationContext?.NpcId;
+                    state.NpcId = CurrentConversationContext?.NpcId;
                     break;
             }
 
@@ -429,9 +442,9 @@ namespace Wayfarer.Pages
             {
                 Mode = ScreenMode.DeckViewer,
                 EnteredAt = DateTime.Now,
-                StateData = new Dictionary<string, object>
+                StateData = new ScreenStateData
                 {
-                    ["NpcId"] = npcId
+                    NpcId = npcId
                 }
             };
             _navigationStack.Push(context);

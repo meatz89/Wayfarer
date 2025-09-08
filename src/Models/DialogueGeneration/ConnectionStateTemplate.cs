@@ -6,9 +6,6 @@ using System.Text.Json.Serialization;
 /// </summary>
 public class ConnectionStateTemplate
 {
-    [JsonPropertyName("contextual")]
-    public Dictionary<string, object> Contextual { get; set; }
-
     [JsonPropertyName("personality")]
     public Dictionary<string, List<string>> Personality { get; set; }
 

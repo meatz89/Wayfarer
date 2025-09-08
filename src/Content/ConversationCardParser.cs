@@ -442,8 +442,7 @@ public class CardEffectDTO
 {
     public string Type { get; set; }
     public string Value { get; set; }
-    public Dictionary<string, object> Data { get; set; }
-
+    
     // For Exchange effects specifically - populated during deserialization
     public ExchangeCost Cost { get; set; }
     public ExchangeReward Reward { get; set; }

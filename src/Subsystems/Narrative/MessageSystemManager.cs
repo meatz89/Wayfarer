@@ -4,6 +4,19 @@ using System.Collections.Generic;
 namespace Wayfarer.Subsystems.NarrativeSubsystem
 {
     /// <summary>
+    /// Strongly typed context for contextual messages
+    /// </summary>
+    public class MessageContext
+    {
+        public string Location { get; set; }
+        public string Time { get; set; }
+        public bool Urgency { get; set; }
+        public string NpcName { get; set; }
+        public string ActionType { get; set; }
+        public int? Value { get; set; }
+    }
+
+    /// <summary>
     /// Manages the MessageSystem for the Narrative subsystem.
     /// Wraps the existing MessageSystem to provide narrative-focused operations.
     /// </summary>
@@ -126,22 +139,22 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         /// <summary>
         /// Add a contextual message based on game state
         /// </summary>
-        public void AddContextualMessage(string baseMessage, Dictionary<string, object> context)
+        public void AddContextualMessage(string baseMessage, MessageContext context)
         {
             string contextualMessage = baseMessage;
 
             // Add contextual elements
-            if (context.ContainsKey("location"))
+            if (!string.IsNullOrEmpty(context?.Location))
             {
-                contextualMessage = $"At {context["location"]}: {contextualMessage}";
+                contextualMessage = $"At {context.Location}: {contextualMessage}";
             }
 
-            if (context.ContainsKey("time"))
+            if (!string.IsNullOrEmpty(context?.Time))
             {
-                contextualMessage = $"[{context["time"]}] {contextualMessage}";
+                contextualMessage = $"[{context.Time}] {contextualMessage}";
             }
 
-            if (context.ContainsKey("urgency") && (bool)context["urgency"])
+            if (context?.Urgency == true)
             {
                 AddNarrativeMessage(contextualMessage, SystemMessageTypes.Warning);
             }

@@ -71,6 +71,32 @@ public class InteractionResult
     public bool Success { get; set; }
     public string NarrativeText { get; set; }
     public List<string> SystemMessages { get; set; } = new();
-    public Dictionary<string, object> StateChanges { get; set; } = new();
+    public InteractionStateChanges StateChanges { get; set; } = new();
     public bool EndsCurrentContext { get; set; }  // Ends conversation or leaves location
+}
+
+/// <summary>
+/// Strongly typed state changes from interactions
+/// </summary>
+public class InteractionStateChanges
+{
+    public int? RapportChange { get; set; }
+    public int? TokensGained { get; set; }
+    public ConnectionState? NewConnectionState { get; set; }
+    public string UnlockedLocation { get; set; }
+    public string UnlockedNpc { get; set; }
+    public List<string> ItemsGained { get; set; } = new();
+    public List<string> ItemsLost { get; set; } = new();
+    public ResourceChange ResourceChange { get; set; }
+}
+
+/// <summary>
+/// Resource changes from interactions
+/// </summary>
+public class ResourceChange
+{
+    public int? CoinsChange { get; set; }
+    public int? HealthChange { get; set; }
+    public int? HungerChange { get; set; }
+    public int? AttentionChange { get; set; }
 }

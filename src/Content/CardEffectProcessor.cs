@@ -371,5 +371,18 @@ public class CardEffectResult
     public int Roll { get; set; }
     public int SuccessPercentage { get; set; }
     public bool EndsConversation { get; set; } = false;
-    public Dictionary<string, object> ConversationOutcomeData { get; set; }
+    public EffectOutcomeData OutcomeData { get; set; }
+}
+
+/// <summary>
+/// Strongly typed effect outcome data
+/// </summary>
+public class EffectOutcomeData
+{
+    public string EndReason { get; set; }
+    public string ResolutionType { get; set; }
+    public int FinalRapport { get; set; }
+    public int TokensGained { get; set; }
+    public string UnlockedExchange { get; set; }
+    public ConnectionState? NewConnectionState { get; set; }
 }

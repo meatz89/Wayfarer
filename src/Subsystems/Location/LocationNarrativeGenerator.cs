@@ -2,6 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+/// <summary>
+/// Strongly typed context for narrative generation
+/// </summary>
+public class NarrativeContext
+{
+    public string Weather { get; set; }
+    public int NpcCount { get; set; }
+    public int UrgentLetters { get; set; }
+    public TimeBlocks? CurrentTimeBlock { get; set; }
+    public string LocationName { get; set; }
+    public bool IsIndoor { get; set; }
+}
+
 namespace Wayfarer.Subsystems.LocationSubsystem
 {
     /// <summary>
@@ -195,26 +208,26 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         /// <summary>
         /// Generate contextual flavor text based on current conditions.
         /// </summary>
-        public string GenerateContextualFlavor(LocationSpot spot, Dictionary<string, object> context)
+        public string GenerateContextualFlavor(LocationSpot spot, NarrativeContext context)
         {
             List<string> flavorParts = new List<string>();
 
             // Check for weather effects
-            if (context.ContainsKey("weather"))
+            if (!string.IsNullOrEmpty(context?.Weather))
             {
-                string weatherFlavor = GetWeatherFlavor(context["weather"].ToString(), spot);
+                string weatherFlavor = GetWeatherFlavor(context.Weather, spot);
                 if (!string.IsNullOrEmpty(weatherFlavor))
                     flavorParts.Add(weatherFlavor);
             }
 
             // Check for crowding
-            if (context.ContainsKey("npc_count") && (int)context["npc_count"] > 3)
+            if (context?.NpcCount > 3)
             {
                 flavorParts.Add("The area is quite crowded.");
             }
 
             // Check for urgent business
-            if (context.ContainsKey("urgent_letters") && (int)context["urgent_letters"] > 0)
+            if (context?.UrgentLetters > 0)
             {
                 flavorParts.Add("You feel the focus of urgent obligations.");
             }
