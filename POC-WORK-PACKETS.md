@@ -163,7 +163,7 @@ Allow observation cards to be played during conversations as special SPEAK actio
 - Observation cards appear in conversations
 - Cost 0 focus to play
 - Consumed permanently when played
-- Can advance NPC emotional state
+- Can advance NPC connection state
 - Can unlock hidden exchanges
 
 ---

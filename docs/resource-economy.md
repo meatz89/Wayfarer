@@ -10,7 +10,7 @@ Every resource flows through multiple systems via different mechanics. Each mech
 **Daily Allocation**: 10 - (Hunger ÷ 25), minimum 2
 
 **Uses** (each via different mechanic):
-- **Conversation Mechanic**: Spend 2 → Full emotional state conversation
+- **Conversation Mechanic**: Spend 2 → Full connection state conversation
 - **Observation Mechanic**: Spend 0 → Gain observation card for NPC deck (requires familiarity)
 - **Investigation Mechanic**: Spend 1 → Gain location familiarity (scaled by spot property)
 - **Work Mechanic**: Spend 2 → Gain coins (scaled by hunger) + advance 4 hours
@@ -154,10 +154,10 @@ Each use is a separate mechanic. Tokens never gate access to conversation types,
 - OPEN: +3→Connected, -3→Neutral
 - CONNECTED: +3→Stays Connected, -3→Open
 
-**Strategic Role**: Pure success/failure counter that triggers emotional state transitions. Creates predictable progression based on net successes, with randomness coming from success rates modified by rapport.
+**Strategic Role**: Pure success/failure counter that triggers connection state transitions. Creates predictable progression based on net successes, with randomness coming from success rates modified by rapport.
 
 ### Focus (Per-Conversation)
-**Capacity by Emotional State**:
+**Capacity by Connection State**:
 - Desperate: 3
 - Tense: 4
 - Neutral: 5
@@ -262,7 +262,7 @@ Six daily periods, each 4 hours:
 - Focus 0 (special SPEAK action to play)
 - Always persistent
 - Consumed when played
-- Can have state-changing effects (advance emotional state, unlock exchanges)
+- Can have state-changing effects (advance connection state, unlock exchanges)
 
 **Gating**:
 - First observation: Requires familiarity 1+

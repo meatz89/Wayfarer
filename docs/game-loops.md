@@ -14,7 +14,7 @@ The three core game loops answer fundamental design questions while maintaining 
 ### Mechanical Framework
 
 **The Conversation Puzzle**:
-1. Emotional states determine focus capacity (3-6) and card draws (1-3)
+1. Connection States determine focus capacity (3-6) and card draws (1-3)
 2. Focus persists across SPEAK actions, refreshes on LISTEN
 3. Flow (-3 to +3) tracks success/failure, triggers state transitions at extremes
 4. Rapport (-50 to +50) modifies all success rates linearly (+2% per point)
@@ -31,7 +31,7 @@ The three core game loops answer fundamental design questions while maintaining 
 7. Failure: Add burden card to relationship
 
 **Focus Management**:
-- Capacity determined by emotional state (3-6)
+- Capacity determined by connection state (3-6)
 - Each SPEAK spends focus from pool
 - Pool persists until depleted or refreshed
 - LISTEN refreshes pool to current maximum
@@ -104,7 +104,7 @@ Request cards no longer involve negotiation - terms are fixed based on the reque
 
 Personality influences which requests are available:
 - Proud NPCs offer urgent, high-position requests
-- Desperate emotional state only has crisis requests
+- Desperate connection state only has crisis requests
 - Mercantile NPCs focus on profitable exchanges
 
 ### Strategic Queue Patterns
@@ -178,7 +178,7 @@ Personality influences which requests are available:
 - Cards created go to predetermined NPCs' observation decks
 - Represent location knowledge meaningful to specific NPCs
 - Automatically available when conversing with relevant NPC
-- Can unlock exchanges, change emotional states, or provide unique effects
+- Can unlock exchanges, change connection states, or provide unique effects
 
 ### Travel Encounters
 
