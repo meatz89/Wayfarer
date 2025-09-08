@@ -105,7 +105,6 @@ public class ConversationOrchestrator
             MaxPatience = npc.MaxDailyPatience,  // Max based on personality
             TurnNumber = 0,
             Deck = deck,
-            Hand = new HandDeck(),
             TokenManager = _tokenManager,
             FlowManager = _flowBatteryManager,
             RapportManager = rapportManager,
@@ -113,11 +112,11 @@ public class ConversationOrchestrator
             RapportGoal = rapportGoal
         };
 
-        // FIRST: Add the goal card to hand immediately if present
+        // FIRST: Add the goal card to active cards immediately if present
         // This ensures it's visible from the very start of the conversation
         if (goalCard != null)
         {
-            session.Hand.AddCard(goalCard);
+            session.ActiveCards.Add(goalCard);
         }
 
         // THEN: Perform initial draw of regular cards
@@ -125,7 +124,7 @@ public class ConversationOrchestrator
         _focusManager.RefreshPool();
         int drawCount = session.GetDrawCount();
         List<CardInstance> initialCards = session.Deck.DrawCards(drawCount);
-        session.Hand.AddCards(initialCards);
+        session.ActiveCards.AddRange(initialCards);
 
         // Update request card playability based on focus
         _deckManager.UpdateRequestCardPlayability(session);
@@ -292,8 +291,8 @@ public class ConversationOrchestrator
             _flowBatteryManager.CurrentFlow <= -3)
             return true;
 
-        // End if deck is empty and hand is empty
-        if (!session.Deck.HasCardsAvailable() && session.HandCards.Count == 0)
+        // End if deck is empty and no active cards
+        if (!session.Deck.HasCardsAvailable() && session.ActiveCards.Count == 0)
             return true;
 
         return false;
@@ -317,9 +316,9 @@ public class ConversationOrchestrator
         }
 
         // Can speak if have cards with available focus
-        if (session.HandCards.Any())
+        if (session.ActiveCards.Any())
         {
-            List<CardInstance> playableCards = session.HandCards.Where(c =>
+            List<CardInstance> playableCards = session.ActiveCards.Cards.Where(c =>
                 _deckManager.CanPlayCard(c, session)).ToList();
 
             if (playableCards.Any())

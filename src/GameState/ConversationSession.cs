@@ -18,15 +18,9 @@ public class ConversationSession
     public int? RequestUrgencyCounter { get; set; }
     public bool RequestCardPlayed { get; set; }
     public SessionCardDeck Deck { get; set; }
-    public HandDeck Hand { get; set; }
-    public HashSet<CardInstance> HandCards
-    {
-        get
-        {
-            if (Hand?.Cards != null) return Hand.Cards;
-            return new HashSet<CardInstance>();
-        }
-    }
+    public Pile DrawPile { get; set; }
+    public Pile ExhaustPile { get; set; }
+    public Pile ActiveCards { get; set; } // Cards currently available for play
     public List<CardInstance> PlayedCards { get; set; } = new();
     public List<CardInstance> DiscardedCards { get; set; } = new();
     public TokenMechanicsManager TokenManager { get; set; }
@@ -49,6 +43,10 @@ public class ConversationSession
 
     // Rapport goal for standard conversations (FriendlyChat)
     public int? RapportGoal { get; set; } = null; // Target rapport to earn token reward
+
+    // Compatibility properties for old pile architecture
+    public IReadOnlyList<CardInstance> HandCards => ActiveCards.Cards;
+    public Pile Hand => ActiveCards;
 
     // New helper methods
     public int GetAvailableFocus()
@@ -104,7 +102,7 @@ public class ConversationSession
 
     public bool IsHandOverflowing()
     {
-        return HandCards.Count > 10; // Simplified overflow check
+        return ActiveCards.Count > 10; // Simplified overflow check
     }
 
     public bool ShouldEnd()
@@ -244,7 +242,9 @@ public class ConversationSession
             MaxPatience = 10,
             TurnNumber = 0,
             Deck = sessionDeck,
-            Hand = new HandDeck(),
+            DrawPile = new Pile(),
+            ExhaustPile = new Pile(),
+            ActiveCards = new Pile(),
             TokenManager = tokenManager,
             ObservationCards = obsCards,
             NPCObservationCards = npcObservationCards,
@@ -346,9 +346,16 @@ public class ConversationSession
             MaxPatience = 10,
             TurnNumber = 0,
             Deck = sessionDeck,
-            Hand = new HandDeck(),
+            DrawPile = new Pile(),
+            ExhaustPile = new Pile(),
+            ActiveCards = new Pile(),
             TokenManager = tokenManager
         };
+
+        // For exchange conversations, immediately move all cards to active pile
+        // so they are all available for selection (no LISTEN required)
+        var allCards = sessionDeck.DrawAll();
+        session.ActiveCards.AddRange(allCards);
 
         return session;
     }

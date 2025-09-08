@@ -235,6 +235,21 @@ public class SessionCardDeck
         return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Exchange }, count);
     }
 
+    public List<CardInstance> DrawAll()
+    {
+        // Draw all cards from draw pile at once (for Commerce conversations)
+        List<CardInstance> allCards = new List<CardInstance>(drawPile);
+        
+        // Assign pre-rolls to all cards
+        foreach (var card in allCards)
+        {
+            AssignPreRoll(card);
+        }
+        
+        drawPile.Clear();
+        return allCards;
+    }
+
     public int RemainingCards => drawPile.Count;
 
     public int DiscardPileCount => discardPile.Count;

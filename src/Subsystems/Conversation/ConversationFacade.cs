@@ -342,7 +342,6 @@ public class ConversationFacade
             MaxPatience = memento.MaxPatience,  // Use stored max patience from memento
             TokenManager = _tokenManager,
             Deck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck.GetAllCards(), npc.ID),
-            Hand = new HandDeck()
         };
 
         // Restore hand and deck cards

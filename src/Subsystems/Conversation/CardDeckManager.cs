@@ -170,10 +170,10 @@ public class CardDeckManager
                 session.RapportManager.ApplyRapportChange(effectResult.RapportChange, session.CurrentAtmosphere);
             }
 
-            // Add drawn cards to hand
+            // Add drawn cards to active cards
             if (effectResult.CardsToAdd.Any())
             {
-                session.Hand.AddCards(effectResult.CardsToAdd);
+                session.ActiveCards.AddRange(effectResult.CardsToAdd);
             }
 
             // Handle atmosphere change
@@ -205,17 +205,17 @@ public class CardDeckManager
             // Add cards from failure effect (e.g. burden cards)
             if (effectResult.CardsToAdd.Any())
             {
-                session.Hand.AddCards(effectResult.CardsToAdd);
+                session.ActiveCards.AddRange(effectResult.CardsToAdd);
             }
 
             // Clear atmosphere on failure
             _atmosphereManager.ClearAtmosphereOnFailure();
         }
 
-        // Remove the played card from hand and move to discard pile
-        session.Hand.RemoveCard(selectedCard);
+        // Remove the played card from active cards and move to exhaust pile
+        session.ActiveCards.Remove(selectedCard);
         session.PlayedCards.Add(selectedCard);
-        session.Deck.DiscardCard(selectedCard);
+        session.ExhaustPile.Add(selectedCard);
 
         // Remove impulse cards from hand after SPEAK, executing exhaust effects
         bool conversationContinues = RemoveImpulseCardsFromHand(session);
@@ -266,8 +266,8 @@ public class CardDeckManager
         // Draw cards (no type filtering)
         List<CardInstance> drawnCards = session.Deck.DrawCards(drawCount);
 
-        // Add to hand
-        session.Hand.AddCards(drawnCards);
+        // Add to active cards
+        session.ActiveCards.AddRange(drawnCards);
 
         // Check if any request cards should become playable
         UpdateRequestCardPlayability(session);
@@ -284,8 +284,8 @@ public class CardDeckManager
         // NOT by focus. Their playability is checked in the UI based on rapport.
         // We only mark that a request card exists in the hand.
 
-        // Check if there's a request card in hand (GoalCard property)
-        bool hasRequestCard = session.Hand.Cards
+        // Check if there's a request card in active cards (GoalCard property)
+        bool hasRequestCard = session.ActiveCards.Cards
             .Any(c => c.Properties.Contains(CardProperty.GoalCard));
 
         if (hasRequestCard)
@@ -308,7 +308,7 @@ public class CardDeckManager
         // Check if next speak is free (from observation effect)
         bool isNextSpeakFree = _atmosphereManager.IsNextSpeakFree();
 
-        foreach (CardInstance card in session.Hand.Cards)
+        foreach (CardInstance card in session.ActiveCards.Cards)
         {
             // Skip request/promise cards - their playability is based on rapport, not focus
             if (card.Properties.Contains(CardProperty.GoalCard))
@@ -343,7 +343,7 @@ public class CardDeckManager
     private bool RemoveImpulseCardsFromHand(ConversationSession session)
     {
         // Get all impulse cards (including requests with both Impulse + Opening)
-        List<CardInstance> impulseCards = session.Hand.Cards.Where(c => c.Properties.Contains(CardProperty.Impulse)).ToList();
+        List<CardInstance> impulseCards = session.ActiveCards.Cards.Where(c => c.Properties.Contains(CardProperty.Impulse)).ToList();
 
         foreach (CardInstance card in impulseCards)
         {
@@ -357,9 +357,9 @@ public class CardDeckManager
                 }
             }
 
-            // Remove from hand and add to discard pile
-            session.Hand.RemoveCard(card);
-            session.Deck.DiscardCard(card);
+            // Remove from active cards and add to exhaust pile
+            session.ActiveCards.Remove(card);
+            session.ExhaustPile.Add(card);
         }
 
         return true; // Conversation continues
@@ -371,7 +371,7 @@ public class CardDeckManager
     private bool ExhaustOpeningCards(ConversationSession session)
     {
         // Get all opening cards
-        List<CardInstance> openingCards = session.Hand.Cards
+        List<CardInstance> openingCards = session.ActiveCards.Cards
             .Where(c => IsOpeningCard(c))
             .ToList();
 
@@ -387,9 +387,9 @@ public class CardDeckManager
                 }
             }
 
-            // Remove from hand and add to discard pile
-            session.Hand.RemoveCard(card);
-            session.Deck.DiscardCard(card);
+            // Remove from active cards and add to exhaust pile
+            session.ActiveCards.Remove(card);
+            session.ExhaustPile.Add(card);
         }
 
         return true; // Conversation continues
@@ -429,7 +429,7 @@ public class CardDeckManager
                 if (int.TryParse(card.ExhaustEffect.Value, out int count))
                 {
                     List<CardInstance> drawnCards = session.Deck.DrawCards(count);
-                    session.Hand.AddCards(drawnCards);
+                    session.ActiveCards.AddRange(drawnCards);
                 }
                 return true;
 
@@ -638,17 +638,17 @@ public class CardDeckManager
     public void RestoreSessionCards(ConversationSession session, List<string> handCardIds, List<string> deckCardIds)
     {
         // Clear existing cards
-        session.Hand.Clear();
+        session.ActiveCards.Clear();
         session.Deck.Clear();
 
-        // Restore hand cards
+        // Restore active cards
         foreach (string cardId in handCardIds)
         {
             ConversationCard cardTemplate = FindCardTemplateById(cardId);
             if (cardTemplate != null)
             {
                 CardInstance cardInstance = new CardInstance(cardTemplate, session.NPC?.ID ?? "unknown");
-                session.Hand.AddCard(cardInstance);
+                session.ActiveCards.Add(cardInstance);
             }
         }
 

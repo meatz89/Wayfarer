@@ -225,7 +225,7 @@
             </div>
             
             <div class="card-grid">
-                @foreach (var card in Session.HandCards)
+                @foreach (var card in Session.ActiveCards.Cards)
                 {
                     <div class="@GetCardCssClasses(card) exchange @(!CanSelectCard(card) ? "unavailable" : "")"
                          @onclick="() => ToggleCardSelection(card)">
