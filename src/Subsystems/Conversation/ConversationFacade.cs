@@ -219,18 +219,14 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Create a conversation context for UI
+    /// Create a conversation context for UI - returns typed context
     /// </summary>
-    public async Task<ConversationContext> CreateConversationContext(string npcId, ConversationType conversationType)
+    public async Task<ConversationContextBase> CreateConversationContext(string npcId, ConversationType conversationType)
     {
         NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
-            return new ConversationContext
-            {
-                IsValid = false,
-                ErrorMessage = "NPC not found"
-            };
+            return ConversationContextFactory.CreateInvalidContext("NPC not found");
         }
 
         // Check attention cost
@@ -240,21 +236,13 @@ public class ConversationFacade
 
         if (!currentAttention.CanAfford(attentionCost))
         {
-            return new ConversationContext
-            {
-                IsValid = false,
-                ErrorMessage = "Not enough attention"
-            };
+            return ConversationContextFactory.CreateInvalidContext("Not enough attention");
         }
 
         // Spend attention
         if (!currentAttention.TrySpend(attentionCost))
         {
-            return new ConversationContext
-            {
-                IsValid = false,
-                ErrorMessage = "Failed to spend attention"
-            };
+            return ConversationContextFactory.CreateInvalidContext("Failed to spend attention");
         }
 
         // Get observation cards
@@ -264,17 +252,21 @@ public class ConversationFacade
         // Start conversation
         ConversationSession session = StartConversation(npcId, conversationType, observationCards);
 
-        return new ConversationContext
-        {
-            IsValid = true,
-            NpcId = npcId,
-            Npc = npc,
-            Type = conversationType,
-            InitialState = session.CurrentState,
-            Session = session,
-            ObservationCards = observationCards,
-            AttentionSpent = attentionCost
-        };
+        // Create typed context
+        ConversationContextBase context = ConversationContextFactory.CreateContext(
+            conversationType,
+            npc,
+            session,
+            observationCards,
+            attentionCost,
+            ResourceState.FromPlayerResourceState(_gameWorld.GetPlayerResourceState()),
+            _gameWorld.GetPlayer().CurrentLocationSpot.ToString(),
+            _timeManager.GetCurrentTimeBlock().ToString());
+
+        // Initialize type-specific data
+        ConversationContextFactory.InitializeContextData(context, _gameWorld, _queueManager);
+
+        return context;
     }
 
     /// <summary>

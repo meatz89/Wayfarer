@@ -32,7 +32,7 @@ namespace Wayfarer.Pages.Components
     /// </summary>
     public class ConversationContentBase : ComponentBase
     {
-        [Parameter] public ConversationContext Context { get; set; }
+        [Parameter] public ConversationContextBase Context { get; set; }
         [Parameter] public EventCallback OnConversationEnd { get; set; }
         [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 

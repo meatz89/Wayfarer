@@ -394,7 +394,7 @@ public class GameFacade
         return _conversationFacade;
     }
 
-    public async Task<ConversationContext> CreateConversationContext(string npcId, ConversationType conversationType = ConversationType.FriendlyChat)
+    public async Task<ConversationContextBase> CreateConversationContext(string npcId, ConversationType conversationType = ConversationType.FriendlyChat)
     {
         return await _conversationFacade.CreateConversationContext(npcId, conversationType);
     }

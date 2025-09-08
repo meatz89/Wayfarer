@@ -82,7 +82,7 @@ namespace Wayfarer.Pages
         protected string CurrentSpot { get; set; } = "";
 
         // Navigation State
-        protected ConversationContext CurrentConversationContext { get; set; }
+        protected ConversationContextBase CurrentConversationContext { get; set; }
         protected int PendingLetterCount { get; set; }
         public string CurrentDeckViewerNpcId { get; set; } // For dev mode deck viewer
 
