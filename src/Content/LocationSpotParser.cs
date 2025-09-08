@@ -37,45 +37,71 @@ public static class LocationSpotParser
             spot.CurrentTimeBlocks.Add(TimeBlocks.Night);
         }
 
-        // Parse spot properties
-        if (dto.SpotProperties != null)
+        // Parse spot properties from the new structure
+        if (dto.Properties != null)
         {
-            Console.WriteLine($"[LocationSpotParser] Parsing spot {spot.SpotID}, found {dto.SpotProperties.Count} property strings");
-            foreach (string propString in dto.SpotProperties)
+            Console.WriteLine($"[LocationSpotParser] Parsing spot {spot.SpotID} properties");
+            
+            // Parse base properties (always active)
+            if (dto.Properties.Base != null)
             {
-                Console.WriteLine($"[LocationSpotParser] Trying to parse property: {propString}");
-                if (EnumParser.TryParse<SpotPropertyType>(propString, out SpotPropertyType prop))
+                Console.WriteLine($"[LocationSpotParser] Found {dto.Properties.Base.Count} base properties");
+                foreach (string propString in dto.Properties.Base)
                 {
-                    Console.WriteLine($"[LocationSpotParser] Successfully parsed: {prop}");
-                    spot.SpotProperties.Add(prop);
-                }
-                else
-                {
-                    Console.WriteLine($"[LocationSpotParser] Failed to parse property: {propString}");
+                    Console.WriteLine($"[LocationSpotParser] Trying to parse base property: {propString}");
+                    if (EnumParser.TryParse<SpotPropertyType>(propString, out SpotPropertyType prop))
+                    {
+                        Console.WriteLine($"[LocationSpotParser] Successfully parsed: {prop}");
+                        spot.SpotProperties.Add(prop);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[LocationSpotParser] Failed to parse property: {propString}");
+                    }
                 }
             }
-        }
-
-        // Parse time-specific spot properties
-        if (dto.TimeSpecificProperties != null)
-        {
-            foreach (KeyValuePair<string, List<string>> kvp in dto.TimeSpecificProperties)
+            
+            // Parse "all" properties (always active, alternative to "base")
+            if (dto.Properties.All != null)
             {
-                if (EnumParser.TryParse<TimeBlocks>(kvp.Key, out TimeBlocks timeBlock))
+                Console.WriteLine($"[LocationSpotParser] Found {dto.Properties.All.Count} 'all' properties");
+                foreach (string propString in dto.Properties.All)
                 {
-                    List<SpotPropertyType> properties = new List<SpotPropertyType>();
-                    foreach (string propString in kvp.Value)
+                    Console.WriteLine($"[LocationSpotParser] Trying to parse 'all' property: {propString}");
+                    if (EnumParser.TryParse<SpotPropertyType>(propString, out SpotPropertyType prop))
                     {
-                        if (!string.IsNullOrEmpty(propString) &&
-                            EnumParser.TryParse<SpotPropertyType>(propString, out SpotPropertyType prop))
-                        {
-                            properties.Add(prop);
-                        }
+                        Console.WriteLine($"[LocationSpotParser] Successfully parsed: {prop}");
+                        spot.SpotProperties.Add(prop);
                     }
-                    if (properties.Count > 0)
+                    else
                     {
-                        spot.TimeSpecificProperties[timeBlock] = properties;
+                        Console.WriteLine($"[LocationSpotParser] Failed to parse property: {propString}");
                     }
+                }
+            }
+
+            // Parse time-specific properties
+            Dictionary<TimeBlocks, List<SpotPropertyType>> timeProperties = new Dictionary<TimeBlocks, List<SpotPropertyType>>();
+            
+            // Morning properties
+            ParseTimeProperties(dto.Properties.Morning, TimeBlocks.Morning, timeProperties);
+            // Afternoon properties
+            ParseTimeProperties(dto.Properties.Afternoon, TimeBlocks.Afternoon, timeProperties);
+            // Evening properties
+            ParseTimeProperties(dto.Properties.Evening, TimeBlocks.Evening, timeProperties);
+            // Night properties
+            ParseTimeProperties(dto.Properties.Night, TimeBlocks.Night, timeProperties);
+            // LateNight properties
+            ParseTimeProperties(dto.Properties.LateNight, TimeBlocks.LateNight, timeProperties);
+            // Dawn properties
+            ParseTimeProperties(dto.Properties.Dawn, TimeBlocks.Dawn, timeProperties);
+            
+            // Assign to spot
+            foreach (var kvp in timeProperties)
+            {
+                if (kvp.Value.Count > 0)
+                {
+                    spot.TimeSpecificProperties[kvp.Key] = kvp.Value;
                 }
             }
         }
@@ -87,6 +113,30 @@ public static class LocationSpotParser
         }
 
         return spot;
+    }
+    
+    /// <summary>
+    /// Helper method to parse time-specific properties
+    /// </summary>
+    private static void ParseTimeProperties(List<string> propertyStrings, TimeBlocks timeBlock, Dictionary<TimeBlocks, List<SpotPropertyType>> timeProperties)
+    {
+        if (propertyStrings == null || propertyStrings.Count == 0)
+            return;
+            
+        List<SpotPropertyType> properties = new List<SpotPropertyType>();
+        foreach (string propString in propertyStrings)
+        {
+            if (!string.IsNullOrEmpty(propString) &&
+                EnumParser.TryParse<SpotPropertyType>(propString, out SpotPropertyType prop))
+            {
+                properties.Add(prop);
+            }
+        }
+        
+        if (properties.Count > 0)
+        {
+            timeProperties[timeBlock] = properties;
+        }
     }
     public static LocationSpot ParseLocationSpot(string json)
     {

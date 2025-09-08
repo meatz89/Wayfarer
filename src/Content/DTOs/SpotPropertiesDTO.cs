@@ -10,6 +10,9 @@ public class SpotPropertiesDTO
     [JsonPropertyName("base")]
     public List<string> Base { get; set; } = new List<string>();
     
+    [JsonPropertyName("all")]
+    public List<string> All { get; set; } = new List<string>();
+    
     [JsonPropertyName("morning")]
     public List<string> Morning { get; set; } = new List<string>();
     
