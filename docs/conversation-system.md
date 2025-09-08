@@ -11,17 +11,120 @@
 7. **Rapport modifies success linearly** - +2% per point, -50 to +50 range
 8. **Card persistence varies** - Persistent stays, Impulse removed on SPEAK, Opening removed on LISTEN
 9. **No card type filtering** - Connection States only affect focus and draws
+10. **Draw pile cycles through exhaust** - When draw pile empty, shuffle exhaust pile to create new draw pile
 
-## Card Anatomy
+## NPC Persistent Decks
 
-Every card has:
-- **Primary Effect**: ONE effect (either fixed or scaling) on success
-- **Focus**: 0-6, cost from focus
-- **Difficulty**: Easy (70%), Medium (60%), Hard (50%), Very Hard (40%) base success
-- **Persistence**: Persistent (60%), Impulse (25%), or Opening (15%)
-- **Atmosphere Change** (Optional): ~30% of cards change atmosphere on success
-- **Failure Effect** (Optional): Only if different from standard "no effect"
-- **On Exhaust** (Optional): Effect when card vanishes unplayed (~20% of non-persistent cards)
+Each NPC maintains multiple persistent decks that determine available conversation types:
+
+### Conversation Card Deck
+- Contains NPC's standard 20 conversation cards
+- Always present for all NPCs
+- Enables "Standard Conversation" option
+
+### Goal Card Deck
+- Contains letter requests, promise requests, meeting requests
+- If NPC has goals available: Enables specific conversation types
+- Example: Elena with marriage refusal letter enables "Crisis Letter" conversation
+
+### Observation Card Deck
+- Contains cards from player's location observations
+- Cards added when player observes locations (specific cards go to specific NPCs)
+- Mixed into draw pile for any conversation type with this NPC
+- Provides conversation advantages
+
+### Burden Card Deck
+- Contains burden cards from failed requests or broken promises
+- If contains cards: Enables "Make Amends" conversation
+- Each burden card makes resolution harder
+
+### Exchange Deck (Mercantile NPCs only)
+- Contains quick exchange options
+- Enables "Quick Exchange" conversation (1 attention)
+- No card play, just resource trades
+
+## Conversation Types
+
+Available types determined by NPC's deck contents and player state:
+
+### Standard Conversation
+- Available: Always (if NPC has conversation deck)
+- Cards used: Conversation deck + observation deck
+- Purpose: Build rapport, gain tokens through promises
+
+### Letter Request
+- Available: If NPC has letter in goal deck
+- Cards used: Conversation deck + observation deck + specific request card
+- Purpose: Accept letter delivery obligation
+
+### Letter Delivery
+- Available: If player has letter for this NPC in satchel
+- Cards used: Minimal deck or quick conversation
+- Purpose: Complete delivery, gain tokens
+
+### Make Amends
+- Available: If NPC has burden cards
+- Cards used: Conversation deck + observation deck + resolution request
+- Purpose: Clear burden cards from relationship
+
+### Quick Exchange
+- Available: If NPC has exchange deck
+- Cards used: None (simple transaction)
+- Purpose: Trade resources efficiently
+
+## Three-Pile System
+
+During any conversation, cards exist in three piles:
+
+### Draw Pile
+- Created at conversation start from relevant NPC decks
+- Cards drawn from here to active pile
+- When empty and need to draw: Shuffle exhaust pile to create new draw pile
+
+### Active Pile (Hand)
+- Cards currently available to play
+- Maximum size determined by connection state draws
+- Can exceed maximum through special effects
+
+### Exhaust Pile
+- Played cards go here after use
+- Exhausted cards (Impulse/Opening) go here when removed
+- Shuffled to become draw pile when draw pile empty
+
+## Conversation Flow
+
+### Conversation Start
+1. Player chooses conversation type (based on available options)
+2. Relevant cards from NPC decks added to draw pile:
+   - All cards from conversation deck
+   - All cards from observation deck (if any)
+   - Relevant request card (if applicable)
+3. Draw pile shuffled
+4. Initial draw: Draw cards equal to connection state to active pile
+5. Focus set to connection state maximum
+
+### LISTEN Action
+1. Costs 1 patience (unless Patient atmosphere)
+2. Draw cards from draw pile to active pile (amount by connection state)
+3. If draw pile has fewer cards than needed: Draw what's available
+4. If draw pile empty and need more: Shuffle exhaust pile → draw pile → continue drawing
+5. Refresh focus to connection state maximum
+6. Remove Opening cards if unplayed (to exhaust pile)
+7. Check if request cards become playable
+
+### SPEAK Action
+1. Choose one card from active pile
+2. Spend focus equal to card cost
+3. Resolve success/failure
+4. Card goes to exhaust pile
+5. Apply card effects
+6. Remove Impulse cards if unplayed (to exhaust pile)
+
+### Conversation End
+1. All piles cleared
+2. NPC persistent decks unchanged (except consumed observation cards)
+3. Rapport resets
+4. Atmosphere clears
 
 ## Connection States
 
@@ -30,10 +133,18 @@ States determine focus capacity and cards drawn. No filtering of card types.
 - **Disconnected**: 3 focus capacity, draws 1 card
 - **Guarded**: 4 focus capacity, draws 2 cards
 - **Neutral**: 5 focus capacity, draws 2 cards
-- **Open**: 5 focus capacity, draws 3 cards
-- **Connected**: 6 focus capacity, draws 3 cards
+- **Receptive**: 5 focus capacity, draws 3 cards
+- **Trusting**: 6 focus capacity, draws 3 cards
 
-Disconnected at -3 flow ends conversation immediately.
+Desperate at -3 flow ends conversation immediately.
+
+## Connection State Advancement
+
+Certain cards can directly change connection state:
+- Card effect specifies target state (e.g., "Advances to Neutral")
+- Overrides current state immediately
+- Flow resets to 0 when state changes this way
+- Typically found on observation cards
 
 ## Atmosphere System
 
@@ -63,37 +174,30 @@ Atmosphere affects all actions until changed by a card or cleared by failure. LI
 - Can SPEAK multiple turns until depleted
 - "Prepared" atmosphere adds +1 to capacity
 
-Focus creates complex decisions with persistence types:
-- Impulse high-focus cards need immediate play
-- Opening cards must be used before LISTEN refreshes focus
-- Managing both creates tight tactical windows
-
 ## Card Persistence System
 
 Three types creating different tactical pressures:
 
 ### Persistent (60% of deck)
-- Remain in hand until played or conversation ends
+- Remain in active pile until played or conversation ends
 - Standard cards for reliable plays
 
 ### Impulse (25% of deck)
-- Removed after SPEAK action if unplayed
+- Removed after any SPEAK action if unplayed (to exhaust pile)
 - Forces "play now or lose" decisions
 - Often on high-focus dramatic cards
 
 ### Opening (15% of deck)
-- Removed after LISTEN action if unplayed
+- Removed after LISTEN action if unplayed (to exhaust pile)
 - Must play before refreshing focus
 - Often on utility cards with timing sensitivity
 
 ### On Exhaust Effects
-~20% of non-persistent cards trigger effects when vanishing unplayed:
-- Draw 1-2 cards (compensation for lost opening)
+~20% of non-persistent cards trigger effects when removed unplayed:
+- Draw 1-2 cards (from draw pile)
 - +1 rapport (minor consolation)
 - Add 1 focus (resource compensation)
-- Set negative atmosphere (Volatile or Final - consequence for missing the moment)
-
-This creates pressure: Play the risky card or suffer the atmospheric consequence when it exhausts.
+- Set negative atmosphere (consequence for missing moment)
 
 ## Rapport System
 
@@ -116,7 +220,7 @@ Starting with 5 tokens = 5 rapport = +10% success on all cards from start.
 - At -3: State shifts left, flow resets to 0
 - Excess flow lost (no banking)
 
-State progression: [Ends] ← Disconnected ← Guarded ← Neutral → Open → Connected
+State progression: [Ends] ← Disconnected ← Guarded ← Neutral → Receptive → Trusting
 
 ## Normal Card Generation
 
@@ -181,19 +285,12 @@ State progression: [Ends] ← Disconnected ← Guarded ← Neutral → Open → 
 - High focus cards (4+)
 - Powerful effects
 - Crisis plays
-- Often with on exhaust: Draw 1-2 cards
+- Often with on exhaust effects
 
 **Opening** (15% of deck):
 - Utility cards (draw, focus-add)
 - Timing-sensitive plays
-- Often with on exhaust: Same effect but weaker
-
-### On Exhaust Distribution
-- ~50% of Impulse cards have on exhaust
-- ~30% of Opening cards have on exhaust
-- Common effects: Draw 1 card, +1 rapport, Add 1 focus
-- Negative effects: Set Volatile atmosphere (missed opening creates tension)
-- Severe effects: Set Final atmosphere (critical moment passed, high stakes now)
+- Often with on exhaust effects
 
 ### Atmosphere Changes
 
@@ -205,6 +302,7 @@ Only ~30% of cards change atmosphere:
 
 ### NPC Deck Composition (20 cards)
 
+Standard conversation deck contains:
 - 6 Fixed rapport cards (various focuses, mostly persistent)
 - 4 Scaled rapport cards (matching NPC personality, persistent)
 - 2 Draw cards (1 focus each, 1 persistent, 1 opening)
@@ -215,29 +313,36 @@ Only ~30% of cards change atmosphere:
 
 ## Observation Cards
 
-Always: Focus 1, Persistent, 85% base success (Very Easy)
+Generated by location observations, placed in NPC observation decks:
+
+### Properties
+- Focus 0 (special SPEAK action)
+- Always Persistent
+- Mixed into draw pile at conversation start
+- Consumed when played (removed from NPC's observation deck)
 
 ### Unique Effects (Not Available on Normal Cards)
 
+**Connection State Changes**
+- Advance to specific state (e.g., "Advances Elena to Neutral")
+- Reset flow to 0
+
+**Exchange Unlocks**
+- Enable special NPC exchanges
+- Make hidden options visible
+
 **Atmosphere Setters**
-- Set "Informed" atmosphere
-- Set "Exposed" atmosphere
-- Set "Synchronized" atmosphere
-- Set "Pressured" atmosphere
+- Set special atmospheres (Informed, Exposed, Synchronized)
 
 **Cost Bypasses**
 - Next action costs 0 patience
-- Next SPEAK costs 0 focus (plays for free)
+- Next SPEAK costs 0 focus
 
-**Unique Manipulations**
-- Rapport = 15 (set to specific value)
-- Focus = maximum (instant refresh)
-
-Observation cards NEVER have rapport scaling or standard effects. They represent external knowledge affecting the conversation in ways normal discourse cannot.
+Observation cards represent external knowledge affecting the conversation in ways normal discourse cannot.
 
 ## Request Cards
 
-Requests are the win condition for conversations. They are added to hand at conversation start based on chosen conversation type.
+Requests are the win condition for conversations. Added to draw pile based on chosen conversation type.
 
 ### Request Properties
 - **Focus**: 5-6 (requires maximum state or Prepared atmosphere)
@@ -255,46 +360,28 @@ When the request becomes playable (after LISTEN at correct focus):
 - Gains Opening: Will be discarded if you LISTEN again
 - Must play immediately or conversation fails
 
-This creates maximum pressure without special rules - the NPC "asks the question" and you must respond immediately.
-
-### Request Types by Conversation
+### Request Types
 - **Letter Requests**: Create delivery obligations (fixed terms)
 - **Meeting Requests**: Create time-based obligations (fixed terms)
 - **Resolution Requests**: Remove burden cards from deck
 - **Commerce Requests**: Special trades or exchanges
 
-## Example Generated Cards
+## Example Cards
 
-### Normal Cards
-- **"Setup"** (0 focus, Easy, Persistent): No effect, Atmosphere: Prepared
+### Normal Conversation Cards
 - **"Simple Rapport"** (1 focus, Easy, Persistent): +1 rapport
 - **"Trust Building"** (3 focus, Hard, Persistent): +X rapport where X = Trust tokens
-- **"Disconnected Plea"** (3 focus, Hard, Impulse): +X rapport where X = (20 - current rapport) ÷ 5, On Exhaust: Draw 1 card
-- **"Final Statement"** (5 focus, Very Hard, Impulse): +5 rapport, Atmosphere: Final, On Exhaust: Atmosphere: Final
-- **"Quick Opening"** (2 focus, Medium, Opening): +2 rapport, On Exhaust: Atmosphere: Volatile
-- **"Interrupt"** (1 focus, Hard, Opening): Atmosphere: Receptive, Failure: -2 rapport, On Exhaust: Atmosphere: Pressured
-- **"Timely Insight"** (1 focus, Medium, Opening): Draw 2 cards, On Exhaust: Draw 1 card
-- **"Gather Strength"** (2 focus, Medium, Persistent): Add 1 focus
+- **"Desperate Plea"** (3 focus, Hard, Impulse): +X rapport where X = (20 - current rapport) ÷ 5
+- **"Setup Atmosphere"** (0 focus, Easy, Persistent): No effect, Atmosphere: Prepared
 
-### Tactical Example: Disconnected State Trap
-In Disconnected state (1 card draw, 3 focus capacity), drawing "Interrupt" creates a dilemma:
-- **Risk the play**: 50% success for Receptive atmosphere (more cards), but failure risks -2 rapport (making future cards harder)
-- **LISTEN instead**: Refreshes focus but exhausts card, setting Pressured atmosphere (-1 focus capacity)
-- **The trap**: You need more cards but both options have serious downsides
+### Observation Cards (in NPC observation decks)
+- **"Safe Passage Knowledge"** (0 focus, Persistent): Advances Elena to Neutral state
+- **"Merchant Caravan Route"** (0 focus, Persistent): Unlocks Marcus's caravan exchange
+- **"Noble Introduction"** (0 focus, Persistent): Sets rapport to 15
 
-This emergent situation represents the NPC rambling disconnectedly, giving you a narrow window to redirect the conversation or suffer consequences.
-
-### Observation Cards
-- **"Leverage Knowledge"**: Set Informed atmosphere
-- **"Reveal Contradiction"**: Set Exposed atmosphere  
-- **"Free Action"**: Next action costs 0 patience
-- **"Emergency Boost"**: Rapport = 15
-- **"Full Recovery"**: Focus = maximum
-
-### Request Cards
-- **"Urgent Letter"** (5 focus, Very Hard, Unplayable→Impulse+Opening): Success: Create delivery obligation (fixed terms), Failure: Add burden card
-- **"Arrange Meeting"** (6 focus, Very Hard, Unplayable→Impulse+Opening): Success: Schedule meeting (fixed terms), Failure: Add burden card
-- **"Make Amends"** (5 focus, Very Hard, Unplayable→Impulse+Opening): Success: Clear burden cards, Failure: Add burden card
+### Request Cards (in goal decks)
+- **"Elena's Letter"** (5 focus, Very Hard): Accept urgent delivery (1hr deadline, position 1)
+- **"Marcus's Trade"** (6 focus, Hard): Accept commerce obligation
 
 ## Connection Tokens
 
@@ -303,11 +390,41 @@ Four types: Trust, Commerce, Status, Shadow
 - Determine starting rapport (1 token = 1 starting rapport)
 - Only gained through successful letter delivery
 - Can be burned for queue displacement
-- Linear benefit through rapport conversion
+- Can gate special exchanges (minimum token requirements)
 - Do not affect draw rules or card availability
 
 Token association in NPCs affects deck composition:
-- **Devoted NPCs**: More cards scaling with Trust tokens
-- **Mercantile NPCs**: More cards scaling with Commerce tokens
-- **Proud NPCs**: More cards scaling with Status tokens
-- **Cunning NPCs**: More cards scaling with Shadow tokens
+- **Devoted NPCs**: More Trust-scaling cards
+- **Mercantile NPCs**: More Commerce-scaling cards
+- **Proud NPCs**: More Status-scaling cards
+- **Cunning NPCs**: More Shadow-scaling cards
+
+## Quick Exchange Conversations
+
+Simplified mechanics for basic transactions:
+- Cost 1 attention instead of 2
+- No card play (no draw/active/exhaust piles)
+- Simple resource trades from exchange deck
+- Still advance game time
+- Used when full conversation unnecessary
+
+Examples:
+- Simple purchases from merchants
+- Quick deliveries to busy NPCs
+- Information trades
+- Permit purchases
+
+## Deck Cycling Example
+
+Turn 1: Draw pile has 23 cards (20 conversation + 2 observation + 1 request), active pile has 2 cards
+- SPEAK a card → goes to exhaust pile
+
+Turn 2: Draw pile has 21 cards, active has 1, exhaust has 1
+- LISTEN → draw 2 more cards from draw pile
+
+Turn 15: Draw pile empty, active has 3 cards, exhaust has 20 cards
+- LISTEN → need to draw 2 cards
+- Shuffle exhaust pile (20 cards) → becomes new draw pile
+- Draw 2 cards from new draw pile → active pile
+
+This creates natural deck cycling where all cards remain available throughout the conversation.
