@@ -47,6 +47,23 @@
         "dialogueFragment": "I hear what you're saying. Please, continue."
       },
       {
+        "id": "standard_friendly_chat_goal",
+        "type": "Goal",
+        "goalType": "FriendlyChat",
+        "personalityTypes": ["ALL"],
+        "focus": 0,
+        "properties": [],
+        "connectionType": "Trust",
+        "description": "Have a friendly conversation",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "GainToken",
+          "value": "1",
+          "tokenType": "Trust"
+        },
+        "dialogueFragment": "Let's have a chat, shall we?"
+      },
+      {
         "id": "let_me_think",
         "type": "Normal",
         "personalityTypes": ["ALL"],
@@ -239,7 +256,9 @@
           "well_figure_this_out": 1,
           "everything_will_be_alright": 1
         },
-        "requestDeck": {},
+        "requestDeck": {
+          "standard_friendly_chat_goal": 1
+        },
         "exchangeDeck": {},
         "observationDeck": {}
       },
@@ -256,7 +275,8 @@
             "everything_will_be_alright": 1
           },
           "requestDeck": {
-            "elena_letter_promise": 1
+            "elena_letter_promise": 1,
+            "standard_friendly_chat_goal": 1
           },
           "exchangeDeck": {},
           "observationDeck": {}
@@ -272,7 +292,9 @@
             "well_figure_this_out": 1,
             "everything_will_be_alright": 1
           },
-          "requestDeck": {},
+          "requestDeck": {
+          "standard_friendly_chat_goal": 1
+        },
           "exchangeDeck": {
             "marcus_quick_trade": 1
           },
@@ -284,7 +306,9 @@
             "how_can_i_assist": 1,
             "tell_me_more": 1
           },
-          "requestDeck": {},
+          "requestDeck": {
+          "standard_friendly_chat_goal": 1
+        },
           "exchangeDeck": {},
           "observationDeck": {}
         },
@@ -294,7 +318,9 @@
             "let_me_think": 1,
             "how_can_i_assist": 1
           },
-          "requestDeck": {},
+          "requestDeck": {
+          "standard_friendly_chat_goal": 1
+        },
           "exchangeDeck": {},
           "observationDeck": {}
         },
@@ -303,7 +329,9 @@
             "i_hear_you": 1,
             "tell_me_more": 1
           },
-          "requestDeck": {},
+          "requestDeck": {
+          "standard_friendly_chat_goal": 1
+        },
           "exchangeDeck": {},
           "observationDeck": {}
         }

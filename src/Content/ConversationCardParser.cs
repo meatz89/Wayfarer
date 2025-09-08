@@ -128,7 +128,7 @@ public static class ConversationCardParser
 
         // Check if this is a Request card
         ConversationCard card;
-        if (dto.Type == "Request" || dto.IsRequestCard == true)
+        if (dto.Type == "Request" || dto.Type == "Goal" || dto.IsRequestCard == true)
         {
             // Create RequestCard for request/promise cards
             RequestCard requestCard = new RequestCard
@@ -144,7 +144,9 @@ public static class ConversationCardParser
                 DialogueFragment = dto.DialogueFragment,
                 VerbPhrase = "", // Will be set later if needed
                 // Set rapport threshold
-                RapportThreshold = dto.RapportThreshold ?? 5
+                RapportThreshold = dto.RapportThreshold ?? 5,
+                // Set goal type for FriendlyChat detection
+                GoalType = dto.GoalType
             };
             
             // Only override effects if explicitly provided in JSON
@@ -352,6 +354,9 @@ public class ConversationCardDTO
     public CardEffectDTO SuccessEffect { get; set; }
     public CardEffectDTO FailureEffect { get; set; }
     public CardEffectDTO ExhaustEffect { get; set; }
+    
+    // Goal type for FriendlyChat detection
+    public string GoalType { get; set; }
 }
 
 /// <summary>

@@ -564,7 +564,52 @@ public class PackageLoader
             {
                 List<ConversationCard> requestCards = new List<ConversationCard>();
 
-                // Add NPC-specific goal cards if any exist
+                // Load cards from deck compositions (like conversation decks)
+                if (deckCompositions != null)
+                {
+                    // Check for NPC-specific deck first
+                    DeckDefinitionDTO deckDef = null;
+                    if (deckCompositions.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey(npc.ID))
+                    {
+                        deckDef = deckCompositions.NpcDecks[npc.ID];
+                        Console.WriteLine($"[PackageLoader] Using custom request deck composition for {npc.Name}");
+                    }
+                    else if (deckCompositions.DefaultDeck != null)
+                    {
+                        deckDef = deckCompositions.DefaultDeck;
+                        Console.WriteLine($"[PackageLoader] Using default request deck composition for {npc.Name}");
+                    }
+
+                    if (deckDef?.RequestDeck != null && deckDef.RequestDeck.Count > 0)
+                    {
+                        // Add cards according to composition
+                        foreach (KeyValuePair<string, int> kvp in deckDef.RequestDeck)
+                        {
+                            string cardId = kvp.Key;
+                            int count = kvp.Value;
+
+                            if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
+                            {
+                                ConversationCard cardTemplate = _gameWorld.AllCardDefinitions[cardId] as ConversationCard;
+                                if (cardTemplate != null)
+                                {
+                                    // Add multiple copies as specified
+                                    for (int i = 0; i < count; i++)
+                                    {
+                                        requestCards.Add(cardTemplate);
+                                    }
+                                    Console.WriteLine($"[PackageLoader] Added {count}x '{cardId}' to {npc.Name}'s request deck");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[PackageLoader] Warning: Request card '{cardId}' not found in AllCardDefinitions");
+                            }
+                        }
+                    }
+                }
+
+                // Add NPC-specific goal cards if any exist (from npcGoalCards section)
                 if (npcGoalCards.ContainsKey(npc.ID))
                 {
                     requestCards.AddRange(npcGoalCards[npc.ID]);
