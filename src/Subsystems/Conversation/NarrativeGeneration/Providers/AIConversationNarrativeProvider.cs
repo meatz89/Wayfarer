@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
@@ -38,6 +39,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     
     /// <summary>
     /// Generates narrative content using AI and backwards construction.
+    /// Uses two-call AI architecture: first generates NPC dialogue, then card narratives.
     /// First analyzes cards to understand player options, then uses AI
     /// to generate contextually appropriate NPC dialogue and responses.
     /// </summary>
@@ -45,7 +47,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     /// <param name="npcData">NPC information for context</param>
     /// <param name="activeCards">Cards available to player</param>
     /// <returns>Generated narrative output with NPC dialogue and card responses</returns>
-    public NarrativeOutput GenerateNarrativeContent(
+    public async Task<NarrativeOutput> GenerateNarrativeContentAsync(
         ConversationState state,
         NPCData npcData,
         CardCollection activeCards)
@@ -53,35 +55,52 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         // Step 1: Use backwards construction to analyze cards
         CardAnalysis analysis = generator.AnalyzeActiveCards(activeCards);
         
-        // Step 2: Determine prompt type and build appropriate prompt
-        string prompt = DetermineAndBuildPrompt(state, npcData, activeCards, analysis);
+        // Step 2: Determine prompt type and build appropriate prompt for NPC dialogue
+        string npcPrompt = DetermineAndBuildPrompt(state, npcData, activeCards, analysis);
         
-        // Step 3: Generate content using AI with 5 second timeout
-        string aiResponse;
+        // Step 3: Generate NPC dialogue using AI with 5 second timeout
+        string npcResponse;
         try
         {
-            Task<string> aiTask = GenerateAIResponseAsync(prompt);
-            // Give AI generation up to 5 seconds (changed from 10)
-            if (aiTask.Wait(5000))
-            {
-                aiResponse = aiTask.Result;
-            }
-            else
-            {
-                // Timeout - use fallback
-                aiResponse = string.Empty;
-            }
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            npcResponse = await GenerateAIResponseAsync(npcPrompt, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Timeout - use fallback
+            npcResponse = string.Empty;
         }
         catch
         {
             // AI generation failed - use fallback
-            aiResponse = string.Empty;
+            npcResponse = string.Empty;
         }
         
-        // Step 4: Parse AI response into structured output
-        NarrativeOutput output = ParseAIResponse(aiResponse, activeCards, state);
+        // Step 4: Parse NPC response into structured output
+        NarrativeOutput output = ParseAIResponse(npcResponse, activeCards, state);
         
-        // Step 5: Validate and fill gaps if needed
+        // Step 5: If we have NPC dialogue, generate card narratives in second AI call
+        if (!string.IsNullOrEmpty(output.NPCDialogue))
+        {
+            string cardPrompt = promptBuilder.BuildBatchCardGenerationPrompt(state, npcData, activeCards, output.NPCDialogue);
+            
+            try
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                string cardResponse = await GenerateAIResponseAsync(cardPrompt, cts.Token);
+                ParseCardNarratives(cardResponse, output);
+            }
+            catch (OperationCanceledException)
+            {
+                // Timeout - card narratives will use fallback
+            }
+            catch
+            {
+                // AI generation failed - card narratives will use fallback
+            }
+        }
+        
+        // Step 6: Validate and fill gaps if needed
         return ValidateAndEnhanceOutput(output, state, npcData, activeCards, analysis);
     }
     
@@ -121,16 +140,53 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         return NarrativeProviderType.AIGenerated;
     }
     
-    private async Task<string> GenerateAIResponseAsync(string prompt)
+    private async Task<string> GenerateAIResponseAsync(string prompt, CancellationToken cancellationToken = default)
     {
         StringBuilder responseBuilder = new StringBuilder();
         
-        await foreach (string token in ollamaClient.StreamCompletionAsync(prompt))
+        await foreach (string token in ollamaClient.StreamCompletionAsync(prompt).WithCancellation(cancellationToken))
         {
             responseBuilder.Append(token);
         }
         
         return responseBuilder.ToString();
+    }
+    
+    /// <summary>
+    /// Parses the card narrative response from the second AI call and merges it into the output.
+    /// </summary>
+    /// <param name="jsonResponse">JSON response from batch card generation AI call</param>
+    /// <param name="output">NarrativeOutput to merge card narratives into</param>
+    private void ParseCardNarratives(string jsonResponse, NarrativeOutput output)
+    {
+        if (string.IsNullOrEmpty(jsonResponse))
+        {
+            return;
+        }
+        
+        try
+        {
+            var cardNarrativeOutput = ParseCardGenerationJSON(jsonResponse, null);
+            
+            // Merge card narratives into the main output
+            if (cardNarrativeOutput.CardNarratives != null)
+            {
+                foreach (var kvp in cardNarrativeOutput.CardNarratives)
+                {
+                    output.CardNarratives[kvp.Key] = kvp.Value;
+                }
+            }
+            
+            // Update progression hint if provided and not already set
+            if (!string.IsNullOrEmpty(cardNarrativeOutput.ProgressionHint) && string.IsNullOrEmpty(output.ProgressionHint))
+            {
+                output.ProgressionHint = cardNarrativeOutput.ProgressionHint;
+            }
+        }
+        catch
+        {
+            // JSON parsing failed - card narratives will use fallback
+        }
     }
     
     private NarrativeOutput ParseAIResponse(string aiResponse, CardCollection activeCards, ConversationState state)

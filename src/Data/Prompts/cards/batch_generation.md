@@ -12,7 +12,9 @@ EMOTIONAL CONTEXT:
 - Conversation Depth: {{topic_layer}}
 
 CARDS TO GENERATE:
-{{cards_detail}}
+{{#each cards}}
+- {{id}}: {{name}} (Focus: {{focus}}, Effect: {{effect}}, Difficulty: {{difficulty}}, Persistence: {{persistence}}, Category: {{narrativeCategory}})
+{{/each}}
 
 Generate one-sentence narratives that:
 1. All respond sensibly to "{{npc_dialogue}}"
@@ -23,7 +25,12 @@ Generate one-sentence narratives that:
 Generate JSON:
 {
   "card_narratives": {
-    {{card_narrative_template}}
+    {{#each cards}}
+    "{{id}}": {
+      "card_text": "One sentence that appears on card",
+      "approach_type": "Type of approach based on {{narrativeCategory}}"
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
   },
   "narrative_coherence": "Brief note on how all options work together"
 }

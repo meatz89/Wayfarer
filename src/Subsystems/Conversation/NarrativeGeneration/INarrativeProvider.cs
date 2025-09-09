@@ -9,12 +9,14 @@ public interface INarrativeProvider
     /// Generates narrative content based on current conversation state.
     /// Uses backwards construction: examines active cards to create NPC dialogue
     /// that all cards can respond to meaningfully.
+    /// PRINCIPLE: Always use async/await for I/O operations. Never block async code
+    /// with .Wait() or .Result as it causes deadlocks in ASP.NET Core.
     /// </summary>
     /// <param name="state">Current mechanical state of the conversation</param>
     /// <param name="npcData">Simplified NPC information for narrative generation</param>
     /// <param name="activeCards">Cards currently available for the player to use</param>
     /// <returns>Generated narrative content including NPC dialogue and card narratives</returns>
-    NarrativeOutput GenerateNarrativeContent(
+    Task<NarrativeOutput> GenerateNarrativeContentAsync(
         ConversationState state,
         NPCData npcData,
         CardCollection activeCards);

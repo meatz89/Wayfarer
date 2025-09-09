@@ -44,7 +44,7 @@ public class ConversationNarrativeService
             CardCollection cardCollection = BuildCardCollection(activeCards);
 
             // Generate narrative content
-            NarrativeOutput narrativeOutput = provider.GenerateNarrativeContent(
+            NarrativeOutput narrativeOutput = await provider.GenerateNarrativeContentAsync(
                 conversationState, 
                 npcData, 
                 cardCollection);

@@ -4,6 +4,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Collections.Concurrent;
+using System.Reflection;
 
 /// <summary>
 /// Builds prompts from templates for AI conversation generation.
@@ -17,6 +18,7 @@ public class PromptBuilder
     private readonly ConcurrentDictionary<string, string> templateCache = new ConcurrentDictionary<string, string>();
     private readonly Regex placeholderRegex = new Regex(@"\{\{([^}]+)\}\}", RegexOptions.Compiled);
     private readonly Regex conditionalRegex = new Regex(@"\{\{#if\s+([^}]+)\}\}(.*?)\{\{/if\}\}", RegexOptions.Compiled | RegexOptions.Singleline);
+    private readonly Regex eachLoopRegex = new Regex(@"\{\{#each\s+([^}]+)\}\}(.*?)\{\{/each\}\}", RegexOptions.Compiled | RegexOptions.Singleline);
     
     /// <summary>
     /// Initializes the prompt builder with content directory path.
@@ -126,12 +128,12 @@ public class PromptBuilder
     }
     
     /// <summary>
-    /// Processes a template by replacing placeholders and handling conditionals.
+    /// Processes a template by replacing placeholders and handling conditionals and loops.
     /// </summary>
     /// <param name="template">Template content with {{placeholders}}</param>
     /// <param name="placeholders">Dictionary of placeholder values</param>
     /// <returns>Processed template with placeholders replaced</returns>
-    private string ProcessTemplate(string template, Dictionary<string, string> placeholders)
+    private string ProcessTemplate(string template, Dictionary<string, object> placeholders)
     {
         var processed = template;
         
@@ -143,6 +145,9 @@ public class PromptBuilder
             processed = processed.Replace("{{base_system}}", baseSystemProcessed);
         }
         
+        // Handle each loops first (they can contain conditionals)
+        processed = ProcessEachLoops(processed, placeholders);
+        
         // Handle conditional blocks
         processed = ProcessConditionals(processed, placeholders);
         
@@ -153,12 +158,132 @@ public class PromptBuilder
     }
     
     /// <summary>
+    /// Processes each loops in templates like {{#each collection}}...{{/each}}.
+    /// </summary>
+    /// <param name="template">Template content</param>
+    /// <param name="placeholders">Placeholder values including collections</param>
+    /// <returns>Template with each loops processed</returns>
+    private string ProcessEachLoops(string template, Dictionary<string, object> placeholders)
+    {
+        return eachLoopRegex.Replace(template, match =>
+        {
+            var collectionName = match.Groups[1].Value.Trim();
+            var loopContent = match.Groups[2].Value;
+            
+            if (!placeholders.TryGetValue(collectionName, out object collectionObj))
+            {
+                return string.Empty; // Collection not found
+            }
+            
+            // Handle different collection types
+            if (collectionObj is System.Collections.IEnumerable collection && collectionObj is not string)
+            {
+                var result = new StringBuilder();
+                var items = collection.Cast<object>().ToArray();
+                
+                for (int i = 0; i < items.Length; i++)
+                {
+                    var item = items[i];
+                    var itemPlaceholders = CreateItemPlaceholders(item, i, items.Length);
+                    
+                    // Process the loop content for this item
+                    var processedContent = ProcessItemTemplate(loopContent, itemPlaceholders);
+                    result.Append(processedContent);
+                }
+                
+                return result.ToString();
+            }
+            
+            return string.Empty; // Not a valid collection
+        });
+    }
+    
+    /// <summary>
+    /// Creates placeholder dictionary for a single item in a loop.
+    /// </summary>
+    /// <param name="item">The current item in the loop</param>
+    /// <param name="index">The current index in the loop</param>
+    /// <param name="totalCount">Total number of items in the collection</param>
+    /// <returns>Dictionary of placeholders for this item</returns>
+    private Dictionary<string, object> CreateItemPlaceholders(object item, int index, int totalCount)
+    {
+        var itemPlaceholders = new Dictionary<string, object>
+        {
+            ["@index"] = index,
+            ["@first"] = index == 0,
+            ["@last"] = index == totalCount - 1,
+            ["@count"] = totalCount
+        };
+        
+        // Add item properties using reflection
+        if (item != null)
+        {
+            var itemType = item.GetType();
+            var properties = itemType.GetProperties();
+            
+            foreach (var prop in properties)
+            {
+                try
+                {
+                    var value = prop.GetValue(item);
+                    var key = char.ToLowerInvariant(prop.Name[0]) + prop.Name.Substring(1); // camelCase
+                    itemPlaceholders[key] = value ?? string.Empty;
+                }
+                catch
+                {
+                    // Skip properties that can't be read
+                }
+            }
+        }
+        
+        return itemPlaceholders;
+    }
+    
+    /// <summary>
+    /// Processes a template for a single item in a loop.
+    /// </summary>
+    /// <param name="template">The loop content template</param>
+    /// <param name="itemPlaceholders">Placeholders for this specific item</param>
+    /// <returns>Processed template for this item</returns>
+    private string ProcessItemTemplate(string template, Dictionary<string, object> itemPlaceholders)
+    {
+        var processed = template;
+        
+        // Handle {{#unless @last}} for commas
+        var unlessLastRegex = new Regex(@"\{\{#unless\s+@last\}\}(.*?)\{\{/unless\}\}", RegexOptions.Compiled | RegexOptions.Singleline);
+        processed = unlessLastRegex.Replace(processed, match =>
+        {
+            var content = match.Groups[1].Value;
+            var isLast = itemPlaceholders.TryGetValue("@last", out object lastValue) && 
+                        lastValue is bool lastBool && lastBool;
+            return isLast ? string.Empty : content;
+        });
+        
+        // Replace placeholders in the processed content
+        var placeholderRegex = new Regex(@"\{\{([^}]+)\}\}", RegexOptions.Compiled);
+        processed = placeholderRegex.Replace(processed, match =>
+        {
+            var placeholder = match.Groups[1].Value.Trim();
+            
+            if (itemPlaceholders.TryGetValue(placeholder, out object value))
+            {
+                return value?.ToString() ?? string.Empty;
+            }
+            
+            // Return placeholder unchanged if not found (for debugging)
+            return match.Value;
+        });
+        
+        return processed;
+    }
+    
+    /// <summary>
     /// Processes conditional blocks in templates like {{#if condition}}...{{/if}}.
     /// </summary>
     /// <param name="template">Template content</param>
     /// <param name="placeholders">Placeholder values for condition evaluation</param>
     /// <returns>Template with conditionals processed</returns>
-    private string ProcessConditionals(string template, Dictionary<string, string> placeholders)
+    private string ProcessConditionals(string template, Dictionary<string, object> placeholders)
     {
         return conditionalRegex.Replace(template, match =>
         {
@@ -183,18 +308,29 @@ public class PromptBuilder
     /// <param name="condition">Condition to evaluate</param>
     /// <param name="placeholders">Available placeholder values</param>
     /// <returns>True if condition is met</returns>
-    private bool EvaluateCondition(string condition, Dictionary<string, string> placeholders)
+    private bool EvaluateCondition(string condition, Dictionary<string, object> placeholders)
     {
         // Handle boolean conditions
-        if (placeholders.TryGetValue(condition, out string value))
+        if (placeholders.TryGetValue(condition, out object value))
         {
-            if (bool.TryParse(value, out bool boolValue))
+            if (value is bool boolValue)
             {
                 return boolValue;
             }
             
-            // Non-empty string is true
-            return !string.IsNullOrEmpty(value);
+            if (value is string stringValue)
+            {
+                if (bool.TryParse(stringValue, out bool parsedBool))
+                {
+                    return parsedBool;
+                }
+                
+                // Non-empty string is true
+                return !string.IsNullOrEmpty(stringValue);
+            }
+            
+            // Non-null object is true
+            return value != null;
         }
         
         return false;
@@ -206,15 +342,15 @@ public class PromptBuilder
     /// <param name="template">Template content</param>
     /// <param name="placeholders">Placeholder values</param>
     /// <returns>Template with placeholders replaced</returns>
-    private string ProcessPlaceholders(string template, Dictionary<string, string> placeholders)
+    private string ProcessPlaceholders(string template, Dictionary<string, object> placeholders)
     {
         return placeholderRegex.Replace(template, match =>
         {
             var placeholder = match.Groups[1].Value.Trim();
             
-            if (placeholders.TryGetValue(placeholder, out string value))
+            if (placeholders.TryGetValue(placeholder, out object value))
             {
-                return value;
+                return value?.ToString() ?? string.Empty;
             }
             
             // Return placeholder unchanged if not found (for debugging)
@@ -230,9 +366,9 @@ public class PromptBuilder
     /// <param name="cards">Card collection</param>
     /// <param name="analysis">Card analysis (can be null)</param>
     /// <returns>Dictionary of placeholder names to values</returns>
-    private Dictionary<string, string> ExtractPlaceholders(ConversationState state, NPCData npc, CardCollection cards, CardAnalysis analysis)
+    private Dictionary<string, object> ExtractPlaceholders(ConversationState state, NPCData npc, CardCollection cards, CardAnalysis analysis)
     {
-        var placeholders = new Dictionary<string, string>
+        var placeholders = new Dictionary<string, object>
         {
             // Mechanical values
             ["flow"] = state.Flow.ToString(),
@@ -272,7 +408,10 @@ public class PromptBuilder
             ["previous_conversations"] = "0", // Could be tracked
             ["time_of_day"] = "Unknown", // Could be added
             ["location"] = "Unknown", // Could be added
-            ["conversation_type"] = "standard" // Default value, can be overridden
+            ["conversation_type"] = "standard", // Default value, can be overridden
+            
+            // Collections for {{#each}} loops
+            ["cards"] = cards.Cards // Pass actual card objects for iteration
         };
         
         return placeholders;

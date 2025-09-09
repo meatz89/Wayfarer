@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 /// <summary>
 /// JSON-based narrative provider that serves as a fallback when AI providers are unavailable.
@@ -18,7 +19,7 @@ public class JsonNarrativeProvider : INarrativeProvider
     /// Generates narrative content by finding the best matching template and mapping cards.
     /// If no template found, creates smart mechanical fallbacks based on conversation state.
     /// </summary>
-    public NarrativeOutput GenerateNarrativeContent(
+    public Task<NarrativeOutput> GenerateNarrativeContentAsync(
         ConversationState state,
         NPCData npcData,
         CardCollection activeCards)
@@ -28,7 +29,7 @@ public class JsonNarrativeProvider : INarrativeProvider
         
         if (template == null)
         {
-            return CreateSmartFallbackOutput(state, npcData, activeCards);
+            return Task.FromResult(CreateSmartFallbackOutput(state, npcData, activeCards));
         }
 
         // Generate the output using the template
@@ -54,7 +55,7 @@ public class JsonNarrativeProvider : INarrativeProvider
         // Generate progression hint based on current state
         output.ProgressionHint = GenerateProgressionHint(state, npcData, template);
 
-        return output;
+        return Task.FromResult(output);
     }
 
     /// <summary>

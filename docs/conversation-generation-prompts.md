@@ -489,11 +489,28 @@ Rapport 16+ + Any cards: "I trust you. Here's the truth."
 
 ## Testing Validation
 
+### Technical Checks
 - All markdown templates have valid placeholder syntax
-- Fallback responses use only mechanical properties
 - No template exceeds token limits when filled
 - Each template generates valid JSON structure
 - Placeholders map to available game state
 - Fallback triggers reliably at 5 seconds
 - Mechanical properties always available for fallbacks
-- Templates maintain medieval fantasy tone
+
+### Content Quality Checks
+- NPCs speak directly to player (no narration)
+- No asterisks or action descriptions in dialogue
+- Card text is actual words player would say
+- Physical actions are specific, not abstract
+- No "in a X tone" descriptions
+- Templates maintain medieval fantasy setting
+- All responses work with available player cards
+- Impulse/Opening cards properly considered
+
+### Direct Dialogue Validation
+Test each response for:
+1. Does NPC speak TO the player, not about themselves?
+2. Are actions specific things player would notice?
+3. Is card text something player would actually say?
+4. No stage directions or meta-descriptions?
+5. Tone conveyed through words, not description?

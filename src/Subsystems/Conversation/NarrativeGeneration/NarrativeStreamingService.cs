@@ -109,7 +109,7 @@ public class NarrativeStreamingService
             yield break;
         }
 
-        NarrativeOutput output = provider.GenerateNarrativeContent(state, npcData, cards);
+        NarrativeOutput output = await provider.GenerateNarrativeContentAsync(state, npcData, cards);
 
         // Stream NPC dialogue first if available
         if (!string.IsNullOrWhiteSpace(output.NPCDialogue))
