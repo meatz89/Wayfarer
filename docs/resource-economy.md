@@ -2,7 +2,7 @@
 
 ## Core Economic Philosophy
 
-Every resource flows through multiple systems via different mechanics. Each mechanic has exactly ONE intentional effect. No thresholds (except flow ±3 for state transitions), no secondary effects, no "OR" statements. Resources create strategic depth through their multiple uses, not through complex mechanics.
+Every resource flows through multiple systems via different mechanics. Each mechanic has exactly ONE intentional effect. No thresholds (except flow transitions at state boundaries), no secondary effects, no "OR" statements. Resources create strategic depth through their multiple uses, not through complex mechanics.
 
 ## Primary Resources
 
@@ -68,7 +68,7 @@ Every resource flows through multiple systems via different mechanics. Each mech
 
 **Strategic Role**: Constant pressure that erodes other resources. Forces regular maintenance without hard blocking.
 
-### Location Familiarity (NEW)
+### Location Familiarity
 **Range**: 0-3 per location
 
 **Generation**:
@@ -142,27 +142,39 @@ Each use is a separate mechanic. Tokens never gate access to conversation types,
 
 **Strategic Role**: Primary success modifier within conversations. Early rapport building compounds success probability, creating momentum. Starting with tokens provides initial advantage.
 
-### Flow (Per-Conversation)
-**Range**: -3 to +3 within single conversation
-**Starting Value**: Always 0
+### Flow (Persistent)
+**Range**: 0-24 internal storage, displays as -3 to +3 battery in UI
+**Starting Value**: Varies by NPC (0 for Disconnected, 12 for Neutral, etc.)
 **Modification**: +1 on successful SPEAK, -1 on failed SPEAK
+**Persistence**: Maintains between conversations with same NPC
 
-**State Transitions at ±3**:
-- DESPERATE: +3→Tense, -3→Conversation ends
-- TENSE: +3→Neutral, -3→Desperate
-- NEUTRAL: +3→Open, -3→Tense
-- OPEN: +3→Connected, -3→Neutral
-- CONNECTED: +3→Stays Connected, -3→Open
+**State Mapping**:
+- **Disconnected**: Flow 0-4 (battery shows -3 to -1)
+- **Guarded**: Flow 5-9 (battery shows -2 to +2)
+- **Neutral**: Flow 10-14 (battery shows -2 to +2)
+- **Receptive**: Flow 15-19 (battery shows -2 to +2)
+- **Trusting**: Flow 20-24 (battery shows -2 to +2)
 
-**Strategic Role**: Pure success/failure counter that triggers connection state transitions. Creates predictable progression based on net successes, with randomness coming from success rates modified by rapport.
+**State Transitions**: Occur at flow boundaries (4/5, 9/10, 14/15, 19/20)
+
+**Day Transition**: Flow moves 1 point toward 12 at 6 AM daily
+
+**Strategic Role**: Persistent relationship tracker. Creates multi-conversation arcs and relationship history.
 
 ### Focus (Per-Conversation)
 **Capacity by Connection State**:
-- Desperate: 3
-- Tense: 4
+- Disconnected: 3
+- Guarded: 4
 - Neutral: 5
-- Open: 5
-- Connected: 6
+- Receptive: 5
+- Trusting: 6
+
+**Card Draws by Connection State**:
+- Disconnected: 3 cards
+- Guarded: 3 cards
+- Neutral: 3 cards
+- Receptive: 4 cards
+- Trusting: 4 cards
 
 **Mechanics**:
 - Refreshes to maximum on LISTEN
@@ -207,6 +219,10 @@ Each use is a separate mechanic. Tokens never gate access to conversation types,
 - Patient atmosphere: Actions cost 0
 
 **Effect**: Determines conversation length (1 patience per turn)
+
+**Persistence**: Maintains between conversations until day transition
+
+**Day Transition**: Refreshes to base value at 6 AM
 
 **Strategic Role**: Time limit for each conversation. Forces efficient play and tough decisions about when to push vs accept available options.
 
@@ -262,7 +278,7 @@ Six daily periods, each 4 hours:
 - Focus 0 (special SPEAK action to play)
 - Always persistent
 - Consumed when played
-- Can have state-changing effects (advance connection state, unlock exchanges)
+- Can set specific flow values (e.g., set flow to 10)
 
 **Gating**:
 - First observation: Requires familiarity 1+
@@ -271,7 +287,7 @@ Six daily periods, each 4 hours:
 
 **Strategic Role**: Bridge exploration and NPC relationships. Reward investigation with powerful conversation tools. Create essential preparation for difficult conversations.
 
-### NPC Observation Decks (NEW)
+### NPC Observation Decks
 **Special deck type** - holds observation cards for specific NPC
 
 **Properties**:
@@ -385,7 +401,7 @@ More capacity → Access to higher focus cards
 Higher focus cards → Bigger rapport changes
 More rapport → Better success rates
 Better success → Positive flow
-Flow ±3 → State transitions
+Flow at thresholds → State transitions
 ```
 
 ## Strategic Resource Management
@@ -463,7 +479,7 @@ Every resource scales linearly:
 - Each familiarity: enables exactly that observation level (with prior observations)
 - Each difficulty tier: specific base percentage
 
-Only exception: Flow ±3 triggers state transitions (necessary mechanical breakpoint).
+Only exception: Flow transitions at state boundaries (necessary mechanical breakpoints).
 
 ## Intentional Mechanic Design
 
@@ -494,7 +510,7 @@ All resource effects visible to player:
 - Time costs shown on routes
 - Attention formula transparent
 - Hunger effect on work shown
-- Flow position always visible (-3 to +3)
+- Flow position always visible (internal 0-24, displays -3 to +3)
 - Active atmosphere displayed prominently
 - Current rapport clearly shown
 - Familiarity level per location shown
@@ -538,16 +554,22 @@ No hidden calculations. Perfect information for strategic decisions.
 - Each familiarity level unlocks one observation (with prerequisites)
 
 ### Focus Management
-- Desperate (3 capacity): Can play three 1-focus or one 3-focus card
+- Disconnected (3 capacity): Can play three 1-focus or one 3-focus card
 - Neutral (5 capacity): Can play request cards if exactly 5 focus
-- Connected (6 capacity): Full flexibility for any combination
-- Prepared atmosphere: +1 enables request cards in Open state
+- Trusting (6 capacity): Full flexibility for any combination
+- Prepared atmosphere: +1 enables request cards in Receptive state
+
+### Day Transition Economics
+- Patience refreshes to base values (10-15 based on personality)
+- Flow moves 1 toward 12 (relationships normalize)
+- Attention refreshes to 10 - (Hunger ÷ 25)
+- Creates daily reset without full relationship loss
 
 ## Extensibility Through Resource Configuration
 
 New content uses same resources differently:
 
-**Desperate Scenario**: Low focus capacity creates severe limitations
+**Disconnected Scenario**: Low focus capacity creates severe limitations
 **Political Scenario**: Build Status tokens for better starting rapport with nobles
 **Merchant Campaign**: Commerce tokens essential for trade relationships and exchanges
 **Shadow Path**: Shadow tokens help with spy networks
@@ -566,6 +588,6 @@ Resources flow through multiple mechanics without any mechanic doing multiple th
 - Investigation builds familiarity (one mechanic) scaled by spot properties
 - Observations create NPC-specific advantages (one mechanic) gated by familiarity
 - Focus limits card plays (one mechanic) while atmosphere modifies capacity (different mechanic)
-- Flow tracks success/failure (one mechanic) while rapport modifies success chance (different mechanic)
+- Flow tracks relationship progress (one mechanic) persistently across conversations
 
 This creates strategic depth from simple, intentional rules. Every resource matters in multiple ways through different systems. The economy is the intersection of these mechanics, not their individual complexity.
