@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 public static class ServiceConfiguration
 {
@@ -62,7 +65,6 @@ public static class ServiceConfiguration
         services.AddSingleton<FocusManager>();
         services.AddSingleton<CardEffectProcessor>();
         services.AddSingleton<CardDeckManager>();
-        services.AddSingleton<DialogueGenerator>();
         services.AddSingleton<ExchangeHandler>();
         services.AddSingleton<ConversationOrchestrator>();
         services.AddSingleton<ConversationFacade>();
@@ -71,6 +73,41 @@ public static class ServiceConfiguration
 
         // Dialogue generation services (NO hardcoded text)
         services.AddSingleton<DialogueGenerationService>();
+
+        // Narrative Generation System (AI and JSON fallback)
+        // Infrastructure for Ollama
+        services.AddHttpClient<OllamaClient>(client =>
+        {
+            // Configuration will be injected via OllamaConfiguration
+            // Short timeout to prevent hanging when Ollama unavailable
+            client.Timeout = TimeSpan.FromSeconds(5);
+        });
+        services.AddSingleton<OllamaConfiguration>(serviceProvider =>
+        {
+            IConfiguration config = serviceProvider.GetRequiredService<IConfiguration>();
+            return new OllamaConfiguration
+            {
+                BaseUrl = config["Ollama:BaseUrl"],
+                Model = config["Ollama:Model"],
+                BackupModel = config["Ollama:BackupModel"]
+            };
+        });
+
+        // Narrative Generation Services
+        services.AddSingleton<NarrativeStreamingService>();
+        services.AddSingleton<JsonNarrativeRepository>();
+        services.AddSingleton<ConversationNarrativeService>();
+        
+        // AI Narrative Generation Support Components
+        services.AddSingleton<ConversationNarrativeGenerator>();
+        services.AddSingleton<PromptBuilder>();
+        
+        // Always register both providers as concrete types
+        services.AddSingleton<JsonNarrativeProvider>();
+        services.AddSingleton<AIConversationNarrativeProvider>();
+        
+        // NarrativeProviderFactory will handle selection based on config
+        services.AddSingleton<NarrativeProviderFactory>();
 
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();

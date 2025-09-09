@@ -169,7 +169,7 @@ namespace Wayfarer.Pages.Components
                     messageSystem.AddSystemMessage("You listen carefully...", SystemMessageTypes.Info);
                 }
 
-                ConversationFacade.ExecuteListen();
+                await ConversationFacade.ExecuteListen();
 
                 // Generate narrative for the action
                 GenerateListenNarrative();
@@ -388,9 +388,14 @@ namespace Wayfarer.Pages.Components
 
         private void GenerateSpeakNarrative(CardPlayResult result)
         {
-            // Generate narrative based on cards played and result
-            if (result.Results != null && result.Results.Any())
+            // Display what the player said through their card first
+            if (!string.IsNullOrEmpty(result.PlayerNarrative))
             {
+                LastNarrative = result.PlayerNarrative;
+            }
+            else if (result.Results != null && result.Results.Any())
+            {
+                // Fallback to generic narrative if no player narrative provided
                 int successCount = result.Results.Count(r => r.Success);
                 int totalCards = result.Results.Count;
 

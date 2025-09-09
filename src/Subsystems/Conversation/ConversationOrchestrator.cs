@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 /// <summary>
 /// Orchestrates the new conversation system with flow battery, atmosphere persistence, and single-card mechanics.
@@ -9,33 +10,33 @@ using System.Linq;
 public class ConversationOrchestrator
 {
     private readonly CardDeckManager _deckManager;
-    private readonly DialogueGenerator _dialogueGenerator;
     private readonly ObligationQueueManager _queueManager;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly FocusManager _focusManager;
     private readonly AtmosphereManager _atmosphereManager;
     private readonly CardEffectProcessor _effectProcessor;
     private readonly GameWorld _gameWorld;
+    private readonly ConversationNarrativeService _narrativeService;
     private FlowManager? _flowBatteryManager;
 
     public ConversationOrchestrator(
         CardDeckManager deckManager,
-        DialogueGenerator dialogueGenerator,
         ObligationQueueManager queueManager,
         TokenMechanicsManager tokenManager,
         FocusManager focusManager,
         AtmosphereManager atmosphereManager,
         CardEffectProcessor effectProcessor,
-        GameWorld gameWorld)
+        GameWorld gameWorld,
+        ConversationNarrativeService narrativeService)
     {
         _deckManager = deckManager ?? throw new ArgumentNullException(nameof(deckManager));
-        _dialogueGenerator = dialogueGenerator ?? throw new ArgumentNullException(nameof(dialogueGenerator));
         _queueManager = queueManager ?? throw new ArgumentNullException(nameof(queueManager));
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _focusManager = focusManager ?? throw new ArgumentNullException(nameof(focusManager));
         _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
         _effectProcessor = effectProcessor ?? throw new ArgumentNullException(nameof(effectProcessor));
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
     }
 
     /// <summary>
@@ -145,7 +146,7 @@ public class ConversationOrchestrator
     /// <summary>
     /// Process LISTEN action - refresh focus and draw cards
     /// </summary>
-    public ConversationTurnResult ProcessListenAction(ConversationSession session)
+    public async Task<ConversationTurnResult> ProcessListenAction(ConversationSession session)
     {
         if (session == null)
             throw new ArgumentNullException(nameof(session));
@@ -169,8 +170,12 @@ public class ConversationOrchestrator
         // Update card playability based on current focus
         _deckManager.UpdateCardPlayabilityBasedOnFocus(session);
 
-        // Generate NPC response
-        string npcResponse = _dialogueGenerator.GenerateListenResponse(session.NPC, session.CurrentState, drawnCards);
+        // Generate narrative using the narrative service
+        NarrativeOutput narrative = await _narrativeService.GenerateNarrativeAsync(
+            session, 
+            session.NPC, 
+            drawnCards);
+        string npcResponse = narrative.NPCDialogue;
 
         return new ConversationTurnResult
         {
@@ -185,7 +190,7 @@ public class ConversationOrchestrator
     /// <summary>
     /// Process SPEAK action with single card selection
     /// </summary>
-    public ConversationTurnResult ProcessSpeakAction(ConversationSession session, CardInstance selectedCard)
+    public async Task<ConversationTurnResult> ProcessSpeakAction(ConversationSession session, CardInstance selectedCard)
     {
         if (session == null)
             throw new ArgumentNullException(nameof(session));
@@ -233,13 +238,21 @@ public class ConversationOrchestrator
         // Update card playability based on current focus
         _deckManager.UpdateCardPlayabilityBasedOnFocus(session);
 
-        // Generate NPC response
-        string npcResponse = _dialogueGenerator.GenerateSpeakResponse(
+        // Generate NPC response through narrative service
+        List<CardInstance> activeCards = session.ActiveCards.Cards.ToList();
+        NarrativeOutput narrative = await _narrativeService.GenerateNarrativeAsync(
+            session,
             session.NPC,
-            session.CurrentState,
-            new HashSet<CardInstance> { selectedCard },
-            playResult,
-            flowChange);
+            activeCards);
+        
+        string npcResponse = narrative.NPCDialogue;
+        
+        // Store card-specific narratives for UI display
+        string playerNarrative = null;
+        if (narrative.CardNarratives != null && narrative.CardNarratives.ContainsKey(selectedCard.Id))
+        {
+            playerNarrative = narrative.CardNarratives[selectedCard.Id];
+        }
 
         ConversationTurnResult result = new ConversationTurnResult
         {
@@ -251,7 +264,8 @@ public class ConversationOrchestrator
             NewFlow = session.FlowBattery,
             PatienceRemaining = session.CurrentPatience,
             PlayedCards = new List<CardInstance> { selectedCard },
-            CardPlayResult = playResult
+            CardPlayResult = playResult,
+            PlayerNarrative = playerNarrative
         };
 
         // Mark conversation as ended if needed
@@ -404,7 +418,7 @@ public class ConversationOrchestrator
         return Math.Max(0, baseReward);
     }
 
-    public ConversationTurnResult ProcessSpeakAction(ConversationSession session, HashSet<CardInstance> selectedCards)
+    public async Task<ConversationTurnResult> ProcessSpeakAction(ConversationSession session, HashSet<CardInstance> selectedCards)
     {
         CardInstance? firstCard = selectedCards?.FirstOrDefault();
         if (firstCard == null)
@@ -412,7 +426,7 @@ public class ConversationOrchestrator
             throw new ArgumentException("Must select exactly one card to speak");
         }
 
-        return ProcessSpeakAction(session, firstCard);
+        return await ProcessSpeakAction(session, firstCard);
     }
 
     /// <summary>
@@ -446,14 +460,16 @@ public class ConversationOrchestrator
 
         session.TurnNumber++;
 
+        // Generate exchange response through narrative service
+        // For now, use simple responses until narrative service supports exchanges
         string npcResponse;
         if (accepted)
         {
-            npcResponse = _dialogueGenerator.GenerateExchangeAcceptedResponse(session.NPC, exchangeData);
+            npcResponse = $"{session.NPC.Name} accepts the exchange with gratitude.";
         }
         else
         {
-            npcResponse = _dialogueGenerator.GenerateExchangeDeclinedResponse(session.NPC);
+            npcResponse = $"{session.NPC.Name} politely declines the exchange.";
         }
 
         return new ConversationTurnResult

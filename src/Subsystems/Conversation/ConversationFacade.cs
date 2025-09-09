@@ -12,7 +12,6 @@ public class ConversationFacade
     private readonly GameWorld _gameWorld;
     private readonly ConversationOrchestrator _orchestrator;
     private readonly CardDeckManager _deckManager;
-    private readonly DialogueGenerator _dialogueGenerator;
     private readonly ExchangeHandler _exchangeHandler;
     private readonly FocusManager _focusManager;
     private readonly AtmosphereManager _atmosphereManager;
@@ -33,7 +32,6 @@ public class ConversationFacade
         GameWorld gameWorld,
         ConversationOrchestrator orchestrator,
         CardDeckManager deckManager,
-        DialogueGenerator dialogueGenerator,
         ExchangeHandler exchangeHandler,
         FocusManager focusManager,
         AtmosphereManager atmosphereManager,
@@ -48,7 +46,6 @@ public class ConversationFacade
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
         _deckManager = deckManager ?? throw new ArgumentNullException(nameof(deckManager));
-        _dialogueGenerator = dialogueGenerator ?? throw new ArgumentNullException(nameof(dialogueGenerator));
         _exchangeHandler = exchangeHandler ?? throw new ArgumentNullException(nameof(exchangeHandler));
         _focusManager = focusManager ?? throw new ArgumentNullException(nameof(focusManager));
         _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
@@ -167,7 +164,7 @@ public class ConversationFacade
     /// <summary>
     /// Process a conversation action (LISTEN or SPEAK)
     /// </summary>
-    public ConversationTurnResult ProcessAction(ConversationAction action)
+    public async Task<ConversationTurnResult> ProcessAction(ConversationAction action)
     {
         if (!IsConversationActive())
         {
@@ -178,11 +175,11 @@ public class ConversationFacade
 
         if (action.ActionType == ActionType.Listen)
         {
-            result = _orchestrator.ProcessListenAction(_currentSession);
+            result = await _orchestrator.ProcessListenAction(_currentSession);
         }
         else if (action.ActionType == ActionType.Speak)
         {
-            result = _orchestrator.ProcessSpeakAction(_currentSession, action.SelectedCards);
+            result = await _orchestrator.ProcessSpeakAction(_currentSession, action.SelectedCards);
 
             // Handle special card effects
             HandleSpecialCardEffects(action.SelectedCards, result);
@@ -447,14 +444,14 @@ public class ConversationFacade
     /// <summary>
     /// Execute LISTEN action in current conversation
     /// </summary>
-    public void ExecuteListen()
+    public async Task ExecuteListen()
     {
         if (!IsConversationActive())
         {
             throw new InvalidOperationException("No active conversation");
         }
 
-        ConversationTurnResult result = ProcessAction(new ConversationAction
+        ConversationTurnResult result = await ProcessAction(new ConversationAction
         {
             ActionType = ActionType.Listen,
             SelectedCards = new HashSet<CardInstance>()
@@ -488,7 +485,7 @@ public class ConversationFacade
         // Create a HashSet with single card for ProcessAction (will be refactored later)
         HashSet<CardInstance> singleCardSet = new HashSet<CardInstance> { selectedCard };
 
-        ConversationTurnResult result = ProcessAction(new ConversationAction
+        ConversationTurnResult result = await ProcessAction(new ConversationAction
         {
             ActionType = ActionType.Speak,
             SelectedCards = singleCardSet
@@ -516,7 +513,8 @@ public class ConversationFacade
             EagerBonus = 0,
             DeliveredLetter = false,
             ManipulatedObligations = false,
-            LetterNegotiations = new List<LetterNegotiationResult>()
+            LetterNegotiations = new List<LetterNegotiationResult>(),
+            PlayerNarrative = result.PlayerNarrative
         };
 
         return cardPlayResult;

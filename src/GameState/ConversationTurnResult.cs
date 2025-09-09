@@ -14,6 +14,7 @@ public class ConversationTurnResult
     public List<CardInstance> PlayedCards { get; set; }
     public CardPlayResult CardPlayResult { get; set; }
     public bool ExchangeAccepted { get; set; }
+    public string PlayerNarrative { get; set; }  // What the player said through their card
 
     public ConversationTurnResult()
     {

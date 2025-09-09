@@ -56,6 +56,7 @@
         "connectionType": "Trust",
         "description": "Have a friendly conversation",
         "difficulty": "Easy",
+        "rapportThreshold": 10,
         "successEffect": {
           "type": "GainToken",
           "value": "1",
@@ -371,7 +372,7 @@
         "personality": "Desperate about Lord Blackwood's marriage proposal - he leaves at sunset",
         "personalityType": "DEVOTED",
         "letterTokenTypes": ["Trust"],
-        "currentState": "DESPERATE",
+        "currentState": "DISCONNECTED",
         "patience": 15,
         "initialTokens": {
           "Trust": 0
@@ -468,7 +469,7 @@
         "name": "Noble District",
         "description": "Quiet streets lined with grand estates, heavily guarded",
         "tier": 2,
-        "locationType": "Elite",
+        "locationType": "Palace",
         "travelHubSpotId": "gate_entrance",
         "baseFamiliarity": 0,
         "maxFamiliarity": 3
@@ -478,7 +479,7 @@
         "name": "Warehouse District",
         "description": "Rows of warehouses storing goods from across the realm",
         "tier": 1,
-        "locationType": "Commercial",
+        "locationType": "Market",
         "travelHubSpotId": "warehouse_entrance",
         "baseFamiliarity": 0,
         "maxFamiliarity": 3

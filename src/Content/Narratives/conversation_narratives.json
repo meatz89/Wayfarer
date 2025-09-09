@@ -1,0 +1,204 @@
+{
+  "narrativeTemplates": [
+    {
+      "id": "elena_disconnected_low",
+      "conditions": {
+        "npcId": "elena",
+        "flowMin": 0,
+        "flowMax": 4,
+        "rapportMin": -50,
+        "rapportMax": 5
+      },
+      "npcDialogue": "I appreciate your concern, but this is something I need to handle myself.",
+      "narrativeText": "Elena looks away, her fingers nervously tracing the rim of her tea cup. Her shoulders are tense despite her polite words.",
+      "cardMappings": {
+        "default": "You consider your response carefully.",
+        "risk": "Perhaps there's another way to approach this.",
+        "support": "I understand how you feel.",
+        "pressure": "This is more serious than you realize.",
+        "probe": "What exactly are you trying to handle?"
+      }
+    },
+    {
+      "id": "elena_disconnected_medium",
+      "conditions": {
+        "npcId": "elena",
+        "flowMin": 0,
+        "flowMax": 4,
+        "rapportMin": 6,
+        "rapportMax": 15
+      },
+      "npcDialogue": "The wedding preparations continue despite everything. Uncle does his best, but he's too ill to really intervene.",
+      "narrativeText": "She glances toward the stairs leading to the upper floor, worry evident in her expression.",
+      "cardMappings": {
+        "default": "You watch her carefully.",
+        "risk": "There must be someone who can help.",
+        "support": "Your uncle cares about you - that's clear.",
+        "pressure": "Time is running out if you want to stop this.",
+        "probe": "How ill is your uncle exactly?"
+      }
+    },
+    {
+      "id": "elena_neutral_low",
+      "conditions": {
+        "npcId": "elena",
+        "flowMin": 5,
+        "flowMax": 14,
+        "rapportMin": -50,
+        "rapportMax": 5
+      },
+      "npcDialogue": "Lord Blackwood's letters arrive daily now. The tone has become... increasingly insistent.",
+      "narrativeText": "She pulls a crumpled letter from her pocket, her hands trembling slightly as she smooths it out.",
+      "cardMappings": {
+        "default": "You lean forward to listen.",
+        "risk": "What kind of insistence?",
+        "support": "That sounds frightening.",
+        "pressure": "Show me the letter.",
+        "probe": "When is the wedding supposed to happen?"
+      }
+    },
+    {
+      "id": "elena_neutral_medium",
+      "conditions": {
+        "npcId": "elena",
+        "flowMin": 5,
+        "flowMax": 14,
+        "rapportMin": 6,
+        "rapportMax": 15
+      },
+      "npcDialogue": "Lord Blackwood sent another letter today. The wedding preparations are moving forward despite my protests.",
+      "narrativeText": "She pulls a crumpled letter from her pocket, her hands trembling slightly. There's desperation in her eyes.",
+      "cardMappings": {
+        "default": "You watch her carefully.",
+        "risk": "We need to find a way to delay things.",
+        "support": "I'm here to help however I can.",
+        "pressure": "Your protests clearly aren't working.",
+        "probe": "What do the letters say exactly?"
+      }
+    },
+    {
+      "id": "elena_neutral_high",
+      "conditions": {
+        "npcId": "elena",
+        "flowMin": 5,
+        "flowMax": 14,
+        "rapportMin": 16,
+        "rapportMax": 50
+      },
+      "npcDialogue": "I've written a letter refusing the marriage. If someone could deliver it to Lord Blackwood before he leaves the city...",
+      "narrativeText": "Her voice trails off, hope and fear warring in her expression. She looks directly at you, waiting.",
+      "cardMappings": {
+        "default": "You consider the request.",
+        "risk": "I can deliver it personally.",
+        "support": "That's brave of you to take a stand.",
+        "pressure": "When does he leave?",
+        "probe": "What happens if he receives the letter?"
+      }
+    },
+    {
+      "id": "elena_receptive_medium",
+      "conditions": {
+        "npcId": "elena",
+        "flowMin": 15,
+        "flowMax": 19,
+        "rapportMin": 6,
+        "rapportMax": 15
+      },
+      "npcDialogue": "There are ways out of the city that avoid the main checkpoints. Merchant caravans, supply routes... if one knew where to look.",
+      "narrativeText": "She speaks quietly, as if sharing a secret. Her eyes dart around the tavern before settling back on you.",
+      "cardMappings": {
+        "default": "You nod encouragingly.",
+        "risk": "I could help you escape.",
+        "support": "You've been planning this for a while.",
+        "pressure": "Why haven't you used these routes already?",
+        "probe": "Tell me more about these routes."
+      }
+    },
+    {
+      "id": "elena_trusting_high",
+      "conditions": {
+        "npcId": "elena",
+        "flowMin": 20,
+        "flowMax": 24,
+        "rapportMin": 16,
+        "rapportMax": 50
+      },
+      "npcDialogue": "I trust you completely. If you're willing to carry my letter to Lord Blackwood, I'll give you everything I know about leaving the city safely.",
+      "narrativeText": "She reaches across the table and grasps your hand. Her grip is firm, her gaze steady despite the tears in her eyes.",
+      "cardMappings": {
+        "default": "You meet her gaze steadily.",
+        "risk": "I'll do whatever it takes to help you.",
+        "support": "You don't have to face this alone.",
+        "pressure": "We need to act quickly.",
+        "probe": "What exactly do you know about the escape routes?"
+      }
+    },
+    {
+      "id": "generic_low_rapport",
+      "conditions": {
+        "npcId": null,
+        "flowMin": 0,
+        "flowMax": 24,
+        "rapportMin": -50,
+        "rapportMax": 0
+      },
+      "npcDialogue": "I'm not sure we have much to discuss.",
+      "narrativeText": "The conversation feels strained, with careful words and guarded expressions.",
+      "cardMappings": {
+        "default": "You try to find common ground.",
+        "risk": "Perhaps we can help each other.",
+        "support": "I understand if you're cautious.",
+        "pressure": "We should be direct with each other.",
+        "probe": "What would it take to earn your trust?"
+      }
+    },
+    {
+      "id": "generic_neutral",
+      "conditions": {
+        "npcId": null,
+        "flowMin": 0,
+        "flowMax": 24,
+        "rapportMin": 1,
+        "rapportMax": 10
+      },
+      "npcDialogue": "These are interesting times we're living in.",
+      "narrativeText": "The conversation has a polite but distant quality, like strangers making small talk.",
+      "cardMappings": {
+        "default": "You nod politely.",
+        "risk": "Interesting is one way to put it.",
+        "support": "Change can be difficult.",
+        "pressure": "What kind of interesting?",
+        "probe": "How have these times affected you?"
+      }
+    },
+    {
+      "id": "generic_friendly",
+      "conditions": {
+        "npcId": null,
+        "flowMin": 0,
+        "flowMax": 24,
+        "rapportMin": 11,
+        "rapportMax": 50
+      },
+      "npcDialogue": "It's good to have someone to talk with honestly.",
+      "narrativeText": "There's warmth in the conversation, a sense of genuine connection forming.",
+      "cardMappings": {
+        "default": "You smile genuinely.",
+        "risk": "Honesty is rare these days.",
+        "support": "I feel the same way.",
+        "pressure": "What's been weighing on your mind?",
+        "probe": "Tell me more about what you're thinking."
+      }
+    }
+  ],
+  "defaultResponses": {
+    "cardCategories": {
+      "risk": "You take a calculated risk.",
+      "support": "You offer your support.",
+      "pressure": "You press the issue.",
+      "probe": "You probe for more information.",
+      "atmosphere": "You shift the conversation's tone.",
+      "utility": "You gather your thoughts."
+    }
+  }
+}
