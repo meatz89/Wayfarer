@@ -68,11 +68,11 @@ public class JsonNarrativeProvider : INarrativeProvider
     }
 
     /// <summary>
-    /// Returns the provider name for debugging and logging.
+    /// Gets the provider type for identifying this provider.
     /// </summary>
-    public string GetProviderName()
+    public NarrativeProviderType GetProviderType()
     {
-        return "JSON Fallback";
+        return NarrativeProviderType.JsonFallback;
     }
 
     /// <summary>

@@ -28,8 +28,8 @@ public interface INarrativeProvider
     Task<bool> IsAvailableAsync();
     
     /// <summary>
-    /// Gets the display name of this provider for debugging and logging.
+    /// Gets the provider type for identifying this provider.
     /// </summary>
-    /// <returns>Human-readable provider name</returns>
-    string GetProviderName();
+    /// <returns>Provider type enum value</returns>
+    NarrativeProviderType GetProviderType();
 }

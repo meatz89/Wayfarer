@@ -32,4 +32,10 @@ public class NarrativeOutput
     /// Can be null if no hint is appropriate for the current state.
     /// </summary>
     public string ProgressionHint { get; set; }
+    
+    /// <summary>
+    /// Identifies which provider generated this narrative content.
+    /// Used to apply different visual styling in the UI.
+    /// </summary>
+    public NarrativeProviderType ProviderSource { get; set; } = NarrativeProviderType.JsonFallback;
 }

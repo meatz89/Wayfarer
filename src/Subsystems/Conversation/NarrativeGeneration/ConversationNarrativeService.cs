@@ -36,7 +36,7 @@ public class ConversationNarrativeService
             // Get provider from factory - properly await async operation
             Console.WriteLine("[ConversationNarrativeService] Getting provider from factory...");
             INarrativeProvider provider = await _providerFactory.GetProviderAsync();
-            Console.WriteLine($"[ConversationNarrativeService] Got provider: {provider?.GetProviderName() ?? "null"}");
+            Console.WriteLine($"[ConversationNarrativeService] Got provider: {provider?.GetProviderType().ToString() ?? "null"}");
 
             // Convert game models to narrative models
             ConversationState conversationState = BuildConversationState(session);
@@ -48,6 +48,9 @@ public class ConversationNarrativeService
                 conversationState, 
                 npcData, 
                 cardCollection);
+            
+            // Add provider source for UI styling
+            narrativeOutput.ProviderSource = provider.GetProviderType();
 
             return narrativeOutput;
         }

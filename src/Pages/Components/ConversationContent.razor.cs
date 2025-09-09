@@ -77,6 +77,12 @@ namespace Wayfarer.Pages.Components
         protected string NpcName { get; set; }
         protected string LastNarrative { get; set; }
         protected string LastDialogue { get; set; }
+        protected NarrativeProviderType LastProviderSource { get; set; } = NarrativeProviderType.JsonFallback; // Default to fallback
+        
+        protected string GetNarrativeClass()
+        {
+            return LastProviderSource == NarrativeProviderType.AIGenerated ? "ai-generated" : "json-fallback";
+        }
         // Letter generation is handled by ConversationManager based on connection state
 
         // Removed dead dialogue/narrative caching - JSON files don't exist
@@ -178,6 +184,7 @@ namespace Wayfarer.Pages.Components
                     // Use AI-generated dialogue and narrative
                     LastNarrative = listenResult.Narrative.NarrativeText ?? "You listen attentively...";
                     LastDialogue = listenResult.Narrative.NPCDialogue;
+                    LastProviderSource = listenResult.Narrative.ProviderSource;
                 }
                 else
                 {
@@ -446,6 +453,7 @@ namespace Wayfarer.Pages.Components
                     {
                         LastNarrative = narrative.NarrativeText ?? "The conversation begins...";
                         LastDialogue = narrative.NPCDialogue;
+                        LastProviderSource = narrative.ProviderSource;
                         return;
                     }
                 }

@@ -113,12 +113,12 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     }
     
     /// <summary>
-    /// Gets the display name of this provider for debugging and logging.
+    /// Gets the provider type for identifying this provider.
     /// </summary>
-    /// <returns>Human-readable provider name</returns>
-    public string GetProviderName()
+    /// <returns>Provider type enum value</returns>
+    public NarrativeProviderType GetProviderType()
     {
-        return "AI (Ollama)";
+        return NarrativeProviderType.AIGenerated;
     }
     
     private async Task<string> GenerateAIResponseAsync(string prompt)

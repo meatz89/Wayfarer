@@ -102,7 +102,7 @@ public class NarrativeStreamingService
         {
             yield return new NarrativeChunk
             {
-                Text = $"[{provider.GetProviderName()} is not available]",
+                Text = $"[{provider.GetProviderType()} is not available]",
                 IsComplete = true,
                 IsDialogue = false
             };

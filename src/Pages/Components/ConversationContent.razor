@@ -79,13 +79,13 @@
     <div class="narrative-section">
         @if (!string.IsNullOrEmpty(LastNarrative))
         {
-            <div class="narrative-text">
+            <div class="narrative-text @GetNarrativeClass()">
                 @LastNarrative
             </div>
         }
         @if (!string.IsNullOrEmpty(LastDialogue))
         {
-            <div class="npc-dialogue @GetStateClass()">
+            <div class="npc-dialogue @GetStateClass() @GetNarrativeClass()">
                 "@LastDialogue"
             </div>
         }

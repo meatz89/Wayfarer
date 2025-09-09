@@ -879,3 +879,68 @@
     color: #5a7a3a;
     font-style: italic;
 }
+/* ==================== AI-Generated Content Styling ==================== */
+/* Visually distinguishes AI-generated narrative from JSON fallback */
+
+/* AI-Generated content - more natural, flowing appearance */
+.narrative-text.ai-generated,
+.npc-dialogue.ai-generated {
+    position: relative;
+    background: linear-gradient(135deg, #faf4ea 0%, #f5ede0 100%);
+    border-left: 3px solid #8a7a6a;
+}
+
+.narrative-text.ai-generated::before,
+.npc-dialogue.ai-generated::before {
+    content: "AI";
+    position: absolute;
+    top: -8px;
+    right: 10px;
+    padding: 2px 6px;
+    background: #8a7a6a;
+    color: #faf4ea;
+    font-size: 9px;
+    font-weight: bold;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* JSON Fallback content - more structured, template-like appearance */
+.narrative-text.json-fallback,
+.npc-dialogue.json-fallback {
+    position: relative;
+    background: #f5f0e8;
+    border-left: 3px solid #6a7a8a;
+}
+
+.narrative-text.json-fallback::before,
+.npc-dialogue.json-fallback::before {
+    content: "TEMPLATE";
+    position: absolute;
+    top: -8px;
+    right: 10px;
+    padding: 2px 6px;
+    background: #6a7a8a;
+    color: #faf4ea;
+    font-size: 9px;
+    font-weight: bold;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Subtle animation for AI content to indicate dynamic generation */
+.narrative-text.ai-generated,
+.npc-dialogue.ai-generated {
+    animation: aiGlow 3s ease-in-out infinite;
+}
+
+@keyframes aiGlow {
+    0%, 100% {
+        box-shadow: 0 2px 4px rgba(138, 122, 106, 0.1);
+    }
+    50% {
+        box-shadow: 0 2px 8px rgba(138, 122, 106, 0.2);
+    }
+}
