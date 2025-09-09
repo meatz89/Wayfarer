@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
@@ -52,16 +53,16 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         // Step 1: Use backwards construction to analyze cards
         CardAnalysis analysis = generator.AnalyzeActiveCards(activeCards);
         
-        // Step 2: Build prompt with context and analysis
-        string prompt = promptBuilder.BuildConversationPrompt(state, npcData, activeCards, analysis);
+        // Step 2: Determine prompt type and build appropriate prompt
+        string prompt = DetermineAndBuildPrompt(state, npcData, activeCards, analysis);
         
-        // Step 3: Generate content using AI
+        // Step 3: Generate content using AI with 5 second timeout
         string aiResponse;
         try
         {
             Task<string> aiTask = GenerateAIResponseAsync(prompt);
-            // Give AI generation up to 10 seconds
-            if (aiTask.Wait(10000))
+            // Give AI generation up to 5 seconds (changed from 10)
+            if (aiTask.Wait(5000))
             {
                 aiResponse = aiTask.Result;
             }
@@ -78,7 +79,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         }
         
         // Step 4: Parse AI response into structured output
-        NarrativeOutput output = ParseAIResponse(aiResponse, activeCards);
+        NarrativeOutput output = ParseAIResponse(aiResponse, activeCards, state);
         
         // Step 5: Validate and fill gaps if needed
         return ValidateAndEnhanceOutput(output, state, npcData, activeCards, analysis);
@@ -130,7 +131,163 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         return responseBuilder.ToString();
     }
     
-    private NarrativeOutput ParseAIResponse(string aiResponse, CardCollection activeCards)
+    private NarrativeOutput ParseAIResponse(string aiResponse, CardCollection activeCards, ConversationState state)
+    {
+        NarrativeOutput output = new NarrativeOutput
+        {
+            CardNarratives = new Dictionary<string, string>()
+        };
+        
+        // If no AI response, return empty output for fallback handling
+        if (string.IsNullOrEmpty(aiResponse))
+        {
+            return output;
+        }
+        
+        try
+        {
+            // Parse as JSON based on conversation state
+            if (state.TotalTurns == 0)
+            {
+                // Introduction JSON format
+                return ParseIntroductionJSON(aiResponse, activeCards);
+            }
+            else
+            {
+                // Try parsing as dialogue JSON first, then fall back to card generation JSON
+                return ParseDialogueJSON(aiResponse, activeCards) ?? ParseCardGenerationJSON(aiResponse, activeCards);
+            }
+        }
+        catch
+        {
+            // JSON parsing failed - try legacy text parsing as fallback
+            return ParseLegacyTextResponse(aiResponse, activeCards);
+        }
+    }
+    
+    /// <summary>
+    /// Determines which prompt template to use and builds the appropriate prompt.
+    /// </summary>
+    private string DetermineAndBuildPrompt(ConversationState state, NPCData npcData, CardCollection activeCards, CardAnalysis analysis)
+    {
+        if (state.TotalTurns == 0)
+        {
+            // First turn - use introduction prompt
+            return promptBuilder.BuildIntroductionPrompt(state, npcData, activeCards, analysis);
+        }
+        else
+        {
+            // Subsequent turns - use dialogue prompt for LISTEN actions with conversation history
+            return promptBuilder.BuildDialoguePrompt(state, npcData, activeCards, analysis, state.ConversationHistory);
+        }
+    }
+    
+    /// <summary>
+    /// Parses introduction JSON response format.
+    /// </summary>
+    private NarrativeOutput ParseIntroductionJSON(string jsonResponse, CardCollection activeCards)
+    {
+        var jsonDoc = JsonDocument.Parse(jsonResponse);
+        var root = jsonDoc.RootElement;
+        
+        var output = new NarrativeOutput
+        {
+            CardNarratives = new Dictionary<string, string>()
+        };
+        
+        if (root.TryGetProperty("introduction", out JsonElement intro))
+        {
+            output.NPCDialogue = intro.GetString();
+        }
+        
+        if (root.TryGetProperty("body_language", out JsonElement bodyLang))
+        {
+            output.NarrativeText = bodyLang.GetString();
+        }
+        
+        if (root.TryGetProperty("emotional_tone", out JsonElement emotionalTone))
+        {
+            output.ProgressionHint = emotionalTone.GetString();
+        }
+        
+        // For introduction, we still need to generate card narratives separately
+        // This will be handled by the batch card generation in a separate AI call
+        
+        return output;
+    }
+    
+    /// <summary>
+    /// Parses dialogue JSON response format.
+    /// </summary>
+    private NarrativeOutput ParseDialogueJSON(string jsonResponse, CardCollection activeCards)
+    {
+        var jsonDoc = JsonDocument.Parse(jsonResponse);
+        var root = jsonDoc.RootElement;
+        
+        var output = new NarrativeOutput
+        {
+            CardNarratives = new Dictionary<string, string>()
+        };
+        
+        if (root.TryGetProperty("dialogue", out JsonElement dialogue))
+        {
+            output.NPCDialogue = dialogue.GetString();
+        }
+        else if (root.TryGetProperty("npc_dialogue", out JsonElement npcDialogue))
+        {
+            output.NPCDialogue = npcDialogue.GetString();
+        }
+        
+        if (root.TryGetProperty("emotional_tone", out JsonElement emotionalTone))
+        {
+            output.NarrativeText = emotionalTone.GetString();
+        }
+        
+        if (root.TryGetProperty("topic_progression", out JsonElement topicProgression))
+        {
+            output.ProgressionHint = topicProgression.GetString();
+        }
+        
+        return output;
+    }
+    
+    /// <summary>
+    /// Parses batch card generation JSON response format.
+    /// </summary>
+    private NarrativeOutput ParseCardGenerationJSON(string jsonResponse, CardCollection activeCards)
+    {
+        var jsonDoc = JsonDocument.Parse(jsonResponse);
+        var root = jsonDoc.RootElement;
+        
+        var output = new NarrativeOutput
+        {
+            CardNarratives = new Dictionary<string, string>()
+        };
+        
+        if (root.TryGetProperty("card_narratives", out JsonElement cardNarratives))
+        {
+            foreach (var cardProp in cardNarratives.EnumerateObject())
+            {
+                string cardId = cardProp.Name;
+                if (cardProp.Value.TryGetProperty("card_text", out JsonElement cardText))
+                {
+                    output.CardNarratives[cardId] = cardText.GetString();
+                }
+            }
+        }
+        
+        if (root.TryGetProperty("narrative_coherence", out JsonElement coherence))
+        {
+            output.ProgressionHint = coherence.GetString();
+        }
+        
+        return output;
+    }
+    
+    /// <summary>
+    /// Fallback parser for legacy text format responses.
+    /// </summary>
+    private NarrativeOutput ParseLegacyTextResponse(string aiResponse, CardCollection activeCards)
     {
         NarrativeOutput output = new NarrativeOutput
         {

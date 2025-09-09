@@ -107,8 +107,49 @@ public class ConversationNarrativeService
             CurrentState = session.CurrentState,
             CurrentTopicLayer = currentLayer,
             HighestTopicLayerReached = currentLayer, // Will need session tracking for persistence
-            TotalTurns = session.TurnNumber
+            TotalTurns = session.TurnNumber,
+            ConversationHistory = BuildConversationHistory(session.TurnHistory)
         };
+    }
+    
+    /// <summary>
+    /// Converts conversation turn history to strings for AI narrative generation.
+    /// </summary>
+    /// <param name="turnHistory">List of conversation turns</param>
+    /// <returns>List of formatted conversation history strings</returns>
+    private List<string> BuildConversationHistory(List<ConversationTurn> turnHistory)
+    {
+        List<string> history = new List<string>();
+        
+        foreach (ConversationTurn turn in turnHistory)
+        {
+            // Format each turn as a readable conversation entry
+            if (turn.ActionType == ActionType.Listen)
+            {
+                // Listen turns - show NPC dialogue
+                if (!string.IsNullOrEmpty(turn.Narrative?.NPCDialogue))
+                {
+                    history.Add($"NPC: \"{turn.Narrative.NPCDialogue}\"");
+                }
+            }
+            else if (turn.ActionType == ActionType.Speak)
+            {
+                // Speak turns - show what card was played
+                if (turn.CardPlayed != null)
+                {
+                    string cardDescription = turn.CardPlayed.Description ?? turn.CardPlayed.Id;
+                    history.Add($"Player: {cardDescription}");
+                    
+                    // Also include NPC's response if available
+                    if (!string.IsNullOrEmpty(turn.Narrative?.NPCDialogue))
+                    {
+                        history.Add($"NPC: \"{turn.Narrative.NPCDialogue}\"");
+                    }
+                }
+            }
+        }
+        
+        return history;
     }
     
     /// <summary>

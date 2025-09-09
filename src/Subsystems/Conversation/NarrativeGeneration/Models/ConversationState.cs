@@ -71,4 +71,10 @@ public class ConversationState
     /// Used for pacing and variety.
     /// </summary>
     public int TotalTurns { get; set; } = 0;
+    
+    /// <summary>
+    /// Previous turns in this conversation for context.
+    /// Contains NPC dialogue and player actions to provide AI with conversation flow.
+    /// </summary>
+    public List<string> ConversationHistory { get; set; } = new List<string>();
 }
