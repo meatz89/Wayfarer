@@ -6,7 +6,7 @@ The POC demonstrates all three core game loops through a single critical path: a
 
 ## Core Design
 
-**The Puzzle**: Players naturally try to help desperate Elena or earn coins for the Noble Quarter checkpoint. Both approaches fail. The solution requires building Market Square familiarity through investigation, discovering knowledge that helps specific NPCs, and managing resources with perfect precision.
+**The Puzzle**: Players naturally try to help Elena in Disconnected state or earn coins for the Noble Quarter checkpoint. Both approaches fail. The solution requires building Market Square familiarity through investigation, discovering knowledge that helps specific NPCs, and managing resources with perfect precision.
 
 **The Discovery**: Every seemingly inefficient action (investigating twice, buying food before working, building infrastructure before the main quest) is actually essential. The optimal path emerges through understanding system interactions.
 
@@ -31,7 +31,7 @@ The POC demonstrates all three core game loops through a single critical path: a
 
 ### Elena (Copper Kettle Tavern, Corner Table)
 - **Personality**: Devoted (15 base patience)
-- **Starting State**: Disconnected (3 focus, 1 card draw)
+- **Starting Flow**: 0 (Disconnected state: 3 focus, 3 card draws)
 - **Availability**: Always present (lives upstairs, helps uncle)
 - **Persistent Decks**:
   - Conversation: 20 standard cards
@@ -39,11 +39,11 @@ The POC demonstrates all three core game loops through a single critical path: a
   - Observation: Receives "Safe Passage Knowledge" from Market Square
   - Burden: Empty
   - Exchange: None (not mercantile)
-- **Special Mechanic**: Playing "Safe Passage Knowledge" immediately advances her to Neutral state
+- **Special Mechanic**: Playing "Safe Passage Knowledge" immediately sets her flow to 10 (Neutral state)
 
 ### Marcus (Market Square, Merchant Row)
 - **Personality**: Mercantile (12 base patience)
-- **Starting State**: Neutral
+- **Starting Flow**: 12 (Neutral state)
 - **Availability**: Always during market hours
 - **Cannot Leave**: Merchandise would be stolen
 - **Persistent Decks**:
@@ -56,7 +56,7 @@ The POC demonstrates all three core game loops through a single critical path: a
 
 ### Lord Blackwood (Noble Quarter, Blackwood Manor)
 - **Personality**: Proud (10 base patience)
-- **Starting State**: Neutral
+- **Starting Flow**: 12 (Neutral state)
 - **Availability**: Until 5:00 PM sharp
 - **Quick Delivery**: Elena's noble seal ensures formal respect (1 attention conversation)
 
@@ -124,7 +124,7 @@ The POC demonstrates all three core game loops through a single critical path: a
 **Safe Passage Knowledge**
 - **Source**: Market Square first observation
 - **Destination**: Elena's observation deck
-- **Effect**: Immediately advances Elena to Neutral state
+- **Effect**: Sets Elena's flow to 10 (Neutral state)
 - **Focus Cost**: 0 (special SPEAK action)
 - **Consumed**: Yes
 
@@ -139,7 +139,7 @@ The POC demonstrates all three core game loops through a single critical path: a
 
 **Elena's Urgent Letter**
 - **Type**: Letter request in Elena's request deck
-- **Focus**: 5 (requires Neutral state or Prepared atmosphere)
+- **Focus**: 5 (requires Neutral state or Guarded with Prepared atmosphere)
 - **Difficulty**: Very Hard (40% base)
 - **Success**: Creates delivery obligation to Lord Blackwood
 - **Failure**: Adds burden card to Elena
@@ -235,7 +235,9 @@ The POC demonstrates all three core game loops through a single critical path: a
     - Time: 2:45 PM
 
 13. **Converse with Elena** (2 attention)
-    - Play "Safe Passage Knowledge" (advances to Neutral)
+    - Elena starts at flow 0 (Disconnected: 3 focus, 3 cards drawn)
+    - Play "Safe Passage Knowledge" (sets flow to 10, now Neutral: 5 focus)
+    - LISTEN to refresh focus to 5
     - Accept letter at 5 focus capacity
     - Time: 3:10 PM
 
@@ -254,7 +256,7 @@ The POC demonstrates all three core game loops through a single critical path: a
 ## Why Every Other Path Fails
 
 ### Rush to Elena First
-Without "Safe Passage Knowledge", her Disconnected state (3 focus, 1 draw) makes reaching the 5-focus request mathematically improbable.
+Without "Safe Passage Knowledge", her Disconnected state (flow 0, 3 focus, 3 draws) makes reaching the 5-focus request mathematically improbable. Would need 10 net successes to reach flow 10 naturally.
 
 ### Investigate Only Once
 First investigation gives +2 familiarity, allowing first observation. But second observation requires familiarity 2+, impossible without second investigation.
@@ -306,13 +308,18 @@ Morning investigation gives +2 familiarity (efficient). Afternoon gives only +1 
 - Market Square: 0→2 (morning) →3 (afternoon)
 - Enables two observations at correct thresholds
 
+### Flow Progression
+- Elena starts: Flow 0 (Disconnected)
+- After observation card: Flow 10 (Neutral)
+- Request becomes playable at 5 focus capacity
+
 ## Key Design Achievements
 
 ### Perfect Resource Tension
 Every resource is exactly sufficient with optimal play. One mistake in ordering or resource management causes failure.
 
 ### Discovery Through Failure
-Players naturally try obvious approaches (help Elena, earn coins) and fail, learning the systems through experimentation.
+Players naturally try obvious approaches (help Elena at flow 0, earn coins) and fail, learning the systems through experimentation.
 
 ### Istanbul-Style Elegance
 Investigation efficiency depends on timing (morning Quiet vs afternoon Busy), creating meaningful decisions about when to act.
@@ -321,11 +328,11 @@ Investigation efficiency depends on timing (morning Quiet vs afternoon Busy), cr
 Every element serves the solution. The checkpoint exists but costs too much. Every NPC and location matters.
 
 ### Narrative Coherence
-Every mechanic makes story sense: Elena calms when learning escape routes, Marcus trusts established partners, workers perform better when fed.
+Every mechanic makes story sense: Elena calms when learning escape routes (flow jumps to 10), Marcus trusts established partners, workers perform better when fed.
 
 ## Testing Checklist
 
-1. **Elena inaccessible without preparation**: Disconnected state too difficult
+1. **Elena inaccessible without preparation**: Disconnected state (flow 0) too difficult
 2. **Checkpoint truly impossible**: 20 coins unattainable
 3. **Food purchase necessary**: Work output insufficient without
 4. **Both observations required**: First for Elena, second for Marcus
@@ -336,7 +343,7 @@ Every mechanic makes story sense: Elena calms when learning escape routes, Marcu
 
 ## Failure States
 
-- **Elena conversation fails**: No Safe Passage Knowledge
+- **Elena conversation fails**: No Safe Passage Knowledge to jump flow
 - **Cannot afford caravan**: Skipped food or wrong work timing
 - **Caravan locked**: Missing Commerce tokens or route card
 - **Miss deadline**: Inefficient routing or too many attempts
@@ -352,5 +359,6 @@ This POC structure supports:
 - Time-of-day dependent investigations
 - Burden card resolution mechanics
 - Multiple simultaneous obligations
+- Flow management across multiple NPCs
 
 The tight resource constraints and precise ordering demonstrate mastery of all three core loops while maintaining narrative coherence and mechanical elegance.
