@@ -930,6 +930,42 @@
     letter-spacing: 0.5px;
 }
 
+/* Card text AI/Template flags */
+.card-text.ai-generated::before {
+    content: "AI";
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    padding: 2px 6px;
+    background: #8a7a6a;
+    color: #faf4ea;
+    font-size: 9px;
+    font-weight: bold;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-text.json-fallback::before {
+    content: "TEMPLATE";
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    padding: 2px 6px;
+    background: #6a7a8a;
+    color: #faf4ea;
+    font-size: 9px;
+    font-weight: bold;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Ensure card-text has relative positioning for flag placement */
+.card-text {
+    position: relative;
+}
+
 /* Loading state for narrative while AI is generating */
 .narrative-text.narrative-loading,
 .npc-dialogue.narrative-loading {

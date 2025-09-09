@@ -241,7 +241,7 @@
                                 </div>
                                 @if (card.Context != null)
                                 {
-                                    <div class="card-text">
+                                    <div class="card-text @GetNarrativeClass()">
                                         @GetCardText(card)
                                     </div>
                                     <div class="exchange-visual">
@@ -293,7 +293,7 @@
                                         <div class="card-name">@GetProperCardName(convCard)</div>
                                         <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
                                     </div>
-                                    <div class="card-text">
+                                    <div class="card-text @GetNarrativeClass()">
                                         "@GetProperCardDialogue(convCard)"
                                     </div>
                                 </div>
@@ -313,7 +313,7 @@
                                     <div class="card-header">
                                         <div class="card-name">@GetProperCardName(convCard)</div>
                                     </div>
-                                    <div class="card-text">
+                                    <div class="card-text @GetNarrativeClass()">
                                         "@GetProperCardDialogue(convCard)"
                                     </div>
                                 </div>
@@ -354,7 +354,7 @@
                                         <div class="card-name">@GetProperCardName(convCard)</div>
                                         <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
                                     </div>
-                                    <div class="card-text">
+                                    <div class="card-text @GetNarrativeClass()">
                                         "@GetProperCardDialogue(convCard)"
                                     </div>
                                 @{
