@@ -38,6 +38,7 @@ namespace Wayfarer.Pages.Components
 
         [Inject] protected ConversationFacade ConversationFacade { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected ConversationNarrativeService NarrativeService { get; set; }
 
         protected ConversationSession Session { get; set; }
         protected CardInstance? SelectedCard { get; set; } = null;
@@ -130,9 +131,8 @@ namespace Wayfarer.Pages.Components
                 Session = Context.Session;
                 NpcName = Context.Npc?.Name ?? "Unknown";
 
-                // Generate initial narrative
-                LastNarrative = "The conversation begins...";
-                LastDialogue = GetInitialDialogue();
+                // Generate initial narrative using AI if available
+                await GenerateInitialNarrative();
             }
             catch (Exception ex)
             {
@@ -171,15 +171,17 @@ namespace Wayfarer.Pages.Components
 
                 ConversationTurnResult listenResult = await ConversationFacade.ExecuteListen();
 
-                // Use narrative from the result
-                if (listenResult?.Narrative != null)
+                // Use AI-generated narrative from the result
+                if (listenResult?.Narrative != null && 
+                    !string.IsNullOrWhiteSpace(listenResult.Narrative.NPCDialogue))
                 {
+                    // Use AI-generated dialogue and narrative
                     LastNarrative = listenResult.Narrative.NarrativeText ?? "You listen attentively...";
-                    LastDialogue = listenResult.Narrative.NPCDialogue ?? GetStateTransitionDialogue(Session.CurrentState);
+                    LastDialogue = listenResult.Narrative.NPCDialogue;
                 }
                 else
                 {
-                    // Fallback if no narrative
+                    // Fallback to simple generated narrative when AI unavailable
                     GenerateListenNarrative();
                 }
 
@@ -263,28 +265,40 @@ namespace Wayfarer.Pages.Components
                 ConversationTurnResult turnResult = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
                 CardPlayResult result = turnResult?.CardPlayResult;
 
-                // Use narrative from turn result
+                // Use AI-generated narrative from turn result
                 if (turnResult?.Narrative != null)
                 {
-                    // Get the player's narrative for the card they played
+                    // First check for card-specific narrative
                     if (turnResult.Narrative.CardNarratives != null && 
-                        turnResult.Narrative.CardNarratives.ContainsKey(playedCard.Id))
+                        turnResult.Narrative.CardNarratives.ContainsKey(playedCard.Id) &&
+                        !string.IsNullOrWhiteSpace(turnResult.Narrative.CardNarratives[playedCard.Id]))
                     {
                         LastNarrative = turnResult.Narrative.CardNarratives[playedCard.Id];
                     }
-                    else if (!string.IsNullOrEmpty(turnResult.Narrative.NarrativeText))
+                    // Then check for general narrative text
+                    else if (!string.IsNullOrWhiteSpace(turnResult.Narrative.NarrativeText))
                     {
                         LastNarrative = turnResult.Narrative.NarrativeText;
                     }
+                    // Finally fall back to simple generated narrative
                     else
                     {
-                        // Fallback to generated narrative
                         ProcessSpeakResult(result);
+                    }
+                    
+                    // Use AI NPC dialogue if available
+                    if (!string.IsNullOrWhiteSpace(turnResult.Narrative.NPCDialogue))
+                    {
+                        LastDialogue = turnResult.Narrative.NPCDialogue;
+                    }
+                    else if (result?.NewState != null)
+                    {
+                        LastDialogue = GetStateTransitionDialogue(result.NewState.Value);
                     }
                 }
                 else
                 {
-                    // Fallback to generated narrative
+                    // Fallback to simple generated narrative when AI unavailable
                     ProcessSpeakResult(result);
                 }
                 StateHasChanged(); // Show the narrative text
@@ -410,6 +424,40 @@ namespace Wayfarer.Pages.Components
                 // Letter generation is handled by ConversationManager based on connection state
                 // Special cards that force letter generation are handled in ConversationManager.HandleSpecialCardEffectsAsync()
             }
+        }
+
+        private async Task GenerateInitialNarrative()
+        {
+            try
+            {
+                // Try to get AI-generated initial narrative
+                if (Session != null && Context?.Npc != null && NarrativeService != null)
+                {
+                    // Get the active cards for the initial state
+                    List<CardInstance> activeCards = Session.HandCards?.ToList() ?? new List<CardInstance>();
+                    
+                    // Request initial narrative from the narrative service
+                    NarrativeOutput narrative = await NarrativeService.GenerateNarrativeAsync(
+                        Session,
+                        Context.Npc,
+                        activeCards);
+                    
+                    if (narrative != null && !string.IsNullOrWhiteSpace(narrative.NPCDialogue))
+                    {
+                        LastNarrative = narrative.NarrativeText ?? "The conversation begins...";
+                        LastDialogue = narrative.NPCDialogue;
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ConversationContent] Failed to generate initial AI narrative: {ex.Message}");
+            }
+            
+            // Fallback to simple generated narrative
+            LastNarrative = "The conversation begins...";
+            LastDialogue = GetInitialDialogue();
         }
 
         private void GenerateListenNarrative()
