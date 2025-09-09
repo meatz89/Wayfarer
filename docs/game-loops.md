@@ -14,21 +14,21 @@ The three core game loops answer fundamental design questions while maintaining 
 ### Mechanical Framework
 
 **The Conversation Puzzle**:
-1. Connection States determine focus capacity (3-6) and card draws (1-3)
+1. Connection States determine focus capacity (3-6) and card draws (3-4)
 2. Focus persists across SPEAK actions, refreshes on LISTEN
-3. Flow (-3 to +3) tracks success/failure, triggers state transitions at extremes
+3. Flow (0-24 internal, displays -3 to +3) tracks success/failure, transitions at thresholds
 4. Rapport (-50 to +50) modifies all success rates linearly (+2% per point)
 5. Atmosphere persists until changed or failure occurs
 6. One card per SPEAK action creates authentic dialogue rhythm
 
 **Connection States**:
-- **Disconnected**: 3 focus capacity, 1 card draw
-- **Guarded**: 4 focus capacity, 2 card draws
-- **Neutral**: 5 focus capacity, 2 card draws
-- **Receptive**: 5 focus capacity, 3 card draws
-- **Trusting**: 6 focus capacity, 3 card draws
+- **Disconnected**: Flow 0-4, 3 focus capacity, 3 card draws
+- **Guarded**: Flow 5-9, 4 focus capacity, 3 card draws
+- **Neutral**: Flow 10-14, 5 focus capacity, 3 card draws
+- **Receptive**: Flow 15-19, 5 focus capacity, 4 card draws
+- **Trusting**: Flow 20-24, 6 focus capacity, 4 card draws
 
-At -3 flow in Disconnected: Conversation ends immediately.
+Flow below 0: Conversation ends immediately.
 
 **NPC Persistent Decks**:
 Each NPC maintains five persistent decks:
@@ -77,7 +77,13 @@ When draw pile empties, shuffle exhaust pile to create new draw pile. This creat
 - Mixed into draw pile at conversation start
 - Playing them costs one SPEAK action but 0 focus
 - Consumed after use
-- Can advance connection states or unlock exchanges
+- Can set specific flow values or unlock exchanges
+
+**Conversation Persistence**:
+- Flow persists between conversations with same NPC
+- Connection state persists based on flow value
+- Patience with player persists until day transition
+- Rapport resets to token value each conversation
 
 Starting rapport (equal to connection tokens) determines initial success chance, making established relationships easier to navigate.
 
@@ -204,7 +210,7 @@ Personality influences which requests are available:
 - Cards created go to predetermined NPCs' observation decks
 - Represent location knowledge meaningful to specific NPCs
 - Mixed into draw pile when conversing with relevant NPC
-- Can unlock exchanges, change connection states, or provide unique effects
+- Can set flow values, change connection states, or provide unique effects
 
 ### Travel Encounters
 
@@ -263,6 +269,19 @@ Deadlines create cascading decisions:
 - Tight deadline → Need displacement → Burn tokens → Lower future starting rapport
 - Or: Rush to complete → Skip relationship building → Miss better letters
 
+### Day Transition Mechanics
+
+At 6 AM each day:
+- **Patience Refresh**: All NPCs reset patience with player to base values
+- **Flow Smoothing**: Each NPC's flow moves 1 point toward 12 (neutral center)
+  - Flow 0-11: +1 flow (moves toward Neutral)
+  - Flow 13-24: -1 flow (moves toward Neutral)
+  - Flow 12: No change
+- **Connection State Update**: Recalculated based on new flow value
+- **Attention Refresh**: Reset to 10 - (Hunger ÷ 25)
+
+This creates natural relationship normalization over time without full resets.
+
 ## Mechanical Interconnections
 
 ### How Loops Create Problems for Each Other
@@ -312,7 +331,7 @@ Deadlines create cascading decisions:
 - Timing impulse cards before they're discarded
 - Setting beneficial atmosphere before critical plays
 - Building rapport early for success momentum
-- Managing flow to avoid unwanted transitions
+- Managing flow to reach state thresholds
 - Whether to play request immediately when available
 - Which spot to investigate from for best familiarity gain
 - Whether to displace queue position
@@ -340,6 +359,10 @@ Deadlines create cascading decisions:
 - **Building observation advantages for specific NPCs**
 - **Developing permit collection for route flexibility**
 - **Balancing token preservation vs queue efficiency**
+- **Managing flow positions across multiple NPCs**
+  - Flow persists between conversations
+  - Daily smoothing moves flow toward neutral
+  - Strategic timing of difficult conversations
 
 ## No Soft-Lock Architecture
 
@@ -348,7 +371,7 @@ Each loop provides escape valves:
 **Conversation deadlocks**:
 - Focus 1 cards always playable with minimum capacity (3)
 - Can LISTEN to refresh focus
-- Can leave and return later
+- Can leave and return later (flow persists)
 - Patient atmosphere removes patience cost
 - Observation cards in NPC decks provide unique solutions
 
@@ -371,6 +394,7 @@ New NPCs simply need:
 - Five persistent decks (conversation, request, observation, burden, exchange)
 - Token rewards for successful deliveries
 - Which observations go to their observation deck
+- Starting flow value (0-24)
 
 ### Adding Locations
 New locations simply need:
@@ -402,10 +426,12 @@ The player experiences:
 
 **Evening**: Complete deliveries, gain tokens, see deck evolution results
 
+**Next Day**: Relationships have smoothed toward neutral, patience refreshed, new opportunities
+
 Each session creates unique stories through mechanical interaction:
-- Elena desperate about forced marriage (needs observation card to calm)
-- Marcus calculating profit margins (Commerce tokens unlock caravan)  
-- Guard Captain suspicious of bribes (Shadow tokens help initial trust)
+- Elena at flow 2 (Disconnected) needs observation card to reach flow 10 (Neutral)
+- Marcus at flow 12 (Neutral) calculating profit margins (Commerce tokens unlock caravan)  
+- Guard Captain at flow 8 (Guarded) suspicious of bribes (Shadow tokens help initial trust)
 
 These emerge from mechanical state, not scripted events.
 
@@ -413,16 +439,16 @@ These emerge from mechanical state, not scripted events.
 
 The three loops create a complete game where:
 
-1. **Conversations** provide puzzle challenge through focus management, rapport building, and flow navigation, enhanced by observation cards in NPC decks
+1. **Conversations** provide puzzle challenge through focus management, rapport building, and flow navigation with persistent states
 2. **Queue** provides time pressure through forced sequential completion and token-burning displacement
 3. **Travel** provides exploration through location familiarity, investigation timing, and observation discoveries
 
 Each loop uses different mechanics that operate on shared resources:
 - Tokens provide starting rapport, creating easier conversations with investment
 - Familiarity provides observations, creating NPC advantages through exploration
-- Only gained through delivery success and investigation respectively
+- Flow persists between conversations, creating relationship continuity
 - Time pressure affects all three but manifests differently
 - Attention enables all three but must be allocated strategically
 - Rapport creates success momentum unique to conversations
 
-The elegance is that no mechanic serves two purposes, yet resources flow through multiple systems creating strategic depth from simple rules. Starting rapport from tokens creates natural relationship progression. Location familiarity from investigation creates exploration progression. The game is the intersection, not the individual loops.
+The elegance is that no mechanic serves two purposes, yet resources flow through multiple systems creating strategic depth from simple rules. Starting rapport from tokens creates natural relationship progression. Location familiarity from investigation creates exploration progression. Persistent flow creates relationship history. The game is the intersection, not the individual loops.
