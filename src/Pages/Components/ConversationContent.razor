@@ -98,9 +98,9 @@
             <!-- Quick Exchanges: Select a card then SPEAK to accept it -->
             <div class="turn-indicator">Select an exchange card to trade</div>
             <div class="action-choices">
-                <div class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsProcessing)">
+                <div class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsGeneratingNarrative)">
                     <div>TRADE</div>
-                    <div class="action-details">@GetSpeakDetails()</div>
+                    <div class="action-details">@(IsGeneratingNarrative ? "Generating narrative..." : GetSpeakDetails())</div>
                 </div>
                 <div class="action-button exit-button" @onclick="ExitConversation">
                     <div>EXIT</div>
@@ -111,13 +111,13 @@
         else if (!IsConversationExhausted)
         {
             <div class="action-choices">
-                <div class="action-button @(ShowListenPreview ? "preview-active" : "")" 
+                <div class="action-button @(ShowListenPreview ? "preview-active" : "") @(IsGeneratingNarrative ? "disabled" : "")" 
                      @onclick="ExecuteListen" 
                      @onmouseenter="ShowListenPreviewHandler" 
                      @onmouseleave="HidePreviewHandler" 
-                     disabled="@IsProcessing">
+                     disabled="@IsGeneratingNarrative">
                     <div>LISTEN</div>
-                    <div class="action-details">@GetListenActionText()</div>
+                    <div class="action-details">@(IsGeneratingNarrative ? "Generating narrative..." : GetListenActionText())</div>
                     @if (ShowListenPreview)
                     {
                         <div class="action-preview listen-preview">
@@ -125,13 +125,13 @@
                         </div>
                     }
                 </div>
-                <div class="action-button @(ShowSpeakPreview ? "preview-active" : "")" 
+                <div class="action-button @(ShowSpeakPreview ? "preview-active" : "") @(!CanSpeak() || IsGeneratingNarrative ? "disabled" : "")" 
                      @onclick="ExecuteSpeak" 
                      @onmouseenter="ShowSpeakPreviewHandler" 
                      @onmouseleave="HidePreviewHandler" 
-                     disabled="@(!CanSpeak() || IsProcessing)">
+                     disabled="@(!CanSpeak() || IsGeneratingNarrative)">
                     <div>SPEAK</div>
-                    <div class="action-details">@GetSpeakActionText()</div>
+                    <div class="action-details">@(IsGeneratingNarrative ? "Generating narrative..." : GetSpeakActionText())</div>
                     @if (ShowSpeakPreview)
                     {
                         <div class="action-preview speak-preview">

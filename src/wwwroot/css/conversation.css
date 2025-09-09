@@ -930,10 +930,27 @@
     letter-spacing: 0.5px;
 }
 
+/* Loading state for narrative while AI is generating */
+.narrative-text.narrative-loading,
+.npc-dialogue.narrative-loading {
+    opacity: 0.8;
+    animation: narrativeLoading 2s ease-in-out infinite;
+}
+
+@keyframes narrativeLoading {
+    0%, 100% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
 /* Subtle animation for AI content to indicate dynamic generation */
 .narrative-text.ai-generated,
 .npc-dialogue.ai-generated {
     animation: aiGlow 3s ease-in-out infinite;
+    transition: opacity 0.3s ease-in, background 0.3s ease-in;
 }
 
 @keyframes aiGlow {

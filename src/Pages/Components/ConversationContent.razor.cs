@@ -43,7 +43,6 @@ namespace Wayfarer.Pages.Components
         protected ConversationSession Session { get; set; }
         protected CardInstance? SelectedCard { get; set; } = null;
         protected int TotalSelectedFocus => SelectedCard?.Focus ?? 0;
-        protected bool IsProcessing { get; set; }
         protected bool IsConversationExhausted { get; set; } = false;
         protected string ExhaustionReason { get; set; } = "";
 
@@ -79,8 +78,16 @@ namespace Wayfarer.Pages.Components
         protected string LastDialogue { get; set; }
         protected NarrativeProviderType LastProviderSource { get; set; } = NarrativeProviderType.JsonFallback; // Default to fallback
         
+        // AI narrative generation state
+        protected bool IsGeneratingNarrative { get; set; } = false;
+        protected Dictionary<string, string> CurrentCardNarratives { get; set; } = new Dictionary<string, string>();
+        protected NarrativeOutput CurrentNarrativeOutput { get; set; }
+        private Task<NarrativeOutput> _initialNarrativeTask = null;
+        
         protected string GetNarrativeClass()
         {
+            if (IsGeneratingNarrative)
+                return "json-fallback narrative-loading";
             return LastProviderSource == NarrativeProviderType.AIGenerated ? "ai-generated" : "json-fallback";
         }
         // Letter generation is handled by ConversationManager based on connection state
@@ -150,9 +157,29 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteListen()
         {
-            if (IsProcessing || Session == null) return;
+            if (Session == null) return;
+            
+            // If initial narrative is still generating, wait for it instead of triggering new generation
+            if (_initialNarrativeTask != null && !_initialNarrativeTask.IsCompleted)
+            {
+                Console.WriteLine("[ConversationContent.ExecuteListen] Waiting for initial narrative to complete...");
+                NarrativeOutput initialNarrative = await _initialNarrativeTask;
+                
+                if (initialNarrative != null)
+                {
+                    Console.WriteLine($"[ConversationContent.ExecuteListen] Using initial narrative. Card narratives: {initialNarrative.CardNarratives?.Count ?? 0}");
+                    // Apply the narratives that were generated initially
+                    ApplyNarrativeOutput(initialNarrative);
+                    StateHasChanged();
+                }
+                
+                // Clear the task so we don't reuse it again
+                _initialNarrativeTask = null;
+            }
+            
+            // Return early if AI is still generating (shouldn't happen after await above)
+            if (IsGeneratingNarrative) return;
 
-            IsProcessing = true;
             SelectedCard = null;
 
             // Store current cards before listen for animation tracking
@@ -177,19 +204,26 @@ namespace Wayfarer.Pages.Components
 
                 ConversationTurnResult listenResult = await ConversationFacade.ExecuteListen();
 
-                // Use AI-generated narrative from the result
-                if (listenResult?.Narrative != null && 
-                    !string.IsNullOrWhiteSpace(listenResult.Narrative.NPCDialogue))
+                // Only generate new narrative if we didn't already use the initial one
+                if (_initialNarrativeTask == null)
                 {
-                    // Use AI-generated dialogue and narrative
-                    LastNarrative = listenResult.Narrative.NarrativeText ?? "You listen attentively...";
-                    LastDialogue = listenResult.Narrative.NPCDialogue;
-                    LastProviderSource = listenResult.Narrative.ProviderSource;
+                    // Use AI-generated narrative from the result
+                    if (listenResult?.Narrative != null && 
+                        !string.IsNullOrWhiteSpace(listenResult.Narrative.NPCDialogue))
+                    {
+                        Console.WriteLine("[ConversationContent.ExecuteListen] Applying new narrative from listen result");
+                        // Apply the complete narrative output including card narratives
+                        ApplyNarrativeOutput(listenResult.Narrative);
+                    }
+                    else
+                    {
+                        // Fallback to simple generated narrative when AI unavailable
+                        GenerateListenNarrative();
+                    }
                 }
                 else
                 {
-                    // Fallback to simple generated narrative when AI unavailable
-                    GenerateListenNarrative();
+                    Console.WriteLine("[ConversationContent.ExecuteListen] Skipping narrative generation - already applied initial narrative");
                 }
 
                 // Track newly drawn cards for slide-in animation
@@ -226,16 +260,13 @@ namespace Wayfarer.Pages.Components
             }
             finally
             {
-                IsProcessing = false;
                 StateHasChanged();
             }
         }
 
         protected async Task ExecuteSpeak()
         {
-            if (IsProcessing || Session == null || SelectedCard == null) return;
-
-            IsProcessing = true;
+            if (IsGeneratingNarrative || Session == null || SelectedCard == null) return;
 
             try
             {
@@ -411,7 +442,6 @@ namespace Wayfarer.Pages.Components
             }
             finally
             {
-                IsProcessing = false;
                 StateHasChanged();
             }
         }
@@ -435,6 +465,18 @@ namespace Wayfarer.Pages.Components
 
         private async Task GenerateInitialNarrative()
         {
+            // Set fallback immediately for instant display
+            LastNarrative = "The conversation begins...";
+            LastDialogue = GetInitialDialogue();
+            LastProviderSource = NarrativeProviderType.JsonFallback;
+            StateHasChanged(); // Update UI with fallback
+            
+            // Start the AI generation task but don't await it yet
+            _initialNarrativeTask = GenerateInitialNarrativeAsync();
+        }
+        
+        private async Task<NarrativeOutput> GenerateInitialNarrativeAsync()
+        {
             try
             {
                 // Try to get AI-generated initial narrative
@@ -443,18 +485,25 @@ namespace Wayfarer.Pages.Components
                     // Get the active cards for the initial state
                     List<CardInstance> activeCards = Session.HandCards?.ToList() ?? new List<CardInstance>();
                     
+                    // Start AI generation
+                    IsGeneratingNarrative = true;
+                    StateHasChanged(); // Update UI to show loading state
+                    
+                    Console.WriteLine("[ConversationContent] Starting initial AI narrative generation...");
+                    
                     // Request initial narrative from the narrative service
                     NarrativeOutput narrative = await NarrativeService.GenerateNarrativeAsync(
                         Session,
                         Context.Npc,
                         activeCards);
                     
+                    Console.WriteLine($"[ConversationContent] AI narrative received. Has NPC dialogue: {!string.IsNullOrWhiteSpace(narrative?.NPCDialogue)}, Card narratives count: {narrative?.CardNarratives?.Count ?? 0}");
+                    
                     if (narrative != null && !string.IsNullOrWhiteSpace(narrative.NPCDialogue))
                     {
-                        LastNarrative = narrative.NarrativeText ?? "The conversation begins...";
-                        LastDialogue = narrative.NPCDialogue;
-                        LastProviderSource = narrative.ProviderSource;
-                        return;
+                        ApplyNarrativeOutput(narrative);
+                        StateHasChanged(); // Update UI with AI narrative
+                        return narrative;
                     }
                 }
             }
@@ -462,10 +511,54 @@ namespace Wayfarer.Pages.Components
             {
                 Console.WriteLine($"[ConversationContent] Failed to generate initial AI narrative: {ex.Message}");
             }
+            finally
+            {
+                IsGeneratingNarrative = false;
+                StateHasChanged(); // Ensure loading state is cleared
+            }
             
-            // Fallback to simple generated narrative
-            LastNarrative = "The conversation begins...";
-            LastDialogue = GetInitialDialogue();
+            return null;
+        }
+        
+        private void ApplyNarrativeOutput(NarrativeOutput narrative)
+        {
+            if (narrative == null) return;
+            
+            Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Applying narrative output. Provider: {narrative.ProviderSource}");
+            
+            CurrentNarrativeOutput = narrative;
+            
+            // Update NPC dialogue and narrative
+            if (!string.IsNullOrWhiteSpace(narrative.NPCDialogue))
+            {
+                LastDialogue = narrative.NPCDialogue;
+                Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Set NPC dialogue: {LastDialogue.Substring(0, Math.Min(50, LastDialogue.Length))}...");
+            }
+            if (!string.IsNullOrWhiteSpace(narrative.NarrativeText))
+            {
+                LastNarrative = narrative.NarrativeText;
+            }
+            
+            LastProviderSource = narrative.ProviderSource;
+            
+            // Apply card narratives
+            CurrentCardNarratives.Clear();
+            if (narrative.CardNarratives != null)
+            {
+                Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Applying {narrative.CardNarratives.Count} card narratives");
+                foreach (var kvp in narrative.CardNarratives)
+                {
+                    if (!string.IsNullOrWhiteSpace(kvp.Value))
+                    {
+                        CurrentCardNarratives[kvp.Key] = kvp.Value;
+                        Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Card {kvp.Key}: {kvp.Value.Substring(0, Math.Min(50, kvp.Value.Length))}...");
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("[ConversationContent.ApplyNarrativeOutput] No card narratives in output");
+            }
         }
 
         private void GenerateListenNarrative()
@@ -1110,7 +1203,15 @@ namespace Wayfarer.Pages.Components
 
         protected string GetProperCardDialogue(CardInstance card)
         {
-            // Simply use the card's Description property or name
+            // First check for AI-generated narrative
+            if (CurrentCardNarratives != null && CurrentCardNarratives.ContainsKey(card.Id))
+            {
+                string aiNarrative = CurrentCardNarratives[card.Id];
+                if (!string.IsNullOrEmpty(aiNarrative))
+                    return aiNarrative;
+            }
+            
+            // Fallback to card's Description property or name
             return !string.IsNullOrEmpty(card.Description) ? card.Description : GetProperCardName(card);
         }
 
