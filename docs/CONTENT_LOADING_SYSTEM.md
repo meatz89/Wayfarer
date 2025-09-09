@@ -123,7 +123,7 @@ public static NPC GenerateSkeletonNPC(string id, string source)
     "routes": [...],
     "letterTemplates": [...],
     "observations": [...],
-    "investigationRewards": [...]
+    "observationRewards": [...]
   }
 }
 ```
@@ -209,7 +209,7 @@ public static NPC GenerateSkeletonNPC(string id, string source)
 }
 ```
 
-#### Observation Rewards
+#### Observation rewards
 ```json
 {
   "locationId": "market_square",
@@ -219,9 +219,24 @@ public static NPC GenerateSkeletonNPC(string id, string source)
     "id": "safe_passage_knowledge",
     "name": "Safe Passage Knowledge",
     "targetNpcId": "elena",
-    "targetDeck": "observation",
-    "effect": "AdvanceConnectionState",
-    "targetState": "Neutral"
+    "effect": "AdvanceConnectionFlow",
+    "targetFlow": 10
+  }
+}
+```
+
+#### Observation Cards for NPC Decks
+```json
+{
+  "id": "safe_passage_knowledge",
+  "name": "Safe Passage Knowledge",
+  "targetNpcId": "elena",
+  "targetDeck": "observation",
+  "persistence": "Persistent",
+  "focus": 0,
+  "effect": {
+    "type": "SetConnectionFlow",
+    "targetFlow": 10
   }
 }
 ```
@@ -373,6 +388,14 @@ public class InvestigationActionDTO
     public int AttentionCost { get; set; }
     public Dictionary<string, int> FamiliarityGain { get; set; }
 }
+
+public class ObservationRewardDTO
+{
+    public string LocationId { get; set; }
+    public int FamiliarityRequired { get; set; }
+    public int? PriorObservationRequired { get; set; }
+    public ObservationCardDTO ObservationCard { get; set; }
+}
 ```
 
 2. Add to Package class:
@@ -381,6 +404,7 @@ public class Package
 {
     // ... existing properties
     public List<InvestigationActionDTO> InvestigationActions { get; set; }
+    public List<ObservationRewardDTO> ObservationRewards { get; set; }
 }
 ```
 
@@ -394,6 +418,19 @@ private void LoadInvestigationActions(List<InvestigationActionDTO> actionDtos)
         if (location != null)
         {
             location.InvestigationActions.Add(ParseAction(dto));
+        }
+    }
+}
+
+private void LoadObservationRewards(List<ObservationRewardDTO> rewardDtos)
+{
+    foreach (var dto in rewardDtos)
+    {
+        // Parse and add to location's observation rewards
+        var location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
+        if (location != null)
+        {
+            location.ObservationRewards.Add(ParseReward(dto));
         }
     }
 }
@@ -448,12 +485,25 @@ Each content type has a dedicated parser with validation:
 - `LocationParser.cs` - Validates and parses locations (includes familiarity)
 - `ConversationCardParser.cs` - Validates and parses cards
 - `LetterTemplateParser.cs` - Validates and parses letter templates
-- `InvestigationActionParser.cs` - Validates and parses investigation actions
 - `ObservationRewardParser.cs` - Validates and parses observation rewards
 
 ### Enum Mappings
 
 Parsers handle JSON string to enum conversions:
+
+```csharp
+private static ConnectionType ParseConnectionType(string connectionTypeStr)
+{
+    return connectionTypeStr switch
+    {
+        "Trust" => ConnectionType.Trust,
+        "Commerce" => ConnectionType.Commerce,
+        "Status" => ConnectionType.Status,
+        "Shadow" => ConnectionType.Shadow,
+        _ => throw new ArgumentException($"Unknown connection type: '{connectionTypeStr}'")
+    };
+}
+```
 
 ```csharp
 private static ConnectionState ParseConnectionState(string stateStr)
@@ -475,9 +525,9 @@ private static ConnectionState ParseConnectionState(string stateStr)
 Observation rewards must validate:
 - Location exists or create skeleton
 - Familiarity requirement is valid (0-3)
-- Prior observation requirement references valid observation
-- Target NPC exists or create skeleton with all 5 decks
-- Target deck is valid ("observation", "conversation", etc.)
+- Prior observation requirement references valid observation level
+- Target NPC exists or create skeleton with all 5 persistent decks
+- Target flow is valid (0-24)
 
 ## Testing
 
@@ -488,7 +538,7 @@ Test packages are stored in `Content/TestPackages/` and include:
 1. **test_01_npcs_with_missing_refs.json** - NPCs referencing non-existent locations
 2. **test_02_locations_resolving_skeletons.json** - Locations that resolve skeletons
 3. **test_03_letters_with_missing_npcs.json** - Letters referencing non-existent NPCs
-4. **test_04_investigations_and_observations.json** - Investigation actions and observation rewards
+4. **test_04_investigations_and_observations.json** - Observation rewards and observation cards
 
 ### Running Skeleton Tests
 
@@ -549,6 +599,7 @@ Tests verify:
 - ✅ Directory-based organization
 - ✅ GameWorldInitializer
 - ✅ Investigation action system
+- ✅ Observation reward system
 - ✅ NPC five-deck system
 - ✅ Familiarity-based observations
 
@@ -593,6 +644,9 @@ Tests verify:
 **Issue**: Investigation not yielding familiarity
 **Solution**: Check spot properties, verify attention available
 
+**Issue**: Observation not yielding cards
+**Solution**: Check familiarity level, verify prior observation requirements
+
 ## API Reference
 
 ### Key Classes
@@ -625,9 +679,6 @@ skeleton.PersistentDecks = GenerateEmptyDecks();
 
 // Add observation card to NPC
 npc.PersistentDecks.ObservationDeck.Add(observationCard);
-
-// Investigate location
-location.Investigate(spot, attention);
 ```
 
 ## Conclusion
@@ -638,7 +689,7 @@ The content loading and extension system provides a robust foundation for:
 - **AI Integration**: Ready for procedural generation
 - **Easy Extension**: Clear patterns for new content types
 - **Testing Support**: Separate test content from production
-- **Investigation System**: Location familiarity through player actions
+- **Investigation System**: Location familiarity and observation rewards
 - **NPC Knowledge**: Five persistent decks for complete conversation systems
 
 This architecture ensures Wayfarer can grow and adapt with new content while maintaining stability and playability.
