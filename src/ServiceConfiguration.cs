@@ -85,12 +85,15 @@ public static class ServiceConfiguration
         services.AddSingleton<OllamaConfiguration>(serviceProvider =>
         {
             IConfiguration config = serviceProvider.GetRequiredService<IConfiguration>();
-            return new OllamaConfiguration
+            var ollamaConfig = new OllamaConfiguration
             {
                 BaseUrl = config["Ollama:BaseUrl"],
                 Model = config["Ollama:Model"],
                 BackupModel = config["Ollama:BackupModel"]
             };
+            Console.WriteLine($"[ServiceConfiguration] Ollama BaseUrl: {ollamaConfig.BaseUrl}");
+            Console.WriteLine($"[ServiceConfiguration] Ollama Model: {ollamaConfig.Model}");
+            return ollamaConfig;
         });
 
         // Narrative Generation Services

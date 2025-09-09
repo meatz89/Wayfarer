@@ -45,6 +45,28 @@ builder.Host.UseSerilog();
 
 WebApplication app = builder.Build();
 
+// Test Ollama connection on startup
+try
+{
+    var ollamaConfig = app.Services.GetService<OllamaConfiguration>();
+    if (ollamaConfig != null)
+    {
+        Console.WriteLine($"[STARTUP] Ollama config loaded - BaseUrl: {ollamaConfig.BaseUrl}, Model: {ollamaConfig.Model}");
+        
+        var ollamaClient = app.Services.GetService<OllamaClient>();
+        if (ollamaClient != null)
+        {
+            Console.WriteLine("[STARTUP] Testing Ollama connection...");
+            bool isAvailable = await ollamaClient.CheckHealthAsync();
+            Console.WriteLine($"[STARTUP] Ollama health check result: {isAvailable}");
+        }
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"[STARTUP] Ollama health check failed: {ex.Message}");
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

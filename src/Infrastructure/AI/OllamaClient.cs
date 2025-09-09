@@ -66,18 +66,25 @@ public class OllamaClient
     {
         try
         {
-            // Use a short timeout for health checks to avoid blocking
+            // Use a reasonable timeout for health checks
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromMilliseconds(500)); // 500ms max for health check
+            cts.CancelAfter(TimeSpan.FromSeconds(2)); // 2 seconds for health check
             
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{configuration.BaseUrl}/api/tags");
+            string healthUrl = $"{configuration.BaseUrl}/api/tags";
+            Console.WriteLine($"[OllamaClient] Checking health at: {healthUrl}");
+            
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, healthUrl);
             HttpResponseMessage response = await httpClient.SendAsync(request, cts.Token);
-            return response.IsSuccessStatusCode;
+            
+            bool isHealthy = response.IsSuccessStatusCode;
+            Console.WriteLine($"[OllamaClient] Health check result: {isHealthy}");
+            return isHealthy;
         }
-        catch
+        catch (Exception ex)
         {
             // Any exception means Ollama is not available
             // This includes timeouts, connection refused, etc.
+            Console.WriteLine($"[OllamaClient] Health check failed: {ex.Message}");
             return false;
         }
     }

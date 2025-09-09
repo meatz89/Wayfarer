@@ -373,7 +373,11 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5905\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5906\" dotnet run)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5907\" timeout 15 dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5908\" dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5908\" dotnet run --no-build)",
+      "Bash(nc:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run)"
     ],
     "deny": []
   }

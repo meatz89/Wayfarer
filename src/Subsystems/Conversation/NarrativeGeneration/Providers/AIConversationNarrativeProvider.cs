@@ -96,16 +96,18 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         {
             // Use async properly with timeout
             Task<bool> healthTask = ollamaClient.CheckHealthAsync();
-            // Wait max 1 second for health check
-            if (healthTask.Wait(1000))
+            // Wait max 3 seconds for health check (increased from 1 second)
+            if (healthTask.Wait(3000))
             {
                 return healthTask.Result;
             }
+            Console.WriteLine("[AIConversationNarrativeProvider] Health check timeout");
             return false; // Timeout
         }
-        catch
+        catch (Exception ex)
         {
             // Any exception means provider is not available
+            Console.WriteLine($"[AIConversationNarrativeProvider] Health check exception: {ex.Message}");
             return false;
         }
     }

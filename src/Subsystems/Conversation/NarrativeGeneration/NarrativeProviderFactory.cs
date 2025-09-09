@@ -10,11 +10,6 @@ public class NarrativeProviderFactory
     private readonly AIConversationNarrativeProvider _aiProvider;
     private readonly JsonNarrativeProvider _jsonProvider;
     private readonly IConfiguration _configuration;
-    
-    // Cache the availability check result with timestamp
-    private bool? _cachedAvailability;
-    private DateTime _lastAvailabilityCheck = DateTime.MinValue;
-    private readonly TimeSpan _cacheTimeout = TimeSpan.FromSeconds(30);
 
     public NarrativeProviderFactory(
         AIConversationNarrativeProvider aiProvider,
@@ -39,43 +34,27 @@ public class NarrativeProviderFactory
 
         if (useAiNarrative)
         {
-            // Check cached availability first
-            bool isAvailable = CheckAIAvailabilityWithCache();
-            if (isAvailable)
+            // Check availability directly every time - no caching
+            try
             {
-                return _aiProvider;
+                Console.WriteLine("[NarrativeProviderFactory] Checking AI availability...");
+                bool isAvailable = _aiProvider.IsAvailable();
+                Console.WriteLine($"[NarrativeProviderFactory] AI availability: {isAvailable}");
+                
+                if (isAvailable)
+                {
+                    Console.WriteLine("[NarrativeProviderFactory] Using AI provider");
+                    return _aiProvider;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[NarrativeProviderFactory] AI availability check failed: {ex.Message}");
             }
         }
 
         // Fall back to JSON provider (always available)
+        Console.WriteLine("[NarrativeProviderFactory] Using JSON fallback provider");
         return _jsonProvider;
-    }
-    
-    private bool CheckAIAvailabilityWithCache()
-    {
-        DateTime now = DateTime.UtcNow;
-        
-        // If we have a recent cached result, use it
-        if (_cachedAvailability.HasValue && 
-            (now - _lastAvailabilityCheck) < _cacheTimeout)
-        {
-            return _cachedAvailability.Value;
-        }
-        
-        // Otherwise, check availability and cache the result
-        try
-        {
-            bool isAvailable = _aiProvider.IsAvailable();
-            _cachedAvailability = isAvailable;
-            _lastAvailabilityCheck = now;
-            return isAvailable;
-        }
-        catch
-        {
-            // If check fails, cache negative result
-            _cachedAvailability = false;
-            _lastAvailabilityCheck = now;
-            return false;
-        }
     }
 }
