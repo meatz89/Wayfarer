@@ -59,10 +59,12 @@ public class JsonNarrativeProvider : INarrativeProvider
 
     /// <summary>
     /// JSON fallback provider is always available.
+    /// Returns Task for interface compatibility but executes synchronously.
     /// </summary>
-    public bool IsAvailable()
+    public Task<bool> IsAvailableAsync()
     {
-        return true;
+        // JSON provider has no external dependencies, always available
+        return Task.FromResult(true);
     }
 
     /// <summary>

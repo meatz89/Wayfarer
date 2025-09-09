@@ -33,9 +33,9 @@ public class ConversationNarrativeService
         Console.WriteLine("[ConversationNarrativeService] GenerateNarrativeAsync called");
         try
         {
-            // Get provider from factory
+            // Get provider from factory - properly await async operation
             Console.WriteLine("[ConversationNarrativeService] Getting provider from factory...");
-            INarrativeProvider provider = _providerFactory.GetProvider();
+            INarrativeProvider provider = await _providerFactory.GetProviderAsync();
             Console.WriteLine($"[ConversationNarrativeService] Got provider: {provider?.GetProviderName() ?? "null"}");
 
             // Convert game models to narrative models

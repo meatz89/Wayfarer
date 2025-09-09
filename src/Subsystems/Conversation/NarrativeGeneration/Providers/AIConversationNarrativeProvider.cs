@@ -88,21 +88,21 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     /// <summary>
     /// Checks if the AI provider is available for use.
     /// Tests Ollama connectivity and configuration.
+    /// PRINCIPLE: Always use async/await properly. Never block async operations
+    /// with .Wait() or .Result as this causes deadlocks in ASP.NET Core.
     /// </summary>
     /// <returns>True if AI provider can generate content, false otherwise</returns>
-    public bool IsAvailable()
+    public async Task<bool> IsAvailableAsync()
     {
         try
         {
-            // Use async properly with timeout
-            Task<bool> healthTask = ollamaClient.CheckHealthAsync();
-            // Wait max 3 seconds for health check (increased from 1 second)
-            if (healthTask.Wait(3000))
+            // Properly await the async operation instead of blocking
+            bool isAvailable = await ollamaClient.CheckHealthAsync();
+            if (!isAvailable)
             {
-                return healthTask.Result;
+                Console.WriteLine("[AIConversationNarrativeProvider] Health check returned false");
             }
-            Console.WriteLine("[AIConversationNarrativeProvider] Health check timeout");
-            return false; // Timeout
+            return isAvailable;
         }
         catch (Exception ex)
         {

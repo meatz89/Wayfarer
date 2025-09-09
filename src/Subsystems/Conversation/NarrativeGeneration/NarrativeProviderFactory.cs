@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
 /// <summary>
@@ -24,9 +25,10 @@ public class NarrativeProviderFactory
     /// <summary>
     /// Gets the appropriate narrative provider based on configuration and availability.
     /// First checks if AI narrative is enabled and available, then falls back to JSON provider.
+    /// PRINCIPLE: Always use async/await for I/O operations to prevent deadlocks.
     /// </summary>
     /// <returns>Available narrative provider instance</returns>
-    public INarrativeProvider GetProvider()
+    public async Task<INarrativeProvider> GetProviderAsync()
     {
         // Check if AI narrative is enabled in configuration
         bool useAiNarrative = _configuration.GetValue<bool>("useAiNarrative", false);
@@ -38,7 +40,7 @@ public class NarrativeProviderFactory
             try
             {
                 Console.WriteLine("[NarrativeProviderFactory] Checking AI availability...");
-                bool isAvailable = _aiProvider.IsAvailable();
+                bool isAvailable = await _aiProvider.IsAvailableAsync();
                 Console.WriteLine($"[NarrativeProviderFactory] AI availability: {isAvailable}");
                 
                 if (isAvailable)

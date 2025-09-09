@@ -96,7 +96,9 @@ public class NarrativeStreamingService
         int delayMs = 50,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        if (!provider.IsAvailable())
+        // Check provider availability using async method
+        bool isAvailable = await provider.IsAvailableAsync();
+        if (!isAvailable)
         {
             yield return new NarrativeChunk
             {

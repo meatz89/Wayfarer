@@ -21,9 +21,11 @@ public interface INarrativeProvider
     
     /// <summary>
     /// Checks if this provider is currently available for use.
+    /// PRINCIPLE: Always use async/await for I/O operations. Never block async code
+    /// with .Wait() or .Result as it causes deadlocks in ASP.NET Core.
     /// </summary>
     /// <returns>True if provider can generate content, false otherwise</returns>
-    bool IsAvailable();
+    Task<bool> IsAvailableAsync();
     
     /// <summary>
     /// Gets the display name of this provider for debugging and logging.
