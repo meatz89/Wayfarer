@@ -43,6 +43,9 @@ public class ConversationSession
 
     // Rapport goal for standard conversations (FriendlyChat)
     public int? RapportGoal { get; set; } = null; // Target rapport to earn token reward
+    
+    // Conversation turn history
+    public List<ConversationTurn> TurnHistory { get; set; } = new List<ConversationTurn>();
 
     // Compatibility properties for old pile architecture
     public IReadOnlyList<CardInstance> HandCards => ActiveCards.Cards;

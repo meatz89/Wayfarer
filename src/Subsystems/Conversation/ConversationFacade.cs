@@ -172,6 +172,7 @@ public class ConversationFacade
         }
 
         ConversationTurnResult result;
+        CardInstance cardPlayed = null;
 
         if (action.ActionType == ActionType.Listen)
         {
@@ -179,6 +180,8 @@ public class ConversationFacade
         }
         else if (action.ActionType == ActionType.Speak)
         {
+            // Get the single card for tracking (ProcessSpeakAction takes HashSet for legacy reasons)
+            cardPlayed = action.SelectedCards?.FirstOrDefault();
             result = await _orchestrator.ProcessSpeakAction(_currentSession, action.SelectedCards);
 
             // Handle special card effects
@@ -196,6 +199,20 @@ public class ConversationFacade
         else
         {
             throw new ArgumentException($"Unknown action type: {action.ActionType}");
+        }
+
+        // Add turn to history
+        if (_currentSession != null && result != null)
+        {
+            ConversationTurn turn = new ConversationTurn
+            {
+                ActionType = action.ActionType,
+                Narrative = result.Narrative,
+                Result = result,
+                TurnNumber = _currentSession.TurnNumber,
+                CardPlayed = cardPlayed
+            };
+            _currentSession.TurnHistory.Add(turn);
         }
 
         // Check if conversation should end
@@ -444,7 +461,7 @@ public class ConversationFacade
     /// <summary>
     /// Execute LISTEN action in current conversation
     /// </summary>
-    public async Task ExecuteListen()
+    public async Task<ConversationTurnResult> ExecuteListen()
     {
         if (!IsConversationActive())
         {
@@ -456,6 +473,8 @@ public class ConversationFacade
             ActionType = ActionType.Listen,
             SelectedCards = new HashSet<CardInstance>()
         });
+        
+        return result;
     }
 
     /// <summary>
@@ -470,7 +489,7 @@ public class ConversationFacade
     /// <summary>
     /// Execute SPEAK action with a single selected card (ONE CARD RULE)
     /// </summary>
-    public async Task<CardPlayResult> ExecuteSpeakSingleCard(CardInstance selectedCard)
+    public async Task<ConversationTurnResult> ExecuteSpeakSingleCard(CardInstance selectedCard)
     {
         if (!IsConversationActive())
         {
@@ -491,33 +510,7 @@ public class ConversationFacade
             SelectedCards = singleCardSet
         });
 
-        // Convert ConversationTurnResult to CardPlayResult for backward compatibility
-        CardPlayResult cardPlayResult = new CardPlayResult
-        {
-            TotalFlow = result.FlowChange ?? 0,
-            Results = new List<SingleCardResult>
-            {
-                new SingleCardResult
-                {
-                    Card = selectedCard,
-                    Success = result.Success,
-                    Flow = result.FlowChange ?? 0,
-                    Roll = 50, // Default roll value
-                    SuccessChance = 75, // Default success chance
-                    PatienceAdded = 0
-                }
-            },
-            NewState = result.NewState,
-            SetBonus = 0,
-            ConnectedBonus = 0,
-            EagerBonus = 0,
-            DeliveredLetter = false,
-            ManipulatedObligations = false,
-            LetterNegotiations = new List<LetterNegotiationResult>(),
-            PlayerNarrative = result.PlayerNarrative
-        };
-
-        return cardPlayResult;
+        return result;
     }
 
     /// <summary>

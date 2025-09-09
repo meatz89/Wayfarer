@@ -169,10 +169,19 @@ namespace Wayfarer.Pages.Components
                     messageSystem.AddSystemMessage("You listen carefully...", SystemMessageTypes.Info);
                 }
 
-                await ConversationFacade.ExecuteListen();
+                ConversationTurnResult listenResult = await ConversationFacade.ExecuteListen();
 
-                // Generate narrative for the action
-                GenerateListenNarrative();
+                // Use narrative from the result
+                if (listenResult?.Narrative != null)
+                {
+                    LastNarrative = listenResult.Narrative.NarrativeText ?? "You listen attentively...";
+                    LastDialogue = listenResult.Narrative.NPCDialogue ?? GetStateTransitionDialogue(Session.CurrentState);
+                }
+                else
+                {
+                    // Fallback if no narrative
+                    GenerateListenNarrative();
+                }
 
                 // Track newly drawn cards for slide-in animation
                 List<CardInstance> currentCards = Session?.HandCards?.ToList() ?? new List<CardInstance>();
@@ -251,10 +260,33 @@ namespace Wayfarer.Pages.Components
                 int cardPosition = GetCardPosition(playedCard);
 
                 // ExecuteSpeak expects a single card - this removes it from hand
-                CardPlayResult result = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
+                ConversationTurnResult turnResult = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
+                CardPlayResult result = turnResult?.CardPlayResult;
 
-                // Generate and show narrative immediately based on result
-                ProcessSpeakResult(result);
+                // Use narrative from turn result
+                if (turnResult?.Narrative != null)
+                {
+                    // Get the player's narrative for the card they played
+                    if (turnResult.Narrative.CardNarratives != null && 
+                        turnResult.Narrative.CardNarratives.ContainsKey(playedCard.Id))
+                    {
+                        LastNarrative = turnResult.Narrative.CardNarratives[playedCard.Id];
+                    }
+                    else if (!string.IsNullOrEmpty(turnResult.Narrative.NarrativeText))
+                    {
+                        LastNarrative = turnResult.Narrative.NarrativeText;
+                    }
+                    else
+                    {
+                        // Fallback to generated narrative
+                        ProcessSpeakResult(result);
+                    }
+                }
+                else
+                {
+                    // Fallback to generated narrative
+                    ProcessSpeakResult(result);
+                }
                 StateHasChanged(); // Show the narrative text
 
                 // Mark the played card with success/failure animation
@@ -388,12 +420,8 @@ namespace Wayfarer.Pages.Components
 
         private void GenerateSpeakNarrative(CardPlayResult result)
         {
-            // Display what the player said through their card first
-            if (!string.IsNullOrEmpty(result.PlayerNarrative))
-            {
-                LastNarrative = result.PlayerNarrative;
-            }
-            else if (result.Results != null && result.Results.Any())
+            // Generate fallback narrative based on success/failure
+            if (result.Results != null && result.Results.Any())
             {
                 // Fallback to generic narrative if no player narrative provided
                 int successCount = result.Results.Count(r => r.Success);

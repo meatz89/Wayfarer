@@ -183,7 +183,8 @@ public class ConversationOrchestrator
             NewState = session.CurrentState,
             NPCResponse = npcResponse,
             DrawnCards = drawnCards,
-            PatienceRemaining = session.CurrentPatience
+            PatienceRemaining = session.CurrentPatience,
+            Narrative = narrative  // Include the full narrative output
         };
     }
 
@@ -247,13 +248,6 @@ public class ConversationOrchestrator
         
         string npcResponse = narrative.NPCDialogue;
         
-        // Store card-specific narratives for UI display
-        string playerNarrative = null;
-        if (narrative.CardNarratives != null && narrative.CardNarratives.ContainsKey(selectedCard.Id))
-        {
-            playerNarrative = narrative.CardNarratives[selectedCard.Id];
-        }
-
         ConversationTurnResult result = new ConversationTurnResult
         {
             Success = playResult.Success,
@@ -265,7 +259,7 @@ public class ConversationOrchestrator
             PatienceRemaining = session.CurrentPatience,
             PlayedCards = new List<CardInstance> { selectedCard },
             CardPlayResult = playResult,
-            PlayerNarrative = playerNarrative
+            Narrative = narrative  // Pass the full narrative output
         };
 
         // Mark conversation as ended if needed
