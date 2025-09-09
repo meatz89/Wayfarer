@@ -371,7 +371,9 @@
       "Bash(/mnt/c/git/wayfarer/test-narrative-flow.sh:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5904\" timeout 20 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5905\" dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5906\" dotnet run)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5906\" dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5907\" timeout 15 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5908\" dotnet run --no-build)"
     ],
     "deny": []
   }
