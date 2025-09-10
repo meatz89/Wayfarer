@@ -66,6 +66,9 @@ public class PackageLoader
             .ToList();
 
         LoadPackages(packageFiles);
+        
+        // Validate crossroads configuration after all packages are loaded
+        ValidateCrossroadsConfiguration();
     }
 
     private void LoadPackageContent(Package package)
@@ -1046,5 +1049,78 @@ public class PackageLoader
         }
 
         Console.WriteLine($"[PackageLoader] Travel discovery system initialized: {_gameWorld.PathCardDiscoveries.Count} path cards, {_gameWorld.EventDeckPositions.Count} event decks");
+    }
+
+    /// <summary>
+    /// Validates that crossroads configuration is correct:
+    /// 1. Each location has exactly one spot with Crossroads property
+    /// 2. All route origin and destination spots have Crossroads property
+    /// </summary>
+    private void ValidateCrossroadsConfiguration()
+    {
+        Console.WriteLine("[PackageLoader] Starting crossroads configuration validation...");
+        
+        // Group spots by location
+        Dictionary<string, List<LocationSpot>> spotsByLocation = new Dictionary<string, List<LocationSpot>>();
+        foreach (LocationSpot spot in _gameWorld.WorldState.locationSpots)
+        {
+            if (!spotsByLocation.ContainsKey(spot.LocationId))
+            {
+                spotsByLocation[spot.LocationId] = new List<LocationSpot>();
+            }
+            spotsByLocation[spot.LocationId].Add(spot);
+        }
+
+        // Validate each location has exactly one crossroads spot
+        foreach (Location location in _gameWorld.WorldState.locations)
+        {
+            if (!spotsByLocation.ContainsKey(location.Id))
+            {
+                throw new InvalidOperationException($"Location '{location.Id}' ({location.Name}) has no spots defined");
+            }
+
+            List<LocationSpot> locationSpots = spotsByLocation[location.Id];
+            List<LocationSpot> crossroadsSpots = locationSpots
+                .Where(s => s.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true)
+                .ToList();
+
+            if (crossroadsSpots.Count == 0)
+            {
+                throw new InvalidOperationException($"Location '{location.Id}' ({location.Name}) has no spots with Crossroads property. Every location must have exactly one crossroads spot for travel.");
+            }
+            else if (crossroadsSpots.Count > 1)
+            {
+                string spotsInfo = string.Join(", ", crossroadsSpots.Select(s => $"'{s.SpotID}' ({s.Name})"));
+                throw new InvalidOperationException($"Location '{location.Id}' ({location.Name}) has {crossroadsSpots.Count} spots with Crossroads property: {spotsInfo}. Only one crossroads spot is allowed per location.");
+            }
+
+            Console.WriteLine($"[PackageLoader] ✓ Location '{location.Id}' has valid crossroads spot: '{crossroadsSpots[0].SpotID}'");
+        }
+
+        // Validate all route spots have crossroads property
+        HashSet<string> routeSpotIds = new HashSet<string>();
+        foreach (RouteOption route in _gameWorld.WorldState.Routes)
+        {
+            routeSpotIds.Add(route.OriginLocationSpot);
+            routeSpotIds.Add(route.DestinationLocationSpot);
+        }
+
+        foreach (string spotId in routeSpotIds)
+        {
+            LocationSpot spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
+            if (spot == null)
+            {
+                throw new InvalidOperationException($"Route references spot '{spotId}' which does not exist");
+            }
+
+            if (!spot.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true)
+            {
+                throw new InvalidOperationException($"Route spot '{spotId}' ({spot.Name}) does not have Crossroads property. All route origin and destination spots must be crossroads.");
+            }
+
+            Console.WriteLine($"[PackageLoader] ✓ Route spot '{spotId}' has valid Crossroads property");
+        }
+
+        Console.WriteLine($"[PackageLoader] Crossroads validation completed successfully. Validated {_gameWorld.WorldState.locations.Count} locations and {routeSpotIds.Count} route spots.");
     }
 }

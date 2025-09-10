@@ -537,6 +537,7 @@
         "name": "Main Hall",
         "description": "The heart of the tavern with tables and a warm fire",
         "properties": {
+          "base": ["crossroads"],
           "morning": ["quiet", "warm"],
           "afternoon": ["social"],
           "evening": ["busy", "social"],
@@ -565,6 +566,7 @@
         "name": "District Gate",
         "description": "The heavily guarded entrance to the Noble District",
         "properties": {
+          "base": ["crossroads"],
           "all": ["guarded", "checkpoint"]
         },
         "canInvestigate": false
@@ -587,6 +589,7 @@
         "name": "Warehouse Entrance",
         "description": "The main entrance to the warehouse district",
         "properties": {
+          "base": ["crossroads"],
           "all": ["commercial"]
         },
         "canInvestigate": false
