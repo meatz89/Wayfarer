@@ -179,7 +179,7 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Handle path card selection
+        /// Handle path card selection - all cards now use reveal mechanic
         /// </summary>
         protected async Task SelectPathCard(string pathCardId)
         {
@@ -191,11 +191,11 @@ namespace Wayfarer.Pages.Components
             if (card == null || !TravelFacade.CanPlayPathCard(pathCardId))
                 return;
 
-            // Call TravelManager to play the card
+            // Call TravelManager - all cards now use reveal mechanic (no face-down checks)
             bool success = TravelManager.SelectPathCard(pathCardId);
             if (success)
             {
-                // Refresh the context after card play
+                // Refresh the context after card selection
                 await RefreshTravelContext();
                 StateHasChanged();
             }

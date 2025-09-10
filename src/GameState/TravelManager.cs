@@ -6,12 +6,14 @@ public class TravelManager
 {
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;
+    private readonly MessageSystem _messageSystem;
     private readonly Random _random = new Random();
 
-    public TravelManager(GameWorld gameWorld, TimeManager timeManager)
+    public TravelManager(GameWorld gameWorld, TimeManager timeManager, MessageSystem messageSystem)
     {
         _gameWorld = gameWorld;
         _timeManager = timeManager;
+        _messageSystem = messageSystem;
     }
 
     // ========== TRAVEL SESSION METHODS ==========
@@ -208,19 +210,29 @@ public class TravelManager
             return false;
         }
 
-        // Deduct costs
-        session.StaminaRemaining -= card.StaminaCost;
+        // Deduct costs and add system messages
+        if (card.StaminaCost > 0)
+        {
+            session.StaminaRemaining -= card.StaminaCost;
+            _messageSystem.AddSystemMessage($"Spent {card.StaminaCost} stamina for path choice", SystemMessageTypes.Info);
+        }
+        
         if (card.CoinRequirement > 0)
         {
             _gameWorld.GetPlayer().ModifyCoins(-card.CoinRequirement);
+            _messageSystem.AddSystemMessage($"Paid {card.CoinRequirement} coins for passage", SystemMessageTypes.Info);
         }
 
-        // Apply effects
+        // Apply effects with messages
         ApplyPathCardEffects(card);
 
         // Record path selection
         session.SelectedPathId = pathCardId;
-        session.TimeElapsed += card.TravelTimeMinutes;
+        if (card.TravelTimeMinutes > 0)
+        {
+            session.TimeElapsed += card.TravelTimeMinutes;
+            _messageSystem.AddSystemMessage($"Journey time increased by {card.TravelTimeMinutes} minutes", SystemMessageTypes.Info);
+        }
 
         // Clear reveal state
         session.IsRevealingCard = false;
@@ -236,7 +248,7 @@ public class TravelManager
     }
 
     /// <summary>
-    /// Select and play a path card from the current segment
+    /// Select and play a path card from the current segment - ALL cards now use reveal mechanic
     /// </summary>
     public bool SelectPathCard(string pathCardId)
     {
@@ -251,84 +263,8 @@ public class TravelManager
             return false;
         }
 
-        PathCardDTO card = _gameWorld.AllPathCards[pathCardId];
-        
-        // Check if card is face-down and needs to be revealed first
-        bool isCardDiscovered = _gameWorld.PathCardDiscoveries.ContainsKey(pathCardId) && _gameWorld.PathCardDiscoveries[pathCardId];
-        
-        // For face-down cards in FixedPath segments, use reveal mechanic
-        RouteOption route = GetRoute(session.RouteId);
-        bool isFixedPathSegment = false;
-        if (route != null && session.CurrentSegment <= route.Segments.Count)
-        {
-            RouteSegment segment = route.Segments[session.CurrentSegment - 1];
-            isFixedPathSegment = segment.Type == SegmentType.FixedPath;
-        }
-        
-        if (!isCardDiscovered && isFixedPathSegment)
-        {
-            // Face-down card in FixedPath segment - use reveal mechanic
-            return RevealPathCard(pathCardId);
-        }
-        
-        // Face-up card or Event segment - proceed with normal selection
-        
-        // Check if player can afford the stamina cost
-        if (session.StaminaRemaining < card.StaminaCost)
-        {
-            return false;
-        }
-
-        // Check coin requirement
-        if (card.CoinRequirement > 0 && _gameWorld.GetPlayer().Coins < card.CoinRequirement)
-        {
-            return false;
-        }
-
-        // Check permit requirement
-        if (!string.IsNullOrEmpty(card.PermitRequirement))
-        {
-            // TODO: Check player inventory for permit
-            // For now, assume player has required permits
-        }
-
-        // Check one-time card usage
-        if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.ContainsKey(pathCardId) 
-            && _gameWorld.PathCardRewardsClaimed[pathCardId])
-        {
-            return false;
-        }
-
-        // Deduct costs
-        session.StaminaRemaining -= card.StaminaCost;
-        if (card.CoinRequirement > 0)
-        {
-            _gameWorld.GetPlayer().ModifyCoins(-card.CoinRequirement);
-        }
-
-        // Reveal if face-down (for Event segments)
-        if (!_gameWorld.PathCardDiscoveries.ContainsKey(pathCardId))
-        {
-            _gameWorld.PathCardDiscoveries[pathCardId] = true;
-        }
-
-        // Apply effects
-        ApplyPathCardEffects(card);
-
-        // Note: Encounters are now handled through Event-type segments, not as side-effects
-        // The card selection itself handles both fixed path cards and event response cards uniformly
-
-        // Record path selection
-        session.SelectedPathId = pathCardId;
-        session.TimeElapsed += card.TravelTimeMinutes;
-
-        // Update travel state based on stamina
-        UpdateTravelState(session);
-
-        // Move to next segment or complete journey
-        AdvanceSegment(session);
-
-        return true;
+        // ALL cards now use reveal mechanic - no conditional logic
+        return RevealPathCard(pathCardId);
     }
 
     /// <summary>
@@ -430,19 +366,27 @@ public class TravelManager
     }
 
     /// <summary>
-    /// Apply path card effects to player
+    /// Apply path card effects to player with system messages
     /// </summary>
     private void ApplyPathCardEffects(PathCardDTO card)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Apply hunger effect
+        // Apply hunger effect with message
         if (card.HungerEffect != 0)
         {
             player.ModifyHunger(card.HungerEffect);
+            if (card.HungerEffect > 0)
+            {
+                _messageSystem.AddSystemMessage($"Hunger increased by {card.HungerEffect}", SystemMessageTypes.Warning);
+            }
+            else
+            {
+                _messageSystem.AddSystemMessage($"Hunger decreased by {Math.Abs(card.HungerEffect)}", SystemMessageTypes.Success);
+            }
         }
 
-        // Apply one-time rewards
+        // Apply one-time rewards with messages
         if (card.IsOneTime && !string.IsNullOrEmpty(card.OneTimeReward))
         {
             ApplyOneTimeReward(card.OneTimeReward, card.Id);
@@ -450,7 +394,7 @@ public class TravelManager
     }
 
     /// <summary>
-    /// Apply one-time reward effects
+    /// Apply one-time reward effects with system messages
     /// </summary>
     private void ApplyOneTimeReward(string reward, string cardId)
     {
@@ -461,6 +405,7 @@ public class TravelManager
         {
             // Add observation card to player deck
             // TODO: Implement observation card system
+            _messageSystem.AddSystemMessage($"One-time reward claimed: {reward}", SystemMessageTypes.Success);
         }
         else if (reward.EndsWith("_coins"))
         {
@@ -468,8 +413,13 @@ public class TravelManager
             if (reward.StartsWith("3_"))
             {
                 player.ModifyCoins(3);
+                _messageSystem.AddSystemMessage($"One-time reward claimed: 3 coins", SystemMessageTypes.Success);
             }
             // Add more coin parsing as needed
+        }
+        else
+        {
+            _messageSystem.AddSystemMessage($"One-time reward claimed: {reward}", SystemMessageTypes.Success);
         }
 
         // Mark reward as claimed
