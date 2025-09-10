@@ -832,16 +832,13 @@ public class PackageLoader
                 {
                     SegmentNumber = segmentDto.SegmentNumber,
                     Type = segmentType,
-                    PathCardIds = segmentDto.PathCardIds?.ToList() ?? new List<string>()
+                    PathCardIds = segmentDto.PathCardIds?.ToList() ?? new List<string>(),
+                    EventPool = segmentDto.EventPool?.ToList() ?? new List<string>()
                 };
                 
-                // For Event-type segments, we need to handle the EventPool
-                // TravelManager expects to find events in RouteEventPools by route ID
-                // but Event segments have their own event pools, so we use the route-level eventPool as fallback
+                // For Event-type segments, copy the EventPool to the segment
                 if (segmentType == SegmentType.Event && segmentDto.EventPool != null && segmentDto.EventPool.Count > 0)
                 {
-                    // For segment-specific event pools, we could store them separately
-                    // but TravelManager currently only looks at route-level pools
                     Console.WriteLine($"[PackageLoader] Event segment {segmentDto.SegmentNumber} has {segmentDto.EventPool.Count} events");
                 }
                 

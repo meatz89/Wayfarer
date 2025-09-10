@@ -681,8 +681,8 @@
           },
           {
             "segmentNumber": 2,
-            "type": "FixedPath",
-            "pathCardIds": ["direct_route", "warehouse_maze", "security_checkpoint"]
+            "type": "Event",
+            "eventPool": ["dock_traffic_event", "worker_strike_event", "favorable_timing_event", "loading_accident_event"]
           }
         ],
         "eventPool": ["dock_traffic_event", "worker_strike_event", "favorable_timing_event", "loading_accident_event"]

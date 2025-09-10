@@ -17,5 +17,6 @@ public class RouteSegment
     public int SegmentNumber { get; set; }
     public List<string> PathCardIds { get; set; } = new();
     public SegmentType Type { get; set; } = SegmentType.FixedPath;  // Default to FixedPath for compatibility
-    public string EventCollectionId { get; set; }  // Used when Type is Event
+    public string EventCollectionId { get; set; }  // Used when Type is Event - references a single event collection
+    public List<string> EventPool { get; set; } = new();  // Pool of event collection IDs to randomly select from
 }

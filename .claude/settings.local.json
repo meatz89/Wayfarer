@@ -396,7 +396,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6002\" dotnet run --no-build)",
       "Bash(xargs kill:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6003\" timeout 10s dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:6003\" dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6003\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6004\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6005\" dotnet run --no-build)"
     ],
     "deny": []
   }

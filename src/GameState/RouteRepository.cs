@@ -27,17 +27,19 @@ public class RouteRepository : IRouteRepository
     {
         List<RouteOption> allRoutes = new List<RouteOption>();
 
-        // Find the location and get its connections (which are routes originating from that location)
-        if (_gameWorld.WorldState.locations != null)
+        // ONLY use WorldState.Routes as the single source of truth
+        if (_gameWorld.WorldState.Routes != null)
         {
-            Location? location = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
-            if (location?.Connections != null)
+            // Find all routes that originate from any spot in this location
+            foreach (RouteOption route in _gameWorld.WorldState.Routes)
             {
-                foreach (LocationConnection connection in location.Connections)
+                // Look up the origin spot to get its location
+                if (!string.IsNullOrEmpty(route.OriginLocationSpot))
                 {
-                    if (connection.RouteOptions != null)
+                    LocationSpot originSpot = _gameWorld.GetSpot(route.OriginLocationSpot);
+                    if (originSpot != null && originSpot.LocationId == locationId)
                     {
-                        allRoutes.AddRange(connection.RouteOptions);
+                        allRoutes.Add(route);
                     }
                 }
             }
@@ -49,26 +51,8 @@ public class RouteRepository : IRouteRepository
     // Get all routes in the world
     public List<RouteOption> GetAll()
     {
-        List<RouteOption> allRoutes = new List<RouteOption>();
-
-        if (_gameWorld.WorldState.locations != null)
-        {
-            foreach (Location location in _gameWorld.WorldState.locations)
-            {
-                if (location.Connections != null)
-                {
-                    foreach (LocationConnection connection in location.Connections)
-                    {
-                        if (connection.RouteOptions != null)
-                        {
-                            allRoutes.AddRange(connection.RouteOptions);
-                        }
-                    }
-                }
-            }
-        }
-
-        return allRoutes;
+        // ONLY use WorldState.Routes as the single source of truth
+        return _gameWorld.WorldState.Routes ?? new List<RouteOption>();
     }
 
     // Get a specific route by ID

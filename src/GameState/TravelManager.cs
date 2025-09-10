@@ -103,14 +103,21 @@ public class TravelManager
             return segment.EventCollectionId;
         }
 
+        // Use segment's event pool if available
+        if (segment.EventPool != null && segment.EventPool.Count > 0)
+        {
+            // Use deterministic "random" selection based on segment number and route
+            // This ensures consistent behavior for testing while still providing variety
+            int index = (route.Id.GetHashCode() + segment.SegmentNumber) % segment.EventPool.Count;
+            return segment.EventPool[index];
+        }
+
         // Fall back to route event pools
         if (_gameWorld.RouteEventPools.ContainsKey(route.Id))
         {
             List<string> eventPool = _gameWorld.RouteEventPools[route.Id];
             if (eventPool.Count > 0)
             {
-                // Use deterministic "random" selection based on segment number and route
-                // This ensures consistent behavior for testing while still providing variety
                 int index = (route.Id.GetHashCode() + segment.SegmentNumber) % eventPool.Count;
                 return eventPool[index];
             }
