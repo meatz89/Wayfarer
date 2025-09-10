@@ -644,27 +644,6 @@
         "eventPool": ["clear_path_event", "beggar_event", "street_vendor_event"]
       },
       {
-        "id": "tavern_to_market",
-        "name": "Return to Market",
-        "originLocationId": "copper_kettle_tavern",
-        "originSpotId": "main_hall",
-        "destinationLocationId": "market_square",
-        "destinationSpotId": "central_fountain",
-        "travelTimeMinutes": 15,
-        "coinCost": 0,
-        "permitRequired": null,
-        "description": "Return to the market square",
-        "startingStamina": 3,
-        "segments": [
-          {
-            "segmentNumber": 1,
-            "type": "FixedPath",
-            "pathCardIds": ["common_room", "back_alley"]
-          }
-        ],
-        "eventPool": ["clear_path_event", "beggar_event", "street_vendor_event"]
-      },
-      {
         "id": "market_to_warehouse",
         "name": "Warehouse Road",
         "originLocationId": "market_square",
@@ -691,32 +670,6 @@
         "eventPool": ["dock_traffic_event", "worker_strike_event", "favorable_timing_event", "loading_accident_event"]
       },
       {
-        "id": "warehouse_to_market",
-        "name": "Return from Warehouse",
-        "originLocationId": "warehouse_district",
-        "originSpotId": "warehouse_entrance",
-        "destinationLocationId": "market_square",
-        "destinationSpotId": "central_fountain",
-        "travelTimeMinutes": 20,
-        "coinCost": 0,
-        "permitRequired": null,
-        "description": "Return from the warehouse district",
-        "startingStamina": 4,
-        "segments": [
-          {
-            "segmentNumber": 1,
-            "type": "FixedPath",
-            "pathCardIds": ["direct_route", "warehouse_maze", "security_checkpoint"]
-          },
-          {
-            "segmentNumber": 2,
-            "type": "FixedPath",
-            "pathCardIds": ["dock_workers_path", "merchant_avenue", "loading_docks"]
-          }
-        ],
-        "eventPool": ["clear_path_event", "dock_traffic_event", "worker_strike_event", "favorable_timing_event"]
-      },
-      {
         "id": "market_to_noble",
         "name": "Guard Checkpoint",
         "originLocationId": "market_square",
@@ -741,32 +694,6 @@
           }
         ],
         "eventPool": ["clear_path_event", "beggar_event"]
-      },
-      {
-        "id": "noble_to_market",
-        "name": "Return from Noble District",
-        "originLocationId": "noble_district",
-        "originSpotId": "gate_entrance",
-        "destinationLocationId": "market_square",
-        "destinationSpotId": "central_fountain",
-        "travelTimeMinutes": 25,
-        "coinCost": 0,
-        "permitRequired": null,
-        "description": "Return from the Noble District",
-        "startingStamina": 3,
-        "segments": [
-          {
-            "segmentNumber": 1,
-            "type": "FixedPath",
-            "pathCardIds": ["noble_promenade", "garden_path"]
-          },
-          {
-            "segmentNumber": 2,
-            "type": "FixedPath",
-            "pathCardIds": ["main_gate", "bribe_guard", "argue_entry"]
-          }
-        ],
-        "eventPool": ["clear_path_event", "street_vendor_event"]
       },
       {
         "id": "noble_to_tavern",

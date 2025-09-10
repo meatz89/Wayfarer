@@ -345,17 +345,25 @@ public class PackageLoader
 
         Console.WriteLine($"[PackageLoader] Loading {routeDtos.Count} routes...");
 
+        // BIDIRECTIONAL ROUTE PRINCIPLE: Routes are defined once in JSON but automatically 
+        // generate both directions. This eliminates redundancy and ensures consistency.
+        // The return journey has segments in reversed order (A->B->C becomes C->B->A).
         foreach (RouteDTO dto in routeDtos)
         {
-            RouteOption route = ConvertRouteDTOToModel(dto);
-            _gameWorld.WorldState.Routes.Add(route);
-            Console.WriteLine($"[PackageLoader] Added route {route.Id}: {route.OriginLocationSpot} -> {route.DestinationLocationSpot}");
+            // Create the forward route from JSON
+            RouteOption forwardRoute = ConvertRouteDTOToModel(dto);
+            _gameWorld.WorldState.Routes.Add(forwardRoute);
+            Console.WriteLine($"[PackageLoader] Added route {forwardRoute.Id}: {forwardRoute.OriginLocationSpot} -> {forwardRoute.DestinationLocationSpot}");
+            AddRouteToLocationConnections(forwardRoute);
 
-            // Also add route to location connections for RouteRepository compatibility
-            AddRouteToLocationConnections(route);
+            // Automatically generate the reverse route
+            RouteOption reverseRoute = GenerateReverseRoute(forwardRoute);
+            _gameWorld.WorldState.Routes.Add(reverseRoute);
+            Console.WriteLine($"[PackageLoader] Generated reverse route {reverseRoute.Id}: {reverseRoute.OriginLocationSpot} -> {reverseRoute.DestinationLocationSpot}");
+            AddRouteToLocationConnections(reverseRoute);
         }
 
-        Console.WriteLine($"[PackageLoader] Completed loading {routeDtos.Count} routes. Total routes in WorldState: {_gameWorld.WorldState.Routes.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading {routeDtos.Count} routes. Total routes with bidirectional: {_gameWorld.WorldState.Routes.Count}");
     }
 
     private void AddRouteToLocationConnections(RouteOption route)
@@ -1056,6 +1064,97 @@ public class PackageLoader
     /// 1. Each location has exactly one spot with Crossroads property
     /// 2. All route origin and destination spots have Crossroads property
     /// </summary>
+    /// <summary>
+    /// BIDIRECTIONAL ROUTE GENERATION: Automatically creates the reverse route from a forward route.
+    /// This ensures travel is always bidirectional and segments are properly reversed.
+    /// For example, a route A->B->C with segments [1,2,3] becomes C->B->A with segments [3,2,1].
+    /// </summary>
+    private RouteOption GenerateReverseRoute(RouteOption forwardRoute)
+    {
+        // Extract location IDs from the spot IDs for naming
+        string originLocationId = GetLocationIdFromSpotId(forwardRoute.OriginLocationSpot);
+        string destLocationId = GetLocationIdFromSpotId(forwardRoute.DestinationLocationSpot);
+        
+        // Generate reverse route ID by swapping origin and destination
+        string[] idParts = forwardRoute.Id.Split("_to_");
+        string reverseId = idParts.Length == 2 
+            ? $"{idParts[1]}_to_{idParts[0]}"
+            : $"{destLocationId}_to_{originLocationId}";
+        
+        RouteOption reverseRoute = new RouteOption
+        {
+            Id = reverseId,
+            Name = $"Return to {GetLocationNameFromId(originLocationId)}",
+            // Swap origin and destination
+            OriginLocationSpot = forwardRoute.DestinationLocationSpot,
+            DestinationLocationSpot = forwardRoute.OriginLocationSpot,
+            
+            // Keep the same properties for both directions
+            Method = forwardRoute.Method,
+            BaseCoinCost = forwardRoute.BaseCoinCost,
+            BaseStaminaCost = forwardRoute.BaseStaminaCost,
+            TravelTimeMinutes = forwardRoute.TravelTimeMinutes,
+            DepartureTime = forwardRoute.DepartureTime,
+            IsDiscovered = forwardRoute.IsDiscovered,
+            MaxItemCapacity = forwardRoute.MaxItemCapacity,
+            Description = $"Return journey from {GetLocationNameFromId(destLocationId)} to {GetLocationNameFromId(originLocationId)}",
+            AccessRequirement = forwardRoute.AccessRequirement,
+            RouteType = forwardRoute.RouteType,
+            HasPermitUnlock = forwardRoute.HasPermitUnlock,
+            StartingStamina = forwardRoute.StartingStamina
+        };
+        
+        // Copy terrain categories
+        reverseRoute.TerrainCategories.AddRange(forwardRoute.TerrainCategories);
+        
+        // Copy weather modifications
+        foreach (var kvp in forwardRoute.WeatherModifications)
+        {
+            reverseRoute.WeatherModifications[kvp.Key] = kvp.Value;
+        }
+        
+        // Copy unlock condition if present
+        if (forwardRoute.UnlockCondition != null)
+        {
+            reverseRoute.UnlockCondition = forwardRoute.UnlockCondition;
+        }
+        
+        // CRITICAL: Reverse the segments order for the return journey
+        // This ensures the path is traversed in reverse (C->B->A instead of A->B->C)
+        var reversedSegments = forwardRoute.Segments.OrderByDescending(s => s.SegmentNumber).ToList();
+        int segmentNumber = 1;
+        foreach (var originalSegment in reversedSegments)
+        {
+            RouteSegment reverseSegment = new RouteSegment
+            {
+                SegmentNumber = segmentNumber++,
+                Type = originalSegment.Type,
+                // Keep the same path cards and event pools - they represent the same physical locations
+                PathCardIds = new List<string>(originalSegment.PathCardIds),
+                EventPool = new List<string>(originalSegment.EventPool)
+            };
+            reverseRoute.Segments.Add(reverseSegment);
+        }
+        
+        // Copy encounter deck IDs
+        reverseRoute.EncounterDeckIds.AddRange(forwardRoute.EncounterDeckIds);
+        
+        // If the forward route has a route-level event pool, copy it to the reverse route
+        if (_gameWorld.RouteEventPools.ContainsKey(forwardRoute.Id))
+        {
+            _gameWorld.RouteEventPools[reverseRoute.Id] = new List<string>(_gameWorld.RouteEventPools[forwardRoute.Id]);
+        }
+        
+        return reverseRoute;
+    }
+    
+    private string GetLocationNameFromId(string locationId)
+    {
+        // Helper to get friendly location name from ID for route naming
+        var location = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
+        return location?.Name ?? locationId.Replace("_", " ").Replace("-", " ");
+    }
+
     private void ValidateCrossroadsConfiguration()
     {
         Console.WriteLine("[PackageLoader] Starting crossroads configuration validation...");
