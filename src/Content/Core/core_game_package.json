@@ -629,7 +629,15 @@
         "travelTimeMinutes": 15,
         "coinCost": 0,
         "permitRequired": null,
-        "description": "A short walk through the market streets to the tavern"
+        "description": "A short walk through the market streets to the tavern",
+        "startingStamina": 3,
+        "segments": [
+          {
+            "segmentNumber": 1,
+            "pathCardIds": ["market_crowds", "tavern_shortcut"]
+          }
+        ],
+        "encounterDeckIds": ["clear_path", "beggar", "street_vendor", "helpful_stranger"]
       },
       {
         "id": "tavern_to_market",
@@ -641,7 +649,15 @@
         "travelTimeMinutes": 15,
         "coinCost": 0,
         "permitRequired": null,
-        "description": "Return to the market square"
+        "description": "Return to the market square",
+        "startingStamina": 3,
+        "segments": [
+          {
+            "segmentNumber": 1,
+            "pathCardIds": ["common_room", "scholars_path"]
+          }
+        ],
+        "encounterDeckIds": ["clear_path", "found_coins", "helpful_stranger"]
       },
       {
         "id": "market_to_warehouse",
@@ -653,7 +669,19 @@
         "travelTimeMinutes": 20,
         "coinCost": 0,
         "permitRequired": null,
-        "description": "The road to the warehouse district"
+        "description": "The road to the warehouse district",
+        "startingStamina": 4,
+        "segments": [
+          {
+            "segmentNumber": 1,
+            "pathCardIds": ["dock_workers_path", "merchant_avenue", "loading_docks"]
+          },
+          {
+            "segmentNumber": 2,
+            "pathCardIds": ["direct_route", "warehouse_maze", "security_checkpoint"]
+          }
+        ],
+        "encounterDeckIds": ["busy_period", "worker_strike", "shift_change", "rain_shower"]
       },
       {
         "id": "warehouse_to_market",
@@ -665,7 +693,19 @@
         "travelTimeMinutes": 20,
         "coinCost": 0,
         "permitRequired": null,
-        "description": "Return from the warehouse district"
+        "description": "Return from the warehouse district",
+        "startingStamina": 4,
+        "segments": [
+          {
+            "segmentNumber": 1,
+            "pathCardIds": ["direct_route", "night_passage", "smugglers_tunnel"]
+          },
+          {
+            "segmentNumber": 2,
+            "pathCardIds": ["common_room", "back_alley", "courier_express"]
+          }
+        ],
+        "encounterDeckIds": ["clear_path", "guard_inspection", "found_coins", "rain_shower"]
       },
       {
         "id": "market_to_noble",
@@ -677,7 +717,15 @@
         "travelTimeMinutes": 25,
         "coinCost": 0,
         "permitRequired": "noble_district_permit",
-        "description": "The guarded path to the Noble District"
+        "description": "The guarded path to the Noble District",
+        "startingStamina": 3,
+        "segments": [
+          {
+            "segmentNumber": 1,
+            "pathCardIds": ["guard_patrol_route", "courier_express"]
+          }
+        ],
+        "encounterDeckIds": ["guard_inspection", "clear_path"]
       },
       {
         "id": "noble_to_market",
@@ -689,7 +737,15 @@
         "travelTimeMinutes": 25,
         "coinCost": 0,
         "permitRequired": null,
-        "description": "Return from the Noble District"
+        "description": "Return from the Noble District",
+        "startingStamina": 3,
+        "segments": [
+          {
+            "segmentNumber": 1,
+            "pathCardIds": ["guard_patrol_route", "scholars_path"]
+          }
+        ],
+        "encounterDeckIds": ["clear_path", "helpful_stranger"]
       },
       {
         "id": "noble_to_tavern",
@@ -701,7 +757,15 @@
         "travelTimeMinutes": 10,
         "coinCost": 2,
         "permitRequired": null,
-        "description": "A quick carriage ride to the tavern"
+        "description": "A quick carriage ride to the tavern",
+        "startingStamina": 2,
+        "segments": [
+          {
+            "segmentNumber": 1,
+            "pathCardIds": ["courier_express"]
+          }
+        ],
+        "encounterDeckIds": ["clear_path"]
       }
     ],
     "exchanges": [
@@ -715,6 +779,234 @@
         "tokenGate": {
           "Commerce": 1
         }
+      }
+    ],
+    "pathCards": [
+      {
+        "id": "common_room",
+        "name": "Common Room",
+        "staminaCost": 0,
+        "isHidden": false,
+        "hasEncounter": false,
+        "isOneTime": false,
+        "coinRequirement": 0,
+        "permitRequirement": null,
+        "travelTimeMinutes": 15,
+        "hungerEffect": 0,
+        "oneTimeReward": null,
+        "narrativeText": "Takes the safe, well-traveled path through the common areas."
+      },
+      {
+        "id": "back_alley",
+        "name": "Back Alley", 
+        "staminaCost": 1,
+        "isHidden": false,
+        "hasEncounter": true,
+        "isOneTime": false,
+        "coinRequirement": 0,
+        "permitRequirement": null,
+        "travelTimeMinutes": 10,
+        "hungerEffect": 0,
+        "oneTimeReward": null,
+        "narrativeText": "A quicker but riskier path through the narrow alleys."
+      },
+      {
+        "id": "dock_workers_path",
+        "name": "Dock Workers Path",
+        "staminaCost": 1,
+        "isHidden": false,
+        "hasEncounter": false,
+        "isOneTime": false,
+        "coinRequirement": 0,
+        "permitRequirement": null,
+        "travelTimeMinutes": 5,
+        "hungerEffect": 10,
+        "oneTimeReward": null,
+        "narrativeText": "Follow the workers' route through the smelly docks."
+      },
+      {
+        "id": "merchant_avenue",
+        "name": "Merchant Avenue",
+        "staminaCost": 2,
+        "isHidden": false,
+        "hasEncounter": false,
+        "isOneTime": true,
+        "coinRequirement": 2,
+        "permitRequirement": null,
+        "travelTimeMinutes": 10,
+        "hungerEffect": 0,
+        "oneTimeReward": "Shipping Manifest for Marcus",
+        "narrativeText": "The commercial district with its toll booth."
+      },
+      {
+        "id": "loading_docks",
+        "name": "Loading Docks",
+        "staminaCost": 1,
+        "isHidden": false,
+        "hasEncounter": true,
+        "isOneTime": false,
+        "coinRequirement": 0,
+        "permitRequirement": null,
+        "travelTimeMinutes": 10,
+        "hungerEffect": 0,
+        "oneTimeReward": null,
+        "narrativeText": "Weave between the busy loading operations."
+      },
+      {
+        "id": "direct_route",
+        "name": "Direct Route",
+        "staminaCost": 1,
+        "isHidden": false,
+        "hasEncounter": false,
+        "isOneTime": false,
+        "coinRequirement": 0,
+        "permitRequirement": null,
+        "travelTimeMinutes": 10,
+        "hungerEffect": 0,
+        "oneTimeReward": null,
+        "narrativeText": "The straightforward path to your destination."
+      },
+      {
+        "id": "warehouse_maze",
+        "name": "Warehouse Maze",
+        "staminaCost": 0,
+        "isHidden": true,
+        "hasEncounter": false,
+        "isOneTime": true,
+        "coinRequirement": 0,
+        "permitRequirement": null,
+        "travelTimeMinutes": 15,
+        "hungerEffect": 0,
+        "oneTimeReward": "3 coins",
+        "narrativeText": "Navigate the confusing warehouse layout."
+      },
+      {
+        "id": "security_checkpoint",
+        "name": "Security Checkpoint",
+        "staminaCost": 2,
+        "isHidden": false,
+        "hasEncounter": false,
+        "isOneTime": false,
+        "coinRequirement": 0,
+        "permitRequirement": null,
+        "travelTimeMinutes": 5,
+        "hungerEffect": 0,
+        "oneTimeReward": null,
+        "narrativeText": "Pass through the official security point."
+      },
+      {
+        "id": "main_gate",
+        "name": "Main Gate",
+        "staminaCost": 1,
+        "isHidden": false,
+        "hasEncounter": false,
+        "isOneTime": false,
+        "coinRequirement": 0,
+        "permitRequirement": "noble_district_permit",
+        "travelTimeMinutes": 5,
+        "hungerEffect": 0,
+        "oneTimeReward": null,
+        "narrativeText": "Enter through the heavily guarded main gate."
+      },
+      {
+        "id": "bribe_guard",
+        "name": "Bribe Guard",
+        "staminaCost": 2,
+        "isHidden": false,
+        "hasEncounter": false,
+        "isOneTime": false,
+        "coinRequirement": 20,
+        "permitRequirement": null,
+        "travelTimeMinutes": 10,
+        "hungerEffect": 0,
+        "oneTimeReward": null,
+        "narrativeText": "Pay the guard to look the other way."
+      },
+      {
+        "id": "argue_entry",
+        "name": "Argue Entry",
+        "staminaCost": 1,
+        "isHidden": false,
+        "hasEncounter": false,
+        "isOneTime": false,
+        "coinRequirement": 0,
+        "permitRequirement": null,
+        "travelTimeMinutes": 60,
+        "hungerEffect": 0,
+        "oneTimeReward": null,
+        "narrativeText": "Waste time arguing with the guards."
+      },
+      {
+        "id": "noble_promenade",
+        "name": "Noble Promenade",
+        "staminaCost": 1,
+        "isHidden": false,
+        "hasEncounter": false,
+        "isOneTime": false,
+        "coinRequirement": 0,
+        "permitRequirement": null,
+        "travelTimeMinutes": 20,
+        "hungerEffect": 0,
+        "oneTimeReward": null,
+        "narrativeText": "Walk the elegant promenade of the nobles."
+      },
+      {
+        "id": "garden_path",
+        "name": "Garden Path",
+        "staminaCost": 2,
+        "isHidden": true,
+        "hasEncounter": false,
+        "isOneTime": true,
+        "coinRequirement": 0,
+        "permitRequirement": null,
+        "travelTimeMinutes": 15,
+        "hungerEffect": 0,
+        "oneTimeReward": "Garden Layout for Lord Blackwood",
+        "narrativeText": "Discover a hidden path through the private gardens."
+      }
+    ],
+    "encounterCards": [
+      {
+        "id": "clear_path",
+        "name": "Clear Path",
+        "effect": "No effect",
+        "narrativeText": "The path is clear and unobstructed."
+      },
+      {
+        "id": "beggar",
+        "name": "Beggar",
+        "effect": "Pay 1 coin or add 5 minutes",
+        "narrativeText": "A desperate beggar blocks your way asking for coin."
+      },
+      {
+        "id": "street_vendor",
+        "name": "Street Vendor",
+        "effect": "Option: buy food for 2 coins",
+        "narrativeText": "A friendly vendor offers you fresh bread."
+      },
+      {
+        "id": "busy_period",
+        "name": "Busy Period",
+        "effect": "Add 5 minutes",
+        "narrativeText": "The docks are unusually busy today."
+      },
+      {
+        "id": "worker_strike",
+        "name": "Worker Strike",
+        "effect": "Pay 2 coins or add 10 minutes",
+        "narrativeText": "Striking workers block the usual route."
+      },
+      {
+        "id": "loading_accident",
+        "name": "Loading Accident",
+        "effect": "Must return and take different path",
+        "narrativeText": "A cart has overturned, blocking the path completely."
+      },
+      {
+        "id": "shift_change",
+        "name": "Shift Change",
+        "effect": "Save 5 minutes",
+        "narrativeText": "The workers are changing shifts, clearing the way."
       }
     ]
   }

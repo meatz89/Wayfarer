@@ -311,6 +311,227 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                     SystemMessageTypes.Success);
             }
         }
+
+        // ========== PATH CARD SYSTEM OPERATIONS ==========
+
+        /// <summary>
+        /// Get current travel context for active path card session
+        /// </summary>
+        public TravelContext GetCurrentTravelContext()
+        {
+            TravelSession session = _gameWorld.CurrentTravelSession;
+            if (session == null)
+            {
+                return null;
+            }
+
+            RouteOption route = GetRouteById(session.RouteId);
+            if (route == null)
+            {
+                return null;
+            }
+
+            // Get current segment cards
+            List<PathCardDTO> currentSegmentCards = new List<PathCardDTO>();
+            if (session.CurrentSegment <= route.Segments.Count)
+            {
+                RouteSegment segment = route.Segments[session.CurrentSegment - 1];
+                foreach (string pathCardId in segment.PathCardIds)
+                {
+                    if (_gameWorld.AllPathCards.ContainsKey(pathCardId))
+                    {
+                        currentSegmentCards.Add(_gameWorld.AllPathCards[pathCardId]);
+                    }
+                }
+            }
+
+            // Check if player must turn back (exhausted with no paths available)
+            bool mustTurnBack = session.CurrentState == TravelState.Exhausted && 
+                               !currentSegmentCards.Any(card => CanPlayPathCard(card.Id));
+
+            return new TravelContext
+            {
+                CurrentRoute = route,
+                Session = session,
+                CurrentSegmentCards = currentSegmentCards,
+                CardDiscoveries = _gameWorld.PathCardDiscoveries,
+                Player = _gameWorld.GetPlayer(),
+                MustTurnBack = mustTurnBack
+            };
+        }
+
+        /// <summary>
+        /// Check if a specific path card can be played
+        /// </summary>
+        public bool CanPlayPathCard(string pathCardId)
+        {
+            TravelSession session = _gameWorld.CurrentTravelSession;
+            if (session == null)
+            {
+                return false;
+            }
+
+            if (!_gameWorld.AllPathCards.ContainsKey(pathCardId))
+            {
+                return false;
+            }
+
+            PathCardDTO card = _gameWorld.AllPathCards[pathCardId];
+            Player player = _gameWorld.GetPlayer();
+
+            // Check stamina requirement
+            if (session.StaminaRemaining < card.StaminaCost)
+            {
+                return false;
+            }
+
+            // Check coin requirement
+            if (card.CoinRequirement > 0 && player.Coins < card.CoinRequirement)
+            {
+                return false;
+            }
+
+            // Check permit requirement
+            if (!string.IsNullOrEmpty(card.PermitRequirement))
+            {
+                // TODO: Check player inventory for permit
+                // For now, assume player has required permits
+                return true;
+            }
+
+            // Check one-time card usage
+            if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.ContainsKey(pathCardId) 
+                && _gameWorld.PathCardRewardsClaimed[pathCardId])
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Get available path cards for the current segment with discovery states
+        /// </summary>
+        public List<PathCardInfo> GetAvailablePathCards()
+        {
+            TravelContext context = GetCurrentTravelContext();
+            if (context == null)
+            {
+                return new List<PathCardInfo>();
+            }
+
+            List<PathCardInfo> pathCardInfos = new List<PathCardInfo>();
+            foreach (PathCardDTO card in context.CurrentSegmentCards)
+            {
+                bool isDiscovered = context.CardDiscoveries.ContainsKey(card.Id) && context.CardDiscoveries[card.Id];
+                bool canPlay = CanPlayPathCard(card.Id);
+
+                pathCardInfos.Add(new PathCardInfo
+                {
+                    Card = card,
+                    IsDiscovered = isDiscovered,
+                    CanPlay = canPlay,
+                    IsHidden = card.IsHidden && !isDiscovered
+                });
+            }
+
+            return pathCardInfos;
+        }
+
+        /// <summary>
+        /// Start a new path card journey
+        /// </summary>
+        public bool StartPathCardJourney(string routeId)
+        {
+            // Check if player can travel to the route
+            RouteOption route = GetRouteById(routeId);
+            if (route == null)
+            {
+                return false;
+            }
+
+            // Check access requirements (permits, etc.)
+            if (!_permitValidator.HasRequiredPermit(route))
+            {
+                return false;
+            }
+
+            // Check if already in a travel session
+            if (_gameWorld.CurrentTravelSession != null)
+            {
+                return false;
+            }
+
+            // Delegate to TravelManager to actually start the journey
+            // TravelManager will create the session and set up initial state
+            return true;
+        }
+
+        /// <summary>
+        /// Get stamina derived from hunger/health as per design requirements
+        /// </summary>
+        public int GetDerivedStamina(Player player)
+        {
+            // Stamina is derived from hunger and health state
+            // Lower hunger = higher stamina capacity
+            // Better health = better stamina efficiency
+            
+            int baseStamina = 3; // Default Fresh state
+            
+            // Health affects maximum stamina capacity
+            if (player.Health >= 80)
+            {
+                baseStamina = 4; // Steady state when healthy
+            }
+            else if (player.Health <= 30)
+            {
+                baseStamina = 1; // Weary when unhealthy
+            }
+
+            // Hunger affects current stamina
+            if (player.Hunger >= 80)
+            {
+                baseStamina = Math.Max(1, baseStamina - 2); // Very hungry = low stamina
+            }
+            else if (player.Hunger >= 60)
+            {
+                baseStamina = Math.Max(1, baseStamina - 1); // Hungry = reduced stamina
+            }
+
+            return baseStamina;
+        }
+
+        // ========== HELPER METHODS ==========
+
+        /// <summary>
+        /// Get route by ID - search through all location connections
+        /// </summary>
+        private RouteOption GetRouteById(string routeId)
+        {
+            foreach (Location location in _gameWorld.WorldState.locations)
+            {
+                foreach (LocationConnection connection in location.Connections)
+                {
+                    RouteOption route = connection.RouteOptions.FirstOrDefault(r => r.Id == routeId);
+                    if (route != null)
+                    {
+                        return route;
+                    }
+                }
+            }
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Information about a path card including its discovery and availability state
+    /// </summary>
+    public class PathCardInfo
+    {
+        public PathCardDTO Card { get; set; }
+        public bool IsDiscovered { get; set; }
+        public bool CanPlay { get; set; }
+        public bool IsHidden { get; set; }
     }
 
     /// <summary>

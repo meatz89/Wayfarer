@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.Subsystems.TravelSubsystem;
 
 namespace Wayfarer.Pages.Components
 {
@@ -35,20 +36,35 @@ namespace Wayfarer.Pages.Components
 
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected TimeManager TimeManager { get; set; }
+        [Inject] protected TravelFacade TravelFacade { get; set; }
+        [Inject] protected TravelManager TravelManager { get; set; }
 
         protected List<RouteViewModel> AvailableRoutes { get; set; } = new();
         protected RouteViewModel SelectedRoute { get; set; }
+        protected TravelContext CurrentTravelContext { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
-            LoadAvailableRoutes();
+            LoadTravelState();
         }
 
         protected override async Task OnParametersSetAsync()
         {
-            LoadAvailableRoutes();
+            LoadTravelState();
         }
 
+        private void LoadTravelState()
+        {
+            // Check if there's an active travel session
+            CurrentTravelContext = TravelFacade.GetCurrentTravelContext();
+            
+            // If no active travel session, load available routes for selection
+            if (CurrentTravelContext == null)
+            {
+                LoadAvailableRoutes();
+            }
+        }
+        
         private void LoadAvailableRoutes()
         {
             Location currentLoc = GameFacade.GetCurrentLocation();
@@ -260,7 +276,14 @@ namespace Wayfarer.Pages.Components
         {
             if (!CanTakeRoute(route)) return;
 
-            await OnTravelRoute.InvokeAsync(route.Id);
+            // Start a path cards journey instead of instant travel
+            TravelSession session = TravelManager.StartJourney(route.Id);
+            if (session != null)
+            {
+                // Refresh to show the path cards interface
+                LoadTravelState();
+                StateHasChanged();
+            }
         }
 
         protected bool CanTakeRoute(RouteViewModel route)
@@ -397,6 +420,14 @@ namespace Wayfarer.Pages.Components
                 "RESTRICTED" => "tag-restricted",
                 _ => "tag-public"
             };
+        }
+
+        /// <summary>
+        /// Check if there is an active travel session
+        /// </summary>
+        protected bool HasActiveTravelSession()
+        {
+            return CurrentTravelContext != null && CurrentTravelContext.Session != null;
         }
     }
 

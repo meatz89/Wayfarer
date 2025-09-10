@@ -2,6 +2,14 @@
 
 @namespace Wayfarer.Pages.Components
 
+@if (HasActiveTravelSession())
+{
+    <!-- Show Path Cards UI -->
+    <TravelPathContent TravelContext="@CurrentTravelContext" OnNavigate="OnNavigate" />
+}
+else
+{
+    <!-- Show Route Selection UI -->
 <div class="travel-container">
     <!-- Header -->
     <div class="travel-header">
@@ -130,3 +138,4 @@
         Back to Location
     </button>
 </div>
+}

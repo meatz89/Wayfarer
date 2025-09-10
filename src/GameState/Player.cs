@@ -21,6 +21,8 @@
     public int Attention { get; set; } = 6; // Starting attention
     public int Health { get; set; }
     public int Hunger { get; set; } = 0; // Starting hunger (0 = not hungry)
+    public int Stamina { get; set; } = 3; // Starting stamina for travel
+    public int MaxStamina { get; set; } = 3; // Maximum stamina
 
     public int MaxAttention { get; set; } = 10;  // Maximum attention
     public int MinHealth { get; set; }

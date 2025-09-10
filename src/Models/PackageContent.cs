@@ -66,9 +66,14 @@ public class PackageContent
     public List<NPCGoalCardDTO> NpcGoalCards { get; set; }
 
     /// <summary>
-    /// Travel cards - uses TravelCardDTO for consistency
+    /// Path cards for travel system
     /// </summary>
-    public List<TravelCardDTO> TravelCards { get; set; }
+    public List<PathCardDTO> PathCards { get; set; }
+    
+    /// <summary>
+    /// Encounter cards for travel system
+    /// </summary>
+    public List<EncounterCardDTO> EncounterCards { get; set; }
 
     /// <summary>
     /// Items - uses existing ItemDTO

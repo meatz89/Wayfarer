@@ -23,4 +23,18 @@ public class RouteDTO
     public int MaxItemCapacity { get; set; }
     public string Description { get; set; }
     public AccessRequirementDTO AccessRequirement { get; set; }
+    
+    // Travel path cards system properties
+    public int StartingStamina { get; set; } = 3;
+    public List<RouteSegmentDTO> Segments { get; set; } = new List<RouteSegmentDTO>();
+    public List<string> EncounterDeckIds { get; set; } = new List<string>();
+}
+
+/// <summary>
+/// Data Transfer Object for route segments containing path card options.
+/// </summary>
+public class RouteSegmentDTO
+{
+    public int SegmentNumber { get; set; }
+    public List<string> PathCardIds { get; set; } = new List<string>();
 }

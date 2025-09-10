@@ -110,7 +110,8 @@ public class PackageLoader
             // Phase 6: Independent content
             LoadObservations(package.Content.Observations);
             LoadInvestigationRewards(package.Content.InvestigationRewards);
-            LoadTravelCards(package.Content.TravelCards);
+            LoadPathCards(package.Content.PathCards);
+            LoadEncounterCards(package.Content.EncounterCards);
             LoadItems(package.Content.Items);
             LoadLetterTemplates(package.Content.LetterTemplates);
             LoadStandingObligations(package.Content.StandingObligations);
@@ -421,15 +422,23 @@ public class PackageLoader
         }
     }
 
-    private void LoadTravelCards(List<TravelCardDTO> travelCardDtos)
+    private void LoadPathCards(List<PathCardDTO> pathCardDtos)
     {
-        if (travelCardDtos == null) return;
+        if (pathCardDtos == null) return;
 
-        foreach (TravelCardDTO dto in travelCardDtos)
+        foreach (PathCardDTO dto in pathCardDtos)
         {
-            ConversationCard travelCard = ConvertTravelCardDTOToModel(dto);
-            _gameWorld.TravelCards.Add(travelCard);
-            _gameWorld.AllCardDefinitions[travelCard.Id] = travelCard;
+            _gameWorld.AllPathCards[dto.Id] = dto;
+        }
+    }
+    
+    private void LoadEncounterCards(List<EncounterCardDTO> encounterCardDtos)
+    {
+        if (encounterCardDtos == null) return;
+
+        foreach (EncounterCardDTO dto in encounterCardDtos)
+        {
+            _gameWorld.AllEncounterCards[dto.Id] = dto;
         }
     }
 
@@ -795,6 +804,29 @@ public class PackageLoader
             }
         }
 
+        // Parse travel path cards system properties
+        route.StartingStamina = dto.StartingStamina;
+        
+        // Parse route segments
+        if (dto.Segments != null)
+        {
+            foreach (RouteSegmentDTO segmentDto in dto.Segments)
+            {
+                RouteSegment segment = new RouteSegment
+                {
+                    SegmentNumber = segmentDto.SegmentNumber,
+                    PathCardIds = segmentDto.PathCardIds?.ToList() ?? new List<string>()
+                };
+                route.Segments.Add(segment);
+            }
+        }
+        
+        // Parse encounter deck IDs
+        if (dto.EncounterDeckIds != null)
+        {
+            route.EncounterDeckIds.AddRange(dto.EncounterDeckIds);
+        }
+
         return route;
     }
 
@@ -814,27 +846,6 @@ public class PackageLoader
         return card;
     }
 
-    private ConversationCard ConvertTravelCardDTOToModel(TravelCardDTO dto)
-    {
-        ConversationCard card = new ConversationCard
-        {
-            Id = dto.Id,
-            Description = dto.Title ?? dto.DisplayName ?? "Travel Card",
-            Focus = dto.Focus ?? 1,
-            TokenType = TokenType.Trust,
-            Difficulty = Difficulty.Medium
-        };
-
-        // Parse persistence
-        if (dto.Persistence == "Impulse")
-            card.Properties.Add(CardProperty.Impulse);
-        else if (dto.Persistence == "Opening")
-            card.Properties.Add(CardProperty.Opening);
-        else
-            card.Properties.Add(CardProperty.Persistent);
-
-        return card;
-    }
 
     private LocationAction ConvertLocationActionDTOToModel(LocationActionDTO dto)
     {

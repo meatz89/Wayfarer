@@ -391,7 +391,10 @@
       "Read(//mnt/wsl/**)",
       "Bash(ip route:*)",
       "Bash(getent:*)",
-      "Bash(OLLAMA_BASE_URL=\"http://192.168.86.29:11434\" ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run)"
+      "Bash(OLLAMA_BASE_URL=\"http://192.168.86.29:11434\" ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6001\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6002\" dotnet run --no-build)",
+      "Bash(xargs kill:*)"
     ],
     "deny": []
   }

@@ -72,8 +72,6 @@ public class GameWorld
     // Exchange cards are now completely separate from conversation cards
     public Dictionary<string, List<ExchangeCard>> NPCExchangeCards { get; set; } = new Dictionary<string, List<ExchangeCard>>();
     public List<ConversationCard> PlayerObservationCards { get; set; } = new List<ConversationCard>();
-    // Travel cards are now stored as ConversationCards with category "Travel"
-    public List<ConversationCard> TravelCards { get; set; } = new List<ConversationCard>();
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
 
@@ -95,6 +93,22 @@ public class GameWorld
 
     // Track if game has been started to prevent duplicate initialization
     public bool IsGameStarted { get; set; } = false;
+
+    // PATH CARD SYSTEM - Travel path card discovery mechanics
+    // Path cards from JSON (like exchanges)
+    public Dictionary<string, PathCardDTO> AllPathCards { get; set; } = new Dictionary<string, PathCardDTO>();
+    
+    // Persistent discovery states
+    public Dictionary<string, bool> PathCardDiscoveries { get; set; } = new Dictionary<string, bool>();
+    
+    // Track one-time rewards
+    public Dictionary<string, bool> PathCardRewardsClaimed { get; set; } = new Dictionary<string, bool>();
+    
+    // Active travel session
+    public TravelSession CurrentTravelSession { get; set; }
+    
+    // Encounter cards
+    public Dictionary<string, EncounterCardDTO> AllEncounterCards { get; set; } = new Dictionary<string, EncounterCardDTO>();
 
     /// <summary>
     /// Get a report of all skeletons that need to be populated

@@ -96,6 +96,15 @@ public class RouteOption
     // Track if this specific route has been unlocked via permit
     public bool HasPermitUnlock { get; set; } = false;
 
+    // PATH CARD SYSTEM - Route segments with path card options
+    public List<RouteSegment> Segments { get; set; } = new List<RouteSegment>();
+    
+    // Encounter deck for this route
+    public List<string> EncounterDeckIds { get; set; } = new List<string>();
+    
+    // Starting stamina for this route
+    public int StartingStamina { get; set; } = 3;
+
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalFocus)
     {
         // Use logical access system instead of efficiency calculations

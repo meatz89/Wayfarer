@@ -1,0 +1,199 @@
+@inherits TravelPathContentBase
+@namespace Wayfarer.Pages.Components
+
+@if (TravelContext != null && TravelContext.Session != null)
+{
+    <!-- Route Info -->
+    <div class="route-info">
+        <div class="route-title">@GetOriginLocationName() → @GetDestinationName()</div>
+        <div class="route-details">Base Time: @GetBaseTravelTime() minutes • Distance: @GetSegmentCount() segments • Route Familiarity: @GetRouteFamiliarity()</div>
+    </div>
+
+    <!-- Stamina Bar -->
+    <div class="stamina-section">
+        <span class="stamina-label">Stamina:</span>
+        <div class="stamina-dots">
+            @foreach (var dot in GetStaminaDots())
+            {
+                <span class="stamina-dot @(dot.State == StaminaDotState.Available ? "available" : dot.State == StaminaDotState.Spent ? "spent" : "")"></span>
+            }
+        </div>
+        <span class="stamina-numbers">@GetStaminaDisplay()</span>
+        <span class="stamina-note">@GetTravelStateText()</span>
+    </div>
+
+    <!-- Segment Progress -->
+    <div class="segment-progress">
+        SEGMENT @GetCurrentSegment() OF @GetSegmentCount()
+        <span class="segment-dots">
+            @{
+                var segmentDots = GetSegmentDots();
+                for (int i = 0; i < segmentDots.Count; i++)
+                {
+                    var dot = segmentDots[i];
+                    <span class="segment-dot @GetSegmentDotClass(dot.State)"></span>
+                    @if (i < segmentDots.Count - 1)
+                    {
+                        <span>→</span>
+                    }
+                }
+            }
+        </span>
+    </div>
+
+    <!-- Path Cards Section -->
+    <div class="paths-section">
+        <div class="paths-title">Choose Your Path</div>
+        
+        <div class="path-grid">
+            @if (GetAvailablePathCards().Any())
+            {
+                @foreach (var pathCardData in GetAvailablePathCards())
+                {
+                    var card = pathCardData.Card;
+                    var isDiscovered = pathCardData.IsDiscovered;
+                    var isAvailable = pathCardData.CanPlay;
+                    
+                    <div class="path-card @GetPathCardCssClass(isDiscovered, isAvailable)" @onclick="() => SelectPathCard(card.Id)">
+                        
+                        @if (isDiscovered)
+                        {
+                            <!-- Face-Up Path Card -->
+                            <div class="path-content">
+                                <div class="path-main">
+                                    <div class="path-header">
+                                        <div class="path-name">@card.Name</div>
+                                        <div class="path-stamina">@card.StaminaCost</div>
+                                    </div>
+                                    
+                                    @{
+                                        var requirements = GetRequirementsText(card);
+                                    }
+                                    @if (!string.IsNullOrEmpty(requirements))
+                                    {
+                                        <div class="path-requirements">Requires: @requirements</div>
+                                    }
+                                    
+                                    <div class="path-effect">
+                                        @card.NarrativeText
+                                    </div>
+                                    
+                                    @if (!string.IsNullOrEmpty(card.OneTimeReward) && card.IsOneTime)
+                                    {
+                                        <div class="path-discovery">One-time: @card.OneTimeReward @GetOneTimeStatus(card)</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- Face-Down Path Card -->
+                            <div class="card-back-pattern"></div>
+                            <div class="card-back">
+                                <span class="card-back-name">
+                                    @card.Name
+                                    @if (card.HasEncounter)
+                                    {
+                                        <span class="encounter-warning">⚠</span>
+                                    }
+                                </span>
+                                <span class="card-back-cost">@card.StaminaCost</span>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="unknown-hint">
+                    No path cards available for this segment.
+                </div>
+            }
+        </div>
+
+        @if (!IsJourneyComplete())
+        {
+            <div class="unknown-hint">
+                Unknown paths will reveal permanently when played. The ⚠ symbol indicates possible encounters.
+            </div>
+        }
+    </div>
+
+    <!-- Action Section -->
+    <div class="action-section">
+        <div class="action-choices">
+            <div class="action-button @(!CanRest() ? "disabled" : "")" 
+                 @onclick="RestAction">
+                <div>REST</div>
+                <div class="action-details">Skip segment, +30 minutes, restore stamina</div>
+            </div>
+            <div class="action-button @(!MustTurnBack() ? "disabled" : "")" 
+                 @onclick="TurnBack">
+                <div>TURN BACK</div>
+                <div class="action-details">Return to @GetOriginLocationName()</div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- No active travel session -->
+    <div class="paths-section">
+        <div class="paths-title">No Active Journey</div>
+        <div class="unknown-hint">
+            Start a journey from the travel routes screen to see path cards.
+        </div>
+    </div>
+}
+
+@code {
+    protected string GetDestinationName()
+    {
+        if (TravelContext?.CurrentRoute == null)
+            return "Unknown Destination";
+        
+        // Extract destination from route
+        var destinationSpot = TravelContext.CurrentRoute.DestinationLocationSpot;
+        if (string.IsNullOrEmpty(destinationSpot))
+            return "Unknown Destination";
+        
+        // Get location spot and location name
+        var spot = GameFacade.GetLocationSpot(destinationSpot);
+        if (spot != null)
+        {
+            var location = GameFacade.GetLocationById(spot.LocationId);
+            if (location != null)
+            {
+                return location.Name;
+            }
+        }
+        
+        return "Unknown Destination";
+    }
+    
+    protected string GetOriginLocationName()
+    {
+        if (TravelContext?.CurrentRoute == null)
+            return "Origin";
+        
+        // Get current player location
+        var player = GameFacade.GetPlayer();
+        if (player?.CurrentLocationSpot?.LocationId != null)
+        {
+            var location = GameFacade.GetLocationById(player.CurrentLocationSpot.LocationId);
+            return location?.Name ?? "Origin";
+        }
+        
+        return "Origin";
+    }
+    
+    protected string GetSegmentDotClass(SegmentDotState state)
+    {
+        return state switch
+        {
+            SegmentDotState.Complete => "complete",
+            SegmentDotState.Current => "current",
+            _ => ""
+        };
+    }
+}
