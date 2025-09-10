@@ -1,407 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
 
-public static class TravelTimeMatrix
-{
-    // Travel times in minutes between locations
-    private static readonly Dictionary<(string, string), int> travelTimes = new Dictionary<(string, string), int>
-    {
-        // Your Room connections (very close to Market Square)
-        { ("your_room", "market_square"), 10 },
-        { ("market_square", "your_room"), 10 },
-        
-        // Market Square as central hub
-        { ("market_square", "noble_district"), 30 },
-        { ("noble_district", "market_square"), 30 },
-
-        { ("market_square", "merchant_row"), 15 },
-        { ("merchant_row", "market_square"), 15 },
-
-        { ("market_square", "city_gates"), 30 },
-        { ("city_gates", "market_square"), 30 },
-
-        { ("market_square", "riverside"), 45 },
-        { ("riverside", "market_square"), 45 },
-        
-        // Non-hub connections (longer)
-        { ("noble_district", "merchant_row"), 45 },
-        { ("merchant_row", "noble_district"), 45 },
-
-        { ("noble_district", "city_gates"), 60 },
-        { ("city_gates", "noble_district"), 60 },
-
-        { ("noble_district", "riverside"), 60 },
-        { ("riverside", "noble_district"), 60 },
-
-        { ("merchant_row", "city_gates"), 30 },
-        { ("city_gates", "merchant_row"), 30 },
-
-        { ("merchant_row", "riverside"), 60 },
-        { ("riverside", "merchant_row"), 60 },
-
-        { ("city_gates", "riverside"), 30 },
-        { ("riverside", "city_gates"), 30 },
-        
-        // Your Room to other locations (must go through Market Square)
-        { ("your_room", "noble_district"), 40 },
-        { ("noble_district", "your_room"), 40 },
-
-        { ("your_room", "merchant_row"), 25 },
-        { ("merchant_row", "your_room"), 25 },
-
-        { ("your_room", "city_gates"), 40 },
-        { ("city_gates", "your_room"), 40 },
-
-        { ("your_room", "riverside"), 55 },
-        { ("riverside", "your_room"), 55 },
-    };
-
-    public static int GetTravelTime(string fromLocationId, string toLocationId)
-    {
-        // Same location = no travel time
-        if (fromLocationId == toLocationId)
-            return 0;
-
-        // Look up travel time
-        (string fromLocationId, string toLocationId) key = (fromLocationId, toLocationId);
-        if (travelTimes.TryGetValue(key, out int time))
-            return time;
-
-        // No fallback - route must be defined
-        throw new ArgumentException($"Travel time not defined for route {fromLocationId} -> {toLocationId} - add to travelTimes configuration");
-    }
-
-    public static Dictionary<string, int> GetTravelTimesFrom(string locationId)
-    {
-        Dictionary<string, int> result = new Dictionary<string, int>();
-
-        foreach (KeyValuePair<(string, string), int> kvp in travelTimes)
-        {
-            if (kvp.Key.Item1 == locationId)
-            {
-                result[kvp.Key.Item2] = kvp.Value;
-            }
-        }
-
-        return result;
-    }
-}
-
 public class TravelManager
 {
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;
-    private readonly TransportCompatibilityValidator _transportValidator;
-    private readonly RouteRepository _routeRepository;
-    private readonly AccessRequirementChecker _accessChecker;
-    public ItemRepository ItemRepository { get; }
 
-    public TravelManager(
-        GameWorld gameWorld,
-        ItemRepository itemRepository,
-        TransportCompatibilityValidator transportValidator,
-        RouteRepository routeRepository,
-        AccessRequirementChecker accessChecker,
-        TimeManager timeManager
-        )
+    public TravelManager(GameWorld gameWorld, TimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _timeManager = timeManager;
-        _transportValidator = transportValidator;
-        _routeRepository = routeRepository;
-        _accessChecker = accessChecker;
-        ItemRepository = itemRepository;
-    }
-
-    public bool CanTravelTo(string locationId)
-    {
-        Location destination = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
-        Location currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId != null ?
-            _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == _gameWorld.GetPlayer().CurrentLocationSpot.LocationId) : null;
-
-        if (destination == null || currentLocation == null)
-            return false;
-
-        // Check if any route exists and is available
-        List<RouteOption> routes = GetAvailableRoutes(currentLocation.Id, destination.Id);
-
-        // Check if player can travel (hunger check)
-        Player player = _gameWorld.GetPlayer();
-        if (player.Hunger >= player.MaxHunger - 2) // Can't travel if too hungry
-        {
-            return false; // Too hungry to travel
-        }
-
-        return routes.Any();
-    }
-
-    public RouteOption StartLocationTravel(string locationId, TravelMethods method = TravelMethods.Walking)
-    {
-        Location destination = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
-        Location currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId != null ?
-            _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == _gameWorld.GetPlayer().CurrentLocationSpot.LocationId) : null;
-
-        // Find the appropriate route
-
-        List<RouteOption> routes = GetAvailableRoutes(currentLocation.Id, destination.Id);
-        RouteOption? selectedRoute = routes.FirstOrDefault(r => r.Method == method);
-
-        if (selectedRoute == null) return null;
-
-        return selectedRoute;
-    }
-
-    public void TravelToLocation(RouteOption selectedRoute)
-    {
-        // Calculate actual costs with weather and focus modifications
-        int hungerIncrease = CalculateHungerIncrease(selectedRoute);
-        int adjustedCoinCost = CalculateCoinCost(selectedRoute);
-
-        // Apply costs
-        _gameWorld.GetPlayer().ModifyCoins(-adjustedCoinCost);
-        _gameWorld.GetPlayer().ModifyHunger(hungerIncrease); // Travel makes you hungry
-
-        // Record route usage for discovery mechanics
-        // Route usage counting removed - violates NO USAGE COUNTERS principle
-        // Routes are discovered through NPC relationships and token spending
-
-        // Time advancement handled by GameFacade to ensure letter deadlines are updated
-
-        // Update location
-        // Get the spot from the route, then get its location
-        LocationSpot targetSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == selectedRoute.DestinationLocationSpot);
-        if (targetSpot == null)
-        {
-            return; // Invalid destination spot
-        }
-
-        Location targetLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == targetSpot.LocationId);
-        if (targetLocation == null)
-        {
-            return; // Invalid location
-        }
-
-        // Use the exact spot from the route - NO FALLBACKS
-        _gameWorld.GetPlayer().CurrentLocationSpot = targetSpot;
-
-        string? currentLocation = targetLocation?.Id;
-
-    }
-
-
-    public List<RouteOption> GetAvailableRoutes(string fromLocationId, string toLocationId)
-    {
-        List<RouteOption> availableRoutes = new List<RouteOption>();
-        Location fromLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == fromLocationId);
-
-        // If location doesn't exist, return empty list
-        if (fromLocation == null) return availableRoutes;
-
-        // Find connection to destination
-        LocationConnection connection = fromLocation.Connections.Find(c => c.DestinationLocationId == toLocationId);
-
-        // CRITICAL FIX: If no connection exists, create a basic walking route
-        // This ensures players can always travel between locations
-        if (connection == null)
-        {
-            // Check if a travel time exists in the matrix
-            int travelTime = TravelTimeMatrix.GetTravelTime(fromLocationId, toLocationId);
-            if (travelTime > 0 && travelTime < 100) // Valid travel time exists
-            {
-                // Create a basic walking route
-                RouteOption walkingRoute = new RouteOption
-                {
-                    Id = $"walk_{fromLocationId}_to_{toLocationId}",
-                    OriginLocationSpot = fromLocationId,
-                    DestinationLocationSpot = toLocationId,
-                    Method = TravelMethods.Walking,
-                    TravelTimeMinutes = travelTime, // Direct minutes from TravelTimeMatrix
-                    BaseStaminaCost = Math.Max(1, travelTime / 30), // 1 stamina per 30 minutes
-                    IsDiscovered = true, // All walking routes are discovered
-                    Description = "On foot"
-                    // Note: CoinCost is calculated, not set directly
-                    // Note: TransportNPCId doesn't exist in RouteOption
-                };
-                availableRoutes.Add(walkingRoute);
-                return availableRoutes;
-            }
-            return availableRoutes;
-        }
-
-        foreach (RouteOption route in connection.RouteOptions)
-        {
-            // Check if route is discovered
-            if (!route.IsDiscovered)
-                continue;
-
-            // Check departure times and weather-dependent boat schedules
-            if (route.DepartureTime != null && route.DepartureTime != _timeManager.GetCurrentTimeBlock())
-                continue;
-
-            // Check weather-dependent boat schedules
-            if (route.Method == TravelMethods.Boat && !IsBoatScheduleAvailable(route))
-                continue;
-
-            // Check if route is temporarily blocked
-            if (_routeRepository.IsRouteBlocked(route.Id))
-                continue;
-
-            // Weather no longer blocks routes - it affects efficiency instead
-
-            // Check if route is accessible using logical blocking system
-            RouteAccessResult accessResult = route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _routeRepository.GetCurrentWeather());
-            if (!accessResult.IsAllowed)
-                continue;
-
-            // Check additional access requirements (token/equipment based)
-            if (route.AccessRequirement != null)
-            {
-                AccessCheckResult requirementCheck = _accessChecker.CheckRouteAccess(route);
-                if (!requirementCheck.IsAllowed)
-                    continue;
-            }
-
-            availableRoutes.Add(route);
-        }
-
-        return availableRoutes;
-    }
-
-
-
-
-    public int CalculateCurrentFocus(GameWorld _gameWorld)
-    {
-        int totalFocus = 0;
-
-        // Calculate item focus
-        foreach (string itemName in _gameWorld.GetPlayer().Inventory.ItemSlots)
-        {
-            if (itemName != null)
-            {
-                Item item = ItemRepository.GetItemByName(itemName);
-                if (item != null)
-                {
-                    totalFocus += item.Focus;
-                }
-            }
-        }
-
-        // Add coin focus
-        totalFocus += _gameWorld.GetPlayer().Coins / GameConstants.Inventory.COINS_PER_FOCUS_UNIT;
-
-        return totalFocus;
-    }
-
-    public int CalculateHungerIncrease(RouteOption route)
-    {
-        int totalFocus = CalculateCurrentFocus(_gameWorld);
-        WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
-
-        // Travel increases hunger based on route difficulty and conditions
-        int baseHunger = 2; // Base hunger increase for any travel
-
-        // Heavy load increases hunger
-        if (totalFocus > GameConstants.LoadFocus.MEDIUM_LOAD_MAX)
-            baseHunger += 2;
-        else if (totalFocus > GameConstants.LoadFocus.LIGHT_LOAD_MAX)
-            baseHunger += 1;
-
-        // Bad weather increases hunger
-        if (currentWeather == WeatherCondition.Rain || currentWeather == WeatherCondition.Snow)
-            baseHunger += 1;
-
-        return baseHunger;
-    }
-
-    public int CalculateCoinCost(RouteOption route)
-    {
-        WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
-        return route.CalculateCoinCost(currentWeather);
-    }
-
-    // Add a helper method for UI display
-    public string GetFocusStatusDescription(int totalFocus)
-    {
-        return totalFocus switch
-        {
-            _ when totalFocus <= GameConstants.LoadFocus.LIGHT_LOAD_MAX => "Light load",
-            _ when totalFocus <= GameConstants.LoadFocus.MEDIUM_LOAD_MAX => "Medium load (+1 hunger)",
-            _ => "Heavy load (+2 hunger)"
-        };
-    }
-    public bool CanTravel(RouteOption route)
-    {
-        Player player = _gameWorld.GetPlayer();
-        int hungerAfterTravel = player.Hunger + CalculateHungerIncrease(route);
-
-        bool canTravel = player.Coins >= CalculateCoinCost(route) &&
-               hungerAfterTravel < player.MaxHunger; // Can't travel if it would max hunger
-
-        return canTravel;
-    }
-
-    /// <summary>
-    /// Get route access information for UI display
-    /// </summary>
-    public RouteAccessResult GetRouteAccessInfo(RouteOption route)
-    {
-        return route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _routeRepository.GetCurrentWeather());
-    }
-
-    /// <summary>
-    /// Get token-based access information for UI display
-    /// </summary>
-    public AccessCheckResult GetTokenAccessInfo(RouteOption route)
-    {
-        if (route.AccessRequirement == null)
-            return AccessCheckResult.Allowed();
-
-        return _accessChecker.CheckRouteAccess(route);
-    }
-
-    // REMOVED: GetTravelEvents method - TravelEventManager system deleted
-    // Travel events should be loaded from JSON templates, not generated in code
-
-    /// <summary>
-    /// Check if boat schedule is available based on weather conditions and river state
-    /// </summary>
-    private bool IsBoatScheduleAvailable(RouteOption route)
-    {
-        // Boats can't operate in poor weather conditions
-        WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
-
-        // Block boat schedules during dangerous weather
-        if (currentWeather == WeatherCondition.Rain || currentWeather == WeatherCondition.Snow)
-        {
-            return false;
-        }
-
-        // Boats need specific departure times (no always-available boat routes)
-        if (route.DepartureTime == null)
-        {
-            return false;
-        }
-
-        // Additional river condition logic could be added here
-        // For now, boats depend on weather and scheduled departure times
-        return true;
-    }
-
-
-    /// <summary>
-    /// Get current inventory status with transport information
-    /// </summary>
-    public string GetInventoryStatusDescription(TravelMethods? transport = null)
-    {
-        Player player = _gameWorld.GetPlayer();
-        Inventory inventory = player.Inventory;
-
-        int usedSlots = inventory.GetUsedSlots(ItemRepository);
-        int maxSlots = inventory.GetMaxSlots(ItemRepository, transport);
-
-        string transportInfo = transport.HasValue ? $" with {transport}" : "";
-        return $"Inventory: {usedSlots}/{maxSlots} slots used{transportInfo}";
     }
 
     // ========== TRAVEL SESSION METHODS ==========
@@ -518,11 +126,14 @@ public class TravelManager
 
     /// <summary>
     /// Rest to recover stamina during travel
+    /// - Skip the current segment (advance to next)
+    /// - Add 30 minutes to travel time
+    /// - Restore stamina to current capacity
     /// </summary>
     public bool RestAction()
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
-        if (session == null || session.CurrentState == TravelState.Exhausted)
+        if (session == null)
         {
             return false;
         }
@@ -531,6 +142,25 @@ public class TravelManager
         session.TimeElapsed += 30; // 30 minutes to rest
         session.StaminaRemaining = session.StaminaCapacity;
         session.CurrentState = TravelState.Fresh;
+
+        // Skip the current segment (advance to next)
+        RouteOption route = GetRoute(session.RouteId);
+        if (route != null && session.CurrentSegment <= route.Segments.Count)
+        {
+            // Mark current segment as completed (skipped via rest)
+            session.CompletedSegments.Add($"{session.RouteId}_{session.CurrentSegment}_rested");
+            
+            // Move to next segment or complete journey
+            if (session.CurrentSegment < route.Segments.Count)
+            {
+                session.CurrentSegment++;
+            }
+            else
+            {
+                // Journey complete - player reaches destination
+                CompleteJourney(session);
+            }
+        }
 
         return true;
     }
@@ -641,6 +271,7 @@ public class TravelManager
 
     /// <summary>
     /// Draw an encounter card and apply its effects
+    /// Cards are drawn in sequence (deterministic), not randomly
     /// </summary>
     private void DrawEncounterCard()
     {
@@ -649,9 +280,23 @@ public class TravelManager
         
         if (route != null && route.EncounterDeckIds.Any())
         {
-            // Randomly select an encounter card
-            Random random = new Random();
-            string encounterId = route.EncounterDeckIds[random.Next(route.EncounterDeckIds.Count)];
+            // Get encounter deck index for this route (deterministic sequence)
+            string routeDeckKey = $"encounter_deck_{route.Id}";
+            
+            // Initialize or get current deck position
+            if (!_gameWorld.EncounterDeckPositions.ContainsKey(routeDeckKey))
+            {
+                _gameWorld.EncounterDeckPositions[routeDeckKey] = 0;
+            }
+            
+            int currentPosition = _gameWorld.EncounterDeckPositions[routeDeckKey];
+            
+            // Draw card from current position in sequence
+            string encounterId = route.EncounterDeckIds[currentPosition];
+            
+            // Advance position for next draw, reshuffle when empty
+            _gameWorld.EncounterDeckPositions[routeDeckKey] = 
+                (currentPosition + 1) % route.EncounterDeckIds.Count;
             
             if (_gameWorld.AllEncounterCards.ContainsKey(encounterId))
             {

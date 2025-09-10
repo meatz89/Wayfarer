@@ -915,7 +915,7 @@
         "isHidden": false,
         "hasEncounter": false,
         "isOneTime": false,
-        "coinRequirement": 20,
+        "coinRequirement": 5,
         "permitRequirement": null,
         "travelTimeMinutes": 10,
         "hungerEffect": 0,
@@ -925,7 +925,7 @@
       {
         "id": "argue_entry",
         "name": "Argue Entry",
-        "staminaCost": 1,
+        "staminaCost": 3,
         "isHidden": false,
         "hasEncounter": false,
         "isOneTime": false,

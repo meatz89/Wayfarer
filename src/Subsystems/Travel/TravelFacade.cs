@@ -469,36 +469,40 @@ namespace Wayfarer.Subsystems.TravelSubsystem
 
         /// <summary>
         /// Get stamina derived from hunger/health as per design requirements
+        /// Fresh (3) - default/healthy state
+        /// Steady (4) - well-fed and rested
+        /// Tired (2) - moderate hunger/fatigue
+        /// Weary (1) - significant hunger/fatigue  
+        /// Exhausted (0) - critical condition
         /// </summary>
         public int GetDerivedStamina(Player player)
         {
-            // Stamina is derived from hunger and health state
-            // Lower hunger = higher stamina capacity
-            // Better health = better stamina efficiency
+            // Start with base Fresh state (3 stamina)
+            int stamina = 3;
             
-            int baseStamina = 3; // Default Fresh state
-            
-            // Health affects maximum stamina capacity
-            if (player.Health >= 80)
+            // Well-fed and well-rested gives Steady (4 stamina)
+            if (player.Health >= 80 && player.Hunger <= 20)
             {
-                baseStamina = 4; // Steady state when healthy
+                stamina = 4; // Steady: well-fed and rested
             }
-            else if (player.Health <= 30)
+            // Critical conditions give Exhausted (0 stamina)
+            else if (player.Health <= 10 || player.Hunger >= 90)
             {
-                baseStamina = 1; // Weary when unhealthy
+                stamina = 0; // Exhausted: critical condition
             }
+            // Significant problems give Weary (1 stamina)
+            else if (player.Health <= 30 || player.Hunger >= 70)
+            {
+                stamina = 1; // Weary: significant hunger/fatigue
+            }
+            // Moderate problems give Tired (2 stamina)
+            else if (player.Health <= 60 || player.Hunger >= 50)
+            {
+                stamina = 2; // Tired: moderate hunger/fatigue
+            }
+            // Otherwise Fresh (3 stamina) - default/healthy state
 
-            // Hunger affects current stamina
-            if (player.Hunger >= 80)
-            {
-                baseStamina = Math.Max(1, baseStamina - 2); // Very hungry = low stamina
-            }
-            else if (player.Hunger >= 60)
-            {
-                baseStamina = Math.Max(1, baseStamina - 1); // Hungry = reduced stamina
-            }
-
-            return baseStamina;
+            return stamina;
         }
 
         // ========== HELPER METHODS ==========
