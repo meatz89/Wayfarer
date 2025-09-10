@@ -290,10 +290,10 @@ namespace Wayfarer.Pages.Components
 
             return TravelContext.Session.CurrentState switch
             {
-                TravelState.Fresh => "Fresh State (3 capacity)",
-                TravelState.Steady => "Steady State (4 capacity)",
-                TravelState.Tired => "Tired State (2 capacity)",
-                TravelState.Weary => "Weary State (1 capacity)",
+                TravelState.Fresh => "Fresh State (5 capacity)",
+                TravelState.Steady => "Steady State (6 capacity)",
+                TravelState.Tired => "Tired State (4 capacity)",
+                TravelState.Weary => "Weary State (3 capacity)",
                 TravelState.Exhausted => "Exhausted State (0 capacity)",
                 _ => "Unknown State"
             };

@@ -263,7 +263,20 @@ public class TravelManager
             return false;
         }
 
-        // ALL cards now use reveal mechanic - no conditional logic
+        // Check if card is already discovered (face-up)
+        bool isDiscovered = _gameWorld.PathCardDiscoveries.ContainsKey(pathCardId) && 
+                           _gameWorld.PathCardDiscoveries[pathCardId];
+        
+        // For already discovered cards, set them as revealed immediately so player can confirm
+        if (isDiscovered)
+        {
+            // Set reveal state for already discovered card
+            session.IsRevealingCard = true;
+            session.RevealedCardId = pathCardId;
+            return true;
+        }
+        
+        // For undiscovered cards, use the reveal mechanic
         return RevealPathCard(pathCardId);
     }
 
@@ -356,12 +369,12 @@ public class TravelManager
     {
         return state switch
         {
-            TravelState.Fresh => 3,
-            TravelState.Steady => 4,
-            TravelState.Tired => 2,
-            TravelState.Weary => 1,
+            TravelState.Fresh => 5,
+            TravelState.Steady => 6,
+            TravelState.Tired => 4,
+            TravelState.Weary => 3,
             TravelState.Exhausted => 0,
-            _ => 3
+            _ => 5
         };
     }
 
@@ -436,25 +449,25 @@ public class TravelManager
             session.CurrentState = TravelState.Exhausted;
             session.StaminaCapacity = 0;
         }
-        else if (session.StaminaRemaining <= 1)
+        else if (session.StaminaRemaining <= 3)
         {
             session.CurrentState = TravelState.Weary;
-            session.StaminaCapacity = 1;
+            session.StaminaCapacity = 3;
         }
-        else if (session.StaminaRemaining <= 2)
+        else if (session.StaminaRemaining <= 4)
         {
             session.CurrentState = TravelState.Tired;
-            session.StaminaCapacity = 2;
+            session.StaminaCapacity = 4;
         }
-        else if (session.StaminaRemaining >= 4)
+        else if (session.StaminaRemaining >= 6)
         {
             session.CurrentState = TravelState.Steady;
-            session.StaminaCapacity = 4;
+            session.StaminaCapacity = 6;
         }
         else
         {
             session.CurrentState = TravelState.Fresh;
-            session.StaminaCapacity = 3;
+            session.StaminaCapacity = 5;
         }
     }
 
@@ -514,26 +527,26 @@ public class TravelManager
         // Lower hunger = higher stamina capacity
         // Better health = better stamina efficiency
         
-        int baseStamina = 3; // Default Fresh state
+        int baseStamina = 5; // Default Fresh state
         
         // Health affects maximum stamina capacity
         if (player.Health >= 80)
         {
-            baseStamina = 4; // Steady state when healthy
+            baseStamina = 6; // Steady state when healthy
         }
         else if (player.Health <= 30)
         {
-            baseStamina = 1; // Weary when unhealthy
+            baseStamina = 3; // Weary when unhealthy
         }
 
         // Hunger affects current stamina
         if (player.Hunger >= 80)
         {
-            baseStamina = Math.Max(1, baseStamina - 2); // Very hungry = low stamina
+            baseStamina = Math.Max(3, baseStamina - 2); // Very hungry = low stamina
         }
         else if (player.Hunger >= 60)
         {
-            baseStamina = Math.Max(1, baseStamina - 1); // Hungry = reduced stamina
+            baseStamina = Math.Max(3, baseStamina - 1); // Hungry = reduced stamina
         }
 
         return baseStamina;
@@ -548,12 +561,11 @@ public class TravelManager
         
         return stamina switch
         {
-            4 => TravelState.Steady,
-            3 => TravelState.Fresh,
-            2 => TravelState.Tired,
-            1 => TravelState.Weary,
-            0 => TravelState.Exhausted,
-            _ => TravelState.Fresh
+            >= 6 => TravelState.Steady,
+            5 => TravelState.Fresh,
+            4 => TravelState.Tired,
+            3 => TravelState.Weary,
+            _ => TravelState.Exhausted
         };
     }
 }
