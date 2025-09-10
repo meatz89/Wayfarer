@@ -28,6 +28,9 @@ public class RouteDTO
     public int StartingStamina { get; set; } = 3;
     public List<RouteSegmentDTO> Segments { get; set; } = new List<RouteSegmentDTO>();
     public List<string> EncounterDeckIds { get; set; } = new List<string>();
+    
+    // Event system properties
+    public List<string> EventPool { get; set; } = new List<string>();
 }
 
 /// <summary>
@@ -36,5 +39,7 @@ public class RouteDTO
 public class RouteSegmentDTO
 {
     public int SegmentNumber { get; set; }
+    public string Type { get; set; } = "FixedPath"; // Defaults to FixedPath if not specified
     public List<string> PathCardIds { get; set; } = new List<string>();
+    public List<string> EventPool { get; set; } = new List<string>(); // For Event-type segments
 }

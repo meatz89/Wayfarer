@@ -112,10 +112,14 @@ public class PackageLoader
             LoadInvestigationRewards(package.Content.InvestigationRewards);
             LoadPathCards(package.Content.PathCards);
             LoadEncounterCards(package.Content.EncounterCards);
+            LoadEventCollections(package.Content.EventCollections);
             LoadItems(package.Content.Items);
             LoadLetterTemplates(package.Content.LetterTemplates);
             LoadStandingObligations(package.Content.StandingObligations);
             LoadLocationActions(package.Content.LocationActions);
+            
+            // Initialize travel discovery system after all content is loaded
+            InitializeTravelDiscoverySystem();
         }
     }
 
@@ -440,6 +444,21 @@ public class PackageLoader
         {
             _gameWorld.AllEncounterCards[dto.Id] = dto;
         }
+    }
+    
+    private void LoadEventCollections(List<EventCollectionDTO> eventCollectionDtos)
+    {
+        if (eventCollectionDtos == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading {eventCollectionDtos.Count} event collections...");
+
+        foreach (EventCollectionDTO dto in eventCollectionDtos)
+        {
+            _gameWorld.AllEventCollections[dto.Id] = dto;
+            Console.WriteLine($"[PackageLoader] Loaded event collection '{dto.Id}': {dto.Name}");
+        }
+
+        Console.WriteLine($"[PackageLoader] Completed loading event collections. Total: {_gameWorld.AllEventCollections.Count}");
     }
 
     /// <summary>
@@ -812,11 +831,30 @@ public class PackageLoader
         {
             foreach (RouteSegmentDTO segmentDto in dto.Segments)
             {
+                // Parse segment type
+                SegmentType segmentType = SegmentType.FixedPath; // Default
+                if (!string.IsNullOrEmpty(segmentDto.Type))
+                {
+                    Enum.TryParse<SegmentType>(segmentDto.Type, out segmentType);
+                }
+                
                 RouteSegment segment = new RouteSegment
                 {
                     SegmentNumber = segmentDto.SegmentNumber,
+                    Type = segmentType,
                     PathCardIds = segmentDto.PathCardIds?.ToList() ?? new List<string>()
                 };
+                
+                // For Event-type segments, we need to handle the EventPool
+                // TravelManager expects to find events in RouteEventPools by route ID
+                // but Event segments have their own event pools, so we use the route-level eventPool as fallback
+                if (segmentType == SegmentType.Event && segmentDto.EventPool != null && segmentDto.EventPool.Count > 0)
+                {
+                    // For segment-specific event pools, we could store them separately
+                    // but TravelManager currently only looks at route-level pools
+                    Console.WriteLine($"[PackageLoader] Event segment {segmentDto.SegmentNumber} has {segmentDto.EventPool.Count} events");
+                }
+                
                 route.Segments.Add(segment);
             }
         }
@@ -825,6 +863,13 @@ public class PackageLoader
         if (dto.EncounterDeckIds != null)
         {
             route.EncounterDeckIds.AddRange(dto.EncounterDeckIds);
+        }
+        
+        // Store route event pool in GameWorld for easy access by TravelManager
+        if (dto.EventPool != null && dto.EventPool.Count > 0)
+        {
+            _gameWorld.RouteEventPools[route.Id] = new List<string>(dto.EventPool);
+            Console.WriteLine($"[PackageLoader] Added event pool for route {route.Id} with {dto.EventPool.Count} events");
         }
 
         return route;
@@ -966,5 +1011,53 @@ public class PackageLoader
             _parsedExchangeCards[exchangeCard.Id] = exchangeCard;
             Console.WriteLine($"[PackageLoader] Created ExchangeCard: {exchangeCard.Id} - {exchangeCard.GetExchangeRatio()}");
         }
+    }
+
+    /// <summary>
+    /// Initialize the travel discovery system state after all content is loaded
+    /// </summary>
+    private void InitializeTravelDiscoverySystem()
+    {
+        Console.WriteLine("[PackageLoader] Initializing travel discovery system...");
+
+        // Initialize PathCardDiscoveries from StartsRevealed property
+        // Uses mechanical property only - no ID checking
+        foreach (KeyValuePair<string, PathCardDTO> kvp in _gameWorld.AllPathCards)
+        {
+            string pathCardId = kvp.Key;
+            PathCardDTO pathCard = kvp.Value;
+            
+            _gameWorld.PathCardDiscoveries[pathCardId] = pathCard.StartsRevealed;
+            
+            Console.WriteLine($"[PackageLoader] Path card '{pathCardId}' discovery state: {(pathCard.StartsRevealed ? "face-up" : "face-down")}");
+        }
+
+        // Initialize EncounterDeckPositions for routes with event pools
+        foreach (KeyValuePair<string, List<string>> kvp in _gameWorld.RouteEventPools)
+        {
+            string routeId = kvp.Key;
+            string deckKey = $"route_{routeId}_events";
+            
+            // Start at position 0 for deterministic event drawing
+            _gameWorld.EncounterDeckPositions[deckKey] = 0;
+            
+            Console.WriteLine($"[PackageLoader] Initialized event deck position for route '{routeId}' with {kvp.Value.Count} events");
+        }
+
+        // Initialize route discovery states
+        // Routes can start discovered based on IsDiscovered property
+        foreach (RouteOption route in _gameWorld.WorldState.Routes)
+        {
+            if (route.IsDiscovered)
+            {
+                Console.WriteLine($"[PackageLoader] Route '{route.Id}' starts discovered");
+            }
+            else
+            {
+                Console.WriteLine($"[PackageLoader] Route '{route.Id}' starts hidden, needs discovery");
+            }
+        }
+
+        Console.WriteLine($"[PackageLoader] Travel discovery system initialized: {_gameWorld.PathCardDiscoveries.Count} path cards, {_gameWorld.EncounterDeckPositions.Count} event decks");
     }
 }

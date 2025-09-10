@@ -13,6 +13,9 @@ public class TravelSession
     public int TimeElapsed { get; set; } = 0;
     public List<string> CompletedSegments { get; set; } = new();
     public string SelectedPathId { get; set; }
+    
+    // Event tracking for current segment (used when segment type is Event)
+    public string CurrentEventId { get; set; }
 }
 
 public enum TravelState

@@ -46,6 +46,80 @@ public class TravelManager
     }
 
     /// <summary>
+    /// Get available cards for the current segment (works for both FixedPath and Event segments)
+    /// </summary>
+    public List<PathCardDTO> GetSegmentCards()
+    {
+        TravelSession session = _gameWorld.CurrentTravelSession;
+        if (session == null)
+        {
+            return new List<PathCardDTO>();
+        }
+
+        RouteOption route = GetRoute(session.RouteId);
+        if (route == null || session.CurrentSegment > route.Segments.Count)
+        {
+            return new List<PathCardDTO>();
+        }
+
+        RouteSegment segment = route.Segments[session.CurrentSegment - 1];
+
+        if (segment.Type == SegmentType.FixedPath)
+        {
+            // Return fixed path cards from PathCardIds
+            List<PathCardDTO> pathCards = new List<PathCardDTO>();
+            foreach (string cardId in segment.PathCardIds)
+            {
+                if (_gameWorld.AllPathCards.ContainsKey(cardId))
+                {
+                    pathCards.Add(_gameWorld.AllPathCards[cardId]);
+                }
+            }
+            return pathCards;
+        }
+        else if (segment.Type == SegmentType.Event)
+        {
+            // Draw random event and return its response cards
+            string eventId = DrawRandomEvent(route, segment);
+            if (!string.IsNullOrEmpty(eventId) && _gameWorld.AllEventCollections.ContainsKey(eventId))
+            {
+                EventCollectionDTO eventCollection = _gameWorld.AllEventCollections[eventId];
+                session.CurrentEventId = eventId; // Track which event was drawn
+                return eventCollection.ResponseCards;
+            }
+        }
+
+        return new List<PathCardDTO>();
+    }
+
+    /// <summary>
+    /// Draw a random event from the route's event pool for Event-type segments
+    /// </summary>
+    private string DrawRandomEvent(RouteOption route, RouteSegment segment)
+    {
+        // Use event collection ID if specified directly on segment
+        if (!string.IsNullOrEmpty(segment.EventCollectionId))
+        {
+            return segment.EventCollectionId;
+        }
+
+        // Fall back to route event pools
+        if (_gameWorld.RouteEventPools.ContainsKey(route.Id))
+        {
+            List<string> eventPool = _gameWorld.RouteEventPools[route.Id];
+            if (eventPool.Count > 0)
+            {
+                // Use deterministic "random" selection based on segment number and route
+                // This ensures consistent behavior for testing while still providing variety
+                int index = (route.Id.GetHashCode() + segment.SegmentNumber) % eventPool.Count;
+                return eventPool[index];
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Select and play a path card from the current segment
     /// </summary>
     public bool SelectPathCard(string pathCardId)
@@ -105,11 +179,8 @@ public class TravelManager
         // Apply effects
         ApplyPathCardEffects(card);
 
-        // Check for encounters
-        if (card.HasEncounter)
-        {
-            DrawEncounterCard();
-        }
+        // Note: Encounters are now handled through Event-type segments, not as side-effects
+        // The card selection itself handles both fixed path cards and event response cards uniformly
 
         // Record path selection
         session.SelectedPathId = pathCardId;
@@ -267,45 +338,6 @@ public class TravelManager
 
         // Mark reward as claimed
         _gameWorld.PathCardRewardsClaimed[cardId] = true;
-    }
-
-    /// <summary>
-    /// Draw an encounter card and apply its effects
-    /// Cards are drawn in sequence (deterministic), not randomly
-    /// </summary>
-    private void DrawEncounterCard()
-    {
-        TravelSession session = _gameWorld.CurrentTravelSession;
-        RouteOption route = GetRoute(session.RouteId);
-        
-        if (route != null && route.EncounterDeckIds.Any())
-        {
-            // Get encounter deck index for this route (deterministic sequence)
-            string routeDeckKey = $"encounter_deck_{route.Id}";
-            
-            // Initialize or get current deck position
-            if (!_gameWorld.EncounterDeckPositions.ContainsKey(routeDeckKey))
-            {
-                _gameWorld.EncounterDeckPositions[routeDeckKey] = 0;
-            }
-            
-            int currentPosition = _gameWorld.EncounterDeckPositions[routeDeckKey];
-            
-            // Draw card from current position in sequence
-            string encounterId = route.EncounterDeckIds[currentPosition];
-            
-            // Advance position for next draw, reshuffle when empty
-            _gameWorld.EncounterDeckPositions[routeDeckKey] = 
-                (currentPosition + 1) % route.EncounterDeckIds.Count;
-            
-            if (_gameWorld.AllEncounterCards.ContainsKey(encounterId))
-            {
-                EncounterCardDTO encounter = _gameWorld.AllEncounterCards[encounterId];
-                // TODO: Apply encounter effects
-                // For now, just log that an encounter occurred
-                System.Console.WriteLine($"Encounter: {encounter.Name} - {encounter.Effect}");
-            }
-        }
     }
 
     /// <summary>

@@ -634,10 +634,11 @@
         "segments": [
           {
             "segmentNumber": 1,
-            "pathCardIds": ["market_crowds", "tavern_shortcut"]
+            "type": "FixedPath",
+            "pathCardIds": ["common_room", "back_alley"]
           }
         ],
-        "encounterDeckIds": ["clear_path", "beggar", "street_vendor", "helpful_stranger"]
+        "eventPool": ["clear_path_event", "beggar_event", "street_vendor_event"]
       },
       {
         "id": "tavern_to_market",
@@ -654,10 +655,11 @@
         "segments": [
           {
             "segmentNumber": 1,
-            "pathCardIds": ["common_room", "scholars_path"]
+            "type": "FixedPath",
+            "pathCardIds": ["common_room", "back_alley"]
           }
         ],
-        "encounterDeckIds": ["clear_path", "found_coins", "helpful_stranger"]
+        "eventPool": ["clear_path_event", "beggar_event", "street_vendor_event"]
       },
       {
         "id": "market_to_warehouse",
@@ -674,14 +676,16 @@
         "segments": [
           {
             "segmentNumber": 1,
+            "type": "FixedPath",
             "pathCardIds": ["dock_workers_path", "merchant_avenue", "loading_docks"]
           },
           {
             "segmentNumber": 2,
+            "type": "FixedPath",
             "pathCardIds": ["direct_route", "warehouse_maze", "security_checkpoint"]
           }
         ],
-        "encounterDeckIds": ["busy_period", "worker_strike", "shift_change", "rain_shower"]
+        "eventPool": ["dock_traffic_event", "worker_strike_event", "favorable_timing_event", "loading_accident_event"]
       },
       {
         "id": "warehouse_to_market",
@@ -698,14 +702,16 @@
         "segments": [
           {
             "segmentNumber": 1,
-            "pathCardIds": ["direct_route", "night_passage", "smugglers_tunnel"]
+            "type": "FixedPath",
+            "pathCardIds": ["direct_route", "warehouse_maze", "security_checkpoint"]
           },
           {
             "segmentNumber": 2,
-            "pathCardIds": ["common_room", "back_alley", "courier_express"]
+            "type": "FixedPath",
+            "pathCardIds": ["dock_workers_path", "merchant_avenue", "loading_docks"]
           }
         ],
-        "encounterDeckIds": ["clear_path", "guard_inspection", "found_coins", "rain_shower"]
+        "eventPool": ["clear_path_event", "dock_traffic_event", "worker_strike_event", "favorable_timing_event"]
       },
       {
         "id": "market_to_noble",
@@ -722,10 +728,16 @@
         "segments": [
           {
             "segmentNumber": 1,
-            "pathCardIds": ["guard_patrol_route", "courier_express"]
+            "type": "FixedPath",
+            "pathCardIds": ["main_gate", "bribe_guard", "argue_entry"]
+          },
+          {
+            "segmentNumber": 2,
+            "type": "FixedPath",
+            "pathCardIds": ["noble_promenade", "garden_path"]
           }
         ],
-        "encounterDeckIds": ["guard_inspection", "clear_path"]
+        "eventPool": ["clear_path_event", "beggar_event"]
       },
       {
         "id": "noble_to_market",
@@ -742,10 +754,16 @@
         "segments": [
           {
             "segmentNumber": 1,
-            "pathCardIds": ["guard_patrol_route", "scholars_path"]
+            "type": "FixedPath",
+            "pathCardIds": ["noble_promenade", "garden_path"]
+          },
+          {
+            "segmentNumber": 2,
+            "type": "FixedPath",
+            "pathCardIds": ["main_gate", "bribe_guard", "argue_entry"]
           }
         ],
-        "encounterDeckIds": ["clear_path", "helpful_stranger"]
+        "eventPool": ["clear_path_event", "street_vendor_event"]
       },
       {
         "id": "noble_to_tavern",
@@ -762,10 +780,10 @@
         "segments": [
           {
             "segmentNumber": 1,
-            "pathCardIds": ["courier_express"]
+            "type": "Event",
+            "eventPool": ["clear_path_event", "favorable_timing_event"]
           }
-        ],
-        "encounterDeckIds": ["clear_path"]
+        ]
       }
     ],
     "exchanges": [
@@ -786,6 +804,7 @@
         "id": "common_room",
         "name": "Common Room",
         "staminaCost": 0,
+        "startsRevealed": true,
         "isHidden": false,
         "hasEncounter": false,
         "isOneTime": false,
@@ -800,6 +819,7 @@
         "id": "back_alley",
         "name": "Back Alley", 
         "staminaCost": 1,
+        "startsRevealed": false,
         "isHidden": false,
         "hasEncounter": true,
         "isOneTime": false,
@@ -814,6 +834,7 @@
         "id": "dock_workers_path",
         "name": "Dock Workers Path",
         "staminaCost": 1,
+        "startsRevealed": false,
         "isHidden": false,
         "hasEncounter": false,
         "isOneTime": false,
@@ -828,6 +849,7 @@
         "id": "merchant_avenue",
         "name": "Merchant Avenue",
         "staminaCost": 2,
+        "startsRevealed": false,
         "isHidden": false,
         "hasEncounter": false,
         "isOneTime": true,
@@ -842,6 +864,7 @@
         "id": "loading_docks",
         "name": "Loading Docks",
         "staminaCost": 1,
+        "startsRevealed": false,
         "isHidden": false,
         "hasEncounter": true,
         "isOneTime": false,
@@ -856,6 +879,7 @@
         "id": "direct_route",
         "name": "Direct Route",
         "staminaCost": 1,
+        "startsRevealed": false,
         "isHidden": false,
         "hasEncounter": false,
         "isOneTime": false,
@@ -870,6 +894,7 @@
         "id": "warehouse_maze",
         "name": "Warehouse Maze",
         "staminaCost": 0,
+        "startsRevealed": false,
         "isHidden": true,
         "hasEncounter": false,
         "isOneTime": true,
@@ -884,6 +909,7 @@
         "id": "security_checkpoint",
         "name": "Security Checkpoint",
         "staminaCost": 2,
+        "startsRevealed": false,
         "isHidden": false,
         "hasEncounter": false,
         "isOneTime": false,
@@ -898,6 +924,7 @@
         "id": "main_gate",
         "name": "Main Gate",
         "staminaCost": 1,
+        "startsRevealed": false,
         "isHidden": false,
         "hasEncounter": false,
         "isOneTime": false,
@@ -912,6 +939,7 @@
         "id": "bribe_guard",
         "name": "Bribe Guard",
         "staminaCost": 2,
+        "startsRevealed": false,
         "isHidden": false,
         "hasEncounter": false,
         "isOneTime": false,
@@ -926,6 +954,7 @@
         "id": "argue_entry",
         "name": "Argue Entry",
         "staminaCost": 3,
+        "startsRevealed": false,
         "isHidden": false,
         "hasEncounter": false,
         "isOneTime": false,
@@ -940,6 +969,7 @@
         "id": "noble_promenade",
         "name": "Noble Promenade",
         "staminaCost": 1,
+        "startsRevealed": false,
         "isHidden": false,
         "hasEncounter": false,
         "isOneTime": false,
@@ -954,6 +984,7 @@
         "id": "garden_path",
         "name": "Garden Path",
         "staminaCost": 2,
+        "startsRevealed": false,
         "isHidden": true,
         "hasEncounter": false,
         "isOneTime": true,
@@ -965,48 +996,144 @@
         "narrativeText": "Discover a hidden path through the private gardens."
       }
     ],
-    "encounterCards": [
+    "eventCollections": [
       {
-        "id": "clear_path",
+        "id": "clear_path_event",
         "name": "Clear Path",
-        "effect": "No effect",
-        "narrativeText": "The path is clear and unobstructed."
+        "narrativeText": "The path is clear and unobstructed.",
+        "responseCards": [
+          {
+            "id": "proceed_clear_path",
+            "name": "Proceed",
+            "staminaCost": 0,
+            "travelTimeMinutes": 0,
+            "narrativeText": "You continue along the clear path."
+          }
+        ]
       },
       {
-        "id": "beggar",
-        "name": "Beggar",
-        "effect": "Pay 1 coin or add 5 minutes",
-        "narrativeText": "A desperate beggar blocks your way asking for coin."
+        "id": "beggar_event",
+        "name": "Beggar Encounter",
+        "narrativeText": "A desperate beggar blocks your way asking for coin.",
+        "responseCards": [
+          {
+            "id": "give_coin_to_beggar",
+            "name": "Give Coin",
+            "staminaCost": 0,
+            "coinRequirement": 1,
+            "travelTimeMinutes": 0,
+            "narrativeText": "You give a coin to help the beggar."
+          },
+          {
+            "id": "walk_around_beggar",
+            "name": "Walk Around",
+            "staminaCost": 1,
+            "travelTimeMinutes": 5,
+            "narrativeText": "You take a longer path around the beggar."
+          }
+        ]
       },
       {
-        "id": "street_vendor",
+        "id": "street_vendor_event",
         "name": "Street Vendor",
-        "effect": "Option: buy food for 2 coins",
-        "narrativeText": "A friendly vendor offers you fresh bread."
+        "narrativeText": "A friendly vendor offers you fresh bread.",
+        "responseCards": [
+          {
+            "id": "buy_food_from_vendor",
+            "name": "Buy Food",
+            "staminaCost": 0,
+            "coinRequirement": 2,
+            "travelTimeMinutes": 0,
+            "hungerReduction": 20,
+            "narrativeText": "You purchase fresh bread from the vendor."
+          },
+          {
+            "id": "decline_vendor",
+            "name": "Decline",
+            "staminaCost": 0,
+            "travelTimeMinutes": 0,
+            "narrativeText": "You politely decline and continue on your way."
+          }
+        ]
       },
       {
-        "id": "busy_period",
-        "name": "Busy Period",
-        "effect": "Add 5 minutes",
-        "narrativeText": "The docks are unusually busy today."
+        "id": "dock_traffic_event",
+        "name": "Dock Traffic",
+        "narrativeText": "The docks are busy with workers and cargo.",
+        "responseCards": [
+          {
+            "id": "wait_for_traffic",
+            "name": "Wait for Traffic",
+            "staminaCost": 0,
+            "travelTimeMinutes": 5,
+            "narrativeText": "You wait for the busy period to pass."
+          },
+          {
+            "id": "push_through_traffic",
+            "name": "Push Through",
+            "staminaCost": 1,
+            "travelTimeMinutes": 0,
+            "narrativeText": "You push through the crowded docks."
+          }
+        ]
       },
       {
-        "id": "worker_strike",
+        "id": "worker_strike_event",
         "name": "Worker Strike",
-        "effect": "Pay 2 coins or add 10 minutes",
-        "narrativeText": "Striking workers block the usual route."
+        "narrativeText": "Striking workers block the usual route.",
+        "responseCards": [
+          {
+            "id": "pay_striking_workers",
+            "name": "Pay Workers",
+            "staminaCost": 0,
+            "coinRequirement": 2,
+            "travelTimeMinutes": 0,
+            "narrativeText": "You pay the workers to let you pass."
+          },
+          {
+            "id": "wait_out_strike",
+            "name": "Wait It Out",
+            "staminaCost": 0,
+            "travelTimeMinutes": 10,
+            "narrativeText": "You wait for the strike to resolve."
+          },
+          {
+            "id": "find_alternate_route",
+            "name": "Find Alternate Route",
+            "staminaCost": 2,
+            "travelTimeMinutes": 5,
+            "narrativeText": "You find another way around the blockade."
+          }
+        ]
       },
       {
-        "id": "loading_accident",
+        "id": "loading_accident_event",
         "name": "Loading Accident",
-        "effect": "Must return and take different path",
-        "narrativeText": "A cart has overturned, blocking the path completely."
+        "narrativeText": "A cart has overturned, blocking the path completely.",
+        "responseCards": [
+          {
+            "id": "return_from_accident",
+            "name": "Return and Reroute",
+            "staminaCost": 1,
+            "travelTimeMinutes": 15,
+            "forceReturn": true,
+            "narrativeText": "You must return and take a different path."
+          }
+        ]
       },
       {
-        "id": "shift_change",
-        "name": "Shift Change",
-        "effect": "Save 5 minutes",
-        "narrativeText": "The workers are changing shifts, clearing the way."
+        "id": "favorable_timing_event",
+        "name": "Favorable Timing",
+        "narrativeText": "The timing is perfect - workers are changing shifts and the way is clear.",
+        "responseCards": [
+          {
+            "id": "take_advantage_timing",
+            "name": "Take Advantage",
+            "staminaCost": 0,
+            "travelTimeMinutes": -5,
+            "narrativeText": "You take advantage of the clear path."
+          }
+        ]
       }
     ]
   }

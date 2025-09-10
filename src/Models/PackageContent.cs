@@ -94,4 +94,9 @@ public class PackageContent
     /// Exchange definitions - defines trade details for exchange cards
     /// </summary>
     public List<ExchangeDTO> Exchanges { get; set; }
+    
+    /// <summary>
+    /// Event collections for caravan segments
+    /// </summary>
+    public List<EventCollectionDTO> EventCollections { get; set; }
 }
