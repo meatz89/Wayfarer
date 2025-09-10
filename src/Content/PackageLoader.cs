@@ -111,7 +111,6 @@ public class PackageLoader
             LoadObservations(package.Content.Observations);
             LoadInvestigationRewards(package.Content.InvestigationRewards);
             LoadPathCards(package.Content.PathCards);
-            LoadEncounterCards(package.Content.EncounterCards);
             LoadEventCollections(package.Content.EventCollections);
             LoadItems(package.Content.Items);
             LoadLetterTemplates(package.Content.LetterTemplates);
@@ -436,15 +435,6 @@ public class PackageLoader
         }
     }
     
-    private void LoadEncounterCards(List<EncounterCardDTO> encounterCardDtos)
-    {
-        if (encounterCardDtos == null) return;
-
-        foreach (EncounterCardDTO dto in encounterCardDtos)
-        {
-            _gameWorld.AllEncounterCards[dto.Id] = dto;
-        }
-    }
     
     private void LoadEventCollections(List<EventCollectionDTO> eventCollectionDtos)
     {
@@ -1032,14 +1022,14 @@ public class PackageLoader
             Console.WriteLine($"[PackageLoader] Path card '{pathCardId}' discovery state: {(pathCard.StartsRevealed ? "face-up" : "face-down")}");
         }
 
-        // Initialize EncounterDeckPositions for routes with event pools
+        // Initialize EventDeckPositions for routes with event pools
         foreach (KeyValuePair<string, List<string>> kvp in _gameWorld.RouteEventPools)
         {
             string routeId = kvp.Key;
             string deckKey = $"route_{routeId}_events";
             
             // Start at position 0 for deterministic event drawing
-            _gameWorld.EncounterDeckPositions[deckKey] = 0;
+            _gameWorld.EventDeckPositions[deckKey] = 0;
             
             Console.WriteLine($"[PackageLoader] Initialized event deck position for route '{routeId}' with {kvp.Value.Count} events");
         }
@@ -1058,6 +1048,6 @@ public class PackageLoader
             }
         }
 
-        Console.WriteLine($"[PackageLoader] Travel discovery system initialized: {_gameWorld.PathCardDiscoveries.Count} path cards, {_gameWorld.EncounterDeckPositions.Count} event decks");
+        Console.WriteLine($"[PackageLoader] Travel discovery system initialized: {_gameWorld.PathCardDiscoveries.Count} path cards, {_gameWorld.EventDeckPositions.Count} event decks");
     }
 }

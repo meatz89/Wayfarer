@@ -100,7 +100,10 @@ namespace Wayfarer.Pages.Components
         {
             List<string> classes = new() { "path-card" };
             
-            if (isDiscovered)
+            // Event cards should never get face-down class
+            bool isEventSegment = IsCurrentSegmentEventType();
+            
+            if (isDiscovered || isEventSegment)
             {
                 classes.Add("face-up");
             }
@@ -365,6 +368,30 @@ namespace Wayfarer.Pages.Components
             return TravelContext?.Session == null;
         }
 
+        /// <summary>
+        /// Get dynamic title based on segment type
+        /// </summary>
+        protected string GetPathsTitle()
+        {
+            return IsCurrentSegmentEventType() ? "Choose Your Response" : "Choose Your Path";
+        }
+        
+        /// <summary>
+        /// Get event narrative for current segment if applicable
+        /// </summary>
+        protected string GetEventNarrative()
+        {
+            return TravelFacade.GetCurrentEventNarrative();
+        }
+        
+        /// <summary>
+        /// Check if current segment is Event type
+        /// </summary>
+        protected bool IsCurrentSegmentEventType()
+        {
+            return TravelFacade.IsCurrentSegmentEventType();
+        }
+        
         /// <summary>
         /// Refresh travel context from backend
         /// </summary>

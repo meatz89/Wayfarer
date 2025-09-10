@@ -43,7 +43,15 @@
 
     <!-- Path Cards Section -->
     <div class="paths-section">
-        <div class="paths-title">Choose Your Path</div>
+        <div class="paths-title">@GetPathsTitle()</div>
+        
+        @{
+            var eventNarrative = GetEventNarrative();
+        }
+        @if (!string.IsNullOrEmpty(eventNarrative))
+        {
+            <div class="event-narrative">@eventNarrative</div>
+        }
         
         <div class="path-grid">
             @if (GetAvailablePathCards().Any())
@@ -85,17 +93,13 @@
                                 </div>
                             </div>
                         }
-                        else
+                        else if (!IsCurrentSegmentEventType())
                         {
-                            <!-- Face-Down Path Card -->
+                            <!-- Face-Down Path Card (only for FixedPath segments) -->
                             <div class="card-back-pattern"></div>
                             <div class="card-back">
                                 <span class="card-back-name">
                                     @card.Name
-                                    @if (card.HasEncounter)
-                                    {
-                                        <span class="encounter-warning">⚠</span>
-                                    }
                                 </span>
                                 <span class="card-back-cost">@card.StaminaCost</span>
                             </div>
@@ -147,30 +151,6 @@ else
 }
 
 @code {
-    protected string GetDestinationName()
-    {
-        if (TravelContext?.CurrentRoute == null)
-            return "Unknown Destination";
-        
-        // Extract destination from route
-        var destinationSpot = TravelContext.CurrentRoute.DestinationLocationSpot;
-        if (string.IsNullOrEmpty(destinationSpot))
-            return "Unknown Destination";
-        
-        // Get location spot and location name
-        var spot = GameFacade.GetLocationSpot(destinationSpot);
-        if (spot != null)
-        {
-            var location = GameFacade.GetLocationById(spot.LocationId);
-            if (location != null)
-            {
-                return location.Name;
-            }
-        }
-        
-        return "Unknown Destination";
-    }
-    
     protected string GetOriginLocationName()
     {
         if (TravelContext?.CurrentRoute == null)

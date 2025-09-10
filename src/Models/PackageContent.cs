@@ -69,11 +69,6 @@ public class PackageContent
     /// Path cards for travel system
     /// </summary>
     public List<PathCardDTO> PathCards { get; set; }
-    
-    /// <summary>
-    /// Encounter cards for travel system
-    /// </summary>
-    public List<EncounterCardDTO> EncounterCards { get; set; }
 
     /// <summary>
     /// Items - uses existing ItemDTO

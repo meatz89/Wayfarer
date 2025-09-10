@@ -104,14 +104,12 @@ public class GameWorld
     // Track one-time rewards
     public Dictionary<string, bool> PathCardRewardsClaimed { get; set; } = new Dictionary<string, bool>();
     
-    // Track encounter deck positions for deterministic draws
-    public Dictionary<string, int> EncounterDeckPositions { get; set; } = new Dictionary<string, int>();
+    // Track event deck positions for deterministic draws
+    public Dictionary<string, int> EventDeckPositions { get; set; } = new Dictionary<string, int>();
     
     // Active travel session
     public TravelSession CurrentTravelSession { get; set; }
     
-    // Encounter cards
-    public Dictionary<string, EncounterCardDTO> AllEncounterCards { get; set; } = new Dictionary<string, EncounterCardDTO>();
     
     // Event collections for caravan segments
     public Dictionary<string, EventCollectionDTO> AllEventCollections { get; set; } = new Dictionary<string, EventCollectionDTO>();

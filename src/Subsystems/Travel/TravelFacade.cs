@@ -15,6 +15,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         private readonly RouteDiscoveryManager _routeDiscoveryManager;
         private readonly PermitValidator _permitValidator;
         private readonly TravelTimeCalculator _travelTimeCalculator;
+        private readonly TravelManager _travelManager;
         private readonly MessageSystem _messageSystem;
 
         public TravelFacade(
@@ -23,6 +24,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             RouteDiscoveryManager routeDiscoveryManager,
             PermitValidator permitValidator,
             TravelTimeCalculator travelTimeCalculator,
+            TravelManager travelManager,
             MessageSystem messageSystem)
         {
             _gameWorld = gameWorld;
@@ -30,6 +32,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             _routeDiscoveryManager = routeDiscoveryManager;
             _permitValidator = permitValidator;
             _travelTimeCalculator = travelTimeCalculator;
+            _travelManager = travelManager;
             _messageSystem = messageSystem;
         }
 
@@ -411,19 +414,27 @@ namespace Wayfarer.Subsystems.TravelSubsystem
 
         /// <summary>
         /// Get available path cards for the current segment with discovery states
+        /// Delegates to TravelManager for card data, handles discovery logic based on segment type
         /// </summary>
         public List<PathCardInfo> GetAvailablePathCards()
         {
-            TravelContext context = GetCurrentTravelContext();
-            if (context == null)
+            // Delegate card retrieval to TravelManager
+            List<PathCardDTO> cards = _travelManager.GetSegmentCards();
+            if (cards == null || cards.Count == 0)
             {
                 return new List<PathCardInfo>();
             }
 
             List<PathCardInfo> pathCardInfos = new List<PathCardInfo>();
-            foreach (PathCardDTO card in context.CurrentSegmentCards)
+            bool isEventSegment = IsCurrentSegmentEventType();
+
+            foreach (PathCardDTO card in cards)
             {
-                bool isDiscovered = context.CardDiscoveries.ContainsKey(card.Id) && context.CardDiscoveries[card.Id];
+                // Event segments: cards are ALWAYS face-up (IsDiscovered = true)
+                // FixedPath segments: check PathCardDiscoveries dictionary
+                bool isDiscovered = isEventSegment || 
+                                  (_gameWorld.PathCardDiscoveries.ContainsKey(card.Id) && _gameWorld.PathCardDiscoveries[card.Id]);
+                
                 bool canPlay = CanPlayPathCard(card.Id);
 
                 pathCardInfos.Add(new PathCardInfo
@@ -506,6 +517,49 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         }
 
         // ========== HELPER METHODS ==========
+
+        /// <summary>
+        /// Check if the current segment is an Event type (caravan segment)
+        /// </summary>
+        public bool IsCurrentSegmentEventType()
+        {
+            TravelSession session = _gameWorld.CurrentTravelSession;
+            if (session == null)
+            {
+                return false;
+            }
+
+            RouteOption route = GetRouteById(session.RouteId);
+            if (route == null || session.CurrentSegment > route.Segments.Count)
+            {
+                return false;
+            }
+
+            RouteSegment segment = route.Segments[session.CurrentSegment - 1];
+            return segment.Type == SegmentType.Event;
+        }
+
+        /// <summary>
+        /// Get narrative text from current event if in Event segment
+        /// </summary>
+        public string GetCurrentEventNarrative()
+        {
+            TravelSession session = _gameWorld.CurrentTravelSession;
+            if (session == null || !IsCurrentSegmentEventType())
+            {
+                return null;
+            }
+
+            // Check if we have a current event ID from the drawn event
+            if (!string.IsNullOrEmpty(session.CurrentEventId) && 
+                _gameWorld.AllEventCollections.ContainsKey(session.CurrentEventId))
+            {
+                EventCollectionDTO eventCollection = _gameWorld.AllEventCollections[session.CurrentEventId];
+                return eventCollection.NarrativeText;
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Get route by ID - search through all location connections
