@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Path Discovery: Dock Workers Path</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 1200px;
+            background: #e8dcc4;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        /* Header */
+        .header {
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #5c4a3a;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .deadline {
+            color: #d4a76a;
+        }
+
+        /* Discovery Banner */
+        .discovery-banner {
+            background: linear-gradient(to bottom, #d4a76a, #c4966a);
+            color: #2c241a;
+            padding: 15px 20px;
+            text-align: center;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .discovery-title {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .discovery-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* Route Progress */
+        .route-progress {
+            background: #f9f3e9;
+            padding: 12px 20px;
+            border-bottom: 1px solid #c4a684;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-info {
+            font-size: 13px;
+            color: #7a6250;
+        }
+
+        .time-elapsed {
+            font-size: 14px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        /* Discovery Card Section */
+        .discovery-section {
+            padding: 25px;
+            background: #f4e8d0;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .discovery-card {
+            background: #faf4ea;
+            border: 3px solid #d4a76a;
+            border-radius: 4px;
+            overflow: hidden;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            animation: revealCard 0.5s ease-out;
+        }
+
+        @keyframes revealCard {
+            from {
+                transform: rotateY(90deg);
+                opacity: 0;
+            }
+            to {
+                transform: rotateY(0);
+                opacity: 1;
+            }
+        }
+
+        .discovery-header {
+            background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+            padding: 15px 20px;
+            border-bottom: 2px solid #d4a76a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .discovery-name {
+            font-size: 18px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .discovery-stamina {
+            width: 32px;
+            height: 32px;
+            background: #5c4a3a;
+            color: #faf4ea;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .discovery-content {
+            padding: 20px;
+        }
+
+        .discovery-effect {
+            padding: 15px;
+            background: #fff9f0;
+            border-left: 3px solid #8b4726;
+            border-radius: 2px;
+            margin-bottom: 15px;
+        }
+
+        .effect-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .effect-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #2c241a;
+            font-style: italic;
+        }
+
+        .discovery-permanent {
+            padding: 15px;
+            background: #f0f9f0;
+            border-left: 3px solid #7a8b5a;
+            border-radius: 2px;
+        }
+
+        .permanent-label {
+            font-size: 11px;
+            color: #5a6a3a;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .permanent-text {
+            font-size: 14px;
+            color: #3d3429;
+        }
+
+        /* Results Section */
+        .results-section {
+            background: #e8dcc4;
+            padding: 20px;
+            border-bottom: 1px solid #a68b6f;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .result-item {
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .result-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .result-negative {
+            color: #8b4726;
+        }
+
+        .result-positive {
+            color: #7a8b5a;
+        }
+
+        /* Continue Section */
+        .continue-section {
+            padding: 20px;
+            background: #f4e8d0;
+            text-align: center;
+        }
+
+        .continue-message {
+            font-size: 13px;
+            color: #7a6250;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .continue-button {
+            padding: 12px 40px;
+            background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
+            border: 2px solid #5a6a3a;
+            border-radius: 4px;
+            color: #faf4ea;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .continue-button:hover {
+            background: linear-gradient(to bottom, #8a9b6a, #7a8b5a);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Knowledge Note */
+        .knowledge-note {
+            font-size: 11px;
+            color: #8b7355;
+            font-style: italic;
+            margin-top: 15px;
+        }
+
+        .knowledge-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background: #d4a76a;
+            color: #2c241a;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 16px;
+            font-size: 10px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <div class="header">
+            <span>Tuesday, 9:35 AM - Traveling</span>
+            <span class="deadline">Elena's Letter: Due by 10:00 AM</span>
+        </div>
+
+        <!-- Discovery Banner -->
+        <div class="discovery-banner">
+            <div class="discovery-title">Path Discovered!</div>
+            <div class="discovery-subtitle">This path is now permanently revealed for all future travels</div>
+        </div>
+
+        <!-- Route Progress -->
+        <div class="route-progress">
+            <div class="progress-info">
+                Market Square → Warehouse District • Segment 1 Complete
+            </div>
+            <div class="time-elapsed">
+                Time Elapsed: 5 minutes
+            </div>
+        </div>
+
+        <!-- Discovery Card -->
+        <div class="discovery-section">
+            <div class="discovery-card">
+                <div class="discovery-header">
+                    <div class="discovery-name">Dock Workers Path</div>
+                    <div class="discovery-stamina">1</div>
+                </div>
+                
+                <div class="discovery-content">
+                    <div class="discovery-effect">
+                        <div class="effect-label">Path Effect</div>
+                        <div class="effect-text">
+                            The narrow path winds through the industrial loading areas. The smell of tar and fish is overwhelming, but workers wave you through their shortcuts. You save significant time but the stench clings to your clothes.
+                        </div>
+                    </div>
+
+                    <div class="discovery-permanent">
+                        <div class="permanent-label">Permanent Knowledge Gained</div>
+                        <div class="permanent-text">
+                            You now know this path takes 5 minutes but adds +10 hunger from the industrial smell. This information will be visible on all future journeys.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section">
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="result-label">Travel Time</div>
+                    <div class="result-value result-positive">5 minutes</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Stamina Spent</div>
+                    <div class="result-value">1</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Hunger Added</div>
+                    <div class="result-value result-negative">+10</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Route Familiarity</div>
+                    <div class="result-value">1/3</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Continue Section -->
+        <div class="continue-section">
+            <div class="continue-message">Proceed to Segment 2</div>
+            <button class="continue-button">Continue Journey</button>
+            
+            <div class="knowledge-note">
+                <span class="knowledge-icon">!</span>
+                This path card will now appear face-up on all future travels on this route
+            </div>
+        </div>
+    </div>
+</body>
+</html>

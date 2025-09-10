@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Travel: Merchant Caravan to Noble Quarter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 1200px;
+            background: #e8dcc4;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        /* Header */
+        .header {
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #5c4a3a;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .deadline {
+            color: #d4a76a;
+        }
+
+        /* Caravan Info */
+        .caravan-info {
+            background: linear-gradient(to bottom, #a68b6f, #8b7355);
+            color: #faf4ea;
+            padding: 12px 20px;
+            border-bottom: 2px solid #6a5a4a;
+        }
+
+        .caravan-title {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .caravan-details {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .caravan-icon {
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        /* Event Progress */
+        .event-progress {
+            background: #f9f3e9;
+            padding: 12px 20px;
+            border-bottom: 1px solid #c4a684;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .progress-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .event-counter {
+            font-size: 18px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .progress-note {
+            font-size: 11px;
+            color: #8b7355;
+            font-style: italic;
+        }
+
+        /* Event Card Section */
+        .event-section {
+            padding: 25px;
+            background: #f4e8d0;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .event-card {
+            background: #faf4ea;
+            border: 3px solid #d4a76a;
+            border-radius: 4px;
+            overflow: hidden;
+            max-width: 700px;
+            margin: 0 auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .event-header {
+            background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+            padding: 15px 20px;
+            border-bottom: 2px solid #d4a76a;
+        }
+
+        .event-title {
+            font-size: 18px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .event-type {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .event-narrative {
+            padding: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+            font-style: italic;
+            color: #3d3429;
+            background: #fffaf5;
+            border-bottom: 1px solid #e8dcc4;
+        }
+
+        /* Response Options */
+        .response-section {
+            padding: 20px;
+            background: #f4e8d0;
+        }
+
+        .response-title {
+            font-size: 13px;
+            color: #7a6250;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        /* Response Cards */
+        .response-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .response-card {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+        }
+
+        .response-card:hover {
+            background: #fefaf0;
+            border-color: #a68b6f;
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .response-card.unavailable {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .response-card.unavailable:hover {
+            transform: none;
+        }
+
+        .response-main {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .response-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .response-cost {
+            font-size: 12px;
+            color: #8b4726;
+            font-weight: bold;
+        }
+
+        .response-effect {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #2c241a;
+            font-style: italic;
+        }
+
+        .response-benefit {
+            font-size: 11px;
+            color: #7a8b5a;
+            margin-top: 6px;
+            font-weight: bold;
+        }
+
+        /* Free Response */
+        .response-card.free {
+            border-color: #7a8b5a;
+        }
+
+        .response-card.free .response-cost {
+            color: #7a8b5a;
+        }
+
+        /* Resource Display */
+        .resource-display {
+            background: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 1px solid #a68b6f;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 12px;
+        }
+
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .resource-label {
+            color: #7a6250;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        .resource-value {
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        /* Comfort Indicator */
+        .comfort-badge {
+            display: inline-block;
+            background: #7a8b5a;
+            color: #faf4ea;
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-size: 10px;
+            margin-left: 10px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <div class="header">
+            <span>Tuesday, 10:15 AM - Merchant Caravan</span>
+            <span class="deadline">Noble Quarter ETA: 10:35 AM</span>
+        </div>
+
+        <!-- Caravan Info -->
+        <div class="caravan-info">
+            <div class="caravan-title">
+                <span class="caravan-icon">🛒</span>
+                Marcus's Merchant Caravan
+                <span class="comfort-badge">Comfortable</span>
+            </div>
+            <div class="caravan-details">Destination: Noble Quarter • Base Time: 20 minutes • Entry: 10 coins (paid)</div>
+        </div>
+
+        <!-- Event Progress -->
+        <div class="event-progress">
+            <span class="progress-label">Journey Progress:</span>
+            <span class="event-counter">Event 2 of 3</span>
+            <span class="progress-note">One more event before arrival</span>
+        </div>
+
+        <!-- Current Resources -->
+        <div class="resource-display">
+            <div class="resource-item">
+                <span class="resource-label">Attention:</span>
+                <span class="resource-value">2</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-label">Coins:</span>
+                <span class="resource-value">0</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-label">Stamina:</span>
+                <span class="resource-value">1/3</span>
+            </div>
+        </div>
+
+        <!-- Event Card -->
+        <div class="event-section">
+            <div class="event-card">
+                <div class="event-header">
+                    <div class="event-title">Merchant Gossip</div>
+                    <div class="event-type">Opportunity Event</div>
+                </div>
+                <div class="event-narrative">
+                    The caravan rocks gently as it travels the merchant road. Around you, traders discuss recent happenings in hushed tones. Marcus leans over from his driver's seat: "These gentlemen know every secret route in the city. Perhaps you'd benefit from listening? Though of course, your attention might be better spent resting before we arrive."
+                </div>
+            </div>
+        </div>
+
+        <!-- Response Options -->
+        <div class="response-section">
+            <div class="response-title">How do you respond?</div>
+            
+            <div class="response-grid">
+                <!-- Option 1 -->
+                <div class="response-card">
+                    <div class="response-main">
+                        <div class="response-header">
+                            <div class="response-name">Listen Carefully</div>
+                            <div class="response-cost">Cost: 1 Attention</div>
+                        </div>
+                        <div class="response-effect">
+                            Pay attention to the merchants' conversation, learning about the Noble Quarter's hidden paths.
+                        </div>
+                        <div class="response-benefit">
+                            Gain: 1 Commerce token, Reveal one Noble Quarter walking path
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Option 2 - Unavailable -->
+                <div class="response-card unavailable">
+                    <div class="response-main">
+                        <div class="response-header">
+                            <div class="response-name">Join Discussion</div>
+                            <div class="response-cost">Cost: 2 Attention + 2 Coins</div>
+                        </div>
+                        <div class="response-effect">
+                            Actively participate in the merchant talk, sharing your own information for theirs.
+                        </div>
+                        <div class="response-benefit">
+                            Gain: 2 Commerce tokens
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Option 3 - Free -->
+                <div class="response-card free">
+                    <div class="response-main">
+                        <div class="response-header">
+                            <div class="response-name">Rest Instead</div>
+                            <div class="response-cost">Free</div>
+                        </div>
+                        <div class="response-effect">
+                            Ignore the chatter and use this comfortable moment to recover your strength.
+                        </div>
+                        <div class="response-benefit">
+                            Gain: Restore 2 stamina
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Travel Blocked: Noble Quarter Checkpoint</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 1200px;
+            background: #e8dcc4;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        /* Header */
+        .header {
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #5c4a3a;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .deadline {
+            color: #d4a76a;
+        }
+
+        /* Blocked Banner */
+        .blocked-banner {
+            background: linear-gradient(to bottom, #d4704a, #b4604a);
+            color: #faf4ea;
+            padding: 15px 20px;
+            text-align: center;
+            border-bottom: 2px solid #8b4726;
+        }
+
+        .blocked-title {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .blocked-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Warning Icon */
+        .warning-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: #faf4ea;
+            color: #8b4726;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        /* Route Info */
+        .route-info {
+            background: #f9f3e9;
+            padding: 12px 20px;
+            border-bottom: 1px solid #c4a684;
+            text-align: center;
+        }
+
+        .route-name {
+            font-size: 14px;
+            color: #5c4a3a;
+        }
+
+        /* Dead End Section */
+        .deadend-section {
+            padding: 25px;
+            background: #f4e8d0;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .deadend-explanation {
+            background: #faf4ea;
+            border: 2px solid #d4704a;
+            border-radius: 4px;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+
+        .explanation-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #3d3429;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        .requirements-title {
+            font-size: 13px;
+            color: #7a6250;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        /* Blocked Path Cards */
+        .blocked-paths {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .path-card {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            opacity: 0.6;
+        }
+
+        .path-card.blocked {
+            border-color: #d4704a;
+            background: #faf0e6;
+        }
+
+        .blocked-overlay {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #d4704a;
+            color: #faf4ea;
+            padding: 4px 12px;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .path-content {
+            display: flex;
+            align-items: stretch;
+        }
+
+        .path-main {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .path-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .path-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .path-stamina {
+            width: 24px;
+            height: 24px;
+            background: #5c4a3a;
+            color: #faf4ea;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .path-requirements {
+            font-size: 12px;
+            color: #8b4726;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .requirement-missing {
+            color: #d4704a;
+        }
+
+        .path-effect {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #7a6250;
+            font-style: italic;
+        }
+
+        /* Turn Back Section */
+        .turnback-section {
+            padding: 20px;
+            background: #e8dcc4;
+            text-align: center;
+        }
+
+        .turnback-message {
+            font-size: 14px;
+            color: #5c4a3a;
+            margin-bottom: 15px;
+        }
+
+        .loss-summary {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+
+        .loss-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .loss-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .loss-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #8b4726;
+        }
+
+        .turnback-button {
+            padding: 12px 40px;
+            background: linear-gradient(to bottom, #8b4726, #7b3716);
+            border: 2px solid #6b2706;
+            border-radius: 4px;
+            color: #faf4ea;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .turnback-button:hover {
+            background: linear-gradient(to bottom, #9b5736, #8b4726);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Alternative Routes */
+        .alternatives-section {
+            background: #f9f3e9;
+            padding: 15px 20px;
+            border-top: 1px solid #c4a684;
+        }
+
+        .alternatives-title {
+            font-size: 12px;
+            color: #7a6250;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .alternative-item {
+            font-size: 13px;
+            color: #5c4a3a;
+            padding: 8px;
+            background: #faf4ea;
+            border-left: 3px solid #7a8b5a;
+            margin-bottom: 8px;
+        }
+
+        .alternative-cost {
+            font-weight: bold;
+            color: #7a8b5a;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <div class="header">
+            <span>Tuesday, 9:40 AM - Noble Quarter Checkpoint</span>
+            <span class="deadline">Elena's Letter: Due by 10:00 AM</span>
+        </div>
+
+        <!-- Blocked Banner -->
+        <div class="blocked-banner">
+            <div class="blocked-title">
+                <span class="warning-icon">!</span>
+                Cannot Proceed - Access Denied
+            </div>
+            <div class="blocked-subtitle">All available paths require resources you don't possess</div>
+        </div>
+
+        <!-- Route Info -->
+        <div class="route-info">
+            <div class="route-name">Market Square → Noble Quarter (Checkpoint) - Segment 1</div>
+        </div>
+
+        <!-- Dead End Section -->
+        <div class="deadend-section">
+            <div class="deadend-explanation">
+                <div class="explanation-text">
+                    The guards at the Noble Quarter checkpoint stand firm. Without proper authorization or sufficient funds for bribes, there is no way forward on this route. You must turn back and find another way.
+                </div>
+            </div>
+
+            <div class="requirements-title">Available Paths (All Blocked)</div>
+            
+            <div class="blocked-paths">
+                <!-- Main Gate - Blocked -->
+                <div class="path-card blocked">
+                    <div class="blocked-overlay">Cannot Meet Requirements</div>
+                    <div class="path-content">
+                        <div class="path-main">
+                            <div class="path-header">
+                                <div class="path-name">Main Gate</div>
+                                <div class="path-stamina">1</div>
+                            </div>
+                            <div class="path-requirements requirement-missing">
+                                Requires: Noble Permit (You have: None)
+                            </div>
+                            <div class="path-effect">
+                                Official entry with proper documentation. Guards check permits thoroughly.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bribe Guard - Blocked -->
+                <div class="path-card blocked">
+                    <div class="blocked-overlay">Insufficient Resources</div>
+                    <div class="path-content">
+                        <div class="path-main">
+                            <div class="path-header">
+                                <div class="path-name">Bribe Guard</div>
+                                <div class="path-stamina">2</div>
+                            </div>
+                            <div class="path-requirements requirement-missing">
+                                Requires: 20 coins (You have: 0 coins)
+                            </div>
+                            <div class="path-effect">
+                                Convince the guards to look the other way with a substantial payment.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Argue Entry - Available but Wastes Time -->
+                <div class="path-card blocked">
+                    <div class="blocked-overlay">Massive Time Loss</div>
+                    <div class="path-content">
+                        <div class="path-main">
+                            <div class="path-header">
+                                <div class="path-name">Argue Entry</div>
+                                <div class="path-stamina">1</div>
+                            </div>
+                            <div class="path-requirements">
+                                No requirements (Available)
+                            </div>
+                            <div class="path-effect">
+                                Waste 60 minutes arguing with guards, then forced to return to Market Square anyway.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Turn Back Section -->
+        <div class="turnback-section">
+            <div class="turnback-message">
+                You must turn back. The checkpoint route is impassable without proper authorization.
+            </div>
+            
+            <div class="loss-summary">
+                <div class="loss-item">
+                    <span class="loss-label">Time Lost</span>
+                    <span class="loss-value">10 minutes</span>
+                </div>
+                <div class="loss-item">
+                    <span class="loss-label">Stamina Wasted</span>
+                    <span class="loss-value">0</span>
+                </div>
+                <div class="loss-item">
+                    <span class="loss-label">Progress</span>
+                    <span class="loss-value">None</span>
+                </div>
+            </div>
+
+            <button class="turnback-button">Return to Market Square</button>
+        </div>
+
+        <!-- Alternative Routes -->
+        <div class="alternatives-section">
+            <div class="alternatives-title">Alternative Routes to Consider</div>
+            <div class="alternative-item">
+                <strong>Merchant Caravan:</strong> Requires 2+ Commerce tokens with Marcus and 10 coins
+                <span class="alternative-cost"> (Comfortable travel, no checkpoint)</span>
+            </div>
+            <div class="alternative-item">
+                <strong>Investigation:</strong> Build familiarity at Market Square to discover hidden routes
+                <span class="alternative-cost"> (Costs attention but may reveal shortcuts)</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
