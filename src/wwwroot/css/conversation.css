@@ -930,11 +930,11 @@
     letter-spacing: 0.5px;
 }
 
-/* Card text AI/Template flags */
-.card-text.ai-generated::before {
+/* Card AI/Template flags - positioned on card level */
+.card.ai-generated::after {
     content: "AI";
     position: absolute;
-    top: 5px;
+    top: 8px;
     right: 10px;
     padding: 2px 6px;
     background: #8a7a6a;
@@ -944,12 +944,13 @@
     border-radius: 2px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    z-index: 10;
 }
 
-.card-text.json-fallback::before {
+.card.json-fallback::after {
     content: "TEMPLATE";
     position: absolute;
-    top: 5px;
+    top: 8px;
     right: 10px;
     padding: 2px 6px;
     background: #6a7a8a;
@@ -959,11 +960,7 @@
     border-radius: 2px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-}
-
-/* Ensure card-text has relative positioning for flag placement */
-.card-text {
-    position: relative;
+    z-index: 10;
 }
 
 /* Loading state for narrative while AI is generating */

@@ -20,11 +20,11 @@ public class NarrativeOutput
     public string NarrativeText { get; set; }
     
     /// <summary>
-    /// Dictionary mapping card IDs to their narrative text.
+    /// List of card-specific narratives with their IDs and provider sources.
     /// Each card gets contextually appropriate dialogue that responds to the NPC's statement.
-    /// Key: Card ID, Value: Narrative text for that card's button/display.
+    /// Using strongly typed objects instead of dictionary for better type safety.
     /// </summary>
-    public Dictionary<string, string> CardNarratives { get; set; } = new Dictionary<string, string>();
+    public List<CardNarrative> CardNarratives { get; set; } = new List<CardNarrative>();
     
     /// <summary>
     /// Optional hint about conversation progression or strategy.

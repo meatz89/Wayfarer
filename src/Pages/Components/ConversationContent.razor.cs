@@ -80,7 +80,7 @@ namespace Wayfarer.Pages.Components
         
         // AI narrative generation state
         protected bool IsGeneratingNarrative { get; set; } = false;
-        protected Dictionary<string, string> CurrentCardNarratives { get; set; } = new Dictionary<string, string>();
+        protected List<CardNarrative> CurrentCardNarratives { get; set; } = new List<CardNarrative>();
         protected NarrativeOutput CurrentNarrativeOutput { get; set; }
         private Task<NarrativeOutput> _initialNarrativeTask = null;
         
@@ -89,6 +89,22 @@ namespace Wayfarer.Pages.Components
             if (IsGeneratingNarrative)
                 return "json-fallback narrative-loading";
             return LastProviderSource == NarrativeProviderType.AIGenerated ? "ai-generated" : "json-fallback";
+        }
+
+        protected string GetCardNarrativeClass(CardInstance card)
+        {
+            // Check if this specific card has AI-generated narrative
+            if (card != null && CurrentCardNarratives != null)
+            {
+                CardNarrative cardNarrative = CurrentCardNarratives.FirstOrDefault(cn => cn.CardId == card.Id);
+                if (cardNarrative != null && !string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
+                {
+                    return cardNarrative.ProviderSource == NarrativeProviderType.AIGenerated ? "ai-generated" : "json-fallback";
+                }
+            }
+            
+            // Default to template/fallback
+            return "json-fallback";
         }
         // Letter generation is handled by ConversationManager based on connection state
 
@@ -307,11 +323,13 @@ namespace Wayfarer.Pages.Components
                 if (turnResult?.Narrative != null)
                 {
                     // First check for card-specific narrative
-                    if (turnResult.Narrative.CardNarratives != null && 
-                        turnResult.Narrative.CardNarratives.ContainsKey(playedCard.Id) &&
-                        !string.IsNullOrWhiteSpace(turnResult.Narrative.CardNarratives[playedCard.Id]))
+                    if (turnResult.Narrative.CardNarratives != null)
                     {
-                        LastNarrative = turnResult.Narrative.CardNarratives[playedCard.Id];
+                        CardNarrative cardNarrative = turnResult.Narrative.CardNarratives.FirstOrDefault(cn => cn.CardId == playedCard.Id);
+                        if (cardNarrative != null && !string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
+                        {
+                            LastNarrative = cardNarrative.NarrativeText;
+                        }
                     }
                     // Then check for general narrative text
                     else if (!string.IsNullOrWhiteSpace(turnResult.Narrative.NarrativeText))
@@ -543,22 +561,112 @@ namespace Wayfarer.Pages.Components
             
             // Apply card narratives
             CurrentCardNarratives.Clear();
-            if (narrative.CardNarratives != null)
+            if (narrative.CardNarratives != null && narrative.CardNarratives.Any())
             {
                 Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Applying {narrative.CardNarratives.Count} card narratives");
-                foreach (var kvp in narrative.CardNarratives)
+                CurrentCardNarratives.AddRange(narrative.CardNarratives);
+                foreach (var cardNarrative in narrative.CardNarratives)
                 {
-                    if (!string.IsNullOrWhiteSpace(kvp.Value))
+                    if (!string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
                     {
-                        CurrentCardNarratives[kvp.Key] = kvp.Value;
-                        Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Card {kvp.Key}: {kvp.Value.Substring(0, Math.Min(50, kvp.Value.Length))}...");
+                        Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Card {cardNarrative.CardId}: {cardNarrative.NarrativeText.Substring(0, Math.Min(50, cardNarrative.NarrativeText.Length))}...");
                     }
                 }
             }
             else
             {
                 Console.WriteLine("[ConversationContent.ApplyNarrativeOutput] No card narratives in output");
+                // Now trigger second phase to generate card narratives if provider supports it and we have NPC dialogue
+                if (!string.IsNullOrWhiteSpace(narrative.NPCDialogue))
+                {
+                    _ = GenerateCardNarrativesAsync(narrative.NPCDialogue);
+                }
             }
+        }
+        
+        private async Task GenerateCardNarrativesAsync(string npcDialogue)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(npcDialogue) || Session == null || Context?.Npc == null)
+                    return;
+                
+                Console.WriteLine("[ConversationContent.GenerateCardNarrativesAsync] Starting second phase card narrative generation");
+                
+                // Get the active cards for current state
+                List<CardInstance> activeCards = Session.HandCards?.ToList() ?? new List<CardInstance>();
+                if (!activeCards.Any())
+                    return;
+                
+                // Use NarrativeService which already has the provider factory
+                if (NarrativeService != null && Session != null)
+                {
+                    // Generate narrative through the service - it will handle the provider selection
+                    // For now, we'll just log that this would be the second phase
+                    // The actual implementation would need the NarrativeService to expose a method for just card narratives
+                    Console.WriteLine("[ConversationContent.GenerateCardNarrativesAsync] Second phase card narrative generation would happen here");
+                    // TODO: NarrativeService needs a method to generate just card narratives
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ConversationContent.GenerateCardNarrativesAsync] Error generating card narratives: {ex.Message}");
+            }
+        }
+        
+        private ConversationState BuildConversationState(ConversationSession session)
+        {
+            int rapport = session.RapportManager?.CurrentRapport ?? 0;
+            TopicLayer currentLayer = rapport <= 5 ? TopicLayer.Deflection :
+                                    rapport <= 10 ? TopicLayer.Gateway :
+                                    TopicLayer.Core;
+            
+            return new ConversationState
+            {
+                Flow = session.FlowBattery,
+                Rapport = rapport,
+                Atmosphere = session.CurrentAtmosphere,
+                Focus = session.GetAvailableFocus(),
+                Patience = session.CurrentPatience,
+                CurrentState = session.CurrentState,
+                CurrentTopicLayer = currentLayer,
+                HighestTopicLayerReached = currentLayer,
+                TotalTurns = session.TurnNumber,
+                ConversationHistory = new List<string>()
+            };
+        }
+        
+        private NPCData BuildNPCData(NPC npc)
+        {
+            return new NPCData
+            {
+                NpcId = npc.ID,
+                Name = npc.Name,
+                Personality = npc.PersonalityType,
+                CurrentCrisis = npc.CurrentState == ConnectionState.DISCONNECTED ? "personal_troubles" : null,
+                CurrentTopic = "general"
+            };
+        }
+        
+        private CardCollection BuildCardCollection(List<CardInstance> cards)
+        {
+            CardCollection collection = new CardCollection();
+            foreach (CardInstance card in cards)
+            {
+                CardInfo cardInfo = new CardInfo
+                {
+                    Id = card.Id,
+                    Focus = card.Focus,
+                    Difficulty = card.Difficulty,
+                    Effect = card.SuccessEffect?.Value ?? card.Description ?? "",
+                    Persistence = card.Properties.Contains(CardProperty.Impulse) ? CardPersistence.Impulse :
+                                card.Properties.Contains(CardProperty.Opening) ? CardPersistence.Opening :
+                                CardPersistence.Persistent,
+                    NarrativeCategory = "standard"
+                };
+                collection.Cards.Add(cardInfo);
+            }
+            return collection;
         }
 
         private void GenerateListenNarrative()
@@ -1204,11 +1312,11 @@ namespace Wayfarer.Pages.Components
         protected string GetProperCardDialogue(CardInstance card)
         {
             // First check for AI-generated narrative
-            if (CurrentCardNarratives != null && CurrentCardNarratives.ContainsKey(card.Id))
+            if (CurrentCardNarratives != null && card != null)
             {
-                string aiNarrative = CurrentCardNarratives[card.Id];
-                if (!string.IsNullOrEmpty(aiNarrative))
-                    return aiNarrative;
+                CardNarrative cardNarrative = CurrentCardNarratives.FirstOrDefault(cn => cn.CardId == card.Id);
+                if (cardNarrative != null && !string.IsNullOrEmpty(cardNarrative.NarrativeText))
+                    return cardNarrative.NarrativeText;
             }
             
             // Fallback to card's Description property or name

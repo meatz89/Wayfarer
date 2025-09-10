@@ -29,7 +29,7 @@ public class ConversationNarrativeGenerator
         string npcDialogue = GenerateNPCDialogue(constraints, npc, state);
         
         // Phase 4: Map each card to appropriate response narrative
-        Dictionary<string, string> cardNarratives = MapCardNarratives(cards, npcDialogue, state.Rapport);
+        List<CardNarrative> cardNarratives = MapCardNarratives(cards, npcDialogue, state.Rapport);
         
         return new NarrativeOutput
         {
@@ -134,16 +134,21 @@ public class ConversationNarrativeGenerator
     /// <param name="cards">Active cards to map</param>
     /// <param name="npcDialogue">Generated NPC dialogue to respond to</param>
     /// <param name="rapport">Current rapport level for response scaling</param>
-    /// <returns>Dictionary mapping card IDs to response narratives</returns>
-    public Dictionary<string, string> MapCardNarratives(CardCollection cards, string npcDialogue, int rapport)
+    /// <returns>List of card narratives with provider source</returns>
+    public List<CardNarrative> MapCardNarratives(CardCollection cards, string npcDialogue, int rapport)
     {
-        Dictionary<string, string> narratives = new Dictionary<string, string>();
+        List<CardNarrative> narratives = new List<CardNarrative>();
         RapportStage rapportStage = GetRapportStage(rapport);
         
         foreach (CardInfo card in cards.Cards)
         {
             string narrative = GenerateCardResponse(card, npcDialogue, rapportStage);
-            narratives[card.Id] = narrative;
+            narratives.Add(new CardNarrative
+            {
+                CardId = card.Id,
+                NarrativeText = narrative,
+                ProviderSource = NarrativeProviderType.JsonFallback // This generator is used as fallback
+            });
         }
         
         return narratives;

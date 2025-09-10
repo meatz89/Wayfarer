@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,16 +39,15 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     }
     
     /// <summary>
-    /// Generates narrative content using AI and backwards construction.
-    /// Uses two-call AI architecture: first generates NPC dialogue, then card narratives.
-    /// First analyzes cards to understand player options, then uses AI
-    /// to generate contextually appropriate NPC dialogue and responses.
+    /// Phase 1: Generates NPC dialogue and environmental narrative only.
+    /// Analyzes active cards to create NPC dialogue that all cards can respond to.
+    /// Returns immediately after NPC dialogue generation for quick UI update.
     /// </summary>
     /// <param name="state">Current conversation mechanical state</param>
     /// <param name="npcData">NPC information for context</param>
     /// <param name="activeCards">Cards available to player</param>
-    /// <returns>Generated narrative output with NPC dialogue and card responses</returns>
-    public async Task<NarrativeOutput> GenerateNarrativeContentAsync(
+    /// <returns>NarrativeOutput with NPCDialogue/NarrativeText filled, CardNarratives empty</returns>
+    public async Task<NarrativeOutput> GenerateNPCDialogueAsync(
         ConversationState state,
         NPCData npcData,
         CardCollection activeCards)
@@ -79,29 +79,94 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         // Step 4: Parse NPC response into structured output
         NarrativeOutput output = ParseAIResponse(npcResponse, activeCards, state);
         
-        // Step 5: If we have NPC dialogue, generate card narratives in second AI call
-        if (!string.IsNullOrEmpty(output.NPCDialogue))
+        // Ensure we have NPC dialogue (use fallback if needed)
+        if (string.IsNullOrEmpty(output.NPCDialogue))
         {
-            string cardPrompt = promptBuilder.BuildBatchCardGenerationPrompt(state, npcData, activeCards, output.NPCDialogue);
+            output.NPCDialogue = GenerateFallbackNPCDialogue(state, npcData, analysis);
+        }
+        
+        // Add environmental narrative if missing
+        if (string.IsNullOrEmpty(output.NarrativeText))
+        {
+            output.NarrativeText = GenerateFallbackEnvironmental(state, npcData);
+        }
+        
+        // Set provider source
+        output.ProviderSource = !string.IsNullOrEmpty(npcResponse) ? 
+            NarrativeProviderType.AIGenerated : NarrativeProviderType.JsonFallback;
+        
+        return output;
+    }
+    
+    /// <summary>
+    /// Phase 2: Generates card-specific narratives based on NPC dialogue.
+    /// Uses the NPC dialogue from Phase 1 to create contextually appropriate card responses.
+    /// Called separately after UI has been updated with NPC dialogue.
+    /// </summary>
+    /// <param name="state">Current conversation mechanical state</param>
+    /// <param name="npcData">NPC information for context</param>
+    /// <param name="activeCards">Cards available to player</param>
+    /// <param name="npcDialogue">The NPC dialogue generated in Phase 1</param>
+    /// <returns>List of card narratives with their IDs and text</returns>
+    public async Task<List<CardNarrative>> GenerateCardNarrativesAsync(
+        ConversationState state,
+        NPCData npcData,
+        CardCollection activeCards,
+        string npcDialogue)
+    {
+        Console.WriteLine($"[AIProvider] GenerateCardNarrativesAsync called with {activeCards.Cards.Count} cards");
+        List<CardNarrative> cardNarratives = new List<CardNarrative>();
+        
+        if (string.IsNullOrEmpty(npcDialogue))
+        {
+            Console.WriteLine("[AIProvider] No NPC dialogue - using fallback card narratives");
+            // Return fallback narratives if no NPC dialogue
+            return GenerateFallbackCardNarratives(activeCards, state.Rapport);
+        }
+        
+        // Build prompt for card generation
+        string cardPrompt = promptBuilder.BuildBatchCardGenerationPrompt(state, npcData, activeCards, npcDialogue);
+        Console.WriteLine($"[AIProvider] Card generation prompt built, length: {cardPrompt.Length}");
+        
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            string cardResponse = await GenerateAIResponseAsync(cardPrompt, cts.Token);
+            Console.WriteLine($"[AIProvider] AI card response received, length: {cardResponse?.Length ?? 0}");
             
-            try
+            if (!string.IsNullOrEmpty(cardResponse))
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                string cardResponse = await GenerateAIResponseAsync(cardPrompt, cts.Token);
-                ParseCardNarratives(cardResponse, output);
+                // Parse the card narratives from AI response
+                cardNarratives = ParseCardNarrativesAsList(cardResponse, activeCards);
+                Console.WriteLine($"[AIProvider] Parsed {cardNarratives.Count} card narratives from AI response");
             }
-            catch (OperationCanceledException)
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("[AIProvider] Card generation timed out - using fallback");
+            // Timeout - use fallback
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AIProvider] Card generation failed: {ex.Message}");
+            // AI generation failed - use fallback
+        }
+        
+        // Fill in any missing card narratives with fallbacks
+        foreach (CardInfo card in activeCards.Cards)
+        {
+            if (!cardNarratives.Any(cn => cn.CardId == card.Id))
             {
-                // Timeout - card narratives will use fallback
-            }
-            catch
-            {
-                // AI generation failed - card narratives will use fallback
+                cardNarratives.Add(new CardNarrative
+                {
+                    CardId = card.Id,
+                    NarrativeText = GenerateFallbackCardNarrative(card, state.Rapport),
+                    ProviderSource = NarrativeProviderType.JsonFallback
+                });
             }
         }
         
-        // Step 6: Validate and fill gaps if needed
-        return ValidateAndEnhanceOutput(output, state, npcData, activeCards, analysis);
+        return cardNarratives;
     }
     
     /// <summary>
@@ -142,58 +207,102 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     
     private async Task<string> GenerateAIResponseAsync(string prompt, CancellationToken cancellationToken = default)
     {
+        Console.WriteLine($"[AIProvider] GenerateAIResponseAsync called, prompt length: {prompt?.Length ?? 0}");
         StringBuilder responseBuilder = new StringBuilder();
         
-        await foreach (string token in ollamaClient.StreamCompletionAsync(prompt).WithCancellation(cancellationToken))
+        try
         {
-            responseBuilder.Append(token);
+            await foreach (string token in ollamaClient.StreamCompletionAsync(prompt).WithCancellation(cancellationToken))
+            {
+                responseBuilder.Append(token);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AIProvider] GenerateAIResponseAsync error: {ex.Message}");
+            throw;
         }
         
+        Console.WriteLine($"[AIProvider] GenerateAIResponseAsync response length: {responseBuilder.Length}");
         return responseBuilder.ToString();
     }
     
     /// <summary>
-    /// Parses the card narrative response from the second AI call and merges it into the output.
+    /// Parses the card narrative response from the AI and returns a list of CardNarrative objects.
     /// </summary>
     /// <param name="jsonResponse">JSON response from batch card generation AI call</param>
-    /// <param name="output">NarrativeOutput to merge card narratives into</param>
-    private void ParseCardNarratives(string jsonResponse, NarrativeOutput output)
+    /// <param name="activeCards">Active cards for validation</param>
+    /// <returns>List of parsed card narratives</returns>
+    private List<CardNarrative> ParseCardNarrativesAsList(string jsonResponse, CardCollection activeCards)
     {
+        List<CardNarrative> cardNarratives = new List<CardNarrative>();
+        
         if (string.IsNullOrEmpty(jsonResponse))
         {
-            return;
+            Console.WriteLine("[AIProvider] ParseCardNarrativesAsList: Empty response");
+            return cardNarratives;
         }
+        
+        Console.WriteLine($"[AIProvider] ParseCardNarrativesAsList: Parsing response: {jsonResponse.Substring(0, Math.Min(200, jsonResponse.Length))}...");
         
         try
         {
             var cardNarrativeOutput = ParseCardGenerationJSON(jsonResponse, null);
             
-            // Merge card narratives into the main output
+            // Convert dictionary to list of CardNarrative objects
             if (cardNarrativeOutput.CardNarratives != null)
             {
-                foreach (var kvp in cardNarrativeOutput.CardNarratives)
+                Console.WriteLine($"[AIProvider] Found {cardNarrativeOutput.CardNarratives.Count} card narratives in parsed output");
+                foreach (var cn in cardNarrativeOutput.CardNarratives)
                 {
-                    output.CardNarratives[kvp.Key] = kvp.Value;
+                    Console.WriteLine($"[AIProvider] Adding card narrative: {cn.CardId} = '{cn.NarrativeText}'");
+                    cardNarratives.Add(new CardNarrative
+                    {
+                        CardId = cn.CardId,
+                        NarrativeText = cn.NarrativeText,
+                        ProviderSource = NarrativeProviderType.AIGenerated
+                    });
                 }
             }
-            
-            // Update progression hint if provided and not already set
-            if (!string.IsNullOrEmpty(cardNarrativeOutput.ProgressionHint) && string.IsNullOrEmpty(output.ProgressionHint))
+            else
             {
-                output.ProgressionHint = cardNarrativeOutput.ProgressionHint;
+                Console.WriteLine("[AIProvider] No card narratives found in parsed output");
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // JSON parsing failed - card narratives will use fallback
+            Console.WriteLine($"[AIProvider] JSON parsing failed: {ex.Message}");
+            // JSON parsing failed - return empty list for fallback handling
         }
+        
+        return cardNarratives;
+    }
+    
+    /// <summary>
+    /// Generates fallback card narratives for all active cards.
+    /// </summary>
+    private List<CardNarrative> GenerateFallbackCardNarratives(CardCollection activeCards, int rapport)
+    {
+        List<CardNarrative> cardNarratives = new List<CardNarrative>();
+        
+        foreach (CardInfo card in activeCards.Cards)
+        {
+            cardNarratives.Add(new CardNarrative
+            {
+                CardId = card.Id,
+                NarrativeText = GenerateFallbackCardNarrative(card, rapport),
+                ProviderSource = NarrativeProviderType.JsonFallback
+            });
+        }
+        
+        return cardNarratives;
     }
     
     private NarrativeOutput ParseAIResponse(string aiResponse, CardCollection activeCards, ConversationState state)
     {
         NarrativeOutput output = new NarrativeOutput
         {
-            CardNarratives = new Dictionary<string, string>()
+            CardNarratives = new List<CardNarrative>()
         };
         
         // If no AI response, return empty output for fallback handling
@@ -250,7 +359,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         
         var output = new NarrativeOutput
         {
-            CardNarratives = new Dictionary<string, string>()
+            CardNarratives = new List<CardNarrative>()
         };
         
         if (root.TryGetProperty("introduction", out JsonElement intro))
@@ -284,7 +393,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         
         var output = new NarrativeOutput
         {
-            CardNarratives = new Dictionary<string, string>()
+            CardNarratives = new List<CardNarrative>()
         };
         
         if (root.TryGetProperty("dialogue", out JsonElement dialogue))
@@ -319,7 +428,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         
         var output = new NarrativeOutput
         {
-            CardNarratives = new Dictionary<string, string>()
+            CardNarratives = new List<CardNarrative>()
         };
         
         if (root.TryGetProperty("card_narratives", out JsonElement cardNarratives))
@@ -329,7 +438,12 @@ public class AIConversationNarrativeProvider : INarrativeProvider
                 string cardId = cardProp.Name;
                 if (cardProp.Value.TryGetProperty("card_text", out JsonElement cardText))
                 {
-                    output.CardNarratives[cardId] = cardText.GetString();
+                    output.CardNarratives.Add(new CardNarrative
+                    {
+                        CardId = cardId,
+                        NarrativeText = cardText.GetString(),
+                        ProviderSource = NarrativeProviderType.AIGenerated
+                    });
                 }
             }
         }
@@ -349,7 +463,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     {
         NarrativeOutput output = new NarrativeOutput
         {
-            CardNarratives = new Dictionary<string, string>()
+            CardNarratives = new List<CardNarrative>()
         };
         
         string[] lines = aiResponse.Split('\n');
@@ -399,7 +513,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         return line;
     }
     
-    private void ParseCardNarrative(string line, Dictionary<string, string> cardNarratives)
+    private void ParseCardNarrative(string line, List<CardNarrative> cardNarratives)
     {
         // Expected format: CARD_[ID]: "narrative text"
         int colonIndex = line.IndexOf(':');
@@ -416,7 +530,12 @@ public class AIConversationNarrativeProvider : INarrativeProvider
             
             if (!string.IsNullOrEmpty(cardId) && !string.IsNullOrEmpty(narrative))
             {
-                cardNarratives[cardId] = narrative;
+                cardNarratives.Add(new CardNarrative
+                {
+                    CardId = cardId,
+                    NarrativeText = narrative,
+                    ProviderSource = NarrativeProviderType.AIGenerated
+                });
             }
         }
     }
@@ -437,9 +556,14 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         // Ensure all cards have narratives
         foreach (CardInfo card in activeCards.Cards)
         {
-            if (!output.CardNarratives.ContainsKey(card.Id) || string.IsNullOrEmpty(output.CardNarratives[card.Id]))
+            if (!output.CardNarratives.Any(cn => cn.CardId == card.Id))
             {
-                output.CardNarratives[card.Id] = GenerateFallbackCardNarrative(card, state.Rapport);
+                output.CardNarratives.Add(new CardNarrative
+                {
+                    CardId = card.Id,
+                    NarrativeText = GenerateFallbackCardNarrative(card, state.Rapport),
+                    ProviderSource = NarrativeProviderType.JsonFallback
+                });
             }
         }
         

@@ -286,7 +286,7 @@
                     @if (displayCard.IsAnimating)
                     {
                         @* Animating card that's been played *@
-                        <div class="card @displayCard.AnimationState">
+                        <div class="card @displayCard.AnimationState @GetCardNarrativeClass(convCard)">
                             <div class="card-content">
                                 <div class="card-main">
                                     <div class="card-header">
@@ -303,7 +303,7 @@
                     else if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.Promise || convCard.CardType == CardType.BurdenGoal)
                     {
                         @* Promise/Request Card (Goal) with rapport threshold *@
-                        <div class="card promise @(CanSelectCard(convCard) ? "" : "disabled")"
+                        <div class="card promise @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
                              @onclick="() => ToggleCardSelection(convCard)">
                             <div class="promise-threshold @(GetCurrentRapport() >= GetRequestRapportThreshold(convCard) ? "promise-active" : "")">
                                 Requires @GetRequestRapportThreshold(convCard)+ Rapport (Currently: @GetCurrentRapport())
@@ -335,7 +335,7 @@
                     else
                     {
                         @* Regular conversation card *@
-                        <div class="@GetCardCssClasses(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "")"
+                        <div class="@GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "")"
                              @onclick="() => ToggleCardSelection(convCard)">
                             
                             @* Persistence tags *@

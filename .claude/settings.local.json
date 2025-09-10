@@ -380,7 +380,18 @@
       "Bash(ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5889\" timeout 30 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5890\" dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5891\" dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5891\" dotnet run --no-build)",
+      "Bash(export OLLAMA_BASE_URL=\"http://host.docker.internal:11434\")",
+      "Bash(OLLAMA_BASE_URL=\"http://host.docker.internal:11434\" ASPNETCORE_URLS=\"http://localhost:5999\" timeout 10 dotnet run --no-build)",
+      "Bash(OLLAMA_BASE_URL=\"http://host.docker.internal:11434\" ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run)",
+      "Bash(OLLAMA_BASE_URL=\"http://127.0.0.1:11434\" ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run)",
+      "Bash(sudo systemctl stop:*)",
+      "Bash(sudo systemctl:*)",
+      "Bash(sudo kill:*)",
+      "Read(//mnt/wsl/**)",
+      "Bash(ip route:*)",
+      "Bash(getent:*)",
+      "Bash(OLLAMA_BASE_URL=\"http://192.168.86.29:11434\" ASPNETCORE_URLS=\"http://localhost:5999\" dotnet run)"
     ],
     "deny": []
   }

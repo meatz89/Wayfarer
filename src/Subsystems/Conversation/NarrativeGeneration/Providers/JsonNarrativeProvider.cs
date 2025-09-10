@@ -16,10 +16,11 @@ public class JsonNarrativeProvider : INarrativeProvider
     }
 
     /// <summary>
-    /// Generates narrative content by finding the best matching template and mapping cards.
-    /// If no template found, creates smart mechanical fallbacks based on conversation state.
+    /// Phase 1: Generates NPC dialogue and environmental narrative only.
+    /// Analyzes active cards to create NPC dialogue that all cards can respond to.
+    /// Returns immediately after NPC dialogue generation for quick UI update.
     /// </summary>
-    public Task<NarrativeOutput> GenerateNarrativeContentAsync(
+    public Task<NarrativeOutput> GenerateNPCDialogueAsync(
         ConversationState state,
         NPCData npcData,
         CardCollection activeCards)
@@ -27,35 +28,81 @@ public class JsonNarrativeProvider : INarrativeProvider
         // Find the best matching template for current state
         NarrativeTemplate template = repository.FindBestMatch(state, npcData);
         
+        NarrativeOutput output;
+        
         if (template == null)
         {
-            return Task.FromResult(CreateSmartFallbackOutput(state, npcData, activeCards));
+            // Use smart fallback
+            output = new NarrativeOutput
+            {
+                NPCDialogue = GenerateFlowBasedDialogue(state, npcData, activeCards),
+                NarrativeText = GenerateConnectionStateBodyLanguage(state.CurrentState),
+                ProgressionHint = GenerateSmartProgressionHint(state, activeCards),
+                CardNarratives = new List<CardNarrative>(), // Empty for phase 1
+                ProviderSource = NarrativeProviderType.JsonFallback
+            };
+        }
+        else
+        {
+            // Generate the output using the template
+            output = new NarrativeOutput
+            {
+                NPCDialogue = ApplyVariableSubstitution(template.NPCDialogue, npcData),
+                NarrativeText = template.NarrativeText != null 
+                    ? ApplyVariableSubstitution(template.NarrativeText, npcData) 
+                    : null,
+                ProgressionHint = GenerateProgressionHint(state, npcData, template),
+                CardNarratives = new List<CardNarrative>(), // Empty for phase 1
+                ProviderSource = NarrativeProviderType.JsonFallback
+            };
         }
 
-        // Generate the output using the template
-        NarrativeOutput output = new NarrativeOutput
-        {
-            NPCDialogue = ApplyVariableSubstitution(template.NPCDialogue, npcData),
-            NarrativeText = template.NarrativeText != null 
-                ? ApplyVariableSubstitution(template.NarrativeText, npcData) 
-                : null
-        };
-
+        return Task.FromResult(output);
+    }
+    
+    /// <summary>
+    /// Phase 2: Generates card-specific narratives based on NPC dialogue.
+    /// For JSON fallback, doesn't use NPC dialogue but generates based on card properties.
+    /// </summary>
+    public Task<List<CardNarrative>> GenerateCardNarrativesAsync(
+        ConversationState state,
+        NPCData npcData,
+        CardCollection activeCards,
+        string npcDialogue)
+    {
+        List<CardNarrative> cardNarratives = new List<CardNarrative>();
+        
+        // Find template for card narratives (may be different from dialogue template)
+        NarrativeTemplate template = repository.FindBestMatch(state, npcData);
+        
         // Generate card narratives for all active cards
         foreach (CardInfo card in activeCards.Cards)
         {
-            string cardNarrative = repository.GetCardNarrative(
-                card.Id, 
-                card.NarrativeCategory ?? "default", 
-                template);
+            string narrativeText;
             
-            output.CardNarratives[card.Id] = ApplyVariableSubstitution(cardNarrative, npcData);
+            if (template != null)
+            {
+                narrativeText = repository.GetCardNarrative(
+                    card.Id, 
+                    card.NarrativeCategory ?? "default", 
+                    template);
+                narrativeText = ApplyVariableSubstitution(narrativeText, npcData);
+            }
+            else
+            {
+                // Use smart fallback
+                narrativeText = GenerateSmartCardNarrative(card, state, npcData);
+            }
+            
+            cardNarratives.Add(new CardNarrative
+            {
+                CardId = card.Id,
+                NarrativeText = narrativeText,
+                ProviderSource = NarrativeProviderType.JsonFallback
+            });
         }
 
-        // Generate progression hint based on current state
-        output.ProgressionHint = GenerateProgressionHint(state, npcData, template);
-
-        return Task.FromResult(output);
+        return Task.FromResult(cardNarratives);
     }
 
     /// <summary>
@@ -157,13 +204,19 @@ public class JsonNarrativeProvider : INarrativeProvider
         {
             NPCDialogue = GenerateFlowBasedDialogue(state, npcData, activeCards),
             NarrativeText = GenerateConnectionStateBodyLanguage(state.CurrentState),
-            ProgressionHint = GenerateSmartProgressionHint(state, activeCards)
+            ProgressionHint = GenerateSmartProgressionHint(state, activeCards),
+            CardNarratives = new List<CardNarrative>()
         };
 
         // Generate smart card narratives based on mechanical properties
         foreach (CardInfo card in activeCards.Cards)
         {
-            output.CardNarratives[card.Id] = GenerateSmartCardNarrative(card, state, npcData);
+            output.CardNarratives.Add(new CardNarrative
+            {
+                CardId = card.Id,
+                NarrativeText = GenerateSmartCardNarrative(card, state, npcData),
+                ProviderSource = NarrativeProviderType.JsonFallback
+            });
         }
 
         return output;

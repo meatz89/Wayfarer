@@ -109,7 +109,8 @@ public class NarrativeStreamingService
             yield break;
         }
 
-        NarrativeOutput output = await provider.GenerateNarrativeContentAsync(state, npcData, cards);
+        // First generate NPC dialogue
+        NarrativeOutput output = await provider.GenerateNPCDialogueAsync(state, npcData, cards);
 
         // Stream NPC dialogue first if available
         if (!string.IsNullOrWhiteSpace(output.NPCDialogue))
@@ -148,6 +149,9 @@ public class NarrativeStreamingService
                 yield return chunk;
             }
         }
+        
+        // Note: Card narratives are generated separately and not streamed here
+        // They are handled by a separate call to GenerateCardNarrativesAsync
     }
 
     /// <summary>

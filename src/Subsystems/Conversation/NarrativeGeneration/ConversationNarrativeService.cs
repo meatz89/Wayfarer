@@ -43,11 +43,21 @@ public class ConversationNarrativeService
             NPCData npcData = BuildNPCData(npc);
             CardCollection cardCollection = BuildCardCollection(activeCards);
 
-            // Generate narrative content
-            NarrativeOutput narrativeOutput = await provider.GenerateNarrativeContentAsync(
+            // Generate NPC dialogue first
+            NarrativeOutput narrativeOutput = await provider.GenerateNPCDialogueAsync(
                 conversationState, 
                 npcData, 
                 cardCollection);
+            
+            // Then generate card narratives using the NPC dialogue
+            List<CardNarrative> cardNarratives = await provider.GenerateCardNarrativesAsync(
+                conversationState,
+                npcData,
+                cardCollection,
+                narrativeOutput.NPCDialogue);
+            
+            // Add card narratives to output
+            narrativeOutput.CardNarratives = cardNarratives;
             
             // Add provider source for UI styling
             narrativeOutput.ProviderSource = provider.GetProviderType();
@@ -75,7 +85,7 @@ public class ConversationNarrativeService
         {
             NPCDialogue = $"{npc.Name} looks at you expectantly.",
             NarrativeText = $"The conversation continues with {npc.Name}.",
-            CardNarratives = new Dictionary<string, string>()
+            CardNarratives = new List<CardNarrative>()
         };
 
         // Generate basic card narratives
@@ -84,7 +94,12 @@ public class ConversationNarrativeService
             string basicNarrative = card.Focus <= 1 ? "Say something carefully" :
                                    card.Focus >= 3 ? "Speak boldly" :
                                    "Continue the conversation";
-            fallback.CardNarratives[card.Id] = basicNarrative;
+            fallback.CardNarratives.Add(new CardNarrative
+            {
+                CardId = card.Id,
+                NarrativeText = basicNarrative,
+                ProviderSource = NarrativeProviderType.JsonFallback
+            });
         }
 
         return fallback;

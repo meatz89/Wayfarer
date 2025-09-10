@@ -75,19 +75,28 @@ public static class ServiceConfiguration
         services.AddSingleton<DialogueGenerationService>();
 
         // Narrative Generation System (AI and JSON fallback)
-        // Infrastructure for Ollama
+        // Infrastructure for Ollama  
         services.AddHttpClient<OllamaClient>(client =>
         {
-            // Configuration will be injected via OllamaConfiguration
             // Short timeout to prevent hanging when Ollama unavailable
             client.Timeout = TimeSpan.FromSeconds(5);
         });
         services.AddSingleton<OllamaConfiguration>(serviceProvider =>
         {
             IConfiguration config = serviceProvider.GetRequiredService<IConfiguration>();
+            
+            // Check environment variable first, then fall back to config
+            string baseUrl = Environment.GetEnvironmentVariable("OLLAMA_BASE_URL");
+            
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                // Use default from config - Development.json will override for WSL
+                baseUrl = config["Ollama:BaseUrl"];
+            }
+            
             var ollamaConfig = new OllamaConfiguration
             {
-                BaseUrl = config["Ollama:BaseUrl"],
+                BaseUrl = baseUrl,
                 Model = config["Ollama:Model"],
                 BackupModel = config["Ollama:BackupModel"]
             };
