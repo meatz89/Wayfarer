@@ -110,7 +110,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 {
                     validExchanges.Add(new ExchangeOption
                     {
-                        ExchangeId = exchange.ExchangeId ?? Guid.NewGuid().ToString(),
+                        ExchangeId = exchange.Id,
                         Name = exchange.ExchangeName ?? "Trade",
                         Description = exchange.Description ?? FormatExchangeDescription(exchange),
                         Cost = FormatCost(exchange.Costs),
@@ -148,9 +148,13 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             }
 
             // Get exchange data
+            Console.WriteLine($"[ExchangeFacade] Attempting to get exchange - NpcId: '{npcId}', ExchangeId: '{exchangeId}'");
             ExchangeData? exchange = _inventory.GetExchange(npcId, exchangeId);
             if (exchange == null)
             {
+                Console.WriteLine($"[ExchangeFacade] Exchange not found! Available NPCs: {string.Join(", ", _inventory.GetNPCsWithExchanges())}");
+                var availableExchanges = _inventory.GetNPCExchanges(npcId);
+                Console.WriteLine($"[ExchangeFacade] Available exchanges for '{npcId}': {string.Join(", ", availableExchanges.Select(e => e.Id))}");
                 return new ExchangeResult
                 {
                     Success = false,
