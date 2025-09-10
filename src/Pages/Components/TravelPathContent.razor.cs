@@ -393,6 +393,55 @@ namespace Wayfarer.Pages.Components
         }
         
         /// <summary>
+        /// Confirm the revealed card and proceed to next segment
+        /// </summary>
+        protected async Task ConfirmRevealedCard()
+        {
+            if (TravelContext?.Session == null)
+                return;
+
+            bool success = TravelFacade.ConfirmRevealedCard();
+            if (success)
+            {
+                await RefreshTravelContext();
+                StateHasChanged();
+            }
+        }
+
+        /// <summary>
+        /// Check if we're in card reveal state
+        /// </summary>
+        protected bool IsRevealingCard()
+        {
+            return TravelFacade.IsRevealingCard();
+        }
+
+        /// <summary>
+        /// Get the revealed card ID
+        /// </summary>
+        protected string GetRevealedCardId()
+        {
+            return TravelFacade.GetRevealedCardId();
+        }
+
+        /// <summary>
+        /// Check if the specified card is the one being revealed
+        /// </summary>
+        protected bool IsCardBeingRevealed(string pathCardId)
+        {
+            return IsRevealingCard() && GetRevealedCardId() == pathCardId;
+        }
+
+        /// <summary>
+        /// Check if other cards should be disabled during reveal state
+        /// </summary>
+        protected bool ShouldDisableCard(string pathCardId)
+        {
+            // If we're revealing a card and this isn't the revealed card, disable it
+            return IsRevealingCard() && GetRevealedCardId() != pathCardId;
+        }
+
+        /// <summary>
         /// Refresh travel context from backend
         /// </summary>
         private async Task RefreshTravelContext()

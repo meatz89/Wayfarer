@@ -16,6 +16,10 @@ public class TravelSession
     
     // Event tracking for current segment (used when segment type is Event)
     public string CurrentEventId { get; set; }
+    
+    // Card reveal state tracking for face-down card reveal mechanic
+    public bool IsRevealingCard { get; set; } = false;
+    public string RevealedCardId { get; set; }
 }
 
 public enum TravelState

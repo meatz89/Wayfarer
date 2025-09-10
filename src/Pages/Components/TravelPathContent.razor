@@ -60,9 +60,10 @@
                 {
                     var card = pathCardData.Card;
                     var isDiscovered = pathCardData.IsDiscovered;
-                    var isAvailable = pathCardData.CanPlay;
+                    var isAvailable = pathCardData.CanPlay && !ShouldDisableCard(card.Id);
+                    var isBeingRevealed = IsCardBeingRevealed(card.Id);
                     
-                    <div class="path-card @GetPathCardCssClass(isDiscovered, isAvailable)" @onclick="() => SelectPathCard(card.Id)">
+                    <div class="path-card @GetPathCardCssClass(isDiscovered, isAvailable) @(isBeingRevealed ? "revealed" : "") @(ShouldDisableCard(card.Id) ? "disabled-during-reveal" : "")" @onclick="() => SelectPathCard(card.Id)">
                         
                         @if (isDiscovered)
                         {
@@ -115,7 +116,16 @@
             }
         </div>
 
-        @if (!IsJourneyComplete())
+        @if (IsRevealingCard())
+        {
+            <div class="continue-section">
+                <div class="continue-button" @onclick="ConfirmRevealedCard">
+                    <div>CONTINUE TO NEXT SEGMENT</div>
+                    <div class="continue-details">Confirm this path choice and proceed</div>
+                </div>
+            </div>
+        }
+        else if (!IsJourneyComplete())
         {
             <div class="unknown-hint">
                 Unknown paths will reveal permanently when played. The ⚠ symbol indicates possible encounters.

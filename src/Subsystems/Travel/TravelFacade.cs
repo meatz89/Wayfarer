@@ -516,6 +516,32 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             return stamina;
         }
 
+        /// <summary>
+        /// Check if the session is in card reveal state
+        /// </summary>
+        public bool IsRevealingCard()
+        {
+            TravelSession session = _gameWorld.CurrentTravelSession;
+            return session != null && session.IsRevealingCard;
+        }
+
+        /// <summary>
+        /// Get the ID of the card being revealed
+        /// </summary>
+        public string GetRevealedCardId()
+        {
+            TravelSession session = _gameWorld.CurrentTravelSession;
+            return session?.RevealedCardId;
+        }
+
+        /// <summary>
+        /// Confirm the revealed card selection
+        /// </summary>
+        public bool ConfirmRevealedCard()
+        {
+            return _travelManager.ConfirmRevealedCard();
+        }
+
         // ========== HELPER METHODS ==========
 
         /// <summary>

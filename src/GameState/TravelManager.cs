@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -5,6 +6,7 @@ public class TravelManager
 {
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;
+    private readonly Random _random = new Random();
 
     public TravelManager(GameWorld gameWorld, TimeManager timeManager)
     {
@@ -106,9 +108,7 @@ public class TravelManager
         // Use segment's event pool if available
         if (segment.EventPool != null && segment.EventPool.Count > 0)
         {
-            // Use deterministic "random" selection based on segment number and route
-            // This ensures consistent behavior for testing while still providing variety
-            int index = (route.Id.GetHashCode() + segment.SegmentNumber) % segment.EventPool.Count;
+            int index = _random.Next(segment.EventPool.Count);
             return segment.EventPool[index];
         }
 
@@ -116,14 +116,123 @@ public class TravelManager
         if (_gameWorld.RouteEventPools.ContainsKey(route.Id))
         {
             List<string> eventPool = _gameWorld.RouteEventPools[route.Id];
-            if (eventPool.Count > 0)
+            if (eventPool != null && eventPool.Count > 0)
             {
-                int index = (route.Id.GetHashCode() + segment.SegmentNumber) % eventPool.Count;
+                int index = _random.Next(eventPool.Count);
                 return eventPool[index];
             }
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Reveal a face-down path card without playing it
+    /// </summary>
+    public bool RevealPathCard(string pathCardId)
+    {
+        TravelSession session = _gameWorld.CurrentTravelSession;
+        if (session == null)
+        {
+            return false;
+        }
+
+        if (!_gameWorld.AllPathCards.ContainsKey(pathCardId))
+        {
+            return false;
+        }
+
+        // Check if card is already discovered (face-up)
+        if (_gameWorld.PathCardDiscoveries.ContainsKey(pathCardId) && _gameWorld.PathCardDiscoveries[pathCardId])
+        {
+            return false; // Card already revealed
+        }
+
+        PathCardDTO card = _gameWorld.AllPathCards[pathCardId];
+        
+        // Basic affordability checks (same as SelectPathCard)
+        if (session.StaminaRemaining < card.StaminaCost)
+        {
+            return false;
+        }
+
+        if (card.CoinRequirement > 0 && _gameWorld.GetPlayer().Coins < card.CoinRequirement)
+        {
+            return false;
+        }
+
+        // Check one-time card usage
+        if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.ContainsKey(pathCardId) 
+            && _gameWorld.PathCardRewardsClaimed[pathCardId])
+        {
+            return false;
+        }
+
+        // Mark card as discovered (face-up)
+        _gameWorld.PathCardDiscoveries[pathCardId] = true;
+        
+        // Set reveal state
+        session.IsRevealingCard = true;
+        session.RevealedCardId = pathCardId;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Confirm the revealed card and apply its effects, then advance to next segment
+    /// </summary>
+    public bool ConfirmRevealedCard()
+    {
+        TravelSession session = _gameWorld.CurrentTravelSession;
+        if (session == null || !session.IsRevealingCard || string.IsNullOrEmpty(session.RevealedCardId))
+        {
+            return false;
+        }
+
+        string pathCardId = session.RevealedCardId;
+        if (!_gameWorld.AllPathCards.ContainsKey(pathCardId))
+        {
+            return false;
+        }
+
+        PathCardDTO card = _gameWorld.AllPathCards[pathCardId];
+        
+        // Final affordability check (in case something changed)
+        if (session.StaminaRemaining < card.StaminaCost)
+        {
+            return false;
+        }
+
+        if (card.CoinRequirement > 0 && _gameWorld.GetPlayer().Coins < card.CoinRequirement)
+        {
+            return false;
+        }
+
+        // Deduct costs
+        session.StaminaRemaining -= card.StaminaCost;
+        if (card.CoinRequirement > 0)
+        {
+            _gameWorld.GetPlayer().ModifyCoins(-card.CoinRequirement);
+        }
+
+        // Apply effects
+        ApplyPathCardEffects(card);
+
+        // Record path selection
+        session.SelectedPathId = pathCardId;
+        session.TimeElapsed += card.TravelTimeMinutes;
+
+        // Clear reveal state
+        session.IsRevealingCard = false;
+        session.RevealedCardId = null;
+
+        // Update travel state based on stamina
+        UpdateTravelState(session);
+
+        // Move to next segment or complete journey
+        AdvanceSegment(session);
+
+        return true;
     }
 
     /// <summary>
@@ -143,6 +252,26 @@ public class TravelManager
         }
 
         PathCardDTO card = _gameWorld.AllPathCards[pathCardId];
+        
+        // Check if card is face-down and needs to be revealed first
+        bool isCardDiscovered = _gameWorld.PathCardDiscoveries.ContainsKey(pathCardId) && _gameWorld.PathCardDiscoveries[pathCardId];
+        
+        // For face-down cards in FixedPath segments, use reveal mechanic
+        RouteOption route = GetRoute(session.RouteId);
+        bool isFixedPathSegment = false;
+        if (route != null && session.CurrentSegment <= route.Segments.Count)
+        {
+            RouteSegment segment = route.Segments[session.CurrentSegment - 1];
+            isFixedPathSegment = segment.Type == SegmentType.FixedPath;
+        }
+        
+        if (!isCardDiscovered && isFixedPathSegment)
+        {
+            // Face-down card in FixedPath segment - use reveal mechanic
+            return RevealPathCard(pathCardId);
+        }
+        
+        // Face-up card or Event segment - proceed with normal selection
         
         // Check if player can afford the stamina cost
         if (session.StaminaRemaining < card.StaminaCost)
@@ -177,7 +306,7 @@ public class TravelManager
             _gameWorld.GetPlayer().ModifyCoins(-card.CoinRequirement);
         }
 
-        // Reveal if face-down
+        // Reveal if face-down (for Event segments)
         if (!_gameWorld.PathCardDiscoveries.ContainsKey(pathCardId))
         {
             _gameWorld.PathCardDiscoveries[pathCardId] = true;

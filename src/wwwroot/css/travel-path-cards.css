@@ -342,6 +342,62 @@
     font-style: italic;
 }
 
+/* Card Reveal State Styles */
+.path-card.revealed {
+    border: 3px solid #7a8b5a;
+    background: #fefaf0;
+    box-shadow: 0 4px 12px rgba(122, 139, 90, 0.3);
+}
+
+.path-card.disabled-during-reveal {
+    opacity: 0.3;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+}
+
+.path-card.disabled-during-reveal:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Continue Button Section */
+.continue-section {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.continue-button {
+    display: inline-block;
+    padding: 15px 40px;
+    background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
+    border: 2px solid #5a6a3a;
+    border-radius: 4px;
+    color: #faf4ea;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.continue-button:hover {
+    background: linear-gradient(to bottom, #8a9b6a, #7a8b5a);
+    border-color: #6a7b4a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.continue-details {
+    font-size: 11px;
+    margin-top: 4px;
+    color: #e8dcc4;
+    font-weight: normal;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .action-choices {
@@ -352,6 +408,11 @@
     .action-button {
         min-width: auto;
         padding: 10px 20px;
+    }
+    
+    .continue-button {
+        padding: 12px 30px;
+        font-size: 14px;
     }
     
     .paths-section {
