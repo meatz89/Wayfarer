@@ -65,7 +65,7 @@ public static class SkeletonGenerator
         // Initialize card decks (required for NPC to function)
         npc.ConversationDeck = new CardDeck();
         npc.RequestDeck = new CardDeck();
-        npc.ExchangeDeck = new CardDeck();
+        npc.ExchangeDeck = new List<ExchangeCard>();
 
         // Add a default service based on profession
         switch (npc.Profession)
@@ -188,6 +188,55 @@ public static class SkeletonGenerator
             // Generic dialogue
             DialogueFragment = "You discuss matters of mutual interest.",
             VerbPhrase = "converse about topics"
+        };
+
+        return card;
+    }
+
+    /// <summary>
+    /// Generate a skeleton exchange card with mechanical defaults
+    /// </summary>
+    public static ExchangeCard GenerateSkeletonExchangeCard(string id, string npcId, string source)
+    {
+        int hash = Math.Abs(id.GetHashCode());
+        ExchangeType[] exchangeTypes = Enum.GetValues<ExchangeType>();
+
+        ExchangeCard card = new ExchangeCard
+        {
+            Id = id,
+            Name = $"Exchange #{hash % 100}",
+            Description = "A simple trade of resources.",
+            IsSkeleton = true,
+            SkeletonSource = source,
+            NpcId = npcId,
+
+            // Random but deterministic exchange type
+            ExchangeType = exchangeTypes[hash % exchangeTypes.Length],
+
+            // Simple cost structure (coins for now)
+            Cost = new ExchangeCostStructure
+            {
+                Resources = new List<ResourceAmount>
+                {
+                    new ResourceAmount { Type = ResourceType.Coins, Amount = 5 + (hash % 10) } // 5-14 coins
+                }
+            },
+
+            // Simple reward structure
+            Reward = new ExchangeRewardStructure
+            {
+                Resources = new List<ResourceAmount>
+                {
+                    new ResourceAmount { Type = ResourceType.Coins, Amount = 10 + (hash % 15) } // 10-24 coins
+                }
+            },
+
+            // Default exchange properties
+            SingleUse = false,
+            SuccessRate = 100,
+            
+            // Generic flavor
+            FlavorText = "An exchange of mutual benefit."
         };
 
         return card;

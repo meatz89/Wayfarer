@@ -96,31 +96,31 @@ public class ExchangeHandler
     {
         List<ExchangeOption> exchanges = new List<ExchangeOption>();
 
-        if (npc.ExchangeDeck == null || !npc.ExchangeDeck.HasCardsAvailable())
+        if (npc.ExchangeDeck == null || !npc.ExchangeDeck.Any())
             return exchanges;
 
-        foreach (ConversationCard card in npc.ExchangeDeck.GetAllCards())
-        {
-            // Exchange cards should have Exchange CardType
-            if (card.CardType != CardType.Exchange)
-                continue;
+        // Get current location and time for availability check
+        string currentLocationId = spotDomainTags?.FirstOrDefault() ?? string.Empty;
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
 
-            // Check domain requirements
-            if (!CheckDomainRequirements(card, spotDomainTags))
+        foreach (ExchangeCard card in npc.ExchangeDeck)
+        {
+            // Check if exchange is available at this location and time
+            if (!card.IsAvailable(currentLocationId, currentTimeBlock))
                 continue;
 
             // Check token requirements (minimum tokens required to even see the exchange)
             if (!CheckTokenRequirements(card, npc))
                 continue;
 
-            // Create exchange data from card effects
-            ExchangeData exchange = ExtractExchangeData(card);
+            // Convert ExchangeCard to ExchangeData for compatibility
+            ExchangeData exchange = ConvertToExchangeData(card);
             bool canAfford = CanAffordExchange(exchange, playerResources);
 
             exchanges.Add(new ExchangeOption
             {
                 ExchangeId = card.Id,
-                Name = exchange.ExchangeName ?? GetExchangeName(exchange),
+                Name = card.Name ?? GetExchangeName(exchange),
                 Description = card.Description,
                 Cost = FormatCost(exchange.GetCostAsList()),
                 Reward = FormatReward(exchange.GetRewardAsList()),
@@ -233,29 +233,55 @@ public class ExchangeHandler
     }
 
     /// <summary>
-    /// Check if exchange meets domain requirements
+    /// Convert ExchangeCard to ExchangeData for compatibility
     /// </summary>
-    private bool CheckDomainRequirements(ConversationCard card, List<string> spotDomains)
+    private ExchangeData ConvertToExchangeData(ExchangeCard card)
     {
-        // Domain filtering removed - CardContext doesn't have RequiredDomains
-        return true; // No domain filtering for now
+        ExchangeData data = new ExchangeData
+        {
+            ExchangeName = card.Name,
+            TemplateId = card.Id,
+            Costs = new List<ResourceAmount>(),
+            Rewards = new List<ResourceAmount>()
+        };
+
+        // Convert cost structure - copy resource list
+        if (card.Cost?.Resources != null)
+        {
+            data.Costs = new List<ResourceAmount>(card.Cost.Resources);
+        }
+
+        // Convert reward structure - copy resource list
+        if (card.Reward?.Resources != null)
+        {
+            data.Rewards = new List<ResourceAmount>(card.Reward.Resources);
+        }
+
+        return data;
     }
 
     /// <summary>
     /// Check if player has the minimum required tokens for a gated exchange
     /// </summary>
-    private bool CheckTokenRequirements(ConversationCard card, NPC npc)
+    private bool CheckTokenRequirements(ExchangeCard card, NPC npc)
     {
         // If no token requirements, exchange is available
-        if (card.MinimumTokensRequired <= 0 || card.RequiredTokenType == null)
+        if (card.Cost?.TokenRequirements == null || card.Cost.TokenRequirements.Count == 0)
             return true;
 
         // Check if player has required minimum tokens with this NPC
         Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
-        int currentTokens = npcTokens.ContainsKey(card.RequiredTokenType.Value) 
-            ? npcTokens[card.RequiredTokenType.Value] 
-            : 0;
-        return currentTokens >= card.MinimumTokensRequired;
+        
+        foreach (var tokenReq in card.Cost.TokenRequirements)
+        {
+            int currentTokens = npcTokens.ContainsKey(tokenReq.Key) 
+                ? npcTokens[tokenReq.Key] 
+                : 0;
+            if (currentTokens < tokenReq.Value)
+                return false;
+        }
+        
+        return true;
     }
 
     /// <summary>
@@ -355,4 +381,16 @@ public class ExchangeOption
     public string Reward { get; set; }
     public bool CanAfford { get; set; }
     public ExchangeData ExchangeData { get; set; }
+    public ExchangeValidationResult ValidationResult { get; set; }
+}
+
+/// <summary>
+/// Result of exchange validation (moved from Exchange subsystem for now)
+/// </summary>
+public class ExchangeValidationResult
+{
+    public bool IsValid { get; set; }
+    public bool IsVisible { get; set; }
+    public string ValidationMessage { get; set; }
+    public string RequirementDetails { get; set; }
 }

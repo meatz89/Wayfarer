@@ -1,0 +1,338 @@
+/* ===== WAYFARER EXCHANGE SYSTEM CSS ===== */
+/* Styling for the simplified exchange interface */
+/* Reuses many conversation styles but removes flow/rapport/patience mechanics */
+
+/* === EXCHANGE LAYOUT === */
+
+.exchange-content {
+    width: 100%;
+    background: #e8dcc4;
+}
+
+/* Exchange Mode Banner - distinctive green theme */
+.exchange-mode {
+    background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
+    color: #faf4ea;
+    padding: 12px 20px;
+    text-align: center;
+    border-bottom: 2px solid #5a6a3a;
+}
+
+.mode-title {
+    font-size: 18px;
+    margin-bottom: 4px;
+    font-weight: normal;
+}
+
+.mode-description {
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* NPC Header for exchange context */
+.exchange-content .npc-header {
+    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+    padding: 20px;
+    border-bottom: 2px solid #a68b6f;
+}
+
+.exchange-content .npc-name {
+    color: #5c4a3a;
+    font-size: 26px;
+    margin-bottom: 5px;
+    font-weight: normal;
+}
+
+.exchange-content .npc-state {
+    font-size: 14px;
+    color: #7a6250;
+    font-style: italic;
+}
+
+/* Commerce Connection Display */
+.commerce-display {
+    background: #f9f3e9;
+    padding: 12px 20px;
+    border-bottom: 1px solid #c4a684;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.commerce-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+}
+
+.commerce-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #5a7a3a;
+}
+
+.discount-effect {
+    font-size: 12px;
+    color: #5a7a3a;
+    font-style: italic;
+}
+
+/* Narrative Section - simpler than conversation */
+.exchange-content .narrative-section {
+    padding: 25px;
+    background: #f4e8d0;
+    border-bottom: 2px solid #a68b6f;
+}
+
+.exchange-content .npc-dialogue {
+    padding: 15px;
+    background: #f4f9e9;
+    border-left: 3px solid #7a8b5a;
+    border-radius: 2px;
+    font-size: 15px;
+    line-height: 1.5;
+    font-style: italic;
+}
+
+/* Action Section - simplified for exchanges */
+.exchange-content .action-section {
+    padding: 15px;
+    background: #e8dcc4;
+    text-align: center;
+    border-bottom: 1px solid #a68b6f;
+}
+
+.exchange-content .action-choices {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+.exchange-content .action-button {
+    padding: 12px 35px;
+    background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+    border: 2px solid #a68b6f;
+    border-radius: 4px;
+    color: #5c4a3a;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 180px;
+}
+
+.exchange-content .action-button:hover:not(.disabled) {
+    background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
+    border-color: #8b7355;
+    transform: translateY(-2px);
+}
+
+.exchange-content .action-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.exchange-content .action-details {
+    font-size: 11px;
+    margin-top: 4px;
+    color: #7a6250;
+}
+
+/* Exchange Cards Section */
+.exchange-section {
+    padding: 20px;
+    background: #f4e8d0;
+}
+
+.exchange-title {
+    font-size: 13px;
+    color: #7a6250;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Exchange Card Grid */
+.exchange-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Exchange Cards - horizontal layout */
+.exchange-card {
+    background: linear-gradient(to bottom, #faf4ea, #f4e8d0);
+    border: 2px solid #a68b6f;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05);
+    position: relative;
+}
+
+.exchange-card:hover:not(.unavailable) {
+    background: linear-gradient(to bottom, #fefaf0, #f9f3e9);
+    border-color: #8b7355;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.exchange-card.selected {
+    border-color: #7a8b5a;
+    background: #f9fef9;
+    box-shadow: 0 0 0 2px #7a8b5a;
+}
+
+.exchange-card.unavailable {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.exchange-card.unavailable:hover {
+    transform: none;
+}
+
+/* Exchange Content */
+.exchange-main {
+    flex: 1;
+    padding: 20px;
+}
+
+.exchange-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(166, 139, 111, 0.3);
+}
+
+.exchange-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #3d3429;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+
+.exchange-description {
+    font-size: 14px;
+    line-height: 1.4;
+    color: #5c4a3a;
+    font-style: italic;
+    margin-bottom: 15px;
+}
+
+/* Trade Display - visual flow */
+.trade-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: linear-gradient(to right, rgba(249, 243, 233, 0.5), rgba(244, 232, 208, 0.5));
+    border: 1px solid rgba(196, 166, 132, 0.3);
+    border-radius: 6px;
+    margin-top: 12px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.trade-cost,
+.trade-reward {
+    text-align: center;
+    flex: 1;
+}
+
+.trade-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #7a6250;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.trade-value {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 6px 14px;
+    background: linear-gradient(to bottom, #ffffff, #faf4ea);
+    border: 1px solid #a68b6f;
+    border-radius: 4px;
+    display: inline-block;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.cost-value {
+    color: #8b4726;
+    border-color: #b89476;
+}
+
+.original-cost {
+    text-decoration: line-through;
+    color: #a68b6f;
+    margin-right: 5px;
+    font-size: 14px;
+}
+
+.reward-value {
+    color: #5a7a3a;
+    border-color: #8a9b6a;
+}
+
+.trade-arrow {
+    font-size: 24px;
+    color: #8b7355;
+    padding: 0 15px;
+    font-weight: bold;
+}
+
+/* Unavailable reason */
+.unavailable-reason {
+    font-size: 11px;
+    color: #8b4726;
+    text-align: center;
+    margin-top: 8px;
+    padding: 5px;
+    background: #fff8f0;
+    border-radius: 3px;
+}
+
+/* Risk warning for non-guaranteed exchanges */
+.risk-warning {
+    font-size: 11px;
+    color: #d4704a;
+    text-align: center;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+/* Single use tag */
+.single-use-tag {
+    font-size: 10px;
+    color: #7a6250;
+    text-align: center;
+    margin-top: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* No exchanges available */
+.no-exchanges {
+    text-align: center;
+    padding: 40px;
+    color: #7a6250;
+    font-style: italic;
+    font-size: 14px;
+}
+
+/* Loading state */
+.exchange-content .loading {
+    text-align: center;
+    padding: 60px;
+    color: #7a6250;
+    font-style: italic;
+    font-size: 16px;
+}

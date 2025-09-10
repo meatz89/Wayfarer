@@ -1,0 +1,121 @@
+using System.Collections.Generic;
+
+/// <summary>
+/// Represents the cost structure for an exchange.
+/// Supports multiple resource costs and token requirements.
+/// All costs must be paid atomically - partial payment is not allowed.
+/// </summary>
+public class ExchangeCostStructure
+{
+    /// <summary>
+    /// Resources that must be paid for this exchange.
+    /// All resources must be available or the exchange cannot proceed.
+    /// </summary>
+    public List<ResourceAmount> Resources { get; set; } = new List<ResourceAmount>();
+
+    /// <summary>
+    /// Token requirements that gate access to this exchange.
+    /// These are prerequisites, not consumed by the exchange.
+    /// Key: ConnectionType (Trust/Commerce/Status/Shadow)
+    /// Value: Minimum number of tokens required
+    /// </summary>
+    public Dictionary<ConnectionType, int> TokenRequirements { get; set; } = new Dictionary<ConnectionType, int>();
+
+    /// <summary>
+    /// Optional item requirements for the exchange.
+    /// These items must be in inventory but are not necessarily consumed.
+    /// </summary>
+    public List<string> RequiredItemIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Items that will be consumed (removed from inventory) by this exchange.
+    /// Must be a subset of RequiredItemIds.
+    /// </summary>
+    public List<string> ConsumedItemIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Checks if a player can afford all costs for this exchange.
+    /// Does not check token requirements - those are prerequisites.
+    /// Attention must be passed separately as it's managed per time block.
+    /// </summary>
+    public bool CanAfford(PlayerResourceState playerResources, int currentAttention = 0)
+    {
+        if (playerResources == null) return false;
+
+        foreach (var cost in Resources)
+        {
+            switch (cost.Type)
+            {
+                case ResourceType.Coins:
+                    if (playerResources.Coins < cost.Amount) return false;
+                    break;
+                case ResourceType.Health:
+                    if (playerResources.Health < cost.Amount) return false;
+                    break;
+                case ResourceType.Hunger:
+                    if (playerResources.Stamina < cost.Amount) return false;
+                    break;
+                case ResourceType.Attention:
+                    if (currentAttention < cost.Amount) return false;
+                    break;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if token requirements are met.
+    /// Tokens are not consumed, just checked as prerequisites.
+    /// </summary>
+    public bool MeetsTokenRequirements(Dictionary<ConnectionType, int> playerTokens)
+    {
+        if (TokenRequirements == null || TokenRequirements.Count == 0)
+            return true;
+
+        foreach (var requirement in TokenRequirements)
+        {
+            if (!playerTokens.ContainsKey(requirement.Key) || 
+                playerTokens[requirement.Key] < requirement.Value)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Creates a deep clone of this cost structure.
+    /// </summary>
+    public ExchangeCostStructure DeepClone()
+    {
+        return new ExchangeCostStructure
+        {
+            Resources = new List<ResourceAmount>(Resources.Count > 0 
+                ? Resources.ConvertAll(r => new ResourceAmount(r.Type, r.Amount))
+                : new List<ResourceAmount>()),
+            TokenRequirements = new Dictionary<ConnectionType, int>(TokenRequirements),
+            RequiredItemIds = new List<string>(RequiredItemIds),
+            ConsumedItemIds = new List<string>(ConsumedItemIds)
+        };
+    }
+
+    /// <summary>
+    /// Gets a human-readable description of the costs.
+    /// </summary>
+    public string GetDescription()
+    {
+        var parts = new List<string>();
+        
+        foreach (var resource in Resources)
+        {
+            parts.Add($"{resource.Amount} {resource.Type}");
+        }
+
+        foreach (var item in ConsumedItemIds)
+        {
+            parts.Add($"1x {item}");
+        }
+
+        return parts.Count > 0 ? string.Join(", ", parts) : "Free";
+    }
+}

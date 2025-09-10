@@ -101,6 +101,21 @@ namespace Wayfarer.Pages.Components
                         options.Add(option);
                     }
 
+                    // Check if NPC has exchange cards (separate from conversations!)
+                    if (npc.HasExchangeCards())
+                    {
+                        // Add exchange as a special option (not a conversation type)
+                        ConversationOptionViewModel exchangeOption = new ConversationOptionViewModel
+                        {
+                            Type = null, // No conversation type - this is an exchange!
+                            Label = "Quick Exchange",
+                            AttentionCost = 1, // Exchanges always cost 1 attention
+                            IsAvailable = true,
+                            IsExchange = true // Mark this as an exchange
+                        };
+                        options.Add(exchangeOption);
+                    }
+
                     // Get actual connection state using the same logic as conversations
                     ConnectionState connectionState = GameFacade.GetNPCConnectionState(npc.ID);
                     
@@ -231,6 +246,20 @@ namespace Wayfarer.Pages.Components
             else
             {
                 Console.WriteLine($"[LocationContent] GameScreen not available for conversation with NPC '{npcId}'");
+            }
+        }
+
+        protected async Task StartExchange(string npcId)
+        {
+            Console.WriteLine($"[LocationContent] Starting exchange with NPC ID: '{npcId}'");
+
+            if (GameScreen != null)
+            {
+                await GameScreen.StartExchange(npcId);
+            }
+            else
+            {
+                Console.WriteLine($"[LocationContent] GameScreen not available for exchange with NPC '{npcId}'");
             }
         }
 
@@ -449,11 +478,10 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetActionClass(ConversationType type)
+        protected string GetActionClass(ConversationType? type)
         {
             return type switch
             {
-                ConversationType.Commerce => "exchange",
                 ConversationType.FriendlyChat => "talk",
                 ConversationType.Promise => "promise",
                 ConversationType.Delivery => "delivery",
@@ -516,7 +544,6 @@ namespace Wayfarer.Pages.Components
         {
             return type switch
             {
-                ConversationType.Commerce => "Quick Exchange",
                 ConversationType.FriendlyChat => "Talk",
                 ConversationType.Promise => "Letter Offer",
                 ConversationType.Delivery => "Deliver Letter",
@@ -841,10 +868,11 @@ namespace Wayfarer.Pages.Components
 
     public class ConversationOptionViewModel
     {
-        public ConversationType Type { get; set; }
+        public ConversationType? Type { get; set; }
         public string Label { get; set; }
         public int AttentionCost { get; set; }
         public bool IsAvailable { get; set; }
+        public bool IsExchange { get; set; } // True if this is an exchange, not a conversation
     }
 
     public class LocationObservationViewModel

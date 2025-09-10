@@ -423,56 +423,9 @@ public class ConversationOrchestrator
         return await ProcessSpeakAction(session, firstCard);
     }
 
-    /// <summary>
-    /// Create exchange session (simplified for new system)
-    /// </summary>
-    public ConversationSession CreateExchangeSession(NPC npc)
-    {
-        // Initialize exchange deck from GameWorld
-        if (_gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out List<ConversationCard>? exchangeCards))
-        {
-            npc.InitializeExchangeDeck(exchangeCards);
-        }
-        else
-        {
-            npc.InitializeExchangeDeck(null);
-        }
-
-        // Use the StartExchange method which properly populates exchange data
-        return ConversationSession.StartExchange(npc, null, _tokenManager, new List<string>(), null, _gameWorld);
-    }
-
-    /// <summary>
-    /// Process exchange response (maintained for commerce conversations)
-    /// </summary>
-    public ConversationTurnResult ProcessExchangeResponse(ConversationSession session, bool accepted, ExchangeData exchangeData)
-    {
-        if (session.ConversationType != ConversationType.Commerce)
-        {
-            throw new InvalidOperationException("Exchange responses only valid for Commerce conversations");
-        }
-
-        session.TurnNumber++;
-
-        // Generate exchange response through narrative service
-        // For now, use simple responses until narrative service supports exchanges
-        string npcResponse;
-        if (accepted)
-        {
-            npcResponse = $"{session.NPC.Name} accepts the exchange with gratitude.";
-        }
-        else
-        {
-            npcResponse = $"{session.NPC.Name} politely declines the exchange.";
-        }
-
-        return new ConversationTurnResult
-        {
-            Success = true,
-            NPCResponse = npcResponse,
-            ExchangeAccepted = accepted
-        };
-    }
+    // REMOVED: Exchange methods deleted - exchanges use separate Exchange system, not conversation system
+    // CreateExchangeSession and ProcessExchangeResponse have been removed
+    // Exchanges should use ExchangeFacade/ExchangeOrchestrator, not ConversationOrchestrator
 
     /// <summary>
     /// Check if letter should be generated (based on positive outcomes)

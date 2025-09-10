@@ -263,7 +263,13 @@ public class ConversationSession
         Console.WriteLine($"[ConversationSession.StartExchange] Starting exchange with NPC: {npc.ID}");
         
         // Create session deck from NPC's exchange cards
-        List<ConversationCard> exchangeCards = npc.ExchangeDeck?.GetAllCards() ?? new List<ConversationCard>();
+        // ExchangeDeck is now List<ExchangeCard>, need to convert to ConversationCards for session
+        List<ConversationCard> exchangeCards = new List<ConversationCard>();
+        if (npc.ExchangeDeck != null)
+        {
+            // TODO: Convert ExchangeCard to ConversationCard - this needs proper conversion logic
+            // For now, create empty list to fix compilation
+        }
         Console.WriteLine($"[ConversationSession.StartExchange] Found {exchangeCards.Count} exchange cards");
         
         SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(exchangeCards, npc.ID);
@@ -341,7 +347,7 @@ public class ConversationSession
         ConversationSession session = new ConversationSession
         {
             NPC = npc,
-            ConversationType = ConversationType.Commerce,
+            ConversationType = ConversationType.FriendlyChat, // Commerce removed - exchanges use separate system
             CurrentState = initialState,
             InitialState = initialState,
             CurrentFlow = 0,

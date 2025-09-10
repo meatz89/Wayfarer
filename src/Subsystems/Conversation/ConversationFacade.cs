@@ -82,16 +82,8 @@ public class ConversationFacade
             throw new InvalidOperationException($"Conversation type {conversationType} is not available for {npc.Name}");
         }
 
-        // Create session based on conversation type
-        if (conversationType == ConversationType.Commerce)
-        {
-            Console.WriteLine($"[ConversationFacade] Creating Commerce exchange session for {npc.Name}");
-            _currentSession = _orchestrator.CreateExchangeSession(npc);
-        }
-        else
-        {
-            _currentSession = _orchestrator.CreateSession(npc, conversationType, observationCards);
-        }
+        // Create session - Commerce removed, exchanges use separate Exchange system
+        _currentSession = _orchestrator.CreateSession(npc, conversationType, observationCards);
 
         return _currentSession;
     }
@@ -391,7 +383,7 @@ public class ConversationFacade
         }
 
         // COMMERCE: Check if NPC has exchange deck
-        if (_gameWorld.NPCExchangeDecks.TryGetValue(npc.ID.ToLower(), out List<ConversationCard>? exchangeCards))
+        if (_gameWorld.NPCExchangeCards.TryGetValue(npc.ID.ToLower(), out List<ExchangeCard>? exchangeCards))
         {
             npc.InitializeExchangeDeck(exchangeCards);
         }
@@ -400,10 +392,7 @@ public class ConversationFacade
             npc.InitializeExchangeDeck(null);
         }
 
-        if (npc.HasExchangeCards())
-        {
-            available.Add(ConversationType.Commerce);
-        }
+        // REMOVED: Commerce is not a conversation type - exchanges use separate Exchange system
 
         // PROMISE: Check if NPC has promise/letter cards in request deck
         if (npc.HasPromiseCards())
@@ -682,7 +671,7 @@ public class ConversationFacade
         // Map conversation types to their corresponding connection types
         return session.ConversationType switch
         {
-            ConversationType.Commerce => ConnectionType.Commerce,
+            // Commerce removed - exchanges use separate Exchange system
             ConversationType.Promise => ConnectionType.Trust,
             ConversationType.Resolution => ConnectionType.Trust,
             ConversationType.Delivery => ConnectionType.Trust,

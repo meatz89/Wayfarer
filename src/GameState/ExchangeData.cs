@@ -17,6 +17,32 @@ public class ExchangeData
     public int BaseSuccessRate { get; set; }
     public bool CanBarter { get; set; }
     public string TemplateId { get; set; }
+    
+    // Exchange validation properties
+    public string ExchangeId { get; set; }
+    public int MinimumRelationshipTier { get; set; }
+    public bool IsUnique { get; set; }
+    public int TimesUsed { get; set; }
+    public int MaxUses { get; set; }
+    public List<string> RequiredDomains { get; set; }
+    public List<TimeBlocks> TimeRestrictions { get; set; }
+    public ConnectionType? RequiredTokenType { get; set; }
+    public int MinimumTokensRequired { get; set; }
+    public List<string> RequiredItems { get; set; }
+    public bool RequiresPatience { get; set; }
+    public ConnectionState? RequiredConnectionState { get; set; }
+    
+    // Exchange effects
+    public bool GrantsTokens { get; set; }
+    public string UnlocksExchangeId { get; set; }
+    public string TriggerEvent { get; set; }
+    public bool AffectsRelationship { get; set; }
+    public bool ConsumesPatience { get; set; }
+    public int PatienceCost { get; set; }
+    public bool AdvancesTime { get; set; }
+    public int TimeAdvancementHours { get; set; }
+    public int FlowModifier { get; set; }
+    public ConnectionState? ConnectionStateChange { get; set; }
 
     public bool CanAfford(Player player)
     {

@@ -199,7 +199,7 @@
                 @if (CurrentNPC.ExchangeDeck != null && CurrentNPC.ExchangeDeck.Any())
                 {
                     <div class="card-list">
-                        @foreach (var card in CurrentNPC.ExchangeDeck.GetAllCards())
+                        @foreach (var card in CurrentNPC.ExchangeDeck)
                         {
                             <div class="debug-card exchange-card">
                                 <div class="card-header">
@@ -213,8 +213,9 @@
                                     </div>
                                     <div class="exchange-info">
                                         <h4>Exchange Properties:</h4>
-                                        <div>CardType: @card.CardType</div>
-                                        <div>Focus: @card.Focus</div>
+                                        <div>ExchangeType: @card.ExchangeType</div>
+                                        <div>Success Rate: @card.SuccessRate%</div>
+                                        <div>Single Use: @card.SingleUse</div>
                                     </div>
                                 </div>
                                 @* TodaysExchangeCard property was removed - exchanges are selected dynamically *@
@@ -278,8 +279,8 @@
     private string GetCategoryClass(ConversationCard card)
     {
         // Determine category based on card type
-        if (card.CardType == CardType.Exchange)
-            return "exchange";
+        // Note: Exchange cards are now separate ExchangeCard entities
+        // This viewer only shows ConversationCards
         if (card.CardType == CardType.Observation)
             return "observation";
         if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
@@ -302,8 +303,7 @@
     private string GetCategoryName(ConversationCard card)
     {
         // Determine category name based on card type
-        if (card.CardType == CardType.Exchange)
-            return "EXCHANGE";
+        // Note: Exchange cards are now separate ExchangeCard entities
         if (card.CardType == CardType.Observation)
             return "OBSERVATION";
         if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)

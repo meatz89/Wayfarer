@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 public class NPC
@@ -73,7 +74,7 @@ public class NPC
     // THREE DECK ARCHITECTURE (POC EXACT)
     public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Flow, Token, State, Knowledge, Burden
     public CardDeck RequestDeck { get; set; } = new();  // 0-3 cards: Promise (letters), Resolution requests
-    public CardDeck ExchangeDeck { get; set; } = new();  // 5-10 cards: Simple instant trades (Mercantile NPCs only)
+    public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
     public CardDeck ObservationDeck { get; set; } = new();  // Cards created from location observations (Work Packet 3) 
 
     // Daily exchange selection (removed - handled by GetTodaysExchange method)
@@ -97,20 +98,19 @@ public class NPC
     }
 
     // Initialize exchange deck (for Mercantile NPCs only)
-    public void InitializeExchangeDeck(List<ConversationCard> exchangeCards = null)
+    public void InitializeExchangeDeck(List<ExchangeCard> exchangeCards = null)
     {
         if (ExchangeDeck == null || !ExchangeDeck.Any())
         {
-            ExchangeDeck = new CardDeck();
+            ExchangeDeck = new List<ExchangeCard>();
             // Only Mercantile NPCs have exchange decks
             if (PersonalityType == PersonalityType.MERCANTILE && exchangeCards != null)
             {
                 Console.WriteLine($"[NPC.InitializeExchangeDeck] Adding {exchangeCards.Count} exchange cards for {Name}");
-                foreach (ConversationCard card in exchangeCards)
+                foreach (ExchangeCard card in exchangeCards)
                 {
                     Console.WriteLine($"[NPC.InitializeExchangeDeck] Card {card.Id}");
-                    // Exchange data now stored in card effects, not context
-                    ExchangeDeck.AddCard(card);
+                    ExchangeDeck.Add(card);
                 }
             }
         }
@@ -146,18 +146,17 @@ public class NPC
     }
 
     // Get today's exchange card (selected deterministically at dawn)
-    public ConversationCard GetTodaysExchange(int currentDay)
+    public ExchangeCard GetTodaysExchange(int currentDay)
     {
         // Exchange cards only for Mercantile NPCs
         if (PersonalityType != PersonalityType.MERCANTILE || ExchangeDeck == null || !ExchangeDeck.Any())
             return null;
 
         // Use deterministic selection based on day and NPC ID
-        List<ConversationCard> cards = ExchangeDeck.GetAllCards();
-        if (cards.Count == 0) return null;
+        if (ExchangeDeck.Count == 0) return null;
 
-        int index = (currentDay * ID.GetHashCode()) % cards.Count;
-        return cards[Math.Abs(index)];
+        int index = (currentDay * ID.GetHashCode()) % ExchangeDeck.Count;
+        return ExchangeDeck[Math.Abs(index)];
     }
 
     // Helper methods for UI display
@@ -246,6 +245,14 @@ public class NPC
     public bool HasPatienceForConversation()
     {
         return DailyPatience > 0;
+    }
+
+    /// <summary>
+    /// Spend patience for an exchange
+    /// </summary>
+    public void SpendPatience(int amount)
+    {
+        DailyPatience = Math.Max(0, DailyPatience - amount);
     }
 
     /// <summary>

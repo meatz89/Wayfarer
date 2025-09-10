@@ -19,7 +19,7 @@ public static class ConversationContextFactory
     {
         ConversationContextBase context = conversationType switch
         {
-            ConversationType.Commerce => new CommerceContext(),
+            // Commerce removed - exchanges use separate Exchange system
             ConversationType.Promise => new PromiseContext(),
             ConversationType.Delivery => new DeliveryContext(),
             ConversationType.FriendlyChat => new StandardContext(),
@@ -62,9 +62,7 @@ public static class ConversationContextFactory
     {
         switch (context)
         {
-            case CommerceContext commerceContext:
-                InitializeCommerceContext(commerceContext, gameWorld);
-                break;
+            // Commerce removed - exchanges use separate Exchange system
             case PromiseContext promiseContext:
                 InitializePromiseContext(promiseContext, gameWorld);
                 break;
@@ -80,29 +78,8 @@ public static class ConversationContextFactory
         }
     }
 
-    private static void InitializeCommerceContext(CommerceContext context, GameWorld gameWorld)
-    {
-        if (context.Npc?.ExchangeDeck != null)
-        {
-            context.AvailableExchanges = new List<ExchangeData>();
-            context.SetNPCPersonality(context.Npc.PersonalityType);
-
-            // Load exchange data from NPC's exchange deck
-            foreach (ConversationCard card in context.Npc.ExchangeDeck.GetAllCards())
-            {
-                if (card.SuccessEffect?.Type == CardEffectType.Exchange && !string.IsNullOrEmpty(card.SuccessEffect.Value))
-                {
-                    ExchangeDTO exchangeDef = gameWorld.ExchangeDefinitions.FirstOrDefault(e => e.Id == card.SuccessEffect.Value);
-                    if (exchangeDef != null)
-                    {
-                        ExchangeData exchangeData = ConvertExchangeDTO(exchangeDef);
-                        context.AvailableExchanges.Add(exchangeData);
-                    }
-                }
-            }
-        }
-    }
-
+    // REMOVED: InitializeCommerceContext deleted - exchanges use separate Exchange system
+    
     private static void InitializePromiseContext(PromiseContext context, GameWorld gameWorld)
     {
         context.SetNPCPersonality(context.Npc.PersonalityType);
@@ -202,6 +179,8 @@ public static class ConversationContextFactory
 
         return exchangeData;
     }
+
+    // REMOVED: ConvertExchangeCard deleted - exchange conversion handled in Exchange subsystem
 
     private static ResourceType? ParseResourceType(string name)
     {

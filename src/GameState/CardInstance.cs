@@ -69,8 +69,9 @@ public class CardInstance
     public bool CanDeliverLetter => CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal;
     public string DeliveryObligationId => "";
     public string ObservationSource => "";
-    public bool IsExchange => CardType == CardType.Exchange;
-    public CardMechanicsType Mechanics => CardType == CardType.Exchange ? CardMechanicsType.Exchange : CardMechanicsType.Standard;
+    // Exchange detection - exchanges are now separate ExchangeCard entities, not ConversationCards
+    public bool IsExchange => false;  // CardInstances are only for ConversationCards now
+    public CardMechanicsType Mechanics => CardMechanicsType.Standard;
 
     public int GetEffectiveFocus(ConnectionState state)
     {

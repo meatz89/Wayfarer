@@ -1,0 +1,88 @@
+using System.Collections.Generic;
+
+/// <summary>
+/// Represents the reward structure for an exchange.
+/// All rewards are granted atomically upon successful exchange.
+/// </summary>
+public class ExchangeRewardStructure
+{
+    /// <summary>
+    /// Resources granted by this exchange.
+    /// All resources are added to the player's totals.
+    /// </summary>
+    public List<ResourceAmount> Resources { get; set; } = new List<ResourceAmount>();
+
+    /// <summary>
+    /// Items granted by this exchange.
+    /// These are item template IDs that will be instantiated.
+    /// </summary>
+    public List<string> ItemIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Tokens granted by this exchange.
+    /// Key: ConnectionType (Trust/Commerce/Status/Shadow)
+    /// Value: Number of tokens to grant
+    /// </summary>
+    public Dictionary<ConnectionType, int> Tokens { get; set; } = new Dictionary<ConnectionType, int>();
+
+    /// <summary>
+    /// Optional effects that trigger upon exchange completion.
+    /// These could unlock new exchanges, modify NPC states, etc.
+    /// </summary>
+    public List<string> EffectIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Creates a deep clone of this reward structure.
+    /// </summary>
+    public ExchangeRewardStructure DeepClone()
+    {
+        return new ExchangeRewardStructure
+        {
+            Resources = new List<ResourceAmount>(Resources.Count > 0
+                ? Resources.ConvertAll(r => new ResourceAmount(r.Type, r.Amount))
+                : new List<ResourceAmount>()),
+            ItemIds = new List<string>(ItemIds),
+            Tokens = new Dictionary<ConnectionType, int>(Tokens),
+            EffectIds = new List<string>(EffectIds)
+        };
+    }
+
+    /// <summary>
+    /// Gets a human-readable description of the rewards.
+    /// </summary>
+    public string GetDescription()
+    {
+        var parts = new List<string>();
+        
+        foreach (var resource in Resources)
+        {
+            parts.Add($"{resource.Amount} {resource.Type}");
+        }
+
+        foreach (var item in ItemIds)
+        {
+            parts.Add($"1x {item}");
+        }
+
+        foreach (var token in Tokens)
+        {
+            if (token.Value > 0)
+            {
+                parts.Add($"{token.Value} {token.Key} Token{(token.Value > 1 ? "s" : "")}");
+            }
+        }
+
+        return parts.Count > 0 ? string.Join(", ", parts) : "Nothing";
+    }
+
+    /// <summary>
+    /// Checks if this reward structure has any actual rewards.
+    /// </summary>
+    public bool HasRewards()
+    {
+        return (Resources != null && Resources.Count > 0) ||
+               (ItemIds != null && ItemIds.Count > 0) ||
+               (Tokens != null && Tokens.Count > 0) ||
+               (EffectIds != null && EffectIds.Count > 0);
+    }
+}

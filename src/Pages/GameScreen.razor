@@ -48,6 +48,10 @@
                     <ConversationContent Context="@CurrentConversationContext" OnConversationEnd="HandleConversationEnd" />
                     break;
                     
+                case ScreenMode.Exchange:
+                    <ExchangeContent Context="@CurrentExchangeContext" OnExchangeEnd="HandleExchangeEnd" />
+                    break;
+                    
                 case ScreenMode.ObligationQueue:
                     <ObligationQueueContent OnNavigate="HandleNavigation" ReturnView="@PreviousScreen" />
                     break;

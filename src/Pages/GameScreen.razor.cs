@@ -10,6 +10,7 @@ namespace Wayfarer.Pages
     {
         Location,
         Conversation,
+        Exchange,
         ObligationQueue,
         Travel,
         DeckViewer // Dev mode screen for viewing NPC decks
@@ -96,6 +97,7 @@ namespace Wayfarer.Pages
 
         // Navigation State
         protected ConversationContextBase CurrentConversationContext { get; set; }
+        protected ExchangeContext CurrentExchangeContext { get; set; }
         protected int PendingLetterCount { get; set; }
         public string CurrentDeckViewerNpcId { get; set; } // For dev mode deck viewer
 
@@ -428,6 +430,43 @@ namespace Wayfarer.Pages
         public async Task NavigateToQueue()
         {
             await NavigateToScreen(ScreenMode.ObligationQueue);
+        }
+
+        public async Task StartExchange(string npcId)
+        {
+            CurrentExchangeContext = await GameFacade.CreateExchangeContext(npcId);
+
+            // Always refresh UI after GameFacade action
+            await RefreshResourceDisplay();
+            await RefreshTimeDisplay();
+
+            if (CurrentExchangeContext != null)
+            {
+                CurrentScreen = ScreenMode.Exchange;
+                ContentVersion++; // Force re-render
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                Console.WriteLine("[GameScreen] Failed to create exchange context");
+            }
+        }
+
+        protected async Task HandleExchangeEnd()
+        {
+            Console.WriteLine("[GameScreen] Exchange ended");
+            CurrentExchangeContext = null;
+
+            // Always refresh UI after exchange ends
+            await RefreshResourceDisplay();
+            await RefreshTimeDisplay();
+
+            await NavigateToScreen(ScreenMode.Location);
+        }
+
+        public async Task ReturnToLocation()
+        {
+            await NavigateToScreen(ScreenMode.Location);
         }
 
         public async Task NavigateToDeckViewer(string npcId)

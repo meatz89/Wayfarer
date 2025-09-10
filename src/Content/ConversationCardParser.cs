@@ -326,7 +326,6 @@ public static class ConversationCardParser
             
         return dto.Type.ToLower() switch
         {
-            "exchange" => CardType.Exchange,
             "letter" => CardType.Letter,
             "letterrequest" => CardType.Letter,
             "promise" => CardType.Promise,

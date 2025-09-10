@@ -3,9 +3,10 @@ using Xunit;
 public class ConversationCardParserTest
 {
     [Fact]
-    public void ConvertDTOToCard_ExchangeType_SetsExchangeCardType()
+    public void ConvertDTOToCard_ExchangeType_DefaultsToConversation()
     {
         // Arrange
+        // Exchange type is no longer valid - exchanges are now separate ExchangeCard entities
         var dto = new ConversationCardDTO
         {
             Id = "test_exchange",
@@ -19,7 +20,8 @@ public class ConversationCardParserTest
         var card = ConversationCardParser.ConvertDTOToCard(dto);
 
         // Assert
-        Assert.Equal(CardType.Exchange, card.CardType);
+        // Exchange type no longer exists, should default to Conversation
+        Assert.Equal(CardType.Conversation, card.CardType);
         Assert.Equal("test_exchange", card.Id);
         Assert.Equal(2, card.Focus);
         Assert.Equal(Difficulty.Medium, card.Difficulty);

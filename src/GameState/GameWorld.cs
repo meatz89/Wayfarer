@@ -69,7 +69,8 @@ public class GameWorld
     public Dictionary<string, ConversationCard> AllCardDefinitions { get; set; } = new Dictionary<string, ConversationCard>();
     public Dictionary<string, List<string>> NPCConversationDeckMappings { get; set; } = new Dictionary<string, List<string>>();
     public Dictionary<string, List<ConversationCard>> NPCRequestDecks { get; set; } = new Dictionary<string, List<ConversationCard>>();
-    public Dictionary<string, List<ConversationCard>> NPCExchangeDecks { get; set; } = new Dictionary<string, List<ConversationCard>>();
+    // Exchange cards are now completely separate from conversation cards
+    public Dictionary<string, List<ExchangeCard>> NPCExchangeCards { get; set; } = new Dictionary<string, List<ExchangeCard>>();
     public List<ConversationCard> PlayerObservationCards { get; set; } = new List<ConversationCard>();
     // Travel cards are now stored as ConversationCards with category "Travel"
     public List<ConversationCard> TravelCards { get; set; } = new List<ConversationCard>();

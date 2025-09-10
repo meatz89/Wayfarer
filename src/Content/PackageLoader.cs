@@ -11,6 +11,7 @@ public class PackageLoader
 {
     private readonly GameWorld _gameWorld;
     private bool _isFirstPackage = true;
+    private Dictionary<string, ExchangeCard> _parsedExchangeCards;
 
     public PackageLoader(GameWorld gameWorld)
     {
@@ -95,7 +96,10 @@ public class PackageLoader
             // Phase 4: NPCs (depend on locations and cards)
             LoadNPCs(package.Content.Npcs);
 
-            // Phase 4.5: Initialize all NPC decks (after NPCs and cards are loaded)
+            // Phase 4.5: Load exchanges BEFORE initializing exchange decks
+            LoadExchanges(package.Content.Exchanges);
+
+            // Phase 4.6: Initialize all NPC decks (after NPCs, cards, and exchanges are loaded)
             InitializeNPCConversationDecks(package.Content.DeckCompositions);
             InitializeNPCRequestDecks(package.Content.NpcGoalCards, package.Content.DeckCompositions);
             InitializeNPCExchangeDecks(package.Content.DeckCompositions);
@@ -111,7 +115,6 @@ public class PackageLoader
             LoadLetterTemplates(package.Content.LetterTemplates);
             LoadStandingObligations(package.Content.StandingObligations);
             LoadLocationActions(package.Content.LocationActions);
-            LoadExchanges(package.Content.Exchanges);
         }
     }
 
@@ -642,58 +645,59 @@ public class PackageLoader
         {
             try
             {
-                List<ConversationCard> npcExchangeCards = new List<ConversationCard>();
+                List<ExchangeCard> npcExchangeCards = new List<ExchangeCard>();
 
+                // Check deck compositions for this NPC's exchange deck
+                DeckDefinitionDTO deckDef = null;
                 if (deckCompositions != null)
                 {
-                    // Check for NPC-specific exchange deck
-                    DeckDefinitionDTO deckDef = null;
+                    // Check for NPC-specific deck first
                     if (deckCompositions.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey(npc.ID))
                     {
                         deckDef = deckCompositions.NpcDecks[npc.ID];
+                        Console.WriteLine($"[PackageLoader] Using custom exchange deck for {npc.Name}");
                     }
-
-                    if (deckDef?.ExchangeDeck != null && deckDef.ExchangeDeck.Count > 0)
+                    else if (deckCompositions.DefaultDeck != null)
                     {
-                        // Add exchange cards according to composition
-                        foreach (KeyValuePair<string, int> kvp in deckDef.ExchangeDeck)
-                        {
-                            string cardId = kvp.Key;
-                            int count = kvp.Value;
-
-                            if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
-                            {
-                                ConversationCard cardTemplate = _gameWorld.AllCardDefinitions[cardId] as ConversationCard;
-                                if (cardTemplate != null)
-                                {
-                                    // Add multiple copies as specified
-                                    for (int i = 0; i < count; i++)
-                                    {
-                                        npcExchangeCards.Add(cardTemplate);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine($"[PackageLoader] Warning: Exchange card '{cardId}' not found");
-                            }
-                        }
-
-                        Console.WriteLine($"[PackageLoader] Added {npcExchangeCards.Count} exchange cards to {npc.Name}'s exchange deck");
+                        deckDef = deckCompositions.DefaultDeck;
+                        Console.WriteLine($"[PackageLoader] Using default exchange deck for {npc.Name}");
                     }
                 }
-                else
-                {
-                    // Legacy behavior: Only merchants get exchange cards
-                    if (npc.PersonalityType == PersonalityType.MERCANTILE)
-                    {
-                        List<ConversationCard> exchangeCards = _gameWorld.AllCardDefinitions.Values
-                            .OfType<ConversationCard>()
-                            .Where(card => card.CardType == CardType.Exchange)
-                            .ToList();
 
-                        npcExchangeCards = exchangeCards.ToList();
-                        Console.WriteLine($"[PackageLoader] Added {npcExchangeCards.Count} exchange cards to {npc.Name}'s exchange deck (legacy)");
+                // Build exchange deck from composition
+                if (deckDef != null && deckDef.ExchangeDeck != null)
+                {
+                    foreach (var kvp in deckDef.ExchangeDeck)
+                    {
+                        string cardId = kvp.Key;
+                        int count = kvp.Value;
+                        
+                        // Find the exchange card from the parsed exchange cards
+                        if (_parsedExchangeCards != null && _parsedExchangeCards.ContainsKey(cardId))
+                        {
+                            ExchangeCard exchangeCard = _parsedExchangeCards[cardId];
+                            // Add the specified number of copies to the deck
+                            for (int i = 0; i < count; i++)
+                            {
+                                // Use the DeepClone method to create a copy
+                                ExchangeCard cardCopy = exchangeCard.DeepClone();
+                                npcExchangeCards.Add(cardCopy);
+                                Console.WriteLine($"[PackageLoader] Added exchange card {cardId} to {npc.Name}'s deck");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[PackageLoader] WARNING: Exchange card {cardId} not found in parsed exchanges for {npc.Name}");
+                        }
+                    }
+                }
+                else if (npc.PersonalityType == PersonalityType.MERCANTILE)
+                {
+                    // Create default exchanges for mercantile NPCs without specific exchanges
+                    npcExchangeCards = ExchangeParser.CreateDefaultExchangesForNPC(npc);
+                    if (npcExchangeCards.Count > 0)
+                    {
+                        Console.WriteLine($"[PackageLoader] Created {npcExchangeCards.Count} default exchange cards for {npc.Name}");
                     }
                 }
 
@@ -759,6 +763,7 @@ public class PackageLoader
     }
 
     // Conversion methods that don't have dedicated parsers yet
+
 
     private RouteOption ConvertRouteDTOToModel(RouteDTO dto)
     {
@@ -934,10 +939,21 @@ public class PackageLoader
     {
         if (exchangeDtos == null) return;
 
+        // Store DTOs for reference
         foreach (ExchangeDTO dto in exchangeDtos)
         {
             _gameWorld.ExchangeDefinitions.Add(dto);
-            Console.WriteLine($"[PackageLoader] Loaded exchange: {dto.Id} ({dto.GiveAmount} {dto.GiveCurrency} for {dto.ReceiveAmount} {dto.ReceiveCurrency})");
+            Console.WriteLine($"[PackageLoader] Loaded exchange definition: {dto.Id} ({dto.GiveAmount} {dto.GiveCurrency} for {dto.ReceiveAmount} {dto.ReceiveCurrency})");
+        }
+
+        // Parse exchanges into ExchangeCard objects and store them
+        // These will be referenced when building NPC decks
+        _parsedExchangeCards = new Dictionary<string, ExchangeCard>();
+        foreach (ExchangeDTO dto in exchangeDtos)
+        {
+            ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto);
+            _parsedExchangeCards[exchangeCard.Id] = exchangeCard;
+            Console.WriteLine($"[PackageLoader] Created ExchangeCard: {exchangeCard.Id} - {exchangeCard.GetExchangeRatio()}");
         }
     }
 }

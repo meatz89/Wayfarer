@@ -1,0 +1,139 @@
+@inherits ExchangeContentBase
+
+@namespace Wayfarer.Pages.Components
+
+<link rel="stylesheet" href="css/exchange-screen.css" />
+
+@* ARCHITECTURAL PRINCIPLE: Screen components (LocationContent, ConversationContent, ExchangeContent, etc.) are rendered INSIDE GameScreen's game-container.
+   They must NEVER define their own game-container, header, or resource bars - those are managed by the parent GameScreen.
+   Screen components should only contain their specific content wrapped in a semantic class like 'exchange-content'. *@
+
+@if (Context != null)
+{
+    <div class="exchange-content">
+        <!-- Location context bar -->
+        <div class="location-context">
+            <span>@GetLocationContext()</span>
+        </div>
+
+        <!-- Exchange Mode Banner -->
+        <div class="exchange-mode">
+            <div class="mode-title">Quick Exchange</div>
+            <div class="mode-description">0 Attention • No patience • Always succeeds</div>
+        </div>
+
+        <!-- NPC Header (if NPC exchange) -->
+        @if (!string.IsNullOrEmpty(Context.NpcInfo?.Name))
+        {
+            <div class="npc-header">
+                <div class="npc-name">@Context.NpcInfo.Name</div>
+                <div class="npc-state">@GetNpcStatusLine()</div>
+            </div>
+
+            <!-- Commerce Display (if NPC has commerce tokens) -->
+            @if (GetCommerceTokens() > 0)
+            {
+                <div class="commerce-display">
+                    <span class="commerce-label">Commerce Connection</span>
+                    <span class="commerce-value">@GetCommerceTokens()</span>
+                    <span class="discount-effect">@GetDiscountDescription()</span>
+                </div>
+            }
+        }
+
+        <!-- Narrative Section -->
+        <div class="narrative-section">
+            @if (!string.IsNullOrEmpty(CurrentNarrative))
+            {
+                <div class="npc-dialogue">
+                    "@CurrentNarrative"
+                </div>
+            }
+        </div>
+
+        <!-- Action Section -->
+        <div class="action-section">
+            <div class="action-choices">
+                <div class="action-button @(!CanExecuteTrade() ? "disabled" : "")" 
+                     @onclick="ExecuteTrade" 
+                     disabled="@(!CanExecuteTrade())">
+                    <div>💰 TRADE</div>
+                    <div class="action-details">@GetTradeActionDetails()</div>
+                </div>
+                <div class="action-button exit-button" @onclick="ExitExchange">
+                    <div>🚶 LEAVE</div>
+                    <div class="action-details">End exchange</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exchange Cards Section -->
+        <div class="exchange-section">
+            <div class="exchange-title">Available Exchanges (@GetAvailableCount() drawn from @(Context.NpcInfo?.Name ?? "location")'s deck)</div>
+            
+            <div class="exchange-grid">
+                @foreach (var exchange in GetAvailableExchanges())
+                {
+                    var canAfford = Context.CanAfford(exchange);
+                    var isSelected = SelectedExchangeId == exchange.Id;
+                    
+                    <div class="exchange-card @(!canAfford ? "unavailable" : "") @(isSelected ? "selected" : "")"
+                         @onclick="() => SelectExchange(exchange)">
+                        <div class="exchange-main">
+                            <div class="exchange-header">
+                                <div class="exchange-name">@exchange.Name</div>
+                            </div>
+                            <div class="exchange-description">
+                                @exchange.Description
+                            </div>
+                            <div class="trade-display">
+                                <div class="trade-cost">
+                                    <div class="trade-label">You Pay</div>
+                                    <div class="trade-value cost-value">
+                                        @GetCostDisplay(exchange)
+                                    </div>
+                                </div>
+                                <div class="trade-arrow">→</div>
+                                <div class="trade-reward">
+                                    <div class="trade-label">You Receive</div>
+                                    <div class="trade-value reward-value">
+                                        @GetRewardDisplay(exchange)
+                                    </div>
+                                </div>
+                            </div>
+                            @if (!canAfford)
+                            {
+                                <div class="unavailable-reason">
+                                    @GetAffordabilityReason(exchange)
+                                </div>
+                            }
+                            @if (exchange.SuccessRate < 100)
+                            {
+                                <div class="risk-warning">
+                                    @exchange.SuccessRate% success rate
+                                </div>
+                            }
+                            @if (exchange.SingleUse)
+                            {
+                                <div class="single-use-tag">
+                                    One-time only
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (!GetAvailableExchanges().Any())
+                {
+                    <div class="no-exchanges">
+                        No exchanges available at this time.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="loading">Loading exchange options...</div>
+}

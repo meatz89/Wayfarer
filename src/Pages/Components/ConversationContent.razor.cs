@@ -289,8 +289,8 @@ namespace Wayfarer.Pages.Components
                 // Add notification for speaking
                 MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
 
-                // Check if this is an exchange card
-                if (SelectedCard.CardType == CardType.Exchange && messageSystem != null)
+                // Check if this is an exchange card (identified by exchange data in context)
+                if (SelectedCard.Context?.ExchangeData != null && messageSystem != null)
                 {
                     // For exchanges, show what's being traded
                     if (SelectedCard.Context?.ExchangeData?.Costs != null && SelectedCard.Context?.ExchangeData?.Rewards != null)
@@ -1193,7 +1193,7 @@ namespace Wayfarer.Pages.Components
                 return card.Description;
 
             // Generate meaningful card names based on properties
-            if (card.CardType == CardType.Exchange && card.Context?.ExchangeName != null)
+            if (card.Context?.ExchangeData != null && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
 
             if (card.Properties.Contains(CardProperty.Burden))
@@ -1400,7 +1400,7 @@ namespace Wayfarer.Pages.Components
             // Primary property-based classes
             if (card.Properties.Contains(CardProperty.Burden))
                 classes.Add("crisis");
-            else if (card.CardType == CardType.Exchange)
+            else if (card.Context?.ExchangeData != null)
                 classes.Add("exchange");
             else if (card.CardType == CardType.Observation)
                 classes.Add("observation");
@@ -1435,7 +1435,7 @@ namespace Wayfarer.Pages.Components
                 return card.Description;
 
             // For exchange cards, use the exchange name
-            if (card.CardType == CardType.Exchange && card.Context?.ExchangeName != null)
+            if (card.Context?.ExchangeData != null && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
 
             // Generate name from template and context
@@ -1469,7 +1469,7 @@ namespace Wayfarer.Pages.Components
         protected string GetSuccessEffect(CardInstance card)
         {
             // For exchange cards, show the reward
-            if (card.CardType == CardType.Exchange && card.Context?.ExchangeData?.Rewards != null)
+            if (card.Context?.ExchangeData?.Rewards != null)
             {
                 return $"Complete exchange: {FormatResourceList(card.Context.ExchangeData.Rewards)}";
             }
@@ -1517,7 +1517,7 @@ namespace Wayfarer.Pages.Components
         protected string GetFailureEffect(CardInstance card)
         {
             // For exchange cards, no failure - it's a choice
-            if (card.CardType == CardType.Exchange)
+            if (card.Context?.ExchangeData != null)
             {
                 if (card.Context?.ExchangeName == "Pass on this offer")
                     return "Leave without trading";
@@ -1595,7 +1595,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // For exchange cards, show the exchange details
-            if (card.CardType == CardType.Exchange && card.Context != null)
+            if (card.Context?.ExchangeData != null)
             {
                 if (card.Context?.ExchangeData?.Costs != null && card.Context?.ExchangeData?.Rewards != null)
                 {

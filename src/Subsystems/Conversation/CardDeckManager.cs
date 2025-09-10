@@ -33,16 +33,9 @@ public class CardDeckManager
     {
         string sessionId = Guid.NewGuid().ToString();
 
-        // Use ExchangeDeck for Commerce conversations, ConversationDeck for others
-        List<ConversationCard> cardTemplates;
-        if (conversationType == ConversationType.Commerce && npc.ExchangeDeck != null && npc.ExchangeDeck.Any())
-        {
-            cardTemplates = npc.ExchangeDeck.GetAllCards();
-        }
-        else
-        {
-            cardTemplates = npc.ConversationDeck.GetAllCards();
-        }
+        // Commerce removed - exchanges use separate Exchange system
+        // Always use ConversationDeck for conversations
+        List<ConversationCard> cardTemplates = npc.ConversationDeck.GetAllCards();
 
         SessionCardDeck deck = SessionCardDeck.CreateFromTemplates(cardTemplates, sessionId);
 
@@ -57,12 +50,8 @@ public class CardDeckManager
 
         // Get goal card based on conversation type from JSON data
         // The presence of these cards in JSON determines which conversation types are available
-        CardInstance goalCard = null;
-        if (conversationType != ConversationType.Commerce)
-        {
-            goalCard = SelectGoalCardForConversationType(npc, conversationType);
-            // Don't add to deck - it will be added directly to hand in ConversationOrchestrator
-        }
+        CardInstance goalCard = SelectGoalCardForConversationType(npc, conversationType);
+        // Don't add to deck - it will be added directly to hand in ConversationOrchestrator
 
         return (deck, goalCard);
     }

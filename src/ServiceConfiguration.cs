@@ -195,6 +195,13 @@ public static class ServiceConfiguration
         services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.MarketStateTracker>();
         services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.MarketFacade>();
 
+        // Exchange Subsystem
+        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeValidator>();
+        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeProcessor>();
+        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeInventory>();
+        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeOrchestrator>();
+        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeFacade>();
+
         // Token Subsystem
         services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.ConnectionTokenManager>();
         services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.TokenEffectProcessor>();

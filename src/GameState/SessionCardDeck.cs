@@ -232,7 +232,9 @@ public class SessionCardDeck
 
     public List<CardInstance> DrawExchangeCards(int count)
     {
-        return DrawFilteredByCardType(CardType.Exchange, count);
+        // Exchange cards are now separate ExchangeCard entities
+        // This method is deprecated - exchanges don't use SessionCardDeck
+        return new List<CardInstance>();
     }
 
     public List<CardInstance> DrawFilteredByCardType(CardType cardType, int count)

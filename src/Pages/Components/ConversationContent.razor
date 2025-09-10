@@ -14,10 +14,8 @@
             <span>@GetLocationContext()</span>
         </div>
 
-        @if ((Context?.Type ?? ConversationType.FriendlyChat) != ConversationType.Commerce)
-        {
-            <!-- NPC Bar -->
-            <div class="npc-bar">
+        <!-- NPC Bar (Commerce removed - exchanges use separate system) -->
+        <div class="npc-bar">
                 <div class="npc-info">
                     <div class="npc-name">@NpcName</div>
                     <div class="npc-status">@GetNpcStatusLine()</div>
@@ -73,7 +71,6 @@
                     <span class="rapport-effect">(+@(Session?.RapportManager?.GetSuccessModifier() ?? 0)% all cards)</span>
                 </div>
             </div>
-        }
 
     <!-- CENTRAL: Narrative Section (from mockup) -->
     <div class="narrative-section">
@@ -93,22 +90,8 @@
 
     <!-- Action Choice (from mockup) -->
     <div class="action-section">
-        @if ((Context?.Type ?? ConversationType.FriendlyChat) == ConversationType.Commerce)
-        {
-            <!-- Quick Exchanges: Select a card then SPEAK to accept it -->
-            <div class="turn-indicator">Select an exchange card to trade</div>
-            <div class="action-choices">
-                <div class="action-button" @onclick="ExecuteSpeak" disabled="@(!CanSpeak() || IsGeneratingNarrative)">
-                    <div>TRADE</div>
-                    <div class="action-details">@(IsGeneratingNarrative ? "Generating narrative..." : GetSpeakDetails())</div>
-                </div>
-                <div class="action-button exit-button" @onclick="ExitConversation">
-                    <div>EXIT</div>
-                    <div class="action-details">Leave without trading</div>
-                </div>
-            </div>
-        }
-        else if (!IsConversationExhausted)
+        @* Commerce removed - exchanges use separate Exchange system *@
+        @if (!IsConversationExhausted)
         {
             <div class="action-choices">
                 <div class="action-button @(ShowListenPreview ? "preview-active" : "") @(IsGeneratingNarrative ? "disabled" : "")" 

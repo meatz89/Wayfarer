@@ -27,6 +27,7 @@ public class GameFacade
     private readonly TravelFacade _travelFacade;
     private readonly TokenFacade _tokenFacade;
     private readonly NarrativeFacade _narrativeFacade;
+    private readonly Wayfarer.Subsystems.ExchangeSubsystem.ExchangeFacade _exchangeFacade;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -38,7 +39,8 @@ public class GameFacade
         TimeFacade timeFacade,
         TravelFacade travelFacade,
         TokenFacade tokenFacade,
-        NarrativeFacade narrativeFacade)
+        NarrativeFacade narrativeFacade,
+        Wayfarer.Subsystems.ExchangeSubsystem.ExchangeFacade exchangeFacade)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -50,6 +52,7 @@ public class GameFacade
         _travelFacade = travelFacade;
         _tokenFacade = tokenFacade;
         _narrativeFacade = narrativeFacade;
+        _exchangeFacade = exchangeFacade;
     }
 
     // ========== CORE GAME STATE ==========
@@ -399,6 +402,85 @@ public class GameFacade
         return await _conversationFacade.CreateConversationContext(npcId, conversationType);
     }
 
+    public async Task<ExchangeContext> CreateExchangeContext(string npcId)
+    {
+        // Get NPC
+        var npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc == null)
+        {
+            _messageSystem.AddSystemMessage($"NPC {npcId} not found", SystemMessageTypes.Danger);
+            return null;
+        }
+
+        // Get current location
+        var currentLocation = GetCurrentLocation();
+        var currentSpot = GetCurrentLocationSpot();
+
+        // Get current time block and attention
+        var timeBlock = _timeFacade.GetCurrentTimeBlock();
+        var attentionInfo = _resourceFacade.GetAttention(timeBlock);
+
+        // Get player resources and tokens
+        var playerResources = _gameWorld.GetPlayerResourceState();
+        var playerTokens = new Dictionary<ConnectionType, int>();
+        
+        // Get player's total tokens of each type (aggregated across all NPCs)
+        foreach (ConnectionType tokenType in Enum.GetValues(typeof(ConnectionType)))
+        {
+            playerTokens[tokenType] = _tokenFacade.GetTotalTokensOfType(tokenType);
+        }
+
+        // Get available exchanges from ExchangeFacade
+        var availableExchanges = _exchangeFacade.GetAvailableExchanges(npcId);
+        
+        if (!availableExchanges.Any())
+        {
+            _messageSystem.AddSystemMessage($"{npc.Name} has no exchanges available", SystemMessageTypes.Info);
+            return null;
+        }
+
+        // Convert ExchangeOptions to ExchangeCards
+        var exchangeCards = availableExchanges.Select(option => ConvertToExchangeCard(option)).ToList();
+
+        // Create exchange session through ExchangeFacade
+        var session = _exchangeFacade.CreateExchangeSession(npcId);
+        if (session == null)
+        {
+            _messageSystem.AddSystemMessage($"Could not create exchange session with {npc.Name}", SystemMessageTypes.Danger);
+            return null;
+        }
+
+        // Build the context
+        var context = new ExchangeContext
+        {
+            NpcInfo = new NpcInfo
+            {
+                NpcId = npc.ID,
+                Name = npc.Name,
+                Portrait = "",  // NPCs don't have portraits stored
+                TokenCounts = _tokenFacade.GetTokensWithNPC(npc.ID)
+            },
+            LocationInfo = new LocationInfo
+            {
+                LocationId = currentSpot?.SpotID ?? "",
+                Name = currentLocation?.Name ?? "",
+                Description = currentLocation?.Description ?? ""
+            },
+            CurrentTimeBlock = timeBlock,
+            PlayerResources = playerResources,
+            CurrentAttention = attentionInfo.Current,
+            PlayerTokens = playerTokens,
+            Session = new ExchangeSession
+            {
+                NpcId = npcId,
+                LocationId = currentSpot?.SpotID ?? "",
+                AvailableExchanges = exchangeCards
+            }
+        };
+
+        return await Task.FromResult(context);
+    }
+
     // ========== NARRATIVE OPERATIONS ==========
 
     public async Task<bool> TakeObservationAsync(string observationId)
@@ -494,6 +576,10 @@ public class GameFacade
         player.Hunger = 5;   // Starting food for testing
 
         Console.WriteLine($"[GameFacade.StartGameAsync] Player resources initialized - Coins: {player.Coins}, Health: {player.Health}, Food: {player.Hunger}");
+
+        // Initialize exchange inventories
+        _exchangeFacade.InitializeNPCExchanges();
+        Console.WriteLine($"[GameFacade.StartGameAsync] Exchange inventories initialized");
 
         // Mark game as started
         _gameWorld.IsGameStarted = true;
@@ -641,5 +727,47 @@ public class GameFacade
     public List<Location> GetAllLocations()
     {
         return _gameWorld.WorldState.locations;
+    }
+
+    /// <summary>
+    /// Converts an ExchangeOption from the ExchangeFacade to an ExchangeCard for the UI
+    /// </summary>
+    private ExchangeCard ConvertToExchangeCard(ExchangeOption option)
+    {
+        var exchangeData = option.ExchangeData;
+        
+        // Build token requirements from ExchangeData
+        var tokenRequirements = new Dictionary<ConnectionType, int>();
+        if (exchangeData?.RequiredTokenType != null && exchangeData.MinimumTokensRequired > 0)
+        {
+            tokenRequirements[exchangeData.RequiredTokenType.Value] = exchangeData.MinimumTokensRequired;
+        }
+        
+        return new ExchangeCard
+        {
+            Id = option.ExchangeId,
+            Name = option.Name,
+            Description = option.Description,
+            ExchangeType = ExchangeType.Purchase,  // Default type since ExchangeData doesn't have this
+            NpcId = "",  // Will be set by the calling context
+            Cost = new ExchangeCostStructure
+            {
+                Resources = exchangeData?.Costs ?? new List<ResourceAmount>(),
+                TokenRequirements = tokenRequirements,
+                RequiredItemIds = exchangeData?.RequiredItems ?? new List<string>()
+            },
+            Reward = new ExchangeRewardStructure
+            {
+                Resources = exchangeData?.Rewards ?? new List<ResourceAmount>(),
+                ItemIds = new List<string>(),  // ExchangeData doesn't have RewardItems
+                Tokens = new Dictionary<ConnectionType, int>()  // ExchangeData doesn't have TokenRewards
+            },
+            SingleUse = exchangeData?.IsUnique ?? false,
+            IsCompleted = false,
+            SuccessRate = 100,  // ExchangeData doesn't have SuccessRate
+            FailurePenalty = null,  // ExchangeData doesn't have FailurePenalty
+            RequiredLocationId = null,  // ExchangeData doesn't have RequiredLocation
+            AvailableTimeBlocks = exchangeData?.TimeRestrictions ?? new List<TimeBlocks>()
+        };
     }
 }
