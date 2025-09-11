@@ -94,22 +94,8 @@ public class TravelManager
         
         PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
         
-        // Resolve PathCardIds to actual PathCards
-        if (collection.PathCardIds != null && collection.PathCardIds.Count > 0)
-        {
-            List<PathCardDTO> resolvedCards = new List<PathCardDTO>();
-            foreach (string cardId in collection.PathCardIds)
-            {
-                if (_gameWorld.AllPathCards.ContainsKey(cardId))
-                {
-                    resolvedCards.Add(_gameWorld.AllPathCards[cardId]);
-                }
-            }
-            return resolvedCards;
-        }
-        
-        // No cards found
-        return new List<PathCardDTO>();
+        // Return embedded cards directly - no lookup needed
+        return collection.PathCards ?? new List<PathCardDTO>();
     }
     
     /// <summary>
@@ -161,17 +147,8 @@ public class TravelManager
         // Step 4: Set narrative for UI
         session.CurrentEventNarrative = travelEvent.NarrativeText;
         
-        // Step 5: Resolve event cards (from AllEventCards, not AllPathCards)
-        List<PathCardDTO> eventCards = new List<PathCardDTO>();
-        foreach (string cardId in travelEvent.EventCardIds)
-        {
-            if (_gameWorld.AllEventCards.ContainsKey(cardId))
-            {
-                eventCards.Add(_gameWorld.AllEventCards[cardId]);
-            }
-        }
-        
-        return eventCards;
+        // Step 5: Return embedded event cards directly - no lookup needed
+        return travelEvent.EventCards ?? new List<PathCardDTO>();
     }
     
     
@@ -309,8 +286,18 @@ public class TravelManager
         // Update travel state based on stamina
         UpdateTravelState(session);
 
-        // Move to next segment or complete journey
-        AdvanceSegment(session);
+        // Check if we're on the last segment
+        RouteOption route = GetRoute(session.RouteId);
+        if (route != null && session.CurrentSegment == route.Segments.Count)
+        {
+            // This was the last segment - mark journey as ready to complete
+            session.IsReadyToComplete = true;
+        }
+        else
+        {
+            // Move to next segment
+            AdvanceSegment(session);
+        }
 
         return true;
     }
@@ -480,15 +467,8 @@ public class TravelManager
         
         PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
         
-        // Check if this collection uses ID references
-        if (collection.PathCardIds != null && collection.PathCardIds.Contains(cardId))
-        {
-            // Resolve from main path cards dictionary
-            return _gameWorld.AllPathCards.ContainsKey(cardId) ? _gameWorld.AllPathCards[cardId] : null;
-        }
-        
-        // Card not found
-        return null;
+        // Look in embedded path cards
+        return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
     }
     
     /// <summary>
@@ -496,17 +476,18 @@ public class TravelManager
     /// </summary>
     private PathCardDTO GetCardFromEventSegment(RouteSegment segment, TravelSession session, string cardId)
     {
-        // Try normalized structure first
-        string eventCollectionId = segment.EventCollectionId;
+        // Get the current event ID from session state
+        if (string.IsNullOrEmpty(session.CurrentEventId))
+            return null;
+            
+        // Get the travel event
+        if (!_gameWorld.AllTravelEvents.ContainsKey(session.CurrentEventId))
+            return null;
+            
+        TravelEventDTO travelEvent = _gameWorld.AllTravelEvents[session.CurrentEventId];
         
-        if (!string.IsNullOrEmpty(eventCollectionId) && _gameWorld.AllEventCollections.ContainsKey(eventCollectionId))
-        {
-            // Normalized structure: look in event cards
-            return _gameWorld.AllEventCards.ContainsKey(cardId) ? _gameWorld.AllEventCards[cardId] : null;
-        }
-        
-        // No card found
-        return null;
+        // Find the card in the embedded event cards
+        return travelEvent.EventCards?.FirstOrDefault(c => c.Id == cardId);
     }
 
     /// <summary>
@@ -656,13 +637,14 @@ public class TravelManager
             // Clear event state for the new segment
             session.CurrentEventId = null;
             session.CurrentEventNarrative = null;
+            
+            // Pre-load cards for the new segment (works for both FixedPath and Event segments)
+            // For Event segments, this triggers event selection and sets CurrentEventId
+            // For FixedPath segments, this just ensures cards are ready
+            GetSegmentCards();
         }
-        else
-        {
-            // Journey is ready to complete but NOT auto-completed
-            // Player must explicitly click "Finish Route" button
-            session.IsReadyToComplete = true;
-        }
+        // Note: IsReadyToComplete is set in SelectPathCard when on the last segment
+        // This ensures players must select a card even on the final segment
     }
 
     /// <summary>

@@ -114,14 +114,14 @@ public class PackageLoader
             LoadObservations(package.Content.Observations);
             LoadInvestigationRewards(package.Content.InvestigationRewards);
             // Load path cards first, then collections that reference them
-            LoadPathCards(package.Content.PathCards);
+            var pathCardLookup = LoadPathCards(package.Content.PathCards);
             
             // Load event system components (normalized structure)
-            LoadEventCards(package.Content.EventCards);
-            LoadTravelEvents(package.Content.TravelEvents);
+            var eventCardLookup = LoadEventCards(package.Content.EventCards);
+            LoadTravelEvents(package.Content.TravelEvents, eventCardLookup);
             
             // Load collections (handles both path collections and event collections)
-            LoadEventCollections(package.Content.PathCardCollections);
+            LoadEventCollections(package.Content.PathCardCollections, pathCardLookup, eventCardLookup);
             LoadItems(package.Content.Items);
             LoadLetterTemplates(package.Content.LetterTemplates);
             LoadStandingObligations(package.Content.StandingObligations);
@@ -443,37 +443,41 @@ public class PackageLoader
         }
     }
 
-    private void LoadPathCards(List<PathCardDTO> pathCardDtos)
+    private Dictionary<string, PathCardDTO> LoadPathCards(List<PathCardDTO> pathCardDtos)
     {
-        if (pathCardDtos == null) return;
+        if (pathCardDtos == null) return new Dictionary<string, PathCardDTO>();
         
         Console.WriteLine($"[PackageLoader] Loading {pathCardDtos.Count} path cards...");
         
+        var pathCardLookup = new Dictionary<string, PathCardDTO>();
         foreach (PathCardDTO dto in pathCardDtos)
         {
-            _gameWorld.AllPathCards[dto.Id] = dto;
+            pathCardLookup[dto.Id] = dto;
             Console.WriteLine($"[PackageLoader] Loaded path card '{dto.Id}': {dto.Name}");
         }
         
-        Console.WriteLine($"[PackageLoader] Completed loading path cards. Total: {_gameWorld.AllPathCards.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading path cards. Total: {pathCardLookup.Count}");
+        return pathCardLookup;
     }
 
-    private void LoadEventCards(List<PathCardDTO> eventCardDtos)
+    private Dictionary<string, PathCardDTO> LoadEventCards(List<PathCardDTO> eventCardDtos)
     {
-        if (eventCardDtos == null) return;
+        if (eventCardDtos == null) return new Dictionary<string, PathCardDTO>();
         
         Console.WriteLine($"[PackageLoader] Loading {eventCardDtos.Count} event cards...");
         
+        var eventCardLookup = new Dictionary<string, PathCardDTO>();
         foreach (PathCardDTO dto in eventCardDtos)
         {
-            _gameWorld.AllEventCards[dto.Id] = dto;
+            eventCardLookup[dto.Id] = dto;
             Console.WriteLine($"[PackageLoader] Loaded event card '{dto.Id}': {dto.Name}");
         }
         
-        Console.WriteLine($"[PackageLoader] Completed loading event cards. Total: {_gameWorld.AllEventCards.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading event cards. Total: {eventCardLookup.Count}");
+        return eventCardLookup;
     }
 
-    private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos)
+    private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos, Dictionary<string, PathCardDTO> eventCardLookup)
     {
         if (travelEventDtos == null) return;
         
@@ -481,37 +485,61 @@ public class PackageLoader
         
         foreach (TravelEventDTO dto in travelEventDtos)
         {
+            // Embed actual event cards if this event has event card IDs (for JSON loaded events)
+            if (dto.EventCardIds != null && dto.EventCards.Count == 0)
+            {
+                foreach (string cardId in dto.EventCardIds)
+                {
+                    if (eventCardLookup.TryGetValue(cardId, out PathCardDTO eventCard))
+                    {
+                        dto.EventCards.Add(eventCard);
+                    }
+                }
+            }
+            
             _gameWorld.AllTravelEvents[dto.Id] = dto;
-            Console.WriteLine($"[PackageLoader] Loaded travel event '{dto.Id}': {dto.Name}");
+            Console.WriteLine($"[PackageLoader] Loaded travel event '{dto.Id}': {dto.Name} with {dto.EventCards.Count} event cards");
         }
         
         Console.WriteLine($"[PackageLoader] Completed loading travel events. Total: {_gameWorld.AllTravelEvents.Count}");
     }
     
     
-    private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos)
+    private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos, Dictionary<string, PathCardDTO> pathCardLookup, Dictionary<string, PathCardDTO> eventCardLookup)
     {
         if (collectionDtos == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading {collectionDtos.Count} collections (separating path collections from event collections)...");
+        Console.WriteLine($"[PackageLoader] Loading {collectionDtos.Count} collections and embedding cards directly...");
 
         foreach (PathCardCollectionDTO dto in collectionDtos)
         {
+            // Embed actual path cards if this collection has path card IDs (for JSON loaded collections)
+            if (dto.PathCards != null && dto.PathCards.Count == 0 && dto.PathCardIds != null)
+            {
+                foreach (string cardId in dto.PathCardIds)
+                {
+                    if (pathCardLookup.TryGetValue(cardId, out PathCardDTO pathCard))
+                    {
+                        dto.PathCards.Add(pathCard);
+                    }
+                }
+            }
+            
             // Determine if this is a path collection or event collection based on contents
-            bool isEventCollection = (dto.EventIds != null && dto.EventIds.Count > 0);
-            bool isPathCollection = (dto.PathCardIds != null && dto.PathCardIds.Count > 0);
+            bool isEventCollection = (dto.Events != null && dto.Events.Count > 0);
+            bool isPathCollection = (dto.PathCards != null && dto.PathCards.Count > 0);
             
             if (isEventCollection)
             {
-                // This is an event collection - contains eventIds for random selection
+                // This is an event collection - contains child events for random selection
                 _gameWorld.AllEventCollections[dto.Id] = dto;
-                Console.WriteLine($"[PackageLoader] Loaded event collection '{dto.Id}': {dto.Name} with {dto.EventIds.Count} events");
+                Console.WriteLine($"[PackageLoader] Loaded event collection '{dto.Id}': {dto.Name} with {dto.Events.Count} events");
             }
             else if (isPathCollection)
             {
-                // This is a path collection - contains pathCardIds for FixedPath segments
+                // This is a path collection - contains actual path cards for FixedPath segments
                 _gameWorld.AllPathCollections[dto.Id] = dto;
-                Console.WriteLine($"[PackageLoader] Loaded path collection '{dto.Id}': {dto.Name} with {dto.PathCardIds.Count} path cards");
+                Console.WriteLine($"[PackageLoader] Loaded path collection '{dto.Id}': {dto.Name} with {dto.PathCards.Count} path cards");
             }
             else
             {
@@ -1092,25 +1120,29 @@ public class PackageLoader
     {
         Console.WriteLine("[PackageLoader] Initializing travel discovery system...");
 
-        // Initialize PathCardDiscoveries from StartsRevealed property
-        // First from main path cards dictionary
-        foreach (KeyValuePair<string, PathCardDTO> cardKvp in _gameWorld.AllPathCards)
+        // Initialize PathCardDiscoveries from cards embedded in collections
+        // First from path collections
+        foreach (var collection in _gameWorld.AllPathCollections.Values)
         {
-            PathCardDTO pathCard = cardKvp.Value;
-            _gameWorld.PathCardDiscoveries[pathCard.Id] = pathCard.StartsRevealed;
-            Console.WriteLine($"[PackageLoader] Path card '{pathCard.Id}' discovery state: {(pathCard.StartsRevealed ? "face-up" : "face-down")}");
+            foreach (var pathCard in collection.PathCards)
+            {
+                _gameWorld.PathCardDiscoveries[pathCard.Id] = pathCard.StartsRevealed;
+                Console.WriteLine($"[PackageLoader] Path card '{pathCard.Id}' discovery state: {(pathCard.StartsRevealed ? "face-up" : "face-down")}");
+            }
         }
         
-        // Also initialize discovery states for event cards
-        foreach (KeyValuePair<string, PathCardDTO> cardKvp in _gameWorld.AllEventCards)
+        // Also initialize discovery states for event cards in event collections
+        foreach (var collection in _gameWorld.AllEventCollections.Values)
         {
-            PathCardDTO eventCard = cardKvp.Value;
-            _gameWorld.PathCardDiscoveries[eventCard.Id] = eventCard.StartsRevealed;
-            Console.WriteLine($"[PackageLoader] Event card '{eventCard.Id}' discovery state: {(eventCard.StartsRevealed ? "face-up" : "face-down")}");
+            foreach (var eventCard in collection.EventCards)
+            {
+                _gameWorld.PathCardDiscoveries[eventCard.Id] = eventCard.StartsRevealed;
+                Console.WriteLine($"[PackageLoader] Event card '{eventCard.Id}' discovery state: {(eventCard.StartsRevealed ? "face-up" : "face-down")}");
+            }
         }
         
-        // All cards are now loaded from normalized dictionaries (AllPathCards/AllEventCards)
-        // No need to check collections for inline cards anymore
+        // Cards are now embedded directly in collections
+        // No separate card dictionaries needed
 
         // Initialize EventDeckPositions for routes with event pools
         foreach (KeyValuePair<string, List<string>> kvp in _gameWorld.RouteEventPools)

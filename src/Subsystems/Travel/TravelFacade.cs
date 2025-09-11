@@ -596,38 +596,31 @@ namespace Wayfarer.Subsystems.TravelSubsystem
 
             RouteSegment segment = route.Segments[session.CurrentSegment - 1];
             
-            // Get the collection ID based on segment type
-            string collectionId = null;
+            // Handle different segment types
             if (segment.Type == SegmentType.Event)
             {
-                // For Event segments: use CurrentEventId if available, otherwise EventCollectionId
-                collectionId = !string.IsNullOrEmpty(session.CurrentEventId) 
-                    ? session.CurrentEventId 
-                    : segment.EventCollectionId;
+                // For Event segments: get card from current event
+                if (!string.IsNullOrEmpty(session.CurrentEventId) && 
+                    _gameWorld.AllTravelEvents.ContainsKey(session.CurrentEventId))
+                {
+                    TravelEventDTO travelEvent = _gameWorld.AllTravelEvents[session.CurrentEventId];
+                    return travelEvent.EventCards?.FirstOrDefault(c => c.Id == cardId);
+                }
             }
-            else
+            else if (segment.Type == SegmentType.FixedPath)
             {
                 // For FixedPath segments: use PathCollectionId
-                collectionId = segment.PathCollectionId;
-            }
+                string collectionId = segment.PathCollectionId;
                 
-            if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
-            {
-                return null;
-            }
-            
-            PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
-            
-            // Check if the card ID is in this collection's PathCardIds
-            if (!collection.PathCardIds.Contains(cardId))
-            {
-                return null;
-            }
-            
-            // Look up the actual card from AllPathCards
-            if (_gameWorld.AllPathCards.ContainsKey(cardId))
-            {
-                return _gameWorld.AllPathCards[cardId];
+                if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
+                {
+                    return null;
+                }
+                
+                PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
+                
+                // Look in embedded path cards
+                return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
             }
             
             return null;

@@ -110,16 +110,10 @@ public class GameWorld
     public TravelSession CurrentTravelSession { get; set; }
     
     // PATH SYSTEM - For FixedPath segments that always show the same cards
-    // All path cards defined in the package (referenced by collections)
-    public Dictionary<string, PathCardDTO> AllPathCards { get; set; } = new Dictionary<string, PathCardDTO>();
-    
-    // Path card collections for FixedPath route segments
+    // Path card collections for FixedPath route segments (collections contain the actual cards)
     public Dictionary<string, PathCardCollectionDTO> AllPathCollections { get; set; } = new Dictionary<string, PathCardCollectionDTO>();
     
     // EVENT SYSTEM - For Event segments that randomly select from a pool
-    // Event cards defined once (reusing PathCardDTO structure but separate storage)
-    public Dictionary<string, PathCardDTO> AllEventCards { get; set; } = new Dictionary<string, PathCardDTO>();
-    
     // Travel events containing narrative and card references
     public Dictionary<string, TravelEventDTO> AllTravelEvents { get; set; } = new Dictionary<string, TravelEventDTO>();
     
