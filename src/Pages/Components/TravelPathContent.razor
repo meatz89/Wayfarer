@@ -47,10 +47,30 @@
         
         @{
             var eventNarrative = GetEventNarrative();
+            var eventTitle = GetEventTitle();
+            var eventType = GetEventType();
         }
         @if (!string.IsNullOrEmpty(eventNarrative))
         {
-            <div class="event-narrative">@eventNarrative</div>
+            @if (!string.IsNullOrEmpty(eventTitle))
+            {
+                <!-- Structured Event Card for Caravan Events -->
+                <div class="event-card">
+                    <div class="event-header">
+                        <div class="event-title">@eventTitle</div>
+                        @if (!string.IsNullOrEmpty(eventType))
+                        {
+                            <div class="event-type">@eventType</div>
+                        }
+                    </div>
+                    <div class="event-narrative-text">@eventNarrative</div>
+                </div>
+            }
+            else
+            {
+                <!-- Simple narrative for walking encounters -->
+                <div class="event-narrative simple">@eventNarrative</div>
+            }
         }
         
         <div class="path-grid">
@@ -84,34 +104,97 @@
                                     }
                                     
                                     <!-- Mechanical Effects Section -->
-                                    <div class="path-mechanics">
-                                        @if (card.TravelTimeMinutes > 0)
-                                        {
-                                            <div class="path-time">⏱️ @card.TravelTimeMinutes minutes</div>
-                                        }
-                                        
-                                        @if (card.HungerEffect != 0)
-                                        {
-                                            <div class="path-hunger @(card.HungerEffect > 0 ? "cost" : "reward")">
-                                                @if (card.HungerEffect > 0)
+                                    @{
+                                        var hasEffects = card.TravelTimeMinutes > 0 || card.HungerEffect != 0 || 
+                                                        card.CoinReward > 0 || card.StaminaRestore > 0 || 
+                                                        card.AttentionCost > 0 || card.HealthEffect != 0 ||
+                                                        card.ForceReturn || (card.TokenGains?.Any() ?? false) ||
+                                                        (card.RevealsPaths?.Any() ?? false) || 
+                                                        (!string.IsNullOrEmpty(card.OneTimeReward) && card.IsOneTime);
+                                    }
+                                    @if (hasEffects)
+                                    {
+                                        <div class="path-mechanics">
+                                            @if (card.TravelTimeMinutes > 0)
+                                            {
+                                                <div class="path-time">⏱️ @card.TravelTimeMinutes minutes</div>
+                                            }
+                                            
+                                            @if (card.HungerEffect != 0)
+                                            {
+                                                <div class="path-hunger @(card.HungerEffect > 0 ? "cost" : "reward")">
+                                                    @if (card.HungerEffect > 0)
+                                                    {
+                                                        <span>🍖 +@card.HungerEffect hunger</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>🍖 @card.HungerEffect hunger</span>
+                                                    }
+                                                </div>
+                                            }
+                                            
+                                            @if (card.CoinReward > 0)
+                                            {
+                                                <div class="path-coins reward">💰 +@card.CoinReward coins</div>
+                                            }
+                                            
+                                            @if (card.StaminaRestore > 0)
+                                            {
+                                                <div class="path-stamina-restore">💪 Restore @card.StaminaRestore stamina</div>
+                                            }
+                                            
+                                            @if (card.AttentionCost > 0)
+                                            {
+                                                <div class="path-attention-cost">👁️ @card.AttentionCost attention</div>
+                                            }
+                                            
+                                            @if (card.HealthEffect != 0)
+                                            {
+                                                <div class="path-health @(card.HealthEffect < 0 ? "damage" : "heal")">
+                                                    @if (card.HealthEffect < 0)
+                                                    {
+                                                        <span>❤️ @card.HealthEffect health</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>❤️ +@card.HealthEffect health</span>
+                                                    }
+                                                </div>
+                                            }
+                                            
+                                            @if (card.TokenGains != null && card.TokenGains.Any())
+                                            {
+                                                @foreach (var token in card.TokenGains)
                                                 {
-                                                    <span>🍖 +@card.HungerEffect hunger</span>
+                                                    <div class="path-tokens">🎖️ +@token.Value @token.Key token@(token.Value > 1 ? "s" : "")</div>
                                                 }
-                                                else
-                                                {
-                                                    <span>🍖 @card.HungerEffect hunger</span>
-                                                }
-                                            </div>
-                                        }
-                                        
-                                        @if (!string.IsNullOrEmpty(card.OneTimeReward) && card.IsOneTime)
-                                        {
-                                            var rewardParsed = ParseReward(card.OneTimeReward);
-                                            <div class="path-reward">
-                                                💰 @rewardParsed @GetOneTimeStatus(card)
-                                            </div>
-                                        }
-                                    </div>
+                                            }
+                                            
+                                            @if (card.RevealsPaths != null && card.RevealsPaths.Any())
+                                            {
+                                                <div class="path-reveals">🗺️ Reveals @card.RevealsPaths.Count path@(card.RevealsPaths.Count > 1 ? "s" : "")</div>
+                                            }
+                                            
+                                            @if (!string.IsNullOrEmpty(card.OneTimeReward) && card.IsOneTime)
+                                            {
+                                                var rewardParsed = ParseReward(card.OneTimeReward);
+                                                var alreadyClaimed = IsOneTimeRewardClaimed(card);
+                                                <div class="path-reward">
+                                                    💎 @rewardParsed
+                                                    @if (alreadyClaimed)
+                                                    {
+                                                        <span class="path-already-claimed">(already claimed)</span>
+                                                    }
+                                                </div>
+                                            }
+                                            
+                                            @if (card.ForceReturn)
+                                            {
+                                                <div class="path-force-return">⚠️ DEAD END - Must return</div>
+                                            }
+                                        </div>
+                                    }
                                     
                                     <div class="path-effect">
                                         @card.NarrativeText
@@ -230,5 +313,26 @@ else
         }
         
         return reward;
+    }
+    
+    protected string GetEventTitle()
+    {
+        // This would get the event title from the current event collection
+        // For now, return empty as this needs backend support
+        return "";
+    }
+    
+    protected string GetEventType()
+    {
+        // This would get the event type (e.g., "Opportunity Event", "Challenge Event")
+        // For now, return empty as this needs backend support
+        return "";
+    }
+    
+    protected bool IsOneTimeRewardClaimed(PathCardDTO card)
+    {
+        // Check if this one-time reward has already been claimed
+        // This would need to check game state for claimed rewards
+        return false; // For now, assume not claimed
     }
 }

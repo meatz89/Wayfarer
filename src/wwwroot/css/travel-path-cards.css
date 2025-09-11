@@ -286,10 +286,14 @@
 
 /* Mechanical Effects Section */
 .path-mechanics {
+    background: #f4e8d0;
+    border-radius: 3px;
+    padding: 8px 10px;
+    margin: 10px 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin: 10px 0;
+    gap: 12px;
+    border: 1px solid #d4c5a0;
 }
 
 .path-time {
@@ -298,6 +302,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    font-weight: 600;
 }
 
 .path-hunger {
@@ -305,6 +310,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    font-weight: 600;
 }
 
 .path-hunger.cost {
@@ -322,6 +328,91 @@
     display: flex;
     align-items: center;
     gap: 4px;
+}
+
+.path-coins {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+.path-coins.cost {
+    color: #8b4726;
+}
+
+.path-coins.reward {
+    color: #d4a76a;
+}
+
+.path-stamina-restore {
+    font-size: 12px;
+    color: #7a8b5a;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+.path-attention-cost {
+    font-size: 12px;
+    color: #8b4726;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+.path-tokens {
+    font-size: 12px;
+    color: #5c4a3a;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+.path-reveals {
+    font-size: 12px;
+    color: #7a8b5a;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+.path-health {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+.path-health.damage {
+    color: #8b4726;
+}
+
+.path-health.heal {
+    color: #7a8b5a;
+}
+
+.path-force-return {
+    font-size: 12px;
+    color: #8b4726;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.path-already-claimed {
+    font-size: 11px;
+    color: #8b7355;
+    font-style: italic;
+    margin-left: 4px;
 }
 
 /* Encounter Warning */
@@ -390,6 +481,66 @@
     text-align: center;
     padding: 8px;
     font-style: italic;
+}
+
+/* Event Narrative Section (for Caravan Events) */
+.event-narrative {
+    background: #faf4ea;
+    border: 3px solid #d4a76a;
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 700px;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.event-card {
+    background: #faf4ea;
+    border: 3px solid #d4a76a;
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 700px;
+    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.event-header {
+    background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+    padding: 15px 20px;
+    border-bottom: 2px solid #d4a76a;
+}
+
+.event-title {
+    font-size: 18px;
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.event-type {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+.event-narrative-text {
+    padding: 20px;
+    font-size: 16px;
+    line-height: 1.6;
+    font-style: italic;
+    color: #3d3429;
+    background: #fffaf5;
+    border-bottom: 1px solid #e8dcc4;
+}
+
+/* For simple narrative without event card structure */
+.event-narrative.simple {
+    padding: 20px;
+    font-size: 16px;
+    line-height: 1.6;
+    font-style: italic;
+    color: #3d3429;
+    background: #fffaf5;
 }
 
 /* Card Reveal State Styles */

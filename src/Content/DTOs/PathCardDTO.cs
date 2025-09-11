@@ -21,4 +21,17 @@ public class PathCardDTO
     public int HungerEffect { get; set; } = 0;
     public string OneTimeReward { get; set; }
     public string NarrativeText { get; set; }
+    
+    // Additional Mechanical Effects
+    public int StaminaRestore { get; set; } = 0; // For REST actions
+    public int AttentionCost { get; set; } = 0; // For caravan events
+    public int HealthEffect { get; set; } = 0; // Positive for healing, negative for damage
+    public int CoinReward { get; set; } = 0; // Coins gained from this path
+    public bool ForceReturn { get; set; } = false; // Dead-end paths that force return
+    
+    // Token Gains
+    public Dictionary<string, int> TokenGains { get; set; } // e.g., {"Commerce": 1, "Status": 2}
+    
+    // Path Revelations
+    public List<string> RevealsPaths { get; set; } // List of path IDs to reveal when played
 }
