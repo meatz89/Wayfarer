@@ -83,12 +83,26 @@ public class TravelManager
         }
         else if (segment.Type == SegmentType.Event)
         {
-            // Draw random event and return its response cards
-            string eventId = DrawRandomEvent(route, segment);
+            // Check if we already have an event for this segment
+            string eventId = session.CurrentEventId;
+            Console.WriteLine($"[TravelManager.GetSegmentCards] CurrentEventId: {eventId ?? "null"}");
+            
+            // Only draw a new event if we don't have one yet
+            if (string.IsNullOrEmpty(eventId))
+            {
+                eventId = DrawRandomEvent(route, segment);
+                session.CurrentEventId = eventId; // Track which event was drawn
+                Console.WriteLine($"[TravelManager.GetSegmentCards] Drew new event: {eventId}");
+            }
+            else
+            {
+                Console.WriteLine($"[TravelManager.GetSegmentCards] Using existing event: {eventId}");
+            }
+            
+            // Return the response cards for the current event
             if (!string.IsNullOrEmpty(eventId) && _gameWorld.AllEventCollections.ContainsKey(eventId))
             {
                 EventCollectionDTO eventCollection = _gameWorld.AllEventCollections[eventId];
-                session.CurrentEventId = eventId; // Track which event was drawn
                 return eventCollection.ResponseCards;
             }
         }
@@ -192,12 +206,33 @@ public class TravelManager
         }
 
         string pathCardId = session.RevealedCardId;
-        if (!_gameWorld.AllPathCards.ContainsKey(pathCardId))
+        PathCardDTO card = null;
+        
+        // Check if this is an event response card
+        RouteOption route = GetRoute(session.RouteId);
+        if (route != null && session.CurrentSegment <= route.Segments.Count)
         {
-            return false;
+            RouteSegment segment = route.Segments[session.CurrentSegment - 1];
+            if (segment.Type == SegmentType.Event && !string.IsNullOrEmpty(session.CurrentEventId))
+            {
+                // Get card from event collection
+                if (_gameWorld.AllEventCollections.ContainsKey(session.CurrentEventId))
+                {
+                    EventCollectionDTO eventCollection = _gameWorld.AllEventCollections[session.CurrentEventId];
+                    card = eventCollection.ResponseCards.FirstOrDefault(c => c.Id == pathCardId);
+                }
+            }
         }
-
-        PathCardDTO card = _gameWorld.AllPathCards[pathCardId];
+        
+        // If not an event card, get from AllPathCards
+        if (card == null)
+        {
+            if (!_gameWorld.AllPathCards.ContainsKey(pathCardId))
+            {
+                return false;
+            }
+            card = _gameWorld.AllPathCards[pathCardId];
+        }
         
         // Final affordability check (in case something changed)
         if (session.StaminaRemaining < card.StaminaCost)
@@ -258,6 +293,22 @@ public class TravelManager
             return false;
         }
 
+        // Check if this is an event response card (from Event segment)
+        RouteOption route = GetRoute(session.RouteId);
+        if (route != null && session.CurrentSegment <= route.Segments.Count)
+        {
+            RouteSegment segment = route.Segments[session.CurrentSegment - 1];
+            if (segment.Type == SegmentType.Event)
+            {
+                // For event response cards, they're always face-up
+                // Just set the reveal state so player can confirm
+                session.IsRevealingCard = true;
+                session.RevealedCardId = pathCardId;
+                return true;
+            }
+        }
+
+        // For FixedPath segments, check if card exists in AllPathCards
         if (!_gameWorld.AllPathCards.ContainsKey(pathCardId))
         {
             return false;
@@ -469,6 +520,8 @@ public class TravelManager
         if (session.CurrentSegment < route.Segments.Count)
         {
             session.CurrentSegment++;
+            // Clear the event ID for the new segment
+            session.CurrentEventId = null;
         }
         else
         {

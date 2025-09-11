@@ -374,12 +374,29 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 return false;
             }
 
-            if (!_gameWorld.AllPathCards.ContainsKey(pathCardId))
+            PathCardDTO card = null;
+            
+            // Check if this is an event response card
+            if (IsCurrentSegmentEventType() && !string.IsNullOrEmpty(session.CurrentEventId))
             {
-                return false;
+                // Get card from event collection
+                if (_gameWorld.AllEventCollections.ContainsKey(session.CurrentEventId))
+                {
+                    EventCollectionDTO eventCollection = _gameWorld.AllEventCollections[session.CurrentEventId];
+                    card = eventCollection.ResponseCards.FirstOrDefault(c => c.Id == pathCardId);
+                }
             }
-
-            PathCardDTO card = _gameWorld.AllPathCards[pathCardId];
+            
+            // If not an event card, get from AllPathCards
+            if (card == null)
+            {
+                if (!_gameWorld.AllPathCards.ContainsKey(pathCardId))
+                {
+                    return false;
+                }
+                card = _gameWorld.AllPathCards[pathCardId];
+            }
+            
             Player player = _gameWorld.GetPlayer();
 
             // Check stamina requirement
@@ -398,8 +415,8 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             if (!string.IsNullOrEmpty(card.PermitRequirement))
             {
                 // TODO: Check player inventory for permit
-                // For now, assume player has required permits
-                return true;
+                // For now, permits are not implemented so return false
+                return false;
             }
 
             // Check one-time card usage
