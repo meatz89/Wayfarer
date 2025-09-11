@@ -91,7 +91,17 @@ public class PackageContent
     public List<ExchangeDTO> Exchanges { get; set; }
     
     /// <summary>
-    /// Event collections for caravan segments
+    /// Path card collections for FixedPath segments
     /// </summary>
-    public List<EventCollectionDTO> EventCollections { get; set; }
+    public List<PathCardCollectionDTO> PathCardCollections { get; set; }
+    
+    /// <summary>
+    /// Travel events for the normalized event system
+    /// </summary>
+    public List<TravelEventDTO> TravelEvents { get; set; }
+    
+    /// <summary>
+    /// Event cards for the normalized event system (reuses PathCardDTO structure)
+    /// </summary>
+    public List<PathCardDTO> EventCards { get; set; }
 }

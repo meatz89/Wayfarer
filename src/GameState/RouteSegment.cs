@@ -10,13 +10,20 @@ public enum SegmentType
 }
 
 /// <summary>
-/// Represents a segment of a travel route containing multiple path card options
+/// Represents a segment of a travel route containing path card collection reference
 /// </summary>
 public class RouteSegment
 {
     public int SegmentNumber { get; set; }
-    public List<string> PathCardIds { get; set; } = new();
-    public SegmentType Type { get; set; } = SegmentType.FixedPath;  // Default to FixedPath for compatibility
-    public string EventCollectionId { get; set; }  // Used when Type is Event - references a single event collection
-    public List<string> EventPool { get; set; } = new();  // Pool of event collection IDs to randomly select from
+    public SegmentType Type { get; set; } = SegmentType.FixedPath;  // Determines selection behavior
+    
+    // For FixedPath segments
+    public string PathCollectionId { get; set; }  // References AllPathCollections
+    
+    // For Event segments  
+    public string EventCollectionId { get; set; }  // References AllEventCollections
+    
+    // Legacy properties for backwards compatibility
+    public string CollectionId { get; set; }  // For FixedPath: single collection ID, For Event: selected from pool
+    public List<string> CollectionPool { get; set; } = new();  // For Event segments: pool of collection IDs to randomly select from
 }

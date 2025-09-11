@@ -39,7 +39,16 @@ public class RouteDTO
 public class RouteSegmentDTO
 {
     public int SegmentNumber { get; set; }
-    public string Type { get; set; } = "FixedPath"; // Defaults to FixedPath if not specified
-    public List<string> PathCardIds { get; set; } = new List<string>();
-    public List<string> EventPool { get; set; } = new List<string>(); // For Event-type segments
+    public string Type { get; set; } = "FixedPath"; // "FixedPath" or "Event"
+    
+    // For FixedPath segments: the specific path card collection to use
+    public string PathCollectionId { get; set; }
+    
+    // For Event segments: the event collection containing events to randomly select from
+    public string EventCollectionId { get; set; }
+    
+    // Legacy properties (deprecated - will be removed after migration)
+    public string CollectionId { get; set; }
+    public List<string> CollectionPool { get; set; } = new List<string>();
+    public List<string> EventPool { get; set; } = new List<string>();
 }

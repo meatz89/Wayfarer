@@ -17,6 +17,12 @@ public class TravelSession
     // Event tracking for current segment (used when segment type is Event)
     public string CurrentEventId { get; set; }
     
+    // Track which event was drawn for each segment (for deterministic behavior)
+    public Dictionary<string, string> SegmentEventDraws { get; set; } = new Dictionary<string, string>();
+    
+    // Current event narrative text for UI display (from the selected event)
+    public string CurrentEventNarrative { get; set; }
+    
     // Card reveal state tracking for face-down card reveal mechanic
     public bool IsRevealingCard { get; set; } = false;
     public string RevealedCardId { get; set; }

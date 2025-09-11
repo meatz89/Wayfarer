@@ -70,76 +70,186 @@ public class TravelManager
 
         if (segment.Type == SegmentType.FixedPath)
         {
-            // Return fixed path cards from PathCardIds
-            List<PathCardDTO> pathCards = new List<PathCardDTO>();
-            foreach (string cardId in segment.PathCardIds)
-            {
-                if (_gameWorld.AllPathCards.ContainsKey(cardId))
-                {
-                    pathCards.Add(_gameWorld.AllPathCards[cardId]);
-                }
-            }
-            return pathCards;
+            return GetPathCardsForFixedPathSegment(segment);
         }
         else if (segment.Type == SegmentType.Event)
         {
-            // Check if we already have an event for this segment
-            string eventId = session.CurrentEventId;
-            Console.WriteLine($"[TravelManager.GetSegmentCards] CurrentEventId: {eventId ?? "null"}");
-            
-            // Only draw a new event if we don't have one yet
-            if (string.IsNullOrEmpty(eventId))
-            {
-                eventId = DrawRandomEvent(route, segment);
-                session.CurrentEventId = eventId; // Track which event was drawn
-                Console.WriteLine($"[TravelManager.GetSegmentCards] Drew new event: {eventId}");
-            }
-            else
-            {
-                Console.WriteLine($"[TravelManager.GetSegmentCards] Using existing event: {eventId}");
-            }
-            
-            // Return the response cards for the current event
-            if (!string.IsNullOrEmpty(eventId) && _gameWorld.AllEventCollections.ContainsKey(eventId))
-            {
-                EventCollectionDTO eventCollection = _gameWorld.AllEventCollections[eventId];
-                return eventCollection.ResponseCards;
-            }
+            return GetPathCardsForEventSegment(segment, session);
         }
-
+        
         return new List<PathCardDTO>();
     }
 
     /// <summary>
-    /// Draw a random event from the route's event pool for Event-type segments
+    /// Get path cards for FixedPath segments - direct resolution: Collection → Cards
     /// </summary>
-    private string DrawRandomEvent(RouteOption route, RouteSegment segment)
+    private List<PathCardDTO> GetPathCardsForFixedPathSegment(RouteSegment segment)
     {
-        // Use event collection ID if specified directly on segment
-        if (!string.IsNullOrEmpty(segment.EventCollectionId))
+        // Use new normalized property first, fall back to legacy
+        string collectionId = segment.PathCollectionId ?? segment.CollectionId;
+        
+        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
         {
-            return segment.EventCollectionId;
+            return new List<PathCardDTO>();
         }
-
-        // Use segment's event pool if available
-        if (segment.EventPool != null && segment.EventPool.Count > 0)
+        
+        PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
+        
+        // Resolve PathCardIds to actual PathCards
+        if (collection.PathCardIds != null && collection.PathCardIds.Count > 0)
         {
-            int index = _random.Next(segment.EventPool.Count);
-            return segment.EventPool[index];
-        }
-
-        // Fall back to route event pools
-        if (_gameWorld.RouteEventPools.ContainsKey(route.Id))
-        {
-            List<string> eventPool = _gameWorld.RouteEventPools[route.Id];
-            if (eventPool != null && eventPool.Count > 0)
+            List<PathCardDTO> resolvedCards = new List<PathCardDTO>();
+            foreach (string cardId in collection.PathCardIds)
             {
-                int index = _random.Next(eventPool.Count);
-                return eventPool[index];
+                if (_gameWorld.AllPathCards.ContainsKey(cardId))
+                {
+                    resolvedCards.Add(_gameWorld.AllPathCards[cardId]);
+                }
+            }
+            return resolvedCards;
+        }
+        
+        // Fall back to legacy inline cards
+        return collection.PathCards ?? new List<PathCardDTO>();
+    }
+    
+    /// <summary>
+    /// Get path cards for Event segments - two-step resolution: Collection → Event → Cards
+    /// </summary>
+    private List<PathCardDTO> GetPathCardsForEventSegment(RouteSegment segment, TravelSession session)
+    {
+        // Step 1: Get event collection ID (new normalized or legacy)
+        string eventCollectionId = segment.EventCollectionId ?? segment.CollectionId;
+        
+        if (string.IsNullOrEmpty(eventCollectionId))
+        {
+            return HandleLegacyEventSegment(segment, session);
+        }
+        
+        // Check for normalized structure first
+        if (_gameWorld.AllEventCollections.ContainsKey(eventCollectionId))
+        {
+            return HandleNormalizedEventSegment(segment, session, eventCollectionId);
+        }
+        
+        // Fall back to legacy structure
+        return HandleLegacyEventSegment(segment, session);
+    }
+    
+    /// <summary>
+    /// Handle normalized event structure: EventCollection → Event → EventCards
+    /// </summary>
+    private List<PathCardDTO> HandleNormalizedEventSegment(RouteSegment segment, TravelSession session, string eventCollectionId)
+    {
+        // Step 1: Get event collection
+        PathCardCollectionDTO eventCollection = _gameWorld.AllEventCollections[eventCollectionId];
+        
+        if (eventCollection.EventIds == null || eventCollection.EventIds.Count == 0)
+        {
+            return new List<PathCardDTO>();
+        }
+        
+        // Step 2: Get or draw event for this segment  
+        string eventId = GetOrDrawEventForSegment(segment, session, eventCollection.EventIds);
+        
+        // Step 3: Get the event
+        if (!_gameWorld.AllTravelEvents.ContainsKey(eventId))
+        {
+            return new List<PathCardDTO>();
+        }
+        
+        TravelEventDTO travelEvent = _gameWorld.AllTravelEvents[eventId];
+        
+        // Step 4: Set narrative for UI
+        session.CurrentEventNarrative = travelEvent.NarrativeText;
+        
+        // Step 5: Resolve event cards (from AllEventCards, not AllPathCards)
+        List<PathCardDTO> eventCards = new List<PathCardDTO>();
+        foreach (string cardId in travelEvent.EventCardIds)
+        {
+            if (_gameWorld.AllEventCards.ContainsKey(cardId))
+            {
+                eventCards.Add(_gameWorld.AllEventCards[cardId]);
             }
         }
+        
+        return eventCards;
+    }
+    
+    /// <summary>
+    /// Handle legacy event structure for backwards compatibility
+    /// </summary>
+    private List<PathCardDTO> HandleLegacyEventSegment(RouteSegment segment, TravelSession session)
+    {
+        // Legacy: Event segments select randomly from a pool of collections
+        string collectionId = session.CurrentEventId;
+        
+        // Only draw a new collection if we don't have one yet
+        if (string.IsNullOrEmpty(collectionId))
+        {
+            collectionId = DrawRandomCollection(segment);
+            session.CurrentEventId = collectionId; // Track which collection was drawn
+        }
+        
+        // Return the cards from the collection
+        if (!string.IsNullOrEmpty(collectionId) && _gameWorld.AllPathCollections.ContainsKey(collectionId))
+        {
+            PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
+            
+            // If collection has PathCardIds, resolve them to actual cards
+            if (collection.PathCardIds != null && collection.PathCardIds.Count > 0)
+            {
+                List<PathCardDTO> resolvedCards = new List<PathCardDTO>();
+                foreach (string cardId in collection.PathCardIds)
+                {
+                    if (_gameWorld.AllPathCards.ContainsKey(cardId))
+                    {
+                        resolvedCards.Add(_gameWorld.AllPathCards[cardId]);
+                    }
+                }
+                return resolvedCards;
+            }
+            
+            // Otherwise use inline PathCards (for event collections)
+            return collection.PathCards ?? new List<PathCardDTO>();
+        }
 
-        return null;
+        return new List<PathCardDTO>();
+    }
+    
+    /// <summary>
+    /// Get or draw an event for a segment (ensures deterministic behavior)
+    /// </summary>
+    private string GetOrDrawEventForSegment(RouteSegment segment, TravelSession session, List<string> eventIds)
+    {
+        // Check if we already drew an event for this segment
+        string key = $"seg_{segment.SegmentNumber}_event";
+        if (session.SegmentEventDraws.ContainsKey(key))
+        {
+            return session.SegmentEventDraws[key];
+        }
+        
+        // Draw random event from collection
+        string eventId = eventIds[_random.Next(eventIds.Count)];
+        session.SegmentEventDraws[key] = eventId;
+        
+        return eventId;
+    }
+    
+    /// <summary>
+    /// Draw a random collection from the segment's collection pool for legacy Event-type segments
+    /// </summary>
+    private string DrawRandomCollection(RouteSegment segment)
+    {
+        // Use segment's collection pool if available
+        if (segment.CollectionPool != null && segment.CollectionPool.Count > 0)
+        {
+            int index = _random.Next(segment.CollectionPool.Count);
+            return segment.CollectionPool[index];
+        }
+
+        // Fall back to single collection ID if no pool
+        return segment.CollectionId;
     }
 
     /// <summary>
@@ -153,7 +263,9 @@ public class TravelManager
             return false;
         }
 
-        if (!_gameWorld.AllPathCards.ContainsKey(pathCardId))
+        // Get the card from the current segment's collection
+        PathCardDTO card = GetCardFromCurrentSegment(pathCardId);
+        if (card == null)
         {
             return false;
         }
@@ -163,8 +275,6 @@ public class TravelManager
         {
             return false; // Card already revealed
         }
-
-        PathCardDTO card = _gameWorld.AllPathCards[pathCardId];
         
         // Basic affordability checks (same as SelectPathCard)
         if (session.StaminaRemaining < card.StaminaCost)
@@ -206,32 +316,12 @@ public class TravelManager
         }
 
         string pathCardId = session.RevealedCardId;
-        PathCardDTO card = null;
         
-        // Check if this is an event response card
-        RouteOption route = GetRoute(session.RouteId);
-        if (route != null && session.CurrentSegment <= route.Segments.Count)
-        {
-            RouteSegment segment = route.Segments[session.CurrentSegment - 1];
-            if (segment.Type == SegmentType.Event && !string.IsNullOrEmpty(session.CurrentEventId))
-            {
-                // Get card from event collection
-                if (_gameWorld.AllEventCollections.ContainsKey(session.CurrentEventId))
-                {
-                    EventCollectionDTO eventCollection = _gameWorld.AllEventCollections[session.CurrentEventId];
-                    card = eventCollection.ResponseCards.FirstOrDefault(c => c.Id == pathCardId);
-                }
-            }
-        }
-        
-        // If not an event card, get from AllPathCards
+        // Get the card from the current segment's collection
+        PathCardDTO card = GetCardFromCurrentSegment(pathCardId);
         if (card == null)
         {
-            if (!_gameWorld.AllPathCards.ContainsKey(pathCardId))
-            {
-                return false;
-            }
-            card = _gameWorld.AllPathCards[pathCardId];
+            return false;
         }
         
         // Final affordability check (in case something changed)
@@ -308,8 +398,9 @@ public class TravelManager
             }
         }
 
-        // For FixedPath segments, check if card exists in AllPathCards
-        if (!_gameWorld.AllPathCards.ContainsKey(pathCardId))
+        // Check if card exists in current segment's collection
+        PathCardDTO card = GetCardFromCurrentSegment(pathCardId);
+        if (card == null)
         {
             return false;
         }
@@ -389,8 +480,109 @@ public class TravelManager
         CompleteJourney(session);
         return true;
     }
+    
+    /// <summary>
+    /// Get current event narrative for UI display (null if not an event or no event selected)
+    /// </summary>
+    public string GetCurrentEventNarrative()
+    {
+        TravelSession session = _gameWorld.CurrentTravelSession;
+        return session?.CurrentEventNarrative;
+    }
 
     // ========== HELPER METHODS ==========
+
+    /// <summary>
+    /// Get a card from the current segment's collection
+    /// </summary>
+    private PathCardDTO GetCardFromCurrentSegment(string cardId)
+    {
+        TravelSession session = _gameWorld.CurrentTravelSession;
+        if (session == null)
+        {
+            return null;
+        }
+
+        RouteOption route = GetRoute(session.RouteId);
+        if (route == null || session.CurrentSegment > route.Segments.Count)
+        {
+            return null;
+        }
+
+        RouteSegment segment = route.Segments[session.CurrentSegment - 1];
+        
+        if (segment.Type == SegmentType.FixedPath)
+        {
+            return GetCardFromFixedPathSegment(segment, cardId);
+        }
+        else if (segment.Type == SegmentType.Event)
+        {
+            return GetCardFromEventSegment(segment, session, cardId);
+        }
+        
+        return null;
+    }
+    
+    /// <summary>
+    /// Get a specific card from a FixedPath segment
+    /// </summary>
+    private PathCardDTO GetCardFromFixedPathSegment(RouteSegment segment, string cardId)
+    {
+        // Use new normalized property first, fall back to legacy
+        string collectionId = segment.PathCollectionId ?? segment.CollectionId;
+        
+        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
+        {
+            return null;
+        }
+        
+        PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
+        
+        // Check if this collection uses ID references
+        if (collection.PathCardIds != null && collection.PathCardIds.Contains(cardId))
+        {
+            // Resolve from main path cards dictionary
+            return _gameWorld.AllPathCards.ContainsKey(cardId) ? _gameWorld.AllPathCards[cardId] : null;
+        }
+        
+        // Otherwise check inline cards (legacy)
+        return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
+    }
+    
+    /// <summary>
+    /// Get a specific card from an Event segment
+    /// </summary>
+    private PathCardDTO GetCardFromEventSegment(RouteSegment segment, TravelSession session, string cardId)
+    {
+        // Try normalized structure first
+        string eventCollectionId = segment.EventCollectionId ?? segment.CollectionId;
+        
+        if (!string.IsNullOrEmpty(eventCollectionId) && _gameWorld.AllEventCollections.ContainsKey(eventCollectionId))
+        {
+            // Normalized structure: look in event cards
+            return _gameWorld.AllEventCards.ContainsKey(cardId) ? _gameWorld.AllEventCards[cardId] : null;
+        }
+        
+        // Legacy structure: look in path collections
+        string collectionId = session.CurrentEventId ?? segment.CollectionId;
+        
+        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
+        {
+            return null;
+        }
+        
+        PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
+        
+        // Check if this collection uses ID references
+        if (collection.PathCardIds != null && collection.PathCardIds.Contains(cardId))
+        {
+            // Resolve from main path cards dictionary
+            return _gameWorld.AllPathCards.ContainsKey(cardId) ? _gameWorld.AllPathCards[cardId] : null;
+        }
+        
+        // Otherwise check inline cards (for event collections)
+        return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
+    }
 
     /// <summary>
     /// Get route by ID from world state
@@ -536,8 +728,9 @@ public class TravelManager
         if (session.CurrentSegment < route.Segments.Count)
         {
             session.CurrentSegment++;
-            // Clear the event ID for the new segment
+            // Clear event state for the new segment
             session.CurrentEventId = null;
+            session.CurrentEventNarrative = null;
         }
         else
         {

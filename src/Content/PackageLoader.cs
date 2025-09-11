@@ -113,8 +113,15 @@ public class PackageLoader
             // Phase 6: Independent content
             LoadObservations(package.Content.Observations);
             LoadInvestigationRewards(package.Content.InvestigationRewards);
+            // Load path cards first, then collections that reference them
             LoadPathCards(package.Content.PathCards);
-            LoadEventCollections(package.Content.EventCollections);
+            
+            // Load event system components (normalized structure)
+            LoadEventCards(package.Content.EventCards);
+            LoadTravelEvents(package.Content.TravelEvents);
+            
+            // Load collections (handles both path collections and event collections)
+            LoadEventCollections(package.Content.PathCardCollections);
             LoadItems(package.Content.Items);
             LoadLetterTemplates(package.Content.LetterTemplates);
             LoadStandingObligations(package.Content.StandingObligations);
@@ -439,27 +446,82 @@ public class PackageLoader
     private void LoadPathCards(List<PathCardDTO> pathCardDtos)
     {
         if (pathCardDtos == null) return;
-
+        
+        Console.WriteLine($"[PackageLoader] Loading {pathCardDtos.Count} path cards...");
+        
         foreach (PathCardDTO dto in pathCardDtos)
         {
             _gameWorld.AllPathCards[dto.Id] = dto;
+            Console.WriteLine($"[PackageLoader] Loaded path card '{dto.Id}': {dto.Name}");
         }
+        
+        Console.WriteLine($"[PackageLoader] Completed loading path cards. Total: {_gameWorld.AllPathCards.Count}");
+    }
+
+    private void LoadEventCards(List<PathCardDTO> eventCardDtos)
+    {
+        if (eventCardDtos == null) return;
+        
+        Console.WriteLine($"[PackageLoader] Loading {eventCardDtos.Count} event cards...");
+        
+        foreach (PathCardDTO dto in eventCardDtos)
+        {
+            _gameWorld.AllEventCards[dto.Id] = dto;
+            Console.WriteLine($"[PackageLoader] Loaded event card '{dto.Id}': {dto.Name}");
+        }
+        
+        Console.WriteLine($"[PackageLoader] Completed loading event cards. Total: {_gameWorld.AllEventCards.Count}");
+    }
+
+    private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos)
+    {
+        if (travelEventDtos == null) return;
+        
+        Console.WriteLine($"[PackageLoader] Loading {travelEventDtos.Count} travel events...");
+        
+        foreach (TravelEventDTO dto in travelEventDtos)
+        {
+            _gameWorld.AllTravelEvents[dto.Id] = dto;
+            Console.WriteLine($"[PackageLoader] Loaded travel event '{dto.Id}': {dto.Name}");
+        }
+        
+        Console.WriteLine($"[PackageLoader] Completed loading travel events. Total: {_gameWorld.AllTravelEvents.Count}");
     }
     
     
-    private void LoadEventCollections(List<EventCollectionDTO> eventCollectionDtos)
+    private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos)
     {
-        if (eventCollectionDtos == null) return;
+        if (collectionDtos == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading {eventCollectionDtos.Count} event collections...");
+        Console.WriteLine($"[PackageLoader] Loading {collectionDtos.Count} collections (separating path collections from event collections)...");
 
-        foreach (EventCollectionDTO dto in eventCollectionDtos)
+        foreach (PathCardCollectionDTO dto in collectionDtos)
         {
-            _gameWorld.AllEventCollections[dto.Id] = dto;
-            Console.WriteLine($"[PackageLoader] Loaded event collection '{dto.Id}': {dto.Name}");
+            // Determine if this is a path collection or event collection based on contents
+            bool isEventCollection = (dto.EventIds != null && dto.EventIds.Count > 0);
+            bool isPathCollection = (dto.PathCardIds != null && dto.PathCardIds.Count > 0);
+            
+            if (isEventCollection)
+            {
+                // This is an event collection - contains eventIds for random selection
+                _gameWorld.AllEventCollections[dto.Id] = dto;
+                Console.WriteLine($"[PackageLoader] Loaded event collection '{dto.Id}': {dto.Name} with {dto.EventIds.Count} events");
+            }
+            else if (isPathCollection)
+            {
+                // This is a path collection - contains pathCardIds for FixedPath segments
+                _gameWorld.AllPathCollections[dto.Id] = dto;
+                Console.WriteLine($"[PackageLoader] Loaded path collection '{dto.Id}': {dto.Name} with {dto.PathCardIds.Count} path cards");
+            }
+            else
+            {
+                // Fallback: treat as path collection if no clear indicators
+                _gameWorld.AllPathCollections[dto.Id] = dto;
+                Console.WriteLine($"[PackageLoader] Loaded collection '{dto.Id}' as path collection (default): {dto.Name}");
+            }
         }
 
-        Console.WriteLine($"[PackageLoader] Completed loading event collections. Total: {_gameWorld.AllEventCollections.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading collections. Path collections: {_gameWorld.AllPathCollections.Count}, Event collections: {_gameWorld.AllEventCollections.Count}");
     }
 
     /// <summary>
@@ -843,14 +905,38 @@ public class PackageLoader
                 {
                     SegmentNumber = segmentDto.SegmentNumber,
                     Type = segmentType,
-                    PathCardIds = segmentDto.PathCardIds?.ToList() ?? new List<string>(),
-                    EventPool = segmentDto.EventPool?.ToList() ?? new List<string>()
+                    CollectionId = null, // Will be set below based on type
+                    CollectionPool = new List<string>()
                 };
                 
-                // For Event-type segments, copy the EventPool to the segment
-                if (segmentType == SegmentType.Event && segmentDto.EventPool != null && segmentDto.EventPool.Count > 0)
+                // Set collection properties based on segment type and new normalized properties
+                if (segmentType == SegmentType.FixedPath)
                 {
-                    Console.WriteLine($"[PackageLoader] Event segment {segmentDto.SegmentNumber} has {segmentDto.EventPool.Count} events");
+                    // FixedPath segments use pathCollectionId (new normalized structure) or fallback to CollectionId (legacy)
+                    segment.CollectionId = segmentDto.PathCollectionId ?? segmentDto.CollectionId;
+                    if (!string.IsNullOrEmpty(segment.CollectionId))
+                    {
+                        Console.WriteLine($"[PackageLoader] FixedPath segment {segmentDto.SegmentNumber} uses path collection '{segment.CollectionId}'");
+                    }
+                }
+                else if (segmentType == SegmentType.Event)
+                {
+                    // Event segments use eventCollectionId (new normalized structure) or fallback to legacy properties
+                    if (!string.IsNullOrEmpty(segmentDto.EventCollectionId))
+                    {
+                        // New normalized structure: single event collection ID
+                        segment.CollectionId = segmentDto.EventCollectionId;
+                        Console.WriteLine($"[PackageLoader] Event segment {segmentDto.SegmentNumber} uses event collection '{segment.CollectionId}'");
+                    }
+                    else
+                    {
+                        // Legacy structure: CollectionPool for multiple collections
+                        segment.CollectionPool = segmentDto.CollectionPool?.ToList() ?? new List<string>();
+                        if (segment.CollectionPool.Count > 0)
+                        {
+                            Console.WriteLine($"[PackageLoader] Event segment {segmentDto.SegmentNumber} has {segment.CollectionPool.Count} collections in pool (legacy)");
+                        }
+                    }
                 }
                 
                 route.Segments.Add(segment);
@@ -1019,15 +1105,34 @@ public class PackageLoader
         Console.WriteLine("[PackageLoader] Initializing travel discovery system...");
 
         // Initialize PathCardDiscoveries from StartsRevealed property
-        // Uses mechanical property only - no ID checking
-        foreach (KeyValuePair<string, PathCardDTO> kvp in _gameWorld.AllPathCards)
+        // First from main path cards dictionary
+        foreach (KeyValuePair<string, PathCardDTO> cardKvp in _gameWorld.AllPathCards)
         {
-            string pathCardId = kvp.Key;
-            PathCardDTO pathCard = kvp.Value;
-            
-            _gameWorld.PathCardDiscoveries[pathCardId] = pathCard.StartsRevealed;
-            
-            Console.WriteLine($"[PackageLoader] Path card '{pathCardId}' discovery state: {(pathCard.StartsRevealed ? "face-up" : "face-down")}");
+            PathCardDTO pathCard = cardKvp.Value;
+            _gameWorld.PathCardDiscoveries[pathCard.Id] = pathCard.StartsRevealed;
+            Console.WriteLine($"[PackageLoader] Path card '{pathCard.Id}' discovery state: {(pathCard.StartsRevealed ? "face-up" : "face-down")}");
+        }
+        
+        // Also initialize discovery states for event cards
+        foreach (KeyValuePair<string, PathCardDTO> cardKvp in _gameWorld.AllEventCards)
+        {
+            PathCardDTO eventCard = cardKvp.Value;
+            _gameWorld.PathCardDiscoveries[eventCard.Id] = eventCard.StartsRevealed;
+            Console.WriteLine($"[PackageLoader] Event card '{eventCard.Id}' discovery state: {(eventCard.StartsRevealed ? "face-up" : "face-down")}");
+        }
+        
+        // Also check event collections for inline path cards (event-specific cards)
+        foreach (KeyValuePair<string, PathCardCollectionDTO> collectionKvp in _gameWorld.AllPathCollections)
+        {
+            // Event collections define cards inline
+            if (collectionKvp.Value.PathCards != null && collectionKvp.Value.PathCards.Count > 0)
+            {
+                foreach (PathCardDTO pathCard in collectionKvp.Value.PathCards)
+                {
+                    _gameWorld.PathCardDiscoveries[pathCard.Id] = pathCard.StartsRevealed;
+                    Console.WriteLine($"[PackageLoader] Event path card '{pathCard.Id}' discovery state: {(pathCard.StartsRevealed ? "face-up" : "face-down")}");
+                }
+            }
         }
 
         // Initialize EventDeckPositions for routes with event pools
@@ -1129,9 +1234,9 @@ public class PackageLoader
             {
                 SegmentNumber = segmentNumber++,
                 Type = originalSegment.Type,
-                // Keep the same path cards and event pools - they represent the same physical locations
-                PathCardIds = new List<string>(originalSegment.PathCardIds),
-                EventPool = new List<string>(originalSegment.EventPool)
+                // Keep the same collections - they represent the same physical locations
+                CollectionId = originalSegment.CollectionId,
+                CollectionPool = new List<string>(originalSegment.CollectionPool)
             };
             reverseRoute.Segments.Add(reverseSegment);
         }

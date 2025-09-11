@@ -363,27 +363,11 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 return false;
             }
 
-            PathCardDTO card = null;
-            
-            // Check if this is an event response card
-            if (IsCurrentSegmentEventType() && !string.IsNullOrEmpty(session.CurrentEventId))
-            {
-                // Get card from event collection
-                if (_gameWorld.AllEventCollections.ContainsKey(session.CurrentEventId))
-                {
-                    EventCollectionDTO eventCollection = _gameWorld.AllEventCollections[session.CurrentEventId];
-                    card = eventCollection.ResponseCards.FirstOrDefault(c => c.Id == pathCardId);
-                }
-            }
-            
-            // If not an event card, get from AllPathCards
+            // Get the card from the current segment's collection
+            PathCardDTO card = GetCardFromCurrentSegmentCollection(pathCardId);
             if (card == null)
             {
-                if (!_gameWorld.AllPathCards.ContainsKey(pathCardId))
-                {
-                    return false;
-                }
-                card = _gameWorld.AllPathCards[pathCardId];
+                return false;
             }
             
             Player player = _gameWorld.GetPlayer();
@@ -584,13 +568,46 @@ namespace Wayfarer.Subsystems.TravelSubsystem
 
             // Check if we have a current event ID from the drawn event
             if (!string.IsNullOrEmpty(session.CurrentEventId) && 
-                _gameWorld.AllEventCollections.ContainsKey(session.CurrentEventId))
+                _gameWorld.AllPathCollections.ContainsKey(session.CurrentEventId))
             {
-                EventCollectionDTO eventCollection = _gameWorld.AllEventCollections[session.CurrentEventId];
-                return eventCollection.NarrativeText;
+                PathCardCollectionDTO collection = _gameWorld.AllPathCollections[session.CurrentEventId];
+                return collection.NarrativeText;
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Get a card from the current segment's collection
+        /// </summary>
+        private PathCardDTO GetCardFromCurrentSegmentCollection(string cardId)
+        {
+            TravelSession session = _gameWorld.CurrentTravelSession;
+            if (session == null)
+            {
+                return null;
+            }
+
+            RouteOption route = GetRouteById(session.RouteId);
+            if (route == null || session.CurrentSegment > route.Segments.Count)
+            {
+                return null;
+            }
+
+            RouteSegment segment = route.Segments[session.CurrentSegment - 1];
+            
+            // Get the collection ID based on segment type
+            string collectionId = segment.Type == SegmentType.Event && !string.IsNullOrEmpty(session.CurrentEventId) 
+                ? session.CurrentEventId 
+                : segment.CollectionId;
+                
+            if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
+            {
+                return null;
+            }
+            
+            PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
+            return collection.PathCards.FirstOrDefault(c => c.Id == cardId);
         }
 
         /// <summary>

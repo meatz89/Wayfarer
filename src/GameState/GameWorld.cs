@@ -95,8 +95,7 @@ public class GameWorld
     public bool IsGameStarted { get; set; } = false;
 
     // PATH CARD SYSTEM - Travel path card discovery mechanics
-    // Path cards from JSON (like exchanges)
-    public Dictionary<string, PathCardDTO> AllPathCards { get; set; } = new Dictionary<string, PathCardDTO>();
+    // Path cards are now stored in collections (AllPathCollections)
     
     // Persistent discovery states
     public Dictionary<string, bool> PathCardDiscoveries { get; set; } = new Dictionary<string, bool>();
@@ -110,11 +109,24 @@ public class GameWorld
     // Active travel session
     public TravelSession CurrentTravelSession { get; set; }
     
+    // PATH SYSTEM - For FixedPath segments that always show the same cards
+    // All path cards defined in the package (referenced by collections)
+    public Dictionary<string, PathCardDTO> AllPathCards { get; set; } = new Dictionary<string, PathCardDTO>();
     
-    // Event collections for caravan segments
-    public Dictionary<string, EventCollectionDTO> AllEventCollections { get; set; } = new Dictionary<string, EventCollectionDTO>();
+    // Path card collections for FixedPath route segments
+    public Dictionary<string, PathCardCollectionDTO> AllPathCollections { get; set; } = new Dictionary<string, PathCardCollectionDTO>();
     
-    // Event pools for each route (for random event drawing in caravan segments)
+    // EVENT SYSTEM - For Event segments that randomly select from a pool
+    // Event cards defined once (reusing PathCardDTO structure but separate storage)
+    public Dictionary<string, PathCardDTO> AllEventCards { get; set; } = new Dictionary<string, PathCardDTO>();
+    
+    // Travel events containing narrative and card references
+    public Dictionary<string, TravelEventDTO> AllTravelEvents { get; set; } = new Dictionary<string, TravelEventDTO>();
+    
+    // Event collections for Event route segments (containing eventIds, not pathCardIds)
+    public Dictionary<string, PathCardCollectionDTO> AllEventCollections { get; set; } = new Dictionary<string, PathCardCollectionDTO>();
+    
+    // Event pools for each route (for random event drawing in caravan segments) - DEPRECATED, use AllEventCollections instead
     public Dictionary<string, List<string>> RouteEventPools { get; set; } = new Dictionary<string, List<string>>();
 
     /// <summary>
