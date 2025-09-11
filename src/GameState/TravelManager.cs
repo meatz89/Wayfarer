@@ -282,9 +282,9 @@ public class TravelManager
 
     /// <summary>
     /// Rest to recover stamina during travel
-    /// - Skip the current segment (advance to next)
     /// - Add 30 minutes to travel time
     /// - Restore stamina to current capacity
+    /// - Does NOT skip segments (segments are challenges that must be completed)
     /// </summary>
     public bool RestAction()
     {
@@ -299,24 +299,7 @@ public class TravelManager
         session.StaminaRemaining = session.StaminaCapacity;
         session.CurrentState = TravelState.Fresh;
 
-        // Skip the current segment (advance to next)
-        RouteOption route = GetRoute(session.RouteId);
-        if (route != null && session.CurrentSegment <= route.Segments.Count)
-        {
-            // Mark current segment as completed (skipped via rest)
-            session.CompletedSegments.Add($"{session.RouteId}_{session.CurrentSegment}_rested");
-            
-            // Move to next segment or complete journey
-            if (session.CurrentSegment < route.Segments.Count)
-            {
-                session.CurrentSegment++;
-            }
-            else
-            {
-                // Journey complete - player reaches destination
-                CompleteJourney(session);
-            }
-        }
+        // Player remains on current segment - must still select a path card to progress
 
         return true;
     }

@@ -96,19 +96,22 @@
 }
 
 .route-card {
-    background: white;
-    border: 1px solid #d4c5a0;
-    border-radius: 3px;
-    padding: 12px;
-    margin-bottom: 10px;
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 12px;
     cursor: pointer;
     transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    position: relative;
 }
 
 .route-card:hover:not(.locked) {
     background: #fefaf0;
     border-color: #a68b6f;
-    transform: translateX(3px);
+    transform: translateX(4px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .route-card.locked {
@@ -118,11 +121,11 @@
 }
 
 .route-card.dangerous {
-    border-left: 3px solid #8b4726;
+    border-left: 4px solid #8b4726;
 }
 
 .route-card.guarded {
-    border-left: 3px solid #5a7a8a;
+    border-left: 4px solid #5a7a8a;
 }
 
 .route-card.merchant {
@@ -130,7 +133,7 @@
 }
 
 .route-card.common {
-    border-left: 3px solid #c4a684;
+    border-left: 4px solid #c4a684;
 }
 
 .route-main {
@@ -220,7 +223,7 @@
 }
 
 .tag-wilderness {
-    background: #7a8b5a;
+    background: #8b7355;
     color: #faf4ea;
 }
 
@@ -275,8 +278,9 @@
 }
 
 .cost-free {
-    color: #5a7a3a;
+    color: #6a7b4a;
     font-style: italic;
+    font-weight: bold;
 }
 
 .cost-coins {
@@ -287,26 +291,29 @@
 /* Travel Button */
 .travel-button {
     margin-top: 8px;
-    padding: 6px 12px;
-    background: #7a8b5a;
-    color: #faf4ea;
-    border: 1px solid #5a6b3a;
-    border-radius: 3px;
-    font-size: 11px;
+    padding: 8px 16px;
+    background: linear-gradient(to bottom, #d4a76a, #c4975a);
+    color: #2c241a;
+    border: 2px solid #a68756;
+    border-radius: 4px;
+    font-size: 12px;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1px;
     cursor: pointer;
     transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .travel-button:hover {
-    background: #8a9b6a;
+    background: linear-gradient(to bottom, #e4b77a, #d4a76a);
     transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
 }
 
 .travel-button.active {
-    background: #5a6b3a;
+    background: linear-gradient(to bottom, #c4975a, #b48749);
+    border-color: #968655;
 }
 
 .travel-button.disabled {

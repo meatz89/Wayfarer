@@ -3,10 +3,8 @@
 /* Route Info */
 .route-info,
 .route-info-header {
-    background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
-    color: #faf4ea;
+    color: #e8dcc4;
     padding: 12px 20px;
-    border-bottom: 2px solid #5a6a3a;
 }
 
 .route-title {
@@ -193,18 +191,30 @@
     gap: 8px;
 }
 
-.card-back-cost {
-    width: 32px;
-    height: 32px;
-    background: #e8dcc4;
-    color: #3d3429;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 32px;
-    font-weight: bold;
-    font-size: 16px;
+.card-back-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     position: relative;
     z-index: 2;
+}
+
+.card-back-cost {
+    background: #e8dcc4;
+    color: #3d3429;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.card-back-time {
+    background: #d4a76a;
+    color: #2c241a;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-weight: bold;
+    font-size: 14px;
 }
 
 /* Face-Up Path Cards */
@@ -272,6 +282,46 @@
     color: #7a8b5a;
     margin-top: 6px;
     font-weight: bold;
+}
+
+/* Mechanical Effects Section */
+.path-mechanics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.path-time {
+    font-size: 12px;
+    color: #5c4a3a;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.path-hunger {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.path-hunger.cost {
+    color: #8b4726;
+}
+
+.path-hunger.reward {
+    color: #7a8b5a;
+}
+
+.path-reward {
+    font-size: 12px;
+    color: #d4a76a;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 /* Encounter Warning */
@@ -344,9 +394,9 @@
 
 /* Card Reveal State Styles */
 .path-card.revealed {
-    border: 3px solid #7a8b5a;
+    border: 3px solid #d4a76a;
     background: #fefaf0;
-    box-shadow: 0 4px 12px rgba(122, 139, 90, 0.3);
+    box-shadow: 0 4px 12px rgba(212, 167, 106, 0.3);
 }
 
 .path-card.disabled-during-reveal {
@@ -369,10 +419,10 @@
 .continue-button {
     display: inline-block;
     padding: 15px 40px;
-    background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
-    border: 2px solid #5a6a3a;
+    background: linear-gradient(to bottom, #d4a76a, #c4975a);
+    border: 2px solid #a68756;
     border-radius: 4px;
-    color: #faf4ea;
+    color: #2c241a;
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 16px;
@@ -383,8 +433,8 @@
 }
 
 .continue-button:hover {
-    background: linear-gradient(to bottom, #8a9b6a, #7a8b5a);
-    border-color: #6a7b4a;
+    background: linear-gradient(to bottom, #e4b77a, #d4a76a);
+    border-color: #b69766;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }

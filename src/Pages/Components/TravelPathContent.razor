@@ -83,14 +83,39 @@
                                         <div class="path-requirements">Requires: @requirements</div>
                                     }
                                     
+                                    <!-- Mechanical Effects Section -->
+                                    <div class="path-mechanics">
+                                        @if (card.TravelTimeMinutes > 0)
+                                        {
+                                            <div class="path-time">⏱️ @card.TravelTimeMinutes minutes</div>
+                                        }
+                                        
+                                        @if (card.HungerEffect != 0)
+                                        {
+                                            <div class="path-hunger @(card.HungerEffect > 0 ? "cost" : "reward")">
+                                                @if (card.HungerEffect > 0)
+                                                {
+                                                    <span>🍖 +@card.HungerEffect hunger</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>🍖 @card.HungerEffect hunger</span>
+                                                }
+                                            </div>
+                                        }
+                                        
+                                        @if (!string.IsNullOrEmpty(card.OneTimeReward) && card.IsOneTime)
+                                        {
+                                            var rewardParsed = ParseReward(card.OneTimeReward);
+                                            <div class="path-reward">
+                                                💰 @rewardParsed @GetOneTimeStatus(card)
+                                            </div>
+                                        }
+                                    </div>
+                                    
                                     <div class="path-effect">
                                         @card.NarrativeText
                                     </div>
-                                    
-                                    @if (!string.IsNullOrEmpty(card.OneTimeReward) && card.IsOneTime)
-                                    {
-                                        <div class="path-discovery">One-time: @card.OneTimeReward @GetOneTimeStatus(card)</div>
-                                    }
                                 </div>
                             </div>
                         }
@@ -102,7 +127,13 @@
                                 <span class="card-back-name">
                                     @card.Name
                                 </span>
-                                <span class="card-back-cost">@card.StaminaCost</span>
+                                <div class="card-back-info">
+                                    <span class="card-back-cost">@card.StaminaCost stamina</span>
+                                    @if (card.TravelTimeMinutes > 0)
+                                    {
+                                        <span class="card-back-time">@card.TravelTimeMinutes min</span>
+                                    }
+                                </div>
                             </div>
                         }
                     </div>
@@ -185,5 +216,19 @@ else
             SegmentDotState.Current => "current",
             _ => ""
         };
+    }
+    
+    protected string ParseReward(string reward)
+    {
+        if (string.IsNullOrEmpty(reward))
+            return "";
+            
+        // Parse rewards like "5_coins" to "5 coins"
+        if (reward.Contains("_coin"))
+        {
+            return reward.Replace("_", " ");
+        }
+        
+        return reward;
     }
 }

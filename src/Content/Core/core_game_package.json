@@ -771,9 +771,9 @@
         "coinRequirement": 0,
         "permitRequirement": null,
         "travelTimeMinutes": 5,
-        "hungerEffect": 10,
+        "hungerEffect": 15,
         "oneTimeReward": null,
-        "narrativeText": "Follow the workers' route through the smelly docks."
+        "narrativeText": "Follow the workers' route through the smelly fish markets. (+15 hunger from the stench)"
       },
       {
         "id": "merchant_avenue",
@@ -831,9 +831,9 @@
         "coinRequirement": 0,
         "permitRequirement": null,
         "travelTimeMinutes": 15,
-        "hungerEffect": 0,
-        "oneTimeReward": "3 coins",
-        "narrativeText": "Navigate the confusing warehouse layout."
+        "hungerEffect": -5,
+        "oneTimeReward": "5_coins",
+        "narrativeText": "Navigate the confusing warehouse layout. Find some preserved food! (-5 hunger, +5 coins once)"
       },
       {
         "id": "security_checkpoint",
@@ -891,9 +891,9 @@
         "coinRequirement": 0,
         "permitRequirement": null,
         "travelTimeMinutes": 60,
-        "hungerEffect": 0,
+        "hungerEffect": 20,
         "oneTimeReward": null,
-        "narrativeText": "Waste time arguing with the guards."
+        "narrativeText": "Waste time arguing with the guards. (3 stamina, +20 hunger, +60 minutes!)"
       },
       {
         "id": "noble_promenade",
@@ -921,9 +921,39 @@
         "coinRequirement": 0,
         "permitRequirement": null,
         "travelTimeMinutes": 15,
-        "hungerEffect": 0,
+        "hungerEffect": -10,
         "oneTimeReward": "Garden Layout for Lord Blackwood",
-        "narrativeText": "Discover a hidden path through the private gardens."
+        "narrativeText": "Hidden path through gardens. Find fresh fruit! (-10 hunger, special letter once)"
+      },
+      {
+        "id": "rooftop_scramble",
+        "name": "Rooftop Scramble",
+        "staminaCost": 4,
+        "startsRevealed": false,
+        "isHidden": false,
+        "hasEncounter": false,
+        "isOneTime": false,
+        "coinRequirement": 0,
+        "permitRequirement": null,
+        "travelTimeMinutes": 3,
+        "hungerEffect": 5,
+        "oneTimeReward": null,
+        "narrativeText": "Dangerous but fast! Climb across the rooftops. (4 stamina for 3 minutes!)"
+      },
+      {
+        "id": "market_detour",
+        "name": "Market Detour",
+        "staminaCost": 1,
+        "startsRevealed": false,
+        "isHidden": false,
+        "hasEncounter": false,
+        "isOneTime": false,
+        "coinRequirement": 1,
+        "permitRequirement": null,
+        "travelTimeMinutes": 25,
+        "hungerEffect": -15,
+        "oneTimeReward": null,
+        "narrativeText": "Stop for a meal at the market. (1 coin for food, -15 hunger but +25 minutes)"
       }
     ],
     "eventCollections": [
