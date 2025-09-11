@@ -334,19 +334,8 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 return null;
             }
 
-            // Get current segment cards
-            List<PathCardDTO> currentSegmentCards = new List<PathCardDTO>();
-            if (session.CurrentSegment <= route.Segments.Count)
-            {
-                RouteSegment segment = route.Segments[session.CurrentSegment - 1];
-                foreach (string pathCardId in segment.PathCardIds)
-                {
-                    if (_gameWorld.AllPathCards.ContainsKey(pathCardId))
-                    {
-                        currentSegmentCards.Add(_gameWorld.AllPathCards[pathCardId]);
-                    }
-                }
-            }
+            // Get current segment cards - delegate to TravelManager which handles both FixedPath and Event segments
+            List<PathCardDTO> currentSegmentCards = _travelManager.GetSegmentCards();
 
             // Check if player must turn back (exhausted with no paths available)
             bool mustTurnBack = session.CurrentState == TravelState.Exhausted && 
