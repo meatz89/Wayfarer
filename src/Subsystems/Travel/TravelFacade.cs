@@ -597,9 +597,19 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             RouteSegment segment = route.Segments[session.CurrentSegment - 1];
             
             // Get the collection ID based on segment type
-            string collectionId = segment.Type == SegmentType.Event && !string.IsNullOrEmpty(session.CurrentEventId) 
-                ? session.CurrentEventId 
-                : segment.CollectionId;
+            string collectionId = null;
+            if (segment.Type == SegmentType.Event)
+            {
+                // For Event segments: use CurrentEventId if available, otherwise EventCollectionId
+                collectionId = !string.IsNullOrEmpty(session.CurrentEventId) 
+                    ? session.CurrentEventId 
+                    : segment.EventCollectionId;
+            }
+            else
+            {
+                // For FixedPath segments: use PathCollectionId
+                collectionId = segment.PathCollectionId;
+            }
                 
             if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
             {
@@ -607,7 +617,20 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             }
             
             PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
-            return collection.PathCards.FirstOrDefault(c => c.Id == cardId);
+            
+            // Check if the card ID is in this collection's PathCardIds
+            if (!collection.PathCardIds.Contains(cardId))
+            {
+                return null;
+            }
+            
+            // Look up the actual card from AllPathCards
+            if (_gameWorld.AllPathCards.ContainsKey(cardId))
+            {
+                return _gameWorld.AllPathCards[cardId];
+            }
+            
+            return null;
         }
 
         /// <summary>

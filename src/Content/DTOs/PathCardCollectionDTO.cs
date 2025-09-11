@@ -17,8 +17,4 @@ public class PathCardCollectionDTO
     
     // For when this collection is used as an event itself: event cards for this specific event
     public List<string> EventCardIds { get; set; } = new List<string>();
-    
-    // Legacy property: For Event segments currently defining unique path cards inline
-    // TODO: Remove after migration to normalized structure
-    public List<PathCardDTO> PathCards { get; set; } = new List<PathCardDTO>();
 }

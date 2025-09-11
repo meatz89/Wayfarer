@@ -46,9 +46,4 @@ public class RouteSegmentDTO
     
     // For Event segments: the event collection containing events to randomly select from
     public string EventCollectionId { get; set; }
-    
-    // Legacy properties (deprecated - will be removed after migration)
-    public string CollectionId { get; set; }
-    public List<string> CollectionPool { get; set; } = new List<string>();
-    public List<string> EventPool { get; set; } = new List<string>();
 }

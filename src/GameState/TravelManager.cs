@@ -85,8 +85,7 @@ public class TravelManager
     /// </summary>
     private List<PathCardDTO> GetPathCardsForFixedPathSegment(RouteSegment segment)
     {
-        // Use new normalized property first, fall back to legacy
-        string collectionId = segment.PathCollectionId ?? segment.CollectionId;
+        string collectionId = segment.PathCollectionId;
         
         if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
         {
@@ -109,8 +108,8 @@ public class TravelManager
             return resolvedCards;
         }
         
-        // Fall back to legacy inline cards
-        return collection.PathCards ?? new List<PathCardDTO>();
+        // No cards found
+        return new List<PathCardDTO>();
     }
     
     /// <summary>
@@ -119,21 +118,20 @@ public class TravelManager
     private List<PathCardDTO> GetPathCardsForEventSegment(RouteSegment segment, TravelSession session)
     {
         // Step 1: Get event collection ID (new normalized or legacy)
-        string eventCollectionId = segment.EventCollectionId ?? segment.CollectionId;
+        string eventCollectionId = segment.EventCollectionId;
         
         if (string.IsNullOrEmpty(eventCollectionId))
         {
-            return HandleLegacyEventSegment(segment, session);
+            return new List<PathCardDTO>();
         }
         
-        // Check for normalized structure first
+        // Check for normalized structure
         if (_gameWorld.AllEventCollections.ContainsKey(eventCollectionId))
         {
             return HandleNormalizedEventSegment(segment, session, eventCollectionId);
         }
         
-        // Fall back to legacy structure
-        return HandleLegacyEventSegment(segment, session);
+        return new List<PathCardDTO>();
     }
     
     /// <summary>
@@ -176,46 +174,6 @@ public class TravelManager
         return eventCards;
     }
     
-    /// <summary>
-    /// Handle legacy event structure for backwards compatibility
-    /// </summary>
-    private List<PathCardDTO> HandleLegacyEventSegment(RouteSegment segment, TravelSession session)
-    {
-        // Legacy: Event segments select randomly from a pool of collections
-        string collectionId = session.CurrentEventId;
-        
-        // Only draw a new collection if we don't have one yet
-        if (string.IsNullOrEmpty(collectionId))
-        {
-            collectionId = DrawRandomCollection(segment);
-            session.CurrentEventId = collectionId; // Track which collection was drawn
-        }
-        
-        // Return the cards from the collection
-        if (!string.IsNullOrEmpty(collectionId) && _gameWorld.AllPathCollections.ContainsKey(collectionId))
-        {
-            PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
-            
-            // If collection has PathCardIds, resolve them to actual cards
-            if (collection.PathCardIds != null && collection.PathCardIds.Count > 0)
-            {
-                List<PathCardDTO> resolvedCards = new List<PathCardDTO>();
-                foreach (string cardId in collection.PathCardIds)
-                {
-                    if (_gameWorld.AllPathCards.ContainsKey(cardId))
-                    {
-                        resolvedCards.Add(_gameWorld.AllPathCards[cardId]);
-                    }
-                }
-                return resolvedCards;
-            }
-            
-            // Otherwise use inline PathCards (for event collections)
-            return collection.PathCards ?? new List<PathCardDTO>();
-        }
-
-        return new List<PathCardDTO>();
-    }
     
     /// <summary>
     /// Get or draw an event for a segment (ensures deterministic behavior)
@@ -236,21 +194,6 @@ public class TravelManager
         return eventId;
     }
     
-    /// <summary>
-    /// Draw a random collection from the segment's collection pool for legacy Event-type segments
-    /// </summary>
-    private string DrawRandomCollection(RouteSegment segment)
-    {
-        // Use segment's collection pool if available
-        if (segment.CollectionPool != null && segment.CollectionPool.Count > 0)
-        {
-            int index = _random.Next(segment.CollectionPool.Count);
-            return segment.CollectionPool[index];
-        }
-
-        // Fall back to single collection ID if no pool
-        return segment.CollectionId;
-    }
 
     /// <summary>
     /// Reveal a face-down path card without playing it
@@ -528,8 +471,7 @@ public class TravelManager
     /// </summary>
     private PathCardDTO GetCardFromFixedPathSegment(RouteSegment segment, string cardId)
     {
-        // Use new normalized property first, fall back to legacy
-        string collectionId = segment.PathCollectionId ?? segment.CollectionId;
+        string collectionId = segment.PathCollectionId;
         
         if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
         {
@@ -545,8 +487,8 @@ public class TravelManager
             return _gameWorld.AllPathCards.ContainsKey(cardId) ? _gameWorld.AllPathCards[cardId] : null;
         }
         
-        // Otherwise check inline cards (legacy)
-        return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
+        // Card not found
+        return null;
     }
     
     /// <summary>
@@ -555,7 +497,7 @@ public class TravelManager
     private PathCardDTO GetCardFromEventSegment(RouteSegment segment, TravelSession session, string cardId)
     {
         // Try normalized structure first
-        string eventCollectionId = segment.EventCollectionId ?? segment.CollectionId;
+        string eventCollectionId = segment.EventCollectionId;
         
         if (!string.IsNullOrEmpty(eventCollectionId) && _gameWorld.AllEventCollections.ContainsKey(eventCollectionId))
         {
@@ -563,25 +505,8 @@ public class TravelManager
             return _gameWorld.AllEventCards.ContainsKey(cardId) ? _gameWorld.AllEventCards[cardId] : null;
         }
         
-        // Legacy structure: look in path collections
-        string collectionId = session.CurrentEventId ?? segment.CollectionId;
-        
-        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
-        {
-            return null;
-        }
-        
-        PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
-        
-        // Check if this collection uses ID references
-        if (collection.PathCardIds != null && collection.PathCardIds.Contains(cardId))
-        {
-            // Resolve from main path cards dictionary
-            return _gameWorld.AllPathCards.ContainsKey(cardId) ? _gameWorld.AllPathCards[cardId] : null;
-        }
-        
-        // Otherwise check inline cards (for event collections)
-        return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
+        // No card found
+        return null;
     }
 
     /// <summary>

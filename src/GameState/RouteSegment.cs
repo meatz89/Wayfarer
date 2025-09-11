@@ -22,8 +22,4 @@ public class RouteSegment
     
     // For Event segments  
     public string EventCollectionId { get; set; }  // References AllEventCollections
-    
-    // Legacy properties for backwards compatibility
-    public string CollectionId { get; set; }  // For FixedPath: single collection ID, For Event: selected from pool
-    public List<string> CollectionPool { get; set; } = new();  // For Event segments: pool of collection IDs to randomly select from
 }

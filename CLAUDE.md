@@ -43,6 +43,17 @@
 - ALWAYS check if a file exist before creating it
 - **ALWAYS understand the full context before writing ANY code**
 
+**🚨 COMPLETE REFACTORING RULE: NO LEGACY CODE LEFT BEHIND 🚨**
+- **NEVER leave TODO comments in code** - If you're refactoring, COMPLETE IT
+- **NEVER leave legacy fallback code** - Remove ALL old patterns, no "backwards compatibility"
+- **NEVER leave commented-out old code** - Delete it completely
+- **When refactoring, search for ALL occurrences** - Use grep/rg to find EVERY reference
+- **Check for legacy properties in DTOs** - DTOs often have old fields marked "deprecated" - DELETE THEM
+- **Remove entire legacy methods** - Don't just stop calling them, DELETE them
+- **No "will be removed later" comments** - Remove it NOW or don't refactor at all
+- **After refactoring, grep for old property/method names** - Ensure ZERO references remain
+- Example: When removing `CollectionId`, also remove `CollectionPool`, `DrawRandomCollection()`, `HandleLegacyEventSegment()` and ANY code that references them
+
 **🚨 HIGHLANDER PRINCIPLE: THERE CAN BE ONLY ONE 🚨**
 - NEVER have duplicate enums, classes, or concepts for the same thing. If you find ConnectionState and NPCConnectionState, DELETE ONE. If you find two ways to track the same state, DELETE ONE. No mapping, no conversion, no compatibility layers. ONE source of truth, ONE enum, ONE class per concept.
 

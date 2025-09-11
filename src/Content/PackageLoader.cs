@@ -904,38 +904,26 @@ public class PackageLoader
                 RouteSegment segment = new RouteSegment
                 {
                     SegmentNumber = segmentDto.SegmentNumber,
-                    Type = segmentType,
-                    CollectionId = null, // Will be set below based on type
-                    CollectionPool = new List<string>()
+                    Type = segmentType
                 };
                 
-                // Set collection properties based on segment type and new normalized properties
+                // Set collection properties based on segment type using normalized properties
                 if (segmentType == SegmentType.FixedPath)
                 {
-                    // FixedPath segments use pathCollectionId (new normalized structure) or fallback to CollectionId (legacy)
-                    segment.CollectionId = segmentDto.PathCollectionId ?? segmentDto.CollectionId;
-                    if (!string.IsNullOrEmpty(segment.CollectionId))
+                    // FixedPath segments use pathCollectionId from JSON
+                    segment.PathCollectionId = segmentDto.PathCollectionId;
+                    if (!string.IsNullOrEmpty(segment.PathCollectionId))
                     {
-                        Console.WriteLine($"[PackageLoader] FixedPath segment {segmentDto.SegmentNumber} uses path collection '{segment.CollectionId}'");
+                        Console.WriteLine($"[PackageLoader] FixedPath segment {segmentDto.SegmentNumber} uses path collection '{segment.PathCollectionId}'");
                     }
                 }
                 else if (segmentType == SegmentType.Event)
                 {
-                    // Event segments use eventCollectionId (new normalized structure) or fallback to legacy properties
-                    if (!string.IsNullOrEmpty(segmentDto.EventCollectionId))
+                    // Event segments use eventCollectionId from JSON
+                    segment.EventCollectionId = segmentDto.EventCollectionId;
+                    if (!string.IsNullOrEmpty(segment.EventCollectionId))
                     {
-                        // New normalized structure: single event collection ID
-                        segment.CollectionId = segmentDto.EventCollectionId;
-                        Console.WriteLine($"[PackageLoader] Event segment {segmentDto.SegmentNumber} uses event collection '{segment.CollectionId}'");
-                    }
-                    else
-                    {
-                        // Legacy structure: CollectionPool for multiple collections
-                        segment.CollectionPool = segmentDto.CollectionPool?.ToList() ?? new List<string>();
-                        if (segment.CollectionPool.Count > 0)
-                        {
-                            Console.WriteLine($"[PackageLoader] Event segment {segmentDto.SegmentNumber} has {segment.CollectionPool.Count} collections in pool (legacy)");
-                        }
+                        Console.WriteLine($"[PackageLoader] Event segment {segmentDto.SegmentNumber} uses event collection '{segment.EventCollectionId}'");
                     }
                 }
                 
@@ -1121,19 +1109,8 @@ public class PackageLoader
             Console.WriteLine($"[PackageLoader] Event card '{eventCard.Id}' discovery state: {(eventCard.StartsRevealed ? "face-up" : "face-down")}");
         }
         
-        // Also check event collections for inline path cards (event-specific cards)
-        foreach (KeyValuePair<string, PathCardCollectionDTO> collectionKvp in _gameWorld.AllPathCollections)
-        {
-            // Event collections define cards inline
-            if (collectionKvp.Value.PathCards != null && collectionKvp.Value.PathCards.Count > 0)
-            {
-                foreach (PathCardDTO pathCard in collectionKvp.Value.PathCards)
-                {
-                    _gameWorld.PathCardDiscoveries[pathCard.Id] = pathCard.StartsRevealed;
-                    Console.WriteLine($"[PackageLoader] Event path card '{pathCard.Id}' discovery state: {(pathCard.StartsRevealed ? "face-up" : "face-down")}");
-                }
-            }
-        }
+        // All cards are now loaded from normalized dictionaries (AllPathCards/AllEventCards)
+        // No need to check collections for inline cards anymore
 
         // Initialize EventDeckPositions for routes with event pools
         foreach (KeyValuePair<string, List<string>> kvp in _gameWorld.RouteEventPools)
@@ -1235,8 +1212,8 @@ public class PackageLoader
                 SegmentNumber = segmentNumber++,
                 Type = originalSegment.Type,
                 // Keep the same collections - they represent the same physical locations
-                CollectionId = originalSegment.CollectionId,
-                CollectionPool = new List<string>(originalSegment.CollectionPool)
+                PathCollectionId = originalSegment.PathCollectionId,
+                EventCollectionId = originalSegment.EventCollectionId
             };
             reverseRoute.Segments.Add(reverseSegment);
         }
