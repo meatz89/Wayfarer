@@ -233,9 +233,28 @@
         @if (IsRevealingCard())
         {
             <div class="continue-section">
-                <div class="continue-button" @onclick="ConfirmRevealedCard">
-                    <div>CONTINUE TO NEXT SEGMENT</div>
-                    <div class="continue-details">Confirm this path choice and proceed</div>
+                @if (IsReadyToComplete())
+                {
+                    <div class="continue-button" @onclick="FinishRoute">
+                        <div>FINISH ROUTE</div>
+                        <div class="continue-details">Complete your journey to @GetDestinationName()</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="continue-button" @onclick="ConfirmRevealedCard">
+                        <div>CONTINUE TO NEXT SEGMENT</div>
+                        <div class="continue-details">Confirm this path choice and proceed</div>
+                    </div>
+                }
+            </div>
+        }
+        else if (IsReadyToComplete())
+        {
+            <div class="continue-section">
+                <div class="continue-button" @onclick="FinishRoute">
+                    <div>FINISH ROUTE</div>
+                    <div class="continue-details">Complete your journey to @GetDestinationName()</div>
                 </div>
             </div>
         }

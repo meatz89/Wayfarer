@@ -611,6 +611,31 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             }
             return null;
         }
+        
+        /// <summary>
+        /// Turn back and cancel the journey
+        /// </summary>
+        public bool TurnBack()
+        {
+            return _travelManager.TurnBack();
+        }
+        
+        /// <summary>
+        /// Check if journey is ready to complete (last segment finished)
+        /// </summary>
+        public bool IsReadyToComplete()
+        {
+            var session = _gameWorld.CurrentTravelSession;
+            return session != null && session.IsReadyToComplete;
+        }
+        
+        /// <summary>
+        /// Complete the journey after last segment
+        /// </summary>
+        public bool FinishRoute()
+        {
+            return _travelManager.FinishRoute();
+        }
     }
 
     /// <summary>

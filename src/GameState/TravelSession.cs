@@ -20,6 +20,9 @@ public class TravelSession
     // Card reveal state tracking for face-down card reveal mechanic
     public bool IsRevealingCard { get; set; } = false;
     public string RevealedCardId { get; set; }
+    
+    // Journey completion state - true when last segment is completed and ready to finish
+    public bool IsReadyToComplete { get; set; } = false;
 }
 
 public enum TravelState

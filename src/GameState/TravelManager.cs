@@ -374,6 +374,22 @@ public class TravelManager
         return true;
     }
 
+    /// <summary>
+    /// Finish the route when journey is ready to complete (after last segment)
+    /// </summary>
+    public bool FinishRoute()
+    {
+        TravelSession session = _gameWorld.CurrentTravelSession;
+        if (session == null || !session.IsReadyToComplete)
+        {
+            return false;
+        }
+
+        // Complete the journey
+        CompleteJourney(session);
+        return true;
+    }
+
     // ========== HELPER METHODS ==========
 
     /// <summary>
@@ -506,7 +522,7 @@ public class TravelManager
     }
 
     /// <summary>
-    /// Advance to next segment or complete journey
+    /// Advance to next segment or mark journey as ready to complete
     /// </summary>
     private void AdvanceSegment(TravelSession session)
     {
@@ -525,8 +541,9 @@ public class TravelManager
         }
         else
         {
-            // Journey complete - player reaches destination
-            CompleteJourney(session);
+            // Journey is ready to complete but NOT auto-completed
+            // Player must explicitly click "Finish Route" button
+            session.IsReadyToComplete = true;
         }
     }
 

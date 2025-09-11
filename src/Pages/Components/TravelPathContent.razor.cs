@@ -407,6 +407,27 @@ namespace Wayfarer.Pages.Components
                 StateHasChanged();
             }
         }
+        
+        /// <summary>
+        /// Finish the route when ready to complete
+        /// </summary>
+        protected async Task FinishRoute()
+        {
+            if (TravelFacade.FinishRoute())
+            {
+                // Navigate back to location screen
+                await OnNavigate.InvokeAsync("location");
+            }
+        }
+        
+        /// <summary>
+        /// Check if journey is ready to complete
+        /// </summary>
+        protected bool IsReadyToComplete()
+        {
+            return TravelFacade.IsReadyToComplete();
+        }
+        
 
         /// <summary>
         /// Check if we're in card reveal state
