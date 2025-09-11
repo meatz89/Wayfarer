@@ -83,7 +83,7 @@
                     var isAvailable = pathCardData.CanPlay && !ShouldDisableCard(card.Id);
                     var isBeingRevealed = IsCardBeingRevealed(card.Id);
                     
-                    <div class="path-card @GetPathCardCssClass(isDiscovered, isAvailable) @(isBeingRevealed ? "revealed" : "") @(ShouldDisableCard(card.Id) ? "disabled-during-reveal" : "")" @onclick="() => SelectPathCard(card.Id)">
+                    <div class="path-card @GetPathCardCssClass(isDiscovered, isAvailable) @(isBeingRevealed ? "revealed" : "") @(ShouldDisableCard(card.Id) ? "disabled-during-reveal" : "") @(IsReadyToComplete() ? "complete" : "")" @onclick="async () => { if (!IsReadyToComplete()) await SelectPathCard(card.Id); }">
                         
                         @if (isDiscovered)
                         {
