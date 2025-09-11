@@ -130,7 +130,7 @@ public partial class DailyActivitiesManager
     private DeliveryObligation[] GetLettersAboutToExpire()
     {
         return _gameWorld.GetPlayer().ObligationQueue
-            .Where(l => l != null && l.DeadlineInMinutes == 0)
+            .Where(l => l != null && l.DeadlineInSegments == 0)
             .ToArray();
     }
 
@@ -240,7 +240,7 @@ public partial class DailyActivitiesManager
 
     private string GetUrgentLetterNarrative(DeliveryObligation letter)
     {
-        if (letter.DeadlineInMinutes == 1)
+        if (letter.DeadlineInSegments == 1)
         {
             string[] narratives = new string[]
             {
@@ -255,9 +255,9 @@ public partial class DailyActivitiesManager
         {
             string[] narratives = new string[]
             {
-            $"The seal on {letter.RecipientName}'s letter grows warm - only {letter.DeadlineInMinutes} days remain.",
-            $"{letter.RecipientName} waits for word that grows more urgent by the hour. {letter.DeadlineInMinutes} days left.",
-            $"The letter to {letter.RecipientName} weighs heavier each day. {letter.DeadlineInMinutes} sunrises remain."
+            $"The seal on {letter.RecipientName}'s letter grows warm - only {letter.DeadlineInSegments} days remain.",
+            $"{letter.RecipientName} waits for word that grows more urgent by the hour. {letter.DeadlineInSegments} days left.",
+            $"The letter to {letter.RecipientName} weighs heavier each day. {letter.DeadlineInSegments} sunrises remain."
             };
             Random random = new Random();
             return narratives[random.Next(narratives.Length)];

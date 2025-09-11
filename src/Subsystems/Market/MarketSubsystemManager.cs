@@ -121,8 +121,8 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 return "No traders at this location";
             }
 
-            TimeBlocks[] allTimes = { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon,
-                                     TimeBlocks.Evening, TimeBlocks.Night, TimeBlocks.LateNight };
+            TimeBlocks[] allTimes = { TimeBlocks.Dawn, TimeBlocks.Midday, TimeBlocks.Afternoon,
+                                     TimeBlocks.Evening, TimeBlocks.Night, TimeBlocks.DeepNight };
 
             foreach (TimeBlocks time in allTimes)
             {
@@ -480,8 +480,8 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 summary.MarketStatus = GetMarketAvailabilityStatus(locationId, currentTime);
 
                 // Find next open time
-                TimeBlocks[] futureTimes = { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon,
-                                            TimeBlocks.Evening, TimeBlocks.Night, TimeBlocks.LateNight };
+                TimeBlocks[] futureTimes = { TimeBlocks.Dawn, TimeBlocks.Midday, TimeBlocks.Afternoon,
+                                            TimeBlocks.Evening, TimeBlocks.Night, TimeBlocks.DeepNight };
                 foreach (TimeBlocks time in futureTimes)
                 {
                     if (time <= currentTime) continue;

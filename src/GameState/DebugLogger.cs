@@ -76,11 +76,11 @@ public class DebugLogger
         AddLog(DebugLogCategory.Conversation, message);
     }
 
-    public void LogTimeChange(string fromTime, string toTime, int hoursAdvanced)
+    public void LogTimeChange(string fromTime, string toTime, int segmentsAdvanced)
     {
         if (!_enabled) return;
 
-        string message = $"TIME: {fromTime} → {toTime} | Advanced {hoursAdvanced} hours";
+        string message = $"TIME: {fromTime} → {toTime} | Advanced {segmentsAdvanced} segments";
         AddLog(DebugLogCategory.Time, message);
     }
 
@@ -190,8 +190,8 @@ public class DebugLogger
         report.Add("TIME STATE:");
         report.Add($"  Current Day: {gameWorld.CurrentDay}");
         report.Add($"  Time Block: {_timeManager.GetCurrentTimeBlock()}");
-        report.Add($"  Hours: {_timeManager.GetCurrentTimeHours()}");
-        report.Add($"  Hours Remaining: {_timeManager.HoursRemaining}");
+        report.Add($"  Current Segment: {_timeManager.CurrentSegment}");
+        report.Add($"  Segments Remaining: {_timeManager.SegmentsRemainingInDay}");
         report.Add("");
 
         // Conversation state removed - no longer available

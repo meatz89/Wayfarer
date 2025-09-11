@@ -10,46 +10,46 @@ namespace Wayfarer.Subsystems.TravelSubsystem
     {
         private readonly GameWorld _gameWorld;
 
-        // Travel time matrix in minutes
+        // Travel time matrix in segments
         private static readonly Dictionary<(string, string), int> TravelTimes = new Dictionary<(string, string), int>
         {
             // Your Room connections (very close to Market Square)
-            { ("your_room", "market_square"), 10 },
-            { ("market_square", "your_room"), 10 },
+            { ("your_room", "market_square"), 1 },
+            { ("market_square", "your_room"), 1 },
             
             // Market Square as central hub
-            { ("market_square", "noble_district"), 30 },
-            { ("noble_district", "market_square"), 30 },
-            { ("market_square", "merchant_row"), 15 },
-            { ("merchant_row", "market_square"), 15 },
-            { ("market_square", "city_gates"), 30 },
-            { ("city_gates", "market_square"), 30 },
-            { ("market_square", "riverside"), 45 },
-            { ("riverside", "market_square"), 45 },
+            { ("market_square", "noble_district"), 2 },
+            { ("noble_district", "market_square"), 2 },
+            { ("market_square", "merchant_row"), 1 },
+            { ("merchant_row", "market_square"), 1 },
+            { ("market_square", "city_gates"), 2 },
+            { ("city_gates", "market_square"), 2 },
+            { ("market_square", "riverside"), 3 },
+            { ("riverside", "market_square"), 3 },
             
             // Non-hub connections (longer)
-            { ("noble_district", "merchant_row"), 45 },
-            { ("merchant_row", "noble_district"), 45 },
-            { ("noble_district", "city_gates"), 60 },
-            { ("city_gates", "noble_district"), 60 },
-            { ("noble_district", "riverside"), 60 },
-            { ("riverside", "noble_district"), 60 },
-            { ("merchant_row", "city_gates"), 30 },
-            { ("city_gates", "merchant_row"), 30 },
-            { ("merchant_row", "riverside"), 60 },
-            { ("riverside", "merchant_row"), 60 },
-            { ("city_gates", "riverside"), 30 },
-            { ("riverside", "city_gates"), 30 },
+            { ("noble_district", "merchant_row"), 3 },
+            { ("merchant_row", "noble_district"), 3 },
+            { ("noble_district", "city_gates"), 4 },
+            { ("city_gates", "noble_district"), 4 },
+            { ("noble_district", "riverside"), 4 },
+            { ("riverside", "noble_district"), 4 },
+            { ("merchant_row", "city_gates"), 2 },
+            { ("city_gates", "merchant_row"), 2 },
+            { ("merchant_row", "riverside"), 4 },
+            { ("riverside", "merchant_row"), 4 },
+            { ("city_gates", "riverside"), 2 },
+            { ("riverside", "city_gates"), 2 },
             
             // Your Room to other locations (must go through Market Square)
-            { ("your_room", "noble_district"), 40 },
-            { ("noble_district", "your_room"), 40 },
-            { ("your_room", "merchant_row"), 25 },
-            { ("merchant_row", "your_room"), 25 },
-            { ("your_room", "city_gates"), 40 },
-            { ("city_gates", "your_room"), 40 },
-            { ("your_room", "riverside"), 55 },
-            { ("riverside", "your_room"), 55 },
+            { ("your_room", "noble_district"), 3 },
+            { ("noble_district", "your_room"), 3 },
+            { ("your_room", "merchant_row"), 2 },
+            { ("merchant_row", "your_room"), 2 },
+            { ("your_room", "city_gates"), 3 },
+            { ("city_gates", "your_room"), 3 },
+            { ("your_room", "riverside"), 4 },
+            { ("riverside", "your_room"), 4 },
         };
 
         public TravelTimeCalculator(GameWorld gameWorld)
@@ -58,7 +58,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         }
 
         /// <summary>
-        /// Get base travel time between two locations in minutes.
+        /// Get base travel time between two locations in segments.
         /// </summary>
         public int GetBaseTravelTime(string fromLocationId, string toLocationId)
         {
@@ -77,7 +77,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
 
             // No fallback - route must be defined
             Console.WriteLine($"[TravelTimeCalculator] Warning: No travel time defined for {fromLocationId} -> {toLocationId}");
-            return 60; // Default to 1 hour if not found
+            return 4; // Default to 4 segments if not found
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             // Apply weather effects if any
             actualTime = ApplyWeatherEffects(actualTime);
 
-            return Math.Max(5, actualTime); // Minimum 5 minutes travel time
+            return Math.Max(1, actualTime); // Minimum 1 segment travel time
         }
 
         /// <summary>
@@ -171,9 +171,9 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         /// <summary>
         /// Check if travel is possible given current time constraints.
         /// </summary>
-        public bool CanTravelInTime(int travelTimeMinutes, int availableMinutes)
+        public bool CanTravelInTime(int travelTimeSegments, int availableSegments)
         {
-            return travelTimeMinutes <= availableMinutes;
+            return travelTimeSegments <= availableSegments;
         }
     }
 }

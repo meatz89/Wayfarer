@@ -384,7 +384,7 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Investigate the current location to gain familiarity. Costs 1 attention and 10 minutes.
+        /// Investigate the current location to gain familiarity. Costs 1 attention and 1 segment.
         /// Familiarity gain depends on spot properties.
         /// </summary>
         protected async Task InvestigateLocation()
@@ -524,7 +524,7 @@ namespace Wayfarer.Pages.Components
             DeliveryObligation? firstObligation = obligations.FirstOrDefault();
             return firstObligation != null &&
                    (firstObligation.SenderId == npcId || firstObligation.SenderName == GetNPCName(npcId)) &&
-                   firstObligation.DeadlineInMinutes < 360; // Urgent if less than 6 hours
+                   firstObligation.DeadlineInSegments < 360; // Urgent if less than 6 hours
         }
 
         protected string GetNPCName(string npcId)
@@ -552,13 +552,13 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetDeadlineClass(int deadlineInMinutes)
+        protected string GetDeadlineClass(int deadlineInSegments)
         {
-            if (deadlineInMinutes <= 0)
+            if (deadlineInSegments <= 0)
                 return "expired";
-            else if (deadlineInMinutes <= 120)
+            else if (deadlineInSegments <= 4) // 4 segments
                 return "critical";
-            else if (deadlineInMinutes <= 360)
+            else if (deadlineInSegments <= 12) // 12 segments
                 return "urgent";
             else
                 return "normal";
@@ -595,20 +595,12 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected string GetDeadlineText(int deadlineInMinutes)
+        protected string GetDeadlineText(int deadlineInSegments)
         {
-            if (deadlineInMinutes <= 0)
+            if (deadlineInSegments <= 0)
                 return "EXPIRED!";
 
-            int hours = deadlineInMinutes / 60;
-            int minutes = deadlineInMinutes % 60;
-
-            if (hours == 0)
-                return $"{minutes}m";
-            else if (minutes == 0)
-                return $"{hours}h";
-            else
-                return $"{hours}h {minutes}m";
+            return $"{deadlineInSegments} seg";
         }
 
         protected string GetTokenCount(string npcId, ConnectionType tokenType)
@@ -706,11 +698,11 @@ namespace Wayfarer.Pages.Components
             string timeStr = CurrentTime switch
             {
                 TimeBlocks.Dawn => "Dawn",
-                TimeBlocks.Morning => "Morning",
+                TimeBlocks.Midday => "Midday",
                 TimeBlocks.Afternoon => "Afternoon",
                 TimeBlocks.Evening => "Evening",
                 TimeBlocks.Night => "Night",
-                TimeBlocks.LateNight => "Late Night",
+                TimeBlocks.DeepNight => "DeepNight",
                 _ => "Unknown"
             };
 
@@ -732,7 +724,7 @@ namespace Wayfarer.Pages.Components
             {
                 return CurrentTime switch
                 {
-                    TimeBlocks.Morning => "Opening",
+                    TimeBlocks.Midday => "Opening",
                     TimeBlocks.Afternoon => "Busy",
                     TimeBlocks.Evening => "Closing",
                     TimeBlocks.Night => "Empty",
@@ -745,7 +737,7 @@ namespace Wayfarer.Pages.Components
             {
                 return CurrentTime switch
                 {
-                    TimeBlocks.Morning => "Quiet",
+                    TimeBlocks.Midday => "Quiet",
                     TimeBlocks.Afternoon => "Quiet",
                     TimeBlocks.Evening => "Busy",
                     TimeBlocks.Night => "Lively",
@@ -758,7 +750,7 @@ namespace Wayfarer.Pages.Components
             {
                 return CurrentTime switch
                 {
-                    TimeBlocks.Morning => "Formal",
+                    TimeBlocks.Midday => "Formal",
                     TimeBlocks.Afternoon => "Active",
                     TimeBlocks.Evening => "Reception",
                     TimeBlocks.Night => "Private",

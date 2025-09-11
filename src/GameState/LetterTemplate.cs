@@ -11,8 +11,8 @@ public class LetterTemplate
     public string Id { get; set; }
     public string Description { get; set; }
     public ConnectionType TokenType { get; set; }
-    public int MinDeadlineInMinutes { get; set; }
-    public int MaxDeadlineInMinutes { get; set; }
+    public int MinDeadlineInSegments { get; set; }
+    public int MaxDeadlineInSegments { get; set; }
     public int MinPayment { get; set; }
     public int MaxPayment { get; set; }
 

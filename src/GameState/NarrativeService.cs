@@ -280,7 +280,7 @@ public class NarrativeService
         return time switch
         {
             TimeBlocks.Dawn => "early this morning",
-            TimeBlocks.Morning => "this morning",
+            TimeBlocks.Midday => "this morning",
             TimeBlocks.Afternoon => "this afternoon",
             TimeBlocks.Evening => "this evening",
             TimeBlocks.Night => "late tonight",
@@ -303,8 +303,8 @@ public class NarrativeService
     {
         return (from, to) switch
         {
-            (TimeBlocks.Dawn, TimeBlocks.Morning) => "The sun climbs higher as morning arrives.",
-            (TimeBlocks.Morning, TimeBlocks.Afternoon) => "The day grows warm as afternoon approaches.",
+            (TimeBlocks.Dawn, TimeBlocks.Midday) => "The sun climbs higher as morning arrives.",
+            (TimeBlocks.Midday, TimeBlocks.Afternoon) => "The day grows warm as afternoon approaches.",
             (TimeBlocks.Afternoon, TimeBlocks.Evening) => "Shadows lengthen as evening draws near.",
             (TimeBlocks.Evening, TimeBlocks.Night) => "Darkness falls across the land.",
             (TimeBlocks.Night, TimeBlocks.Dawn) => "The first light of dawn breaks the horizon.",

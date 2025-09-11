@@ -21,7 +21,7 @@ public class ObservationDTO
     public string Name { get; set; }
     public string Description { get; set; }
     public string UniqueEffect { get; set; }
-    public int ExpirationHours { get; set; }
+    public int ExpirationSegments { get; set; }
     public string TokenType { get; set; }
     public string Difficulty { get; set; }
     public object SuccessEffect { get; set; }

@@ -250,13 +250,15 @@ public class ObservationManager
     private DateTime GetCurrentGameTime()
     {
         // Convert game time to a DateTime for decay calculations
-        // Day 1, Hour 0 = DateTime base, each game day = 24 real hours for decay purposes
+        // Day 1, Segment 0 = DateTime base, using segments instead of hours/minutes
         DateTime baseDate = new DateTime(2024, 1, 1, 0, 0, 0); // Arbitrary base date
         int gameDay = _timeManager.GetCurrentDay();
-        int gameHour = _timeManager.GetCurrentTimeHours();
-        int gameMinutes = _timeManager.GetCurrentMinutes();
+        int gameSegment = _timeManager.CurrentSegment;
+        
+        // Convert segments to fractional hours for DateTime calculation (16 segments = 8 hours, 2 segments per hour)
+        double segmentAsHours = gameSegment * 0.5; // Each segment = 30 minutes (0.5 hours)
 
-        return baseDate.AddDays(gameDay - 1).AddHours(gameHour).AddMinutes(gameMinutes);
+        return baseDate.AddDays(gameDay - 1).AddHours(segmentAsHours);
     }
 
     /// <summary>
@@ -393,11 +395,11 @@ public class ObservationManager
         return currentTimeBlock switch
         {
             TimeBlocks.Dawn => "dawn",
-            TimeBlocks.Morning => "morning",
+            TimeBlocks.Midday => "morning",
             TimeBlocks.Afternoon => "afternoon",
             TimeBlocks.Evening => "evening",
             TimeBlocks.Night => "night",
-            TimeBlocks.LateNight => "latenight",
+            TimeBlocks.DeepNight => "latenight",
             _ => "unknown"
         };
     }

@@ -81,16 +81,16 @@ public class DialogueGenerationService
 
     private string GenerateMeetingDialogue(MeetingObligation meeting, int turnNumber)
     {
-        int hours = meeting.DeadlineInMinutes / 60;
-        string urgency = hours <= 2 ? "critical" : hours <= 6 ? "urgent" : "pressing";
+        int segments = meeting.DeadlineInSegments;
+        string urgency = segments <= 3 ? "critical" : segments <= 9 ? "urgent" : "pressing";
 
-        return $"urgency:{urgency} time_pressure:{hours}h stakes:{meeting.Stakes.ToString().ToLower()} turn:{turnNumber}";
+        return $"urgency:{urgency} time_pressure:{segments}seg stakes:{meeting.Stakes.ToString().ToLower()} turn:{turnNumber}";
     }
 
     private string GenerateObligationDialogue(DeliveryObligation obligation, int turnNumber)
     {
-        int hours = obligation.DeadlineInMinutes / 60;
-        return $"letter_urgency:{hours}h recipient:{obligation.RecipientName} stakes:{obligation.Stakes.ToString().ToLower()} turn:{turnNumber}";
+        int segments = obligation.DeadlineInSegments;
+        return $"letter_urgency:{segments}seg recipient:{obligation.RecipientName} stakes:{obligation.Stakes.ToString().ToLower()} turn:{turnNumber}";
     }
 
     /// <summary>

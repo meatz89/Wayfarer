@@ -1,6 +1,6 @@
 /// <summary>
-/// Manages all time-related operations in the game.
-/// Single source of truth for time state and progression.
+/// Manages all segment-based time operations in the game.
+/// Single source of truth for time state and progression using segments.
 /// </summary>
 public class TimeManager
 {
@@ -10,13 +10,15 @@ public class TimeManager
 
     public TimeModel TimeModel => _timeModel;
 
-    public int CurrentHour => _timeModel.CurrentHour;
-
     public int CurrentDay => _timeModel.CurrentDay;
+    
+    public int CurrentSegment => _timeModel.CurrentSegment;
+    
+    public int SegmentsRemainingInDay => _timeModel.SegmentsRemainingInDay;
+    
+    public int SegmentsRemainingInBlock => _timeModel.SegmentsRemainingInBlock;
 
     public TimeBlocks CurrentTimeBlock => _timeModel.CurrentTimeBlock;
-    public int HoursRemaining => _timeModel.ActiveHoursRemaining;
-    public int CurrentTimeHours => CurrentHour;
 
     public TimeManager(
         TimeModel timeModel,
@@ -31,21 +33,11 @@ public class TimeManager
     }
 
     /// <summary>
-    /// Checks if an action requiring specified hours can be performed.
+    /// Checks if an action requiring specified segments can be performed.
     /// </summary>
-    public bool CanPerformAction(int hoursRequired = 1)
+    public bool CanPerformAction(int segmentsRequired = 1)
     {
-        return _timeModel.CanPerformAction(hoursRequired);
-    }
-
-    public int GetCurrentTimeHours()
-    {
-        return CurrentTimeHours;
-    }
-
-    public int GetCurrentMinutes()
-    {
-        return _timeModel.CurrentState.CurrentMinute;
+        return _timeModel.CanPerformAction(segmentsRequired);
     }
 
     public int GetCurrentDay()
@@ -58,103 +50,83 @@ public class TimeManager
         return CurrentTimeBlock;
     }
 
-    public void AdvanceTime(int hours)
+    public void AdvanceSegments(int segments)
     {
-        if (hours <= 0) return;
+        if (segments <= 0) return;
 
-        TimeTransaction transaction = CreateTransaction()
-            .WithHours(hours, "Time advancement")
-            .RequireActiveHours(false);
-
-        transaction.Execute();
-    }
-
-    public void AdvanceTimeMinutes(int minutes)
-    {
-        if (minutes <= 0) return;
-
-        // Always show time passing message
-        string timeDescription = GetTimePassingDescription(minutes);
+        // Show time passing message
+        string timeDescription = GetSegmentPassingDescription(segments);
         _messageSystem.AddSystemMessage(
             $"⏱️ {timeDescription}",
             SystemMessageTypes.Info);
 
-        // Use the new minute-based advancement in TimeModel
-        TimeAdvancementResult result = _timeModel.AdvanceTimeMinutes(minutes);
+        // Advance segments in the time model
+        TimeAdvancementResult result = _timeModel.AdvanceSegments(segments);
 
         // Log the time advancement
-        _logger.LogDebug($"Advanced time by {minutes} minutes. New time: Day {result.NewState.CurrentDay}, {result.NewState.CurrentHour:D2}:{result.NewState.CurrentMinute:D2}");
-    }
-
-    private string GetTimePassingDescription(int minutes)
-    {
-        if (minutes < 60)
-            return $"{minutes} minutes pass...";
-        else if (minutes == 60)
-            return "An hour passes...";
-        else if (minutes < 120)
-            return $"An hour and {minutes - 60} minutes pass...";
-        else
-            return $"{minutes / 60} hours pass...";
-    }
-
-    public void SetNewTime(int hours)
-    {
-        // This is a bit tricky - we need to calculate the difference
-        int currentHour = CurrentHour;
-        int difference = hours - currentHour;
-
-        if (difference > 0)
-        {
-            AdvanceTime(difference);
-        }
-        else if (difference < 0)
-        {
-            // Can't go backwards in time, advance to next day at target hour
-            int hoursToAdvance = (24 - currentHour) + hours;
-            AdvanceTime(hoursToAdvance);
-        }
+        _logger.LogDebug($"Advanced time by {segments} segments. New time: {result.NewState}");
+        
+        // Handle time block and day transitions
+        HandleTimeAdvancement(result);
     }
 
     /// <summary>
-    /// Creates a new time transaction for complex time-based operations.
+    /// Jumps to the next time period (like work or rest actions).
+    /// Advances to the first segment of the next time block.
     /// </summary>
-    public TimeTransaction CreateTransaction()
+    public void JumpToNextPeriod()
     {
-        return new TimeTransaction(_timeModel);
+        _messageSystem.AddSystemMessage(
+            "⏰ Moving to the next time period...",
+            SystemMessageTypes.Info);
+
+        TimeAdvancementResult result = _timeModel.JumpToNextPeriod();
+        
+        _logger.LogDebug($"Jumped to next period. New time: {result.NewState}");
+        
+        HandleTimeAdvancement(result);
+    }
+
+    private string GetSegmentPassingDescription(int segments)
+    {
+        return segments switch
+        {
+            1 => "A segment passes...",
+            2 => "Two segments pass...",
+            3 => "Three segments pass...",
+            4 => "Four segments pass (full period)...",
+            _ => $"{segments} segments pass..."
+        };
     }
 
     /// <summary>
-    /// Simple time advancement for basic actions.
+    /// Simple segment advancement for basic actions.
     /// </summary>
-    public async Task<bool> SpendTime(int hours, string description = null)
+    public async Task<bool> SpendSegments(int segments, string description = null)
     {
-        if (!CanPerformAction(hours))
+        if (!CanPerformAction(segments))
         {
             _messageSystem.AddSystemMessage(
-                $"Not enough time remaining. Need {hours} hours, have {HoursRemaining}.",
+                $"Not enough segments remaining. Need {segments} segments, have {SegmentsRemainingInDay}.",
                 SystemMessageTypes.Warning);
             return false;
         }
 
-        TimeTransaction transaction = CreateTransaction()
-            .WithHours(hours, description);
-
-        TimeTransactionResult result = transaction.Execute();
-
-        if (result.IsSuccess)
+        AdvanceSegments(segments);
+        
+        if (!string.IsNullOrEmpty(description))
         {
-            string timeDesc = hours == 1 ? "1 hour" : $"{hours} hours";
+            string segmentDesc = segments == 1 ? "1 segment" : $"{segments} segments";
             _messageSystem.AddSystemMessage(
-                $"⏱️ {description ?? "Time passed"}: {timeDesc}",
+                $"⏱️ {description}: {segmentDesc}",
                 SystemMessageTypes.Info);
         }
 
-        return result.IsSuccess;
+        return true;
     }
 
     /// <summary>
-    /// Gets a description of the current time state.
+    /// Gets a description of the current time state using segments.
     /// </summary>
     public string GetTimeDescription()
     {
@@ -162,16 +134,17 @@ public class TimeManager
     }
 
     /// <summary>
-    /// Gets the current time as a formatted string.
+    /// Gets a human-readable segment display string.
+    /// Format: "AFTERNOON ●●○○ [2/4]"
     /// </summary>
-    public string GetTimeString()
+    public string GetSegmentDisplay()
     {
-        return _timeModel.GetTimeString();
+        return _timeModel.GetSegmentDisplay();
     }
 
     /// <summary>
-    /// Gets formatted time display with day name and time.
-    /// Returns format like "MON 3:30 PM"
+    /// Gets formatted time display with day name and segment status.
+    /// Returns format like "MON AFTERNOON ●●○○"
     /// </summary>
     public string GetFormattedTimeDisplay()
     {
@@ -179,21 +152,18 @@ public class TimeManager
         // Day 1 = Monday, so subtract 1 to get correct array index
         string dayName = new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }[(day - 1) % 7];
 
-        int currentHour = GetCurrentTimeHours();
-        int currentMinute = GetCurrentMinutes();
-        string period = currentHour >= 12 ? "PM" : "AM";
-        int displayHour = currentHour > 12 ? currentHour - 12 : (currentHour == 0 ? 12 : currentHour);
+        string timeBlock = CurrentTimeBlock.ToString().ToUpper();
+        string segmentDots = _timeModel.CurrentState.GetCompactSegmentDisplay();
 
-        return $"{dayName} {displayHour}:{currentMinute:D2} {period}";
+        return $"{dayName} {timeBlock} {segmentDots}";
     }
 
     // Handle time advancement result directly
     private void HandleTimeAdvancement(TimeAdvancementResult result)
     {
-        _logger.LogDebug("Time advanced by {Hours} hours to Day {Day}, Hour {Hour}",
-            result.HoursAdvanced,
-            result.NewState.CurrentDay,
-            result.NewState.CurrentHour);
+        _logger.LogDebug("Time advanced by {Segments} segments to {NewState}",
+            result.SegmentsAdvanced,
+            result.NewState);
 
         // Log time block transitions
         if (result.CrossedTimeBlock)
@@ -201,6 +171,23 @@ public class TimeManager
             _logger.LogInformation("Time block changed from {OldBlock} to {NewBlock}",
                 result.OldTimeBlock,
                 result.NewTimeBlock);
+                
+            _messageSystem.AddSystemMessage(
+                $"🕐 Entering {result.NewTimeBlock.ToString().ToLower()} period",
+                SystemMessageTypes.Info);
+        }
+        
+        // Log day transitions
+        if (result.CrossedDayBoundary)
+        {
+            _logger.LogInformation("Day advanced from {OldDay} to {NewDay}",
+                result.OldState.CurrentDay,
+                result.NewState.CurrentDay);
+                
+            _messageSystem.AddSystemMessage(
+                $"🌅 Day {result.NewState.CurrentDay} begins",
+                SystemMessageTypes.Info);
         }
     }
+
 }

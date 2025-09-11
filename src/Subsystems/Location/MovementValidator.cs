@@ -140,7 +140,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             // if (spot.SpotProperties?.Contains(SpotPropertyType.NightOnly) == true)
             // {
             //     TimeBlocks currentTime = _gameWorld.CurrentTimeBlock;
-            //     if (currentTime != TimeBlocks.Night && currentTime != TimeBlocks.LateNight)
+            //     if (currentTime != TimeBlocks.Night && currentTime != TimeBlocks.DeepNight)
             //     {
             //         return false;
             //     }

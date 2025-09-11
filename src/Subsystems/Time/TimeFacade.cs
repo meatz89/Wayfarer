@@ -37,14 +37,14 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             return _gameWorld.CurrentDay;
         }
 
-        public int GetCurrentHour()
+        public int GetCurrentSegment()
         {
-            return _timeManager.CurrentHour;
+            return _timeManager.CurrentSegment;
         }
 
-        public int GetCurrentMinutes()
+        public int GetSegmentsInCurrentPeriod()
         {
-            return _timeManager.GetCurrentMinutes();
+            return _timeManager.TimeModel.CurrentState.SegmentsInCurrentBlock;
         }
 
         public TimeBlocks GetCurrentTimeBlock()
@@ -52,29 +52,30 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             return _timeManager.CurrentTimeBlock;
         }
 
-        public int GetHoursRemaining()
+        public int GetSegmentsRemainingInDay()
         {
-            return _timeManager.HoursRemaining;
+            return _timeManager.SegmentsRemainingInDay;
         }
 
         public TimeInfo GetTimeInfo()
         {
             return new TimeInfo(
                 GetCurrentTimeBlock(),
-                GetHoursRemaining(),
-                GetCurrentDay());
+                GetSegmentsRemainingInDay(),
+                GetCurrentDay(),
+                _timeManager.GetSegmentDisplay());
         }
 
         // ========== TIME PROGRESSION ==========
 
-        public TimeBlocks AdvanceTimeByHours(int hours)
+        public TimeBlocks AdvanceSegments(int segments)
         {
-            return _timeProgressionManager.AdvanceTimeByHours(hours);
+            return _timeProgressionManager.AdvanceSegments(segments);
         }
 
-        public TimeBlocks AdvanceTimeByMinutes(int minutes)
+        public TimeBlocks JumpToNextPeriod()
         {
-            return _timeProgressionManager.AdvanceTimeByMinutes(minutes);
+            return _timeProgressionManager.JumpToNextPeriod();
         }
 
         public int WaitUntilNextTimeBlock()
@@ -84,34 +85,34 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             return _timeProgressionManager.WaitUntilTimeBlock(next, _timeBlockCalculator);
         }
 
-        public async Task<bool> SpendTime(int hours, string description)
+        public async Task<bool> SpendSegments(int segments, string description)
         {
-            return await _timeManager.SpendTime(hours, description);
+            return await _timeManager.SpendSegments(segments, description);
         }
 
-        public bool CanPerformAction(int hoursRequired)
+        public bool CanPerformAction(int segmentsRequired)
         {
-            return _timeProgressionManager.CanPerformAction(hoursRequired);
+            return _timeProgressionManager.CanPerformAction(segmentsRequired);
         }
 
         // ========== TIME BLOCK CALCULATIONS ==========
 
-        public int GetTimeBlockStartHour(TimeBlocks timeBlock)
+        public int GetTimeBlockStartSegment(TimeBlocks timeBlock)
         {
-            return _timeBlockCalculator.GetTimeBlockStartHour(timeBlock);
+            return _timeBlockCalculator.GetTimeBlockStartSegment(timeBlock);
         }
 
-        public int GetTimeBlockEndHour(TimeBlocks timeBlock)
+        public int GetTimeBlockEndSegment(TimeBlocks timeBlock)
         {
-            return _timeBlockCalculator.GetTimeBlockEndHour(timeBlock);
+            return _timeBlockCalculator.GetTimeBlockEndSegment(timeBlock);
         }
 
-        public int CalculateHoursUntilTimeBlock(TimeBlocks target)
+        public int CalculateSegmentsUntilTimeBlock(TimeBlocks target)
         {
-            return _timeBlockCalculator.CalculateHoursUntilTimeBlock(
+            return _timeBlockCalculator.CalculateSegmentsUntilTimeBlock(
                 GetCurrentTimeBlock(),
                 target,
-                GetCurrentHour());
+                GetCurrentSegment());
         }
 
         public TimeBlocks? GetNextAvailableTimeBlock(List<TimeBlocks> availableTimes)
@@ -135,12 +136,12 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         {
             return current switch
             {
-                TimeBlocks.Dawn => TimeBlocks.Morning,
-                TimeBlocks.Morning => TimeBlocks.Afternoon,
+                TimeBlocks.Dawn => TimeBlocks.Midday,
+                TimeBlocks.Midday => TimeBlocks.Afternoon,
                 TimeBlocks.Afternoon => TimeBlocks.Evening,
                 TimeBlocks.Evening => TimeBlocks.Night,
-                TimeBlocks.Night => TimeBlocks.LateNight,
-                TimeBlocks.LateNight => TimeBlocks.Dawn,
+                TimeBlocks.Night => TimeBlocks.DeepNight,
+                TimeBlocks.DeepNight => TimeBlocks.Dawn,
                 _ => TimeBlocks.Dawn
             };
         }
@@ -162,14 +163,14 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             return _timeDisplayFormatter.GetTimeDescription();
         }
 
-        public string FormatDuration(int hours)
+        public string FormatDuration(int segments)
         {
-            return _timeDisplayFormatter.FormatDuration(hours);
+            return _timeDisplayFormatter.FormatDuration(segments);
         }
 
-        public string FormatMinutes(int minutes)
+        public string FormatSegments(int segments)
         {
-            return _timeDisplayFormatter.FormatMinutes(minutes);
+            return _timeDisplayFormatter.FormatSegments(segments);
         }
 
         public string GetDayName(int day)
@@ -189,20 +190,20 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             TimeBlocks? nextTime = GetNextAvailableTimeBlock(availableTimes);
             if (!nextTime.HasValue) return "Not available today";
 
-            int hoursUntil = CalculateHoursUntilTimeBlock(nextTime.Value);
+            int segmentsUntil = CalculateSegmentsUntilTimeBlock(nextTime.Value);
             string timeBlockName = GetTimeBlockDisplayName(nextTime.Value);
 
-            if (hoursUntil == 0)
+            if (segmentsUntil == 0)
             {
                 return $"Available now during {timeBlockName}";
             }
-            else if (hoursUntil == 1)
+            else if (segmentsUntil == 1)
             {
-                return $"Available in 1 hour at {timeBlockName}";
+                return $"Available in 1 segment at {timeBlockName}";
             }
             else
             {
-                return $"Available in {hoursUntil} hours at {timeBlockName}";
+                return $"Available in {segmentsUntil} segments at {timeBlockName}";
             }
         }
 
@@ -215,5 +216,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         {
             return IsTimeBlockAvailable(GetCurrentTimeBlock(), availableTimes);
         }
+
+        // ========== LEGACY COMPATIBILITY METHODS ==========
     }
 }

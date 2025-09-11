@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 namespace Wayfarer.Subsystems.TimeSubsystem
 {
@@ -17,22 +18,22 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         }
 
         /// <summary>
-        /// Advance time by a specified number of hours.
+        /// Advance time by a specified number of segments.
         /// </summary>
-        public TimeBlocks AdvanceTimeByHours(int hours)
+        public TimeBlocks AdvanceSegments(int segments)
         {
             TimeBlocks oldBlock = _timeManager.CurrentTimeBlock;
-            _timeManager.AdvanceTime(hours);
+            _timeManager.AdvanceSegments(segments);
             return _timeManager.CurrentTimeBlock;
         }
 
         /// <summary>
-        /// Advance time by a specified number of minutes.
+        /// Jump to the next period (4 segments).
         /// </summary>
-        public TimeBlocks AdvanceTimeByMinutes(int minutes)
+        public TimeBlocks JumpToNextPeriod()
         {
             TimeBlocks oldBlock = _timeManager.CurrentTimeBlock;
-            _timeManager.AdvanceTimeMinutes(minutes);
+            _timeManager.JumpToNextPeriod();
             return _timeManager.CurrentTimeBlock;
         }
 
@@ -42,55 +43,57 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         public int WaitUntilTimeBlock(TimeBlocks targetTime, TimeBlockCalculator calculator)
         {
             TimeBlocks currentTime = _timeManager.CurrentTimeBlock;
-            int currentHour = _timeManager.CurrentHour;
+            int currentSegment = _timeManager.CurrentSegment;
+            int segmentsInCurrentPeriod = _timeManager.TimeModel.CurrentState.SegmentsInCurrentBlock;
 
-            // Calculate hours to wait
-            int hoursToWait = currentTime switch
+            // Calculate segments to wait based on time progression design:
+            // Dawn: 3 segments, Midday: 4 segments, Afternoon: 4 segments, Evening: 4 segments, Night: 1 segment
+            int segmentsToWait = currentTime switch
             {
-                TimeBlocks.Dawn => 8 - currentHour,      // Dawn (6-8) -> Morning (8)
-                TimeBlocks.Morning => 12 - currentHour,   // Morning (8-12) -> Afternoon (12)
-                TimeBlocks.Afternoon => 17 - currentHour, // Afternoon (12-17) -> Evening (17)
-                TimeBlocks.Evening => 20 - currentHour,   // Evening (17-20) -> Night (20)
-                TimeBlocks.Night => 22 - currentHour,     // Night (20-22) -> Late Night (22)
-                TimeBlocks.LateNight => 30 - currentHour, // Late Night (22-6) -> Next Dawn (+6)
+                TimeBlocks.Dawn => 3 - segmentsInCurrentPeriod,        // Wait until end of Dawn (3 segments)
+                TimeBlocks.Midday => 4 - segmentsInCurrentPeriod,      // Wait until end of Midday (4 segments) 
+                TimeBlocks.Afternoon => 4 - segmentsInCurrentPeriod,   // Wait until end of Afternoon (4 segments)
+                TimeBlocks.Evening => 4 - segmentsInCurrentPeriod,     // Wait until end of Evening (4 segments)
+                TimeBlocks.Night => 1 - segmentsInCurrentPeriod,       // Wait until end of Night (1 segment)
+                TimeBlocks.DeepNight => _timeManager.SegmentsRemainingInDay, // Jump to next day
                 _ => 0
             };
 
-            if (hoursToWait > 0)
+            if (segmentsToWait > 0)
             {
                 // Get narrative description
                 string narrative = calculator.GetWaitingNarrative(targetTime);
                 _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
 
                 // Advance time
-                AdvanceTimeByHours(hoursToWait);
+                AdvanceSegments(segmentsToWait);
             }
 
-            return hoursToWait;
+            return segmentsToWait;
         }
 
         /// <summary>
-        /// Check if player can perform an action requiring specified hours.
+        /// Check if player can perform an action requiring specified segments.
         /// </summary>
-        public bool CanPerformAction(int hoursRequired)
+        public bool CanPerformAction(int segmentsRequired)
         {
-            return _timeManager.CanPerformAction(hoursRequired);
+            return _timeManager.CanPerformAction(segmentsRequired);
         }
 
         /// <summary>
-        /// Spend time for an action.
+        /// Spend segments for an action.
         /// </summary>
-        public async Task<bool> SpendTimeForActionAsync(int hours, string actionDescription)
+        public async Task<bool> SpendSegmentsForActionAsync(int segments, string actionDescription)
         {
-            return await _timeManager.SpendTime(hours, actionDescription);
+            return await _timeManager.SpendSegments(segments, actionDescription);
         }
 
         /// <summary>
-        /// Get hours remaining in current day.
+        /// Get segments remaining in current day.
         /// </summary>
-        public int GetHoursRemaining()
+        public int GetSegmentsRemainingInDay()
         {
-            return _timeManager.HoursRemaining;
+            return _timeManager.SegmentsRemainingInDay;
         }
     }
 }

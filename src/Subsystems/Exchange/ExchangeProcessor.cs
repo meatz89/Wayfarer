@@ -246,10 +246,10 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             // Time advancement for work-like exchanges
             if (ShouldAdvanceTime(exchange))
             {
-                int hoursToAdvance = CalculateTimeAdvancement(exchange);
-                _timeManager.AdvanceTime(hoursToAdvance);
-                result.SideEffects.Add($"Time advanced by {hoursToAdvance} hour(s)");
-                _messageSystem.AddSystemMessage($"Time passes... ({hoursToAdvance} hour(s))", SystemMessageTypes.Info);
+                int segmentsToAdvance = CalculateTimeAdvancement(exchange);
+                _timeManager.AdvanceSegments(segmentsToAdvance);
+                result.SideEffects.Add($"Time advanced by {segmentsToAdvance} segment(s)");
+                _messageSystem.AddSystemMessage($"Time passes... ({segmentsToAdvance} segment(s))", SystemMessageTypes.Info);
             }
 
             // Relationship effects

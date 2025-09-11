@@ -2,29 +2,12 @@ using System;
 
 /// <summary>
 /// Time model that serves as the single source of truth for all time-related state.
-/// Builds on TimeState to provide a complete time management system.
+/// Builds on TimeState to provide a complete segment-based time management system.
 /// </summary>
 public class TimeModel
 {
-    // Time constants - single source of truth
-    public const int HOURS_PER_DAY = 24;
-    public const int ACTIVE_DAY_START = 6;   // 6 AM
-    public const int ACTIVE_DAY_END = 22;    // 10 PM
-    public const int ACTIVE_HOURS_PER_DAY = ACTIVE_DAY_END - ACTIVE_DAY_START;
-
-    // Time block boundaries
-    public const int DAWN_START = 6;
-    public const int DAWN_END = 8;
-    public const int MORNING_START = 8;
-    public const int MORNING_END = 12;
-    public const int AFTERNOON_START = 12;
-    public const int AFTERNOON_END = 16;
-    public const int EVENING_START = 16;
-    public const int EVENING_END = 20;
-    public const int NIGHT_START = 20;
-    public const int NIGHT_END = 22;
-    public const int LATE_NIGHT_START = 22;
-    public const int LATE_NIGHT_END = 6;
+    // Segment constants - single source of truth
+    public const int TOTAL_SEGMENTS_PER_DAY = TimeBlockSegments.TOTAL_SEGMENTS_PER_DAY;
 
     private TimeState _currentState;
     private readonly object _lock = new object();
@@ -40,48 +23,56 @@ public class TimeModel
         }
     }
 
-    public int CurrentHour => CurrentState.CurrentHour;
-
     public int CurrentDay => CurrentState.CurrentDay;
+    
+    public int CurrentSegment => CurrentState.CurrentSegment;
+    
+    public int SegmentInCurrentBlock => CurrentState.SegmentInCurrentBlock;
+    
+    public int SegmentsInCurrentBlock => CurrentState.SegmentsInCurrentBlock;
+    
+    public int SegmentsRemainingInBlock => CurrentState.SegmentsRemainingInBlock;
+    
+    public int SegmentsRemainingInDay => CurrentState.SegmentsRemainingInDay;
+    
+    public int ActiveSegmentsRemaining => CurrentState.ActiveSegmentsRemaining;
 
     public TimeBlocks CurrentTimeBlock => CurrentState.CurrentTimeBlock;
-
-    public int ActiveHoursRemaining => CurrentState.ActiveHoursRemaining;
 
     public bool IsActiveTime => CurrentState.IsActiveTime;
 
     // Events removed per architecture guidelines - use return values instead
 
-    public TimeModel(int startDay = 1, int startHour = ACTIVE_DAY_START, int startMinute = 0)
+    public TimeModel(int startDay = 1)
     {
-        _currentState = new TimeState(startDay, startHour, startMinute);
+        _currentState = new TimeState(startDay);
     }
 
     /// <summary>
-    /// Validates that a time transition is valid before applying it.
+    /// Validates that a segment transition is valid before applying it.
     /// </summary>
-    public ValidationResult ValidateTimeTransition(int hours)
+    public ValidationResult ValidateSegmentTransition(int segments)
     {
-        if (hours <= 0)
-            return ValidationResult.Failure("Hours must be positive");
+        if (segments <= 0)
+            return ValidationResult.Failure("Segments must be positive");
 
-        if (!IsActiveTime && hours > 0)
-            return ValidationResult.Warning("Currently outside active hours");
+        if (!IsActiveTime && segments > 0)
+            return ValidationResult.Warning("Currently outside active time");
 
         return ValidationResult.Success();
     }
 
     /// <summary>
-    /// Advances time atomically with full validation and event notification.
+    /// Advances time by segments atomically with full validation.
     /// </summary>
-    public TimeAdvancementResult AdvanceTime(int hours)
+    public TimeAdvancementResult AdvanceSegments(int segments)
     {
-        if (hours <= 0)
-            throw new ArgumentException("Hours must be positive", nameof(hours));
+        if (segments <= 0)
+            throw new ArgumentException("Segments must be positive", nameof(segments));
 
         lock (_lock)
         {
-            TimeAdvancementResult result = _currentState.AdvanceTime(hours);
+            TimeAdvancementResult result = _currentState.AdvanceSegments(segments);
             _currentState = result.NewState;
 
             return result;
@@ -89,32 +80,15 @@ public class TimeModel
     }
 
     /// <summary>
-    /// Advances time by minutes with full validation.
+    /// Checks if the specified action can be performed within available segments.
     /// </summary>
-    public TimeAdvancementResult AdvanceTimeMinutes(int minutes)
+    public bool CanPerformAction(int segmentsRequired)
     {
-        if (minutes <= 0)
-            throw new ArgumentException("Minutes must be positive", nameof(minutes));
-
-        lock (_lock)
-        {
-            TimeAdvancementResult result = _currentState.AdvanceTimeMinutes(minutes);
-            _currentState = result.NewState;
-
-            return result;
-        }
+        return CurrentState.CanSpendSegments(segmentsRequired);
     }
 
     /// <summary>
-    /// Checks if the specified action can be performed within active hours.
-    /// </summary>
-    public bool CanPerformAction(int hoursRequired)
-    {
-        return CurrentState.CanSpendActiveHours(hoursRequired);
-    }
-
-    /// <summary>
-    /// Forces a new day to start at dawn.
+    /// Advances to the next day starting at Dawn.
     /// Returns the time advancement result for the caller to handle.
     /// </summary>
     public TimeAdvancementResult AdvanceToNextDay()
@@ -122,13 +96,13 @@ public class TimeModel
         lock (_lock)
         {
             TimeState oldState = _currentState;
-            _currentState = _currentState.AdvanceToNextDay();
+            _currentState = _currentState.Sleep(); // Sleep automatically goes to next day at Dawn
 
             TimeAdvancementResult result = new TimeAdvancementResult
             {
                 OldState = oldState,
                 NewState = _currentState,
-                HoursAdvanced = 0,
+                SegmentsAdvanced = 0, // Sleep jump doesn't count as segment advancement
                 DaysAdvanced = 1,
                 CrossedDayBoundary = true,
                 OldTimeBlock = oldState.CurrentTimeBlock,
@@ -141,43 +115,45 @@ public class TimeModel
     }
 
     /// <summary>
-    /// Gets the hours until the next time block transition.
+    /// Jumps to the next time period (like work or rest actions).
+    /// Advances to the first segment of the next time block.
     /// </summary>
-    public int HoursUntilNextTimeBlock()
+    public TimeAdvancementResult JumpToNextPeriod()
     {
-        int currentHour = CurrentHour;
-        TimeBlocks currentBlock = CurrentTimeBlock;
-
-        return currentBlock switch
+        lock (_lock)
         {
-            TimeBlocks.Dawn => DAWN_END - currentHour,
-            TimeBlocks.Morning => MORNING_END - currentHour,
-            TimeBlocks.Afternoon => AFTERNOON_END - currentHour,
-            TimeBlocks.Evening => EVENING_END - currentHour,
-            TimeBlocks.Night => NIGHT_END - currentHour,
-            TimeBlocks.LateNight => (LATE_NIGHT_END + 24 - currentHour) % 24,
-            _ => 1
-        };
+            // Calculate segments needed to reach the next time block
+            int segmentsToNextPeriod = SegmentsRemainingInBlock;
+            if (segmentsToNextPeriod == 0)
+                segmentsToNextPeriod = 1; // Already at end, move to next block
+            
+            return AdvanceSegments(segmentsToNextPeriod);
+        }
     }
 
     /// <summary>
-    /// Gets a human-readable time string.
+    /// Gets the segments until the next time block transition.
     /// </summary>
-    public string GetTimeString()
+    public int SegmentsUntilNextTimeBlock()
     {
-        int hour = CurrentHour;
-        int minute = CurrentState.CurrentMinute;
-        string period = hour >= 12 ? "PM" : "AM";
-        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-        return $"{displayHour}:{minute:D2} {period}";
+        return SegmentsRemainingInBlock;
     }
 
     /// <summary>
-    /// Gets a detailed time description.
+    /// Gets a human-readable segment display string.
+    /// Format: "AFTERNOON ●●○○ [2/4]"
+    /// </summary>
+    public string GetSegmentDisplay()
+    {
+        return CurrentState.GetSegmentDisplay();
+    }
+
+    /// <summary>
+    /// Gets a detailed time description using segments.
     /// </summary>
     public string GetTimeDescription()
     {
-        return $"Day {CurrentDay}, {GetTimeString()} ({CurrentTimeBlock})";
+        return $"Day {CurrentDay}, {GetSegmentDisplay()}";
     }
 }
 

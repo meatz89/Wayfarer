@@ -40,7 +40,7 @@ public class TravelManager
             StaminaRemaining = startingStamina,
             StaminaCapacity = startingStamina,
             CurrentState = DetermineInitialTravelState(player),
-            TimeElapsed = 0,
+            SegmentsElapsed = 0,
             CompletedSegments = new List<string>(),
             SelectedPathId = null
         };
@@ -273,10 +273,10 @@ public class TravelManager
 
         // Record path selection
         session.SelectedPathId = pathCardId;
-        if (card.TravelTimeMinutes > 0)
+        if (card.TravelTimeSegments > 0)
         {
-            session.TimeElapsed += card.TravelTimeMinutes;
-            _messageSystem.AddSystemMessage($"Journey time increased by {card.TravelTimeMinutes} minutes", SystemMessageTypes.Info);
+            session.SegmentsElapsed += card.TravelTimeSegments;
+            _messageSystem.AddSystemMessage($"Journey time increased by {card.TravelTimeSegments} segments", SystemMessageTypes.Info);
         }
 
         // Clear reveal state
@@ -354,7 +354,7 @@ public class TravelManager
 
     /// <summary>
     /// Rest to recover stamina during travel
-    /// - Add 30 minutes to travel time
+    /// - Add 2 segments to travel time
     /// - Restore stamina to current capacity
     /// - Does NOT skip segments (segments are challenges that must be completed)
     /// </summary>
@@ -367,7 +367,7 @@ public class TravelManager
         }
 
         // Resting takes time and restores stamina
-        session.TimeElapsed += 30; // 30 minutes to rest
+        session.SegmentsElapsed += 1; // 1 segment to rest
         session.StaminaRemaining = session.StaminaCapacity;
         session.CurrentState = TravelState.Fresh;
 
@@ -665,7 +665,7 @@ public class TravelManager
         }
 
         // Apply travel time to game world
-        _timeManager.AdvanceTimeMinutes(session.TimeElapsed);
+        _timeManager.AdvanceSegments(session.SegmentsElapsed);
 
         // Clear travel session
         _gameWorld.CurrentTravelSession = null;

@@ -10,7 +10,7 @@ public class TravelSession
     public int StaminaRemaining { get; set; }
     public int StaminaCapacity { get; set; } = 3; // Based on state
     public TravelState CurrentState { get; set; } = TravelState.Fresh;
-    public int TimeElapsed { get; set; } = 0;
+    public int SegmentsElapsed { get; set; } = 0;
     public List<string> CompletedSegments { get; set; } = new();
     public string SelectedPathId { get; set; }
     

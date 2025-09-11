@@ -75,19 +75,16 @@ public class GameConfiguration
             },
             Time = new TimeConfig
             {
-                HoursPerDay = 24,
-                ActiveDayStartHour = 6,
-                ActiveDayEndHour = 22,
-                HourCostStandardAction = 1,
-                HourCostTravel = 2,
-                HourCostDeepAction = 2,
+                SegmentCostStandardAction = 1,
+                SegmentCostTravel = 2,
+                SegmentCostDeepAction = 2,
                 TimeBlocks = new Dictionary<string, TimeBlockDefinition>
                 {
-                    { "Dawn", new TimeBlockDefinition { StartHour = 6, EndHour = 8 } },
-                    { "Morning", new TimeBlockDefinition { StartHour = 8, EndHour = 12 } },
-                    { "Afternoon", new TimeBlockDefinition { StartHour = 12, EndHour = 16 } },
-                    { "Evening", new TimeBlockDefinition { StartHour = 16, EndHour = 20 } },
-                    { "Night", new TimeBlockDefinition { StartHour = 20, EndHour = 6 } }
+                    { "Dawn", new TimeBlockDefinition { StartSegment = 0, SegmentCount = 4 } },
+                    { "Midday", new TimeBlockDefinition { StartSegment = 4, SegmentCount = 8 } },
+                    { "Afternoon", new TimeBlockDefinition { StartSegment = 12, SegmentCount = 8 } },
+                    { "Evening", new TimeBlockDefinition { StartSegment = 20, SegmentCount = 8 } },
+                    { "Night", new TimeBlockDefinition { StartSegment = 28, SegmentCount = 8 } }
                 }
             },
             Stamina = new StaminaConfig
@@ -227,20 +224,17 @@ public class WorkReward
 
 public class TimeConfig
 {
-    public int HoursPerDay { get; set; }
-    public int ActiveDayStartHour { get; set; }
-    public int ActiveDayEndHour { get; set; }
-    public int HourCostStandardAction { get; set; }
-    public int HourCostTravel { get; set; }
-    public int HourCostDeepAction { get; set; }
+    public int SegmentCostStandardAction { get; set; }
+    public int SegmentCostTravel { get; set; }
+    public int SegmentCostDeepAction { get; set; }
     public int MaxDays { get; set; } = 30; // 30-day narrative arc
     public Dictionary<string, TimeBlockDefinition> TimeBlocks { get; set; } = new();
 }
 
 public class TimeBlockDefinition
 {
-    public int StartHour { get; set; }
-    public int EndHour { get; set; }
+    public int StartSegment { get; set; }
+    public int SegmentCount { get; set; }
 }
 
 public class StaminaConfig

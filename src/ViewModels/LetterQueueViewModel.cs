@@ -38,7 +38,8 @@ public class LetterViewModel
     public string Id { get; init; }
     public string SenderName { get; init; }
     public string RecipientName { get; init; }
-    public int DeadlineInHours { get; init; }
+    public int DeadlineInSegments { get; init; }
+    public int DeadlineInSegments_Display { get; init; }
     public int Payment { get; init; }
     public string TokenType { get; init; }
     public string TokenIcon { get; init; }
@@ -75,7 +76,7 @@ public class LetterViewModel
     public int PaymentBonusAmount { get; init; }
     public string PaymentBonusSource { get; init; }
     public bool HasDeadlineExtension { get; init; }
-    public int DeadlineExtensionHours { get; init; }
+    public int DeadlineExtensionSegments { get; init; }
     public string DeadlineExtensionSource { get; init; }
     public bool HasPositionModifier { get; init; }
     public int PositionModifierAmount { get; init; }

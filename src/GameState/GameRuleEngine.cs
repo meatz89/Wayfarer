@@ -139,39 +139,33 @@ public class GameRuleEngine : IGameRuleEngine
     public bool CanTravel(Player player, RouteOption route)
     {
         int staminaCost = CalculateTravelStamina(route);
-        int hourCost = route.TravelTimeMinutes;
+        int segmentCost = route.TravelTimeSegments;
 
         return player.Attention >= staminaCost &&
-               _timeManager.HoursRemaining >= hourCost;
+               _timeManager.SegmentsRemainingInDay >= segmentCost;
     }
 
     // Time management
-    public TimeBlocks GetTimeBlock(int hour)
+    public TimeBlocks GetTimeBlock(int segment)
     {
         foreach ((string blockName, TimeBlockDefinition definition) in _config.Time.TimeBlocks)
         {
-            if (hour >= definition.StartHour && hour < definition.EndHour)
+            int endSegment = definition.StartSegment + definition.SegmentCount;
+            if (segment >= definition.StartSegment && segment < endSegment)
             {
                 return EnumParser.Parse<TimeBlocks>(blockName, "TimeBlock");
             }
         }
 
-        // Handle wrap-around for night
-        if (hour >= _config.Time.TimeBlocks["Night"].StartHour ||
-            hour < _config.Time.TimeBlocks["Dawn"].StartHour)
-        {
-            return TimeBlocks.Night;
-        }
-
-        return TimeBlocks.Dawn; // Default
+        return TimeBlocks.Night; // Default
     }
 
-    public int GetActiveHoursRemaining(int currentHour)
+    public int GetActiveSegmentsRemaining(int currentSegment)
     {
-        if (currentHour >= _config.Time.ActiveDayEndHour)
+        if (currentSegment >= 36) // End of day
             return 0;
 
-        return _config.Time.ActiveDayEndHour - currentHour;
+        return 36 - currentSegment;
     }
 
     public bool IsNPCAvailable(NPC npc, TimeBlocks timeBlock)
@@ -274,7 +268,7 @@ public class ActionResult
     public int StaminaChange { get; set; }
     public int CoinChange { get; set; }
     public int FocusChange { get; set; }
-    public int HoursSpent { get; set; }
+    public int SegmentsSpent { get; set; }
 
     // Token changes (NPCId, TokenType, Amount)
     public List<(string npcId, ConnectionType tokenType, int amount)> TokenChanges { get; set; } = new();

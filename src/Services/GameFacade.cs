@@ -169,15 +169,6 @@ public class GameFacade
         return _timeFacade.GetTimeInfo();
     }
 
-    public int GetCurrentHour()
-    {
-        return _timeFacade.GetCurrentHour();
-    }
-
-    public int GetCurrentMinutes()
-    {
-        return _timeFacade.GetCurrentMinutes();
-    }
 
     public string GetFormattedTimeDisplay()
     {
@@ -257,11 +248,11 @@ public class GameFacade
         // Travel does NOT cost attention - removed incorrect attention spending
 
         // Create travel result for processing
-        int travelTime = targetRoute.TravelTimeMinutes;
+        int travelTime = targetRoute.TravelTimeSegments;
         TravelResult travelResult = new TravelResult
         {
             Success = true,
-            TravelTimeMinutes = travelTime,
+            TravelTimeSegments = travelTime,
             CoinCost = coinCost,
             RouteId = routeId,
             TransportMethod = targetRoute.Method
@@ -287,15 +278,14 @@ public class GameFacade
             }
 
             TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-            TimeBlocks newTimeBlock = _timeFacade.AdvanceTimeByMinutes(travelResult.TravelTimeMinutes);
+            TimeBlocks newTimeBlock = _timeFacade.AdvanceSegments(travelResult.SegmentCost);
 
             ProcessTimeAdvancement(new TimeAdvancementResult
             {
                 OldTimeBlock = oldTimeBlock,
                 NewTimeBlock = newTimeBlock,
                 CrossedTimeBlock = oldTimeBlock != newTimeBlock,
-                HoursAdvanced = travelResult.TravelTimeMinutes / 60,
-                MinutesAdvanced = travelResult.TravelTimeMinutes
+                SegmentsAdvanced = travelResult.SegmentCost
             });
 
             // Get destination location name for the message
@@ -360,15 +350,14 @@ public class GameFacade
         if (result.Success)
         {
             TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-            TimeBlocks newTimeBlock = _timeFacade.AdvanceTimeByMinutes(120);
+            TimeBlocks newTimeBlock = _timeFacade.JumpToNextPeriod(); // Work takes 4 segments (full period)
 
             ProcessTimeAdvancement(new TimeAdvancementResult
             {
                 OldTimeBlock = oldTimeBlock,
                 NewTimeBlock = newTimeBlock,
                 CrossedTimeBlock = oldTimeBlock != newTimeBlock,
-                HoursAdvanced = 2,
-                MinutesAdvanced = 120
+                SegmentsAdvanced = 4
             });
         }
         return result;
@@ -596,7 +585,7 @@ public class GameFacade
             TravelIntent travel => await TravelToDestinationAsync(travel.RouteId),
             MoveIntent move => MoveToSpot(move.TargetSpotId),
             WaitIntent => ProcessWaitIntent(),
-            RestIntent rest => ProcessRestIntent(rest.Hours),
+            RestIntent rest => ProcessRestIntent(rest.Segments),
             DeliverLetterIntent deliver => _obligationFacade.DeliverObligation(deliver.LetterId).Success,
             CollectLetterIntent collect => await AcceptLetterOfferAsync(collect.LetterId),
             AcceptLetterOfferIntent accept => await AcceptLetterOfferAsync(accept.OfferId),
@@ -607,37 +596,34 @@ public class GameFacade
     private bool ProcessWaitIntent()
     {
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        TimeBlocks newTimeBlock = _timeFacade.AdvanceTimeByMinutes(60);
+        TimeBlocks newTimeBlock = _timeFacade.AdvanceSegments(1); // Wait costs 1 segment
 
         ProcessTimeAdvancement(new TimeAdvancementResult
         {
             OldTimeBlock = oldTimeBlock,
             NewTimeBlock = newTimeBlock,
             CrossedTimeBlock = oldTimeBlock != newTimeBlock,
-            HoursAdvanced = 1,
-            MinutesAdvanced = 60
+            SegmentsAdvanced = 1
         });
 
         _narrativeFacade.AddSystemMessage("You wait and time passes", SystemMessageTypes.Info);
         return true;
     }
 
-    private bool ProcessRestIntent(int hours)
+    private bool ProcessRestIntent(int segments)
     {
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        int minutesToRest = hours * 60;
-        TimeBlocks newTimeBlock = _timeFacade.AdvanceTimeByMinutes(minutesToRest);
+        TimeBlocks newTimeBlock = _timeFacade.AdvanceSegments(segments);
 
         ProcessTimeAdvancement(new TimeAdvancementResult
         {
             OldTimeBlock = oldTimeBlock,
             NewTimeBlock = newTimeBlock,
             CrossedTimeBlock = oldTimeBlock != newTimeBlock,
-            HoursAdvanced = hours,
-            MinutesAdvanced = minutesToRest
+            SegmentsAdvanced = segments
         });
 
-        _narrativeFacade.AddSystemMessage($"You rest for {hours} hour(s)", SystemMessageTypes.Info);
+        _narrativeFacade.AddSystemMessage($"You rest for {segments} segment(s)", SystemMessageTypes.Info);
         return true;
     }
 
@@ -696,12 +682,12 @@ public class GameFacade
         if (result.CrossedTimeBlock)
         {
             _resourceFacade.ProcessTimeBlockTransition(result.OldTimeBlock, result.NewTimeBlock);
-            _obligationFacade.ProcessHourlyDeadlines(result.HoursAdvanced);
+            _obligationFacade.ProcessSegmentDeadlines(result.SegmentsAdvanced);
             _narrativeFacade.RefreshObservationsForNewTimeBlock();
         }
-        else if (result.HoursAdvanced > 0)
+        else if (result.SegmentsAdvanced > 0)
         {
-            _obligationFacade.ProcessHourlyDeadlines(result.HoursAdvanced);
+            _obligationFacade.ProcessSegmentDeadlines(result.SegmentsAdvanced);
         }
     }
 

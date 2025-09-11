@@ -358,7 +358,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             DeliveryObligation[] obligations = _letterQueueManager.GetActiveObligations();
             bool hasUrgentLetter = obligations.Any(o =>
                 (o.SenderId == npc.ID || o.SenderName == npc.Name) &&
-                o.DeadlineInMinutes < 360);
+                o.DeadlineInSegments < 360);
 
             string template = _dialogueGenerator.GenerateNPCDescription(npc, state, hasUrgentLetter);
             return _narrativeRenderer.RenderTemplate(template);
@@ -377,7 +377,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             if (locationObservations != null)
             {
                 TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-                int currentHour = _timeManager.GetCurrentTimeHours();
+                int currentSegment = _timeManager.CurrentSegment;
                 List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpotId, currentTimeBlock);
                 HashSet<string> npcIdsAtCurrentSpot = npcsAtCurrentSpot.Select(n => n.ID).ToHashSet();
 
@@ -436,7 +436,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                     {
                         RouteId = route.Id,
                         Destination = destination.Name,
-                        TravelTime = $"{route.TravelTimeMinutes} min",
+                        TravelTime = $"{route.TravelTimeSegments} seg",
                         Detail = route.Description ?? route.Name,
                         IsLocked = !route.IsDiscovered,
                         LockReason = !route.IsDiscovered ? "Route not yet discovered" : null,
@@ -459,12 +459,12 @@ namespace Wayfarer.Subsystems.LocationSubsystem
 
             DeliveryObligation? mostUrgent = obligations
                 .Where(o => o != null)
-                .OrderBy(o => o.DeadlineInMinutes)
+                .OrderBy(o => o.DeadlineInSegments)
                 .FirstOrDefault();
 
             if (mostUrgent != null)
             {
-                return $"⏰ {mostUrgent.HoursUntilDeadline}h";
+                return $"⏰ {mostUrgent.SegmentsUntilDeadline}seg";
             }
 
             return "";
@@ -473,7 +473,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         private int GetUrgentObligationCount()
         {
             return _letterQueueManager.GetActiveObligations()
-                .Count(o => o.DeadlineInMinutes < 360);
+                .Count(o => o.DeadlineInSegments < 360);
         }
 
         private int GetNPCCountAtSpot(LocationSpot spot)
@@ -491,7 +491,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         }
 
         /// <summary>
-        /// Investigate a location to gain familiarity. Costs 1 attention and takes 10 minutes.
+        /// Investigate a location to gain familiarity. Costs 1 attention and takes 1 segment.
         /// Familiarity gain depends on spot properties: Quiet spots +2, Busy spots +1, others +1.
         /// Familiarity is capped at the location's MaxFamiliarity (typically 3).
         /// </summary>
@@ -541,7 +541,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             player.SpendAttention(investigation.AttentionCost);
 
             // Advance time
-            _timeManager.AdvanceTimeMinutes(investigation.TimeMinutes);
+            _timeManager.AdvanceSegments(investigation.TimeSegments);
 
             // Generate success message
             string gainText = familiarityGain == 2 ? "significant insights" : "new insights";

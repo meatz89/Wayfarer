@@ -1,79 +1,178 @@
 using System;
 
-
 /// <summary>
-/// Immutable state container for time tracking with validation and atomic operations.
-/// Replaces distributed time tracking across GameWorld, WorldState, and TimeManager.
+/// Immutable state container for time tracking using segments instead of minutes/hours.
+/// Provides tactical decision-making with clear opportunity costs through segment-based time management.
 /// </summary>
 public sealed class TimeState
 {
-    // Constants
-    public const int HOURS_PER_DAY = 24;
-    public const int ACTIVE_DAY_START = 6;
-    public const int ACTIVE_DAY_END = 22;
-    public const int ACTIVE_HOURS_PER_DAY = ACTIVE_DAY_END - ACTIVE_DAY_START;
-
     // Private fields for encapsulation
-    private readonly int _currentHour;
-    private readonly int _currentMinute;
     private readonly int _currentDay;
+    private readonly TimeBlocks _currentTimeBlock;
+    private readonly int _currentSegment;
+    private readonly int _totalSegmentsElapsed;
 
-    // Public properties with validation
-    public int CurrentHour => _currentHour;
-
-    public int CurrentMinute => _currentMinute;
-
+    // Public properties
     public int CurrentDay => _currentDay;
-
-    public TimeBlocks CurrentTimeBlock => CalculateTimeBlock(_currentHour);
-
-    public int ActiveHoursRemaining => Math.Max(0, ACTIVE_DAY_END - _currentHour);
-
-    public bool IsActiveTime => _currentHour >= ACTIVE_DAY_START && _currentHour < ACTIVE_DAY_END;
+    public TimeBlocks CurrentTimeBlock => _currentTimeBlock;
+    public int CurrentSegment => _currentSegment;
+    public int TotalSegmentsElapsed => _totalSegmentsElapsed;
 
     /// <summary>
-    /// Creates a new TimeState with the specified day, hour, and minute.
+    /// Current segment within the current time block (1-based index).
     /// </summary>
-    public TimeState(int day = 1, int hour = ACTIVE_DAY_START, int minute = 0)
+    public int SegmentInCurrentBlock => _currentSegment;
+
+    /// <summary>
+    /// Total segments available in the current time block.
+    /// </summary>
+    public int SegmentsInCurrentBlock => TimeBlockSegments.GetSegmentsForBlock(_currentTimeBlock);
+
+    /// <summary>
+    /// Segments remaining in the current time block.
+    /// </summary>
+    public int SegmentsRemainingInBlock => Math.Max(0, SegmentsInCurrentBlock - _currentSegment);
+
+    /// <summary>
+    /// Total segments remaining in the current day (including current block).
+    /// </summary>
+    public int SegmentsRemainingInDay
+    {
+        get
+        {
+            int remaining = SegmentsRemainingInBlock;
+            
+            // Add segments from future blocks today
+            var currentBlockIndex = (int)_currentTimeBlock;
+            for (int i = currentBlockIndex + 1; i < 5; i++) // 5 playable blocks (Dawn through Night)
+            {
+                var futureBlock = (TimeBlocks)i;
+                if (futureBlock != TimeBlocks.DeepNight)
+                {
+                    remaining += TimeBlockSegments.GetSegmentsForBlock(futureBlock);
+                }
+            }
+            
+            return remaining;
+        }
+    }
+
+    /// <summary>
+    /// Active segments remaining in the current day (excluding DeepNight).
+    /// </summary>
+    public int ActiveSegmentsRemaining => IsActiveTime ? SegmentsRemainingInDay : 0;
+    
+    /// <summary>
+    /// True if the current time allows active gameplay (not DeepNight).
+    /// </summary>
+    public bool IsActiveTime => _currentTimeBlock != TimeBlocks.DeepNight;
+
+    /// <summary>
+    /// True if this is the final segment of the current block.
+    /// </summary>
+    public bool IsLastSegmentInBlock => _currentSegment >= SegmentsInCurrentBlock;
+
+    /// <summary>
+    /// True if this is the final segment of the day (Night block's only segment).
+    /// </summary>
+    public bool IsLastSegmentInDay => _currentTimeBlock == TimeBlocks.Night && IsLastSegmentInBlock;
+
+    /// <summary>
+    /// Creates a new TimeState starting at the beginning of a day.
+    /// </summary>
+    public TimeState(int day = 1) : this(day, TimeBlocks.Dawn, 1, CalculateTotalSegments(day, TimeBlocks.Dawn, 1))
+    {
+    }
+
+    /// <summary>
+    /// Creates a new TimeState with specific time block and segment.
+    /// </summary>
+    public TimeState(int day, TimeBlocks timeBlock, int segment) : this(day, timeBlock, segment, CalculateTotalSegments(day, timeBlock, segment))
+    {
+    }
+
+    /// <summary>
+    /// Private constructor for complete state specification.
+    /// </summary>
+    private TimeState(int day, TimeBlocks timeBlock, int segment, int totalSegmentsElapsed)
     {
         if (day < 1)
             throw new ArgumentException("Day must be at least 1", nameof(day));
 
-        if (hour < 0 || hour >= HOURS_PER_DAY)
-            throw new ArgumentException($"Hour must be between 0 and {HOURS_PER_DAY - 1}", nameof(hour));
+        if (timeBlock == TimeBlocks.DeepNight)
+            throw new ArgumentException("Cannot create TimeState during DeepNight - use Sleep() to transition through DeepNight", nameof(timeBlock));
 
-        if (minute < 0 || minute >= 60)
-            throw new ArgumentException("Minute must be between 0 and 59", nameof(minute));
+        int maxSegments = TimeBlockSegments.GetSegmentsForBlock(timeBlock);
+        if (segment < 1 || segment > maxSegments)
+            throw new ArgumentException($"Segment must be between 1 and {maxSegments} for {timeBlock}", nameof(segment));
 
         _currentDay = day;
-        _currentHour = hour;
-        _currentMinute = minute;
+        _currentTimeBlock = timeBlock;
+        _currentSegment = segment;
+        _totalSegmentsElapsed = totalSegmentsElapsed;
     }
 
     /// <summary>
-    /// Creates a new TimeState by advancing time atomically.
-    /// Returns a new instance with the updated time.
+    /// Advances time by the specified number of segments.
+    /// Handles time block and day transitions automatically.
     /// </summary>
-    public TimeAdvancementResult AdvanceTime(int hours)
+    public TimeAdvancementResult AdvanceSegments(int segments)
     {
-        if (hours <= 0)
-            throw new ArgumentException("Hours to advance must be positive", nameof(hours));
+        if (segments <= 0)
+            throw new ArgumentException("Segments to advance must be positive", nameof(segments));
 
-        TimeBlocks oldTimeBlock = CurrentTimeBlock;
-        int totalHours = _currentHour + hours;
-        int daysAdvanced = totalHours / HOURS_PER_DAY;
-        int newHour = totalHours % HOURS_PER_DAY;
-        int newDay = _currentDay + daysAdvanced;
+        var oldState = this;
+        var oldTimeBlock = _currentTimeBlock;
+        
+        int remainingSegments = segments;
+        int currentDay = _currentDay;
+        var currentTimeBlock = _currentTimeBlock;
+        int currentSegment = _currentSegment;
+        int totalSegments = _totalSegmentsElapsed;
 
-        TimeState newState = new TimeState(newDay, newHour, _currentMinute);
+        while (remainingSegments > 0)
+        {
+            int segmentsInCurrentBlock = TimeBlockSegments.GetSegmentsForBlock(currentTimeBlock);
+            int segmentsRemainingInCurrentBlock = segmentsInCurrentBlock - currentSegment + 1;
+
+            if (remainingSegments < segmentsRemainingInCurrentBlock)
+            {
+                // Advancement stays within current block
+                currentSegment += remainingSegments;
+                totalSegments += remainingSegments;
+                remainingSegments = 0;
+            }
+            else
+            {
+                // Need to advance to next block
+                remainingSegments -= segmentsRemainingInCurrentBlock;
+                totalSegments += segmentsRemainingInCurrentBlock;
+                
+                // Move to next time block
+                if (currentTimeBlock == TimeBlocks.Night)
+                {
+                    // Night → DeepNight → Dawn (next day)
+                    currentDay++;
+                    currentTimeBlock = TimeBlocks.Dawn;
+                    currentSegment = 1;
+                }
+                else
+                {
+                    currentTimeBlock = GetNextTimeBlock(currentTimeBlock);
+                    currentSegment = 1;
+                }
+            }
+        }
+
+        var newState = new TimeState(currentDay, currentTimeBlock, currentSegment, totalSegments);
 
         return new TimeAdvancementResult
         {
-            OldState = this,
+            OldState = oldState,
             NewState = newState,
-            HoursAdvanced = hours,
-            DaysAdvanced = daysAdvanced,
-            CrossedDayBoundary = daysAdvanced > 0,
+            SegmentsAdvanced = segments,
+            DaysAdvanced = newState.CurrentDay - oldState.CurrentDay,
+            CrossedDayBoundary = newState.CurrentDay > oldState.CurrentDay,
             OldTimeBlock = oldTimeBlock,
             NewTimeBlock = newState.CurrentTimeBlock,
             CrossedTimeBlock = oldTimeBlock != newState.CurrentTimeBlock
@@ -81,119 +180,147 @@ public sealed class TimeState
     }
 
     /// <summary>
-    /// Creates a new TimeState by advancing time by minutes.
-    /// Properly handles hour and day rollovers.
+    /// Handles sleep transition from any time to Dawn of the next day.
+    /// Used when player sleeps or when DeepNight is reached.
     /// </summary>
-    public TimeAdvancementResult AdvanceTimeMinutes(int minutes)
+    public TimeState Sleep()
     {
-        if (minutes <= 0)
-            throw new ArgumentException("Minutes to advance must be positive", nameof(minutes));
+        int nextDay = _currentTimeBlock == TimeBlocks.Night && IsLastSegmentInBlock ? _currentDay + 1 : _currentDay + 1;
+        return new TimeState(nextDay, TimeBlocks.Dawn, 1, CalculateTotalSegments(nextDay, TimeBlocks.Dawn, 1));
+    }
 
-        TimeBlocks oldTimeBlock = CurrentTimeBlock;
+    /// <summary>
+    /// Checks if the specified number of segments can be spent within the current day.
+    /// </summary>
+    public bool CanSpendSegments(int segments)
+    {
+        if (segments <= 0) return false;
+        return segments <= SegmentsRemainingInDay;
+    }
 
-        // Calculate new time
-        int totalMinutes = _currentMinute + minutes;
-        int additionalHours = totalMinutes / 60;
-        int newMinute = totalMinutes % 60;
+    /// <summary>
+    /// Checks if the specified number of segments can be spent within the current time block.
+    /// </summary>
+    public bool CanSpendSegmentsInCurrentBlock(int segments)
+    {
+        if (segments <= 0) return false;
+        return segments <= SegmentsRemainingInBlock;
+    }
 
-        int totalHours = _currentHour + additionalHours;
-        int daysAdvanced = totalHours / HOURS_PER_DAY;
-        int newHour = totalHours % HOURS_PER_DAY;
-        int newDay = _currentDay + daysAdvanced;
-
-        TimeState newState = new TimeState(newDay, newHour, newMinute);
-
-        return new TimeAdvancementResult
+    /// <summary>
+    /// Gets a human-readable segment display string.
+    /// Format: "AFTERNOON ●●○○ [2/4]"
+    /// </summary>
+    public string GetSegmentDisplay()
+    {
+        int totalSegments = SegmentsInCurrentBlock;
+        string dots = "";
+        
+        for (int i = 1; i <= totalSegments; i++)
         {
-            OldState = this,
-            NewState = newState,
-            HoursAdvanced = additionalHours,
-            MinutesAdvanced = minutes,
-            DaysAdvanced = daysAdvanced,
-            CrossedDayBoundary = daysAdvanced > 0,
-            OldTimeBlock = oldTimeBlock,
-            NewTimeBlock = newState.CurrentTimeBlock,
-            CrossedTimeBlock = oldTimeBlock != newState.CurrentTimeBlock
+            dots += i <= _currentSegment ? "●" : "○";
+        }
+        
+        return $"{_currentTimeBlock.ToString().ToUpper()} {dots} [{_currentSegment}/{totalSegments}]";
+    }
+
+    /// <summary>
+    /// Gets a compact segment display for UI.
+    /// Format: "●●○○"
+    /// </summary>
+    public string GetCompactSegmentDisplay()
+    {
+        int totalSegments = SegmentsInCurrentBlock;
+        string dots = "";
+        
+        for (int i = 1; i <= totalSegments; i++)
+        {
+            dots += i <= _currentSegment ? "●" : "○";
+        }
+        
+        return dots;
+    }
+
+    /// <summary>
+    /// Gets the next time block in sequence.
+    /// </summary>
+    private static TimeBlocks GetNextTimeBlock(TimeBlocks currentBlock)
+    {
+        return currentBlock switch
+        {
+            TimeBlocks.Dawn => TimeBlocks.Midday,
+            TimeBlocks.Midday => TimeBlocks.Afternoon,
+            TimeBlocks.Afternoon => TimeBlocks.Evening,
+            TimeBlocks.Evening => TimeBlocks.Night,
+            TimeBlocks.Night => TimeBlocks.DeepNight,
+            TimeBlocks.DeepNight => TimeBlocks.Dawn, // This shouldn't happen in normal flow
+            _ => throw new ArgumentException($"Unknown time block: {currentBlock}")
         };
     }
 
     /// <summary>
-    /// Checks if the specified number of hours can be spent without exceeding active time.
+    /// Calculates total segments elapsed for a given day, block, and segment.
     /// </summary>
-    public bool CanSpendActiveHours(int hours)
+    private static int CalculateTotalSegments(int day, TimeBlocks timeBlock, int segment)
     {
-        if (hours <= 0) return false;
-        return _currentHour + hours <= ACTIVE_DAY_END;
-    }
-
-    /// <summary>
-    /// Creates a new TimeState at the start of the next day.
-    /// </summary>
-    public TimeState AdvanceToNextDay()
-    {
-        return new TimeState(_currentDay + 1, ACTIVE_DAY_START, 0);
-    }
-
-    /// <summary>
-    /// Gets a human-readable time string.
-    /// </summary>
-    public string GetTimeString()
-    {
-        string period = _currentHour >= 12 ? "PM" : "AM";
-        int displayHour = _currentHour > 12 ? _currentHour - 12 : (_currentHour == 0 ? 12 : _currentHour);
-        return $"{displayHour}:{_currentMinute:D2} {period}";
-    }
-
-    /// <summary>
-    /// Calculates the time block for a given hour.
-    /// </summary>
-    private static TimeBlocks CalculateTimeBlock(int hour)
-    {
-        return hour switch
+        int total = (day - 1) * TimeBlockSegments.TOTAL_SEGMENTS_PER_DAY;
+        
+        // Add segments from completed blocks in current day
+        for (var block = TimeBlocks.Dawn; block < timeBlock; block++)
         {
-            >= 6 and < 8 => TimeBlocks.Dawn,        // 6:00-7:59 (2 hours)
-            >= 8 and < 12 => TimeBlocks.Morning,    // 8:00-11:59 (4 hours)
-            >= 12 and < 16 => TimeBlocks.Afternoon, // 12:00-15:59 (4 hours)
-            >= 16 and < 20 => TimeBlocks.Evening,   // 16:00-19:59 (4 hours)
-            >= 20 and < 22 => TimeBlocks.Night,     // 20:00-21:59 (2 hours)
-            _ => TimeBlocks.LateNight               // 22:00-5:59 (8 hours)
-        };
+            total += TimeBlockSegments.GetSegmentsForBlock(block);
+        }
+        
+        // Add current segment within current block
+        total += segment;
+        
+        return total;
     }
 
     /// <summary>
-    /// Creates a copy of this TimeState (for serialization/deserialization scenarios).
+    /// Creates a copy of this TimeState.
     /// </summary>
     public TimeState Clone()
     {
-        return new TimeState(_currentDay, _currentHour, _currentMinute);
+        return new TimeState(_currentDay, _currentTimeBlock, _currentSegment, _totalSegmentsElapsed);
     }
 
     public override string ToString()
     {
-        return $"Day {_currentDay}, {_currentHour:00}:{_currentMinute:00} ({CurrentTimeBlock})";
+        return $"Day {_currentDay}, {GetSegmentDisplay()}";
     }
 
     public override bool Equals(object obj)
     {
         if (obj is not TimeState other) return false;
-        return _currentDay == other._currentDay && _currentHour == other._currentHour && _currentMinute == other._currentMinute;
+        return _currentDay == other._currentDay && 
+               _currentTimeBlock == other._currentTimeBlock && 
+               _currentSegment == other._currentSegment;
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(_currentDay, _currentHour, _currentMinute);
+        return HashCode.Combine(_currentDay, _currentTimeBlock, _currentSegment);
+    }
+
+    /// <summary>
+    /// Gets the total segments in the current time block.
+    /// Method form for compatibility with callers expecting a method.
+    /// </summary>
+    public int GetSegmentsInCurrentBlock()
+    {
+        return SegmentsInCurrentBlock;
     }
 }
 
 /// <summary>
-/// Result of a time advancement operation.
+/// Result of a time advancement operation using segments.
 /// </summary>
 public class TimeAdvancementResult
 {
     public TimeState OldState { get; init; }
     public TimeState NewState { get; init; }
-    public int HoursAdvanced { get; init; }
-    public int MinutesAdvanced { get; init; }
+    public int SegmentsAdvanced { get; init; }
     public int DaysAdvanced { get; init; }
     public bool CrossedDayBoundary { get; init; }
     public TimeBlocks OldTimeBlock { get; init; }

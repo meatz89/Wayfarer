@@ -54,7 +54,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetBaseTravelTime()
         {
-            return TravelContext?.CurrentRoute?.TravelTimeMinutes ?? 0;
+            return TravelContext?.CurrentRoute?.TravelTimeSegments ?? 0;
         }
         
         /// <summary>

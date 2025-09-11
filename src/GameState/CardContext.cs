@@ -20,7 +20,7 @@ public class CardContext
     public ConnectionState ConnectionState { get; set; }
     public string UrgencyLevel { get; set; }
     public bool HasDeadline { get; set; }
-    public int MinutesUntilDeadline { get; set; }
+    public int SegmentsUntilDeadline { get; set; }
     public string ObservationType { get; set; }
     public string LetterId { get; set; }
     public string TargetNpcId { get; set; }
@@ -67,7 +67,7 @@ public class NegotiationTerms
 
 public class TermDetails
 {
-    public int DeadlineMinutes { get; set; }
+    public int DeadlineSegments { get; set; }
     public int QueuePosition { get; set; }
     public int Payment { get; set; }
     public bool ForcesPositionOne { get; set; }

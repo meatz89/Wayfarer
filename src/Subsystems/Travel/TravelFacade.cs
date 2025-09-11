@@ -68,7 +68,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                         CanTravel = canTravel,
                         CannotTravelReason = !canTravel ? "Route not discovered" : null,
                         MinimumCost = CalculateTravelCost(route, TravelMethods.Walking),
-                        MinimumTime = route.TravelTimeMinutes,
+                        MinimumTime = route.TravelTimeSegments,
                         IsCurrent = false,
                         Routes = new List<TravelRouteViewModel>() // This would be populated by a more detailed method
                     });
@@ -188,7 +188,8 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             return new TravelResult
             {
                 Success = true,
-                TravelTimeMinutes = travelTime,
+                TravelTimeSegments = travelTime,
+                SegmentCost = travelTime, // Direct segments usage
                 CoinCost = coinCost,
                 RouteId = route.Id,
                 DestinationId = locationId,
@@ -689,7 +690,8 @@ namespace Wayfarer.Subsystems.TravelSubsystem
     {
         public bool Success { get; set; }
         public string Reason { get; set; }
-        public int TravelTimeMinutes { get; set; }
+        public int TravelTimeSegments { get; set; }
+        public int SegmentCost { get; set; }
         public int CoinCost { get; set; }
         public string RouteId { get; set; }
         public string DestinationId { get; set; }

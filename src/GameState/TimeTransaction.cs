@@ -40,9 +40,9 @@ public class TimeTransaction
     private readonly TimeModel _timeModel;
     private readonly List<ITimeBasedEffect> _effects = new();
     private readonly TransactionContext _context = new();
-    private int _totalHoursCost;
+    private int _totalSegmentsCost;
     private string _description;
-    private bool _requiresActiveHours = true;
+    private bool _requiresActiveSegments = true;
 
     public TimeTransaction(TimeModel timeModel)
     {
@@ -50,14 +50,14 @@ public class TimeTransaction
     }
 
     /// <summary>
-    /// Adds hours to the transaction cost.
+    /// Adds segments to the transaction cost.
     /// </summary>
-    public TimeTransaction WithHours(int hours, string description = null)
+    public TimeTransaction WithSegments(int segments, string description = null)
     {
-        if (hours <= 0)
-            throw new ArgumentException("Hours must be positive", nameof(hours));
+        if (segments <= 0)
+            throw new ArgumentException("Segments must be positive", nameof(segments));
 
-        _totalHoursCost += hours;
+        _totalSegmentsCost += segments;
 
         if (!string.IsNullOrEmpty(description))
             _description = string.IsNullOrEmpty(_description) ? description : $"{_description}; {description}";
@@ -87,11 +87,11 @@ public class TimeTransaction
     }
 
     /// <summary>
-    /// Sets whether this transaction requires active hours (default: true).
+    /// Sets whether this transaction requires active segments (default: true).
     /// </summary>
-    public TimeTransaction RequireActiveHours(bool require)
+    public TimeTransaction RequireActiveSegments(bool require)
     {
-        _requiresActiveHours = require;
+        _requiresActiveSegments = require;
         return this;
     }
 
@@ -103,9 +103,9 @@ public class TimeTransaction
         TransactionValidation validation = new TransactionValidation();
 
         // Check if we have enough time
-        if (_requiresActiveHours && !_timeModel.CanPerformAction(_totalHoursCost))
+        if (_requiresActiveSegments && !_timeModel.CanPerformAction(_totalSegmentsCost))
         {
-            validation.AddError($"Insufficient active hours. Need {_totalHoursCost} hours, have {_timeModel.ActiveHoursRemaining} remaining.");
+            validation.AddError($"Insufficient active segments. Need {_totalSegmentsCost} segments, have {_timeModel.ActiveSegmentsRemaining} remaining.");
             return validation;
         }
 
@@ -139,8 +139,8 @@ public class TimeTransaction
         try
         {
             // Advance time first
-            TimeAdvancementResult? timeAdvancement = _totalHoursCost > 0
-                ? _timeModel.AdvanceTime(_totalHoursCost)
+            TimeAdvancementResult? timeAdvancement = _totalSegmentsCost > 0
+                ? _timeModel.AdvanceSegments(_totalSegmentsCost)
                 : null;
 
             // Execute all effects in order

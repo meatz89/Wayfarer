@@ -65,14 +65,14 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         public int ActiveMeetingCount { get; set; }
         public int TotalQueueSize { get; set; }
         public int EmptyQueueSlots { get; set; }
-        public double AverageDeadlineHours { get; set; }
+        public double AverageDeadlineSegments { get; set; }
         public int ExpiredObligationCount { get; set; }
-        public int UrgentObligationCount { get; set; } // < 6 hours
-        public int CriticalObligationCount { get; set; } // < 3 hours
+        public int UrgentObligationCount { get; set; } // ≤4 segments
+        public int CriticalObligationCount { get; set; } // ≤2 segments
         public int OverdueObligationCount { get; set; }
 
         // Time-based metrics
-        public int TotalMinutesUntilNextDeadline { get; set; }
+        public int TotalSegmentsUntilNextDeadline { get; set; }
         public string NextDeadlineDescription { get; set; } = "";
         public DeliveryObligation MostUrgentObligation { get; set; }
 
@@ -91,6 +91,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         public int TotalDeliveredToday { get; set; }
         public int TotalSkippedToday { get; set; }
         public double DeliverySuccessRate { get; set; }
+
     }
 
     /// <summary>
@@ -111,7 +112,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
     {
         public List<DeliveryObligation> ExpiringObligations { get; set; } = new List<DeliveryObligation>();
         public List<MeetingObligation> ExpiringMeetings { get; set; } = new List<MeetingObligation>();
-        public int HoursElapsed { get; set; }
+        public int SegmentsElapsed { get; set; }
         public List<string> ExpiredObligationIds { get; set; } = new List<string>();
         public List<string> ExpiredMeetingIds { get; set; } = new List<string>();
         public bool HasExpiredItems => ExpiredObligationIds.Any() || ExpiredMeetingIds.Any();

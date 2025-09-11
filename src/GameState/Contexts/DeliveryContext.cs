@@ -15,7 +15,7 @@ public class DeliveryContext : ConversationContextBase
     public EmotionalFocus EmotionalFocus { get; set; }
     public int Payment { get; set; }
     public bool HasDeadline { get; set; }
-    public int MinutesUntilDeadline { get; set; }
+    public int SegmentsUntilDeadline { get; set; }
     public string UrgencyLevel { get; set; }
     public bool CanDeliverLetter { get; set; }
     public string DeliveryObligationId { get; set; }
@@ -42,9 +42,9 @@ public class DeliveryContext : ConversationContextBase
             Stakes = obligation.Stakes;
             EmotionalFocus = obligation.EmotionalFocus;
             Payment = obligation.Payment;
-            HasDeadline = obligation.DeadlineInMinutes > 0;
-            MinutesUntilDeadline = obligation.MinutesUntilDeadline;
-            UrgencyLevel = GetUrgencyFromDeadline(obligation.DeadlineInMinutes);
+            HasDeadline = obligation.DeadlineInSegments > 0;
+            SegmentsUntilDeadline = obligation.SegmentsUntilDeadline;
+            UrgencyLevel = GetUrgencyFromDeadline(obligation.DeadlineInSegments);
             DeliveryObligationId = obligation.Id;
             CanDeliverLetter = true;
 
@@ -69,8 +69,8 @@ public class DeliveryContext : ConversationContextBase
         if (SelectedLetter == null) return false;
         
         return SelectedLetter.EmotionalFocus == EmotionalFocus.CRITICAL ||
-               GetUrgencyFromDeadline(SelectedLetter.DeadlineInMinutes) == "HIGH" ||
-               (SelectedLetter.DeadlineInMinutes > 0 && SelectedLetter.DeadlineInMinutes < 60);
+               GetUrgencyFromDeadline(SelectedLetter.DeadlineInSegments) == "HIGH" ||
+               (SelectedLetter.DeadlineInSegments > 0 && SelectedLetter.DeadlineInSegments <= 2);
     }
 
     public string GetDeliveryMessage()
@@ -85,12 +85,12 @@ public class DeliveryContext : ConversationContextBase
         return Payment + (TokenReward * 10); // Rough coin equivalent for display
     }
 
-    private string GetUrgencyFromDeadline(int deadlineInMinutes)
+    private string GetUrgencyFromDeadline(int deadlineInSegments)
     {
-        if (deadlineInMinutes <= 0) return "EXPIRED";
-        if (deadlineInMinutes <= 30) return "CRITICAL";
-        if (deadlineInMinutes <= 120) return "HIGH";
-        if (deadlineInMinutes <= 360) return "MEDIUM";
+        if (deadlineInSegments <= 0) return "EXPIRED";
+        if (deadlineInSegments <= 2) return "CRITICAL";
+        if (deadlineInSegments <= 4) return "HIGH";
+        if (deadlineInSegments <= 8) return "MEDIUM";
         return "LOW";
     }
 }

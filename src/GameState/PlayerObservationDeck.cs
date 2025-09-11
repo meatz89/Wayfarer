@@ -148,10 +148,10 @@ public class PlayerObservationDeck
         {
             int daysElapsed = currentDay - entry.DayAcquired;
             int timeBlocksElapsed = (daysElapsed * 6) + (currentTimeBlock - entry.TimeBlockAcquired);
-            int hoursElapsed = timeBlocksElapsed * 4;
-            int hoursRemaining = Math.Max(0, 48 - hoursElapsed); // 48 hour default expiration
+            int segmentsElapsed = timeBlocksElapsed * 8; // 8 segments per time block (4 hours * 2 segments per hour)
+            int segmentsRemaining = Math.Max(0, 96 - segmentsElapsed); // 96 segments default expiration (48 hours * 2)
 
-            details.Add(new ObservationCardDetail(entry.Card, hoursRemaining));
+            details.Add(new ObservationCardDetail(entry.Card, segmentsRemaining));
         }
 
         return details;

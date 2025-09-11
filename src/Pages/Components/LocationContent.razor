@@ -27,7 +27,7 @@
                     <div class="obligation-item @(i == 0 ? "position-1" : "")">
                         <span class="queue-position">@(i + 1)</span>
                         @obligation.SenderName → @obligation.RecipientName 
-                        <span class="deadline">(@GetDeadlineText(obligation.DeadlineInMinutes))</span>
+                        <span class="deadline">(@GetDeadlineText(obligation.DeadlineInSegments))</span>
                     </div>
                 }
                 else

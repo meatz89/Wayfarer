@@ -58,7 +58,7 @@ public class RouteViewModel
     public string TerrainType { get; init; }
     public int CoinCost { get; init; }
     public int StaminaCost { get; init; }
-    public int TravelTimeMinutes { get; init; }
+    public int TravelTimeSegments { get; init; }
     public string TransportRequirement { get; init; }
 
     // Affordability

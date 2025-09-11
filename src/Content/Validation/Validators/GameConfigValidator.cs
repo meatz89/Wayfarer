@@ -116,37 +116,9 @@ public class GameConfigValidator : IContentValidator
             return;
         }
 
-        // Validate hoursPerDay
-        if (time.TryGetProperty("hoursPerDay", out JsonElement hours) &&
-            hours.ValueKind == JsonValueKind.Number)
-        {
-            int hoursPerDay = hours.GetInt32();
-            if (hoursPerDay != 24)
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:time",
-                    $"hoursPerDay must be 24 (got {hoursPerDay})",
-                    ValidationSeverity.Critical));
-            }
-        }
+        // hoursPerDay property has been removed in favor of segment-based timing
 
-        // Validate active day hours
-        if (time.TryGetProperty("activeDayStartHour", out JsonElement startHour) &&
-            time.TryGetProperty("activeDayEndHour", out JsonElement endHour) &&
-            startHour.ValueKind == JsonValueKind.Number &&
-            endHour.ValueKind == JsonValueKind.Number)
-        {
-            int start = startHour.GetInt32();
-            int end = endHour.GetInt32();
-
-            if (start >= end)
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:time",
-                    $"activeDayStartHour ({start}) must be less than activeDayEndHour ({end})",
-                    ValidationSeverity.Critical));
-            }
-        }
+        // Legacy hour-based validation has been removed in favor of segment-based timing
     }
 
     private void ValidateStaminaConfig(JsonElement root, string fileName, List<ValidationError> errors)

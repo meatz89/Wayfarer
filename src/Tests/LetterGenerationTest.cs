@@ -16,11 +16,11 @@ public class LetterGenerationTest
     [Fact]
     public void TestDeadlineCalculation()
     {
-        // Test deadline in minutes
-        Assert.Equal(1440, GetDeadlineForFlow(7));  // Simple: 24h
-        Assert.Equal(720, GetDeadlineForFlow(12));  // Important: 12h
-        Assert.Equal(360, GetDeadlineForFlow(17));  // Urgent: 6h
-        Assert.Equal(120, GetDeadlineForFlow(25));  // Critical: 2h
+        // Test deadline in segments
+        Assert.Equal(36, GetDeadlineForFlow(7));  // Simple: 1 day
+        Assert.Equal(18, GetDeadlineForFlow(12));  // Important: 12 seg
+        Assert.Equal(9, GetDeadlineForFlow(17));  // Urgent: 9 seg
+        Assert.Equal(3, GetDeadlineForFlow(25));  // Critical: 3 seg
     }
     
     private int GetPaymentForFlow(int flow)
@@ -33,9 +33,9 @@ public class LetterGenerationTest
     
     private int GetDeadlineForFlow(int flow)
     {
-        if (flow >= 20) return 120;  // 2h
-        if (flow >= 15) return 360;  // 6h
-        if (flow >= 10) return 720;  // 12h
-        return 1440; // 24h
+        if (flow >= 20) return 3;  // 3 seg
+        if (flow >= 15) return 9;  // 9 seg
+        if (flow >= 10) return 18;  // 18 seg
+        return 36; // 36 seg
     }
 }

@@ -44,7 +44,7 @@ public enum LetterPhysicalProperties
     None = 0,
     Fragile = 1,      // Requires careful handling, can't use fast travel
     Heavy = 2,        // Slows movement, requires strength
-    Perishable = 4,   // DeadlineInHours decreases faster
+    Perishable = 4,   // DeadlineInSegments decreases faster
     Valuable = 8,     // Attracts unwanted attention
     Bulky = 16,       // Can't stack with other bulky items
     RequiresProtection = 32  // Needs waterproof container in rain
@@ -56,7 +56,7 @@ public class DeliveryObligation
     public string Title { get; set; }  // Display title for the letter
     public string SenderName { get; set; }  // Just a string for minimal POC
     public string RecipientName { get; set; }
-    public int DeadlineInMinutes { get; set; } // Minutes until letter expires
+    public int DeadlineInSegments { get; set; } // Segments until letter expires
     public int Payment { get; set; }
     public ConnectionType TokenType { get; set; }
 
@@ -108,39 +108,30 @@ public class DeliveryObligation
     // UnlocksNPCId, UnlocksLocationId, BonusDuration, InformationId are on Letter class only
 
     // Helper properties
-    public bool IsExpired => DeadlineInMinutes <= 0;
+    public bool IsExpired => DeadlineInSegments <= 0;
     // DeliveryObligations are abstract - they don't have special types (only physical Letters do)
-    public int HoursUntilDeadline => DeadlineInMinutes / 60;
-    public int MinutesUntilDeadline => DeadlineInMinutes;
+    public int SegmentsUntilDeadline => DeadlineInSegments;
     public string SenderNPC => SenderName;
+
 
 
 
     public string GetDeadlineDescription()
     {
         if (IsExpired) return "EXPIRED!";
-        if (DeadlineInMinutes <= 30) return $"{DeadlineInMinutes}m ⚡ CRITICAL!";
-        if (DeadlineInMinutes <= 120) return $"{DeadlineInMinutes}m 🔥 URGENT";
+        if (DeadlineInSegments <= 2) return $"{DeadlineInSegments} segments ⚡ CRITICAL!";
+        if (DeadlineInSegments <= 4) return $"{DeadlineInSegments} segments 🔥 URGENT";
 
-        int hours = DeadlineInMinutes / 60;
-        int minutes = DeadlineInMinutes % 60;
-
-        if (hours <= 6)
+        if (DeadlineInSegments <= 16)
         {
-            if (minutes == 0) return $"{hours}h ⚠️ urgent";
-            return $"{hours}h {minutes}m ⚠️ urgent";
-        }
-        if (hours <= 16)
-        {
-            if (minutes == 0) return $"{hours}h today";
-            return $"{hours}h {minutes}m today";
+            return $"{DeadlineInSegments} segments ⚠️ urgent";
         }
 
-        int days = hours / 24;
-        int remainingHours = hours % 24;
-        if (days == 0) return $"{hours}h";
-        if (remainingHours == 0) return $"{days}d";
-        return $"{days}d {remainingHours}h";
+        int days = DeadlineInSegments / 16; // 16 segments per day
+        int remainingSegments = DeadlineInSegments % 16;
+        if (days == 0) return $"{DeadlineInSegments} segments";
+        if (remainingSegments == 0) return $"{days}d";
+        return $"{days}d {remainingSegments}s";
     }
 
     public string GetTokenTypeIcon()

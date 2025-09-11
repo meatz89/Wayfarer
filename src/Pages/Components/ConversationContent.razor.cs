@@ -810,7 +810,7 @@ namespace Wayfarer.Pages.Components
                 RecipientId = recipientId,
                 RecipientName = recipientName,
                 TokenType = tokenType,
-                DeadlineInMinutes = deadline,
+                DeadlineInSegments = deadline, // Deadline is already in segments
                 Payment = payment,
                 Stakes = stakes,
                 EmotionalFocus = focus,
@@ -822,14 +822,14 @@ namespace Wayfarer.Pages.Components
 
         private (int deadline, int payment, StakeType stakes, EmotionalFocus focus) GetTierParameters(LetterTier tier)
         {
-            // EXACT specifications as requested
+            // Deadlines converted to segments (1 day = 36 segments, etc.)
             return tier switch
             {
-                LetterTier.Simple => (1440, 5, StakeType.REPUTATION, EmotionalFocus.LOW),      // 24h, 5 coins
-                LetterTier.Important => (720, 10, StakeType.WEALTH, EmotionalFocus.MEDIUM),    // 12h, 10 coins
-                LetterTier.Urgent => (360, 15, StakeType.STATUS, EmotionalFocus.HIGH),         // 6h, 15 coins
-                LetterTier.Critical => (120, 20, StakeType.SAFETY, EmotionalFocus.CRITICAL),   // 2h, 20 coins
-                _ => (1440, 5, StakeType.REPUTATION, EmotionalFocus.LOW)
+                LetterTier.Simple => (36, 5, StakeType.REPUTATION, EmotionalFocus.LOW),      // 1 day, 5 coins
+                LetterTier.Important => (18, 10, StakeType.WEALTH, EmotionalFocus.MEDIUM),    // 12 seg, 10 coins
+                LetterTier.Urgent => (9, 15, StakeType.STATUS, EmotionalFocus.HIGH),         // 6 seg, 15 coins
+                LetterTier.Critical => (3, 20, StakeType.SAFETY, EmotionalFocus.CRITICAL),   // 2 seg, 20 coins
+                _ => (36, 5, StakeType.REPUTATION, EmotionalFocus.LOW)
             };
         }
 
@@ -1260,11 +1260,11 @@ namespace Wayfarer.Pages.Components
 
             foreach (QueueSlotViewModel slot in letterQueue.QueueSlots)
             {
-                if (slot.IsOccupied && slot.DeliveryObligation != null && slot.DeliveryObligation.DeadlineInHours > 0)
+                if (slot.IsOccupied && slot.DeliveryObligation != null && slot.DeliveryObligation.DeadlineInSegments_Display > 0)
                 {
-                    if (slot.DeliveryObligation.DeadlineInHours < shortestDeadline)
+                    if (slot.DeliveryObligation.DeadlineInSegments_Display < shortestDeadline)
                     {
-                        shortestDeadline = slot.DeliveryObligation.DeadlineInHours;
+                        shortestDeadline = slot.DeliveryObligation.DeadlineInSegments_Display;
                         mostUrgent = slot.DeliveryObligation;
                     }
                 }
@@ -1272,9 +1272,9 @@ namespace Wayfarer.Pages.Components
 
             if (mostUrgent != null)
             {
-                int hours = mostUrgent.DeadlineInHours;
-                if (hours > 0)
-                    return $"{mostUrgent.RecipientName}'s letter deadline: {hours}h";
+                int segments = mostUrgent.DeadlineInSegments_Display;
+                if (segments > 0)
+                    return $"{mostUrgent.RecipientName}'s letter deadline: {segments} seg";
                 else
                     return $"{mostUrgent.RecipientName}'s letter deadline soon!";
             }
@@ -1885,24 +1885,24 @@ namespace Wayfarer.Pages.Components
                     {
                         // Generate appropriate message based on negotiation success
                         string negotiationOutcome = negotiation.NegotiationSuccess ? "Successfully negotiated" : "Failed to negotiate";
-                        double deadlineHours = negotiation.FinalTerms.DeadlineMinutes / 60.0;
+                        int deadlineSegments = negotiation.FinalTerms.DeadlineSegments;
 
                         string urgencySuffix = "";
-                        if (deadlineHours <= 2)
+                        if (deadlineSegments <= 4)
                             urgencySuffix = " - CRITICAL!";
-                        else if (deadlineHours <= 6)
+                        else if (deadlineSegments <= 12)
                             urgencySuffix = " - URGENT";
 
-                        string msgTemplate = "{0} letter: '{1}' - {2}h deadline, {3} coins";
+                        string msgTemplate = "{0} letter: '{1}' - {2}seg deadline, {3} coins";
 
                         string message = string.Format(msgTemplate, negotiationOutcome,
                             negotiation.SourcePromiseCard.Description ?? negotiation.SourcePromiseCard.Id,
-                            deadlineHours.ToString("F1"),
+                            deadlineSegments.ToString(),
                             negotiation.FinalTerms.Payment) + urgencySuffix;
 
                         messageSystem?.AddSystemMessage(
                             message,
-                            deadlineHours <= 2 ? SystemMessageTypes.Danger : SystemMessageTypes.Success
+                            deadlineSegments <= 4 ? SystemMessageTypes.Danger : SystemMessageTypes.Success
                         );
 
                         // Mark the letter as generated in the session

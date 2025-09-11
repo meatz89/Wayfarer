@@ -167,24 +167,12 @@ namespace Wayfarer.Pages
 
         protected async Task RefreshTimeDisplay()
         {
-            int hour = GameFacade.GetCurrentHour();
-            int minutes = GameFacade.GetCurrentMinutes();
-
-            string period = hour switch
-            {
-                >= 6 and < 10 => "Morning",
-                >= 10 and < 14 => "Midday",
-                >= 14 and < 18 => "Afternoon",
-                >= 18 and < 22 => "Evening",
-                >= 22 or < 2 => "Night",
-                _ => "Deep Night"
-            };
-
-            // Format time correctly with actual minutes
-            int displayHour = hour % 12;
-            if (displayHour == 0) displayHour = 12;
-            CurrentTime = $"{displayHour:D2}:{minutes:D2} {(hour >= 12 ? "PM" : "AM")}";
-            TimePeriod = period;
+            // Get segment display from time facade
+            var timeInfo = GameFacade.GetTimeInfo();
+            
+            // Use segment display format: "AFTERNOON ●●○○ [2/4]"
+            CurrentTime = timeInfo.SegmentDisplay;
+            TimePeriod = timeInfo.CurrentTimeBlock.ToString();
 
             // Get most urgent deadline from queue
             LetterQueueViewModel queueVM = GameFacade.GetLetterQueue();
@@ -195,16 +183,16 @@ namespace Wayfarer.Pages
                 {
                     if (slot.IsOccupied && slot.DeliveryObligation != null)
                     {
-                        if (mostUrgent == null || slot.DeliveryObligation.DeadlineInHours < mostUrgent.DeadlineInHours)
+                        if (mostUrgent == null || slot.DeliveryObligation.DeadlineInSegments_Display < mostUrgent.DeadlineInSegments_Display)
                         {
                             mostUrgent = slot.DeliveryObligation;
                         }
                     }
                 }
 
-                if (mostUrgent != null && mostUrgent.DeadlineInHours > 0)
+                if (mostUrgent != null && mostUrgent.DeadlineInSegments_Display > 0)
                 {
-                    MostUrgentDeadline = $"Next deadline: {mostUrgent.DeadlineInHours}h - {mostUrgent.SenderName} → {mostUrgent.RecipientName}";
+                    MostUrgentDeadline = $"Next deadline: {mostUrgent.DeadlineInSegments_Display} seg - {mostUrgent.SenderName} → {mostUrgent.RecipientName}";
                 }
                 else
                 {

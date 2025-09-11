@@ -72,7 +72,7 @@ public class LetterDeliveryCardTests
             RecipientId = "bertram_innkeeper",
             RecipientName = "Bertram",
             TokenType = ConnectionType.Trust,
-            DeadlineInMinutes = 120,
+            DeadlineInSegments = 4, // 4 segments
             Payment = 10,
             EmotionalFocus = EmotionalFocus.MEDIUM
         };
@@ -132,7 +132,7 @@ public class LetterDeliveryCardTests
             RecipientId = "bertram_innkeeper",
             RecipientName = "Bertram",
             TokenType = ConnectionType.Trust,
-            DeadlineInMinutes = 120,
+            DeadlineInSegments = 4, // 4 segments
             Payment = 10,
             EmotionalFocus = EmotionalFocus.LOW
         };
@@ -145,7 +145,7 @@ public class LetterDeliveryCardTests
             RecipientId = "bertram_innkeeper",
             RecipientName = "Bertram",
             TokenType = ConnectionType.Commerce,
-            DeadlineInMinutes = 60,
+            DeadlineInSegments = 2, // 2 segments
             Payment = 20,
             EmotionalFocus = EmotionalFocus.HIGH
         };
@@ -205,7 +205,7 @@ public class LetterDeliveryCardTests
             RecipientId = "elena_merchant",
             RecipientName = "Elena",
             TokenType = ConnectionType.Trust,
-            DeadlineInMinutes = 120,
+            DeadlineInSegments = 4, // 4 segments
             Payment = 10
         };
         
@@ -254,7 +254,7 @@ public class LetterDeliveryCardTests
             RecipientId = "bertram_innkeeper",
             RecipientName = "Bertram",
             TokenType = ConnectionType.Trust,
-            DeadlineInMinutes = 60,
+            DeadlineInSegments = 2, // 2 segments
             Payment = 15,
             EmotionalFocus = EmotionalFocus.CRITICAL
         };

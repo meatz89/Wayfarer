@@ -47,7 +47,7 @@ public class LocationActionDTO
     public Dictionary<string, int> Reward { get; set; } = new Dictionary<string, int>();
 
     /// <summary>
-    /// Time required to complete this action in minutes
+    /// Time required to complete this action in segments
     /// </summary>
     public int TimeRequired { get; set; }
 

@@ -109,7 +109,7 @@ public class SimpleRouteViewModel
     public string Id { get; set; }
     public string Destination { get; set; }
     public string TransportType { get; set; }
-    public int TravelTimeInMinutes { get; set; }
+    public int TravelTimeInSegments { get; set; }
     public int Cost { get; set; }
     public string FamiliarityLevel { get; set; }
 }

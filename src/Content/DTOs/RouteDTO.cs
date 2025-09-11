@@ -14,7 +14,7 @@ public class RouteDTO
     public string Method { get; set; }
     public int BaseCoinCost { get; set; }
     public int BaseStaminaCost { get; set; }
-    public int TravelTimeMinutes { get; set; }
+    public int TravelTimeSegments { get; set; }
     public int CoinCost { get; set; }
     public string PermitRequired { get; set; }
     public string DepartureTime { get; set; }

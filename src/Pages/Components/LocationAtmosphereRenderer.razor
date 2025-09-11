@@ -23,7 +23,7 @@
 
         // Count urgent obligations for tension
         var urgentObligations = LetterQueueManager?.GetActiveObligations()
-            ?.Count(o => o.DeadlineInMinutes < 360) ?? 0;
+            ?.Count(o => o.DeadlineInSegments < 360) ?? 0;
 
         // Generate description from categorical properties
         return _descriptionGenerator.GenerateDescription(
@@ -65,7 +65,7 @@
         var obligations = LetterQueueManager?.GetActiveObligations() ?? new DeliveryObligation[0];
         return obligations.Any(o => 
             (o.SenderId == npc.ID || o.SenderName == npc.Name) && 
-            o.DeadlineInMinutes < 360);
+            o.DeadlineInSegments < 360);
     }
     
     private string GetProfessionActivity(Professions profession)

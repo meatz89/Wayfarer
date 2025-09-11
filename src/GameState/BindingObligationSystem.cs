@@ -32,7 +32,7 @@ public class BindingObligationSystem
         string npcName,
         ObligationType type,
         string description,
-        int hoursUntilDue = 24)
+        int segmentsUntilDue = 16)
     {
         BindingObligation obligation = new BindingObligation
         {
@@ -41,8 +41,8 @@ public class BindingObligationSystem
             NpcName = npcName,
             Type = type,
             Description = description,
-            CreatedAtHour = _timeManager.GetCurrentTimeHours(),
-            DueByHour = _timeManager.GetCurrentTimeHours() + hoursUntilDue,
+            CreatedAtSegment = _timeManager.CurrentSegment,
+            DueBySegment = _timeManager.CurrentSegment + segmentsUntilDue,
             IsActive = true
         };
 
@@ -54,24 +54,24 @@ public class BindingObligationSystem
     /// </summary>
     public List<BindingObligationViewModel> GetActiveObligations()
     {
-        int currentHour = _timeManager.GetCurrentTimeHours();
+        int currentSegment = _timeManager.CurrentSegment;
         List<BindingObligationViewModel> viewModels = new List<BindingObligationViewModel>();
 
         foreach (BindingObligation? obligation in _activeObligations.Where(o => o.IsActive))
         {
-            int hoursRemaining = obligation.DueByHour - currentHour;
-            ObligationUrgency urgency = hoursRemaining switch
+            int segmentsRemaining = obligation.DueBySegment - currentSegment;
+            ObligationUrgency urgency = segmentsRemaining switch
             {
                 <= 2 => ObligationUrgency.Critical,
-                <= 6 => ObligationUrgency.Urgent,
-                <= 12 => ObligationUrgency.Soon,
+                <= 4 => ObligationUrgency.Urgent,
+                <= 8 => ObligationUrgency.Soon,
                 _ => ObligationUrgency.Later
             };
 
             viewModels.Add(new BindingObligationViewModel
             {
                 Icon = GetObligationIcon(obligation.Type, urgency),
-                Text = FormatObligationText(obligation, hoursRemaining),
+                Text = FormatObligationText(obligation, segmentsRemaining),
                 Urgency = urgency,
                 NpcName = obligation.NpcName
             });
@@ -101,7 +101,7 @@ public class BindingObligationSystem
         if (obligation != null)
         {
             obligation.IsActive = false;
-            obligation.FulfilledAtHour = _timeManager.GetCurrentTimeHours();
+            obligation.FulfilledAtSegment = _timeManager.CurrentSegment;
         }
     }
 
@@ -110,10 +110,10 @@ public class BindingObligationSystem
     /// </summary>
     public void ProcessBrokenObligations()
     {
-        int currentHour = _timeManager.GetCurrentTimeHours();
+        int currentSegment = _timeManager.CurrentSegment;
 
         foreach (BindingObligation? obligation in _activeObligations.Where(o =>
-            o.IsActive && o.DueByHour < currentHour))
+            o.IsActive && o.DueBySegment < currentSegment))
         {
             // Apply token penalties for broken promises
             ApplyBrokenObligationPenalty(obligation);
@@ -164,13 +164,13 @@ public class BindingObligationSystem
         };
     }
 
-    private string FormatObligationText(BindingObligation obligation, int hoursRemaining)
+    private string FormatObligationText(BindingObligation obligation, int segmentsRemaining)
     {
-        string timeText = hoursRemaining switch
+        string timeText = segmentsRemaining switch
         {
             <= 0 => "OVERDUE",
-            1 => "1 hour",
-            _ => $"{hoursRemaining} hours"
+            1 => "1 segment",
+            _ => $"{segmentsRemaining} segments"
         };
 
         return $"{obligation.NpcName}: {obligation.Description} ({timeText})";
@@ -187,9 +187,9 @@ public class BindingObligation
     public string NpcName { get; set; }
     public ObligationType Type { get; set; }
     public string Description { get; set; }
-    public int CreatedAtHour { get; set; }
-    public int DueByHour { get; set; }
-    public int? FulfilledAtHour { get; set; }
+    public int CreatedAtSegment { get; set; }
+    public int DueBySegment { get; set; }
+    public int? FulfilledAtSegment { get; set; }
     public bool IsActive { get; set; }
     public bool WasBroken { get; set; }
 }
@@ -210,10 +210,10 @@ public enum ObligationType
 /// </summary>
 public enum ObligationUrgency
 {
-    Critical = 0,  // <= 2 hours
-    Urgent = 1,    // <= 6 hours
-    Soon = 2,      // <= 12 hours
-    Later = 3      // > 12 hours
+    Critical = 0,  // <= 2 segments
+    Urgent = 1,    // <= 4 segments
+    Soon = 2,      // <= 8 segments
+    Later = 3      // > 8 segments
 }
 
 /// <summary>

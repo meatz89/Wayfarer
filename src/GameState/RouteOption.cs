@@ -78,7 +78,7 @@ public class RouteOption
     public TravelMethods Method { get; set; }
     public int BaseCoinCost { get; set; }
     public int BaseStaminaCost { get; set; }
-    public int TravelTimeMinutes { get; set; }
+    public int TravelTimeSegments { get; set; }
     public TimeBlocks? DepartureTime { get; set; }
     public bool IsDiscovered { get; set; } = true;
     public List<TerrainCategory> TerrainCategories { get; set; } = new List<TerrainCategory>();
@@ -230,7 +230,7 @@ public class RouteOption
 
     public int GetActualTimeCost()
     {
-        return TravelTimeMinutes;
+        return TravelTimeSegments;
     }
 
     public int CalculateFocusAdjustedStaminaCost(int totalFocus)

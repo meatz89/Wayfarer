@@ -22,8 +22,8 @@ public interface IGameRuleEngine
     bool CanTravel(Player player, RouteOption route);
 
     // Time management
-    TimeBlocks GetTimeBlock(int hour);
-    int GetActiveHoursRemaining(int currentHour);
+    TimeBlocks GetTimeBlock(int segment);
+    int GetActiveSegmentsRemaining(int currentSegment);
     bool IsNPCAvailable(NPC npc, TimeBlocks timeBlock);
 
     // Stamina and recovery

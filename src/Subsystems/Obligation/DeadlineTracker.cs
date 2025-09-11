@@ -32,17 +32,17 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         }
 
         /// <summary>
-        /// Process hourly deadline countdown for all obligations.
+        /// Process segment deadline countdown for all obligations.
         /// Updates deadlines, handles expirations, and compacts the queue.
         /// </summary>
-        public DeadlineTrackingInfo ProcessHourlyDeadlines(int hoursElapsed = 1)
+        public DeadlineTrackingInfo ProcessSegmentDeadlines(int segmentsElapsed = 1)
         {
             DeadlineTrackingInfo trackingInfo = new DeadlineTrackingInfo
             {
-                HoursElapsed = hoursElapsed
+                SegmentsElapsed = segmentsElapsed
             };
 
-            if (hoursElapsed <= 0) return trackingInfo;
+            if (segmentsElapsed <= 0) return trackingInfo;
 
             DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
@@ -52,8 +52,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             {
                 if (queue[i] != null)
                 {
-                    queue[i].DeadlineInMinutes -= (hoursElapsed * 60);
-                    if (queue[i].DeadlineInMinutes <= 0)
+                    queue[i].DeadlineInSegments -= segmentsElapsed;
+                    if (queue[i].DeadlineInSegments <= 0)
                     {
                         expiredObligations.Add(queue[i]);
                     }
@@ -68,43 +68,39 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
 
             // Phase 3: Process expired meetings
-            List<MeetingObligation> expiredMeetings = ProcessExpiredMeetings(hoursElapsed);
+            List<MeetingObligation> expiredMeetings = ProcessExpiredMeetings(segmentsElapsed);
             trackingInfo.ExpiredMeetingIds.AddRange(expiredMeetings.Select(m => m.Id));
 
             // Phase 4: Compact queue removing expired items
             CompactQueueAfterExpiration();
 
             // Phase 5: Identify still-expiring items for warnings
-            trackingInfo.ExpiringObligations = GetExpiringObligations(24); // Next 24 hours
-            trackingInfo.ExpiringMeetings = GetExpiringMeetings(24);
+            trackingInfo.ExpiringObligations = GetExpiringObligations(16); // Next 16 segments (1 day)
+            trackingInfo.ExpiringMeetings = GetExpiringMeetings(16);
 
             return trackingInfo;
         }
 
         /// <summary>
-        /// Get obligations that will expire within the specified hours threshold.
+        /// Get obligations that will expire within the specified segments threshold.
         /// </summary>
-        public List<DeliveryObligation> GetExpiringObligations(int hoursThreshold)
+        public List<DeliveryObligation> GetExpiringObligations(int segmentsThreshold)
         {
-            int minutesThreshold = hoursThreshold * 60;
-
             return GetActiveObligations()
-                .Where(o => o.DeadlineInMinutes <= minutesThreshold && o.DeadlineInMinutes > 0)
-                .OrderBy(o => o.DeadlineInMinutes)
+                .Where(o => o.DeadlineInSegments <= segmentsThreshold && o.DeadlineInSegments > 0)
+                .OrderBy(o => o.DeadlineInSegments)
                 .ToList();
         }
 
         /// <summary>
-        /// Get meetings that will expire within the specified hours threshold.
+        /// Get meetings that will expire within the specified segments threshold.
         /// </summary>
-        public List<MeetingObligation> GetExpiringMeetings(int hoursThreshold)
+        public List<MeetingObligation> GetExpiringMeetings(int segmentsThreshold)
         {
-            int minutesThreshold = hoursThreshold * 60;
-
             Player player = _gameWorld.GetPlayer();
             return player.MeetingObligations
-                .Where(m => m.DeadlineInMinutes <= minutesThreshold && m.DeadlineInMinutes > 0)
-                .OrderBy(m => m.DeadlineInMinutes)
+                .Where(m => m.DeadlineInSegments <= segmentsThreshold && m.DeadlineInSegments > 0)
+                .OrderBy(m => m.DeadlineInSegments)
                 .ToList();
         }
 
@@ -114,8 +110,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         public DeliveryObligation GetMostUrgentObligation()
         {
             return GetActiveObligations()
-                .Where(o => o.DeadlineInMinutes > 0)
-                .OrderBy(o => o.DeadlineInMinutes)
+                .Where(o => o.DeadlineInSegments > 0)
+                .OrderBy(o => o.DeadlineInSegments)
                 .FirstOrDefault();
         }
 
@@ -126,8 +122,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         {
             Player player = _gameWorld.GetPlayer();
             return player.MeetingObligations
-                .Where(m => m.DeadlineInMinutes > 0)
-                .OrderBy(m => m.DeadlineInMinutes)
+                .Where(m => m.DeadlineInSegments > 0)
+                .OrderBy(m => m.DeadlineInSegments)
                 .FirstOrDefault();
         }
 
@@ -164,11 +160,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             );
 
             // Show current deadline pressure
-            string urgency = letter.DeadlineInMinutes <= 48 * 60 ? " 🆘 CRITICAL!" : "";
-            int currentDays = letter.DeadlineInMinutes / (24 * 60);
+            string urgency = letter.DeadlineInSegments <= 2 ? " 🆘 CRITICAL!" : "";
+            int currentDays = letter.DeadlineInSegments / 16; // 16 segments per day
             _messageSystem.AddSystemMessage(
                 $"  • Current deadline: {currentDays} days{urgency}",
-                letter.DeadlineInMinutes <= 48 * 60 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
+                letter.DeadlineInSegments <= 2 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
             );
 
             // Check token cost (2 matching tokens)
@@ -198,9 +194,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return result;
             }
 
-            // Extend the deadline by 2 days (2880 minutes)
-            int oldDeadlineHours = letter.DeadlineInMinutes / 60;
-            letter.DeadlineInMinutes += 2880;
+            // Extend the deadline by 2 days (32 segments)
+            int oldDeadlineSegments = letter.DeadlineInSegments;
+            letter.DeadlineInSegments += 32; // 2 days * 16 segments per day
 
             result.Success = true;
             result.AffectedObligation = letter;
@@ -212,8 +208,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 SystemMessageTypes.Success
             );
 
-            int newDeadlineDays = letter.DeadlineInMinutes / (24 * 60);
-            int oldDeadlineDays = oldDeadlineHours / 24;
+            int newDeadlineDays = letter.DeadlineInSegments / 16;
+            int oldDeadlineDays = oldDeadlineSegments / 16;
             _messageSystem.AddSystemMessage(
                 $"  • New deadline: {newDeadlineDays} days (was {oldDeadlineDays})",
                 SystemMessageTypes.Info
@@ -235,13 +231,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             DeliveryObligation mostUrgent = GetMostUrgentObligation();
             if (mostUrgent != null)
             {
-                return $"⏰ {mostUrgent.HoursUntilDeadline}h";
+                return $"⏰ {mostUrgent.SegmentsUntilDeadline}s";
             }
 
             MeetingObligation mostUrgentMeeting = GetMostUrgentMeeting();
             if (mostUrgentMeeting != null)
             {
-                return $"📅 {mostUrgentMeeting.DeadlineInHours}h";
+                return $"📅 {mostUrgentMeeting.DeadlineInSegments_Display}s";
             }
 
             return "";
@@ -252,8 +248,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// </summary>
         public bool HasCriticalDeadlines()
         {
-            List<DeliveryObligation> criticalObligations = GetExpiringObligations(3); // 3 hours
-            List<MeetingObligation> criticalMeetings = GetExpiringMeetings(3);
+            List<DeliveryObligation> criticalObligations = GetExpiringObligations(2); // 2 segments
+            List<MeetingObligation> criticalMeetings = GetExpiringMeetings(2);
 
             return criticalObligations.Any() || criticalMeetings.Any();
         }
@@ -268,9 +264,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             return new DeadlineUrgencyStats
             {
-                CriticalObligations = activeObligations.Count(o => o.DeadlineInMinutes <= 180), // 3 hours
-                UrgentObligations = activeObligations.Count(o => o.DeadlineInMinutes > 180 && o.DeadlineInMinutes <= 360), // 3-6 hours
-                NormalObligations = activeObligations.Count(o => o.DeadlineInMinutes > 360),
+                CriticalObligations = activeObligations.Count(o => o.DeadlineInSegments <= 2), // ≤2 segments
+                UrgentObligations = activeObligations.Count(o => o.DeadlineInSegments > 2 && o.DeadlineInSegments <= 4), // 2-4 segments
+                NormalObligations = activeObligations.Count(o => o.DeadlineInSegments > 4),
                 CriticalMeetings = activeMeetings.Count(m => m.IsCritical),
                 UrgentMeetings = activeMeetings.Count(m => m.IsUrgent && !m.IsCritical),
                 NormalMeetings = activeMeetings.Count(m => !m.IsUrgent)
@@ -278,17 +274,17 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         }
 
         /// <summary>
-        /// Calculate time until next deadline in minutes.
+        /// Calculate time until next deadline in segments.
         /// </summary>
-        public int GetMinutesUntilNextDeadline()
+        public int GetSegmentsUntilNextDeadline()
         {
             DeliveryObligation nextObligation = GetMostUrgentObligation();
             MeetingObligation nextMeeting = GetMostUrgentMeeting();
 
-            int obligationMinutes = nextObligation?.DeadlineInMinutes ?? int.MaxValue;
-            int meetingMinutes = nextMeeting?.DeadlineInMinutes ?? int.MaxValue;
+            int obligationSegments = nextObligation?.DeadlineInSegments ?? int.MaxValue;
+            int meetingSegments = nextMeeting?.DeadlineInSegments ?? int.MaxValue;
 
-            int nextDeadline = Math.Min(obligationMinutes, meetingMinutes);
+            int nextDeadline = Math.Min(obligationSegments, meetingSegments);
             return nextDeadline == int.MaxValue ? -1 : nextDeadline;
         }
 
@@ -307,9 +303,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     Type = "Letter",
                     Title = $"Deliver to {obligation.RecipientName}",
                     From = obligation.SenderName,
-                    DeadlineInMinutes = obligation.DeadlineInMinutes,
-                    IsUrgent = obligation.DeadlineInMinutes <= 360,
-                    IsCritical = obligation.DeadlineInMinutes <= 180,
+                    DeadlineInSegments = obligation.DeadlineInSegments,
+                    IsUrgent = obligation.DeadlineInSegments <= 4,
+                    IsCritical = obligation.DeadlineInSegments <= 2,
                     ObligationId = obligation.Id
                 });
             }
@@ -322,14 +318,14 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     Type = "Meeting",
                     Title = $"Meet with {meeting.RequesterName}",
                     From = meeting.RequesterName,
-                    DeadlineInMinutes = meeting.DeadlineInMinutes,
+                    DeadlineInSegments = meeting.DeadlineInSegments,
                     IsUrgent = meeting.IsUrgent,
                     IsCritical = meeting.IsCritical,
                     ObligationId = meeting.Id
                 });
             }
 
-            return deadlines.OrderBy(d => d.DeadlineInMinutes).ToList();
+            return deadlines.OrderBy(d => d.DeadlineInSegments).ToList();
         }
 
         // Private helper methods
@@ -349,16 +345,16 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             ShowExpiryFailure(expiredObligation);
         }
 
-        private List<MeetingObligation> ProcessExpiredMeetings(int hoursElapsed)
+        private List<MeetingObligation> ProcessExpiredMeetings(int segmentsElapsed)
         {
             Player player = _gameWorld.GetPlayer();
             List<MeetingObligation> expiredMeetings = new List<MeetingObligation>();
 
             foreach (MeetingObligation? meeting in player.MeetingObligations.ToList())
             {
-                meeting.DeadlineInMinutes -= (hoursElapsed * 60);
+                meeting.DeadlineInSegments -= segmentsElapsed;
 
-                if (meeting.DeadlineInMinutes <= 0)
+                if (meeting.DeadlineInSegments <= 0)
                 {
                     expiredMeetings.Add(meeting);
                     ProcessExpiredMeeting(meeting);
@@ -400,7 +396,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             // Compact array in-place, removing expired obligations
             for (int readIndex = 0; readIndex < _config.LetterQueue.MaxQueueSize; readIndex++)
             {
-                if (queue[readIndex] != null && queue[readIndex].DeadlineInMinutes > 0)
+                if (queue[readIndex] != null && queue[readIndex].DeadlineInSegments > 0)
                 {
                     if (writeIndex != readIndex)
                     {
@@ -528,14 +524,14 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private DeliveryObligation[] GetActiveObligations()
         {
             return _gameWorld.GetPlayer().ObligationQueue
-                .Where(o => o != null && o.DeadlineInMinutes > 0)
+                .Where(o => o != null && o.DeadlineInSegments > 0)
                 .ToArray();
         }
 
         private List<MeetingObligation> GetActiveMeetings()
         {
             return _gameWorld.GetPlayer().MeetingObligations
-                .Where(m => m.DeadlineInMinutes > 0)
+                .Where(m => m.DeadlineInSegments > 0)
                 .ToList();
         }
 
@@ -569,6 +565,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     return number + "th";
             }
         }
+
     }
 
     /// <summary>
@@ -592,7 +589,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         public string Type { get; set; } // "Letter" or "Meeting"
         public string Title { get; set; }
         public string From { get; set; }
-        public int DeadlineInMinutes { get; set; }
+        public int DeadlineInSegments { get; set; }
         public bool IsUrgent { get; set; }
         public bool IsCritical { get; set; }
         public string ObligationId { get; set; }

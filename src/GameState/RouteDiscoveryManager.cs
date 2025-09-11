@@ -174,7 +174,7 @@ public class RouteDiscoveryManager
         // Show route details
         _messageSystem.AddSystemMessage($"🗺️ Route Discovered: {route.Name}!", SystemMessageTypes.Success);
         _messageSystem.AddSystemMessage($"📍 {route.OriginLocationSpot} → {route.DestinationLocationSpot}", SystemMessageTypes.Info);
-        _messageSystem.AddSystemMessage($"⏱️ {route.TravelTimeMinutes} hours, 💪 {route.BaseStaminaCost} stamina", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage($"⏱️ {route.TravelTimeSegments} segments, 💪 {route.BaseStaminaCost} stamina", SystemMessageTypes.Info);
 
         return true;
     }

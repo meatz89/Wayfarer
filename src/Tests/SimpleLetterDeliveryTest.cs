@@ -17,7 +17,7 @@ public class SimpleLetterDeliveryTest
             RecipientId = "recipient_npc",
             RecipientName = "Recipient NPC",
             TokenType = ConnectionType.Trust,
-            DeadlineInMinutes = 120,
+            DeadlineInSegments = 4, // 4 segments
             Payment = 15,
             EmotionalFocus = EmotionalFocus.HIGH
         };

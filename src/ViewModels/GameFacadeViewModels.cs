@@ -193,7 +193,7 @@ public class RestLocationActionViewModel
 /// </summary>
 public class WaitOptionViewModel
 {
-    public int Hours { get; set; }
+    public int Segments { get; set; }
     public string Description { get; set; }
 }
 
@@ -369,7 +369,7 @@ public class LocationActionsViewModel
 {
     public string LocationName { get; set; }
     public string CurrentTimeBlock { get; set; }
-    public int HoursRemaining { get; set; }
+    public int SegmentsRemaining { get; set; }
     public int PlayerStamina { get; set; }
     public int PlayerCoins { get; set; }
 

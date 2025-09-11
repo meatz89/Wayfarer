@@ -210,7 +210,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 player.NPCLetterHistory[senderId].RecordDelivery();
 
                 // Award reputation bonus for on-time delivery
-                if (letter.DeadlineInMinutes > 0)
+                if (letter.DeadlineInSegments > 0)
                 {
                     _messageSystem.AddSystemMessage(
                         $"⭐ On-time delivery bonus with {letter.SenderName}!",
@@ -246,8 +246,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             int minutesThreshold = daysThreshold * 24 * 60;
 
             return GetActiveObligations()
-                .Where(o => o.DeadlineInMinutes <= minutesThreshold && o.DeadlineInMinutes > 0)
-                .OrderBy(o => o.DeadlineInMinutes)
+                .Where(o => o.DeadlineInSegments <= minutesThreshold && o.DeadlineInSegments > 0)
+                .OrderBy(o => o.DeadlineInSegments)
                 .ToArray();
         }
 
@@ -480,7 +480,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             if (obligation.Stakes == StakeType.WEALTH)
                 properties |= LetterPhysicalProperties.Valuable;
 
-            if (obligation.DeadlineInMinutes < 180) // Less than 3 hours
+            if (obligation.DeadlineInSegments < 180) // Less than 3 hours
                 properties |= LetterPhysicalProperties.Perishable;
 
             if (obligation.Tier == TierLevel.T3)
@@ -541,7 +541,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         {
             // This would typically come from TimeManager
             // Simplified for now
-            return TimeBlocks.Morning;
+            return TimeBlocks.Midday;
         }
     }
 }

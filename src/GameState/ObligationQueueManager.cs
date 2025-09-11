@@ -69,7 +69,7 @@ public class ObligationQueueManager
     {
         Player player = _gameWorld.GetPlayer();
         return player.MeetingObligations
-            .Where(m => m.DeadlineInMinutes > 0)
+            .Where(m => m.DeadlineInSegments > 0)
             .ToList();
     }
 
@@ -333,7 +333,7 @@ public class ObligationQueueManager
                     if (npc == null || npc.ID != standingObligation.RelatedNPCId) continue;
                 }
 
-                obligation.DeadlineInMinutes += 48;
+                obligation.DeadlineInSegments += 48;
                 _messageSystem.AddSystemMessage(
                     $"📅 {standingObligation.Name} grants +2 days to deadline for letter from {obligation.SenderName}",
                     SystemMessageTypes.Info
@@ -719,7 +719,7 @@ public class ObligationQueueManager
     // Show narrative for normal letter entry
     private void ShowNormalEntryNarrative(DeliveryObligation letter, int position)
     {
-        string urgency = letter.DeadlineInMinutes <= 72 ? " ⚠️" : "";
+        string urgency = letter.DeadlineInSegments <= 72 ? " ⚠️" : "";
         _messageSystem.AddSystemMessage(
             $"📨 New letter from {letter.SenderName} enters queue at position {position}{urgency}",
             SystemMessageTypes.Info
@@ -755,10 +755,10 @@ public class ObligationQueueManager
     // Notify when letter is shifted
     private void NotifyLetterShifted(DeliveryObligation letter, int newPosition)
     {
-        string urgency = letter.DeadlineInMinutes <= 48 ? " 🆘" : "";
+        string urgency = letter.DeadlineInSegments <= 48 ? " 🆘" : "";
         _messageSystem.AddSystemMessage(
             $"  • {letter.SenderName}'s letter pushed to position {newPosition}{urgency}",
-            letter.DeadlineInMinutes <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+            letter.DeadlineInSegments <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
         );
     }
 
@@ -972,10 +972,10 @@ public class ObligationQueueManager
         }
     }
 
-    // Process hourly deadline countdown
-    public void ProcessHourlyDeadlines(int hoursElapsed = 1)
+    // Process segment-based deadline countdown
+    public void ProcessSegmentDeadlines(int segmentsElapsed = 1)
     {
-        if (hoursElapsed <= 0) return;
+        if (segmentsElapsed <= 0) return;
 
         DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
 
@@ -985,8 +985,8 @@ public class ObligationQueueManager
         {
             if (queue[i] != null)
             {
-                queue[i].DeadlineInMinutes -= hoursElapsed;
-                if (queue[i].DeadlineInMinutes <= 0)
+                queue[i].DeadlineInSegments -= segmentsElapsed;
+                if (queue[i].DeadlineInSegments <= 0)
                 {
                     expiredLetters.Add(queue[i]);
                 }
@@ -1003,7 +1003,7 @@ public class ObligationQueueManager
         int writeIndex = 0;
         for (int readIndex = 0; readIndex < 8; readIndex++)
         {
-            if (queue[readIndex] != null && queue[readIndex].DeadlineInMinutes > 0)
+            if (queue[readIndex] != null && queue[readIndex].DeadlineInSegments > 0)
             {
                 if (writeIndex != readIndex)
                 {
@@ -1295,8 +1295,8 @@ public class ObligationQueueManager
     public DeliveryObligation[] GetExpiringLetters(int daysThreshold)
     {
         return _gameWorld.GetPlayer().ObligationQueue
-            .Where(l => l != null && l.DeadlineInMinutes <= daysThreshold * 24)
-            .OrderBy(l => l.DeadlineInMinutes)
+            .Where(l => l != null && l.DeadlineInSegments <= daysThreshold * 24)
+            .OrderBy(l => l.DeadlineInSegments)
             .ToArray();
     }
 
@@ -1354,12 +1354,12 @@ public class ObligationQueueManager
                 letter.QueuePosition = writePosition + 1; // Convert back to 1-based
 
                 // Provide narrative context for each letter moving
-                string urgency = letter.DeadlineInMinutes <= 48 ? " ⚠️ URGENT!" : "";
-                string deadlineText = letter.DeadlineInMinutes <= 24 ? "expires today!" : $"{letter.DeadlineInMinutes / 24} days left";
+                string urgency = letter.DeadlineInSegments <= 48 ? " ⚠️ URGENT!" : "";
+                string deadlineText = letter.DeadlineInSegments <= 24 ? "expires today!" : $"{letter.DeadlineInSegments / 24} days left";
 
                 _messageSystem.AddSystemMessage(
                     $"  • {letter.SenderName}'s letter moves from slot {oldPosition} → {letter.QueuePosition} ({deadlineText}){urgency}",
-                    letter.DeadlineInMinutes <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+                    letter.DeadlineInSegments <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
                 );
             }
         }
@@ -1633,7 +1633,7 @@ public class ObligationQueueManager
             RecipientId = recipient.ID,
             RecipientName = recipient.Name,
             TokenType = tokenType,
-            DeadlineInMinutes = _random.Next(72, 120) * 60, // 3-5 days in minutes
+            DeadlineInSegments = _random.Next(48, 80), // 3-5 days in segments (16 segments per day)
             Payment = _random.Next(3, 8)
         };
     }
@@ -1652,13 +1652,13 @@ public class ObligationQueueManager
     // Show narrative for newly generated letter
     private void ShowGeneratedLetterNarrative(DeliveryObligation letter, NPC sender, ConnectionType tokenType, int position)
     {
-        string urgency = letter.DeadlineInMinutes <= 72 ? " - needs urgent delivery!" : "";
+        string urgency = letter.DeadlineInSegments <= 72 ? " - needs urgent delivery!" : "";
         string tokenTypeText = GetTokenTypeDescription(letter.TokenType);
         string categoryText = GetCategoryText(sender, tokenType);
 
         _messageSystem.AddSystemMessage(
             $"  • DeliveryObligation from {sender.Name} to {letter.RecipientName} ({tokenTypeText} correspondence{categoryText}){urgency}",
-            letter.DeadlineInMinutes <= 72 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+            letter.DeadlineInSegments <= 72 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
         );
 
         _messageSystem.AddSystemMessage(
@@ -1954,10 +1954,10 @@ public class ObligationQueueManager
         );
 
         // Show current deadline pressure
-        string urgency = letter.DeadlineInMinutes <= 48 ? " 🆘 CRITICAL!" : "";
+        string urgency = letter.DeadlineInSegments <= 48 ? " 🆘 CRITICAL!" : "";
         _messageSystem.AddSystemMessage(
-            $"  • Current deadline: {letter.DeadlineInMinutes / 24} days{urgency}",
-            letter.DeadlineInMinutes <= 48 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
+            $"  • Current deadline: {letter.DeadlineInSegments / 24} days{urgency}",
+            letter.DeadlineInSegments <= 48 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
         );
 
         // Check token cost (2 matching tokens)
@@ -1986,8 +1986,8 @@ public class ObligationQueueManager
         }
 
         // Extend the deadline
-        int oldDeadlineHours = letter.DeadlineInMinutes;
-        letter.DeadlineInMinutes += 48;
+        int oldDeadlineSegments = letter.DeadlineInSegments;
+        letter.DeadlineInSegments += 96; // 2 days = 48 hours = 96 segments
 
         // Success narrative
         _messageSystem.AddSystemMessage(
@@ -1996,7 +1996,7 @@ public class ObligationQueueManager
         );
 
         _messageSystem.AddSystemMessage(
-            $"  • New deadline: {letter.DeadlineInMinutes / 24} days (was {oldDeadlineHours / 24})",
+            $"  • New deadline: {letter.DeadlineInSegments / 48} days (was {oldDeadlineSegments / 48})", // 48 segments per day
             SystemMessageTypes.Info
         );
 
@@ -2181,7 +2181,7 @@ public class ObligationQueueManager
 
         // Spend tokens and extend deadline
         _connectionTokenManager.SpendTokens(obligation.TokenType, extensionCost, npcId);
-        obligation.DeadlineInMinutes += extensionMinutes;
+        obligation.DeadlineInSegments += extensionMinutes;
 
         _messageSystem.AddSystemMessage(
             $"⏰ Extended deadline for {obligation.SenderName}'s letter by 1 day",

@@ -346,7 +346,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
     {
         public int AttentionCost { get; set; }
         public int CoinCost { get; set; }
-        public int TimeCost { get; set; } // in minutes
+        public int TimeCost { get; set; } // in segments
         public int HealthCost { get; set; }
     }
 }

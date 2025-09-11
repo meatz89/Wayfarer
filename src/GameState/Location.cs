@@ -35,7 +35,7 @@ public class Location
     public Physical? Physical { get; set; }
     public Illumination? Illumination { get; set; }
 
-    public int TravelTimeMinutes { get; set; }
+    public int TravelTimeSegments { get; set; }
     public string TravelDescription { get; set; }
     public int Difficulty { get; set; }
     public int Depth { get; set; }

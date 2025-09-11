@@ -20,7 +20,7 @@ public static class RouteOptionParser
             DestinationLocationSpot = GetStringProperty(root, "destinationLocationSpot", ""),
             BaseCoinCost = GetIntProperty(root, "baseCoinCost", 0),
             BaseStaminaCost = GetIntProperty(root, "baseStaminaCost", 1),
-            TravelTimeMinutes = GetIntProperty(root, "travelTimeMinutes", 180),
+            TravelTimeSegments = GetIntProperty(root, "travelTimeSegments", 3),
             IsDiscovered = GetBoolProperty(root, "isDiscovered", true),
             MaxItemCapacity = GetIntProperty(root, "maxItemCapacity", 3),
             Description = GetStringProperty(root, "description", "")

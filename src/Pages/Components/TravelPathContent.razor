@@ -105,7 +105,7 @@
                                     
                                     <!-- Mechanical Effects Section -->
                                     @{
-                                        var hasEffects = card.TravelTimeMinutes > 0 || card.HungerEffect != 0 || 
+                                        var hasEffects = card.TravelTimeSegments > 0 || card.HungerEffect != 0 || 
                                                         card.CoinReward > 0 || card.StaminaRestore > 0 || 
                                                         card.AttentionCost > 0 || card.HealthEffect != 0 ||
                                                         card.ForceReturn || (card.TokenGains?.Any() ?? false) ||
@@ -115,9 +115,9 @@
                                     @if (hasEffects)
                                     {
                                         <div class="path-mechanics">
-                                            @if (card.TravelTimeMinutes > 0)
+                                            @if (card.TravelTimeSegments > 0)
                                             {
-                                                <div class="path-time">⏱️ @card.TravelTimeMinutes minutes</div>
+                                                <div class="path-time">⏱️ @card.TravelTimeSegments segments</div>
                                             }
                                             
                                             @if (card.HungerEffect != 0)
@@ -212,9 +212,9 @@
                                 </span>
                                 <div class="card-back-info">
                                     <span class="card-back-cost">@card.StaminaCost stamina</span>
-                                    @if (card.TravelTimeMinutes > 0)
+                                    @if (card.TravelTimeSegments > 0)
                                     {
-                                        <span class="card-back-time">@card.TravelTimeMinutes min</span>
+                                        <span class="card-back-time">@card.TravelTimeSegments seg</span>
                                     }
                                 </div>
                             </div>

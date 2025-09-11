@@ -24,11 +24,11 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         }
 
         /// <summary>
-        /// Get simple time string.
+        /// Get simple time string using segments.
         /// </summary>
         public string GetTimeString()
         {
-            return _timeManager.GetTimeString();
+            return _timeManager.GetSegmentDisplay();
         }
 
         /// <summary>
@@ -40,48 +40,19 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         }
 
         /// <summary>
-        /// Format duration in hours for display.
+        /// Format duration in segments for display.
         /// </summary>
-        public string FormatDuration(int hours)
+        public string FormatDuration(int segments)
         {
-            if (hours == 0) return "No time";
-            if (hours == 1) return "1 hour";
-            if (hours < 24) return $"{hours} hours";
-
-            int days = hours / 24;
-            int remainingHours = hours % 24;
-
-            if (remainingHours == 0)
-            {
-                return days == 1 ? "1 day" : $"{days} days";
-            }
-
-            string dayPart = days == 1 ? "1 day" : $"{days} days";
-            string hourPart = remainingHours == 1 ? "1 hour" : $"{remainingHours} hours";
-
-            return $"{dayPart}, {hourPart}";
+            return FormatSegments(segments);
         }
 
         /// <summary>
-        /// Format minutes for display.
+        /// Format segments for display (alias for FormatSegments).
         /// </summary>
-        public string FormatMinutes(int minutes)
+        public string FormatMinutes(int segments)
         {
-            if (minutes < 60)
-                return $"{minutes} minutes";
-            else if (minutes == 60)
-                return "1 hour";
-            else if (minutes < 120)
-                return $"1 hour and {minutes - 60} minutes";
-            else
-            {
-                int hours = minutes / 60;
-                int mins = minutes % 60;
-                if (mins == 0)
-                    return $"{hours} hours";
-                else
-                    return $"{hours} hours and {mins} minutes";
-            }
+            return FormatSegments(segments);
         }
 
         /// <summary>
@@ -100,6 +71,30 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         {
             string[] dayNames = { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" };
             return dayNames[(day - 1) % 7];
+        }
+
+        /// <summary>
+        /// Format segments for display.
+        /// </summary>
+        public string FormatSegments(int segments)
+        {
+            if (segments == 0) return "No time";
+            if (segments == 1) return "1 segment";
+            if (segments <= 4) return $"{segments} segments";
+
+            // Convert larger segment counts to periods
+            int periods = segments / 4;
+            int remainingSegments = segments % 4;
+
+            if (remainingSegments == 0)
+            {
+                return periods == 1 ? "1 period" : $"{periods} periods";
+            }
+
+            string periodPart = periods == 1 ? "1 period" : $"{periods} periods";
+            string segmentPart = remainingSegments == 1 ? "1 segment" : $"{remainingSegments} segments";
+
+            return $"{periodPart}, {segmentPart}";
         }
     }
 }

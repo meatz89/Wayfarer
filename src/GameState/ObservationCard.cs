@@ -21,7 +21,7 @@ public enum ObservationEffectType
 public class ObservationCard : ConversationCard
 {
     public ObservationEffectType UniqueEffect { get; set; }
-    public int ExpirationHours { get; set; }
+    public int ExpirationSegments { get; set; }
     public DateTime? ExpirationTime { get; set; }
 
     // Source information
@@ -47,17 +47,17 @@ public class ObservationCard : ConversationCard
         return ExpirationTime.HasValue && DateTime.Now > ExpirationTime.Value;
     }
 
-    public void SetExpiration(int hours)
+    public void SetExpiration(int segments)
     {
-        ExpirationHours = hours;
-        ExpirationTime = DateTime.Now.AddHours(hours);
+        ExpirationSegments = segments;
+        ExpirationTime = DateTime.Now.AddMinutes(segments * 30); // 30 minutes per segment
     }
 
     public void UpdateDecayState(DateTime currentGameTime)
     {
         // Simple decay based on creation time
         TimeSpan age = currentGameTime - CreatedAt;
-        if (age.TotalHours > 24)
+        if (age.TotalMinutes > 1440) // 24 hours * 60 minutes
         {
             IsPlayable = false;
         }
@@ -74,18 +74,18 @@ public class ObservationCard : ConversationCard
         if (IsExpired()) return "Expired";
 
         TimeSpan age = DateTime.Now - CreatedAt;
-        if (age.TotalHours < 1) return "Fresh";
-        if (age.TotalHours < 6) return "Recent";
-        if (age.TotalHours < 24) return "Aging";
+        if (age.TotalMinutes < 60) return "Fresh"; // 1 hour
+        if (age.TotalMinutes < 360) return "Recent"; // 6 hours
+        if (age.TotalMinutes < 1440) return "Aging"; // 24 hours
         return "Stale";
     }
 
     public string GetDecayStateDescription(DateTime currentTime)
     {
         TimeSpan age = currentTime - CreatedAt;
-        if (age.TotalHours < 1) return "Fresh";
-        if (age.TotalHours < 6) return "Recent";
-        if (age.TotalHours < 24) return "Aging";
+        if (age.TotalMinutes < 60) return "Fresh"; // 1 hour
+        if (age.TotalMinutes < 360) return "Recent"; // 6 hours
+        if (age.TotalMinutes < 1440) return "Aging"; // 24 hours
         return "Stale";
     }
 

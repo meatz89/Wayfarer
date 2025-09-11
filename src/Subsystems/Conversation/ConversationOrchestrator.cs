@@ -448,18 +448,18 @@ public class ConversationOrchestrator
         int stateValue = (int)session.CurrentState; // Use state as base value
         int flowBonus = Math.Max(0, session.FlowBattery);
 
-        // Calculate deadline and payment based on relationship quality
-        int baseMinutes = 720; // 12 hours base
-        int deadlineMinutes = Math.Max(120, baseMinutes - (stateValue * 60) - (flowBonus * 30));
+        // Calculate deadline and payment based on relationship quality (segment-based)
+        int baseSegments = 12; // ~12 segments base (3/4 of day)
+        int deadlineInSegments = Math.Max(2, baseSegments - (stateValue * 2) - (flowBonus * 1));
         int payment = 5 + stateValue + flowBonus;
 
         // Determine tier and focus
         TierLevel tier = stateValue >= 4 ? TierLevel.T3 :
                         stateValue >= 2 ? TierLevel.T2 : TierLevel.T1;
 
-        EmotionalFocus focus = deadlineMinutes <= 180 ? EmotionalFocus.CRITICAL :
-                                deadlineMinutes <= 360 ? EmotionalFocus.HIGH :
-                                deadlineMinutes <= 720 ? EmotionalFocus.MEDIUM :
+        EmotionalFocus focus = deadlineInSegments <= 3 ? EmotionalFocus.CRITICAL :
+                                deadlineInSegments <= 6 ? EmotionalFocus.HIGH :
+                                deadlineInSegments <= 12 ? EmotionalFocus.MEDIUM :
                                 EmotionalFocus.LOW;
 
         // Find recipient
@@ -475,7 +475,7 @@ public class ConversationOrchestrator
             RecipientName = recipient?.Name ?? "Someone",
             TokenType = ConnectionType.Trust,
             Stakes = StakeType.SAFETY,
-            DeadlineInMinutes = deadlineMinutes,
+            DeadlineInSegments = deadlineInSegments,
             Payment = payment,
             Tier = tier,
             EmotionalFocus = focus,
@@ -502,7 +502,7 @@ public class ConversationOrchestrator
             RecipientName = recipient?.Name ?? "Someone",
             TokenType = ConnectionType.Trust,
             Stakes = StakeType.SAFETY,
-            DeadlineInMinutes = 240, // 4 hours for urgent letters
+            DeadlineInSegments = 8, // 8 segments for urgent letters
             Payment = 15, // Higher payment for urgent delivery
             Tier = (TierLevel)npc.Tier,
             EmotionalFocus = EmotionalFocus.HIGH, // High emotional focus for urgency

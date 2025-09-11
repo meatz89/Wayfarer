@@ -44,16 +44,16 @@ public class TalkIntent : PlayerIntent
 }
 
 /// <summary>
-/// Intent to rest for a certain number of hours
+/// Intent to rest for a certain number of segments
 /// </summary>
 public class RestIntent : PlayerIntent
 {
-    public int Hours { get; }
+    public int Segments { get; }
 
-    public RestIntent(int hours)
+    public RestIntent(int segments)
     {
-        // No validation - let it fail naturally if hours <= 0
-        Hours = hours;
+        // No validation - let it fail naturally if segments <= 0
+        Segments = segments;
     }
 }
 

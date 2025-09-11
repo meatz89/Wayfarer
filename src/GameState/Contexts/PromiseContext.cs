@@ -19,9 +19,9 @@ public class PromiseContext : ConversationContextBase
     public bool GeneratesLetterOnSuccess { get; set; }
     public int BaseSuccessRate { get; set; }
     public bool HasDeadline { get; set; }
-    public int MinutesUntilDeadline { get; set; }
+    public int SegmentsUntilDeadline { get; set; }
     public string UrgencyLevel { get; set; }
-    public int DeadlineMinutes { get; set; }
+    public int DeadlineSegments { get; set; }
     public int QueuePosition { get; set; }
     public int Payment { get; set; }
     public bool ForcesPositionOne { get; set; }
@@ -53,7 +53,7 @@ public class PromiseContext : ConversationContextBase
 
             if (SuccessTerms != null)
             {
-                DeadlineMinutes = SuccessTerms.DeadlineMinutes;
+                DeadlineSegments = SuccessTerms.DeadlineSegments;
                 QueuePosition = SuccessTerms.QueuePosition;
                 Payment = SuccessTerms.Payment;
                 ForcesPositionOne = SuccessTerms.ForcesPositionOne;
@@ -83,6 +83,6 @@ public class PromiseContext : ConversationContextBase
     {
         return EmotionalFocus == EmotionalFocus.CRITICAL || 
                UrgencyLevel == "HIGH" || 
-               (HasDeadline && MinutesUntilDeadline < 60);
+               (HasDeadline && SegmentsUntilDeadline < 2); // Less than 2 segments = urgent
     }
 }

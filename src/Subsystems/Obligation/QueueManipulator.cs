@@ -683,12 +683,12 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     queue[writePosition] = letter;
                     letter.QueuePosition = writePosition + 1;
 
-                    string urgencyText = letter.DeadlineInMinutes <= 48 ? " ⚠️ URGENT!" : "";
-                    string deadlineText = letter.DeadlineInMinutes <= 1440 ? "expires today!" : $"{letter.DeadlineInMinutes / 1440} days left";
+                    string urgencyText = letter.DeadlineInSegments <= 48 ? " ⚠️ URGENT!" : "";
+                    string deadlineText = letter.DeadlineInSegments <= 1440 ? "expires today!" : $"{letter.DeadlineInSegments / 1440} days left";
 
                     _messageSystem.AddSystemMessage(
                         $"  • {letter.SenderName}'s letter moves from slot {oldPosition} → {letter.QueuePosition} ({deadlineText}){urgencyText}",
-                        letter.DeadlineInMinutes <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+                        letter.DeadlineInSegments <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
                     );
                 }
             }
@@ -876,10 +876,10 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void NotifyLetterShifted(DeliveryObligation letter, int newPosition)
         {
-            string urgency = letter.DeadlineInMinutes <= 48 ? " 🆘" : "";
+            string urgency = letter.DeadlineInSegments <= 48 ? " 🆘" : "";
             _messageSystem.AddSystemMessage(
                 $"  • {letter.SenderName}'s letter pushed to position {newPosition}{urgency}",
-                letter.DeadlineInMinutes <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+                letter.DeadlineInSegments <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
             );
         }
 

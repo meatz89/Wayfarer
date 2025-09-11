@@ -15,10 +15,10 @@
     public const int STAMINA_RECOVERY_REST = 3;    // Rest action recovery
     public const int STAMINA_RECOVERY_SLEEP = 6;   // Full night's sleep
 
-    // Resource Competition: Fixed Hour Costs  
-    public const int HOUR_COST_ACTION = 1;         // Most actions
-    public const int HOUR_COST_TRAVEL = 2;         // Travel between locations
-    public const int HOUR_COST_DEEP_ACTION = 2;    // Deep discussions, hard labor
+    // Resource Competition: Fixed Segment Costs  
+    public const int SEGMENT_COST_ACTION = 2;         // Most actions (1 hour = 2 segments)
+    public const int SEGMENT_COST_TRAVEL = 4;         // Travel between locations (2 hours = 4 segments)
+    public const int SEGMENT_COST_DEEP_ACTION = 4;    // Deep discussions, hard labor (2 hours = 4 segments)
 
     // Resource Competition: Token Thresholds (for letters/rewards, not card availability)
     public const int TOKENS_STRANGER_THRESHOLD = 0;    // No interaction

@@ -17,60 +17,59 @@ public class TimeImpactCalculator
         _letterQueueManager = letterQueueManager;
     }
 
-    public TimeImpactInfo CalculateTimeImpact(int hours)
+    public TimeImpactInfo CalculateTimeImpact(int segments)
     {
-        int currentHour = _timeManager.GetCurrentTimeHours();
+        int currentSegment = _timeManager.CurrentSegment;
         int currentDay = _timeManager.GetCurrentDay();
         TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
 
         // Calculate resulting time
-        int resultHour = currentHour + hours;
+        int resultSegment = currentSegment + segments;
         int daysAdvanced = 0;
 
-        // Handle day advancement
-        while (resultHour >= 24)
+        // Handle day advancement (16 segments per day)
+        while (resultSegment >= 16)
         {
-            resultHour -= 24;
+            resultSegment -= 16;
             daysAdvanced++;
         }
 
-        TimeBlocks resultTimeBlock = GetTimeBlockForHour(resultHour);
+        TimeBlocks resultTimeBlock = GetTimeBlockForSegment(resultSegment);
         bool wouldAdvanceDay = daysAdvanced > 0;
 
         // Calculate deadline impacts
-        List<AffectedLetterInfo> deadlineImpacts = CalculateDeadlineImpacts(daysAdvanced);
+        List<AffectedLetterInfo> deadlineImpacts = CalculateDeadlineImpacts(segments);
 
         return new TimeImpactInfo
         {
-            Hours = hours,
+            Segments = segments,
             CurrentTimeBlock = currentTimeBlock,
             ResultTimeBlock = resultTimeBlock,
             WouldAdvanceDay = wouldAdvanceDay,
             DaysAdvanced = daysAdvanced,
-            ActiveHoursRemaining = _timeManager.HoursRemaining,
+            ActiveSegmentsRemaining = _timeManager.SegmentsRemainingInDay,
             LettersExpiring = deadlineImpacts.Count,
             AffectedLetters = deadlineImpacts
         };
     }
 
-    private List<AffectedLetterInfo> CalculateDeadlineImpacts(int daysAdvanced)
+    private List<AffectedLetterInfo> CalculateDeadlineImpacts(int segmentsAdvanced)
     {
         List<AffectedLetterInfo> impacts = new List<AffectedLetterInfo>();
         DeliveryObligation[] queue = _letterQueueManager.GetPlayerQueue();
-        int hoursAdvanced = daysAdvanced * 24;
 
         foreach (DeliveryObligation? letter in queue.Where(l => l != null))
         {
-            int hoursRemaining = letter.DeadlineInMinutes - hoursAdvanced;
-            if (hoursRemaining <= 0 && letter.DeadlineInMinutes > 0)
+            int segmentsRemaining = letter.DeadlineInSegments - segmentsAdvanced;
+            if (segmentsRemaining <= 0 && letter.DeadlineInSegments > 0)
             {
                 // This letter would expire
                 impacts.Add(new AffectedLetterInfo
                 {
                     LetterId = letter.Id,
                     Route = $"{letter.SenderName} → {letter.RecipientName}",
-                    CurrentHoursRemaining = letter.DeadlineInMinutes,
-                    ResultHoursRemaining = hoursRemaining
+                    CurrentSegmentsRemaining = letter.DeadlineInSegments,
+                    ResultSegmentsRemaining = segmentsRemaining
                 });
             }
         }
@@ -78,28 +77,28 @@ public class TimeImpactCalculator
         return impacts;
     }
 
-    private TimeBlocks GetTimeBlockForHour(int hour)
+    private TimeBlocks GetTimeBlockForSegment(int segment)
     {
-        return hour switch
+        return segment switch
         {
-            >= 6 and < 8 => TimeBlocks.Dawn,
-            >= 8 and < 12 => TimeBlocks.Morning,
-            >= 12 and < 16 => TimeBlocks.Afternoon,
-            >= 16 and < 20 => TimeBlocks.Evening,
-            >= 20 and < 22 => TimeBlocks.Night,
-            _ => TimeBlocks.LateNight
+            >= 1 and <= 3 => TimeBlocks.Dawn,      // Segments 1-3 (Dawn)
+            >= 4 and <= 7 => TimeBlocks.Midday,    // Segments 4-7 (Midday)
+            >= 8 and <= 11 => TimeBlocks.Afternoon, // Segments 8-11 (Afternoon)
+            >= 12 and <= 15 => TimeBlocks.Evening,  // Segments 12-15 (Evening)
+            16 => TimeBlocks.Night,                  // Segment 16 (Night)
+            _ => TimeBlocks.DeepNight               // Default (should not happen)
         };
     }
 }
 
 public class TimeImpactInfo
 {
-    public int Hours { get; set; }
+    public int Segments { get; set; }
     public TimeBlocks CurrentTimeBlock { get; set; }
     public TimeBlocks ResultTimeBlock { get; set; }
     public bool WouldAdvanceDay { get; set; }
     public int DaysAdvanced { get; set; }
-    public int ActiveHoursRemaining { get; set; }
+    public int ActiveSegmentsRemaining { get; set; }
     public int LettersExpiring { get; set; }
     public List<AffectedLetterInfo> AffectedLetters { get; set; }
 }
@@ -108,6 +107,6 @@ public class AffectedLetterInfo
 {
     public string LetterId { get; set; }
     public string Route { get; set; }
-    public int CurrentHoursRemaining { get; set; }
-    public int ResultHoursRemaining { get; set; }
+    public int CurrentSegmentsRemaining { get; set; }
+    public int ResultSegmentsRemaining { get; set; }
 }

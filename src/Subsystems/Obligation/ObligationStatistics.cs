@@ -66,25 +66,25 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             // Calculate deadline metrics
             if (activeObligations.Any())
             {
-                metrics.AverageDeadlineHours = activeObligations.Average(o => o.DeadlineInMinutes) / 60.0;
-                metrics.MostUrgentObligation = activeObligations.OrderBy(o => o.DeadlineInMinutes).First();
+                metrics.AverageDeadlineSegments = activeObligations.Average(o => o.DeadlineInSegments);
+                metrics.MostUrgentObligation = activeObligations.OrderBy(o => o.DeadlineInSegments).First();
 
                 int nextDeadline = Math.Min(
-                    activeObligations.Min(o => o.DeadlineInMinutes),
-                    activeMeetings.Any() ? activeMeetings.Min(m => m.DeadlineInMinutes) : int.MaxValue
+                    activeObligations.Min(o => o.DeadlineInSegments),
+                    activeMeetings.Any() ? activeMeetings.Min(m => m.DeadlineInSegments) : int.MaxValue
                 );
 
                 if (nextDeadline != int.MaxValue)
                 {
-                    metrics.TotalMinutesUntilNextDeadline = nextDeadline;
+                    metrics.TotalSegmentsUntilNextDeadline = nextDeadline;
                     metrics.NextDeadlineDescription = FormatDeadlineDescription(nextDeadline);
                 }
             }
 
             // Count urgency levels
-            metrics.ExpiredObligationCount = activeObligations.Count(o => o.DeadlineInMinutes <= 0);
-            metrics.UrgentObligationCount = activeObligations.Count(o => o.DeadlineInMinutes <= 360 && o.DeadlineInMinutes > 0); // < 6 hours
-            metrics.CriticalObligationCount = activeObligations.Count(o => o.DeadlineInMinutes <= 180 && o.DeadlineInMinutes > 0); // < 3 hours
+            metrics.ExpiredObligationCount = activeObligations.Count(o => o.DeadlineInSegments <= 0);
+            metrics.UrgentObligationCount = activeObligations.Count(o => o.DeadlineInSegments <= 360 && o.DeadlineInSegments > 0); // < 6 hours
+            metrics.CriticalObligationCount = activeObligations.Count(o => o.DeadlineInSegments <= 180 && o.DeadlineInSegments > 0); // < 3 hours
             metrics.OverdueObligationCount = metrics.ExpiredObligationCount;
 
             // Position 1 status
@@ -93,7 +93,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             {
                 metrics.Position1Status = Position1Status.Empty;
             }
-            else if (position1Obligation.DeadlineInMinutes <= 0)
+            else if (position1Obligation.DeadlineInSegments <= 0)
             {
                 metrics.Position1Status = Position1Status.Blocked;
             }
@@ -140,7 +140,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             // Meeting statistics
             foreach (MeetingObligation meeting in player.MeetingObligations)
             {
-                if (meeting.DeadlineInMinutes <= 0)
+                if (meeting.DeadlineInSegments <= 0)
                 {
                     activity.MeetingsExpiredToday++;
                 }
@@ -308,21 +308,21 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private List<MeetingObligation> GetActiveMeetings()
         {
             return _gameWorld.GetPlayer().MeetingObligations
-                .Where(m => m.DeadlineInMinutes > 0)
+                .Where(m => m.DeadlineInSegments > 0)
                 .ToList();
         }
 
-        private string FormatDeadlineDescription(int minutes)
+        private string FormatDeadlineDescription(int segments)
         {
-            if (minutes <= 30) return $"{minutes}m ⚡ CRITICAL!";
-            if (minutes <= 120) return $"{minutes}m 🔥 URGENT";
+            if (segments <= 1) return $"{segments}seg ⚡ CRITICAL!";
+            if (segments <= 4) return $"{segments}seg 🔥 URGENT";
 
-            int hours = minutes / 60;
-            int remainingMinutes = minutes % 60;
+            int hours = segments / 2; // 2 segments per hour
+            int remainingSegments = segments % 2;
 
             if (hours <= 6)
             {
-                return remainingMinutes == 0 ? $"{hours}h ⚠️ urgent" : $"{hours}h {remainingMinutes}m ⚠️ urgent";
+                return remainingSegments == 0 ? $"{hours}h ⚠️ urgent" : $"{hours}h {remainingSegments}seg ⚠️ urgent";
             }
 
             return hours <= 16 ? $"{hours}h today" : $"{hours / 24}d {hours % 24}h";
@@ -543,7 +543,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private int CalculateIdealPosition(DeliveryObligation obligation, DeliveryObligation[] allObligations)
         {
             // Ideal position based on deadline urgency
-            int moreUrgentCount = allObligations.Count(o => o.DeadlineInMinutes < obligation.DeadlineInMinutes);
+            int moreUrgentCount = allObligations.Count(o => o.DeadlineInSegments < obligation.DeadlineInSegments);
             return moreUrgentCount + 1;
         }
 
@@ -553,9 +553,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             double totalPressure = obligations.Sum(o =>
             {
-                if (o.DeadlineInMinutes <= 180) return 1.0; // Critical
-                if (o.DeadlineInMinutes <= 360) return 0.7; // Urgent
-                if (o.DeadlineInMinutes <= 720) return 0.3; // Moderate
+                if (o.DeadlineInSegments <= 180) return 1.0; // Critical
+                if (o.DeadlineInSegments <= 360) return 0.7; // Urgent
+                if (o.DeadlineInSegments <= 720) return 0.3; // Moderate
                 return 0.1; // Low
             });
 

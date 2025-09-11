@@ -101,7 +101,7 @@ public static class SkeletonGenerator
             // Random but deterministic mechanical values
             LocationType = locationTypes[hash % locationTypes.Length],
             Tier = 1 + (hash % 3), // Tier 1-3
-            TravelTimeMinutes = 10 + (hash % 50), // 10-60 minutes
+            TravelTimeSegments = 1 + (hash % 5), // 1-5 segments
             Difficulty = 1 + (hash % 3),
 
             // Empty collections

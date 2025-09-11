@@ -14,8 +14,8 @@ public static class TimeSystemConfiguration
         // Register the core time components
         services.AddSingleton<TimeModel>(sp =>
         {
-            // Initialize with game start time
-            return new TimeModel(startDay: 1, startHour: TimeModel.ACTIVE_DAY_START);
+            // Initialize with game start time (Day 1 starts at Dawn segment 1)
+            return new TimeModel(startDay: 1);
         });
 
         // Register the TimeManager

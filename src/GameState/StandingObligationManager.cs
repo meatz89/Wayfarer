@@ -461,7 +461,7 @@ public class StandingObligationManager
 
                     if (deadlineBonus > 0)
                     {
-                        letter.DeadlineInMinutes += deadlineBonus;
+                        letter.DeadlineInSegments += deadlineBonus;
                         _messageSystem.AddSystemMessage(
                             $"📅 {obligation.Name} grants +{deadlineBonus} days deadline (scaled by {tokenCount} tokens)",
                             SystemMessageTypes.Info

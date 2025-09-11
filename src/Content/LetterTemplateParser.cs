@@ -14,8 +14,8 @@ public static class LetterTemplateParser
         {
             Id = dto.Id ?? "",
             Description = dto.Description ?? "",
-            MinDeadlineInMinutes = dto.MinDeadlineInMinutes,
-            MaxDeadlineInMinutes = dto.MaxDeadlineInMinutes,
+            MinDeadlineInSegments = dto.MinDeadlineInSegments,
+            MaxDeadlineInSegments = dto.MaxDeadlineInSegments,
             MinPayment = dto.MinPayment,
             MaxPayment = dto.MaxPayment,
             MinTokensRequired = dto.MinTokensRequired ?? 1
@@ -88,8 +88,8 @@ public static class LetterTemplateParser
         {
             Id = GetStringProperty(root, "id", ""),
             Description = GetStringProperty(root, "description", ""),
-            MinDeadlineInMinutes = GetIntProperty(root, "minDeadlineInHours", 72),
-            MaxDeadlineInMinutes = GetIntProperty(root, "maxDeadlineInHours", 120),
+            MinDeadlineInSegments = GetIntProperty(root, "minDeadlineInSegments", 4), // 4 segments default
+            MaxDeadlineInSegments = GetIntProperty(root, "maxDeadlineInSegments", 8), // 8 segments default
             MinPayment = GetIntProperty(root, "minPayment", 3),
             MaxPayment = GetIntProperty(root, "maxPayment", 5)
         };

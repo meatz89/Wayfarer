@@ -80,7 +80,7 @@ namespace Wayfarer.Pages.Components
                 DestinationSpotName = GetDestinationLocationSpotName(r.DestinationLocationSpot),
                 District = GetDestinationDistrict(r.DestinationLocationSpot),
                 TransportType = FormatTransportType(r.Method),
-                TravelTime = r.TravelTimeMinutes,
+                TravelTime = r.TravelTimeSegments,
                 Cost = r.BaseCoinCost,
                 HungerCost = CalculateHungerCost(r),
                 RouteType = DetermineRouteType(r),
@@ -341,18 +341,9 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetTravelTimeDisplay(int minutes)
+        protected string GetTravelTimeDisplay(int segments)
         {
-            if (minutes < 60)
-                return $"{minutes} minutes";
-
-            int hours = minutes / 60;
-            int mins = minutes % 60;
-
-            if (mins == 0)
-                return $"{hours} hour{(hours > 1 ? "s" : "")}";
-
-            return $"{hours}h {mins}m";
+            return $"{segments} seg";
         }
 
         protected async Task ReturnToLocation()

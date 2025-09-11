@@ -17,7 +17,7 @@ public class PathCardDTO
     public string PermitRequirement { get; set; }
     
     // Effects
-    public int TravelTimeMinutes { get; set; }
+    public int TravelTimeSegments { get; set; }
     public int HungerEffect { get; set; } = 0;
     public string OneTimeReward { get; set; }
     public string NarrativeText { get; set; }

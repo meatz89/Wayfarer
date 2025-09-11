@@ -118,11 +118,11 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             return timeBlock switch
             {
                 TimeBlocks.Dawn => "The early morning light casts long shadows.",
-                TimeBlocks.Morning => "The morning bustle is beginning to pick up.",
+                TimeBlocks.Midday => "The morning bustle is beginning to pick up.",
                 TimeBlocks.Afternoon => "The afternoon sun warms the area.",
                 TimeBlocks.Evening => "Evening approaches, bringing a change of pace.",
                 TimeBlocks.Night => "Night has fallen, bringing quiet to most areas.",
-                TimeBlocks.LateNight => "The deep of night brings stillness.",
+                TimeBlocks.DeepNight => "The deep of night brings stillness.",
                 _ => ""
             };
         }
@@ -135,11 +135,11 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             return timeBlock switch
             {
                 TimeBlocks.Dawn => "It's early dawn",
-                TimeBlocks.Morning => "It's morning",
+                TimeBlocks.Midday => "It's morning",
                 TimeBlocks.Afternoon => "It's afternoon",
                 TimeBlocks.Evening => "It's evening",
                 TimeBlocks.Night => "It's nighttime",
-                TimeBlocks.LateNight => "It's late at night",
+                TimeBlocks.DeepNight => "It's late at night",
                 _ => "The time is uncertain"
             };
         }

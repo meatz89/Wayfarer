@@ -182,11 +182,11 @@ public class ActionGenerator
         return tag.ToLower() switch
         {
             "public_square" => CreateActionWithTierCheck(
-                "⛲", "Rest at Fountain", "Clear your thoughts", "5 minutes",
+                "⛲", "Rest at Fountain", "Clear your thoughts", "1 seg",
                 TierLevel.T1, playerTier, "rest"),
 
             "crowded" => CreateActionWithTierCheck(
-                "📢", "Listen to Town Crier", "Hear proclamations", "10 minutes",
+                "📢", "Listen to Town Crier", "Hear proclamations", "1 seg",
                 TierLevel.T1, playerTier, "observe"),
 
             "crossroads" => CreateActionWithTierCheck(
@@ -198,7 +198,7 @@ public class ActionGenerator
                 TierLevel.T1, playerTier, "purchase"),
 
             "social" => CreateActionWithTierCheck(
-                "💬", "Join Conversation", "Locals chatting", "15m",
+                "💬", "Join Conversation", "Locals chatting", "1 seg",
                 TierLevel.T1, playerTier, null),
 
             "religious" => CreateActionWithTierCheck(
@@ -206,7 +206,7 @@ public class ActionGenerator
                 TierLevel.T1, playerTier, null),
 
             "nature" => CreateActionWithTierCheck(
-                "🌿", "Gather Herbs", "If you know them", "30m",
+                "🌿", "Gather Herbs", "If you know them", "2 seg",
                 TierLevel.T2, playerTier, "herb_gathering"),
 
             "shadow" => CreateActionWithTierCheck(
@@ -256,7 +256,7 @@ public class ActionGenerator
 
         switch (currentTime)
         {
-            case TimeBlocks.Morning:
+            case TimeBlocks.Midday:
                 if (location.MorningProperties?.Contains("market_day") == true)
                 {
                     // Basic purchases are T1
@@ -272,7 +272,7 @@ public class ActionGenerator
                 {
                     // People watching for information requires T2
                     actions.Add(CreateActionWithTierCheck(
-                        "👥", "People Watch", "Learn patterns", "20m",
+                        "👥", "People Watch", "Learn patterns", "1 seg",
                         TierLevel.T2, playerTier, "observe_patterns"
                     ));
                 }
@@ -317,7 +317,7 @@ public class ActionGenerator
             case "Chaotic":
                 // Navigating chaos effectively requires T2
                 actions.Add(CreateActionWithTierCheck(
-                    "🎉", "Navigate Chaos", "Find your way", "5m",
+                    "🎉", "Navigate Chaos", "Find your way", "1 seg",
                     TierLevel.T2, playerTier, "navigate_chaos"
                 ));
                 break;
@@ -338,7 +338,7 @@ public class ActionGenerator
             case "Expansive":
                 // Basic surveying is T1
                 actions.Add(CreateActionWithTierCheck(
-                    "👀", "Survey Area", "Get bearings", "5m",
+                    "👀", "Survey Area", "Get bearings", "1 seg",
                     TierLevel.T1, playerTier, "survey"
                 ));
                 break;
@@ -383,7 +383,7 @@ public class ActionGenerator
     private string GetRestDetail(Location location, TimeBlocks time)
     {
         string baseTime = location.Physical?.GetPropertyValue() == "Expansive" ? "5 min" : "10 min";
-        string detail = time == TimeBlocks.Morning ? "Clear head" : "Catch breath";
+        string detail = time == TimeBlocks.Midday ? "Clear head" : "Catch breath";
         return $"{baseTime} • {detail}";
     }
 
@@ -395,12 +395,12 @@ public class ActionGenerator
 
     private bool IsMarketOpen(TimeBlocks time)
     {
-        return time == TimeBlocks.Morning || time == TimeBlocks.Afternoon;
+        return time == TimeBlocks.Midday || time == TimeBlocks.Afternoon;
     }
 
     private string GetMarketDetail(Location location, TimeBlocks time)
     {
-        if (time == TimeBlocks.Morning) return "Fresh goods";
+        if (time == TimeBlocks.Midday) return "Fresh goods";
         if (time == TimeBlocks.Afternoon) return "Closing soon";
         return "Limited stock";
     }

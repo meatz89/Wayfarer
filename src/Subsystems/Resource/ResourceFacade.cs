@@ -294,7 +294,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             return new RestActionResult
             {
                 Success = true,
-                TimeAdvanced = 60, // 1 hour
+                TimeAdvanced = 2, // 2 segments
                 StaminaRecovered = 2,
                 HealthRecovered = 1
             };

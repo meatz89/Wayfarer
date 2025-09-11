@@ -8,55 +8,15 @@ namespace Wayfarer.Subsystems.TimeSubsystem
     /// </summary>
     public class TimeBlockCalculator
     {
-        /// <summary>
-        /// Get the starting hour for a time block.
-        /// </summary>
-        public int GetTimeBlockStartHour(TimeBlocks timeBlock)
-        {
-            return timeBlock switch
-            {
-                TimeBlocks.Dawn => 4,
-                TimeBlocks.Morning => 8,
-                TimeBlocks.Afternoon => 12,
-                TimeBlocks.Evening => 17,
-                TimeBlocks.Night => 20,
-                TimeBlocks.LateNight => 22,
-                _ => 0
-            };
-        }
+        // Legacy hour-based methods have been replaced with segment-based equivalents
 
         /// <summary>
-        /// Get the ending hour for a time block.
+        /// Calculate segments until a specific time block from current position.
+        /// This is the primary method for time calculations.
         /// </summary>
-        public int GetTimeBlockEndHour(TimeBlocks timeBlock)
+        public int CalculateTimeUntilTimeBlock(TimeBlocks current, TimeBlocks target, int currentSegment)
         {
-            return timeBlock switch
-            {
-                TimeBlocks.Dawn => 8,
-                TimeBlocks.Morning => 12,
-                TimeBlocks.Afternoon => 17,
-                TimeBlocks.Evening => 20,
-                TimeBlocks.Night => 22,
-                TimeBlocks.LateNight => 4, // Wraps to next day
-                _ => 24
-            };
-        }
-
-        /// <summary>
-        /// Calculate hours until a specific time block from current position.
-        /// </summary>
-        public int CalculateHoursUntilTimeBlock(TimeBlocks current, TimeBlocks target, int currentHour)
-        {
-            int targetStartHour = GetTimeBlockStartHour(target);
-
-            // If target is later today
-            if (targetStartHour > currentHour)
-            {
-                return targetStartHour - currentHour;
-            }
-
-            // Target is tomorrow
-            return (24 - currentHour) + targetStartHour;
+            return CalculateSegmentsUntilTimeBlock(current, target, currentSegment);
         }
 
         /// <summary>
@@ -69,11 +29,11 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             TimeBlocks[] timeOrder = new[]
             {
                 TimeBlocks.Dawn,
-                TimeBlocks.Morning,
+                TimeBlocks.Midday,
                 TimeBlocks.Afternoon,
                 TimeBlocks.Evening,
                 TimeBlocks.Night,
-                TimeBlocks.LateNight
+                TimeBlocks.DeepNight
             };
 
             int currentIndex = Array.IndexOf(timeOrder, current);
@@ -107,11 +67,11 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             return timeBlock switch
             {
                 TimeBlocks.Dawn => "Dawn (4-8 AM)",
-                TimeBlocks.Morning => "Morning (8 AM-12 PM)",
+                TimeBlocks.Midday => "Morning (8 AM-12 PM)",
                 TimeBlocks.Afternoon => "Afternoon (12-5 PM)",
                 TimeBlocks.Evening => "Evening (5-8 PM)",
                 TimeBlocks.Night => "Night (8 PM-10 PM)",
-                TimeBlocks.LateNight => "Late Night (10 PM-4 AM)",
+                TimeBlocks.DeepNight => "Late Night (10 PM-4 AM)",
                 _ => "Unknown"
             };
         }
@@ -124,13 +84,68 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             return targetTime switch
             {
                 TimeBlocks.Dawn => "You wait as the first light breaks over the horizon.",
-                TimeBlocks.Morning => "The morning sun climbs higher as time passes.",
+                TimeBlocks.Midday => "The morning sun climbs higher as time passes.",
                 TimeBlocks.Afternoon => "The day wears on toward afternoon.",
                 TimeBlocks.Evening => "Shadows lengthen as evening approaches.",
                 TimeBlocks.Night => "Darkness falls across the town.",
-                TimeBlocks.LateNight => "The deep of night settles in.",
+                TimeBlocks.DeepNight => "The deep of night settles in.",
                 _ => "Time passes..."
             };
+        }
+
+        // Segment-based methods for the new time system
+
+        /// <summary>
+        /// Get the starting segment for a time block within the day.
+        /// </summary>
+        public int GetTimeBlockStartSegment(TimeBlocks timeBlock)
+        {
+            return timeBlock switch
+            {
+                TimeBlocks.Dawn => 0,
+                TimeBlocks.Midday => 3,
+                TimeBlocks.Afternoon => 7,
+                TimeBlocks.Evening => 11,
+                TimeBlocks.Night => 15,
+                TimeBlocks.DeepNight => 16,
+                _ => 0
+            };
+        }
+
+        /// <summary>
+        /// Get the ending segment for a time block within the day.
+        /// </summary>
+        public int GetTimeBlockEndSegment(TimeBlocks timeBlock)
+        {
+            return timeBlock switch
+            {
+                TimeBlocks.Dawn => 2,
+                TimeBlocks.Midday => 6,
+                TimeBlocks.Afternoon => 10,
+                TimeBlocks.Evening => 14,
+                TimeBlocks.Night => 15,
+                TimeBlocks.DeepNight => 16,
+                _ => 16
+            };
+        }
+
+        /// <summary>
+        /// Calculate segments until a specific time block from current position.
+        /// </summary>
+        public int CalculateSegmentsUntilTimeBlock(TimeBlocks current, TimeBlocks target, int currentSegment)
+        {
+            int targetStartSegment = GetTimeBlockStartSegment(target);
+            int currentBlockStart = GetTimeBlockStartSegment(current);
+
+            // If target is later today
+            if (targetStartSegment > currentSegment)
+            {
+                return targetStartSegment - currentSegment;
+            }
+
+            // Target is tomorrow - calculate remaining segments today + segments to target tomorrow
+            int segmentsRemainingToday = 16 - currentSegment;
+            return segmentsRemainingToday + targetStartSegment;
         }
     }
 }

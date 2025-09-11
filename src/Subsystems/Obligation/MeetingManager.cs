@@ -38,8 +38,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         {
             Player player = _gameWorld.GetPlayer();
             return player.MeetingObligations
-                .Where(m => m.DeadlineInMinutes > 0)
-                .OrderBy(m => m.DeadlineInMinutes)
+                .Where(m => m.DeadlineInSegments > 0)
+                .OrderBy(m => m.DeadlineInSegments)
                 .ToList();
         }
 
@@ -106,7 +106,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             };
 
             _messageSystem.AddSystemMessage(
-                $"📅 {meeting.RequesterName} urgently requests to meet you! ({meeting.DeadlineInHours}h remaining)",
+                $"📅 {meeting.RequesterName} urgently requests to meet you! ({meeting.DeadlineInSegments / 2}h remaining)",
                 messageType
             );
 
@@ -214,7 +214,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             // Find expired meetings
             foreach (MeetingObligation? meeting in player.MeetingObligations.ToList())
             {
-                if (meeting.DeadlineInMinutes <= 0)
+                if (meeting.DeadlineInSegments <= 0)
                 {
                     expiredMeetings.Add(meeting);
                 }
@@ -233,13 +233,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// <summary>
         /// Get all meetings that are expiring within the specified threshold.
         /// </summary>
-        public List<MeetingObligation> GetExpiringMeetings(int hoursThreshold)
+        public List<MeetingObligation> GetExpiringMeetings(int segmentsThreshold)
         {
-            int minutesThreshold = hoursThreshold * 60;
-
             return GetActiveMeetingObligations()
-                .Where(m => m.DeadlineInMinutes <= minutesThreshold && m.DeadlineInMinutes > 0)
-                .OrderBy(m => m.DeadlineInMinutes)
+                .Where(m => m.DeadlineInSegments <= segmentsThreshold && m.DeadlineInSegments > 0)
+                .OrderBy(m => m.DeadlineInSegments)
                 .ToList();
         }
 
@@ -277,19 +275,19 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 TotalActiveMeetings = activeMeetings.Count,
                 CriticalMeetings = activeMeetings.Count(m => m.IsCritical),
                 UrgentMeetings = activeMeetings.Count(m => m.IsUrgent && !m.IsCritical),
-                NextMeetingDeadlineMinutes = activeMeetings.Any() ?
-                    activeMeetings.Min(m => m.DeadlineInMinutes) : -1,
-                MostUrgentMeeting = activeMeetings.OrderBy(m => m.DeadlineInMinutes).FirstOrDefault(),
+                NextMeetingDeadlineSegments = activeMeetings.Any() ?
+                    activeMeetings.Min(m => m.DeadlineInSegments) : -1,
+                MostUrgentMeeting = activeMeetings.OrderBy(m => m.DeadlineInSegments).FirstOrDefault(),
                 MeetingsByStakes = GroupMeetingsByStakes(activeMeetings),
-                AverageDeadlineHours = activeMeetings.Any() ?
-                    activeMeetings.Average(m => m.DeadlineInHours) : 0
+                AverageDeadlineSegments = activeMeetings.Any() ?
+                    activeMeetings.Average(m => m.DeadlineInSegments) : 0
             };
         }
 
         /// <summary>
         /// Schedule a meeting with specific timing and requirements.
         /// </summary>
-        public MeetingResult ScheduleMeeting(string npcId, string reason, int deadlineInMinutes, StakeType stakes = StakeType.REPUTATION)
+        public MeetingResult ScheduleMeeting(string npcId, string reason, int deadlineInSegments, StakeType stakes = StakeType.REPUTATION)
         {
             NPC npc = _npcRepository.GetById(npcId);
             if (npc == null)
@@ -306,7 +304,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 Id = Guid.NewGuid().ToString(),
                 RequesterId = npcId,
                 RequesterName = npc.Name,
-                DeadlineInMinutes = deadlineInMinutes,
+                DeadlineInSegments = deadlineInSegments,
                 Stakes = stakes,
                 Reason = reason
             };
@@ -335,7 +333,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return result;
             }
 
-            if (meeting.DeadlineInMinutes <= 0)
+            if (meeting.DeadlineInSegments <= 0)
             {
                 result.Success = false;
                 result.ErrorMessage = "Meeting deadline must be positive";
@@ -350,7 +348,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             MeetingResult result = new MeetingResult { Success = true };
 
             // Check if meeting has expired
-            if (meeting.DeadlineInMinutes <= 0)
+            if (meeting.DeadlineInSegments <= 0)
             {
                 result.Success = false;
                 result.ErrorMessage = "Cannot complete expired meeting";
@@ -400,7 +398,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             ConnectionType tokenType = ConnectionType.Trust; // Meetings typically build trust
 
             // Bonus for early completion
-            if (meeting.DeadlineInMinutes > 180) // More than 3 hours remaining
+            if (meeting.DeadlineInSegments > 180) // More than 3 hours remaining
             {
                 tokensAwarded += 1;
                 _messageSystem.AddSystemMessage(
@@ -462,7 +460,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         {
             // This would typically come from TimeManager
             // Simplified for now
-            return TimeBlocks.Morning;
+            return TimeBlocks.Midday;
         }
     }
 
@@ -484,9 +482,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         public int TotalActiveMeetings { get; set; }
         public int CriticalMeetings { get; set; }
         public int UrgentMeetings { get; set; }
-        public int NextMeetingDeadlineMinutes { get; set; }
+        public int NextMeetingDeadlineSegments { get; set; }
         public MeetingObligation MostUrgentMeeting { get; set; }
         public Dictionary<StakeType, int> MeetingsByStakes { get; set; } = new Dictionary<StakeType, int>();
-        public double AverageDeadlineHours { get; set; }
+        public double AverageDeadlineSegments { get; set; }
     }
 }

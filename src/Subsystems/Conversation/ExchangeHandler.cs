@@ -69,7 +69,7 @@ public class ExchangeHandler
         // Handle time advancement for work exchanges
         if (ShouldAdvanceTime(exchange))
         {
-            _timeManager.AdvanceTime(1);
+            _timeManager.AdvanceSegments(1);
             _messageSystem.AddSystemMessage("Time passes as you work...", SystemMessageTypes.Info);
         }
 

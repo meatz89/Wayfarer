@@ -895,7 +895,7 @@ public class PackageLoader
             Method = Enum.TryParse<TravelMethods>(dto.Method, out TravelMethods method) ? method : TravelMethods.Walking,
             BaseCoinCost = dto.BaseCoinCost,
             BaseStaminaCost = dto.BaseStaminaCost,
-            TravelTimeMinutes = dto.TravelTimeMinutes,
+            TravelTimeSegments = dto.TravelTimeSegments,
             IsDiscovered = dto.IsDiscovered,
             Description = dto.Description ?? "",
             MaxItemCapacity = dto.MaxItemCapacity > 0 ? dto.MaxItemCapacity : 3
@@ -1207,7 +1207,7 @@ public class PackageLoader
             Method = forwardRoute.Method,
             BaseCoinCost = forwardRoute.BaseCoinCost,
             BaseStaminaCost = forwardRoute.BaseStaminaCost,
-            TravelTimeMinutes = forwardRoute.TravelTimeMinutes,
+            TravelTimeSegments = forwardRoute.TravelTimeSegments,
             DepartureTime = forwardRoute.DepartureTime,
             IsDiscovered = forwardRoute.IsDiscovered,
             MaxItemCapacity = forwardRoute.MaxItemCapacity,

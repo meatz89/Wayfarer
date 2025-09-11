@@ -23,7 +23,7 @@ public class GameWorld
 
     // Time is now tracked in WorldState, not through external dependencies
     public int CurrentDay { get; set; } = 1;
-    public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
+    public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Midday;
     public WeatherCondition CurrentWeather
     {
         get

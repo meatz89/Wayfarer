@@ -140,37 +140,6 @@ public static class ConversationCardParser
             VerbPhrase = "" // Will be set later if needed
         };
 
-        // Set goal-specific properties for backward compatibility
-        if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.BurdenGoal)
-        {
-            // Goal cards have 0 focus and always succeed
-            card.Focus = 0;
-            card.Difficulty = Difficulty.VeryEasy;
-            
-            // Add persistent property
-            if (!card.Properties.Contains(CardProperty.Persistent))
-                card.Properties.Add(CardProperty.Persistent);
-                
-            // Set default end conversation effect if not specified
-            if (card.SuccessEffect.Type == CardEffectType.None)
-            {
-                card.SuccessEffect = new CardEffect
-                {
-                    Type = CardEffectType.EndConversation,
-                    Value = "request_accepted"
-                };
-            }
-            
-            // Set exhaust effect for goal cards
-            if (card.ExhaustEffect.Type == CardEffectType.None)
-            {
-                card.ExhaustEffect = new CardEffect
-                {
-                    Type = CardEffectType.EndConversation,
-                    Value = "request_exhausted"
-                };
-            }
-        }
 
         // Set rapport threshold for goal cards from DTO
         if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.BurdenGoal)

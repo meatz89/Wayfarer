@@ -55,12 +55,12 @@ namespace Wayfarer.Pages.Components
             DeliveryObligation[] allObligations = ObligationQueueManager.GetActiveObligations();
 
             ActiveObligations = allObligations
-                .Where(o => o.DeadlineInMinutes > 0)
-                .OrderBy(o => o.DeadlineInMinutes)
+                .Where(o => o.DeadlineInSegments > 0)
+                .OrderBy(o => o.DeadlineInSegments)
                 .ToList();
 
             ExpiredObligations = allObligations
-                .Where(o => o.DeadlineInMinutes <= 0)
+                .Where(o => o.DeadlineInSegments <= 0)
                 .ToList();
         }
 
@@ -134,13 +134,13 @@ namespace Wayfarer.Pages.Components
 
         protected string GetLetterUrgencyClass(DeliveryObligation letter)
         {
-            int minutesRemaining = letter.DeadlineInMinutes;
+            int segmentsRemaining = letter.DeadlineInSegments;
 
-            if (minutesRemaining < 60) // Less than 1 hour
+            if (segmentsRemaining < 2) // Less than 2 segments
                 return "critical";
-            if (minutesRemaining < 180) // Less than 3 hours
+            if (segmentsRemaining < 6) // Less than 6 segments
                 return "urgent";
-            if (minutesRemaining < 360) // Less than 6 hours
+            if (segmentsRemaining < 12) // Less than 12 segments
                 return "moderate";
 
             return "normal";
@@ -148,11 +148,11 @@ namespace Wayfarer.Pages.Components
 
         protected string GetDeadlineClass(DeliveryObligation letter)
         {
-            int minutesRemaining = letter.DeadlineInMinutes;
+            int segmentsRemaining = letter.DeadlineInSegments;
 
-            if (minutesRemaining < 60) // Less than 1 hour
+            if (segmentsRemaining < 2) // Less than 2 segments
                 return "critical";
-            if (minutesRemaining < 180) // Less than 3 hours
+            if (segmentsRemaining < 6) // Less than 6 segments
                 return "warning";
 
             return "";
@@ -160,17 +160,12 @@ namespace Wayfarer.Pages.Components
 
         protected string GetTimeRemaining(DeliveryObligation letter)
         {
-            int minutesRemaining = letter.DeadlineInMinutes;
+            int segmentsRemaining = letter.DeadlineInSegments;
 
-            if (minutesRemaining <= 0)
+            if (segmentsRemaining <= 0)
                 return "EXPIRED";
 
-            if (minutesRemaining < 60)
-                return $"{minutesRemaining} minutes";
-
-            int hours = minutesRemaining / 60;
-            int minutes = minutesRemaining % 60;
-            return $"{hours}h {minutes}m";
+            return $"{segmentsRemaining} seg";
         }
 
         protected async Task ReturnToPreviousView()

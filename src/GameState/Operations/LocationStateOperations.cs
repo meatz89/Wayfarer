@@ -87,7 +87,7 @@ public static class LocationStateOperations
 
         return timeBlock switch
         {
-            TimeBlocks.Morning => state.MorningProperties.ToArray(),
+            TimeBlocks.Midday => state.MorningProperties.ToArray(),
             TimeBlocks.Afternoon => state.AfternoonProperties.ToArray(),
             TimeBlocks.Evening => state.EveningProperties.ToArray(),
             TimeBlocks.Night => state.NightProperties.ToArray(),

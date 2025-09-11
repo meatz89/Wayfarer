@@ -28,7 +28,7 @@ public sealed class LocationState
     public Physical? Physical { get; }
     public Illumination? Illumination { get; }
 
-    public int TravelTimeMinutes { get; }
+    public int TravelTimeSegments { get; }
     public string TravelDescription { get; }
     public int Difficulty { get; }
     public int Depth { get; }
@@ -57,7 +57,7 @@ public sealed class LocationState
         Atmosphere? atmosphere,
         Physical? physical,
         Illumination? illumination,
-        int travelTimeMinutes,
+        int travelTimeSegments,
         string travelDescription,
         int difficulty,
         int depth,
@@ -82,7 +82,7 @@ public sealed class LocationState
         Atmosphere = atmosphere;
         Physical = physical;
         Illumination = illumination;
-        TravelTimeMinutes = travelTimeMinutes;
+        TravelTimeSegments = travelTimeSegments;
         TravelDescription = travelDescription;
         Difficulty = difficulty;
         Depth = depth;
@@ -103,7 +103,7 @@ public sealed class LocationState
         Id, Name, Description, Connections, LocationSpotIds,
         MorningProperties, AfternoonProperties, EveningProperties, NightProperties,
         DomainTags, Population, Atmosphere, Physical, Illumination,
-        TravelTimeMinutes, TravelDescription, Difficulty, Depth,
+        TravelTimeSegments, TravelDescription, Difficulty, Depth,
         LocationType, AvailableServices, true, VisitCount + 1, PlayerKnowledge,
         AccessRequirement);
     }
@@ -117,7 +117,7 @@ public sealed class LocationState
         Id, Name, Description, Connections, LocationSpotIds,
         MorningProperties, AfternoonProperties, EveningProperties, NightProperties,
         DomainTags, Population, Atmosphere, Physical, Illumination,
-        TravelTimeMinutes, TravelDescription, Difficulty, Depth,
+        TravelTimeSegments, TravelDescription, Difficulty, Depth,
         LocationType, AvailableServices, HasBeenVisited, VisitCount, knowledge,
         AccessRequirement);
     }
@@ -131,7 +131,7 @@ public sealed class LocationState
         Id, Name, Description, Connections.Add(connection), LocationSpotIds,
         MorningProperties, AfternoonProperties, EveningProperties, NightProperties,
         DomainTags, Population, Atmosphere, Physical, Illumination,
-        TravelTimeMinutes, TravelDescription, Difficulty, Depth,
+        TravelTimeSegments, TravelDescription, Difficulty, Depth,
         LocationType, AvailableServices, HasBeenVisited, VisitCount, PlayerKnowledge,
         AccessRequirement);
     }
@@ -156,7 +156,7 @@ public sealed class LocationState
             location.Atmosphere,
             location.Physical,
             location.Illumination,
-            location.TravelTimeMinutes,
+            location.TravelTimeSegments,
             location.TravelDescription,
             location.Difficulty,
             location.Depth,

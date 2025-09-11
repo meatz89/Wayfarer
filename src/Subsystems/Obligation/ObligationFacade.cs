@@ -292,9 +292,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// <summary>
         /// Schedule a new meeting with specific parameters.
         /// </summary>
-        public MeetingResult ScheduleMeeting(string npcId, string reason, int deadlineInMinutes, StakeType stakes = StakeType.REPUTATION)
+        public MeetingResult ScheduleMeeting(string npcId, string reason, int deadlineInSegments, StakeType stakes = StakeType.REPUTATION)
         {
-            return _meetingManager.ScheduleMeeting(npcId, reason, deadlineInMinutes, stakes);
+            return _meetingManager.ScheduleMeeting(npcId, reason, deadlineInSegments, stakes);
         }
 
         /// <summary>
@@ -392,15 +392,16 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// <summary>
         /// Process hourly deadline countdown for all obligations.
         /// </summary>
-        public DeadlineTrackingInfo ProcessHourlyDeadlines(int hoursElapsed = 1)
+        public DeadlineTrackingInfo ProcessSegmentDeadlines(int segmentsElapsed = 1)
         {
-            DeadlineTrackingInfo trackingInfo = _deadlineTracker.ProcessHourlyDeadlines(hoursElapsed);
+            DeadlineTrackingInfo trackingInfo = _deadlineTracker.ProcessSegmentDeadlines(segmentsElapsed);
 
             // Process expired meetings as well
             List<MeetingResult> expiredMeetings = _meetingManager.ProcessExpiredMeetings();
 
             return trackingInfo;
         }
+
 
         /// <summary>
         /// Extend deadline of a letter at specific position.
@@ -437,9 +438,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         /// <summary>
         /// Calculate time until next deadline.
         /// </summary>
-        public int GetMinutesUntilNextDeadline()
+        public int GetSegmentsUntilNextDeadline()
         {
-            return _deadlineTracker.GetMinutesUntilNextDeadline();
+            return _deadlineTracker.GetSegmentsUntilNextDeadline();
         }
 
         /// <summary>
@@ -539,7 +540,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                         if (npc == null || npc.ID != standingObligation.RelatedNPCId) continue;
                     }
 
-                    obligation.DeadlineInMinutes += 2880; // 48 hours
+                    obligation.DeadlineInSegments += 2880; // 48 hours
                     _messageSystem.AddSystemMessage(
                         $"📅 {standingObligation.Name} grants +2 days to deadline for letter from {obligation.SenderName}",
                         SystemMessageTypes.Info
@@ -636,7 +637,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 },
                 Actions = new QueueActionsViewModel
                 {
-                    CanMorningSwap = currentTimeBlock == TimeBlocks.Morning && activeObligations.Length >= 2,
+                    CanMorningSwap = currentTimeBlock == TimeBlocks.Midday && activeObligations.Length >= 2,
                     MorningSwapReason = GetMorningSwapReason(currentTimeBlock, activeObligations.Length),
                     HasBottomDeliveryObligation = activeObligations.Length > 0,
                     TotalAvailableTokens = GetTotalAvailableTokens(),
@@ -653,7 +654,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
 
             // Letter board is typically available during specific time blocks
-            bool isAvailable = currentTimeBlock == TimeBlocks.Morning || currentTimeBlock == TimeBlocks.Afternoon;
+            bool isAvailable = currentTimeBlock == TimeBlocks.Midday || currentTimeBlock == TimeBlocks.Afternoon;
             string? unavailableReason = !isAvailable ? "Letter board is only available during morning and afternoon hours" : null;
 
             List<LetterOfferViewModel> offers = new List<LetterOfferViewModel>();
@@ -744,7 +745,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 Id = obligation.Id,
                 SenderName = obligation.SenderName,
                 RecipientName = obligation.RecipientName,
-                DeadlineInHours = obligation.DeadlineInMinutes / 60,
+                DeadlineInSegments = obligation.DeadlineInSegments,
                 Payment = obligation.Payment,
                 TokenType = obligation.TokenType.ToString(),
                 TokenIcon = GetTokenIcon(obligation.TokenType),
@@ -773,7 +774,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 PaymentBonusAmount = 0,
                 PaymentBonusSource = "",
                 HasDeadlineExtension = false, // Would check standing obligations
-                DeadlineExtensionHours = 0,
+                DeadlineExtensionSegments = 0,
                 DeadlineExtensionSource = "",
                 HasPositionModifier = false,
                 PositionModifierAmount = 0,
@@ -806,7 +807,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private string GetMorningSwapReason(TimeBlocks currentTime, int obligationCount)
         {
-            if (currentTime != TimeBlocks.Morning)
+            if (currentTime != TimeBlocks.Midday)
                 return "Morning swaps only available during morning hours";
             if (obligationCount < 2)
                 return "Need at least 2 obligations to swap";
@@ -896,15 +897,16 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private (string CssClass, string Icon, string Description) CalculateDeadlineInfo(DeliveryObligation obligation)
         {
-            int hoursRemaining = obligation.DeadlineInMinutes / 60;
+            int segmentsRemaining = obligation.DeadlineInSegments;
+            int hoursRemaining = segmentsRemaining / 2; // 2 segments per hour
 
-            if (hoursRemaining <= 0)
+            if (segmentsRemaining <= 0)
                 return ("deadline-expired", "💀", "Expired");
-            else if (hoursRemaining <= 6)
+            else if (segmentsRemaining <= 12) // 6 hours worth of segments
                 return ("deadline-critical", "🔥", $"{hoursRemaining}h left");
-            else if (hoursRemaining <= 24)
+            else if (segmentsRemaining <= 48) // 24 hours worth of segments
                 return ("deadline-urgent", "⚠️", $"{hoursRemaining}h left");
-            else if (hoursRemaining <= 48)
+            else if (segmentsRemaining <= 96) // 48 hours worth of segments
                 return ("deadline-warning", "⏰", $"{hoursRemaining / 24}d left");
             else
                 return ("deadline-safe", "📅", $"{hoursRemaining / 24}d left");
