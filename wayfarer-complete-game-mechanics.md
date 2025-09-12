@@ -85,7 +85,7 @@ The three core game loops answer fundamental design questions while maintaining 
 
 At -3 flow in Disconnected: Conversation ends immediately.
 
-#### NPC Five PERSISTENT Decks
+#### NPC Five Persistent Decks
 
 Each NPC maintains five persistent decks:
 
@@ -593,7 +593,7 @@ Deadlines create cascading decisions:
 
 ## Resource Economy
 
-### PERSISTENT Resources
+### Persistent Resources
 
 #### Coins
 - **Range**: 0-999
@@ -940,7 +940,7 @@ Each NPC maintains five persistent decks that determine conversation availabilit
 
 #### Exhaust Pile
 - Played cards go here
-- Cards removed by IMPULSE/OPENING go here
+- Cards removed when Exhausted by Impulse/Opening go here
 - Shuffled to create new draw pile when needed
 
 ### Starting a Conversation
@@ -976,10 +976,52 @@ Complete sequence:
    - Receptive: Draw 1 additional card
    - Pressured: Draw 1 fewer card
    - Prepared: Add +1 to current focus
-5. **Remove OPENING cards** if unplayed (to exhaust)
+5. **Remove Opening cards** if unplayed (to exhaust)
 6. **Check request card activation**:
    - Check ALL goal cards in hand for rapport thresholds
    - Each card that meets its threshold becomes playable
+   - All activated cards gain Impulse AND Opening properties
+   - Player must choose ONE activated goal immediately
+   - Unchosen goals are lost
+
+### Promise Cards - Queue Manipulation
+
+Promise cards are special conversation cards that manipulate the obligation queue mid-conversation:
+
+**Mechanics**:
+- Play like any other conversation card (costs focus, has difficulty)
+- **Success Effect**: Target obligation immediately moves to position 1
+- **Queue Impact**: All displaced obligations shift down
+- **Token Burning**: Automatically burn tokens with ALL displaced NPCs
+- **Rapport Bonus**: Gain +5 to +10 rapport immediately
+- **Narrative**: "I'll prioritize your request" - literally and mechanically
+
+**Strategic Use**:
+- Enables reaching higher goal thresholds otherwise impossible
+- Trades future relationships for immediate success
+- Creates visible sacrifice that justifies higher rewards
+- Transforms conversations from probability to economics
+
+### Multi-Threshold Goal System
+
+Conversations can present multiple goal cards with different rapport requirements:
+
+#### Goal Ladder Example
+- **Basic Goal** (5 rapport): Standard delivery, 1 token reward
+- **Enhanced Goal** (10 rapport): Priority delivery, 2 tokens + observation
+- **Premium Goal** (15 rapport): Immediate action, 3 tokens + permit
+
+#### Strategic Decision Tree
+1. **Safe Exit**: Accept basic goal once achievable
+2. **Natural Building**: Risk patience for higher thresholds  
+3. **Promise Sacrifice**: Burn relationships to guarantee premium
+
+#### Cascading Consequences
+- Accept basic = preserve queue relationships
+- Build naturally = risk patience exhaustion
+- Use promise = damage multiple relationships for one success
+
+The tension: You're not asking "can I succeed?" but "how much will I sacrifice?"
    - Missing all windows = conversation failure
 
 ### SPEAK Action
@@ -999,7 +1041,7 @@ Complete sequence:
    - Rapport changes
    - Atmosphere changes
    - Draw/focus effects
-8. **Remove IMPULSE cards** if unplayed (to exhaust)
+8. **Remove Impulse cards** if unplayed (to exhaust)
 9. **Check flow transitions**:
    - At ±3: State change, flow resets to 0
 10. **Can SPEAK again** if focus remains
@@ -1022,19 +1064,19 @@ Cleanup:
 
 ### Card Persistence Types
 
-#### PERSISTENT (60% of deck)
+#### Persistent (60% of deck)
 - Remain in hand until played
 - Most common type
 - Strategic planning enabled
 - Examples: Basic rapport cards, setup cards
 
-#### IMPULSE (25% of deck)
+#### Impulse (25% of deck)
 - Removed after ANY SPEAK action if unplayed
 - High-risk, high-reward
 - Often 4+ focus cost
 - Examples: Dramatic rapport cards, crisis plays
 
-#### OPENING (15% of deck)
+#### Opening (15% of deck)
 - Removed after LISTEN if unplayed
 - Timing-critical
 - Often utility effects
@@ -1042,7 +1084,7 @@ Cleanup:
 
 ### On Exhaust Effects
 
-Some IMPULSE and OPENING cards have effects when exhausted unplayed:
+Some Impulse and Opening cards have effects when exhausted unplayed:
 - "Missed Opportunity": Draw 1 card when exhausted
 - "Hasty Words": -1 rapport when exhausted
 - "Lost Focus": +1 focus when exhausted
@@ -1062,27 +1104,27 @@ All modified by: +2% per rapport point
 #### Focus-Effect Correlation
 
 **0 Focus**: Setup cards
-- No effect + atmosphere change (PERSISTENT)
-- +1 rapport (Easy, PERSISTENT)
+- No effect + atmosphere change (Persistent)
+- +1 rapport (Easy, Persistent)
 
 **1 Focus**: Basic cards  
-- ±1 rapport (Easy, PERSISTENT)
-- Draw 1 card (Medium, OPENING with on exhaust: Draw 1)
+- ±1 rapport (Easy, Persistent)
+- Draw 1 card (Medium, Opening with on exhaust: Draw 1)
 
 **2 Focus**: Standard cards
-- ±2 rapport (Medium, mix of PERSISTENT and OPENING)
-- Scaled rapport with low ceiling (Hard, PERSISTENT)
-- Add 1 focus (Medium, OPENING with on exhaust: +1 focus)
+- ±2 rapport (Medium, mix of Persistent and Opening)
+- Scaled rapport with low ceiling (Hard, Persistent)
+- Add 1 focus (Medium, Opening with on exhaust: +1 focus)
 
 **3 Focus**: Powerful cards
-- ±3 rapport (Medium, mix of PERSISTENT and IMPULSE)
-- Scaled rapport with medium ceiling (Hard, PERSISTENT)
-- Draw 2 cards (Medium, OPENING)
+- ±3 rapport (Medium, mix of Persistent and Impulse)
+- Scaled rapport with medium ceiling (Hard, Persistent)
+- Draw 2 cards (Medium, Opening)
 
 **4+ Focus**: Dramatic cards
-- ±4 or ±5 rapport (Hard-Very Hard, IMPULSE)
-- Scaled rapport with high ceiling (Hard, IMPULSE with on exhaust)
-- Add 2 focus (Medium, IMPULSE)
+- ±4 or ±5 rapport (Hard-Very Hard, Impulse)
+- Scaled rapport with high ceiling (Hard, Impulse with on exhaust)
+- Add 2 focus (Medium, Impulse)
 
 #### Effect Pools
 
@@ -1209,8 +1251,8 @@ Every card serves one of three purposes:
 - Large enough for variance
 
 **Persistence Distribution**:
-- PERSISTENT: 100% initially (no timing pressure early)
-- Later decks add IMPULSE/OPENING for complexity
+- Persistent: 100% initially (no timing pressure early)
+- Later decks add Impulse/Opening for complexity
 
 **Focus Distribution**:
 - 1-focus: ~40% (always playable)
@@ -1801,7 +1843,7 @@ New cards must follow:
 - **Single effect**: One clear purpose (not multiple)
 - **Focus range**: 0-6 focus cost
 - **Difficulty tier**: Very Easy to Very Hard
-- **Persistence type**: PERSISTENT (60%), IMPULSE (25%), OPENING (15%)
+- **Persistence type**: Persistent (60%), Impulse (25%), Opening (15%)
 - **Atmosphere**: Only ~30% change atmosphere
 - **Scaling**: Either fixed OR scaled, never both
 
@@ -1860,7 +1902,7 @@ Stories emerge from mechanical interaction, not scripting:
   - Premium: 15 rapport threshold → 3 tokens + permit + observation
 - Current rapport: 3 (achievable: 8 with perfect play)
 - Decision point: Accept basic or use promise card?
-- Promise card would: +10 rapport, displace 2 obligations, burn 3 tokens with the NPCs (from obligation displacement)
+- Promise card would: +10 rapport, displace 2 obligations, burn 3 tokens with the affected NPCs (from obligation displacement)
 - Player calculates: 3 tokens burned < 3 tokens gained + permit value
 - Plays promise, reaches premium threshold
 - Narrative: NPC sees you sacrifice other relationships for them
@@ -2190,7 +2232,7 @@ The game succeeds when players realize that mastery comes not from optimizing in
 
 ## Resource Economy
 
-### PERSISTENT Resources
+### Persistent Resources
 
 #### Coins
 - **Range**: 0-999
@@ -2409,7 +2451,7 @@ At -3 flow in Disconnected: Conversation ends immediately.
 2. Draw cards equal to connection state
 3. If draw pile empty: Shuffle exhaust → new draw pile
 4. Refresh focus to maximum
-5. Remove OPENING cards if unplayed
+5. Remove Opening cards if unplayed
 6. Check if request cards become playable
 
 #### SPEAK Action
@@ -2418,7 +2460,7 @@ At -3 flow in Disconnected: Conversation ends immediately.
 3. Resolve success/failure
 4. Card goes to exhaust pile
 5. Apply effects
-6. Remove IMPULSE cards if unplayed
+6. Remove Impulse cards if unplayed
 
 #### Conversation End
 - All piles cleared
@@ -2429,9 +2471,9 @@ At -3 flow in Disconnected: Conversation ends immediately.
 ### Card Types
 
 #### Persistence Types
-- **PERSISTENT** (60%): Remain in hand until played
-- **IMPULSE** (25%): Removed after any SPEAK action if unplayed
-- **OPENING** (15%): Removed after LISTEN if unplayed
+- **Persistent** (60%): Remain in hand until played
+- **Impulse** (25%): Removed after any SPEAK action if unplayed
+- **Opening** (15%): Removed after LISTEN if unplayed
 
 #### Difficulty Tiers
 - **Very Easy**: TBD base %
