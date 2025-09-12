@@ -116,6 +116,10 @@ public class CardEffectProcessor
             case CardEffectType.UnlockExchange:
                 result.SpecialEffect = ProcessUnlockExchange(effect, session);
                 break;
+                
+            case CardEffectType.ForceQueuePosition:
+                result.SpecialEffect = ProcessForceQueuePosition(effect, session);
+                break;
         }
 
         // Apply atmosphere modifications to rapport changes
@@ -349,6 +353,23 @@ public class CardEffectProcessor
         // where we have access to the NPC's exchange deck
         
         return $"Unlocked exchange: {exchangeId}";
+    }
+    
+    private string ProcessForceQueuePosition(CardEffect effect, ConversationSession session)
+    {
+        // Parse the queue position from the effect value (default to 1)
+        int targetPosition = 1;
+        if (!string.IsNullOrEmpty(effect.Value) && int.TryParse(effect.Value, out int parsed))
+        {
+            targetPosition = parsed;
+        }
+        
+        // The actual queue manipulation needs to happen at a higher level
+        // where we have access to the ObligationQueueManager
+        // For now, just return the effect description
+        // The Promise card's QueuePosition property should be used when processing the card
+        
+        return $"Force obligation to queue position {targetPosition} (burns tokens with displaced NPCs)";
     }
 }
 

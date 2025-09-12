@@ -512,26 +512,32 @@ public class CardDeckManager
     /// </summary>
     private CardInstance SelectGoalCardForConversationType(NPC npc, ConversationType conversationType, string goalCardId = null)
     {
-        // If specific card ID provided, find and return that card
-        if (!string.IsNullOrEmpty(goalCardId) && npc.RequestDeck != null)
+        // If specific card ID provided, this might be a request ID - find that request
+        if (!string.IsNullOrEmpty(goalCardId) && npc.Requests != null)
         {
-            ConversationCard specificCard = npc.RequestDeck.GetAllCards()
-                .FirstOrDefault(c => c.Id == goalCardId);
-            if (specificCard != null)
+            // First check if it's a request ID
+            var request = npc.GetRequestById(goalCardId);
+            if (request != null && request.IsAvailable())
             {
-                CardInstance goalInstance = new CardInstance(specificCard, npc.ID);
-                
-                // Store the rapport threshold in the card context
-                if (goalInstance.Context == null)
-                    goalInstance.Context = new CardContext();
+                // For now, return the first card from the request
+                // Later this will load ALL cards from the request
+                var firstCard = request.RequestCards.FirstOrDefault() ?? request.PromiseCards.FirstOrDefault();
+                if (firstCard != null)
+                {
+                    CardInstance goalInstance = new CardInstance(firstCard, npc.ID);
                     
-                goalInstance.Context.RapportThreshold = specificCard.RapportThreshold;
+                    // Store the rapport threshold in the card context
+                    if (goalInstance.Context == null)
+                        goalInstance.Context = new CardContext();
+                        
+                    goalInstance.Context.RapportThreshold = firstCard.RapportThreshold;
                 
-                // Goal cards start as Unplayable until rapport threshold is met
-                if (!goalInstance.Properties.Contains(CardProperty.Unplayable))
-                    goalInstance.Properties.Add(CardProperty.Unplayable);
+                    // Goal cards start as Unplayable until rapport threshold is met
+                    if (!goalInstance.Properties.Contains(CardProperty.Unplayable))
+                        goalInstance.Properties.Add(CardProperty.Unplayable);
                     
-                return goalInstance;
+                    return goalInstance;
+                }
             }
         }
         
@@ -565,15 +571,22 @@ public class CardDeckManager
     /// </summary>
     private CardInstance SelectConnectionTokenGoalCard(NPC npc)
     {
-        // Connection token goal cards should be in the NPC's request deck
+        // Connection token goal cards should be in the NPC's one-time requests
         // These are cards that grant connection tokens when played at rapport threshold
-        if (npc.RequestDeck == null || !npc.RequestDeck.HasCardsAvailable())
+        if (npc.Requests == null || !npc.Requests.Any())
             return null;
 
-        // Look for cards with CardType Promise (since FriendlyChat uses Promise type goal cards)
-        List<ConversationCard> goalCards = npc.RequestDeck.GetAllCards()
-            .Where(card => card.CardType == CardType.Promise)
-            .ToList();
+        // Look for cards with CardType Promise in available requests
+        var availableRequests = npc.GetAvailableRequests();
+        if (!availableRequests.Any())
+            return null;
+            
+        // Get all promise cards from all available requests
+        List<ConversationCard> goalCards = new List<ConversationCard>();
+        foreach (var request in availableRequests)
+        {
+            goalCards.AddRange(request.PromiseCards.Where(card => card.CardType == CardType.Promise));
+        }
 
         if (!goalCards.Any())
             return null;
@@ -600,14 +613,20 @@ public class CardDeckManager
     /// </summary>
     private CardInstance SelectBurdenResolutionCard(NPC npc)
     {
-        // Burden resolution cards should be in the NPC's request deck
-        if (npc.RequestDeck == null || !npc.RequestDeck.HasCardsAvailable())
+        // Burden resolution cards should be in the NPC's one-time requests
+        if (npc.Requests == null || !npc.Requests.Any())
             return null;
 
-        // Look for cards with CardType BurdenGoal
-        List<ConversationCard> resolutionCards = npc.RequestDeck.GetAllCards()
-            .Where(card => card.CardType == CardType.BurdenGoal)
-            .ToList();
+        // Look for cards with CardType BurdenGoal in available requests
+        var availableRequests = npc.GetAvailableRequests();
+        if (!availableRequests.Any())
+            return null;
+            
+        List<ConversationCard> resolutionCards = new List<ConversationCard>();
+        foreach (var request in availableRequests)
+        {
+            resolutionCards.AddRange(request.RequestCards.Where(card => card.CardType == CardType.BurdenGoal));
+        }
 
         if (!resolutionCards.Any())
             return null;
@@ -633,12 +652,19 @@ public class CardDeckManager
     /// </summary>
     private CardInstance SelectValidRequestCard(NPC npc, ConversationType conversationType)
     {
-        if (npc.RequestDeck == null || !npc.RequestDeck.HasCardsAvailable())
+        if (npc.Requests == null || !npc.Requests.Any())
             return null;
 
-        List<ConversationCard> requestCards = npc.RequestDeck.GetAllCards()
-            .Where(card => IsRequestCardValidForConversation(card, conversationType))
-            .ToList();
+        var availableRequests = npc.GetAvailableRequests();
+        if (!availableRequests.Any())
+            return null;
+            
+        List<ConversationCard> requestCards = new List<ConversationCard>();
+        foreach (var request in availableRequests)
+        {
+            requestCards.AddRange(request.RequestCards.Where(card => IsRequestCardValidForConversation(card, conversationType)));
+            requestCards.AddRange(request.PromiseCards.Where(card => IsRequestCardValidForConversation(card, conversationType)));
+        }
 
         if (!requestCards.Any())
             return null;

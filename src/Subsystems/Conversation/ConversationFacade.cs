@@ -383,7 +383,7 @@ public class ConversationFacade
         }
 
         // Get one-time requests as conversation options
-        if (npc.OneTimeRequests != null && npc.OneTimeRequests.Count > 0)
+        if (npc.Requests != null && npc.Requests.Count > 0)
         {
             var availableRequests = npc.GetAvailableRequests();
             

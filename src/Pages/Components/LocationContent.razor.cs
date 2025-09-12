@@ -859,7 +859,7 @@ namespace Wayfarer.Pages.Components
     public class ConversationOptionViewModel
     {
         public ConversationType? Type { get; set; }
-        public string GoalCardId { get; set; }  // The specific card ID from RequestDeck
+        public string GoalCardId { get; set; }  // The specific card ID from the NPC's requests
         public string Label { get; set; }
         public string Description { get; set; }  // Full description of the conversation option
         public int AttentionCost { get; set; }

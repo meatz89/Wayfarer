@@ -24,11 +24,12 @@ namespace Wayfarer.Tests
             // Arrange
             var elena = _gameWorld.NPCs.FirstOrDefault(n => n.ID == "elena");
             Assert.IsNotNull(elena, "Elena should exist in the game world");
-            Assert.IsNotNull(elena.RequestDeck, "Elena should have a request deck");
+            Assert.IsNotNull(elena.Requests, "Elena should have one-time requests");
+            Assert.IsTrue(elena.Requests.Any(), "Elena should have at least one request");
             
             // Act
-            var requestCards = elena.RequestDeck.GetAllCards();
-            var letterCard = requestCards.FirstOrDefault(c => c.Id == "accept_elenas_letter");
+            var firstRequest = elena.Requests.First();
+            var letterCard = firstRequest.RequestCards.FirstOrDefault(c => c.Id == "accept_elenas_letter");
             
             // Assert
             Assert.IsNotNull(letterCard, "Elena should have a letter request card");
@@ -42,8 +43,9 @@ namespace Wayfarer.Tests
         {
             // Arrange
             var elena = _gameWorld.NPCs.FirstOrDefault(n => n.ID == "elena");
-            var requestCards = elena.RequestDeck.GetAllCards();
-            var letterCard = requestCards.FirstOrDefault(c => c.Id == "accept_elenas_letter");
+            var firstRequest = elena.Requests?.FirstOrDefault();
+            Assert.IsNotNull(firstRequest, "Elena should have at least one request");
+            var letterCard = firstRequest.RequestCards.FirstOrDefault(c => c.Id == "accept_elenas_letter");
             Assert.IsNotNull(letterCard, "Elena should have a letter request card");
             
             // Create CardInstance (simulating what happens in conversation)

@@ -104,7 +104,7 @@ public class PackageLoader
 
             // Phase 4.6: Initialize all NPC decks (after NPCs, cards, and exchanges are loaded)
             InitializeNPCConversationDecks(package.Content.DeckCompositions);
-            InitializeNPCRequestDecks(package.Content.NpcGoalCards, package.Content.DeckCompositions);
+            InitializeNPCRequests(package.Content.NpcGoalCards, package.Content.DeckCompositions);
             InitializeNPCExchangeDecks(package.Content.DeckCompositions);
 
             // Phase 5: Routes (depend on locations)
@@ -624,11 +624,11 @@ public class PackageLoader
 
 
     /// <summary>
-    /// Initialize request decks for NPCs from NpcGoalCards
+    /// Initialize one-time requests for NPCs from NpcGoalCards and deck compositions
     /// </summary>
-    private void InitializeNPCRequestDecks(List<NPCGoalCardDTO> npcGoalCardDtos, DeckCompositionDTO deckCompositions)
+    private void InitializeNPCRequests(List<NPCGoalCardDTO> npcGoalCardDtos, DeckCompositionDTO deckCompositions)
     {
-        Console.WriteLine("[PackageLoader] Initializing NPC request decks...");
+        Console.WriteLine("[PackageLoader] Initializing NPC one-time requests...");
 
         // Group goal cards by NPC ID for efficient loading
         Dictionary<string, List<ConversationCard>> npcGoalCards = new Dictionary<string, List<ConversationCard>>();
@@ -715,13 +715,10 @@ public class PackageLoader
                 if (npcGoalCards.ContainsKey(npc.ID))
                 {
                     requestCards.AddRange(npcGoalCards[npc.ID]);
-                    Console.WriteLine($"[PackageLoader] Added {npcGoalCards[npc.ID].Count} goal cards to {npc.Name}'s request deck");
+                    Console.WriteLine($"[PackageLoader] Added {npcGoalCards[npc.ID].Count} goal cards to {npc.Name}'s one-time requests");
                 }
 
-                // Initialize BOTH systems temporarily for backwards compatibility
-                npc.InitializeRequestDeck(requestCards);
-                
-                // Also populate OneTimeRequests
+                // Populate Requests ONLY
                 if (requestCards.Count > 0)
                 {
                     // Group cards by RequestId or create a default request
@@ -748,20 +745,20 @@ public class PackageLoader
                     
                     if (defaultRequest.RequestCards.Count > 0 || defaultRequest.PromiseCards.Count > 0)
                     {
-                        npc.OneTimeRequests.Add(defaultRequest);
+                        npc.Requests.Add(defaultRequest);
                         Console.WriteLine($"[PackageLoader] Created default request for {npc.Name} with {defaultRequest.RequestCards.Count} request cards and {defaultRequest.PromiseCards.Count} promise cards");
                     }
                 }
                 
-                Console.WriteLine($"[PackageLoader] Initialized request deck for {npc.Name} with {requestCards.Count} cards");
+                Console.WriteLine($"[PackageLoader] Initialized one-time requests for {npc.Name} with {requestCards.Count} cards");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[PackageLoader] Failed to initialize request deck for NPC {npc.Name}: {ex.Message}");
+                Console.WriteLine($"[PackageLoader] Failed to initialize one-time requests for NPC {npc.Name}: {ex.Message}");
             }
         }
 
-        Console.WriteLine("[PackageLoader] NPC request deck initialization completed");
+        Console.WriteLine("[PackageLoader] NPC one-time requests initialization completed");
     }
 
 

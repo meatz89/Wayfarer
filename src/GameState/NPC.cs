@@ -53,7 +53,7 @@ public class NPC
     private List<RouteOption> _knownRoutes = new List<RouteOption>();
 
     // REMOVED: Boolean flags violate deck-based architecture
-    // Letters are detected by checking RequestDeck contents
+    // Letters are detected by checking Requests for available request cards
     // Burden history detected by counting burden cards in BurdenDeck
     // Crisis detected by checking CurrentState == ConnectionState.DISCONNECTED
 
@@ -71,31 +71,14 @@ public class NPC
     public int DailyPatience { get; set; } // Current remaining patience for the day
     public int MaxDailyPatience { get; set; } // Maximum patience based on personality
 
-    // FIVE DECK ARCHITECTURE (Per Documentation)
+    // FOUR DECK ARCHITECTURE
     public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Flow, Token, State, Knowledge
-    public CardDeck RequestDeck { get; set; } = new();  // DEPRECATED - Will be replaced by OneTimeRequests
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
     public CardDeck ObservationDeck { get; set; } = new();  // Cards created from location observations
     public CardDeck BurdenDeck { get; set; } = new();  // Burden cards from past conflicts and resolution attempts 
 
-    // One-time requests system - NEW system replacing RequestDeck - special narrative-driven asks with multiple cards
-    public List<NPCRequest> OneTimeRequests { get; set; } = new List<NPCRequest>();
-    
-    // Initialize request deck (DEPRECATED - for backwards compatibility)
-    public void InitializeRequestDeck(List<ConversationCard> requestCards = null)
-    {
-        if (RequestDeck == null || !RequestDeck.Any())
-        {
-            RequestDeck = new CardDeck();
-            if (requestCards != null)
-            {
-                foreach (ConversationCard card in requestCards)
-                {
-                    RequestDeck.AddCard(card);
-                }
-            }
-        }
-    }
+    // Requests system - Multiple requests, each with multiple cards at different rapport thresholds
+    public List<NPCRequest> Requests { get; set; } = new List<NPCRequest>();
 
     // Initialize exchange deck (for Mercantile NPCs only)
     public void InitializeExchangeDeck(List<ExchangeCard> exchangeCards = null)
@@ -142,8 +125,8 @@ public class NPC
     // Check if NPC has any promise cards in their one-time requests  
     public bool HasPromiseCards()
     {
-        if (OneTimeRequests == null) return false;
-        return OneTimeRequests.Any(r => r.IsAvailable() && r.PromiseCards.Any());
+        if (Requests == null) return false;
+        return Requests.Any(r => r.IsAvailable() && r.PromiseCards.Any());
     }
 
     // Check if NPC has burden history (cards in burden deck)
@@ -227,13 +210,6 @@ public class NPC
     }
 
 
-    /// <summary>
-    /// Check if NPC has valid request cards (DEPRECATED - use HasAvailableRequests)
-    /// </summary>
-    public bool HasValidRequestCard(ConnectionState currentState)
-    {
-        return RequestDeck != null && RequestDeck.RemainingCards > 0;
-    }
     
     /// <summary>
     /// Initialize daily patience based on personality type
@@ -325,9 +301,9 @@ public class NPC
     public List<NPCRequest> GetAvailableRequests()
     {
         var available = new List<NPCRequest>();
-        if (OneTimeRequests != null)
+        if (Requests != null)
         {
-            foreach (var request in OneTimeRequests)
+            foreach (var request in Requests)
             {
                 if (request.IsAvailable())
                 {
@@ -351,9 +327,9 @@ public class NPC
     /// </summary>
     public NPCRequest GetRequestById(string requestId)
     {
-        if (OneTimeRequests != null)
+        if (Requests != null)
         {
-            foreach (var request in OneTimeRequests)
+            foreach (var request in Requests)
             {
                 if (request.Id == requestId)
                 {

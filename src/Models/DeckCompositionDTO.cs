@@ -28,6 +28,7 @@ public class DeckDefinitionDTO
 
     /// <summary>
     /// Request deck card composition (card ID -> count)
+    /// Used to load request/promise cards that define conversation options
     /// </summary>
     public Dictionary<string, int> RequestDeck { get; set; }
 

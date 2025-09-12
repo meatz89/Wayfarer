@@ -1,7 +1,7 @@
 using System;
 
 /// <summary>
-/// Represents a specific conversation option that maps to a goal card in the NPC's RequestDeck.
+/// Represents a specific conversation option that maps to a goal card from the NPC's requests.
 /// Each conversation option corresponds to exactly one goal card.
 /// </summary>
 public class ConversationOption
@@ -12,7 +12,7 @@ public class ConversationOption
     public ConversationType Type { get; set; }
     
     /// <summary>
-    /// The specific card ID from the NPC's RequestDeck that will be used as the goal card
+    /// The specific card ID from the NPC's requests that will be used as the goal card
     /// </summary>
     public string GoalCardId { get; set; }
     

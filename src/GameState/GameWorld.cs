@@ -68,7 +68,6 @@ public class GameWorld
     // All cards are ConversationCard type (no LetterCard, ExchangeCard, etc.)
     public Dictionary<string, ConversationCard> AllCardDefinitions { get; set; } = new Dictionary<string, ConversationCard>();
     public Dictionary<string, List<string>> NPCConversationDeckMappings { get; set; } = new Dictionary<string, List<string>>();
-    public Dictionary<string, List<ConversationCard>> NPCRequestDecks { get; set; } = new Dictionary<string, List<ConversationCard>>();
     // Exchange cards are now completely separate from conversation cards
     public Dictionary<string, List<ExchangeCard>> NPCExchangeCards { get; set; } = new Dictionary<string, List<ExchangeCard>>();
     public List<ConversationCard> PlayerObservationCards { get; set; } = new List<ConversationCard>();

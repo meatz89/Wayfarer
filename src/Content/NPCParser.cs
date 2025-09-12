@@ -108,9 +108,9 @@ public static class NPCParser
         // The deck initialization happens in PackageLoader when processing deckCompositions
         
         // Parse one-time requests
-        if (dto.OneTimeRequests != null && dto.OneTimeRequests.Count > 0)
+        if (dto.Requests != null && dto.Requests.Count > 0)
         {
-            foreach (var requestDto in dto.OneTimeRequests)
+            foreach (var requestDto in dto.Requests)
             {
                 var request = new NPCRequest
                 {
@@ -122,7 +122,7 @@ public static class NPCParser
                 
                 // Request and promise cards will be populated later by PackageLoader
                 // when it processes the card definitions
-                npc.OneTimeRequests.Add(request);
+                npc.Requests.Add(request);
             }
         }
 

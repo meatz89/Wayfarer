@@ -28,7 +28,7 @@ public class NPCDTO
     public string CurrentState { get; set; }
     
     // One-time requests with multiple cards at different rapport thresholds
-    public List<NPCRequestDTO> OneTimeRequests { get; set; } = new List<NPCRequestDTO>();
+    public List<NPCRequestDTO> Requests { get; set; } = new List<NPCRequestDTO>();
 }
 
 // REMOVED: Letter DTOs violate deck-based architecture

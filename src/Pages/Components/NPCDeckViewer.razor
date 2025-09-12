@@ -144,51 +144,71 @@
                 }
             </div>
 
-            <!-- Request Deck (Letters + Crisis) -->
+            <!-- One-Time Requests -->
             <div class="deck-section request-deck-section @(HasRequestCards ? "has-requests" : "")">
-                <h3>Request Deck (@(TotalRequestCards) cards total)</h3>
+                <h3>One-Time Requests (@(TotalRequestCards) requests)</h3>
                 <div class="deck-purpose">
-                    Contains letter and crisis requests. Only ONE request card can be drawn per conversation.
-                    <span class="urgency-rule">⚠ Request Urgency Rule: Once drawn, must be played within 1 turn or conversation fails!</span>
+                    NPCs can have multiple thematic requests. Each request contains request cards (at different rapport thresholds) and promise cards.
+                    <span class="urgency-rule">⚠ Promise Cards: Force queue position 1 and burn tokens for instant rapport!</span>
                 </div>
                 
-                @if (CurrentNPC.RequestDeck != null && CurrentNPC.RequestDeck.Any())
+                @if (CurrentNPC.Requests != null && CurrentNPC.Requests.Any())
                 {
-                    <h4 class="sub-deck-header">Letter Requests (@(CurrentNPC.RequestDeck.Count) cards)</h4>
-                    <div class="card-list">
-                        @foreach (var card in CurrentNPC.RequestDeck.GetAllCards())
-                        {
-                            <div class="debug-card letter-card request-card">
-                                <div class="card-header">
-                                    <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@(card.Description ?? card.Id)</span>
-                                    <span class="request-type-badge">LETTER REQUEST</span>
-                                </div>
-                                <div class="card-properties">
-                                    <span>Template: @card.Id</span>
-                                    <span>Focus: @card.Focus</span>
-                                </div>
-                                <div class="eligibility">
-                                    <h4>Eligibility Requirements:</h4>
-                                    @if (card.Context?.ValidStates?.Any() == true)
+                    @foreach (var request in CurrentNPC.Requests)
+                    {
+                        <div class="request-group">
+                            <h4 class="request-header">@request.Name (@request.Status)</h4>
+                            <div class="request-description">@request.Description</div>
+                            
+                            @if (request.RequestCards.Any())
+                            {
+                                <h5>Request Cards (@request.RequestCards.Count):</h5>
+                                <div class="card-list">
+                                    @foreach (var card in request.RequestCards)
                                     {
-                                        <div>Valid States: @string.Join(", ", card.Context.ValidStates)</div>
+                                        <div class="debug-card letter-card request-card">
+                                            <div class="card-header">
+                                                <span class="card-id">@card.Id</span>
+                                                <span class="card-name">@(card.Description ?? card.Id)</span>
+                                                <span class="request-type-badge">REQUEST</span>
+                                            </div>
+                                            <div class="card-properties">
+                                                <span>Rapport Required: @card.RapportThreshold</span>
+                                                <span>Focus: @card.Focus</span>
+                                            </div>
+                                        </div>
                                     }
                                 </div>
-                                <div class="negotiation">
-                                    <h4>Request Card Properties:</h4>
-                                    <div>Type: @card.RequestCardType</div>
-                                    <div>CardType: @card.CardType</div>
-                                    <div>Focus: @card.Focus</div>
+                            }
+                            
+                            @if (request.PromiseCards.Any())
+                            {
+                                <h5>Promise Cards (@request.PromiseCards.Count):</h5>
+                                <div class="card-list">
+                                    @foreach (var card in request.PromiseCards)
+                                    {
+                                        <div class="debug-card promise-card">
+                                            <div class="card-header">
+                                                <span class="card-id">@card.Id</span>
+                                                <span class="card-name">@(card.Description ?? card.Id)</span>
+                                                <span class="request-type-badge">PROMISE</span>
+                                            </div>
+                                            <div class="card-properties">
+                                                <span>Queue Position: @card.QueuePosition</span>
+                                                <span>Instant Rapport: @card.InstantRapport per token</span>
+                                                <span>Focus: @card.Focus</span>
+                                            </div>
+                                        </div>
+                                    }
                                 </div>
-                            </div>
-                        }
-                    </div>
+                            }
+                        </div>
+                    }
                 }
                 
                 @if (!HasRequestCards)
                 {
-                    <div class="empty-deck">No request cards (letters or crisis)</div>
+                    <div class="empty-deck">No one-time requests configured</div>
                 }
             </div>
 
@@ -241,8 +261,8 @@
     
     // Computed properties for conversation availability
     private bool HasExchangeCards => CurrentNPC?.ExchangeDeck?.Any() == true;
-    private bool HasRequestCards => (CurrentNPC?.RequestDeck?.Any() == true);
-    private int TotalRequestCards => (CurrentNPC?.RequestDeck?.Count ?? 0);
+    private bool HasRequestCards => CurrentNPC?.Requests?.Any() == true;
+    private int TotalRequestCards => CurrentNPC?.Requests?.Count ?? 0;
     
     protected override void OnInitialized()
     {
