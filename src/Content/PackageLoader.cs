@@ -104,7 +104,7 @@ public class PackageLoader
 
             // Phase 4.6: Initialize all NPC decks (after NPCs, cards, and exchanges are loaded)
             InitializeNPCConversationDecks(package.Content.DeckCompositions);
-            InitializeNPCRequests(package.Content.NpcGoalCards, package.Content.DeckCompositions);
+            InitializeNPCRequests(package.Content.NpcRequests, package.Content.NpcGoalCards, package.Content.DeckCompositions);
             InitializeNPCExchangeDecks(package.Content.DeckCompositions);
 
             // Phase 5: Routes (depend on locations)
@@ -626,11 +626,84 @@ public class PackageLoader
     /// <summary>
     /// Initialize one-time requests for NPCs from NpcGoalCards and deck compositions
     /// </summary>
-    private void InitializeNPCRequests(List<NPCGoalCardDTO> npcGoalCardDtos, DeckCompositionDTO deckCompositions)
+    private void InitializeNPCRequests(List<NPCRequestDTO> npcRequestDtos, List<NPCGoalCardDTO> npcGoalCardDtos, DeckCompositionDTO deckCompositions)
     {
         Console.WriteLine("[PackageLoader] Initializing NPC one-time requests...");
 
-        // Group goal cards by NPC ID for efficient loading
+        // First load NPCRequest bundles from npcRequests section
+        if (npcRequestDtos != null && npcRequestDtos.Count > 0)
+        {
+            foreach (NPCRequestDTO requestDto in npcRequestDtos)
+            {
+                try
+                {
+                    NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == requestDto.NpcId);
+                    if (npc == null)
+                    {
+                        Console.WriteLine($"[PackageLoader] Warning: NPC '{requestDto.NpcId}' not found for request '{requestDto.Id}'");
+                        continue;
+                    }
+
+                    NPCRequest request = new NPCRequest
+                    {
+                        Id = requestDto.Id,
+                        Name = requestDto.Name,
+                        Description = requestDto.Description,
+                        Status = RequestStatus.Available
+                    };
+
+                    // Load request cards
+                    if (requestDto.RequestCards != null)
+                    {
+                        foreach (string cardId in requestDto.RequestCards)
+                        {
+                            if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard card))
+                            {
+                                request.RequestCards.Add(card);
+                                Console.WriteLine($"[PackageLoader] Added request card '{cardId}' to request '{requestDto.Id}'");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[PackageLoader] Warning: Request card '{cardId}' not found");
+                            }
+                        }
+                    }
+
+                    // Load promise cards
+                    if (requestDto.PromiseCards != null)
+                    {
+                        foreach (string cardId in requestDto.PromiseCards)
+                        {
+                            if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard card))
+                            {
+                                request.PromiseCards.Add(card);
+                                Console.WriteLine($"[PackageLoader] Added promise card '{cardId}' to request '{requestDto.Id}'");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[PackageLoader] Warning: Promise card '{cardId}' not found");
+                            }
+                        }
+                    }
+
+                    if (request.RequestCards.Count > 0 || request.PromiseCards.Count > 0)
+                    {
+                        npc.Requests.Add(request);
+                        Console.WriteLine($"[PackageLoader] Added request '{requestDto.Id}' to NPC '{npc.Name}' with {request.RequestCards.Count} request cards and {request.PromiseCards.Count} promise cards");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[PackageLoader] Failed to load request '{requestDto.Id}': {ex.Message}");
+                }
+            }
+            
+            // Skip legacy loading if we have proper request bundles
+            Console.WriteLine($"[PackageLoader] Loaded {npcRequestDtos.Count} NPC request bundles");
+            return;
+        }
+
+        // Legacy fallback: Group goal cards by NPC ID for efficient loading
         Dictionary<string, List<ConversationCard>> npcGoalCards = new Dictionary<string, List<ConversationCard>>();
 
         // Load goal cards from the NpcGoalCards section if it exists

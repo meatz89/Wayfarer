@@ -66,6 +66,11 @@ public class PackageContent
     public List<NPCGoalCardDTO> NpcGoalCards { get; set; }
 
     /// <summary>
+    /// NPC requests - bundles of request and promise cards for one-time requests
+    /// </summary>
+    public List<NPCRequestDTO> NpcRequests { get; set; }
+
+    /// <summary>
     /// Path cards for travel system
     /// </summary>
     public List<PathCardDTO> PathCards { get; set; }

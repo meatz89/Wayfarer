@@ -290,35 +290,11 @@ public static class ConversationCardParser
             "promise" => CardType.Promise,
             "burdengoal" => CardType.BurdenGoal,
             "observation" => CardType.Observation,
-            "goal" => DetermineGoalCardType(dto, successEffect),
             "normal" => CardType.Conversation,
             _ => CardType.Conversation // Default to conversation
         };
     }
 
-    /// <summary>
-    /// Determine if a Goal card is Letter or Promise based on its effects
-    /// </summary>
-    private static CardType DetermineGoalCardType(ConversationCardDTO dto, CardEffect successEffect)
-    {
-        // If the success effect is OfferLetter, it's a Letter type
-        if (successEffect?.Type == CardEffectType.OfferLetter)
-            return CardType.Letter;
-            
-        // Check the goalType field for additional hints
-        if (!string.IsNullOrEmpty(dto.GoalType))
-        {
-            return dto.GoalType.ToLower() switch
-            {
-                "letter" => CardType.Letter,
-                "burdenamends" => CardType.BurdenGoal,
-                _ => CardType.Promise
-            };
-        }
-        
-        // Default Goal cards to Promise type
-        return CardType.Promise;
-    }
 
     /// <summary>
     /// Parse resource type from string
@@ -387,9 +363,6 @@ public class ConversationCardDTO
     public CardEffectDTO SuccessEffect { get; set; }
     public CardEffectDTO FailureEffect { get; set; }
     public CardEffectDTO ExhaustEffect { get; set; }
-    
-    // Goal type for FriendlyChat detection
-    public string GoalType { get; set; }
 }
 
 /// <summary>

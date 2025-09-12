@@ -6,8 +6,9 @@ using System.Collections.Generic;
 public class NPCRequestDTO
 {
     public string Id { get; set; }
+    public string NpcId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public List<string> RequestCardIds { get; set; } = new List<string>();
-    public List<string> PromiseCardIds { get; set; } = new List<string>();
+    public List<string> RequestCards { get; set; } = new List<string>();
+    public List<string> PromiseCards { get; set; } = new List<string>();
 }

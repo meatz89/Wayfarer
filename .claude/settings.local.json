@@ -424,7 +424,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:7003\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:7003\" dotnet run)",
       "Bash(xargs:*)",
-      "Read(///**)"
+      "Read(///**)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5888\" timeout 10 dotnet run --no-build)"
     ],
     "deny": []
   }

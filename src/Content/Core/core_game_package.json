@@ -47,24 +47,6 @@
         "dialogueFragment": "I hear what you're saying. Please, continue."
       },
       {
-        "id": "standard_friendly_chat_goal",
-        "type": "Goal",
-        "goalType": "FriendlyChat",
-        "personalityTypes": ["ALL"],
-        "focus": 0,
-        "properties": [],
-        "connectionType": "Trust",
-        "description": "Have a friendly conversation",
-        "difficulty": "Easy",
-        "rapportThreshold": 10,
-        "successEffect": {
-          "type": "GainToken",
-          "value": "1",
-          "tokenType": "Trust"
-        },
-        "dialogueFragment": "Let's have a chat, shall we?"
-      },
-      {
         "id": "let_me_think",
         "type": "Normal",
         "personalityTypes": ["ALL"],
@@ -182,10 +164,10 @@
         "dialogueFragment": "Trust me, everything will be alright in the end."
       },
       {
-        "id": "elena_letter_promise",
-        "type": "LetterRequest",
+        "id": "elena_letter_request",
+        "type": "Letter",
         "personalityTypes": ["DEVOTED"],
-        "focus": 0,
+        "focus": 5,
         "properties": ["OneShot"],
         "connectionType": "Trust",
         "description": "Deliver my letter to Lord Blackwood",
@@ -258,9 +240,7 @@
           "well_figure_this_out": 1,
           "everything_will_be_alright": 1
         },
-        "requestDeck": {
-          "standard_friendly_chat_goal": 1
-        },
+        "requestDeck": {},
         "exchangeDeck": {},
         "observationDeck": {}
       },
@@ -276,10 +256,7 @@
             "well_figure_this_out": 1,
             "everything_will_be_alright": 1
           },
-          "requestDeck": {
-            "elena_letter_promise": 1,
-            "standard_friendly_chat_goal": 1
-          },
+          "requestDeck": {},
           "exchangeDeck": {},
           "observationDeck": {}
         },
@@ -294,9 +271,7 @@
             "well_figure_this_out": 1,
             "everything_will_be_alright": 1
           },
-          "requestDeck": {
-          "standard_friendly_chat_goal": 1
-        },
+          "requestDeck": {},
           "exchangeDeck": {
             "quick_food_trade": 1
           },
@@ -308,9 +283,7 @@
             "how_can_i_assist": 1,
             "tell_me_more": 1
           },
-          "requestDeck": {
-          "standard_friendly_chat_goal": 1
-        },
+          "requestDeck": {},
           "exchangeDeck": {},
           "observationDeck": {}
         },
@@ -320,9 +293,7 @@
             "let_me_think": 1,
             "how_can_i_assist": 1
           },
-          "requestDeck": {
-          "standard_friendly_chat_goal": 1
-        },
+          "requestDeck": {},
           "exchangeDeck": {},
           "observationDeck": {}
         },
@@ -331,9 +302,7 @@
             "i_hear_you": 1,
             "tell_me_more": 1
           },
-          "requestDeck": {
-          "standard_friendly_chat_goal": 1
-        },
+          "requestDeck": {},
           "exchangeDeck": {},
           "observationDeck": {}
         }
@@ -632,6 +601,16 @@
         "tokenGate": {
           "Commerce": 1
         }
+      }
+    ],
+    "npcRequests": [
+      {
+        "id": "elena_urgent_letter_request",
+        "npcId": "elena",
+        "name": "Urgent Letter Delivery",
+        "description": "Elena needs her letter delivered to Lord Blackwood before sunset",
+        "requestCards": ["elena_letter_request"],
+        "promiseCards": []
       }
     ]
   }
