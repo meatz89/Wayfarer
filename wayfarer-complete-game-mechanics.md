@@ -3,17 +3,23 @@
 ## Table of Contents
 1. [Core Design Philosophy](#core-design-philosophy)
 2. [Three Core Game Loops](#three-core-game-loops)
-3. [Resource Economy](#resource-economy)
-4. [Conversation System](#conversation-system)
-5. [Starter Deck Design Principles](#starter-deck-design-principles)
-6. [Queue Management System](#queue-management-system)
-7. [Location and Travel System](#location-and-travel-system)
-8. [Time System](#time-system)
-9. [Exchange System](#exchange-system)
-10. [Work System](#work-system)
-11. [Strategic Resource Management](#strategic-resource-management)
-12. [Content Loading System](#content-loading-system)
-13. [Design Verification](#design-verification)
+3. [Travel System](#travel-system)
+4. [Resource Flow Between Loops](#resource-flow-between-loops)
+5. [Resource Economy](#resource-economy)
+6. [Conversation System](#conversation-system)
+7. [Starter Deck Design Principles](#starter-deck-design-principles)
+8. [Queue Management System](#queue-management-system)
+9. [Strategic Resource Management](#strategic-resource-management)
+10. [Economic Balance Points](#economic-balance-points)
+11. [Resource Conversion Chains](#resource-conversion-chains)
+12. [Work System](#work-system)
+13. [Exchange System](#exchange-system)
+14. [No Soft-Lock Architecture](#no-soft-lock-architecture)
+15. [Content Scalability](#content-scalability)
+16. [The Holistic Experience](#the-holistic-experience)
+17. [Content Loading System](#content-loading-system)
+18. [Core Innovation Summary](#core-innovation-summary)
+19. [Design Verification](#design-verification-checklist)
 
 ## Core Design Philosophy
 
@@ -222,6 +228,281 @@ Use conversation mechanics with special decks:
 - **Merchants**: Road trade deck, exchange opening (TBD)
 
 Success allows passage, failure costs resources.
+
+## Travel System
+
+### Core Concept
+
+Travel uses persistent path cards that start face-down and flip permanently once discovered. Unlike conversations (probability-based) or exchanges (resource trades), travel is about **discovery through exploration**. Each route segment presents 2-3 path choices showing only stamina cost until revealed.
+
+### Path Card Mechanics
+
+#### Card States
+
+Each path card exists in one of two permanent states:
+- **Face-down**: Shows only name and stamina cost
+- **Face-up**: Shows full requirements and effects
+
+Once a card flips face-up (through play or revelation), it remains face-up forever for all future travels on that route.
+
+#### Card Properties
+
+```
+Path Card Structure:
+- Name: Descriptive identifier  
+- Stamina Cost: 0-4 stamina to play
+- Requirements: Additional costs (coins, permits, tokens)
+- Effect: What happens when played (time, resources, discoveries)
+- Hidden: Boolean - cannot be revealed except by playing
+- One-Time: Boolean - special rewards only on first play
+```
+
+#### Playing Path Cards
+
+1. Each segment presents all path cards for that segment
+2. Player sees face-down cards (name + stamina) and face-up cards (everything)
+3. Player chooses one card they can afford (stamina + requirements)
+4. Card flips face-up permanently if face-down
+5. Apply card effects
+6. Continue to next segment or complete travel
+
+#### Cannot Proceed
+
+If player cannot meet requirements for ANY path in a segment:
+- Must turn back immediately
+- Time already spent is lost
+- Stamina already spent is lost
+- Return to starting location
+
+### Travel States (Stamina System)
+
+Similar to Connection States in conversations:
+
+#### States and Capacity
+- **Fresh**: 3 stamina capacity, can play most paths
+- **Steady**: 4 stamina capacity, optimal state  
+- **Tired**: 2 stamina capacity, limited options
+- **Weary**: 1 stamina capacity, only cheap paths
+- **Exhausted**: 0 stamina capacity, must REST
+
+#### State Management
+- Start each journey in Fresh state
+- Each segment may affect state (future content)
+- REST action: Skip segment, add 30 minutes, refresh stamina to capacity
+- Some paths restore stamina as part of effect
+
+### Core Mechanic: Card Selection
+
+Every travel segment presents 2-3 cards. The player picks ONE card, pays its cost, and applies its effect. This mechanic remains identical across all transport modes.
+
+### Two Travel Modes
+
+#### Walking Routes: Fixed Path Cards
+
+When walking, each segment has permanently assigned path cards representing physical routes:
+- Cards start face-down
+- Flip permanently face-up when first played
+- Same cards always available at each segment
+- Creates mastery through repeated travel
+
+#### Caravan Routes: Event Collections
+
+When using transport, each segment draws from event pools:
+- Draw one event randomly per segment
+- Each event contains 2-3 thematically related cards
+- Player picks one card from the drawn event
+- Different events each journey
+
+The decision structure is identical in both modes: pick one card from available options. Only the source differs:
+- Walking = fixed cards per segment (exploration leading to mastery)
+- Caravan = random events per segment (adaptation to circumstances)
+
+### Knowledge Discovery Methods
+
+#### 1. Direct Exploration
+- Play the path card spending stamina
+- Card flips face-up permanently
+- Most expensive but always available
+- Only method for hidden paths
+
+#### 2. Investigation
+Location investigation can reveal specific path cards:
+```
+Location Investigation:
+- Familiarity 1+: Reveals 1-2 basic paths
+- Familiarity 2+: Reveals intermediate paths
+- Familiarity 3+: Reveals all non-hidden paths on one route
+```
+
+#### 3. NPC Conversations
+Conversation cards can reveal paths NPCs know:
+```
+Card Effect Examples:
+- "+1 rapport, reveals all non-hidden paths on [route]"
+- "+2 rapport, reveals cheapest path on each segment"
+```
+
+#### 4. Exchanges
+Direct purchase of route knowledge:
+```
+Exchange Examples:
+- "Buy Map": 5 coins → Reveal all non-hidden paths on one route
+- "Route Intelligence": 10 coins → Reveal all paths on all routes from location
+```
+
+#### 5. Observation Cards
+Some observations reveal paths instead of going to NPC decks:
+```
+Observation Effect:
+- "Complete Route Survey" → Reveals all paths on specific route
+```
+
+### Path Effects
+
+#### Standard Effects
+- **Time**: Add minutes to travel time
+- **Resources**: Gain/lose coins, hunger, health
+- **Stamina**: Restore or drain stamina
+- **Discoveries**: Find observation cards or items
+- **Events**: Draw from event deck (walking routes only)
+
+#### One-Time Discoveries
+
+Certain paths have permanent world effects on first play:
+- Find coins or items (marked "already looted" after)
+- Discover observation cards (marked "already taken" after)
+- Unlock new routes (permanent world change)
+- Gain tokens (one-time relationship bonus)
+
+After first play, these paths show modified effects indicating the discovery was already claimed.
+
+### Event System Architecture
+
+For routes using event collections (transport/caravan):
+
+#### Event Cards
+Individual cards with costs and effects:
+```
+Event Card Properties:
+- Name and narrative text
+- Resource costs (attention for caravans, not stamina)
+- Requirements (coins, items, tokens)
+- Effects (time, resources, discoveries)
+```
+
+#### Events
+Thematic groupings of 2-3 related cards:
+```
+Event Properties:
+- Event name and narrative
+- Collection of 2-3 event card references
+- Player chooses one card when event occurs
+```
+
+#### Event Collections
+Pools of events for random selection:
+```
+Collection Properties:
+- Collection name
+- List of event references
+- One event drawn randomly per segment
+```
+
+### Resource Logic
+
+#### Walking Resources
+- **Stamina**: Physical exertion to traverse paths
+- **Coins**: Tolls, bribes, shortcuts
+- **Permits**: Gate access requirements
+- **Time**: Accept longer paths to avoid costs
+
+#### Transport Resources
+- **Attention**: Engage with opportunities (NOT stamina - you're riding)
+- **Coins**: Purchase advantages or comfort
+- **Items**: Letters, permits affect specific events
+- **Time**: Accept delays for free options
+
+### Strategic Considerations
+
+#### Knowledge Investment
+
+Players choose between:
+- **Exploration** (costs stamina, risks dead ends)
+- **Investigation** (costs attention, reveals infrastructure)
+- **Conversation** (costs focus, reveals NPC knowledge)
+- **Exchange** (costs coins, reveals complete routes)
+
+#### Route Mastery Progression
+
+- **First journey**: Expensive exploration, suboptimal paths
+- **Second journey**: Some knowledge, better choices
+- **Third journey**: Optimal path selection based on current needs
+- **Mastered route**: Perfect information for planning
+
+#### Dead End Avoidance
+
+Revealing requirements prevents wasted journeys:
+- Know permit requirements before attempting
+- Know toll costs before traveling
+- Know which paths have valuable discoveries
+- Know which paths are traps or dead ends
+
+### Integration with Other Systems
+
+#### Investigation Integration
+Location familiarity levels unlock path revelations:
+- Each familiarity level can reveal specific paths
+- Higher familiarity reveals more valuable information
+- Familiarity 3 often reveals complete route knowledge
+
+#### Conversation Integration
+NPCs can provide route knowledge through:
+- Standard conversation cards with reveal effects
+- Observation cards that unlock route information
+- Exchange options for complete route maps
+
+#### Observation Integration
+Travel discoveries can create observation cards:
+- Found items go to specific NPC observation decks
+- Create conversation advantages
+- May unlock special exchanges or routes
+
+### Event Deck Management
+
+Some walking paths trigger random events:
+
+#### Event Decks
+Small decks (3-5 cards) for minor randomness:
+- Draw one card when path triggers event
+- Apply effect after path's base effect
+- Reshuffle when deck empty
+- Adds variety to fixed routes
+
+#### Event Types
+- **Encounters**: NPCs, beggars, vendors
+- **Obstacles**: Crowds, accidents, weather
+- **Opportunities**: Shortcuts, discoveries, trades
+
+### Future Expansion Mechanics
+
+#### Weather Effects
+Could modify all paths in a segment:
+- Add stamina costs
+- Change time requirements
+- Hide certain paths
+- Add weather-specific events
+
+#### Time-of-Day Variations
+Could affect path availability:
+- Night paths have different costs
+- Some paths only available at certain times
+- Different event pools by time
+
+#### Route Unlocking
+Successfully playing certain very hard paths could:
+- Permanently unlock new routes
+- Open shortcuts between locations
+- Reveal hidden transportation options
 
 ## Resource Flow Between Loops
 
