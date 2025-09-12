@@ -169,8 +169,9 @@ public static class SkeletonGenerator
     public static ConversationCard GenerateSkeletonCard(string id, string source)
     {
         int hash = Math.Abs(id.GetHashCode());
-        TokenType[] tokenTypes = Enum.GetValues<TokenType>();
-        ConnectionType[] connectionTypes = Enum.GetValues<ConnectionType>();
+        ConnectionType[] connectionTypes = Enum.GetValues<ConnectionType>()
+            .Where(ct => ct != ConnectionType.None)
+            .ToArray();
 
         ConversationCard card = new ConversationCard
         {
@@ -181,7 +182,7 @@ public static class SkeletonGenerator
             IsSkeleton = true,
 
             // Random but deterministic mechanical values
-            TokenType = tokenTypes[hash % tokenTypes.Length],
+            TokenType = connectionTypes[hash % connectionTypes.Length],
             Focus = 1 + (hash % 3),
             Difficulty = (Difficulty)(hash % 3), // Easy, Medium, or Hard
 

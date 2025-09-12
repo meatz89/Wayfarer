@@ -956,7 +956,7 @@ public class PackageLoader
             Id = dto.Id,
             Description = dto.DisplayText ?? "",
             Focus = dto.Focus,
-            TokenType = TokenType.Trust,
+            TokenType = ConnectionType.Trust,
             Difficulty = Difficulty.Medium
         };
         card.CardType = CardType.Observation;

@@ -5,7 +5,7 @@
 2. [Three Core Game Loops](#three-core-game-loops)
 3. [Resource Economy](#resource-economy)
 4. [Conversation System](#conversation-system)
-5. [Universal Starter Deck](#universal-starter-deck)
+5. [Starter Deck Design Principles](#starter-deck-design-principles)
 6. [Queue Management System](#queue-management-system)
 7. [Location and Travel System](#location-and-travel-system)
 8. [Time System](#time-system)
@@ -851,247 +851,103 @@ Only ~30% of cards change atmosphere:
 
 This creates natural deck cycling where all cards remain available throughout the conversation.
 
-## Universal Starter Deck
+## Starter Deck Design Principles
 
-### Design Philosophy
+### Core Philosophy
 
-The starter deck must create strategic depth through impossible choices, not mechanical complexity. Like Slay the Spire's first fight with just Strikes and Defends, every turn must force players to choose between multiple suboptimal paths.
+The starter deck creates strategic depth through impossible choices, not mechanical complexity. Every turn forces players to choose between multiple suboptimal paths.
 
 ### The Focus Paradox
 
-In Disconnected state (3 focus capacity):
-- Can play one 3-focus card OR
-- Can play three 1-focus cards OR  
-- Can play 1-focus + 2-focus cards OR
-- Can play single card and waste focus
+Limited focus capacity creates tension:
+- In Disconnected (3 focus): Can play one 3-focus OR three 1-focus cards
+- In Guarded (4 focus): Can play one 4-focus OR two 2-focus cards
+- In Neutral (5 focus): Can reach request cards requiring 5 focus
 
-This mirrors Slay the Spire's 3 energy with 5 cards - you cannot play everything optimally.
+This ensures players cannot play everything optimally.
 
 ### The Strategic Triangle
 
-Every card serves one of three strategic purposes:
+Every card serves one of three purposes:
 
 1. **Progress** (Rapport Building)
-   - Purpose: Build rapport to improve success rates
-   - Trade-off: Uses focus that could be spent on setup
-   - Risk: Failure reduces flow and might reduce rapport
+   - Build rapport to improve success rates
+   - Uses focus that could be spent on setup
+   - Risk of failure reduces flow
 
 2. **Setup** (Atmosphere/Economy)
-   - Purpose: Create future advantage through effects
-   - Trade-off: Delays immediate rapport building
-   - Risk: Might not have turns to capitalize
+   - Create future advantage through effects
+   - Delays immediate rapport building
+   - May not have turns to capitalize
 
 3. **Information** (Card Draw)
-   - Purpose: Expand options and find key cards
-   - Trade-off: No immediate rapport or setup
-   - Risk: Drawing cards you can't afford to play
+   - Expand options and find key cards
+   - No immediate rapport or setup
+   - Risk of drawing unplayable cards
 
-### Complete 12-Card Starter Deck
+### Deck Composition Guidelines
 
-#### Safe Progress Cards (3 cards)
+**Total Size**: 12 cards
+- Small enough for consistency
+- Large enough for variance
 
-**"I hear you"** (3 copies)
-- Focus: 1
-- Difficulty: Easy (70% base success)
-- Effect: +1 rapport on success
-- Failure: No effect
-- Persistence: Persistent
-- Purpose: Reliable rapport building, focus flexibility, combo filler
-- Strategy: Safe early plays, efficient focus use
+**Persistence Distribution**:
+- Persistent: 100% initially (no timing pressure early)
+- Later decks add Impulse/Opening for complexity
 
-#### Atmosphere Setup Cards (2 cards)
+**Focus Distribution**:
+- 1-focus: ~40% (always playable)
+- 2-focus: ~35% (standard plays)
+- 3-focus: ~15% (full capacity plays)
+- 4-focus: ~10% (requires setup)
 
-**"Let me think"** (1 copy)
-- Focus: 1
-- Difficulty: Easy (70% base success)
-- Effect: No rapport, sets Patient atmosphere
-- Failure: No effect
-- Persistence: Persistent  
-- Purpose: Saves patience for longer conversations
-- Strategy: Play early when planning extended conversation
+**Effect Categories**:
+- Safe progress: ~25% (reliable rapport, low risk)
+- Atmosphere setup: ~15% (future advantage)
+- Risk/reward: ~20% (efficient but risky)
+- Information: ~15% (card draw)
+- Powerful: ~25% (high impact)
 
-**"Let me prepare"** (1 copy)
-- Focus: 1
-- Difficulty: Easy (70% base success)
-- Effect: No rapport, sets Prepared atmosphere
-- Failure: No effect
-- Persistence: Persistent
-- Purpose: Enables higher focus plays next turn
-- Strategy: Critical for 4-focus card in Disconnected state
+### Request Card Mechanics
 
-#### Risk/Reward Cards (2 cards)
+Request cards define conversation goals:
+- Focus: 4-6 (based on urgency and state)
+- Difficulty: Hard to Very Hard (40-50% base)
+- Start unplayable in draw pile
+- Become playable at sufficient focus during LISTEN
+- Gain Impulse AND Opening when activated
+- Must play immediately or lose opportunity
 
-**"How can I assist?"** (2 copies)
-- Focus: 2
-- Difficulty: Medium (60% base success)
-- Effect: +2 rapport on success, -1 rapport on failure
-- Persistence: Persistent
-- Purpose: Efficient rapport with genuine risk
-- Strategy: Avoid when rapport negative, strong mid-game
+Fixed terms by personality:
+- Devoted: Low payment, flexible position
+- Mercantile: Good payment, negotiable deadline
+- Proud: Urgent deadline, high position
+- Cunning: Complex terms, multiple steps
 
-#### Information Cards (2 cards)
+### Mathematical Balance Targets
 
-**"Tell me more"** (2 copies)
-- Focus: 2
-- Difficulty: Medium (60% base success)
-- Effect: Draw 2 cards
-- Failure: No effect
-- Persistence: Persistent
-- Purpose: Expand options, find key cards
-- Strategy: Use when hand depleted or searching for specific cards
+**Success Rates**: 
+- Optimal play: 60-70% success
+- Average play: 45-55% success
+- Poor play: 30-40% success
 
-#### Powerful Cards (2 cards)
+**Turn Economy**:
+- Average turns to request: 6-8
+- Patience usage: 40-50% of available
+- Focus efficiency: 75-85% utilized
 
-**"I'm here for you"** (1 copy)
-- Focus: 3
-- Difficulty: Easy (70% base success)
-- Effect: +3 rapport
-- Failure: No effect
-- Persistence: Persistent
-- Purpose: Efficient safe play at full focus
-- Strategy: Best value at full capacity states
+**Failure Recovery**:
+- Negative flow spiral: ~30% of games
+- Patience exhaustion: ~10% of games
+- Missed request window: ~5% of games
 
-**"We'll figure this out"** (1 copy)
-- Focus: 3
-- Difficulty: Hard (50% base success)
-- Effect: +X rapport where X = patience ÷ 3
-- Failure: No effect
-- Persistence: Persistent
-- Purpose: Scaling reward for early play
-- Strategy: Play early for maximum value (15 patience = +5 rapport)
+### Design Achievements
 
-#### Dramatic Card (1 card)
-
-**"Everything will be alright"** (1 copy)
-- Focus: 4
-- Difficulty: Hard (50% base success)
-- Effect: +4 rapport
-- Failure: -1 rapport
-- Persistence: Persistent
-- Purpose: Prepared atmosphere payoff in Disconnected/Guarded state
-- Strategy: Requires setup but provides dramatic swing
-
-### Request Cards (Not Part of Base 12)
-
-Request cards are added to draw pile based on conversation type chosen. They start unplayable and become playable when reaching appropriate focus capacity during LISTEN.
-
-#### Example: Elena's Letter Request
-
-**"Accept Elena's Letter"**
-- Focus: 5
-- Difficulty: Very Hard (40% base success)
-- Starting State: Unplayable (in draw pile)
-- Becomes Playable: When LISTEN at 5+ focus capacity
-- When Playable: Gains Impulse AND Opening properties
-- Effect: Creates delivery obligation (fixed terms)
-- Success Terms: 
-  - Position: Next available
-  - Deadline: Varies by NPC state
-  - Payment: None (Elena is desperate)
-- Failure: Add 1 burden card to Elena's relationship
-- On Exhaust: Conversation ends in failure
-- Purpose: Win condition requiring state progression
-
-### Focus Distribution Analysis
-
-- **1-focus**: 5 cards (42%) - Always playable
-- **2-focus**: 4 cards (33%) - Standard plays
-- **3-focus**: 2 cards (17%) - Full capacity plays
-- **4-focus**: 1 card (8%) - Requires Prepared in lower states
-
-### Opening Hand Probabilities
-
-**Disconnected** (Drawing 1 card):
-- 42% chance of 1-focus card (fully playable)
-- 33% chance of 2-focus card (partially playable)
-- 17% chance of 3-focus card (fully playable)
-- 8% chance of 4-focus card (unplayable)
-
-**Neutral** (Drawing 2 cards):
-- 66% chance of at least one 1-focus card
-- 52% chance of at least one 2-focus card
-- Guaranteed to have playable options
-
-### Minimum Paths to Victory
-
-#### Prepared Rush (5-6 turns minimum)
-1. Turn 1: Play "Let me prepare" (1 focus)
-2. Turn 2: Prepared active, play 4-focus card (4/3 capacity)
-3. Turns 3-4: Build to +3 flow → reach Guarded
-4. Turn 5: Continue to +6 flow → reach Neutral
-5. LISTEN at Neutral: Request becomes playable at 5 focus
-6. Play request immediately (40% + rapport bonus)
-
-#### Safe Progression (7-8 turns typical)
-1. Turns 1-3: Build rapport steadily with safe cards
-2. Reach +3 net successes for Guarded
-3. Continue to +6 net successes for Neutral
-4. Build rapport to 10+ for better request success
-5. LISTEN at Neutral: Request becomes playable
-6. Play request with accumulated rapport bonus (60%+ success)
-
-### Critical Decision Points
-
-**Turn 1 with Prepared in Hand**: 
-- Playing immediately enables 4-focus card
-- Delays rapport building by one turn
-- Creates future flexibility
-
-**Risk Management at Low Rapport**:
-- "How can I assist?" can reduce rapport on failure
-- At negative rapport, avoid risk cards
-- Build back with safe 1-focus cards
-
-**Focus Efficiency Choices**:
-- With 4/4 focus: Two 2-focus cards vs one 3-focus card
-- More actions vs bigger effects
-- Consider hand composition
-
-**Request Card Timing**:
-- Once playable, must play immediately
-- Gains Impulse AND Opening when activated
-- Missing the window loses the conversation
-
-### Mathematical Validation
-
-- **Success Rate with Optimal Play**: 60-70% (perfect skill/variance balance)
-- **Average Turns to Request**: 6-8 turns (uses 6-8 patience of 15)
-- **Failure Modes**:
-  - 30% negative flow spiral (too many failures)
-  - 10% patience exhaustion (inefficient LISTEN usage)
-  - 5% request card missed (didn't play when available)
-
-### Key Design Achievements
-
-- **No Soft Locks**: Five 1-focus cards ensure something always playable
-- **Meaningful Choices**: Every turn forces compromise
-- **Clear Prepared Payoff**: 4-focus card creates specific unlock
-- **Authentic Risk**: Failed gambles create recovery arcs
-- **Perfect Tension**: Focus arithmetic prevents optimal play
-
-### Token Interaction Examples
-
-Starting rapport equals connection tokens:
-- Elena with 0 tokens: 0 rapport (base rates only)
-- Elena with 1 Trust token: +2% all cards
-- Marcus with 2 Commerce tokens: +4% all cards
-- Guard with 5 Shadow tokens: +10% all cards
-
-Building to 10 rapport during conversation:
-- Easy cards: 90% (70% + 20%)
-- Medium cards: 80% (60% + 20%)
-- Hard cards: 70% (50% + 20%)
-- Very Hard request: 60% (40% + 20%)
-
-### Observation Card Integration
-
-When NPC has observation cards:
-- Mixed into draw pile at start
-- 0 focus cost but uses SPEAK action
-- Unique effects (state advancement, unlocks)
-- Create dramatic conversation shifts
-
-Example: "Safe Passage Knowledge" in Elena's deck immediately advances her from Disconnected to Neutral, transforming the conversation.
+- **No Soft Locks**: Multiple low-focus cards ensure playability
+- **Meaningful Choices**: Every turn requires trade-offs
+- **Clear Progression**: State advancement enables requests
+- **Recovery Arcs**: Failures create challenges, not dead ends
+- **Perfect Information**: All mechanics transparent
 
 ## Queue Management System
 
@@ -1379,25 +1235,25 @@ Better states → Access to requests
 
 ## Work System
 
-### Work Actions Available
+### Work Action Mechanics
 
-**Market Square - Haul Goods**:
-- Base output: 5 coins
+**Standard Work**:
+- Base output: 5 coins (varies by type)
 - Time cost: 4 hours (one time block)
 - Attention cost: 2
-- Hunger scaling applies
+- Hunger scaling: Output = Base - floor(hunger/25)
 
-**Warehouse - Load Cargo**:
-- Base output: 6 coins
+**Enhanced Work** (requires access):
+- Base output: 6-7 coins
 - Time cost: 4 hours
 - Attention cost: 2
-- Requires warehouse access
+- May require permits or relationships
 
-**Tavern - Serve Tables**:
-- Base output: 4 coins + meal
+**Service Work**:
+- Base output: 3-4 coins + benefits
 - Time cost: 4 hours
 - Attention cost: 2
-- Meal reduces hunger by 30
+- Benefits may include meals or resources
 
 ### Work Efficiency Optimization
 
@@ -1456,8 +1312,8 @@ Some exchanges require minimum tokens:
 - **Noble introduction**: 5+ Status tokens
 - **Temple blessing**: 4+ Trust tokens
 
-Combined requirements:
-- Caravan to Noble Quarter: 2+ Commerce tokens AND "Merchant Route" observation played
+Combined requirements example:
+- Special transport: 2+ appropriate tokens AND relevant observation played
 
 ## No Soft-Lock Architecture
 
@@ -1606,37 +1462,35 @@ New observations need:
 
 Stories emerge from mechanical interaction, not scripting:
 
-**Elena's Desperation**:
+**Desperate NPC Scenario**:
 - Disconnected state (failed relationship)
 - Only 3 focus capacity (can't reach request)
 - Needs observation card to advance state
-- Player must investigate Market Square
-- Discovers "Safe Passage Knowledge"
-- Returns to Elena with new option
-- Plays observation → advances to Neutral
-- Can now reach 5-focus request card
-- Accepts letter with no payment (she's desperate)
+- Player must investigate relevant location
+- Discovers observation that helps this NPC
+- Returns with new conversation option
+- Plays observation → advances connection state
+- Can now reach higher focus request cards
+- Accepts obligation with character-appropriate terms
 
-**Marcus's Trust**:
-- Starts Neutral (professional relationship)
-- Player delivers his letters efficiently
-- Gains Commerce tokens (+2 per delivery)
+**Trust Building Scenario**:
+- Starts at Neutral (professional relationship)
+- Player delivers letters efficiently
+- Gains appropriate token type (+2 per delivery)
 - Tokens provide starting rapport
 - Easier conversations each time
-- Eventually unlocks special caravan exchange
-- But needs observation card to activate
-- Creates investigation goal
+- Eventually unlocks special exchanges
+- May need observation cards to activate
+- Creates investigation goals
 
 **Queue Management Crisis**:
 - Position 1: Urgent letter, 2 hours left
-- Position 2: Marcus's package, good payment
-- Position 3: Elena's desperate letter
+- Position 2: Valuable package, good payment
+- Position 3: Personal request, no payment
 - Can't complete in order in time
 - Must burn tokens to displace
-- Burns Trust tokens with position 1 NPC
-- Burns Commerce tokens with Marcus
-- Delivers Elena's letter
-- Damages two relationships to save one
+- Each displacement damages a relationship
+- Strategic choice about which relationships to sacrifice
 
 ### Strategic Mastery Progression
 

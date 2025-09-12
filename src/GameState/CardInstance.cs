@@ -15,7 +15,7 @@ public class CardInstance
     public CardType CardType { get; init; } = CardType.Conversation;
 
     // Core mechanics
-    public TokenType TokenType { get; init; }
+    public ConnectionType TokenType { get; init; }
     public int Focus { get; init; }
     public Difficulty Difficulty { get; init; }
 
@@ -97,14 +97,7 @@ public class CardInstance
     }
     public ConnectionType GetConnectionType()
     {
-        return TokenType switch
-        {
-            TokenType.Trust => ConnectionType.Trust,
-            TokenType.Commerce => ConnectionType.Commerce,
-            TokenType.Status => ConnectionType.Status,
-            TokenType.Shadow => ConnectionType.Shadow,
-            _ => ConnectionType.None
-        };
+        return TokenType;
     }
 
     public int GetBaseSuccessPercentage()

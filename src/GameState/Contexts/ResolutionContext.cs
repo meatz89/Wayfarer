@@ -44,7 +44,7 @@ public class ResolutionContext : ConversationContextBase
         {
             BurdenId = burden.Id;
             BurdenDescription = burden.Description;
-            TokenType = (ConnectionType)burden.TokenType; // Cast from TokenType to ConnectionType
+            TokenType = burden.TokenType;
         }
     }
 

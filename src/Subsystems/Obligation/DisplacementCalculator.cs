@@ -538,18 +538,6 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
         }
 
-        private TokenType ConvertConnectionToTokenType(ConnectionType connectionType)
-        {
-            return connectionType switch
-            {
-                ConnectionType.Trust => TokenType.Trust,
-                ConnectionType.Commerce => TokenType.Commerce,
-                ConnectionType.Status => TokenType.Status,
-                ConnectionType.Shadow => TokenType.Shadow,
-                _ => TokenType.Trust // Default to Trust if None
-            };
-        }
-
         private void AddBurdenCardToNPC(string npcId, ConnectionType tokenType)
         {
             // Add a burden card to the NPC's burden deck
@@ -569,7 +557,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 Id = $"burden_displacement_{npcId}_{Guid.NewGuid()}",
                 CardType = CardType.Conversation,
                 Description = $"The memory of a broken promise lingers",
-                TokenType = ConvertConnectionToTokenType(tokenType),
+                TokenType = tokenType,
                 Properties = new List<CardProperty> { CardProperty.Burden }
             };
 

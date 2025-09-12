@@ -90,20 +90,12 @@ public static class ConversationCardParser
     public static ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null)
     {
         // Parse token type from connection type
-        TokenType tokenType = TokenType.Trust; // Default
+        ConnectionType tokenType = ConnectionType.Trust; // Default
         if (!string.IsNullOrEmpty(dto.ConnectionType))
         {
-            ConnectionType connType = ConnectionType.None;
-            if (Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out connType))
+            if (!Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out tokenType))
             {
-                tokenType = connType switch
-                {
-                    ConnectionType.Trust => TokenType.Trust,
-                    ConnectionType.Commerce => TokenType.Commerce,
-                    ConnectionType.Status => TokenType.Status,
-                    ConnectionType.Shadow => TokenType.Shadow,
-                    _ => TokenType.Trust
-                };
+                tokenType = ConnectionType.Trust;
             }
         }
 
@@ -213,7 +205,7 @@ public static class ConversationCardParser
         }
 
         // Parse token type
-        if (Enum.TryParse<TokenType>(dto.ConnectionType, true, out TokenType tokenType))
+        if (Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out ConnectionType tokenType))
         {
             card.TokenType = tokenType;
         }

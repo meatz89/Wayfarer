@@ -18,7 +18,7 @@ public class ConversationCard
     public string SkeletonSource { get; set; } // What created this skeleton
 
     // Core mechanics
-    public TokenType TokenType { get; set; }
+    public ConnectionType TokenType { get; set; }
     public int Focus { get; set; }
     public Difficulty Difficulty { get; set; }
 

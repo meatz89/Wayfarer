@@ -6,5 +6,5 @@ public class FailureTerms
     // Additional failure consequences
     public int ReputationLoss { get; set; }
     public string CreatesBurden { get; set; } // New burden card ID to add
-    public TokenType? LoseToken { get; set; } // Token type to lose on failure
+    public ConnectionType? LoseToken { get; set; } // Token type to lose on failure
 }

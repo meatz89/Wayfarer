@@ -404,13 +404,13 @@ public class ConversationNarrativeService
             return "pressure";
         
         // Token type indicates support/connection building
-        if (card.TokenType == TokenType.Trust) 
+        if (card.TokenType == ConnectionType.Trust) 
             return "support_trust";
-        if (card.TokenType == TokenType.Commerce) 
+        if (card.TokenType == ConnectionType.Commerce) 
             return "support_commerce";
-        if (card.TokenType == TokenType.Status) 
+        if (card.TokenType == ConnectionType.Status) 
             return "support_status";
-        if (card.TokenType == TokenType.Shadow) 
+        if (card.TokenType == ConnectionType.Shadow) 
             return "support_shadow";
         
         // Default

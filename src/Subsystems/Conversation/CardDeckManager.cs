@@ -716,7 +716,7 @@ public class CardDeckManager
             Description = "Placeholder card",
             Focus = 1,
             Difficulty = Difficulty.Medium,
-            TokenType = TokenType.Trust,
+            TokenType = ConnectionType.Trust,
             SuccessEffect = new CardEffect { Type = CardEffectType.AddRapport, Value = "1" },
             FailureEffect = CardEffect.None,
             ExhaustEffect = CardEffect.None

@@ -2711,18 +2711,6 @@ public class ObligationQueueManager
         }
     }
 
-    private TokenType ConvertConnectionToTokenType(ConnectionType connectionType)
-    {
-        return connectionType switch
-        {
-            ConnectionType.Trust => TokenType.Trust,
-            ConnectionType.Commerce => TokenType.Commerce,
-            ConnectionType.Status => TokenType.Status,
-            ConnectionType.Shadow => TokenType.Shadow,
-            _ => TokenType.Trust // Default to Trust if None
-        };
-    }
-
     /// <summary>
     /// Add burden cards to an NPC's burden deck when tokens are burned
     /// </summary>
@@ -2743,7 +2731,7 @@ public class ObligationQueueManager
             Id = $"burden_{npcId}_{Guid.NewGuid()}",
             CardType = CardType.Conversation,
             Description = $"Past betrayal weighs on {npc.Name}'s mind",
-            TokenType = ConvertConnectionToTokenType(tokenType),
+            TokenType = tokenType,
             Properties = new List<CardProperty> { CardProperty.Burden }
         };
 
