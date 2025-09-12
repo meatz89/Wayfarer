@@ -113,24 +113,7 @@ public class ConversationFacade
         int flowPosition = Math.Clamp(_currentSession.FlowBattery + 2, 0, 4);
         _currentSession.NPC.RelationshipFlow = stateBase + flowPosition;
 
-        // Check if rapport goal was reached for standard conversations
-        if (_currentSession.ConversationType == ConversationType.FriendlyChat && 
-            _currentSession.RapportGoal.HasValue &&
-            _currentSession.RapportManager != null)
-        {
-            int finalRapport = _currentSession.RapportManager.CurrentRapport;
-            if (finalRapport >= _currentSession.RapportGoal.Value)
-            {
-                // Award token for reaching goal
-                ConnectionType tokenType = DetermineTokenTypeFromPersonality(_currentSession.NPC.PersonalityType);
-                _tokenManager.AddTokensToNPC(tokenType, 1, _currentSession.NPC.ID);
-                
-                // Add success message
-                _messageSystem.AddSystemMessage(
-                    $"✨ You reached {finalRapport} rapport with {_currentSession.NPC.Name} (goal: {_currentSession.RapportGoal})! Earned +1 {tokenType} token.",
-                    SystemMessageTypes.Success);
-            }
-        }
+        // Token rewards are now handled via individual card thresholds, not a global rapport goal
 
         // Apply token changes from other sources
         if (_lastOutcome.TokensEarned != 0)

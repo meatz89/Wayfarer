@@ -77,21 +77,6 @@ public class ConversationOrchestrator
         // Use NPC's current daily patience for the session
         int availablePatience = npc.DailyPatience;
 
-        // Set rapport goal for standard conversations based on persisted state
-        int? rapportGoal = null;
-        if (conversationType == ConversationType.FriendlyChat)
-        {
-            rapportGoal = initialState switch
-            {
-                ConnectionState.DISCONNECTED => 15,
-                ConnectionState.GUARDED => 20,
-                ConnectionState.NEUTRAL => 25,
-                ConnectionState.RECEPTIVE => 30,
-                ConnectionState.TRUSTING => 35,
-                _ => 25
-            };
-        }
-
         // Create session with new properties
         ConversationSession session = new ConversationSession
         {
@@ -113,8 +98,7 @@ public class ConversationOrchestrator
             TokenManager = _tokenManager,
             FlowManager = _flowBatteryManager,
             RapportManager = rapportManager,
-            ObservationCards = observationCards ?? new List<CardInstance>(),
-            RapportGoal = rapportGoal
+            ObservationCards = observationCards ?? new List<CardInstance>()
         };
 
         // FIRST: Add ALL request cards to active pile immediately if present

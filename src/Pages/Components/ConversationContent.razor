@@ -64,10 +64,6 @@
                 <div class="rapport-display">
                     <span class="rapport-label">Rapport:</span>
                     <span class="rapport-value">@(Session?.RapportManager?.CurrentRapport ?? 0)</span>
-                    @if (Session?.ConversationType == ConversationType.FriendlyChat && Session.RapportGoal.HasValue)
-                    {
-                        <span class="rapport-goal">/ @Session.RapportGoal (goal)</span>
-                    }
                     <span class="rapport-effect">(+@(Session?.RapportManager?.GetSuccessModifier() ?? 0)% all cards)</span>
                 </div>
             </div>

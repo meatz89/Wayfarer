@@ -4,11 +4,9 @@
 /// </summary>
 public class StandardContext : ConversationContextBase
 {
-    public int RapportGoal { get; set; }
     public int CurrentRapport { get; set; }
     public ConnectionType TargetTokenType { get; set; }
     public PersonalityType NPCPersonality { get; set; }
-    public bool HasRapportGoal { get; set; }
     public int TokenReward { get; set; }
     public string CustomText { get; set; }
     public List<ConnectionState> ValidStates { get; set; }
@@ -29,11 +27,6 @@ public class StandardContext : ConversationContextBase
         CurrentAtmosphere = AtmosphereType.Neutral;
     }
 
-    public void SetRapportGoal(int rapportGoal)
-    {
-        RapportGoal = rapportGoal;
-        HasRapportGoal = rapportGoal > 0;
-    }
 
     public void SetNPCPersonality(PersonalityType personality)
     {
@@ -51,21 +44,12 @@ public class StandardContext : ConversationContextBase
         };
     }
 
-    public bool IsRapportGoalReached()
-    {
-        return HasRapportGoal && CurrentRapport >= RapportGoal;
-    }
 
     public bool IsFlowThresholdReached()
     {
         return CurrentFlow >= FlowThreshold;
     }
 
-    public double GetRapportProgress()
-    {
-        if (!HasRapportGoal || RapportGoal <= 0) return 0.0;
-        return Math.Min(1.0, (double)CurrentRapport / RapportGoal);
-    }
 
     public double GetFlowProgress()
     {
@@ -75,18 +59,11 @@ public class StandardContext : ConversationContextBase
 
     public string GetProgressDescription()
     {
-        if (HasRapportGoal)
-        {
-            return $"Rapport: {CurrentRapport}/{RapportGoal} ({GetRapportProgress():P0})";
-        }
-        else
-        {
-            return $"Flow: {CurrentFlow}/{FlowThreshold} ({GetFlowProgress():P0})";
-        }
+        return $"Flow: {CurrentFlow}/{FlowThreshold} ({GetFlowProgress():P0})";
     }
 
     public bool ShouldGrantToken()
     {
-        return GrantsToken && (IsRapportGoalReached() || IsFlowThresholdReached());
+        return GrantsToken && IsFlowThresholdReached();
     }
 }

@@ -40,9 +40,6 @@ public class ConversationSession
     
     // NPC-specific observation cards (from NPC's ObservationDeck)
     public List<CardInstance> NPCObservationCards { get; set; } = new();
-
-    // Rapport goal for standard conversations (FriendlyChat)
-    public int? RapportGoal { get; set; } = null; // Target rapport to earn token reward
     
     // Conversation turn history
     public List<ConversationTurn> TurnHistory { get; set; } = new List<ConversationTurn>();
@@ -205,22 +202,6 @@ public class ConversationSession
             }
         }
 
-        // Determine rapport goal for standard conversations
-        int? rapportGoal = null;
-        if (convType == ConversationType.FriendlyChat)
-        {
-            // Set goal based on connection state - harder when disconnected
-            rapportGoal = initialState switch
-            {
-                ConnectionState.DISCONNECTED => 15,
-                ConnectionState.GUARDED => 20,
-                ConnectionState.NEUTRAL => 25,
-                ConnectionState.RECEPTIVE => 30,
-                ConnectionState.TRUSTING => 35,
-                _ => 25
-            };
-        }
-
         // Create session with proper initialization
         ConversationSession session = new ConversationSession
         {
@@ -238,8 +219,7 @@ public class ConversationSession
             ActiveCards = new Pile(),
             TokenManager = tokenManager,
             ObservationCards = obsCards,
-            NPCObservationCards = npcObservationCards,
-            RapportGoal = rapportGoal
+            NPCObservationCards = npcObservationCards
         };
 
         return session;

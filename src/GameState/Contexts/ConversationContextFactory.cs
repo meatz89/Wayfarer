@@ -113,20 +113,7 @@ public static class ConversationContextFactory
     {
         context.SetNPCPersonality(context.Npc.PersonalityType);
 
-        // Set rapport goal based on connection state
-        if (context.Session != null)
-        {
-            int rapportGoal = context.Session.InitialState switch
-            {
-                ConnectionState.DISCONNECTED => 15,
-                ConnectionState.GUARDED => 20,
-                ConnectionState.NEUTRAL => 25,
-                ConnectionState.RECEPTIVE => 30,
-                ConnectionState.TRUSTING => 35,
-                _ => 25
-            };
-            context.SetRapportGoal(rapportGoal);
-        }
+        // Rapport thresholds are now on individual cards, not a global goal
     }
 
     private static void InitializeResolutionContext(ResolutionContext context, ObligationQueueManager queueManager)
