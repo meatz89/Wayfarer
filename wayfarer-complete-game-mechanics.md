@@ -85,7 +85,7 @@ The three core game loops answer fundamental design questions while maintaining 
 
 At -3 flow in Disconnected: Conversation ends immediately.
 
-#### NPC Five Persistent Decks
+#### NPC Five PERSISTENT Decks
 
 Each NPC maintains five persistent decks:
 
@@ -593,7 +593,7 @@ Deadlines create cascading decisions:
 
 ## Resource Economy
 
-### Persistent Resources
+### PERSISTENT Resources
 
 #### Coins
 - **Range**: 0-999
@@ -940,7 +940,7 @@ Each NPC maintains five persistent decks that determine conversation availabilit
 
 #### Exhaust Pile
 - Played cards go here
-- Cards removed by Impulse/Opening go here
+- Cards removed by IMPULSE/OPENING go here
 - Shuffled to create new draw pile when needed
 
 ### Starting a Conversation
@@ -976,11 +976,11 @@ Complete sequence:
    - Receptive: Draw 1 additional card
    - Pressured: Draw 1 fewer card
    - Prepared: Add +1 to current focus
-5. **Remove Opening cards** if unplayed (to exhaust)
+5. **Remove OPENING cards** if unplayed (to exhaust)
 6. **Check request card activation**:
-   - If at required focus capacity: Becomes playable
-   - Gains both Impulse AND Opening properties
-   - Must play immediately or lose forever
+   - Check ALL goal cards in hand for rapport thresholds
+   - Each card that meets its threshold becomes playable
+   - Missing all windows = conversation failure
 
 ### SPEAK Action
 
@@ -999,7 +999,7 @@ Complete sequence:
    - Rapport changes
    - Atmosphere changes
    - Draw/focus effects
-8. **Remove Impulse cards** if unplayed (to exhaust)
+8. **Remove IMPULSE cards** if unplayed (to exhaust)
 9. **Check flow transitions**:
    - At ±3: State change, flow resets to 0
 10. **Can SPEAK again** if focus remains
@@ -1022,19 +1022,19 @@ Cleanup:
 
 ### Card Persistence Types
 
-#### Persistent (60% of deck)
+#### PERSISTENT (60% of deck)
 - Remain in hand until played
 - Most common type
 - Strategic planning enabled
 - Examples: Basic rapport cards, setup cards
 
-#### Impulse (25% of deck)
+#### IMPULSE (25% of deck)
 - Removed after ANY SPEAK action if unplayed
 - High-risk, high-reward
 - Often 4+ focus cost
 - Examples: Dramatic rapport cards, crisis plays
 
-#### Opening (15% of deck)
+#### OPENING (15% of deck)
 - Removed after LISTEN if unplayed
 - Timing-critical
 - Often utility effects
@@ -1042,7 +1042,7 @@ Cleanup:
 
 ### On Exhaust Effects
 
-Some Impulse and Opening cards have effects when exhausted unplayed:
+Some IMPULSE and OPENING cards have effects when exhausted unplayed:
 - "Missed Opportunity": Draw 1 card when exhausted
 - "Hasty Words": -1 rapport when exhausted
 - "Lost Focus": +1 focus when exhausted
@@ -1062,27 +1062,27 @@ All modified by: +2% per rapport point
 #### Focus-Effect Correlation
 
 **0 Focus**: Setup cards
-- No effect + atmosphere change (Persistent)
-- +1 rapport (Easy, Persistent)
+- No effect + atmosphere change (PERSISTENT)
+- +1 rapport (Easy, PERSISTENT)
 
 **1 Focus**: Basic cards  
-- ±1 rapport (Easy, Persistent)
-- Draw 1 card (Medium, Opening with on exhaust: Draw 1)
+- ±1 rapport (Easy, PERSISTENT)
+- Draw 1 card (Medium, OPENING with on exhaust: Draw 1)
 
 **2 Focus**: Standard cards
-- ±2 rapport (Medium, mix of Persistent and Opening)
-- Scaled rapport with low ceiling (Hard, Persistent)
-- Add 1 focus (Medium, Opening with on exhaust: +1 focus)
+- ±2 rapport (Medium, mix of PERSISTENT and OPENING)
+- Scaled rapport with low ceiling (Hard, PERSISTENT)
+- Add 1 focus (Medium, OPENING with on exhaust: +1 focus)
 
 **3 Focus**: Powerful cards
-- ±3 rapport (Medium, mix of Persistent and Impulse)
-- Scaled rapport with medium ceiling (Hard, Persistent)
-- Draw 2 cards (Medium, Opening)
+- ±3 rapport (Medium, mix of PERSISTENT and IMPULSE)
+- Scaled rapport with medium ceiling (Hard, PERSISTENT)
+- Draw 2 cards (Medium, OPENING)
 
 **4+ Focus**: Dramatic cards
-- ±4 or ±5 rapport (Hard-Very Hard, Impulse)
-- Scaled rapport with high ceiling (Hard, Impulse with on exhaust)
-- Add 2 focus (Medium, Impulse)
+- ±4 or ±5 rapport (Hard-Very Hard, IMPULSE)
+- Scaled rapport with high ceiling (Hard, IMPULSE with on exhaust)
+- Add 2 focus (Medium, IMPULSE)
 
 #### Effect Pools
 
@@ -1109,6 +1109,12 @@ All modified by: +2% per rapport point
 - Add 1 focus to pool
 - Add 2 focus to pool
 
+**Promise Effects** (Medium-Hard difficulty):
+- Move obligation to position 1, +5-10 rapport
+- Requires burning tokens with displaced NPCs
+- Creates immediate rapport boost
+- Enables reaching higher goal thresholds
+
 #### Atmosphere Assignment
 
 Only ~30% of cards change atmosphere:
@@ -1131,6 +1137,36 @@ Only ~30% of cards change atmosphere:
 - Draw 2 cards from new draw pile → active pile
 
 This creates natural deck cycling where all cards remain available throughout the conversation.
+
+### Multi-Threshold Goal Strategy
+
+The presence of multiple goal cards with different rapport requirements creates layered strategic decisions:
+
+#### Threshold Climbing
+Each conversation becomes a risk/reward ladder:
+- **Low Threshold** (5-7 rapport): Achievable with basic card play
+- **Medium Threshold** (10-12 rapport): Requires good card luck or setup
+- **High Threshold** (15+ rapport): Needs promises or perfect play
+
+#### Promise Card Economics
+Promise cards offer immediate rapport at relationship cost:
+- **Immediate Effect**: +5 to +10 rapport
+- **Queue Cost**: Target moves to position 1
+- **Token Cost**: Burn with all displaced NPCs
+- **Strategic Value**: Guarantees reaching higher thresholds
+
+#### Decision Points
+1. **Early Assessment**: Can I reach medium threshold naturally?
+2. **Mid-Conversation**: Is the higher reward worth the patience cost?
+3. **Promise Timing**: When to sacrifice for guaranteed success?
+4. **Threshold Selection**: Which goal offers best value for cost?
+
+#### Replay Variety
+Context changes optimal strategy:
+- High tokens with certain NPCs makes promises cheaper
+- Specific token needs justify higher sacrifices
+- Queue state affects promise opportunity cost
+- Prior knowledge enables better threshold targeting
 
 ## Starter Deck Design Principles
 
@@ -1173,8 +1209,8 @@ Every card serves one of three purposes:
 - Large enough for variance
 
 **Persistence Distribution**:
-- Persistent: 100% initially (no timing pressure early)
-- Later decks add Impulse/Opening for complexity
+- PERSISTENT: 100% initially (no timing pressure early)
+- Later decks add IMPULSE/OPENING for complexity
 
 **Focus Distribution**:
 - 1-focus: ~40% (always playable)
@@ -1191,19 +1227,61 @@ Every card serves one of three purposes:
 
 ### Request Card Mechanics
 
-Request cards define conversation goals:
-- Focus: 4-6 (based on urgency and state)
-- Difficulty: Hard to Very Hard (40-50% base)
-- Start unplayable in draw pile
-- Become playable at sufficient focus during LISTEN
-- Gain Impulse AND Opening when activated
-- Must play immediately or lose opportunity
+Request cards define conversation goals with multiple potential outcomes:
 
-Fixed terms by personality:
-- Devoted: Low payment, flexible position
-- Mercantile: Good payment, negotiable deadline
-- Proud: Urgent deadline, high position
-- Cunning: Complex terms, multiple steps
+#### Multi-Threshold Goal System
+
+Conversations can present multiple goal cards with different rapport requirements:
+- **Basic Goal**: Lower rapport threshold (e.g., 5 rapport), standard reward
+- **Enhanced Goal**: Higher rapport threshold (e.g., 10 rapport), better reward
+- **Premium Goal**: Highest threshold (e.g., 15 rapport), maximum reward
+
+All available goal cards are added to the draw pile but remain unplayable until their specific rapport threshold is reached. This creates strategic decisions:
+
+1. **Safe Exit**: Take the basic goal once achievable
+2. **Natural Building**: Risk patience trying to reach higher thresholds
+3. **Promise Sacrifice**: Use promise cards to guarantee higher thresholds
+
+#### Promise Cards - Queue Manipulation
+
+Promise cards allow mid-conversation queue manipulation:
+- **Effect**: Immediately move target obligation to position 1
+- **Cost**: Burns tokens with ALL displaced NPCs
+- **Benefit**: Large immediate rapport gain (often +5 to +10)
+- **Narrative**: "I'll put you first" - literally and mechanically
+
+Example Promise Flow:
+1. Play promise card: "I'll prioritize your request"
+2. Target obligation moves to position 1
+3. Burn tokens with displaced NPCs (damaging those relationships)
+4. Gain significant rapport boost
+5. Now can reach higher goal threshold
+
+#### Strategic Depth
+
+This system transforms conversations from "can I succeed?" to "how much will I sacrifice?":
+
+**Cascading Decisions**:
+- Accept basic reward and preserve relationships?
+- Risk patience for natural rapport building?
+- Sacrifice other relationships for maximum reward?
+
+**Context-Dependent Value**:
+- High tokens with displaced NPCs = promise is cheaper
+- Desperate for specific token type = worth the sacrifice
+- Queue already problematic = promise solves multiple problems
+
+**Emergent Narrative**:
+The mechanics align with story - an NPC sees you literally damaging other relationships (burning tokens) to prioritize them, justifying higher trust and better rewards.
+
+#### Request Card Activation
+
+1. Player chooses conversation type based on available NPC decks
+2. ALL relevant goal cards added to draw pile (unplayable)
+3. During LISTEN, check each goal card:
+   - If rapport ≥ threshold: Card becomes playable
+4. Player must immediately choose which playable goal to pursue
+5. Unchosen goals return to request deck
 
 ### Mathematical Balance Targets
 
@@ -1258,6 +1336,28 @@ Token type burned matches NPC personality preference:
 - Mercantile NPCs: Commerce tokens
 - Proud NPCs: Status tokens
 - Cunning NPCs: Shadow tokens
+
+### Promise Cards - Mid-Conversation Queue Manipulation
+
+Promise cards create a unique interaction between conversation and queue systems:
+
+**Immediate Queue Effect**:
+- Played during conversation like any other card
+- Target obligation immediately moves to position 1
+- All displaced obligations shift down
+- Tokens burned with displaced NPCs instantly
+
+**Strategic Implications**:
+- Enables reaching higher conversation thresholds
+- Damages multiple relationships for one benefit
+- Can solve queue problems while in conversation
+- Creates visible sacrifice (narrative emergence)
+
+**Cost-Benefit Analysis**:
+- Benefit: +5-10 rapport, reach premium goals
+- Cost: Burn tokens equal to positions displaced
+- Risk: Damaged relationships harder to repair
+- Opportunity: Higher tier rewards often worth sacrifice
 
 ### Fixed Request Terms
 
@@ -1323,11 +1423,19 @@ Time management:
 - Must balance with other morning priorities
 
 #### Focus Depletion Cascade
-- Need high-focus request card → Must reach better state
-- Better state needs positive flow → Requires successful cards
-- Success needs rapport → Must build early
+- Need high-rapport goal card → Must build significant rapport
+- Building rapport needs successful cards → Requires good flow
+- Good flow needs consistent success → Must manage risk
+- Can shortcut with promise cards → But damages other relationships
 - Focus depletes → Must LISTEN to refresh
 - LISTEN costs patience → Limited turns available
+
+#### Promise Card Calculus
+- Want higher reward tier → Need more rapport than achievable
+- Promise card offers +10 rapport → Guarantees threshold
+- But moves obligation to position 1 → Displaces current queue
+- Burns tokens with displaced NPCs → Permanent relationship damage
+- Creates narrative emergence → Sacrifice visible to all
 
 #### Queue Displacement Cascade
 - Need urgent delivery → Must displace
@@ -1693,7 +1801,7 @@ New cards must follow:
 - **Single effect**: One clear purpose (not multiple)
 - **Focus range**: 0-6 focus cost
 - **Difficulty tier**: Very Easy to Very Hard
-- **Persistence type**: Persistent (60%), Impulse (25%), Opening (15%)
+- **Persistence type**: PERSISTENT (60%), IMPULSE (25%), OPENING (15%)
 - **Atmosphere**: Only ~30% change atmosphere
 - **Scaling**: Either fixed OR scaled, never both
 
@@ -1743,16 +1851,19 @@ New observations need:
 
 Stories emerge from mechanical interaction, not scripting:
 
-**Desperate NPC Scenario**:
+**NPC Scenario with Multi-Threshold Goals**:
 - Disconnected state (failed relationship)
-- Only 3 focus capacity (can't reach request)
-- Needs observation card to advance state
-- Player must investigate relevant location
-- Discovers observation that helps this NPC
-- Returns with new conversation option
-- Plays observation → advances connection state
-- Can now reach higher focus request cards
-- Accepts obligation with character-appropriate terms
+- Only 3 focus capacity, low starting rapport
+- Conversation reveals THREE goal options:
+  - Basic: 5 rapport threshold → 1 token reward
+  - Enhanced: 10 rapport threshold → 2 tokens + observation
+  - Premium: 15 rapport threshold → 3 tokens + permit + observation
+- Current rapport: 3 (achievable: 8 with perfect play)
+- Decision point: Accept basic or use promise card?
+- Promise card would: +10 rapport, displace 2 obligations, burn 3 tokens with the NPCs (from obligation displacement)
+- Player calculates: 3 tokens burned < 3 tokens gained + permit value
+- Plays promise, reaches premium threshold
+- Narrative: NPC sees you sacrifice other relationships for them
 
 **Trust Building Scenario**:
 - Starts at Neutral (professional relationship)
@@ -1885,6 +1996,8 @@ The three loops create a complete game where:
 Provide puzzle challenge through:
 - Focus management across multiple turns
 - Rapport building for success rates
+- Multi-threshold goals creating risk/reward ladders
+- Promise cards trading queue position for rapport
 - Flow navigation for state changes
 - Atmosphere manipulation for advantages
 - Observation cards from exploration
@@ -1957,6 +2070,8 @@ The elegance: No mechanic serves two purposes, yet resources flow through multip
 
 ### Emergent Complexity ✓
 - Simple rules create complex decisions
+- Multi-threshold goals create risk/reward ladders
+- Promise cards enable strategic queue manipulation
 - Resource interactions create cascades
 - Multiple viable strategies exist
 - Failure creates recovery arcs
@@ -1967,6 +2082,16 @@ The elegance: No mechanic serves two purposes, yet resources flow through multip
 **Success Rate**: Base% + (2 × Current Rapport)
 
 **Starting Rapport**: Connection Tokens with NPC
+
+**Goal Thresholds**: 
+- Basic: 5-7 rapport typically
+- Enhanced: 10-12 rapport typically  
+- Premium: 15+ rapport typically
+
+**Promise Card Value**:
+- Rapport Gain: +5 to +10
+- Token Cost: Sum of all displaced positions
+- Queue Impact: Target moves to position 1
 
 **Morning Attention**: 10 - (Hunger ÷ 25), minimum 2
 
@@ -2065,7 +2190,7 @@ The game succeeds when players realize that mastery comes not from optimizing in
 
 ## Resource Economy
 
-### Persistent Resources
+### PERSISTENT Resources
 
 #### Coins
 - **Range**: 0-999
@@ -2284,7 +2409,7 @@ At -3 flow in Disconnected: Conversation ends immediately.
 2. Draw cards equal to connection state
 3. If draw pile empty: Shuffle exhaust → new draw pile
 4. Refresh focus to maximum
-5. Remove Opening cards if unplayed
+5. Remove OPENING cards if unplayed
 6. Check if request cards become playable
 
 #### SPEAK Action
@@ -2293,7 +2418,7 @@ At -3 flow in Disconnected: Conversation ends immediately.
 3. Resolve success/failure
 4. Card goes to exhaust pile
 5. Apply effects
-6. Remove Impulse cards if unplayed
+6. Remove IMPULSE cards if unplayed
 
 #### Conversation End
 - All piles cleared
@@ -2304,9 +2429,9 @@ At -3 flow in Disconnected: Conversation ends immediately.
 ### Card Types
 
 #### Persistence Types
-- **Persistent** (60%): Remain in hand until played
-- **Impulse** (25%): Removed after any SPEAK action if unplayed
-- **Opening** (15%): Removed after LISTEN if unplayed
+- **PERSISTENT** (60%): Remain in hand until played
+- **IMPULSE** (25%): Removed after any SPEAK action if unplayed
+- **OPENING** (15%): Removed after LISTEN if unplayed
 
 #### Difficulty Tiers
 - **Very Easy**: TBD base %
@@ -2321,10 +2446,7 @@ All modified by: +2% per rapport point
 1. Player chooses request conversation type
 2. Request card added to draw pile (starts unplayable)
 3. Becomes playable when reaching required focus capacity during LISTEN
-4. When playable: Gains both Impulse AND Opening properties
-5. Must play immediately or fails
-6. Success: Accept obligation with fixed terms
-7. Failure: Add burden card to relationship
+4. When played (100% Success): Accept obligation with fixed terms
 
 ## Queue Management System
 
