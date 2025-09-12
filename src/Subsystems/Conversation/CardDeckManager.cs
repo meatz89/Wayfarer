@@ -557,11 +557,7 @@ public class CardDeckManager
         // Fallback to existing logic if no specific card ID provided
         switch (conversationType)
         {
-            case ConversationType.Promise:
-                // For Promise conversations, the goalCardId should be the specific request ID
-                // This should not happen without a goalCardId as each request gets its own conversation option
-                Console.WriteLine($"[CardDeckManager] Warning: Promise conversation started without request ID");
-                return new List<CardInstance>();
+            // Promise is no longer a ConversationType - promise cards are part of Request bundles
                 
             case ConversationType.FriendlyChat:
                 // For FriendlyChat, select from NPC's connection token goal cards

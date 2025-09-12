@@ -481,7 +481,7 @@ namespace Wayfarer.Pages.Components
             return type switch
             {
                 ConversationType.FriendlyChat => "talk",
-                ConversationType.Promise => "promise",
+                ConversationType.Request => "request",
                 ConversationType.Delivery => "delivery",
                 ConversationType.Resolution => "resolution",
                 _ => ""
@@ -543,7 +543,7 @@ namespace Wayfarer.Pages.Components
             return type switch
             {
                 ConversationType.FriendlyChat => "Talk",
-                ConversationType.Promise => "Letter Offer",
+                ConversationType.Request => "Request", // Actual label comes from NPCRequest.Name
                 ConversationType.Delivery => "Deliver Letter",
                 ConversationType.Resolution => "Make Amends",
                 _ => type.ToString()

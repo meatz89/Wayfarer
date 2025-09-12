@@ -1,7 +1,7 @@
 public enum ConversationType
 {
     FriendlyChat,
-    Promise,
+    Request,  // One-time NPC requests (includes promise cards in bundles)
     Resolution,
     Delivery
 }

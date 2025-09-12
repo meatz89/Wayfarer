@@ -218,7 +218,7 @@
                                     }
                                     <span> • </span>
                                     <span class="patience-calculation">@GetPatienceDisplay(npc, CurrentSpot)</span>
-                                    @if (option.Type == ConversationType.Promise && HasLetterRequest(npc.Id))
+                                    @if (option.Type == ConversationType.Request && HasLetterRequest(npc.Id))
                                     {
                                         <span> • Letter request available!</span>
                                     }

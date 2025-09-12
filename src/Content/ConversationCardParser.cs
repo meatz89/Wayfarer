@@ -163,8 +163,8 @@ public static class ConversationCardParser
     {
         return type switch
         {
-            ConversationType.FriendlyChat => ConversationType.Promise,
-            ConversationType.Promise => ConversationType.Promise,
+            ConversationType.FriendlyChat => ConversationType.Request,
+            ConversationType.Request => ConversationType.Request,
             ConversationType.Resolution => ConversationType.Resolution,
             ConversationType.Delivery => ConversationType.Delivery,
             _ => null

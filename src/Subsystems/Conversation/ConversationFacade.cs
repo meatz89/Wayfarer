@@ -377,7 +377,7 @@ public class ConversationFacade
                 // Later we'll update the UI to show all cards from the request
                 options.Add(new ConversationOption
                 {
-                    Type = ConversationType.Promise, // One-time requests use Promise type
+                    Type = ConversationType.Request, // One-time requests use Request type
                     GoalCardId = request.Id, // Use request ID to identify which request
                     DisplayName = request.Name,
                     Description = request.Description,
@@ -446,14 +446,10 @@ public class ConversationFacade
 
         // REMOVED: Commerce is not a conversation type - exchanges use separate Exchange system
 
-        // PROMISE: Check if NPC has promise/letter cards in request deck
-        if (npc.HasPromiseCards())
+        // REQUEST: Check if NPC has available request bundles
+        if (npc.HasAvailableRequests())
         {
-            ConnectionState currentState = ConversationRules.DetermineInitialState(npc, _queueManager);
-            if (npc.HasAvailableRequests())
-            {
-                available.Add(ConversationType.Promise);
-            }
+            available.Add(ConversationType.Request);
         }
 
         // RESOLUTION: Check if NPC has burden cards that need resolving (2+ burden cards)
@@ -717,7 +713,7 @@ public class ConversationFacade
         return session.ConversationType switch
         {
             // Commerce removed - exchanges use separate Exchange system
-            ConversationType.Promise => ConnectionType.Trust,
+            ConversationType.Request => ConnectionType.Trust, // Request bundles with promise cards
             ConversationType.Resolution => ConnectionType.Trust,
             ConversationType.Delivery => ConnectionType.Trust,
             ConversationType.FriendlyChat => ConnectionType.Trust,

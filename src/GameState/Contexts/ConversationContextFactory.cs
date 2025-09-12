@@ -20,7 +20,7 @@ public static class ConversationContextFactory
         ConversationContextBase context = conversationType switch
         {
             // Commerce removed - exchanges use separate Exchange system
-            ConversationType.Promise => new PromiseContext(),
+            ConversationType.Request => new PromiseContext(), // PromiseContext handles Request bundles
             ConversationType.Delivery => new DeliveryContext(),
             ConversationType.FriendlyChat => new StandardContext(),
             ConversationType.Resolution => new ResolutionContext(),
@@ -63,7 +63,7 @@ public static class ConversationContextFactory
         switch (context)
         {
             // Commerce removed - exchanges use separate Exchange system
-            case PromiseContext promiseContext:
+            case PromiseContext promiseContext: // Handles Request bundles
                 InitializePromiseContext(promiseContext, gameWorld);
                 break;
             case DeliveryContext deliveryContext:
@@ -82,13 +82,14 @@ public static class ConversationContextFactory
     
     private static void InitializePromiseContext(PromiseContext context, GameWorld gameWorld)
     {
+        // PromiseContext now handles Request bundles (which contain promise cards)
         context.SetNPCPersonality(context.Npc.PersonalityType);
         context.GeneratesLetterOnSuccess = true;
 
-        // Initialize promise-specific data if needed
+        // Initialize request-specific data if needed
         if (context.Npc?.Requests != null && context.Npc.Requests.Count > 0)
         {
-            // Check for promise cards in one-time requests
+            // Request bundles contain both request and promise cards
             context.HasDeadline = false; // Will be set based on specific card data
         }
     }
