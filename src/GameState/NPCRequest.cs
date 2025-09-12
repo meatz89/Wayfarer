@@ -21,6 +21,11 @@ public class NPCRequest
     public string Description { get; set; }
     
     /// <summary>
+    /// The text displayed when the NPC presents this request (shown on LISTEN action)
+    /// </summary>
+    public string NpcRequestText { get; set; }
+    
+    /// <summary>
     /// Current status of the request
     /// </summary>
     public RequestStatus Status { get; set; } = RequestStatus.Available;

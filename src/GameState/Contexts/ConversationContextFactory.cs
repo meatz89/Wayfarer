@@ -39,6 +39,7 @@ public static class ConversationContextFactory
         context.PlayerResources = playerResources;
         context.LocationName = locationName;
         context.TimeDisplay = timeDisplay;
+        context.RequestText = session?.RequestText; // Pass request text from session
 
         return context;
     }

@@ -14,5 +14,6 @@ public class ConversationContext
     public ResourceState PlayerResources { get; set; }
     public string LocationName { get; set; }
     public string TimeDisplay { get; set; }
+    public string RequestText { get; set; }  // Text displayed when NPC presents a request
     public List<DeliveryObligation> LettersCarriedForNpc { get; set; }
 }

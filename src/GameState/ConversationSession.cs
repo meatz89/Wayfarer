@@ -26,6 +26,7 @@ public class ConversationSession
     public TokenMechanicsManager TokenManager { get; set; }
     public FlowManager FlowManager { get; set; }
     public RapportManager RapportManager { get; set; }
+    public string RequestText { get; set; } // Text displayed when NPC presents a request
 
     // New focus and atmosphere system
     public int FlowBattery { get; set; } = 0; // -3 to +3

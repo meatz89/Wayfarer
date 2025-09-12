@@ -693,7 +693,16 @@ namespace Wayfarer.Pages.Components
         private void GenerateListenNarrative()
         {
             LastNarrative = "You listen attentively...";
-            LastDialogue = GetStateTransitionDialogue(Session.CurrentState);
+            
+            // For Request conversations, display the request text on LISTEN
+            if (Context?.Type == ConversationType.Request && !string.IsNullOrEmpty(Context.RequestText))
+            {
+                LastDialogue = Context.RequestText;
+            }
+            else
+            {
+                LastDialogue = GetStateTransitionDialogue(Session.CurrentState);
+            }
         }
 
         private void GenerateSpeakNarrative(CardPlayResult result)
@@ -751,8 +760,14 @@ namespace Wayfarer.Pages.Components
                 LastNarrative = "You speak your mind...";
             }
 
-            // Update dialogue based on new state if changed
-            if (result.NewState.HasValue)
+            // Show card's dialogue fragment if available  
+            if (SelectedCard != null && !string.IsNullOrEmpty(SelectedCard.DialogueFragment))
+            {
+                // Display the card's dialogue fragment as player dialogue
+                LastDialogue = SelectedCard.DialogueFragment;
+            }
+            // Otherwise update dialogue based on new state if changed
+            else if (result.NewState.HasValue)
             {
                 LastDialogue = GetStateTransitionDialogue(result.NewState.Value);
             }

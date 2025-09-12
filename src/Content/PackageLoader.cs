@@ -649,6 +649,7 @@ public class PackageLoader
                         Id = requestDto.Id,
                         Name = requestDto.Name,
                         Description = requestDto.Description,
+                        NpcRequestText = requestDto.NpcRequestText,
                         Status = RequestStatus.Available
                     };
 

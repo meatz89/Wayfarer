@@ -77,6 +77,17 @@ public class ConversationOrchestrator
         // Use NPC's current daily patience for the session
         int availablePatience = npc.DailyPatience;
 
+        // Get request text if this is a Request conversation
+        string requestText = null;
+        if (conversationType == ConversationType.Request && !string.IsNullOrEmpty(goalCardId))
+        {
+            var request = npc.GetRequestById(goalCardId);
+            if (request != null)
+            {
+                requestText = request.NpcRequestText;
+            }
+        }
+
         // Create session with new properties
         ConversationSession session = new ConversationSession
         {
@@ -98,7 +109,8 @@ public class ConversationOrchestrator
             TokenManager = _tokenManager,
             FlowManager = _flowBatteryManager,
             RapportManager = rapportManager,
-            ObservationCards = observationCards ?? new List<CardInstance>()
+            ObservationCards = observationCards ?? new List<CardInstance>(),
+            RequestText = requestText // Set request text for Request conversations
         };
 
         // FIRST: Add ALL request cards to active pile immediately if present
