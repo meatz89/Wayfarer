@@ -921,8 +921,10 @@ Each NPC maintains five persistent decks that determine conversation availabilit
    - Mechanics TBD
    
 5. **Exchange Deck**: Commerce options (mercantile NPCs only)
-   - Not conversation cards - simple trades
-   - Accessed through Quick Exchange (1 attention)
+   - NOT conversation cards - separate card system
+   - Accessed through Exchange action (1 attention)
+   - Has its own UI, not part of conversation flow
+   - Cards show trades: resource A → resource B
    - Examples: 2 coins → food, 10 coins → transport
 
 ### Three-Pile System
@@ -940,12 +942,12 @@ Each NPC maintains five persistent decks that determine conversation availabilit
 
 #### Exhaust Pile
 - Played cards go here
-- Cards removed when Exhausted by Impulse/Opening go here
+- Cards removed by Impulse/Opening go here
 - Shuffled to create new draw pile when needed
 
 ### Starting a Conversation
 
-1. **Pay attention cost** (2 for standard, 1 for quick exchange)
+1. **Pay attention cost** (2 for standard conversation)
 2. **Choose conversation type** (based on available NPC decks)
 3. **Build draw pile** from relevant cards:
    - All conversation deck cards (20)
@@ -1705,15 +1707,43 @@ Suboptimal sequence:
 
 ## Exchange System
 
-### Quick Exchange Mechanics
+### Core Concept
 
-- **Cost**: 1 attention (vs 2 for full conversation)
-- **No card play**: Direct resource trade
-- **No rapport building**: Pure transaction
-- **Time cost**: Minimal (5-10 minutes)
-- **Always available**: If NPC has exchange deck
+Exchanges are a **separate card system** from conversations. NPCs with exchange decks offer trades through a dedicated exchange UI, not during conversations.
 
-### Common Exchanges
+### Exchange Card Mechanics
+
+**Exchange Cards ARE Cards**:
+- Each exchange is a card in the NPC's exchange deck
+- Cards show simple trades: Input → Output
+- Player sees all available exchange cards at once
+- Pick one card to execute the trade
+- No focus, rapport, or conversation mechanics involved
+
+**Exchange Card Properties**:
+```
+Exchange Card Structure:
+- Name: "Buy Simple Meal"
+- Cost: Resources required (coins, items, tokens)
+- Effect: What you receive
+- Requirements: Minimum tokens or observations needed
+- Availability: Time restrictions or one-time limits
+```
+
+### Quick Exchange Action
+
+- **Cost**: 1 attention
+- **Time**: 5-10 minutes
+- **Process**:
+  1. Pay 1 attention to access NPC's exchange deck
+  2. See all available exchange cards in separate UI
+  3. Select one exchange card (if you can afford it)
+  4. Pay cost, receive effect
+  5. Exchange completes immediately
+- **No conversation mechanics** (no focus, rapport, flow, patience)
+- **Pure resource trade**
+
+### Common Exchange Types
 
 **Food Exchanges**:
 - Simple meal: 2 coins → -30 hunger
@@ -1737,14 +1767,43 @@ Suboptimal sequence:
 
 ### Token-Gated Exchanges
 
-Some exchanges require minimum tokens:
-- **Caravan transport**: 2+ Commerce tokens
-- **Secret information**: 3+ Shadow tokens  
-- **Noble introduction**: 5+ Status tokens
-- **Temple blessing**: 4+ Trust tokens
+Some exchange cards require minimum tokens to appear:
+- **Transport**: 2+ Commerce tokens → caravan becomes available
+- **Secret information**: 3+ Shadow tokens → special intel unlocked
+- **Noble introduction**: 5+ Status tokens → social access granted
+- **Temple blessing**: 4+ Trust tokens → spiritual services offered
 
-Combined requirements example:
-- Special transport: 2+ appropriate tokens AND relevant observation played
+The tokens don't get spent - they just gate access to the exchange card.
+
+### Observation-Unlocked Exchanges
+
+Some exchanges only appear after playing specific observation cards:
+- Play "Trade Route Knowledge" → Unlocks special transport exchange
+- Play "Black Market Contact" → Unlocks illegal goods exchanges
+- These permanently add new cards to the NPC's exchange deck
+
+### Exchange vs Conversation
+
+**Exchanges ARE**:
+- Separate card system with own UI
+- Simple resource trades
+- Quick (1 attention, minimal time)
+- No social mechanics
+
+**Exchanges ARE NOT**:
+- Part of conversations
+- Subject to focus/rapport/flow
+- Affected by connection states
+- Using patience or atmosphere
+
+### Strategic Role
+
+Exchanges provide:
+- Resource conversion without social challenge
+- Predictable outcomes (no success/failure)
+- Quick transactions when time matters
+- Token-gated progression rewards
+- Observation-unlocked special options
 
 ## No Soft-Lock Architecture
 
