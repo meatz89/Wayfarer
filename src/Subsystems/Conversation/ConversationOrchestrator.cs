@@ -42,7 +42,7 @@ public class ConversationOrchestrator
     /// <summary>
     /// Create a new conversation session with battery system
     /// </summary>
-    public ConversationSession CreateSession(NPC npc, ConversationType conversationType, List<CardInstance> observationCards)
+    public ConversationSession CreateSession(NPC npc, ConversationType conversationType, string goalCardId = null, List<CardInstance> observationCards = null)
     {
         // Extract connection state and flow from single value
         ConnectionState initialState = npc.GetConnectionState();
@@ -61,7 +61,7 @@ public class ConversationOrchestrator
         _atmosphereManager.Reset();
 
         // Create session deck and get goal card
-        (SessionCardDeck deck, CardInstance goalCard) = _deckManager.CreateConversationDeck(npc, conversationType, observationCards);
+        (SessionCardDeck deck, CardInstance goalCard) = _deckManager.CreateConversationDeck(npc, conversationType, goalCardId, observationCards);
 
         // Create rapport manager with initial token counts
         Dictionary<ConnectionType, int> npcTokens = GetNpcTokenCounts(npc);

@@ -61,7 +61,7 @@ public class ConversationFacade
     /// <summary>
     /// Start a new conversation with an NPC
     /// </summary>
-    public ConversationSession StartConversation(string npcId, ConversationType conversationType, List<CardInstance> observationCards = null)
+    public ConversationSession StartConversation(string npcId, ConversationType conversationType, string goalCardId = null, List<CardInstance> observationCards = null)
     {
         if (IsConversationActive())
         {
@@ -83,7 +83,7 @@ public class ConversationFacade
         }
 
         // Create session - Commerce removed, exchanges use separate Exchange system
-        _currentSession = _orchestrator.CreateSession(npc, conversationType, observationCards);
+        _currentSession = _orchestrator.CreateSession(npc, conversationType, goalCardId, observationCards);
 
         return _currentSession;
     }
@@ -227,7 +227,7 @@ public class ConversationFacade
     /// <summary>
     /// Create a conversation context for UI - returns typed context
     /// </summary>
-    public async Task<ConversationContextBase> CreateConversationContext(string npcId, ConversationType conversationType)
+    public async Task<ConversationContextBase> CreateConversationContext(string npcId, ConversationType conversationType, string goalCardId = null)
     {
         NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
@@ -256,7 +256,7 @@ public class ConversationFacade
         List<CardInstance> observationCards = observationCardsTemplates.Select(card => new CardInstance(card, "observation")).ToList();
 
         // Start conversation
-        ConversationSession session = StartConversation(npcId, conversationType, observationCards);
+        ConversationSession session = StartConversation(npcId, conversationType, goalCardId, observationCards);
 
         // Create typed context
         ConversationContextBase context = ConversationContextFactory.CreateContext(
@@ -363,7 +363,107 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Get available conversation types for an NPC
+    /// Get available conversation options for an NPC with specific goal cards
+    /// </summary>
+    public List<ConversationOption> GetAvailableConversationOptions(NPC npc)
+    {
+        List<ConversationOption> options = new List<ConversationOption>();
+
+        // Initialize daily patience if needed
+        if (npc.MaxDailyPatience == 0)
+        {
+            npc.InitializeDailyPatience();
+        }
+
+        // Check if NPC has patience left for conversations
+        if (!npc.HasPatienceForConversation())
+        {
+            // No patience left - no conversations available today
+            return options;
+        }
+
+        // Get specific cards from RequestDeck for Letter/Promise conversations
+        if (npc.RequestDeck != null && npc.RequestDeck.HasCardsAvailable())
+        {
+            List<ConversationCard> requestCards = npc.RequestDeck.GetAllCards();
+            
+            // Add Letter cards as individual options
+            foreach (ConversationCard card in requestCards.Where(c => c.CardType == CardType.Letter))
+            {
+                options.Add(new ConversationOption
+                {
+                    Type = ConversationType.Promise, // Letters use Promise conversation type
+                    GoalCardId = card.Id,
+                    DisplayName = $"Letter: {card.Description}",
+                    Description = card.Description,
+                    TokenType = card.TokenType,
+                    RapportThreshold = card.RapportThreshold,
+                    CardType = card.CardType
+                });
+            }
+            
+            // Add Promise cards as individual options (for token increases)
+            foreach (ConversationCard card in requestCards.Where(c => c.CardType == CardType.Promise))
+            {
+                options.Add(new ConversationOption
+                {
+                    Type = ConversationType.FriendlyChat, // Token goal cards use FriendlyChat
+                    GoalCardId = card.Id,
+                    DisplayName = $"Chat: {card.Description}",
+                    Description = card.Description,
+                    TokenType = card.TokenType,
+                    RapportThreshold = card.RapportThreshold,
+                    CardType = card.CardType
+                });
+            }
+            
+            // Add BurdenGoal cards if player has enough burdens
+            if (npc.CountBurdenCards() >= 2)
+            {
+                foreach (ConversationCard card in requestCards.Where(c => c.CardType == CardType.BurdenGoal))
+                {
+                    options.Add(new ConversationOption
+                    {
+                        Type = ConversationType.Resolution,
+                        GoalCardId = card.Id,
+                        DisplayName = $"Resolution: {card.Description}",
+                        Description = card.Description,
+                        TokenType = card.TokenType,
+                        RapportThreshold = card.RapportThreshold,
+                        CardType = card.CardType
+                    });
+                }
+            }
+        }
+
+        // DELIVERY: Check if player has letter for this NPC in obligation queue
+        if (_queueManager != null)
+        {
+            DeliveryObligation[] activeObligations = _queueManager.GetActiveObligations();
+            bool hasLetterForNpc = activeObligations.Any(o =>
+                o != null && (o.RecipientId == npc.ID || o.RecipientName == npc.Description));
+            
+            if (hasLetterForNpc)
+            {
+                // Delivery doesn't need a goal card from RequestDeck
+                options.Add(new ConversationOption
+                {
+                    Type = ConversationType.Delivery,
+                    GoalCardId = null,
+                    DisplayName = "Deliver Letter",
+                    Description = "Deliver a letter from your queue",
+                    TokenType = ConnectionType.None,
+                    RapportThreshold = 0,
+                    CardType = CardType.Letter
+                });
+            }
+        }
+
+        return options;
+    }
+
+    /// <summary>
+    /// Get available conversation types for an NPC (legacy method for backward compatibility)
     /// </summary>
     public List<ConversationType> GetAvailableConversationTypes(NPC npc)
     {

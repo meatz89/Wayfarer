@@ -29,7 +29,7 @@ public class CardDeckManager
     /// Create a conversation deck from NPC templates (no filtering by type)
     /// Returns both the deck and any request cards that should start in hand
     /// </summary>
-    public (SessionCardDeck deck, CardInstance requestCard) CreateConversationDeck(NPC npc, ConversationType conversationType, List<CardInstance> observationCards = null)
+    public (SessionCardDeck deck, CardInstance requestCard) CreateConversationDeck(NPC npc, ConversationType conversationType, string goalCardId = null, List<CardInstance> observationCards = null)
     {
         string sessionId = Guid.NewGuid().ToString();
 
@@ -50,7 +50,7 @@ public class CardDeckManager
 
         // Get goal card based on conversation type from JSON data
         // The presence of these cards in JSON determines which conversation types are available
-        CardInstance goalCard = SelectGoalCardForConversationType(npc, conversationType);
+        CardInstance goalCard = SelectGoalCardForConversationType(npc, conversationType, goalCardId);
         // Don't add to deck - it will be added directly to hand in ConversationOrchestrator
 
         return (deck, goalCard);
@@ -510,8 +510,32 @@ public class CardDeckManager
     /// <summary>
     /// Select appropriate goal card from JSON data based on conversation type
     /// </summary>
-    private CardInstance SelectGoalCardForConversationType(NPC npc, ConversationType conversationType)
+    private CardInstance SelectGoalCardForConversationType(NPC npc, ConversationType conversationType, string goalCardId = null)
     {
+        // If specific card ID provided, find and return that card
+        if (!string.IsNullOrEmpty(goalCardId) && npc.RequestDeck != null)
+        {
+            ConversationCard specificCard = npc.RequestDeck.GetAllCards()
+                .FirstOrDefault(c => c.Id == goalCardId);
+            if (specificCard != null)
+            {
+                CardInstance goalInstance = new CardInstance(specificCard, npc.ID);
+                
+                // Store the rapport threshold in the card context
+                if (goalInstance.Context == null)
+                    goalInstance.Context = new CardContext();
+                    
+                goalInstance.Context.RapportThreshold = specificCard.RapportThreshold;
+                
+                // Goal cards start as Unplayable until rapport threshold is met
+                if (!goalInstance.Properties.Contains(CardProperty.Unplayable))
+                    goalInstance.Properties.Add(CardProperty.Unplayable);
+                    
+                return goalInstance;
+            }
+        }
+        
+        // Fallback to existing logic if no specific card ID provided
         switch (conversationType)
         {
             case ConversationType.Promise:

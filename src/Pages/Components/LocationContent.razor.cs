@@ -81,20 +81,22 @@ namespace Wayfarer.Pages.Components
                 {
                     List<ConversationOptionViewModel> options = new List<ConversationOptionViewModel>();
 
-                    // Get ACTUAL available conversation types from ConversationManager
-                    ConversationFacade conversationFacade = GameFacade.GetConversationFacade();
-                    List<ConversationType> availableTypes = conversationFacade.GetAvailableConversationTypes(npc);
+                    // Get ACTUAL available conversation options with specific goal cards
+                    List<ConversationOption> availableOptions = GameFacade.GetAvailableConversationOptions(npc.ID);
 
-                    // Add each available type as an option
-                    foreach (ConversationType type in availableTypes)
+                    // Add each available option with its specific goal card
+                    foreach (ConversationOption conversationOption in availableOptions)
                     {
                         // Get attention cost from backend mechanics
-                        int attentionCost = conversationFacade.GetConversationAttentionCost(type);
+                        ConversationFacade conversationFacade = GameFacade.GetConversationFacade();
+                        int attentionCost = conversationFacade.GetConversationAttentionCost(conversationOption.Type);
 
                         ConversationOptionViewModel option = new ConversationOptionViewModel
                         {
-                            Type = type,
-                            Label = GetConversationLabel(type),
+                            Type = conversationOption.Type,
+                            GoalCardId = conversationOption.GoalCardId,
+                            Label = conversationOption.DisplayName ?? GetConversationLabel(conversationOption.Type),
+                            Description = conversationOption.Description,
                             AttentionCost = attentionCost,
                             IsAvailable = true
                         };
@@ -235,13 +237,13 @@ namespace Wayfarer.Pages.Components
             await StartTypedConversation(npcId, ConversationType.FriendlyChat);
         }
 
-        protected async Task StartTypedConversation(string npcId, ConversationType type)
+        protected async Task StartTypedConversation(string npcId, ConversationType type, string goalCardId = null)
         {
-            Console.WriteLine($"[LocationContent] Starting {type} conversation with NPC ID: '{npcId}'");
+            Console.WriteLine($"[LocationContent] Starting {type} conversation with NPC ID: '{npcId}', GoalCard: '{goalCardId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartConversation(npcId, type);
+                await GameScreen.StartConversation(npcId, type, goalCardId);
             }
             else
             {
@@ -857,7 +859,9 @@ namespace Wayfarer.Pages.Components
     public class ConversationOptionViewModel
     {
         public ConversationType? Type { get; set; }
+        public string GoalCardId { get; set; }  // The specific card ID from RequestDeck
         public string Label { get; set; }
+        public string Description { get; set; }  // Full description of the conversation option
         public int AttentionCost { get; set; }
         public bool IsAvailable { get; set; }
         public bool IsExchange { get; set; } // True if this is an exchange, not a conversation

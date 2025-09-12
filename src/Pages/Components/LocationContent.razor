@@ -205,7 +205,7 @@
                         @foreach (var option in npc.ConversationOptions)
                         {
                             <div class="npc-action @(option.IsExchange ? "exchange" : GetActionClass(option.Type)) @(!option.IsAvailable ? "unavailable" : "")" 
-                                 @onclick="async () => { if (option.IsAvailable) { if (option.IsExchange) await StartExchange(npc.Id); else await StartTypedConversation(npc.Id, option.Type.Value); } }">
+                                 @onclick="async () => { if (option.IsAvailable) { if (option.IsExchange) await StartExchange(npc.Id); else await StartTypedConversation(npc.Id, option.Type.Value, option.GoalCardId); } }">
                                 <span class="action-type">@option.Label</span>
                                 <span class="action-details">
                                     @if (option.AttentionCost == 0)

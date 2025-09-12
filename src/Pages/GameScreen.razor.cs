@@ -393,9 +393,9 @@ namespace Wayfarer.Pages
             }
         }
 
-        public async Task StartConversation(string npcId, ConversationType type)
+        public async Task StartConversation(string npcId, ConversationType type, string goalCardId = null)
         {
-            CurrentConversationContext = await GameFacade.CreateConversationContext(npcId, type);
+            CurrentConversationContext = await GameFacade.CreateConversationContext(npcId, type, goalCardId);
 
             // Always refresh UI after GameFacade action
             await RefreshResourceDisplay();

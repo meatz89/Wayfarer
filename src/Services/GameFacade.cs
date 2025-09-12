@@ -381,9 +381,18 @@ public class GameFacade
         return _conversationFacade;
     }
 
-    public async Task<ConversationContextBase> CreateConversationContext(string npcId, ConversationType conversationType = ConversationType.FriendlyChat)
+    public async Task<ConversationContextBase> CreateConversationContext(string npcId, ConversationType conversationType = ConversationType.FriendlyChat, string goalCardId = null)
     {
-        return await _conversationFacade.CreateConversationContext(npcId, conversationType);
+        return await _conversationFacade.CreateConversationContext(npcId, conversationType, goalCardId);
+    }
+
+    public List<ConversationOption> GetAvailableConversationOptions(string npcId)
+    {
+        var npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc == null)
+            return new List<ConversationOption>();
+            
+        return _conversationFacade.GetAvailableConversationOptions(npc);
     }
 
     public async Task<ExchangeContext> CreateExchangeContext(string npcId)

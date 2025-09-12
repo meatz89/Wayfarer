@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wayfarer - Observation: Merchant Routes</title>
+    <title>Wayfarer - Observation: Merchant Row</title>
     <style>
         * {
             margin: 0;
@@ -22,9 +22,9 @@
             padding: 20px;
         }
 
-        .observation-container {
+        .game-container {
             width: 100%;
-            max-width: 900px;
+            max-width: 1000px;
             background: #e8dcc4;
             border: 3px solid #8b7355;
             border-radius: 8px;
@@ -66,51 +66,38 @@
             color: #7a6250;
         }
 
-        .observation-cost {
-            font-size: 11px;
-            color: #8b4726;
-            margin-top: 4px;
-            font-weight: bold;
-        }
-
-        /* Progress Bar */
-        .progress-bar {
+        /* Cost Bar */
+        .cost-bar {
             background: #f9f3e9;
-            padding: 12px 20px;
+            padding: 10px 20px;
             border-bottom: 1px solid #c4a684;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 15px;
         }
 
-        .progress-label {
+        .cost-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cost-label {
             font-size: 11px;
             color: #7a6250;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .progress-dots {
-            display: flex;
-            gap: 8px;
-            align-items: center;
+        .cost-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #8b4726;
         }
 
-        .progress-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #e8dcc4;
-            border: 1px solid #8b7355;
-        }
-
-        .progress-dot.complete {
-            background: #7a8b5a;
-        }
-
-        .progress-arrow {
-            color: #8b7355;
-            font-size: 14px;
+        .time-cost {
+            font-size: 12px;
+            color: #7a6250;
         }
 
         /* Narrative Section */
@@ -125,34 +112,69 @@
             background: #faf4ea;
             border-left: 3px solid #7a8b5a;
             border-radius: 2px;
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1.6;
             font-style: italic;
             color: #3d3429;
         }
 
-        .narrative-discovery {
-            border-left-color: #d4a76a;
-            background: #fffaf5;
+        .narrative-detail {
             margin-top: 15px;
+            padding: 12px;
+            background: #f9f3e9;
+            border: 1px dashed #c4a684;
+            font-size: 14px;
+            color: #5c4a3a;
         }
 
-        /* Choice Section */
-        .choice-section {
+        /* Stage Indicator */
+        .stage-indicator {
+            background: #e8dcc4;
+            padding: 10px 20px;
+            text-align: center;
+            border-bottom: 1px solid #c4a684;
+        }
+
+        .stage-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .stage-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #d4c5a0;
+        }
+
+        .stage-dot.active {
+            width: 14px;
+            height: 14px;
+            background: #7a8b5a;
+            border: 2px solid #5a6a3a;
+        }
+
+        .stage-dot.completed {
+            background: #5a7a3a;
+        }
+
+        /* Choice Cards Section */
+        .choices-section {
             padding: 20px;
             background: #f4e8d0;
         }
 
-        .choice-title {
+        .choices-title {
             font-size: 13px;
             color: #7a6250;
             text-transform: uppercase;
             text-align: center;
             margin-bottom: 15px;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
 
-        /* Choice Cards */
         .choice-grid {
             display: flex;
             flex-direction: column;
@@ -165,22 +187,49 @@
             background: #faf4ea;
             border: 2px solid #c4a684;
             border-radius: 4px;
-            padding: 15px 20px;
+            padding: 15px;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
         }
 
         .choice-card:hover {
             background: #fefaf0;
-            border-color: #a68b6f;
+            border-color: #7a8b5a;
             transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .choice-card.reward {
+            border-color: #7a8b5a;
+            background: #f4f9e9;
+            cursor: default;
+        }
+
+        .choice-card.reward:hover {
+            transform: none;
+        }
+
+        .choice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
         }
 
         .choice-name {
             font-size: 15px;
             font-weight: bold;
             color: #5c4a3a;
-            margin-bottom: 6px;
+        }
+
+        .choice-type {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #7a6250;
+            background: #f4e8d0;
+            padding: 2px 6px;
+            border-radius: 2px;
         }
 
         .choice-text {
@@ -188,218 +237,179 @@
             line-height: 1.5;
             color: #2c241a;
             font-style: italic;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
-        .choice-outcome {
+        .choice-result {
             font-size: 12px;
-            color: #5a7a3a;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .outcome-arrow {
-            color: #8b7355;
+            color: #7a8b5a;
+            font-weight: bold;
         }
 
         /* Reward Display */
         .reward-section {
-            background: #e8f5e9;
+            background: #f4f9e9;
+            border: 2px solid #7a8b5a;
+            border-radius: 4px;
             padding: 20px;
-            border-top: 2px solid #7a8b5a;
-            display: none;
+            margin-top: 20px;
         }
 
-        .reward-section.active {
-            display: block;
-        }
-
-        .reward-title {
-            font-size: 14px;
+        .reward-header {
+            font-size: 16px;
             color: #5a7a3a;
             font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             text-align: center;
             margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .rewards-grid {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
+        .reward-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
 
         .reward-item {
             background: white;
-            border: 2px solid #7a8b5a;
-            border-radius: 4px;
-            padding: 15px 20px;
+            border: 1px solid #c4d5a0;
+            border-radius: 3px;
+            padding: 12px;
             text-align: center;
-            min-width: 250px;
         }
 
-        .reward-type {
-            font-size: 11px;
-            color: #7a6250;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .reward-icon {
+            font-size: 24px;
             margin-bottom: 8px;
         }
 
-        .reward-name {
-            font-size: 16px;
-            color: #5c4a3a;
+        .reward-title {
+            font-size: 13px;
             font-weight: bold;
-            margin-bottom: 6px;
+            color: #5c4a3a;
+            margin-bottom: 4px;
         }
 
         .reward-description {
-            font-size: 12px;
+            font-size: 11px;
             color: #7a6250;
-            font-style: italic;
             line-height: 1.4;
         }
 
-        .reward-mechanics {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #e8dcc4;
-            font-size: 11px;
-            color: #5a7a3a;
-            font-weight: bold;
-        }
-
-        /* Complete Button */
-        .complete-section {
-            padding: 15px;
+        /* Exit Button */
+        .exit-section {
             background: #e8dcc4;
+            padding: 15px;
             text-align: center;
             border-top: 1px solid #c4a684;
-            display: none;
         }
 
-        .complete-section.active {
-            display: block;
-        }
-
-        .complete-button {
-            padding: 12px 40px;
-            background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
-            border: 2px solid #5a6a3a;
+        .exit-button {
+            padding: 10px 40px;
+            background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+            border: 2px solid #a68b6f;
             border-radius: 4px;
-            color: #faf4ea;
-            font-size: 16px;
+            color: #5c4a3a;
+            font-size: 14px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-weight: bold;
         }
 
-        .complete-button:hover {
-            background: linear-gradient(to bottom, #8a9b6a, #7a8b5a);
+        .exit-button:hover {
+            background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
+            border-color: #8b7355;
             transform: translateY(-2px);
-        }
-
-        /* Step Indicator */
-        .step-indicator {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            background: #5a7a3a;
-            color: #faf4ea;
-            padding: 3px 10px;
-            border-radius: 2px;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
     </style>
 </head>
 <body>
-    <div class="observation-container">
+    <div class="game-container">
         <!-- Header -->
         <div class="header">
-            <span>Tuesday, 9:05 AM - Market Square</span>
-            <span class="time-display">Time will advance by 10 minutes</span>
+            <span>Tuesday, 9:15 AM - Market Square</span>
+            <span class="time-display">Morning • Clear Weather</span>
         </div>
 
         <!-- Observation Header -->
         <div class="observation-header">
-            <div class="observation-title">Observing: Merchant Trade Routes</div>
-            <div class="observation-location">Location: Market Square - Merchant Row</div>
-            <div class="observation-cost">Cost: 1 Attention (Already Paid)</div>
+            <div class="observation-title">Observing: Trader Activity</div>
+            <div class="observation-location">Market Square - Merchant Row</div>
         </div>
 
-        <!-- Progress Bar -->
-        <div class="progress-bar">
-            <span class="progress-label">Discovery Progress:</span>
-            <div class="progress-dots">
-                <span class="progress-dot complete"></span>
-                <span class="progress-arrow">→</span>
-                <span class="progress-dot complete"></span>
-                <span class="progress-arrow">→</span>
-                <span class="progress-dot"></span>
+        <!-- Cost Bar -->
+        <div class="cost-bar">
+            <div class="cost-display">
+                <span class="cost-label">Attention Cost:</span>
+                <span class="cost-value">1</span>
+                <span class="cost-label" style="color: #5a7a3a;">(Already Paid)</span>
             </div>
-            <span style="font-size: 11px; color: #7a6250; margin-left: 10px;">Step 2 of 3</span>
+            <div class="time-cost">Time: 10 minutes</div>
+        </div>
+
+        <!-- Stage Indicator -->
+        <div class="stage-indicator">
+            <div class="stage-dots">
+                <span class="stage-dot completed"></span>
+                <span class="stage-dot active"></span>
+                <span class="stage-dot"></span>
+            </div>
         </div>
 
         <!-- Narrative Section -->
         <div class="narrative-section">
             <div class="narrative-text">
-                You lean against a market stall, pretending to examine some cloth while your attention focuses on the merchants' hushed conversation. Marcus and another trader speak in low tones about "the old forest path" and "avoiding the checkpoint taxes."
+                You blend into the morning crowd, positioning yourself near the spice merchant's stall. A caravan master argues with Marcus about delayed shipments while gesturing toward the Noble District. You notice him tracing an unusual path on a worn map - not through the main gate, but around the eastern hills.
             </div>
-            
-            <div class="narrative-text narrative-discovery">
-                "...take the path behind the old shrine, then follow the creek north. The guards never patrol there. You'll come out right by the servants' entrance to the Noble Quarter. Just tell them you're delivering for House Ravencrest..."
+            <div class="narrative-detail">
+                The caravan master keeps glancing nervously at the guards by the fountain. Whatever route he's discussing, it's clearly meant to avoid official checkpoints.
             </div>
         </div>
 
-        <!-- Choice Section -->
-        <div class="choice-section">
-            <div class="choice-title">How do you want to proceed?</div>
+        <!-- Choice Cards Section -->
+        <div class="choices-section">
+            <div class="choices-title">How do you proceed?</div>
             
             <div class="choice-grid">
                 <div class="choice-card">
-                    <div class="choice-name">Memorize the Details</div>
-                    <div class="choice-text">
-                        Commit every word to memory - the shrine, the creek, House Ravencrest. This knowledge could prove invaluable.
+                    <div class="choice-header">
+                        <div class="choice-name">Study the Map Carefully</div>
+                        <div class="choice-type">Cautious</div>
                     </div>
-                    <div class="choice-outcome">
-                        <span class="outcome-arrow">→</span>
-                        <span>Gain: Merchant Route Knowledge + Conversation Card</span>
+                    <div class="choice-text">
+                        Lean closer to memorize the route markings while pretending to examine nearby goods.
+                    </div>
+                    <div class="choice-result">
+                        Continue observation → Learn merchant route
                     </div>
                 </div>
 
                 <div class="choice-card">
-                    <div class="choice-name">Sketch a Quick Map</div>
-                    <div class="choice-text">
-                        Pull out your journal and quickly sketch the route they're describing. A visual reference might be helpful.
+                    <div class="choice-header">
+                        <div class="choice-name">Eavesdrop on Details</div>
+                        <div class="choice-type">Patient</div>
                     </div>
-                    <div class="choice-outcome">
-                        <span class="outcome-arrow">→</span>
-                        <span>Gain: Merchant Route Knowledge</span>
+                    <div class="choice-text">
+                        Stay hidden and listen for specific landmarks and timing information.
+                    </div>
+                    <div class="choice-result">
+                        Continue observation → Learn merchant route
                     </div>
                 </div>
 
                 <div class="choice-card">
-                    <div class="choice-name">Listen for More</div>
-                    <div class="choice-text">
-                        Stay longer and risk being noticed. There might be more useful information.
+                    <div class="choice-header">
+                        <div class="choice-name">Approach Directly</div>
+                        <div class="choice-type">Bold</div>
                     </div>
-                    <div class="choice-outcome">
-                        <span class="outcome-arrow">→</span>
-                        <span>Risk: Merchants might notice you</span>
+                    <div class="choice-text">
+                        Join the conversation and ask about alternative routes as a fellow trader.
+                    </div>
+                    <div class="choice-result">
+                        Continue observation → Learn merchant route (with complications)
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Complete Button (Hidden initially) -->
-        <div class="complete-section active">
-            <button class="complete-button">Continue</button>
         </div>
     </div>
 </body>
