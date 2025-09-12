@@ -82,19 +82,6 @@ public class DeliverLetterIntent : PlayerIntent
 }
 
 /// <summary>
-/// Intent to collect a letter from a sender
-/// </summary>
-public class CollectLetterIntent : PlayerIntent
-{
-    public string LetterId { get; }
-
-    public CollectLetterIntent(string letterId)
-    {
-        LetterId = letterId;
-    }
-}
-
-/// <summary>
 /// Intent to observe the current location
 /// </summary>
 public class ObserveLocationIntent : PlayerIntent
@@ -113,19 +100,6 @@ public class ExploreAreaIntent : PlayerIntent
 /// </summary>
 public class RequestPatronFundsIntent : PlayerIntent
 {
-}
-
-/// <summary>
-/// Intent to accept a letter board offer
-/// </summary>
-public class AcceptLetterOfferIntent : PlayerIntent
-{
-    public string OfferId { get; }
-
-    public AcceptLetterOfferIntent(string offerId)
-    {
-        OfferId = offerId;
-    }
 }
 
 /// <summary>

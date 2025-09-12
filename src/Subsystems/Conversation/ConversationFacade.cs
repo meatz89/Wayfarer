@@ -404,7 +404,7 @@ public class ConversationFacade
             }
         }
 
-        // RESOLUTION: Check if NPC has burden cards that need resolving
+        // RESOLUTION: Check if NPC has burden cards that need resolving (2+ burden cards)
         if (npc.CountBurdenCards() >= 2)
         {
             available.Add(ConversationType.Resolution);
@@ -423,17 +423,10 @@ public class ConversationFacade
             }
         }
 
-        // FRIENDLYCHAT: Check if NPC has FriendlyChat goal cards in request deck
-        // These are goal cards with type "FriendlyChat" that grant connection tokens
-        if (npc.RequestDeck != null && npc.RequestDeck.HasCardsAvailable())
+        // FRIENDLYCHAT: Available if NPC has a conversation deck with cards
+        if (npc.ConversationDeck != null && npc.ConversationDeck.Count > 0)
         {
-            bool hasFriendlyChatGoal = npc.RequestDeck.GetAllCards()
-                .Any(card => card.CardType == CardType.Promise);
-            
-            if (hasFriendlyChatGoal && npc.ConversationDeck != null && npc.ConversationDeck.Count > 0)
-            {
-                available.Add(ConversationType.FriendlyChat);
-            }
+            available.Add(ConversationType.FriendlyChat);
         }
 
         return available;

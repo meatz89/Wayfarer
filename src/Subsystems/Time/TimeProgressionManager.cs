@@ -51,11 +51,11 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             int segmentsToWait = currentTime switch
             {
                 TimeBlocks.Dawn => 3 - segmentsInCurrentPeriod,        // Wait until end of Dawn (3 segments)
-                TimeBlocks.Midday => 4 - segmentsInCurrentPeriod,      // Wait until end of Midday (4 segments) 
+                TimeBlocks.Morning => 4 - segmentsInCurrentPeriod,      // Wait until end of Midday (4 segments) 
                 TimeBlocks.Afternoon => 4 - segmentsInCurrentPeriod,   // Wait until end of Afternoon (4 segments)
                 TimeBlocks.Evening => 4 - segmentsInCurrentPeriod,     // Wait until end of Evening (4 segments)
                 TimeBlocks.Night => 1 - segmentsInCurrentPeriod,       // Wait until end of Night (1 segment)
-                TimeBlocks.DeepNight => _timeManager.SegmentsRemainingInDay, // Jump to next day
+                TimeBlocks.LateNight => _timeManager.SegmentsRemainingInDay, // Jump to next day
                 _ => 0
             };
 

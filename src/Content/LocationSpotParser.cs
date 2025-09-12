@@ -31,7 +31,7 @@ public static class LocationSpotParser
         else
         {
             // Add all time windows as default
-            spot.CurrentTimeBlocks.Add(TimeBlocks.Midday);
+            spot.CurrentTimeBlocks.Add(TimeBlocks.Morning);
             spot.CurrentTimeBlocks.Add(TimeBlocks.Afternoon);
             spot.CurrentTimeBlocks.Add(TimeBlocks.Evening);
             spot.CurrentTimeBlocks.Add(TimeBlocks.Night);
@@ -84,7 +84,7 @@ public static class LocationSpotParser
             Dictionary<TimeBlocks, List<SpotPropertyType>> timeProperties = new Dictionary<TimeBlocks, List<SpotPropertyType>>();
             
             // Morning properties
-            ParseTimeProperties(dto.Properties.Morning, TimeBlocks.Midday, timeProperties);
+            ParseTimeProperties(dto.Properties.Morning, TimeBlocks.Morning, timeProperties);
             // Afternoon properties
             ParseTimeProperties(dto.Properties.Afternoon, TimeBlocks.Afternoon, timeProperties);
             // Evening properties
@@ -92,7 +92,7 @@ public static class LocationSpotParser
             // Night properties
             ParseTimeProperties(dto.Properties.Night, TimeBlocks.Night, timeProperties);
             // LateNight properties
-            ParseTimeProperties(dto.Properties.LateNight, TimeBlocks.DeepNight, timeProperties);
+            ParseTimeProperties(dto.Properties.LateNight, TimeBlocks.LateNight, timeProperties);
             // Dawn properties
             ParseTimeProperties(dto.Properties.Dawn, TimeBlocks.Dawn, timeProperties);
             
@@ -173,7 +173,7 @@ public static class LocationSpotParser
         if (CurrentTimeBlockStrings.Count == 0)
         {
             // Add all time windows as default
-            spot.CurrentTimeBlocks.Add(TimeBlocks.Midday);
+            spot.CurrentTimeBlocks.Add(TimeBlocks.Morning);
             spot.CurrentTimeBlocks.Add(TimeBlocks.Afternoon);
             spot.CurrentTimeBlocks.Add(TimeBlocks.Evening);
             spot.CurrentTimeBlocks.Add(TimeBlocks.Night);

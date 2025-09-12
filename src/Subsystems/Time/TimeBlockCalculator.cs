@@ -29,11 +29,11 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             TimeBlocks[] timeOrder = new[]
             {
                 TimeBlocks.Dawn,
-                TimeBlocks.Midday,
+                TimeBlocks.Morning,
                 TimeBlocks.Afternoon,
                 TimeBlocks.Evening,
                 TimeBlocks.Night,
-                TimeBlocks.DeepNight
+                TimeBlocks.LateNight
             };
 
             int currentIndex = Array.IndexOf(timeOrder, current);
@@ -67,11 +67,11 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             return timeBlock switch
             {
                 TimeBlocks.Dawn => "Dawn (4-8 AM)",
-                TimeBlocks.Midday => "Morning (8 AM-12 PM)",
+                TimeBlocks.Morning => "Morning (8 AM-12 PM)",
                 TimeBlocks.Afternoon => "Afternoon (12-5 PM)",
                 TimeBlocks.Evening => "Evening (5-8 PM)",
                 TimeBlocks.Night => "Night (8 PM-10 PM)",
-                TimeBlocks.DeepNight => "Late Night (10 PM-4 AM)",
+                TimeBlocks.LateNight => "Late Night (10 PM-4 AM)",
                 _ => "Unknown"
             };
         }
@@ -84,11 +84,11 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             return targetTime switch
             {
                 TimeBlocks.Dawn => "You wait as the first light breaks over the horizon.",
-                TimeBlocks.Midday => "The morning sun climbs higher as time passes.",
+                TimeBlocks.Morning => "The morning sun climbs higher as time passes.",
                 TimeBlocks.Afternoon => "The day wears on toward afternoon.",
                 TimeBlocks.Evening => "Shadows lengthen as evening approaches.",
                 TimeBlocks.Night => "Darkness falls across the town.",
-                TimeBlocks.DeepNight => "The deep of night settles in.",
+                TimeBlocks.LateNight => "The deep of night settles in.",
                 _ => "Time passes..."
             };
         }
@@ -103,11 +103,11 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             return timeBlock switch
             {
                 TimeBlocks.Dawn => 0,
-                TimeBlocks.Midday => 3,
+                TimeBlocks.Morning => 3,
                 TimeBlocks.Afternoon => 7,
                 TimeBlocks.Evening => 11,
                 TimeBlocks.Night => 15,
-                TimeBlocks.DeepNight => 16,
+                TimeBlocks.LateNight => 16,
                 _ => 0
             };
         }
@@ -120,11 +120,11 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             return timeBlock switch
             {
                 TimeBlocks.Dawn => 2,
-                TimeBlocks.Midday => 6,
+                TimeBlocks.Morning => 6,
                 TimeBlocks.Afternoon => 10,
                 TimeBlocks.Evening => 14,
                 TimeBlocks.Night => 15,
-                TimeBlocks.DeepNight => 16,
+                TimeBlocks.LateNight => 16,
                 _ => 16
             };
         }

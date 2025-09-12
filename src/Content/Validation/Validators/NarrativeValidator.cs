@@ -262,7 +262,6 @@ public class NarrativeValidator : IContentValidator
             "Converse" => true,
             "Work" => true,
             "Socialize" => true,
-            "CollectLetter" => true,
             "DeliverLetter" => true,
             "BorrowMoney" => true,
             "GatherResources" => true,

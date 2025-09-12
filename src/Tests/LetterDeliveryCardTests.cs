@@ -37,7 +37,7 @@ public class LetterDeliveryCardTests
             Name = "TestPlayer",
             Coins = 10,
             Health = 100,
-            Food = 100,
+            Hunger = 100,
             ObligationQueue = new DeliveryObligation[8]
         };
         world.SetPlayer(player);

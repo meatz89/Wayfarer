@@ -200,63 +200,7 @@
 
     <!-- Cards Section -->
     <div class="cards-section">
-        @if ((Context?.Type ?? ConversationType.FriendlyChat) == ConversationType.Commerce)
-        {
-            @* For exchanges, show cards as full selectable cards like conversations *@
-            <div class="cards-header">
-                <div class="cards-title">Available Exchanges</div>
-            </div>
-            
-            <div class="card-grid">
-                @foreach (var card in Session.ActiveCards.Cards)
-                {
-                    <div class="@GetCardCssClasses(card) exchange @(!CanSelectCard(card) ? "unavailable" : "")"
-                         @onclick="() => ToggleCardSelection(card)">
-                        <div class="card-marker exchange">EXCHANGE</div>
-                        <div class="card-content">
-                            <div class="card-main">
-                                <div class="card-identity">
-                                    <div class="card-name">@GetCardName(card)</div>
-                                    @if (card.Context?.ExchangeData?.CanBarter == true)
-                                    {
-                                        <span class="tag">Negotiable</span>
-                                    }
-                                </div>
-                                @if (card.Context != null)
-                                {
-                                    <div class="card-text @GetNarrativeClass()">
-                                        @GetCardText(card)
-                                    </div>
-                                    <div class="exchange-visual">
-                                        <div class="exchange-flow">
-                                            <div class="exchange-cost">
-                                                <div class="exchange-label">You Pay</div>
-                                                <div class="exchange-value cost-value">@GetExchangeCostDisplay(card)</div>
-                                            </div>
-                                            <div class="exchange-arrow">→</div>
-                                            <div class="exchange-reward">
-                                                <div class="exchange-label">You Receive</div>
-                                                <div class="exchange-value reward-value">@GetExchangeRewardDisplay(card)</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    @if (card.Context.ExchangeData?.CanBarter == true)
-                                    {
-                                        <div class="special-effects">
-                                            Base @(card.Context.ExchangeData?.BaseSuccessRate ?? 60)% + @GetTokenBonus(GetExchangeTokenType(card)) tokens (@GetTokenBonusPercentage(card)%) = @GetExchangeSuccessRate(card)% success rate
-                                        </div>
-                                    }
-                                }
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            @* Normal conversation cards *@
+        @* Normal conversation cards *@
             <div class="cards-header">
                 <div class="cards-title">Your Hand</div>
             </div>
@@ -382,7 +326,6 @@
                     }
                 }
             </div>
-        }
     </div>
     </div>
 }

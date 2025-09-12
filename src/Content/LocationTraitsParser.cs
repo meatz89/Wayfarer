@@ -54,11 +54,11 @@ public static class LocationTraitsParser
         return time switch
         {
             TimeBlocks.Dawn => location.MorningProperties ?? new List<string>(),
-            TimeBlocks.Midday => location.MorningProperties ?? new List<string>(),
+            TimeBlocks.Morning => location.MorningProperties ?? new List<string>(),
             TimeBlocks.Afternoon => location.AfternoonProperties ?? new List<string>(),
             TimeBlocks.Evening => location.EveningProperties ?? new List<string>(),
             TimeBlocks.Night => location.NightProperties ?? new List<string>(),
-            TimeBlocks.DeepNight => location.NightProperties ?? new List<string>(),
+            TimeBlocks.LateNight => location.NightProperties ?? new List<string>(),
             _ => location.AfternoonProperties ?? new List<string>()
         };
     }

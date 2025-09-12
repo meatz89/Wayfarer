@@ -328,9 +328,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 case ConversationType.FriendlyChat:
                     interaction.Text = "Friendly Chat";
                     break;
-                case ConversationType.Commerce:
-                    interaction.Text = "Quick Trade";
-                    break;
                 case ConversationType.Promise:
                     interaction.Text = "Letter Offer";
                     break;

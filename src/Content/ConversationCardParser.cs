@@ -175,7 +175,6 @@ public static class ConversationCardParser
             ConversationType.Promise => ConversationType.Promise,
             ConversationType.Resolution => ConversationType.Resolution,
             ConversationType.Delivery => ConversationType.Delivery,
-            ConversationType.Commerce => null,
             _ => null
         };
     }
@@ -338,7 +337,7 @@ public static class ConversationCardParser
         {
             "coins" => ResourceType.Coins,
             "health" => ResourceType.Health,
-            "food" => ResourceType.Food,
+            "food" => ResourceType.Hunger,
             "hunger" => ResourceType.Hunger,
             "attention" => ResourceType.Attention,
             _ => null

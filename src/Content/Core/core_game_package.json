@@ -9,11 +9,11 @@
   },
   "startingConditions": {
     "playerConfig": {
-      "coins": 0,
+      "coins": 10,
       "health": 100,
       "maxHealth": 100,
-      "food": 50,
-      "maxFood": 100
+      "hunger": 50,
+      "maxHunger": 100
     },
     "startingSpotId": "central_fountain",
     "startingObligations": [
@@ -624,7 +624,7 @@
     "exchanges": [
       {
         "id": "quick_food_trade",
-        "name": "Quick Food Purchase",
+        "name": "Quick Hunger Purchase",
         "giveCurrency": "coins",
         "giveAmount": 10,
         "receiveCurrency": "food",

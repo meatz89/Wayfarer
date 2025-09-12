@@ -1002,7 +1002,6 @@ namespace Wayfarer.Pages.Components
             ConversationType conversationType = Context?.Type ?? ConversationType.FriendlyChat;
             return conversationType switch
             {
-                ConversationType.Commerce => "Quick Exchange",
                 ConversationType.Resolution => "Burden Resolution",
                 ConversationType.FriendlyChat => "Friendly Conversation",
                 _ => "Conversation"
@@ -1790,7 +1789,7 @@ namespace Wayfarer.Pages.Components
                         {
                             ResourceType.Coins => "coins",
                             ResourceType.Health => "health",
-                            ResourceType.Food => "food",
+                            ResourceType.Hunger => "food",
                             ResourceType.Attention => "attention",
                             _ => reward.Type.ToString().ToLower()
                         };
@@ -1845,10 +1844,6 @@ namespace Wayfarer.Pages.Components
                 return string.Format("{0} is too distressed to continue. The conversation has broken down.", NpcName);
             }
 
-            if (Context?.Type == ConversationType.Commerce)
-            {
-                return "Exchange completed - conversation ended";
-            }
 
             if (!Session.HandCards.Any() && Session.Deck.RemainingCards == 0)
             {

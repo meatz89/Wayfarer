@@ -395,11 +395,11 @@ public class ObservationManager
         return currentTimeBlock switch
         {
             TimeBlocks.Dawn => "dawn",
-            TimeBlocks.Midday => "morning",
+            TimeBlocks.Morning => "morning",
             TimeBlocks.Afternoon => "afternoon",
             TimeBlocks.Evening => "evening",
             TimeBlocks.Night => "night",
-            TimeBlocks.DeepNight => "latenight",
+            TimeBlocks.LateNight => "latenight",
             _ => "unknown"
         };
     }

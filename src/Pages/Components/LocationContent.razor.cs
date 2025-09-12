@@ -694,11 +694,11 @@ namespace Wayfarer.Pages.Components
             string timeStr = CurrentTime switch
             {
                 TimeBlocks.Dawn => "Dawn",
-                TimeBlocks.Midday => "Midday",
+                TimeBlocks.Morning => "Midday",
                 TimeBlocks.Afternoon => "Afternoon",
                 TimeBlocks.Evening => "Evening",
                 TimeBlocks.Night => "Night",
-                TimeBlocks.DeepNight => "DeepNight",
+                TimeBlocks.LateNight => "DeepNight",
                 _ => "Unknown"
             };
 
@@ -720,7 +720,7 @@ namespace Wayfarer.Pages.Components
             {
                 return CurrentTime switch
                 {
-                    TimeBlocks.Midday => "Opening",
+                    TimeBlocks.Morning => "Opening",
                     TimeBlocks.Afternoon => "Busy",
                     TimeBlocks.Evening => "Closing",
                     TimeBlocks.Night => "Empty",
@@ -733,7 +733,7 @@ namespace Wayfarer.Pages.Components
             {
                 return CurrentTime switch
                 {
-                    TimeBlocks.Midday => "Quiet",
+                    TimeBlocks.Morning => "Quiet",
                     TimeBlocks.Afternoon => "Quiet",
                     TimeBlocks.Evening => "Busy",
                     TimeBlocks.Night => "Lively",
@@ -746,7 +746,7 @@ namespace Wayfarer.Pages.Components
             {
                 return CurrentTime switch
                 {
-                    TimeBlocks.Midday => "Formal",
+                    TimeBlocks.Morning => "Formal",
                     TimeBlocks.Afternoon => "Active",
                     TimeBlocks.Evening => "Reception",
                     TimeBlocks.Night => "Private",

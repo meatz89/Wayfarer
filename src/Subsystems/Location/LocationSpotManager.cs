@@ -157,7 +157,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             if (spot == null) return "";
 
             SpotDescriptionGenerator descGenerator = new SpotDescriptionGenerator();
-            TimeBlocks currentTime = TimeBlocks.Midday; // Default for brief descriptions
+            TimeBlocks currentTime = TimeBlocks.Morning; // Default for brief descriptions
             List<SpotPropertyType> activeProperties = spot.GetActiveProperties(currentTime);
             return descGenerator.GenerateBriefDescription(activeProperties);
         }

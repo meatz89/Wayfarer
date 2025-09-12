@@ -203,7 +203,7 @@ public class ExchangeHandler
                     break;
 
                 case ResourceType.Hunger:
-                    // Hunger maps to Food (0 = not hungry, 100 = very hungry)
+                    // Hunger maps to Hunger (0 = not hungry, 100 = very hungry)
                     player.Hunger = Math.Max(0, Math.Min(100, player.Hunger - reward.Amount));
                     break;
 

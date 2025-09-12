@@ -238,33 +238,6 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             return new MorningNarrativeResult(morning, letterCount, severity);
         }
 
-        // ========== NPC NARRATIVES ==========
-
-        /// <summary>
-        /// Generate narrative for NPC letter offer
-        /// </summary>
-        public string[] GenerateNPCLetterOfferNarrative(NPC npc, DeliveryObligation offer, TimeBlocks currentTime, int npcTokens)
-        {
-            List<string> messages = new List<string>();
-            string timeNarrative = GetTimeNarrative(currentTime);
-
-            string[] approachNarratives = GetApproachNarratives(npc.Name, timeNarrative);
-            messages.Add(approachNarratives[_random.Next(approachNarratives.Length)]);
-
-            messages.Add($"\"{offer.Message}\"");
-
-            if (npcTokens >= 8)
-            {
-                messages.Add($"({npc.Name} offers premium payment for your trusted service)");
-            }
-            else if (npcTokens >= 5)
-            {
-                messages.Add($"({npc.Name} offers fair compensation for reliable work)");
-            }
-
-            return messages.ToArray();
-        }
-
         // ========== TIME NARRATIVES ==========
 
         /// <summary>
@@ -564,7 +537,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             return time switch
             {
                 TimeBlocks.Dawn => "early this morning",
-                TimeBlocks.Midday => "this morning",
+                TimeBlocks.Morning => "this morning",
                 TimeBlocks.Afternoon => "this afternoon",
                 TimeBlocks.Evening => "this evening",
                 TimeBlocks.Night => "late tonight",
@@ -587,8 +560,8 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         {
             return (from, to) switch
             {
-                (TimeBlocks.Dawn, TimeBlocks.Midday) => "The sun climbs higher as morning arrives.",
-                (TimeBlocks.Midday, TimeBlocks.Afternoon) => "The day grows warm as afternoon approaches.",
+                (TimeBlocks.Dawn, TimeBlocks.Morning) => "The sun climbs higher as morning arrives.",
+                (TimeBlocks.Morning, TimeBlocks.Afternoon) => "The day grows warm as afternoon approaches.",
                 (TimeBlocks.Afternoon, TimeBlocks.Evening) => "Shadows lengthen as evening draws near.",
                 (TimeBlocks.Evening, TimeBlocks.Night) => "Darkness falls across the land.",
                 (TimeBlocks.Night, TimeBlocks.Dawn) => "The first light of dawn breaks the horizon.",

@@ -139,7 +139,7 @@ public static class ExchangeParser
         return currency.ToLower() switch
         {
             "coins" or "coin" => ResourceType.Coins,
-            "food" => ResourceType.Hunger,  // Food maps to Hunger resource
+            "food" => ResourceType.Hunger,  // Hunger maps to Hunger resource
             "health" => ResourceType.Health,
             "attention" or "stamina" => ResourceType.Attention,
             "trust" => ResourceType.TrustToken,
@@ -168,7 +168,7 @@ public static class ExchangeParser
                 exchanges.Add(new ExchangeCard
                 {
                     Id = $"{npc.ID}_food_purchase",
-                    Name = "Buy Food",
+                    Name = "Buy Hunger",
                     Description = "Purchase provisions from the merchant",
                     NpcId = npc.ID,
                     ExchangeType = ExchangeType.Purchase,

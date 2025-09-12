@@ -12,7 +12,7 @@ public enum ItemCategory
     Special_Access,     // Permits, official documents, keys
 
     // Other item types
-    Food,              // Bread, meat, water
+    Hunger,              // Bread, meat, water
     Documents,         // Letters, contracts, books
     Tools,             // Hammers, saws, needles
     Weapons,           // Swords, bows, shields

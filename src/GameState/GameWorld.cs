@@ -9,8 +9,8 @@ public class PlayerInitialConfig
     public int? MaxStamina { get; set; }
     public int? Health { get; set; }
     public int? MaxHealth { get; set; }
-    public int? Food { get; set; }
-    public int? MaxFood { get; set; }
+    public int? Hunger { get; set; }
+    public int? MaxHunger { get; set; }
     public string Personality { get; set; }
     public string Archetype { get; set; }
     public Dictionary<string, int> InitialItems { get; set; }
@@ -23,7 +23,7 @@ public class GameWorld
 
     // Time is now tracked in WorldState, not through external dependencies
     public int CurrentDay { get; set; } = 1;
-    public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Midday;
+    public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
     public WeatherCondition CurrentWeather
     {
         get

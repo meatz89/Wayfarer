@@ -250,14 +250,6 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         }
 
         /// <summary>
-        /// Generate NPC letter offer narrative
-        /// </summary>
-        public string[] GenerateNPCLetterOfferNarrative(NPC npc, DeliveryObligation offer, TimeBlocks currentTime, int npcTokens)
-        {
-            return _narrativeService.GenerateNPCLetterOfferNarrative(npc, offer, currentTime, npcTokens);
-        }
-
-        /// <summary>
         /// Generate time transition narrative
         /// </summary>
         public TransitionNarrativeResult GenerateTimeTransitionNarrative(TimeBlocks from, TimeBlocks to, string actionDescription = null)

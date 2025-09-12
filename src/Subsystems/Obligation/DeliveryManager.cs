@@ -541,7 +541,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         {
             // This would typically come from TimeManager
             // Simplified for now
-            return TimeBlocks.Midday;
+            return TimeBlocks.Morning;
         }
     }
 }

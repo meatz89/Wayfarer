@@ -654,7 +654,7 @@ public class MarketManager
             }
 
             // Find next available time
-            List<TimeBlocks> allTimes = new List<TimeBlocks> { TimeBlocks.Dawn, TimeBlocks.Midday, TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night };
+            List<TimeBlocks> allTimes = new List<TimeBlocks> { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night };
             foreach (TimeBlocks time in allTimes)
             {
                 if (tradeNPCs.Any(npc => npc.IsAvailable(time)))

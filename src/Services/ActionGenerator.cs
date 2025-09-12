@@ -194,7 +194,7 @@ public class ActionGenerator
                 TierLevel.T1, playerTier, "travel"),
 
             "commerce" => CreateActionWithTierCheck(
-                "🛍️", "Purchase Provisions", "Food and supplies", "1-5 coins",
+                "🛍️", "Purchase Provisions", "Hunger and supplies", "1-5 coins",
                 TierLevel.T1, playerTier, "purchase"),
 
             "social" => CreateActionWithTierCheck(
@@ -256,7 +256,7 @@ public class ActionGenerator
 
         switch (currentTime)
         {
-            case TimeBlocks.Midday:
+            case TimeBlocks.Morning:
                 if (location.MorningProperties?.Contains("market_day") == true)
                 {
                     // Basic purchases are T1
@@ -383,7 +383,7 @@ public class ActionGenerator
     private string GetRestDetail(Location location, TimeBlocks time)
     {
         string baseTime = location.Physical?.GetPropertyValue() == "Expansive" ? "5 min" : "10 min";
-        string detail = time == TimeBlocks.Midday ? "Clear head" : "Catch breath";
+        string detail = time == TimeBlocks.Morning ? "Clear head" : "Catch breath";
         return $"{baseTime} • {detail}";
     }
 
@@ -395,12 +395,12 @@ public class ActionGenerator
 
     private bool IsMarketOpen(TimeBlocks time)
     {
-        return time == TimeBlocks.Midday || time == TimeBlocks.Afternoon;
+        return time == TimeBlocks.Morning || time == TimeBlocks.Afternoon;
     }
 
     private string GetMarketDetail(Location location, TimeBlocks time)
     {
-        if (time == TimeBlocks.Midday) return "Fresh goods";
+        if (time == TimeBlocks.Morning) return "Fresh goods";
         if (time == TimeBlocks.Afternoon) return "Closing soon";
         return "Limited stock";
     }

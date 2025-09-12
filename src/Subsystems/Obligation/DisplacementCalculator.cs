@@ -538,11 +538,43 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             }
         }
 
+        private TokenType ConvertConnectionToTokenType(ConnectionType connectionType)
+        {
+            return connectionType switch
+            {
+                ConnectionType.Trust => TokenType.Trust,
+                ConnectionType.Commerce => TokenType.Commerce,
+                ConnectionType.Status => TokenType.Status,
+                ConnectionType.Shadow => TokenType.Shadow,
+                _ => TokenType.Trust // Default to Trust if None
+            };
+        }
+
         private void AddBurdenCardToNPC(string npcId, ConnectionType tokenType)
         {
-            // This would add a burden card to the NPC's conversation deck
+            // Add a burden card to the NPC's burden deck
             // Burden cards represent damaged relationships and make future interactions harder
-            // Implementation would depend on the card system architecture
+            NPC npc = _npcRepository.GetById(npcId);
+            if (npc == null) return;
+
+            // Initialize burden deck if needed
+            if (npc.BurdenDeck == null)
+            {
+                npc.InitializeBurdenDeck();
+            }
+
+            // Create a burden card for the displacement damage
+            ConversationCard burdenCard = new ConversationCard
+            {
+                Id = $"burden_displacement_{npcId}_{Guid.NewGuid()}",
+                CardType = CardType.Conversation,
+                Description = $"The memory of a broken promise lingers",
+                TokenType = ConvertConnectionToTokenType(tokenType),
+                Properties = new List<CardProperty> { CardProperty.Burden }
+            };
+
+            // Add to the NPC's burden deck
+            npc.BurdenDeck.AddCard(burdenCard);
 
             _messageSystem.AddSystemMessage(
                 $"⚡ Added burden card to affect future interactions with {GetNPCNameById(npcId)}",

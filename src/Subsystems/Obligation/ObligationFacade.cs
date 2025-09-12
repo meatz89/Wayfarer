@@ -637,7 +637,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 },
                 Actions = new QueueActionsViewModel
                 {
-                    CanMorningSwap = currentTimeBlock == TimeBlocks.Midday && activeObligations.Length >= 2,
+                    CanMorningSwap = currentTimeBlock == TimeBlocks.Morning && activeObligations.Length >= 2,
                     MorningSwapReason = GetMorningSwapReason(currentTimeBlock, activeObligations.Length),
                     HasBottomDeliveryObligation = activeObligations.Length > 0,
                     TotalAvailableTokens = GetTotalAvailableTokens(),
@@ -646,33 +646,6 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 CurrentTimeBlock = currentTimeBlock,
                 CurrentDay = _timeManager.GetCurrentDay(),
                 LastMorningSwapDay = _statistics.GetLastMorningSwapDay()
-            };
-        }
-
-        public LetterBoardViewModel GetLetterBoard()
-        {
-            TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-
-            // Letter board is typically available during specific time blocks
-            bool isAvailable = currentTimeBlock == TimeBlocks.Midday || currentTimeBlock == TimeBlocks.Afternoon;
-            string? unavailableReason = !isAvailable ? "Letter board is only available during morning and afternoon hours" : null;
-
-            List<LetterOfferViewModel> offers = new List<LetterOfferViewModel>();
-
-            // In a full implementation, this would query actual letter offers
-            // For now, we'll provide an empty list but with proper structure
-            if (isAvailable)
-            {
-                // This would normally come from a letter offer repository or generator
-                // offers = GetAvailableLetterOffers();
-            }
-
-            return new LetterBoardViewModel
-            {
-                IsAvailable = isAvailable,
-                UnavailableReason = unavailableReason,
-                Offers = offers,
-                CurrentTime = currentTimeBlock
             };
         }
 
@@ -704,23 +677,6 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                     SystemMessageTypes.Warning);
                 return false;
             }
-        }
-
-        public bool AcceptLetterOffer(string offerId)
-        {
-            // In a full implementation, this would:
-            // 1. Find the letter offer by ID
-            // 2. Check if player can accept it (queue space, requirements)
-            // 3. Create a DeliveryObligation from the offer
-            // 4. Add it to the queue
-            // 5. Remove the offer from available offers
-
-            _messageSystem.AddSystemMessage(
-                "Letter offer system not fully implemented yet",
-                SystemMessageTypes.Info);
-
-            // For now, return false to indicate the feature needs implementation
-            return false;
         }
 
         public int GetLetterQueueCount()
@@ -807,7 +763,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private string GetMorningSwapReason(TimeBlocks currentTime, int obligationCount)
         {
-            if (currentTime != TimeBlocks.Midday)
+            if (currentTime != TimeBlocks.Morning)
                 return "Morning swaps only available during morning hours";
             if (obligationCount < 2)
                 return "Need at least 2 obligations to swap";

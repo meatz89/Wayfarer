@@ -185,7 +185,7 @@ public static class NPCParser
 
         // REMOVED: Boolean flags violate deck-based architecture
         // Letters are detected by checking Request deck contents
-        // Burden history detected by counting burden cards in conversation deck
+        // Burden history detected by counting burden cards in burden deck
 
         // Parse initial connection state and convert to flow value
         string currentStateStr = GetRequiredStringProperty(root, "currentState");

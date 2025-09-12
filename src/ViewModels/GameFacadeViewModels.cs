@@ -197,29 +197,6 @@ public class WaitOptionViewModel
     public string Description { get; set; }
 }
 
-// ========== LETTER BOARD VIEW MODELS ==========
-
-public class LetterBoardViewModel
-{
-    public bool IsAvailable { get; set; }
-    public string UnavailableReason { get; set; }
-    public List<LetterOfferViewModel> Offers { get; set; }
-    public TimeBlocks CurrentTime { get; set; }
-}
-
-public class LetterOfferViewModel
-{
-    public string Id { get; set; }
-    public string SenderName { get; set; }
-    public string RecipientName { get; set; }
-    public string Description { get; set; }
-    public int Payment { get; set; }
-    public int DeadlineDays { get; set; }
-    public bool CanAccept { get; set; }
-    public string CannotAcceptReason { get; set; }
-    public List<string> TokenTypes { get; set; }
-}
-
 // ========== NPC & RELATIONSHIP VIEW MODELS ==========
 
 public class TimeBlockServiceViewModel

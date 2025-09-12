@@ -2711,16 +2711,45 @@ public class ObligationQueueManager
         }
     }
 
+    private TokenType ConvertConnectionToTokenType(ConnectionType connectionType)
+    {
+        return connectionType switch
+        {
+            ConnectionType.Trust => TokenType.Trust,
+            ConnectionType.Commerce => TokenType.Commerce,
+            ConnectionType.Status => TokenType.Status,
+            ConnectionType.Shadow => TokenType.Shadow,
+            _ => TokenType.Trust // Default to Trust if None
+        };
+    }
+
     /// <summary>
-    /// Add burden cards to an NPC's conversation deck when tokens are burned
+    /// Add burden cards to an NPC's burden deck when tokens are burned
     /// </summary>
     private void AddBurdenCardToNPC(string npcId, ConnectionType tokenType)
     {
         NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return;
 
-        // This would normally add burden cards to the NPC's deck
-        // For POC, we just track the narrative
+        // Initialize burden deck if needed
+        if (npc.BurdenDeck == null)
+        {
+            npc.InitializeBurdenDeck();
+        }
+
+        // Create a burden card representing the damaged relationship
+        ConversationCard burdenCard = new ConversationCard
+        {
+            Id = $"burden_{npcId}_{Guid.NewGuid()}",
+            CardType = CardType.Conversation,
+            Description = $"Past betrayal weighs on {npc.Name}'s mind",
+            TokenType = ConvertConnectionToTokenType(tokenType),
+            Properties = new List<CardProperty> { CardProperty.Burden }
+        };
+
+        // Add to the NPC's burden deck
+        npc.BurdenDeck.AddCard(burdenCard);
+
         _messageSystem.AddSystemMessage(
             $"  • {npc.Name} gains a burden card (relationship damage)",
             SystemMessageTypes.Info

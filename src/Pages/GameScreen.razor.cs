@@ -82,7 +82,7 @@ namespace Wayfarer.Pages
         // Resources Display - Made public for child components to access for Perfect Information principle
         public int Coins { get; set; }
         public int Health { get; set; }
-        public int Food { get; set; }
+        public int Hunger { get; set; }
         public int Attention { get; set; }
         public int MaxAttention { get; set; } = 10;
 
@@ -152,8 +152,8 @@ namespace Wayfarer.Pages
             {
                 Coins = player.Coins;
                 Health = player.Health;
-                Food = player.Hunger;
-                Console.WriteLine($"[GameScreen.RefreshResourceDisplay] Player resources: Coins={Coins}, Health={Health}, Food={Food}");
+                Hunger = player.Hunger;
+                Console.WriteLine($"[GameScreen.RefreshResourceDisplay] Player resources: Coins={Coins}, Health={Health}, Hunger={Hunger}");
             }
 
             Console.WriteLine("[GameScreen.RefreshResourceDisplay] Getting attention state...");

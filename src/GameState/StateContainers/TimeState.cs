@@ -47,7 +47,7 @@ public sealed class TimeState
             for (int i = currentBlockIndex + 1; i < 5; i++) // 5 playable blocks (Dawn through Night)
             {
                 var futureBlock = (TimeBlocks)i;
-                if (futureBlock != TimeBlocks.DeepNight)
+                if (futureBlock != TimeBlocks.LateNight)
                 {
                     remaining += TimeBlockSegments.GetSegmentsForBlock(futureBlock);
                 }
@@ -65,7 +65,7 @@ public sealed class TimeState
     /// <summary>
     /// True if the current time allows active gameplay (not DeepNight).
     /// </summary>
-    public bool IsActiveTime => _currentTimeBlock != TimeBlocks.DeepNight;
+    public bool IsActiveTime => _currentTimeBlock != TimeBlocks.LateNight;
 
     /// <summary>
     /// True if this is the final segment of the current block.
@@ -99,7 +99,7 @@ public sealed class TimeState
         if (day < 1)
             throw new ArgumentException("Day must be at least 1", nameof(day));
 
-        if (timeBlock == TimeBlocks.DeepNight)
+        if (timeBlock == TimeBlocks.LateNight)
             throw new ArgumentException("Cannot create TimeState during DeepNight - use Sleep() to transition through DeepNight", nameof(timeBlock));
 
         int maxSegments = TimeBlockSegments.GetSegmentsForBlock(timeBlock);
@@ -248,12 +248,12 @@ public sealed class TimeState
     {
         return currentBlock switch
         {
-            TimeBlocks.Dawn => TimeBlocks.Midday,
-            TimeBlocks.Midday => TimeBlocks.Afternoon,
+            TimeBlocks.Dawn => TimeBlocks.Morning,
+            TimeBlocks.Morning => TimeBlocks.Afternoon,
             TimeBlocks.Afternoon => TimeBlocks.Evening,
             TimeBlocks.Evening => TimeBlocks.Night,
-            TimeBlocks.Night => TimeBlocks.DeepNight,
-            TimeBlocks.DeepNight => TimeBlocks.Dawn, // This shouldn't happen in normal flow
+            TimeBlocks.Night => TimeBlocks.LateNight,
+            TimeBlocks.LateNight => TimeBlocks.Dawn, // This shouldn't happen in normal flow
             _ => throw new ArgumentException($"Unknown time block: {currentBlock}")
         };
     }

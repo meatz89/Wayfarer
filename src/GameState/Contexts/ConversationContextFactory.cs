@@ -136,12 +136,10 @@ public static class ConversationContextFactory
         // Load burden cards if available
         if (queueManager != null)
         {
-            // Get burden cards from NPC's conversation deck
-            if (context.Npc?.ConversationDeck != null)
+            // Get burden cards from NPC's burden deck
+            if (context.Npc?.BurdenDeck != null)
             {
-                List<ConversationCard> burdenCards = context.Npc.ConversationDeck.GetAllCards()
-                    .Where(card => card.Properties.Contains(CardProperty.Burden))
-                    .ToList();
+                List<ConversationCard> burdenCards = context.Npc.BurdenDeck.GetAllCards();
                 context.SetBurdenCards(burdenCards);
             }
             else
@@ -188,7 +186,7 @@ public static class ConversationContextFactory
         {
             "coins" => ResourceType.Coins,
             "health" => ResourceType.Health,
-            "food" => ResourceType.Food,
+            "food" => ResourceType.Hunger,
             "hunger" => ResourceType.Hunger,
             "attention" => ResourceType.Attention,
             _ => null

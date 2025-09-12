@@ -136,12 +136,12 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         {
             return current switch
             {
-                TimeBlocks.Dawn => TimeBlocks.Midday,
-                TimeBlocks.Midday => TimeBlocks.Afternoon,
+                TimeBlocks.Dawn => TimeBlocks.Morning,
+                TimeBlocks.Morning => TimeBlocks.Afternoon,
                 TimeBlocks.Afternoon => TimeBlocks.Evening,
                 TimeBlocks.Evening => TimeBlocks.Night,
-                TimeBlocks.Night => TimeBlocks.DeepNight,
-                TimeBlocks.DeepNight => TimeBlocks.Dawn,
+                TimeBlocks.Night => TimeBlocks.LateNight,
+                TimeBlocks.LateNight => TimeBlocks.Dawn,
                 _ => TimeBlocks.Dawn
             };
         }

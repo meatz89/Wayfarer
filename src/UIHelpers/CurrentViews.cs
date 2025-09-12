@@ -7,7 +7,6 @@
     TravelScreen,           // ROUTE PLANNING MODE - Travel decision interface
 
     // ADDITIONAL SCREENS (Not part of core modal system)
-    LetterBoardScreen,      // Morning letter selection and acceptance
     RelationshipScreen,     // Character relationships and connection tokens
     ObligationsScreen,      // Standing obligations and permanent modifiers
     MarketScreen,           // Trading items for letter delivery needs

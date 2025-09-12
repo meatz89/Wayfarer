@@ -179,7 +179,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                     // Town has slightly higher prices for most goods
                     modifier = 1.1f;
                     // But lower prices for common items
-                    if (item.Categories.Contains(ItemCategory.Food) ||
+                    if (item.Categories.Contains(ItemCategory.Hunger) ||
                         item.Categories.Contains(ItemCategory.Materials))
                     {
                         modifier = 0.95f;
@@ -190,7 +190,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                     // Tavern has lower general prices
                     modifier = 0.9f;
                     // But higher prices for food and drink
-                    if (item.Categories.Contains(ItemCategory.Food))
+                    if (item.Categories.Contains(ItemCategory.Hunger))
                     {
                         modifier = 1.15f;
                     }
@@ -382,11 +382,11 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             switch (eventType)
             {
                 case "festival":
-                    // Food and luxury items more expensive during festivals
+                    // Hunger and luxury items more expensive during festivals
                     // This would update the market state tracker's demand levels
                     List<Item> items = _itemRepository.GetAllItems();
                     foreach (Item item in items.Where(i =>
-                        i.Categories.Contains(ItemCategory.Food) ||
+                        i.Categories.Contains(ItemCategory.Hunger) ||
                         i.Categories.Contains(ItemCategory.Luxury_Items)))
                     {
                         // Increase demand during festival

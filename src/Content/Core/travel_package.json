@@ -274,7 +274,7 @@
       },
       {
         "id": "buy_food_from_vendor",
-        "name": "Buy Food",
+        "name": "Buy Hunger",
         "staminaCost": 0,
         "coinRequirement": 2,
         "permitRequirement": null,

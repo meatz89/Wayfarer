@@ -54,7 +54,7 @@ public class NPC
 
     // REMOVED: Boolean flags violate deck-based architecture
     // Letters are detected by checking RequestDeck contents
-    // Burden history detected by counting burden cards in ConversationDeck
+    // Burden history detected by counting burden cards in BurdenDeck
     // Crisis detected by checking CurrentState == ConnectionState.DISCONNECTED
 
     // Relationship Flow (Single value 0-24 encoding both state and battery)
@@ -71,11 +71,12 @@ public class NPC
     public int DailyPatience { get; set; } // Current remaining patience for the day
     public int MaxDailyPatience { get; set; } // Maximum patience based on personality
 
-    // THREE DECK ARCHITECTURE (POC EXACT)
-    public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Flow, Token, State, Knowledge, Burden
+    // FIVE DECK ARCHITECTURE (Per Documentation)
+    public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Flow, Token, State, Knowledge
     public CardDeck RequestDeck { get; set; } = new();  // 0-3 cards: Promise (letters), Resolution requests
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
-    public CardDeck ObservationDeck { get; set; } = new();  // Cards created from location observations (Work Packet 3) 
+    public CardDeck ObservationDeck { get; set; } = new();  // Cards created from location observations
+    public CardDeck BurdenDeck { get; set; } = new();  // Burden cards from past conflicts and resolution attempts 
 
     // Daily exchange selection (removed - handled by GetTodaysExchange method)
 
@@ -116,6 +117,29 @@ public class NPC
         }
     }
 
+    // Initialize burden deck with burden cards
+    public void InitializeBurdenDeck(List<ConversationCard> burdenCards = null)
+    {
+        // Only initialize if not already done
+        if (BurdenDeck == null)
+        {
+            BurdenDeck = new CardDeck();
+        }
+        
+        if (burdenCards != null)
+        {
+            foreach (ConversationCard card in burdenCards)
+            {
+                // Mark cards as burden cards if not already marked
+                if (!card.Properties.Contains(CardProperty.Burden))
+                {
+                    card.Properties.Add(CardProperty.Burden);
+                }
+                BurdenDeck.AddCard(card);
+            }
+        }
+    }
+
     // Check if NPC has promise cards (letters) in their request deck  
     public bool HasPromiseCards()
     {
@@ -123,20 +147,19 @@ public class NPC
         return RequestDeck.GetAllCards().Any(c => c.CardType == CardType.Promise);
     }
 
-    // Check if NPC has burden history (cards in conversation deck)
+    // Check if NPC has burden history (cards in burden deck)
     public bool HasBurdenHistory()
     {
         return CountBurdenCards() > 0;
     }
 
-    // Count burden cards in conversation deck
+    // Count burden cards in burden deck
     public int CountBurdenCards()
     {
-        if (ConversationDeck == null) return 0;
+        if (BurdenDeck == null) return 0;
 
-        // Burden cards are identified by their properties
-        return ConversationDeck.GetAllCards()
-            .Count(card => card.IsBurden);
+        // All cards in the burden deck are burden cards
+        return BurdenDeck.GetAllCards().Count();
     }
 
     // Check if NPC has exchange cards available
@@ -280,22 +303,20 @@ public class NPC
     }
     
     /// <summary>
-    /// Apply daily decay - move flow toward neutral within current state
+    /// Apply daily decay - move flow toward global neutral value 12
     /// </summary>
     public void ApplyDailyDecay()
     {
-        int position = RelationshipFlow % 5;
-        
-        // Move toward neutral (position 2) within each state
-        if (position < 2)
+        // Move toward global neutral (value 12)
+        if (RelationshipFlow < 12)
         {
             RelationshipFlow++; // Move up toward neutral
         }
-        else if (position > 2)
+        else if (RelationshipFlow > 12)
         {
             RelationshipFlow--; // Move down toward neutral
         }
-        // If at neutral (position 2), stay there
+        // If at neutral (12), stay there
     }
 
 }

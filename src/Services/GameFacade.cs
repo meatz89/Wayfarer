@@ -322,11 +322,6 @@ public class GameFacade
         return _obligationFacade.DisplaceObligation(obligationId, targetPosition);
     }
 
-    public async Task<bool> AcceptLetterOfferAsync(string offerId)
-    {
-        return _obligationFacade.AcceptLetterOffer(offerId);
-    }
-
     public int GetLetterQueueCount()
     {
         return _obligationFacade.GetLetterQueueCount();
@@ -564,7 +559,7 @@ public class GameFacade
         player.Health = 10; // Starting health for testing
         player.Hunger = 5;   // Starting food for testing
 
-        Console.WriteLine($"[GameFacade.StartGameAsync] Player resources initialized - Coins: {player.Coins}, Health: {player.Health}, Food: {player.Hunger}");
+        Console.WriteLine($"[GameFacade.StartGameAsync] Player resources initialized - Coins: {player.Coins}, Health: {player.Health}, Hunger: {player.Hunger}");
 
         // Initialize exchange inventories
         _exchangeFacade.InitializeNPCExchanges();
@@ -587,8 +582,6 @@ public class GameFacade
             WaitIntent => ProcessWaitIntent(),
             RestIntent rest => ProcessRestIntent(rest.Segments),
             DeliverLetterIntent deliver => _obligationFacade.DeliverObligation(deliver.LetterId).Success,
-            CollectLetterIntent collect => await AcceptLetterOfferAsync(collect.LetterId),
-            AcceptLetterOfferIntent accept => await AcceptLetterOfferAsync(accept.OfferId),
             _ => ProcessGenericIntent(intent)
         };
     }
