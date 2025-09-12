@@ -29,7 +29,7 @@ public class CardDeckManager
     /// Create a conversation deck from NPC templates (no filtering by type)
     /// Returns both the deck and any request cards that should start in hand
     /// </summary>
-    public (SessionCardDeck deck, CardInstance requestCard) CreateConversationDeck(NPC npc, ConversationType conversationType, string goalCardId = null, List<CardInstance> observationCards = null)
+    public (SessionCardDeck deck, List<CardInstance> requestCards) CreateConversationDeck(NPC npc, ConversationType conversationType, string goalCardId = null, List<CardInstance> observationCards = null)
     {
         string sessionId = Guid.NewGuid().ToString();
 
@@ -48,12 +48,15 @@ public class CardDeckManager
             }
         }
 
-        // Get goal card based on conversation type from JSON data
-        // The presence of these cards in JSON determines which conversation types are available
-        CardInstance goalCard = SelectGoalCardForConversationType(npc, conversationType, goalCardId);
-        // Don't add to deck - it will be added directly to hand in ConversationOrchestrator
+        // Get request cards based on conversation type from JSON data
+        // For Request conversations, this loads ALL cards from the Request bundle
+        List<CardInstance> requestCards = SelectGoalCardsForConversationType(npc, conversationType, goalCardId, deck);
+        // Request cards will be added to active pile, promise cards already added to deck
+        
+        // Now shuffle the deck after all cards (including promise cards) have been added
+        deck.ShuffleDrawPile();
 
-        return (deck, goalCard);
+        return (deck, requestCards);
     }
 
     /// <summary>
@@ -510,8 +513,10 @@ public class CardDeckManager
     /// <summary>
     /// Select appropriate goal card from JSON data based on conversation type
     /// </summary>
-    private CardInstance SelectGoalCardForConversationType(NPC npc, ConversationType conversationType, string goalCardId = null)
+    private List<CardInstance> SelectGoalCardsForConversationType(NPC npc, ConversationType conversationType, string goalCardId, SessionCardDeck deck)
     {
+        List<CardInstance> requestCards = new List<CardInstance>();
+        
         // If specific card ID provided, this might be a request ID - find that request
         if (!string.IsNullOrEmpty(goalCardId) && npc.Requests != null)
         {
@@ -519,25 +524,33 @@ public class CardDeckManager
             var request = npc.GetRequestById(goalCardId);
             if (request != null && request.IsAvailable())
             {
-                // For now, return the first card from the request
-                // Later this will load ALL cards from the request
-                var firstCard = request.RequestCards.FirstOrDefault() ?? request.PromiseCards.FirstOrDefault();
-                if (firstCard != null)
+                // Load ALL cards from the Request bundle
+                
+                // Add ALL request cards to be returned for active pile
+                foreach (var requestCard in request.RequestCards)
                 {
-                    CardInstance goalInstance = new CardInstance(firstCard, npc.ID);
+                    CardInstance instance = new CardInstance(requestCard, npc.ID);
                     
                     // Store the rapport threshold in the card context
-                    if (goalInstance.Context == null)
-                        goalInstance.Context = new CardContext();
-                        
-                    goalInstance.Context.RapportThreshold = firstCard.RapportThreshold;
-                
-                    // Goal cards start as Unplayable until rapport threshold is met
-                    if (!goalInstance.Properties.Contains(CardProperty.Unplayable))
-                        goalInstance.Properties.Add(CardProperty.Unplayable);
+                    if (instance.Context == null)
+                        instance.Context = new CardContext();
+                    instance.Context.RapportThreshold = requestCard.RapportThreshold;
                     
-                    return goalInstance;
+                    // Request cards start as Unplayable until rapport threshold is met
+                    if (!instance.Properties.Contains(CardProperty.Unplayable))
+                        instance.Properties.Add(CardProperty.Unplayable);
+                    
+                    requestCards.Add(instance);
                 }
+                
+                // Add promise cards to the deck for shuffling (not returned)
+                foreach (var promiseCard in request.PromiseCards)
+                {
+                    CardInstance promiseInstance = new CardInstance(promiseCard, npc.ID);
+                    deck.AddCard(promiseInstance); // Add to deck for shuffling into draw pile
+                }
+                
+                return requestCards; // Return all request cards for active pile
             }
         }
         
@@ -545,24 +558,28 @@ public class CardDeckManager
         switch (conversationType)
         {
             case ConversationType.Promise:
-                // For Promise conversations, select from NPC's promise/letter cards
-                return SelectValidRequestCard(npc, conversationType);
+                // For Promise conversations, the goalCardId should be the specific request ID
+                // This should not happen without a goalCardId as each request gets its own conversation option
+                Console.WriteLine($"[CardDeckManager] Warning: Promise conversation started without request ID");
+                return new List<CardInstance>();
                 
             case ConversationType.FriendlyChat:
                 // For FriendlyChat, select from NPC's connection token goal cards
-                return SelectConnectionTokenGoalCard(npc);
+                var goalCard = SelectConnectionTokenGoalCard(npc);
+                return goalCard != null ? new List<CardInstance> { goalCard } : new List<CardInstance>();
                 
             case ConversationType.Delivery:
                 // For Delivery, the goal card is generated based on the letter being delivered
                 // This is handled by the obligation system when the delivery conversation starts
-                return null;
+                return new List<CardInstance>();
                 
             case ConversationType.Resolution:
                 // For Resolution, select from burden resolution cards
-                return SelectBurdenResolutionCard(npc);
+                var burdenCard = SelectBurdenResolutionCard(npc);
+                return burdenCard != null ? new List<CardInstance> { burdenCard } : new List<CardInstance>();
                 
             default:
-                return null;
+                return new List<CardInstance>();
         }
     }
 

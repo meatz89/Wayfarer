@@ -60,8 +60,9 @@ public class ConversationOrchestrator
         // Reset atmosphere manager
         _atmosphereManager.Reset();
 
-        // Create session deck and get goal card
-        (SessionCardDeck deck, CardInstance goalCard) = _deckManager.CreateConversationDeck(npc, conversationType, goalCardId, observationCards);
+        // Create session deck and get request cards
+        // For Request conversations, this loads ALL cards from the Request bundle
+        (SessionCardDeck deck, List<CardInstance> requestCards) = _deckManager.CreateConversationDeck(npc, conversationType, goalCardId, observationCards);
 
         // Create rapport manager with initial token counts
         Dictionary<ConnectionType, int> npcTokens = GetNpcTokenCounts(npc);
@@ -116,11 +117,11 @@ public class ConversationOrchestrator
             RapportGoal = rapportGoal
         };
 
-        // FIRST: Add the goal card to active cards immediately if present
-        // This ensures it's visible from the very start of the conversation
-        if (goalCard != null)
+        // FIRST: Add ALL request cards to active pile immediately if present
+        // This ensures they're all visible from the very start of the conversation
+        if (requestCards != null && requestCards.Any())
         {
-            session.ActiveCards.Add(goalCard);
+            session.ActiveCards.AddRange(requestCards);
         }
 
         // THEN: Perform initial draw of regular cards

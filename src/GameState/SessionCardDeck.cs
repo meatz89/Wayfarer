@@ -21,9 +21,6 @@ public class SessionCardDeck
             deck.drawPile.Add(cardInstance);
         }
 
-        // Shuffle the initial draw pile
-        deck.ShuffleDrawPile();
-
         return deck;
     }
 
@@ -141,7 +138,7 @@ public class SessionCardDeck
         ShuffleDrawPile();
     }
 
-    private void ShuffleDrawPile()
+    public void ShuffleDrawPile()
     {
         // Fisher-Yates shuffle
         int n = drawPile.Count;
