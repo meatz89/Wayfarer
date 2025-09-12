@@ -85,17 +85,23 @@ The three core game loops answer fundamental design questions while maintaining 
 
 At -3 flow in Disconnected: Conversation ends immediately.
 
-#### NPC Five Persistent Decks
+#### NPC Card Systems
 
-Each NPC maintains five persistent decks:
+Each NPC maintains four persistent decks and a list of requests:
 
+**Four Persistent Decks**:
 1. **Conversation Deck**: Standard 20 cards for dialogue
-2. **Request Deck**: Goal cards (letters, promises) enabling special conversations
-3. **Observation Deck**: Cards from location discoveries relevant to this NPC
-4. **Burden Deck**: Cards from failed obligations (TBD mechanics)
-5. **Exchange Deck**: Commerce options (mercantile NPCs only)
+2. **Observation Deck**: Cards from location discoveries relevant to this NPC
+3. **Burden Deck**: Cards from failed obligations and damaged relationships
+4. **Exchange Deck**: Commerce options (mercantile NPCs only)
 
-These decks determine available conversation types. Request cards enable specific conversation options - if NPC has a letter request card, "Letter Request" conversation appears.
+**Request System**:
+NPCs have a list of Requests, not a deck. Each Request is a bundled package containing:
+- Multiple request cards (representing different goal thresholds)
+- Associated promise cards (that can manipulate the queue)
+- Status tracking (available, completed, failed)
+
+When a player selects a request conversation type, all cards from that Request bundle (both request cards and promise cards) are added to the conversation draw pile. This enables the multi-threshold goal system where players see multiple goal options and can use promise cards to reach higher thresholds.
 
 #### Conversation Outputs
 - **Promises**: Create obligations in queue (letters, meetings, escorts, etc.)
@@ -894,38 +900,41 @@ SPEAK Costs No Patience - this is the critical change that transforms the system
 
 This transforms patience from action currency into focus cycle currency. Each patience point represents potential card plays across the entire conversation, making efficiency paramount.
 
-### NPC Five-Deck System
+### NPC Card Architecture
 
-Each NPC maintains five persistent decks that determine conversation availability:
+Each NPC maintains four persistent decks plus a request system:
 
+**Four Persistent Decks**:
 1. **Conversation Deck**: Standard 20 cards for dialogue
    - Always available for standard conversations
    - Cards have focus costs, difficulty tiers, and persistence types
    
-2. **Request Deck**: Goal cards (letters, promises, meetings)
-   - Each card type enables specific conversation options
-   - Letter cards enable "Letter Request" conversations
-   - Promise cards enable "Promise" conversations
-   - Fixed terms, no negotiation
-   
-3. **Observation Deck**: Cards from location discoveries
+2. **Observation Deck**: Cards from location discoveries
    - Receives cards from location observations
    - Cards automatically mixed into draw pile at conversation start
    - Provide unique advantages (state changes, exchange unlocks)
    - Consumed when played
    
-4. **Burden Deck**: Cards from failed obligations
+3. **Burden Deck**: Cards from failed obligations
    - Contains burden cards from relationship damage
    - Enables "Make Amends" conversation type
    - Each burden card makes resolution harder
    - Mechanics TBD
    
-5. **Exchange Deck**: Commerce options (mercantile NPCs only)
+4. **Exchange Deck**: Commerce options (mercantile NPCs only)
    - NOT conversation cards - separate card system
    - Accessed through Exchange action (1 attention)
    - Has its own UI, not part of conversation flow
    - Cards show trades: resource A → resource B
-   - Examples: 2 coins → food, 10 coins → transport
+
+**Request System**:
+NPCs don't have a "Request Deck" but rather a list of Requests. Each Request is a higher-level bundle containing:
+- **Request Cards**: Multiple cards representing different goal thresholds (basic, enhanced, premium)
+- **Promise Cards**: Associated cards that can force queue position and burn tokens
+- **Status Tracking**: Whether the request is available, completed, or failed
+- **Narrative Context**: The story reason for this request
+
+When a player chooses a request conversation type, ALL cards from that Request bundle (both request cards and promise cards) are added to the conversation draw pile. This enables the multi-threshold goal system where players can pursue different reward tiers within the same conversation.
 
 ### Three-Pile System
 
@@ -948,11 +957,11 @@ Each NPC maintains five persistent decks that determine conversation availabilit
 ### Starting a Conversation
 
 1. **Pay attention cost** (2 for standard conversation)
-2. **Choose conversation type** (based on available NPC decks)
+2. **Choose conversation type** (based on available NPC decks and requests)
 3. **Build draw pile** from relevant cards:
    - All conversation deck cards (20)
    - All observation deck cards (if any)
-   - Relevant request card (if request conversation)
+   - If request conversation: ALL cards from selected Request bundle
 4. **Shuffle draw pile**
 5. **Starting rapport** = connection tokens with NPC
 6. **Draw initial hand** = cards equal to connection state
@@ -988,7 +997,7 @@ Complete sequence:
 
 ### Promise Cards - Queue Manipulation
 
-Promise cards are special conversation cards that manipulate the obligation queue mid-conversation:
+Promise cards are special conversation cards bundled with requests that manipulate the obligation queue mid-conversation:
 
 **Mechanics**:
 - Play like any other conversation card (costs focus, has difficulty)
@@ -1006,7 +1015,7 @@ Promise cards are special conversation cards that manipulate the obligation queu
 
 ### Multi-Threshold Goal System
 
-Conversations can present multiple goal cards with different rapport requirements:
+Each Request bundles multiple goal cards with different rapport requirements:
 
 #### Goal Ladder Example
 - **Basic Goal** (5 rapport): Standard delivery, 1 token reward
@@ -1024,7 +1033,6 @@ Conversations can present multiple goal cards with different rapport requirement
 - Use promise = damage multiple relationships for one success
 
 The tension: You're not asking "can I succeed?" but "how much will I sacrifice?"
-   - Missing all windows = conversation failure
 
 ### SPEAK Action
 
@@ -1271,16 +1279,18 @@ Every card serves one of three purposes:
 
 ### Request Card Mechanics
 
-Request cards define conversation goals with multiple potential outcomes:
+Request cards define conversation goals bundled with promise cards in each Request:
 
-#### Multi-Threshold Goal System
+#### Request Bundle Structure
 
-Conversations can present multiple goal cards with different rapport requirements:
-- **Basic Goal**: Lower rapport threshold (e.g., 5 rapport), standard reward
-- **Enhanced Goal**: Higher rapport threshold (e.g., 10 rapport), better reward
-- **Premium Goal**: Highest threshold (e.g., 15 rapport), maximum reward
+Each Request contains:
+- **Multiple Request Cards**: Different rapport thresholds (basic, enhanced, premium)
+- **Associated Promise Cards**: Can manipulate queue for rapport boost
+- **Narrative Context**: The story reason for this request
 
-All available goal cards are added to the draw pile but remain unplayable until their specific rapport threshold is reached. This creates strategic decisions:
+All request cards from the selected Request bundle are added to the conversation active pile at start. All promise Cards are shuffled in the Draw Pile.
+
+The request cards are in the active pile but remain unplayable until their specific rapport threshold is reached. This creates strategic decisions:
 
 1. **Safe Exit**: Take the basic goal once achievable
 2. **Natural Building**: Risk patience trying to reach higher thresholds
@@ -1320,8 +1330,8 @@ The mechanics align with story - an NPC sees you literally damaging other relati
 
 #### Request Card Activation
 
-1. Player chooses conversation type based on available NPC decks
-2. ALL relevant goal cards added to draw pile (unplayable)
+1. Player chooses request conversation type
+2. ALL cards from that Request bundle added to draw pile (unplayable)
 3. During LISTEN, check each goal card:
    - If rapport ≥ threshold: Card becomes playable
 4. Player must immediately choose which playable goal to pursue
@@ -1874,12 +1884,12 @@ Every system has escape valves preventing unwinnable states:
 
 New NPCs simply need:
 - **Personality type**: Determines patience and token preference
-- **Five persistent decks**:
+- **Four persistent decks**:
   - Conversation deck (20 cards following template)
-  - Request deck (available conversation types)
   - Observation deck (receives location discoveries)
   - Burden deck (damaged relationship tracking)
   - Exchange deck (if mercantile)
+- **Request list**: Bundles of request and promise cards
 - **Token rewards**: For successful deliveries
 - **Starting state**: Connection state with player
 - **Location**: Where they can be found
@@ -1955,13 +1965,13 @@ Stories emerge from mechanical interaction, not scripting:
 **NPC Scenario with Multi-Threshold Goals**:
 - Disconnected state (failed relationship)
 - Only 3 focus capacity, low starting rapport
-- Conversation reveals THREE goal options:
+- Conversation reveals THREE goal options from Request bundle:
   - Basic: 5 rapport threshold → 1 token reward
   - Enhanced: 10 rapport threshold → 2 tokens + observation
   - Premium: 15 rapport threshold → 3 tokens + permit + observation
 - Current rapport: 3 (achievable: 8 with perfect play)
 - Decision point: Accept basic or use promise card?
-- Promise card would: +10 rapport, displace 2 obligations, burn 3 tokens with the affected NPCs (from obligation displacement)
+- Promise card would: +10 rapport, displace 2 obligations, burn 3 tokens with affected NPCs
 - Player calculates: 3 tokens burned < 3 tokens gained + permit value
 - Plays promise, reaches premium threshold
 - Narrative: NPC sees you sacrifice other relationships for them
@@ -2069,7 +2079,8 @@ Name: "Unnamed Merchant #47"
 Personality: Mercantile (from hash)
 Patience: 12 (from personality)
 State: Neutral (default)
-All 5 decks: Present but empty/minimal
+All 4 decks: Present but empty/minimal
+Request list: Empty
 IsSkeleton: true
 ```
 
