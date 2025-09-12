@@ -718,9 +718,41 @@ public class PackageLoader
                     Console.WriteLine($"[PackageLoader] Added {npcGoalCards[npc.ID].Count} goal cards to {npc.Name}'s request deck");
                 }
 
-                // Initialize request deck
+                // Initialize BOTH systems temporarily for backwards compatibility
                 npc.InitializeRequestDeck(requestCards);
-
+                
+                // Also populate OneTimeRequests
+                if (requestCards.Count > 0)
+                {
+                    // Group cards by RequestId or create a default request
+                    var defaultRequest = new NPCRequest
+                    {
+                        Id = $"{npc.ID}_default_request",
+                        Name = "Available Requests",
+                        Description = "Requests available from this NPC",
+                        Status = RequestStatus.Available
+                    };
+                    
+                    // Separate promise cards from regular request cards
+                    foreach (var card in requestCards)
+                    {
+                        if (card.CardType == CardType.Promise)
+                        {
+                            defaultRequest.PromiseCards.Add(card);
+                        }
+                        else if (card.CardType == CardType.Letter || card.CardType == CardType.BurdenGoal)
+                        {
+                            defaultRequest.RequestCards.Add(card);
+                        }
+                    }
+                    
+                    if (defaultRequest.RequestCards.Count > 0 || defaultRequest.PromiseCards.Count > 0)
+                    {
+                        npc.OneTimeRequests.Add(defaultRequest);
+                        Console.WriteLine($"[PackageLoader] Created default request for {npc.Name} with {defaultRequest.RequestCards.Count} request cards and {defaultRequest.PromiseCards.Count} promise cards");
+                    }
+                }
+                
                 Console.WriteLine($"[PackageLoader] Initialized request deck for {npc.Name} with {requestCards.Count} cards");
             }
             catch (Exception ex)

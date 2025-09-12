@@ -86,9 +86,9 @@ public static class ConversationContextFactory
         context.GeneratesLetterOnSuccess = true;
 
         // Initialize promise-specific data if needed
-        if (context.Npc?.RequestDeck != null)
+        if (context.Npc?.OneTimeRequests != null && context.Npc.OneTimeRequests.Count > 0)
         {
-            // Check for promise cards in request deck
+            // Check for promise cards in one-time requests
             context.HasDeadline = false; // Will be set based on specific card data
         }
     }

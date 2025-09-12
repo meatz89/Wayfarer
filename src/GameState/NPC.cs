@@ -73,18 +73,17 @@ public class NPC
 
     // FIVE DECK ARCHITECTURE (Per Documentation)
     public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Flow, Token, State, Knowledge
-    public CardDeck RequestDeck { get; set; } = new();  // 0-3 cards: Promise (letters), Resolution requests
+    public CardDeck RequestDeck { get; set; } = new();  // DEPRECATED - Will be replaced by OneTimeRequests
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
     public CardDeck ObservationDeck { get; set; } = new();  // Cards created from location observations
     public CardDeck BurdenDeck { get; set; } = new();  // Burden cards from past conflicts and resolution attempts 
 
-    // Daily exchange selection (removed - handled by GetTodaysExchange method)
-
-
-    // Initialize request deck from content repository
+    // One-time requests system - NEW system replacing RequestDeck - special narrative-driven asks with multiple cards
+    public List<NPCRequest> OneTimeRequests { get; set; } = new List<NPCRequest>();
+    
+    // Initialize request deck (DEPRECATED - for backwards compatibility)
     public void InitializeRequestDeck(List<ConversationCard> requestCards = null)
     {
-        // Only initialize if not already done
         if (RequestDeck == null || !RequestDeck.Any())
         {
             RequestDeck = new CardDeck();
@@ -140,11 +139,11 @@ public class NPC
         }
     }
 
-    // Check if NPC has promise cards (letters) in their request deck  
+    // Check if NPC has any promise cards in their one-time requests  
     public bool HasPromiseCards()
     {
-        if (RequestDeck == null) return false;
-        return RequestDeck.GetAllCards().Any(c => c.CardType == CardType.Promise);
+        if (OneTimeRequests == null) return false;
+        return OneTimeRequests.Any(r => r.IsAvailable() && r.PromiseCards.Any());
     }
 
     // Check if NPC has burden history (cards in burden deck)
@@ -227,14 +226,15 @@ public class NPC
         }
     }
 
+
     /// <summary>
-    /// Check if NPC has valid request cards for Promise conversations
+    /// Check if NPC has valid request cards (DEPRECATED - use HasAvailableRequests)
     /// </summary>
     public bool HasValidRequestCard(ConnectionState currentState)
     {
         return RequestDeck != null && RequestDeck.RemainingCards > 0;
     }
-
+    
     /// <summary>
     /// Initialize daily patience based on personality type
     /// </summary>
@@ -317,6 +317,63 @@ public class NPC
             RelationshipFlow--; // Move down toward neutral
         }
         // If at neutral (12), stay there
+    }
+    
+    /// <summary>
+    /// Get available one-time requests
+    /// </summary>
+    public List<NPCRequest> GetAvailableRequests()
+    {
+        var available = new List<NPCRequest>();
+        if (OneTimeRequests != null)
+        {
+            foreach (var request in OneTimeRequests)
+            {
+                if (request.IsAvailable())
+                {
+                    available.Add(request);
+                }
+            }
+        }
+        return available;
+    }
+    
+    /// <summary>
+    /// Check if NPC has any available one-time requests
+    /// </summary>
+    public bool HasAvailableRequests()
+    {
+        return GetAvailableRequests().Count > 0;
+    }
+    
+    /// <summary>
+    /// Get a specific request by ID
+    /// </summary>
+    public NPCRequest GetRequestById(string requestId)
+    {
+        if (OneTimeRequests != null)
+        {
+            foreach (var request in OneTimeRequests)
+            {
+                if (request.Id == requestId)
+                {
+                    return request;
+                }
+            }
+        }
+        return null;
+    }
+    
+    /// <summary>
+    /// Mark a request as completed
+    /// </summary>
+    public void CompleteRequest(string requestId)
+    {
+        var request = GetRequestById(requestId);
+        if (request != null)
+        {
+            request.Complete();
+        }
     }
 
 }

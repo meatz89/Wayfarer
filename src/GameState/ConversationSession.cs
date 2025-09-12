@@ -116,18 +116,6 @@ public class ConversationSession
 
     public ConversationOutcome CheckThresholds()
     {
-        if (CurrentFlow >= 100)
-        {
-            return new ConversationOutcome
-            {
-                Success = true,
-                FinalFlow = CurrentFlow,
-                FinalState = CurrentState,
-                TokensEarned = CalculateTokenReward(),
-                Reason = "Flow threshold reached"
-            };
-        }
-
         if (CurrentPatience <= 0)
         {
             return new ConversationOutcome

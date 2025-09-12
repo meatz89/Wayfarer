@@ -382,57 +382,26 @@ public class ConversationFacade
             return options;
         }
 
-        // Get specific cards from RequestDeck for Letter/Promise conversations
-        if (npc.RequestDeck != null && npc.RequestDeck.HasCardsAvailable())
+        // Get one-time requests as conversation options
+        if (npc.OneTimeRequests != null && npc.OneTimeRequests.Count > 0)
         {
-            List<ConversationCard> requestCards = npc.RequestDeck.GetAllCards();
+            var availableRequests = npc.GetAvailableRequests();
             
-            // Add Letter cards as individual options
-            foreach (ConversationCard card in requestCards.Where(c => c.CardType == CardType.Letter))
+            // Add each available request as a conversation option
+            foreach (var request in availableRequests)
             {
+                // For now, add the request as a single option that will show all cards
+                // Later we'll update the UI to show all cards from the request
                 options.Add(new ConversationOption
                 {
-                    Type = ConversationType.Promise, // Letters use Promise conversation type
-                    GoalCardId = card.Id,
-                    DisplayName = $"Letter: {card.Description}",
-                    Description = card.Description,
-                    TokenType = card.TokenType,
-                    RapportThreshold = card.RapportThreshold,
-                    CardType = card.CardType
+                    Type = ConversationType.Promise, // One-time requests use Promise type
+                    GoalCardId = request.Id, // Use request ID to identify which request
+                    DisplayName = request.Name,
+                    Description = request.Description,
+                    TokenType = ConnectionType.Trust, // Default token type
+                    RapportThreshold = 0, // Will check individual card thresholds
+                    CardType = CardType.Promise
                 });
-            }
-            
-            // Add Promise cards as individual options (for token increases)
-            foreach (ConversationCard card in requestCards.Where(c => c.CardType == CardType.Promise))
-            {
-                options.Add(new ConversationOption
-                {
-                    Type = ConversationType.FriendlyChat, // Token goal cards use FriendlyChat
-                    GoalCardId = card.Id,
-                    DisplayName = $"Chat: {card.Description}",
-                    Description = card.Description,
-                    TokenType = card.TokenType,
-                    RapportThreshold = card.RapportThreshold,
-                    CardType = card.CardType
-                });
-            }
-            
-            // Add BurdenGoal cards if player has enough burdens
-            if (npc.CountBurdenCards() >= 2)
-            {
-                foreach (ConversationCard card in requestCards.Where(c => c.CardType == CardType.BurdenGoal))
-                {
-                    options.Add(new ConversationOption
-                    {
-                        Type = ConversationType.Resolution,
-                        GoalCardId = card.Id,
-                        DisplayName = $"Resolution: {card.Description}",
-                        Description = card.Description,
-                        TokenType = card.TokenType,
-                        RapportThreshold = card.RapportThreshold,
-                        CardType = card.CardType
-                    });
-                }
             }
         }
 
@@ -498,7 +467,7 @@ public class ConversationFacade
         if (npc.HasPromiseCards())
         {
             ConnectionState currentState = ConversationRules.DetermineInitialState(npc, _queueManager);
-            if (npc.HasValidRequestCard(currentState))
+            if (npc.HasAvailableRequests())
             {
                 available.Add(ConversationType.Promise);
             }

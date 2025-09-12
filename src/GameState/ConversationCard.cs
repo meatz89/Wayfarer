@@ -31,6 +31,11 @@ public class ConversationCard
 
     // Rapport threshold for goal cards (Letter, Promise, BurdenGoal)
     public int RapportThreshold { get; set; } = 0;
+    
+    // Promise card specific properties
+    public int QueuePosition { get; set; } = 0; // Position to force in queue (usually 1)
+    public int InstantRapport { get; set; } = 0; // Rapport gained from burning tokens
+    public string RequestId { get; set; } // Links card to its parent NPCRequest
 
     // Three-effect system: each card can have Success, Failure, and Exhaust effects
     public CardEffect SuccessEffect { get; set; } = CardEffect.None;
