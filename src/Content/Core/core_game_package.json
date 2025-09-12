@@ -177,7 +177,40 @@
           "type": "OfferLetter",
           "value": "elena_urgent_letter"
         },
-        "dialogueFragment": "Please, I need someone to deliver this letter to Lord Blackwood immediately. It's my response to his proposal - he leaves at sunset!"
+        "npcRequestText": "Please, I need someone to deliver this letter to Lord Blackwood immediately. It's my response to his proposal - he leaves at sunset!",
+        "dialogueFragment": "I'll deliver your letter to Lord Blackwood. You have my word."
+      },
+      {
+        "id": "elena_safety_request",
+        "type": "Normal",
+        "personalityTypes": ["DEVOTED"],
+        "focus": 7,
+        "properties": ["OneShot"],
+        "connectionType": "Trust",
+        "description": "Get me to safety before nightfall",
+        "difficulty": "Medium",
+        "rapportThreshold": 10,
+        "successEffect": {
+          "type": "AddObligation",
+          "value": "elena_safety_obligation"
+        },
+        "npcRequestText": "I fear for my safety. Lord Blackwood's rivals know about the letter. Can you escort me to the North Gate before nightfall? I'll pay well for your protection.",
+        "dialogueFragment": "I'll get you to the North Gate safely. We should leave soon."
+      },
+      {
+        "id": "elena_priority_promise",
+        "type": "Normal",
+        "personalityTypes": ["ALL"],
+        "focus": 3,
+        "properties": ["OneShot"],
+        "connectionType": "Trust",
+        "description": "Make Elena my priority",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "ForceQueuePosition",
+          "value": "1"
+        },
+        "dialogueFragment": "Elena, I promise to make your needs my absolute priority. Everything else can wait."
       },
       {
         "id": "marcus_quick_trade",
@@ -609,8 +642,8 @@
         "npcId": "elena",
         "name": "Urgent Letter Delivery",
         "description": "Elena needs her letter delivered to Lord Blackwood before sunset",
-        "requestCards": ["elena_letter_request"],
-        "promiseCards": []
+        "requestCards": ["elena_letter_request", "elena_safety_request"],
+        "promiseCards": ["elena_priority_promise"]
       }
     ]
   }
