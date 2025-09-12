@@ -181,6 +181,19 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 ApplySingleReward(reward, npc);
                 result.RewardsGranted[reward.Type] = reward.Amount;
             }
+
+            // Grant item rewards
+            foreach (string itemId in exchange.ItemRewards)
+            {
+                if (_resourceFacade.AddItem(itemId))
+                {
+                    result.ItemsGranted.Add(itemId);
+                }
+                else
+                {
+                    Console.WriteLine($"[ExchangeProcessor] Failed to grant item: {itemId} (inventory full?)");
+                }
+            }
         }
 
         /// <summary>
@@ -222,14 +235,6 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
 
                 case ResourceType.ShadowToken:
                     _tokenFacade.AddTokensToNPC(ConnectionType.Shadow, reward.Amount, npc.ID);
-                    break;
-
-                case ResourceType.Item:
-                    // Handle item rewards (need item ID from exchange data)
-                    if (!string.IsNullOrEmpty(reward.ItemId))
-                    {
-                        _resourceFacade.AddItem(reward.ItemId);
-                    }
                     break;
 
                 default:
@@ -380,11 +385,12 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             }
 
             // Add reward summary
-            if (result.RewardsGranted.Any())
+            if (result.RewardsGranted.Any() || result.ItemsGranted.Any())
             {
                 List<string> rewards = result.RewardsGranted
                     .Select(r => $"{r.Value} {GetResourceDisplayName(r.Key)}")
                     .ToList();
+                rewards.AddRange(result.ItemsGranted);
                 message += $" (Received: {string.Join(", ", rewards)})";
             }
 

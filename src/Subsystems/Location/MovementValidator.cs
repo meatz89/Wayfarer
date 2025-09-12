@@ -118,7 +118,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
 
             // Check if spot has any restrictions on leaving
             // For now, all spots allow movement unless explicitly restricted
-            // TODO: Add NoExit to SpotPropertyType if needed
             // if (spot.SpotProperties?.Contains(SpotPropertyType.NoExit) == true)
             // {
             //     return false;
@@ -135,7 +134,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             if (spot == null) return false;
 
             // Check if spot has time-based restrictions
-            // TODO: Add NightOnly/DayOnly to SpotPropertyType if needed
             // These restrictions are now handled through time-specific properties
             // if (spot.SpotProperties?.Contains(SpotPropertyType.NightOnly) == true)
             // {

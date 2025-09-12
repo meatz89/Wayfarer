@@ -7,7 +7,6 @@ public class LoadingStateService
 {
     public bool IsLoading { get; private set; }
     public string LoadingMessage { get; private set; }
-    public string Message => LoadingMessage;  // Alias for UI compatibility
     public int Progress { get; private set; }
     private bool stateChangedFlag;
 

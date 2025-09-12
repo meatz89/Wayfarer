@@ -316,12 +316,6 @@ public class CardEffectProcessor
         return preRolledValue <= adjustedSuccessChance;
     }
 
-    // Get actual roll value for display (legacy method for compatibility)
-    public int GetLastRollValue()
-    {
-        // This is deprecated - rolls are now pre-calculated
-        return 0;
-    }
 
     // Process advance connection state effect (observation cards only)
     private string ProcessAdvanceConnectionState(CardEffect effect, ConversationSession session)

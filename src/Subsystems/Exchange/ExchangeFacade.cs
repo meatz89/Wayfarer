@@ -334,6 +334,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         public string Message { get; set; }
         public Dictionary<ResourceType, int> CostsApplied { get; set; }
         public Dictionary<ResourceType, int> RewardsGranted { get; set; }
+        public List<string> ItemsGranted { get; set; } = new List<string>();
         public List<string> SideEffects { get; set; }
     }
 

@@ -8,6 +8,7 @@ public class ExchangeData
     public string Description { get; set; }
     public List<ResourceAmount> Costs { get; set; } = new();
     public List<ResourceAmount> Rewards { get; set; } = new();
+    public List<string> ItemRewards { get; set; } = new();
     public int TrustRequirement { get; set; }
     public bool IsAvailable { get; set; } = true;
     public bool SingleUse { get; set; }
@@ -102,6 +103,10 @@ public class ExchangeData
         foreach (ResourceAmount reward in Rewards)
         {
             receivesList.Add($"{reward.Amount} {reward.Type.ToString().ToLower()}");
+        }
+        foreach (string itemId in ItemRewards)
+        {
+            receivesList.Add(itemId);
         }
 
         return $"Trading {string.Join(", ", givesList)} for {string.Join(", ", receivesList)}";

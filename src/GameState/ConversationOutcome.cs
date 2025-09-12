@@ -8,5 +8,4 @@ public class ConversationOutcome
     public int TokensEarned { get; set; }
     public string Reason { get; set; }
     public bool RequestAchieved { get; set; }
-    public int TotalFlow => FinalFlow;  // Alias for compatibility
 }

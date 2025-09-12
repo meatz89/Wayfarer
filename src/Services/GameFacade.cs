@@ -633,7 +633,6 @@ public class GameFacade
         return false;
     }
 
-    // ========== LEGACY/STUB METHODS ==========
 
     public ConnectionState GetNPCConnectionState(string npcId)
     {

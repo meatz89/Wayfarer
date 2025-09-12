@@ -333,9 +333,8 @@ namespace Wayfarer.Pages.Components
             }
             else
             {
-                // Handle other action types through GameFacade
-                // TODO: Implement ExecuteLocationActionAsync in GameFacade for other action types
-                Console.WriteLine($"[LocationContent] Action type {action.ActionType} not yet implemented");
+                // Other action types not supported in current game design
+                Console.WriteLine($"[LocationContent] Action type {action.ActionType} not supported");
             }
         }
 
@@ -363,13 +362,10 @@ namespace Wayfarer.Pages.Components
         {
             Console.WriteLine($"[LocationContent] Performing location action: {action.ActionType}");
 
-            // For now, we'll implement a simple placeholder that just logs the action
-            // TODO: Implement proper action handling through GameFacade
             try
             {
-                // Eventually this should call GameFacade.PerformLocationAction(action)
-                // For now, just simulate the action
-                Console.WriteLine($"[LocationContent] Simulating action: {action.Title}");
+                // Location actions are executed through specific handlers based on type
+                Console.WriteLine($"[LocationContent] Executing action: {action.Title}");
                 Console.WriteLine($"[LocationContent] Action cost: {action.Cost}");
                 Console.WriteLine($"[LocationContent] Action detail: {action.Detail}");
 

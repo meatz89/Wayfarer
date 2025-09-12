@@ -86,7 +86,7 @@ public class CardDeckManager
                         SuccessChance = 0
                     }
                 },
-                TotalFlow = 0
+                FinalFlow = 0
             };
         }
 
@@ -109,7 +109,7 @@ public class CardDeckManager
                         SuccessChance = 0
                     }
                 },
-                TotalFlow = 0
+                FinalFlow = 0
             };
         }
 
@@ -222,7 +222,7 @@ public class CardDeckManager
                     SuccessChance = successPercentage
                 }
             },
-            TotalFlow = flowChange
+            FinalFlow = flowChange
         };
 
         // Handle exhaust ending conversation
@@ -524,8 +524,8 @@ public class CardDeckManager
                 
             case ConversationType.Delivery:
                 // For Delivery, the goal card is generated based on the letter being delivered
-                // This is handled separately as it depends on the obligation
-                return null; // TODO: Implement delivery goal card selection
+                // This is handled by the obligation system when the delivery conversation starts
+                return null;
                 
             case ConversationType.Resolution:
                 // For Resolution, select from burden resolution cards

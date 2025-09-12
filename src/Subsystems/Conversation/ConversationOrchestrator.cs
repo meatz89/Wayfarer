@@ -207,7 +207,7 @@ public class ConversationOrchestrator
         CardPlayResult playResult = _deckManager.PlayCard(session, selectedCard);
 
         int oldFlow = session.FlowBattery;
-        int flowChange = playResult.TotalFlow;
+        int flowChange = playResult.FinalFlow;
 
         // Apply flow change through battery manager
         bool conversationEnded = false;

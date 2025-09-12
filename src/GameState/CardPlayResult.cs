@@ -2,7 +2,7 @@
 // Card play results
 public class CardPlayResult
 {
-    public int TotalFlow { get; init; }
+    public int FinalFlow { get; init; }
     public ConnectionState? NewState { get; init; }
     public List<SingleCardResult> Results { get; init; }
     public int SetBonus { get; init; }

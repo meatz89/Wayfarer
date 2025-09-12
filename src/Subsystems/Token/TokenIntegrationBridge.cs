@@ -10,14 +10,14 @@ namespace Wayfarer.Subsystems.TokenSubsystem
     public class TokenIntegrationBridge
     {
         private readonly TokenFacade _tokenFacade;
-        private readonly TokenMechanicsManager _legacyTokenManager;
+        private readonly TokenMechanicsManager _tokenManager;
 
         public TokenIntegrationBridge(
             TokenFacade tokenFacade,
-            TokenMechanicsManager legacyTokenManager)
+            TokenMechanicsManager tokenManager)
         {
             _tokenFacade = tokenFacade;
-            _legacyTokenManager = legacyTokenManager;
+            _tokenManager = tokenManager;
         }
 
         /// <summary>

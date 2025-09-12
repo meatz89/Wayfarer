@@ -295,14 +295,12 @@ public static class ConversationCardParser
             
         return dto.Type.ToLower() switch
         {
-            "letter" => CardType.Letter,
             "letterrequest" => CardType.Letter,
             "promise" => CardType.Promise,
             "burdengoal" => CardType.BurdenGoal,
             "observation" => CardType.Observation,
             "goal" => DetermineGoalCardType(dto, successEffect),
             "normal" => CardType.Conversation,
-            "request" => CardType.Promise, // Legacy request cards are promises
             _ => CardType.Conversation // Default to conversation
         };
     }

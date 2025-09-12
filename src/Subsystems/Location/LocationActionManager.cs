@@ -116,7 +116,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             if (action.Cost.ContainsKey("attention"))
             {
                 // For now, always return true until we have proper attention checking
-                // TODO: Implement proper attention checking
                 return true;
             }
 

@@ -288,10 +288,13 @@ namespace Wayfarer.Pages.Components
                 return "The exchange was completed.";
 
             var rewardDesc = "";
-            if (result.RewardsGranted != null && result.RewardsGranted.Any())
+            if ((result.RewardsGranted != null && result.RewardsGranted.Any()) || 
+                (result.ItemsGranted != null && result.ItemsGranted.Any()))
             {
-                var rewards = result.RewardsGranted.Select(kvp => $"{kvp.Value} {kvp.Key}");
-                rewardDesc = string.Join(", ", rewards);
+                var rewards = result.RewardsGranted?.Select(kvp => $"{kvp.Value} {kvp.Key}") ?? new List<string>();
+                var items = result.ItemsGranted ?? new List<string>();
+                var allRewards = rewards.Concat(items);
+                rewardDesc = string.Join(", ", allRewards);
             }
 
             if (Context?.NpcInfo != null)

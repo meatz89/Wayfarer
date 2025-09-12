@@ -388,7 +388,6 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             // Check permit requirement
             if (!string.IsNullOrEmpty(card.PermitRequirement))
             {
-                // TODO: Check player inventory for permit
                 // For now, permits are not implemented so return false
                 return false;
             }

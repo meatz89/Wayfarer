@@ -14,17 +14,21 @@ public sealed class PlayerResourceState
     public const int MAX_STAMINA = 10;
     public const int MIN_HEALTH = 0;
     public const int MAX_HEALTH = 10;
-    public const int MIN_CONCENTRATION = 0;
-    public const int MAX_CONCENTRATION = 10;
+    public const int MIN_HUNGER = 0;
+    public const int MAX_HUNGER = 100;
+    public const int MIN_ATTENTION = 0;
+    public const int MAX_ATTENTION = 10;
 
     // Private fields
     private readonly int _coins;
     private readonly int _stamina;
     private readonly int _health;
-    private readonly int _concentration;
+    private readonly int _hunger;
+    private readonly int _attention;
     private readonly int _maxStamina;
     private readonly int _maxHealth;
-    private readonly int _maxConcentration;
+    private readonly int _maxHunger;
+    private readonly int _maxAttention;
 
     // Public properties
     public int Coins => _coins;
@@ -33,20 +37,23 @@ public sealed class PlayerResourceState
 
     public int Health => _health;
 
-    public int Concentration => _concentration;
+    public int Hunger => _hunger;
+
+    public int Attention => _attention;
 
     public int MaxStamina => _maxStamina;
 
     public int MaxHealth => _maxHealth;
 
-    public int MaxConcentration => _maxConcentration;
+    public int MaxHunger => _maxHunger;
+
+    public int MaxAttention => _maxAttention;
 
     // Derived properties
     public bool IsExhausted => _stamina == 0;
 
     public bool IsHealthy => _health == _maxHealth;
 
-    public bool IsFocused => _concentration >= 5;
 
     public bool CanPerformDangerousAction => _stamina >= 4;
 
@@ -56,19 +63,23 @@ public sealed class PlayerResourceState
         int coins = 5,
         int stamina = 6,
         int health = 10,
-        int concentration = 10,
+        int hunger = 0,
+        int attention = 6,
         int maxStamina = MAX_STAMINA,
         int maxHealth = MAX_HEALTH,
-        int maxConcentration = MAX_CONCENTRATION)
+        int maxHunger = MAX_HUNGER,
+        int maxAttention = MAX_ATTENTION)
     {
         _coins = ValidateAndClamp(coins, MIN_COINS, MAX_COINS, nameof(coins));
         _stamina = ValidateAndClamp(stamina, MIN_STAMINA, maxStamina, nameof(stamina));
         _health = ValidateAndClamp(health, MIN_HEALTH, maxHealth, nameof(health));
-        _concentration = ValidateAndClamp(concentration, MIN_CONCENTRATION, maxConcentration, nameof(concentration));
+        _hunger = ValidateAndClamp(hunger, MIN_HUNGER, maxHunger, nameof(hunger));
+        _attention = ValidateAndClamp(attention, MIN_ATTENTION, maxAttention, nameof(attention));
 
         _maxStamina = ValidateAndClamp(maxStamina, 1, MAX_STAMINA, nameof(maxStamina));
         _maxHealth = ValidateAndClamp(maxHealth, 1, MAX_HEALTH, nameof(maxHealth));
-        _maxConcentration = ValidateAndClamp(maxConcentration, 1, MAX_CONCENTRATION, nameof(maxConcentration));
+        _maxHunger = ValidateAndClamp(maxHunger, 1, MAX_HUNGER, nameof(maxHunger));
+        _maxAttention = ValidateAndClamp(maxAttention, 1, MAX_ATTENTION, nameof(maxAttention));
     }
 
     /// <summary>
@@ -85,8 +96,8 @@ public sealed class PlayerResourceState
         }
 
         PlayerResourceState newState = new PlayerResourceState(
-            clampedValue, _stamina, _health, _concentration,
-            _maxStamina, _maxHealth, _maxConcentration
+            clampedValue, _stamina, _health, _hunger, _attention,
+            _maxStamina, _maxHealth, _maxHunger, _maxAttention
         );
 
         return ResourceModificationResult.Success(
@@ -108,8 +119,8 @@ public sealed class PlayerResourceState
         }
 
         PlayerResourceState newState = new PlayerResourceState(
-            _coins, clampedValue, _health, _concentration,
-            _maxStamina, _maxHealth, _maxConcentration
+            _coins, clampedValue, _health, _hunger, _attention,
+            _maxStamina, _maxHealth, _maxHunger, _maxAttention
         );
 
         return ResourceModificationResult.Success(
@@ -131,8 +142,8 @@ public sealed class PlayerResourceState
         }
 
         PlayerResourceState newState = new PlayerResourceState(
-            _coins, _stamina, clampedValue, _concentration,
-            _maxStamina, _maxHealth, _maxConcentration
+            _coins, _stamina, clampedValue, _hunger, _attention,
+            _maxStamina, _maxHealth, _maxHunger, _maxAttention
         );
 
         return ResourceModificationResult.Success(
@@ -141,41 +152,65 @@ public sealed class PlayerResourceState
     }
 
     /// <summary>
-    /// Creates a new state with modified concentration.
+    /// Creates a new state with modified hunger.
     /// </summary>
-    public ResourceModificationResult ModifyConcentration(int delta)
+    public ResourceModificationResult ModifyHunger(int delta)
     {
-        int newValue = _concentration + delta;
-        int clampedValue = Math.Clamp(newValue, MIN_CONCENTRATION, _maxConcentration);
+        int newValue = _hunger + delta;
+        int clampedValue = Math.Clamp(newValue, MIN_HUNGER, _maxHunger);
 
-        if (clampedValue == _concentration)
+        if (clampedValue == _hunger)
         {
-            return ResourceModificationResult.NoChange("Concentration");
+            return ResourceModificationResult.NoChange("Hunger");
         }
 
         PlayerResourceState newState = new PlayerResourceState(
-            _coins, _stamina, _health, clampedValue,
-            _maxStamina, _maxHealth, _maxConcentration
+            _coins, _stamina, _health, clampedValue, _attention,
+            _maxStamina, _maxHealth, _maxHunger, _maxAttention
         );
 
         return ResourceModificationResult.Success(
-            "Concentration", _concentration, clampedValue, delta, newState
+            "Hunger", _hunger, clampedValue, delta, newState
         );
     }
+
+    /// <summary>
+    /// Creates a new state with modified attention.
+    /// </summary>
+    public ResourceModificationResult ModifyAttention(int delta)
+    {
+        int newValue = _attention + delta;
+        int clampedValue = Math.Clamp(newValue, MIN_ATTENTION, _maxAttention);
+
+        if (clampedValue == _attention)
+        {
+            return ResourceModificationResult.NoChange("Attention");
+        }
+
+        PlayerResourceState newState = new PlayerResourceState(
+            _coins, _stamina, _health, _hunger, clampedValue,
+            _maxStamina, _maxHealth, _maxHunger, _maxAttention
+        );
+
+        return ResourceModificationResult.Success(
+            "Attention", _attention, clampedValue, delta, newState
+        );
+    }
+
 
     /// <summary>
     /// Creates a new state with full restoration of all resources.
     /// </summary>
     public PlayerResourceState RestoreFully()
     {
-        if (_stamina == _maxStamina && _health == _maxHealth && _concentration == _maxConcentration)
+        if (_stamina == _maxStamina && _health == _maxHealth)
         {
             return this; // Already fully restored
         }
 
         return new PlayerResourceState(
-            _coins, _maxStamina, _maxHealth, _maxConcentration,
-            _maxStamina, _maxHealth, _maxConcentration
+            _coins, _maxStamina, _maxHealth, 0, _maxAttention,
+            _maxStamina, _maxHealth, _maxHunger, _maxAttention
         );
     }
 
@@ -206,7 +241,7 @@ public sealed class PlayerResourceState
 
     public override string ToString()
     {
-        return $"Coins: {_coins}, Stamina: {_stamina}/{_maxStamina}, Health: {_health}/{_maxHealth}, Concentration: {_concentration}/{_maxConcentration}";
+        return $"Coins: {_coins}, Stamina: {_stamina}/{_maxStamina}, Health: {_health}/{_maxHealth}, Hunger: {_hunger}/{_maxHunger}, Attention: {_attention}/{_maxAttention}";
     }
 }
 

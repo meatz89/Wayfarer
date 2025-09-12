@@ -18,8 +18,87 @@ public class ConversationNarrativeService
     }
 
     /// <summary>
+    /// Phase 1 only: Generates NPC dialogue without card narratives.
+    /// For progressive UI updates - show NPC dialogue first.
+    /// </summary>
+    public async Task<NarrativeOutput> GenerateOnlyNPCDialogueAsync(
+        ConversationSession session,
+        NPC npc,
+        List<CardInstance> activeCards)
+    {
+        Console.WriteLine("[ConversationNarrativeService] GenerateOnlyNPCDialogueAsync called");
+        try
+        {
+            // Get provider from factory
+            INarrativeProvider provider = await _providerFactory.GetProviderAsync();
+            Console.WriteLine($"[ConversationNarrativeService] Got provider for phase 1: {provider?.GetProviderType().ToString() ?? "null"}");
+
+            // Convert game models to narrative models
+            ConversationState conversationState = BuildConversationState(session);
+            NPCData npcData = BuildNPCData(npc);
+            CardCollection cardCollection = BuildCardCollection(activeCards);
+
+            // Generate NPC dialogue only (Phase 1)
+            NarrativeOutput narrativeOutput = await provider.GenerateNPCDialogueAsync(
+                conversationState,
+                npcData,
+                cardCollection);
+
+            // Add provider source for UI styling
+            narrativeOutput.ProviderSource = provider.GetProviderType();
+
+            return narrativeOutput;
+        }
+        catch
+        {
+            // If narrative generation fails, provide minimal fallback
+            return CreateMinimalFallbackNarrative(session, npc, activeCards);
+        }
+    }
+
+    /// <summary>
+    /// Phase 2 only: Generates card narratives based on existing NPC dialogue.
+    /// For progressive UI updates - show card narratives after NPC dialogue.
+    /// </summary>
+    public async Task<List<CardNarrative>> GenerateOnlyCardNarrativesAsync(
+        ConversationSession session,
+        NPC npc,
+        List<CardInstance> activeCards,
+        string npcDialogue)
+    {
+        Console.WriteLine("[ConversationNarrativeService] GenerateOnlyCardNarrativesAsync called");
+        try
+        {
+            // Get provider from factory
+            INarrativeProvider provider = await _providerFactory.GetProviderAsync();
+            Console.WriteLine($"[ConversationNarrativeService] Got provider for phase 2: {provider?.GetProviderType().ToString() ?? "null"}");
+
+            // Convert game models to narrative models
+            ConversationState conversationState = BuildConversationState(session);
+            NPCData npcData = BuildNPCData(npc);
+            CardCollection cardCollection = BuildCardCollection(activeCards);
+
+            // Generate card narratives only (Phase 2)
+            List<CardNarrative> cardNarratives = await provider.GenerateCardNarrativesAsync(
+                conversationState,
+                npcData,
+                cardCollection,
+                npcDialogue);
+
+            return cardNarratives ?? new List<CardNarrative>();
+        }
+        catch
+        {
+            // If narrative generation fails, provide empty list
+            Console.WriteLine("[ConversationNarrativeService] Failed to generate card narratives, returning empty list");
+            return new List<CardNarrative>();
+        }
+    }
+
+    /// <summary>
     /// Generates narrative content for current conversation state using available providers.
     /// Converts game models to narrative models, calls provider, and handles fallback.
+    /// This does BOTH phases at once for backward compatibility.
     /// </summary>
     /// <param name="session">Current conversation session</param>
     /// <param name="npc">NPC being conversed with</param>

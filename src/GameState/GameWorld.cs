@@ -120,9 +120,6 @@ public class GameWorld
     // Event collections for Event route segments (containing eventIds, not pathCardIds)
     public Dictionary<string, PathCardCollectionDTO> AllEventCollections { get; set; } = new Dictionary<string, PathCardCollectionDTO>();
     
-    // Event pools for each route (for random event drawing in caravan segments) - DEPRECATED, use AllEventCollections instead
-    public Dictionary<string, List<string>> RouteEventPools { get; set; } = new Dictionary<string, List<string>>();
-
     /// <summary>
     /// Get a report of all skeletons that need to be populated
     /// </summary>
@@ -156,38 +153,20 @@ public class GameWorld
 
     public PlayerResourceState GetPlayerResourceState()
     {
-        // Get resource state from the actual Player object
+        // Get resource state from the actual Player object with proper 1:1 mapping
         return new PlayerResourceState(
             coins: Player.Coins,
-            stamina: Player.Attention,  // Using Attention for stamina parameter
+            stamina: Player.Stamina,
             health: Player.Health,
-            concentration: 0  // Deprecated - will be removed
+            hunger: Player.Hunger,
+            attention: Player.Attention,
+            maxStamina: Player.MaxStamina,
+            maxHealth: Player.MaxHealth,
+            maxHunger: Player.MaxHunger,
+            maxAttention: Player.MaxAttention
         );
     }
 
-    public Guid GetGameInstanceId()
-    {
-        return GameInstanceId;
-    }
-
-
-    // Time management methods
-    public void AdvanceToNextDay()
-    {
-        CurrentDay++;
-        CurrentTimeBlock = TimeBlocks.Dawn;
-    }
-
-    // Endless mode management
-    public void SetEndlessMode(bool enabled)
-    {
-        EndlessMode = enabled;
-    }
-
-    public bool IsEndlessModeActive()
-    {
-        return EndlessMode;
-    }
 
     /// <summary>
     /// Get all NPCs in the game world
@@ -197,20 +176,6 @@ public class GameWorld
         return NPCs ?? new List<NPC>();
     }
 
-    /// <summary>
-    /// Get property names from the current location spot as strings (for legacy compatibility)
-    /// </summary>
-    public List<string> GetCurrentSpotDomainTags()
-    {
-        Player player = GetPlayer();
-        if (player?.CurrentLocationSpot?.SpotProperties == null)
-            return new List<string>();
-
-        // Convert enum values to strings for compatibility
-        return player.CurrentLocationSpot.SpotProperties.Select(p => p.ToString()).ToList();
-    }
-
-    /// <summary>
     /// Get a location spot by ID from primary storage
     /// </summary>
     public LocationSpot GetSpot(string spotId)

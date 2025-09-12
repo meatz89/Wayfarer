@@ -414,7 +414,7 @@ namespace Wayfarer.Pages.Components
 
                         if (successes > 0)
                         {
-                            messageSystem.AddSystemMessage(string.Format("{0} card(s) succeeded! +{1} flow", successes, result.TotalFlow), SystemMessageTypes.Success);
+                            messageSystem.AddSystemMessage(string.Format("{0} card(s) succeeded! +{1} flow", successes, result.FinalFlow), SystemMessageTypes.Success);
                         }
                         if (failures > 0)
                         {
@@ -507,15 +507,15 @@ namespace Wayfarer.Pages.Components
                     IsGeneratingNarrative = true;
                     StateHasChanged(); // Update UI to show loading state
                     
-                    Console.WriteLine("[ConversationContent] Starting initial AI narrative generation...");
+                    Console.WriteLine("[ConversationContent] Starting initial AI narrative generation (Phase 1 - NPC dialogue only)...");
                     
-                    // Request initial narrative from the narrative service
-                    NarrativeOutput narrative = await NarrativeService.GenerateNarrativeAsync(
+                    // Request phase 1 narrative (NPC dialogue only) for faster initial UI update
+                    NarrativeOutput narrative = await NarrativeService.GenerateOnlyNPCDialogueAsync(
                         Session,
                         Context.Npc,
                         activeCards);
                     
-                    Console.WriteLine($"[ConversationContent] AI narrative received. Has NPC dialogue: {!string.IsNullOrWhiteSpace(narrative?.NPCDialogue)}, Card narratives count: {narrative?.CardNarratives?.Count ?? 0}");
+                    Console.WriteLine($"[ConversationContent] Phase 1 AI narrative received. Has NPC dialogue: {!string.IsNullOrWhiteSpace(narrative?.NPCDialogue)}");
                     
                     if (narrative != null && !string.IsNullOrWhiteSpace(narrative.NPCDialogue))
                     {
@@ -576,7 +576,7 @@ namespace Wayfarer.Pages.Components
             else
             {
                 Console.WriteLine("[ConversationContent.ApplyNarrativeOutput] No card narratives in output");
-                // Now trigger second phase to generate card narratives if provider supports it and we have NPC dialogue
+                // Trigger second phase to generate card narratives based on NPC dialogue
                 if (!string.IsNullOrWhiteSpace(narrative.NPCDialogue))
                 {
                     _ = GenerateCardNarrativesAsync(narrative.NPCDialogue);
@@ -598,14 +598,35 @@ namespace Wayfarer.Pages.Components
                 if (!activeCards.Any())
                     return;
                 
-                // Use NarrativeService which already has the provider factory
-                if (NarrativeService != null && Session != null)
+                // Call phase 2 to generate card narratives based on NPC dialogue
+                List<CardNarrative> cardNarratives = await NarrativeService.GenerateOnlyCardNarrativesAsync(
+                    Session,
+                    Context.Npc,
+                    activeCards,
+                    npcDialogue);
+                
+                if (cardNarratives != null && cardNarratives.Any())
                 {
-                    // Generate narrative through the service - it will handle the provider selection
-                    // For now, we'll just log that this would be the second phase
-                    // The actual implementation would need the NarrativeService to expose a method for just card narratives
-                    Console.WriteLine("[ConversationContent.GenerateCardNarrativesAsync] Second phase card narrative generation would happen here");
-                    // TODO: NarrativeService needs a method to generate just card narratives
+                    Console.WriteLine($"[ConversationContent.GenerateCardNarrativesAsync] Generated {cardNarratives.Count} card narratives");
+                    
+                    // Apply the card narratives to the UI
+                    CurrentCardNarratives.Clear();
+                    CurrentCardNarratives.AddRange(cardNarratives);
+                    
+                    foreach (var cardNarrative in cardNarratives)
+                    {
+                        if (!string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
+                        {
+                            Console.WriteLine($"[ConversationContent.GenerateCardNarrativesAsync] Card {cardNarrative.CardId}: {cardNarrative.NarrativeText.Substring(0, Math.Min(50, cardNarrative.NarrativeText.Length))}...");
+                        }
+                    }
+                    
+                    // Update UI to show the new card narratives
+                    StateHasChanged();
+                }
+                else
+                {
+                    Console.WriteLine("[ConversationContent.GenerateCardNarrativesAsync] No card narratives generated in phase 2");
                 }
             }
             catch (Exception ex)
@@ -716,11 +737,11 @@ namespace Wayfarer.Pages.Components
                 }
 
                 // Add flow info more subtly
-                if (result.TotalFlow > 0)
+                if (result.FinalFlow > 0)
                 {
                     LastNarrative += " (Flow +1)";
                 }
-                else if (result.TotalFlow < 0)
+                else if (result.FinalFlow < 0)
                 {
                     LastNarrative += " (Flow -1)";
                 }
@@ -952,7 +973,7 @@ namespace Wayfarer.Pages.Components
             if (Session != null)
             {
                 ConversationOutcome outcome = ConversationFacade.EndConversation();
-                Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Flow={outcome.TotalFlow}, TokensEarned={outcome.TokensEarned}");
+                Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Flow={outcome.FinalFlow}, TokensEarned={outcome.TokensEarned}");
             }
 
             Session = null;
@@ -968,7 +989,7 @@ namespace Wayfarer.Pages.Components
             if (Session != null)
             {
                 ConversationOutcome outcome = ConversationFacade.EndConversation();
-                Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Flow={outcome.TotalFlow}, TokensEarned={outcome.TokensEarned}");
+                Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Flow={outcome.FinalFlow}, TokensEarned={outcome.TokensEarned}");
             }
 
             Session = null;
@@ -1777,21 +1798,7 @@ namespace Wayfarer.Pages.Components
                     }
                 }
 
-                // TODO: Add item rewards from PlayerReceives when implemented in new architecture
-                // if (card.Context.ExchangeData.PlayerReceives != null && card.Context.ExchangeData.PlayerReceives.Any())
-                // {
-                //     foreach (KeyValuePair<string, int> item in card.Context.ExchangeData.PlayerReceives)
-                //     {
-                //         if (item.Key == "items")
-                //         {
-                //             rewardParts.Add($"{item.Value} items");
-                //         }
-                //         else
-                //         {
-                //             rewardParts.Add(item.Value > 1 ? $"{item.Value} {item.Key}" : item.Key.Replace("_", " "));
-                //         }
-                //     }
-                // }
+                // Item rewards are handled through the Resource system
 
                 if (rewardParts.Any())
                 {

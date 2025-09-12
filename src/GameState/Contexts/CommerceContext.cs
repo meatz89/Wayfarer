@@ -66,7 +66,7 @@ public class CommerceContext : ConversationContextBase
                     if (playerResourceState.Stamina < cost.Amount) return false;
                     break;
                 case ResourceType.Attention:
-                    if (AttentionSpent + cost.Amount > playerResourceState.MaxConcentration) return false;
+                    if (AttentionSpent + cost.Amount > base.PlayerResources.Attention) return false;
                     break;
             }
         }

@@ -561,8 +561,7 @@ public class PackageLoader
 
         if (deckCompositions == null)
         {
-            Console.WriteLine("[PackageLoader] No deck compositions defined, using legacy single-card initialization");
-            InitializeLegacyConversationDecks();
+            Console.WriteLine("[PackageLoader] Error: No deck compositions defined in package");
             return;
         }
 
@@ -623,25 +622,6 @@ public class PackageLoader
         Console.WriteLine("[PackageLoader] NPC conversation deck initialization completed");
     }
 
-    private void InitializeLegacyConversationDecks()
-    {
-        // Fallback to old behavior when no composition is defined
-        List<ConversationCard> starterDeckCards = _gameWorld.AllCardDefinitions.Values
-            .OfType<ConversationCard>()
-            .Where(card => card.PersonalityTypes != null &&
-                          card.PersonalityTypes.Contains("ALL") &&
-                          !(card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal))
-            .ToList();
-
-        foreach (NPC npc in _gameWorld.NPCs)
-        {
-            npc.ConversationDeck = new CardDeck();
-            foreach (ConversationCard card in starterDeckCards)
-            {
-                npc.ConversationDeck.AddCard(card);
-            }
-        }
-    }
 
     /// <summary>
     /// Initialize request decks for NPCs from NpcGoalCards
@@ -965,13 +945,6 @@ public class PackageLoader
             route.EncounterDeckIds.AddRange(dto.EncounterDeckIds);
         }
         
-        // Store route event pool in GameWorld for easy access by TravelManager
-        if (dto.EventPool != null && dto.EventPool.Count > 0)
-        {
-            _gameWorld.RouteEventPools[route.Id] = new List<string>(dto.EventPool);
-            Console.WriteLine($"[PackageLoader] Added event pool for route {route.Id} with {dto.EventPool.Count} events");
-        }
-
         return route;
     }
 
@@ -1145,7 +1118,7 @@ public class PackageLoader
         // No separate card dictionaries needed
 
         // Initialize EventDeckPositions for routes with event pools
-        foreach (KeyValuePair<string, List<string>> kvp in _gameWorld.RouteEventPools)
+        foreach (KeyValuePair<string, PathCardCollectionDTO> kvp in _gameWorld.AllEventCollections)
         {
             string routeId = kvp.Key;
             string deckKey = $"route_{routeId}_events";
@@ -1153,7 +1126,8 @@ public class PackageLoader
             // Start at position 0 for deterministic event drawing
             _gameWorld.EventDeckPositions[deckKey] = 0;
             
-            Console.WriteLine($"[PackageLoader] Initialized event deck position for route '{routeId}' with {kvp.Value.Count} events");
+            int eventCount = kvp.Value.Events?.Count ?? 0;
+            Console.WriteLine($"[PackageLoader] Initialized event deck position for route '{routeId}' with {eventCount} events");
         }
 
         // Initialize route discovery states
@@ -1254,9 +1228,9 @@ public class PackageLoader
         reverseRoute.EncounterDeckIds.AddRange(forwardRoute.EncounterDeckIds);
         
         // If the forward route has a route-level event pool, copy it to the reverse route
-        if (_gameWorld.RouteEventPools.ContainsKey(forwardRoute.Id))
+        if (_gameWorld.AllEventCollections.ContainsKey(forwardRoute.Id))
         {
-            _gameWorld.RouteEventPools[reverseRoute.Id] = new List<string>(_gameWorld.RouteEventPools[forwardRoute.Id]);
+            _gameWorld.AllEventCollections[reverseRoute.Id] = _gameWorld.AllEventCollections[forwardRoute.Id];
         }
         
         return reverseRoute;

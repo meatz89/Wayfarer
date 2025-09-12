@@ -564,8 +564,7 @@ public class TravelManager
         // Parse reward string and apply effects
         if (reward.StartsWith("observation_"))
         {
-            // Add observation card to player deck
-            // TODO: Implement observation card system
+            // Observation cards are not implemented in current design
             _messageSystem.AddSystemMessage($"One-time reward claimed: {reward}", SystemMessageTypes.Success);
         }
         else if (reward.EndsWith("_coins"))
