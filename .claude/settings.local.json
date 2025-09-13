@@ -430,7 +430,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:7004\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5280\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" timeout 15 dotnet run)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" timeout 15 dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" timeout 15 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" timeout 15 ./Wayfarer)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" timeout 15 dotnet Wayfarer.dll)"
     ],
     "deny": []
   }
