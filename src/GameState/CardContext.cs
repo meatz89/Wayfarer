@@ -6,6 +6,7 @@ public class CardContext
     public PromiseCardData PromiseData { get; set; }
     public bool GeneratesLetterOnSuccess { get; set; }
     public int RapportThreshold { get; set; } // For request/promise cards
+    public string RequestId { get; set; } // ID of the NPCRequest this card belongs to
 
     // Pre-rolled dice value (1-100) determined when card enters hand
     public int? PreRolledValue { get; set; }

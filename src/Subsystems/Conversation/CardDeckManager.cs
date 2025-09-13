@@ -129,6 +129,18 @@ public class CardDeckManager
             success = true;
             roll = 100; // For display purposes
             successPercentage = 100; // Override to show 100% in UI
+            
+            // Mark request as completed if this is a BurdenGoal (request) card
+            if (selectedCard.CardType == CardType.BurdenGoal && selectedCard.Context?.RequestId != null)
+            {
+                // Find and complete the request
+                var request = session.NPC.GetRequestById(selectedCard.Context.RequestId);
+                if (request != null)
+                {
+                    request.Complete();
+                    // The conversation will end after this card is played
+                }
+            }
         }
         else
         {
@@ -529,12 +541,34 @@ public class CardDeckManager
                 // Add ALL request cards to be returned for active pile
                 foreach (var requestCard in request.RequestCards)
                 {
-                    CardInstance instance = new CardInstance(requestCard, npc.ID);
+                    // Create a new card instance with BurdenGoal type
+                    CardInstance instance = new CardInstance
+                    {
+                        Id = requestCard.Id,
+                        Description = requestCard.Description,
+                        CardType = CardType.BurdenGoal, // Request cards are always BurdenGoal
+                        Properties = new List<CardProperty>(requestCard.Properties),
+                        TokenType = requestCard.TokenType,
+                        Focus = requestCard.Focus,
+                        Difficulty = requestCard.Difficulty,
+                        SuccessEffect = requestCard.SuccessEffect ?? new CardEffect
+                        {
+                            Type = CardEffectType.EndConversation,
+                            Value = "Request completed"
+                        },
+                        FailureEffect = requestCard.FailureEffect,
+                        ExhaustEffect = requestCard.ExhaustEffect,
+                        DialogueFragment = requestCard.DialogueFragment,
+                        VerbPhrase = requestCard.VerbPhrase,
+                        SourceContext = npc.ID
+                    };
                     
-                    // Store the rapport threshold in the card context
-                    if (instance.Context == null)
-                        instance.Context = new CardContext();
-                    instance.Context.RapportThreshold = requestCard.RapportThreshold;
+                    // Store the rapport threshold and request ID in the card context
+                    instance.Context = new CardContext
+                    {
+                        RapportThreshold = requestCard.RapportThreshold,
+                        RequestId = request.Id
+                    };
                     
                     // Request cards start as Unplayable until rapport threshold is met
                     if (!instance.Properties.Contains(CardProperty.Unplayable))
