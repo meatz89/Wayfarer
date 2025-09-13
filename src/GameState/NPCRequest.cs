@@ -31,16 +31,18 @@ public class NPCRequest
     public RequestStatus Status { get; set; } = RequestStatus.Available;
     
     /// <summary>
-    /// Request cards with different rapport thresholds offering varying rewards
+    /// Request card IDs with different rapport thresholds offering varying rewards
     /// Each card represents a different level of commitment to the request
+    /// Cards are stored by ID only - actual cards are in GameWorld.AllCardDefinitions
     /// </summary>
-    public List<ConversationCard> RequestCards { get; set; } = new List<ConversationCard>();
+    public List<string> RequestCardIds { get; set; } = new List<string>();
     
     /// <summary>
-    /// Promise cards that force queue position 1 and burn tokens for instant rapport
+    /// Promise card IDs that force queue position 1 and burn tokens for instant rapport
     /// These represent immediate action at the cost of other relationships
+    /// Cards are stored by ID only - actual cards are in GameWorld.AllCardDefinitions
     /// </summary>
-    public List<ConversationCard> PromiseCards { get; set; } = new List<ConversationCard>();
+    public List<string> PromiseCardIds { get; set; } = new List<string>();
     
     /// <summary>
     /// Check if this request is available to attempt
@@ -57,13 +59,55 @@ public class NPCRequest
     
     /// <summary>
     /// Get all cards associated with this request (both request and promise cards)
+    /// Resolves card IDs to actual cards from GameWorld
     /// </summary>
-    public List<ConversationCard> GetAllCards()
+    public List<ConversationCard> GetAllCards(GameWorld gameWorld)
     {
         var allCards = new List<ConversationCard>();
-        allCards.AddRange(RequestCards);
-        allCards.AddRange(PromiseCards);
+        
+        // Resolve request card IDs
+        foreach (var cardId in RequestCardIds)
+        {
+            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
+                allCards.Add(card);
+        }
+        
+        // Resolve promise card IDs
+        foreach (var cardId in PromiseCardIds)
+        {
+            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
+                allCards.Add(card);
+        }
+        
         return allCards;
+    }
+    
+    /// <summary>
+    /// Get request cards by resolving IDs from GameWorld
+    /// </summary>
+    public List<ConversationCard> GetRequestCards(GameWorld gameWorld)
+    {
+        var cards = new List<ConversationCard>();
+        foreach (var cardId in RequestCardIds)
+        {
+            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
+                cards.Add(card);
+        }
+        return cards;
+    }
+    
+    /// <summary>
+    /// Get promise cards by resolving IDs from GameWorld
+    /// </summary>
+    public List<ConversationCard> GetPromiseCards(GameWorld gameWorld)
+    {
+        var cards = new List<ConversationCard>();
+        foreach (var cardId in PromiseCardIds)
+        {
+            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
+                cards.Add(card);
+        }
+        return cards;
     }
 }
 

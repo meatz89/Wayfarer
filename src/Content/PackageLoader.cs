@@ -653,44 +653,44 @@ public class PackageLoader
                         Status = RequestStatus.Available
                     };
 
-                    // Load request cards
+                    // Load request card IDs (validate they exist but store only IDs)
                     if (requestDto.RequestCards != null)
                     {
                         foreach (string cardId in requestDto.RequestCards)
                         {
-                            if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard card))
+                            if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
                             {
-                                request.RequestCards.Add(card);
-                                Console.WriteLine($"[PackageLoader] Added request card '{cardId}' to request '{requestDto.Id}'");
+                                request.RequestCardIds.Add(cardId);
+                                Console.WriteLine($"[PackageLoader] Added request card ID '{cardId}' to request '{requestDto.Id}'");
                             }
                             else
                             {
-                                Console.WriteLine($"[PackageLoader] Warning: Request card '{cardId}' not found");
+                                Console.WriteLine($"[PackageLoader] Warning: Request card '{cardId}' not found in GameWorld.AllCardDefinitions");
                             }
                         }
                     }
 
-                    // Load promise cards
+                    // Load promise card IDs (validate they exist but store only IDs)
                     if (requestDto.PromiseCards != null)
                     {
                         foreach (string cardId in requestDto.PromiseCards)
                         {
-                            if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard card))
+                            if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
                             {
-                                request.PromiseCards.Add(card);
-                                Console.WriteLine($"[PackageLoader] Added promise card '{cardId}' to request '{requestDto.Id}'");
+                                request.PromiseCardIds.Add(cardId);
+                                Console.WriteLine($"[PackageLoader] Added promise card ID '{cardId}' to request '{requestDto.Id}'");
                             }
                             else
                             {
-                                Console.WriteLine($"[PackageLoader] Warning: Promise card '{cardId}' not found");
+                                Console.WriteLine($"[PackageLoader] Warning: Promise card '{cardId}' not found in GameWorld.AllCardDefinitions");
                             }
                         }
                     }
 
-                    if (request.RequestCards.Count > 0 || request.PromiseCards.Count > 0)
+                    if (request.RequestCardIds.Count > 0 || request.PromiseCardIds.Count > 0)
                     {
                         npc.Requests.Add(request);
-                        Console.WriteLine($"[PackageLoader] Added request '{requestDto.Id}' to NPC '{npc.Name}' with {request.RequestCards.Count} request cards and {request.PromiseCards.Count} promise cards");
+                        Console.WriteLine($"[PackageLoader] Added request '{requestDto.Id}' to NPC '{npc.Name}' with {request.RequestCardIds.Count} request card IDs and {request.PromiseCardIds.Count} promise card IDs");
                     }
                 }
                 catch (Exception ex)
@@ -804,23 +804,23 @@ public class PackageLoader
                         Status = RequestStatus.Available
                     };
                     
-                    // Separate promise cards from regular request cards
+                    // Separate promise cards from regular request cards (store IDs only)
                     foreach (var card in requestCards)
                     {
                         if (card.CardType == CardType.Promise)
                         {
-                            defaultRequest.PromiseCards.Add(card);
+                            defaultRequest.PromiseCardIds.Add(card.Id);
                         }
                         else if (card.CardType == CardType.Letter || card.CardType == CardType.BurdenGoal)
                         {
-                            defaultRequest.RequestCards.Add(card);
+                            defaultRequest.RequestCardIds.Add(card.Id);
                         }
                     }
                     
-                    if (defaultRequest.RequestCards.Count > 0 || defaultRequest.PromiseCards.Count > 0)
+                    if (defaultRequest.RequestCardIds.Count > 0 || defaultRequest.PromiseCardIds.Count > 0)
                     {
                         npc.Requests.Add(defaultRequest);
-                        Console.WriteLine($"[PackageLoader] Created default request for {npc.Name} with {defaultRequest.RequestCards.Count} request cards and {defaultRequest.PromiseCards.Count} promise cards");
+                        Console.WriteLine($"[PackageLoader] Created default request for {npc.Name} with {defaultRequest.RequestCardIds.Count} request card IDs and {defaultRequest.PromiseCardIds.Count} promise card IDs");
                     }
                 }
                 

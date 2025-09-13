@@ -126,7 +126,7 @@ public class NPC
     public bool HasPromiseCards()
     {
         if (Requests == null) return false;
-        return Requests.Any(r => r.IsAvailable() && r.PromiseCards.Any());
+        return Requests.Any(r => r.IsAvailable() && r.PromiseCardIds.Any());
     }
 
     // Check if NPC has burden history (cards in burden deck)

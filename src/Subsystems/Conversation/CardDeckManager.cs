@@ -539,8 +539,15 @@ public class CardDeckManager
                 // Load ALL cards from the Request bundle
                 
                 // Add ALL request cards to be returned for active pile
-                foreach (var requestCard in request.RequestCards)
+                foreach (var requestCardId in request.RequestCardIds)
                 {
+                    // Retrieve the card from GameWorld - single source of truth
+                    if (!_gameWorld.AllCardDefinitions.TryGetValue(requestCardId, out var requestCard))
+                    {
+                        Console.WriteLine($"[CardDeckManager] Warning: Request card ID '{requestCardId}' not found in GameWorld.AllCardDefinitions");
+                        continue;
+                    }
+                    
                     // Create a new card instance with BurdenGoal type
                     CardInstance instance = new CardInstance
                     {
@@ -578,8 +585,15 @@ public class CardDeckManager
                 }
                 
                 // Add promise cards to the deck for shuffling (not returned)
-                foreach (var promiseCard in request.PromiseCards)
+                foreach (var promiseCardId in request.PromiseCardIds)
                 {
+                    // Retrieve the card from GameWorld - single source of truth
+                    if (!_gameWorld.AllCardDefinitions.TryGetValue(promiseCardId, out var promiseCard))
+                    {
+                        Console.WriteLine($"[CardDeckManager] Warning: Promise card ID '{promiseCardId}' not found in GameWorld.AllCardDefinitions");
+                        continue;
+                    }
+                    
                     CardInstance promiseInstance = new CardInstance(promiseCard, npc.ID);
                     deck.AddCard(promiseInstance); // Add to deck for shuffling into draw pile
                 }
@@ -632,7 +646,9 @@ public class CardDeckManager
         List<ConversationCard> goalCards = new List<ConversationCard>();
         foreach (var request in availableRequests)
         {
-            goalCards.AddRange(request.PromiseCards.Where(card => card.CardType == CardType.Promise));
+            // Retrieve promise cards from GameWorld using IDs
+            var promiseCards = request.GetPromiseCards(_gameWorld);
+            goalCards.AddRange(promiseCards.Where(card => card.CardType == CardType.Promise));
         }
 
         if (!goalCards.Any())
@@ -672,7 +688,9 @@ public class CardDeckManager
         List<ConversationCard> resolutionCards = new List<ConversationCard>();
         foreach (var request in availableRequests)
         {
-            resolutionCards.AddRange(request.RequestCards.Where(card => card.CardType == CardType.BurdenGoal));
+            // Retrieve request cards from GameWorld using IDs
+            var requestCards = request.GetRequestCards(_gameWorld);
+            resolutionCards.AddRange(requestCards.Where(card => card.CardType == CardType.BurdenGoal));
         }
 
         if (!resolutionCards.Any())
@@ -709,8 +727,11 @@ public class CardDeckManager
         List<ConversationCard> requestCards = new List<ConversationCard>();
         foreach (var request in availableRequests)
         {
-            requestCards.AddRange(request.RequestCards.Where(card => IsRequestCardValidForConversation(card, conversationType)));
-            requestCards.AddRange(request.PromiseCards.Where(card => IsRequestCardValidForConversation(card, conversationType)));
+            // Retrieve cards from GameWorld using IDs
+            var reqCards = request.GetRequestCards(_gameWorld);
+            var promCards = request.GetPromiseCards(_gameWorld);
+            requestCards.AddRange(reqCards.Where(card => IsRequestCardValidForConversation(card, conversationType)));
+            requestCards.AddRange(promCards.Where(card => IsRequestCardValidForConversation(card, conversationType)));
         }
 
         if (!requestCards.Any())

@@ -160,11 +160,14 @@
                             <h4 class="request-header">@request.Name (@request.Status)</h4>
                             <div class="request-description">@request.Description</div>
                             
-                            @if (request.RequestCards.Any())
+                            @{
+                                var requestCards = NPCRepository.GetRequestCards(request);
+                            }
+                            @if (requestCards.Any())
                             {
-                                <h5>Request Cards (@request.RequestCards.Count):</h5>
+                                <h5>Request Cards (@requestCards.Count):</h5>
                                 <div class="card-list">
-                                    @foreach (var card in request.RequestCards)
+                                    @foreach (var card in requestCards)
                                     {
                                         <div class="debug-card letter-card request-card">
                                             <div class="card-header">
@@ -181,11 +184,14 @@
                                 </div>
                             }
                             
-                            @if (request.PromiseCards.Any())
+                            @{
+                                var promiseCards = NPCRepository.GetPromiseCards(request);
+                            }
+                            @if (promiseCards.Any())
                             {
-                                <h5>Promise Cards (@request.PromiseCards.Count):</h5>
+                                <h5>Promise Cards (@promiseCards.Count):</h5>
                                 <div class="card-list">
-                                    @foreach (var card in request.PromiseCards)
+                                    @foreach (var card in promiseCards)
                                     {
                                         <div class="debug-card promise-card">
                                             <div class="card-header">
