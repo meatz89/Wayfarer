@@ -30,10 +30,10 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             {
                 TimeBlocks.Dawn,
                 TimeBlocks.Morning,
+                TimeBlocks.Midday,
                 TimeBlocks.Afternoon,
                 TimeBlocks.Evening,
-                TimeBlocks.Night,
-                TimeBlocks.LateNight
+                TimeBlocks.Night
             };
 
             int currentIndex = Array.IndexOf(timeOrder, current);
@@ -68,10 +68,10 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             {
                 TimeBlocks.Dawn => "Dawn (4-8 AM)",
                 TimeBlocks.Morning => "Morning (8 AM-12 PM)",
-                TimeBlocks.Afternoon => "Afternoon (12-5 PM)",
-                TimeBlocks.Evening => "Evening (5-8 PM)",
-                TimeBlocks.Night => "Night (8 PM-10 PM)",
-                TimeBlocks.LateNight => "Late Night (10 PM-4 AM)",
+                TimeBlocks.Midday => "Afternoon (12-5 PM)",
+                TimeBlocks.Afternoon => "Evening (5-8 PM)",
+                TimeBlocks.Evening => "Night (8 PM-10 PM)",
+                TimeBlocks.Night => "Late Night (10 PM-4 AM)",
                 _ => "Unknown"
             };
         }
@@ -85,10 +85,10 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             {
                 TimeBlocks.Dawn => "You wait as the first light breaks over the horizon.",
                 TimeBlocks.Morning => "The morning sun climbs higher as time passes.",
-                TimeBlocks.Afternoon => "The day wears on toward afternoon.",
-                TimeBlocks.Evening => "Shadows lengthen as evening approaches.",
-                TimeBlocks.Night => "Darkness falls across the town.",
-                TimeBlocks.LateNight => "The deep of night settles in.",
+                TimeBlocks.Midday => "The day wears on toward afternoon.",
+                TimeBlocks.Afternoon => "Shadows lengthen as evening approaches.",
+                TimeBlocks.Evening => "Darkness falls across the town.",
+                TimeBlocks.Night => "The deep of night settles in.",
                 _ => "Time passes..."
             };
         }
@@ -104,10 +104,10 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             {
                 TimeBlocks.Dawn => 0,
                 TimeBlocks.Morning => 3,
-                TimeBlocks.Afternoon => 7,
-                TimeBlocks.Evening => 11,
-                TimeBlocks.Night => 15,
-                TimeBlocks.LateNight => 16,
+                TimeBlocks.Midday => 7,
+                TimeBlocks.Afternoon => 11,
+                TimeBlocks.Evening => 15,
+                TimeBlocks.Night => 16,
                 _ => 0
             };
         }
@@ -121,10 +121,10 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             {
                 TimeBlocks.Dawn => 2,
                 TimeBlocks.Morning => 6,
-                TimeBlocks.Afternoon => 10,
-                TimeBlocks.Evening => 14,
-                TimeBlocks.Night => 15,
-                TimeBlocks.LateNight => 16,
+                TimeBlocks.Midday => 10,
+                TimeBlocks.Afternoon => 14,
+                TimeBlocks.Evening => 15,
+                TimeBlocks.Night => 16,
                 _ => 16
             };
         }

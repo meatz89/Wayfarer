@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Wayfarer.GameState.Enums;
 
 public enum ObservationEffectType
 {
@@ -38,7 +39,10 @@ public class ObservationCard : ConversationCard
         Focus = 1;
         Difficulty = Difficulty.VeryEasy; // 85%
         CardType = CardType.Observation; // Mark as observation
-        Properties.Add(CardProperty.Persistent); // Always persistent
+        Persistence = PersistenceType.Thought; // Observations persist through LISTEN
+        SuccessType = SuccessEffectType.None; // Default, can be overridden
+        FailureType = FailureEffectType.None;
+        ExhaustType = ExhaustEffectType.None;
         CreatedAt = DateTime.Now;
     }
 
@@ -105,9 +109,10 @@ public class ObservationCard : ConversationCard
             Focus = card.Focus,
             Difficulty = card.Difficulty,
             TokenType = card.TokenType,
-            SuccessEffect = card.SuccessEffect,
-            FailureEffect = card.FailureEffect,
-            ExhaustEffect = card.ExhaustEffect,
+            Persistence = card.Persistence,
+            SuccessType = card.SuccessType,
+            FailureType = card.FailureType,
+            ExhaustType = card.ExhaustType,
             CreatedAt = DateTime.Now
         };
 
@@ -125,16 +130,16 @@ public class ObservationCard : ConversationCard
             TokenType = card.TokenType,
             Focus = card.Focus,
             Difficulty = card.Difficulty,
-            SuccessEffect = card.SuccessEffect,
-            FailureEffect = card.FailureEffect,
-            ExhaustEffect = card.ExhaustEffect,
+            Persistence = card.Persistence,
+            SuccessType = card.SuccessType,
+            FailureType = card.FailureType,
+            ExhaustType = card.ExhaustType,
             ObservationId = source,
             LocationDiscovered = location,
             CreatedAt = DateTime.Now
         };
 
-        // Copy properties and set card type
-        observation.Properties = new List<CardProperty>(card.Properties);
+        // Set card type (categorical properties already copied)
         observation.CardType = CardType.Observation;
 
         return observation;

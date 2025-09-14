@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Stateless parser for converting conversation card DTOs to domain models
@@ -18,10 +19,9 @@ public static class ConversationCardParser
     {
         List<ConversationCard> cards = new List<ConversationCard>();
 
-        // Add universal cards
+        // Add universal cards - all conversation cards that aren't special types
         IEnumerable<ConversationCardDTO> universalCards = cardTemplates.Values
-            .Where(c => string.IsNullOrEmpty(c.ForNPC) || c.ForNPC == npc.ID)
-            .Where(c => c.IsRequestCard != true);
+            .Where(c => c.Type == null || c.Type.ToLower() == "normal" || c.Type.ToLower() == "conversation");
 
         foreach (ConversationCardDTO cardDto in universalCards)
         {
@@ -73,9 +73,6 @@ public static class ConversationCardParser
         if (!cardTemplates.TryGetValue(cardId, out ConversationCardDTO dto))
             return null;
 
-        // Mark as request card to ensure proper parsing
-        dto.IsRequestCard = true;
-        
         // Convert to ConversationCard (no more RequestCard subclass)
         ConversationCard card = ConvertDTOToCard(dto);
         
@@ -90,31 +87,48 @@ public static class ConversationCardParser
     public static ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null)
     {
         // Parse token type from connection type
-        ConnectionType tokenType = ConnectionType.Trust; // Default
+        ConnectionType tokenType = ConnectionType.Trust;
         if (!string.IsNullOrEmpty(dto.ConnectionType))
         {
-            if (!Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out tokenType))
-            {
-                tokenType = ConnectionType.Trust;
-            }
+            Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out tokenType);
         }
 
         // Parse difficulty
-        Difficulty difficulty = Difficulty.Medium; // Default
+        Difficulty difficulty = Difficulty.Medium;
         if (!string.IsNullOrEmpty(dto.Difficulty))
         {
             Enum.TryParse<Difficulty>(dto.Difficulty, true, out difficulty);
         }
 
-        // Parse three-effect system from DTO
-        CardEffect successEffect = ParseEffect(dto.SuccessEffect) ?? CardEffect.None;
-        CardEffect failureEffect = ParseEffect(dto.FailureEffect) ?? CardEffect.None;
-        CardEffect exhaustEffect = ParseEffect(dto.ExhaustEffect) ?? CardEffect.None;
+        // Parse categorical properties
+        PersistenceType persistence = PersistenceType.Thought;
+        if (!string.IsNullOrEmpty(dto.Persistence))
+        {
+            Enum.TryParse<PersistenceType>(dto.Persistence, true, out persistence);
+        }
+
+        SuccessEffectType successType = SuccessEffectType.None;
+        if (!string.IsNullOrEmpty(dto.SuccessType))
+        {
+            Enum.TryParse<SuccessEffectType>(dto.SuccessType, true, out successType);
+        }
+
+        FailureEffectType failureType = FailureEffectType.None;
+        if (!string.IsNullOrEmpty(dto.FailureType))
+        {
+            Enum.TryParse<FailureEffectType>(dto.FailureType, true, out failureType);
+        }
+
+        ExhaustEffectType exhaustType = ExhaustEffectType.None;
+        if (!string.IsNullOrEmpty(dto.ExhaustType))
+        {
+            Enum.TryParse<ExhaustEffectType>(dto.ExhaustType, true, out exhaustType);
+        }
 
         // Parse card type from DTO type field
-        CardType cardType = ParseCardType(dto, successEffect);
+        CardType cardType = ParseCardType(dto);
 
-        // Create ConversationCard (no more RequestCard subclass)
+        // Create ConversationCard with categorical properties
         ConversationCard card = new ConversationCard
         {
             Id = dto.Id,
@@ -123,13 +137,13 @@ public static class ConversationCardParser
             TokenType = tokenType,
             Focus = dto.Focus,
             Difficulty = difficulty,
+            Persistence = persistence,
+            SuccessType = successType,
+            FailureType = failureType,
+            ExhaustType = exhaustType,
             PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
-            // Three-effect system
-            SuccessEffect = successEffect ?? CardEffect.None,
-            FailureEffect = failureEffect ?? CardEffect.None,
-            ExhaustEffect = exhaustEffect ?? CardEffect.None,
             DialogueFragment = dto.DialogueFragment,
-            VerbPhrase = "" // Will be set later if needed
+            VerbPhrase = ""
         };
 
         // Set MinimumTokensRequired from JSON - no defaults
@@ -137,7 +151,6 @@ public static class ConversationCardParser
         {
             card.MinimumTokensRequired = dto.MinimumTokensRequired.Value;
         }
-
 
         // Set rapport threshold for goal cards from DTO
         if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.BurdenGoal)
@@ -147,19 +160,6 @@ public static class ConversationCardParser
                 throw new InvalidOperationException($"Goal card '{dto.Id}' of type {cardType} MUST have a rapportThreshold defined in JSON!");
             }
             card.RapportThreshold = dto.RapportThreshold.Value;
-        }
-
-        // Parse properties array
-        if (dto.Properties != null && dto.Properties.Count > 0)
-        {
-            foreach (string prop in dto.Properties)
-            {
-                if (Enum.TryParse<CardProperty>(prop, true, out CardProperty cardProp))
-                {
-                    if (!card.Properties.Contains(cardProp))
-                        card.Properties.Add(cardProp);
-                }
-            }
         }
 
         return card;
@@ -182,9 +182,6 @@ public static class ConversationCardParser
     /// </summary>
     public static ConversationCard ConvertGoalCardDTO(NPCGoalCardDTO dto)
     {
-        // Parse effects
-        CardEffect successEffect = ParseEffect(dto.SuccessEffect) ?? CardEffect.None;
-        
         // Determine card type based on the goal type
         CardType cardType = dto.Type?.ToLower() switch
         {
@@ -193,103 +190,73 @@ public static class ConversationCardParser
             "burdengoal" => CardType.BurdenGoal,
             _ => CardType.Promise // Default for goal cards
         };
-        
+
+        // Parse categorical properties
+        PersistenceType persistence = PersistenceType.Thought; // Goal cards are always Thoughts
+        if (!string.IsNullOrEmpty(dto.Persistence))
+        {
+            Enum.TryParse<PersistenceType>(dto.Persistence, true, out persistence);
+        }
+
+        SuccessEffectType successType = cardType == CardType.Letter ?
+            SuccessEffectType.Advancing : SuccessEffectType.Promising;
+        if (!string.IsNullOrEmpty(dto.SuccessType))
+        {
+            Enum.TryParse<SuccessEffectType>(dto.SuccessType, true, out successType);
+        }
+
+        FailureEffectType failureType = FailureEffectType.None;
+        if (!string.IsNullOrEmpty(dto.FailureType))
+        {
+            Enum.TryParse<FailureEffectType>(dto.FailureType, true, out failureType);
+        }
+
+        ExhaustEffectType exhaustType = ExhaustEffectType.None;
+        if (!string.IsNullOrEmpty(dto.ExhaustType))
+        {
+            Enum.TryParse<ExhaustEffectType>(dto.ExhaustType, true, out exhaustType);
+        }
+
         ConversationCard card = new ConversationCard
         {
             Id = dto.Id,
             Description = dto.Description,
             CardType = cardType,
-            Focus = 0, // Goal cards have 0 focus
+            Focus = dto.Focus,
             DialogueFragment = dto.DialogueFragment,
-            Difficulty = Difficulty.VeryEasy // Goal cards always succeed
+            Difficulty = Difficulty.VeryEasy, // Goal cards typically always succeed
+            Persistence = persistence,
+            SuccessType = successType,
+            FailureType = failureType,
+            ExhaustType = exhaustType,
+            RapportThreshold = dto.RapportThreshold
         };
 
-        // Parse difficulty
-        if (Enum.TryParse<Difficulty>(dto.Difficulty, true, out Difficulty difficulty))
+        // Parse difficulty if specified
+        if (!string.IsNullOrEmpty(dto.Difficulty) &&
+            Enum.TryParse<Difficulty>(dto.Difficulty, true, out Difficulty difficulty))
         {
             card.Difficulty = difficulty;
         }
 
         // Parse token type
-        if (Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out ConnectionType tokenType))
+        if (!string.IsNullOrEmpty(dto.ConnectionType) &&
+            Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out ConnectionType tokenType))
         {
             card.TokenType = tokenType;
         }
-
-        // Parse properties
-        if (dto.Properties != null)
-        {
-            foreach (string prop in dto.Properties)
-            {
-                if (Enum.TryParse<CardProperty>(prop, true, out CardProperty cardProp))
-                {
-                    if (!card.Properties.Contains(cardProp))
-                    {
-                        card.Properties.Add(cardProp);
-                    }
-                }
-            }
-        }
-        
-        // Add persistent property for goal cards
-        if (!card.Properties.Contains(CardProperty.Persistent))
-            card.Properties.Add(CardProperty.Persistent);
-
-        // Set success effect or default
-        if (successEffect != null && successEffect.Type != CardEffectType.None)
-        {
-            card.SuccessEffect = successEffect;
-        }
-        else
-        {
-            card.SuccessEffect = new CardEffect
-            {
-                Type = CardEffectType.EndConversation,
-                Value = "request_accepted"
-            };
-        }
-        
-        // Set exhaust effect
-        card.ExhaustEffect = new CardEffect
-        {
-            Type = CardEffectType.EndConversation,
-            Value = "request_exhausted"
-        };
 
         return card;
     }
 
     /// <summary>
-    /// Parse a CardEffect from DTO
+    /// Parse card type from DTO type field
     /// </summary>
-    private static CardEffect ParseEffect(CardEffectDTO dto)
-    {
-        if (dto == null || string.IsNullOrEmpty(dto.Type))
-            return null;
-
-        if (!Enum.TryParse<CardEffectType>(dto.Type, true, out CardEffectType effectType))
-            return null;
-
-        CardEffect effect = new CardEffect
-        {
-            Type = effectType,
-            Value = dto.Value
-        };
-
-        // For Exchange effects, the Value field contains the exchange ID
-        // The actual exchange data will be populated at runtime from GameWorld.ExchangeDefinitions
-
-        return effect;
-    }
-
-    /// <summary>
-    /// Parse card type from DTO type field and effects
-    /// </summary>
-    private static CardType ParseCardType(ConversationCardDTO dto, CardEffect successEffect)
+    private static CardType ParseCardType(ConversationCardDTO dto)
     {
         if (string.IsNullOrEmpty(dto.Type))
             return CardType.Conversation;
-            
+
         return dto.Type.ToLower() switch
         {
             "letter" => CardType.Letter,
@@ -336,53 +303,25 @@ public class ConversationDataDTO
 public class ConversationCardDTO
 {
     public string Id { get; set; }
-    public string Template { get; set; } // Maps to TemplateId in card
-    public string Mechanics { get; set; } // New mechanics field
-    public string Category { get; set; } // New category field
     public string Type { get; set; }
     public string ConnectionType { get; set; }
-    public string Persistence { get; set; }
     public int Focus { get; set; }
-    public int BaseFlow { get; set; }
-    public bool? IsRequestCard { get; set; }
-    public string RequestCardType { get; set; }
     public int? RapportThreshold { get; set; } // For request cards
-    public string DisplayName { get; set; }
     public string Description { get; set; }
-    public int? SuccessRate { get; set; }
-    public string ForNPC { get; set; }
-    public bool? GeneratesLetterOnSuccess { get; set; }
-    public bool? IsStateCard { get; set; }
-    public string SuccessState { get; set; }
-    public int? PatienceBonus { get; set; } // Patience added when this card succeeds
-    public string DialogueFragment { get; set; } // Added dialogue fragment
+    public string DialogueFragment { get; set; }
     public int? MinimumTokensRequired { get; set; } // Tokens required to unlock NPC progression cards
 
-    // New properties array replaces persistence and special flags
-    public List<string> Properties { get; set; }
+    // Categorical properties - define behavior through context
+    public string Persistence { get; set; } // Thought/Impulse/Opening
+    public string SuccessType { get; set; } // Rapport/Threading/Atmospheric/Focusing/Promising/Advancing/None
+    public string FailureType { get; set; } // Overreach/Backfire/Disrupting/None
+    public string ExhaustType { get; set; } // Threading/Focusing/Regret/None
 
     // Personality targeting - which NPCs can use this card
     public List<string> PersonalityTypes { get; set; }
 
-    // New target system properties
+    // Difficulty determines magnitude
     public string Difficulty { get; set; }
-    // Three-effect system
-    public CardEffectDTO SuccessEffect { get; set; }
-    public CardEffectDTO FailureEffect { get; set; }
-    public CardEffectDTO ExhaustEffect { get; set; }
-}
-
-/// <summary>
-/// DTO for card effect data
-/// </summary>
-public class CardEffectDTO
-{
-    public string Type { get; set; }
-    public string Value { get; set; }
-    
-    // For Exchange effects specifically - populated during deserialization
-    public ExchangeCost Cost { get; set; }
-    public ExchangeReward Reward { get; set; }
 }
 
 /// <summary>

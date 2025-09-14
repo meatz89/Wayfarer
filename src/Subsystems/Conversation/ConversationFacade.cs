@@ -15,7 +15,7 @@ public class ConversationFacade
     private readonly ExchangeHandler _exchangeHandler;
     private readonly FocusManager _focusManager;
     private readonly AtmosphereManager _atmosphereManager;
-    private readonly CardEffectProcessor _effectProcessor;
+    private readonly CategoricalEffectResolver _effectResolver;
 
     // External dependencies
     private readonly ObligationQueueManager _queueManager;
@@ -35,7 +35,7 @@ public class ConversationFacade
         ExchangeHandler exchangeHandler,
         FocusManager focusManager,
         AtmosphereManager atmosphereManager,
-        CardEffectProcessor effectProcessor,
+        CategoricalEffectResolver effectResolver,
         ObligationQueueManager queueManager,
         ObservationManager observationManager,
         TimeManager timeManager,
@@ -49,7 +49,7 @@ public class ConversationFacade
         _exchangeHandler = exchangeHandler ?? throw new ArgumentNullException(nameof(exchangeHandler));
         _focusManager = focusManager ?? throw new ArgumentNullException(nameof(focusManager));
         _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
-        _effectProcessor = effectProcessor ?? throw new ArgumentNullException(nameof(effectProcessor));
+        _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _queueManager = queueManager ?? throw new ArgumentNullException(nameof(queueManager));
         _observationManager = observationManager ?? throw new ArgumentNullException(nameof(observationManager));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));

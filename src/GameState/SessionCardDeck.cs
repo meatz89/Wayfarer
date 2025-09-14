@@ -174,53 +174,6 @@ public class SessionCardDeck
         ShuffleDrawPile();
     }
 
-    public List<CardInstance> DrawFilteredByProperties(List<CardProperty> requiredProperties, int count)
-    {
-        List<CardInstance> available = new List<CardInstance>();
-        List<CardInstance> drawn = new List<CardInstance>();
-
-        // Find all cards in draw pile with required properties
-        for (int i = drawPile.Count - 1; i >= 0; i--)
-        {
-            CardInstance card = drawPile[i];
-            bool hasAllProperties = true;
-            foreach (CardProperty prop in requiredProperties)
-            {
-                if (!card.Properties.Contains(prop))
-                {
-                    hasAllProperties = false;
-                    break;
-                }
-            }
-            if (hasAllProperties)
-            {
-                available.Add(card);
-            }
-        }
-
-        // Draw the requested number of cards
-        for (int i = 0; i < Math.Min(count, available.Count); i++)
-        {
-            CardInstance card = available[random.Next(available.Count)];
-            drawPile.Remove(card);
-            drawn.Add(card);
-            available.Remove(card); // Prevent drawing same card twice
-        }
-
-        return drawn;
-    }
-
-    // Helper methods for common property-based filtering
-    public List<CardInstance> DrawRequestCards(int count)
-    {
-        // Request cards have both Impulse AND Opening properties
-        return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Impulse, CardProperty.Opening }, count);
-    }
-
-    public List<CardInstance> DrawBurdenCards(int count)
-    {
-        return DrawFilteredByProperties(new List<CardProperty> { CardProperty.Burden }, count);
-    }
 
     public List<CardInstance> DrawObservableCards(int count)
     {

@@ -52,10 +52,10 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             {
                 TimeBlocks.Dawn => 3 - segmentsInCurrentPeriod,        // Wait until end of Dawn (3 segments)
                 TimeBlocks.Morning => 4 - segmentsInCurrentPeriod,      // Wait until end of Midday (4 segments) 
-                TimeBlocks.Afternoon => 4 - segmentsInCurrentPeriod,   // Wait until end of Afternoon (4 segments)
-                TimeBlocks.Evening => 4 - segmentsInCurrentPeriod,     // Wait until end of Evening (4 segments)
-                TimeBlocks.Night => 1 - segmentsInCurrentPeriod,       // Wait until end of Night (1 segment)
-                TimeBlocks.LateNight => _timeManager.SegmentsRemainingInDay, // Jump to next day
+                TimeBlocks.Midday => 4 - segmentsInCurrentPeriod,   // Wait until end of Afternoon (4 segments)
+                TimeBlocks.Afternoon => 4 - segmentsInCurrentPeriod,     // Wait until end of Evening (4 segments)
+                TimeBlocks.Evening => 1 - segmentsInCurrentPeriod,       // Wait until end of Night (1 segment)
+                TimeBlocks.Night => _timeManager.SegmentsRemainingInDay, // Jump to next day
                 _ => 0
             };
 

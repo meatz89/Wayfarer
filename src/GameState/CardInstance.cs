@@ -1,5 +1,6 @@
 
 using System.Collections.Generic;
+using Wayfarer.GameState.Enums;
 
 // Card instance - runtime representation of a card
 public class CardInstance
@@ -8,8 +9,11 @@ public class CardInstance
     public string Id { get; init; }
     public string Description { get; init; }
 
-    // Properties list - copied from template
-    public List<CardProperty> Properties { get; init; } = new List<CardProperty>();
+    // Categorical properties that define behavior through context
+    public PersistenceType Persistence { get; init; } = PersistenceType.Thought;
+    public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
+    public FailureEffectType FailureType { get; init; } = FailureEffectType.None;
+    public ExhaustEffectType ExhaustType { get; init; } = ExhaustEffectType.None;
 
     // Single source of truth for card type
     public CardType CardType { get; init; } = CardType.Conversation;
@@ -19,10 +23,9 @@ public class CardInstance
     public int Focus { get; init; }
     public Difficulty Difficulty { get; init; }
 
-    // Effects - copied from template
-    public CardEffect SuccessEffect { get; init; }
-    public CardEffect FailureEffect { get; init; }
-    public CardEffect ExhaustEffect { get; init; }
+    // Request card specific properties
+    public int RapportThreshold { get; init; } = 0;
+    public string RequestId { get; init; }
 
     // Display properties
     public string DialogueFragment { get; init; }
@@ -32,30 +35,36 @@ public class CardInstance
     public string SourceContext { get; init; }
     public CardContext Context { get; set; } // For exchange data and other context
 
-    // Use Properties list directly - no legacy boolean helpers
+    // Track if card is currently playable (for request cards)
+    public bool IsPlayable { get; set; } = true;
 
     public string GetCategoryClass()
     {
-        // Return ALL properties as CSS classes
         List<string> classes = new List<string>();
 
-        foreach (CardProperty property in Properties)
+        // Add persistence class
+        classes.Add($"card-{Persistence.ToString().ToLower()}");
+
+        // Add success type class if not None
+        if (SuccessType != SuccessEffectType.None)
         {
-            classes.Add($"card-{property.ToString().ToLower()}");
+            classes.Add($"success-{SuccessType.ToString().ToLower()}");
         }
 
-        // Add special combined classes - only if playable
-        if (Properties.Contains(CardProperty.Impulse) &&
-            Properties.Contains(CardProperty.Opening) &&
-            !Properties.Contains(CardProperty.Unplayable))
+        // Add failure type class if not None
+        if (FailureType != FailureEffectType.None)
+        {
+            classes.Add($"failure-{FailureType.ToString().ToLower()}");
+        }
+
+        // Add special classes for request cards
+        if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal)
         {
             classes.Add("card-request");
-        }
-
-        // If no properties, add default
-        if (classes.Count == 0)
-        {
-            classes.Add("card-standard");
+            if (!IsPlayable)
+            {
+                classes.Add("card-unplayable");
+            }
         }
 
         return string.Join(" ", classes);
@@ -119,14 +128,16 @@ public class CardInstance
     {
         Id = template.Id;
         Description = template.Description;
-        Properties = new List<CardProperty>(template.Properties); // Copy properties
+        Persistence = template.Persistence;
+        SuccessType = template.SuccessType;
+        FailureType = template.FailureType;
+        ExhaustType = template.ExhaustType;
         CardType = template.CardType;
         TokenType = template.TokenType;
         Focus = template.Focus;
         Difficulty = template.Difficulty;
-        SuccessEffect = template.SuccessEffect;
-        FailureEffect = template.FailureEffect;
-        ExhaustEffect = template.ExhaustEffect;
+        RapportThreshold = template.RapportThreshold;
+        RequestId = template.RequestId;
         DialogueFragment = template.DialogueFragment;
         VerbPhrase = template.VerbPhrase;
         SourceContext = sourceContext;

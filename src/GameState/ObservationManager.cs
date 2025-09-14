@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Tracks an observation that has been taken with its details for display
@@ -343,47 +344,41 @@ public class ObservationManager
     /// </summary>
     private ConversationCard CreateObservationCardForNPC(ObservationCardReward cardReward)
     {
+        // Parse the effect string to determine categorical effect type
+        SuccessEffectType successType = ParseObservationEffectType(cardReward.Effect);
+
         return new ConversationCard
         {
             Id = cardReward.Id,
             Description = cardReward.Name,
             DialogueFragment = cardReward.Description,
             Focus = 0, // Observations cost 0 focus according to Work Packet 3
-            Properties = new List<CardProperty> { CardProperty.Persistent, CardProperty.Persistent /* Observable now determined by CardType */ },
-            SuccessEffect = ParseObservationEffect(cardReward.Effect),
+            CardType = CardType.Observation,
+            Persistence = PersistenceType.Thought, // Observations persist through LISTEN
+            SuccessType = successType,
+            FailureType = FailureEffectType.None,
+            ExhaustType = ExhaustEffectType.None,
             Difficulty = Difficulty.VeryEasy
         };
     }
 
     /// <summary>
-    /// Parse observation effect string into a card effect
+    /// Parse observation effect string into a categorical effect type
     /// </summary>
-    private CardEffect ParseObservationEffect(string effectString)
+    private SuccessEffectType ParseObservationEffectType(string effectString)
     {
         // Simple effect parsing for now - can be expanded based on needs
         if (effectString == "AdvanceToNeutralState")
         {
-            return new CardEffect
-            {
-                Type = CardEffectType.SetAtmosphere,
-                Value = "Neutral" // Set atmosphere to neutral
-            };
+            return SuccessEffectType.Atmospheric; // Will set atmosphere based on magnitude
         }
         else if (effectString == "UnlockExchange")
         {
-            return new CardEffect
-            {
-                Type = CardEffectType.AddRapport,
-                Value = "5" // Placeholder - could unlock exchange by adding rapport
-            };
+            return SuccessEffectType.Rapport; // Unlock exchange by adding rapport
         }
 
         // Default to no effect
-        return new CardEffect
-        {
-            Type = CardEffectType.None,
-            Value = ""
-        };
+        return SuccessEffectType.None;
     }
 
     /// <summary>
@@ -396,10 +391,10 @@ public class ObservationManager
         {
             TimeBlocks.Dawn => "dawn",
             TimeBlocks.Morning => "morning",
+            TimeBlocks.Midday => "midday",
             TimeBlocks.Afternoon => "afternoon",
             TimeBlocks.Evening => "evening",
             TimeBlocks.Night => "night",
-            TimeBlocks.LateNight => "latenight",
             _ => "unknown"
         };
     }

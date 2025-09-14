@@ -63,7 +63,7 @@ public static class ServiceConfiguration
         // ConversationSubsystem services
         services.AddSingleton<AtmosphereManager>();
         services.AddSingleton<FocusManager>();
-        services.AddSingleton<CardEffectProcessor>();
+        services.AddSingleton<CategoricalEffectResolver>();
         services.AddSingleton<CardDeckManager>();
         services.AddSingleton<ExchangeHandler>();
         services.AddSingleton<ConversationOrchestrator>();

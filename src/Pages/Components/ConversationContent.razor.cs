@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Enums;
 
 namespace Wayfarer.Pages.Components
 {
@@ -202,7 +203,7 @@ namespace Wayfarer.Pages.Components
             List<CardInstance> previousCards = Session?.HandCards?.ToList() ?? new List<CardInstance>();
 
             // Mark any opening cards for exhaustion
-            List<CardInstance> openingCards = previousCards.Where(c => c.Properties.Contains(CardProperty.Opening)).ToList();
+            List<CardInstance> openingCards = previousCards.Where(c => c.Persistence == PersistenceType.Opening).ToList();
             if (openingCards.Any())
             {
                 MarkCardsForExhaust(openingCards);
@@ -425,7 +426,7 @@ namespace Wayfarer.Pages.Components
 
                 // Mark impulse cards for exhaust animation (after a delay)
                 List<CardInstance> impulseCards = Session?.HandCards?
-                    .Where(c => c.Properties.Contains(CardProperty.Impulse) && c.InstanceId != playedCard.InstanceId)
+                    .Where(c => c.Persistence == PersistenceType.Impulse && c.InstanceId != playedCard.InstanceId)
                     .ToList() ?? new List<CardInstance>();
 
                 if (impulseCards.Any())
@@ -680,8 +681,8 @@ namespace Wayfarer.Pages.Components
                     Focus = card.Focus,
                     Difficulty = card.Difficulty,
                     Effect = card.SuccessEffect?.Value ?? card.Description ?? "",
-                    Persistence = card.Properties.Contains(CardProperty.Impulse) ? CardPersistence.Impulse :
-                                card.Properties.Contains(CardProperty.Opening) ? CardPersistence.Opening :
+                    Persistence = card.Persistence == PersistenceType.Impulse ? CardPersistence.Impulse :
+                                card.Persistence == PersistenceType.Opening ? CardPersistence.Opening :
                                 CardPersistence.Persistent,
                     NarrativeCategory = "standard"
                 };
@@ -960,18 +961,22 @@ namespace Wayfarer.Pages.Components
         {
             if (card == null) return "Card";
 
-            // Show ALL properties as labels
+            // Show categorical properties as labels
             List<string> labels = new List<string>();
 
-            foreach (CardProperty property in card.Properties)
+            // Add persistence type
+            labels.Add(card.Persistence.ToString());
+
+            // Add card type if special
+            if (card.CardType != CardType.Conversation)
             {
-                labels.Add(property.ToString());
+                labels.Add(card.CardType.ToString());
             }
 
-            // If no properties, show "Standard"
-            if (labels.Count == 0)
+            // Add effect types if present
+            if (card.SuccessType != SuccessEffectType.None)
             {
-                labels.Add("Standard");
+                labels.Add(card.SuccessType.ToString());
             }
 
             return string.Join(" • ", labels);
@@ -1231,7 +1236,7 @@ namespace Wayfarer.Pages.Components
             if (card.Context?.ExchangeData != null && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
 
-            if (card.Properties.Contains(CardProperty.Burden))
+            if (card.CardType == CardType.BurdenGoal)
                 return "Address Past Failure";
 
             if (card.CardType == CardType.Observation)
@@ -1433,7 +1438,7 @@ namespace Wayfarer.Pages.Components
             List<string> classes = new List<string>();
 
             // Primary property-based classes
-            if (card.Properties.Contains(CardProperty.Burden))
+            if (card.CardType == CardType.BurdenGoal)
                 classes.Add("crisis");
             else if (card.Context?.ExchangeData != null)
                 classes.Add("exchange");
@@ -1443,11 +1448,11 @@ namespace Wayfarer.Pages.Components
                 classes.Add("flow");
 
             // Add impulse indicator if applicable
-            if (card.Properties.Contains(CardProperty.Impulse))
+            if (card.Persistence == PersistenceType.Impulse)
                 classes.Add("impulse");
 
             // Request cards get special styling (Impulse + Opening)
-            if (card.Properties.Contains(CardProperty.Impulse) && card.Properties.Contains(CardProperty.Opening))
+            if (card.Persistence == PersistenceType.Impulse && card.Persistence == PersistenceType.Opening)
                 classes.Add("request");
 
             return string.Join(" ", classes);
@@ -1455,12 +1460,12 @@ namespace Wayfarer.Pages.Components
 
         protected int CountImpulseCards()
         {
-            return Session?.HandCards?.Count(c => c.Properties.Contains(CardProperty.Impulse)) ?? 0;
+            return Session?.HandCards?.Count(c => c.Persistence == PersistenceType.Impulse) ?? 0;
         }
 
         protected bool HasRequestCards()
         {
-            return Session?.HandCards?.Any(c => c.Properties.Contains(CardProperty.Impulse) && c.Properties.Contains(CardProperty.Opening)) ?? false;
+            return Session?.HandCards?.Any(c => (c.CardType == CardType.Letter || c.CardType == CardType.Promise)) ?? false;
         }
 
         protected string GetCardName(CardInstance card)
@@ -1483,20 +1488,31 @@ namespace Wayfarer.Pages.Components
         {
             List<string> tags = new List<string>();
 
-            // Add card properties as tags
-            foreach (CardProperty property in card.Properties)
-            {
-                tags.Add(property.ToString());
-            }
+            // Add persistence type as tag
+            if (card.Persistence != null)
+                tags.Add(card.Persistence.ToString());
 
-            // Add derived property tags
-            if (card.Properties.Contains(CardProperty.Impulse) && card.Properties.Contains(CardProperty.Opening))
+            // Add card type for special cards
+            if (card.CardType == CardType.Request)
                 tags.Add("Request");
-            else if (!card.Properties.Contains(CardProperty.Impulse) && !card.Properties.Contains(CardProperty.Opening))
-                tags.Add("Persistent");
+            else if (card.CardType == CardType.Promise)
+                tags.Add("Promise");
+            else if (card.CardType == CardType.Letter)
+                tags.Add("Letter");
+            else if (card.CardType == CardType.BurdenGoal)
+                tags.Add("Burden");
 
-            // Category is now represented by properties
-            // Already added above via properties loop
+            // Add success type if meaningful
+            if (card.SuccessType != SuccessEffectType.None)
+                tags.Add(card.SuccessType.ToString());
+
+            // Add failure type if meaningful
+            if (card.FailureType != FailureEffectType.None)
+                tags.Add(card.FailureType.ToString());
+
+            // Add exhaust type if meaningful
+            if (card.ExhaustType != ExhaustEffectType.None)
+                tags.Add(card.ExhaustType.ToString());
 
             return tags;
         }
@@ -1509,40 +1525,22 @@ namespace Wayfarer.Pages.Components
                 return $"Complete exchange: {FormatResourceList(card.Context.ExchangeData.Rewards)}";
             }
 
-            // Check if card has a success effect
-            if (card.SuccessEffect != null && card.SuccessEffect.Type != CardEffectType.None)
+            // Check if card has a categorical success effect
+            if (card.SuccessType != SuccessEffectType.None)
             {
+                int magnitude = GetMagnitudeFromDifficulty(card.Difficulty);
+
                 // Display the effect based on type
-                switch (card.SuccessEffect.Type)
+                return card.SuccessType switch
                 {
-                    case CardEffectType.AddRapport:
-                        int rapportValue = int.TryParse(card.SuccessEffect.Value, out int val) ? val : 0;
-                        return rapportValue > 0 ? $"+{rapportValue} rapport" : $"{rapportValue} rapport";
-
-                    case CardEffectType.ScaleRapportByFlow:
-                        int flowRapport = Session?.CurrentFlow ?? 0;
-                        return $"+{flowRapport} rapport (scales with flow {Session?.CurrentFlow ?? 0})";
-
-                    case CardEffectType.ScaleRapportByPatience:
-                        int patienceRapport = Session?.CurrentPatience / 3 ?? 0;
-                        return $"+{patienceRapport} rapport (scales with patience {Session?.CurrentPatience ?? 0})";
-
-                    case CardEffectType.ScaleRapportByFocus:
-                        int focusRapport = Session?.GetAvailableFocus() ?? 0;
-                        return $"+{focusRapport} rapport (scales with focus {Session?.GetAvailableFocus() ?? 0})";
-
-                    case CardEffectType.SetAtmosphere:
-                        return $"Set {card.SuccessEffect.Value} atmosphere";
-
-                    case CardEffectType.DrawCards:
-                        return $"Draw {card.SuccessEffect.Value} card(s)";
-
-                    case CardEffectType.AddFocus:
-                        return $"+{card.SuccessEffect.Value} focus";
-
-                    default:
-                        return "Effect";
-                }
+                    SuccessEffectType.Rapport => magnitude > 0 ? $"+{magnitude} rapport" : $"{magnitude} rapport",
+                    SuccessEffectType.Threading => $"Draw {magnitude} card{(magnitude == 1 ? "" : "s")}",
+                    SuccessEffectType.Atmospheric => "Set atmosphere",
+                    SuccessEffectType.Focusing => $"+{magnitude} focus",
+                    SuccessEffectType.Promising => "Move promise to position 1",
+                    SuccessEffectType.Advancing => "Advance connection state",
+                    _ => "Effect"
+                };
             }
 
             // No effect
@@ -1559,44 +1557,23 @@ namespace Wayfarer.Pages.Components
                 return "Execute trade";
             }
 
-            // Check if card has a failure effect
-            if (card.FailureEffect != null && card.FailureEffect.Type != CardEffectType.None)
+            // Check if card has a categorical failure effect
+            if (card.FailureType != FailureEffectType.None)
             {
+                int magnitude = GetMagnitudeFromDifficulty(card.Difficulty);
+
                 // Display the effect based on type
-                switch (card.FailureEffect.Type)
+                return card.FailureType switch
                 {
-                    case CardEffectType.AddRapport:
-                        int rapportValue = int.TryParse(card.FailureEffect.Value, out int val) ? val : 0;
-                        return rapportValue > 0 ? $"+{rapportValue} rapport" : rapportValue < 0 ? $"{rapportValue} rapport" : "No effect";
-
-                    case CardEffectType.ScaleRapportByFlow:
-                        int flowPenalty = Math.Abs(Session?.CurrentFlow ?? 0);
-                        return $"-{flowPenalty} rapport (scales with flow {Session?.CurrentFlow ?? 0})";
-
-                    case CardEffectType.ScaleRapportByPatience:
-                        int patienceRapport = Session?.CurrentPatience / 3 ?? 0;
-                        return $"-{patienceRapport} rapport (scales with patience {Session?.CurrentPatience ?? 0})";
-
-                    case CardEffectType.ScaleRapportByFocus:
-                        int focusPenalty = Session?.GetAvailableFocus() ?? 0;
-                        return $"-{focusPenalty} rapport (scales with focus {Session?.GetAvailableFocus() ?? 0})";
-
-                    case CardEffectType.SetAtmosphere:
-                        return $"Set {card.FailureEffect.Value} atmosphere";
-
-                    case CardEffectType.DrawCards:
-                        return $"Draw {card.FailureEffect.Value} card(s)";
-
-                    case CardEffectType.AddFocus:
-                        return $"+{card.FailureEffect.Value} focus";
-
-                    default:
-                        return "Effect";
-                }
+                    FailureEffectType.Overreach => "Clear entire hand",
+                    FailureEffectType.Backfire => $"-{magnitude} rapport",
+                    FailureEffectType.Disrupting => "Discard cards with focus 3+",
+                    _ => "Force LISTEN"
+                };
             }
 
-            // No effect
-            return "No effect";
+            // Default failure effect is forcing LISTEN
+            return "Force LISTEN";
         }
 
         protected string GetTagClass(string tag)
@@ -2074,40 +2051,39 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// PACKET 6: Get all properties for a card for display
+        /// PACKET 6: Get persistence type for a card for display
         /// </summary>
-        protected IEnumerable<CardProperty> GetCardProperties(CardInstance card)
+        protected string GetCardPersistenceLabel(CardInstance card)
         {
-            // Return ALL properties directly from the card
-            if (card?.Properties != null && card.Properties.Count > 0)
+            if (card == null) return "";
+            return card.Persistence switch
             {
-                return card.Properties;
-            }
-
-            // If no properties defined, default to Persistent
-            return new List<CardProperty> { CardProperty.Persistent };
+                PersistenceType.Thought => "Thought",
+                PersistenceType.Impulse => "Impulse",
+                PersistenceType.Opening => "Opening",
+                _ => "Thought"
+            };
         }
 
         /// <summary>
-        /// PACKET 6: Get CSS class for property badge
+        /// PACKET 6: Get CSS class for persistence badge
         /// </summary>
-        protected string GetPropertyClass(CardProperty property)
+        protected string GetPersistenceClass(PersistenceType persistence)
         {
-            return property.ToString().ToLower();
+            return persistence.ToString().ToLower();
         }
 
         /// <summary>
-        /// Get CSS class for property tag (enhanced from mockup)
+        /// Get CSS class for persistence tag (enhanced from mockup)
         /// </summary>
-        protected string GetPropertyTagClass(CardProperty property)
+        protected string GetPersistenceTagClass(PersistenceType persistence)
         {
-            return property switch
+            return persistence switch
             {
-                CardProperty.Impulse => "tag-impulse",
-                CardProperty.Opening => "tag-opening",
-                CardProperty.Persistent => "tag-persistent",
-                CardProperty.Burden => "tag-burden",
-                _ => "tag-" + property.ToString().ToLower()
+                PersistenceType.Impulse => "tag-impulse",
+                PersistenceType.Opening => "tag-opening",
+                PersistenceType.Thought => "tag-thought",
+                _ => "tag-" + persistence.ToString().ToLower()
             };
         }
 
@@ -2155,49 +2131,43 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// PACKET 6: Get icon for property badge
+        /// PACKET 6: Get icon for persistence badge
         /// </summary>
-        protected string GetPropertyIcon(CardProperty property)
+        protected string GetPersistenceIcon(PersistenceType persistence)
         {
-            return property switch
+            return persistence switch
             {
-                CardProperty.Impulse => "⚡",
-                CardProperty.Opening => "⏰",
-                CardProperty.Burden => "⛓️",
-                CardProperty.Skeleton => "💀",
-                CardProperty.Persistent => "✓",
+                PersistenceType.Impulse => "⚡",
+                PersistenceType.Opening => "⏰",
+                PersistenceType.Thought => "✓",
                 _ => ""
             };
         }
 
         /// <summary>
-        /// PACKET 6: Get label for property badge
+        /// PACKET 6: Get label for persistence badge
         /// </summary>
-        protected string GetPropertyLabel(CardProperty property)
+        protected string GetPersistenceLabel(PersistenceType persistence)
         {
-            return property switch
+            return persistence switch
             {
-                CardProperty.Impulse => "Impulse",
-                CardProperty.Opening => "Opening",
-                CardProperty.Burden => "Burden",
-                CardProperty.Skeleton => "Skeleton",
-                CardProperty.Persistent => "Persistent",
-                _ => property.ToString()
+                PersistenceType.Impulse => "Impulse",
+                PersistenceType.Opening => "Opening",
+                PersistenceType.Thought => "Thought",
+                _ => persistence.ToString()
             };
         }
 
         /// <summary>
-        /// PACKET 6: Get tooltip for property badge
+        /// PACKET 6: Get tooltip for persistence badge
         /// </summary>
-        protected string GetPropertyTooltip(CardProperty property)
+        protected string GetPersistenceTooltip(PersistenceType persistence)
         {
-            return property switch
+            return persistence switch
             {
-                CardProperty.Impulse => "Removed after SPEAK if unplayed",
-                CardProperty.Opening => "Removed after LISTEN if unplayed",
-                CardProperty.Burden => "Blocks a deck slot",
-                CardProperty.Skeleton => "System-generated card",
-                CardProperty.Persistent => "Stays until played",
+                PersistenceType.Impulse => "Removed after SPEAK if unplayed",
+                PersistenceType.Opening => "Removed after LISTEN if unplayed",
+                PersistenceType.Thought => "Stays until played",
                 _ => ""
             };
         }
@@ -2209,11 +2179,11 @@ namespace Wayfarer.Pages.Components
         {
             List<string> classes = new List<string>();
 
-            if (card?.Properties.Contains(CardProperty.Impulse) == true)
+            if (card?.Persistence == PersistenceType.Impulse)
                 classes.Add("has-impulse");
-            if (card?.Properties.Contains(CardProperty.Impulse) == true && card.Properties.Contains(CardProperty.Opening) == true)
-                classes.Add("has-opening"); // Request cards have Opening
-            if (card?.Properties.Contains(CardProperty.Burden) == true)
+            if (card?.Persistence == PersistenceType.Opening)
+                classes.Add("has-opening");
+            if (card?.CardType == CardType.BurdenGoal)
                 classes.Add("has-burden");
 
             return string.Join(" ", classes);
@@ -2225,7 +2195,7 @@ namespace Wayfarer.Pages.Components
         protected bool HasExhaustEffect(CardInstance card)
         {
             // Only impulse and opening cards have exhaust effects
-            return card?.Properties.Contains(CardProperty.Impulse) == true || card?.Properties.Contains(CardProperty.Opening) == true;
+            return card?.Persistence == PersistenceType.Impulse || card?.Persistence == PersistenceType.Opening;
         }
 
         /// <summary>
@@ -2253,18 +2223,25 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetExhaustEffectDescription(CardInstance card)
         {
-            // Get exhaust effect from the card's actual data
-            if (card?.ExhaustEffect != null)
+            // Get exhaust effect from the card's categorical data
+            if (card?.ExhaustType != null && card.ExhaustType != ExhaustEffectType.None)
             {
-                return DescribeCardEffect(card.ExhaustEffect);
+                int magnitude = GetMagnitudeFromDifficulty(card.Difficulty);
+                return card.ExhaustType switch
+                {
+                    ExhaustEffectType.Threading => $"Draw {magnitude} card{(magnitude == 1 ? "" : "s")}",
+                    ExhaustEffectType.Focusing => $"+{magnitude} focus",
+                    ExhaustEffectType.Regret => $"-{magnitude} rapport",
+                    _ => card.ExhaustType.ToString()
+                };
             }
 
-            // Fallback descriptions if no exhaust effect defined
-            if (card?.Properties.Contains(CardProperty.Impulse) == true)
+            // Fallback descriptions based on persistence
+            if (card?.Persistence == PersistenceType.Impulse)
             {
                 return "Card removed";
             }
-            else if (card?.Properties.Contains(CardProperty.Opening) == true)
+            else if (card?.Persistence == PersistenceType.Opening)
             {
                 return "Card removed";
             }
@@ -2273,40 +2250,31 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// PACKET 6: Describe a card effect in user-friendly terms
+        /// PACKET 6: Calculate magnitude from difficulty
         /// </summary>
-        private string DescribeCardEffect(CardEffect effect)
+        private int GetMagnitudeFromDifficulty(Difficulty difficulty)
         {
-            if (effect == null || effect.Type == CardEffectType.None)
-                return "No effect";
-
-            return effect.Type switch
+            return difficulty switch
             {
-                CardEffectType.AddRapport => $"{(effect.Value?.StartsWith("-") == true ? "" : "+")}{effect.Value} rapport",
-                CardEffectType.DrawCards => $"Draw {effect.Value} card{(effect.Value == "1" ? "" : "s")}",
-                CardEffectType.AddFocus => $"Add {effect.Value} focus",
-                CardEffectType.SetAtmosphere => $"Atmosphere: {effect.Value}",
-                CardEffectType.EndConversation => GetEndConversationDescription(effect),
-                CardEffectType.ScaleRapportByFlow => $"+X rapport (X = {effect.Value})",
-                CardEffectType.ScaleRapportByPatience => $"+X rapport (X = {effect.Value})",
-                CardEffectType.ScaleRapportByFocus => $"+X rapport (X = {effect.Value})",
-                CardEffectType.RapportReset => "Reset rapport to starting value",
-                CardEffectType.FocusRefresh => "Refresh focus",
-                CardEffectType.FreeNextAction => "Next action costs no patience",
-                _ => effect.Type.ToString()
+                Difficulty.VeryEasy => 1,
+                Difficulty.Easy => 1,
+                Difficulty.Medium => 2,
+                Difficulty.Hard => 3,
+                Difficulty.VeryHard => 4,
+                _ => 1
             };
         }
 
         /// <summary>
         /// PACKET 6: Get description for EndConversation effects
         /// </summary>
-        private string GetEndConversationDescription(CardEffect effect)
+        private string GetEndConversationDescription(string reason)
         {
-            // Use the Value property for the reason
-            
-            if (effect?.Value != null)
+            // Use the provided reason string
+
+            if (!string.IsNullOrEmpty(reason))
             {
-                return effect.Value switch
+                return reason switch
                 {
                     "success" => "End conversation (success)",
                     "failure" => "End conversation (failure)",
@@ -2465,7 +2433,7 @@ namespace Wayfarer.Pages.Components
             if (Session?.HandCards == null) return new List<CardInstance>();
 
             return Session.HandCards
-                .Where(c => c.Properties.Contains(CardProperty.Impulse) && c != SelectedCard) // Don't include the played card
+                .Where(c => c.Persistence == PersistenceType.Impulse && c != SelectedCard) // Don't include the played card
                 .ToList();
         }
 
@@ -2503,7 +2471,7 @@ namespace Wayfarer.Pages.Components
             if (Session?.HandCards == null) return new List<CardInstance>();
 
             return Session.HandCards
-                .Where(c => c.Properties.Contains(CardProperty.Impulse) && c.Properties.Contains(CardProperty.Opening)) // Request cards have Opening property
+                .Where(c => (c.CardType == CardType.Letter || c.CardType == CardType.Promise)) // Request cards have Opening property
                 .ToList();
         }
 
@@ -2512,7 +2480,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<CardInstance> GetCriticalExhausts(List<CardInstance> cards)
         {
-            return cards.Where(c => c.Properties.Contains(CardProperty.Impulse) && c.Properties.Contains(CardProperty.Opening)).ToList();
+            return cards.Where(c => (c.CardType == CardType.Letter || c.CardType == CardType.Promise)).ToList();
         }
 
         /// <summary>
@@ -2705,11 +2673,11 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetPreviewExhaustEffect(CardInstance card)
         {
-            if (card?.Properties.Contains(CardProperty.Impulse) == true && card.Properties.Contains(CardProperty.Opening) == true)
+            if (card?.Persistence == PersistenceType.Impulse && card.Persistence == PersistenceType.Opening == true)
             {
                 return "ENDS CONVERSATION!";
             }
-            else if (card?.Properties.Contains(CardProperty.Impulse) == true)
+            else if (card?.Persistence == PersistenceType.Impulse)
             {
                 // Check if card has specific exhaust effects
                 // For now, use generic effect
@@ -2846,7 +2814,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Add warning for impulse cards
-            if (card.Properties.Contains(CardProperty.Impulse))
+            if (card.Persistence == PersistenceType.Impulse)
             {
                 classes.Add("card-impulse-warning");
             }
@@ -2946,7 +2914,7 @@ namespace Wayfarer.Pages.Components
             TrackNewlyDrawnCards(previousCards, currentCards);
 
             // Mark impulse cards that will exhaust on next SPEAK
-            List<CardInstance> impulseCards = currentCards.Where(c => c.Properties.Contains(CardProperty.Impulse)).ToList();
+            List<CardInstance> impulseCards = currentCards.Where(c => c.Persistence == PersistenceType.Impulse).ToList();
             // These will be marked when SPEAK happens
         }
 
@@ -2972,7 +2940,7 @@ namespace Wayfarer.Pages.Components
 
             // Get impulse cards to exhaust
             List<CardInstance> impulseCards = Session?.HandCards?
-                .Where(c => c.Properties.Contains(CardProperty.Impulse) && c.InstanceId != playedCard.InstanceId)
+                .Where(c => c.Persistence == PersistenceType.Impulse && c.InstanceId != playedCard.InstanceId)
                 .ToList() ?? new List<CardInstance>();
 
             if (impulseCards.Any())

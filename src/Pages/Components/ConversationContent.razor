@@ -262,13 +262,17 @@
                              @onclick="() => ToggleCardSelection(convCard)">
                             
                             @* Persistence tags *@
-                            @if (convCard.Properties.Contains(CardProperty.Impulse))
+                            @if (convCard.Persistence == PersistenceType.Impulse)
                             {
                                 <span class="persistence-tag impulse">Impulse</span>
                             }
-                            @if (convCard.Properties.Contains(CardProperty.Opening))
+                            @if (convCard.Persistence == PersistenceType.Opening)
                             {
                                 <span class="persistence-tag opening">Opening</span>
+                            }
+                            @if (convCard.Persistence == PersistenceType.Thought)
+                            {
+                                <span class="persistence-tag thought">Thought</span>
                             }
                             
                             <div class="card-content">

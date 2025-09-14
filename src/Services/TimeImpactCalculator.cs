@@ -83,10 +83,10 @@ public class TimeImpactCalculator
         {
             >= 1 and <= 3 => TimeBlocks.Dawn,      // Segments 1-3 (Dawn)
             >= 4 and <= 7 => TimeBlocks.Morning,    // Segments 4-7 (Midday)
-            >= 8 and <= 11 => TimeBlocks.Afternoon, // Segments 8-11 (Afternoon)
-            >= 12 and <= 15 => TimeBlocks.Evening,  // Segments 12-15 (Evening)
-            16 => TimeBlocks.Night,                  // Segment 16 (Night)
-            _ => TimeBlocks.LateNight               // Default (should not happen)
+            >= 8 and <= 11 => TimeBlocks.Midday, // Segments 8-11 (Afternoon)
+            >= 12 and <= 15 => TimeBlocks.Afternoon,  // Segments 12-15 (Evening)
+            16 => TimeBlocks.Evening,                  // Segment 16 (Night)
+            _ => TimeBlocks.Night               // Default (should not happen)
         };
     }
 }

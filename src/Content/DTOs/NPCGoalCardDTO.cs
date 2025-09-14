@@ -27,12 +27,7 @@ public class NPCGoalCardDTO
     public int Focus { get; set; }
 
     /// <summary>
-    /// Card properties like Persistent, GoalCard
-    /// </summary>
-    public List<string> Properties { get; set; }
-
-    /// <summary>
-    /// Token type for this promise (Trust, Kinship, Heritage)
+    /// Token type for this promise (Trust, Commerce, Status, Shadow)
     /// </summary>
     public string ConnectionType { get; set; }
 
@@ -51,10 +46,11 @@ public class NPCGoalCardDTO
     /// </summary>
     public int RapportThreshold { get; set; }
 
-    /// <summary>
-    /// Effect when the promise is accepted
-    /// </summary>
-    public CardEffectDTO SuccessEffect { get; set; }
+    // Categorical properties - define behavior through context
+    public string Persistence { get; set; } // Usually "Thought" for goal cards
+    public string SuccessType { get; set; } // Usually "Promising" or "Advancing"
+    public string FailureType { get; set; } // Usually "None" for goal cards
+    public string ExhaustType { get; set; } // Usually "None" for goal cards
 
     /// <summary>
     /// Dialogue spoken when playing this card

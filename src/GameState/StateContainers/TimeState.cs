@@ -47,7 +47,7 @@ public sealed class TimeState
             for (int i = currentBlockIndex + 1; i < 5; i++) // 5 playable blocks (Dawn through Night)
             {
                 var futureBlock = (TimeBlocks)i;
-                if (futureBlock != TimeBlocks.LateNight)
+                if (futureBlock != TimeBlocks.Night)
                 {
                     remaining += TimeBlockSegments.GetSegmentsForBlock(futureBlock);
                 }
@@ -58,14 +58,14 @@ public sealed class TimeState
     }
 
     /// <summary>
-    /// Active segments remaining in the current day (excluding DeepNight).
+    /// Active segments remaining in the current day
     /// </summary>
     public int ActiveSegmentsRemaining => IsActiveTime ? SegmentsRemainingInDay : 0;
     
     /// <summary>
-    /// True if the current time allows active gameplay (not DeepNight).
+    /// True if the current time allows active gameplay
     /// </summary>
-    public bool IsActiveTime => _currentTimeBlock != TimeBlocks.LateNight;
+    public bool IsActiveTime => _currentTimeBlock != TimeBlocks.Night;
 
     /// <summary>
     /// True if this is the final segment of the current block.
@@ -73,9 +73,9 @@ public sealed class TimeState
     public bool IsLastSegmentInBlock => _currentSegment >= SegmentsInCurrentBlock;
 
     /// <summary>
-    /// True if this is the final segment of the day (Night block's only segment).
+    /// True if this is the final segment of the day 
     /// </summary>
-    public bool IsLastSegmentInDay => _currentTimeBlock == TimeBlocks.Night && IsLastSegmentInBlock;
+    public bool IsLastSegmentInDay => _currentTimeBlock == TimeBlocks.Evening && IsLastSegmentInBlock;
 
     /// <summary>
     /// Creates a new TimeState starting at the beginning of a day.
@@ -99,8 +99,8 @@ public sealed class TimeState
         if (day < 1)
             throw new ArgumentException("Day must be at least 1", nameof(day));
 
-        if (timeBlock == TimeBlocks.LateNight)
-            throw new ArgumentException("Cannot create TimeState during DeepNight - use Sleep() to transition through DeepNight", nameof(timeBlock));
+        if (timeBlock == TimeBlocks.Night)
+            throw new ArgumentException("Cannot create TimeState during Night - use Sleep() to transition through Night", nameof(timeBlock));
 
         int maxSegments = TimeBlockSegments.GetSegmentsForBlock(timeBlock);
         if (segment < 1 || segment > maxSegments)
@@ -149,9 +149,9 @@ public sealed class TimeState
                 totalSegments += segmentsRemainingInCurrentBlock;
                 
                 // Move to next time block
-                if (currentTimeBlock == TimeBlocks.Night)
+                if (currentTimeBlock == TimeBlocks.Evening)
                 {
-                    // Night → DeepNight → Dawn (next day)
+                    // Evening → Night → Dawn (next day)
                     currentDay++;
                     currentTimeBlock = TimeBlocks.Dawn;
                     currentSegment = 1;
@@ -181,11 +181,11 @@ public sealed class TimeState
 
     /// <summary>
     /// Handles sleep transition from any time to Dawn of the next day.
-    /// Used when player sleeps or when DeepNight is reached.
+    /// Used when player sleeps or when Night is reached.
     /// </summary>
     public TimeState Sleep()
     {
-        int nextDay = _currentTimeBlock == TimeBlocks.Night && IsLastSegmentInBlock ? _currentDay + 1 : _currentDay + 1;
+        int nextDay = _currentTimeBlock == TimeBlocks.Evening && IsLastSegmentInBlock ? _currentDay + 1 : _currentDay + 1;
         return new TimeState(nextDay, TimeBlocks.Dawn, 1, CalculateTotalSegments(nextDay, TimeBlocks.Dawn, 1));
     }
 
@@ -249,11 +249,11 @@ public sealed class TimeState
         return currentBlock switch
         {
             TimeBlocks.Dawn => TimeBlocks.Morning,
-            TimeBlocks.Morning => TimeBlocks.Afternoon,
+            TimeBlocks.Morning => TimeBlocks.Midday,
+            TimeBlocks.Midday => TimeBlocks.Afternoon,
             TimeBlocks.Afternoon => TimeBlocks.Evening,
             TimeBlocks.Evening => TimeBlocks.Night,
-            TimeBlocks.Night => TimeBlocks.LateNight,
-            TimeBlocks.LateNight => TimeBlocks.Dawn, // This shouldn't happen in normal flow
+            TimeBlocks.Night => TimeBlocks.Dawn, // This shouldn't happen in normal flow
             _ => throw new ArgumentException($"Unknown time block: {currentBlock}")
         };
     }

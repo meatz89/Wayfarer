@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Manages all card deck operations for the new conversation system.
@@ -10,17 +11,17 @@ public class CardDeckManager
 {
     private readonly GameWorld _gameWorld;
     private readonly Random _random;
-    private readonly CardEffectProcessor _effectProcessor;
+    private readonly CategoricalEffectResolver _effectResolver;
     private readonly FocusManager _focusManager;
     private readonly AtmosphereManager _atmosphereManager;
     private readonly TokenMechanicsManager _tokenManager;
     // Removed exhausted pile - now using SessionCardDeck's discard pile
 
-    public CardDeckManager(GameWorld gameWorld, CardEffectProcessor effectProcessor,
+    public CardDeckManager(GameWorld gameWorld, CategoricalEffectResolver effectResolver,
         FocusManager focusManager, AtmosphereManager atmosphereManager, TokenMechanicsManager tokenManager)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _effectProcessor = effectProcessor ?? throw new ArgumentNullException(nameof(effectProcessor));
+        _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _focusManager = focusManager ?? throw new ArgumentNullException(nameof(focusManager));
         _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
@@ -97,7 +98,7 @@ public class CardDeckManager
     public CardPlayResult PlayCard(ConversationSession session, CardInstance selectedCard)
     {
         // Check if card is unplayable (but skip this check for promise cards which handle rapport separately)
-        if (selectedCard.Properties.Contains(CardProperty.Unplayable) &&
+        if (!selectedCard.IsPlayable &&
             !(selectedCard.CardType == CardType.Letter || selectedCard.CardType == CardType.Promise || selectedCard.CardType == CardType.BurdenGoal))
         {
             return new CardPlayResult
@@ -141,7 +142,7 @@ public class CardDeckManager
         }
 
         // Calculate success percentage
-        int successPercentage = _effectProcessor.CalculateSuccessPercentage(selectedCard, session);
+        int successPercentage = _effectResolver.CalculateSuccessPercentage(selectedCard, session);
 
         // Promise/request cards (GoalCard) ALWAYS succeed
         bool success;
@@ -172,7 +173,7 @@ public class CardDeckManager
             roll = selectedCard.Context?.PreRolledValue ?? _random.Next(1, 101);
 
             // Check success using the pre-rolled value with momentum system
-            success = _effectProcessor.CheckSuccessWithPreRoll(roll, successPercentage, session);
+            success = _effectResolver.CheckSuccessWithPreRoll(roll, successPercentage, session);
         }
 
         // Spend focus (possibly 0 if free) - focus represents effort of speaking
@@ -190,7 +191,7 @@ public class CardDeckManager
             session.HiddenMomentum = 0;
 
             // Process card's success effect
-            effectResult = _effectProcessor.ProcessSuccessEffect(selectedCard, session);
+            effectResult = _effectResolver.ProcessSuccessEffect(selectedCard, session);
 
             // Apply rapport changes to RapportManager
             if (effectResult.RapportChange != 0 && session.RapportManager != null)
@@ -222,7 +223,7 @@ public class CardDeckManager
             session.HiddenMomentum = Math.Min(session.HiddenMomentum + 1, 4); // Cap at 4 failures
 
             // Process card's failure effect
-            effectResult = _effectProcessor.ProcessFailureEffect(selectedCard, session);
+            effectResult = _effectResolver.ProcessFailureEffect(selectedCard, session);
 
             // Apply rapport changes to RapportManager (if any failure effects modify rapport)
             if (effectResult.RapportChange != 0 && session.RapportManager != null)
@@ -316,21 +317,16 @@ public class CardDeckManager
         {
             // Only process goal cards that are currently Unplayable
             if ((card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
-                && card.Properties.Contains(CardProperty.Unplayable))
+                && !card.IsPlayable)
             {
                 // Check if rapport threshold is met
                 int rapportThreshold = card.Context?.RapportThreshold ?? 0;
                 
                 if (currentRapport >= rapportThreshold)
                 {
-                    // Remove Unplayable property
-                    card.Properties.Remove(CardProperty.Unplayable);
-                    
-                    // Add Impulse and Opening properties (must be played immediately)
-                    if (!card.Properties.Contains(CardProperty.Impulse))
-                        card.Properties.Add(CardProperty.Impulse);
-                    if (!card.Properties.Contains(CardProperty.Opening))
-                        card.Properties.Add(CardProperty.Opening);
+                    // Make card playable
+                    card.IsPlayable = true;
+                    // Request cards already have Impulse + Opening persistence set
                     
                     // Mark that a request card is now playable
                     session.RequestCardDrawn = true;
@@ -379,17 +375,8 @@ public class CardDeckManager
             // Check if we can afford this card
             bool canAfford = _focusManager.CanAffordCard(effectiveFocusCost);
 
-            // Update playability
-            if (!canAfford && !card.Properties.Contains(CardProperty.Unplayable))
-            {
-                // Mark as unplayable if we can't afford it
-                card.Properties.Add(CardProperty.Unplayable);
-            }
-            else if (canAfford && card.Properties.Contains(CardProperty.Unplayable))
-            {
-                // Regular card that was unplayable due to focus cost can now be played
-                card.Properties.Remove(CardProperty.Unplayable);
-            }
+            // Update playability based on focus availability
+            card.IsPlayable = canAfford;
         }
     }
 
@@ -399,8 +386,8 @@ public class CardDeckManager
     /// </summary>
     private bool RemoveImpulseCardsFromHand(ConversationSession session)
     {
-        // Get all impulse cards (including requests with both Impulse + Opening)
-        List<CardInstance> impulseCards = session.ActiveCards.Cards.Where(c => c.Properties.Contains(CardProperty.Impulse)).ToList();
+        // Get all impulse cards
+        List<CardInstance> impulseCards = session.ActiveCards.Cards.Where(c => c.Persistence == PersistenceType.Impulse).ToList();
 
         foreach (CardInstance card in impulseCards)
         {
@@ -429,7 +416,7 @@ public class CardDeckManager
     {
         // Get all opening cards
         List<CardInstance> openingCards = session.ActiveCards.Cards
-            .Where(c => IsOpeningCard(c))
+            .Where(c => c.Persistence == PersistenceType.Opening)
             .ToList();
 
         foreach (CardInstance card in openingCards)
@@ -452,13 +439,6 @@ public class CardDeckManager
         return true; // Conversation continues
     }
 
-    /// <summary>
-    /// Check if a card has the Opening property
-    /// </summary>
-    private bool IsOpeningCard(CardInstance card)
-    {
-        return card.Properties.Contains(CardProperty.Opening);
-    }
 
     /// <summary>
     /// Execute a card's exhaust effect
@@ -527,7 +507,7 @@ public class CardDeckManager
     public bool CanPlayCard(CardInstance card, ConversationSession session)
     {
         // Check if card is marked as Unplayable
-        if (card.Properties.Contains(CardProperty.Unplayable))
+        if (!card.IsPlayable)
             return false;
             
         // Check focus availability
@@ -578,7 +558,10 @@ public class CardDeckManager
                         Id = requestCard.Id,
                         Description = requestCard.Description,
                         CardType = CardType.BurdenGoal, // Request cards are always BurdenGoal
-                        Properties = new List<CardProperty>(requestCard.Properties),
+                        Persistence = requestCard.Persistence,
+                        SuccessType = requestCard.SuccessType,
+                        FailureType = requestCard.FailureType,
+                        ExhaustType = requestCard.ExhaustType,
                         TokenType = requestCard.TokenType,
                         Focus = requestCard.Focus,
                         Difficulty = requestCard.Difficulty,
@@ -602,8 +585,7 @@ public class CardDeckManager
                     };
                     
                     // Request cards start as Unplayable until rapport threshold is met
-                    if (!instance.Properties.Contains(CardProperty.Unplayable))
-                        instance.Properties.Add(CardProperty.Unplayable);
+                    instance.IsPlayable = false;
                     
                     requestCards.Add(instance);
                 }
@@ -689,8 +671,7 @@ public class CardDeckManager
         goalInstance.Context.RapportThreshold = selectedGoal.RapportThreshold;
         
         // Goal cards start as Unplayable until rapport threshold is met
-        if (!goalInstance.Properties.Contains(CardProperty.Unplayable))
-            goalInstance.Properties.Add(CardProperty.Unplayable);
+        goalInstance.IsPlayable = false;
         
         return goalInstance;
     }
@@ -730,8 +711,7 @@ public class CardDeckManager
         resolutionInstance.Context.RapportThreshold = selectedResolution.RapportThreshold;
         
         // Goal cards start as Unplayable until rapport threshold is met
-        if (!resolutionInstance.Properties.Contains(CardProperty.Unplayable))
-            resolutionInstance.Properties.Add(CardProperty.Unplayable);
+        resolutionInstance.IsPlayable = false;
         
         return resolutionInstance;
     }
@@ -774,8 +754,7 @@ public class CardDeckManager
             requestInstance.Context.RapportThreshold = selectedRequest.RapportThreshold;
             
             // Goal cards start as Unplayable until rapport threshold is met
-            if (!requestInstance.Properties.Contains(CardProperty.Unplayable))
-                requestInstance.Properties.Add(CardProperty.Unplayable);
+            requestInstance.IsPlayable = false;
         }
 
         return requestInstance;

@@ -112,11 +112,8 @@ public class NPC
         {
             foreach (ConversationCard card in burdenCards)
             {
-                // Mark cards as burden cards if not already marked
-                if (!card.Properties.Contains(CardProperty.Burden))
-                {
-                    card.Properties.Add(CardProperty.Burden);
-                }
+                // Burden cards should already have CardType.BurdenGoal set
+                // No need to modify properties since we use CardType now
                 BurdenDeck.AddCard(card);
             }
         }

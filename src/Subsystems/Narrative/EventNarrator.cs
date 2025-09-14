@@ -538,9 +538,9 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             {
                 TimeBlocks.Dawn => "early this morning",
                 TimeBlocks.Morning => "this morning",
-                TimeBlocks.Afternoon => "this afternoon",
-                TimeBlocks.Evening => "this evening",
-                TimeBlocks.Night => "late tonight",
+                TimeBlocks.Midday => "this afternoon",
+                TimeBlocks.Afternoon => "this evening",
+                TimeBlocks.Evening => "late tonight",
                 _ => "recently"
             };
         }
@@ -561,10 +561,10 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             return (from, to) switch
             {
                 (TimeBlocks.Dawn, TimeBlocks.Morning) => "The sun climbs higher as morning arrives.",
-                (TimeBlocks.Morning, TimeBlocks.Afternoon) => "The day grows warm as afternoon approaches.",
-                (TimeBlocks.Afternoon, TimeBlocks.Evening) => "Shadows lengthen as evening draws near.",
-                (TimeBlocks.Evening, TimeBlocks.Night) => "Darkness falls across the land.",
-                (TimeBlocks.Night, TimeBlocks.Dawn) => "The first light of dawn breaks the horizon.",
+                (TimeBlocks.Morning, TimeBlocks.Midday) => "The day grows warm as afternoon approaches.",
+                (TimeBlocks.Midday, TimeBlocks.Afternoon) => "Shadows lengthen as evening draws near.",
+                (TimeBlocks.Afternoon, TimeBlocks.Evening) => "Darkness falls across the land.",
+                (TimeBlocks.Evening, TimeBlocks.Dawn) => "The first light of dawn breaks the horizon.",
                 _ => "Time passes..."
             };
         }

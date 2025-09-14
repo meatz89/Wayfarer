@@ -118,10 +118,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
 
             // Check if spot has any restrictions on leaving
             // For now, all spots allow movement unless explicitly restricted
-            // if (spot.SpotProperties?.Contains(SpotPropertyType.NoExit) == true)
-            // {
-            //     return false;
-            // }
 
             return true;
         }
@@ -135,14 +131,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
 
             // Check if spot has time-based restrictions
             // These restrictions are now handled through time-specific properties
-            // if (spot.SpotProperties?.Contains(SpotPropertyType.NightOnly) == true)
-            // {
-            //     TimeBlocks currentTime = _gameWorld.CurrentTimeBlock;
-            //     if (currentTime != TimeBlocks.Night && currentTime != TimeBlocks.LateNight)
-            //     {
-            //         return false;
-            //     }
-            // }
 
             return true;
         }

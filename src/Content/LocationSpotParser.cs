@@ -32,9 +32,9 @@ public static class LocationSpotParser
         {
             // Add all time windows as default
             spot.CurrentTimeBlocks.Add(TimeBlocks.Morning);
+            spot.CurrentTimeBlocks.Add(TimeBlocks.Midday);
             spot.CurrentTimeBlocks.Add(TimeBlocks.Afternoon);
             spot.CurrentTimeBlocks.Add(TimeBlocks.Evening);
-            spot.CurrentTimeBlocks.Add(TimeBlocks.Night);
         }
 
         // Parse spot properties from the new structure
@@ -85,14 +85,14 @@ public static class LocationSpotParser
             
             // Morning properties
             ParseTimeProperties(dto.Properties.Morning, TimeBlocks.Morning, timeProperties);
+            // Midday properties
+            ParseTimeProperties(dto.Properties.Midday, TimeBlocks.Midday, timeProperties);
             // Afternoon properties
-            ParseTimeProperties(dto.Properties.Midday, TimeBlocks.Afternoon, timeProperties);
+            ParseTimeProperties(dto.Properties.Afternoon, TimeBlocks.Afternoon, timeProperties);
             // Evening properties
-            ParseTimeProperties(dto.Properties.Afternoon, TimeBlocks.Evening, timeProperties);
+            ParseTimeProperties(dto.Properties.Evening, TimeBlocks.Evening, timeProperties);
             // Night properties
-            ParseTimeProperties(dto.Properties.Evening, TimeBlocks.Night, timeProperties);
-            // LateNight properties
-            ParseTimeProperties(dto.Properties.Night, TimeBlocks.LateNight, timeProperties);
+            ParseTimeProperties(dto.Properties.Night, TimeBlocks.Night, timeProperties);
             // Dawn properties
             ParseTimeProperties(dto.Properties.Dawn, TimeBlocks.Dawn, timeProperties);
             
@@ -174,9 +174,9 @@ public static class LocationSpotParser
         {
             // Add all time windows as default
             spot.CurrentTimeBlocks.Add(TimeBlocks.Morning);
+            spot.CurrentTimeBlocks.Add(TimeBlocks.Midday);
             spot.CurrentTimeBlocks.Add(TimeBlocks.Afternoon);
             spot.CurrentTimeBlocks.Add(TimeBlocks.Evening);
-            spot.CurrentTimeBlocks.Add(TimeBlocks.Night);
         }
 
         ParseSpotProperties(root, spot);

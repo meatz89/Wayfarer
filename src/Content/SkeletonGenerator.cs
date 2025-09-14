@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Generates mechanically complete but narratively generic skeleton content
@@ -177,7 +178,10 @@ public static class SkeletonGenerator
         {
             Id = id,
             Description = "The conversation continues.",
-            Properties = new List<CardProperty> { CardProperty.Skeleton, CardProperty.Persistent },
+            Persistence = PersistenceType.Thought, // Skeleton cards persist
+            SuccessType = SuccessEffectType.Rapport, // Default to rapport
+            FailureType = FailureEffectType.None,
+            ExhaustType = ExhaustEffectType.None,
             SkeletonSource = source,
             IsSkeleton = true,
 

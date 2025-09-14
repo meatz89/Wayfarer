@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Orchestrates the new conversation system with flow battery, atmosphere persistence, and single-card mechanics.
@@ -14,7 +15,7 @@ public class ConversationOrchestrator
     private readonly TokenMechanicsManager _tokenManager;
     private readonly FocusManager _focusManager;
     private readonly AtmosphereManager _atmosphereManager;
-    private readonly CardEffectProcessor _effectProcessor;
+    private readonly CategoricalEffectResolver _effectResolver;
     private readonly GameWorld _gameWorld;
     private readonly ConversationNarrativeService _narrativeService;
     private FlowManager? _flowBatteryManager;
@@ -25,7 +26,7 @@ public class ConversationOrchestrator
         TokenMechanicsManager tokenManager,
         FocusManager focusManager,
         AtmosphereManager atmosphereManager,
-        CardEffectProcessor effectProcessor,
+        CategoricalEffectResolver effectResolver,
         GameWorld gameWorld,
         ConversationNarrativeService narrativeService)
     {
@@ -34,7 +35,7 @@ public class ConversationOrchestrator
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _focusManager = focusManager ?? throw new ArgumentNullException(nameof(focusManager));
         _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
-        _effectProcessor = effectProcessor ?? throw new ArgumentNullException(nameof(effectProcessor));
+        _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
     }
@@ -379,7 +380,7 @@ public class ConversationOrchestrator
         int tokensEarned = CalculateTokenReward(session.CurrentState, session.FlowBattery);
 
         // Check if any request cards were played
-        bool requestAchieved = session.PlayedCards?.Any(c => c.Properties.Contains(CardProperty.Impulse) && c.Properties.Contains(CardProperty.Opening)) ?? false;
+        bool requestAchieved = session.PlayedCards?.Any(c => c.CardType == CardType.Request) ?? false;
         if (requestAchieved)
         {
             tokensEarned += 2; // Bonus for completing request

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Wayfarer.GameState.Enums;
 
 public class ConversationCard
 {
@@ -10,8 +11,11 @@ public class ConversationCard
     // Single source of truth for card type
     public CardType CardType { get; set; } = CardType.Conversation;
 
-    // Properties list replaces all boolean flags
-    public List<CardProperty> Properties { get; set; } = new List<CardProperty>();
+    // Categorical properties that define behavior through context
+    public PersistenceType Persistence { get; set; } = PersistenceType.Thought;
+    public SuccessEffectType SuccessType { get; set; } = SuccessEffectType.None;
+    public FailureEffectType FailureType { get; set; } = FailureEffectType.None;
+    public ExhaustEffectType ExhaustType { get; set; } = ExhaustEffectType.None;
 
     // Skeleton tracking - consistent with other entities
     public bool IsSkeleton { get; set; } = false;
@@ -31,28 +35,15 @@ public class ConversationCard
 
     // Rapport threshold for goal cards (Letter, Promise, BurdenGoal)
     public int RapportThreshold { get; set; } = 0;
-    
+
     // Promise card specific properties
     public int QueuePosition { get; set; } = 0; // Position to force in queue (usually 1)
     public int InstantRapport { get; set; } = 0; // Rapport gained from burning tokens
     public string RequestId { get; set; } // Links card to its parent NPCRequest
 
-    // Three-effect system: each card can have Success, Failure, and Exhaust effects
-    public CardEffect SuccessEffect { get; set; } = CardEffect.None;
-    public CardEffect FailureEffect { get; set; } = CardEffect.None;
-    public CardEffect ExhaustEffect { get; set; } = CardEffect.None;
-
     // Display properties
     public string DialogueFragment { get; set; }
     public string VerbPhrase { get; set; }
-
-    // Helper properties that use Properties list as source of truth
-    public bool IsImpulse => Properties.Contains(CardProperty.Impulse);
-    public bool IsOpening => Properties.Contains(CardProperty.Opening);
-    public bool IsPersistent => !Properties.Contains(CardProperty.Impulse)
-                                && !Properties.Contains(CardProperty.Opening);
-    public bool IsBurden => Properties.Contains(CardProperty.Burden);
-    public bool IsObservable => CardType == CardType.Observation;
 
     // Get base success percentage from difficulty tier
     public int GetBaseSuccessPercentage()
@@ -69,10 +60,6 @@ public class ConversationCard
     }
 
 
-    // Additional compatibility properties for UI
-    public CardContext Context => null;
-    public string RequestCardType => (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal) ? "Request" : null;
-
     // Deep clone for deck instances
     public ConversationCard DeepClone()
     {
@@ -80,7 +67,10 @@ public class ConversationCard
         {
             Id = this.Id,
             Description = this.Description,
-            Properties = new List<CardProperty>(this.Properties), // Clone the properties list
+            Persistence = this.Persistence,
+            SuccessType = this.SuccessType,
+            FailureType = this.FailureType,
+            ExhaustType = this.ExhaustType,
             IsSkeleton = this.IsSkeleton,
             SkeletonSource = this.SkeletonSource,
             TokenType = this.TokenType,
@@ -88,11 +78,11 @@ public class ConversationCard
             Difficulty = this.Difficulty,
             MinimumTokensRequired = this.MinimumTokensRequired,
             RequiredTokenType = this.RequiredTokenType,
-            PersonalityTypes = new List<string>(this.PersonalityTypes), // Clone personality types
+            PersonalityTypes = new List<string>(this.PersonalityTypes),
             RapportThreshold = this.RapportThreshold,
-            SuccessEffect = this.SuccessEffect?.DeepClone() ?? CardEffect.None,
-            FailureEffect = this.FailureEffect?.DeepClone() ?? CardEffect.None,
-            ExhaustEffect = this.ExhaustEffect?.DeepClone() ?? CardEffect.None,
+            QueuePosition = this.QueuePosition,
+            InstantRapport = this.InstantRapport,
+            RequestId = this.RequestId,
             DialogueFragment = this.DialogueFragment,
             VerbPhrase = this.VerbPhrase,
             CardType = this.CardType

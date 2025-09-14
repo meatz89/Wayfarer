@@ -186,20 +186,7 @@ public class ConversationSession
         {
             foreach (ConversationCard obsCard in npc.ObservationDeck.GetAllCards())
             {
-                npcObservationCards.Add(new CardInstance
-                {
-                    Id = obsCard.Id,
-                    Description = obsCard.Description,
-                    Focus = 0, // Observation cards always cost 0 focus
-                    Difficulty = obsCard.Difficulty,
-                    SuccessEffect = obsCard.SuccessEffect,
-                    FailureEffect = obsCard.FailureEffect,
-                    ExhaustEffect = obsCard.ExhaustEffect,
-                    Properties = new List<CardProperty>(obsCard.Properties),
-                    TokenType = obsCard.TokenType,
-                    DialogueFragment = obsCard.DialogueFragment,
-                    VerbPhrase = obsCard.VerbPhrase
-                });
+                npcObservationCards.Add(new CardInstance(obsCard));
             }
         }
 

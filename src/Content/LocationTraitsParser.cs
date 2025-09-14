@@ -55,35 +55,17 @@ public static class LocationTraitsParser
         {
             TimeBlocks.Dawn => location.MorningProperties ?? new List<string>(),
             TimeBlocks.Morning => location.MorningProperties ?? new List<string>(),
-            TimeBlocks.Afternoon => location.AfternoonProperties ?? new List<string>(),
-            TimeBlocks.Evening => location.EveningProperties ?? new List<string>(),
+            TimeBlocks.Midday => location.AfternoonProperties ?? new List<string>(),
+            TimeBlocks.Afternoon => location.EveningProperties ?? new List<string>(),
+            TimeBlocks.Evening => location.NightProperties ?? new List<string>(),
             TimeBlocks.Night => location.NightProperties ?? new List<string>(),
-            TimeBlocks.LateNight => location.NightProperties ?? new List<string>(),
             _ => location.AfternoonProperties ?? new List<string>()
         };
     }
 
     private static string MapEnvironmentalPropertyToTrait(string prop)
     {
-        return prop?.ToUpper() switch
-        {
-            "WELL-LIT" => "Well-Lit",
-            "DIM" => "Dimly Lit",
-            "DARK" => "Dark",
-            "SHADOWY" => "Shadowy",
-            "WARM" => "Warm",
-            "COZY" => "Cozy",
-            "BUSY" => "Busy",
-            "CROWDED" => "Crowded",
-            "QUIET" => "Quiet",
-            "SOCIAL" => "Social",
-            "URBAN" => "Urban",
-            "COMMERCIAL" => "Commercial",
-            "WEALTHY" => "Wealthy",
-            "GUARDED" => "Guarded",
-            "PRIVATE" => "Private",
-            _ => ""
-        };
+        return prop.ToString();
     }
 
     private static string MapDomainTagToTrait(string tag)

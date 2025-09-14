@@ -697,10 +697,10 @@ namespace Wayfarer.Pages.Components
             {
                 TimeBlocks.Dawn => "Dawn",
                 TimeBlocks.Morning => "Midday",
-                TimeBlocks.Afternoon => "Afternoon",
-                TimeBlocks.Evening => "Evening",
+                TimeBlocks.Midday => "Afternoon",
+                TimeBlocks.Afternoon => "Evening",
+                TimeBlocks.Evening => "Night",
                 TimeBlocks.Night => "Night",
-                TimeBlocks.LateNight => "DeepNight",
                 _ => "Unknown"
             };
 
@@ -723,9 +723,9 @@ namespace Wayfarer.Pages.Components
                 return CurrentTime switch
                 {
                     TimeBlocks.Morning => "Opening",
-                    TimeBlocks.Afternoon => "Busy",
-                    TimeBlocks.Evening => "Closing",
-                    TimeBlocks.Night => "Empty",
+                    TimeBlocks.Midday => "Busy",
+                    TimeBlocks.Afternoon => "Closing",
+                    TimeBlocks.Evening => "Empty",
                     _ => ""
                 };
             }
@@ -736,9 +736,9 @@ namespace Wayfarer.Pages.Components
                 return CurrentTime switch
                 {
                     TimeBlocks.Morning => "Quiet",
-                    TimeBlocks.Afternoon => "Quiet",
-                    TimeBlocks.Evening => "Busy",
-                    TimeBlocks.Night => "Lively",
+                    TimeBlocks.Midday => "Quiet",
+                    TimeBlocks.Afternoon => "Busy",
+                    TimeBlocks.Evening => "Lively",
                     _ => ""
                 };
             }
@@ -749,9 +749,9 @@ namespace Wayfarer.Pages.Components
                 return CurrentTime switch
                 {
                     TimeBlocks.Morning => "Formal",
-                    TimeBlocks.Afternoon => "Active",
-                    TimeBlocks.Evening => "Reception",
-                    TimeBlocks.Night => "Private",
+                    TimeBlocks.Midday => "Active",
+                    TimeBlocks.Afternoon => "Reception",
+                    TimeBlocks.Evening => "Private",
                     _ => ""
                 };
             }

@@ -77,11 +77,11 @@ namespace Wayfarer.Pages.Components
             return timeBlock switch
             {
                 TimeBlocks.Dawn => "Dawn",
-                TimeBlocks.Morning => "Midday",
+                TimeBlocks.Morning => "Morning",
+                TimeBlocks.Midday => "Midday",
                 TimeBlocks.Afternoon => "Afternoon",
                 TimeBlocks.Evening => "Evening",
                 TimeBlocks.Night => "Night",
-                TimeBlocks.LateNight => "DeepNight",
                 _ => "Unknown Time"
             };
         }

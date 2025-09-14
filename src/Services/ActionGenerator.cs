@@ -267,7 +267,7 @@ public class ActionGenerator
                 }
                 break;
 
-            case TimeBlocks.Afternoon:
+            case TimeBlocks.Midday:
                 if (location.Population?.GetPropertyValue() == "Crowded")
                 {
                     // People watching for information requires T2
@@ -278,7 +278,7 @@ public class ActionGenerator
                 }
                 break;
 
-            case TimeBlocks.Evening:
+            case TimeBlocks.Afternoon:
                 if (location.Illumination?.GetPropertyValue() == "Thiefy" || location.Illumination?.GetPropertyValue() == "Dark")
                 {
                     // Shadow activities require T3 (Confidant)
@@ -289,7 +289,7 @@ public class ActionGenerator
                 }
                 break;
 
-            case TimeBlocks.Night:
+            case TimeBlocks.Evening:
                 // Most actions unavailable at night
                 break;
         }
@@ -395,20 +395,20 @@ public class ActionGenerator
 
     private bool IsMarketOpen(TimeBlocks time)
     {
-        return time == TimeBlocks.Morning || time == TimeBlocks.Afternoon;
+        return time == TimeBlocks.Morning || time == TimeBlocks.Midday;
     }
 
     private string GetMarketDetail(Location location, TimeBlocks time)
     {
         if (time == TimeBlocks.Morning) return "Fresh goods";
-        if (time == TimeBlocks.Afternoon) return "Closing soon";
+        if (time == TimeBlocks.Midday) return "Closing soon";
         return "Limited stock";
     }
 
     private string GetInformationDetail(Location location, TimeBlocks time)
     {
         if (location.Population?.GetPropertyValue() == "Crowded") return "Rumors abound";
-        if (time == TimeBlocks.Evening) return "Whispered tales";
+        if (time == TimeBlocks.Afternoon) return "Whispered tales";
         return "Local gossip";
     }
 }

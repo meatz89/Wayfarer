@@ -157,7 +157,7 @@ public class GameRuleEngine : IGameRuleEngine
             }
         }
 
-        return TimeBlocks.Night; // Default
+        return TimeBlocks.Evening; // Default
     }
 
     public int GetActiveSegmentsRemaining(int currentSegment)
@@ -173,7 +173,7 @@ public class GameRuleEngine : IGameRuleEngine
         // Simple availability for now - can be expanded with NPC schedules
         return timeBlock switch
         {
-            TimeBlocks.Night => npc.LetterTokenTypes.Contains(ConnectionType.Shadow),
+            TimeBlocks.Evening => npc.LetterTokenTypes.Contains(ConnectionType.Shadow),
             TimeBlocks.Dawn => npc.LetterTokenTypes.Contains(ConnectionType.Trust),
             _ => true // Most NPCs available during day
         };
