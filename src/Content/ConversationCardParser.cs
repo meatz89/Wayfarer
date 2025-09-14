@@ -132,6 +132,12 @@ public static class ConversationCardParser
             VerbPhrase = "" // Will be set later if needed
         };
 
+        // Set MinimumTokensRequired from JSON - no defaults
+        if (dto.MinimumTokensRequired.HasValue)
+        {
+            card.MinimumTokensRequired = dto.MinimumTokensRequired.Value;
+        }
+
 
         // Set rapport threshold for goal cards from DTO
         if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.BurdenGoal)
@@ -350,6 +356,7 @@ public class ConversationCardDTO
     public string SuccessState { get; set; }
     public int? PatienceBonus { get; set; } // Patience added when this card succeeds
     public string DialogueFragment { get; set; } // Added dialogue fragment
+    public int? MinimumTokensRequired { get; set; } // Tokens required to unlock NPC progression cards
 
     // New properties array replaces persistence and special flags
     public List<string> Properties { get; set; }

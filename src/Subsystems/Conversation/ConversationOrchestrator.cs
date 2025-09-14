@@ -233,6 +233,18 @@ public class ConversationOrchestrator
         session.CurrentFocus = _focusManager.CurrentSpentFocus;
         session.MaxFocus = _focusManager.CurrentCapacity;
 
+        // Exhaust all focus on failed SPEAK - forces LISTEN as only option
+        if (!playResult.Success)
+        {
+            // Spend all remaining focus to force LISTEN
+            int remainingFocus = _focusManager.AvailableFocus;
+            if (remainingFocus > 0)
+            {
+                _focusManager.SpendFocus(remainingFocus);
+                session.CurrentFocus = _focusManager.CurrentSpentFocus;
+            }
+        }
+
         // Update card playability based on current focus
         _deckManager.UpdateCardPlayabilityBasedOnFocus(session);
 

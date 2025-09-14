@@ -86,13 +86,13 @@ public static class LocationSpotParser
             // Morning properties
             ParseTimeProperties(dto.Properties.Morning, TimeBlocks.Morning, timeProperties);
             // Afternoon properties
-            ParseTimeProperties(dto.Properties.Afternoon, TimeBlocks.Afternoon, timeProperties);
+            ParseTimeProperties(dto.Properties.Midday, TimeBlocks.Afternoon, timeProperties);
             // Evening properties
-            ParseTimeProperties(dto.Properties.Evening, TimeBlocks.Evening, timeProperties);
+            ParseTimeProperties(dto.Properties.Afternoon, TimeBlocks.Evening, timeProperties);
             // Night properties
-            ParseTimeProperties(dto.Properties.Night, TimeBlocks.Night, timeProperties);
+            ParseTimeProperties(dto.Properties.Evening, TimeBlocks.Night, timeProperties);
             // LateNight properties
-            ParseTimeProperties(dto.Properties.LateNight, TimeBlocks.LateNight, timeProperties);
+            ParseTimeProperties(dto.Properties.Night, TimeBlocks.LateNight, timeProperties);
             // Dawn properties
             ParseTimeProperties(dto.Properties.Dawn, TimeBlocks.Dawn, timeProperties);
             

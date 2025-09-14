@@ -171,8 +171,8 @@ public class ConversationSession
         // Determine initial state
         ConnectionState initialState = ConversationRules.DetermineInitialState(npc, queueManager);
 
-        // Create session deck from NPC's conversation cards
-        SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck?.GetAllCards() ?? new List<ConversationCard>(), npc.ID);
+        // Create session deck from NPC's progression cards (this is legacy - should use CardDeckManager)
+        SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(npc.ProgressionDeck?.GetAllCards() ?? new List<ConversationCard>(), npc.ID);
 
         // Add observation cards if provided
         foreach (CardInstance obsCard in obsCards)

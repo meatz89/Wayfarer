@@ -213,6 +213,102 @@
         "dialogueFragment": "Elena, I promise to make your needs my absolute priority. Everything else can wait."
       },
       {
+        "id": "elena_shared_understanding",
+        "type": "Normal",
+        "personalityTypes": ["DEVOTED"],
+        "focus": 2,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "We understand each other",
+        "difficulty": "Easy",
+        "minimumTokensRequired": 1,
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "2"
+        },
+        "dialogueFragment": "Elena, I feel like we're beginning to understand each other."
+      },
+      {
+        "id": "elena_trusted_confidant",
+        "type": "Normal",
+        "personalityTypes": ["DEVOTED"],
+        "focus": 3,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "You can trust me completely",
+        "difficulty": "Medium",
+        "minimumTokensRequired": 3,
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "3"
+        },
+        "failureEffect": {
+          "type": "AddRapport",
+          "value": "-1"
+        },
+        "dialogueFragment": "Elena, you can trust me with anything. I'll never betray your confidence."
+      },
+      {
+        "id": "elena_deep_bond",
+        "type": "Normal",
+        "personalityTypes": ["DEVOTED"],
+        "focus": 4,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "Our bond runs deep",
+        "difficulty": "Medium",
+        "minimumTokensRequired": 6,
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "4"
+        },
+        "failureEffect": {
+          "type": "AddRapport",
+          "value": "-2"
+        },
+        "dialogueFragment": "Elena, the bond between us has grown stronger than I could have imagined."
+      },
+      {
+        "id": "elena_absolute_devotion",
+        "type": "Normal",
+        "personalityTypes": ["DEVOTED"],
+        "focus": 5,
+        "properties": ["Persistent"],
+        "connectionType": "Trust",
+        "description": "My devotion is absolute",
+        "difficulty": "Hard",
+        "minimumTokensRequired": 10,
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "5"
+        },
+        "failureEffect": {
+          "type": "AddRapport",
+          "value": "-2"
+        },
+        "dialogueFragment": "Elena, my devotion to you is absolute. I would do anything for you."
+      },
+      {
+        "id": "elena_eternal_loyalty",
+        "type": "Normal",
+        "personalityTypes": ["DEVOTED"],
+        "focus": 6,
+        "properties": ["OneShot"],
+        "connectionType": "Trust",
+        "description": "Pledge eternal loyalty",
+        "difficulty": "Hard",
+        "minimumTokensRequired": 15,
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "10"
+        },
+        "failureEffect": {
+          "type": "AddRapport",
+          "value": "-3"
+        },
+        "dialogueFragment": "Elena, I pledge my eternal loyalty to you. Through all trials, I will stand by your side."
+      },
+      {
         "id": "marcus_quick_trade",
         "type": "Exchange",
         "personalityTypes": ["MERCANTILE"],
@@ -280,14 +376,11 @@
       "npcDecks": {
         "elena": {
           "conversationDeck": {
-            "i_hear_you": 3,
-            "let_me_think": 1,
-            "let_me_prepare": 1,
-            "how_can_i_assist": 2,
-            "tell_me_more": 2,
-            "im_here_for_you": 1,
-            "well_figure_this_out": 1,
-            "everything_will_be_alright": 1
+            "elena_shared_understanding": 2,
+            "elena_trusted_confidant": 2,
+            "elena_deep_bond": 1,
+            "elena_absolute_devotion": 1,
+            "elena_eternal_loyalty": 1
           },
           "requestDeck": {},
           "exchangeDeck": {},

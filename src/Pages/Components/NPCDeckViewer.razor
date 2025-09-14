@@ -290,10 +290,10 @@
             return;
         }
         
-        // Get conversation cards
-        if (CurrentNPC.ConversationDeck != null)
+        // Get progression cards
+        if (CurrentNPC.ProgressionDeck != null)
         {
-            ConversationCards = CurrentNPC.ConversationDeck.GetAllCards().Cast<ConversationCard>().ToList();
+            ConversationCards = CurrentNPC.ProgressionDeck.GetAllCards().Cast<ConversationCard>().ToList();
         }
     }
     

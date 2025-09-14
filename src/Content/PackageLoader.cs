@@ -553,11 +553,11 @@ public class PackageLoader
     }
 
     /// <summary>
-    /// Initialize conversation decks for all NPCs with the universal starter deck
+    /// Initialize player starter deck and NPC progression decks
     /// </summary>
     private void InitializeNPCConversationDecks(DeckCompositionDTO deckCompositions)
     {
-        Console.WriteLine("[PackageLoader] Initializing NPC conversation decks with composition rules...");
+        Console.WriteLine("[PackageLoader] Initializing player starter deck and NPC progression decks...");
 
         if (deckCompositions == null)
         {
@@ -565,28 +565,28 @@ public class PackageLoader
             return;
         }
 
+        // Initialize player's starter deck with default/universal cards
+        InitializePlayerStarterDeck(deckCompositions);
+
+        // Initialize NPC progression decks with unique cards
         foreach (NPC npc in _gameWorld.NPCs)
         {
             try
             {
-                npc.ConversationDeck = new CardDeck();
+                npc.ProgressionDeck = new CardDeck();
 
-                // Check for NPC-specific deck first
+                // Only load NPC-specific progression cards, not default deck
                 DeckDefinitionDTO deckDef = null;
                 if (deckCompositions.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey(npc.ID))
                 {
                     deckDef = deckCompositions.NpcDecks[npc.ID];
-                    Console.WriteLine($"[PackageLoader] Using custom deck for {npc.Name}");
+                    Console.WriteLine($"[PackageLoader] Loading progression cards for {npc.Name}");
                 }
-                else if (deckCompositions.DefaultDeck != null)
-                {
-                    deckDef = deckCompositions.DefaultDeck;
-                    Console.WriteLine($"[PackageLoader] Using default deck for {npc.Name}");
-                }
+                // NPCs no longer get default deck - that's for player only
 
                 if (deckDef?.ConversationDeck != null)
                 {
-                    // Add cards according to composition
+                    // Add NPC-specific progression cards
                     foreach (KeyValuePair<string, int> kvp in deckDef.ConversationDeck)
                     {
                         string cardId = kvp.Key;
@@ -595,12 +595,15 @@ public class PackageLoader
                         if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
                         {
                             ConversationCard cardTemplate = _gameWorld.AllCardDefinitions[cardId] as ConversationCard;
-                            if (cardTemplate != null && !(cardTemplate.CardType == CardType.Letter || cardTemplate.CardType == CardType.Promise || cardTemplate.CardType == CardType.BurdenGoal))
+                            // Add all cards defined for this NPC - these are progression cards by definition
+                            if (cardTemplate != null)
                             {
+                                // MinimumTokensRequired must be set in JSON - no defaults
+
                                 // Add multiple copies as specified
                                 for (int i = 0; i < count; i++)
                                 {
-                                    npc.ConversationDeck.AddCard(cardTemplate);
+                                    npc.ProgressionDeck.AddCard(cardTemplate);
                                 }
                             }
                         }
@@ -610,7 +613,7 @@ public class PackageLoader
                         }
                     }
 
-                    Console.WriteLine($"[PackageLoader] Initialized {npc.Name}'s conversation deck with {npc.ConversationDeck.Count} cards");
+                    Console.WriteLine($"[PackageLoader] Initialized {npc.Name}'s progression deck with {npc.ProgressionDeck.Count} cards");
                 }
             }
             catch (Exception ex)
@@ -1412,5 +1415,65 @@ public class PackageLoader
         }
 
         Console.WriteLine($"[PackageLoader] Crossroads validation completed successfully. Validated {_gameWorld.WorldState.locations.Count} locations and {routeSpotIds.Count} route spots.");
+    }
+
+    /// <summary>
+    /// Initialize player's starter conversation deck
+    /// </summary>
+    private void InitializePlayerStarterDeck(DeckCompositionDTO deckCompositions)
+    {
+        Player player = _gameWorld.GetPlayer();
+        if (player.ConversationDeck == null)
+        {
+            player.ConversationDeck = new CardDeck();
+        }
+
+        // Use the default deck as the player's starter deck
+        if (deckCompositions?.DefaultDeck?.ConversationDeck != null)
+        {
+            foreach (KeyValuePair<string, int> kvp in deckCompositions.DefaultDeck.ConversationDeck)
+            {
+                string cardId = kvp.Key;
+                int count = kvp.Value;
+
+                if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
+                {
+                    ConversationCard cardTemplate = _gameWorld.AllCardDefinitions[cardId] as ConversationCard;
+                    // Add starter cards to player deck
+                    if (cardTemplate != null && IsStarterCard(cardTemplate))
+                    {
+                        for (int i = 0; i < count; i++)
+                        {
+                            player.ConversationDeck.AddCard(cardTemplate);
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine($"[PackageLoader] Initialized player's starter deck with {player.ConversationDeck.Count} cards");
+        }
+        else
+        {
+            Console.WriteLine("[PackageLoader] Warning: No default deck defined for player starter cards");
+        }
+    }
+
+    /// <summary>
+    /// Check if a card should be in the player's starter deck
+    /// </summary>
+    private bool IsStarterCard(ConversationCard card)
+    {
+        // Exclude special card types that are never starter cards
+        if (card.CardType == CardType.Letter ||
+            card.CardType == CardType.Promise ||
+            card.CardType == CardType.BurdenGoal ||
+            card.CardType == CardType.Observation)
+        {
+            return false;
+        }
+
+        // All basic conversation cards from default deck are starter cards
+        // NPC-specific cards will have MinimumTokensRequired > 0
+        return true;
     }
 }

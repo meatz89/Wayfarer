@@ -13,15 +13,17 @@ public class CardDeckManager
     private readonly CardEffectProcessor _effectProcessor;
     private readonly FocusManager _focusManager;
     private readonly AtmosphereManager _atmosphereManager;
+    private readonly TokenMechanicsManager _tokenManager;
     // Removed exhausted pile - now using SessionCardDeck's discard pile
 
     public CardDeckManager(GameWorld gameWorld, CardEffectProcessor effectProcessor,
-        FocusManager focusManager, AtmosphereManager atmosphereManager)
+        FocusManager focusManager, AtmosphereManager atmosphereManager, TokenMechanicsManager tokenManager)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _effectProcessor = effectProcessor ?? throw new ArgumentNullException(nameof(effectProcessor));
         _focusManager = focusManager ?? throw new ArgumentNullException(nameof(focusManager));
         _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
+        _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _random = new Random();
     }
 
@@ -33,9 +35,31 @@ public class CardDeckManager
     {
         string sessionId = Guid.NewGuid().ToString();
 
-        // Commerce removed - exchanges use separate Exchange system
-        // Always use ConversationDeck for conversations
-        List<ConversationCard> cardTemplates = npc.ConversationDeck.GetAllCards();
+        // Start with player's conversation deck (starter cards)
+        Player player = _gameWorld.GetPlayer();
+        List<ConversationCard> cardTemplates = new List<ConversationCard>();
+
+        // Add all player starter cards
+        if (player.ConversationDeck != null && player.ConversationDeck.Count > 0)
+        {
+            cardTemplates.AddRange(player.ConversationDeck.GetAllCards());
+        }
+        else
+        {
+            // Critical error - player has no conversation abilities!
+            Console.WriteLine("[CardDeckManager] ERROR: Player has no conversation deck! Check PackageLoader initialization.");
+            // Continue anyway to avoid crash, but conversation will be unplayable
+        }
+
+        // Add unlocked NPC progression cards based on tokens
+        List<ConversationCard> unlockedProgressionCards = GetUnlockedProgressionCards(npc);
+        cardTemplates.AddRange(unlockedProgressionCards);
+
+        // Safety check - ensure we have at least some cards
+        if (cardTemplates.Count == 0)
+        {
+            Console.WriteLine($"[CardDeckManager] WARNING: Creating conversation with {npc.Name} but deck has NO cards!");
+        }
 
         SessionCardDeck deck = SessionCardDeck.CreateFromTemplates(cardTemplates, sessionId);
 
@@ -814,6 +838,37 @@ public class CardDeckManager
                 session.Deck.AddCard(cardInstance);
             }
         }
+    }
+
+    /// <summary>
+    /// Get NPC progression cards that are unlocked based on player's tokens
+    /// </summary>
+    private List<ConversationCard> GetUnlockedProgressionCards(NPC npc)
+    {
+        List<ConversationCard> unlockedCards = new List<ConversationCard>();
+
+        // Get player's tokens with this NPC
+        Player player = _gameWorld.GetPlayer();
+        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
+
+        // Check each card in NPC's progression deck
+        if (npc.ProgressionDeck != null)
+        {
+            foreach (ConversationCard card in npc.ProgressionDeck.GetAllCards())
+            {
+                // Check if player has enough tokens to unlock this card
+                // Cards unlock at 1, 3, 6, 10, 15 token thresholds
+                int requiredTokens = card.MinimumTokensRequired;
+                ConnectionType tokenType = card.RequiredTokenType ?? card.TokenType;
+
+                if (npcTokens.ContainsKey(tokenType) && npcTokens[tokenType] >= requiredTokens)
+                {
+                    unlockedCards.Add(card);
+                }
+            }
+        }
+
+        return unlockedCards;
     }
 
     /// <summary>

@@ -330,7 +330,7 @@ public class ConversationFacade
             RequestCardPlayed = memento.RequestCardPlayed,
             MaxPatience = memento.MaxPatience,  // Use stored max patience from memento
             TokenManager = _tokenManager,
-            Deck = SessionCardDeck.CreateFromTemplates(npc.ConversationDeck.GetAllCards(), npc.ID),
+            Deck = SessionCardDeck.CreateFromTemplates(npc.ProgressionDeck.GetAllCards(), npc.ID),
         };
 
         // Restore hand and deck cards
@@ -471,11 +471,8 @@ public class ConversationFacade
             }
         }
 
-        // FRIENDLYCHAT: Available if NPC has a conversation deck with cards
-        if (npc.ConversationDeck != null && npc.ConversationDeck.Count > 0)
-        {
-            available.Add(ConversationType.FriendlyChat);
-        }
+        // FRIENDLYCHAT: Always available (player has starter deck)
+        available.Add(ConversationType.FriendlyChat);
 
         return available;
     }

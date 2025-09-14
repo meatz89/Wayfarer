@@ -74,6 +74,10 @@
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
 
+    // PLAYER CONVERSATION DECK - Starter cards used in all conversations
+    // The player's base conversation abilities that work with every NPC
+    public CardDeck ConversationDeck { get; set; } = new();
+
     // PLAYER OBSERVATION DECK - Cards gained from exploring locations
     // Maximum 20 cards, tracks acquisition time for expiration
     public PlayerObservationDeck ObservationDeck { get; set; } = new();

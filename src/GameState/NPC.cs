@@ -71,8 +71,8 @@ public class NPC
     public int DailyPatience { get; set; } // Current remaining patience for the day
     public int MaxDailyPatience { get; set; } // Maximum patience based on personality
 
-    // FOUR DECK ARCHITECTURE
-    public CardDeck ConversationDeck { get; set; } = new();  // 20-30 cards: Flow, Token, State, Knowledge
+    // NPC DECK ARCHITECTURE
+    public CardDeck ProgressionDeck { get; set; } = new();  // Unique cards unlocked at token thresholds (1, 3, 6, 10, 15)
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
     public CardDeck ObservationDeck { get; set; } = new();  // Cards created from location observations
     public CardDeck BurdenDeck { get; set; } = new();  // Burden cards from past conflicts and resolution attempts 
