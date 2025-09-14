@@ -7,7 +7,7 @@
 4. [Resource Flow Between Loops](#resource-flow-between-loops)
 5. [Resource Economy](#resource-economy)
 6. [Conversation System](#conversation-system)
-7. [Starter Deck Design Principles](#starter-deck-design-principles)
+7. [Player Deck Design and Progression](#player-deck-design-and-progression)
 8. [Queue Management System](#queue-management-system)
 9. [Strategic Resource Management](#strategic-resource-management)
 10. [Economic Balance Points](#economic-balance-points)
@@ -42,7 +42,7 @@ Examples of clean separation:
 **GOOD**: Routes require access permit. Guards can be bribed for permits. Merchants sell permits.
 
 **BAD**: "High tokens unlock better cards AND improve success"  
-**GOOD**: Tokens provide starting rapport. Tokens gate specific exchanges. Two separate mechanics.
+**GOOD**: Tokens unlock NPC signature cards. Card levels improve success. Two separate mechanics.
 
 **BAD**: "Hunger reduces patience AND attention AND work output"
 **GOOD**: Hunger reduces attention (morning calculation). Hunger reduces work output (separate formula). Patience is per-NPC, unaffected.
@@ -62,35 +62,32 @@ The three core game loops answer fundamental design questions while maintaining 
 ### Core Loop 1: Card-Based Conversations
 
 #### Design Questions Answered
-- **What provides challenge?** Managing focus and rapport to reach request cards
-- **Why grow stronger?** More tokens improve starting rapport linearly  
-- **Why engage with NPCs?** Request cards provide income, access, and world progression
+- **What provides challenge?** Managing your deck against NPC personality rules
+- **Why grow stronger?** Leveling cards and gaining new ones improves success across all conversations
+- **Why engage with NPCs?** Request cards provide income, access, world progression, and new cards for your deck
 
-#### The Conversation Puzzle
+#### The Conversation as Core Activity
 
-1. Connection States determine focus capacity (3-6) and card draws (1-3)
-2. Focus persists across SPEAK actions, refreshes on LISTEN
-3. Flow (-3 to +3) tracks success/failure, triggers state transitions at extremes
-4. Rapport (-50 to +50) modifies all success rates linearly (+2% per point)
-5. Atmosphere persists until changed or failure occurs
-6. One card per SPEAK action creates authentic dialogue rhythm
+Conversations are the primary gameplay loop - your "combat encounters" expressed through social dynamics. The player owns a conversation deck representing their growing social repertoire. This deck is used in all conversations but each NPC relationship modifies the available card pool through their unique signature cards.
+
+The mechanical depth comes from playing YOUR cards against each NPC's personality rules, creating different puzzles with the same base deck. Success in conversations leads to request completion, which grants new cards and levels existing ones, making you permanently stronger for all future conversations.
 
 #### Connection States
 
-- **Disconnected**: 3 focus capacity, 1 card draw
-- **Guarded**: 4 focus capacity, 2 card draws
-- **Neutral**: 5 focus capacity, 2 card draws
-- **Receptive**: 5 focus capacity, 3 card draws
-- **Trusting**: 6 focus capacity, 3 card draws
+- **Disconnected**: 3 focus capacity, 3 cards drawn on LISTEN
+- **Guarded**: 4 focus capacity, 3 cards drawn on LISTEN
+- **Neutral**: 5 focus capacity, 4 cards drawn on LISTEN
+- **Receptive**: 5 focus capacity, 4 cards drawn on LISTEN
+- **Trusting**: 6 focus capacity, 5 cards drawn on LISTEN
 
 At -3 flow in Disconnected: Conversation ends immediately.
 
-#### NPC Card Systems
+#### NPC Deck Systems
 
 Each NPC maintains four persistent decks and a list of requests:
 
 **Four Persistent Decks**:
-1. **Conversation Deck**: Standard 20 cards for dialogue
+1. **Signature Deck**: Unique cards unlocked by token thresholds (replaces conversation deck)
 2. **Observation Deck**: Cards from location discoveries relevant to this NPC
 3. **Burden Deck**: Cards from failed obligations and damaged relationships
 4. **Exchange Deck**: Commerce options (mercantile NPCs only)
@@ -101,13 +98,36 @@ NPCs have a list of Requests, not a deck. Each Request is a bundled package cont
 - Associated promise cards (that can manipulate the queue)
 - Status tracking (available, completed, failed)
 
-When a player selects a request conversation type, all cards from that Request bundle (both request cards and promise cards) are added to the conversation draw pile. This enables the multi-threshold goal system where players see multiple goal options and can use promise cards to reach higher thresholds.
+When a player selects a request conversation type, all cards from that Request bundle (both request cards and promise cards) are added to the conversation draw pile.
+
+#### NPC Signature Cards
+
+Each NPC has 5 unique signature cards unlocked at specific token thresholds:
+- **1 token**: Basic signature card
+- **3 tokens**: Intermediate signature card
+- **6 tokens**: Advanced signature card
+- **10 tokens**: Elite signature card
+- **15 tokens**: Legendary signature card
+
+These cards are specific to that NPC, not generic token type cards. Marcus doesn't give "Commerce cards," he gives "Marcus's Bargain," "Silk Road Knowledge," and "Marcus's Favor." Elena gives "Elena's Trust," "Shared Burden," and "Elena's Hope." These cards mechanically represent the nature of your specific relationship.
+
+#### Personality Rules
+
+Each personality type applies one rule that fundamentally changes how conversations work:
+
+- **Proud**: Cards must be played in ascending focus order each turn (resets on LISTEN)
+- **Devoted**: When rapport decreases, it decreases twice
+- **Mercantile**: Your highest focus card each turn gains +30% success
+- **Cunning**: Playing same focus as previous card costs -2 rapport
+- **Steadfast**: All rapport changes are capped at ±2 per card
+
+These rules represent how different personalities respond to conversation. A Proud person needs escalating respect. A Devoted person catastrophizes failure. A Merchant rewards getting to the point.
 
 #### Conversation Outputs
-- **Promises**: Create obligations in queue (letters, meetings, escorts, etc.)
-- **Tokens**: Gained only through successful letter delivery (+1 to +3)
+- **Card Progression**: Successful plays grant XP to that specific card
+- **New Cards**: Request completion grants new cards to player deck
+- **Tokens**: Gained through successful letter delivery (+1 to +3)
 - **Observations**: Cards added to specific NPCs' observation decks
-- **Deck Evolution**: Successful completions modify NPC decks
 - **Permits**: Special promises that enable routes
 - **Burden Cards**: Failed requests damage relationships
 
@@ -532,10 +552,9 @@ This forces prioritization between relationship building, location investment, a
 
 ### Token Economy Integration
 
-Tokens serve multiple purposes through different mechanics:
-- **Starting Rapport**: Each token provides 1 starting rapport in conversations
+Tokens serve specific purposes through different mechanics:
+- **Signature Card Unlocking**: Each token threshold unlocks unique NPC cards
 - **Queue Displacement**: Burn for queue flexibility (permanent cost)
-- **Scaling Effects**: Some cards scale rapport gain with token count
 - **Exchange Gates**: Minimum tokens required for special exchanges
 
 Tokens only gained through successful letter delivery:
@@ -543,7 +562,7 @@ Tokens only gained through successful letter delivery:
 - Excellent delivery: +2-3 tokens with recipient (type based on letter)
 - Failed delivery: -2 tokens with sender
 
-Each use is a different mechanic with one purpose. Higher tokens mean easier conversation starts through rapport.
+Each use is a different mechanic with one purpose. Higher tokens unlock more signature cards that change the conversation dynamic with that specific NPC.
 
 ### Time Pressure Cascades
 
@@ -555,7 +574,7 @@ Time advances through:
 - **Natural progression**: During lengthy activities
 
 Deadlines create cascading decisions:
-- Tight deadline → Need displacement → Burn tokens → Lower future starting rapport
+- Tight deadline → Need displacement → Burn tokens → Lose signature cards in future conversations
 - Or: Rush to complete → Skip relationship building → Miss better letters
 
 ### How Loops Create Problems for Each Other
@@ -564,7 +583,7 @@ Deadlines create cascading decisions:
 - Every letter accepted adds obligation with fixed terms
 - Multiple letters compete for position 1
 - Focus management affects ability to reach request cards
-- Low rapport makes request success uncertain
+- Low card levels make request success uncertain
 
 **Queue creates Travel pressure**:
 - Obligations scattered across city
@@ -583,11 +602,11 @@ Deadlines create cascading decisions:
 **Conversations solve Travel problems**:
 - Request cards provide access permits
 - Successful deliveries reward observation cards
-- Built relationships (more tokens) make future permits easier
+- Built relationships unlock signature cards for easier future conversations
 - Atmosphere effects can overcome obstacles
 
 **Queue management solves Conversation problems**:
-- Completing letters builds tokens for starting rapport
+- Completing letters builds tokens for signature cards
 - Meeting deadlines maintains sender relationships
 - Efficient routing preserves resources for conversations
 
@@ -613,6 +632,7 @@ Deadlines create cascading decisions:
   - Exchanges (varies)
   - Caravan transport (10 coins)
   - Permits (15-20 coins)
+  - Deck thinning (cost TBD)
 - **No decay or automatic loss**
 - **Visibility**: Always shown in UI
 
@@ -687,13 +707,12 @@ Four types, each with distinct identity:
 - **Status**: Social standing (Proud NPCs prefer)
 - **Shadow**: Shared secrets (Cunning NPCs prefer)
 
-**Single Mechanical Effect**: Provide starting rapport in conversations (1 token = 1 rapport)
+**Primary Effect**: Unlock NPC signature cards at thresholds (1, 3, 6, 10, 15 tokens)
 
-**Multiple Uses Through Different Mechanics**:
-1. **Starting Rapport**: Each token provides 1 starting rapport in conversations
+**Additional Uses Through Different Mechanics**:
+1. **Signature Cards**: Each threshold unlocks unique cards for that NPC
 2. **Displacement Cost**: Burn tokens to jump queue positions
-3. **Scaling Effects**: Some rapport cards scale with specific token counts
-4. **Exchange Gating**: Minimum tokens required for special exchanges
+3. **Exchange Gating**: Minimum tokens required for special exchanges
 
 **Generation**:
 - Standard delivery: +1 token with recipient
@@ -702,11 +721,11 @@ Four types, each with distinct identity:
 - Special events and quests
 
 **Token Investment Return**:
-- 3 tokens = 3 starting rapport = +6% all cards
-- 6 tokens = 6 starting rapport = +12% all cards
-- 10 tokens = 10 starting rapport = +20% all cards
-- 25 tokens = 25 starting rapport = +50% all cards (halfway to guarantee)
-- Burning 10 tokens severely damages multiple relationships
+- 1 token = Basic signature card unlocked
+- 3 tokens = Two signature cards available
+- 6 tokens = Three signature cards in conversation
+- 10 tokens = Four powerful cards
+- 15 tokens = All five signature cards active
 
 ### Per-Conversation Resources
 
@@ -724,11 +743,11 @@ Four types, each with distinct identity:
   - Prepared atmosphere adds +1 to current capacity
   - Can exceed maximum temporarily with Prepared
   - Health below 50 reduces capacity by 1
-- **Strategic Role**: Core resource management within conversations. Enables multi-turn planning with impulse cards that require more focus than currently available.
+- **Strategic Role**: Core resource management within conversations. Enables multi-turn planning knowing failure forces LISTEN.
 
 #### Rapport
 - **Range**: -50 to +50
-- **Starting Value**: Equal to connection tokens with NPC
+- **Starting Value**: 0 (no longer modified by tokens)
 - **Effect**: +2% success rate per point on all cards
   - At -50: Guaranteed failure
   - At 0: Base card percentages
@@ -788,7 +807,7 @@ Four types, each with distinct identity:
   - Patient atmosphere: Actions cost 0
 - **Effect**: Maximum turns in conversation (LISTEN costs 1 turn)
 - **Each patience spent = 10 minutes game time**
-- **Strategic Role**: Time limit for each conversation. Forces efficient play and tough decisions about when to push vs accept available options.
+- **Strategic Role**: Time limit for each conversation. Forces efficient play since failure forces LISTEN which costs patience.
 
 ### Time Resources
 
@@ -894,20 +913,28 @@ Four types, each with distinct identity:
 
 ### Core Design Principle
 
-SPEAK Costs No Patience - this is the critical change that transforms the system:
-- **LISTEN**: Costs 1 patience, draws cards, refreshes focus to maximum
-- **SPEAK**: FREE (only spends focus from pool)
+The conversation system represents the primary gameplay loop. Players build and improve their conversation deck over time, representing their growing social repertoire. This deck is used in all conversations but each NPC modifies the experience through their personality rules and unlocked signature cards.
 
-This transforms patience from action currency into focus cycle currency. Each patience point represents potential card plays across the entire conversation, making efficiency paramount.
+**Failure Forces LISTEN**: When a SPEAK action fails, the player must LISTEN on their next turn. This creates a natural conversation rhythm where failure forces topic changes, making success streaks feel like finding conversational flow.
 
-### NPC Card Architecture
+### Player Deck Architecture
+
+The player owns a single conversation deck used in all conversations:
+
+**Starting Deck**: 20 basic cards representing fundamental social skills
+**Deck Growth**: New cards gained through request completion
+**Card Progression**: Each successful play grants XP to that specific card
+**Deck Refinement**: Certain locations allow deck thinning for a cost
+
+### NPC Architecture
 
 Each NPC maintains four persistent decks plus a request system:
 
 **Four Persistent Decks**:
-1. **Conversation Deck**: Standard 20 cards for dialogue
-   - Always available for standard conversations
-   - Cards have focus costs, difficulty tiers, and persistence types
+1. **Signature Deck**: Unique cards unlocked by token thresholds
+   - Not drawn at start - shuffled into player deck
+   - Represents the specific relationship with this NPC
+   - 5 cards total, unlocked at 1, 3, 6, 10, 15 tokens
    
 2. **Observation Deck**: Cards from location discoveries
    - Receives cards from location observations
@@ -934,20 +961,19 @@ NPCs don't have a "Request Deck" but rather a list of Requests. Each Request is 
 - **Status Tracking**: Whether the request is available, completed, or failed
 - **Narrative Context**: The story reason for this request
 
-When a player chooses a request conversation type, ALL cards from that Request bundle (both request cards and promise cards) are added to the conversation draw pile. This enables the multi-threshold goal system where players can pursue different reward tiers within the same conversation.
+When a player chooses a request conversation type, ALL cards from that Request bundle (both request cards and promise cards) are added to the conversation draw pile.
 
 ### Three-Pile System
 
 #### Draw Pile
-- Created at conversation start from relevant NPC decks
-- Contains all cards for this conversation type
+- Created at conversation start from player deck + NPC signature cards + observation cards
 - Shuffled once at start
 - When empty, shuffle exhaust pile to reform
 
 #### Active Pile (Hand)
 - Cards currently available to play
 - No maximum hand size
-- Observation cards don't count against normal draws
+- Most cards lost on LISTEN (only ~20% are Persistent)
 
 #### Exhaust Pile
 - Played cards go here
@@ -958,20 +984,22 @@ When a player chooses a request conversation type, ALL cards from that Request b
 
 1. **Pay attention cost** (2 for standard conversation)
 2. **Choose conversation type** (based on available NPC decks and requests)
-3. **Build draw pile** from relevant cards:
-   - All conversation deck cards (20)
+3. **Build draw pile**:
+   - All player deck cards (20+)
+   - Unlocked NPC signature cards (based on tokens)
    - All observation deck cards (if any)
    - If request conversation: ALL cards from selected Request bundle
 4. **Shuffle draw pile**
-5. **Starting rapport** = connection tokens with NPC
-6. **Draw initial hand** = cards equal to connection state
-   - Disconnected: 1 card
-   - Guarded: 2 cards
-   - Neutral: 2 cards
-   - Receptive: 3 cards
-   - Trusting: 3 cards
+5. **Starting rapport** = 0 (no token modifier)
+6. **Draw initial hand** = cards based on connection state
+   - Disconnected: 3 cards
+   - Guarded: 3 cards
+   - Neutral: 4 cards
+   - Receptive: 4 cards
+   - Trusting: 5 cards
 7. **Set focus** to connection state maximum
-8. **Request cards start unplayable** (if present)
+8. **Apply personality rule** for this NPC type
+9. **Request cards start unplayable** (if present)
 
 ### LISTEN Action
 
@@ -979,21 +1007,51 @@ Complete sequence:
 1. **Check patience cost**
    - Normal: Costs 1 patience
    - Patient atmosphere: Costs 0 patience
-2. **Draw cards** equal to connection state
+2. **Discard non-persistent cards** (~80% of hand lost)
+3. **Draw new cards** equal to connection state
+   - Disconnected/Guarded: 3 cards
+   - Neutral/Receptive: 4 cards
+   - Trusting: 5 cards
    - If draw pile has fewer: Draw what's available
    - If draw pile empty: Shuffle exhaust → new draw pile → continue
-3. **Refresh focus** to connection state maximum
-4. **Apply atmosphere modifiers**:
+4. **Refresh focus** to connection state maximum
+5. **Apply atmosphere modifiers**:
    - Receptive: Draw 1 additional card
    - Pressured: Draw 1 fewer card
    - Prepared: Add +1 to current focus
-5. **Remove Opening cards** if unplayed (to exhaust)
 6. **Check request card activation**:
    - Check ALL goal cards in hand for rapport thresholds
    - Each card that meets its threshold becomes playable
    - All activated cards gain Impulse AND Opening properties
    - Player must choose ONE activated goal immediately
    - Unchosen goals are lost
+7. **Reset turn-based personality effects** (like Proud's ascending focus requirement)
+
+### SPEAK Action
+
+Complete sequence:
+1. **Check focus available** (must have enough for card cost)
+2. **Choose one card** from hand
+3. **Check personality restrictions** (like Proud's ascending order)
+4. **Spend focus** equal to card cost from pool
+5. **Calculate success chance**:
+   - Base difficulty % + (2 × current rapport)
+   - Apply atmosphere modifiers if any
+   - Apply personality modifiers (like Mercantile's +30% to highest focus)
+6. **Resolve success/failure**:
+   - Success: +1 flow, apply card effects
+   - Failure: -1 flow, apply failure effects (if any), **MUST LISTEN NEXT**
+7. **Card goes to exhaust pile**
+8. **Apply card effects**:
+   - Rapport changes
+   - Atmosphere changes
+   - Draw/focus effects
+   - Card gains 1 XP if successful
+9. **Apply personality effects** (like Devoted's double rapport loss)
+10. **Check flow transitions**:
+    - At ±3: State change, flow resets to 0
+11. **If Success**: Can SPEAK again if focus remains
+12. **If Failure**: Next action must be LISTEN
 
 ### Promise Cards - Queue Manipulation
 
@@ -1034,28 +1092,6 @@ Each Request bundles multiple goal cards with different rapport requirements:
 
 The tension: You're not asking "can I succeed?" but "how much will I sacrifice?"
 
-### SPEAK Action
-
-Complete sequence:
-1. **Check focus available** (must have enough for card cost)
-2. **Choose one card** from hand
-3. **Spend focus** equal to card cost from pool
-4. **Calculate success chance**:
-   - Base difficulty % + (2 × current rapport)
-   - Apply atmosphere modifiers if any
-5. **Resolve success/failure**:
-   - Success: +1 flow, apply card effects
-   - Failure: -1 flow, apply failure effects (if any)
-6. **Card goes to exhaust pile**
-7. **Apply card effects**:
-   - Rapport changes
-   - Atmosphere changes
-   - Draw/focus effects
-8. **Remove Impulse cards** if unplayed (to exhaust)
-9. **Check flow transitions**:
-   - At ±3: State change, flow resets to 0
-10. **Can SPEAK again** if focus remains
-
 ### Conversation End
 
 Triggers:
@@ -1074,30 +1110,17 @@ Cleanup:
 
 ### Card Persistence Types
 
-#### Persistent (60% of deck)
-- Remain in hand until played
-- Most common type
-- Strategic planning enabled
-- Examples: Basic rapport cards, setup cards
+#### Persistent (~20% of deck)
+- Remain in hand through LISTEN
+- Valuable anchors for strategy
+- Often gained as card level-up reward
+- Examples: Key rapport builders, setup cards
 
-#### Impulse (25% of deck)
-- Removed after ANY SPEAK action if unplayed
-- High-risk, high-reward
-- Often 4+ focus cost
-- Examples: Dramatic rapport cards, crisis plays
-
-#### Opening (15% of deck)
-- Removed after LISTEN if unplayed
-- Timing-critical
-- Often utility effects
-- Examples: Draw cards, focus-add cards
-
-### On Exhaust Effects
-
-Some Impulse and Opening cards have effects when exhausted unplayed:
-- "Missed Opportunity": Draw 1 card when exhausted
-- "Hasty Words": -1 rapport when exhausted
-- "Lost Focus": +1 focus when exhausted
+#### Non-Persistent (~80% of deck)
+- Lost when LISTEN occurs
+- Creates urgency to play while available
+- Most common card type
+- Forces adaptation to new hands
 
 ### Card Difficulty Tiers
 
@@ -1109,258 +1132,137 @@ All modified by: +2% per rapport point
 - **Hard** (50% base): Powerful effects, scaled rapport (TBD final %)
 - **Very Hard** (40% base): Request cards, dramatic effects (TBD final %)
 
-### Normal Card Generation Rules
-
-#### Focus-Effect Correlation
-
-**0 Focus**: Setup cards
-- No effect + atmosphere change (Persistent)
-- +1 rapport (Easy, Persistent)
-
-**1 Focus**: Basic cards  
-- ±1 rapport (Easy, Persistent)
-- Draw 1 card (Medium, Opening with on exhaust: Draw 1)
-
-**2 Focus**: Standard cards
-- ±2 rapport (Medium, mix of Persistent and Opening)
-- Scaled rapport with low ceiling (Hard, Persistent)
-- Add 1 focus (Medium, Opening with on exhaust: +1 focus)
-
-**3 Focus**: Powerful cards
-- ±3 rapport (Medium, mix of Persistent and Impulse)
-- Scaled rapport with medium ceiling (Hard, Persistent)
-- Draw 2 cards (Medium, Opening)
-
-**4+ Focus**: Dramatic cards
-- ±4 or ±5 rapport (Hard-Very Hard, Impulse)
-- Scaled rapport with high ceiling (Hard, Impulse with on exhaust)
-- Add 2 focus (Medium, Impulse)
-
-#### Effect Pools
-
-**Fixed Rapport** (Easy-Medium difficulty):
-- +1, +2, +3 rapport
-- -1, -2 rapport
-
-**High Fixed Rapport** (Hard-Very Hard difficulty):
-- +4, +5 rapport
-- -3 rapport
-
-**Scaled Rapport** (Hard difficulty):
-- +X where X = Trust tokens (max 5)
-- +X where X = Commerce tokens (max 5)
-- +X where X = Status tokens (max 5)
-- +X where X = Shadow tokens (max 5)
-- +X where X = (20 - current rapport) ÷ 5
-- +X where X = patience ÷ 3
-- +X where X = focus remaining
-
-**Utility Effects** (Medium difficulty):
-- Draw 1 card
-- Draw 2 cards
-- Add 1 focus to pool
-- Add 2 focus to pool
-
-**Promise Effects** (Medium-Hard difficulty):
-- Move obligation to position 1, +5-10 rapport
-- Requires burning tokens with displaced NPCs
-- Creates immediate rapport boost
-- Enables reaching higher goal thresholds
-
-#### Atmosphere Assignment
-
-Only ~30% of cards change atmosphere:
-- 0-focus setup cards usually have atmosphere change
-- 4+ focus cards often set "Final" atmosphere
-- Token-associated cards might set "Focused"
-- Defensive cards might set "Volatile"
-
 ### Deck Cycling Example
 
-**Turn 1**: Draw pile has 23 cards (20 conversation + 2 observation + 1 request), active pile has 2 cards
-- SPEAK a card → goes to exhaust pile
+**Turn 1**: Draw pile has 28 cards (20 player + 3 signature + 5 observation), hand has 4 cards
+- SPEAK a card → success → goes to exhaust pile
 
-**Turn 2**: Draw pile has 21 cards, active has 1, exhaust has 1
-- LISTEN → draw 2 more cards from draw pile
+**Turn 2**: Draw pile has 24 cards, hand has 3, exhaust has 1
+- SPEAK a card → **FAILURE** → must LISTEN next
 
-**Turn 15**: Draw pile empty, active has 3 cards, exhaust has 20 cards
-- LISTEN → need to draw 2 cards
-- Shuffle exhaust pile (20 cards) → becomes new draw pile
-- Draw 2 cards from new draw pile → active pile
+**Turn 3**: Forced LISTEN
+- Discard 2 non-persistent cards from hand
+- Keep 1 persistent card
+- Draw 4 new cards from draw pile
+- Focus refreshes to maximum
 
-This creates natural deck cycling where all cards remain available throughout the conversation.
+**Turn 20**: Draw pile empty, hand has 2 persistent cards, exhaust has 26 cards
+- LISTEN → need to draw 4 cards
+- Shuffle exhaust pile (26 cards) → becomes new draw pile
+- Draw 4 cards from new draw pile → hand
 
-### Multi-Threshold Goal Strategy
+This creates natural deck cycling where all cards remain available throughout the conversation, but timing of when cards appear becomes critical.
 
-The presence of multiple goal cards with different rapport requirements creates layered strategic decisions:
+## Player Deck Design and Progression
 
-#### Threshold Climbing
-Each conversation becomes a risk/reward ladder:
-- **Low Threshold** (5-7 rapport): Achievable with basic card play
-- **Medium Threshold** (10-12 rapport): Requires good card luck or setup
-- **High Threshold** (15+ rapport): Needs promises or perfect play
+### Starting Deck Composition
 
-#### Promise Card Economics
-Promise cards offer immediate rapport at relationship cost:
-- **Immediate Effect**: +5 to +10 rapport
-- **Queue Cost**: Target moves to position 1
-- **Token Cost**: Burn with all displaced NPCs
-- **Strategic Value**: Guarantees reaching higher thresholds
+The player begins with 20 basic cards representing fundamental social skills:
 
-#### Decision Points
-1. **Early Assessment**: Can I reach medium threshold naturally?
-2. **Mid-Conversation**: Is the higher reward worth the patience cost?
-3. **Promise Timing**: When to sacrifice for guaranteed success?
-4. **Threshold Selection**: Which goal offers best value for cost?
+**Basic Rapport Cards** (8 cards):
+- "I hear you" (x3) - 1 focus, Easy, +1 rapport
+- "Let me help" (x2) - 2 focus, Medium, +2 rapport
+- "Trust me" (x2) - 3 focus, Medium, +3 rapport
+- "I understand" (x1) - 4 focus, Hard, +4 rapport
 
-#### Replay Variety
-Context changes optimal strategy:
-- High tokens with certain NPCs makes promises cheaper
-- Specific token needs justify higher sacrifices
-- Queue state affects promise opportunity cost
-- Prior knowledge enables better threshold targeting
+**Setup Cards** (4 cards):
+- "Let me think" (x1) - 1 focus, Easy, sets Patient atmosphere
+- "Let me prepare" (x1) - 1 focus, Easy, sets Prepared atmosphere
+- "Focus on this" (x1) - 2 focus, Medium, sets Focused atmosphere
+- "Stay calm" (x1) - 2 focus, Medium, sets Receptive atmosphere
 
-## Starter Deck Design Principles
+**Utility Cards** (4 cards):
+- "Tell me more" (x2) - 2 focus, Medium, draw 2 cards
+- "Gather thoughts" (x1) - 1 focus, Easy, add 1 focus
+- "Deep breath" (x1) - 3 focus, Medium, add 2 focus
 
-### Core Philosophy
+**Risk/Reward Cards** (4 cards):
+- "Bold claim" (x2) - 3 focus, Hard, +5 rapport / -2 on failure
+- "Personal story" (x1) - 4 focus, Hard, +6 rapport / -3 on failure
+- "Everything will be alright" (x1) - 5 focus, Very Hard, +8 rapport / -4 on failure
 
-The starter deck creates strategic depth through impossible choices, not mechanical complexity. Every turn forces players to choose between multiple suboptimal paths.
+All starting cards are non-persistent except "Let me think" and "I hear you" (first copy).
 
-### The Focus Paradox
+### Card Leveling System
 
-Limited focus capacity creates tension:
-- In Disconnected (3 focus): Can play one 3-focus OR three 1-focus cards
-- In Guarded (4 focus): Can play one 4-focus OR two 2-focus cards
-- In Neutral (5 focus): Can reach request cards requiring 5 focus
+Each card tracks its own XP gained from successful plays:
 
-This ensures players cannot play everything optimally.
+**XP Thresholds and Rewards**:
+- **Level 1** (0 XP): Base card
+- **Level 2** (3 XP): +10% success rate
+- **Level 3** (7 XP): Choose upgrade:
+  - Gain Persistent keyword
+  - Gain "Draw 1" on success
+  - Gain +1 rapport (if rapport card)
+- **Level 4** (15 XP): +10% success rate
+- **Level 5** (30 XP): Becomes "Mastered"
+  - Does not force LISTEN on failure
+  - Card glows gold in hand
 
-### The Strategic Triangle
+### Gaining New Cards
 
-Every card serves one of three purposes:
+**Request Completion**: Each successful request grants 1-3 new cards based on goal tier
+- Basic goal: 1 common card
+- Enhanced goal: 1 uncommon card + 1 common card
+- Premium goal: 1 rare card + 1 uncommon + 1 common
 
-1. **Progress** (Rapport Building)
-   - Build rapport to improve success rates
-   - Uses focus that could be spent on setup
-   - Risk of failure reduces flow
+**Card Rarity Examples**:
+- **Common**: Basic rapport builders, simple utilities
+- **Uncommon**: Atmosphere setters, scaled effects
+- **Rare**: Powerful uniques, special mechanics
 
-2. **Setup** (Atmosphere/Economy)
-   - Create future advantage through effects
-   - Delays immediate rapport building
-   - May not have turns to capitalize
+**Location Discoveries**: Some observations grant player cards instead of going to NPC decks
 
-3. **Information** (Card Draw)
-   - Expand options and find key cards
-   - No immediate rapport or setup
-   - Risk of drawing unplayable cards
+**Special Events**: Story moments may grant unique cards
 
-### Deck Composition Guidelines
+### Deck Thinning
 
-**Total Size**: 12 cards
-- Small enough for consistency
-- Large enough for variance
+Certain locations offer deck thinning services:
+- **Cost**: 5-10 coins per card removed
+- **Requirement**: Minimum 25 cards in deck
+- **Limit**: Cannot go below 20 cards
+- **Strategy**: Remove low-level commons to increase rare card density
 
-**Persistence Distribution**:
-- Persistent: 100% initially (no timing pressure early)
-- Later decks add Impulse/Opening for complexity
+### NPC Signature Cards
 
-**Focus Distribution**:
-- 1-focus: ~40% (always playable)
-- 2-focus: ~35% (standard plays)
-- 3-focus: ~15% (full capacity plays)
-- 4-focus: ~10% (requires setup)
+Each NPC has 5 unique cards that shuffle into the player's deck based on tokens:
 
-**Effect Categories**:
-- Safe progress: ~25% (reliable rapport, low risk)
-- Atmosphere setup: ~15% (future advantage)
-- Risk/reward: ~20% (efficient but risky)
-- Information: ~15% (card draw)
-- Powerful: ~25% (high impact)
+#### Example: Marcus's Commerce Cards
+- **1 token**: "Marcus's Rapport" - 2 focus, +2 rapport, Persistent
+- **3 tokens**: "Trade Knowledge" - 3 focus, +3 rapport, draw 1
+- **6 tokens**: "Commercial Bond" - 1 focus, +X rapport where X = Commerce tokens (max 6)
+- **10 tokens**: "Marcus's Favor" - 4 focus, cannot fail if rapport ≥ 10
+- **15 tokens**: "Master Trader" - 5 focus, +10 rapport, next card succeeds
 
-### Request Card Mechanics
+#### Example: Elena's Trust Cards
+- **1 token**: "Elena's Trust" - 1 focus, +1 rapport, Persistent
+- **3 tokens**: "Shared Burden" - 2 focus, double next rapport gain
+- **6 tokens**: "Deep Connection" - 3 focus, +5 rapport, ignore failures this turn
+- **10 tokens**: "Elena's Hope" - 0 focus, advance connection state
+- **15 tokens**: "Unbreakable Bond" - 4 focus, all cards Persistent this conversation
 
-Request cards define conversation goals bundled with promise cards in each Request:
+These cards represent the mechanical expression of each relationship, making every NPC conversation unique even with the same player deck.
 
-#### Request Bundle Structure
+### Strategic Deck Building
 
-Each Request contains:
-- **Multiple Request Cards**: Different rapport thresholds (basic, enhanced, premium)
-- **Associated Promise Cards**: Can manipulate queue for rapport boost
-- **Narrative Context**: The story reason for this request
+**Personality Optimization**: Build toward specific NPC types
+- **Proud Focus**: Many different focus values for ascending order
+- **Devoted Safety**: High success rate cards to avoid double penalties
+- **Mercantile Power**: High-focus cards to maximize +30% bonus
+- **Cunning Variety**: Diverse focus values to avoid repetition penalty
+- **Steadfast Consistency**: Many small rapport gains within ±2 cap
 
-All request cards from the selected Request bundle are added to the conversation active pile at start. All promise Cards are shuffled in the Draw Pile.
+**Leveling Priority**: Focus XP on versatile cards
+- Cards useful against multiple personalities
+- Atmosphere setters for setup
+- Card draw for consistency
+- Focus-adding cards for flexibility
 
-The request cards are in the active pile but remain unplayable until their specific rapport threshold is reached. This creates strategic decisions:
-
-1. **Safe Exit**: Take the basic goal once achievable
-2. **Natural Building**: Risk patience trying to reach higher thresholds
-3. **Promise Sacrifice**: Use promise cards to guarantee higher thresholds
-
-#### Promise Cards - Queue Manipulation
-
-Promise cards allow mid-conversation queue manipulation:
-- **Effect**: Immediately move target obligation to position 1
-- **Cost**: Burns tokens with ALL displaced NPCs
-- **Benefit**: Large immediate rapport gain (often +5 to +10)
-- **Narrative**: "I'll put you first" - literally and mechanically
-
-Example Promise Flow:
-1. Play promise card: "I'll prioritize your request"
-2. Target obligation moves to position 1
-3. Burn tokens with displaced NPCs (damaging those relationships)
-4. Gain significant rapport boost
-5. Now can reach higher goal threshold
-
-#### Strategic Depth
-
-This system transforms conversations from "can I succeed?" to "how much will I sacrifice?":
-
-**Cascading Decisions**:
-- Accept basic reward and preserve relationships?
-- Risk patience for natural rapport building?
-- Sacrifice other relationships for maximum reward?
-
-**Context-Dependent Value**:
-- High tokens with displaced NPCs = promise is cheaper
-- Desperate for specific token type = worth the sacrifice
-- Queue already problematic = promise solves multiple problems
-
-**Emergent Narrative**:
-The mechanics align with story - an NPC sees you literally damaging other relationships (burning tokens) to prioritize them, justifying higher trust and better rewards.
-
-#### Request Card Activation
-
-1. Player chooses request conversation type
-2. ALL cards from that Request bundle added to draw pile (unplayable)
-3. During LISTEN, check each goal card:
-   - If rapport ≥ threshold: Card becomes playable
-4. Player must immediately choose which playable goal to pursue
-5. Unchosen goals return to request deck
-
-### Mathematical Balance Targets
-
-**Success Rates**: 
-- Optimal play: 60-70% success
-- Average play: 45-55% success
-- Poor play: 30-40% success
-
-**Turn Economy**:
-- Average turns to request: 6-8
-- Patience usage: 40-50% of available
-- Focus efficiency: 75-85% utilized
-
-**Failure Recovery**:
-- Negative flow spiral: ~30% of games
-- Patience exhaustion: ~10% of games
-- Missed request window: ~5% of games
-
-### Design Achievements
-
-- **No Soft Locks**: Multiple low-focus cards ensure playability
-- **Meaningful Choices**: Every turn requires trade-offs
-- **Clear Progression**: State advancement enables requests
-- **Recovery Arcs**: Failures create challenges, not dead ends
-- **Perfect Information**: All mechanics transparent
+**Token Strategy**: Which relationships to prioritize
+- Commerce tokens for Marcus enable transport
+- Trust tokens for emotional NPCs unlock powerful state changes
+- Status tokens for proud NPCs provide authority
+- Shadow tokens for cunning NPCs reveal secrets
 
 ## Queue Management System
 
@@ -1390,6 +1292,8 @@ Token type burned matches NPC personality preference:
 - Mercantile NPCs: Commerce tokens
 - Proud NPCs: Status tokens
 - Cunning NPCs: Shadow tokens
+
+Note: When tokens are burned, the corresponding signature cards remain available at their thresholds. You're burning relationship capital, not losing the fundamental connection.
 
 ### Promise Cards - Mid-Conversation Queue Manipulation
 
@@ -1480,21 +1384,21 @@ Time management:
 - Need high-rapport goal card → Must build significant rapport
 - Building rapport needs successful cards → Requires good flow
 - Good flow needs consistent success → Must manage risk
-- Can shortcut with promise cards → But damages other relationships
-- Focus depletes → Must LISTEN to refresh
-- LISTEN costs patience → Limited turns available
+- Failure forces LISTEN → Lose most cards, costs patience
+- Limited patience → Must be efficient with plays
 
 #### Promise Card Calculus
 - Want higher reward tier → Need more rapport than achievable
 - Promise card offers +10 rapport → Guarantees threshold
 - But moves obligation to position 1 → Displaces current queue
-- Burns tokens with displaced NPCs → Permanent relationship damage
+- Burns tokens with displaced NPCs → Reduces future signature cards
 - Creates narrative emergence → Sacrifice visible to all
 
 #### Queue Displacement Cascade
 - Need urgent delivery → Must displace
-- Displacement burns tokens → Future conversations start with less rapport
-- Lower starting rapport → Harder conversations
+- Displacement burns tokens → Lose relationship progress
+- Fewer tokens → Fewer signature cards in conversations
+- Fewer signature cards → Harder conversations
 - Harder conversations → More likely to fail requests
 - Failed requests → Burden cards accumulate
 
@@ -1513,10 +1417,10 @@ Time management:
 - Build tokens with easy deliveries before hard ones
 
 #### Focus Efficiency
-- Chain low-focus cards before refreshing
+- Chain low-focus cards before failure forces LISTEN
 - Use atmosphere to expand capacity
-- Time impulse cards before SPEAK removes them
-- Plan multi-turn sequences
+- Recognize when to play safe vs risk failure
+- Plan around personality restrictions
 
 #### Attention Efficiency
 - Investigate during quiet periods for better returns
@@ -1564,30 +1468,30 @@ Request cards have fixed terms (no negotiation):
 - **Urgent letter**: 3-8 coins, 1-2 hour deadline
 - **Valuable letter**: 10-20 coins, 12-24 hour deadline
 
-Success builds tokens for future rapport:
-- First delivery: +1 token = easier next conversation
-- Chain effect: More tokens → higher success → more tokens
+Success builds tokens for signature cards:
+- First delivery: +1 token = 1 signature card available
+- Chain effect: More tokens → more signature cards → easier conversations
 
 Failure costs:
-- -2 tokens with sender
+- -2 tokens with sender (lose signature cards)
 - +2 burden cards
 - Relationship damage compounds
 
 ### Token Investment Mathematics
 
-Starting rapport from tokens:
-- **3 tokens**: 3 rapport = +6% all cards
-- **6 tokens**: 6 rapport = +12% all cards
-- **10 tokens**: 10 rapport = +20% all cards
-- **15 tokens**: 15 rapport = +30% all cards
-- **25 tokens**: 25 rapport = +50% all cards (halfway to guarantee)
-- **50 tokens**: 50 rapport = +100% all cards (guaranteed success)
+Signature cards unlocked by tokens:
+- **1 token**: Basic signature card available
+- **3 tokens**: 2 signature cards in deck
+- **6 tokens**: 3 powerful cards mixed in
+- **10 tokens**: 4 signature cards active
+- **15 tokens**: All 5 signature cards
+- Each signature card fundamentally changes conversation dynamics
 
 Burning tokens for displacement:
 - Displacing 1 position: 1 token
 - Displacing 3 positions: 6 tokens total
 - Displacing 5 positions: 15 tokens total
-- Burning 10 tokens severely damages multiple relationships
+- Burning tokens doesn't remove unlocked cards but damages relationship
 
 ### Investigation Return on Investment
 
@@ -1615,8 +1519,8 @@ Each familiarity level unlocks one observation:
 
 **Disconnected** (3 capacity):
 - Can play: Three 1-focus OR one 3-focus
-- Efficiency: 3 cards vs 1 card
-- Trade-off: Many small effects vs one big effect
+- Failure forces LISTEN, lose non-persistent cards
+- Must rebuild hand from new draws
 
 **Neutral** (5 capacity):
 - Can play: Five 1-focus OR one 5-focus
@@ -1625,8 +1529,8 @@ Each familiarity level unlocks one observation:
 
 **Trusting** (6 capacity):
 - Maximum flexibility
-- Can play any combination
-- Rarely achieved without token investment
+- 5 cards drawn on LISTEN
+- Best recovery from forced topic changes
 
 Prepared atmosphere value:
 - Adds +1 focus to current capacity
@@ -1645,14 +1549,24 @@ Coins → Food (reset hunger) → Better work output next time
 Better output → More coins → Critical purchases
 ```
 
-### Tokens → Rapport → Success → More Tokens
+### Cards → Success → Stronger Deck
+```
+Successful card plays → XP for that card
+Card levels up → Better success rate / gains keywords
+Request completion → New cards for deck
+Deck refinement → Remove weak cards
+Stronger deck → Handle harder NPCs
+Harder NPCs → Better rewards → More powerful cards
+```
+
+### Tokens → Signature Cards → Easier Conversations
 ```
 Successful deliveries → +1-3 tokens
-Higher tokens → Better starting rapport
-Better rapport → Higher success rates
-More successes → Positive flow → State advancement
-State advancement → Request availability
-Request success → More deliveries → More tokens
+Higher tokens → Unlock signature cards
+Signature cards → Mixed into player deck
+More signature cards → Better conversation options
+Better options → Higher success rates
+More successes → More tokens
 ```
 
 ### Familiarity → Knowledge → Access → Efficiency
@@ -1668,12 +1582,11 @@ New routes → More opportunities
 ### Focus → Cards → Rapport → Flow
 ```
 Higher states → More focus capacity
-More capacity → Access to higher focus cards
-Higher focus cards → Bigger rapport changes
-More rapport → Better success rates
-Better success → Positive flow
-Flow ±3 → State transition
-Better states → Access to requests
+More capacity → Can play more cards before LISTEN
+Successful plays → Positive rapport momentum
+Failure forces LISTEN → Topic change, lose cards
+Must rebuild → Draw new hand
+Better states → More cards drawn on LISTEN
 ```
 
 ## Work System
@@ -1774,6 +1687,7 @@ Exchange Card Structure:
 - Healing: 10 coins → +20 health
 - Rest: 5 coins → restore stamina
 - Storage: 2 coins → bank items
+- Deck thinning: 5-10 coins → remove one card
 
 ### Token-Gated Exchanges
 
@@ -1822,19 +1736,19 @@ Every system has escape valves preventing unwinnable states:
 ### Conversation Deadlocks - Never Stuck
 
 **Problem**: All cards too expensive for current focus
-**Solution**: Five 1-focus cards guarantee something playable
+**Solution**: Starting deck has multiple 1-focus cards
 
 **Problem**: Request card requires 5 focus, stuck in Disconnected
-**Solution**: Can leave and return with better preparation
+**Solution**: Can leave and return with better preparation or leveled cards
 
 **Problem**: No rapport, everything failing
 **Solution**: 70% base success on easy cards still likely
 
-**Problem**: Patient atmosphere needed but can't set it
-**Solution**: Can leave conversation and try different approach
+**Problem**: Personality rule makes cards unplayable
+**Solution**: LISTEN changes available cards, resets some restrictions
 
-**Problem**: Observation cards provide critical advantage
-**Solution**: Can investigate locations to gain them
+**Problem**: Failed and must LISTEN, no patience left
+**Solution**: Can leave conversation and try different approach
 
 ### Queue Deadlocks - Always Options
 
@@ -1872,20 +1786,23 @@ Every system has escape valves preventing unwinnable states:
 **Problem**: No money for food
 **Solution**: Can work even when hungry (reduced output)
 
-**Problem**: No tokens for rapport
-**Solution**: Base success rates still functional
+**Problem**: No signature cards with NPC
+**Solution**: Base deck still functional, can earn tokens
 
 **Problem**: Health critically low
 **Solution**: Rest options available (TBD)
+
+**Problem**: Deck too weak for NPC
+**Solution**: Can gain cards elsewhere, level existing cards
 
 ## Content Scalability
 
 ### Adding NPCs - Simple Framework
 
 New NPCs simply need:
-- **Personality type**: Determines patience and token preference
+- **Personality type**: Determines patience, token preference, and conversation rule
 - **Four persistent decks**:
-  - Conversation deck (20 cards following template)
+  - Signature deck (5 unique cards at token thresholds)
   - Observation deck (receives location discoveries)
   - Burden deck (damaged relationship tracking)
   - Exchange deck (if mercantile)
@@ -1908,13 +1825,13 @@ New locations need:
 
 ### Adding Cards - Clear Rules
 
-New cards must follow:
+New player cards must follow:
 - **Single effect**: One clear purpose (not multiple)
 - **Focus range**: 0-6 focus cost
 - **Difficulty tier**: Very Easy to Very Hard
-- **Persistence type**: Persistent (60%), Impulse (25%), Opening (15%)
-- **Atmosphere**: Only ~30% change atmosphere
-- **Scaling**: Either fixed OR scaled, never both
+- **Persistence**: ~20% should be Persistent
+- **Level progression**: Define XP thresholds and rewards
+- **Rarity**: Common, Uncommon, or Rare
 
 ### Adding Observation Rewards
 
@@ -1942,84 +1859,80 @@ New observations need:
 - Investigation less efficient
 - Focus on conversations and deliveries
 - Complete position 1 obligations
-- Use observations gained morning
+- Use observations and signature cards gained
 
 **Evening (2-6 PM)**:
 - Locations begin closing
 - Rush to complete deadlines
 - Make difficult displacement decisions
 - Burn tokens if necessary
-- See results of day's choices
+- See card XP accumulate from successful plays
 
 **Night (6-10 PM)**:
 - Limited location access
 - Focus on available NPCs
 - Rest and recovery options
 - Plan next day's route
-- Manage hunger before sleep
+- Consider deck thinning if coins available
 
 ### Emergent Narratives
 
 Stories emerge from mechanical interaction, not scripting:
 
-**NPC Scenario with Multi-Threshold Goals**:
-- Disconnected state (failed relationship)
-- Only 3 focus capacity, low starting rapport
-- Conversation reveals THREE goal options from Request bundle:
-  - Basic: 5 rapport threshold → 1 token reward
-  - Enhanced: 10 rapport threshold → 2 tokens + observation
-  - Premium: 15 rapport threshold → 3 tokens + permit + observation
-- Current rapport: 3 (achievable: 8 with perfect play)
-- Decision point: Accept basic or use promise card?
-- Promise card would: +10 rapport, displace 2 obligations, burn 3 tokens with affected NPCs
-- Player calculates: 3 tokens burned < 3 tokens gained + permit value
-- Plays promise, reaches premium threshold
-- Narrative: NPC sees you sacrifice other relationships for them
+**Building Power Through One NPC**:
+- Focus all deliveries to Marcus
+- Gain 10 Commerce tokens
+- Unlock 4 signature cards
+- Conversations with Marcus become trivial
+- His Mercantile rule (+30% to highest focus) synergizes with his high-focus signature cards
+- Can reliably reach Premium goals
+- But neglected other relationships
 
-**Trust Building Scenario**:
-- Starts at Neutral (professional relationship)
-- Player delivers letters efficiently
-- Gains appropriate token type (+2 per delivery)
-- Tokens provide starting rapport
-- Easier conversations each time
-- Eventually unlocks special exchanges
-- May need observation cards to activate
-- Creates investigation goals
+**Card Mastery Story**:
+- "Bold Claim" card used successfully 30 times
+- Reaches level 5 - Mastered
+- No longer forces LISTEN on failure
+- Becomes anchor card for risky strategies
+- Enables conversation momentum others can't maintain
+- Player known for bold, aggressive conversation style
 
-**Queue Management Crisis**:
-- Position 1: Urgent letter, 2 hours left
-- Position 2: Valuable package, good payment
-- Position 3: Personal request, no payment
-- Can't complete in order in time
-- Must burn tokens to displace
-- Each displacement damages a relationship
-- Strategic choice about which relationships to sacrifice
+**The Cascading Failure**:
+- Failed conversation with Elena (no signature cards)
+- Forced to accept Basic goal for urgent delivery
+- Low payment means can't afford food
+- Work at high hunger for poor output
+- Can't afford permit for efficient route
+- Take longer path, miss deadline
+- Lose tokens with recipient
+- Future conversations even harder
 
 ### Strategic Mastery Progression
 
 **Beginner**: 
+- Uses starting deck without plan
+- Doesn't understand personality rules
+- Ignores investigation timing
 - Takes any available letter
-- Investigates randomly
-- Works when broke
-- Ignores token economy
 
 **Intermediate**:
-- Plans queue order
-- Investigates at optimal times
-- Manages hunger efficiently
-- Builds specific token types
+- Recognizes which cards work against which personalities
+- Plans investigation for quiet periods
+- Manages hunger for work efficiency
+- Focuses token building on key NPCs
 
 **Advanced**:
-- Chains obligations efficiently
+- Shapes deck for specific challenges
+- Times card leveling for key conversations
 - Pre-builds observation advantages
-- Optimizes attention allocation
-- Maintains token portfolios
+- Maintains token portfolios across multiple NPCs
+- Uses promise cards strategically
 
 **Expert**:
-- Predicts conversation needs
-- Routes perfectly
-- Never wastes resources
-- Achieves seemingly impossible deliveries
+- Has mastered cards for momentum control
+- Knows exact token thresholds needed
+- Routes perfectly for time efficiency
+- Manipulates queue for maximum profit
+- Deck refined to personal playstyle
 
 ## Content Loading System
 
@@ -2047,7 +1960,8 @@ Content organized in self-contained JSON packages that can:
     "coins": 10,
     "health": { "current": 100, "max": 100 },
     "hunger": { "current": 50, "max": 100 },
-    "attention": 10
+    "attention": 10,
+    "playerDeck": ["hear_you_1", "hear_you_2", ...] 
   },
   "content": {
     "cards": [...],
@@ -2079,7 +1993,7 @@ Name: "Unnamed Merchant #47"
 Personality: Mercantile (from hash)
 Patience: 12 (from personality)
 State: Neutral (default)
-All 4 decks: Present but empty/minimal
+Signature deck: 5 generic cards
 Request list: Empty
 IsSkeleton: true
 ```
@@ -2095,115 +2009,111 @@ Packages can load in any sequence:
 
 ### Content Directories
 
-- `Content/Core/`: Essential game content
+- `Content/Core/`: Essential game content including starting deck
 - `Content/Expansions/`: Additional content packs
 - `Content/Generated/`: AI-generated packages
 - `Content/TestPackages/`: Testing content
 
 ## Core Innovation Summary
 
-The three loops create a complete game where:
+The core gameplay loop is **conversations as character progression**:
 
-### 1. Conversations
-Provide puzzle challenge through:
-- Focus management across multiple turns
-- Rapport building for success rates
-- Multi-threshold goals creating risk/reward ladders
-- Promise cards trading queue position for rapport
-- Flow navigation for state changes
-- Atmosphere manipulation for advantages
-- Observation cards from exploration
+### The Player Deck as Character
 
-### 2. Queue Management
-Provides time pressure through:
-- Forced sequential completion (position 1 first)
-- Token-burning displacement costs
-- Fixed deadline pressure
-- Relationship damage from failures
-- Strategic obligation chaining
+Your conversation deck IS your character. Every card represents a social skill you've learned. Every level up makes that specific approach more reliable. Every new card gained expands your repertoire. This isn't abstract character growth - it's tangible, visible, and strategic.
 
-### 3. Travel and Exploration
-Provides discovery through:
-- Location familiarity building
-- Time-efficient investigation
-- Observation card rewards
-- Permit requirements
-- Route optimization
+### Conversations as Combat
 
-### The Intersection IS the Game
+Each conversation is a tactical puzzle where you play your deck against NPC personality rules:
+- **Proud NPCs** force ascending focus order - like enemies that punish repetition
+- **Devoted NPCs** double rapport losses - like glass cannon fights
+- **Mercantile NPCs** reward big plays - like bosses with weak points
+- **Cunning NPCs** punish patterns - like adaptive AI opponents
+- **Steadfast NPCs** cap rapport changes - like damage reduction enemies
 
-Each loop uses different mechanics operating on shared resources:
-- **Tokens**: Bridge conversations and queue through starting rapport and displacement
-- **Familiarity**: Bridges exploration and conversations through observations
-- **Time**: Affects all three but manifests differently
-- **Attention**: Enables all three but must be allocated strategically
-- **Rapport**: Creates success momentum unique to conversations
+### Failure Creates Rhythm
 
-The elegance: No mechanic serves two purposes, yet resources flow through multiple systems creating strategic depth from simple rules.
+When you fail a card play, you must LISTEN, losing most cards and drawing new ones. This isn't punishment - it's conversation rhythm. Success maintains momentum with your current topics. Failure forces topic changes. The mechanical flow mirrors actual dialogue.
+
+### Relationships as Equipment
+
+NPC signature cards unlocked by tokens are like equipment in other RPGs. Marcus's commerce cards are your "merchant armor." Elena's trust cards are your "emotional weapons." Each relationship provides unique tools that fundamentally change how conversations play.
+
+### Clear Progression Path
+
+The loop is crystal clear:
+1. **Have conversations** using your deck
+2. **Complete requests** to gain new cards and XP
+3. **Level up cards** to improve success rates
+4. **Unlock signature cards** through token relationships
+5. **Build stronger deck** to tackle harder NPCs
+6. **Face tougher personalities** with complex rules
+
+This is "Fight enemies → Gain XP → Level up → Fight stronger enemies" expressed through social dynamics and deck building rather than combat statistics.
 
 ## Design Verification Checklist
 
 ### Clean Mechanical Separation ✓
+- Player owns conversation deck (social skills)
+- NPCs provide signature cards (relationship expression)
+- Card XP tracks individual mastery
+- Personality rules modify play space
 - Each mechanic has exactly ONE purpose
-- No "OR" conditions in requirements
-- Effects don't overlap or combine
-- Clear cause and effect chains
 
 ### Perfect Information ✓
 - All calculations visible to player
 - Success rates shown before playing cards
+- Personality rules displayed at conversation start
 - Focus costs displayed on all cards
-- Displacement costs shown in queue
-- Time costs shown on routes
-- Resource formulas transparent
+- Token thresholds for signature cards shown
 
 ### Linear Scaling ✓
 - Each rapport point: exactly +2% success
-- Each token: exactly 1 starting rapport
+- Each token: unlocks cards at fixed thresholds
 - Each 25 hunger: exactly -1 attention
 - Each patience: exactly 1 turn
-- Each focus point: exactly that much from pool
+- Each card level: specific defined benefit
 - Only exception: Flow ±3 triggers state change
 
 ### No Soft-Locks ✓
-- Always have playable cards (1-focus options)
+- Starting deck has multiple 1-focus cards
 - Always have minimum 2 attention
-- Always can displace (if accept token cost)
-- Always can work (even if inefficient)
-- Always can leave conversations
-- Multiple sources for permits
+- Can leave conversations at any time
+- Can complete requests for new cards
+- Multiple sources for same permits
+- Deck thinning available to refine strategy
 
 ### Resource Flow ✓
-- Tokens flow from deliveries to rapport to success
+- Cards flow from requests to deck to mastery
+- Tokens flow from deliveries to signature cards
+- XP flows from successful plays to card levels
 - Familiarity flows from investigation to observations
-- Coins flow from work to food to efficiency
 - Time flows through all systems creating pressure
-- Attention allocates between all activities
 
 ### Emergent Complexity ✓
-- Simple rules create complex decisions
-- Multi-threshold goals create risk/reward ladders
-- Promise cards enable strategic queue manipulation
-- Resource interactions create cascades
-- Multiple viable strategies exist
-- Failure creates recovery arcs
-- Mastery comes from understanding interactions
+- Simple personality rules create different puzzles
+- Card combinations enable various strategies
+- Token relationships shape available tools
+- Failure forcing LISTEN creates natural rhythm
+- Player deck reflects personal playstyle
+- Every conversation is practice toward mastery
 
 ## Critical Formulas Reference
 
 **Success Rate**: Base% + (2 × Current Rapport)
 
-**Starting Rapport**: Connection Tokens with NPC
+**Card Level Thresholds**: 
+- Level 2: 3 XP
+- Level 3: 7 XP
+- Level 4: 15 XP
+- Level 5: 30 XP
 
-**Goal Thresholds**: 
-- Basic: 5-7 rapport typically
-- Enhanced: 10-12 rapport typically  
-- Premium: 15+ rapport typically
-
-**Promise Card Value**:
-- Rapport Gain: +5 to +10
-- Token Cost: Sum of all displaced positions
-- Queue Impact: Target moves to position 1
+**Signature Card Thresholds**:
+- 1 token: First card
+- 3 tokens: Second card
+- 6 tokens: Third card
+- 10 tokens: Fourth card
+- 15 tokens: Fifth card
 
 **Morning Attention**: 10 - (Hunger ÷ 25), minimum 2
 
@@ -2235,12 +2145,12 @@ The elegance: No mechanic serves two purposes, yet resources flow through multip
 - Receptive: 5
 - Trusting: 6
 
-**Card Draws**:
-- Disconnected: 1
-- Guarded: 2
-- Neutral: 2
-- Receptive: 3
-- Trusting: 3
+**Card Draws on LISTEN**:
+- Disconnected: 3
+- Guarded: 3
+- Neutral: 4
+- Receptive: 4
+- Trusting: 5
 
 **Patience Base**:
 - Devoted: 15
@@ -2249,14 +2159,17 @@ The elegance: No mechanic serves two purposes, yet resources flow through multip
 - Cunning: 12
 - Proud: 10
 
+**Card Persistence**: ~20% of deck should be Persistent
+
 ## Implementation Priority
 
-### Phase 1: Core Conversation System ✓
-- Three-pile card system
-- Focus/rapport/flow mechanics
-- Connection states
-- Atmosphere effects
-- Basic starter deck
+### Phase 1: Core Conversation System with Player Deck ✓
+- Player owns conversation deck
+- Card XP and leveling system
+- NPC signature cards from tokens
+- Personality rules
+- Failure forces LISTEN mechanic
+- Most cards non-persistent
 
 ### Phase 2: Queue Management ✓
 - Sequential execution rules
@@ -2273,7 +2186,7 @@ The elegance: No mechanic serves two purposes, yet resources flow through multip
 - NPC observation decks
 
 ### Phase 4: Resource Economy ✓
-- Token system
+- Token system unlocks signature cards
 - Hunger/attention interaction
 - Work scaling
 - Exchange system
@@ -2288,461 +2201,10 @@ The elegance: No mechanic serves two purposes, yet resources flow through multip
 
 ## Conclusion
 
-Wayfarer achieves its design goals through:
+Wayfarer achieves its design goals through making conversations the core gameplay loop. The player's conversation deck represents their character growth in the most literal sense - every card is a social skill they've learned and mastered through practice.
 
-1. **Mechanical Elegance**: Every system serves one clear purpose
-2. **Meaningful Choices**: No optimal path, only trade-offs
-3. **Emergent Narrative**: Stories arise from mechanics, not scripting
-4. **Strategic Depth**: Simple rules create complex interactions
-5. **Perfect Information**: All calculations transparent
-6. **No Soft-Locks**: Always a path forward
-7. **Scalable Content**: Easy to extend without breaking
+The genius is that this uses familiar deck-building mechanics to represent character progression, while NPC personality rules and signature cards ensure every conversation feels unique despite using the same player deck. The failure-forces-LISTEN mechanic creates natural conversation rhythm where success builds momentum and failure forces adaptation.
 
-The game succeeds when players realize that mastery comes not from optimizing individual systems, but from understanding how resources flow between them, creating cascading consequences from every decision.
+Players always know what to do: have conversations to gain cards and XP, level up their deck, unlock signature cards through relationships, and tackle increasingly complex NPC personalities. The strategic depth emerges from how player deck composition, card levels, signature cards, and personality rules interact to create unique puzzles.
 
-## Resource Economy
-
-### Persistent Resources
-
-#### Coins
-- **Range**: 0-999
-- **Generation**: Work actions, letter deliveries, exchanges
-- **Uses**: Food, rest, exchanges, caravan transport
-- **No decay**
-
-#### Health
-- **Range**: 0-100
-- **Effects**: TBD
-- **Loss**: TBD
-- **Restoration**: TBD
-
-#### Hunger
-- **Range**: 0-100
-- **Effects**:
-  - Reduces morning attention: 10 - (Hunger ÷ 25), minimum 2
-  - Reduces work output: 5 - floor(Hunger ÷ 25) coins
-  - At 100: Lose 5 health per time period
-- **Increase**: +20 per time period automatically
-- **Restoration**: Food purchases, meals
-
-#### Attention
-- **Daily Allocation**: 10 - (Hunger ÷ 25), minimum 2
-- **Costs**:
-  - Standard conversation: 2
-  - Quick exchange: 1
-  - Investigation: 1
-  - Work: 2
-  - Observation: 0
-- **Cannot be saved between days**
-
-#### Location Familiarity
-- **Range**: 0-3 per location
-- **Generation**: Investigation action only
-  - Quiet spots: +2 familiarity per investigation
-  - Busy spots: +1 familiarity per investigation
-  - Other spots: +1 familiarity per investigation
-- **Never decreases**
-- **Enables observations at threshold levels**
-
-#### Connection Tokens
-Four types: **Trust**, **Commerce**, **Status**, **Shadow**
-
-- **Effect**: Each token = 1 starting rapport in conversations
-- **Generation**: Successful letter delivery (+1 to +3 based on quality)
-- **Additional Uses**:
-  - Queue displacement (burn tokens permanently)
-  - Some cards scale with token count
-  - Gate certain exchanges (minimum required)
-- **Token burning for displacement**:
-  - Burns with displaced NPC's preferred type
-  - Devoted NPCs: Trust tokens
-  - Mercantile NPCs: Commerce tokens
-  - Proud NPCs: Status tokens
-  - Cunning NPCs: Shadow tokens
-
-### Per-Conversation Resources
-
-#### Focus
-- **Capacity by Connection State**:
-  - Disconnected: 3
-  - Guarded: 4
-  - Neutral: 5
-  - Receptive: 5
-  - Trusting: 6
-- **Mechanics**:
-  - Pool persists across SPEAK actions
-  - Refreshes to maximum on LISTEN
-  - Prepared atmosphere adds +1 to current capacity
-  - Can exceed maximum temporarily
-
-#### Rapport
-- **Range**: -50 to +50
-- **Starting Value**: Equal to connection tokens with NPC
-- **Effect**: +2% success rate per point on all cards
-- **Changes**: Through card effects only
-- **Resets**: After conversation ends
-
-#### Flow
-- **Range**: -3 to +3
-- **Changes**: +1 on success, -1 on failure
-- **Effect**: At ±3 triggers connection state change
-- **Resets**: To 0 when state changes
-
-#### Atmosphere
-**Standard Atmospheres** (~30% of cards):
-- **Neutral**: No effect (default after failure)
-- **Prepared**: +1 focus capacity
-- **Receptive**: +1 card on LISTEN
-- **Focused**: +20% success all cards
-- **Patient**: Actions cost 0 patience
-- **Volatile**: All rapport changes ±1
-- **Final**: Any failure ends conversation
-
-**Observation-Only Atmospheres**:
-- **Informed**: Next card cannot fail
-- **Exposed**: Double all rapport changes
-- **Synchronized**: Next card effect happens twice
-- **Pressured**: -1 card on LISTEN
-
-**Persistence**: Remains until changed or cleared by failure
-
-#### Patience
-- **Base Values by Personality**:
-  - Devoted: 15
-  - Steadfast: 13
-  - Mercantile: 12
-  - Cunning: 12
-  - Proud: 10
-- **Modifiers**:
-  - Private spot: +1
-  - Public spot: -1
-  - Patient atmosphere: Actions cost 0
-- **Effect**: Maximum turns in conversation (LISTEN costs 1 turn)
-
-### Time Resources
-
-#### Time Structure
-- **Days** → **Time Blocks** → **Time Segments**
-- **Time Blocks** (6 per day):
-  - Dawn (2-6 AM)
-  - Morning (6-10 AM)
-  - Afternoon (10 AM - 2 PM)
-  - Evening (2-6 PM)
-  - Night (6-10 PM)
-  - Late Night (10 PM - 2 AM)
-- **Time Segments**: 4 per time block
-- **Time Costs**:
-  - Some actions cost 1-2 segments
-  - Travel cards may consume segments
-  - Extended conversations increase segment cost
-  - When segments exceed block, advance to next block
-
-#### Deadlines
-- **Range**: Typically 1-24 hours
-- **Effect of Missing**: 
-  - -2 tokens with sender
-  - +2 burden cards to sender's relationship
-  - No payment received
-  - Permanent relationship damage
-
-### Information Resources
-
-#### Observation Cards
-- **Source**: Location observations at familiarity thresholds
-- **Destination**: Specific NPC's observation deck
-- **Properties**:
-  - Focus 0 (costs SPEAK action but no focus)
-  - Always persistent
-  - Consumed when played
-  - Can advance connection states
-  - Can unlock exchanges
-- **Requirements**:
-  - First observation: Familiarity 1+
-  - Second: Familiarity 2+ AND first observation done
-  - Third: Familiarity 3+ AND second observation done
-
-#### Access Permits
-- **Type**: Special items, not obligations
-- **Properties**:
-  - Occupy satchel space (max 5 items total)
-  - Enable specific routes
-  - Never expire
-  - Physical documents
-- **Acquisition**:
-  - Request cards (fixed terms)
-  - Exchanges (15-20 coins typically)
-
-#### Burden Cards
-- **Mechanics**: TBD
-- **Acquisition**: Failed requests, queue displacement, broken promises
-- **Effects**: TBD
-- **Resolution**: TBD
-
-## Conversation System
-
-### NPC Five-Deck System
-Each NPC maintains five persistent decks:
-
-1. **Conversation Deck**: 20 standard cards for dialogue
-2. **Request Deck**: Goal cards enabling special conversations
-3. **Observation Deck**: Cards from location discoveries
-4. **Burden Deck**: Cards from failed obligations
-5. **Exchange Deck**: Commerce options (mercantile NPCs only)
-
-Available conversation types depend on deck contents.
-
-### Connection States
-Determine focus capacity and card draws:
-
-| State | Focus Capacity | Cards Drawn |
-|-------|---------------|-------------|
-| Disconnected | 3 | 1 |
-| Guarded | 4 | 2 |
-| Neutral | 5 | 2 |
-| Receptive | 5 | 3 |
-| Trusting | 6 | 3 |
-
-At -3 flow in Disconnected: Conversation ends immediately.
-
-### Three-Pile System
-
-#### Starting a Conversation
-1. Choose conversation type (based on available NPC decks)
-2. Build draw pile from relevant cards:
-   - All conversation deck cards
-   - All observation deck cards (if any)
-   - Relevant request card (if applicable)
-3. Shuffle draw pile
-4. Draw cards equal to connection state
-5. Set focus to connection state maximum
-
-#### LISTEN Action
-1. Costs 1 patience (unless Patient atmosphere)
-2. Draw cards equal to connection state
-3. If draw pile empty: Shuffle exhaust → new draw pile
-4. Refresh focus to maximum
-5. Remove Opening cards if unplayed
-6. Check if request cards become playable
-
-#### SPEAK Action
-1. Choose one card from hand
-2. Spend focus equal to card cost
-3. Resolve success/failure
-4. Card goes to exhaust pile
-5. Apply effects
-6. Remove Impulse cards if unplayed
-
-#### Conversation End
-- All piles cleared
-- NPC decks unchanged (except consumed observations)
-- Rapport resets
-- Atmosphere clears
-
-### Card Types
-
-#### Persistence Types
-- **Persistent** (60%): Remain in hand until played
-- **Impulse** (25%): Removed after any SPEAK action if unplayed
-- **Opening** (15%): Removed after LISTEN if unplayed
-
-#### Difficulty Tiers
-- **Very Easy**: TBD base %
-- **Easy**: TBD base %
-- **Medium**: TBD base %
-- **Hard**: TBD base %
-- **Very Hard**: TBD base %
-
-All modified by: +2% per rapport point
-
-### Request Card Mechanics
-1. Player chooses request conversation type
-2. Request card added to draw pile (starts unplayable)
-3. Becomes playable when reaching required focus capacity during LISTEN
-4. When played (100% Success): Accept obligation with fixed terms
-
-## Queue Management System
-
-### Core Rules
-- **Strict Sequential**: Position 1 MUST complete first
-- **Maximum Size**: 10 obligations
-- **No Reordering**: Except through displacement
-
-### Queue Displacement
-To deliver out of order, burn tokens with EACH displaced NPC:
-
-**Example**: Moving position 3 to position 1:
-- Burn 2 tokens with position 1 NPC
-- Burn 1 token with position 2 NPC
-- Each burn adds 1 burden card to that relationship
-
-Token type burned matches NPC personality preference.
-
-### Fixed Request Terms
-Request cards have predetermined, non-negotiable terms:
-- **Letters**: Specific deadline, position, payment
-- **Meetings**: Fixed time and location
-- **Resolutions**: Clear existing burden cards
-
-No negotiation mechanics - terms are set by request type and NPC personality.
-
-## Location and Travel System
-
-### Familiarity System
-- **Range**: 0-3 per location
-- **Building**: Investigation action only
-- **Efficiency**: Varies by spot property
-  - Quiet: 1 attention → +2 familiarity
-  - Busy: 1 attention → +1 familiarity
-  - Other: 1 attention → +1 familiarity
-
-### Observation System
-- **Cost**: 0 attention (just noticing)
-- **Requirements**: 
-  - Minimum familiarity level
-  - All prior observations at location
-- **Effect**: Adds card to specific NPC's observation deck
-
-### Spot Properties
-Change by time block:
-- **Morning**: Often Quiet
-- **Afternoon**: Often Busy
-- **Evening**: Often Closing
-- Properties affect investigation efficiency
-
-### Routes and Permits
-- Every route requires specific permit
-- No alternatives (no "OR" conditions)
-- Multiple NPCs may provide same permit
-- Permits are physical items taking satchel space
-
-### Travel Encounters
-**Mechanics**: TBD
-- Bandits, guards, merchants mentioned
-- Use conversation mechanics with special decks
-
-## Exchange System
-
-### Quick Exchanges
-- **Cost**: 1 attention (vs 2 for conversation)
-- **Mechanics**: Simple resource trade, no card play
-- **Examples**:
-  - 2 coins → Reset hunger to 0
-  - 10 coins → Caravan transport
-  - 20 coins → Access permit
-- **Requirements**: May need minimum tokens or observation cards
-
-### Exchange Availability
-- Determined by NPC's exchange deck contents
-- Mercantile NPCs have more exchanges
-- Some unlocked by observation cards
-- Some gated by token minimums
-
-## Work System
-
-### Work Actions
-- **Cost**: 2 attention
-- **Time**: Advances one full time block (4 hours)
-- **Base Output**: 5 coins (varies by work type)
-- **Hunger Scaling**: Output = 5 - floor(hunger/25)
-  - At hunger 0: 5 coins
-  - At hunger 50: 3 coins
-  - At hunger 100: 1 coin
-
-## Rest System
-**Mechanics**: TBD
-- Various rest types mentioned
-- Variable time costs
-- Resource restoration effects
-
-## Health System
-**Mechanics**: TBD
-- Range 0-100
-- Loss conditions undefined
-- Recovery methods undefined
-- Effects at low health undefined
-
-## Content Loading System
-
-### Package Architecture
-- Content organized in JSON packages
-- Each package self-contained
-- Can reference non-existent content
-- Load order independent
-
-### Skeleton System
-When content references missing entities:
-1. System creates "skeleton" placeholder
-2. Skeleton is mechanically complete but narratively generic
-3. When real content loads, skeleton replaced
-4. Preserves any accumulated state (like observation cards)
-
-### Package Format
-```json
-{
-  "packageId": "unique_id",
-  "metadata": {...},
-  "content": {
-    "cards": [...],
-    "npcs": [...],
-    "locations": [...],
-    "observations": [...]
-  }
-}
-```
-
-## No Soft-Lock Guarantees
-
-### Conversation Escapes
-- Focus 1 cards always playable at minimum capacity
-- Can LISTEN to refresh focus
-- Can leave conversation
-- Patient atmosphere removes patience cost
-
-### Queue Escapes
-- Can always displace (at token cost)
-- Can drop letters (at relationship cost)
-- Can wait for deadlines to pass
-
-### Travel Escapes
-- Multiple NPCs provide same permits
-- Can earn coins through work
-- Observations provide alternate solutions
-
-## Strategic Resource Cascades
-
-### Token → Rapport → Success → Tokens
-1. Successful deliveries → +1-3 tokens
-2. Higher tokens → Better starting rapport
-3. Better rapport → Higher success rates
-4. More successes → More deliveries
-
-### Investigation → Familiarity → Observations → Advantages
-1. Investigation (attention + time) → Location familiarity
-2. Familiarity thresholds → Observation access
-3. Observations → NPC-specific advantages
-4. Advantages → Easier conversations/unlocks
-
-### Focus → Cards → Flow → States
-1. Higher states → More focus capacity
-2. More capacity → Access to powerful cards
-3. Success with cards → Positive flow
-4. Flow ±3 → State advancement
-
-## Key Formulas
-
-- **Success Rate**: Base % + (2 × Rapport)
-- **Starting Rapport**: Connection tokens with NPC
-- **Morning Attention**: 10 - (Hunger ÷ 25), minimum 2
-- **Work Output**: 5 - floor(Hunger/25)
-- **Investigation Gain**: Quiet=+2, Busy=+1, Other=+1
-- **Displacement Cost**: Tokens = positions jumped with each NPC
-
-## Design Verification Checklist
-
-✓ Each mechanic has exactly ONE purpose
-✓ No "OR" conditions in requirements
-✓ All effects visible to player
-✓ Linear scaling (no thresholds except flow ±3)
-✓ Always an escape path
-✓ Resources flow through multiple systems
-✓ Perfect information for decisions
+The system succeeds because mastery comes from understanding these interactions and building a deck that reflects your personal approach to social challenges. Every conversation is practice. Every card gained is permanent progression. Every relationship built provides new tools. This is your character growth made tangible, strategic, and elegantly integrated with the narrative of becoming a better conversationalist.
