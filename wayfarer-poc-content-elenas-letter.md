@@ -12,7 +12,7 @@
 9. [Routes and Travel](#routes-and-travel)
 10. [The Only Successful Path](#the-only-successful-path)
 11. [Failure Analysis](#failure-analysis)
-12. [JSON Implementation](#json-implementation)
+12. [Card System Reference](#card-system-reference)
 
 ## Scenario Overview
 
@@ -63,94 +63,105 @@ Every seemingly inefficient action (investigating twice, buying food before work
 
 ## Player Starting Deck
 
-The player begins with a 20-card starter deck. This deck represents their basic social repertoire and will be used in ALL conversations, modified by NPC personality rules and any unlocked signature cards.
+The player begins with a 20-card starter deck representing their basic social repertoire. Cards are defined by categorical properties that determine their effects based on context.
+
+### Card Property System
+
+Each card has four categorical properties:
+1. **Persistence**: When the card can be played (Thought/Impulse/Opening)
+2. **Success**: Effect type on success (Rapport/Continuing/Atmospheric-[Type]/Focusing/None)
+3. **Failure**: Effect type on failure (Disrupting/Backfire/None)
+4. **Exhaust**: Effect when discarded unplayed (Continuing/Focusing/Regret/None)
+
+Effect magnitudes are determined by difficulty:
+- Very Easy: Magnitude 1
+- Easy: Magnitude 2
+- Medium: Magnitude 2
+- Hard: Magnitude 3
+- Very Hard: Magnitude 4
 
 ### Complete Starting Deck (20 Cards)
 
 #### Safe Building Cards (8 cards)
+
 **"I hear you"** (3 copies)
 - Focus: 1
-- Difficulty: Easy (70% base success)
-- Effect: +1 rapport on success
-- Failure: No effect
-- Persistence: No
-- Purpose: Reliable rapport building, flexible focus use
+- Difficulty: Easy (75% base)
+- Properties: Thought, Rapport, None, None
+- Effect: +2 rapport on success (Easy = magnitude 2)
+- On failure: Forces LISTEN
 
 **"Let me think"** (2 copies)
 - Focus: 1
-- Difficulty: Easy (70% base success)
-- Effect: No rapport, sets Patient atmosphere
-- Failure: Forces LISTEN
-- Persistence: Yes (survives LISTEN)
-- Purpose: Atmosphere setup for longer conversations
+- Difficulty: Easy (75% base)
+- Properties: Thought, Atmospheric-Patient, None, None
+- Effect: Sets Patient atmosphere on success
+- On failure: Forces LISTEN
 
 **"I understand"** (3 copies)
 - Focus: 2
-- Difficulty: Easy (70% base success)
+- Difficulty: Easy (75% base)
+- Properties: Thought, Rapport, None, None
 - Effect: +2 rapport on success
-- Failure: Forces LISTEN
-- Persistence: No
-- Purpose: Efficient rapport with manageable risk
+- On failure: Forces LISTEN
 
 #### Risk/Reward Cards (6 cards)
+
 **"How can I assist?"** (2 copies)
 - Focus: 2
-- Difficulty: Medium (60% base success)
-- Effect: +2 rapport on success
-- Failure: -1 rapport, forces LISTEN
-- Persistence: No
-- Purpose: Standard conversation advancement
+- Difficulty: Medium (60% base)
+- Properties: Thought, Rapport, Backfire, None
+- Effect: +2 rapport on success (Medium = magnitude 2)
+- On failure: -2 rapport and forces LISTEN
 
 **"Trust me on this"** (2 copies)
 - Focus: 3
-- Difficulty: Medium (60% base success)
-- Effect: +3 rapport on success
-- Failure: -1 rapport, forces LISTEN
-- Persistence: No
-- Purpose: Bigger plays for momentum
+- Difficulty: Medium (60% base)
+- Properties: Thought, Rapport, Backfire, None
+- Effect: +2 rapport on success
+- On failure: -2 rapport and forces LISTEN
 
 **"Everything will work out"** (2 copies)
 - Focus: 4
-- Difficulty: Hard (50% base success)
-- Effect: +4 rapport on success
-- Failure: -2 rapport, forces LISTEN
-- Persistence: No
-- Purpose: High-risk finishing moves
+- Difficulty: Hard (50% base)
+- Properties: Impulse, Rapport, Disrupting, Regret
+- Effect: +3 rapport on success (Hard = magnitude 3)
+- On failure: Discards all cards with Focus 3+ and forces LISTEN
+- If exhausted: -3 rapport (Hard = magnitude 3)
 
 #### Utility Cards (6 cards)
+
 **"Tell me more"** (2 copies)
 - Focus: 2
-- Difficulty: Medium (60% base success)
-- Effect: Draw 2 cards
-- Failure: Forces LISTEN
-- Persistence: No
-- Purpose: Find key cards
+- Difficulty: Medium (60% base)
+- Properties: Thought, Continuing, None, None
+- Effect: Draw 2 cards on success (Medium = magnitude 2)
+- On failure: Forces LISTEN
 
 **"Let me prepare"** (2 copies)
 - Focus: 1
-- Difficulty: Easy (70% base success)
-- Effect: +1 focus to current pool
-- Failure: Forces LISTEN
-- Persistence: Yes
-- Purpose: Enable bigger plays
+- Difficulty: Easy (75% base)
+- Properties: Thought, Focusing, None, None
+- Effect: +2 focus to current pool on success (Easy = magnitude 2)
+- On failure: Forces LISTEN
 
 **"We can figure this out"** (2 copies)
 - Focus: 3
-- Difficulty: Hard (50% base success)
-- Effect: +X rapport where X = patience ÷ 3
-- Failure: Forces LISTEN
-- Persistence: No
-- Purpose: Scaling reward for early play
+- Difficulty: Hard (50% base)
+- Properties: Opening, Rapport, None, Continuing
+- Effect: +3 rapport on success (Hard = magnitude 3)
+- On failure: Forces LISTEN
+- If exhausted: Draw 3 cards (Hard = magnitude 3)
 
-### Starting Deck Strategy
+### Conversation Flow with New Rules
 
-With 20 cards and most being non-persistent, the rhythm becomes:
-1. Draw initial hand (3-5 cards based on connection state)
-2. Play cards while building rapport
-3. Success maintains hand, failure forces LISTEN and new cards
-4. Find the right combination to reach goal thresholds
+When a card play fails:
+1. Apply any failure effects (Backfire reduces rapport, Disrupting clears high-focus cards)
+2. Apply -1 flow
+3. Player MUST take LISTEN action next turn
+4. Cannot play any more cards this SPEAK cycle
 
-The lack of persistence means players must seize opportunities when they appear. Drawing "Everything will work out" early with full patience might be the only chance to play it before it's swept away by a forced LISTEN.
+This creates natural conversation rhythm where success maintains momentum and failure forces reconsideration.
 
 ## NPCs
 
@@ -170,11 +181,11 @@ The lack of persistence means players must seize opportunities when they appear.
 Young woman facing forced marriage to a merchant she despises. Works at her uncle's tavern while pursuing her writing. Lord Blackwood could intervene due to an old debt to her late father.
 
 **Signature Cards** (Not available in POC - player has 0 Trust tokens):
-- 1 token: "Elena's Faith"
-- 3 tokens: "Shared Understanding"
-- 6 tokens: "Elena's Trust"
-- 10 tokens: "Emotional Bond"
-- 15 tokens: "Elena's Devotion"
+- 1 token: "Elena's Faith" (Thought, Rapport, None, None)
+- 3 tokens: "Shared Understanding" (Thought, Continuing, None, None)
+- 6 tokens: "Elena's Trust" (Impulse, Rapport, None, Regret)
+- 10 tokens: "Emotional Bond" (Thought, Atmospheric-Receptive, None, None)
+- 15 tokens: "Elena's Devotion" (Thought, Promising, None, None)
 
 **Request Details**:
 - Request available at 5 focus capacity (requires NEUTRAL state)
@@ -183,7 +194,7 @@ Young woman facing forced marriage to a merchant she despises. Works at her uncl
 - Premium goal: 15 rapport (delivers legal documents weight 3, 2 Trust tokens)
 
 **Conversation Challenge**:
-The Devoted rule makes Elena's conversation particularly tense. Every failure hurts twice as much, and forcing LISTEN after failure means you lose your hand while in a worse position. Without Trust tokens to unlock her signature cards, the player must rely on their base deck and the observation card advantage.
+The Devoted rule makes Elena's conversation particularly tense. Every failure hurts twice as much due to her personality (Backfire effects doubled), and failure forces LISTEN, losing your assembled hand. Without Trust tokens for signature cards, success requires the observation card to advance her state.
 
 ### Marcus - The Merchant
 
@@ -201,11 +212,11 @@ The Devoted rule makes Elena's conversation particularly tense. Every failure hu
 Established trader who runs regular caravans. Cannot leave his stall (merchandise would be stolen). Values reliable business partners.
 
 **Signature Cards**:
-- 1 token: "Marcus's Bargain" (3 focus, +3 rapport, efficient)
-- 3 tokens: "Trade Knowledge" (1 focus, draw 2 cards)
-- 6 tokens: "Commercial Trust" (4 focus, +5 rapport)
-- 10 tokens: "Marcus's Favor" (5 focus, doesn't force LISTEN on failure)
-- 15 tokens: "Master Trader's Secret" (0 focus, set Mercantile atmosphere)
+- 1 token: "Marcus's Bargain" (Thought, Rapport, None, None, Hard difficulty)
+- 3 tokens: "Trade Knowledge" (Thought, Continuing, None, None, Easy difficulty)
+- 6 tokens: "Commercial Trust" (Thought, Rapport, Backfire, None, Very Hard difficulty)
+- 10 tokens: "Marcus's Favor" (Thought, Rapport, None, None, Hard difficulty - special: doesn't force LISTEN on failure)
+- 15 tokens: "Master Trader's Secret" (Thought, Atmospheric-Focused, None, None, Medium difficulty)
 
 **Request Details**:
 - Letter to Warehouse District (weight 1)
@@ -288,7 +299,7 @@ Location mechanics remain unchanged from the original POC. The key interactions:
 
 ## Observation Cards
 
-Observation cards now mix into the player's conversation deck when conversing with the relevant NPC.
+Observation cards mix into the player's conversation deck when conversing with the relevant NPC. They use the categorical property system.
 
 ### Safe Passage Knowledge
 
@@ -299,8 +310,8 @@ Observation cards now mix into the player's conversation deck when conversing wi
 - Destination: Added to deck when conversing with Elena
 - Focus: 0
 - Difficulty: Very Easy (85% base)
-- Effect: Advance Elena's connection state from DISCONNECTED to NEUTRAL
-- Persistence: Yes (survives LISTEN)
+- Categorical: Thought, None, None, None
+- Special Effect: Advances Elena's connection state from DISCONNECTED to NEUTRAL (unique mechanic)
 - Consumed: When played successfully
 
 **Critical Importance**: Without this card, Elena remains in DISCONNECTED state (3 focus capacity), making her 5-focus request card impossible to reach. This observation card is mandatory for success.
@@ -314,8 +325,8 @@ Observation cards now mix into the player's conversation deck when conversing wi
 - Destination: Added to deck when conversing with Marcus
 - Focus: 0
 - Difficulty: Very Easy (85% base)
-- Effect: Unlock Marcus's caravan exchange option
-- Persistence: Yes
+- Categorical: Thought, None, None, None
+- Special Effect: Unlocks Marcus's caravan exchange option (unique mechanic)
 - Consumed: When played successfully
 
 **Strategic Value**: Enables caravan transport to Noble Quarter for 10 coins (cheaper than 20-coin permit).
@@ -336,7 +347,7 @@ Request cards represent conversation goals. Multiple thresholds exist, but the p
 - **Premium** (15 rapport): Accept legal documents (weight 3), 2 Trust tokens, guaranteed success
 
 **The Challenge**: 
-Starting in DISCONNECTED with Elena's Devoted personality rule (failures hurt twice), reaching even the basic 5 rapport threshold is difficult. The player needs the Safe Passage Knowledge observation card to advance to NEUTRAL state, giving them 5 focus capacity and 4-card draws on LISTEN.
+Starting in DISCONNECTED with Elena's Devoted personality rule (failures hurt twice), reaching even the basic 5 rapport threshold is difficult. The forced LISTEN on failure means each failed attempt costs patience and resets your hand. The player needs the Safe Passage Knowledge observation card to advance to NEUTRAL state, giving them 5 focus capacity and 4-card draws on LISTEN.
 
 **Weight Implications**:
 The premium tier creates a heavier package (3 weight) representing the additional legal documents Elena provides. This weight affects travel options - the "Narrow Alley" shortcut becomes impassable, forcing use of main roads or expensive transport.
@@ -415,7 +426,7 @@ With Marcus's Mercantile rule, high-focus cards gain +30% success. This makes hi
 
 ## The Only Successful Path
 
-The path uses the correct time blocks and segment constraints.
+The path uses the correct time blocks and segment constraints. Success requires precise execution with the new conversation mechanics.
 
 ### Complete Timeline
 
@@ -443,10 +454,12 @@ The path uses the correct time blocks and segment constraints.
 - Personality Rule: Highest focus card gains +30% success
 - Starting deck: 20 player cards (no signatures yet - 0 Commerce tokens)
 - Connection state: NEUTRAL (5 focus, draws 4)
+- Strategy: Use high-focus cards for Mercantile bonus
+- "Everything will work out" becomes 80% success with +30% bonus
+- Build to 10 rapport for enhanced goal
+- Critical: Each failure forces LISTEN, costing patience
 - Deliver Viktor's package (frees 3 weight)
 - Accept Marcus's letter (weight 1)
-- Play pattern: Use high-focus cards for Mercantile bonus
-- Try for enhanced goal for 2 Commerce tokens
 
 **10:30 AM - Travel to Warehouse** (Segment 3)
 - Weight carried: 1 (Marcus's letter)
@@ -499,7 +512,9 @@ The path uses the correct time blocks and segment constraints.
 - Turn 1: Play Safe Passage Knowledge (0 focus, 85% success)
 - Effect: Advance to NEUTRAL state (5 focus, draws 4)
 - Now can attempt 5-focus request
-- Build to 5 rapport carefully (failures hurt double)
+- Build to 5 rapport carefully
+- Critical: With forced LISTEN on failure, each failed play costs patience
+- "Everything will work out" with Disrupting property is extreme risk
 - Accept basic goal: Elena's letter (weight 1)
 - **Afternoon block ends, advances to Evening**
 
@@ -508,44 +523,11 @@ The path uses the correct time blocks and segment constraints.
 
 ### Alternative Successful Path (With Work)
 
-#### Morning Block (Starting 9:00 AM)
-**9:00 AM - Investigate** (Segment 4)
-- +2 familiarity at quiet fountain
-- **Block advances to Midday**
-
-#### Midday Block (10:00 AM - 2:00 PM)
-**10:00 AM - Work Action**
-- Consumes entire block (4 segments)
-- At hunger 70: Output = 5 - floor(70/25) = 5 - 2 = 3 coins
-- **Block advances to Afternoon**
-
-#### Afternoon Block (2:00 PM - 6:00 PM)
-**2:00 PM - Rush Sequence** (Segment 1)
-- Buy food: 2 coins (1 coin remaining)
-- Second investigation: +1 familiarity (now at 3)
-- Both observations available
-
-**2:10 PM - Marcus Conversation** (Segment 2)
-- Deliver Viktor's package
-- Enhanced goal: 8 coins, 2 Commerce tokens
-- Total: 9 coins
-
-**2:30 PM - Travel to Warehouse** (Segment 3)
-- Deliver Marcus's letter
-- Return to Market Square
-
-**3:00 PM - Elena Conversation** (Segment 4)
-- Use Safe Passage Knowledge
-- Reach basic goal
-- Accept letter
-
-**3:30 PM - Direct Route Attempt**
-- Only 9 coins, cannot afford 20-coin permit
-- **FAILURE** - Cannot reach Noble Quarter
+The work path fails because work consumes an entire 4-segment block, making it impossible to complete all necessary steps before the 5 PM deadline.
 
 ### Why Only One Path Works
 
-The constraint is the 5:00 PM deadline falling in segment 4 of the Afternoon block. Working consumes an entire block, making it impossible to complete all necessary steps and still deliver before the deadline unless perfectly sequenced. The lack of 10 coins for caravan transport forces reliance on the impossible guard checkpoint route.
+The constraint is the 5:00 PM deadline falling in segment 4 of the Afternoon block. The forced LISTEN on failure rule makes conversations harder but more strategic - players must choose reliable cards over high-impact risky ones when patience is limited.
 
 ### Resource Accounting
 
@@ -599,9 +581,9 @@ Each successful card play during conversations grants 1 XP to that specific card
 - Designed as impossible dead end
 
 #### Poor Conversation Play with Elena
-- Devoted rule: Failures hurt twice
-- One failed 3-focus card: -2 rapport AND forces LISTEN
-- Lose assembled hand, must rebuild from worse position
+- Devoted rule: Failures decrease rapport twice
+- Failure forces LISTEN, losing assembled hand
+- Cards with Disrupting property clear high-focus cards on failure
 - May run out of patience before reaching even basic goal
 
 #### Accept Heavy Obligations Early
@@ -613,7 +595,7 @@ Each successful card play during conversations grants 1 XP to that specific card
 
 ### Why This Path is Unique
 
-The new conversation system and resource management make the strategic requirements even clearer:
+The new conversation system makes the strategic requirements even clearer:
 
 1. **Must investigate** for observation card to unlock Elena's capacity
 2. **Must build Commerce tokens** to unlock Marcus's signature cards
@@ -621,220 +603,74 @@ The new conversation system and resource management make the strategic requireme
 4. **Must use Marcus's enhanced delivery** for coins
 5. **Must manage weight** to keep travel options open
 6. **Must complete within Afternoon block** before 5 PM deadline
-7. **Must play Elena conversation perfectly** due to Devoted penalty
+7. **Must play Elena conversation strategically** with forced LISTEN on failure
 
 Each element directly supports the core conversation gameplay loop while the time pressure makes every segment precious.
 
-## JSON Implementation
+## Card System Reference
 
-### Package Structure
+### Categorical Properties
 
-```json
-{
-  "packageId": "poc_elenas_letter_v3",
-  "metadata": {
-    "name": "Elena's Letter POC v3",
-    "version": "3.0.0",
-    "description": "POC with weight system and time segments",
-    "author": "Wayfarer Team",
-    "timestamp": "2025-01-01T00:00:00Z"
-  },
-  "startingConditions": {
-    "time": {
-      "hour": 9,
-      "minute": 0,
-      "dayOfWeek": "Tuesday",
-      "timeBlock": "Morning",
-      "blockSegment": 4,
-      "totalSegmentsRemaining": 13
-    },
-    "resources": {
-      "coins": 0,
-      "health": 100,
-      "hunger": 50
-    },
-    "satchel": {
-      "maxWeight": 10,
-      "currentWeight": 3,
-      "items": [
-        {
-          "id": "viktor_package",
-          "weight": 3,
-          "type": "obligation"
-        }
-      ]
-    },
-    "playerDeck": ["starter_deck_cards"],
-    "obligationQueue": [
-      {
-        "id": "viktor_package",
-        "type": "delivery",
-        "position": 1,
-        "deadline": "12:00",
-        "payment": 7,
-        "weight": 3,
-        "recipient": "marcus"
-      }
-    ]
-  },
-  "content": {
-    "playerCards": [...],
-    "npcs": [...],
-    "locations": [...],
-    "observations": [...],
-    "routes": [...],
-    "items": [...]
-  }
-}
-```
+**Persistence Types**:
+- **Thought**: Remains in hand until played (survives LISTEN)
+- **Impulse**: Removed after any SPEAK if unplayed
+- **Opening**: Removed after LISTEN if unplayed
 
-### Time Block Definition
+**Success Types**:
+- **Rapport**: Changes connection strength (magnitude based on difficulty)
+- **Continuing**: Draw cards (magnitude based on difficulty)
+- **Atmospheric-[Type]**: Sets specific atmosphere (Patient/Focused/Volatile/etc)
+- **Focusing**: Restore focus to pool (magnitude based on difficulty)
+- **Promising**: Move obligation to position 1 and gain rapport
+- **None**: No effect on success
 
-```json
-{
-  "timeBlocks": [
-    {
-      "id": "dawn",
-      "name": "Dawn",
-      "startHour": 2,
-      "endHour": 6,
-      "segments": 4,
-      "spotProperties": {
-        "market_fountain": "quiet",
-        "merchant_row": "closed"
-      }
-    },
-    {
-      "id": "morning",
-      "name": "Morning",
-      "startHour": 6,
-      "endHour": 10,
-      "segments": 4,
-      "spotProperties": {
-        "market_fountain": "quiet",
-        "merchant_row": "normal"
-      }
-    },
-    {
-      "id": "midday",
-      "name": "Midday",
-      "startHour": 10,
-      "endHour": 14,
-      "segments": 4,
-      "spotProperties": {
-        "market_fountain": "busy",
-        "merchant_row": "busy"
-      }
-    },
-    {
-      "id": "afternoon",
-      "name": "Afternoon",
-      "startHour": 14,
-      "endHour": 18,
-      "segments": 4,
-      "spotProperties": {
-        "market_fountain": "busy",
-        "merchant_row": "normal"
-      },
-      "events": [
-        {
-          "time": "17:00",
-          "segment": 4,
-          "event": "lord_blackwood_departs"
-        }
-      ]
-    },
-    {
-      "id": "evening",
-      "name": "Evening",
-      "startHour": 18,
-      "endHour": 22,
-      "segments": 4,
-      "spotProperties": {
-        "market_fountain": "quiet",
-        "merchant_row": "closing"
-      }
-    },
-    {
-      "id": "night",
-      "name": "Night",
-      "startHour": 22,
-      "endHour": 2,
-      "segments": 4,
-      "spotProperties": {
-        "market_fountain": "quiet",
-        "merchant_row": "closed"
-      }
-    }
-  ]
-}
-```
+**Failure Types**:
+- **Disrupting**: Discard all cards with Focus 3+ from hand
+- **Backfire**: Negative rapport (magnitude based on difficulty)
+- **None**: No effect beyond forced LISTEN
 
-## Testing Checklist
+**Exhaust Types**:
+- **Continuing**: Draw cards when discarded unplayed (magnitude based on difficulty)
+- **Focusing**: Restore focus when discarded unplayed (magnitude based on difficulty)
+- **Regret**: Negative rapport when discarded unplayed (magnitude based on difficulty)
+- **None**: No effect when discarded
 
-### Core Conversation Mechanics
-- [ ] Player deck used in all conversations
-- [ ] NPC personality rules apply correctly
-- [ ] Failure forces LISTEN action
-- [ ] Non-persistent cards discarded on LISTEN
-- [ ] Focus refreshes on LISTEN
-- [ ] Connection state determines card draw count
+### Difficulty and Magnitude
 
-### Deck Building System
-- [ ] Successful plays grant 1 XP to specific card
-- [ ] Cards level up at correct thresholds (3, 7, 15, 30)
-- [ ] Level benefits apply correctly
-- [ ] Signature cards unlock at token thresholds
-- [ ] Signature cards shuffle into conversation deck
+Base success rates (modified by +2% per rapport point):
+- **Very Easy**: 85% success, magnitude 1
+- **Easy**: 75% success, magnitude 2
+- **Medium**: 60% success, magnitude 2
+- **Hard**: 50% success, magnitude 3
+- **Very Hard**: 40% success, magnitude 4
 
-### Elena Conversation
-- [ ] Devoted rule doubles negative rapport
-- [ ] Starts in DISCONNECTED state
-- [ ] Safe Passage Knowledge advances state
-- [ ] Request becomes available at NEUTRAL
-- [ ] Basic goal achievable at 5 rapport
-- [ ] Premium goal creates weight 3 obligation
+### Conversation Flow
 
-### Marcus Conversation  
-- [ ] Mercantile rule boosts highest focus card
-- [ ] Starts in NEUTRAL state
-- [ ] Enhanced goal gives 2 Commerce tokens
-- [ ] Commerce tokens unlock signature cards
-- [ ] Caravan route observation unlocks exchange
+1. **SPEAK Action**: Choose and play one card from hand
+2. **Success**: Apply success effect, continue playing if focus remains
+3. **Failure**: Apply failure effect, apply -1 flow, MUST LISTEN next
+4. **LISTEN Action**: Discard non-Thought cards, draw new cards, refresh focus
+5. **Flow Transitions**: At ±3 flow, connection state changes
 
-### Resource Management
-- [ ] Morning investigation gives +2 familiarity
-- [ ] Midday/Afternoon investigation gives +1 familiarity
-- [ ] Work at hunger 50 gives 3 coins
-- [ ] Work consumes entire time block (4 segments)
-- [ ] Lord Blackwood disappears at 5:00 PM (Afternoon segment 4)
+### Personality Rules
 
-### Weight System
-- [ ] Satchel capacity is 10 weight maximum
-- [ ] Viktor's package weighs 3
-- [ ] Elena's letters have different weights (1/2/3)
-- [ ] Path cards check weight restrictions
-- [ ] Items can be dropped with consequences
-- [ ] Consumables can be carried or used immediately
+- **Devoted**: When rapport decreases, decrease it twice
+- **Mercantile**: Highest focus card each turn gains +30% success
+- **Proud**: Cards must be played in ascending focus order each turn
+- **Cunning**: Playing same focus as previous card costs -2 rapport
+- **Steadfast**: All rapport changes capped at ±2 per card
 
-### Time Segment System
-- [ ] Each block has 4 segments
-- [ ] 6 blocks per day (Dawn/Morning/Midday/Afternoon/Evening/Night)
-- [ ] Actions cost appropriate segments
-- [ ] Work consumes entire block
-- [ ] Block advancement happens correctly
-- [ ] Deadline enforcement at Afternoon segment 4
 
 ## Conclusion
 
-This POC demonstrates the new conversation system where:
+This POC demonstrates the refined conversation system where:
 
-1. **The player's deck is their character** - It grows through XP and new cards
-2. **NPCs provide unique puzzles** - Personality rules transform how cards work
-3. **Relationships unlock tools** - Signature cards reward token investment
-4. **Failure creates rhythm** - Forced LISTEN makes conversations feel authentic
-5. **Every conversation matters** - Card XP accumulates across all interactions
-6. **Weight creates constant pressure** - Every item carried affects all other choices
-7. **Time segments create urgency** - Real time constraints force prioritization within rigid blocks
+1. **Cards use categorical properties** - Effects emerge from context rather than being hardcoded
+2. **Failure forces LISTEN** - Creates natural conversation rhythm and strategic weight
+3. **Persistence types matter** - Thoughts persist, Impulses demand action, Openings expire
+4. **Magnitude scales with difficulty** - Same categorical effect has different power levels
+5. **NPCs provide unique puzzles** - Personality rules transform how cards work
+6. **Every choice has weight** - Failed plays cost patience and momentum
+7. **Conversation feels authentic** - Mechanical flow matches narrative expectations
 
-The scenario is completable in approximately 30 minutes while teaching all core mechanics. Players finish with a clear understanding that conversations are the primary gameplay loop, their deck represents their character's growth over time, and every resource decision cascades through all systems. The time block structure creates natural activity rhythms where working consumes entire blocks, making the deadline genuinely challenging to meet.
+The scenario is completable in approximately 30 minutes while teaching all core mechanics. Players finish understanding that conversation success requires both strategic deck play and careful risk management, with the forced LISTEN on failure creating genuine conversational flow rather than mechanical card burning.
