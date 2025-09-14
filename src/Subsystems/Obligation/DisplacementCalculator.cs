@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Wayfarer.Subsystems.ObligationSubsystem;
+using Wayfarer.GameState.Enums;
 
 namespace Wayfarer.Subsystems.ObligationSubsystem
 {
@@ -555,10 +556,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             ConversationCard burdenCard = new ConversationCard
             {
                 Id = $"burden_displacement_{npcId}_{Guid.NewGuid()}",
-                CardType = CardType.Conversation,
+                CardType = CardType.BurdenGoal,  // Burden cards use BurdenGoal type
                 Description = $"The memory of a broken promise lingers",
                 TokenType = tokenType,
-                Properties = new List<CardProperty> { CardProperty.Burden }
+                Persistence = PersistenceType.Thought,  // Burdens persist
+                SuccessType = SuccessEffectType.None,
+                FailureType = FailureEffectType.None,
+                ExhaustType = ExhaustEffectType.None
             };
 
             // Add to the NPC's burden deck
