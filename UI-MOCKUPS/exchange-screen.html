@@ -24,7 +24,7 @@
 
         .game-container {
             width: 100%;
-            max-width: 1200px;
+            max-width: 1000px;
             background: #e8dcc4;
             border: 3px solid #8b7355;
             border-radius: 8px;
@@ -41,6 +41,29 @@
             display: flex;
             justify-content: space-between;
             font-size: 13px;
+        }
+
+        .time-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .segment-tracker {
+            display: flex;
+            gap: 3px;
+        }
+
+        .segment-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #3d3429;
+            border: 1px solid #5c4a3a;
+        }
+
+        .segment-dot.filled {
+            background: #d4a76a;
         }
 
         .deadline {
@@ -83,6 +106,18 @@
         .mode-description {
             font-size: 12px;
             font-style: italic;
+        }
+
+        .free-badge {
+            display: inline-block;
+            background: #faf4ea;
+            color: #5a6a3a;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-left: 10px;
         }
 
         /* NPC Header */
@@ -184,8 +219,8 @@
         }
 
         .action-details {
-            font-size: 11px;
-            margin-top: 4px;
+            font-size: 10px;
+            margin-top: 3px;
             color: #7a6250;
         }
 
@@ -208,7 +243,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            max-width: 900px;
+            max-width: 700px;
             margin: 0 auto;
         }
 
@@ -334,22 +369,31 @@
     <div class="game-container">
         <!-- Header -->
         <div class="header">
-            <span>Tuesday, 9:05 AM - Market Square</span>
-            <span class="deadline">Marcus Package: 4h 55m • Elena available: 4h 55m</span>
+            <div class="time-display">
+                <span>Morning Block</span>
+                <div class="segment-tracker">
+                    <div class="segment-dot filled"></div>
+                    <div class="segment-dot filled"></div>
+                    <div class="segment-dot"></div>
+                    <div class="segment-dot"></div>
+                </div>
+                <span>Segment 2 of 4</span>
+            </div>
+            <span class="deadline">Marcus Package: 12 segments • Elena available: 12 segments</span>
         </div>
 
         <!-- Queue Display -->
         <div class="queue-display">
             Queue: 
             <span class="queue-item position-1">1. Marcus Package (Warehouse)</span>
-            <span class="queue-item">2. Guard Report (Barracks)</span>
-            <span class="queue-item">3. [Elena's letter]</span>
+            <span class="queue-item">2. [Empty]</span>
+            <span class="queue-item">3. [Empty]</span>
         </div>
 
         <!-- Exchange Mode Banner -->
         <div class="exchange-mode">
-            <div class="mode-title">Quick Exchange</div>
-            <div class="mode-description">0 Attention • No patience • Always succeeds</div>
+            <div class="mode-title">Quick Exchange<span class="free-badge">No Time Cost</span></div>
+            <div class="mode-description">Instant trades • No patience • Always succeeds</div>
         </div>
 
         <!-- NPC Header -->
