@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Enums;
 
 public class ObligationQueueManager
 {
@@ -2729,10 +2730,13 @@ public class ObligationQueueManager
         ConversationCard burdenCard = new ConversationCard
         {
             Id = $"burden_{npcId}_{Guid.NewGuid()}",
-            CardType = CardType.Conversation,
+            CardType = CardType.BurdenGoal,  // Burden cards use BurdenGoal type
             Description = $"Past betrayal weighs on {npc.Name}'s mind",
             TokenType = tokenType,
-            Properties = new List<CardProperty> { CardProperty.Burden }
+            Persistence = PersistenceType.Thought,  // Burdens persist
+            SuccessType = SuccessEffectType.None,
+            FailureType = FailureEffectType.None,
+            ExhaustType = ExhaustEffectType.None
         };
 
         // Add to the NPC's burden deck

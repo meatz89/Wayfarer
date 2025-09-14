@@ -379,8 +379,11 @@ public class ConversationOrchestrator
         // Calculate token rewards based on final state
         int tokensEarned = CalculateTokenReward(session.CurrentState, session.FlowBattery);
 
-        // Check if any request cards were played
-        bool requestAchieved = session.PlayedCards?.Any(c => c.CardType == CardType.Request) ?? false;
+        // Check if any request cards were played (Letter, Promise, or BurdenGoal types)
+        bool requestAchieved = session.PlayedCards?.Any(c =>
+            c.CardType == CardType.Letter ||
+            c.CardType == CardType.Promise ||
+            c.CardType == CardType.BurdenGoal) ?? false;
         if (requestAchieved)
         {
             tokensEarned += 2; // Bonus for completing request

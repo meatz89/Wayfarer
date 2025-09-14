@@ -681,9 +681,7 @@ namespace Wayfarer.Pages.Components
                     Focus = card.Focus,
                     Difficulty = card.Difficulty,
                     Effect = card.SuccessEffect?.Value ?? card.Description ?? "",
-                    Persistence = card.Persistence == PersistenceType.Impulse ? CardPersistence.Impulse :
-                                card.Persistence == PersistenceType.Opening ? CardPersistence.Opening :
-                                CardPersistence.Persistent,
+                    Persistence = card.Persistence,
                     NarrativeCategory = "standard"
                 };
                 collection.Cards.Add(cardInfo);

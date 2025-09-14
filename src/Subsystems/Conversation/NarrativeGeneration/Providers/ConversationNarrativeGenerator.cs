@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Core backwards construction algorithm for generating conversation narratives.
@@ -50,8 +51,8 @@ public class ConversationNarrativeGenerator
     {
         CardAnalysis analysis = new CardAnalysis
         {
-            HasImpulse = cards.Cards.Any(c => c.Persistence == CardPersistence.Impulse),
-            HasOpening = cards.Cards.Any(c => c.Persistence == CardPersistence.Opening)
+            HasImpulse = cards.Cards.Any(c => c.Persistence == PersistenceType.Impulse),
+            HasOpening = cards.Cards.Any(c => c.Persistence == PersistenceType.Opening)
         };
         
         // Categorize each card
