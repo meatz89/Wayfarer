@@ -35,8 +35,8 @@ Every seemingly inefficient action (investigating twice, buying food before work
 ## Starting Conditions
 
 ### Player State
-- **Time**: 9:00 AM Tuesday (Morning block, segment 1)
-- **Segments Available**: 24 (full day)
+- **Time**: 9:00 AM Tuesday (Morning block, segment 4)
+- **Segments Remaining**: 1 in current block, 13 in day total
 - **Coins**: 0
 - **Hunger**: 50
 - **Health**: 100
@@ -49,17 +49,17 @@ Every seemingly inefficient action (investigating twice, buying food before work
 ### Initial Obligation
 **Viktor's Package to Marcus**
 - Position: 1 (must complete first)
-- Deadline: 12:00 PM (3 hours = 3 time blocks)
+- Deadline: 12:00 PM (Midday block)
 - Payment: 7 coins
 - Weight: 3
 - Recipient: Marcus at Market Square
 
 ### Available Time
-- Start: 9:00 AM (Morning block)
-- Lord Blackwood leaves: 5:00 PM (Evening block ends)
-- Total: 8 hours (20 segments across 5 blocks)
-- Optimal path uses: 18 segments
-- Buffer: 2 segments
+- Start: 9:00 AM (Morning block, segment 4)
+- Lord Blackwood leaves: 5:00 PM (Afternoon block, segment 4)
+- Total segments available: 13 (1 morning + 4 midday + 4 afternoon + 4 evening partial)
+- Optimal path uses: 12 segments
+- Buffer: 1 segment
 
 ## Player Starting Deck
 
@@ -179,7 +179,7 @@ Young woman facing forced marriage to a merchant she despises. Works at her uncl
 **Request Details**:
 - Request available at 5 focus capacity (requires NEUTRAL state)
 - Basic goal: 5 rapport (delivers letter weight 1, no payment)
-- Enhanced goal: 10 rapport (delivers priority letter weight 2, 1 Trust token)
+- Enhanced goal: 10 rapport (delivers letter weight 2, 1 Trust token)
 - Premium goal: 15 rapport (delivers legal documents weight 3, 2 Trust tokens)
 
 **Conversation Challenge**:
@@ -215,7 +215,7 @@ Established trader who runs regular caravans. Cannot leave his stall (merchandis
 
 **Exchange Deck**:
 - Buy Simple Food: 2 coins → -50 hunger (immediate consumption)
-- Buy Bread: 3 coins → bread item (weight 1, consume later for -30 hunger)
+- Buy Bread: 3 coins → bread item (weight 1, -30 hunger when consumed)
 - Join Merchant Caravan: 10 coins → Transport to Noble Quarter (requires 2+ Commerce tokens)
 
 **Conversation Challenge**:
@@ -266,16 +266,14 @@ Accepts deliveries without conversation needed.
 - Token Type: Shadow
 
 **Exchange Deck**:
-- Noble District Permit: 20 coins (weight 1) - impossible to afford, deliberate dead end
+- Noble District Permit: 20 coins (impossible to afford - deliberate dead end)
 
 ## Locations and Spots
 
 Location mechanics remain unchanged from the original POC. The key interactions:
 
 ### Market Square
-- **Fountain**: Investigation point 
-  - Morning: Quiet (+2 familiarity per segment)
-  - Afternoon: Busy (+1 familiarity per segment)
+- **Fountain**: Investigation point (Quiet in morning for +2 familiarity, Busy in midday/afternoon for +1)
 - **Merchant Row**: Marcus location, work available
 - **Guard Post**: Guard Captain, permit exchange (dead end)
 
@@ -290,7 +288,7 @@ Location mechanics remain unchanged from the original POC. The key interactions:
 
 ## Observation Cards
 
-Observation cards mix into the player's conversation deck when conversing with the relevant NPC.
+Observation cards now mix into the player's conversation deck when conversing with the relevant NPC.
 
 ### Safe Passage Knowledge
 
@@ -335,20 +333,20 @@ Request cards represent conversation goals. Multiple thresholds exist, but the p
 **Goal Thresholds**:
 - **Basic** (5 rapport): Accept letter (weight 1), no payment, standard urgency
 - **Enhanced** (10 rapport): Accept priority letter (weight 2), 1 Trust token reward
-- **Premium** (15 rapport): Accept legal documents (weight 3), 2 Trust tokens
+- **Premium** (15 rapport): Accept legal documents (weight 3), 2 Trust tokens, guaranteed success
 
 **The Challenge**: 
 Starting in DISCONNECTED with Elena's Devoted personality rule (failures hurt twice), reaching even the basic 5 rapport threshold is difficult. The player needs the Safe Passage Knowledge observation card to advance to NEUTRAL state, giving them 5 focus capacity and 4-card draws on LISTEN.
 
 **Weight Implications**:
-The premium goal creates a heavier package (legal documents weighing 3) that limits what else you can carry to the Noble Quarter. This creates natural trade-offs without complex attachment mechanics.
+The premium tier creates a heavier package (3 weight) representing the additional legal documents Elena provides. This weight affects travel options - the "Narrow Alley" shortcut becomes impassable, forcing use of main roads or expensive transport.
 
 ### Marcus's Trade Letter
 
 **Goal Thresholds**:
 - **Basic** (5 rapport): Deliver to Warehouse (weight 1), 5 coins, 1 Commerce token
 - **Enhanced** (10 rapport): Priority delivery (weight 1), 8 coins, 2 Commerce tokens
-- **Premium** (15 rapport): Rush delivery (weight 1), 12 coins, 3 Commerce tokens
+- **Premium** (15 rapport): Rush delivery (weight 2), 12 coins, 3 Commerce tokens
 
 **Strategic Note**: 
 With Marcus's Mercantile rule, high-focus cards gain +30% success. This makes his enhanced goal achievable with good card play. Gaining 2 Commerce tokens unlocks his first two signature cards for future conversations.
@@ -357,163 +355,213 @@ With Marcus's Mercantile rule, high-focus cards gain +30% success. This makes hi
 
 ### Marcus's Exchange Deck
 
-**Buy Simple Food**:
+**Buy Simple Food**
 - Cost: 2 coins
 - Effect: -50 hunger (immediate consumption)
-- No weight impact (consumed immediately)
+- Weight: N/A (consumed immediately)
+- Availability: Always
 
-**Buy Bread**:
-- Cost: 3 coins
-- Effect: Gain bread item (weight 1)
-- Bread can be consumed later for -30 hunger
-- Strategic value: Carry for optimal consumption timing
+**Buy Bread**
+- Cost: 3 coins  
+- Effect: Bread item (weight 1)
+- When consumed: -30 hunger
+- Availability: Always
 
-**Join Merchant Caravan**:
+**Join Merchant Caravan**
 - Cost: 10 coins
 - Effect: Transport to Noble Quarter
-- Requirement: 2+ Commerce tokens
+- Requirements: 2+ Commerce tokens
 - Time: 2 segments
-- Weight restrictions apply during transport
+- Availability: After playing Merchant Caravan Route observation
+
+### Guard Captain's Exchange Deck
+
+**Noble District Permit**
+- Cost: 20 coins
+- Effect: Permit item (weight 1)
+- Availability: Always (but impossible to afford in POC)
 
 ## Routes and Travel
 
 ### Market Square to Warehouse District
 
-**Walking Route** (2 segments total):
-- Segment 1 paths:
-  - "Main Road": 1 stamina, 1 segment
-  - "Back Alley": 2 stamina, 0 segments (requires under 5 weight)
-  - "Struggle Path": 0 stamina, 2 segments
-- Segment 2 paths:
-  - "Warehouse Gates": 1 stamina, 1 segment
-  - "Loading Dock": 2 stamina, 0 segments
-  - "Worker's Path": 0 stamina, 2 segments
+**Segment 1 Path Cards**:
+- **Main Road**: 1 segment, 1 stamina, no weight restrictions
+- **Back Alley**: 0 segments, 2 stamina, blocked over 7 weight
+- **Merchant Cart**: 1 segment, 2 coins OR free with trade goods
+
+**Segment 2 Path Cards**:
+- **Warehouse Direct**: 1 segment, 1 stamina
+- **Loading Docks**: 0 segments, 2 stamina, blocked over 8 weight
+- **Struggle Path**: 2 segments, 0 stamina, always available
 
 ### Market Square to Noble Quarter
 
-**Direct Route** (blocked):
-- "Guard Checkpoint": Requires Noble District Permit (weight 1)
-- Without permit: Cannot proceed, must turn back
+**Direct Route (Blocked)**:
+- **Guard Checkpoint**: Requires Noble District Permit
+- Cannot proceed without permit
 
-**Merchant Caravan** (available after unlocking):
-- Cost: 10 coins
-- Time: 2 segments
-- Comfortable travel (no stamina cost)
-- Still subject to event cards during transport
+**Caravan Route (Requires 2+ Commerce tokens)**:
+- **Merchant Caravan**: 2 segments total, 10 coins
+- No weight restrictions on caravan
+- Comfortable travel
 
 ### Market Square to Copper Kettle Tavern
 
-**Walking Route** (1 segment):
-- "Market Streets": 1 stamina, 1 segment
-- "Crowded Path": 0 stamina, 2 segments
-- "Quick Cut": 2 stamina, 0 segments (requires under 3 weight)
+**Single Segment Route**:
+- **Direct Path**: 1 segment, 1 stamina
+- **Market Route**: 1 segment, 2 stamina, allows one quick exchange
+- **Busy Street**: 1 segment, 0 stamina, +5 hunger
 
 ## The Only Successful Path
 
-The path remains mechanically identical but now uses time segments and weight management.
+The path uses the correct time blocks and segment constraints.
 
 ### Complete Timeline
 
-#### Morning Block (9:00 AM - 10:00 AM, 4 segments)
+#### Morning Block (6:00 AM - 10:00 AM)
+**Starting at 9:00 AM = segment 4 of Morning block**
+**1 segment remaining in block**
 
-**9:00 AM - Investigate Market Square** (Segment 1)
+**9:00 AM - Investigate Market Square** (Segment 4)
 - Spot: Fountain (QUIET in morning)
 - Cost: 1 segment
 - Result: +2 familiarity (0→2)
-- Satchel: Viktor's package (3/10 weight)
+- Weight carried: 3 (Viktor's package)
+- **Morning block ends, advances to Midday**
 
-**First Observation** (Segment 2)
+#### Midday Block (10:00 AM - 2:00 PM)
+**4 segments available**
+
+**10:00 AM - First Observation** (Segment 1)
 - Cost: 1 segment
 - Gain: "Safe Passage Knowledge" observation card
 - Will be added to deck when conversing with Elena
 
-**Converse with Marcus** (Segment 3)
-- Cost: 1 segment base + patience depth
+**10:10 AM - Converse with Marcus** (Segment 2)
+- Cost: 1 segment base
 - Personality Rule: Highest focus card gains +30% success
 - Starting deck: 20 player cards (no signatures yet - 0 Commerce tokens)
 - Connection state: NEUTRAL (5 focus, draws 4)
 - Deliver Viktor's package (frees 3 weight)
-- Accept Marcus's letter (weight 1, now 1/10)
+- Accept Marcus's letter (weight 1)
+- Play pattern: Use high-focus cards for Mercantile bonus
 - Try for enhanced goal for 2 Commerce tokens
-- Conversation depth: ~15 minutes (3 patience spent)
 
-**Travel to Warehouse** (Segment 4)
-- Take "Main Road" path (1 stamina, 1 segment)
-- Carrying: Marcus's letter (1/10 weight)
+**10:30 AM - Travel to Warehouse** (Segment 3)
+- Weight carried: 1 (Marcus's letter)
+- Path choices benefit from light load
+- Use "Back Alley" (0 segments) if discovered
+- Otherwise "Main Road" (1 segment)
 
-#### Afternoon Block (10:00 AM - 2:00 PM, 4 segments consumed by work)
-
-**10:05 AM - Deliver and Return**
-- Deliver Marcus's letter at Warehouse
+**10:40 AM - Deliver and Return** (Segment 4)
+- Deliver Marcus's letter
 - Gain: 8 coins (enhanced completion), 2 Commerce tokens
-- Marcus now has two signature cards unlocked
-- Return to Market Square via "Back Alley" (2 stamina, 0 segments - possible at 0 weight)
+- Return to Market Square
+- **Midday block ends, advances to Afternoon**
 
-**10:10 AM - Buy Food**
-- Quick exchange with Marcus: 2 coins for -50 hunger
+#### Afternoon Block (2:00 PM - 6:00 PM)
+**4 segments available**
+**Critical: Lord Blackwood leaves at 5:00 PM (segment 4 of this block)**
+
+**2:00 PM - Buy Food and Work Decision**
+- Quick exchange with Marcus: 2 coins for immediate meal
 - Hunger: 50→0
-- Coins: 6 remaining
+- **Cannot work** - would consume entire block, missing deadline
+- Must proceed with 6 coins remaining
 
-**10:10 AM - Work**
-- Cost: Entire afternoon block (4 segments)
-- At hunger 0: Full 5 coins output
-- Time advances to 2:00 PM (Evening block begins)
-- Total coins: 11
-
-#### Evening Block (2:00 PM - 5:00 PM deadline)
-
-**2:00 PM - Second Investigation** (Segment 1)
-- Fountain now BUSY: Only +1 familiarity
+**2:10 PM - Second Investigation** (Segment 1)
+- Fountain now BUSY: Only +1 familiarity  
 - Familiarity: 2→3
+- Cost: 1 segment
 
-**Second Observation** (Segment 2)
+**2:20 PM - Second Observation** (Segment 1 continued)
 - Gain: "Merchant Caravan Route" observation card
+- No additional segment cost
 
-**Travel to Copper Kettle** (Segment 3)
-- Path: "Market Streets" (1 stamina, 1 segment)
+**2:30 PM - Quick Conversation with Marcus** (Segment 2)
+- Cost: 1 segment
+- Deck: 20 player cards + 2 Marcus signature cards (from 2 Commerce tokens)
+- Marcus's Bargain and Trade Knowledge now available
+- Play Merchant Caravan Route observation card
+- Unlocks caravan exchange option
+- **Cannot afford caravan** (only 6 coins, need 10)
 
-**Critical Conversation with Elena** (Segment 4 + conversation depth)
-- Cost: 1 segment base + patience spent
+**2:40 PM - Travel to Copper Kettle** (Segment 3)
+- Weight: 0 (no items carried)
+- Direct path: 1 segment
+
+**3:00 PM - Critical Conversation with Elena** (Segment 4)
+- Cost: 1 segment base
 - Personality Rule: Failures decrease rapport twice
 - Starting State: DISCONNECTED (3 focus, draws 3)
 - Deck: 20 player cards + Safe Passage Knowledge
 - Turn 1: Play Safe Passage Knowledge (0 focus, 85% success)
 - Effect: Advance to NEUTRAL state (5 focus, draws 4)
+- Now can attempt 5-focus request
 - Build to 5 rapport carefully (failures hurt double)
 - Accept basic goal: Elena's letter (weight 1)
-- Conversation uses into next block's segments
+- **Afternoon block ends, advances to Evening**
 
-**3:30 PM - Purchase Caravan**
+#### Evening Block (6:00 PM - 10:00 PM)
+**Cannot use - Lord Blackwood left at 5:00 PM**
+
+### Alternative Successful Path (With Work)
+
+#### Morning Block (Starting 9:00 AM)
+**9:00 AM - Investigate** (Segment 4)
+- +2 familiarity at quiet fountain
+- **Block advances to Midday**
+
+#### Midday Block (10:00 AM - 2:00 PM)
+**10:00 AM - Work Action**
+- Consumes entire block (4 segments)
+- At hunger 70: Output = 5 - floor(70/25) = 5 - 2 = 3 coins
+- **Block advances to Afternoon**
+
+#### Afternoon Block (2:00 PM - 6:00 PM)
+**2:00 PM - Rush Sequence** (Segment 1)
+- Buy food: 2 coins (1 coin remaining)
+- Second investigation: +1 familiarity (now at 3)
+- Both observations available
+
+**2:10 PM - Marcus Conversation** (Segment 2)
+- Deliver Viktor's package
+- Enhanced goal: 8 coins, 2 Commerce tokens
+- Total: 9 coins
+
+**2:30 PM - Travel to Warehouse** (Segment 3)
+- Deliver Marcus's letter
 - Return to Market Square
-- Quick conversation with Marcus to unlock caravan
-- Exchange: 10 coins for caravan transport
 
-**3:45 PM - Final Sprint**
-- Take caravan to Noble Quarter (2 segments)
-- Deliver to Lord Blackwood (quick delivery)
-- **SUCCESS**: Completed before 5:00 PM deadline
+**3:00 PM - Elena Conversation** (Segment 4)
+- Use Safe Passage Knowledge
+- Reach basic goal
+- Accept letter
+
+**3:30 PM - Direct Route Attempt**
+- Only 9 coins, cannot afford 20-coin permit
+- **FAILURE** - Cannot reach Noble Quarter
+
+### Why Only One Path Works
+
+The constraint is the 5:00 PM deadline falling in segment 4 of the Afternoon block. Working consumes an entire block, making it impossible to complete all necessary steps and still deliver before the deadline unless perfectly sequenced. The lack of 10 coins for caravan transport forces reliance on the impossible guard checkpoint route.
 
 ### Resource Accounting
 
-**Segment Usage** (20 available before deadline):
-- Morning Block: 4 segments used (investigate, observe, Marcus conversation, travel)
-- Afternoon Block: 4 segments used (work consumes entire block)
-- Evening Block: 7 segments used (investigate, observe, travel, Elena conversation, caravan)
-- **Total**: 15 segments used, 5 buffer remaining
+**Segment Usage** (13 total available from 9 AM):
+- Morning Block: 1 used (investigation)
+- Midday Block: 4 used (observation, conversation, travel, delivery)
+- Afternoon Block: 4 used (investigation, conversation, travel, conversation)
+- **Total**: 9 segments used, 4 buffer remaining
+- **Critical**: Must complete Elena conversation by segment 4 of Afternoon
 
 **Weight Management**:
-- Start: Viktor's package (3/10)
-- After Viktor delivery: Marcus's letter (1/10)
-- After Marcus delivery: Empty (0/10)
-- After Elena: Elena's letter (1/10)
-- Plenty of capacity throughout
-
-**Hunger Management**:
-- Start: 50 hunger
-- After morning block: 70 hunger (+20)
-- Buy food before work: 20 hunger (-50)
-- After work: 40 hunger (+20)
-- Manageable throughout without travel penalties
+- Start: 3/10 (Viktor's package)
+- After Marcus delivery: 1/10 (Marcus's letter)
+- After Warehouse: 0/10 (empty)
+- After Elena: 1/10 (Elena's letter)
+- Never exceeded capacity, all paths accessible
 
 **Card Experience Gained**:
 Each successful card play during conversations grants 1 XP to that specific card. Over the course of the POC, players will likely gain 10-15 XP across various cards, beginning their progression journey.
@@ -521,6 +569,12 @@ Each successful card play during conversations grants 1 XP to that specific card
 ## Failure Analysis
 
 ### Common Failure Paths
+
+#### Work at Wrong Time
+- Working in Morning wastes quiet investigation bonus
+- Working in Midday makes Afternoon delivery impossible
+- Working in Afternoon guarantees missing deadline
+- The 4-segment block consumption is absolute
 
 #### Rush to Elena First
 - Elena in DISCONNECTED (3 focus, draws 3)
@@ -536,12 +590,12 @@ Each successful card play during conversations grants 1 XP to that specific card
 #### Ignore Marcus's Enhanced Goal
 - Only get 1 Commerce token
 - Only unlocks Marcus's first signature card
-- Makes future conversations harder
+- Cannot afford caravan even if unlocked
 - Less coins for crucial purchases
 
 #### Try Guard Checkpoint
-- Permit costs 20 coins (weight 1)
-- Maximum achievable: 17 coins
+- Permit costs 20 coins
+- Maximum achievable: 11 coins (3 from work + 8 from Marcus)
 - Designed as impossible dead end
 
 #### Poor Conversation Play with Elena
@@ -550,32 +604,26 @@ Each successful card play during conversations grants 1 XP to that specific card
 - Lose assembled hand, must rebuild from worse position
 - May run out of patience before reaching even basic goal
 
-#### Work at Wrong Time
-- Working consumes entire time block (4 segments)
-- Working too early wastes morning investigation efficiency
-- Working too late leaves insufficient time for Elena
-- Must time work to maximize both coins and available segments
-
-#### Weight Mismanagement
-- Accepting heavy obligations limits travel options
-- "Narrow Alley" blocked over 8 weight
-- "Quick Cut" blocked over 3 weight
-- Forced to take longer, more expensive paths
-- Could miss deadline due to extra segments
+#### Accept Heavy Obligations Early
+- Marcus offers "Silk Bundle Delivery" (weight 5, pays 15 coins)
+- Accepting limits travel options severely
+- "Narrow Alley" shortcuts become impassable
+- Forces expensive main roads
+- May prevent accepting Elena's letter
 
 ### Why This Path is Unique
 
-The new systems make the strategic requirements even clearer:
+The new conversation system and resource management make the strategic requirements even clearer:
 
-1. **Must investigate morning** for +2 familiarity efficiency
+1. **Must investigate** for observation card to unlock Elena's capacity
 2. **Must build Commerce tokens** to unlock Marcus's signature cards
-3. **Must manage hunger** to maximize work output
-4. **Must time work block** to preserve critical segments
-5. **Must use Marcus's enhanced delivery** for sufficient tokens
-6. **Must manage weight** to access efficient paths
+3. **Cannot work** due to 4-segment block consumption
+4. **Must use Marcus's enhanced delivery** for coins
+5. **Must manage weight** to keep travel options open
+6. **Must complete within Afternoon block** before 5 PM deadline
 7. **Must play Elena conversation perfectly** due to Devoted penalty
 
-Each element directly supports the core conversation gameplay loop while maintaining physical verisimilitude.
+Each element directly supports the core conversation gameplay loop while the time pressure makes every segment precious.
 
 ## JSON Implementation
 
@@ -587,16 +635,18 @@ Each element directly supports the core conversation gameplay loop while maintai
   "metadata": {
     "name": "Elena's Letter POC v3",
     "version": "3.0.0",
-    "description": "POC with weight and time segments",
+    "description": "POC with weight system and time segments",
     "author": "Wayfarer Team",
     "timestamp": "2025-01-01T00:00:00Z"
   },
   "startingConditions": {
     "time": {
-      "block": "Morning",
-      "segment": 1,
-      "hour": "09:00",
-      "day": "Tuesday"
+      "hour": 9,
+      "minute": 0,
+      "dayOfWeek": "Tuesday",
+      "timeBlock": "Morning",
+      "blockSegment": 4,
+      "totalSegmentsRemaining": 13
     },
     "resources": {
       "coins": 0,
@@ -604,7 +654,8 @@ Each element directly supports the core conversation gameplay loop while maintai
       "hunger": 50
     },
     "satchel": {
-      "capacity": 10,
+      "maxWeight": 10,
+      "currentWeight": 3,
       "items": [
         {
           "id": "viktor_package",
@@ -637,123 +688,83 @@ Each element directly supports the core conversation gameplay loop while maintai
 }
 ```
 
-### NPC Definition with Weight
-
-```json
-{
-  "id": "elena",
-  "name": "Elena",
-  "profession": "Scribe",
-  "personalityType": "DEVOTED",
-  "personalityRule": {
-    "id": "devoted_rule",
-    "description": "When rapport would decrease, decrease it twice",
-    "effectType": "MultiplyNegativeRapport",
-    "effectValue": 2
-  },
-  "locationId": "copper_kettle_tavern",
-  "spotId": "corner_table",
-  "currentState": "DISCONNECTED",
-  "tokenType": "Trust",
-  "signatureCards": [...],
-  "requestGoals": [
-    {
-      "id": "elena_letter_basic",
-      "rapportRequired": 5,
-      "obligationWeight": 1,
-      "reward": "letter_delivery"
-    },
-    {
-      "id": "elena_letter_enhanced",
-      "rapportRequired": 10,
-      "obligationWeight": 2,
-      "reward": "priority_delivery",
-      "tokenReward": 1
-    },
-    {
-      "id": "elena_letter_premium",
-      "rapportRequired": 15,
-      "obligationWeight": 3,
-      "reward": "legal_documents",
-      "tokenReward": 2
-    }
-  ]
-}
-```
-
-### Path Card with Weight Restrictions
-
-```json
-{
-  "id": "narrow_alley",
-  "name": "Narrow Alley",
-  "segmentNumber": 1,
-  "staminaCost": 2,
-  "segmentCost": 0,
-  "faceUp": false,
-  "weightRestriction": {
-    "maximum": 8,
-    "effect": "impassable"
-  },
-  "description": "A tight squeeze between buildings"
-}
-```
-
-### Investigation Yielding Items
-
-```json
-{
-  "id": "warehouse_investigation_3",
-  "sourceLocation": "warehouse_district",
-  "familiarityRequired": 3,
-  "segmentCost": 1,
-  "result": {
-    "type": "item",
-    "item": {
-      "id": "shipping_manifests",
-      "name": "Shipping Manifests",
-      "weight": 1,
-      "sellValue": 5,
-      "effect": "Unlocks special merchant exchanges"
-    }
-  }
-}
-```
-
 ### Time Block Definition
 
 ```json
 {
   "timeBlocks": [
     {
+      "id": "dawn",
       "name": "Dawn",
-      "startHour": "02:00",
-      "endHour": "06:00",
-      "segments": 4
+      "startHour": 2,
+      "endHour": 6,
+      "segments": 4,
+      "spotProperties": {
+        "market_fountain": "quiet",
+        "merchant_row": "closed"
+      }
     },
     {
+      "id": "morning",
       "name": "Morning",
-      "startHour": "06:00",
-      "endHour": "10:00",
+      "startHour": 6,
+      "endHour": 10,
       "segments": 4,
       "spotProperties": {
-        "fountain": "quiet"
+        "market_fountain": "quiet",
+        "merchant_row": "normal"
       }
     },
     {
+      "id": "midday",
+      "name": "Midday",
+      "startHour": 10,
+      "endHour": 14,
+      "segments": 4,
+      "spotProperties": {
+        "market_fountain": "busy",
+        "merchant_row": "busy"
+      }
+    },
+    {
+      "id": "afternoon",
       "name": "Afternoon",
-      "startHour": "10:00",
-      "endHour": "14:00",
+      "startHour": 14,
+      "endHour": 18,
       "segments": 4,
       "spotProperties": {
-        "fountain": "busy"
+        "market_fountain": "busy",
+        "merchant_row": "normal"
+      },
+      "events": [
+        {
+          "time": "17:00",
+          "segment": 4,
+          "event": "lord_blackwood_departs"
+        }
+      ]
+    },
+    {
+      "id": "evening",
+      "name": "Evening",
+      "startHour": 18,
+      "endHour": 22,
+      "segments": 4,
+      "spotProperties": {
+        "market_fountain": "quiet",
+        "merchant_row": "closing"
       }
     },
     {
-      "name": "Evening",
-      "startHour": "14:00",
-      "endHour": "18:00",
-      "segments": 4
+      "id": "night",
+      "name": "Night",
+      "startHour": 22,
+      "endHour": 2,
+      "segments": 4,
+      "spotProperties": {
+        "market_fountain": "quiet",
+        "merchant_row": "closed"
+      }
     }
   ]
 }
@@ -769,23 +780,6 @@ Each element directly supports the core conversation gameplay loop while maintai
 - [ ] Focus refreshes on LISTEN
 - [ ] Connection state determines card draw count
 
-### Weight System
-- [ ] Satchel capacity maximum 10
-- [ ] Letters weigh 1 each
-- [ ] Packages have variable weight (1-6)
-- [ ] Tools persist at constant weight
-- [ ] Consumables can be carried and consumed
-- [ ] Path cards check weight restrictions
-- [ ] Dropping items has permanent consequences
-
-### Time Segment System
-- [ ] 24 segments per day (6 blocks × 4 segments)
-- [ ] Conversations cost 1 base segment + patience depth
-- [ ] Work consumes entire block (4 segments)
-- [ ] Investigation costs 1 segment
-- [ ] Travel segments based on path cards
-- [ ] Quick exchanges cost 0 segments
-
 ### Deck Building System
 - [ ] Successful plays grant 1 XP to specific card
 - [ ] Cards level up at correct thresholds (3, 7, 15, 30)
@@ -799,7 +793,7 @@ Each element directly supports the core conversation gameplay loop while maintai
 - [ ] Safe Passage Knowledge advances state
 - [ ] Request becomes available at NEUTRAL
 - [ ] Basic goal achievable at 5 rapport
-- [ ] Premium goal creates weight 3 package
+- [ ] Premium goal creates weight 3 obligation
 
 ### Marcus Conversation  
 - [ ] Mercantile rule boosts highest focus card
@@ -810,14 +804,37 @@ Each element directly supports the core conversation gameplay loop while maintai
 
 ### Resource Management
 - [ ] Morning investigation gives +2 familiarity
-- [ ] Afternoon investigation gives +1 familiarity
-- [ ] Work at hunger 0 gives 5 coins
-- [ ] Hunger increases by 20 per block
-- [ ] Travel slowed at 75+ hunger
-- [ ] Lord Blackwood disappears at 5:00 PM
+- [ ] Midday/Afternoon investigation gives +1 familiarity
+- [ ] Work at hunger 50 gives 3 coins
+- [ ] Work consumes entire time block (4 segments)
+- [ ] Lord Blackwood disappears at 5:00 PM (Afternoon segment 4)
+
+### Weight System
+- [ ] Satchel capacity is 10 weight maximum
+- [ ] Viktor's package weighs 3
+- [ ] Elena's letters have different weights (1/2/3)
+- [ ] Path cards check weight restrictions
+- [ ] Items can be dropped with consequences
+- [ ] Consumables can be carried or used immediately
+
+### Time Segment System
+- [ ] Each block has 4 segments
+- [ ] 6 blocks per day (Dawn/Morning/Midday/Afternoon/Evening/Night)
+- [ ] Actions cost appropriate segments
+- [ ] Work consumes entire block
+- [ ] Block advancement happens correctly
+- [ ] Deadline enforcement at Afternoon segment 4
 
 ## Conclusion
 
-This POC demonstrates the integrated systems where conversations drive character progression through deck building, weight creates constant physical trade-offs, and time segments force meaningful activity prioritization. 
+This POC demonstrates the new conversation system where:
 
-The scenario is completable in approximately 30 minutes while teaching all core mechanics. Players finish understanding that their deck represents their character's social skills, weight limitations create cascading decisions, and time management determines success or failure. Every conversation matters because cards gain XP. Every item carried has opportunity cost. Every segment spent shapes what's possible. This creates emergent gameplay where the same scenario plays differently based on player choices about what to carry, when to act, and how to build their deck over time.
+1. **The player's deck is their character** - It grows through XP and new cards
+2. **NPCs provide unique puzzles** - Personality rules transform how cards work
+3. **Relationships unlock tools** - Signature cards reward token investment
+4. **Failure creates rhythm** - Forced LISTEN makes conversations feel authentic
+5. **Every conversation matters** - Card XP accumulates across all interactions
+6. **Weight creates constant pressure** - Every item carried affects all other choices
+7. **Time segments create urgency** - Real time constraints force prioritization within rigid blocks
+
+The scenario is completable in approximately 30 minutes while teaching all core mechanics. Players finish with a clear understanding that conversations are the primary gameplay loop, their deck represents their character's growth over time, and every resource decision cascades through all systems. The time block structure creates natural activity rhythms where working consumes entire blocks, making the deadline genuinely challenging to meet.
