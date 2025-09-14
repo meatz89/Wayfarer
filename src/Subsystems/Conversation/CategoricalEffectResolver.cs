@@ -315,6 +315,55 @@ public class CategoricalEffectResolver
             _ => AtmosphereType.Patient
         };
     }
+
+    /// <summary>
+    /// Calculate magnitude from difficulty
+    /// </summary>
+    public int GetMagnitudeFromDifficulty(Difficulty difficulty)
+    {
+        return difficulty switch
+        {
+            Difficulty.VeryEasy => 1,
+            Difficulty.Easy => 1,
+            Difficulty.Medium => 2,
+            Difficulty.Hard => 3,
+            Difficulty.VeryHard => 4,
+            _ => 1
+        };
+    }
+
+    /// <summary>
+    /// Calculate success percentage based on card difficulty and atmosphere
+    /// </summary>
+    public int CalculateSuccessPercentage(CardInstance card, ConversationSession session)
+    {
+        int baseChance = card.Difficulty switch
+        {
+            Difficulty.VeryEasy => 85,
+            Difficulty.Easy => 70,
+            Difficulty.Medium => 50,
+            Difficulty.Hard => 30,
+            Difficulty.VeryHard => 15,
+            _ => 50
+        };
+
+        // Apply atmosphere modifiers
+        if (session.CurrentAtmosphere == AtmosphereType.Focused)
+        {
+            baseChance += 20; // +20% success for focused atmosphere
+        }
+
+        return Math.Clamp(baseChance, 0, 100);
+    }
+
+    /// <summary>
+    /// Check if action succeeds using pre-rolled value
+    /// </summary>
+    public bool CheckSuccessWithPreRoll(int preRoll, int successPercentage, ConversationSession session)
+    {
+        // Pre-roll is 1-100, success if roll <= successPercentage
+        return preRoll <= successPercentage;
+    }
 }
 
 /// <summary>

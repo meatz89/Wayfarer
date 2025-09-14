@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Integration service that bridges the game's existing conversation system 
@@ -294,7 +295,7 @@ public class ConversationNarrativeService
                 Id = card.Id,
                 Focus = card.Focus,
                 Difficulty = card.Difficulty,
-                Effect = card.SuccessEffect?.Value ?? card.Description ?? "",
+                Effect = card.SuccessType.ToString() ?? card.Description ?? "",
                 Persistence = DetermineCardPersistence(card),
                 NarrativeCategory = DetermineNarrativeCategory(card)
             };
@@ -356,14 +357,9 @@ public class ConversationNarrativeService
     /// </summary>
     /// <param name="card">Card instance to analyze</param>
     /// <returns>Persistence type for narrative generation</returns>
-    private CardPersistence DetermineCardPersistence(CardInstance card)
+    private PersistenceType DetermineCardPersistence(CardInstance card)
     {
-        if (card.Properties.Contains(CardProperty.Impulse))
-            return CardPersistence.Impulse;
-        if (card.Properties.Contains(CardProperty.Opening))
-            return CardPersistence.Opening;
-            
-        return CardPersistence.Persistent;
+        return card.Persistence;
     }
 
     /// <summary>
@@ -374,21 +370,20 @@ public class ConversationNarrativeService
     private string DetermineNarrativeCategory(CardInstance card)
     {
         // Check for atmosphere effects (indicates risk/pressure cards)
-        if (card.SuccessEffect?.Type == CardEffectType.SetAtmosphere)
+        if (card.SuccessType == SuccessEffectType.Atmospheric)
         {
-            string atmosphere = card.SuccessEffect.Value?.ToLower() ?? "";
-            if (atmosphere.Contains("volatile")) return "risk_volatile";
-            if (atmosphere.Contains("pressured")) return "pressure_intense";
-            if (atmosphere.Contains("patient")) return "support_patient";
             return "atmosphere_change";
         }
-        
+
         // Check for failure effects (indicates risk)
-        if (card.FailureEffect != null && card.FailureEffect.Type != CardEffectType.None)
+        if (card.FailureType != FailureEffectType.None)
         {
-            if (card.FailureEffect.Type == CardEffectType.SetAtmosphere)
-                return "risk_with_atmosphere";
-            return "risk_with_consequence";
+            if (card.FailureType == FailureEffectType.Overreach)
+                return "risk_extreme";
+            if (card.FailureType == FailureEffectType.Backfire)
+                return "risk_with_consequence";
+            if (card.FailureType == FailureEffectType.Disrupting)
+                return "risk_disrupting";
         }
         
         // Difficulty-based risk assessment
@@ -397,10 +392,10 @@ public class ConversationNarrativeService
         if (card.Difficulty == Difficulty.Hard) 
             return "risk_moderate";
         
-        // Card property-based categories
-        if (card.Properties.Contains(CardProperty.Opening)) 
+        // Card persistence-based categories
+        if (card.Persistence == PersistenceType.Opening)
             return "probe";
-        if (card.Properties.Contains(CardProperty.Impulse)) 
+        if (card.Persistence == PersistenceType.Impulse)
             return "pressure";
         
         // Token type indicates support/connection building

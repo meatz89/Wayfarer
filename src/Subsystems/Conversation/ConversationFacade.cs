@@ -162,10 +162,10 @@ public class ConversationFacade
             // Handle special card effects
             HandleSpecialCardEffects(action.SelectedCards, result);
 
-            // Remove used observation cards that are impulse
+            // Remove used observation cards (even though they're Thought type, they expire when used)
             foreach (CardInstance card in action.SelectedCards)
             {
-                if (card.CardType == CardType.Observation && card.Properties.Contains(CardProperty.Impulse))
+                if (card.CardType == CardType.Observation)
                 {
                     _observationManager.RemoveObservationCard(card.Id);
                 }

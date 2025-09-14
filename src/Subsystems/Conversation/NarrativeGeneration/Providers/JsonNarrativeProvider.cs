@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// JSON-based narrative provider that serves as a fallback when AI providers are unavailable.
@@ -228,8 +229,8 @@ public class JsonNarrativeProvider : INarrativeProvider
     private string GenerateFlowBasedDialogue(ConversationState state, NPCData npcData, CardCollection activeCards)
     {
         // Check for special card requirements first
-        bool hasImpulse = activeCards.Cards.Any(c => c.Persistence == CardPersistence.Impulse);
-        bool hasOpening = activeCards.Cards.Any(c => c.Persistence == CardPersistence.Opening);
+        bool hasImpulse = activeCards.Cards.Any(c => c.Persistence == PersistenceType.Impulse);
+        bool hasOpening = activeCards.Cards.Any(c => c.Persistence == PersistenceType.Opening);
         bool hasHighFocusCards = activeCards.Cards.Any(c => c.Focus >= 3);
 
         // Rapport-based dialogue depth
@@ -410,12 +411,12 @@ public class JsonNarrativeProvider : INarrativeProvider
     private string GenerateSmartProgressionHint(ConversationState state, CardCollection activeCards)
     {
         // Check card-specific hints first
-        if (activeCards.Cards.Any(c => c.Persistence == CardPersistence.Impulse))
+        if (activeCards.Cards.Any(c => c.Persistence == PersistenceType.Impulse))
         {
             return "An urgent matter requires immediate attention.";
         }
         
-        if (activeCards.Cards.Any(c => c.Persistence == CardPersistence.Opening))
+        if (activeCards.Cards.Any(c => c.Persistence == PersistenceType.Opening))
         {
             return "There's an opportunity to invite deeper discussion.";
         }

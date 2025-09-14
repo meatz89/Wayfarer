@@ -392,7 +392,7 @@ public class CardDeckManager
         foreach (CardInstance card in impulseCards)
         {
             // Execute exhaust effect if it exists
-            if (card.ExhaustEffect?.Type != CardEffectType.None)
+            if (card.ExhaustType != ExhaustEffectType.None)
             {
                 if (!ExecuteExhaustEffect(card, session))
                 {
@@ -422,7 +422,7 @@ public class CardDeckManager
         foreach (CardInstance card in openingCards)
         {
             // Execute exhaust effect if it exists
-            if (card.ExhaustEffect?.Type != CardEffectType.None)
+            if (card.ExhaustType != ExhaustEffectType.None)
             {
                 if (!ExecuteExhaustEffect(card, session))
                 {
@@ -445,49 +445,33 @@ public class CardDeckManager
     /// </summary>
     private bool ExecuteExhaustEffect(CardInstance card, ConversationSession session)
     {
-        if (card.ExhaustEffect == null || card.ExhaustEffect.Type == CardEffectType.None)
+        if (card.ExhaustType == ExhaustEffectType.None)
             return true; // No exhaust effect, conversation continues
 
-        switch (card.ExhaustEffect.Type)
+        // Calculate magnitude from difficulty
+        int magnitude = _effectResolver.GetMagnitudeFromDifficulty(card.Difficulty);
+
+        switch (card.ExhaustType)
         {
-            case CardEffectType.EndConversation:
-                // Request cards typically have this - conversation ends in failure
-                // The orchestrator will handle the actual ending
-                return false; // Signal conversation should end
-
-            case CardEffectType.SetAtmosphere:
-                if (Enum.TryParse<AtmosphereType>(card.ExhaustEffect.Value, out AtmosphereType atmosphere))
-                {
-                    _atmosphereManager.SetAtmosphere(atmosphere);
-                }
+            case ExhaustEffectType.Threading:
+                // Draw cards when exhausted
+                List<CardInstance> drawnCards = session.Deck.DrawCards(magnitude);
+                session.ActiveCards.AddRange(drawnCards);
                 return true;
 
-            case CardEffectType.DrawCards:
-                if (int.TryParse(card.ExhaustEffect.Value, out int count))
-                {
-                    List<CardInstance> drawnCards = session.Deck.DrawCards(count);
-                    session.ActiveCards.AddRange(drawnCards);
-                }
+            case ExhaustEffectType.Focusing:
+                // Restore focus when exhausted
+                _focusManager.AddFocus(magnitude);
                 return true;
 
-            case CardEffectType.AddRapport:
-                if (int.TryParse(card.ExhaustEffect.Value, out int flow))
-                {
-                    session.FlowBattery += flow;
-                    session.FlowBattery = Math.Clamp(session.FlowBattery, -3, 3);
-                }
-                return true;
-
-            case CardEffectType.AddFocus:
-                if (int.TryParse(card.ExhaustEffect.Value, out int focus))
-                {
-                    _focusManager.AddFocus(focus);
-                }
+            case ExhaustEffectType.Regret:
+                // Lose rapport when not played
+                session.FlowBattery -= magnitude;
+                session.FlowBattery = Math.Clamp(session.FlowBattery, -3, 3);
                 return true;
 
             default:
-                // Unknown exhaust effect, log and continue
-                Console.WriteLine($"[CardDeckManager] Unknown exhaust effect type: {card.ExhaustEffect.Type}");
+                // No exhaust effect
                 return true;
         }
     }
@@ -553,27 +537,9 @@ public class CardDeckManager
                     }
                     
                     // Create a new card instance with BurdenGoal type
-                    CardInstance instance = new CardInstance
+                    CardInstance instance = new CardInstance(requestCard)
                     {
-                        Id = requestCard.Id,
-                        Description = requestCard.Description,
-                        CardType = CardType.BurdenGoal, // Request cards are always BurdenGoal
-                        Persistence = requestCard.Persistence,
-                        SuccessType = requestCard.SuccessType,
-                        FailureType = requestCard.FailureType,
-                        ExhaustType = requestCard.ExhaustType,
-                        TokenType = requestCard.TokenType,
-                        Focus = requestCard.Focus,
-                        Difficulty = requestCard.Difficulty,
-                        SuccessEffect = requestCard.SuccessEffect ?? new CardEffect
-                        {
-                            Type = CardEffectType.EndConversation,
-                            Value = "Request completed"
-                        },
-                        FailureEffect = requestCard.FailureEffect,
-                        ExhaustEffect = requestCard.ExhaustEffect,
-                        DialogueFragment = requestCard.DialogueFragment,
-                        VerbPhrase = requestCard.VerbPhrase,
+                        CardType = CardType.BurdenGoal, // Override to mark as BurdenGoal
                         SourceContext = npc.ID
                     };
                     
@@ -869,9 +835,10 @@ public class CardDeckManager
             Focus = 1,
             Difficulty = Difficulty.Medium,
             TokenType = ConnectionType.Trust,
-            SuccessEffect = new CardEffect { Type = CardEffectType.AddRapport, Value = "1" },
-            FailureEffect = CardEffect.None,
-            ExhaustEffect = CardEffect.None
+            Persistence = PersistenceType.Thought,
+            SuccessType = SuccessEffectType.Rapport,
+            FailureType = FailureEffectType.None,
+            ExhaustType = ExhaustEffectType.None
         };
     }
 }

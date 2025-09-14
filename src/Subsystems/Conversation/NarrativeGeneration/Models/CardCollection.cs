@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Wrapper for active cards available to the player.
@@ -47,7 +48,7 @@ public class CardInfo
     /// Persistence type determining when card is removed from hand.
     /// Affects narrative timing requirements (Impulse needs urgency, Opening invites elaboration).
     /// </summary>
-    public CardPersistence Persistence { get; set; }
+    public PersistenceType Persistence { get; set; }
     
     /// <summary>
     /// Narrative category for backwards construction.
@@ -55,28 +56,4 @@ public class CardInfo
     /// Helps determine what kind of NPC dialogue this card should respond to.
     /// </summary>
     public string NarrativeCategory { get; set; }
-}
-
-/// <summary>
-/// Card persistence types for narrative timing requirements.
-/// </summary>
-public enum CardPersistence
-{
-    /// <summary>
-    /// Card stays in hand until played or conversation ends.
-    /// No special narrative timing requirements.
-    /// </summary>
-    Persistent,
-    
-    /// <summary>
-    /// Card removed after SPEAK action if unplayed.
-    /// Narrative should create urgency requiring immediate response.
-    /// </summary>
-    Impulse,
-    
-    /// <summary>
-    /// Card removed after LISTEN action if unplayed.
-    /// Narrative should invite elaboration or follow-up questions.
-    /// </summary>
-    Opening
 }

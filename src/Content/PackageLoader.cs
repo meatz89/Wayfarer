@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Orchestrates loading of game packages, delegating to specialized parsers for conversion
@@ -1066,7 +1067,7 @@ public class PackageLoader
             Difficulty = Difficulty.Medium
         };
         card.CardType = CardType.Observation;
-        card.Properties.Add(CardProperty.Persistent);
+        card.Persistence = PersistenceType.Thought; // Observations persist through LISTEN
         return card;
     }
 

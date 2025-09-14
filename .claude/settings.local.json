@@ -435,7 +435,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5999\" timeout 15 dotnet Wayfarer.dll)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6000\" timeout 15 dotnet Wayfarer.dll)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:7777\" timeout 30 dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:8888\" dotnet run)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:8888\" dotnet run)",
+      "Bash(cut:*)"
     ],
     "deny": []
   }

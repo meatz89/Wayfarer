@@ -219,12 +219,9 @@ public class ObservationManager
 
         // Only update the ID and observation-specific metadata
         observationCard.Id = $"{observation.Id}_card_{Guid.NewGuid()}";
-        observationCard.Properties.Add(CardProperty.Persistent /* Observable now determined by CardType */);
-        // Add impulse property since observation cards are impulse
-        if (!observationCard.Properties.Contains(CardProperty.Impulse))
-        {
-            observationCard.Properties.Add(CardProperty.Impulse);
-        }
+        // Set categorical properties for observation cards
+        observationCard.Persistence = PersistenceType.Thought; // Observations persist through LISTEN
+        observationCard.CardType = CardType.Observation;
 
         // Update display information if not already set
         if (string.IsNullOrEmpty(observationCard.Description))
