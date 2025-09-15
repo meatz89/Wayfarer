@@ -24,8 +24,8 @@ public static class GameConstants
     public static class UI
     {
         // Wait options for rest/wait actions (in segments)
-        public const int WAIT_OPTION_SHORT_SEGMENTS = 4; // 2 hours = 4 segments
-        public const int WAIT_OPTION_LONG_SEGMENTS = 8; // 4 hours = 8 segments
+        public const int WAIT_OPTION_SHORT_SEGMENTS = 2; // Short wait option
+        public const int WAIT_OPTION_LONG_SEGMENTS = 4; // Long wait option
 
         // Streaming content estimation
         public const int ESTIMATED_STREAMING_TOKENS = 1000;

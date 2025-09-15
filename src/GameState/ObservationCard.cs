@@ -65,14 +65,14 @@ public class ObservationCard : ConversationCard
     public void SetExpiration(int segments)
     {
         ExpirationSegments = segments;
-        ExpirationTime = DateTime.Now.AddMinutes(segments * 30); // 30 minutes per segment
+        ExpirationTime = DateTime.Now.AddMinutes(segments * 10); // 10 minutes per segment
     }
 
     public void UpdateDecayState(DateTime currentGameTime)
     {
         // Simple decay based on creation time
         TimeSpan age = currentGameTime - CreatedAt;
-        if (age.TotalMinutes > 1440) // 24 hours * 60 minutes
+        if (age.TotalMinutes > 1440) // 144 segments expiration
         {
             IsPlayable = false;
         }
@@ -89,18 +89,20 @@ public class ObservationCard : ConversationCard
         if (IsExpired()) return "Expired";
 
         TimeSpan age = DateTime.Now - CreatedAt;
-        if (age.TotalMinutes < 60) return "Fresh"; // 1 hour
-        if (age.TotalMinutes < 360) return "Recent"; // 6 hours
-        if (age.TotalMinutes < 1440) return "Aging"; // 24 hours
+        int ageInSegments = (int)(age.TotalMinutes / 10);
+        if (ageInSegments < 6) return "Fresh"; // Fresh state (< 6 segments)
+        if (ageInSegments < 36) return "Recent"; // Recent state (< 36 segments)
+        if (ageInSegments < 144) return "Aging"; // Aging state (< 144 segments)
         return "Stale";
     }
 
     public string GetDecayStateDescription(DateTime currentTime)
     {
         TimeSpan age = currentTime - CreatedAt;
-        if (age.TotalMinutes < 60) return "Fresh"; // 1 hour
-        if (age.TotalMinutes < 360) return "Recent"; // 6 hours
-        if (age.TotalMinutes < 1440) return "Aging"; // 24 hours
+        int ageInSegments = (int)(age.TotalMinutes / 10);
+        if (ageInSegments < 6) return "Fresh"; // Fresh state (< 6 segments)
+        if (ageInSegments < 36) return "Recent"; // Recent state (< 36 segments)
+        if (ageInSegments < 144) return "Aging"; // Aging state (< 144 segments)
         return "Stale";
     }
 

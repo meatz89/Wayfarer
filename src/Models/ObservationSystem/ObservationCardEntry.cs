@@ -18,9 +18,9 @@ public class ObservationCardEntry
         // Calculate segments elapsed in game time
         int daysElapsed = currentDay - DayAcquired;
         int timeBlocksElapsed = (daysElapsed * 6) + (currentTimeBlock - TimeBlockAcquired);
-        int segmentsElapsed = timeBlocksElapsed * 8; // Each time block is 8 segments (4 hours * 2 segments per hour)
+        int segmentsElapsed = timeBlocksElapsed * 8; // Each time block is 8 segments
 
-        // Default 96 segment expiration (48 hours * 2 segments per hour)
-        return segmentsElapsed >= 96;
+        // Default 16 segment expiration
+        return segmentsElapsed >= 16;
     }
 }

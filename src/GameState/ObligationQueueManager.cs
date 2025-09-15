@@ -1988,7 +1988,7 @@ public class ObligationQueueManager
 
         // Extend the deadline
         int oldDeadlineSegments = letter.DeadlineInSegments;
-        letter.DeadlineInSegments += 96; // 2 days = 48 hours = 96 segments
+        letter.DeadlineInSegments += 8;
 
         // Success narrative
         _messageSystem.AddSystemMessage(

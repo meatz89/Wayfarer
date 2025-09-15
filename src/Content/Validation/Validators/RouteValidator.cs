@@ -9,7 +9,7 @@ public class RouteValidator : BaseValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
-            "id", "originLocationSpot", "destinationLocationSpot", "method", "travelTimeMinutes", "baseCoinCost", "baseStaminaCost"
+            "id", "originLocationSpot", "destinationLocationSpot", "method", "travelTimeSegments", "baseCoinCost", "baseStaminaCost"
         };
 
     public override bool CanValidate(string fileName)
@@ -98,7 +98,7 @@ public class RouteValidator : BaseValidator
         }
 
         // Validate numeric fields
-        ValidateNumericField(route, "travelTimeMinutes", routeId, fileName, errors, min: 1);
+        ValidateNumericField(route, "travelTimeSegments", routeId, fileName, errors, min: 1);
         ValidateNumericField(route, "baseCoinCost", routeId, fileName, errors, min: 0);
         ValidateNumericField(route, "baseStaminaCost", routeId, fileName, errors, min: 0);
 

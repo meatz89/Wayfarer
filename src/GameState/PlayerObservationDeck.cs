@@ -5,7 +5,7 @@ using System.Linq;
 /// <summary>
 /// Player's personal observation deck with expiration tracking.
 /// Maximum 20 cards, each with acquisition time for decay management.
-/// Cards expire after 24-48 hours and are automatically removed.
+/// Cards expire after 8-16 segments and are automatically removed.
 /// </summary>
 public class PlayerObservationDeck
 {
@@ -148,8 +148,8 @@ public class PlayerObservationDeck
         {
             int daysElapsed = currentDay - entry.DayAcquired;
             int timeBlocksElapsed = (daysElapsed * 6) + (currentTimeBlock - entry.TimeBlockAcquired);
-            int segmentsElapsed = timeBlocksElapsed * 8; // 8 segments per time block (4 hours * 2 segments per hour)
-            int segmentsRemaining = Math.Max(0, 96 - segmentsElapsed); // 96 segments default expiration (48 hours * 2)
+            int segmentsElapsed = timeBlocksElapsed * 8; // 8 segments per time block
+            int segmentsRemaining = Math.Max(0, 96 - segmentsElapsed); // 96 segments default expiration
 
             details.Add(new ObservationCardDetail(entry.Card, segmentsRemaining));
         }

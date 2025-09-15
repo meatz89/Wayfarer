@@ -336,7 +336,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 return exchange.TimeAdvancementHours;
             }
 
-            // Default: 1 hour per 3 attention spent
+            // Default: 1 segment per 3 attention spent
             int attentionCost = exchange.Costs
                 .Where(c => c.Type == ResourceType.Attention)
                 .Sum(c => c.Amount);

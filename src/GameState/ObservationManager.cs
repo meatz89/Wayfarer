@@ -269,8 +269,8 @@ public class ObservationManager
         int gameDay = _timeManager.GetCurrentDay();
         int gameSegment = _timeManager.CurrentSegment;
         
-        // Convert segments to fractional hours for DateTime calculation (16 segments = 8 hours, 2 segments per hour)
-        double segmentAsHours = gameSegment * 0.5; // Each segment = 30 minutes (0.5 hours)
+        // Convert segments to fractional hours for DateTime calculation
+        double segmentAsHours = gameSegment * 0.5; // Convert segments to hours for DateTime
 
         return baseDate.AddDays(gameDay - 1).AddHours(segmentAsHours);
     }

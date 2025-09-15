@@ -83,8 +83,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             // Count urgency levels
             metrics.ExpiredObligationCount = activeObligations.Count(o => o.DeadlineInSegments <= 0);
-            metrics.UrgentObligationCount = activeObligations.Count(o => o.DeadlineInSegments <= 360 && o.DeadlineInSegments > 0); // < 6 hours
-            metrics.CriticalObligationCount = activeObligations.Count(o => o.DeadlineInSegments <= 180 && o.DeadlineInSegments > 0); // < 3 hours
+            metrics.UrgentObligationCount = activeObligations.Count(o => o.DeadlineInSegments <= 36 && o.DeadlineInSegments > 0); // < 36 segments
+            metrics.CriticalObligationCount = activeObligations.Count(o => o.DeadlineInSegments <= 18 && o.DeadlineInSegments > 0); // < 18 segments
             metrics.OverdueObligationCount = metrics.ExpiredObligationCount;
 
             // Position 1 status

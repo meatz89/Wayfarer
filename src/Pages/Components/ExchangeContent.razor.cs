@@ -97,7 +97,7 @@ namespace Wayfarer.Pages.Components
             var parts = new List<string>();
             
             // Add time-specific status
-            parts.Add($"{GetTimeBlockDisplay(Context.CurrentTimeBlock)} business hours");
+            parts.Add($"{GetTimeBlockDisplay(Context.CurrentTimeBlock)} business period");
             
             // Add merchant status if they have commerce tokens
             if (GetCommerceTokens() > 0)

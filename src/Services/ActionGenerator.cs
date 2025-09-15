@@ -382,7 +382,7 @@ public class ActionGenerator
 
     private string GetRestDetail(Location location, TimeBlocks time)
     {
-        string baseTime = location.Physical?.GetPropertyValue() == "Expansive" ? "5 min" : "10 min";
+        string baseTime = location.Physical?.GetPropertyValue() == "Expansive" ? "1 segment" : "1 segment";
         string detail = time == TimeBlocks.Morning ? "Clear head" : "Catch breath";
         return $"{baseTime} • {detail}";
     }

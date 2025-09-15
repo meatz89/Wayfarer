@@ -74,55 +74,43 @@
             margin-top: 2px;
         }
 
-        .token-status {
+        .personality-rule {
+            padding: 8px 12px;
+            background: #8b4726;
+            color: #faf4ea;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Token Display */
+        .token-display {
+            background: #3d3429;
+            padding: 6px 15px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 6px 12px;
-            background: #faf4ea;
-            border: 1px solid #c4a684;
-            border-radius: 4px;
         }
 
-        .token-icon {
-            width: 20px;
-            height: 20px;
-            background: #7a8b5a;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: #faf4ea;
-        }
-
-        .token-count {
-            font-size: 14px;
-            font-weight: bold;
-            color: #5c4a3a;
-        }
-
-        .signature-cards-note {
-            font-size: 10px;
-            color: #7a6250;
-        }
-
-        .personality-rule {
-            margin-left: 20px;
-            margin-right: 20px;
-        }
-
-        .rule-label {
+        .token-label {
             font-size: 11px;
+            color: #8b7355;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.8;
         }
 
-        .rule-text {
-            font-size: 14px;
+        .token-value {
+            font-size: 18px;
             font-weight: bold;
-            margin-top: 2px;
+            color: #d4a76a;
+        }
+
+        .signature-cards-indicator {
+            font-size: 10px;
+            color: #7a8b5a;
+            margin-left: 5px;
         }
 
         /* Win/Lose Conditions Bar */
@@ -333,6 +321,21 @@
             background: #faf0e6;
         }
 
+        .player-last-action {
+            padding: 10px;
+            background: #e8dcc4;
+            border-left: 3px solid #7a8b5a;
+            border-radius: 2px;
+            font-size: 13px;
+            margin-bottom: 10px;
+            color: #5c4a3a;
+        }
+
+        .action-result {
+            font-weight: bold;
+            color: #8b4726;
+        }
+
         /* Action Section */
         .action-section {
             padding: 12px;
@@ -360,7 +363,7 @@
             min-width: 160px;
         }
 
-        .action-button:hover {
+        .action-button:hover:not(.forced) {
             background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
             border-color: #8b7355;
             transform: translateY(-2px);
@@ -370,6 +373,12 @@
             background: linear-gradient(to bottom, #d4704a, #b4604a);
             border-color: #8b4726;
             color: #faf4ea;
+            cursor: default;
+        }
+
+        .action-button.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
 
         .action-details {
@@ -378,11 +387,14 @@
             color: #7a6250;
         }
 
-        .action-button.forced .action-details {
-            color: #e8dcc4;
+        .forced-indicator {
+            font-size: 10px;
+            color: #faf4ea;
+            font-weight: bold;
+            text-transform: uppercase;
         }
 
-        /* Focus Bar (Directly Above Cards) */
+        /* Focus Bar */
         .focus-bar {
             background: #3d3429;
             padding: 10px;
@@ -451,7 +463,7 @@
             position: relative;
         }
 
-        .card:hover:not(.disabled):not(.promise) {
+        .card:hover:not(.disabled):not(.request) {
             background: #fefaf0;
             border-color: #a68b6f;
             transform: translateX(5px);
@@ -463,102 +475,40 @@
             background: #e8dcc4;
         }
 
-        .card.promise {
+        .card.persistent {
+            border-color: #7a8b5a;
+            background: linear-gradient(135deg, #faf4ea 0%, #f4f9e9 100%);
+        }
+
+        .card.signature {
+            border-color: #d4a76a;
+            background: linear-gradient(135deg, #faf4ea 0%, #fff9f0 100%);
+        }
+
+        .card.request {
             border-color: #8b4726;
             background: #fff9f0;
         }
 
-        .card.promise.active {
+        .card.request.active {
             border-color: #5a7a3a;
             background: #f4f9e9;
         }
 
-        .card.promise:hover.active {
+        .card.request:hover.active {
             border-color: #4a6a2a;
             transform: translateX(5px);
             background: #f0f5e5;
         }
 
-        /* Card Source Indicator */
-        .card-source {
-            position: absolute;
-            top: 0;
-            left: 0;
-            padding: 2px 8px;
-            font-size: 9px;
-            text-transform: uppercase;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-        }
-
-        .card-source.player {
-            background: #5c4a3a;
-            color: #faf4ea;
-        }
-
-        .card-source.signature {
-            background: #7a8b5a;
-            color: #faf4ea;
-        }
-
-        .card-source.observation {
-            background: #5a7a8a;
-            color: #faf4ea;
-        }
-
-        /* Card Level Display */
-        .card-level {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 30px;
-            height: 30px;
-            background: #2c241a;
-            color: #d4a76a;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 9px;
-            border-bottom-left-radius: 4px;
-        }
-
-        .level-number {
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .card-level.max {
-            background: #d4a76a;
-            color: #2c241a;
-        }
-
-        /* XP Progress Bar */
-        .xp-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: #e8dcc4;
-        }
-
-        .xp-fill {
-            height: 100%;
-            background: #7a8b5a;
-            transition: width 0.3s;
-        }
-
         /* Card Layout */
         .card-content {
             display: flex;
-            margin-top: 20px;
         }
 
         .card-main {
             flex: 1;
             padding: 12px;
-            padding-top: 8px;
         }
 
         .card-header {
@@ -607,29 +557,41 @@
             font-style: italic;
         }
 
-        .card-failure.forces-listen {
-            font-weight: bold;
-            color: #d4704a;
+        /* Card Tags */
+        .card-tags {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            display: flex;
+            gap: 2px;
         }
 
-        /* Persistence Indicator */
-        .persistence-indicator {
-            display: inline-block;
-            padding: 1px 4px;
-            border-radius: 2px;
+        .tag {
+            padding: 2px 6px;
+            border-radius: 0 0 0 2px;
             font-size: 9px;
-            margin-left: 6px;
             text-transform: uppercase;
+            font-weight: bold;
         }
 
-        .persistence-indicator.persistent {
-            background: #5a7a3a;
+        .tag.persistent {
+            background: #7a8b5a;
             color: #faf4ea;
         }
 
-        .persistence-indicator.non-persistent {
-            background: #8b4726;
+        .tag.signature {
+            background: #d4a76a;
+            color: #2c241a;
+        }
+
+        .tag.observation {
+            background: #5a7a8a;
             color: #faf4ea;
+        }
+
+        .tag.level {
+            background: #3d3429;
+            color: #d4a76a;
         }
 
         /* Success/Failure Strip */
@@ -662,8 +624,8 @@
             color: #7a6250;
         }
 
-        /* Promise Card Special */
-        .promise-threshold {
+        /* Request Card Special */
+        .request-threshold {
             background: #8b4726;
             color: #faf4ea;
             padding: 6px 10px;
@@ -672,11 +634,11 @@
             text-align: center;
         }
 
-        .promise-active {
+        .request-active {
             background: #5a7a3a;
         }
 
-        .promise-status {
+        .request-status {
             font-size: 10px;
             color: #7a6250;
             text-align: center;
@@ -684,16 +646,87 @@
             font-style: italic;
         }
 
-        /* Forced Listen Warning */
-        .forced-listen-warning {
-            background: #d4704a;
-            color: #faf4ea;
-            padding: 8px;
-            text-align: center;
+        /* XP Indicator */
+        .xp-bar {
+            height: 2px;
+            background: #e8dcc4;
+            margin-top: 8px;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: #d4a76a;
+            transition: width 0.3s;
+        }
+
+        .xp-text {
+            font-size: 9px;
+            color: #7a6250;
+            margin-top: 2px;
+            text-align: right;
+        }
+
+        /* Goal Cards Section */
+        .goals-section {
+            background: #e8dcc4;
+            padding: 10px 15px;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .goals-header {
             font-size: 11px;
-            font-weight: bold;
+            color: #7a6250;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .goals-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .goal-card {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            padding: 10px;
+            min-width: 150px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .goal-card.achievable {
+            border-color: #7a8b5a;
+            background: #f4f9e9;
+        }
+
+        .goal-card.active {
+            border-color: #d4a76a;
+            transform: scale(1.05);
+        }
+
+        .goal-threshold {
+            font-size: 18px;
+            font-weight: bold;
+            color: #5c4a3a;
+            margin-bottom: 4px;
+        }
+
+        .goal-name {
+            font-size: 11px;
+            color: #7a6250;
+            margin-bottom: 4px;
+        }
+
+        .goal-reward {
+            font-size: 10px;
+            color: #5a7a3a;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -701,27 +734,20 @@
     <div class="game-container">
         <!-- Header -->
         <div class="header">
-            <span>Tuesday, 3:47 PM - Copper Kettle Tavern</span>
-            <span class="deadline-warning">Elena's letter deadline: 1h 13m</span>
+            <span>Tuesday, 2:47 PM - Copper Kettle Tavern</span>
         </div>
 
         <!-- NPC Bar -->
         <div class="npc-bar">
             <div class="npc-info">
                 <div class="npc-name">Elena</div>
-                <div class="npc-status">Scribe • Devoted personality • Corner table (Private spot)</div>
+                <div class="npc-status">Scribe • Corner table (Private spot +1 patience)</div>
             </div>
-            <!-- Personality Rule Banner -->
-            <div class="personality-rule">
-                <div class="rule-label">Devoted Personality Rule</div>
-                <div class="rule-text">When rapport decreases, it decreases twice</div>
-            </div>
-            <div class="token-status">
-                <div class="token-icon">T</div>
-                <div>
-                    <div class="token-count">7 Trust</div>
-                    <div class="signature-cards-note">3 signature cards active</div>
-                </div>
+            <div class="personality-rule">Devoted: Rapport losses doubled</div>
+            <div class="token-display">
+                <span class="token-label">Trust</span>
+                <span class="token-value">7</span>
+                <span class="signature-cards-indicator">(3 cards)</span>
             </div>
         </div>
 
@@ -736,8 +762,8 @@
                     <span class="patience-slot used"></span>
                     <span class="patience-slot used"></span>
                     <span class="patience-slot used"></span>
-                    <span class="patience-slot used"></span>
                     <span class="patience-slot current"></span>
+                    <span class="patience-slot"></span>
                     <span class="patience-slot"></span>
                     <span class="patience-slot"></span>
                     <span class="patience-slot"></span>
@@ -751,8 +777,8 @@
             
             <div class="rapport-display">
                 <span class="rapport-label">Rapport</span>
-                <span class="rapport-counter">7</span>
-                <span class="rapport-modifier">(+14% all cards)</span>
+                <span class="rapport-counter">4</span>
+                <span class="rapport-modifier">(+8% all cards)</span>
             </div>
         </div>
 
@@ -761,7 +787,7 @@
             <div class="flow-container">
                 <div class="flow-negative">
                     <span class="flow-segment extreme"></span>
-                    <span class="flow-segment"></span>
+                    <span class="flow-segment filled negative"></span>
                     <span class="flow-segment"></span>
                 </div>
                 
@@ -775,8 +801,8 @@
                 <span class="flow-arrow">→</span>
                 
                 <div class="flow-positive">
-                    <span class="flow-segment filled"></span>
-                    <span class="flow-segment filled"></span>
+                    <span class="flow-segment"></span>
+                    <span class="flow-segment"></span>
                     <span class="flow-segment extreme"></span>
                 </div>
             </div>
@@ -786,69 +812,89 @@
         <div class="atmosphere-bar">
             <div class="atmosphere-display">
                 <span class="atmosphere-label">Atmosphere:</span>
-                <span class="atmosphere-current">Receptive</span>
-                <span class="atmosphere-effect">(+1 card on LISTEN)</span>
+                <span class="atmosphere-current">Neutral</span>
+                <span class="atmosphere-effect">(no effect - cleared by failure)</span>
+            </div>
+        </div>
+
+        <!-- Goal Cards Display -->
+        <div class="goals-section">
+            <div class="goals-header">Request Goals - Elena's Letter</div>
+            <div class="goals-container">
+                <div class="goal-card achievable">
+                    <div class="goal-threshold">5</div>
+                    <div class="goal-name">Basic Delivery</div>
+                    <div class="goal-reward">1 Trust token</div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-threshold">10</div>
+                    <div class="goal-name">Priority Delivery</div>
+                    <div class="goal-reward">2 Trust + Observation</div>
+                </div>
+                <div class="goal-card">
+                    <div class="goal-threshold">15</div>
+                    <div class="goal-name">Immediate Action</div>
+                    <div class="goal-reward">3 Trust + Permit</div>
+                </div>
             </div>
         </div>
 
         <!-- Narrative Section -->
         <div class="narrative-section">
-            <div class="npc-dialogue">
-                "You've always understood me better than others. This letter... it could change everything. I need someone I trust to ensure Lord Blackwood receives it personally."
+            <div class="player-last-action">
+                You played "Trust me" (3 focus, Medium difficulty) - <span class="action-result">FAILED</span>. 
+                The Devoted rule doubled the rapport loss to -2. You must LISTEN next turn.
             </div>
-        </div>
-
-        <!-- Forced Listen Warning (shown after failure) -->
-        <div class="forced-listen-warning" style="display: none;">
-            Last card failed - You must LISTEN
+            <div class="npc-dialogue">
+                "I... I don't know if I can trust anyone right now. My uncle would be furious if he knew. But Lord Blackwood leaves at 5 PM, and this letter is my only hope."
+            </div>
         </div>
 
         <!-- Action Choice -->
         <div class="action-section">
             <div class="action-choices">
-                <div class="action-button">
+                <div class="action-button forced">
                     <div>LISTEN</div>
-                    <div class="action-details">Draw 5 cards, refresh focus</div>
+                    <div class="action-details">Discard non-persistent, draw 4, refresh focus</div>
                 </div>
-                <div class="action-button">
+                <div class="action-button disabled">
                     <div>SPEAK</div>
-                    <div class="action-details">Play a card</div>
                 </div>
             </div>
         </div>
 
-        <!-- Focus Bar (Directly Above Cards) -->
+        <!-- Focus Bar -->
         <div class="focus-bar">
             <span class="focus-label">Focus</span>
             <div class="focus-dots">
                 <span class="focus-dot spent"></span>
                 <span class="focus-dot spent"></span>
-                <span class="focus-dot available"></span>
+                <span class="focus-dot spent"></span>
                 <span class="focus-dot available"></span>
                 <span class="focus-dot available"></span>
             </div>
-            <span class="focus-numbers">3/5</span>
+            <span class="focus-numbers">2/5</span>
         </div>
 
         <!-- Cards Section -->
         <div class="cards-section">
             <div class="card-grid">
-                <!-- Promise Card 1 (Active at 5 rapport) -->
-                <div class="card promise active">
-                    <div class="promise-threshold promise-active">
-                        ACTIVE at 5+ Rapport (You have: 7)
+                <!-- Request Card (Active at 5 rapport) -->
+                <div class="card request active">
+                    <div class="request-threshold request-active">
+                        ACTIVE at 5+ Rapport (You have: 4)
                     </div>
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-header">
-                                <div class="card-name">Accept Elena's Letter</div>
+                                <div class="card-name">Accept Elena's Letter - Basic</div>
                                 <div style="font-size: 11px; color: #5a7a3a;">NO COST</div>
                             </div>
                             <div class="card-text">
                                 "I'll deliver your letter to Lord Blackwood immediately."
                             </div>
-                            <div class="card-effect">Creates urgent delivery (1hr, position 1)</div>
-                            <div class="promise-status">Ready to play - ends conversation</div>
+                            <div class="card-effect">Creates obligation (position 4, 2hr deadline)</div>
+                            <div class="request-status">One more rapport needed</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
@@ -863,69 +909,160 @@
                     </div>
                 </div>
 
-                <!-- Player Card - Level 3 -->
-                <div class="card">
-                    <span class="card-source player">Player</span>
-                    <div class="card-level">
-                        <span class="level-number">3</span>
-                        <span>LVL</span>
-                    </div>
-                    <div class="xp-progress">
-                        <div class="xp-fill" style="width: 40%"></div>
+                <!-- Player Card - Persistent, Level 3 -->
+                <div class="card persistent">
+                    <div class="card-tags">
+                        <span class="tag persistent">THOUGHT</span>
+                        <span class="tag level">LV 3</span>
                     </div>
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-header">
-                                <div class="card-name">
-                                    I understand
-                                    <span class="persistence-indicator persistent">Persistent</span>
-                                </div>
-                                <div class="card-focus">2</div>
+                                <div class="card-name">I hear you</div>
+                                <div class="card-focus">1</div>
                             </div>
                             <div class="card-text">
-                                "I know how difficult this must be for you."
+                                "I understand what you're going through."
                             </div>
-                            <div class="card-effect">Success: +2 rapport</div>
-                            <div class="card-failure forces-listen">Failure: Forces LISTEN</div>
+                            <div class="card-effect">Success: +1 rapport</div>
+                            <div class="card-failure">Failure: Forces LISTEN</div>
+                            <div class="xp-bar">
+                                <div class="xp-fill" style="width: 60%"></div>
+                            </div>
+                            <div class="xp-text">XP: 9/15 to Level 4</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
-                                <div class="outcome-chance">84%</div>
+                                <div class="outcome-chance">88%</div>
                                 <div class="outcome-label">Success</div>
                             </div>
                             <div class="outcome">
-                                <div class="outcome-chance">16%</div>
+                                <div class="outcome-chance">12%</div>
                                 <div class="outcome-label">Failure</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Elena's Signature Card -->
-                <div class="card">
-                    <span class="card-source signature">Elena's</span>
+                <!-- Elena Signature Card -->
+                <div class="card signature">
+                    <div class="card-tags">
+                        <span class="tag signature">ELENA</span>
+                    </div>
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-header">
-                                <div class="card-name">
-                                    Shared Burden
-                                    <span class="persistence-indicator non-persistent">Lost on Listen</span>
-                                </div>
-                                <div class="card-focus">2</div>
+                                <div class="card-name">Elena's Trust</div>
+                                <div class="card-focus">1</div>
                             </div>
                             <div class="card-text">
-                                "We've faced challenges together before."
+                                "You've always been there when I needed help."
                             </div>
-                            <div class="card-effect">Success: Double next rapport gain</div>
-                            <div class="card-failure forces-listen">Failure: -2 rapport (doubled to -4), Forces LISTEN</div>
+                            <div class="card-effect">Success: +2 rapport, Persistent this conversation</div>
+                            <div class="card-failure">Failure: -4 rapport (Devoted doubles to -4)</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
-                                <div class="outcome-chance">74%</div>
+                                <div class="outcome-chance">78%</div>
                                 <div class="outcome-label">Success</div>
                             </div>
                             <div class="outcome">
-                                <div class="outcome-chance">26%</div>
+                                <div class="outcome-chance">22%</div>
+                                <div class="outcome-label">Failure</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Player Card - Non-persistent -->
+                <div class="card">
+                    <div class="card-tags">
+                        <span class="tag level">LV 1</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-main">
+                            <div class="card-header">
+                                <div class="card-name">Let me help</div>
+                                <div class="card-focus">2</div>
+                            </div>
+                            <div class="card-text">
+                                "There must be something I can do."
+                            </div>
+                            <div class="card-effect">Success: +2 rapport</div>
+                            <div class="card-failure">Failure: -2 rapport (Devoted doubles to -4)</div>
+                            <div class="xp-bar">
+                                <div class="xp-fill" style="width: 33%"></div>
+                            </div>
+                            <div class="xp-text">XP: 1/3 to Level 2</div>
+                        </div>
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-chance">68%</div>
+                                <div class="outcome-label">Success</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">32%</div>
+                                <div class="outcome-label">Failure</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Promise Card (from Request bundle) -->
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-main">
+                            <div class="card-tags">
+                                <span class="tag promise">PROMISE</span>
+                            </div>
+                            <div class="card-header">
+                                <div class="card-name">Promise Priority</div>
+                                <div class="card-focus">3</div>
+                            </div>
+                            <div class="card-text">
+                                "I'll handle your letter before anything else."
+                            </div>
+                            <div class="card-effect">Success: +8 rapport, moves to queue position 1</div>
+                            <div class="card-failure">Failure: Forces LISTEN</div>
+                        </div>
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-chance">58%</div>
+                                <div class="outcome-label">Success</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">42%</div>
+                                <div class="outcome-label">Failure</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Observation Card -->
+                <div class="card">
+                    <div class="card-tags">
+                        <span class="tag observation">OBSERVATION</span>
+                        <span class="tag persistent">THOUGHT</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-main">
+                            <div class="card-header">
+                                <div class="card-name">Safe Passage Knowledge</div>
+                                <div class="card-focus">0</div>
+                            </div>
+                            <div class="card-text">
+                                "I know a route that avoids your uncle's associates."
+                            </div>
+                            <div class="card-effect">Success: Advance connection state (to Receptive)</div>
+                            <div class="card-failure">Failure: Consumed anyway</div>
+                        </div>
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-chance">93%</div>
+                                <div class="outcome-label">Very Easy</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">7%</div>
                                 <div class="outcome-label">Failure</div>
                             </div>
                         </div>
@@ -934,102 +1071,32 @@
 
                 <!-- Player Card - Level 5 Mastered -->
                 <div class="card">
-                    <span class="card-source player">Player</span>
-                    <div class="card-level max">
-                        <span class="level-number">5</span>
-                        <span>MAX</span>
+                    <div class="card-tags">
+                        <span class="tag level">Lv 5</span>
                     </div>
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-header">
-                                <div class="card-name">
-                                    Let me think
-                                    <span class="persistence-indicator persistent">Persistent</span>
-                                </div>
-                                <div class="card-focus">1</div>
-                            </div>
-                            <div class="card-text">
-                                "Give me a moment to consider this properly."
-                            </div>
-                            <div class="card-effect">Success: Sets Patient atmosphere</div>
-                            <div class="card-failure">Failure: No effect (Mastered - doesn't force LISTEN)</div>
-                        </div>
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">94%</div>
-                                <div class="outcome-label">Success</div>
-                            </div>
-                            <div class="outcome">
-                                <div class="outcome-chance">6%</div>
-                                <div class="outcome-label">Failure</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Player Card - Level 1 -->
-                <div class="card">
-                    <span class="card-source player">Player</span>
-                    <div class="card-level">
-                        <span class="level-number">1</span>
-                        <span>LVL</span>
-                    </div>
-                    <div class="xp-progress">
-                        <div class="xp-fill" style="width: 66%"></div>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-main">
-                            <div class="card-header">
-                                <div class="card-name">
-                                    Bold claim
-                                    <span class="persistence-indicator non-persistent">Lost on Listen</span>
-                                </div>
+                                <div class="card-name">Bold Claim</div>
                                 <div class="card-focus">3</div>
                             </div>
                             <div class="card-text">
-                                "I swear on my honor, this will reach him."
+                                "I promise you - everything will work out."
                             </div>
-                            <div class="card-effect">Success: +5 rapport</div>
-                            <div class="card-failure forces-listen">Failure: -2 rapport (doubled to -4), Forces LISTEN</div>
+                            <div class="card-effect">Success: +5 rapport (MASTERED: No forced LISTEN on fail)</div>
+                            <div class="card-failure">Failure: -2 rapport (Devoted doubles to -4)</div>
+                            <div class="xp-bar">
+                                <div class="xp-fill" style="width: 100%; background: gold;"></div>
+                            </div>
+                            <div class="xp-text" style="color: #d4a76a; font-weight: bold;">MASTERED</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
-                                <div class="outcome-chance">64%</div>
+                                <div class="outcome-chance">58%</div>
                                 <div class="outcome-label">Success</div>
                             </div>
                             <div class="outcome">
-                                <div class="outcome-chance">36%</div>
-                                <div class="outcome-label">Failure</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Elena's Signature Card - First Token -->
-                <div class="card">
-                    <span class="card-source signature">Elena's</span>
-                    <div class="card-content">
-                        <div class="card-main">
-                            <div class="card-header">
-                                <div class="card-name">
-                                    Elena's Trust
-                                    <span class="persistence-indicator persistent">Persistent</span>
-                                </div>
-                                <div class="card-focus">1</div>
-                            </div>
-                            <div class="card-text">
-                                "You've never let me down before."
-                            </div>
-                            <div class="card-effect">Success: +1 rapport</div>
-                            <div class="card-failure forces-listen">Failure: Forces LISTEN</div>
-                        </div>
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">84%</div>
-                                <div class="outcome-label">Success</div>
-                            </div>
-                            <div class="outcome">
-                                <div class="outcome-chance">16%</div>
+                                <div class="outcome-chance">42%</div>
                                 <div class="outcome-label">Failure</div>
                             </div>
                         </div>

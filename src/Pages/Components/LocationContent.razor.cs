@@ -522,7 +522,7 @@ namespace Wayfarer.Pages.Components
             DeliveryObligation? firstObligation = obligations.FirstOrDefault();
             return firstObligation != null &&
                    (firstObligation.SenderId == npcId || firstObligation.SenderName == GetNPCName(npcId)) &&
-                   firstObligation.DeadlineInSegments < 360; // Urgent if less than 6 hours
+                   firstObligation.DeadlineInSegments < 360; // Urgent if less than 360 segments
         }
 
         protected string GetNPCName(string npcId)

@@ -396,17 +396,14 @@
           "DEVOTED"
         ],
         "focus": 2,
-        "properties": [
-          "Persistent"
-        ],
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "None",
         "connectionType": "Trust",
         "description": "We understand each other",
         "difficulty": "Easy",
         "minimumTokensRequired": 1,
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "2"
-        },
         "dialogueFragment": "Elena, I feel like we're beginning to understand each other."
       },
       {
@@ -416,21 +413,14 @@
           "DEVOTED"
         ],
         "focus": 3,
-        "properties": [
-          "Persistent"
-        ],
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "Backfire",
+        "exhaustType": "None",
         "connectionType": "Trust",
         "description": "You can trust me completely",
         "difficulty": "Medium",
         "minimumTokensRequired": 3,
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "3"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-1"
-        },
         "dialogueFragment": "Elena, you can trust me with anything. I'll never betray your confidence."
       },
       {
@@ -440,21 +430,14 @@
           "DEVOTED"
         ],
         "focus": 4,
-        "properties": [
-          "Persistent"
-        ],
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "Disrupting",
+        "exhaustType": "None",
         "connectionType": "Trust",
         "description": "Our bond runs deep",
         "difficulty": "Medium",
         "minimumTokensRequired": 6,
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "4"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-2"
-        },
         "dialogueFragment": "Elena, the bond between us has grown stronger than I could have imagined."
       },
       {
@@ -464,21 +447,14 @@
           "DEVOTED"
         ],
         "focus": 5,
-        "properties": [
-          "Persistent"
-        ],
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "Disrupting",
+        "exhaustType": "Regret",
         "connectionType": "Trust",
         "description": "My devotion is absolute",
         "difficulty": "Hard",
         "minimumTokensRequired": 10,
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "5"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-2"
-        },
         "dialogueFragment": "Elena, my devotion to you is absolute. I would do anything for you."
       },
       {
@@ -488,21 +464,14 @@
           "DEVOTED"
         ],
         "focus": 6,
-        "properties": [
-          "OneShot"
-        ],
+        "persistence": "Impulse",
+        "successType": "Advancing",
+        "failureType": "Overreach",
+        "exhaustType": "Regret",
         "connectionType": "Trust",
         "description": "Pledge eternal loyalty",
         "difficulty": "Hard",
         "minimumTokensRequired": 15,
-        "successEffect": {
-          "type": "AddRapport",
-          "value": "10"
-        },
-        "failureEffect": {
-          "type": "AddRapport",
-          "value": "-3"
-        },
         "dialogueFragment": "Elena, I pledge my eternal loyalty to you. Through all trials, I will stand by your side."
       },
       {
@@ -547,8 +516,7 @@
         ],
         "focus": 1,
         "persistence": "Thought",
-        "successType": "Atmospheric",
-        "targetAtmosphere": "Focused",
+        "successType": "Atmospheric-Focused",
         "failureType": "None",
         "exhaustType": "None",
         "connectionType": "Commerce",
@@ -620,6 +588,10 @@
           "ALL"
         ],
         "focus": 0,
+        "persistence": "Opening",
+        "successType": "Advancing",
+        "failureType": "None",
+        "exhaustType": "None",
         "properties": [
           "OneShot",
           "Hidden"
@@ -627,10 +599,6 @@
         "connectionType": "Trust",
         "description": "Safe Passage Knowledge",
         "difficulty": "Auto",
-        "successEffect": {
-          "type": "AdvanceConnectionState",
-          "value": "1"
-        },
         "dialogueFragment": "You share what you've learned about safe travel routes through the market."
       },
       {
@@ -640,6 +608,10 @@
           "MERCANTILE"
         ],
         "focus": 0,
+        "persistence": "Opening",
+        "successType": "Promising",
+        "failureType": "None",
+        "exhaustType": "None",
         "properties": [
           "OneShot",
           "Hidden"
@@ -647,10 +619,6 @@
         "connectionType": "Commerce",
         "description": "Merchant Route Insight",
         "difficulty": "Auto",
-        "successEffect": {
-          "type": "UnlockExchange",
-          "value": "marcus_special_deal"
-        },
         "dialogueFragment": "You mention the merchant patterns you've observed in the market."
       }
     ],
