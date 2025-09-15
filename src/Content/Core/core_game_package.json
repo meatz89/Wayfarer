@@ -410,6 +410,17 @@
         "promiseCards": [
           "elena_priority_promise"
         ]
+      },
+      {
+        "id": "marcus_trade_opportunities",
+        "npcId": "marcus",
+        "name": "Trade Opportunities",
+        "description": "Marcus seeks profitable trading partners",
+        "requestCards": [
+          "marcus_trade_request",
+          "marcus_business_proposal"
+        ],
+        "promiseCards": []
       }
     ],
     "dialogueTemplates": {

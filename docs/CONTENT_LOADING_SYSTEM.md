@@ -243,18 +243,18 @@ public static NPC GenerateSkeletonNPC(string id, string source)
 
 ## NPC Persistent Decks
 
-Each NPC maintains five persistent decks that determine conversation availability:
+Each NPC maintains four persistent decks, while the player brings their own conversation deck to all interactions:
 
-### 1. Conversation Deck
-- Contains standard conversation cards (typically 20)
-- Always available for standard conversations
-- Cards have focus costs, difficulty tiers, and persistence types
+### 1. Progression Deck
+- Contains unique cards unlocked at token thresholds (1, 3, 6, 10, 15 tokens)
+- These are goal cards that become available as rapport improves
+- Each card represents deeper trust or understanding with the NPC
 
-### 2. Request Deck
-- Contains goal cards (letters, promises, meetings)
-- Each card type enables specific conversation options
-- Letter cards enable "Letter Request" conversations
-- Promise cards enable "Promise" conversations
+### 2. Request Deck (via Requests System)
+- NPCs have Requests that define available conversation types
+- Each request contains request cards and promise cards
+- Request cards enable specific conversation options (Letter Request, Standard, etc.)
+- Promise cards offer immediate benefits but create obligations
 
 ### 3. Observation Deck
 - Receives cards from location observations
@@ -266,6 +266,12 @@ Each NPC maintains five persistent decks that determine conversation availabilit
 - Contains burden cards from failed obligations
 - Enables "Make Amends" conversation type
 - Each burden card makes resolution harder
+
+### Player's Conversation Deck
+- The player owns and maintains a personal 20-card conversation deck
+- This same deck is used in ALL conversations with every NPC
+- Cards gain XP when played successfully and level up over time
+- Represents the player's growing social skills and repertoire
 
 ### 5. Exchange Deck
 - Contains commerce/trade cards (mercantile NPCs)

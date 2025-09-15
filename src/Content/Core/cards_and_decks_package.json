@@ -390,6 +390,48 @@
         "dialogueFragment": "Elena, I promise to make your needs my absolute priority. Everything else can wait."
       },
       {
+        "id": "marcus_trade_request",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 4,
+        "properties": [
+          "OneShot"
+        ],
+        "connectionType": "Commerce",
+        "description": "Discuss trade opportunities",
+        "difficulty": "Easy",
+        "rapportThreshold": 5,
+        "successEffect": {
+          "type": "GainCoins",
+          "value": "10"
+        },
+        "npcRequestText": "I hear you're looking for work. I have profitable trade connections that could benefit us both.",
+        "dialogueFragment": "Marcus, I'm interested in exploring trade opportunities with you."
+      },
+      {
+        "id": "marcus_business_proposal",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 6,
+        "properties": [
+          "OneShot"
+        ],
+        "connectionType": "Commerce",
+        "description": "Partner in a business venture",
+        "difficulty": "Medium",
+        "rapportThreshold": 10,
+        "successEffect": {
+          "type": "GainCard",
+          "value": "commercial_insight"
+        },
+        "npcRequestText": "There's a lucrative venture I'm considering. I need a trustworthy partner. Interested?",
+        "dialogueFragment": "Marcus, I have a business proposal that could benefit us both."
+      },
+      {
         "id": "elena_shared_understanding",
         "type": "Normal",
         "personalityTypes": [
