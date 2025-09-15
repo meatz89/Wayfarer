@@ -444,7 +444,8 @@
       "Bash(ASPNETCORE_URLS='http://localhost:6100' timeout 10 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS='http://localhost:6101' dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS='http://localhost:6102' dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS='http://localhost:6103' dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS='http://localhost:6103' dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS='http://localhost:6200' dotnet run --no-build)"
     ],
     "deny": []
   }

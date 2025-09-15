@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel System UI - Wayfarer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', Georgia, serif;
+            background: #2c241a;
+            color: #2c241a;
+        }
+
+        .travel-container {
+            max-width: 1200px;
+            margin: 50px auto;
+            background: #e8dcc4;
+            border: 3px solid #a68b6f;
+            border-radius: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        /* Header */
+        .route-header {
+            background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+            padding: 20px;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .route-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .route-name {
+            font-size: 24px;
+            color: #5c4a3a;
+            letter-spacing: 1px;
+        }
+
+        .route-properties {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .route-property {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .property-label {
+            color: #7a6250;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .property-value {
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        /* Transport Type Badge */
+        .transport-badge {
+            background: #5c4a3a;
+            color: #faf4ea;
+            padding: 4px 12px;
+            border-radius: 3px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Travel State Bar */
+        .travel-state-bar {
+            background: #f9f3e9;
+            padding: 15px 20px;
+            border-bottom: 1px solid #c4a684;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .travel-state {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .state-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+        }
+
+        .state-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #8b4726;
+        }
+
+        /* Stamina Display */
+        .stamina-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stamina-bar {
+            display: flex;
+            gap: 4px;
+        }
+
+        .stamina-pip {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #a68b6f;
+            background: #7a8b5a;
+            border-radius: 2px;
+        }
+
+        .stamina-pip.empty {
+            background: #e8dcc4;
+        }
+
+        .stamina-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            background: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .segment-progress {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .segment-indicator {
+            flex: 1;
+            height: 8px;
+            background: #d4c4b0;
+            border: 1px solid #a68b6f;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .segment-indicator.completed {
+            background: #7a8b5a;
+        }
+
+        .segment-indicator.current {
+            background: linear-gradient(to right, #7a8b5a 0%, #7a8b5a 50%, #d4c4b0 50%);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .segment-label {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* WALKING ROUTE UI */
+        .path-selection {
+            padding: 25px;
+            background: #f4e8d0;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .segment-title {
+            font-size: 13px;
+            color: #7a6250;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .path-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .path-card {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .path-card.face-down {
+            background: linear-gradient(135deg, #e8dcc4 0%, #d4c4b0 100%);
+        }
+
+        .path-card:hover:not(.unavailable) {
+            border-color: #a68b6f;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .path-card.unavailable {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .path-card.selected {
+            border-color: #7a8b5a;
+            background: #f9fef9;
+        }
+
+        /* Face-down card shows minimal info */
+        .path-card.face-down .path-details,
+        .path-card.face-down .path-requirements {
+            display: none;
+        }
+
+        .path-card.face-down .path-mystery {
+            display: block;
+            text-align: center;
+            padding: 20px;
+            font-size: 24px;
+            color: #a68b6f;
+        }
+
+        .path-mystery {
+            display: none;
+        }
+
+        .path-header {
+            padding: 15px;
+            background: #f9f3e9;
+            border-bottom: 1px solid #c4a684;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .path-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .stamina-cost {
+            width: 28px;
+            height: 28px;
+            background: #5c4a3a;
+            color: #faf4ea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .path-details {
+            padding: 15px;
+        }
+
+        .path-effect {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #2c241a;
+            margin-bottom: 10px;
+        }
+
+        .path-requirements {
+            padding: 10px 15px;
+            background: #f9f3e9;
+            border-top: 1px solid #c4a684;
+            font-size: 12px;
+        }
+
+        .requirement-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #8b4726;
+        }
+
+        .encounter-warning {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            background: #d4704a;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .one-time-badge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: #7a8b5a;
+            color: white;
+            padding: 2px 8px;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        /* CARAVAN EVENT UI */
+        .event-display {
+            padding: 25px;
+            background: #f4e8d0;
+        }
+
+        .event-card {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #faf4ea;
+            border: 3px solid #a68b6f;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .event-header {
+            background: linear-gradient(to right, #f9f3e9, #f4e8d0);
+            padding: 15px 20px;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .event-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #5c4a3a;
+            margin-bottom: 5px;
+        }
+
+        .event-situation {
+            font-size: 14px;
+            font-style: italic;
+            color: #7a6250;
+            line-height: 1.4;
+        }
+
+        .event-options {
+            padding: 20px;
+        }
+
+        .option-card {
+            background: white;
+            border: 2px solid #c4a684;
+            border-radius: 3px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option-card:hover:not(.unavailable) {
+            border-color: #7a8b5a;
+            transform: translateX(5px);
+            background: #fefaf0;
+        }
+
+        .option-card.unavailable {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .option-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: #5c4a3a;
+            margin-bottom: 8px;
+        }
+
+        .option-cost {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #8b4726;
+            margin-bottom: 6px;
+        }
+
+        .option-effect {
+            font-size: 13px;
+            color: #5a7a3a;
+            font-style: italic;
+        }
+
+        .free-option {
+            color: #7a8b5a;
+            font-weight: bold;
+        }
+
+        /* Action Buttons */
+        .action-section {
+            padding: 20px;
+            background: #e8dcc4;
+            text-align: center;
+            border-top: 2px solid #a68b6f;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .action-button {
+            padding: 12px 30px;
+            background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+            border: 2px solid #a68b6f;
+            border-radius: 4px;
+            color: #5c4a3a;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-button:hover:not(:disabled) {
+            background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
+            transform: translateY(-2px);
+        }
+
+        .action-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .action-button.primary {
+            background: linear-gradient(to bottom, #8b9b6a, #7a8b5a);
+            color: white;
+            border-color: #6a7b4a;
+        }
+
+        /* Encounter Deck Preview */
+        .encounter-preview {
+            padding: 15px 20px;
+            background: #f9f3e9;
+            border-top: 1px solid #c4a684;
+        }
+
+        .encounter-title {
+            font-size: 11px;
+            color: #7a6250;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .encounter-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .encounter-item {
+            padding: 4px 10px;
+            background: #faf4ea;
+            border: 1px solid #c4a684;
+            border-radius: 3px;
+            font-size: 12px;
+            color: #5c4a3a;
+        }
+
+        /* Events Counter */
+        .events-counter {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .event-pip {
+            width: 12px;
+            height: 12px;
+            border: 1px solid #a68b6f;
+            border-radius: 50%;
+            background: #e8dcc4;
+        }
+
+        .event-pip.completed {
+            background: #7a8b5a;
+        }
+
+        .event-pip.current {
+            background: #d4704a;
+        }
+    </style>
+</head>
+<body>
+
+<!-- WALKING ROUTE UI -->
+<div class="travel-container">
+    <!-- Route Header -->
+    <div class="route-header">
+        <div class="route-info">
+            <h1 class="route-name">Market Square → Warehouse District</h1>
+            <span class="transport-badge">Walking</span>
+        </div>
+        <div class="route-properties">
+            <div class="route-property">
+                <span class="property-label">Duration:</span>
+                <span class="property-value">20 min</span>
+            </div>
+            <div class="route-property">
+                <span class="property-label">Hunger:</span>
+                <span class="property-value">+5</span>
+            </div>
+            <div class="route-property">
+                <span class="property-label">Cost:</span>
+                <span class="property-value">Free</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Travel State -->
+    <div class="travel-state-bar">
+        <div class="travel-state">
+            <span class="state-label">Travel State:</span>
+            <span class="state-name">Fresh</span>
+        </div>
+        <div class="stamina-display">
+            <span class="state-label">Stamina:</span>
+            <div class="stamina-bar">
+                <div class="stamina-pip"></div>
+                <div class="stamina-pip"></div>
+                <div class="stamina-pip"></div>
+                <div class="stamina-pip empty"></div>
+            </div>
+            <span class="stamina-value">3/4</span>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-section">
+        <div class="segment-progress">
+            <span class="segment-label">Start</span>
+            <div class="segment-indicator completed"></div>
+            <span class="segment-label">Segment 1</span>
+            <div class="segment-indicator current"></div>
+            <span class="segment-label">Segment 2</span>
+            <div class="segment-indicator"></div>
+            <span class="segment-label">Arrival</span>
+        </div>
+    </div>
+
+    <!-- Path Selection -->
+    <div class="path-selection">
+        <h2 class="segment-title">Segment 1: Choose Your Path</h2>
+        <div class="path-cards">
+            <!-- Face-up discovered path -->
+            <div class="path-card">
+                <div class="one-time-badge">Once Only</div>
+                <div class="path-header">
+                    <span class="path-name">Merchant Avenue</span>
+                    <span class="stamina-cost">2</span>
+                </div>
+                <div class="path-details">
+                    <div class="path-effect">
+                        A well-maintained commercial route. Takes 10 minutes to traverse. You'll find a shipping manifest that could interest Marcus.
+                    </div>
+                </div>
+                <div class="path-requirements">
+                    <div class="requirement-item">
+                        <span>💰 Requires: 2 coins (toll)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Face-down undiscovered path -->
+            <div class="path-card face-down">
+                <div class="path-header">
+                    <span class="path-name">Dock Workers Path</span>
+                    <span class="stamina-cost">1</span>
+                </div>
+                <div class="path-mystery">?</div>
+                <div class="path-details">
+                    <div class="path-effect">
+                        Through the industrial area. 5 minutes travel but +10 hunger from the smell.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Path with encounter -->
+            <div class="path-card face-down">
+                <div class="encounter-warning">⚠</div>
+                <div class="path-header">
+                    <span class="path-name">Loading Docks</span>
+                    <span class="stamina-cost">1</span>
+                </div>
+                <div class="path-mystery">?</div>
+                <div class="path-details">
+                    <div class="path-effect">
+                        Takes 10 minutes. Triggers a dock encounter.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Encounter Deck Preview (if visible) -->
+    <div class="encounter-preview">
+        <div class="encounter-title">Dock Encounters (Possible):</div>
+        <div class="encounter-list">
+            <span class="encounter-item">Busy Period</span>
+            <span class="encounter-item">Worker Strike</span>
+            <span class="encounter-item">Loading Accident</span>
+            <span class="encounter-item">Shift Change</span>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-section">
+        <div class="action-buttons">
+            <button class="action-button">
+                REST
+                <div style="font-size: 11px; margin-top: 4px;">+30 min, restore stamina</div>
+            </button>
+            <button class="action-button primary">
+                TAKE PATH
+                <div style="font-size: 11px; margin-top: 4px;">Select a path first</div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- CARAVAN EVENT UI -->
+<div class="travel-container" style="margin-top: 50px;">
+    <!-- Route Header -->
+    <div class="route-header">
+        <div class="route-info">
+            <h1 class="route-name">Market Square → Noble Quarter</h1>
+            <span class="transport-badge">Merchant Caravan</span>
+        </div>
+        <div class="route-properties">
+            <div class="route-property">
+                <span class="property-label">Duration:</span>
+                <span class="property-value">20 min</span>
+            </div>
+            <div class="route-property">
+                <span class="property-label">Entry:</span>
+                <span class="property-value">10 coins + 2 Commerce</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Travel State (Caravan) -->
+    <div class="travel-state-bar">
+        <div class="travel-state">
+            <span class="state-label">Journey Status:</span>
+            <span class="state-name">Traveling Comfortably</span>
+        </div>
+        <div class="events-counter">
+            <span class="state-label">Events:</span>
+            <div class="event-pip completed"></div>
+            <div class="event-pip current"></div>
+            <div class="event-pip"></div>
+        </div>
+    </div>
+
+    <!-- Event Display -->
+    <div class="event-display">
+        <div class="event-card">
+            <div class="event-header">
+                <h3 class="event-title">Merchant Gossip</h3>
+                <p class="event-situation">Fellow traders in the caravan are discussing recent opportunities in the Noble Quarter. Their conversation might prove valuable.</p>
+            </div>
+            <div class="event-options">
+                <div class="option-card">
+                    <div class="option-name">Listen Carefully</div>
+                    <div class="option-cost">
+                        <span>📖 Cost: 1 attention</span>
+                    </div>
+                    <div class="option-effect">
+                        Gain 1 Commerce token and reveal one Noble Quarter path
+                    </div>
+                </div>
+                
+                <div class="option-card">
+                    <div class="option-name">Join Discussion</div>
+                    <div class="option-cost">
+                        <span>📖 Cost: 2 attention + 2 coins</span>
+                    </div>
+                    <div class="option-effect">
+                        Gain 2 Commerce tokens
+                    </div>
+                </div>
+                
+                <div class="option-card">
+                    <div class="option-name">Rest Instead</div>
+                    <div class="option-cost free-option">
+                        <span>✓ Free</span>
+                    </div>
+                    <div class="option-effect">
+                        Restore 2 stamina for future travel
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-section">
+        <div class="action-buttons">
+            <button class="action-button primary">
+                CHOOSE RESPONSE
+                <div style="font-size: 11px; margin-top: 4px;">Select an option</div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- CHECKPOINT (Dead End Example) -->
+<div class="travel-container" style="margin-top: 50px;">
+    <!-- Route Header -->
+    <div class="route-header">
+        <div class="route-info">
+            <h1 class="route-name">Market Square → Noble Quarter</h1>
+            <span class="transport-badge">Walking (Checkpoint)</span>
+        </div>
+        <div class="route-properties">
+            <div class="route-property">
+                <span class="property-label">Duration:</span>
+                <span class="property-value">25 min</span>
+            </div>
+            <div class="route-property">
+                <span class="property-label">Requirement:</span>
+                <span class="property-value" style="color: #d4704a;">Permit</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Travel State -->
+    <div class="travel-state-bar">
+        <div class="travel-state">
+            <span class="state-label">Travel State:</span>
+            <span class="state-name" style="color: #d4704a;">Blocked</span>
+        </div>
+        <div class="stamina-display">
+            <span class="state-label">Stamina:</span>
+            <div class="stamina-bar">
+                <div class="stamina-pip"></div>
+                <div class="stamina-pip empty"></div>
+                <div class="stamina-pip empty"></div>
+                <div class="stamina-pip empty"></div>
+            </div>
+            <span class="stamina-value">1/4</span>
+        </div>
+    </div>
+
+    <!-- Path Selection (All Blocked) -->
+    <div class="path-selection">
+        <h2 class="segment-title" style="color: #d4704a;">Segment 1: Noble Quarter Gate - Cannot Proceed</h2>
+        <div class="path-cards">
+            <!-- Revealed but blocked paths -->
+            <div class="path-card unavailable">
+                <div class="path-header">
+                    <span class="path-name">Main Gate</span>
+                    <span class="stamina-cost">1</span>
+                </div>
+                <div class="path-details">
+                    <div class="path-effect">
+                        Official entrance. 5 minutes to pass through.
+                    </div>
+                </div>
+                <div class="path-requirements" style="background: #fae6e6;">
+                    <div class="requirement-item" style="color: #d4704a; font-weight: bold;">
+                        <span>⛔ Requires: Noble Permit (not possessed)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="path-card unavailable">
+                <div class="path-header">
+                    <span class="path-name">Bribe Guard</span>
+                    <span class="stamina-cost">2</span>
+                </div>
+                <div class="path-details">
+                    <div class="path-effect">
+                        Convince the guards with coin. 10 minutes to negotiate.
+                    </div>
+                </div>
+                <div class="path-requirements" style="background: #fae6e6;">
+                    <div class="requirement-item" style="color: #d4704a; font-weight: bold;">
+                        <span>⛔ Requires: 20 coins (you have 0)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="path-card">
+                <div class="path-header">
+                    <span class="path-name">Argue Entry</span>
+                    <span class="stamina-cost">1</span>
+                </div>
+                <div class="path-details">
+                    <div class="path-effect" style="color: #d4704a;">
+                        Waste 60 minutes arguing, then forced to return to Market Square.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-section">
+        <div class="action-buttons">
+            <button class="action-button" style="background: #fae6e6; border-color: #d4704a;">
+                TURN BACK
+                <div style="font-size: 11px; margin-top: 4px;">Return to Market Square</div>
+            </button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
